@@ -579,8 +579,12 @@ the lib/voronoi/Makefile.lammps file.
 
 USER-ADIOS package :h4,link(user-adios)
 
-The USER-ADIOS package requires the "ADIOS I/O library"_https://github.com/ornladios/ADIOS2, version 2.3.1 or newer.
-Make sure that you have ADIOS built with/without MPI if you build LAMMPS with/without MPI, respectively.
+The USER-ADIOS package requires the "ADIOS I/O library"_https://github.com/ornladios/ADIOS2,
+version 2.3.1 or newer. Make sure that you have ADIOS built either with or
+without MPI to match if you build LAMMPS with or without MPI.
+ADIOS compilation settings for LAMMPS are automatically detected, if the PATH
+and LD_LIBRARY_PATH environment variables have been updated for the local ADIOS
+installation and the instructions below are followed for the respective build systems.
 
 [CMake build]:
 

@@ -58,7 +58,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  molecule mpiio mscg opt peri poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
+PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
 	   user-mgpt user-misc user-mofff user-molfile \
@@ -68,7 +68,7 @@ PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
 	  python voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
 	  user-smd user-vtk
 
@@ -77,7 +77,7 @@ PACKSYS = compress mpiio python user-lb
 PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
 
 PACKEXT = kim latte mscg voronoi \
-	  user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
+	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
 	  user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)

@@ -48,6 +48,7 @@ An alphabetic list of all general LAMMPS commands.
 "dimension"_dimension.html,
 "displace_atoms"_displace_atoms.html,
 "dump"_dump.html,
+"dump adios"_dump_adios.html,
 "dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
 "dump movie"_dump_image.html,

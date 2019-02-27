@@ -150,6 +150,7 @@ dielectric.html
 dimension.html
 displace_atoms.html
 dump.html
+dump_adios.html
 dump_h5md.html
 dump_image.html
 dump_modify.html

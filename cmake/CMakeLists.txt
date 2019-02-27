@@ -178,7 +178,7 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
   USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
   USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM USER-YAFF)
+  USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -200,6 +200,17 @@ if(PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
 endif()
 
 include_directories(${LAMMPS_SOURCE_DIR})
+
+
+if(PKG_USER-ADIOS)
+  # The search for ADIOS2 must come before MPI because
+  # it includes its own MPI search with the latest FindMPI.cmake
+  # script that defines the MPI::MPI_C target 
+  enable_language(C)
+  find_package(ADIOS2 REQUIRED)
+  list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
+endif()
+
 
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
@@ -612,6 +623,7 @@ if(PKG_USER-NETCDF)
   list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARIES})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
+
 
 if(PKG_USER-SMD)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)
@@ -1359,6 +1371,7 @@ if(BUILD_EXE)
     add_test(ShowHelp ${LAMMPS_BINARY} -help)
   endif()
 endif()
+
 
 ###############################################################################
 # Build documentation

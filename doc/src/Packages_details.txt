@@ -63,6 +63,7 @@ as contained in the file name.
 "SRD"_#PKG-SRD,
 "VORONOI"_#PKG-VORONOI :tb(c=6,ea=c)
 
+"USER-ADIOS"_#PKG-USER-ADIOS,
 "USER-ATC"_#PKG-USER-ATC,
 "USER-AWPMD"_#PKG-USER-AWPMD,
 "USER-BOCS"_#PKG-USER-BOCS,
@@ -971,6 +972,31 @@ src/VORONOI/README
 lib/voronoi/README
 "compute voronoi/atom"_compute_voronoi_atom.html
 examples/voronoi :ul
+
+:line
+
+USER-ADIOS package :link(PKG-USER-ADIOS),h4
+
+[Contents:]
+
+ADIOS is a high-performance I/O library. This package implements the 
+dump "atom/adios" and dump "custom/adios" commands to write data using
+the ADIOS library. 
+
+[Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-adios on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-ADIOS: filenames -> commands
+src/USER-ADIOS/README
+examples/USER/adios
+https://github.com/ornladios/ADIOS2 :ul
 
 :line
 

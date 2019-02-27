@@ -8,7 +8,7 @@ __If this addresses an open GitHub Issue, mention the issue number here. Use the
 
 **Author(s)**
 
-_Please state name and affiliation of the author or authors that should be credited with the changes in this pull request. If this pull request adds new files to the distribution, please also provide a suitable "long-lived" e-mail address (e.g. from gmail, yahoo, outlook, etc. instead of your institution's e-mail) for the *corresponding* author, i.e. the person the LAMMPS developers can contact directly with questions and requests related to maintenance and support of this contributed code._
+_Please state name and affiliation of the author or authors that should be credited with the changes in this pull request. If this pull request adds new files to the distribution, please also provide a suitable "long-lived" e-mail address (ideally something that can outlive your institution's e-mail, in case you change jobs) for the *corresponding* author, i.e. the person the LAMMPS developers can contact directly with questions and requests related to maintenance and support of this contributed code._
 
 **Licensing**
 

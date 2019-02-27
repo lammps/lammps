@@ -31,7 +31,7 @@ done
 if (test $1 = 1) then
 
   CONFIGSCRIPT=none
-  if ( test `which adios2-config` ) then
+  if ( test `which adios2-config 2>> /dev/null` ) then
     CONFIGSCRIPT=adios2-config
   elif ( ! test -z "$ADIOS2_DIR" ) then
     if ( test `which $ADIOS2_DIR/bin/adios2-config` ) then
@@ -55,7 +55,7 @@ if (test $1 = 1) then
   if [ "$CONFIGSCRIPT" != "none" ]; then 
     ADIOS2_INC=`$CONFIGSCRIPT --cxx-flags`
     ADIOS2_LIB=`$CONFIGSCRIPT --cxx-libs`
-  
+
     echo "adios_SYSINC=${ADIOS2_INC}
 adios_SYSLIB=${ADIOS2_LIB}
 " > Makefile.lammps

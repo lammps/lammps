@@ -25,14 +25,14 @@ args = same options as in "{dump custom}"_dump.html command :l
 
 [Examples:]
 
-dump adios1 all atom/adios   100 atoms.bp 
+dump adios1 all atom/adios   100 atoms.bp
 dump 4a     all custom/adios 100 dump_adios.bp id v_p x y z
 dump 2 subgroup custom/adios 100 dump_adios.bp mass type xs ys zs vx vy vz :pre
 
 [Description:]
 
 Dump a snapshot of atom coordinates every N timesteps in the
-"ADIOS"_adios based "BP" file format, or using different I/O solutions in ADIOS, 
+"ADIOS"_adios based "BP" file format, or using different I/O solutions in ADIOS,
 to a stream that can be read on-line by another program.
 ADIOS-BP files are binary, portable and self-describing.
 
@@ -44,7 +44,7 @@ ADIOS-BP files are binary, portable and self-describing.
 It is possible to use these dump styles with the
 "write_dump"_write_dump.html command.  In this case, the sub-intervals
 must not be set at all.  The write_dump command can be used to
-create a new file at each individual dump. 
+create a new file at each individual dump.
 
 dump 4     all atom/adios 100 dump.bp
 write_dump all atom/adios singledump.bp :pre
@@ -56,11 +56,11 @@ write_dump all atom/adios singledump.bp :pre
 The number of atoms per snapshot CAN change with the adios style.
 When using the ADIOS tool 'bpls' to list the content of a .bp file,
 bpls will print {__} for the size of the output table indicating that
-its size is changing every step. 
+its size is changing every step.
 
-The {atom/adios} and {custom/adios} dump styles are part of the USER-adios package. 
-They are only enabled if LAMMPS was built with that package. See the 
-"Build package"_Build_package.html doc page for more info. 
+The {atom/adios} and {custom/adios} dump styles are part of the USER-adios package.
+They are only enabled if LAMMPS was built with that package. See the
+"Build package"_Build_package.html doc page for more info.
 
 
 :line

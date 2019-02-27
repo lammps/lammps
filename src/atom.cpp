@@ -757,22 +757,22 @@ void Atom::bonus_check()
     if (body && (body[i] >=0)) ++local_bodies;
   }
 
-  MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_MIN,world);
+  MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (nellipsoids != num_global)
     error->all(FLERR,"Inconsistent 'ellipsoids' header value and number of "
                "atoms with enabled ellipsoid flags");
 
-  MPI_Allreduce(&local_lines,&num_global,1,MPI_LMP_BIGINT,MPI_MIN,world);
+  MPI_Allreduce(&local_lines,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (nlines != num_global)
     error->all(FLERR,"Inconsistent 'lines' header value and number of "
                "atoms with enabled line flags");
 
-  MPI_Allreduce(&local_tris,&num_global,1,MPI_LMP_BIGINT,MPI_MIN,world);
+  MPI_Allreduce(&local_tris,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (ntris != num_global)
     error->all(FLERR,"Inconsistent 'tris' header value and number of "
                "atoms with enabled tri flags");
 
-  MPI_Allreduce(&local_bodies,&num_global,1,MPI_LMP_BIGINT,MPI_MIN,world);
+  MPI_Allreduce(&local_bodies,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (nbodies != num_global)
     error->all(FLERR,"Inconsistent 'bodies' header value and number of "
                "atoms with enabled body flags");

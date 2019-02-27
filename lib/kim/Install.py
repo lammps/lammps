@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "kim-api-v2-2.0.0"
+version = "kim-api-v2-2.0.1"
 
 # help message
 

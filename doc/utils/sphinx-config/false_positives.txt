@@ -2433,6 +2433,7 @@ shockvel
 si
 SiC
 Siepmann
+Sievers
 Sij
 Sikandar
 Silbert

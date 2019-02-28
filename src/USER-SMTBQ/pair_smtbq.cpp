@@ -187,6 +187,16 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potqn);
   memory->destroy(dpotqn);
 
+  memory->destroy(fafbOxOxSurf);
+  memory->destroy(dfafbOxOxSurf);
+  memory->destroy(fafbTiOxSurf);
+  memory->destroy(dfafbTiOxSurf);
+
+  memory->destroy(fafbOxOxBB);
+  memory->destroy(dfafbOxOxBB);
+  memory->destroy(fafbTiOxBB);
+  memory->destroy(dfafbTiOxBB);
+
   memory->destroy(ecov);
   memory->destroy(sbcov);
   memory->destroy(coord);

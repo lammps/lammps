@@ -40,6 +40,7 @@ Commands :h1
    dump_molfile
    dump_netcdf
    dump_vtk
+   dynamical_matrix
    echo
    fix
    fix_modify

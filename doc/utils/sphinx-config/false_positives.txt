@@ -627,8 +627,10 @@ dVx
 dW
 dx
 dy
+dyn
 dyne
 dynes
+dynmat
 Dyre
 Dzyaloshinskii
 Eaa
@@ -2439,6 +2441,7 @@ shockvel
 si
 SiC
 Siepmann
+Sievers
 Sij
 Sikandar
 Silbert

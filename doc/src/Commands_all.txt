@@ -55,6 +55,7 @@ An alphabetic list of all general LAMMPS commands.
 "dump netcdf"_dump_netcdf.html,
 "dump netcdf/mpiio"_dump_netcdf.html,
 "dump vtk"_dump_vtk.html,
+"dynamical_matrix"_dynamical_matrix.html,
 "echo"_echo.html,
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,

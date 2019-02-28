@@ -1046,10 +1046,16 @@ void CommKokkos::borders_device() {
   }
 
   if (1) {
-     k_pbc          = DAT::tdual_int_2d("comm:pbc",nswap,6);
-     k_pbc_flag     = DAT::tdual_int_1d("comm:pbc_flag",nswap);
-     k_firstrecv    = DAT::tdual_int_1d("comm:firstrecv",nswap);
-     k_sendnum_scan = DAT::tdual_int_1d("comm:sendnum_scan",nswap);
+    if (nswap > k_pbc.extent(0)) {
+      k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
+      k_swap = DAT::tdual_int_2d("comm:swap",3,nswap);
+      k_pbc_flag    .d_view = Kokkos::subview(k_swap.d_view,0,Kokkos::ALL);
+      k_firstrecv   .d_view = Kokkos::subview(k_swap.d_view,1,Kokkos::ALL);
+      k_sendnum_scan.d_view = Kokkos::subview(k_swap.d_view,2,Kokkos::ALL);
+      k_pbc_flag    .h_view = Kokkos::subview(k_swap.h_view,0,Kokkos::ALL);
+      k_firstrecv   .h_view = Kokkos::subview(k_swap.h_view,1,Kokkos::ALL);
+      k_sendnum_scan.h_view = Kokkos::subview(k_swap.h_view,2,Kokkos::ALL);
+    }
     int scan = 0;
     for (int iswap = 0; iswap < nswap; iswap++) {
       scan += sendnum[iswap];
@@ -1064,15 +1070,12 @@ void CommKokkos::borders_device() {
       k_pbc.h_view(iswap,5) = pbc[iswap][5];
     }
     totalsend = scan;
-    k_pbc         .modify<LMPHostType>();
-    k_pbc_flag    .modify<LMPHostType>();
-    k_firstrecv   .modify<LMPHostType>();
-    k_sendnum_scan.modify<LMPHostType>();
 
-    k_pbc         .sync<LMPDeviceType>();
-    k_pbc_flag    .sync<LMPDeviceType>();    
-    k_firstrecv   .sync<LMPDeviceType>();    
-    k_sendnum_scan.sync<LMPDeviceType>();    
+    k_swap.modify<LMPHostType>();
+    k_pbc.modify<LMPHostType>();
+
+    k_swap.sync<LMPDeviceType>();
+    k_pbc.sync<LMPDeviceType>();
   }
 }
 /* ----------------------------------------------------------------------

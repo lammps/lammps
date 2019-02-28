@@ -280,7 +280,7 @@ class NeighborKokkosExecute
     bboxlo[0] = _bboxlo[0]; bboxlo[1] = _bboxlo[1]; bboxlo[2] = _bboxlo[2];
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
-    resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
+    resize = typename AT::t_int_scalar(Kokkos::view_alloc("NeighborKokkosFunctor::resize",Kokkos::WithoutInitializing));
 #ifndef KOKKOS_USE_CUDA_UVM
     h_resize = Kokkos::create_mirror_view(resize);
 #else
@@ -288,7 +288,7 @@ class NeighborKokkosExecute
 #endif
     h_resize() = 1;
     new_maxneighs = typename AT::
-      t_int_scalar("NeighborKokkosFunctor::new_maxneighs");
+      t_int_scalar(Kokkos::view_alloc("NeighborKokkosFunctor::new_maxneighs",Kokkos::WithoutInitializing));
 #ifndef KOKKOS_USE_CUDA_UVM
     h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
 #else

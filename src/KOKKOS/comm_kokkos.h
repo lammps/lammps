@@ -63,6 +63,7 @@ class CommKokkos : public CommBrick {
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
 
+  DAT::tdual_int_2d k_swap;
   DAT::tdual_int_2d k_pbc;
   DAT::tdual_int_1d k_pbc_flag;
   DAT::tdual_int_1d k_firstrecv;

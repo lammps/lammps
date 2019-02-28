@@ -3,12 +3,11 @@ matrices from finite temperature MD simulations, which can then be
 used to compute phonon dispersion relations, directly from molecular
 dynamics simulations.
 
-It also contains two commands to compute the dynamical matrix and
-the corresponding third order matrix at pre-optimized positions
-through finite differences.
+It also contains a command to compute the dynamical matrix at
+pre-optimized positions through finite differences.
 
 See the doc page for the fix phonon command or the dynamical_matrix
-third_order commands for detailed usage instructions.
+command for detailed usage instructions.
 
 Use of this package requires building LAMMPS with FFT suppport, as
 described in doc/Section_start.html.
@@ -30,5 +29,5 @@ The person who created fix phonon is Ling-Ti Kong (konglt at
 sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly
 if you have questions.
 
-The person who created dynamical_matrix and third_order is
-Charlie Sievers at UC Davis.
+The person who created the dynamical_matrix command is Charlie Sievers
+at UC Davis. Contact him directly if you have questions about his code.

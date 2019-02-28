@@ -625,8 +625,10 @@ dVx
 dW
 dx
 dy
+dyn
 dyne
 dynes
+dynmat
 Dyre
 Dzyaloshinskii
 Eaa

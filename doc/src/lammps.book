@@ -157,6 +157,7 @@ dump_molfile.html
 dump_netcdf.html
 dump_vtk.html
 dump_cfg_uef.html
+dynamical_matrix.html
 echo.html
 group.html
 group2ndx.html

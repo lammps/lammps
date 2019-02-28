@@ -42,6 +42,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 #include "pair_smtbq.h"
 #include "atom.h"
 #include "comm.h"
@@ -252,7 +253,7 @@ void PairSMTBQ::allocate()
    global settings
    ------------------------------------------------------------------------- */
 
-void PairSMTBQ::settings(int narg, char **/*arg*/)
+void PairSMTBQ::settings(int narg, char ** /* arg */)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -2539,10 +2540,10 @@ void PairSMTBQ::Charge()
   // ---------------------------
 
 
-  double enegtotall[nteam+1],enegchkall[nteam+1],enegmaxall[nteam+1],qtota[nteam+1],qtotc[nteam+1];
-  double qtotcll[nteam+1],qtotall[nteam+1];
-  double sigmaa[nteam+1],sigmac[nteam+1],sigmaall[nteam+1],sigmacll[nteam+1];
-  int end[nteam+1], nQEq[nteam+1],nQEqc[nteam+1],nQEqa[nteam+1];
+  std::vector<double> enegtotall(nteam+1),enegchkall(nteam+1),enegmaxall(nteam+1);
+  std::vector<double> qtotcll(nteam+1),qtotall(nteam+1),qtota(nteam+1),qtotc(nteam+1);
+  std::vector<double> sigmaa(nteam+1),sigmac(nteam+1),sigmaall(nteam+1),sigmacll(nteam+1);
+  std::vector<int> end(nteam+1), nQEq(nteam+1),nQEqc(nteam+1),nQEqa(nteam+1);
 
 
   iloop = 0;
@@ -2553,9 +2554,7 @@ void PairSMTBQ::Charge()
   dtq    = 0.0006; // 0.0006
   dtq2   = 0.5*dtq*dtq/qmass;
 
-  double enegchk[nteam+1];
-  double enegtot[nteam+1];
-  double enegmax[nteam+1];
+  std::vector<double> enegchk(nteam+1),enegtot(nteam+1),enegmax(nteam+1);
 
 
 
@@ -2580,12 +2579,12 @@ void PairSMTBQ::Charge()
     if (itype == 0) { qtota[gp] += q[i]; nQEqa[gp] += 1; }
   }
 
-  MPI_Allreduce(nQEq,nQEqall,nteam+1,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(nQEqc,nQEqcall,nteam+1,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(nQEqa,nQEqaall,nteam+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(nQEq.data(),nQEqall,nteam+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(nQEqc.data(),nQEqcall,nteam+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(nQEqa.data(),nQEqaall,nteam+1,MPI_INT,MPI_SUM,world);
 
-  MPI_Allreduce(qtotc,qtotcll,nteam+1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(qtota,qtotall,nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(qtotc.data(),qtotcll.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(qtota.data(),qtotall.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qtot,&qtotll,1,MPI_DOUBLE,MPI_SUM,world);
 
 
@@ -2704,8 +2703,8 @@ void PairSMTBQ::Charge()
 
     } // Boucle local
 
-    MPI_Allreduce(enegchk,enegchkall,nteam+1,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(enegmax,enegmaxall,nteam+1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(enegchk.data(),enegchkall.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(enegmax.data(),enegmaxall.data(),nteam+1,MPI_DOUBLE,MPI_MAX,world);
 
 
     for (gp = 0; gp < nteam+1; gp++) {
@@ -2793,8 +2792,8 @@ void PairSMTBQ::Charge()
       if (itype == 1) sigmac[gp] += (q[i]-TransfAll[gp+cluster])*(q[i]-TransfAll[gp+cluster]);
     }
 
-  MPI_Allreduce(sigmaa,sigmaall,nteam+1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(sigmac,sigmacll,nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sigmaa.data(),sigmaall.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sigmac.data(),sigmacll.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
 
   for (gp = 1; gp < nteam+1; gp++) {
     sigmaall[gp] = sqrt(sigmaall[gp]/static_cast<double>(nQEqaall[gp])) ;

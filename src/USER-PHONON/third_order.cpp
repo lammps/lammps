@@ -13,6 +13,7 @@
 #include "group.h"
 #include "force.h"
 #include "math_extra.h"
+#include "memory.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -40,7 +41,8 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
 
 ThirdOrder::~ThirdOrder()
 {
-    if (fp) fclose(fp);
+    if (fp && me == 0) fclose(fp);
+    memory->destroy(groupmap);
     fp = NULL;
 }
 
@@ -73,10 +75,11 @@ void ThirdOrder::setup()
     neighbor->ndanger = 0;
 
     // compute all forces
-    update_force();
+
     external_force_clear = 0;
     eflag=0;
     vflag=0;
+    update_force();
 
     if (gcount == atom->natoms)
         for (bigint i=0; i<atom->natoms; i++)
@@ -92,8 +95,8 @@ void ThirdOrder::command(int narg, char **arg)
     MPI_Comm_rank(world,&me);
 
     if (domain->box_exist == 0)
-        error->all(FLERR,"Dynamical_matrix command before simulation box is defined");
-    if (narg < 2) error->all(FLERR,"Illegal dynamical_matrix command");
+        error->all(FLERR,"Third_order command before simulation box is defined");
+    if (narg < 2) error->all(FLERR,"Illegal third_oreder command");
 
     lmp->init();
 
@@ -109,10 +112,11 @@ void ThirdOrder::command(int narg, char **arg)
     // group and style
 
     igroup = group->find(arg[0]);
-    if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
+    if (igroup == -1) error->all(FLERR,"Could not find third_order group ID");
     groupbit = group->bitmask[igroup];
     gcount = group->count(igroup);
     dynlen = (gcount)*3;
+    memory->create(groupmap,atom->natoms,"total_group_map:totalgm");
     update->setupflag = 1;
 
     int style = -1;

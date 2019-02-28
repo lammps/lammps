@@ -258,6 +258,7 @@ void DynamicalMatrix::calculateMatrix()
 
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Dynamical Matrix...\n");
 
+    update->nsteps = 0;
     for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         for (bigint alpha=0; alpha<3; alpha++){
@@ -390,6 +391,7 @@ void DynamicalMatrix::update_force()
         comm->reverse_comm();
         timer->stamp(Timer::COMM);
     }
+    ++ update->nsteps;
 }
 
 /* ----------------------------------------------------------------------

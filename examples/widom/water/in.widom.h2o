@@ -1,0 +1,45 @@
+# fix widom example with water
+
+# variables available on command line
+
+variable        temp index 338.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14 
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+read_data	data.widom_water
+
+molecule        h2omol H2O.txt
+                        
+# rigid SPC/E water model
+
+pair_coeff      1 1 0.15535 3.166
+pair_coeff      * 2 0.0000 0.0000       
+
+bond_coeff      1     1000       1.0   
+angle_coeff     1      100       109.47
+
+# MD settings
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 1 check yes
+timestep        1.0
+
+# widom
+fix             mywidom all widom 10 1000 0 29494 ${temp} mol h2omol 
+
+# output
+thermo_style    custom step temp press pe ke density atoms f_mywidom[1] 
+thermo          10
+
+# run
+fix		1 all nvt temp ${temp} ${temp} 100.0
+run             1000

@@ -49,8 +49,7 @@ FixReaxC::FixReaxC(LAMMPS *lmp,int narg, char **arg) :
 
   // initialize arrays to MIN so atom migration is OK the 1st time
 
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < atom->nmax; i++)
     num_bonds[i] = num_hbonds[i] = MIN_REAX_BONDS;
 
   // set comm sizes needed by this fix

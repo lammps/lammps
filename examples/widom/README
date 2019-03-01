@@ -1,1 +1,7 @@
+fix widom examples
+====================
 
+* `lj` -- widom insertion in Lennard-Jones system.
+
+* `water` -- widom insertion in vapor-liquid water system.
+ 

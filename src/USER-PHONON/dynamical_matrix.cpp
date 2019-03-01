@@ -316,9 +316,10 @@ void DynamicalMatrix::calculateMatrix()
 
 void DynamicalMatrix::writeMatrix(double **dynmat)
 {
-    if (me != 0)
-        return;
+    if (me != 0 || fp == NULL) return;
+
     // print file comment lines
+
     if (!binaryflag && fp) {
         clearerr(fp);
         for (int i = 0; i < 3; i++) {

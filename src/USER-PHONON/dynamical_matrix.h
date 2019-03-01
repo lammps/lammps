@@ -54,10 +54,10 @@ namespace LAMMPS_NS {
         double conv_mass;
         double del;
         int igroup,groupbit;
-        int gcount;  // number of atoms in group
+        bigint gcount;             // number of atoms in group
+        bigint dynlen;             // rank of dynamical matrix
         int scaleflag;
         int me;
-        bigint dynlen;
         int *groupmap;
 
         int compressed;            // 1 if dump file is written compressed, 0 no

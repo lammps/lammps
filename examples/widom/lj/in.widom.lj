@@ -1,0 +1,38 @@
+# LJ simple fluid 
+# comparable to Frenkel and Smit GCMC Case Study, Figure 5.8 
+
+variable        temp index 2.0
+
+# global model settings
+
+units           lj
+atom_style      bond
+pair_style      lj/cut 3.0 
+pair_modify	tail no # turn of to avoid triggering full_energy
+bond_style      harmonic
+
+read_data	data.widom_lj
+
+# lj parameters
+
+pair_coeff	* * 1.0 1.0
+mass		* 1.0
+
+# we recommend setting up a dedicated group for gcmc
+
+group		widomgroup type 1
+
+# gcmc
+
+fix             mywidom widomgroup widom 1 10000 1 29494 ${temp} 
+
+#run
+fix             1 all nvt temp ${temp} ${temp} 0.5
+
+
+# output
+
+thermo_style    custom step temp press pe ke density atoms f_mywidom[1] f_mywidom[2] f_mywidom[3] 
+thermo          10
+
+run             1000

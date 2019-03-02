@@ -380,9 +380,8 @@ void Thermo::compute(int flag)
       loc += sprintf(&line[loc],format[ifield],dvalue);
     else if (vtype[ifield] == INT)
       loc += sprintf(&line[loc],format[ifield],ivalue);
-    else if (vtype[ifield] == BIGINT) {
+    else if (vtype[ifield] == BIGINT)
       loc += sprintf(&line[loc],format[ifield],bivalue);
-    }
   }
 
   // print line to screen and logfile

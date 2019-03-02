@@ -83,8 +83,10 @@ not in the specified fix group.  Local quantities are calculated by
 each processor based on the atoms it owns, but there may be zero or
 more per atoms.
 
-Note that a single fix may produces either global or per-atom or local
-quantities (or none at all), but never more than one of these.
+Note that a single fix can produce either global or per-atom or local
+quantities (or none at all), but not both global and per-atom.  It can
+produce local quantities in tandem with global or per-atom quantities.
+The fix doc page will explain.
 
 Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The

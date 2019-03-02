@@ -36,8 +36,7 @@ using namespace FixConst;
 #define DELTABOND 16384
 #define DELTABIAS 16
 #define COEFFINIT 1.0
-#define COEFFMAX 1.2
-#define MAXBONDPERATOM 30
+#define FCCBONDS 12
 #define BIG 1.0e20
 
 enum{STRAIN,STRAINDOMAIN,BIASFLAG,BIASCOEFF};
@@ -46,12 +45,11 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), old2now(NULL), xold(NULL), tagold(NULL),
-  blist(NULL), maxstrain(NULL), maxstrain_domain(NULL),
-  biasflag(NULL), bias(NULL)
+  FixHyper(lmp, narg, arg), blist(NULL), biascoeff(NULL), numbond(NULL),
+  maxhalf(NULL), eligible(NULL), maxhalfstrain(NULL), old2now(NULL), 
+  tagold(NULL), xold(NULL), maxstrain(NULL), maxstrain_domain(NULL),
+  biasflag(NULL), bias(NULL), cpage(NULL), clist(NULL), numcoeff(NULL)
 {
-  // NOTE: need to add vecs/arrays to constructor list
-
   // error checks
 
   if (atom->map_style == 0)
@@ -64,7 +62,11 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   hyperflag = 2;
   scalar_flag = 1;
   vector_flag = 1;
-  size_vector = 23;
+  size_vector = 21;
+  local_flag = 1;
+  size_local_rows = 0;
+  size_local_cols = 0;
+  local_freq = 1;
 
   global_freq = 1;
   extscalar = 0;
@@ -89,11 +91,15 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
+  checkghost = 0;
   checkbias = 0;
 
   int iarg = 10;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"check/bias") == 0) {
+    if (strcmp(arg[iarg],"check/ghost") == 0) {
+      checkghost = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"check/bias") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix hyper/local command");
       checkbias = 1;
       checkbias_every = force->inumeric(FLERR,arg[iarg+1]);
@@ -102,14 +108,15 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+2],"ignore") == 0) checkbias_flag = IGNORE;
       else error->all(FLERR,"Illegal fix hyper/local command");
       iarg += 3;
-
     } else error->all(FLERR,"Illegal fix hyper/local command");
   }
 
   // per-atom data structs
 
-  maxbond = 0;
+  maxbond = nblocal = 0;
   blist = NULL;
+  biascoeff = NULL;
+  allbonds = 0;
 
   maxatom = 0;
   maxstrain = NULL;
@@ -130,24 +137,30 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   nbias = maxbias = 0;
   bias = NULL;
 
+  // data structs for persisting bias coeffs when bond list is reformed
+  // maxbondperatom = max # of bonds any atom is part of
+  // FCCBONDS = 12 is a good estimate for fcc lattices
+  // will be reset in build_bond() if necessary
+
   maxcoeff = 0;
-  maxcoeffperatom = 0;
+  maxbondperatom = FCCBONDS;
   numcoeff = NULL;
   clist = NULL;
+  cpage = new MyPage<OneCoeff>;
+  cpage->init(maxbondperatom,1024*maxbondperatom,1);
 
-  // maxbondperatom = max # of bonds any atom is part of
-  // will be reset in bond_build()
   // set comm sizes needed by this fix
-  // NOTE: remove MBPA when minimize reverse Cij comm
+  // reverse = 2 is for sending atom index + value, though total likely < 1
+  // reverse comm for bias coeffs has variable size, so not tallied here
 
-  maxbondperatom = 1;
   comm_forward = 1;
-  comm_reverse = MAXBONDPERATOM;
+  comm_reverse = 2;
 
   me = comm->me;
   firstflag = 1;
 
-  allbias = 0.0;
+  sumbiascoeff = 0.0;
+  avebiascoeff = 0.0;
 
   starttime = update->ntimestep;
   nostrainyet = 1;
@@ -162,6 +175,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 FixHyperLocal::~FixHyperLocal()
 {
   memory->destroy(blist);
+  memory->destroy(biascoeff);
 
   memory->destroy(maxstrain);
   memory->destroy(maxstrain_domain);
@@ -179,7 +193,8 @@ FixHyperLocal::~FixHyperLocal()
   memory->destroy(bias);
 
   memory->destroy(numcoeff);
-  memory->destroy(clist);
+  memory->sfree(clist);
+  delete cpage;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -202,11 +217,12 @@ void FixHyperLocal::init_hyper()
   checkbias_count = 0;
   maxdriftsq = 0.0;
   maxbondlen = 0.0;
-  maxbiascoeff = 0.0;
+  avebiascoeff = 0.0;
   minbiascoeff = BIG;
-  sumbiascoeff = 0.0;
+  maxbiascoeff = 0.0;
   nbias_running = 0;
   nobias_running = 0;
+  negstrain_running = 0;
   rmaxever = 0.0;
   rmaxeverbig = 0.0;
 
@@ -254,11 +270,12 @@ void FixHyperLocal::init()
   // need occasional full neighbor list with cutoff = Dcut
   // used for finding maxstrain of neighbor bonds out to Dcut
   // do not need to include neigh skin in cutoff,
-  //   b/c this list will be built every time bond_build() is called
+  //   b/c this list will be built every time build_bond() is called
   // NOTE: what if pair style list cutoff > Dcut
   //   or what if neigh skin is huge?
 
   int irequest_full = neighbor->request(this,instance_me);
+  neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->pair = 0;
   neighbor->requests[irequest_full]->fix = 1;
   neighbor->requests[irequest_full]->half = 0;
@@ -271,9 +288,10 @@ void FixHyperLocal::init()
   // used for building local bond list
   // no specified cutoff, should be longer than cutbond
   // this list will also be built (or derived/copied)
-  //   every time bond_build() is called
+  //   every time build_bond() is called
 
   int irequest_half = neighbor->request(this,instance_me);
+  neighbor->requests[irequest_half]->id = 2;
   neighbor->requests[irequest_half]->pair = 0;
   neighbor->requests[irequest_half]->fix = 1;
   neighbor->requests[irequest_half]->occasional = 1;
@@ -297,7 +315,6 @@ void FixHyperLocal::init_list(int id, NeighList *ptr)
 void FixHyperLocal::setup_pre_neighbor()
 {
   // called for dynamics and minimization
-  // NOTE: check if needed for min, I think so b/c of Cij persist?
 
   pre_neighbor();
 }
@@ -308,7 +325,8 @@ void FixHyperLocal::setup_pre_reverse(int eflag, int vflag)
 {
   // only called for dynamics, not minimization
   // setupflag prevents boostostat update of bias coeffs in setup
-  // also prevents increments of nbias_running, nobias_running, sumbiascoeff
+  // also prevents increments of nbias_running, nobias_running, 
+  //   negstrain_running, sumbiascoeff
 
   setupflag = 1;
   pre_reverse(eflag,vflag);
@@ -320,7 +338,7 @@ void FixHyperLocal::setup_pre_reverse(int eflag, int vflag)
 void FixHyperLocal::pre_neighbor()
 {
   int i,m,iold,jold,ilocal,jlocal;
-  double distsq;
+  // double distsq;
 
   // reset local indices for owned bond atoms, since atoms have migrated
   // must be done after ghost atoms are setup via comm->borders()
@@ -331,6 +349,7 @@ void FixHyperLocal::pre_neighbor()
   //   closest_image() returns the ghost atom index in that case
   // also compute max drift of any atom in a bond
   //   drift = displacement from quenched coord while event has not yet occured
+  // NOTE: drift calc is now done in bond_build(), between 2 quenched states
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
 
@@ -348,17 +367,17 @@ void FixHyperLocal::pre_neighbor()
       if (ilocal < 0)
         error->one(FLERR,"Fix hyper/local bond atom not found");
       old2now[iold] = ilocal;
-      distsq = MathExtra::distsq3(x[ilocal],xold[iold]);
-      maxdriftsq = MAX(distsq,maxdriftsq);
+      //distsq = MathExtra::distsq3(x[ilocal],xold[iold]);
+      //maxdriftsq = MAX(distsq,maxdriftsq);
     }
     if (jlocal < 0) {
       jlocal = atom->map(tagold[jold]);
-      jlocal = domain->closest_image(xold[iold],jlocal);   // closest to iold
+      jlocal = domain->closest_image(xold[iold],jlocal);   // close to I atom
       if (jlocal < 0)
         error->one(FLERR,"Fix hyper/local bond atom not found");
       old2now[jold] = jlocal;
-      distsq = MathExtra::distsq3(x[jlocal],xold[jold]);
-      maxdriftsq = MAX(distsq,maxdriftsq);
+      //distsq = MathExtra::distsq3(x[jlocal],xold[jold]);
+      //maxdriftsq = MAX(distsq,maxdriftsq);
     }
 
     blist[m].i = ilocal;
@@ -374,11 +393,11 @@ void FixHyperLocal::pre_neighbor()
   //   b/c old2now is only used to access maxstrain() or biasflag()
   //   which will be identical for every copy of the same atom ID
 
-  for (i = 0; i < nall_old; i++) {
-    if (old2now[i] >= 0) continue;
-    if (tagold[i] == 0) continue;
-    ilocal = atom->map(tagold[i]);
-    old2now[i] = ilocal;
+  for (iold = 0; iold < nall_old; iold++) {
+    if (old2now[iold] >= 0) continue;
+    if (tagold[iold] == 0) continue;
+    ilocal = atom->map(tagold[iold]);
+    old2now[iold] = ilocal;
     if (ilocal < 0) ghost_toofar++;
   }
 }
@@ -389,26 +408,31 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 {
   int i,j,m,ii,jj,inum,jnum,iold,jold,ibond,nbond,ijhalf,ncount;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double r,r0,estrain,emax,ebias,vbias,fbias,fbiasr,biascoeff;
+  double r,r0,estrain,emax,ebias,vbias,fbias,fbiasr;
   double halfstrain,selfstrain;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   //double time1,time2,time3,time4,time5,time6,time7,time8;
   //time1 = MPI_Wtime();
 
-  // reallocate local vectors if necessary
+  nostrainyet = 0;
+
+  // reallocate per-atom maxstrain and biasflag vectors if necessary
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
   if (maxatom < nall) {
+    memory->destroy(maxstrain);
+    memory->destroy(maxstrain_domain);
+    if (checkbias) memory->destroy(biasflag);
     maxatom = atom->nmax;
-    memory->grow(maxstrain,maxatom,"hyper/local:maxstrain");
-    memory->grow(maxstrain_domain,maxatom,"hyper/local:maxstrain_domain");
-    if (checkbias) memory->grow(biasflag,maxatom,"hyper/local:biasflag");
+    memory->create(maxstrain,maxatom,"hyper/local:maxstrain");
+    memory->create(maxstrain_domain,maxatom,"hyper/local:maxstrain_domain");
+    if (checkbias) memory->create(biasflag,maxatom,"hyper/local:biasflag");
   }
 
-  // each old atom I's owned bond with max strain is eligible for biasing
+  // one max strain bond per old owned atom is eligible for biasing
 
   for (iold = 0; iold < nlocal_old; iold++) eligible[iold] = 1;
 
@@ -423,7 +447,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // mark atom I ineligible if it has no bonds
   // also store:
   //   maxhalf = which owned bond is maxstrain for each old atom I
-  //   maxhalfstrain = strain of that bond for each old atom I
+  //   maxhalfstrain = abs value strain of that bond for each old atom I
 
   for (i = 0; i < nall; i++) maxstrain[i] = 0.0;
 
@@ -479,7 +503,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // -------------------------------------------------------------
 
   // use full Dcut neighbor list to check maxstrain of all neighbor atoms
-  // NOTE: is II loop the same as iold over nlocal_old ??
   // neighlist is from last event
   //   has old indices for I,J (reneighboring may have occurred)
   //   use old2now[] to convert to current indices
@@ -503,8 +526,12 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
 
+  // first two lines of outer loop should be identical to this:
+  // for (iold = 0; iold < nlocal_old; iold++)
+
   for (ii = 0; ii < inum; ii++) {
     iold = ilist[ii];
+    if (eligible[iold] == 0) continue;
     jlist = firstneigh[iold];
     jnum = numneigh[iold];
 
@@ -533,29 +560,30 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       emax = MAX(emax,maxstrain[j]);
       if (selfstrain == maxstrain[j]) ncount++;
       
-      // diagnostic
+      // optional diagnostic
       // tally largest distance from subbox that a ghost atom is (rmaxbig)
       // and the largest distance if strain < qfactor (rmax)
-      // NOTE: could this be removed from loop ??
 
-      if (j >= nlocal) {
-        if (x[j][0] < sublo[0]) rmaxbig = MAX(rmaxbig,sublo[0]-x[j][0]);
-        if (x[j][1] < sublo[1]) rmaxbig = MAX(rmaxbig,sublo[1]-x[j][1]);
-        if (x[j][2] < sublo[2]) rmaxbig = MAX(rmaxbig,sublo[2]-x[j][2]);
-        if (x[j][0] > subhi[0]) rmaxbig = MAX(rmaxbig,x[j][0]-subhi[0]);
-        if (x[j][1] > subhi[1]) rmaxbig = MAX(rmaxbig,x[j][1]-subhi[1]);
-        if (x[j][2] > subhi[2]) rmaxbig = MAX(rmaxbig,x[j][2]-subhi[2]);
-        if (maxstrain[j] < qfactor) {
-          if (x[j][0] < sublo[0]) rmax = MAX(rmax,sublo[0]-x[j][0]);
-          if (x[j][1] < sublo[1]) rmax = MAX(rmax,sublo[1]-x[j][1]);
-          if (x[j][2] < sublo[2]) rmax = MAX(rmax,sublo[2]-x[j][2]);
-          if (x[j][0] > subhi[0]) rmax = MAX(rmax,x[j][0]-subhi[0]);
-          if (x[j][1] > subhi[1]) rmax = MAX(rmax,x[j][1]-subhi[1]);
-          if (x[j][2] > subhi[2]) rmax = MAX(rmax,x[j][2]-subhi[2]);
+      if (checkghost) {
+        if (j >= nlocal) {
+          if (x[j][0] < sublo[0]) rmaxbig = MAX(rmaxbig,sublo[0]-x[j][0]);
+          if (x[j][1] < sublo[1]) rmaxbig = MAX(rmaxbig,sublo[1]-x[j][1]);
+          if (x[j][2] < sublo[2]) rmaxbig = MAX(rmaxbig,sublo[2]-x[j][2]);
+          if (x[j][0] > subhi[0]) rmaxbig = MAX(rmaxbig,x[j][0]-subhi[0]);
+          if (x[j][1] > subhi[1]) rmaxbig = MAX(rmaxbig,x[j][1]-subhi[1]);
+          if (x[j][2] > subhi[2]) rmaxbig = MAX(rmaxbig,x[j][2]-subhi[2]);
+          if (maxstrain[j] < qfactor) {
+            if (x[j][0] < sublo[0]) rmax = MAX(rmax,sublo[0]-x[j][0]);
+            if (x[j][1] < sublo[1]) rmax = MAX(rmax,sublo[1]-x[j][1]);
+            if (x[j][2] < sublo[2]) rmax = MAX(rmax,sublo[2]-x[j][2]);
+            if (x[j][0] > subhi[0]) rmax = MAX(rmax,x[j][0]-subhi[0]);
+            if (x[j][1] > subhi[1]) rmax = MAX(rmax,x[j][1]-subhi[1]);
+            if (x[j][2] > subhi[2]) rmax = MAX(rmax,x[j][2]-subhi[2]);
+          }
         }
       }
     }
-
+    
     if (maxhalfstrain[iold] < selfstrain) eligible[iold] = 0;
     if (selfstrain < emax) eligible[iold] = 0;
     else if (ncount > 1) {
@@ -564,15 +592,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     }
     maxstrain_domain[i] = emax;
   }
-
-  // diagnostic  // NOTE: optional, should skip
-
-  double rmax2[2],rmax2all[2];
-  rmax2[0] = rmax;
-  rmax2[1] = rmaxbig;
-  MPI_Allreduce(&rmax2,&rmax2all,2,MPI_DOUBLE,MPI_MAX,world);
-  rmaxever = rmax2all[0];
-  rmaxeverbig = rmax2all[1];
 
   //time4 = MPI_Wtime();
 
@@ -607,7 +626,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       maxbias += DELTABIAS;
       memory->grow(bias,maxbias,"hyper/local:bias");
     }
-    bias[nbias++] = ibond;
+    bias[nbias++] = maxhalf[iold];
   }
 
   //time6 = MPI_Wtime();
@@ -620,6 +639,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   double **f = atom->f;
 
   int nobias = 0;
+  int negstrain = 0;
   mybias = 0.0;
 
   for (int ibias = 0; ibias < nbias; ibias++) {
@@ -637,11 +657,9 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     delz = x[i][2] - x[j][2];
     r = sqrt(delx*delx + dely*dely + delz*delz);
     r0 = blist[m].r0;
-    //ebias = (r-r0) / r0;
-    ebias = fabs(r-r0) / r0;
-    biascoeff = blist[m].biascoeff;
-    vbias = biascoeff * vmax * (1.0 - ebias*ebias*invqfactorsq);
-    fbias = biascoeff * 2.0 * vmax * ebias * invqfactorsq;
+    ebias = (r-r0) / r0;
+    vbias = biascoeff[m] * vmax * (1.0 - ebias*ebias*invqfactorsq);
+    fbias = biascoeff[m] * 2.0 * vmax * ebias * invqfactorsq;
 
     fbiasr = fbias / r0 / r;
     f[i][0] += delx*fbiasr;
@@ -652,6 +670,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     f[j][1] -= dely*fbiasr;
     f[j][2] -= delz*fbiasr;
 
+    if (ebias < 0.0) negstrain++;
     mybias += vbias;
   }
 
@@ -662,49 +681,58 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // -------------------------------------------------------------
 
   // no boostostat update when pre_reverse called from setup()
-  // nbias_running, nobias_running, sumbiascoeff only incremented on run steps
-  // NOTE: maybe should also not bias any bonds on firststep of this fix
+  // nbias_running, nobias_running, negstrain_running only incremented
+  //   on run steps
 
   if (setupflag) return;
   nbias_running += nbias;
   nobias_running += nobias;
+  negstrain_running += negstrain;
 
   // loop over bonds I own to adjust bias coeff
   // delta in boost coeff is function of maxboost_domain vs target boost
   // maxboost_domain is function of two maxstrain_domains for I,J
 
-  double mybias = 0.0;
-  double emaxi,emaxj,maxboost_domain;
+  double emaxi,emaxj,maxboost_domain,bc;
+  double mybiascoeff = 0.0;
 
   for (m = 0; m < nblocal; m++) {
     i = blist[m].i;
     j = blist[m].j;
-    emaxi = fabs(maxstrain_domain[i]);
-    emaxj = fabs(maxstrain_domain[j]);
+    emaxi = maxstrain_domain[i];
+    emaxj = maxstrain_domain[j];
     emax = MAX(emaxi,emaxj);
     if (emax < qfactor) vbias = vmax * (1.0 - emax*emax*invqfactorsq);
     else vbias = 0.0;
 
-    biascoeff = blist[m].biascoeff;
-    maxboost_domain = exp(beta * biascoeff*vbias);
-    biascoeff -= alpha * (maxboost_domain-boost_target) / boost_target;
-    blist[m].biascoeff = biascoeff;
+    maxboost_domain = exp(beta * biascoeff[m]*vbias);
+    biascoeff[m] -= alpha * (maxboost_domain-boost_target) / boost_target;
 
     // stats
 
-    mybias += biascoeff;
-    maxbiascoeff = MAX(maxbiascoeff,biascoeff);
-    minbiascoeff = MIN(minbiascoeff,biascoeff);
+    bc = biascoeff[m];
+    mybiascoeff += bc;
+    minbiascoeff = MIN(minbiascoeff,bc);
+    maxbiascoeff = MAX(maxbiascoeff,bc);
   }
 
-  // running stats
-
-  MPI_Allreduce(&mybias,&allbias,1,MPI_DOUBLE,MPI_SUM,world);
-  if (allbonds) sumbiascoeff += allbias/allbonds;
-
   // -------------------------------------------------------------
-  // extra diagnostics if requested
+  // diagnostics, some optional
   // -------------------------------------------------------------
+
+  MPI_Allreduce(&mybiascoeff,&sumbiascoeff,1,MPI_DOUBLE,MPI_SUM,world);
+  if (allbonds) avebiascoeff += sumbiascoeff/allbonds;
+
+  // if requested, monitor ghost distance from processor sub-boxes
+
+  if (checkghost) {
+    double rmax2[2],rmax2all[2];
+    rmax2[0] = rmax;
+    rmax2[1] = rmaxbig;
+    MPI_Allreduce(&rmax2,&rmax2all,2,MPI_DOUBLE,MPI_MAX,world);
+    rmaxever = rmax2all[0];
+    rmaxeverbig = rmax2all[1];
+  }
 
   // if requsted, check for any biased bonds that are too close to each other
   // keep a running count for output
@@ -713,7 +741,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   if (checkbias && update->ntimestep % checkbias_every == 0) {
 
     // mark each atom in a biased bond with ID of partner
-    // nbias loop will mark some ghost atoms
+    // this may mark some ghost atoms
 
     for (i = 0; i < nall; i++) biasflag[i] = 0;
 
@@ -728,13 +756,13 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     }
 
     // reverse comm to acquire biasflag from ghost atoms
-    // needed b/c above loop may set biasflag of ghost atoms
-    // forward comm to acquire biasflag of all ghost atoms
+    // forward comm to set biasflag for all ghost atoms
 
     commflag = BIASFLAG;
     comm->reverse_comm_fix(this);
     comm->forward_comm_fix(this);
 
+    // loop over Dcut full neighbor list
     // I and J may be ghost atoms
     // only continue if I is a biased atom
     // if J is unknown (drifted ghost) just ignore
@@ -755,6 +783,19 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
         if (biasflag[j] && biasflag[j] != tag[i]) checkbias_count++;
       }
     }
+
+    if (checkbias_flag != IGNORE) {
+      int allcount;
+      MPI_Allreduce(&checkbias_count,&allcount,1,MPI_INT,MPI_SUM,world);
+      if (allcount) {
+        char str[128];
+        sprintf(str,"Fix hyper/local biased bonds too close: "
+                "cumulative atom count %d",allcount);
+        if (checkbias_flag == WARN) {
+          if (me == 0) error->warning(FLERR,str);
+        } else error->all(FLERR,str);
+      }
+    }
   }
 }
 
@@ -769,9 +810,9 @@ void FixHyperLocal::min_pre_neighbor()
 
 void FixHyperLocal::build_bond_list(int natom)
 {
-  int i,j,ii,jj,m,n,inum,jnum,nbond;
+  int i,j,ii,jj,m,n,iold,jold,ilocal,jlocal,inum,jnum,nbond;
   tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,oldcoeff;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,distsq,oldcoeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double time1,time2;
@@ -782,80 +823,117 @@ void FixHyperLocal::build_bond_list(int natom)
     nevent_atom += natom;
   }
 
+  // compute max distance any bond atom has moved between 2 quenched states
+  // xold[iold] = last quenched coord for iold
+  // x[ilocal] = current quenched coord for same atom
+  // use of old2now calculates distsq only once per atom
+
+  double **x = atom->x;
+
+  for (i = 0; i < nall_old; i++) old2now[i] = -1;
+
+  for (m = 0; m < nblocal; m++) {
+    iold = blist[m].iold;
+    if (old2now[iold] < 0) {
+      ilocal = atom->map(tagold[iold]);
+      ilocal = domain->closest_image(xold[iold],ilocal);
+      if (ilocal < 0) error->one(FLERR,"Fix hyper/local bond atom not found");
+      old2now[iold] = ilocal;
+      distsq = MathExtra::distsq3(x[ilocal],xold[iold]);
+      maxdriftsq = MAX(distsq,maxdriftsq);
+    }
+    jold = blist[m].jold;
+    if (old2now[jold] < 0) {
+      jold = blist[m].jold;
+      jlocal = atom->map(tagold[jold]);
+      jlocal = domain->closest_image(xold[iold],jlocal);  // close to I atom
+      if (jlocal < 0) error->one(FLERR,"Fix hyper/local bond atom not found");
+      old2now[jold] = jlocal;
+      distsq = MathExtra::distsq3(x[jlocal],xold[jold]);
+      maxdriftsq = MAX(distsq,maxdriftsq);
+    }
+  }
+
+  // store old bond coeffs so can persist them in new blist
+  // while loop allows growing value of maxbondperatom 
+  // will loop at most 2 times, stops when maxbondperatom is large enough
+  // requires reverse comm, no forward comm:
+  //    b/c new coeff list is stored only by current owned atoms
+
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  // acquire old bond coeffs so can persist them in new blist
-  // while loop is to allow new value of maxcoeffperatom 
-  // will loop at most 2 times, just once when maxcoeffperatom is large enough
-  // just reverse comm needed,
-  //    b/c new bond list will be bonds of current owned atoms
-
-  tagint *tag = atom->tag;
-
   if (maxcoeff < nall) {
+    memory->destroy(numcoeff);
+    memory->sfree(clist);
     maxcoeff = atom->nmax;
-    grow_coeff();
+    memory->create(numcoeff,maxcoeff,"hyper/local:numcoeff");
+    clist = (OneCoeff **) memory->smalloc(maxcoeff*sizeof(OneCoeff *),
+                                         "hyper/local:clist");
   }
 
   while (1) {
     if (firstflag) break;
     for (i = 0; i < nall; i++) numcoeff[i] = 0;
+    for (i = 0; i < nall; i++) clist[i] = NULL;
+    cpage->reset();
 
     for (m = 0; m < nblocal; m++) {
       i = blist[m].i;
       j = blist[m].j;
 
-      if (numcoeff[i] < maxcoeffperatom) {
-        clist[i][numcoeff[i]].biascoeff = blist[m].biascoeff;
-        clist[i][numcoeff[i]].jtag = tag[j];
+      if (numcoeff[i] == 0) clist[i] = cpage->get(maxbondperatom);
+      if (numcoeff[j] == 0) clist[j] = cpage->get(maxbondperatom);
+
+      if (numcoeff[i] < maxbondperatom) {
+        clist[i][numcoeff[i]].biascoeff = biascoeff[m];
+        clist[i][numcoeff[i]].tag = tag[j];
       }
       numcoeff[i]++;
 
-      if (numcoeff[j] < maxcoeffperatom) {
-        clist[j][numcoeff[j]].biascoeff = blist[m].biascoeff; 
-        clist[j][numcoeff[i]].jtag = tag[i];
+      if (numcoeff[j] < maxbondperatom) {
+        clist[j][numcoeff[j]].biascoeff = biascoeff[m]; 
+        clist[j][numcoeff[j]].tag = tag[i];
       }
       numcoeff[j]++;
     }
 
-    int maxcol = 0;
-    for (i = 0; i < nall; i++) maxcol = MAX(maxcol,numcoeff[i]);
-    int maxcolall;
-    MPI_Allreduce(&maxcol,&maxcolall,1,MPI_INT,MPI_MAX,world);
+    int mymax = 0;
+    for (i = 0; i < nall; i++) mymax = MAX(mymax,numcoeff[i]);
+    int maxcoeffall;
+    MPI_Allreduce(&mymax,&maxcoeffall,1,MPI_INT,MPI_MAX,world);
 
-    if (maxcolall > maxcoeffperatom) {
-      maxcoeffperatom = maxcolall;
-      grow_coeff();
-      memory->destroy(clist);
-      memory->create(clist,maxcoeff,maxcoeffperatom,"hyper/local:clist");
+    if (maxcoeffall > maxbondperatom) {
+      maxbondperatom = maxcoeffall;
+      cpage->init(maxbondperatom,1024*maxbondperatom,1);
       continue;
     }
 
     commflag = BIASCOEFF;
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm_fix_variable(this);
 
-    maxcol = 0;
-    for (i = 0; i < nall; i++) maxcol = MAX(maxcol,numcoeff[i]);
-    MPI_Allreduce(&maxcol,&maxcolall,1,MPI_INT,MPI_MAX,world);
-    if (maxcolall <= maxcoeffperatom) break;
+    mymax = 0;
+    for (i = 0; i < nall; i++) mymax = MAX(mymax,numcoeff[i]);
+    MPI_Allreduce(&mymax,&maxcoeffall,1,MPI_INT,MPI_MAX,world);
+    if (maxcoeffall <= maxbondperatom) break;
 
-    maxcoeffperatom = maxcolall;
-    grow_coeff();
+    maxbondperatom = maxcoeffall;
+    cpage->init(maxbondperatom,1024*maxbondperatom,1);
   }
 
-  // reallocate vectors that are maxnew xold and tagold if necessary
-  // initialize xold to current coords
-  // initialize tagold to zero, so atoms not in neighbor list will remain zero
+  // reallocate vectors that are maxlocal and maxall length if necessary
 
   if (nlocal > maxlocal) {
     memory->destroy(eligible);
     memory->destroy(numbond);
     memory->destroy(maxhalf);
+    memory->destroy(maxhalfstrain);
     maxlocal = nlocal;
     memory->create(eligible,maxlocal,"hyper/local:eligible");
     memory->create(numbond,maxlocal,"hyper/local:numbond");
     memory->create(maxhalf,maxlocal,"hyper/local:maxhalf");
+    memory->create(maxhalfstrain,maxlocal,"hyper/local:maxhalfstrain");
   }
   
   if (nall > maxall) {
@@ -870,22 +948,25 @@ void FixHyperLocal::build_bond_list(int natom)
 
   // nlocal_old = value of nlocal at time bonds are built
   // nall_old = value of nall at time bonds are built
-  // archive current peratom info in old vecs
+  // archive current atom coords in xold
+  // tagold will be set to non-zero below for accessed atoms
+  // numbond will be set below
 
   nlocal_old = nlocal;
   nall_old = nall;
-
-  double **x = atom->x;
 
   memcpy(&xold[0][0],&x[0][0],3*nall*sizeof(double));
   for (i = 0; i < nall; i++) tagold[i] = 0;
   for (i = 0; i < nlocal; i++) numbond[i] = 0;
 
-  // trigger builds for both neighbor lists
-  // NOTE: insure the I atoms are in same order?
-  
+  // trigger neighbor list builds for both lists
+  // insure the I loops in both are from 1 to nlocal
+
   neighbor->build_one(listfull);
   neighbor->build_one(listhalf);
+
+  if (listfull->inum != nlocal || listhalf->inum != nlocal)
+    error->one(FLERR,"Invalid neighbor list in fix hyper/local bond build");
 
   // set tagold = 1 for all J atoms used in full neighbor list
   // tagold remains 0 for unused atoms, skipped in pre_neighbor
@@ -897,12 +978,13 @@ void FixHyperLocal::build_bond_list(int natom)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    tagold[i] = tag[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      tagold[j] = 1;
+      tagold[j] = tag[j];
     }
   }
 
@@ -916,7 +998,6 @@ void FixHyperLocal::build_bond_list(int natom)
   numneigh = listhalf->numneigh;
   firstneigh = listhalf->firstneigh;
 
-  bigint bondcount = 0;
   nblocal = 0;
 
   for (ii = 0; ii < inum; ii++) {
@@ -966,16 +1047,16 @@ void FixHyperLocal::build_bond_list(int natom)
           jtag = tag[j];
           n = numcoeff[i];
           for (m = 0; m < n; m++) {
-            if (clist[i][m].jtag == jtag) {
+            if (clist[i][m].tag == jtag) {
               oldcoeff = clist[i][m].biascoeff;
               break;
             }
           }
         }
 
-        if (oldcoeff > 0.0) blist[nblocal].biascoeff = oldcoeff;
+        if (oldcoeff > 0.0) biascoeff[nblocal] = oldcoeff;
         else {
-          blist[nblocal].biascoeff = COEFFINIT;
+          biascoeff[nblocal] = COEFFINIT;
           nnewbond++;
         }
 
@@ -984,9 +1065,15 @@ void FixHyperLocal::build_bond_list(int natom)
     }
 
     numbond[i] = nbond;
-    bondcount += nbond;
   }
-  
+
+  // this fix allows access to biascoeffs as local data
+
+  size_local_rows = nblocal;
+
+  // allbonds = total # of bonds in system
+
+  bigint bondcount = nblocal;
   MPI_Allreduce(&bondcount,&allbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   time2 = MPI_Wtime();
@@ -1010,6 +1097,7 @@ int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf,
 
   // STRAIN
   // pack maxstrain vector
+  // must send to all ghosts out to Dcut
 
   if (commflag == STRAIN) {
     for (i = 0; i < n; i++) {
@@ -1019,6 +1107,8 @@ int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf,
 
   // STRAINDOMAIN
   // pack maxstrain_domain vector
+  // could just send to nearby ghosts in bonds
+  // don't see easy way to determine precisely which atoms that is
 
   } else if (commflag == STRAINDOMAIN) {
     for (i = 0; i < n; i++) {
@@ -1028,6 +1118,7 @@ int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf,
 
   // BIASFLAG
   // pack biasflag vector
+  // must send to all ghosts out to Dcut
 
   } else if (commflag == BIASFLAG) {
     for (i = 0; i < n; i++) {
@@ -1085,22 +1176,37 @@ int FixHyperLocal::pack_reverse_comm(int n, int first, double *buf)
 
   // STRAIN
   // pack maxstrain vector
+  // only pack for nonzero values
 
   if (commflag == STRAIN) {
+    int nonzero = 0;
+    m++;                           // placeholder for count of atoms
     for (i = first; i < last; i++) {
-      buf[m++] = maxstrain[i];
+      if (maxstrain[i] == 0.0) continue;
+      nonzero++;
+      buf[m++] = ubuf(i-first).d;  // which atom is next
+      buf[m++] = maxstrain[i];     // value
     }
+    buf[0] = ubuf(nonzero).d;
 
   // STRAINDOMAIN
   // pack maxstrain_domain vector
+  // only pack for nonzero values
 
   } else if (commflag == STRAINDOMAIN) {
+    int nonzero = 0;
+    m++;                           // placeholder for count of atoms
     for (i = first; i < last; i++) {
-      buf[m++] = maxstrain_domain[i];
+      if (maxstrain[i] == 0.0) continue;
+      nonzero++;
+      buf[m++] = ubuf(i-first).d;      // which atom is next
+      buf[m++] = maxstrain_domain[i];  // value
     }
+    buf[0] = ubuf(nonzero).d;
 
   // BIASFLAG
   // pack biasflag vector
+  // could just pack for nonzero values, like STRAIN and STRAINDOMAIN
 
   } else if (commflag == BIASFLAG) {
     for (i = first; i < last; i++) {
@@ -1109,19 +1215,43 @@ int FixHyperLocal::pack_reverse_comm(int n, int first, double *buf)
 
   // BIASCOEFF
   // pack list of biascoeffs
+  // only pack for atoms with nonzero # of bias coeffs
+  // this will skip majority of ghost atoms
 
   } else if (commflag == BIASCOEFF) {
     int ncoeff;
+    int nonzero = 0;
+    m++;                             // placeholder for count of atoms
     for (i = first; i < last; i++) {
+      if (numcoeff[i] == 0) continue;
+      nonzero++;
       ncoeff = numcoeff[i];
-      buf[m++] = ubuf(ncoeff).d;
+      buf[m++] = ubuf(i-first).d;   // which atom is next
+      buf[m++] = ubuf(ncoeff).d;    // # of bias coeffs
       for (j = 0; j < ncoeff; j++) {
         buf[m++] = clist[i][j].biascoeff;
-        buf[m++] = ubuf(clist[i][j].jtag).d;
+        buf[m++] = ubuf(clist[i][j].tag).d;
       }
     }
+    buf[0] = ubuf(nonzero).d;
   }
 
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   callback by comm->reverse_comm_fix_variable() in build_bond()
+   same logic as BIASCOEFF option in pack_reverse_comm()
+   m = returned size of message
+------------------------------------------------------------------------- */
+
+int FixHyperLocal::pack_reverse_comm_size(int n, int first)
+{
+  int last = first + n;
+  int m = 1;
+  for (int i = first; i < last; i++) {
+    if (numcoeff[i]) m += 2 + 2*numcoeff[i];
+  }
   return m;
 }
 
@@ -1135,23 +1265,32 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 
   // STRAIN
   // unpack maxstrain vector
+  // nonzero # of entries, each has offset to which atom in receiver's list
   // use MAX, b/c want maximum abs value strain for each atom's bonds
   
   if (commflag == STRAIN) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
+    int offset;
+    int nonzero = (int) ubuf(buf[m++]).i;   // # of atoms with values
+    for (int iatom = 0; iatom < nonzero; iatom++) {
+      offset = (int) ubuf(buf[m++]).i;      // offset into list for which atom
+      j = list[offset];
       maxstrain[j] = MAX(maxstrain[j],buf[m]);
       m++;
     }
     
   // STRAINDOMAIN
   // unpack maxstrain_domain vector
-  // use SUM, b/c exactly one ghost or owned value per atom ID is non-zero
+  // use MAX, b/c want maximum abs value strain for each atom's domain
+  // could also use SUM, b/c exactly one ghost or owned value is non-zero
   
   } else if (commflag == STRAINDOMAIN) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      maxstrain_domain[j] += buf[m++];
+    int offset;
+    int nonzero = (int) ubuf(buf[m++]).i;   // # of atoms with values
+    for (int iatom = 0; iatom < nonzero; iatom++) {
+      offset = (int) ubuf(buf[m++]).i;      // offset into list for which atom
+      j = list[offset];
+      maxstrain_domain[j] = MAX(maxstrain_domain[j],buf[m]);
+      m++;
     }
 
   // BIASFLAG
@@ -1164,19 +1303,23 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
     }
 
   // BIASCOEFF
-  // unpack list of biascoeffs and add to atom J's list
-  // protect against overflow of clist columns
-  // if that happens, caller will realloc clist and reverse comm again
+  // unpack list of biascoeffs
+  // nonzero # of entries, each has offset to which atom in receiver's list
+  // protect against overflow of clist vector
+  // if that happens, caller will re-setup cpage and reverse comm again
 
-  } else if (commflag == BIASFLAG) {
-    int ncoeff;
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      ncoeff = (int) ubuf(buf[m++]).i;
+  } else if (commflag == BIASCOEFF) {
+    int offset,ncoeff;
+    int nonzero = (int) ubuf(buf[m++]).i;   // # of atoms with coeffs
+    for (int iatom = 0; iatom < nonzero; iatom++) {
+      offset = (int) ubuf(buf[m++]).i;      // offset into list for which atom
+      j = list[offset];
+      ncoeff = (int) ubuf(buf[m++]).i;      // # of bias coeffs
       for (k = 0; k < ncoeff; k++) {
-        if (numcoeff[j] < maxcoeffperatom) {
+        if (numcoeff[j] == 0) clist[j] = cpage->get(maxbondperatom);
+        if (numcoeff[j] < maxbondperatom) {
           clist[j][numcoeff[j]].biascoeff = buf[m++];
-          clist[j][numcoeff[j]].jtag = (tagint) ubuf(buf[m++]).i;
+          clist[j][numcoeff[j]].tag = (tagint) ubuf(buf[m++]).i;
         } else m += 2;
         numcoeff[j]++;
       }
@@ -1185,7 +1328,7 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   grow bond list by a chunk
+   grow bond list and bias coeff vector by a chunk
 ------------------------------------------------------------------------- */
 
 void FixHyperLocal::grow_bond()
@@ -1195,16 +1338,8 @@ void FixHyperLocal::grow_bond()
   maxbond += DELTABOND;
   blist = (OneBond *)
     memory->srealloc(blist,maxbond*sizeof(OneBond),"hyper/local:blist");
-}
-
-/* ----------------------------------------------------------------------
-   reallocate 2-dimensional clist
-------------------------------------------------------------------------- */
-
-void FixHyperLocal::grow_coeff()
-{
-  memory->destroy(clist);
-  memory->create(clist,maxcoeff,maxcoeffperatom,"hyper/local:clist");
+  memory->grow(biascoeff,maxbond,"hyper/local:biascoeff");
+  vector_local = biascoeff;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1220,41 +1355,35 @@ double FixHyperLocal::compute_scalar()
 
 double FixHyperLocal::compute_vector(int i)
 {
-  // 23 vector outputs returned for i = 0-22
+  // 21 vector outputs returned for i = 0-20
 
   // i = 0 = # of biased bonds on this step
   // i = 1 = max strain of any bond on this step
-  // i = 2 = average bias potential for all bonds on this step
+  // i = 2 = average bias coeff for all bonds on this step
   // i = 3 = ave bonds/atom on this step
   // i = 4 = ave neighbor bonds/bond on this step
 
-  // i = 5 = fraction of steps and bonds with no bias during this run
-  // i = 6 = max drift distance of any atom during this run
-  // i = 7 = max bond length during this run
-  // i = 8 = average # of biased bonds/step during this run
-  // i = 9 = average bias potential for all bonds during this run
-  // i = 10 = max bias potential for any bond during this run
-  // i = 11 = min bias potential for any bond during this run
-  // i = 12 = max dist from my box of any ghost atom with
-  //          maxstain < qfactor during this run
-  // i = 13 = max dist from my box of any ghost atom with
+  // i = 5 = max bond length during this run
+  // i = 6 = average # of biased bonds/step during this run
+  // i = 7 = fraction of biased bonds with no bias during this run
+  // i = 8 = fraction of biased bonds with negative strain during this run
+  // i = 9 = average bias coeff for all bonds during this run
+  // i = 10 = min bias coeff for any bond during this run
+  // i = 11 = max bias coeff for any bond during this run
+
+  // i = 12 = max drift distance of any atom during this run
+  // i = 13 = max distance from proc subbox of any ghost atom with
+  //          maxstrain < qfactor during this run
+  // i = 14 = max distance from proc subbox of any ghost atom with
   //          any maxstrain during this run
-  // i = 14 = count of ghost atoms that could not be found
-  //          by any proc at any reneighbor step during this run
+  // i = 15 = count of ghost atoms that could not be found
+  //          on reneighbor steps during this run
+  // i = 16 = count of bias overlaps (< Dcut) found during this run
 
-  // NOTE: these 2 are no longer relevant
-  // i = 15 = count of lost bond partners during this run
-  // i = 16 = average bias coeff for lost bond partners during this run
-
-  // i = 17 = count of bias overlaps found during this run
-
-  // NOTE: this is no longer relevant
-  // i = 18 = count of non-matching bias coefficients found during this run
-
-  // i = 19 = cummulative hyper time
-  // i = 20 = cummulative # of event timesteps since fix created
-  // i = 21 = cummulative # of atoms in events since fix created
-  // i = 22 = cummulative # of new bonds formed since fix created
+  // i = 17 = cumulative hyper time since fix created
+  // i = 18 = cumulative # of event timesteps since fix created
+  // i = 19 = cumulative # of atoms in events since fix created
+  // i = 20 = cumulative # of new bonds formed since fix created
 
   if (i == 0) {
     int nbiasall;
@@ -1274,7 +1403,7 @@ double FixHyperLocal::compute_vector(int i)
   }
 
   if (i == 2) {
-    if (allbias && allbonds) return allbias/allbonds * vmax;
+    if (allbonds) return sumbiascoeff/allbonds;
     return 1.0;
   }
 
@@ -1294,6 +1423,19 @@ double FixHyperLocal::compute_vector(int i)
   }
 
   if (i == 5) {
+    double allbondlen;
+    MPI_Allreduce(&maxbondlen,&allbondlen,1,MPI_DOUBLE,MPI_MAX,world);
+    return allbondlen;
+  }
+
+  if (i == 6) {
+    if (update->ntimestep == update->firststep) return 0.0;
+    int allbias_running;
+    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_INT,MPI_SUM,world);
+    return 1.0*allbias_running / (update->ntimestep - update->firststep);
+  }
+
+  if (i == 7) {
     int allbias_running,allnobias_running;
     MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_INT,MPI_SUM,world);
     MPI_Allreduce(&nobias_running,&allnobias_running,1,MPI_INT,MPI_SUM,world);
@@ -1301,68 +1443,64 @@ double FixHyperLocal::compute_vector(int i)
     return 0.0;
   }
 
-  if (i == 6) {
+  if (i == 8) {
+    int allbias_running,allnegstrain_running;
+    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&negstrain_running,&allnegstrain_running,1,MPI_INT,
+                  MPI_SUM,world);
+    if (allbias_running) return 1.0*allnegstrain_running / allbias_running;
+    return 0.0;
+  }
+
+  if (i == 9) {
+    if (update->ntimestep == update->firststep) return 0.0;
+    return avebiascoeff / (update->ntimestep - update->firststep);
+  }
+
+  if (i == 10) {
+    double biascoeff;
+    MPI_Allreduce(&minbiascoeff,&biascoeff,1,MPI_DOUBLE,MPI_MIN,world);
+    return biascoeff;
+  }
+
+  if (i == 11) {
+    double biascoeff;
+    MPI_Allreduce(&maxbiascoeff,&biascoeff,1,MPI_DOUBLE,MPI_MAX,world);
+    return biascoeff;
+  }
+
+  if (i == 12) {
     double alldriftsq;
     MPI_Allreduce(&maxdriftsq,&alldriftsq,1,MPI_DOUBLE,MPI_MAX,world);
     return (double) sqrt(alldriftsq);
   }
 
-  if (i == 7) {
-    double allbondlen;
-    MPI_Allreduce(&maxbondlen,&allbondlen,1,MPI_DOUBLE,MPI_MAX,world);
-    return allbondlen;
-  }
+  if (i == 13) return rmaxever;
+  if (i == 14) return rmaxeverbig;
 
-  if (i == 8) {
-    if (update->ntimestep == update->firststep) return 0.0;
-    int allbias_running;
-    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_INT,MPI_SUM,world);
-    return 1.0*allbias_running / (update->ntimestep - update->firststep);
-  }
-
-  if (i == 9) {
-    if (update->ntimestep == update->firststep) return 0.0;
-    return sumbiascoeff * vmax / (update->ntimestep - update->firststep);
-  }
-
-  if (i == 10) {
-    double allbiascoeff;
-    MPI_Allreduce(&maxbiascoeff,&allbiascoeff,1,MPI_DOUBLE,MPI_MAX,world);
-    return allbiascoeff * vmax;
-  }
-
-  if (i == 11) {
-    double allbiascoeff;
-    MPI_Allreduce(&minbiascoeff,&allbiascoeff,1,MPI_DOUBLE,MPI_MAX,world);
-    return allbiascoeff * vmax;
-  }
-
-  if (i == 12) return rmaxever;
-  if (i == 13) return rmaxeverbig;
-
-  if (i == 14) {
+  if (i == 15) {
     int allghost_toofar;
     MPI_Allreduce(&ghost_toofar,&allghost_toofar,1,MPI_INT,MPI_SUM,world);
     return 1.0*allghost_toofar;
   }
 
-  if (i == 17) {
+  if (i == 16) {
     int allclose;
     MPI_Allreduce(&checkbias_count,&allclose,1,MPI_INT,MPI_SUM,world);
     return 1.0*allclose;
   }
 
-  if (i == 19) {
+  if (i == 17) {
     return boost_target * update->dt * (update->ntimestep - starttime);
   }
 
-  if (i == 20) return (double) nevent;
-  if (i == 21) return (double) nevent_atom;
+  if (i == 18) return (double) nevent;
+  if (i == 19) return (double) nevent_atom;
 
-  if (i == 22) {
-    int allnew;
-    MPI_Allreduce(&nnewbond,&allnew,1,MPI_INT,MPI_SUM,world);
-    return (double) 0.5*allnew;
+  if (i == 20) {
+    int allnewbond;
+    MPI_Allreduce(&nnewbond,&allnewbond,1,MPI_INT,MPI_SUM,world);
+    return (double) allnewbond;
   }
 
   return 0.0;
@@ -1375,32 +1513,30 @@ double FixHyperLocal::compute_vector(int i)
 
 double FixHyperLocal::query(int i)
 {
-  if (i == 1) return compute_vector(19);  // cummulative hyper time
-  if (i == 2) return compute_vector(20);  // nevent
-  if (i == 3) return compute_vector(21);  // nevent_atom
+  if (i == 1) return compute_vector(17);  // cummulative hyper time
+  if (i == 2) return compute_vector(18);  // nevent
+  if (i == 3) return compute_vector(19);  // nevent_atom
   if (i == 4) return compute_vector(3);   // ave bonds/atom
-  if (i == 5) return compute_vector(6);   // maxdrift
-  if (i == 6) return compute_vector(7);   // maxbondlen
-  if (i == 7) return compute_vector(5);   // fraction with zero bias
+  if (i == 5) return compute_vector(12);  // maxdrift
+  if (i == 6) return compute_vector(5);   // maxbondlen
+  if (i == 7) return compute_vector(7);   // fraction with zero bias
+  if (i == 8) return compute_vector(8);   // fraction with negative strain
 
   // unique to local hyper
 
-  if (i == 8) return compute_vector(22);   // number of new bonds
-  if (i == 9) return 1.0*maxbondperatom;   // max bonds/atom
-  if (i == 10) return compute_vector(8);   // ave # of biased bonds/step
-  if (i == 11) return compute_vector(9);   // ave bias coeff over all bonds
-  if (i == 12) return compute_vector(10);  // max bias cooef for any bond
-  if (i == 13) return compute_vector(11);  // max bias cooef for any bond
-  if (i == 14) return compute_vector(4);   // neighbor bonds/bond
-  if (i == 15) return compute_vector(2);   // ave bias coeff now
-  if (i == 16) return time_bondbuild;      // CPU time for bond_build calls
-  if (i == 17) return rmaxever;            // ghost atom distance for < maxstrain
-  if (i == 18) return rmaxeverbig;         // ghost atom distance for any strain
-  if (i == 19) return compute_vector(14);  // count of ghost atoms not found
-  //if (i == 20) return compute_vector(15);  // count of lost bond partners
-  //if (i == 21) return compute_vector(16);  // ave bias coeff of long bonds
-  if (i == 22) return compute_vector(17);  // count of bias overlaps
-  //if (i == 23) return compute_vector(18);  // count of non-matching bias coeffs
+  if (i == 9) return compute_vector(20);   // number of new bonds
+  if (i == 10) return 1.0*maxbondperatom;  // max bonds/atom
+  if (i == 11) return compute_vector(6);   // ave # of biased bonds/step
+  if (i == 12) return compute_vector(9);   // ave bias coeff over all bonds
+  if (i == 13) return compute_vector(10);  // min bias cooef for any bond
+  if (i == 14) return compute_vector(11);  // max bias cooef for any bond
+  if (i == 15) return compute_vector(4);   // neighbor bonds/bond
+  if (i == 16) return compute_vector(2);   // ave bias coeff now
+  if (i == 17) return time_bondbuild;      // CPU time for build_bond calls
+  if (i == 18) return rmaxever;            // ghost atom distance for < maxstrain
+  if (i == 19) return rmaxeverbig;         // ghost atom distance for any strain
+  if (i == 20) return compute_vector(15);  // count of ghost atoms not found
+  if (i == 21) return compute_vector(16);  // count of bias overlaps
 
   error->all(FLERR,"Invalid query to fix hyper/local");
 
@@ -1408,21 +1544,22 @@ double FixHyperLocal::query(int i)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of per-atom and per-bond arrays
+   memory usage of per-atom and per-bond data structs
 ------------------------------------------------------------------------- */
 
 double FixHyperLocal::memory_usage()
 {
-  int nmax = atom->nmax;
-  double bytes = maxbond * sizeof(OneBond);       // bond list
+  double bytes = maxbond * sizeof(OneBond);       // blist
+  bytes = maxbond * sizeof(double);               // per-bond bias coeffs
   bytes += 3*maxlocal * sizeof(int);              // numbond,maxhalf,eligible
   bytes += maxlocal * sizeof(double);             // maxhalfstrain
   bytes += maxall * sizeof(int);                  // old2now
   bytes += maxall * sizeof(tagint);               // tagold
   bytes += 3*maxall * sizeof(double);             // xold
-  bytes += 2*nmax * sizeof(double);               // maxstrain,maxstrain_domain
-  if (checkbias) bytes += nmax * sizeof(tagint);  // biasflag
-  bytes += maxcoeff*maxcoeffperatom * sizeof(OneCoeff);  // clist
-  bytes += maxcoeff * sizeof(int);                       // numcoeff
+  bytes += 2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
+  if (checkbias) bytes += maxall * sizeof(tagint);  // biasflag
+  bytes += maxcoeff * sizeof(int);                // numcoeff
+  bytes += maxcoeff * sizeof(OneCoeff *);         // clist
+  bytes += maxlocal*maxbondperatom * sizeof(OneCoeff);  // cpage estimate
   return bytes;
 }

@@ -153,8 +153,15 @@ void PairCosineSquared::coeff(int narg, char **arg)
     }
   }
 
-  if (cut_one <= sigma_one)
-    error->all(FLERR, "Incorrect args for pair coefficients (cutoff <= sigma)");
+  if (cut_one < sigma_one) {
+    error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff < sigma)");
+  } else if (cut_one == sigma_one) {
+    if (wca_one == 0) {
+      error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff = sigma w/o wca)")
+    } else {
+      error->warning(FLERR, "Cosine/squared set to WCA only (cutoff = sigma)")
+    }
+  }
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -224,10 +231,10 @@ void PairCosineSquared::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg], "mix") == 0) {
       error->all(FLERR, "pair_modify mix not supported for pair_style cosine/squared");
     } else if (strcmp(arg[iarg], "shift") == 0) {
-      error->warning(FLERR, "pair_modify shift is meaningless for pair_style cosine/squared");
+      error->warning(FLERR, "pair_modify shift has no effect on pair_style cosine/squared");
       offset_flag = 0;
     } else if (strcmp(arg[iarg], "tail") == 0) {
-      error->warning(FLERR, "pair_modify tail is meaningless for pair_style cosine/squared");
+      error->warning(FLERR, "pair_modify tail has no effect on pair_style cosine/squared");
       tail_flag = 0;
     }
     iarg++;
@@ -399,8 +406,12 @@ void PairCosineSquared::compute(int eflag, int vflag)
             force_lj = r6inv*(lj12_f[itype][jtype]*r6inv - lj6_f[itype][jtype]);
             fpair = factor_lj*force_lj*r2inv;
             if (eflag) {
-              evdwl = factor_lj*r6inv * 
+              evdwl = factor_lj*r6inv*
                       (lj12_e[itype][jtype]*r6inv - lj6_e[itype][jtype]);
+              if (sigma[itype][jtype] == cut[itype][jtype]) {
+                // this is the WCA-only case (it requires this shift by definition)
+                evdwl += factor_lj*epsilon[itype][jtype]
+              }
             }
           } else {
             fpair = 0.0;
@@ -457,6 +468,10 @@ double PairCosineSquared::single(int i, int j, int itype, int jtype, double rsq,
       r6inv = r2inv*r2inv*r2inv;
       force = r6inv*(lj12_f[itype][jtype]*r6inv - lj6_f[itype][jtype])*r2inv;
       energy = r6inv*(lj12_e[itype][jtype]*r6inv - lj6_e[itype][jtype]);
+      if (sigma[itype][jtype] == cut[itype][jtype]) {
+        // this is the WCA-only case (it requires this shift by definition)
+        energy += epsilon[itype][jtype]
+      }
     } else {
       force = 0.0;
       energy = -epsilon[itype][jtype];

@@ -157,9 +157,9 @@ void PairCosineSquared::coeff(int narg, char **arg)
     error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff < sigma)");
   } else if (cut_one == sigma_one) {
     if (wca_one == 0) {
-      error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff = sigma w/o wca)")
+      error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff = sigma w/o wca)");
     } else {
-      error->warning(FLERR, "Cosine/squared set to WCA only (cutoff = sigma)")
+      error->warning(FLERR, "Cosine/squared set to WCA only (cutoff = sigma)");
     }
   }
 
@@ -410,7 +410,7 @@ void PairCosineSquared::compute(int eflag, int vflag)
                       (lj12_e[itype][jtype]*r6inv - lj6_e[itype][jtype]);
               if (sigma[itype][jtype] == cut[itype][jtype]) {
                 // this is the WCA-only case (it requires this shift by definition)
-                evdwl += factor_lj*epsilon[itype][jtype]
+                evdwl += factor_lj*epsilon[itype][jtype];
               }
             }
           } else {
@@ -470,7 +470,7 @@ double PairCosineSquared::single(int i, int j, int itype, int jtype, double rsq,
       energy = r6inv*(lj12_e[itype][jtype]*r6inv - lj6_e[itype][jtype]);
       if (sigma[itype][jtype] == cut[itype][jtype]) {
         // this is the WCA-only case (it requires this shift by definition)
-        energy += epsilon[itype][jtype]
+        energy += epsilon[itype][jtype];
       }
     } else {
       force = 0.0;

@@ -16,16 +16,16 @@ KSpaceStyle(tild,TILD)
 #ifndef LMP_TILD_H
 #define LMP_TILD_H
 
-#include "kspace.h"
+#include "pppm.h"
 
 namespace LAMMPS_NS {
 
-class TILD : public KSpace {
+class TILD : public PPPM {
  public:
   TILD (class LAMMPS *);
   virtual ~TILD();
-  void init();
-  void setup();
+  virtual void init();
+  virtual void setup();
   virtual void settings(int, char **);
   virtual void compute(int, int);
   double memory_usage();
@@ -33,6 +33,9 @@ class TILD : public KSpace {
   void compute_group_group(int, int, int);
 
  protected:
+  static double *uG;
+  static double a_squared;
+  double **grad_uG, **grad_uG_hat;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
@@ -54,23 +57,18 @@ class TILD : public KSpace {
   double *sfacrl_B,*sfacim_B,*sfacrl_B_all,*sfacim_B_all;
 
   double rms(int, double, bigint, double);
-  virtual void eik_dot_r();
+  // virtual void eik_dot_r();
   void coeffs();
   virtual void allocate();
   void deallocate();
   void slabcorr();
-
-  // triclinic
-
-  int triclinic;
-  void eik_dot_r_triclinic();
-  void coeffs_triclinic();
+  void init_gauss();
 
   // group-group interactions
 
-  void slabcorr_groups(int,int,int);
-  void allocate_groups();
-  void deallocate_groups();
+//   void slabcorr_groups(int,int,int);
+//   void allocate_groups();
+//   void deallocate_groups();
 };
 
 }

@@ -15,6 +15,7 @@
 #define LMP_KSPACE_H
 
 #include "pointers.h"
+#include <vector>
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -91,6 +92,12 @@ class KSpace : protected Pointers {
   int stagger_flag;               // 1 if using staggered PPPM grids
 
   double splittol;                // tolerance for when to truncate splitting
+
+  // TILD Variables
+  double gauss_a2, kappa, chi; 
+  int group1, group2;
+  std::vector<double> chi;
+  std::vector<std::vector<int>> chi_interactions(&group->ngroups);
 
   KSpace(class LAMMPS *);
   virtual ~KSpace();

@@ -319,7 +319,9 @@ void PairSpinMagelec::compute(int eflag, int vflag)
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
 
 void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
 {
@@ -331,30 +333,48 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,inum,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
-  inum = list->inum;
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+ 
+  // check if interaction applies to type of ii
 
-  // compute pair if  
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+	locflag =1;
+	break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+	locflag =1;
+	break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
+  }
 
-  if (ii < inum) {
+  // if interaction applies to type ii, 
+  // locflag = 1 and compute pair interaction
 
-    i = ilist[ii];
-    itype = type[i];
+  if (locflag == 1) {
     
-    xi[0] = xi[1] = xi[2] = 0.0;
-    xi[0] = x[i][0];
-    xi[1] = x[i][1];
-    xi[2] = x[i][2];
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
     
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
     
     for (int jj = 0; jj < jnum; jj++) {
     
@@ -377,12 +397,10 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
       eij[2] = -inorm*delz;
     
       if (rsq <= local_cut2) {
-        compute_magelec(i,j,eij,fmi,spj);
+        compute_magelec(ii,j,eij,fmi,spj);
       }
     }
-  
-    }
-
+  }
 }
 
 /* ---------------------------------------------------------------------- */

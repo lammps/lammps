@@ -368,8 +368,8 @@ public:
   enum { is_assignable = is_assignable_value_type &&
                          is_assignable_layout };
 
-  typedef ViewMapping< DstTraits , void >  DstType ;
-  typedef ViewMapping< SrcTraits , void >  SrcType ;
+  typedef ViewMapping< DstTraits , typename DstTraits::specialize >  DstType ;
+  typedef ViewMapping< SrcTraits , typename SrcTraits::specialize >  SrcType ;
 
   template < typename DT , typename ... DP , typename ST , typename ... SP >
   KOKKOS_INLINE_FUNCTION
@@ -432,7 +432,7 @@ public:
 
 
 private:
-  typedef Kokkos::Impl::ViewMapping< traits , void > map_type ;
+  typedef Kokkos::Impl::ViewMapping< traits , typename traits::specialize > map_type ;
   typedef Kokkos::Impl::SharedAllocationTracker      track_type ;
 
   track_type  m_track ;
@@ -567,11 +567,11 @@ public:
   // Allow specializations to query their specialized map
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   KOKKOS_INLINE_FUNCTION
-  const Kokkos::Impl::ViewMapping< traits , void > &
+  const Kokkos::Impl::ViewMapping< traits , typename traits::specialize > &
   implementation_map() const { return m_map ; }
 #endif
   KOKKOS_INLINE_FUNCTION
-  const Kokkos::Impl::ViewMapping< traits , void > &
+  const Kokkos::Impl::ViewMapping< traits , typename traits::specialize > &
   impl_map() const { return m_map ; }
 
   //----------------------------------------
@@ -952,7 +952,7 @@ public:
     , m_rank(rhs.m_rank)
     {
       typedef typename DynRankView<RT,RP...> ::traits SrcTraits ;
-      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , void > Mapping ;
+      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , typename traits::specialize > Mapping ;
       static_assert( Mapping::is_assignable , "Incompatible DynRankView copy construction" );
       Mapping::assign( m_map , rhs.m_map , rhs.m_track );
     }
@@ -962,7 +962,7 @@ public:
   DynRankView & operator = (const DynRankView<RT,RP...> & rhs )
     {
       typedef typename DynRankView<RT,RP...> ::traits SrcTraits ;
-      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , void > Mapping ;
+      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , typename traits::specialize > Mapping ;
       static_assert( Mapping::is_assignable , "Incompatible DynRankView copy construction" );
       Mapping::assign( m_map , rhs.m_map , rhs.m_track );
       m_track.assign( rhs.m_track , traits::is_managed );
@@ -980,7 +980,7 @@ public:
     {
       typedef typename View<RT,RP...>::traits  SrcTraits ;
       typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , Kokkos::Impl::ViewToDynRankViewTag >  Mapping ;
-      static_assert( Mapping::is_assignable , "Incompatible DynRankView copy construction" );
+      static_assert( Mapping::is_assignable , "Incompatible View to DynRankView copy construction" );
       Mapping::assign( *this , rhs );
     }
 
@@ -1432,7 +1432,7 @@ public:
                     , Args ... args )
     {
 
-       typedef ViewMapping< traits_type, void >  DstType ;
+       typedef ViewMapping< traits_type, typename traits_type::specialize >  DstType ;
 
        typedef typename std::conditional< (rank==0) , ViewDimension<>
                                                     , typename std::conditional< (rank==1) , ViewDimension<0>

@@ -82,8 +82,8 @@ void PairLebedevaZ::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,der;
-  double rsq,r,rhosq,rho,exp1,exp2,exp3,r6,r8;
-  double frho,sumD,Ulm,fxy,fz,rdsq;
+  double rsq,r,rhosq,exp1,exp2,exp3,r6,r8;
+  double sumD,Ulm,fxy,fz;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -120,7 +120,6 @@ void PairLebedevaZ::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       // rho^2 = r^2 - z^2
       rhosq = delx*delx + dely*dely;
-      rho = sqrt(rhosq);
       rsq = rhosq + delz*delz;
 
       if (rsq < cutsq[itype][jtype]) {

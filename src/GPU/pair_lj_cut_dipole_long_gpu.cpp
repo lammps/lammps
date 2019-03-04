@@ -216,7 +216,7 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r,rinv,r2inv,r6inv;
   double forcecoulx,forcecouly,forcecoulz,fforce;
-  double tixcoul,tiycoul,tizcoul,tjxcoul,tjycoul,tjzcoul;
+  double tixcoul,tiycoul,tizcoul;
   double fx,fy,fz,fdx,fdy,fdz,fax,fay,faz;
   double pdotp,pidotr,pjdotr,pre1,pre2,pre3;
   double grij,expm2,t,erfc;
@@ -378,14 +378,9 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
           tixcoul = mu[i][1]*(zdiz + zaiz) - mu[i][2]*(zdiy + zaiy);
           tiycoul = mu[i][2]*(zdix + zaix) - mu[i][0]*(zdiz + zaiz);
           tizcoul = mu[i][0]*(zdiy + zaiy) - mu[i][1]*(zdix + zaix);
-          tjxcoul = mu[j][1]*(zdjz + zajz) - mu[j][2]*(zdjy + zajy);
-          tjycoul = mu[j][2]*(zdjx + zajx) - mu[j][0]*(zdjz + zajz);
-          tjzcoul = mu[j][0]*(zdjy + zajy) - mu[j][1]*(zdjx + zajx);
-
         } else {
           forcecoulx = forcecouly = forcecoulz = 0.0;
           tixcoul = tiycoul = tizcoul = 0.0;
-          tjxcoul = tjycoul = tjzcoul = 0.0;
         }
 
         // LJ interaction

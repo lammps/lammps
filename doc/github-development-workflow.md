@@ -123,7 +123,7 @@ Here are some items to check:
     * float.h -> cfloat
     * limits.h -> climits
     * math.h -> cmath
-    * omplex.h -> complex
+    * complex.h -> complex
     * setjmp.h -> csetjmp
     * signal.h -> csignal
     * stddef.h -> cstddef

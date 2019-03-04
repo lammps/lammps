@@ -61,9 +61,9 @@ void AngleCross::compute(int eflag, int vflag)
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
-  double dtheta,dtheta2,dtheta3,dtheta4,de_angle;
+  double dtheta;
   double dr1,dr2,tk1,tk2,aa1,aa2,aa11,aa12,aa21,aa22;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
+  double rsq1,rsq2,r1,r2,c,s,b1,b2;
   double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
   eangle = 0.0;
@@ -305,7 +305,7 @@ void AngleCross::read_restart(FILE *fp)
 void AngleCross::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
             i,kss[i],kbs0[i],kbs1[i],r00[i],r01[i],theta0[i]/MY_PI*180.0);
 }
 

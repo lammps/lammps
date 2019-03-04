@@ -251,6 +251,8 @@ Botero
 Botu
 Bouguet
 boxcolor
+bp
+bpls
 bpclermont
 br
 Branduardi
@@ -625,8 +627,10 @@ dVx
 dW
 dx
 dy
+dyn
 dyne
 dynes
+dynmat
 Dyre
 Dzyaloshinskii
 Eaa
@@ -1384,6 +1388,7 @@ libfftw
 libgcc
 libgpu
 libjpeg
+libkim
 liblammps
 Liblammps
 liblink
@@ -1951,6 +1956,7 @@ ons
 OO
 openKIM
 OpenMP
+openmp
 openmpi
 opls
 Oppelstrup
@@ -2044,6 +2050,7 @@ peru
 Peskin
 Pettifor
 pfactor
+pgi
 ph
 Phillpot
 phiphi
@@ -2081,6 +2088,7 @@ Pmolrotate
 Pmoltrans
 pN
 png
+Podhorszki
 Poiseuille
 Polak
 polarizabilities
@@ -2433,6 +2441,7 @@ shockvel
 si
 SiC
 Siepmann
+Sievers
 Sij
 Sikandar
 Silbert

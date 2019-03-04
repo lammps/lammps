@@ -8,6 +8,7 @@
 
 angle_style cosine command :h3
 angle_style cosine/omp command :h3
+angle_style cosine/kk command :h3
 
 [Syntax:]
 

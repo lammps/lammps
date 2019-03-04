@@ -38,20 +38,20 @@ ico (icosahedral) = 4
 sc (simple cubic) = 5
 dcub (diamond cubic) = 6
 dhex (diamond hexagonal) = 7
-other = 8 :ul
+graphene = 8 :ul
 
-The value of the PTM structure will be 0 for atoms not in the specified
+The value of the PTM structure will be 0 for unknown types and -1 for atoms not in the specified
 compute group.  The choice of structures to search for can be specified using the "structures"
 argument, which is a hyphen-separated list of structure keywords.
 Two convenient pre-set options are provided:
 
 default: fcc-hcp-bcc-ico
-all: fcc-hcp-bcc-ico-sc-dcub-dhex :ul
+all: fcc-hcp-bcc-ico-sc-dcub-dhex-graphene :ul
 
 The 'default' setting detects the same structures as the Common Neighbor Analysis method.
-The 'all' setting searches for all structure types.  A small performance penalty is
-incurred for the diamond structures, so it is not recommended to use this option if
-it is known that the simulation does not contain diamond structures.
+The 'all' setting searches for all structure types.  A performance penalty is
+incurred for the diamond and graphene structures, so it is not recommended to use this option if
+it is known that the simulation does not contain these structures.
 
 
 PTM identifies structures using two steps.  First, a graph isomorphism test is used
@@ -93,9 +93,9 @@ interatomic distance
 qw
 qx
 qy
-qw :ul
+qz :ul
 
-The type is a number from 0 to 8.  The rmsd is a positive real number.
+The type is a number from -1 to 8.  The rmsd is a positive real number.
 The interatomic distance is computed from the scale factor in the RMSD equation.
 The (qw,qx,qy,qz) parameters represent the orientation of the local structure
 in quaternion form.  The reference coordinates for each template (from which the

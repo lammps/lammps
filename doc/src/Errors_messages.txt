@@ -6988,12 +6988,6 @@ The atom style defined does not have this attribute. :dd
 
 The atom style defined does not have these attributes. :dd
 
-{KIM neighbor iterator exceeded range} :dt
-
-This should not happen.  It likely indicates a bug
-in the KIM implementation of the interatomic potential
-where it is requesting neighbors incorrectly. :dd
-
 {KOKKOS package does not yet support comm_style tiled} :dt
 
 Self-explanatory. :dd
@@ -10184,10 +10178,6 @@ valid. :dd
 {Unrecognized pair style in compute pair command} :dt
 
 Self-explanatory. :dd
-
-{Unrecognized virial argument in pair_style command} :dt
-
-Only two options are supported: LAMMPSvirial and KIMvirial :dd
 
 {Unsupported mixing rule in kspace_style ewald/disp} :dt
 

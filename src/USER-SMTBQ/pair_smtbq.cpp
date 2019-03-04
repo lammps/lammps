@@ -2895,11 +2895,12 @@ void PairSMTBQ::groupSurface_QEq()
 void PairSMTBQ::groupQEqAllParallel_QEq()
 {
   int ii,i,jj,j,kk,k,itype,jtype,ktype,jnum,m,gp,zz,z,kgp;
-  int iproc,team_elt[10][nproc],team_QEq[10][nproc][5];
+  int iproc; // ,team_elt[10][nproc],team_QEq[10][nproc][5];
+  int **team_elt,***team_QEq;
   int *ilist,*jlist,*numneigh,**firstneigh,ngp,igp;
   double delr[3],xtmp,ytmp,ztmp,rsq;
   int **flag_gp, *nelt, **tab_gp;
-  int QEq,QEqall[nproc];
+  int QEq,*QEqall;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -2927,6 +2928,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   memory->create(nelt,nall,"pair:nelt");
   memory->create(tab_gp,10,nall,"pair:flag_gp");
 
+  memory->create(team_elt,10,nproc,"pair:team_elt");
+  memory->create(team_QEq,10,nproc,5,"pair:team_QEq");
+  memory->create(QEqall,nproc,"pair:QEqall");
 
   for (i = 0; i < nall ; i++) { flag_QEq[i] = 0; }
   for (i = 0; i < 10*nproc; i++) {
@@ -3002,6 +3006,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
     memory->destroy(tab_gp);
     memory->destroy(nelt);
 
+    memory->destroy(team_elt);
+    memory->destroy(team_QEq);
+    memory->destroy(QEqall);
     return;
   }
   // :::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -3339,6 +3346,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   memory->destroy(tab_gp);
   memory->destroy(nelt);
 
+  memory->destroy(team_elt);
+  memory->destroy(team_QEq);
+  memory->destroy(QEqall);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3346,7 +3356,8 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 void PairSMTBQ::Init_charge(int * /*nQEq*/, int * /*nQEqa*/, int * /*nQEqc*/)
 {
   int ii,i,gp,itype;
-  int *ilist,test[nteam],init[nteam];
+  int *ilist;
+  std::vector<int> test(cluster),init(cluster);
   double bound,tot,totll;
 
   int inum = list->inum;
@@ -3376,7 +3387,8 @@ void PairSMTBQ::Init_charge(int * /*nQEq*/, int * /*nQEqa*/, int * /*nQEqc*/)
     }
   }
 
-  MPI_Allreduce(test,init,nteam+1,MPI_INT,MPI_SUM,world);
+  // TODO
+  MPI_Allreduce(test.data(),init.data(),cluster,MPI_INT,MPI_SUM,world);
 
   //  On fait que sur les atomes hybrides!!!
   // ----------------------------------------

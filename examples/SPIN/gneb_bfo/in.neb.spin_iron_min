@@ -1,5 +1,4 @@
 # bcc iron in a 3d periodic box
-print "Test 1"
 
 units 		metal
 dimension 	3
@@ -31,7 +30,7 @@ neigh_modify 	every 10 check yes delay 20
 fix 		1 all precession/spin zeeman 0.001 0.0 0.0 1.0 anisotropy 0.01 1.0 0.0 0.0 
 fix 		2 all langevin/spin 0.1 0.0 21
 fix		3 all neb/spin 1.0 
-#fix		4 all nve/spin lattice no 
+fix		4 all nve/spin lattice no 
 #parallel ideal
 
 timestep	0.0001
@@ -39,5 +38,5 @@ thermo		100
 
 
 min_style	spinmin
-neb/spin	0.0 0.1 100 10 10 final ../examples/SPIN/gneb_bfo/final.iron_spin
+neb/spin		0.0 0.1 10 10 10 final ../examples/SPIN/gneb_bfo/final.iron_spin
 #neb/spin		0.0 0.1 1000 1000 100 final ../examples/SPIN/gneb_bfo/final.iron_spin

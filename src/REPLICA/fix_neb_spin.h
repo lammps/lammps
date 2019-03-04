@@ -36,8 +36,8 @@ class FixNEB_spin : public Fix {
   void init();
   void min_setup(int);
   void min_post_force(int);
-  void advance_spins(double);
-  double evaluate_dt();
+  //void advance_spins(double);
+  //double evaluate_dt();
 
  private:
   int me,nprocs,nprocs_universe;

@@ -334,6 +334,9 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
     MPI_Bcast(&vnext,1,MPI_DOUBLE,0,world);
   }
 
+  //printf("test veng: %g / %g / %g \n",veng,vprev,vnext);
+  //error->universe_all(FLERR,"End test");
+
   if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0)) EFinalIni = veng;
 
   if (ireplica == 0) vIni=veng;
@@ -391,7 +394,6 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   dotgrad = gradlen = dotpath = dottangrad = 0.0;
 
-
   // computation of the tangent vector
 
   // final replica
@@ -401,11 +403,13 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
       if (mask[i] & groupbit) {
 	
 	// tangent vector
+	
 	delspxp = sp[i][0] - spprev[i][0];
 	delspyp = sp[i][1] - spprev[i][1];
 	delspzp = sp[i][2] - spprev[i][2];
         
 	// project delp vector on tangent space
+	
 	delpdots = delspxp*sp[i][0]+delspyp*sp[i][1]+delspzp*sp[i][2];
 	delspxp -= delpdots*sp[i][0];
 	delspyp -= delpdots*sp[i][1];
@@ -415,6 +419,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	//domain->minimum_image(delspxp,delspyp,delspzp);
 
 	// calc. geodesic length
+	
 	spi[0]=sp[i][0];
 	spi[1]=sp[i][1];
 	spi[2]=sp[i][2];
@@ -470,11 +475,13 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
       if (mask[i] & groupbit) {
 
 	// tangent vector
+	
 	delspxn = spnext[i][0]- sp[i][0];
 	delspyn = spnext[i][1]- sp[i][1];
 	delspzn = spnext[i][2]- sp[i][2];
 
         // project deln vector on tangent space
+	
 	delndots = delspxn*sp[i][0]+delspyn*sp[i][1]+delspzn*sp[i][2];
 	delspxn -= delndots*sp[i][0];
 	delspyn -= delndots*sp[i][1];
@@ -484,6 +491,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
         //domain->minimum_image(delspxn,delspyn,delspzn);
 	
 	// calc. geodesic length
+	
 	spi[0]=sp[i][0];
 	spi[1]=sp[i][1];
 	spi[2]=sp[i][2];
@@ -492,7 +500,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	spj[2]=spnext[i][2];
 	templen = geodesic_distance(spi, spj);
 	nlen += templen*templen;
-	dottangrad += delspxn*fm[i][0] + delspyn*fm[i][1] + delspzp*fm[i][2];
+	dottangrad += delspxn*fm[i][0] + delspyn*fm[i][1] + delspzn*fm[i][2];
         gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
         if (FreeEndIni) {
 	  error->all(FLERR,"Free End option not yet active");
@@ -817,18 +825,19 @@ double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
   double dist;
   double crossx,crossy,crossz;
   double dotx,doty,dotz;
-  double crosslen,dots;
+  double normcross,dots;
 
   crossx = spi[1]*spj[2]-spi[2]*spj[1];
   crossy = spi[2]*spj[0]-spi[0]*spj[2];
   crossz = spi[0]*spj[1]-spi[1]*spj[0];
-  crosslen = sqrt(crossx*crossx + crossy*crossy + crossz*crossz);
+  normcross = sqrt(crossx*crossx + crossy*crossy + crossz*crossz);
+  
   dotx = spi[0]*spj[0];
   doty = spi[1]*spj[1];
   dotz = spi[2]*spj[2];
   dots = dotx+doty+dotz;
 
-  dist = atan2(crosslen,dots);
+  dist = atan2(normcross,dots);
 
   return dist;
 }
@@ -837,144 +846,144 @@ double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
    geometric damped advance os spins
 ---------------------------------------------------------------------- */
 
-void FixNEB_spin::advance_spins(double dts)
-{
-  //int j=0;
-  //int *sametag = atom->sametag;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
-  double tdampx,tdampy,tdampz;
-  double msq,scale,fm2,energy,dts2;
-  double alpha;
-  double spi[3],fmi[3];
-  double cp[3],g[3];
-
-  //cp[0] = cp[1] = cp[2] = 0.0;
-  //g[0] = g[1] = g[2] = 0.0;
-  dts2 = dts*dts;		
-
-  // fictitious Gilbert damping of 1
-  alpha = 1.0;
-
-  // loop on all spins on proc.
-
-  if (ireplica != nreplica-1 && ireplica != 0)
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-
-	spi[0] = sp[i][0];
-	spi[1] = sp[i][1];
-	spi[2] = sp[i][2];
-
-	fmi[0] = fm[i][0];
-	fmi[1] = fm[i][1];
-	fmi[2] = fm[i][2];
-
-        // calc. damping torque
-      
-        tdampx = -alpha*(fmi[1]*spi[2] - fmi[2]*spi[1]);
-        tdampy = -alpha*(fmi[2]*spi[0] - fmi[0]*spi[2]);
-        tdampz = -alpha*(fmi[0]*spi[1] - fmi[1]*spi[0]);
-      
-        // apply advance algorithm (geometric, norm preserving)
-        
-        fm2 = (tdampx*tdampx+tdampy*tdampy+tdampz*tdampz);
-        energy = (sp[i][0]*tdampx)+(sp[i][1]*tdampy)+(sp[i][2]*tdampz);
-        
-        cp[0] = tdampy*sp[i][2]-tdampz*sp[i][1];
-        cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
-        cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
-      
-        g[0] = sp[i][0]+cp[0]*dts;
-        g[1] = sp[i][1]+cp[1]*dts;
-        g[2] = sp[i][2]+cp[2]*dts;
-      			
-        g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
-        g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
-        g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
-      			
-        g[0] /= (1+0.25*fm2*dts2);
-        g[1] /= (1+0.25*fm2*dts2);
-        g[2] /= (1+0.25*fm2*dts2);
-
-        sp[i][0] = g[0];
-        sp[i][1] = g[1];
-        sp[i][2] = g[2];			
-      
-        // renormalization (check if necessary)
-      
-        msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-        scale = 1.0/sqrt(msq);
-        sp[i][0] *= scale;
-        sp[i][1] *= scale;
-        sp[i][2] *= scale;
-      
-        // comm. sp[i] to atoms with same tag (for serial algo)
-      
-        // no need for simplecticity
-        //if (sector_flag == 0) {
-        //  if (sametag[i] >= 0) {
-        //    j = sametag[i];
-        //    while (j >= 0) {
-        //      sp[j][0] = sp[i][0];
-        //      sp[j][1] = sp[i][1];
-        //      sp[j][2] = sp[i][2];
-        //      j = sametag[j];
-        //    }
-        //  }
-        //}
-        //
-
-      }
-}
+//void FixNEB_spin::advance_spins(double dts)
+//{
+//  //int j=0;
+//  //int *sametag = atom->sametag;
+//  int nlocal = atom->nlocal;
+//  int *mask = atom->mask;
+//  double **sp = atom->sp;
+//  double **fm = atom->fm;
+//  double tdampx,tdampy,tdampz;
+//  double msq,scale,fm2,energy,dts2;
+//  double alpha;
+//  double spi[3],fmi[3];
+//  double cp[3],g[3];
+//
+//  //cp[0] = cp[1] = cp[2] = 0.0;
+//  //g[0] = g[1] = g[2] = 0.0;
+//  dts2 = dts*dts;		
+//
+//  // fictitious Gilbert damping of 1
+//  alpha = 1.0;
+//
+//  // loop on all spins on proc.
+//
+//  if (ireplica != nreplica-1 && ireplica != 0)
+//    for (int i = 0; i < nlocal; i++)
+//      if (mask[i] & groupbit) {
+//
+//	spi[0] = sp[i][0];
+//	spi[1] = sp[i][1];
+//	spi[2] = sp[i][2];
+//
+//	fmi[0] = fm[i][0];
+//	fmi[1] = fm[i][1];
+//	fmi[2] = fm[i][2];
+//
+//        // calc. damping torque
+//      
+//        tdampx = -alpha*(fmi[1]*spi[2] - fmi[2]*spi[1]);
+//        tdampy = -alpha*(fmi[2]*spi[0] - fmi[0]*spi[2]);
+//        tdampz = -alpha*(fmi[0]*spi[1] - fmi[1]*spi[0]);
+//      
+//        // apply advance algorithm (geometric, norm preserving)
+//        
+//        fm2 = (tdampx*tdampx+tdampy*tdampy+tdampz*tdampz);
+//        energy = (sp[i][0]*tdampx)+(sp[i][1]*tdampy)+(sp[i][2]*tdampz);
+//        
+//        cp[0] = tdampy*sp[i][2]-tdampz*sp[i][1];
+//        cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
+//        cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
+//      
+//        g[0] = sp[i][0]+cp[0]*dts;
+//        g[1] = sp[i][1]+cp[1]*dts;
+//        g[2] = sp[i][2]+cp[2]*dts;
+//      			
+//        g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
+//        g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
+//        g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
+//      			
+//        g[0] /= (1+0.25*fm2*dts2);
+//        g[1] /= (1+0.25*fm2*dts2);
+//        g[2] /= (1+0.25*fm2*dts2);
+//
+//        sp[i][0] = g[0];
+//        sp[i][1] = g[1];
+//        sp[i][2] = g[2];			
+//      
+//        // renormalization (check if necessary)
+//      
+//        msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+//        scale = 1.0/sqrt(msq);
+//        sp[i][0] *= scale;
+//        sp[i][1] *= scale;
+//        sp[i][2] *= scale;
+//      
+//        // comm. sp[i] to atoms with same tag (for serial algo)
+//      
+//        // no need for simplecticity
+//        //if (sector_flag == 0) {
+//        //  if (sametag[i] >= 0) {
+//        //    j = sametag[i];
+//        //    while (j >= 0) {
+//        //      sp[j][0] = sp[i][0];
+//        //      sp[j][1] = sp[i][1];
+//        //      sp[j][2] = sp[i][2];
+//        //      j = sametag[j];
+//        //    }
+//        //  }
+//        //}
+//        //
+//
+//      }
+//}
 
 /* ----------------------------------------------------------------------
    evaluate max timestep
 ---------------------------------------------------------------------- */
 
-double FixNEB_spin::evaluate_dt()
-{
-  double dtmax;
-  double fmsq;
-  double fmaxsqone,fmaxsqloc,fmaxsqall;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  double **fm = atom->fm;
-
-  // finding max fm on this proc. 
-  
-  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
-      fmaxsqone = MAX(fmaxsqone,fmsq);
-    }
-
-  // finding max fm on this replica
- 
-  fmaxsqloc = fmaxsqone; 
-  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world); 
-
-  // finding max fm over all replicas, if necessary
-  // this communicator would be invalid for multiprocess replicas
-
-  if (update->multireplica == 1) {
-    fmaxsqall = fmaxsqloc;
-    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
-  }
-
-  if (fmaxsqall < fmaxsqloc)
-    error->all(FLERR,"Incorrect fmaxall calc.");
-
-  // define max timestep
-  // dividing by 10 the inverse of max frequency
-
-  dtmax = MY_2PI/(10.0*sqrt(fmaxsqall));
-
-  return dtmax;
-}
+//double FixNEB_spin::evaluate_dt()
+//{
+//  double dtmax;
+//  double fmsq;
+//  double fmaxsqone,fmaxsqloc,fmaxsqall;
+//  int nlocal = atom->nlocal;
+//  int *mask = atom->mask;
+//  double **fm = atom->fm;
+//
+//  // finding max fm on this proc. 
+//  
+//  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
+//  for (int i = 0; i < nlocal; i++)
+//    if (mask[i] & groupbit) {
+//      fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
+//      fmaxsqone = MAX(fmaxsqone,fmsq);
+//    }
+//
+//  // finding max fm on this replica
+// 
+//  fmaxsqloc = fmaxsqone; 
+//  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world); 
+//
+//  // finding max fm over all replicas, if necessary
+//  // this communicator would be invalid for multiprocess replicas
+//
+//  if (update->multireplica == 1) {
+//    fmaxsqall = fmaxsqloc;
+//    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+//  }
+//
+//  if (fmaxsqall < fmaxsqloc)
+//    error->all(FLERR,"Incorrect fmaxall calc.");
+//
+//  // define max timestep
+//  // dividing by 10 the inverse of max frequency
+//
+//  dtmax = MY_2PI/(10.0*sqrt(fmaxsqall));
+//
+//  return dtmax;
+//}
 
 /* ----------------------------------------------------------------------
    send/recv NEB atoms to/from adjacent replicas

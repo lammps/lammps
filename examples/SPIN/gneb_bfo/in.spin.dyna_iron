@@ -1,0 +1,53 @@
+# bcc iron in a 3d periodic box
+
+clear 
+units 		metal
+atom_style 	spin
+
+dimension 	3
+boundary 	f f f
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array 
+
+lattice 	bcc 2.8665
+region 		box block 0.0 4.0 0.0 4.0 0.0 1.0
+create_box 	1 box
+create_atoms 	1 box
+
+#read_data        ../examples/SPIN/gneb_bfo/initial.iron_spin
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 55.845
+set 		group all spin 2.2 -1.0 0.0 0.0
+
+pair_style 	spin/exchange 3.5
+pair_coeff 	* * exchange 3.4 0.02726 0.2171 1.841
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin zeeman 0.001 0.0 0.0 1.0 anisotropy 0.01 1.0 0.0 0.0 
+fix 		2 all langevin/spin 300.0 0.01 21
+#fix		3 all neb/spin 1.0 
+fix		3 all nve/spin lattice no 
+timestep	0.0001
+
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magx      equal c_out_mag[1]
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magx v_magnorm v_tmag temp v_emag ke pe etotal
+thermo		100
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		100 all custom 1 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+run 		10000

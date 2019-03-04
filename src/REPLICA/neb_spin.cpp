@@ -24,6 +24,7 @@
 // test spin
 #include "neb_spin.h"
 #include "compute.h"
+#include "force.h"
 
 #include "universe.h"
 #include "atom.h"
@@ -262,6 +263,8 @@ void NEB_spin::run()
   // setup regular NEB_spin minimization
   FILE *uscreen = universe->uscreen;
   FILE *ulogfile = universe->ulogfile;
+  
+  //printf("test before run 1 \n");
 
   if (me_universe == 0 && uscreen)
     fprintf(uscreen,"Setting up regular NEB_spin ...\n");
@@ -272,8 +275,12 @@ void NEB_spin::run()
   update->max_eval = n1steps;
   if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps for NEB_spin");
+  
+  //printf("test before run 2 \n");
 
   update->minimize->setup();
+  
+  //printf("test before run 3 \n");
 
   if (me_universe == 0) {
     if (uscreen) {
@@ -304,7 +311,9 @@ void NEB_spin::run()
       }
     }
   }
+  //printf("test before run 4 \n");
   print_status();
+  //printf("test before run 5 \n");
 
   // perform regular NEB_spin for n1steps or until replicas converge
   // retrieve PE values from fix NEB_spin and print every nevery iterations
@@ -314,13 +323,23 @@ void NEB_spin::run()
   timer->init();
   timer->barrier_start();
 
+  // test import fix_nve scheme
+
+  //printf("test 2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //error->all(FLERR,"end neb_spin test");
   double dts;
   while (update->minimize->niter < n1steps) {
     //dts = evaluate_dt();
     //advance_spins(dts);
-    dts = fneb->evaluate_dt();
-    fneb->advance_spins(dts);
+    //fneb->
     
+    //dts = fneb->evaluate_dt();
+    //fneb->advance_spins(dts);
+   
+    // no minimizer for spins
+    update->minimize->run(nevery);
+
+
     // no minimizer for spins
     //update->minimize->run(nevery);
     //
@@ -331,6 +350,9 @@ void NEB_spin::run()
     if (update->minimize->stop_condition) break;
   }
 
+  // test neb end
+  //error->all(FLERR,"end neb_spin test");
+  
   timer->barrier_stop();
 
   update->minimize->cleanup();
@@ -371,8 +393,11 @@ void NEB_spin::run()
 
   update->minimize->init();
   fneb->rclimber = top;
+  printf("test print 6.2 \n");
   update->minimize->setup();
 
+  printf("test print 6.3 \n");
+  
   if (me_universe == 0) {
     if (uscreen) {
       if (verbose) {
@@ -418,9 +443,9 @@ void NEB_spin::run()
   while (update->minimize->niter < n2steps) {
     //dts = evaluate_dt();
     //advance_spins(dts);
-    dts = fneb->evaluate_dt();
-    fneb->advance_spins(dts);
-    //update->minimize->run(nevery);
+    //dts = fneb->evaluate_dt();
+    //fneb->advance_spins(dts);
+    update->minimize->run(nevery);
     print_status();
     if (update->minimize->stop_condition) break;
   }
@@ -995,9 +1020,13 @@ void NEB_spin::print_status()
   
   double fmaxreplica;
   MPI_Allreduce(&fnorm2,&fmaxreplica,1,MPI_DOUBLE,MPI_MAX,roots);
-  double fnorminf = update->minimize->fnorm_inf();
-  double fmaxatom;
-  MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
+  
+  // no minimize->fnorm_inf for spins
+  //double fnorminf = update->minimize->fnorm_inf();
+  //double fmaxatom;
+  //MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
+  double fnorminf = 0.0;
+  double fmaxatom = 0.0;
 
   if (verbose) {
     freplica = new double[nreplica];

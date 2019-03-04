@@ -405,7 +405,13 @@ void PairSMTBQ::read_file(char *file)
   verbose = 1;
   verbose = 0;
 
-  // open file on all processors
+  coordOxBB = 0.0;
+  coordOxBulk = 0.0;
+  coordOxSurf = 0.0;
+  ROxBB = 0.0;
+  ROxSurf = 0.0;
+
+      // open file on all processors
   FILE *fp;
   fp = force->open_potential(file);
   if ( fp  == NULL ) {
@@ -455,14 +461,12 @@ void PairSMTBQ::read_file(char *file)
 
   // load up parameter settings and error check their values
 
-  if (nparams == maxparam) {
-    maxparam += DELTA;
-    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+  nparams = maxparam = num_atom_types;
+  params = (Param *) memory->create(params,maxparam*sizeof(Param),
                                         "pair:params");
-    maxintparam += m;
-    intparams = (Intparam *) memory->srealloc(intparams,(maxintparam+1)*sizeof(Intparam),
+  maxintparam = m;
+  intparams = (Intparam *) memory->create(intparams,(maxintparam+1)*sizeof(Intparam),
                                               "pair:intparams");
-  }
 
   for (i=0; i < num_atom_types; i++)
     params[i].nom = (char*) malloc(sizeof(char)*3);
@@ -839,7 +843,8 @@ void PairSMTBQ::read_file(char *file)
   }
 
   //A adapter au STO
-  ncov = min((params[0].sto)*(params[0].n0),(params[1].sto)*(params[1].n0));
+  for (i=1,ncov=params[0].sto*params[0].n0; i < nparams; ++i)
+    ncov = min(ncov,(params[1].sto)*(params[1].n0));
 
   if (verbose) printf (" Parametre ncov = %f\n",ncov);
   if (verbose) printf (" ********************************************* \n");

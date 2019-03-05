@@ -33,7 +33,7 @@
 extern interaction_function Interaction_Functions[NUM_INTRS];
 
 void Init_Force_Functions( control_params* );
-void Compute_Forces( reax_system*, control_params*, simulation_data*,
+void Compute_Forces( LAMMPS_NS::LAMMPS *lmp, reax_system*, control_params*, simulation_data*,
                      storage*, reax_list**, output_controls*, mpi_datatypes* );
 void Estimate_Storages( reax_system*, control_params*, reax_list**,
                         int*, int*, int*, int*, MPI_Comm );

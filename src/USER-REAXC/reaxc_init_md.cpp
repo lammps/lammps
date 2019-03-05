@@ -36,6 +36,8 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
+using namespace LAMMPS_NS;
+
 int Init_System( reax_system *system, control_params *control, char * /*msg*/ )
 {
   int i;
@@ -150,7 +152,7 @@ int Init_MPI_Datatypes( reax_system *system, storage * /*workspace*/,
   return SUCCESS;
 }
 
-int  Init_Lists( reax_system *system, control_params *control,
+int  Init_Lists( LAMMPS *lmp, reax_system *system, control_params *control,
                  simulation_data * /*data*/, storage * /*workspace*/, reax_list **lists,
                  mpi_datatypes *mpi_data, char * /*msg*/ )
 {
@@ -180,7 +182,7 @@ int  Init_Lists( reax_system *system, control_params *control,
     if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS, comm ) ) {
       fprintf( stderr, "not enough space for hbonds list. terminating!\n" );
-      MPI_Abort( comm, INSUFFICIENT_MEMORY );
+      lmp->error->all(FLERR, "Can't allocate space for hbonds.");
     }
   }
 
@@ -194,7 +196,7 @@ int  Init_Lists( reax_system *system, control_params *control,
   if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
                   *lists+BONDS, comm ) ) {
     fprintf( stderr, "not enough space for bonds list. terminating!\n" );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
+    lmp->error->all(FLERR, "Can't allocate space for hbonds.");
   }
 
   /* 3bodies list */
@@ -211,7 +213,7 @@ int  Init_Lists( reax_system *system, control_params *control,
   return SUCCESS;
 }
 
-void Initialize( reax_system *system, control_params *control,
+void Initialize( LAMMPS *lmp, reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace,
                  reax_list **lists, output_controls *out_control,
                  mpi_datatypes *mpi_data, MPI_Comm comm )
@@ -250,7 +252,7 @@ void Initialize( reax_system *system, control_params *control,
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
 
-  if (Init_Lists( system, control, data, workspace, lists, mpi_data, msg ) ==
+  if (Init_Lists( lmp, system, control, data, workspace, lists, mpi_data, msg ) ==
       FAILURE) {
       fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
       fprintf( stderr, "p%d: system could not be initialized! terminating.\n",

@@ -394,7 +394,8 @@ void PairReaxC::init_style( )
                    "increased neighbor list skin.");
 
   for( int i = 0; i < LIST_N; ++i )
-    lists[i].allocated = 0;
+    if (lists[i].allacated != 1)
+      lists[i].allocated = 0;
 
   if (fix_reax == NULL) {
     char **fixarg = new char*[3];
@@ -445,7 +446,7 @@ void PairReaxC::setup( )
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
 
     write_reax_lists();
-    Initialize( system, control, data, workspace, &lists, out_control,
+    Initialize( lmp, system, control, data, workspace, &lists, out_control,
                 mpi_data, world );
     for( int k = 0; k < system->N; ++k ) {
       num_bonds[k] = system->my_atoms[k].num_bonds;
@@ -465,7 +466,7 @@ void PairReaxC::setup( )
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( system, control, data, workspace, &lists, mpi_data );
+    ReAllocate( lmp, system, control, data, workspace, &lists, mpi_data );
   }
 
   bigint local_ngroup = list->inum;
@@ -517,7 +518,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   setup();
 
-  Reset( system, control, data, workspace, &lists, world );
+  Reset( lmp, system, control, data, workspace, &lists, world );
   workspace->realloc.num_far = write_reax_lists();
   // timing for filling in the reax lists
   if (comm->me == 0) {
@@ -527,7 +528,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   // forces
 
-  Compute_Forces(system,control,data,workspace,&lists,out_control,mpi_data);
+  Compute_Forces(lmp, system,control,data,workspace,&lists,out_control,mpi_data);
   read_reax_forces(vflag);
 
   for(int k = 0; k < system->N; ++k) {

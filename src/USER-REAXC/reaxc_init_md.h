@@ -29,6 +29,9 @@
 
 #include "reaxc_types.h"
 
-void Initialize( reax_system*, control_params*, simulation_data*, storage*,
+#include "lammps.h"
+#include "error.h"
+
+void Initialize( LAMMPS_NS::LAMMPS *lmp, reax_system*, control_params*, simulation_data*, storage*,
                  reax_list**, output_controls*, mpi_datatypes*, MPI_Comm );
 #endif

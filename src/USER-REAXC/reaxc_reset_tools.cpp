@@ -30,6 +30,8 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
+using namespace LAMMPS_NS;
+
 void Reset_Atoms( reax_system* system, control_params *control )
 {
   int i;
@@ -119,7 +121,7 @@ void Reset_Workspace( reax_system *system, storage *workspace )
 }
 
 
-void Reset_Neighbor_Lists( reax_system *system, control_params *control,
+void Reset_Neighbor_Lists( LAMMPS *lmp, reax_system *system, control_params *control,
                            storage *workspace, reax_list **lists,
                            MPI_Comm comm )
 {
@@ -145,7 +147,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
         fprintf(stderr,
                 "p%d: not enough space for bonds! total=%d allocated=%d\n",
                 system->my_rank, total_bonds, bonds->num_intrs );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        lmp->error->all(FLERR, "Can't allocate space for hbonds.");
       }
     }
   }
@@ -171,14 +173,14 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
         fprintf(stderr,
                 "p%d: not enough space for hbonds! total=%d allocated=%d\n",
                 system->my_rank, total_hbonds, hbonds->num_intrs );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        lmp->error->all(FLERR, "Can't allocate space for hbonds.");
       }
     }
   }
 }
 
 
-void Reset( reax_system *system, control_params *control, simulation_data *data,
+void Reset( LAMMPS *lmp, reax_system *system, control_params *control, simulation_data *data,
             storage *workspace, reax_list **lists, MPI_Comm comm )
 {
   Reset_Atoms( system, control );
@@ -187,6 +189,6 @@ void Reset( reax_system *system, control_params *control, simulation_data *data,
 
   Reset_Workspace( system, workspace );
 
-  Reset_Neighbor_Lists( system, control, workspace, lists, comm );
+  Reset_Neighbor_Lists( lmp, system, control, workspace, lists, comm );
 
 }

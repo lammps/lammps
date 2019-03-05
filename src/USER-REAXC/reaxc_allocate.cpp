@@ -35,6 +35,10 @@
 #include <omp.h>
 #endif
 
+#include "lammps.h"
+#include "error.h"
+using namespace LAMMPS_NS;
+
 /* allocate space for my_atoms
    important: we cannot know the exact number of atoms that will fall into a
    process's box throughout the whole simulation. therefore
@@ -353,7 +357,7 @@ static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
 }
 
 
-static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
+static int Reallocate_Bonds_List( LAMMPS *lmp, reax_system *system, reax_list *bonds,
                                   int *total_bonds, int *est_3body,
                                   MPI_Comm comm )
 {
@@ -379,7 +383,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
   Delete_List( bonds, comm );
   if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds, comm)) {
     fprintf( stderr, "not enough space for bonds list. terminating!\n" );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
+    lmp->error->all(FLERR, "Can't allocate space for hbonds.");
   }
 
 #ifdef LMP_USER_OMP
@@ -399,7 +403,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 }
 
 
-void ReAllocate( reax_system *system, control_params *control,
+void ReAllocate( LAMMPS *lmp, reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace, reax_list **lists,
                  mpi_datatypes *mpi_data )
 {
@@ -490,7 +494,7 @@ void ReAllocate( reax_system *system, control_params *control,
   /* bonds list */
   num_bonds = est_3body = -1;
   if (Nflag || realloc->bonds) {
-    Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
+    Reallocate_Bonds_List( lmp, system, (*lists)+BONDS, &num_bonds,
                            &est_3body, comm );
     realloc->bonds = 0;
     realloc->num_3body = MAX( realloc->num_3body, est_3body ) * 2;

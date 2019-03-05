@@ -123,7 +123,6 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   sbcov = NULL;
   coord = NULL;
   sbmet = NULL;
-  chimet = NULL;
   ecov = NULL;
 
   potmad = NULL;
@@ -210,7 +209,6 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potmad);
   memory->destroy(potself);
   memory->destroy(potcov);
-  memory->destroy(chimet);
 
   memory->destroy(nvsm);
   memory->destroy(vsm);;
@@ -875,7 +873,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
     memory->destroy(sbcov);
     memory->destroy(coord);
     memory->destroy(sbmet);
-    memory->destroy(chimet);
     memory->destroy(flag_QEq);
     memory->destroy(qf);
     memory->destroy(q1);
@@ -891,7 +888,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
     memory->create(sbcov,nmax,"pair:sbcov");
     memory->create(coord,nmax,"pair:coord");
     memory->create(sbmet,nmax,"pair:sbmet");
-    memory->create(chimet,nmax,"pair:chimet");
     memory->create(flag_QEq,nmax,"pair:flag_QEq");
     memory->create(qf,nmax,"pair:qf");
     memory->create(q1,nmax,"pair:q1");
@@ -1328,10 +1324,7 @@ void PairSMTBQ::tabqeq()
   memory->create(sbcov,nmax,"pair:sbcov");
   memory->create(coord,nmax,"pair:coord");
   memory->create(sbmet,nmax,"pair:sbmet");
-  memory->create(chimet,nmax,"pair:chimet");
 
-  //  memory->create(nvsm,nmax,"pair:nvsm");
-  //  memory->create(vsm,nmax,nmax,"pair:vsm");
   memory->create(flag_QEq,nmax,"pair:flag_QEq");
 
   memory->create(qf,nmax,"pair:qf");
@@ -2681,7 +2674,8 @@ void PairSMTBQ::Charge()
         gp = flag_QEq[i];
 
         qf[i] = 0.0;
-        qf[i] = potself[i]+potmad[i]+potcov[i]+chimet[i] ;
+        //  AK: chimet is not set anywhere
+        qf[i] = potself[i]+potmad[i]+potcov[i]; // +chimet[i];
         Transf[gp] += qf[i];
       }
 

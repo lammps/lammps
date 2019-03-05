@@ -11,4 +11,8 @@
 * Figure out kspace_settings to figure out how to do the values
 
 ## Implementation Questions
-* Should there be two different types of parameter lines 
+
+* How does one go about setting up multiple field interactions?
+  * Should there be two different types of parameter lines?
+* What function oconverts between the values that the current processor stores
+  from 0 to N-1 and the grid values that correspond to it?

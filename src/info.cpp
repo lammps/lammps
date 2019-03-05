@@ -260,9 +260,13 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-    fprintf(out,"\nLAMMPS version: %s / %s\n\n",
-            universe->version, universe->num_ver);
-
+    if (strlen(lmp->git_version) > 0) {
+      fprintf(out,"\nLAMMPS version: %s / %s\nGit revision: %s\n\n",
+              universe->version, universe->num_ver,lmp->git_version);
+    } else {
+      fprintf(out,"\nLAMMPS version: %s / %s\n\n",
+              universe->version, universe->num_ver);
+    }
     const char *infobuf = get_os_info();
     fprintf(out,"OS information: %s\n\n",infobuf);
     delete[] infobuf;

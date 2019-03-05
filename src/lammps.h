@@ -64,6 +64,7 @@ class LAMMPS {
   class CiteMe *citeme;          // citation info
 
   static const char * installed_packages[];
+  static const char git_version[];
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();

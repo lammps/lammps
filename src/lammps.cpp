@@ -52,6 +52,7 @@
 #include "error.h"
 
 #include "lmpinstalledpkgs.h"
+#include "lmpgitversion.h"
 
 using namespace LAMMPS_NS;
 
@@ -418,6 +419,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && !helpflag) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
+      if (strlen(git_version) > 0) {
+        if (screen) fprintf(screen,"Git revision (%s)\n",git_version);
+        if (logfile) fprintf(logfile,"Git revision (%s)\n",git_version);
+      }
     }
 
   // universe is one or more worlds, as setup by partition switch

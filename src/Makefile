@@ -19,7 +19,7 @@ OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
 SRC =	$(wildcard *.cpp)
-INC =	$(filter-out lmpinstalledpkgs.h,$(wildcard *.h))
+INC =	$(filter-out lmpinstalledpkgs.h lmpgitversion.h,$(wildcard *.h))
 OBJ = 	$(SRC:.cpp=.o)
 
 SRCLIB = $(filter-out main.cpp,$(SRC))
@@ -167,6 +167,23 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	        mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h || rm ${TMPNAME}.lmpinstalled ; \
         else mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h ; fi
 
+gitversion:
+	@echo 'Gathering git version information'
+	@echo '#ifndef LMP_GIT_VERSION_H' >  ${TMPNAME}.lmpgitversion
+	@echo '#define LMP_GIT_VERSION_H' >> ${TMPNAME}.lmpgitversion
+	@echo 'const char LAMMPS_NS::LAMMPS::git_version[] = ' >> ${TMPNAME}.lmpgitversion
+	@if (type git && git describe HEAD ) >> /dev/null 2>> /dev/null ; then \
+	  export v1=$$(git rev-parse --abbrev-ref HEAD); export v2=$$(git describe HEAD); \
+	  echo "\"$${v1} / $${v2}\";" >> ${TMPNAME}.lmpgitversion ; \
+	else \
+	  echo '"";' >> ${TMPNAME}.lmpgitversion ; \
+	fi
+	@echo '#endif' >> ${TMPNAME}.lmpgitversion
+	@if [ -f lmpgitversion.h ]; \
+          then test "`diff --brief ${TMPNAME}.lmpgitversion lmpgitversion.h`" != "" && \
+	        mv ${TMPNAME}.lmpgitversion lmpgitversion.h || rm ${TMPNAME}.lmpgitversion ; \
+        else mv ${TMPNAME}.lmpgitversion lmpgitversion.h ; fi
+
 # Build LAMMPS in one of 4 modes
 # exe =   exe with static compile in Obj_machine (default)
 # shexe = exe with shared compile in Obj_shared_machine
@@ -180,7 +197,7 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
-	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h
+	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi

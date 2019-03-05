@@ -236,12 +236,50 @@ void TILD::init_gauss(){
   int nrange = nhi_in - nlo_in +1;
   int n_loc=0;
   int Dim = domain->dimension;
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  int l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
   double mdr2;
   double V = domain->xprd * domain->yprd * domain->zprd ;
+
+  // clear 3d density arrays
+
+  memset(&(density_A_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+
+  memset(&(density_B_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
 
 
   double pref = V / ( pow(2.0* sqrt(MY_PI * gauss_a2), Dim ));
 
+  for (int i = 0; i < nlocal; i++) {
+
+
+      nx = part2grid[i][0];
+      ny = part2grid[i][1];
+      nz = part2grid[i][2];
+      dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+      dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+      dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+      compute_rho1d(dx,dy,dz);
+
+      z0 = delvolinv * q[i];
+      for (n = nlower; n <= nupper; n++) {
+        mz = n+nz;
+        y0 = z0*rho1d[2][n];
+        for (m = nlower; m <= nupper; m++) {
+          my = m+ny;
+          x0 = y0*rho1d[1][m];
+          for (l = nlower; l <= nupper; l++) {
+            mx = l+nx;
+
+          }
+        }
+      }
+    }
   // for (double zloc = nzlo_in; zloc < nzhi_in; zloc++) {
   //   for (double yloc = nylo_in; yloc < nyhi_in; yloc++) {
   //     for (double xloc = nxlo_in; xloc < nxhi_in; xloc++) {

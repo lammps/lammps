@@ -260,9 +260,10 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-    if (strlen(lmp->git_version) > 0) {
-      fprintf(out,"\nLAMMPS version: %s / %s\nGit revision: %s\n\n",
-              universe->version, universe->num_ver,lmp->git_version);
+    if (lmp->has_git_info) {
+      fprintf(out,"\nLAMMPS version: %s / %s\nGit info: %s / %s / %s\n\n",
+              universe->version, universe->num_ver,lmp->git_branch,
+              lmp->git_descriptor,lmp->git_commit);
     } else {
       fprintf(out,"\nLAMMPS version: %s / %s\n\n",
               universe->version, universe->num_ver);

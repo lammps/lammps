@@ -171,13 +171,21 @@ gitversion:
 	@echo 'Gathering git version information'
 	@echo '#ifndef LMP_GIT_VERSION_H' >  ${TMPNAME}.lmpgitversion
 	@echo '#define LMP_GIT_VERSION_H' >> ${TMPNAME}.lmpgitversion
-	@echo 'const char LAMMPS_NS::LAMMPS::git_version[] = ' >> ${TMPNAME}.lmpgitversion
 	@if (type git && git describe HEAD ) >> /dev/null 2>> /dev/null ; then \
-	  export v1=$$(git rev-parse --abbrev-ref HEAD); export v2=$$(git describe HEAD); \
-	  echo "\"$${v1} / $${v2}\";" >> ${TMPNAME}.lmpgitversion ; \
+	  git='true';					\
+	  commit=$$(git rev-parse HEAD);		\
+	  branch=$$(git rev-parse --abbrev-ref HEAD);	\
+	  describe=$$(git describe --dirty=-modified);	\
 	else \
-	  echo '"";' >> ${TMPNAME}.lmpgitversion ; \
-	fi
+	  git='false' ;					\
+	  commit='(unknown)' ;				\
+	  branch='(unknown)' ;				\
+	  describe='(unknown)' ;			\
+	fi ; \
+	echo "const bool LAMMPS_NS::LAMMPS::has_git_info = $${git};"        >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_commit[] = \"$${commit}\";" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_branch[] = \"$${branch}\";" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"$${describe}\";" >> ${TMPNAME}.lmpgitversion
 	@echo '#endif' >> ${TMPNAME}.lmpgitversion
 	@if [ -f lmpgitversion.h ]; \
           then test "`diff --brief ${TMPNAME}.lmpgitversion lmpgitversion.h`" != "" && \

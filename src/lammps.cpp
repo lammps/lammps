@@ -419,10 +419,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && !helpflag) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
-      if (strlen(git_version) > 0) {
-        if (screen) fprintf(screen,"Git revision (%s)\n",git_version);
-        if (logfile) fprintf(logfile,"Git revision (%s)\n",git_version);
-      }
     }
 
   // universe is one or more worlds, as setup by partition switch
@@ -497,15 +493,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && (!helpflag)) {
       if (universe->uscreen) {
         fprintf(universe->uscreen,"LAMMPS (%s)\n",universe->version);
-        if (strlen(git_version) > 0)
-           fprintf(universe->uscreen,"Git revision (%s)\n",git_version);
         fprintf(universe->uscreen,"Running on %d partitions of processors\n",
                 universe->nworlds);
       }
       if (universe->ulogfile) {
         fprintf(universe->ulogfile,"LAMMPS (%s)\n",universe->version);
-        if (strlen(git_version) > 0)
-           fprintf(universe->ulogfile,"Git revision (%s)\n",git_version);
         fprintf(universe->ulogfile,"Running on %d partitions of processors\n",
                 universe->nworlds);
       }
@@ -514,14 +506,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((me == 0) && (!helpflag)) {
       if (screen) {
         fprintf(screen,"LAMMPS (%s)\n",universe->version);
-        if (strlen(git_version) > 0)
-           fprintf(screen,"Git revision (%s)\n",git_version);
         fprintf(screen,"Processor partition = %d\n",universe->iworld);
       }
       if (logfile) {
         fprintf(logfile,"LAMMPS (%s)\n",universe->version);
-        if (strlen(git_version) > 0)
-           fprintf(logfile,"Git revision (%s)\n",git_version);
         fprintf(logfile,"Processor partition = %d\n",universe->iworld);
       }
     }
@@ -911,13 +899,11 @@ void LAMMPS::help()
 
   // general help message about command line and flags
 
-  if (strlen(git_version) > 0) {
-    fprintf(fp,
-            "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\nGit revision (%s)\n\n",git_version);
+  if (has_git_info) {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
   } else {
-    fprintf(fp,
-            "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
             LAMMPS_VERSION "\n\n");
   }
   fprintf(fp,

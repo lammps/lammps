@@ -1332,22 +1332,38 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 # Generate lmpgitversion.h
 ######################################
 set(temp "#ifndef LMP_GIT_VERSION_H\n#define LMP_GIT_VERSION_H\n")
-set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_version[] =")
+set(temp_git_commit "(unknown)")
+set(temp_git_branch "(unknown)")
+set(temp_git_describe "(unknown)")
+set(temp_git_info "false")
 if(GIT_FOUND)
   execute_process(COMMAND ${GIT_EXECUTABLE} describe HEAD
-    OUTPUT_VARIABLE temp_git_version
+    RESULT_VARIABLE temp_in_git_checkout
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-    OUTPUT_VARIABLE temp_git_branch
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(temp_git "${temp_git_branch} / ${temp_git_version}")
-else()
-  set(temp_git "")
+  if(temp_in_git_checkout EQUAL 0)
+    set(temp_git_info "true")
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+      OUTPUT_VARIABLE temp_git_commit
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+      OUTPUT_VARIABLE temp_git_branch
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified
+      OUTPUT_VARIABLE temp_git_describe
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
 endif()
 
-set(temp "${temp} \"${temp_git}\";\n#endif\n\n")
+set(temp "${temp}const bool LAMMPS_NS::LAMMPS::has_git_info = ${temp_git_info};\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_commit[] = \"${temp_git_commit}\";\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_branch[] = \"${temp_git_branch}\";\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"${temp_git_describe}\";\n")
+set(temp "${temp}#endif\n\n")
+
 message(STATUS "Generating lmpgitversion.h...")
 file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${temp}" )
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")

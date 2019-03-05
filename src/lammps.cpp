@@ -497,11 +497,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && (!helpflag)) {
       if (universe->uscreen) {
         fprintf(universe->uscreen,"LAMMPS (%s)\n",universe->version);
+        if (strlen(git_version) > 0)
+           fprintf(universe->uscreen,"Git revision (%s)\n",git_version);
         fprintf(universe->uscreen,"Running on %d partitions of processors\n",
                 universe->nworlds);
       }
       if (universe->ulogfile) {
         fprintf(universe->ulogfile,"LAMMPS (%s)\n",universe->version);
+        if (strlen(git_version) > 0)
+           fprintf(universe->ulogfile,"Git revision (%s)\n",git_version);
         fprintf(universe->ulogfile,"Running on %d partitions of processors\n",
                 universe->nworlds);
       }
@@ -510,10 +514,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((me == 0) && (!helpflag)) {
       if (screen) {
         fprintf(screen,"LAMMPS (%s)\n",universe->version);
+        if (strlen(git_version) > 0)
+           fprintf(screen,"Git revision (%s)\n",git_version);
         fprintf(screen,"Processor partition = %d\n",universe->iworld);
       }
       if (logfile) {
         fprintf(logfile,"LAMMPS (%s)\n",universe->version);
+        if (strlen(git_version) > 0)
+           fprintf(logfile,"Git revision (%s)\n",git_version);
         fprintf(logfile,"Processor partition = %d\n",universe->iworld);
       }
     }
@@ -903,9 +911,16 @@ void LAMMPS::help()
 
   // general help message about command line and flags
 
+  if (strlen(git_version) > 0) {
+    fprintf(fp,
+            "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\nGit revision (%s)\n\n",git_version);
+  } else {
+    fprintf(fp,
+            "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\n\n");
+  }
   fprintf(fp,
-          "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-          LAMMPS_VERSION "\n\n"
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"

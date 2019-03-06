@@ -1336,26 +1336,20 @@ set(temp_git_commit "(unknown)")
 set(temp_git_branch "(unknown)")
 set(temp_git_describe "(unknown)")
 set(temp_git_info "false")
-if(GIT_FOUND)
-  execute_process(COMMAND ${GIT_EXECUTABLE} describe HEAD
-    RESULT_VARIABLE temp_in_git_checkout
+if(GIT_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/.git)
+  set(temp_git_info "true")
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+    OUTPUT_VARIABLE temp_git_commit
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(temp_in_git_checkout EQUAL 0)
-    set(temp_git_info "true")
-    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-      OUTPUT_VARIABLE temp_git_commit
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-      OUTPUT_VARIABLE temp_git_branch
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified
-      OUTPUT_VARIABLE temp_git_describe
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    OUTPUT_VARIABLE temp_git_branch
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified
+    OUTPUT_VARIABLE temp_git_describe
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
 set(temp "${temp}const bool LAMMPS_NS::LAMMPS::has_git_info = ${temp_git_info};\n")

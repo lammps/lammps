@@ -264,7 +264,7 @@ F_\{n0\} = \|\mathbf\{F\}_n\|
 \end\{equation\}
 
 For cohesive models such as {jkr} and {dmt}, the critical force is adjusted so that the critical tangential
-force approaches \(\mu_t F_\{pulloff\}\), see "Marshall"_#Marshall2009, equation 43, and "Thornton"_#.
+force approaches \(\mu_t F_\{pulloff\}\), see "Marshall"_#Marshall2009, equation 43, and "Thornton"_#Thornton1991.
 For both models, \(F_\{n0\}\) takes the form:
 
 \begin\{equation\}
@@ -578,41 +578,41 @@ For the {pair_coeff} settings: {damping viscoelastic}, {rolling none}, {twisting
 
 [References:] 
  
-  :link(Brill1996)
+:link(Brill1996)
 [(Brilliantov et al, 1996)] Brilliantov, N. V., Spahn, F., Hertzsch, J. M., & Poschel, T. (1996). 
 Model for collisions in granular gases. Physical review E, 53(5), 5382.
  
- :link(Tsuji1992)
- [(Tsuji et al, 1992)] Tsuji, Y., Tanaka, T., & Ishida, T. (1992). Lagrangian numerical simulation of plug flow of 
- cohesionless particles in a horizontal pipe. Powder technology, 71(3), 239-250.
+:link(Tsuji1992)
+[(Tsuji et al, 1992)] Tsuji, Y., Tanaka, T., & Ishida, T. (1992). Lagrangian numerical simulation of plug flow of 
+cohesionless particles in a horizontal pipe. Powder technology, 71(3), 239-250.
  
- :link(JKR1971)
- [(Johnson et al, 1971)] Johnson, K. L., Kendall, K., & Roberts, A. D. (1971). 
- Surface energy and the contact of elastic solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
+:link(JKR1971)
+[(Johnson et al, 1971)] Johnson, K. L., Kendall, K., & Roberts, A. D. (1971). 
+Surface energy and the contact of elastic solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
  
- :link(DMT1975)
- [Derjaguin et al, 1975)] Derjaguin, B. V., Muller, V. M., & Toporov, Y. P. (1975). Effect of contact deformations on the 
- adhesion of particles. Journal of Colloid and interface science, 53(2), 314-326.
+:link(DMT1975)
+[Derjaguin et al, 1975)] Derjaguin, B. V., Muller, V. M., & Toporov, Y. P. (1975). Effect of contact deformations on the 
+adhesion of particles. Journal of Colloid and interface science, 53(2), 314-326.
  
- :link(Luding2008)
- [(Luding, 2008)] Luding, S. (2008). Cohesive, frictional powders: contact models for tension. Granular matter, 10(4), 235.
+:link(Luding2008)
+[(Luding, 2008)] Luding, S. (2008). Cohesive, frictional powders: contact models for tension. Granular matter, 10(4), 235.
  
- :link(Marshall2009)
- [(Marshall, 2009)] Marshall, J. S. (2009). Discrete-element modeling of particulate aerosol flows. 
- Journal of Computational Physics, 228(5), 1541-1561.
+:link(Marshall2009)
+[(Marshall, 2009)] Marshall, J. S. (2009). Discrete-element modeling of particulate aerosol flows. 
+Journal of Computational Physics, 228(5), 1541-1561.
  
- :link(Silbert2001)
- [(Silbert, 2001)] Silbert, L. E., Ertas, D., Grest, G. S., Halsey, T. C., Levine, D., & Plimpton, S. J. (2001). 
- Granular flow down an inclined plane: Bagnold scaling and rheology. Physical Review E, 64(5), 051302.
+:link(Silbert2001)
+[(Silbert, 2001)] Silbert, L. E., Ertas, D., Grest, G. S., Halsey, T. C., Levine, D., & Plimpton, S. J. (2001). 
+Granular flow down an inclined plane: Bagnold scaling and rheology. Physical Review E, 64(5), 051302.
  
- :link(Kuhn2004)
- [(Kuhn and Bagi, 2005)] Kuhn, M. R., & Bagi, K. (2004). Contact rolling and deformation in granular media. 
- International journal of solids and structures, 41(21), 5793-5820.
+:link(Kuhn2004)
+[(Kuhn and Bagi, 2005)] Kuhn, M. R., & Bagi, K. (2004). Contact rolling and deformation in granular media. 
+International journal of solids and structures, 41(21), 5793-5820.
  
- :link(Wang2015)
- [(Wang et al, 2015)] Wang, Y., Alonso-Marroquin, F., & Guo, W. W. (2015). 
- Rolling and sliding in 3-D discrete element models. Particuology, 23, 49-55.
+:link(Wang2015)
+[(Wang et al, 2015)] Wang, Y., Alonso-Marroquin, F., & Guo, W. W. (2015). 
+Rolling and sliding in 3-D discrete element models. Particuology, 23, 49-55.
  
- :link(Thornton1991)
- [(Thornton, 1991)] Thornton, C. (1991). Interparticle sliding in the presence of adhesion.
- J. Phys. D: Appl. Phys. 24 1942
+:link(Thornton1991)
+[(Thornton, 1991)] Thornton, C. (1991). Interparticle sliding in the presence of adhesion.
+J. Phys. D: Appl. Phys. 24 1942

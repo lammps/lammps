@@ -181,14 +181,10 @@ library with all its models, may take around 30 min to build.  Of
 course you only need to do that once.
 
 See the list of KIM model drivers here:
-https://openkim.org/kim-items/model-drivers/alphabetical
+https://openkim.org/browse/model-drivers/alphabetical
 
 See the list of all KIM models here:
-https://openkim.org/kim-items/models/by-model-drivers
-
-See the list of example KIM models included by default here:
-https://openkim.org/kim-api on the "What is in the KIM API source
-package?" page.
+https://openkim.org/browse/models/by-model-drivers
 
 [CMake build]:
 

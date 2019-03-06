@@ -319,28 +319,24 @@ void DynamicalMatrix::calculateMatrix()
 
 void DynamicalMatrix::writeMatrix(double **dynmat)
 {
-    if (me != 0 || fp == NULL) return;
+    if (me != 0 || !fp)
+        return;
 
-    // print file comment lines
-
-    if (!binaryflag && fp) {
-        clearerr(fp);
+    clearerr(fp);
+    if (binaryflag) {
+        for (int i=0; i<3; i++)
+            fwrite(dynmat[i], sizeof(double), dynlen, fp);
+        if (ferror(fp))
+            error->one(FLERR, "Error writing to binary file");
+    } else {
         for (int i = 0; i < 3; i++) {
             for (bigint j = 0; j < dynlen; j++) {
                 if ((j+1)%3==0) fprintf(fp, "%4.8f\n", dynmat[i][j]);
                 else fprintf(fp, "%4.8f ",dynmat[i][j]);
             }
         }
-    }
-    if (ferror(fp))
-        error->one(FLERR,"Error writing to file");
-
-    if (binaryflag && fp) {
-        clearerr(fp);
-        for (int i=0; i<3; i++)
-            fwrite(dynmat[i], sizeof(double), dynlen, fp);
         if (ferror(fp))
-            error->one(FLERR, "Error writing to binary file");
+            error->one(FLERR,"Error writing to file");
     }
 }
 

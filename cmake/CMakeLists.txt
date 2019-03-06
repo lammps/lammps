@@ -11,6 +11,8 @@ get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib 
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
 
+find_package(Git)
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
@@ -85,7 +87,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 # this is fast, so check for it all the time
 message(STATUS "Running check for auto-generated files from make-based build system")
 file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h)
+list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
 foreach(_SRC ${SRC_AUTOGEN_FILES})
   get_filename_component(FILENAME "${_SRC}" NAME)
   if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
@@ -1325,6 +1327,46 @@ set(temp "${temp}  NULL\n};\n#endif\n\n")
 message(STATUS "Generating lmpinstalledpkgs.h...")
 file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${temp}" )
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h")
+
+######################################
+# Generate lmpgitversion.h
+######################################
+set(temp "#ifndef LMP_GIT_VERSION_H\n#define LMP_GIT_VERSION_H\n")
+set(temp_git_commit "(unknown)")
+set(temp_git_branch "(unknown)")
+set(temp_git_describe "(unknown)")
+set(temp_git_info "false")
+if(GIT_FOUND)
+  execute_process(COMMAND ${GIT_EXECUTABLE} describe HEAD
+    RESULT_VARIABLE temp_in_git_checkout
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(temp_in_git_checkout EQUAL 0)
+    set(temp_git_info "true")
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+      OUTPUT_VARIABLE temp_git_commit
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+      OUTPUT_VARIABLE temp_git_branch
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified
+      OUTPUT_VARIABLE temp_git_describe
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+endif()
+
+set(temp "${temp}const bool LAMMPS_NS::LAMMPS::has_git_info = ${temp_git_info};\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_commit[] = \"${temp_git_commit}\";\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_branch[] = \"${temp_git_branch}\";\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"${temp_git_describe}\";\n")
+set(temp "${temp}#endif\n\n")
+
+message(STATUS "Generating lmpgitversion.h...")
+file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${temp}" )
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
 
 ###########################################
 # Actually add executable and lib to build

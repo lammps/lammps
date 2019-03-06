@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -21,7 +21,7 @@ keyword = {temp} or {press} or {energy} or {virial} or {respa} or {dynamic/dof} 
   {virial} value = {yes} or {no}
   {respa} value = {1} to {max respa level} or {0} (for outermost level)
   {dynamic/dof} value = {yes} or {no}
-    yes/no = do or do not recompute the number of degrees of freedom (DOF) contributing to the temperature
+    yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
   {bodyforces} value = {early} or {late}
     early/late = compute rigid-body forces/torques early or late in the timestep :pre
 :ule
@@ -78,7 +78,7 @@ virial is included in the calculation performed by the "compute
 pressure"_compute_pressure.html or
 "compute stress/atom"_compute_stress_atom.html
 commands.  See the "thermo_style"_thermo_style.html command for info
-on how pressure is output. 
+on how pressure is output.
 
 NOTE: You must specify the {virial yes} setting for a fix if you
 are doing "box relaxation"_fix_box_relax.html and

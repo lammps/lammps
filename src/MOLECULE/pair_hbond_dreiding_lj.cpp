@@ -468,7 +468,7 @@ double PairHbondDreidingLJ::init_one(int i, int j)
 
 double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
                                    double rsq,
-                                   double factor_coul, double factor_lj,
+                                   double /*factor_coul*/, double /*factor_lj*/,
                                    double &fforce)
 {
   int k,kk,ktype,knum,m;

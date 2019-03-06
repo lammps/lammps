@@ -170,6 +170,15 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   int inum = list->inum;
 
+  need_dup = lmp->kokkos->need_dup<DeviceType>();
+  if (need_dup) {
+    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(f);
+    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+  } else {
+    ndup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(f);
+    ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+  }
+
   /*
   for (int i = 0; i < nlocal; i++) {
     typename t_neigh_list::t_neighs neighs_i = neigh_list.get_neighs(i);
@@ -232,6 +241,9 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 //if (step%10==0)
 //        printf(" %e %e %e %e %e (%e %e): %e\n",t1,t2,t3,t4,t5,t6,t7,t1+t2+t3+t4+t5);
 
+  if (need_dup)
+    Kokkos::Experimental::contribute(f, dup_f);
+
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
     virial[0] += ev.v[0];
@@ -250,12 +262,21 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (vflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
 
   atomKK->modified(execution_space,F_MASK);
+
   copymode = 0;
+
+  // free duplicated memory
+  if (need_dup) {
+    dup_f     = decltype(dup_f)();
+    dup_vatom = decltype(dup_vatom)();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -349,8 +370,11 @@ template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAP<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT& ev) const {
-  // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int ii = team.league_rank();
   const int i = d_ilist[ii];
@@ -428,6 +452,13 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
   //t4 += timer.seconds(); timer.reset();
   team.team_barrier();
 
+  if (quadraticflag) {
+    my_sna.compute_bi(team);
+    team.team_barrier();
+    my_sna.copy_bi2bvec(team);
+    team.team_barrier();
+  }
+
   // for neighbors of I within cutoff:
   // compute dUi/drj and dBi/drj
   // Fij = dEi/dRj = -dEi/dRi => add to Fi, subtract from Fj
@@ -447,10 +478,6 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
     my_sna.compute_dbidrj(team);
     //t7 += timer2.seconds(); timer2.reset();
     my_sna.copy_dbi2dbvec(team);
-    if (quadraticflag) {
-      my_sna.compute_bi(team);
-      my_sna.copy_bi2bvec(team);
-    }
 
     Kokkos::single(Kokkos::PerThread(team), [&] (){
     F_FLOAT fij[3];
@@ -511,10 +538,10 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
     a_f(j,1) -= fij[1];
     a_f(j,2) -= fij[2];
 
-    // tally per-atom virial contribution
+    // tally global and per-atom virial contribution
 
     if (EVFLAG) {
-      if (vflag) {
+      if (vflag_either) {
         v_tally_xyz<NEIGHFLAG>(ev,i,j,
           fij[0],fij[1],fij[2],
           -my_sna.rij(jj,0),-my_sna.rij(jj,1),
@@ -529,11 +556,13 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
   // tally energy contribution
 
   if (EVFLAG) {
-    if (eflag) {
+    if (eflag_either) {
 
       if (!quadraticflag) {
         my_sna.compute_bi(team);
+        team.team_barrier();
         my_sna.copy_bi2bvec(team);
+        team.team_barrier();
       }
 
       // E = beta.B + 0.5*B^t.alpha.B
@@ -541,14 +570,15 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
       // coeff[k] = alpha_ii or
       // coeff[k] = alpha_ij = alpha_ji, j != i
 
-      if (team.team_rank() == 0)
-      Kokkos::single(Kokkos::PerThread(team), [&] () {
+      Kokkos::single(Kokkos::PerTeam(team), [&] () {
 
-      // evdwl = energy of atom I, sum over coeffs_k * Bi_k
+        // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
-      double evdwl = d_coeffi[0];
+        double evdwl = d_coeffi[0];
 
-      // linear contributions
+        // linear contributions
+        // could use thread vector range on this loop
+
         for (int k = 1; k <= ncoeff; k++)
           evdwl += d_coeffi[k]*my_sna.bvec[k-1];
 
@@ -564,11 +594,10 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
             }
           }
         }
-//        ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
-        if (eflag_either) {
-          if (eflag_global) ev.evdwl += evdwl;
-          if (eflag_atom) d_eatom[i] += evdwl;
-        }
+
+        //ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
+        if (eflag_global) ev.evdwl += evdwl;
+        if (eflag_atom) d_eatom[i] += evdwl;
       });
     }
   }
@@ -591,8 +620,10 @@ void PairSNAPKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const i
       const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  // The vatom array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
+  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const E_FLOAT v0 = delx*fx;
   const E_FLOAT v1 = dely*fy;
@@ -611,18 +642,18 @@ void PairSNAPKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const i
   }
 
   if (vflag_atom) {
-    v_vatom(i,0) += 0.5*v0;
-    v_vatom(i,1) += 0.5*v1;
-    v_vatom(i,2) += 0.5*v2;
-    v_vatom(i,3) += 0.5*v3;
-    v_vatom(i,4) += 0.5*v4;
-    v_vatom(i,5) += 0.5*v5;
-    v_vatom(j,0) += 0.5*v0;
-    v_vatom(j,1) += 0.5*v1;
-    v_vatom(j,2) += 0.5*v2;
-    v_vatom(j,3) += 0.5*v3;
-    v_vatom(j,4) += 0.5*v4;
-    v_vatom(j,5) += 0.5*v5;
+    a_vatom(i,0) += 0.5*v0;
+    a_vatom(i,1) += 0.5*v1;
+    a_vatom(i,2) += 0.5*v2;
+    a_vatom(i,3) += 0.5*v3;
+    a_vatom(i,4) += 0.5*v4;
+    a_vatom(i,5) += 0.5*v5;
+    a_vatom(j,0) += 0.5*v0;
+    a_vatom(j,1) += 0.5*v1;
+    a_vatom(j,2) += 0.5*v2;
+    a_vatom(j,3) += 0.5*v3;
+    a_vatom(j,4) += 0.5*v4;
+    a_vatom(j,5) += 0.5*v5;
   }
 }
 

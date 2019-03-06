@@ -44,9 +44,14 @@
 #include<TestMDRange.hpp>
 
 namespace Test {
+
 TEST_F( TEST_CATEGORY , mdrange_3d) {
+  TestMDRange_3D< TEST_EXECSPACE >::test_for3( 1, 10, 100 );
   TestMDRange_3D< TEST_EXECSPACE >::test_for3( 100, 10, 100 );
+#if !defined( KOKKOS_ENABLE_ROCM ) // MDRange Reduced explicitly handled in its own cpp file
+  TestMDRange_3D< TEST_EXECSPACE >::test_reduce3( 1, 10, 100 );
   TestMDRange_3D< TEST_EXECSPACE >::test_reduce3( 100, 10, 100 );
+#endif
 }
 
 TEST_F( TEST_CATEGORY , mdrange_neg_idx ) {
@@ -56,4 +61,5 @@ TEST_F( TEST_CATEGORY , mdrange_neg_idx ) {
   TestMDRange_5D_NegIdx< TEST_EXECSPACE >::test_5D_negidx( 128, 32, 8, 8, 4 );
   TestMDRange_6D_NegIdx< TEST_EXECSPACE >::test_6D_negidx( 128, 32, 8, 8, 4, 2 );
 }
+
 }

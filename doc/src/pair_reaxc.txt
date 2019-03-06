@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -37,7 +37,7 @@ pair_coeff * * ffield.reax C H O N :pre
 Style {reax/c} computes the ReaxFF potential of van Duin, Goddard and
 co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy. There is more than one version of ReaxFF.  The version
+energy. There is more than one version of ReaxFF. The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper: "(Chenoweth et al.,
 2008)"_#Chenoweth_20082.  The version integrated into LAMMPS matches
@@ -50,17 +50,16 @@ as a package.
 The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that
 is derived from the {reax/c} style. The Kokkos version can run on GPUs
 and can also use OpenMP multithreading. For more information about the
-Kokkos package, see "Section 4"_Section_packages.html#kokkos and
-"Section 5.3.3"_accelerate_kokkos.html.  One important consideration
-when using the {reax/c/kk} style is the choice of either half or full
-neighbor lists. This setting can be changed using the Kokkos
-"package"_package.html command.
+Kokkos package, see "Packages details"_Packages_details.html and
+"Speed kokkos"_Speed_kokkos.html doc pages.  One important
+consideration when using the {reax/c/kk} style is the choice of either
+half or full neighbor lists. This setting can be changed using the
+Kokkos "package"_package.html command.
 
-The {reax/c} style differs from the "pair_style reax"_pair_reax.html
-command in the lo-level implementation details.  The {reax} style is a
-Fortran library, linked to LAMMPS.  The {reax/c} style was initially
-implemented as stand-alone C code and is now integrated into LAMMPS as
-a package.
+The {reax/c} style differs from the (obsolete) "pair_style reax"
+command in the implementation details.  The {reax} style was a
+Fortran library, linked to LAMMPS.  The {reax} style has been removed
+from LAMMPS after the 12 December 2018 version.
 
 LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
@@ -98,9 +97,8 @@ correspond to those used by Adri van Duin's stand-alone serial
 code. If these are changed by setting control variables in the control
 file, the results from LAMMPS and the serial code will not agree.
 
-Two examples using {pair_style reax/c} are provided in the examples/reax
-sub-directory, along with corresponding examples for
-"pair_style reax"_pair_reax.html.
+Examples using {pair_style reax/c} are provided in the examples/reax
+sub-directory.
 
 Use of this pair style requires that a charge be defined for every
 atom.  See the "atom_style"_atom_style.html and
@@ -193,8 +191,7 @@ where N is the number of LAMMPS atom types:
 filename
 N indices = ReaxFF elements :ul
 
-The filename is the ReaxFF potential file.  Unlike for the {reax}
-pair style, any filename can be used.
+The filename is the ReaxFF potential file.
 
 In the ReaxFF potential file, near the top, after the general
 parameters, is the atomic parameters section that contains element
@@ -303,31 +300,30 @@ This pair style can only be used via the {pair} keyword of the
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
 [Restrictions:]
 
 This pair style is part of the USER-REAXC package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The ReaxFF potential files provided with LAMMPS in the potentials
 directory are parameterized for real "units"_units.html.  You can use
@@ -338,9 +334,8 @@ appropriate units if your simulation doesn't use "real" units.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "fix qeq/reax"_fix_qeq_reax.html, "fix
-reax/c/bonds"_fix_reax_bonds.html, "fix
-reax/c/species"_fix_reaxc_species.html, "pair_style
-reax"_pair_reax.html
+reax/c/bonds"_fix_reaxc_bonds.html, "fix
+reax/c/species"_fix_reaxc_species.html
 
 [Default:]
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -28,16 +28,16 @@ suffix kk :pre
 
 This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the "-suffix
-command-line switch"_Section_start.html#start_6.  It also has options
-to turn off or back on any suffix setting made via the command line.
+command-line switch"_Run_options.html.  It also has options to turn
+off or back on any suffix setting made via the command line.
 
 The specified style can be {gpu}, {intel}, {kk}, {omp}, {opt} or
 {hybrid}. These refer to optional packages that LAMMPS can be built
-with, as described in "this section of the
-manual"_Section_start.html#start_3.  The "gpu" style corresponds to
-the GPU package, the "intel" style to the USER-INTEL package, the "kk"
-style to the KOKKOS package, the "omp" style to the USER-OMP package,
-and the "opt" style to the OPT package.
+with, as described on the "Build package"_Build_package.html doc page.
+The "gpu" style corresponds to the GPU package, the "intel" style to
+the USER-INTEL package, the "kk" style to the KOKKOS package, the
+"omp" style to the USER-OMP package, and the "opt" style to the OPT
+package.
 
 These are the variants these packages provide:
 
@@ -46,7 +46,7 @@ run on one or more GPUs or multicore CPU/GPU nodes :ulb,l
 
 USER-INTEL = a collection of pair styles and neighbor routines
 optimized to run in single, mixed, or double precision on CPUs and
-Intel(R) Xeon Phi(TM) coprocessors. :l
+Intel(R) Xeon Phi(TM) co-processors. :l
 
 KOKKOS = a collection of atom, pair, and fix styles optimized to run
 using the Kokkos library on various kinds of hardware, including GPUs
@@ -105,6 +105,6 @@ input script.
 
 [Related commands:]
 
-"Command-line switch -suffix"_Section_start.html#start_6
+"-suffix command-line switch"_Run_options.html
 
 [Default:] none

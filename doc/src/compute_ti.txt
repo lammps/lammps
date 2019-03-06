@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -45,7 +45,7 @@ described in "Eike"_#Eike.
 
 Typically this compute will be used in conjunction with the "fix
 adapt"_fix_adapt.html command which can perform alchemical
-transformations by adusting the strength of an interaction potential
+transformations by adjusting the strength of an interaction potential
 as a simulation runs, as defined by one or more
 "pair_style"_pair_style.html or "kspace_style"_kspace_style.html
 commands.  This scaling is done via a prefactor on the energy, forces,
@@ -111,9 +111,8 @@ du/dl can be found in the paper by "Eike"_#Eike.
 
 This compute calculates a global scalar, namely dUs/dlambda.  This
 value can be used by any command that uses a global scalar value from
-a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+a compute as input.  See the "Howto output"_Howto_output.html doc page
+for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".
 
@@ -122,8 +121,8 @@ The scalar value will be in energy "units"_units.html.
 [Restrictions:]
 
 This compute is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

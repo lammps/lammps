@@ -662,14 +662,15 @@ class TxtConverter:
         parser = self.get_argument_parser()
         parsed_args = parser.parse_args(args)
 
-        write_to_files = len(parsed_args.files) > 1
+        write_to_files = parsed_args.output_dir or (len(parsed_args.files) > 1)
 
         for filename in parsed_args.files:
             if parsed_args.skip_files and filename in parsed_args.skip_files:
                 continue
 
             with open(filename, 'r') as f:
-                print("Converting", filename, "...", file=err)
+                if parsed_args.verbose:
+                    print("Converting", filename, "...", file=err)
                 content = f.read()
                 converter = self.create_converter(parsed_args)
 
@@ -683,7 +684,10 @@ class TxtConverter:
                     result = msg
 
                 if write_to_files:
-                    output_filename = self.get_output_filename(filename)
+                    if parsed_args.output_dir:
+                        output_filename = os.path.join(parsed_args.output_dir, os.path.basename(self.get_output_filename(filename)))
+                    else:
+                        output_filename = self.get_output_filename(filename)
                     with open(output_filename, "w+t") as outfile:
                         outfile.write(result)
                 else:
@@ -698,6 +702,8 @@ class Txt2HtmlConverter(TxtConverter):
                                                                               'HTML file. useful when set of HTML files'
                                                                               ' will be converted to PDF')
         parser.add_argument('-x', metavar='file-to-skip', dest='skip_files', action='append')
+        parser.add_argument('--verbose', '-v', dest='verbose', action='store_true')
+        parser.add_argument('--output-directory', '-o', dest='output_dir')
         parser.add_argument('--generate-title', dest='create_title', action='store_true', help='add HTML head page'
                                                                                                'title based on first '
                                                                                                'h1,h2,h3,h4... element')

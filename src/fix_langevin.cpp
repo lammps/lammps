@@ -177,8 +177,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (tallyflag && zeroflag && comm->me == 0)
-    error->warning(FLERR,"Energy tally does not account for 'zero yes'");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,7 +296,7 @@ void FixLangevin::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevin::post_force(int vflag)
+void FixLangevin::post_force(int /*vflag*/)
 {
   double *rmass = atom->rmass;
 
@@ -441,7 +439,7 @@ void FixLangevin::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLangevin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
@@ -605,6 +603,11 @@ void FixLangevin::post_force_untemplated
         f[i][0] -= fsumall[0];
         f[i][1] -= fsumall[1];
         f[i][2] -= fsumall[2];
+        if (Tp_TALLY) {
+          flangevin[i][0] -= fsumall[0];
+          flangevin[i][1] -= fsumall[1];
+          flangevin[i][2] -= fsumall[2];
+        }
       }
     }
   }
@@ -896,7 +899,7 @@ void FixLangevin::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixLangevin::copy_arrays(int i, int j, int delflag)
+void FixLangevin::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nvalues; m++)
     franprev[j][m] = franprev[i][m];

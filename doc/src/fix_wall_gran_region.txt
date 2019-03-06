@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -71,12 +71,13 @@ exterior surfaces of regions.
 Regions can either be primitive shapes (block, sphere, cylinder, etc)
 or combinations of primitive shapes specified via the {union} or
 {intersect} region styles.  These latter styles can be used to
-construct particle containers with complex shapes.  Regions can also
-move dynamically via the "region"_region.html command keywords (move)
-and {rotate}, or change their shape by use of variables as inputs to
-the "region"_region.html command.  If such a region is used with this
-fix, then the region surface will move in time in the corresponding
-manner.
+construct particle containers with complex shapes.
+
+Regions can also move dynamically via the "region"_region.html command
+keywords (move) and {rotate}, or change their shape by use of variables
+as inputs to the "region"_region.html command.  If such a region is used
+with this fix, then the region surface will move in time in the
+corresponding manner.
 
 NOTE: As discussed on the "region"_region.html command doc page,
 regions in LAMMPS do not get wrapped across periodic boundaries.  It
@@ -180,16 +181,16 @@ region with a different region ID.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various "output commands"_Section_howto.html#howto_15.  No
-parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
+access by various "output commands"_Howto_output.html.  No parameter
+of this fix can be used with the {start/stop} keywords of the
+"run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

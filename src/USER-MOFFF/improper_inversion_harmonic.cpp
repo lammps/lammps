@@ -139,7 +139,6 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
   double upx,upy,upz,upn,rup,umx,umy,umz,umn,rum,wwr;
   double rucb,rudb,rvcb,rvdb,rupupn,rumumn;
 
-  double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
@@ -242,8 +241,8 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
     f[i4][2] += f4[2];
   }
 
-  double rb1x, rb1y, rb1z, rb2x, rb2y, rb2z, rb3x, rb3y, rb3z;
-  if (evflag)
+  if (evflag) {
+    double rb3x, rb3y, rb3z;
 
     rb3x = vb1x - vb2x;
     rb3y = vb1y - vb2y;
@@ -253,7 +252,8 @@ void ImproperInversionHarmonic::invang(const int &i1,const int &i2,
              vb3x,vb3y,vb3z,
              vb2x,vb2y,vb2z,
              rb3x,rb3y,rb3z);
- }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 

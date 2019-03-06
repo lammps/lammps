@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -111,8 +111,8 @@ flow/gauss fixes, one that specifies {fix_modify respa 3} and one with
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 No information about this fix is written to "binary restart
 files"_restart.html.
@@ -128,11 +128,11 @@ integrator the fix computes and adds the external acceleration. Default is the
 outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
-which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar is the negative of the
-work done on the system, see above discussion.  The vector is the total force
-that this fix applied to the group of atoms on the current timestep.
-The scalar and vector values calculated by this fix are "extensive".
+which can be accessed by various "output commands"_Howto_output.html.
+The scalar is the negative of the work done on the system, see above
+discussion.  The vector is the total force that this fix applied to
+the group of atoms on the current timestep.  The scalar and vector
+values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

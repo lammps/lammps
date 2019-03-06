@@ -191,7 +191,7 @@ void PairEDPD::compute(int eflag, int vflag)
 
         // heat transfer
         double dQc,dQd,dQr;
-        if( r < cutT[itype][jtype]) {
+        if (r < cutT[itype][jtype]) {
           double wrT = 1.0 - r/cutT[itype][jtype];
           wrT = MAX(0.0,MIN(1.0,wrT));
           wrT = pow(wrT, 0.5*powerT[itype][jtype]);
@@ -530,7 +530,7 @@ void PairEDPD::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairEDPD::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wc,phi;
   double *T = atom->edpd_temp;

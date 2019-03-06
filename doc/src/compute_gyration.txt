@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -22,7 +22,7 @@ compute 1 molecule gyration :pre
 [Description:]
 
 Define a computation that calculates the radius of gyration Rg of the
-group of atoms, including all effects due to atoms passing thru
+group of atoms, including all effects due to atoms passing through
 periodic boundaries.
 
 Rg is a measure of the size of the group of atoms, and is computed as
@@ -55,8 +55,8 @@ using the "set image"_set.html command.
 This compute calculates a global scalar (Rg) and a global vector of
 length 6 (Rg^2 tensor), which can be accessed by indices 1-6.  These
 values can be used by any command that uses a global scalar value or
-vector values from a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+vector values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The scalar and vector values calculated by this compute are

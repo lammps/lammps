@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -68,8 +68,7 @@ Define a fix that stores attributes for each atom in the group at the
 time the fix is defined.  If {N} is 0, then the values are never
 updated, so this is a way of archiving an atom attribute at a given
 time for future use in a calculation or output.  See the discussion of
-"output commands"_Section_howto.html#howto_15 that take fixes as
-inputs.
+"output commands"_Howto_output.html that take fixes as inputs.
 
 If {N} is not zero, then the attributes will be updated every {N}
 steps.
@@ -108,9 +107,8 @@ fix.
 If a single input is specified, this fix produces a per-atom vector.
 If multiple inputs are specified, a per-atom array is produced where
 the number of columns for each atom is the number of inputs.  These
-can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The per-atom values be
-accessed on any timestep.
+can be accessed by various "output commands"_Howto_output.html.  The
+per-atom values be accessed on any timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

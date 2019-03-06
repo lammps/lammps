@@ -2,14 +2,13 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
 pair_style hybrid command :h3
-pair_style hybrid/omp command :h3
+pair_style hybrid/kk command :h3
 pair_style hybrid/overlay command :h3
-pair_style hybrid/overlay/omp command :h3
 pair_style hybrid/overlay/kk command :h3
 
 [Syntax:]
@@ -71,15 +70,10 @@ other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.
 
-NOTE: There are two exceptions to this option to list an individual
-pair style multiple times.  The first is for pair styles implemented
-as Fortran libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reaxc.html is OK).
-This is because unlike a C++ class, they can not be instantiated
-multiple times, due to the manner in which they were coded in Fortran.
-The second is for GPU-enabled pair styles in the GPU package.  This is
-b/c the GPU package also currently assumes that only one instance of a
-pair style is being used.
+NOTE: There is one exception to this option to list an individual
+pair style multiple times: GPU-enabled pair styles in the GPU package.
+This is because the GPU package currently assumes that only one
+instance of a pair style is being used.
 
 In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
@@ -230,7 +224,7 @@ For use with the various "compute */tally"_compute_tally.html
 computes, the "pair_modify compute/tally"_pair_modify.html
 command can be used to selectively turn off processing of
 the compute tally styles, for example, if those pair styles
-(e.g. manybody styles) do not support this feature.
+(e.g. many-body styles) do not support this feature.
 
 See the "pair_modify"_pair_modify.html doc page for details on
 the specific syntax, requirements and restrictions.
@@ -271,7 +265,7 @@ atoms when the potential computes 3-body or 4-body interactions.
 
 However, you can still use the pair_coeff none setting or the
 "neigh_modify exclude"_neigh_modify.html command to exclude certain
-type pairs from the neighbor list that will be passed to a manybody
+type pairs from the neighbor list that will be passed to a many-body
 sub-style.  This will alter the calculations made by a many-body
 potential, since it builds its list of 3-body, 4-body, etc
 interactions from the pair list.  You will need to think carefully as
@@ -315,8 +309,8 @@ off C/C interaction, i.e. by setting the appropriate coefficients to
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.
 
 Since the {hybrid} and {hybrid/overlay} styles delegate computation to
 the individual sub-styles, the suffix versions of the {hybrid} and
@@ -324,18 +318,18 @@ the individual sub-styles, the suffix versions of the {hybrid} and
 to all sub-styles, if those versions exist. Otherwise the
 non-accelerated version will be used.
 
-The individual accelerated sub-styles are part of the GPU,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+The individual accelerated sub-styles are part of the GPU, USER-OMP
+and OPT packages, respectively.  They are only enabled if LAMMPS was
+built with those packages.  See the "Build package"_Build_package.html
+doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 

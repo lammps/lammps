@@ -36,7 +36,7 @@ AngleCosine::AngleCosine(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleCosine::~AngleCosine()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
   }
@@ -172,7 +172,7 @@ void AngleCosine::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosine::equilibrium_angle(int i)
+double AngleCosine::equilibrium_angle(int /*i*/)
 {
   return MY_PI;
 }

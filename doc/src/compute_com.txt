@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -22,7 +22,7 @@ compute 1 all com :pre
 [Description:]
 
 Define a computation that calculates the center-of-mass of the group
-of atoms, including all effects due to atoms passing thru periodic
+of atoms, including all effects due to atoms passing through periodic
 boundaries.
 
 A vector of three quantities is calculated by this compute, which
@@ -41,9 +41,8 @@ image"_set.html command.
 
 This compute calculates a global vector of length 3, which can be
 accessed by indices 1-3 by any command that uses global vector values
-from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+from a compute as input.  See the "Howto output"_Howto_output.html doc
+page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The vector values will be in
 distance "units"_units.html.

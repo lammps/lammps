@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -85,17 +85,17 @@ fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile :pre
 Use one or more per-atom vectors as inputs every few timesteps, sum
 the values over the atoms in each chunk at each timestep, then average
 the per-chunk values over longer timescales.  The resulting chunk
-averages can be used by other "output
-commands"_Section_howto.html#howto_15 such as "thermo_style
-custom"_thermo_style.html, and can also be written to a file.
+averages can be used by other "output commands"_Howto_output.html such
+as "thermo_style custom"_thermo_style.html, and can also be written to
+a file.
 
 In LAMMPS, chunks are collections of atoms defined by a "compute
 chunk/atom"_compute_chunk_atom.html command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
 molecule or atoms in a spatial bin.  See the "compute
-chunk/atom"_compute_chunk_atom.html doc page and "Section
-6.23"_Section_howto.html#howto_23 for details of how chunks can be
+chunk/atom"_compute_chunk_atom.html doc page and the "Howto
+chunk"_Howto_chunk.html doc page for details of how chunks can be
 defined and examples of how they can be used to measure properties of
 a system.
 
@@ -240,7 +240,7 @@ shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  This is because
 those degrees of freedom (e.g. a constrained bond) could apply to sets
 of atoms that are both included and excluded from a specific chunk,
 and hence the concept is somewhat ill-defined.  In some cases, you can
-use the {adof} and {cdof} keywords to adjust the calculated degress of
+use the {adof} and {cdof} keywords to adjust the calculated degrees of
 freedom appropriately, as explained below.
 
 Also note that a bias can be subtracted from atom velocities before
@@ -456,20 +456,19 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The values can
-only be accessed on timesteps that are multiples of {Nfreq} since that
-is when averaging is performed.  The global array has # of rows =
-the number of chunks {Nchunk} as calculated by the specified "compute
+various "output commands"_Howto_output.html.  The values can only be
+accessed on timesteps that are multiples of {Nfreq} since that is when
+averaging is performed.  The global array has # of rows = the number
+of chunks {Nchunk} as calculated by the specified "compute
 chunk/atom"_compute_chunk_atom.html command.  The # of columns =
 M+1+Nvalues, where M = 1 to 4, depending on whether the optional
-columns for OrigID and CoordN are used, as explained above.
-Following the optional columns, the next column contains the count of
-atoms in the chunk, and the remaining columns are the Nvalue
-quantities.  When the array is accessed with a row I that exceeds the
-current number of chunks, than a 0.0 is returned by the fix instead of
-an error, since the number of chunks can vary as a simulation runs
-depending on how that value is computed by the compute chunk/atom
-command.
+columns for OrigID and CoordN are used, as explained above.  Following
+the optional columns, the next column contains the count of atoms in
+the chunk, and the remaining columns are the Nvalue quantities.  When
+the array is accessed with a row I that exceeds the current number of
+chunks, than a 0.0 is returned by the fix instead of an error, since
+the number of chunks can vary as a simulation runs depending on how
+that value is computed by the compute chunk/atom command.
 
 The array values calculated by this fix are treated as "intensive",
 since they are typically already normalized by the count of atoms in

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -79,10 +79,10 @@ in solvent) without using the {shift} keyword to adjust the positions
 of all atoms in the system, then the results can be unpredictable.
 For example, if the molecule is pushed consistently in one direction
 by a flowing solvent, its velocity will increase.  But its coordinates
-will be recentered, meaning it is moved back towards the force.  Thus
+will be re-centered, meaning it is moved back towards the force.  Thus
 over time, the velocity and effective temperature of the molecule
 could become very large, though it won't actually be moving due to the
-recentering.  If you are thermostatting the entire system, then the
+re-centering.  If you are thermostatting the entire system, then the
 solvent would be cooled to compensate.  A better solution for this
 simulation scenario is to use the "fix spring"_fix_spring.html command
 to tether the molecule in place.
@@ -94,13 +94,13 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-distance the group is moved by fix recenter.
+"output commands"_Howto_output.html.  The scalar is the distance the
+group is moved by fix recenter.
 
 This fix also computes global 3-vector which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The 3
-quantities in the vector are xyz components of displacement applied to
-the group of atoms by the fix.
+various "output commands"_Howto_output.html.  The 3 quantities in the
+vector are xyz components of displacement applied to the group of
+atoms by the fix.
 
 The scalar and vector values calculated by this fix are "extensive".
 

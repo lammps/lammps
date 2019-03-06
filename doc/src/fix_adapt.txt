@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -112,17 +112,43 @@ pages for individual pair styles and their energy formulas for the
 meaning of these parameters:
 
 "born"_pair_born.html: a,b,c: type pairs:
+"born/coul/long, born/coul/msm"_pair_born.html: coulombic_cutoff: type global:
 "buck"_pair_buck.html: a,c: type pairs:
+"buck/coul/long, buck/coul/msm"_pair_buck.html: coulombic_cutoff: type global:
+"buck/mdf"_pair_mdf.html: a,c: type pairs:
 "coul/cut"_pair_coul.html: scale: type pairs:
+"coul/cut/soft"_pair_fep_soft.html: lambda: type pairs:
 "coul/debye"_pair_coul.html: scale: type pairs:
-"coul/long"_pair_coul.html: scale: type pairs:
+"coul/dsf"_pair_coul.html: coulombic_cutoff: type global:
+"coul/long, coul/msm"_pair_coul.html: coulombic_cutoff, scale: type pairs:
+"coul/long/soft"_pair_fep_soft.html: scale, lambda, coulombic_cutoff: type pairs:
 "eam, eam/alloy, eam/fs"_pair_eam.html: scale: type pairs:
+"gauss"_pair_gauss.html: a: type pairs:
+"lennard/mdf"_pair_mdf.html: A,B: type pairs:
+"lj/class2"_pair_class2.html: epsilon,sigma: type pairs:
+"lj/class2/coul/cut, lj/class2/coul/long"_pair_class2.html: epsilon,sigma,coulombic_cutoff: type pairs:
 "lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm"_pair_lj.html: epsilon,sigma,coulombic_cutoff: type pairs:
+"lj/cut/coul/cut/soft, lj/cut/coul/long/soft"_pair_fep_soft.html: epsilon,sigma,lambda,coulombic_cutoff: type pairs:
+"lj/cut/coul/dsf"_pair_lj.html: cutoff: type global:
+"lj/cut/tip4p/cut"_pair_lj.html: epsilon,sigma,coulombic_cutoff: type pairs:
+"lj/cut/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
 "lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
+"lj/mdf"_pair_mdf.html: epsilon,sigma: type pairs:
 "lj/sf/dipole/sf"_pair_dipole.html: epsilon,sigma,scale: type pairs:
 "lubricate"_pair_lubricate.html: mu: global:
-"gauss"_pair_gauss.html: a: type pairs:
-"morse"_pair_morse.html: d0,r0,alpha: type pairs:
+"mie/cut"_pair_mie.html: epsilon,sigma,gamma_repulsive,gamma_attractive: type pairs:
+"morse, morse/smooth/linear"_pair_morse.html: D0,R0,alpha: type pairs:
+"morse/soft"_pair_morse.html: D0,R0,alpha,lambda: type pairs:
+"nm/cut"_pair_nm.html: E0,R0,m,n: type pairs:
+"nm/cut/coul/cut, nm/cut/coul/long"_pair_nm.html: E0,R0,m,n,coulombic_cutoff: type pairs:
+"reax/c"_pair_reaxc.html: chi, eta, gamma: type global:
+"spin/dmi"_pair_spin_dmi.html: coulombic_cutoff: type global:
+"spin/exchange"_pair_spin_exchange.html: coulombic_cutoff: type global:
+"spin/magelec"_pair_spin_magelec.html: coulombic_cutoff: type global:
+"spin/neel"_pair_spin_neel.html: coulombic_cutoff: type global:
+"table"_pair_table.html: table_cutoff: type pairs:
+"ufm"_pair_ufm.html: epsilon,sigma: type pairs:
 "soft"_pair_soft.html: a: type pairs:
 "kim"_pair_kim.html: PARAM_FREE_*&#58i,j,...: global :tb(c=3,s=:)
 
@@ -132,12 +158,6 @@ the pair_*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.
-For "pair_kim"_pair_kim.html, all free parameters supported by the
-KIM Model are available (e.g., PARAM_FREE_sigmas provided by the
-LennardJones612_Universal__MO_826355984548_001 Model).  If the free
-parameter corresponds to an array, then the particular array element
-to be adapted must be specified (e.g., "PARAM_FREE_sigmas:10", to
-adapt the tenth entry of the sigmas array).
 Other parameters apply to atom type pairs within the pair style,
 e.g. the prefactor "a" for "pair_style soft"_pair_soft.html.
 
@@ -217,6 +237,7 @@ Currently {bond} does not support bond_style hybrid nor bond_style
 hybrid/overlay as bond styles. The only bonds that currently are
 working with fix_adapt are
 
+"gromos"_bond_gromos.html: k, r0: type bonds:
 "harmonic"_bond_harmonic.html: k,r0: type bonds :tb(c=3,s=:)
 
 :line
@@ -270,10 +291,10 @@ fix 1 center adapt 10 atom diameter v_size :pre
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 For "rRESPA time integration"_run_style.html, this fix changes
 parameters on the outermost rRESPA level.

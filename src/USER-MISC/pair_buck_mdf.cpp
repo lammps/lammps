@@ -391,8 +391,8 @@ void PairBuckMDF::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBuckMDF::single(int i, int j, int itype, int jtype,
-                        double rsq, double factor_coul, double factor_lj,
+double PairBuckMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
+                        double rsq, double /*factor_coul*/, double factor_lj,
                         double &fforce)
 {
   double r2inv,r6inv,r,rexp,forcebuck,phibuck;
@@ -427,7 +427,7 @@ double PairBuckMDF::single(int i, int j, int itype, int jtype,
 void *PairBuckMDF::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"aparm") == 0) return (void *) a;
-  if (strcmp(str,"cparm") == 0) return (void *) c;
+  if (strcmp(str,"a") == 0) return (void *) a;
+  if (strcmp(str,"c") == 0) return (void *) c;
   return NULL;
 }

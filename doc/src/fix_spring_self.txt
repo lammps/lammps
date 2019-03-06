@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -57,10 +57,10 @@ this fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is an
-energy which is the sum of the spring energy for each atom, where the
-per-atom energy is 0.5 * K * r^2.  The scalar value calculated by this
-fix is "extensive".
+"output commands"_Howto_output.html.  The scalar is an energy which is
+the sum of the spring energy for each atom, where the per-atom energy
+is 0.5 * K * r^2.  The scalar value calculated by this fix is
+"extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

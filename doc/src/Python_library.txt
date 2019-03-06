@@ -1,9 +1,9 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -21,8 +21,8 @@ from lammps import lammps :pre
 These are the methods defined by the lammps module.  If you look at
 the files src/library.cpp and src/library.h you will see they
 correspond one-to-one with calls you can make to the LAMMPS library
-from a C++ or C or Fortran program, and which are described in
-"Section 6.19"_Section_howto.html#howto_19 of the manual.
+from a C++ or C or Fortran program, and which are described on the
+"Howto library"_Howto_library.html doc page.
 
 The python/examples directory has Python scripts which show how Python
 can run LAMMPS, grab data, change it, and put it back into LAMMPS.
@@ -165,11 +165,11 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "Section 6.15"_Section_howto.html#howto_15 of the manual for a
-discussion of global, per-atom, and local data, and of scalar, vector,
-and array data types.  See the doc pages for individual
-"computes"_compute.html and "fixes"_fix.html for a description of what
-they calculate and store.
+See the "Howto output"_Howto_output.html doc page for a discussion of
+global, per-atom, and local data, and of scalar, vector, and array
+data types.  See the doc pages for individual "computes"_compute.html
+and "fixes"_fix.html for a description of what they calculate and
+store.
 
 For extract_variable(), an "equal-style or atom-style
 variable"_variable.html is evaluated and its result returned.
@@ -186,20 +186,20 @@ keyword as a float.
 The get_natoms() method returns the total number of atoms in the
 simulation, as an int.
 
-The set_variable() methosd sets an existing string-style variable to a
+The set_variable() method sets an existing string-style variable to a
 new string value, so that subsequent LAMMPS commands can access the
 variable.
 
-The reset_box() emthods resets the size and shape of the simulation
+The reset_box() method resets the size and shape of the simulation
 box, e.g. as part of restoring a previously extracted and saved state
 of a simulation.
 
 The gather methods collect peratom info of the requested type (atom
 coords, atom types, forces, etc) from all processors, and returns the
-same vector of values to each callling processor.  The scatter
+same vector of values to each calling processor.  The scatter
 functions do the inverse.  They distribute a vector of peratom values,
-passed by all calling processors, to invididual atoms, which may be
-owned by different processos.
+passed by all calling processors, to individual atoms, which may be
+owned by different processors.
 
 Note that the data returned by the gather methods,
 e.g. gather_atoms("x"), is different from the data structure returned

@@ -144,8 +144,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
 
   const flt_t * _noalias const special_coul = fc.special_coul;
   const flt_t * _noalias const special_lj = fc.special_lj;
@@ -182,7 +181,6 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(c_force, c_energy, c_cut:length(0) alloc_if(0) free_if(0))      \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
     in(q:length(q_size) alloc_if(0) free_if(0)) \
@@ -204,8 +202,10 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
                               f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EFLAG) oevdwl = oecoul = (acc_t)0;
-    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (EFLAG || vflag)
+      oevdwl = oecoul = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (NEWTON_PAIR == 0 && inum != nlocal)
+      memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -231,8 +231,8 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
         const C_FORCE_T * _noalias const c_forcei = c_force + ptr_off;
         const C_ENERGY_T * _noalias const c_energyi = c_energy + ptr_off;
         const C_CUT_T * _noalias const c_cuti = c_cut + ptr_off;
-        const int   * _noalias const jlist = firstneigh + cnumneigh[ii];
-        int jnum = numneigh[ii];
+        const int   * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
         IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
@@ -361,13 +361,10 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
     IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
 
-    if (EFLAG) {
-      if (NEWTON_PAIR == 0) oevdwl *= (acc_t)0.5;
-      ev_global[0] = oevdwl;
-      ev_global[1] = oecoul;
-    }
-    if (vflag) {
+    if (EFLAG || vflag) {
       if (NEWTON_PAIR == 0) {
+        oevdwl *= (acc_t)0.5;
+        oecoul *= (acc_t)0.5;
         ov0 *= (acc_t)0.5;
         ov1 *= (acc_t)0.5;
         ov2 *= (acc_t)0.5;
@@ -375,6 +372,8 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
         ov4 *= (acc_t)0.5;
         ov5 *= (acc_t)0.5;
       }
+      ev_global[0] = oevdwl;
+      ev_global[1] = oecoul;
       ev_global[2] = ov0;
       ev_global[3] = ov1;
       ev_global[4] = ov2;
@@ -439,19 +438,16 @@ void PairBuckCoulCutIntel::pack_force_const(ForceConst<flt_t> &fc,
     for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
 
   fc.set_ntypes(tp1, ntable, memory, _cop);
-  buffers->set_ntypes(tp1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
 
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+      double cut;
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
         cut = init_one(i, j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
-      }
+      else
+        cut = 0.0;
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
 
@@ -483,12 +479,10 @@ void PairBuckCoulCutIntel::pack_force_const(ForceConst<flt_t> &fc,
   C_FORCE_T * c_force = fc.c_force[0];
   C_ENERGY_T * c_energy = fc.c_energy[0];
   C_CUT_T * c_cut = fc.c_cut[0];
-  flt_t * ocutneighsq = cutneighsq[0];
   int tp1sq = tp1 * tp1;
   #pragma offload_transfer target(mic:_cop) \
     in(special_lj, special_coul: length(4) alloc_if(0) free_if(0)) \
-    in(c_force, c_energy, c_cut: length(tp1sq) alloc_if(0) free_if(0))   \
-    in(ocutneighsq: length(tp1sq) alloc_if(0) free_if(0))
+    in(c_force, c_energy, c_cut: length(tp1sq) alloc_if(0) free_if(0))
   #endif
 }
 

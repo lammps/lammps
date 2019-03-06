@@ -65,6 +65,7 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   if (cutoff <= 0.0) error->all(FLERR,"Illegal compute entropy/atom"
                                " command; cutoff must be positive");
 
+  cutoff2 = 0.;
   avg_flag = 0;
   local_flag = 0;
 
@@ -137,21 +138,26 @@ void ComputeEntropyAtom::init()
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute entropy/atom");
 
-  // need a full neighbor list with neighbors of the ghost atoms
-
+  // Request neighbor list
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 0;
-  neighbor->requests[irequest]->ghost = 1;
+  if (avg_flag) {
+    // need a full neighbor list with neighbors of the ghost atoms
+    neighbor->requests[irequest]->ghost = 1;
+  } else {
+    // need a full neighbor list
+    neighbor->requests[irequest]->ghost = 0;
+  }
 
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeEntropyAtom::init_list(int id, NeighList *ptr)
+void ComputeEntropyAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

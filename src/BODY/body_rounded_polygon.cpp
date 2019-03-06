@@ -170,7 +170,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   // nentries = number of double entries to be read from Body section:
   //   6 for inertia + 3*nsub for vertex coords + 1 for rounded radius
 
-  int nentries = 6 + 3*nsub + 1; 
+  int nentries = 6 + 3*nsub + 1;
   if (ndouble != nentries)
     error->one(FLERR,"Incorrect # of floating-point values in "
              "Bodies section of data file");
@@ -279,7 +279,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
       bonus->dvalue[k] = 0;
       *(&bonus->dvalue[k]+1) = 1;
       k += 2;
-    }    
+    }
 
     erad = sqrt(erad2);
     bonus->dvalue[k] = erad;
@@ -323,7 +323,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
-double BodyRoundedPolygon::radius_body(int ninteger, int ndouble,
+double BodyRoundedPolygon::radius_body(int /*ninteger*/, int ndouble,
 				       int *ifile, double *dfile)
 {
   int nsub = ifile[0];
@@ -341,7 +341,7 @@ double BodyRoundedPolygon::radius_body(int ninteger, int ndouble,
   double maxrad = 0.0;
   double delta[3];
 
-  int offset = 6;          
+  int offset = 6;
   for (int i = 0; i < nsub; i++) {
     delta[0] = dfile[offset];
     delta[1] = dfile[offset+1];
@@ -350,9 +350,9 @@ double BodyRoundedPolygon::radius_body(int ninteger, int ndouble,
     onerad = MathExtra::len3(delta);
     maxrad = MAX(maxrad,onerad);
   }
-  
+
   // add in radius of rounded corners
-  
+
   return maxrad + 0.5*dfile[offset];
 }
 
@@ -392,7 +392,7 @@ void BodyRoundedPolygon::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyRoundedPolygon::image(int ibonus, double flag1, double flag2,
+int BodyRoundedPolygon::image(int ibonus, double flag1, double /*flag2*/,
                               int *&ivec, double **&darray)
 {
   int j;
@@ -401,7 +401,7 @@ int BodyRoundedPolygon::image(int ibonus, double flag1, double flag2,
 
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
   int n = bonus->ivalue[0];
-  
+
   if (n == 1) {
     for (int i = 0; i < n; i++) {
       imflag[i] = SPHERE;
@@ -418,7 +418,7 @@ int BodyRoundedPolygon::image(int ibonus, double flag1, double flag2,
     }
 
   } else {
-  
+
     // first end pt of each line
 
     for (int i = 0; i < n; i++) {
@@ -436,7 +436,7 @@ int BodyRoundedPolygon::image(int ibonus, double flag1, double flag2,
     }
 
     // second end pt of each line
-  
+
     for (int i = 0; i < n; i++) {
       j = i+1;
       if (j == n) j = 0;

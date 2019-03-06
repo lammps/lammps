@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -74,10 +74,10 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the USER-QUIP package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
-QUIP potentials are parametrized in electron-volts and Angstroms and
+QUIP potentials are parameterized in electron-volts and Angstroms and
 therefore should be used with LAMMPS metal "units"_units.html.
 
 QUIP potentials are generally not designed to work with the scaling
@@ -93,7 +93,7 @@ because it may remove pairs from the neighbor list that are still
 required.
 
 Pair style {quip} cannot be used with pair style {hybrid}, only
-with {hybrid/overlay} and only the {quip} substyle is applied to
+with {hybrid/overlay} and only the {quip} sub-style is applied to
 all atom types.
 
 [Related commands:]

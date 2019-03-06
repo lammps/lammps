@@ -33,7 +33,7 @@
 
 void vdW_Coulomb_Energy( reax_system *system, control_params *control,
                          simulation_data *data, storage *workspace,
-                         reax_list **lists, output_controls *out_control )
+                         reax_list **lists, output_controls * /*out_control*/ )
 {
   int i, j, pj, natoms;
   int start_i, end_i, flag;
@@ -127,7 +127,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
           CEvd = dTap * e_vdW -
             Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
         }
-      else{ // no shielding
+      else { // no shielding
         exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
         exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -172,7 +172,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
         ( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
 
       /* tally into per-atom energy */
-      if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+      if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
         pe_vdw = Tap * (e_vdW + e_core + e_lg);
         rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                               -1., system->my_atoms[j].x );
@@ -181,11 +181,10 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
                         f_tmp,delij[0],delij[1],delij[2]);
       }
 
-      if( control->virial == 0 ) {
+      if (control->virial == 0) {
         rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
         rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
-      }
-      else { /* NPT, iNPT or sNPT */
+      } else { /* NPT, iNPT or sNPT */
         rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
 
         rvec_ScaledAdd( workspace->f[i], -1., temp );
@@ -206,7 +205,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
                                    simulation_data *data, storage *workspace,
                                    reax_list **lists,
-                                   output_controls *out_control )
+                                   output_controls * /*out_control*/ )
 {
   int i, j, pj, r, natoms;
   int type_i, type_j, tmin, tmax;
@@ -264,7 +263,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
       /* Cubic Spline Interpolation */
       r = (int)(r_ij * t->inv_dx);
-      if( r == 0 )  ++r;
+      if (r == 0)  ++r;
       base = (double)(r+1) * t->dx;
       dif = r_ij - base;
 
@@ -286,7 +285,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
 
       /* tally into per-atom energy */
-      if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+      if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
         rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                               -1., system->my_atoms[j].x );
         f_tmp = -(CEvd + CEclmb);
@@ -294,11 +293,10 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
                         f_tmp,delij[0],delij[1],delij[2]);
       }
 
-      if( control->virial == 0 ) {
+      if (control->virial == 0) {
         rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
         rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
-      }
-      else { // NPT, iNPT or sNPT
+      } else { // NPT, iNPT or sNPT
         rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
 
         rvec_ScaledAdd( workspace->f[i], -1., temp );
@@ -332,7 +330,7 @@ void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
     data->my_en.e_pol += en_tmp;
 
     /* tally into per-atom energy */
-    if( system->pair_ptr->evflag)
+    if (system->pair_ptr->evflag)
       system->pair_ptr->ev_tally(i,i,system->n,1,0.0,en_tmp,0.0,0.0,0.0,0.0);
   }
 }
@@ -388,7 +386,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
       lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
         Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
     }
-  else{ // no shielding
+  else { // no shielding
     exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
     exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -102,7 +102,13 @@ Note coupling and post-processing can be combined in the same simulations using 
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart files"_restart.html.  The "fix_modify"_fix_modify.html options relevant to this fix are listed below.  No global scalar or vector or per-atom quantities are stored by this fix for access by various "output commands"_Section_howto.html#howto_15.  No parameter of this fix can be used with the {start/stop} keywords of the "run"_run.html command.  This fix is not invoked during "energy minimization"_minimize.html.
+No information about this fix is written to "binary restart
+files"_restart.html.  The "fix_modify"_fix_modify.html options
+relevant to this fix are listed below.  No global scalar or vector or
+per-atom quantities are stored by this fix for access by various
+"output commands"_Howto_output.html.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -40,15 +40,14 @@ lmp_g++ < in.script :pre
 since the SELF option invokes the C-library rewind() call, which may
 not be supported for stdin on some systems or by some MPI
 implementations.  This can be worked around by using the "-in
-command-line argument"_Section_start.html#start_6, e.g.
+command-line switch"_Run_options.html, e.g.
 
 lmp_g++ -in in.script :pre
 
-or by using the "-var command-line
-argument"_Section_start.html#start_6 to pass the script name as a
-variable to the input script.  In the latter case, a
-"variable"_variable.html called "fname" could be used in place of
-SELF, e.g.
+or by using the "-var command-line switch"_Run_options.html to pass
+the script name as a variable to the input script.  In the latter
+case, a "variable"_variable.html called "fname" could be used in place
+of SELF, e.g.
 
 lmp_g++ -var fname in.script < in.script :pre
 
@@ -101,7 +100,7 @@ print "ALL DONE" :pre
 
 Here is an example of a double loop which uses the if and
 "jump"_jump.html commands to break out of the inner loop when a
-condition is met, then continues iterating thru the outer loop.
+condition is met, then continues iterating through the outer loop.
 
 label       loopa
 variable    a loop 5

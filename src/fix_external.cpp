@@ -129,7 +129,7 @@ void FixExternal::min_setup(int vflag)
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixExternal::pre_reverse(int eflag, int vflag)
+void FixExternal::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
@@ -305,7 +305,7 @@ void FixExternal::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixExternal::copy_arrays(int i, int j, int delflag)
+void FixExternal::copy_arrays(int i, int j, int /*delflag*/)
 {
   fexternal[j][0] = fexternal[i][0];
   fexternal[j][1] = fexternal[i][1];

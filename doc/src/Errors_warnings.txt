@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -13,7 +13,7 @@ This is an alphabetic list of the WARNING messages LAMMPS prints out
 and the reason why.  If the explanation here is not sufficient, the
 documentation for the offending command may help.  Warning messages
 also list the source file and line number where the warning was
-generated.  For example, a message lile this:
+generated.  For example, a message like this:
 
 WARNING: Bond atom missing in box size check (domain.cpp:187) :pre
 
@@ -21,9 +21,9 @@ means that line #187 in the file src/domain.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that warning messages from "user-contributed
-packages"_Section_start.html#table_user are not listed here.  If such
-a warning occurs and is not self-explanatory, you'll need to look in
-the source code or contact the author of the package.
+packages"_Packages_user.html are not listed here.  If such a warning
+occurs and is not self-explanatory, you'll need to look in the source
+code or contact the author of the package.
 
 Doc page with "ERROR messages"_Errors_messages.html
 
@@ -178,12 +178,6 @@ When using fixes like box/relax, the potential energy used by the minimizer
 is augmented by an additional energy provided by the fix. Thus the printed
 converged energy may be different from the total potential energy. :dd
 
-{Energy tally does not account for 'zero yes'} :dt
-
-The energy removed by using the 'zero yes' flag is not accounted
-for in the energy tally and thus energy conservation cannot be
-monitored in this case. :dd
-
 {Estimated error in splitting of dispersion coeffs is %g} :dt
 
 Error is greater than 0.0001 percent. :dd
@@ -290,24 +284,6 @@ This may cause accuracy problems. :dd
 {Fix srd viscosity < 0.0 due to low SRD density} :dt
 
 This may cause accuracy problems. :dd
-
-{Fix thermal/conductivity comes before fix ave/spatial} :dt
-
-The order of these 2 fixes in your input script is such that fix
-thermal/conductivity comes first.  If you are using fix ave/spatial to
-measure the temperature profile induced by fix viscosity, then this
-may cause a glitch in the profile since you are averaging immediately
-after swaps have occurred.  Flipping the order of the 2 fixes
-typically helps. :dd
-
-{Fix viscosity comes before fix ave/spatial} :dt
-
-The order of these 2 fixes in your input script is such that
-fix viscosity comes first.  If you are using fix ave/spatial
-to measure the velocity profile induced by fix viscosity, then
-this may cause a glitch in the profile since you are averaging
-immediately after swaps have occurred.  Flipping the order
-of the 2 fixes typically helps. :dd
 
 {Fixes cannot send data in Kokkos communication, switching to classic communication} :dt
 
@@ -775,7 +751,7 @@ Self-explanatory. :dd
 
 This may indicate the shell command did not operate as expected. :dd
 
-{Should not allow rigid bodies to bounce off relecting walls} :dt
+{Should not allow rigid bodies to bounce off reflecting walls} :dt
 
 LAMMPS allows this, but their dynamics are not computed correctly. :dd
 
@@ -868,10 +844,10 @@ Most FENE models need this setting for the special_bonds command. :dd
 
 Most FENE models need this setting for the special_bonds command. :dd
 
-{Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions} :dt
+{Using a many-body potential with bonds/angles/dihedrals and special_bond exclusions} :dt
 
 This is likely not what you want to do.  The exclusion settings will
-eliminate neighbors in the neighbor list, which the manybody potential
+eliminate neighbors in the neighbor list, which the many-body potential
 needs to calculated its terms correctly. :dd
 
 {Using compute temp/deform with inconsistent fix deform remap option} :dt

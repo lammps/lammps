@@ -34,8 +34,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldOMP::EwaldOMP(LAMMPS *lmp, int narg, char **arg)
-  : Ewald(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
+EwaldOMP::EwaldOMP(LAMMPS *lmp) : Ewald(lmp), ThrOMP(lmp, THR_KSPACE)
 {
   triclinic_support = 0;
   suffix_flag |= Suffix::OMP;

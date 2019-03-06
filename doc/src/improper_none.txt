@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -18,7 +18,7 @@ improper_style none :pre
 
 [Description:]
 
-Using an improper style of none means imroper forces and energies are
+Using an improper style of none means improper forces and energies are
 not computed, even if quadruplets of improper atoms were listed in the
 data file read by the "read_data"_read_data.html command.
 

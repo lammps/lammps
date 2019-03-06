@@ -189,7 +189,7 @@ void FixLatte::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixLatte::init_list(int id, NeighList *ptr)
+void FixLatte::init_list(int /*id*/, NeighList * /*ptr*/)
 {
   // list = ptr;
 }
@@ -223,13 +223,13 @@ void FixLatte::setup_pre_reverse(int eflag, int vflag)
    integrate electronic degrees of freedom
 ------------------------------------------------------------------------- */
 
-void FixLatte::initial_integrate(int vflag) {}
+void FixLatte::initial_integrate(int /*vflag*/) {}
 
 /* ----------------------------------------------------------------------
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixLatte::pre_reverse(int eflag, int vflag)
+void FixLatte::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
@@ -299,7 +299,7 @@ void FixLatte::post_force(int vflag)
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
   int maxiter = -1;
-  
+
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
         &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);

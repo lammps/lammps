@@ -217,7 +217,7 @@ void FixGLD::init()
    First half of a timestep (V^{n} -> V^{n+1/2}; X^{n} -> X^{n+1})
 ------------------------------------------------------------------------- */
 
-void FixGLD::initial_integrate(int vflag)
+void FixGLD::initial_integrate(int /*vflag*/)
 {
   double dtfm;
   double ftm2v = force->ftm2v;
@@ -444,7 +444,7 @@ void FixGLD::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixGLD::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixGLD::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * (force->ftm2v);
@@ -458,7 +458,7 @@ void FixGLD::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGLD::final_integrate_respa(int ilevel, int iloop)
+void FixGLD::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * (force->ftm2v);
   final_integrate();
@@ -507,7 +507,7 @@ void FixGLD::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixGLD::copy_arrays(int i, int j, int delflag)
+void FixGLD::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int k = 0; k < 3*prony_terms; k++) {
     s_gld[j][k] = s_gld[i][k];
@@ -588,7 +588,7 @@ void FixGLD::unpack_restart(int nlocal, int nth)
    fixes on a given processor.
 ------------------------------------------------------------------------- */
 
-int FixGLD::size_restart(int nlocal)
+int FixGLD::size_restart(int /*nlocal*/)
 {
   return 3*prony_terms+1;
 }

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -40,7 +40,7 @@ below), Kb is the Boltzmann constant, T is the temperature, d is the
 dimensionality of the system (2 or 3 for 2d/3d), and V is the system
 volume (or area in 2d).  The second term is the virial, equal to
 -dU/dV, computed for all pairwise as well as 2-body, 3-body, 4-body,
-manybody, and long-range interactions, where r_i and f_i are the
+many-body, and long-range interactions, where r_i and f_i are the
 position and force vector of atom i, and the black dot indicates a dot
 product.  When periodic boundary conditions are used, N' necessarily
 includes periodic image (ghost) atoms outside the central box, and the
@@ -68,7 +68,7 @@ compute temperature or ke and/or the virial.  The {virial} keyword
 means include all terms except the kinetic energy {ke}.
 
 Details of how LAMMPS computes the virial efficiently for the entire
-system, including for manybody potentials and accounting for the
+system, including for many-body potentials and accounting for the
 effects of periodic boundary conditions are discussed in
 "(Thompson)"_#Thompson1.
 
@@ -105,23 +105,22 @@ where "thermo_temp" is the ID of a similarly defined compute of style
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -130,8 +129,8 @@ more instructions on how to use the accelerated styles effectively.
 This compute calculates a global scalar (the pressure) and a global
 vector of length 6 (pressure tensor), which can be accessed by indices
 1-6.  These values can be used by any command that uses global scalar
-or vector values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+or vector values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The scalar and vector values calculated by this compute are

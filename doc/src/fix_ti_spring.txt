@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -35,7 +35,7 @@ solid of interest and an Einstein crystal. A detailed explanation of
 how to use this command and choose its parameters for optimal
 performance and accuracy is given in the paper by
 "Freitas"_#Freitas1. The paper also presents a short summary of the
-theory of nonequilibrium thermodynamic integrations.
+theory of nonequilibrium thermodynamic integration.
 
 The thermodynamic integration procedure is performed by rescaling the
 force on each atom. Given an atomic configuration the force (F) on
@@ -121,13 +121,12 @@ fix to add the energy stored in the per-atom springs to the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
 This fix computes a global scalar and a global vector quantities which
-can be accessed by various "output
-commands"_Section_howto.html#howto_15. The scalar is an energy which
-is the sum of the spring energy for each atom, where the per-atom
-energy is 0.5 * k * r^2. The vector has 2 positions, the first one is
-the coupling parameter lambda and the second one is the time
-derivative of lambda. The scalar and vector values calculated by this
-fix are "extensive".
+can be accessed by various "output commands"_Howto_output.html. The
+scalar is an energy which is the sum of the spring energy for each
+atom, where the per-atom energy is 0.5 * k * r^2. The vector has 2
+positions, the first one is the coupling parameter lambda and the
+second one is the time derivative of lambda. The scalar and vector
+values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
@@ -147,8 +146,8 @@ this fix.
 [Restrictions:]
 
 This fix is part of the USER-MISC package. It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 [Default:]
 

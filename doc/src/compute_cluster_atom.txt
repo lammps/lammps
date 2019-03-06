@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -84,7 +84,7 @@ the neighbor list.
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be an ID > 0, as explained above.

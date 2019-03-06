@@ -117,9 +117,9 @@ void ReaderXYZ::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
+bigint ReaderXYZ::read_header(double /*box*/[3][3], int &triclinic,
                               int fieldinfo, int nfield,
-                              int *fieldtype, char **fieldlabel,
+                              int *fieldtype, char **/*fieldlabel*/,
                               int scaleflag, int wrapflag, int &fieldflag,
                               int &xflag, int &yflag, int &zflag)
 {

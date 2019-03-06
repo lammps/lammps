@@ -125,18 +125,20 @@ function show_help {
   echo "  --openmp-ratio=N/D    Ratio of the cpuset to use for OpenMP"
   echo "                        Default: 1"
   echo "  --openmp-places=<Op>  Op=threads|cores|sockets. Default: threads"
-  echo "  --no-openmp-proc-bind Set OMP_PROC_BIND to false and unset OMP_PLACES"
-  echo "  --force-openmp-num-threads=N"
+  echo "  --openmp-num-threads=N"
   echo "                        Override logic for selecting OMP_NUM_THREADS"
-  echo "  --force-openmp-proc-bind=<OP>"
+  echo "  --openmp-proc-bind=<OP>"
   echo "                        Override logic for selecting OMP_PROC_BIND"
-  echo "  --no-openmp-nested    Set OMP_NESTED to false"
+  echo "  --openmp-nested       Set OMP_NESTED to true"
+  echo "  --no-openmp-proc-bind Set OMP_PROC_BIND to false and unset OMP_PLACES"
   echo "  --output-prefix=<P>   Save the output to files of the form"
   echo "                        P.hpcbind.N, P.stdout.N and P.stderr.N where P is "
   echo "                        the prefix and N is the rank (no spaces)"
   echo "  --output-mode=<Op>    How console output should be handled."
   echo "                        Options are all, rank0, and none.  Default: rank0" 
   echo "  --lstopo              Show bindings in lstopo"
+  echo "  --save-topology=<Xml>  Save the topology to the given xml file"
+  echo "  --load-topology=<Xml>  Load a previously saved topology from an xml file"
   echo "  -v|--verbose          Print bindings and relevant environment variables"
   echo "  -h|--help             Show this message"
   echo ""
@@ -189,13 +191,16 @@ HPCBIND_OPENMP_PLACES=${OMP_PLACES:-threads}
 declare -i HPCBIND_OPENMP_PROC_BIND=1
 HPCBIND_OPENMP_FORCE_NUM_THREADS=""
 HPCBIND_OPENMP_FORCE_PROC_BIND=""
-declare -i HPCBIND_OPENMP_NESTED=1
+declare -i HPCBIND_OPENMP_NESTED=0
 declare -i HPCBIND_VERBOSE=0
 
 declare -i HPCBIND_LSTOPO=0
 
 HPCBIND_OUTPUT_PREFIX=""
 HPCBIND_OUTPUT_MODE="rank0"
+
+HPCBIND_OUTPUT_TOPOLOGY=""
+HPCBIND_INPUT_TOPOLOGY=""
 
 declare -i HPCBIND_HAS_COMMAND=0
 
@@ -276,8 +281,20 @@ for i in "$@"; do
       HPCBIND_OPENMP_NESTED=0
       shift
       ;;
+    --openmp-nested)
+      HPCBIND_OPENMP_NESTED=1
+      shift
+      ;;
     --output-prefix=*)
       HPCBIND_OUTPUT_PREFIX="${i#*=}"
+      shift
+      ;;
+    --save-topology=*)
+      HPCBIND_OUTPUT_TOPOLOGY="${i#*=}"
+      shift
+      ;;
+    --load-topology=*)
+      HPCBIND_INPUT_TOPOLOGY="${i#*=}"
       shift
       ;;
     --output-mode=*)
@@ -327,24 +344,37 @@ elif [[ ${HPCBIND_QUEUE_RANK} -eq 0 ]]; then
   HPCBIND_TEE=1
 fi
 
+# Save the topology to the given xml file
+if [[ "${HPCBIND_OUTPUT_TOPOLOGY}" != "" ]]; then
+  if [[ ${HPCBIND_QUEUE_RANK} -eq 0 ]]; then
+    lstopo-no-graphics "${HPCBIND_OUTPUT_TOPOLOGY}"
+  else
+    lstopo-no-graphics >/dev/null 2>&1
+  fi
+fi
+
+# Load the topology to the given xml file
+if [[ "${HPCBIND_INPUT_TOPOLOGY}" != "" ]]; then
+  if [ -f ${HPCBIND_INPUT_TOPOLOGY} ]; then
+    export HWLOC_XMLFILE="${HPCBIND_INPUT_TOPOLOGY}"
+    export HWLOC_THISSYSTEM=1
+  fi
+fi
 
 if [[ "${HPCBIND_OUTPUT_PREFIX}" == "" ]]; then
   HPCBIND_LOG=/dev/null
   HPCBIND_ERR=/dev/null
   HPCBIND_OUT=/dev/null
 else
-  if [[ ${HPCBIND_QUEUE_SIZE} -gt 0 ]]; then
-    HPCBIND_STR_QUEUE_SIZE="${HPCBIND_QUEUE_SIZE}"
-    HPCBIND_STR_QUEUE_RANK=$(printf %0*d ${#HPCBIND_STR_QUEUE_SIZE} ${HPCBIND_QUEUE_RANK})
-
-    HPCBIND_LOG="${HPCBIND_OUTPUT_PREFIX}.hpcbind.${HPCBIND_STR_QUEUE_RANK}"
-    HPCBIND_ERR="${HPCBIND_OUTPUT_PREFIX}.stderr.${HPCBIND_STR_QUEUE_RANK}"
-    HPCBIND_OUT="${HPCBIND_OUTPUT_PREFIX}.stdout.${HPCBIND_STR_QUEUE_RANK}"
-  else
-    HPCBIND_LOG="${HPCBIND_OUTPUT_PREFIX}.hpcbind.${HPCBIND_QUEUE_RANK}"
-    HPCBIND_ERR="${HPCBIND_OUTPUT_PREFIX}.stderr.${HPCBIND_QUEUE_RANK}"
-    HPCBIND_OUT="${HPCBIND_OUTPUT_PREFIX}.stdout.${HPCBIND_QUEUE_RANK}"
+  if [[ ${HPCBIND_QUEUE_SIZE} -le 0 ]]; then
+    HPCBIND_QUEUE_SIZE=1
   fi
+  HPCBIND_STR_QUEUE_SIZE="${HPCBIND_QUEUE_SIZE}"
+  HPCBIND_STR_QUEUE_RANK=$(printf %0*d ${#HPCBIND_STR_QUEUE_SIZE} ${HPCBIND_QUEUE_RANK})
+
+  HPCBIND_LOG="${HPCBIND_OUTPUT_PREFIX}.hpcbind.${HPCBIND_STR_QUEUE_RANK}"
+  HPCBIND_ERR="${HPCBIND_OUTPUT_PREFIX}.stderr.${HPCBIND_STR_QUEUE_RANK}"
+  HPCBIND_OUT="${HPCBIND_OUTPUT_PREFIX}.stdout.${HPCBIND_STR_QUEUE_RANK}"
   > ${HPCBIND_LOG}
 fi
 
@@ -546,6 +576,8 @@ if [[ ${HPCBIND_TEE} -eq 0 || ${HPCBIND_VERBOSE} -eq 0 ]]; then
   hostname -s >> ${HPCBIND_LOG}
   echo "[HPCBIND]" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^HPCBIND_" >> ${HPCBIND_LOG}
+  echo "[HWLOC]" >> ${HPCBIND_LOG}
+  echo "${TMP_ENV}" | grep -E "^HWLOC_" >> ${HPCBIND_LOG}
   echo "[CUDA]" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^CUDA_" >> ${HPCBIND_LOG}
   echo "[OPENMP]" >> ${HPCBIND_LOG}
@@ -568,6 +600,8 @@ else
   hostname -s > >(tee -a ${HPCBIND_LOG})
   echo "[HPCBIND]" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^HPCBIND_" > >(tee -a ${HPCBIND_LOG})
+  echo "[HWLOC]" > >(tee -a ${HPCBIND_LOG})
+  echo "${TMP_ENV}" | grep -E "^HWLOC_" > >(tee -a ${HPCBIND_LOG})
   echo "[CUDA]" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^CUDA_" > >(tee -a ${HPCBIND_LOG})
   echo "[OPENMP]" > >(tee -a ${HPCBIND_LOG})

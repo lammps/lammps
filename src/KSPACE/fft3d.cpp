@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
                          Axel Kohlmeyer (Temple U) added support for
-                         FFTW3, KISSFFT, Dfti/MKL, and ACML.
+                         FFTW3, KISS FFT, Dfti/MKL, and ACML.
                          Phil Blood (PSC) added single precision FFT.
                          Paul Coffman (IBM) added MPI collectives remap
 ------------------------------------------------------------------------- */
@@ -26,7 +26,7 @@
 #include "fft3d.h"
 #include "remap.h"
 
-#ifdef FFT_KISSFFT
+#ifdef FFT_KISS
 /* include kissfft implementation */
 #include "kissfft.h"
 #endif
@@ -104,11 +104,13 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     DftiComputeForward(plan->handle_fast,data);
   else
     DftiComputeBackward(plan->handle_fast,data);
+  /*
 #elif defined(FFT_FFTW2)
   if (flag == -1)
     fftw(plan->plan_fast_forward,total/length,data,1,length,NULL,0,0);
   else
-    fftw(plan->plan_fast_backward,total/length,data,1,length,NULL,0,0);
+   fftw(plan->plan_fast_backward,total/length,data,1,length,NULL,0,0);
+  */
 #elif defined(FFT_FFTW3)
   if (flag == -1)
     theplan=plan->plan_fast_forward;
@@ -143,11 +145,13 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     DftiComputeForward(plan->handle_mid,data);
   else
     DftiComputeBackward(plan->handle_mid,data);
+  /*
 #elif defined(FFT_FFTW2)
   if (flag == -1)
     fftw(plan->plan_mid_forward,total/length,data,1,length,NULL,0,0);
   else
     fftw(plan->plan_mid_backward,total/length,data,1,length,NULL,0,0);
+  */
 #elif defined(FFT_FFTW3)
   if (flag == -1)
     theplan=plan->plan_mid_forward;
@@ -182,11 +186,13 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     DftiComputeForward(plan->handle_slow,data);
   else
     DftiComputeBackward(plan->handle_slow,data);
+  /*
 #elif defined(FFT_FFTW2)
   if (flag == -1)
     fftw(plan->plan_slow_forward,total/length,data,1,length,NULL,0,0);
   else
     fftw(plan->plan_slow_backward,total/length,data,1,length,NULL,0,0);
+  */
 #elif defined(FFT_FFTW3)
   if (flag == -1)
     theplan=plan->plan_slow_forward;
@@ -520,6 +526,7 @@ struct fft_plan_3d *fft_3d_create_plan(
       (out_khi-out_klo+1);
   }
 
+  /*
 #elif defined(FFT_FFTW2)
 
   plan->plan_fast_forward =
@@ -561,6 +568,7 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
       (out_khi-out_klo+1);
   }
+  */
 
 #elif defined(FFT_FFTW3)
   plan->plan_fast_forward =
@@ -660,6 +668,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   DftiFreeDescriptor(&(plan->handle_fast));
   DftiFreeDescriptor(&(plan->handle_mid));
   DftiFreeDescriptor(&(plan->handle_slow));
+  /*
 #elif defined(FFT_FFTW2)
   if (plan->plan_slow_forward != plan->plan_fast_forward &&
       plan->plan_slow_forward != plan->plan_mid_forward) {
@@ -672,6 +681,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   }
   fftw_destroy_plan(plan->plan_fast_forward);
   fftw_destroy_plan(plan->plan_fast_backward);
+  */
 #elif defined(FFT_FFTW3)
   FFTW_API(destroy_plan)(plan->plan_slow_forward);
   FFTW_API(destroy_plan)(plan->plan_slow_backward);
@@ -809,6 +819,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     DftiComputeBackward(plan->handle_mid,data);
     DftiComputeBackward(plan->handle_slow,data);
   }
+  /*
 #elif defined(FFT_FFTW2)
   if (flag == -1) {
     fftw(plan->plan_fast_forward,total1/length1,data,1,0,NULL,0,0);
@@ -819,6 +830,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     fftw(plan->plan_mid_backward,total2/length2,data,1,0,NULL,0,0);
     fftw(plan->plan_slow_backward,total3/length3,data,1,0,NULL,0,0);
   }
+  */
 #elif defined(FFT_FFTW3)
   FFTW_API(plan) theplan;
   if (flag == -1)

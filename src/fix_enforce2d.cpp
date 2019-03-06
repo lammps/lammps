@@ -78,7 +78,7 @@ void FixEnforce2D::init()
           flist[nfixlist++] = modify->fix[i];
         else {
           char msg[256];
-          sprintf(msg,"Fix enforce2d must be defined after fix %s",modify->fix[i]->style);
+          snprintf(msg,256,"Fix enforce2d must be defined after fix %s",modify->fix[i]->style);
           error->all(FLERR,msg);
         }
       }
@@ -112,7 +112,7 @@ void FixEnforce2D::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::post_force(int vflag)
+void FixEnforce2D::post_force(int /*vflag*/)
 {
   double **v = atom->v;
   double **f = atom->f;
@@ -164,7 +164,7 @@ void FixEnforce2D::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::post_force_respa(int vflag, int ilevel, int iloop)
+void FixEnforce2D::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }

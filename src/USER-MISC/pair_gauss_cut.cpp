@@ -374,8 +374,8 @@ void PairGaussCut::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairGaussCut::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+double PairGaussCut::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   double r, rexp,ugauss,phigauss;

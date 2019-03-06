@@ -64,6 +64,7 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
     memory->destroy(cut_cxst_hc);
     memory->destroy(b_cxst_lo);
     memory->destroy(b_cxst_hi);
+    memory->destroy(cutsq_cxst_hc);
 
     memory->destroy(a_cxst1);
     memory->destroy(theta_cxst1_0);
@@ -666,7 +667,7 @@ void PairOxdnaCoaxstk::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::settings(int narg, char **arg)
+void PairOxdnaCoaxstk::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

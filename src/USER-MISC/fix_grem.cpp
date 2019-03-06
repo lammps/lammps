@@ -256,7 +256,7 @@ void FixGrem::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGrem::post_force(int vflag)
+void FixGrem::post_force(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;

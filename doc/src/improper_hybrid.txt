@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -55,8 +55,8 @@ types.
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-MOLECULE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+MOLECULE package.  See the "Build package"_Build_package.html doc page
+for more info.
 
 Unlike other improper styles, the hybrid improper style does not store
 improper coefficient info for individual sub-styles in a "binary

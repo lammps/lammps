@@ -26,6 +26,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -244,7 +245,7 @@ void BondTable::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondTable::single(int type, double rsq, int i, int j,
+double BondTable::single(int type, double rsq, int /*i*/, int /*j*/,
                          double &fforce)
 {
   double r = sqrt(rsq);
@@ -298,7 +299,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   FILE *fp = force->open_potential(file);
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 
@@ -310,17 +311,18 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    for (int i = 0; i < tb->ninput; i++)
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"bond:rfile");
   memory->create(tb->efile,tb->ninput,"bond:efile");
@@ -328,16 +330,15 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   // read r,e,f table values from file
 
-  int itmp;
   int cerror = 0;
   int r0idx = -1;
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
     if (NULL == fgets(line,MAXLINE,fp))
       error->one(FLERR,"Premature end of file in bond table");
-    if (4 != sscanf(line,"%d %lg %lg %lg",
-                    &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
+    if (3 != sscanf(line,"%*d %lg %lg %lg",
+                    &tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
     if (tb->efile[i] < emin) {
       emin = tb->efile[i];
       r0idx = i;
@@ -369,8 +370,6 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     fright = - (enext-e) / (rnext-r);
     if (f < fleft && f < fright) ferror++;
     if (f > fleft && f > fright) ferror++;
-    //printf("Values %d: %g %g %g\n",i,r,e,f);
-    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
   }
 
   if (ferror) {

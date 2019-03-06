@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -179,18 +179,18 @@ thermo_style    custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_
 The global scalar under the entry f_fix_id is the quantity of thermo
 energy as an extra part of <i>etot</i>. This global scalar and the
 vector of 5 quantities can be accessed by various "output
-commands"_Section_howto.html#howto_15. It is worth noting that the
-temp keyword under the "thermo_style"_thermo_style.html command print
-the instantaneous classical temperature <i>T</i><sup>cl</sup> as
-described in the command "fix qtb"_fix_qtb.html.
+commands"_Howto_output.html. It is worth noting that the temp keyword
+under the "thermo_style"_thermo_style.html command print the
+instantaneous classical temperature <i>T</i><sup>cl</sup> as described
+in the command "fix qtb"_fix_qtb.html.
 
 :line
 
 [Restrictions:]
 
 This fix style is part of the USER-QTB package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The QBMSST fix has been tested only for the group-ID

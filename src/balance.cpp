@@ -647,6 +647,21 @@ int *Balance::bisection(int sortflag)
   double *shrinklo = &shrinkall[0];
   double *shrinkhi = &shrinkall[3];
 
+  // if shrink size in any dim is zero, use box size in that dim
+
+  if (shrinklo[0] == shrinkhi[0]) {
+    shrinklo[0] = boxlo[0];
+    shrinkhi[0] = boxhi[0];
+  }
+  if (shrinklo[1] == shrinkhi[1]) {
+    shrinklo[1] = boxlo[1];
+    shrinkhi[1] = boxhi[1];
+  }
+  if (shrinklo[2] == shrinkhi[2]) {
+    shrinklo[2] = boxlo[2];
+    shrinkhi[2] = boxhi[2];
+  }
+
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
   // NOTE: (3/2017) can remove undocumented "old" option at some point

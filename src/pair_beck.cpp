@@ -327,9 +327,9 @@ void PairBeck::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBeck::single(int i, int j, int itype, int jtype,
+double PairBeck::single(int /*i*/, int /*j*/, int itype, int jtype,
                                   double rsq,
-                                  double factor_coul, double factor_lj,
+                                  double /*factor_coul*/, double factor_lj,
                                   double &fforce)
 {
   double phi_beck,r,rinv;

@@ -439,7 +439,7 @@ void PairTableRX::coeff(int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+                         double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   int itable;

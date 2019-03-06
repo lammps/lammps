@@ -111,8 +111,9 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     /* this is needed because Group is not Kokkos-aware ! */
     atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space,
         V_MASK | MASK_MASK | TYPE_MASK | RMASS_MASK);
-    Few<double, 3> vcm;
-    group->vcm(igroup,masstotal,&vcm[0]);
+    Few<double, 3> tmpvcm;
+    group->vcm(igroup,masstotal,&tmpvcm[0]);
+    const Few<double, 3> vcm(tmpvcm);
 
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
@@ -132,19 +133,20 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
   }
 
   if (angular) {
-    Few<double, 3> xcm, angmom, omega;
+    Few<double, 3> tmpxcm, tmpangmom, tmpomega;
     double inertia[3][3];
     /* syncs for each Kokkos-unaware Group method */
     atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space,
         X_MASK | MASK_MASK | TYPE_MASK | IMAGE_MASK | RMASS_MASK);
-    group->xcm(igroup,masstotal,&xcm[0]);
+    group->xcm(igroup,masstotal,&tmpxcm[0]);
     atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space,
         X_MASK | V_MASK | MASK_MASK | TYPE_MASK | IMAGE_MASK | RMASS_MASK);
-    group->angmom(igroup,&xcm[0],&angmom[0]);
+    group->angmom(igroup,&tmpxcm[0],&tmpangmom[0]);
     atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space,
         X_MASK | MASK_MASK | TYPE_MASK | IMAGE_MASK | RMASS_MASK);
-    group->inertia(igroup,&xcm[0],inertia);
-    group->omega(&angmom[0],inertia,&omega[0]);
+    group->inertia(igroup,&tmpxcm[0],inertia);
+    group->omega(&tmpangmom[0],inertia,&tmpomega[0]);
+    const Few<double, 3> xcm(tmpxcm), angmom(tmpangmom), omega(tmpomega);
 
     // adjust velocities to zero omega
     // vnew_i = v_i - w x r_i

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -69,10 +69,9 @@ fix 1 all ave/histo/weight 1 1 1 10 100 2000 c_XRD\[1\] c_XRD\[2\] :pre
 Use one or more values as inputs every few timesteps to create a
 single histogram.  The histogram can then be averaged over longer
 timescales.  The resulting histogram can be used by other "output
-commands"_Section_howto.html#howto_15, and can also be written to a
-file.  The fix ave/histo/weight command has identical syntax to fix
-ave/histo, except that exactly two values must be specified.  See
-details below.
+commands"_Howto_output.html, and can also be written to a file.  The
+fix ave/histo/weight command has identical syntax to fix ave/histo,
+except that exactly two values must be specified.  See details below.
 
 The group specified with this command is ignored for global and local
 input values.  For per-atom input values, only atoms in the group
@@ -242,7 +241,7 @@ first bin and values > {hi} are counted in the last bin.  If {beyond}
 is set to {extend} then two extra bins are created, so that there are
 Nbins+2 total bins.  Values < {lo} are counted in the first bin and
 values > {hi} are counted in the last bin (Nbins+1).  Values between
-{lo} and {hi} (inclusive) are counted in bins 2 thru Nbins+1.  The
+{lo} and {hi} (inclusive) are counted in bins 2 through Nbins+1.  The
 "coordinate" stored and printed for these two extra bins is {lo} and
 {hi}.
 
@@ -320,10 +319,10 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix produces a global vector and global array which can be
-accessed by various "output commands"_Section_howto.html#howto_15.
-The values can only be accessed on timesteps that are multiples of
-{Nfreq} since that is when a histogram is generated.  The global
-vector has 4 values:
+accessed by various "output commands"_Howto_output.html.  The values
+can only be accessed on timesteps that are multiples of {Nfreq} since
+that is when a histogram is generated.  The global vector has 4
+values:
 
 1 = total counts in the histogram
 2 = values that were not histogrammed (see {beyond} keyword)

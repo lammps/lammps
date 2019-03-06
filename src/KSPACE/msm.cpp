@@ -44,7 +44,7 @@ enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
 enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
-MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+MSM::MSM(LAMMPS *lmp) : KSpace(lmp),
   factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
   ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
   nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
@@ -58,11 +58,7 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   phi1d(NULL), dphi1d(NULL), procneigh_levels(NULL), cg(NULL), cg_peratom(NULL),
   cg_all(NULL), cg_peratom_all(NULL), part2grid(NULL), boxlo(NULL)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
-
   msmflag = 1;
-
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 1;
   factors = new int[nfactors];
@@ -113,6 +109,14 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   warn_nonneutral = 0;
 
   order = 10;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MSM::settings(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 }
 
 /* ----------------------------------------------------------------------
@@ -177,7 +181,7 @@ void MSM::init()
 
   if (sizeof(FFT_SCALAR) != 8)
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
-               "(remove -DFFT_SINGLE from Makefile and recompile)");
+               "(remove -DFFT_SINGLE from Makefile and re-compile)");
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -419,7 +423,7 @@ void MSM::setup()
     boxlo = domain->boxlo_lamda;
 
   // ghost grid points depend on direct sum interaction limits,
-  // so need to recompute local grid
+  // so need to re-compute local grid
 
   set_grid_local();
 
@@ -529,7 +533,7 @@ void MSM::compute(int eflag, int vflag)
     restriction(n);
   }
 
-  // compute direct interation for top grid level for nonperiodic
+  // compute direct interation for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {
@@ -1116,7 +1120,7 @@ void MSM::set_grid_global()
   if (nx_msm[0] >= OFFSET || ny_msm[0] >= OFFSET || nz_msm[0] >= OFFSET)
     error->all(FLERR,"MSM grid is too large");
 
-  // compute number of extra grid points needed for nonperiodic boundary conditions
+  // compute number of extra grid points needed for non-periodic boundary conditions
 
   if (domain->nonperiodic) {
     alpha[0] = -(order/2 - 1);
@@ -1250,7 +1254,7 @@ void MSM::set_grid_local()
     nzlo_out[n] = nlo - order;
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
 
-    // add extra grid points for nonperiodic boundary conditions
+    // add extra grid points for non-periodic boundary conditions
 
     if (domain->nonperiodic) {
 

@@ -31,7 +31,7 @@ int Fix::instance_total = 0;
 
 /* ---------------------------------------------------------------------- */
 
-Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
+Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
   id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
   vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
@@ -81,6 +81,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
+  global_freq = local_freq = peratom_freq = -1;
   size_vector_variable = size_array_rows_variable = 0;
 
   comm_forward = comm_reverse = comm_border = 0;

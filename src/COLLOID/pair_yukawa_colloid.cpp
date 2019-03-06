@@ -160,9 +160,9 @@ double PairYukawaColloid::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-double PairYukawaColloid::single(int i, int j, int itype, int jtype,
+double PairYukawaColloid::single(int /*i*/, int /*j*/, int itype, int jtype,
                                  double rsq,
-                                 double factor_coul, double factor_lj,
+                                 double /*factor_coul*/, double factor_lj,
                                  double &fforce)
 {
   double r,rinv,screening,forceyukawa,phi;

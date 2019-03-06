@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -128,24 +128,39 @@ commands to be changed, if the pair style supports it.
 
 The {pstyle} argument is the name of the pair style. For example,
 {pstyle} could be specified as "lj/cut".  The {pparam} argument is the
-name of the parameter to change.  This is a (non-exclusive) list of
+name of the parameter to change.  This is a list of
 pair styles and parameters that can be used with this compute.  See
 the doc pages for individual pair styles and their energy formulas for
 the meaning of these parameters:
 
-"lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
-"lj/cut/coul/cut"_pair_lj.html: epsilon,sigma: type pairs:
-"lj/cut/coul/long"_pair_lj.html: epsilon,sigma: type pairs:
-"lj/cut/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
-"coul/cut/soft"_pair_lj_soft.html: lambda: type pairs:
-"coul/long/soft"_pair_lj_soft.html: lambda: type pairs:
-"lj/cut/coul/cut/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
-"lj/cut/coul/long/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
-"lj/cut/tip4p/long/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
-"tip4p/long/soft"_pair_lj_soft.html: lambda: type pairs:
-"lj/charmm/coul/long/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
 "born"_pair_born.html: a,b,c: type pairs:
-"buck"_pair_buck.html: a,c : type pairs :tb(c=3,s=:)
+"buck"_pair_buck.html: a,c: type pairs:
+"buck/mdf"_pair_mdf.html: a,c: type pairs:
+"coul/cut"_pair_coul.html: scale: type pairs:
+"coul/cut/soft"_pair_fep_soft.html: lambda: type pairs:
+"coul/long, coul/msm"_pair_coul.html: scale: type pairs:
+"coul/long/soft"_pair_fep_soft.html: scale, lambda: type pairs:
+"eam"_pair_eam.html: scale: type pairs:
+"gauss"_pair_gauss.html: a: type pairs:
+"lennard/mdf"_pair_mdf.html: a,b: type pairs:
+"lj/class2"_pair_class2.html: epsilon,sigma: type pairs:
+"lj/class2/coul/cut, lj/class2/coul/long"_pair_class2.html: epsilon,sigma: type pairs:
+"lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/coul/cut/soft, lj/cut/coul/long/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/cut/tip4p/cut, lj/cut/tip4p/long"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/tip4p/long/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
+"lj/mdf"_pair_mdf.html: epsilon,sigma: type pairs:
+"lj/sf/dipole/sf"_pair_dipole.html: epsilon,sigma,scale: type pairs:
+"mie/cut"_pair_mie.html: epsilon,sigma,gamR,gamA: type pairs:
+"morse, morse/smooth/linear"_pair_morse.html: d0,r0,alpha: type pairs:
+"morse/soft"_pair_morse.html: d0,r0,alpha,lambda: type pairs:
+"nm/cut"_pair_nm.html: e0,r0,nn,mm: type pairs:
+"nm/cut/coul/cut, nm/cut/coul/long"_pair_nm.html: e0,r0,nn,mm: type pairs:
+"ufm"_pair_ufm.html: epsilon,sigma,scale: type pairs:
+"soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
 Note that it is easy to add new potentials and their parameters to
 this list.  All it typically takes is adding an extract() method to
@@ -219,8 +234,8 @@ unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 
 These output results can be used by any command that uses a global
-scalar or vector from a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+scalar or vector from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options. For example, the computed values can be averaged using "fix
 ave/time"_fix_ave_time.html.
 
@@ -230,13 +245,13 @@ The values calculated by this compute are "extensive".
 [Restrictions:]
 
 This compute is distributed as the USER-FEP package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
 "fix adapt/fep"_fix_adapt_fep.html, "fix ave/time"_fix_ave_time.html,
-"pair_style lj/soft/coul/soft"_pair_lj_soft.html
+"pair_fep_soft"_pair_fep_soft.html
 
 [Default:]
 

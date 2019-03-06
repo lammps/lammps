@@ -45,7 +45,7 @@ enum{ASCEND,DESCEND};
 
 /* ---------------------------------------------------------------------- */
 
-Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

@@ -1,9 +1,9 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -32,10 +32,10 @@ first importing from the lammps.py file:
 >>> from ctypes import CDLL
 >>> CDLL("liblammps.so") :pre
 
-If an error occurs, carefully go thru the steps in "Section
-2.4"_Section_start.html#start_4 and above about building a shared
-library and about insuring Python can find the necessary two files
-it needs.
+If an error occurs, carefully go through the steps on the
+"Build_basics"_Build_basics.html doc page about building a shared
+library and the "Python_install"_Python_install.html doc page about
+insuring Python can find the necessary two files it needs.
 
 [Test LAMMPS and Python in serial:] :h4
 

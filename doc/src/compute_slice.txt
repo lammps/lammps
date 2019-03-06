@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -94,8 +94,8 @@ specified or a global array with N columns where N is the number of
 inputs.  The length of the vector or the number of rows in the array
 is equal to the number of values extracted from each input vector.
 These values can be used by any command that uses global vector or
-array values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+array values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The vector or array values calculated by this compute are simply

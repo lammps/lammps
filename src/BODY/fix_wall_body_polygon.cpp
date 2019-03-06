@@ -204,9 +204,9 @@ void FixWallBodyPolygon::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallBodyPolygon::post_force(int vflag)
+void FixWallBodyPolygon::post_force(int /*vflag*/)
 {
-  double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,rradi,wall_pos;
+  double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,wall_pos;
   int i,ni,npi,ifirst,nei,iefirst,side;
   double facc[3];
 
@@ -263,7 +263,7 @@ void FixWallBodyPolygon::post_force(int vflag)
   }
 
   ndiscrete = nedge = 0;
-  for (i = 0; i < nlocal; i++) 
+  for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -310,16 +310,12 @@ void FixWallBodyPolygon::post_force(int vflag)
       rsq = dx*dx + dy*dy + dz*dz;
       if (rsq > radius[i]*radius[i]) continue;
 
-      double r = sqrt(rsq);
-      double rsqinv = 1.0 / rsq;
-
       if (dnum[i] == 0) body2space(i);
       npi = dnum[i];
       ifirst = dfirst[i];
       nei = ednum[i];
       iefirst = edfirst[i];
       eradi = enclosing_radius[i];
-      rradi = rounded_radius[i];
 
       // reset vertex and edge forces
 
@@ -335,14 +331,14 @@ void FixWallBodyPolygon::post_force(int vflag)
         edge[iefirst+ni][4] = 0;
       }
 
-      int interact, num_contacts, done;
+      int num_contacts, done;
       double delta_a, delta_ua, j_a;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
       facc[0] = facc[1] = facc[2] = 0;
-      interact = vertex_against_wall(i, wall_pos, x, f, torque, side,
-                                     contact_list, num_contacts, facc);
+      vertex_against_wall(i, wall_pos, x, f, torque, side,
+                          contact_list, num_contacts, facc);
 
       if (num_contacts >= 2) {
 
@@ -475,16 +471,14 @@ void FixWallBodyPolygon::body2space(int i)
 
 int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
                 double** x, double** f, double** torque, int side,
-                Contact* contact_list, int &num_contacts, double* facc)
+                Contact* contact_list, int &num_contacts, double* /*facc*/)
 {
   int ni, npi, ifirst, interact;
-  double xpi[3], xpj[3], dist, eradi, rradi;
-  double fx, fy, fz, rx, ry, rz;
-  int nlocal = atom->nlocal;
+  double xpi[3], rradi;
+  double fx, fy, fz;
 
   npi = dnum[i];
   ifirst = dfirst[i];
-  eradi = enclosing_radius[i];
   rradi = rounded_radius[i];
 
   interact = 0;
@@ -499,9 +493,9 @@ int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
     xpi[1] = x[i][1] + discrete[ifirst+ni][1];
     xpi[2] = x[i][2] + discrete[ifirst+ni][2];
 
-    int mode, contact, p2vertex;
-    double d, R, hi[3], t, delx, dely, delz, fpair, shift;
-    double xj[3], rij;
+    int mode, contact;
+    double d, R, hi[3], delx, dely, delz, fpair;
+    double rij;
 
     // compute the distance from the vertex xpi to the wall
 
@@ -641,18 +635,15 @@ int FixWallBodyPolygon::compute_distance_to_wall(double* x0, double rradi,
     mode = VERTEX;
     contact = 1;
   } else {
+    mode = NONE;
     if (side == XLO) {
       if (x0[0] < wall_pos) mode = VERTEX;
-      else mode = NONE;
     } else if (side == XHI) {
       if (x0[0] > wall_pos) mode = VERTEX;
-      else mode = NONE;
     } else if (side == YLO) {
       if (x0[1] < wall_pos) mode = VERTEX;
-      else mode = NONE;
     } else if (side == YHI) {
       if (x0[1] > wall_pos) mode = VERTEX;
-      else mode = NONE;
     }
   }
 
@@ -674,7 +665,7 @@ void FixWallBodyPolygon::contact_forces(Contact& contact, double j_a,
                       double** x, double** v, double** angmom, double** f,
                       double** torque, double* vwall, double* facc)
 {
-  int ibody,ibonus,ifirst, jefirst, ni;
+  int ibody,ibonus,ifirst, ni;
   double fx,fy,fz,delx,dely,delz,rsq,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double fn[3],ft[3],vi[3];
@@ -682,7 +673,7 @@ void FixWallBodyPolygon::contact_forces(Contact& contact, double j_a,
   AtomVecBody::Bonus *bonus;
 
   ibody = contact.ibody;
-  
+
   // compute the velocity of the vertex in the space-fixed frame
 
   ibonus = atom->body[ibody];

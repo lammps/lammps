@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -20,6 +20,6 @@ Here is a brief description of methods you define in your new derived
 class.  See region.h for details.
 
 inside: determine whether a point is in the region
-surface_interior: determine if a point is within a cutoff distance inside of surc
-surface_exterior: determine if a point is within a cutoff distance outside of surf
+surface_interior: determine if a point is within a cutoff distance inside of surface
+surface_exterior: determine if a point is within a cutoff distance outside of surface
 shape_update : change region shape if set by time-dependent variable :tb(s=:)

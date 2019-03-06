@@ -45,11 +45,13 @@
 #define KOKKOS_ARRAY_HPP
 
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 #include <type_traits>
 #include <algorithm>
 #include <limits>
 #include <cstddef>
+#include <string>
 
 namespace Kokkos {
 
@@ -132,6 +134,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION static constexpr size_type size() { return N ; }
   KOKKOS_INLINE_FUNCTION static constexpr bool      empty(){ return false ; }
+  KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return N ; }
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION
@@ -160,7 +163,7 @@ public:
       return & m_internal_implementation_private_member_data[0];
     }
 
-  #ifdef KOKKOS_ROCM_CLANG_WORKAROUND
+  #ifdef KOKKOS_IMPL_ROCM_CLANG_WORKAROUND
   // Do not default unless move and move-assignment are also defined
   KOKKOS_INLINE_FUNCTION
   ~Array() = default ;
@@ -197,6 +200,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION static constexpr size_type size()  { return 0 ; }
   KOKKOS_INLINE_FUNCTION static constexpr bool      empty() { return true ; }
+  KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return 0 ; }
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION
@@ -261,6 +265,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size()  const { return m_size ; }
   KOKKOS_INLINE_FUNCTION constexpr bool      empty() const { return 0 != m_size ; }
+  KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return m_size ; }
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION
@@ -336,6 +341,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size()  const { return m_size ; }
   KOKKOS_INLINE_FUNCTION constexpr bool      empty() const { return 0 != m_size ; }
+  KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return m_size ; }
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION

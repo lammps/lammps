@@ -3,7 +3,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -25,10 +25,10 @@ fix 1 all drude C C N C N D D D :pre
 [Description:]
 
 Assign each atom type in the system to be one of 3 kinds of atoms
-within the Drude polarization model. This fix is designed to be
-used with the "thermalized Drude oscillator
-model"_tutorial_drude.html.  Polarizable models in LAMMPS
-are described in "this Section"_Section_howto.html#howto_25.
+within the Drude polarization model. This fix is designed to be used
+with the "thermalized Drude oscillator model"_Howto_drude.html.
+Polarizable models in LAMMPS are described on the "Howto
+polarizable"_Howto_polarizable.html doc page.
 
 The three possible types can be designated with an integer (0,1,2)
 or capital letter (N,C,D):

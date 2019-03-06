@@ -461,7 +461,7 @@ void FixSMD::restart(char *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSMD::post_force_respa(int vflag, int ilevel, int iloop)
+void FixSMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

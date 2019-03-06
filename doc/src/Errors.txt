@@ -1,10 +1,10 @@
-"Previous Section"_Python.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Python_head.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_history.html :c
+Section"_Manual.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -19,6 +19,7 @@ additional details for many of them.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Errors_common
    Errors_bugs
@@ -31,7 +32,7 @@ END_RST -->
 
 "Common problems"_Errors_common.html
 "Reporting bugs"_Errors_bugs.html
-"Error messages"_Errors_messages.html 
+"Error messages"_Errors_messages.html
 "Warning messages"_Errors_warnings.html :all(b)
 
 <!-- END_HTML_ONLY -->

@@ -1027,7 +1027,7 @@ VEC_INLINE inline __m256 _mm256_compress_ps(__m256 mask, __m256 a) {
   _mm256_store_ps(a_buf, a);
   int k = 0;
   for (int i = 0; i < 8; i++) {
-    if (mask[i]) {
+    if (mask_buf[i]) {
       dst_buf[k++] = a_buf[i];
     }
   }
@@ -1052,7 +1052,7 @@ VEC_INLINE inline __m256 _mm256_expand_ps(__m256 mask, __m256 a) {
   _mm256_store_ps(a_buf, a);
   int k = 0;
   for (int i = 0; i < 8; i++) {
-    if (mask[i]) {
+    if (mask_buf[i]) {
       dst_buf[i] = a_buf[k++];
     }
   }
@@ -2057,8 +2057,8 @@ public:
   }
 
   VEC_INLINE static ivec set(
-      int i15, int i14, int i13, int i12, int i11, int i10, int i9, int i8,
-      int i7, int i6, int i5, int i4, int i3, int i2, int i1, int i0
+      int /*i15*/, int /*i14*/, int /*i13*/, int /*i12*/, int /*i11*/, int /*i10*/, int /*i9*/, int /*i8*/,
+      int /*i7*/, int /*i6*/, int /*i5*/, int /*i4*/, int /*i3*/, int /*i2*/, int /*i1*/, int i0
   ) {
     return i0;
   }
@@ -2243,7 +2243,7 @@ public:
   FVEC_BINOP(*, mul)
   FVEC_BINOP(/, div)
 
-  VEC_INLINE static void gather_prefetch0(const ivec &idx, const void * mem) {}
+  VEC_INLINE static void gather_prefetch0(const ivec & /*idx*/, const void * /*mem*/) {}
 };
 
 class avec {

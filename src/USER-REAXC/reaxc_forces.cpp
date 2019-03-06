@@ -41,9 +41,9 @@
 
 interaction_function Interaction_Functions[NUM_INTRS];
 
-void Dummy_Interaction( reax_system *system, control_params *control,
-                        simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls *out_control )
+void Dummy_Interaction( reax_system * /*system*/, control_params * /*control*/,
+                        simulation_data * /*data*/, storage * /*workspace*/,
+                        reax_list **/*lists*/, output_controls * /*out_control*/ )
 {
 }
 
@@ -55,7 +55,7 @@ void Init_Force_Functions( control_params *control )
   Interaction_Functions[2] = Atom_Energy; //Dummy_Interaction;
   Interaction_Functions[3] = Valence_Angles; //Dummy_Interaction;
   Interaction_Functions[4] = Torsion_Angles; //Dummy_Interaction;
-  if( control->hbond_cut > 0 )
+  if (control->hbond_cut > 0)
     Interaction_Functions[5] = Hydrogen_Bonds;
   else Interaction_Functions[5] = Dummy_Interaction;
   Interaction_Functions[6] = Dummy_Interaction; //empty
@@ -68,7 +68,7 @@ void Init_Force_Functions( control_params *control )
 void Compute_Bonded_Forces( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
                             reax_list **lists, output_controls *out_control,
-                            MPI_Comm comm )
+                            MPI_Comm /*comm*/ )
 {
   int i;
 
@@ -83,11 +83,11 @@ void Compute_Bonded_Forces( reax_system *system, control_params *control,
 void Compute_NonBonded_Forces( reax_system *system, control_params *control,
                                simulation_data *data, storage *workspace,
                                reax_list **lists, output_controls *out_control,
-                               MPI_Comm comm )
+                               MPI_Comm /*comm*/ )
 {
 
   /* van der Waals and Coulomb interactions */
-  if( control->tabulate == 0 )
+  if (control->tabulate == 0)
     vdW_Coulomb_Energy( system, control, data, workspace,
                         lists, out_control );
   else
@@ -98,15 +98,15 @@ void Compute_NonBonded_Forces( reax_system *system, control_params *control,
 
 void Compute_Total_Force( reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
-                          reax_list **lists, mpi_datatypes *mpi_data )
+                          reax_list **lists, mpi_datatypes * /*mpi_data*/ )
 {
   int i, pj;
   reax_list *bonds = (*lists) + BONDS;
 
   for( i = 0; i < system->N; ++i )
     for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
-      if( i < bonds->select.bond_list[pj].nbr ) {
-        if( control->virial == 0 )
+      if (i < bonds->select.bond_list[pj].nbr) {
+        if (control->virial == 0)
           Add_dBond_to_Forces( system, i, pj, workspace, lists );
         else
           Add_dBond_to_Forces_NPT( i, pj, data, workspace, lists );
@@ -114,8 +114,8 @@ void Compute_Total_Force( reax_system *system, control_params *control,
 
 }
 
-void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
-                     int step, int n, int N, int numH, MPI_Comm comm )
+void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **lists,
+                     int step, int /*n*/, int N, int numH, MPI_Comm comm )
 {
   int i, comp, Hindex;
   reax_list *bonds, *hbonds;
@@ -123,17 +123,17 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
   double saferzone = system->saferzone;
 
   /* bond list */
-  if( N > 0 ) {
+  if (N > 0) {
     bonds = *lists + BONDS;
 
     for( i = 0; i < N; ++i ) {
       system->my_atoms[i].num_bonds = MAX(Num_Entries(i,bonds)*2, MIN_BONDS);
 
-      if( i < N-1 )
+      if (i < N-1)
         comp = Start_Index(i+1, bonds);
       else comp = bonds->num_intrs;
 
-      if( End_Index(i, bonds) > comp ) {
+      if (End_Index(i, bonds) > comp) {
         fprintf( stderr, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
                  step, i, End_Index(i,bonds), comp );
         MPI_Abort( comm, INSUFFICIENT_MEMORY );
@@ -143,12 +143,12 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
 
 
   /* hbonds list */
-  if( numH > 0 ) {
+  if (numH > 0) {
     hbonds = *lists + HBONDS;
 
     for( i = 0; i < N; ++i ) {
       Hindex = system->my_atoms[i].Hindex;
-      if( Hindex > -1 ) {
+      if (Hindex > -1) {
         system->my_atoms[i].num_hbonds =
           (int)(MAX( Num_Entries(Hindex, hbonds)*saferzone, MIN_HBONDS ));
 
@@ -156,11 +156,11 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
         //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/){
         //  workspace->realloc.hbonds = 1;
 
-        if( Hindex < numH-1 )
+        if (Hindex < numH-1)
           comp = Start_Index(Hindex+1, hbonds);
         else comp = hbonds->num_intrs;
 
-        if( End_Index(Hindex, hbonds) > comp ) {
+        if (End_Index(Hindex, hbonds) > comp) {
           fprintf(stderr,"step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
                   step, Hindex, End_Index(Hindex,hbonds), comp );
           MPI_Abort( comm, INSUFFICIENT_MEMORY );
@@ -173,7 +173,7 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
 
 void Init_Forces_noQEq( reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls *out_control,
+                        reax_list **lists, output_controls * /*out_control*/,
                         MPI_Comm comm ) {
   int i, j, pj;
   int start_i, end_i;
@@ -212,20 +212,19 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
     btop_i = End_Index( i, bonds );
     sbp_i = &(system->reax_param.sbp[type_i]);
 
-    if( i < system->n ) {
+    if (i < system->n) {
       local = 1;
       cutoff = MAX( control->hbond_cut, control->bond_cut );
-    }
-    else {
+    } else {
       local = 0;
       cutoff = control->bond_cut;
     }
 
     ihb = -1;
     ihb_top = -1;
-    if( local && control->hbond_cut > 0 ) {
+    if (local && control->hbond_cut > 0) {
       ihb = sbp_i->p_hbond;
-      if( ihb == 1 )
+      if (ihb == 1)
         ihb_top = End_Index( atom_i->Hindex, hbonds );
       else ihb_top = -1;
     }
@@ -236,45 +235,43 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
       j = nbr_pj->nbr;
       atom_j = &(system->my_atoms[j]);
 
-      if( renbr ) {
-        if( nbr_pj->d <= cutoff )
+      if (renbr) {
+        if (nbr_pj->d <= cutoff)
           flag = 1;
         else flag = 0;
-      }
-      else{
+      } else {
         nbr_pj->dvec[0] = atom_j->x[0] - atom_i->x[0];
         nbr_pj->dvec[1] = atom_j->x[1] - atom_i->x[1];
         nbr_pj->dvec[2] = atom_j->x[2] - atom_i->x[2];
         nbr_pj->d = rvec_Norm_Sqr( nbr_pj->dvec );
-        if( nbr_pj->d <= SQR(cutoff) ) {
+        if (nbr_pj->d <= SQR(cutoff)) {
           nbr_pj->d = sqrt(nbr_pj->d);
           flag = 1;
-        }
-        else {
+        } else {
           flag = 0;
         }
       }
 
-      if( flag ) {
+      if (flag) {
         type_j = atom_j->type;
         if (type_j < 0) continue;
         sbp_j = &(system->reax_param.sbp[type_j]);
         twbp = &(system->reax_param.tbp[type_i][type_j]);
 
-        if( local ) {
+        if (local) {
           /* hydrogen bond lists */
-          if( control->hbond_cut > 0 && (ihb==1 || ihb==2) &&
+          if (control->hbond_cut > 0 && (ihb==1 || ihb==2) &&
               nbr_pj->d <= control->hbond_cut ) {
             // fprintf( stderr, "%d %d\n", atom1, atom2 );
             jhb = sbp_j->p_hbond;
-            if( ihb == 1 && jhb == 2 ) {
+            if (ihb == 1 && jhb == 2) {
               hbonds->select.hbond_list[ihb_top].nbr = j;
               hbonds->select.hbond_list[ihb_top].scl = 1;
               hbonds->select.hbond_list[ihb_top].ptr = nbr_pj;
               ++ihb_top;
               ++num_hbonds;
             }
-            else if( j < system->n && ihb == 2 && jhb == 1 ) {
+            else if (j < system->n && ihb == 2 && jhb == 1) {
               jhb_top = End_Index( atom_j->Hindex, hbonds );
               hbonds->select.hbond_list[jhb_top].nbr = i;
               hbonds->select.hbond_list[jhb_top].scl = -1;
@@ -285,16 +282,16 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
           }
         }
 
-        if( //(workspace->bond_mark[i] < 3 || workspace->bond_mark[j] < 3) &&
+        if (//(workspace->bond_mark[i] < 3 || workspace->bond_mark[j] < 3) &&
             nbr_pj->d <= control->bond_cut &&
             BOp( workspace, bonds, control->bo_cut,
                  i , btop_i, nbr_pj, sbp_i, sbp_j, twbp ) ) {
           num_bonds += 2;
           ++btop_i;
 
-          if( workspace->bond_mark[j] > workspace->bond_mark[i] + 1 )
+          if (workspace->bond_mark[j] > workspace->bond_mark[i] + 1)
             workspace->bond_mark[j] = workspace->bond_mark[i] + 1;
-          else if( workspace->bond_mark[i] > workspace->bond_mark[j] + 1 ) {
+          else if (workspace->bond_mark[i] > workspace->bond_mark[j] + 1) {
             workspace->bond_mark[i] = workspace->bond_mark[j] + 1;
           }
         }
@@ -302,7 +299,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
     }
 
     Set_End_Index( i, btop_i, bonds );
-    if( local && ihb == 1 )
+    if (local && ihb == 1)
       Set_End_Index( atom_i->Hindex, ihb_top, hbonds );
   }
 
@@ -317,7 +314,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
 
 void Estimate_Storages( reax_system *system, control_params *control,
                         reax_list **lists, int *Htop, int *hb_top,
-                        int *bond_top, int *num_3body, MPI_Comm comm )
+                        int *bond_top, int *num_3body, MPI_Comm /*comm*/ )
 {
   int i, j, pj;
   int start_i, end_i;
@@ -352,13 +349,12 @@ void Estimate_Storages( reax_system *system, control_params *control,
     end_i   = End_Index(i, far_nbrs);
     sbp_i = &(system->reax_param.sbp[type_i]);
 
-    if( i < system->n ) {
+    if (i < system->n) {
       local = 1;
       cutoff = control->nonb_cut;
       ++(*Htop);
       ihb = sbp_i->p_hbond;
-    }
-    else {
+    } else {
       local = 0;
       cutoff = control->bond_cut;
       ihb = -1;
@@ -376,15 +372,15 @@ void Estimate_Storages( reax_system *system, control_params *control,
         sbp_j = &(system->reax_param.sbp[type_j]);
         twbp = &(system->reax_param.tbp[type_i][type_j]);
 
-        if( local ) {
-          if( j < system->n || atom_i->orig_id < atom_j->orig_id ) //tryQEq ||1
+        if (local) {
+          if (j < system->n || atom_i->orig_id < atom_j->orig_id) //tryQEq ||1
             ++(*Htop);
 
           /* hydrogen bond lists */
-          if( control->hbond_cut > 0.1 && (ihb==1 || ihb==2) &&
+          if (control->hbond_cut > 0.1 && (ihb==1 || ihb==2) &&
               nbr_pj->d <= control->hbond_cut ) {
             jhb = sbp_j->p_hbond;
-            if( ihb == 1 && jhb == 2 )
+            if (ihb == 1 && jhb == 2)
               ++hb_top[i];
             else if( j < system->n && ihb == 2 && jhb == 1 )
               ++hb_top[j];
@@ -392,20 +388,20 @@ void Estimate_Storages( reax_system *system, control_params *control,
         }
 
         /* uncorrected bond orders */
-        if( nbr_pj->d <= control->bond_cut ) {
-          if( sbp_i->r_s > 0.0 && sbp_j->r_s > 0.0) {
+        if (nbr_pj->d <= control->bond_cut) {
+          if (sbp_i->r_s > 0.0 && sbp_j->r_s > 0.0) {
             C12 = twbp->p_bo1 * pow( r_ij / twbp->r_s, twbp->p_bo2 );
             BO_s = (1.0 + control->bo_cut) * exp( C12 );
           }
           else BO_s = C12 = 0.0;
 
-          if( sbp_i->r_pi > 0.0 && sbp_j->r_pi > 0.0) {
+          if (sbp_i->r_pi > 0.0 && sbp_j->r_pi > 0.0) {
             C34 = twbp->p_bo3 * pow( r_ij / twbp->r_p, twbp->p_bo4 );
             BO_pi = exp( C34 );
           }
           else BO_pi = C34 = 0.0;
 
-          if( sbp_i->r_pi_pi > 0.0 && sbp_j->r_pi_pi > 0.0) {
+          if (sbp_i->r_pi_pi > 0.0 && sbp_j->r_pi_pi > 0.0) {
             C56 = twbp->p_bo5 * pow( r_ij / twbp->r_pp, twbp->p_bo6 );
             BO_pi2= exp( C56 );
           }
@@ -414,7 +410,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
           /* Initially BO values are the uncorrected ones, page 1 */
           BO = BO_s + BO_pi + BO_pi2;
 
-          if( BO >= control->bo_cut ) {
+          if (BO >= control->bo_cut) {
             ++bond_top[i];
             ++bond_top[j];
           }

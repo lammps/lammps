@@ -429,7 +429,7 @@ void AngleClass2P6::read_restart(FILE *fp)
 void AngleClass2P6::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
             i,theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i],k5[i],k6[i]);
 
   fprintf(fp,"\nBondBond Coeffs\n\n");

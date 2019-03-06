@@ -816,9 +816,9 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   x[nlocal][2] = coord[2];
 
   sp[nlocal][3] = atof(values[2]);
-  sp[nlocal][0] = atof(values[5]);
-  sp[nlocal][1] = atof(values[6]);
-  sp[nlocal][2] = atof(values[7]);
+  sp[nlocal][0] = atof(values[6]);
+  sp[nlocal][1] = atof(values[7]);
+  sp[nlocal][2] = atof(values[8]);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
@@ -943,7 +943,7 @@ bigint AtomVecSpin::memory_usage()
   return bytes;
 }
 
-void AtomVecSpin::force_clear(int n, size_t nbytes)
+void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
 {
   memset(&atom->f[0][0],0,3*nbytes);
   memset(&atom->fm[0][0],0,3*nbytes);

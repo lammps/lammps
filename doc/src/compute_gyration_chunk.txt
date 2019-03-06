@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -35,13 +35,12 @@ chunk/atom"_compute_chunk_atom.html command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
 molecule or atoms in a spatial bin.  See the "compute
-chunk/atom"_compute_chunk_atom.html doc page and "Section
-6.23"_Section_howto.html#howto_23 for details of how chunks can be
-defined and examples of how they can be used to measure properties of
-a system.
+chunk/atom"_compute_chunk_atom.html and "Howto chunk"_Howto_chunk.html
+doc pages for details of how chunks can be defined and examples of how
+they can be used to measure properties of a system.
 
 This compute calculates the radius of gyration Rg for each chunk,
-which includes all effects due to atoms passing thru periodic
+which includes all effects due to atoms passing through periodic
 boundaries.
 
 Rg is a measure of the size of a chunk, and is computed by this
@@ -93,8 +92,8 @@ calculated by the specified "compute
 chunk/atom"_compute_chunk_atom.html command.  If the {tensor} keyword
 is specified, the global array has 6 columns.  The vector or array can
 be accessed by any command that uses global values from a compute as
-input.  See "this section"_Section_howto.html#howto_15 for an overview
-of LAMMPS output options.
+input.  See the "Howto output"_Howto_output.html doc page for an
+overview of LAMMPS output options.
 
 All the vector or array values calculated by this compute are
 "intensive".  The vector or array values will be in distance

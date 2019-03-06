@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -47,9 +47,9 @@ fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global 3-vector of forces, which can be accessed
-by various "output commands"_Section_howto.html#howto_15.  This is the
-total force on the group of atoms by the drag force.  The vector
-values calculated by this fix are "extensive".
+by various "output commands"_Howto_output.html.  This is the total
+force on the group of atoms by the drag force.  The vector values
+calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

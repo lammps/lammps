@@ -39,8 +39,8 @@
    important: we cannot know the exact number of atoms that will fall into a
    process's box throughout the whole simulation. therefore
    we need to make upper bound estimates for various data structures */
-int PreAllocate_Space( reax_system *system, control_params *control,
-                       storage *workspace, MPI_Comm comm )
+int PreAllocate_Space( reax_system *system, control_params * /*control*/,
+                       storage * workspace, MPI_Comm comm )
 {
   int mincap = system->mincap;
   double safezone = system->safezone;
@@ -60,6 +60,8 @@ int PreAllocate_Space( reax_system *system, control_params *control,
   workspace->forceReduction = NULL;
   workspace->valence_angle_atom_myoffset = NULL;
   workspace->my_ext_pressReduction = NULL;
+#else
+  LMP_UNUSED_PARAM(workspace);
 #endif
 
   return SUCCESS;
@@ -68,8 +70,8 @@ int PreAllocate_Space( reax_system *system, control_params *control,
 
 /*************       system        *************/
 
-int Allocate_System( reax_system *system, int local_cap, int total_cap,
-                     char *msg )
+int Allocate_System( reax_system *system, int /*local_cap*/, int total_cap,
+                     char * /*msg*/ )
 {
   system->my_atoms = (reax_atom*)
     realloc( system->my_atoms, total_cap*sizeof(reax_atom) );
@@ -116,11 +118,11 @@ void DeAllocate_System( reax_system *system )
 
 
 /*************       workspace        *************/
-void DeAllocate_Workspace( control_params *control, storage *workspace )
+void DeAllocate_Workspace( control_params * /*control*/, storage *workspace )
 {
   int i;
 
-  if( !workspace->allocated )
+  if (!workspace->allocated)
     return;
 
   workspace->allocated = 0;
@@ -204,9 +206,9 @@ void DeAllocate_Workspace( control_params *control, storage *workspace )
 }
 
 
-int Allocate_Workspace( reax_system *system, control_params *control,
+int Allocate_Workspace( reax_system * /*system*/, control_params * control,
                         storage *workspace, int local_cap, int total_cap,
-                        MPI_Comm comm, char *msg )
+                        MPI_Comm comm, char * /*msg*/ )
 {
   int i, total_real, total_rvec, local_rvec;
 
@@ -307,6 +309,8 @@ int Allocate_Workspace( reax_system *system, control_params *control,
 
   workspace->valence_angle_atom_myoffset = (int *) scalloc(sizeof(int), total_cap, "valence_angle_atom_myoffset", comm);
   workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
+#else
+  LMP_UNUSED_PARAM(control);
 #endif
 
   return SUCCESS;
@@ -334,13 +338,13 @@ static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
 
   total_hbonds = 0;
   for( i = 0; i < system->n; ++i )
-    if( (system->my_atoms[i].Hindex) >= 0 ) {
+    if ((system->my_atoms[i].Hindex) >= 0) {
       total_hbonds += system->my_atoms[i].num_hbonds;
     }
   total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
   Delete_List( hbonds, comm );
-  if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds, comm ) ) {
+  if (!Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds, comm )) {
     fprintf( stderr, "not enough space for hbonds list. terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
@@ -425,10 +429,10 @@ void ReAllocate( reax_system *system, control_params *control,
     system->total_cap = MAX( (int)(system->N * safezone), mincap );
   }
 
-  if( Nflag ) {
+  if (Nflag) {
     /* system */
     ret = Allocate_System( system, system->local_cap, system->total_cap, msg );
-    if( ret != SUCCESS ) {
+    if (ret != SUCCESS) {
       fprintf( stderr, "not enough space for atom_list: total_cap=%d",
                system->total_cap );
       fprintf( stderr, "terminating...\n" );
@@ -439,7 +443,7 @@ void ReAllocate( reax_system *system, control_params *control,
     DeAllocate_Workspace( control, workspace );
     ret = Allocate_Workspace( system, control, workspace, system->local_cap,
                               system->total_cap, comm, msg );
-    if( ret != SUCCESS ) {
+    if (ret != SUCCESS) {
       fprintf( stderr, "no space for workspace: local_cap=%d total_cap=%d",
                system->local_cap, system->total_cap );
       fprintf( stderr, "terminating...\n" );
@@ -450,11 +454,11 @@ void ReAllocate( reax_system *system, control_params *control,
 
   renbr = (data->step - data->prev_steps) % control->reneighbor == 0;
   /* far neighbors */
-  if( renbr ) {
+  if (renbr) {
     far_nbrs = *lists + FAR_NBRS;
 
-    if( Nflag || realloc->num_far >= far_nbrs->num_intrs * DANGER_ZONE ) {
-      if( realloc->num_far > far_nbrs->num_intrs ) {
+    if (Nflag || realloc->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
+      if (realloc->num_far > far_nbrs->num_intrs) {
         fprintf( stderr, "step%d-ran out of space on far_nbrs: top=%d, max=%d",
                  data->step, realloc->num_far, far_nbrs->num_intrs );
         MPI_Abort( comm, INSUFFICIENT_MEMORY );
@@ -469,7 +473,7 @@ void ReAllocate( reax_system *system, control_params *control,
   }
 
   /* hydrogen bonds list */
-  if( control->hbond_cut > 0 ) {
+  if (control->hbond_cut > 0) {
     Hflag = 0;
     if( system->numH >= DANGER_ZONE * system->Hcap ||
         (0 && system->numH <= LOOSE_ZONE * system->Hcap) ) {
@@ -477,7 +481,7 @@ void ReAllocate( reax_system *system, control_params *control,
       system->Hcap = int(MAX( system->numH * saferzone, mincap ));
     }
 
-    if( Hflag || realloc->hbonds ) {
+    if (Hflag || realloc->hbonds) {
       ret = Reallocate_HBonds_List( system, (*lists)+HBONDS, comm );
       realloc->hbonds = 0;
     }
@@ -485,7 +489,7 @@ void ReAllocate( reax_system *system, control_params *control,
 
   /* bonds list */
   num_bonds = est_3body = -1;
-  if( Nflag || realloc->bonds ){
+  if (Nflag || realloc->bonds) {
     Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
                            &est_3body, comm );
     realloc->bonds = 0;
@@ -493,10 +497,10 @@ void ReAllocate( reax_system *system, control_params *control,
   }
 
   /* 3-body list */
-  if( realloc->num_3body > 0 ) {
+  if (realloc->num_3body > 0) {
     Delete_List( (*lists)+THREE_BODIES, comm );
 
-    if( num_bonds == -1 )
+    if (num_bonds == -1)
       num_bonds = ((*lists)+BONDS)->num_intrs;
 
     realloc->num_3body = (int)(MAX(realloc->num_3body*safezone, MIN_3BODIES));

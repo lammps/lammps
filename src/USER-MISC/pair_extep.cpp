@@ -442,7 +442,7 @@ void PairExTeP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairExTeP::settings(int narg, char **arg)
+void PairExTeP::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -591,7 +591,7 @@ void PairExTeP::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open ExTeP potential file %s",file);
+      snprintf(str,128,"Cannot open ExTeP potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -1075,10 +1075,10 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 // initialize spline for F_corr (based on PairLCBOP::F_conj)
 
 void PairExTeP::spline_init() {
-  for ( size_t iel=0; iel<atom->ntypes; iel++) {
-    for ( size_t jel=0; jel<atom->ntypes; jel++) {
-      for ( size_t N_ij=0; N_ij<4; N_ij++ ) {
-        for ( size_t N_ji=0; N_ji<4; N_ji++ ) {
+  for ( int iel=0; iel<atom->ntypes; iel++) {
+    for ( int jel=0; jel<atom->ntypes; jel++) {
+      for ( int N_ij=0; N_ij<4; N_ij++ ) {
+        for ( int N_ji=0; N_ji<4; N_ji++ ) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];
 
           // corner points for each spline function
@@ -1150,8 +1150,8 @@ double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN
 
   // compute F_XY
 
-  size_t Ndij_int         = static_cast<size_t>( floor( Ndij ) );
-  size_t Ndji_int         = static_cast<size_t>( floor( Ndji ) );
+  int Ndij_int         = static_cast<int>( floor( Ndij ) );
+  int Ndji_int         = static_cast<int>( floor( Ndji ) );
   double x                = Ndij - Ndij_int;
   double y                = Ndji - Ndji_int;
   TF_corr_param &f  = F_corr_param[iel][jel][Ndij_int][Ndji_int];

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -57,23 +57,39 @@ Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated "angle_coeff"_angle_coeff.html command.
 
-Note that there are also additional angle styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the angle section of "this
-page"_Section_commands.html#cmd_5.
+Click on the style to display the formula it computes, any additional
+arguments specified in the angle_style command, and coefficients
+specified by the associated "angle_coeff"_angle_coeff.html command.
 
-"angle_style none"_angle_none.html - turn off angle interactions
-"angle_style zero"_angle_zero.html - topology but no interactions
-"angle_style hybrid"_angle_hybrid.html - define multiple styles of angle interactions :ul
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands
+angle"_Commands_bond.html#angle doc page are followed by one or more
+of (g,i,k,o,t) to indicate which accelerated styles exist.
 
-"angle_style charmm"_angle_charmm.html - CHARMM angle
-"angle_style class2"_angle_class2.html - COMPASS (class 2) angle
-"angle_style cosine"_angle_cosine.html - cosine angle potential
-"angle_style cosine/delta"_angle_cosine_delta.html - difference of cosines angle potential
-"angle_style cosine/periodic"_angle_cosine_periodic.html - DREIDING angle
-"angle_style cosine/squared"_angle_cosine_squared.html - cosine squared angle potential
-"angle_style harmonic"_angle_harmonic.html - harmonic angle
-"angle_style table"_angle_table.html - tabulated by angle :ul
+"none"_angle_none.html - turn off angle interactions
+"zero"_angle_zero.html - topology but no interactions
+"hybrid"_angle_hybrid.html - define multiple styles of angle interactions :ul
+
+"charmm"_angle_charmm.html - CHARMM angle
+"class2"_angle_class2.html - COMPASS (class 2) angle
+"class2/p6"_angle_class2.html - COMPASS (class 2) angle expanded to 6th order
+"cosine"_angle_cosine.html - angle with cosine term
+"cosine/buck6d"_angle_cosine_buck6d.html - same as cosine with Buckingham term between 1-3 atoms
+"cosine/delta"_angle_cosine_delta.html - angle with difference of cosines
+"cosine/periodic"_angle_cosine_periodic.html - DREIDING angle
+"cosine/shift"_angle_cosine_shift.html - angle cosine with a shift
+"cosine/shift/exp"_angle_cosine_shift_exp.html - cosine with shift and exponential term in spring constant
+"cosine/squared"_angle_cosine_squared.html - angle with cosine squared term
+"cross"_angle_cross.html - cross term coupling angle and bond lengths
+"dipole"_angle_dipole.html - angle that controls orientation of a point dipole
+"fourier"_angle_fourier.html - angle with multiple cosine terms
+"fourier/simple"_angle_fourier_simple.html - angle with a single cosine term
+"harmonic"_angle_harmonic.html - harmonic angle
+"mm3"_angle_mm3.html - anharmonic angle
+"quartic"_angle_quartic.html - angle with cubic and quartic terms
+"sdk"_angle_sdk.html - harmonic angle with repulsive SDK pair style between 1-3 atoms
+"table"_angle_table.html - tabulated by angle :ul
 
 :line
 
@@ -83,10 +99,9 @@ Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
 Most angle styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
-The doc pages for individual bond potentials tell if it is part of a
-package.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  The doc pages for
+individual bond potentials tell if it is part of a package.
 
 [Related commands:]
 

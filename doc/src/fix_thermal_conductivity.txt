@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -108,9 +108,9 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-cumulative kinetic energy transferred between the bottom and middle
-of the simulation box (in the {edim} direction) is stored as a scalar
+"output commands"_Howto_output.html.  The scalar is the cumulative
+kinetic energy transferred between the bottom and middle of the
+simulation box (in the {edim} direction) is stored as a scalar
 quantity by this fix.  This quantity is zeroed when the fix is defined
 and accumulates thereafter, once every N steps.  The units of the
 quantity are energy; see the "units"_units.html command for details.
@@ -123,8 +123,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Swaps conserve both momentum and kinetic energy, even if the masses of
 the swapped atoms are not equal.  Thus you should not need to

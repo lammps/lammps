@@ -92,7 +92,7 @@ class KSpace : protected Pointers {
 
   double splittol;                // tolerance for when to truncate splitting
 
-  KSpace(class LAMMPS *, int, char **);
+  KSpace(class LAMMPS *);
   virtual ~KSpace();
   void triclinic_check();
   void modify_params(int, char **);
@@ -112,6 +112,7 @@ class KSpace : protected Pointers {
 
   // general child-class methods
 
+  virtual void settings(int, char **) {};
   virtual void init() = 0;
   virtual void setup() = 0;
   virtual void setup_grid() {};
@@ -126,11 +127,13 @@ class KSpace : protected Pointers {
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}
+
+  virtual int modify_param(int, char **) {return 0;}
   virtual double memory_usage() {return 0.0;}
 
 /* ----------------------------------------------------------------------
    compute gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164177
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
   double gamma(const double &rho) const

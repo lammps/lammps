@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -103,14 +103,13 @@ is appropriate for most situations.
 
 The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
 as described in "(Calhoun)"_#Calhoun.  In LAMMPS this is done by using
-"multi-replica feature"_Section_howto.html#howto_5 in LAMMPS, where
-each quasi-particle system is stored and simulated on a separate
-partition of processors.  The following diagram illustrates this
-approach.  The original system with 2 ring polymers is shown in red.
-Since each ring has 4 quasi-beads (imaginary time slices), there are 4
-replicas of the system, each running on one of the 4 partitions of
-processors.  Each replica (shown in green) owns one quasi-bead in each
-ring.
+"multi-replica feature"_Howto_replica.html in LAMMPS, where each
+quasi-particle system is stored and simulated on a separate partition
+of processors.  The following diagram illustrates this approach.  The
+original system with 2 ring polymers is shown in red.  Since each ring
+has 4 quasi-beads (imaginary time slices), there are 4 replicas of the
+system, each running on one of the 4 partitions of processors.  Each
+replica (shown in green) owns one quasi-bead in each ring.
 
 :c,image(JPG/pimd.jpg)
 
@@ -137,8 +136,8 @@ read_restart system_$\{ibead\}.restart2 :pre
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 A PIMD simulation can be initialized with a single data file read via
 the "read_data"_read_data.html command.  However, this means all

@@ -1725,7 +1725,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open exp6/rx potential file %s",file);
+      snprintf(str,128,"Cannot open exp6/rx potential file %s",file);
       error->one(FLERR,str);
     }
   }

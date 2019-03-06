@@ -246,7 +246,7 @@ void PairAGNI::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairAGNI::settings(int narg, char **arg)
+void PairAGNI::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -363,7 +363,7 @@ void PairAGNI::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open AGNI potential file %s",file);
+      snprintf(str,128,"Cannot open AGNI potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -394,7 +394,7 @@ void PairAGNI::read_file(char *file)
     if (nwords == 0) continue;
 
     if (nwords > MAXWORD)
-      error->all(FLERR,"Increase MAXWORD and recompile");
+      error->all(FLERR,"Increase MAXWORD and re-compile");
 
     // words = ptrs to all words in line
 

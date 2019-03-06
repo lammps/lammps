@@ -682,8 +682,8 @@ void PairMIECut::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairMIECut::single(int i, int j, int itype, int jtype, double rsq,
-                           double factor_coul, double factor_mie,
+double PairMIECut::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                           double /*factor_coul*/, double factor_mie,
                            double &fforce)
 {
   double r2inv,rgamR,rgamA,forcemie,phimie;

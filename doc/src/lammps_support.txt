@@ -1,7 +1,0 @@
-
-Supporting Information :h1
-
-This section of the manual contains supporting information that
-is not documenting individual commands but general concepts and
-supporting information about entities like body particles or
-manifolds.

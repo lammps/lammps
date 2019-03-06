@@ -2,11 +2,11 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
-pair_style body command :h3
+pair_style body/nparticle command :h3
 
 [Syntax:]
 
@@ -24,15 +24,14 @@ pair_coeff 1 1 1.0 1.5 2.5 :pre
 
 Style {body/nparticle} is for use with body particles and calculates
 pairwise body/body interactions as well as interactions between body
-and point-particles.  See "Section 6.14"_Section_howto.html#howto_14
-of the manual and the "body"_body.html doc page for more details on
-using body particles.
+and point-particles.  See the "Howto body"_Howto_body.html doc page
+for more details on using body particles.
 
 This pair style is designed for use with the "nparticle" body style,
 which is specified as an argument to the "atom-style body" command.
-See the "body"_body.html doc page for more details about the body
-styles LAMMPS supports.  The "nparticle" style treats a body particle
-as a rigid body composed of N sub-particles.
+See the "Howto body"_Howto_body.html doc page for more details about
+the body styles LAMMPS supports.  The "nparticle" style treats a body
+particle as a rigid body composed of N sub-particles.
 
 The coordinates of a body particle are its center-of-mass (COM).  If
 the COMs of a pair of body particles are within the cutoff (global or
@@ -104,8 +103,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This style is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_2_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Defining particles to be bodies so they participate in body/body or
 body/particle interactions requires the use of the "atom_style

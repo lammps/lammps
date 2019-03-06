@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -24,53 +24,69 @@ pair_coeff 1 2 exchange 6.0 -0.01575 0.0 1.965 :pre
 
 [Description:]
 
-Style {spin/exchange} computes the exchange interaction between 
+Style {spin/exchange} computes the exchange interaction between
 pairs of magnetic spins:
 
 :c,image(Eqs/pair_spin_exchange_interaction.jpg)
 
-where si and sj are two neighboring magnetic spins of two particles, 
+where si and sj are two neighboring magnetic spins of two particles,
 rij = ri - rj is the inter-atomic distance between the two particles,
-and J(rij) is a function defining the intensity and the sign of the exchange 
-interaction.
-
-This function is defined as:
+and J(rij) is a function defining the intensity and the sign of the exchange
+interaction for different neighboring shells. This function is defined as:
 
 :c,image(Eqs/pair_spin_exchange_function.jpg)
 
 where a, b and d are the three constant coefficients defined in the associated
-"pair_coeff" command.
+"pair_coeff" command (see below for more explanations).
 
 The coefficients a, b, and d need to be fitted so that the function above matches with
 the value of the exchange interaction for the N neighbor shells taken into account.
-
-Examples and more explanations about this function and its parametrization are reported
+Examples and more explanations about this function and its parameterization are reported
 in "(Tranchida)"_#Tranchida3.
 
-From this exchange interaction, each spin i will be submitted 
+From this exchange interaction, each spin i will be submitted
 to a magnetic torque omega, and its associated atom can be submitted to a
 force F for spin-lattice calculations (see "fix_nve_spin"_fix_nve_spin.html),
 such as:
 
 :c,image(Eqs/pair_spin_exchange_forces.jpg)
 
-with h the Planck constant (in metal units).
+with h the Planck constant (in metal units), and eij = (ri - rj)/|ri-rj| the unit
+vector between sites i and j.
 
 More details about the derivation of these torques/forces are reported in
 "(Tranchida)"_#Tranchida3.
+
+For the {spin/exchange} pair style, the following coefficients must be defined
+for each pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
+the examples above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html commands, and
+set in the following order:
+
+rc (distance units)
+a  (energy units)
+b  (adim parameter)
+d  (distance units) :ul
+
+Note that rc is the radius cutoff of the considered exchange interaction,
+and a, b and d are the three coefficients performing the parameterization
+of the function J(rij) defined above.
+
+None of those coefficients is optional. If not specified, the
+{spin/exchange} pair style cannot be used.
 
 :line
 
 [Restrictions:]
 
-All the {pair/spin} styles are part of the SPIN package. 
-These styles are only enabled if LAMMPS was built with this package, and
-if the atom_style "spin" was declared. 
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+All the {pair/spin} styles are part of the SPIN package.  These styles
+are only enabled if LAMMPS was built with this package, and if the
+atom_style "spin" was declared.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"atom_style spin"_atom_style.html, "pair_coeff"_pair_coeff.html, 
+"atom_style spin"_atom_style.html, "pair_coeff"_pair_coeff.html,
 "pair_eam"_pair_eam.html,
 
 [Default:] none

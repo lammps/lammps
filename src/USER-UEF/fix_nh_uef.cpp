@@ -348,7 +348,7 @@ void FixNHUef::final_integrate()
  * at outer level: call this->final_integrate()
  * at other levels: rotate -> 2nd verlet step -> rotate back
  * ---------------------------------------------------------------------- */
-void FixNHUef::final_integrate_respa(int ilevel, int iloop)
+void FixNHUef::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -536,10 +536,26 @@ void FixNHUef::pre_exchange()
     rotate_x(rot);
     rotate_f(rot);
 
-    // put all atoms in the new box
-    double **x = atom->x;
+    // this is a generalization of what is done in domain->image_flip(...)
+    int ri[3][3];
+    uefbox->get_inverse_cob(ri);
     imageint *image = atom->image;
     int nlocal = atom->nlocal;
+    for (int i=0; i<nlocal; i++) {
+      int iold[3],inew[3];
+      iold[0] = (image[i] & IMGMASK) - IMGMAX;
+      iold[1] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      iold[2] = (image[i] >> IMG2BITS) - IMGMAX;
+      inew[0] = ri[0][0]*iold[0] + ri[0][1]*iold[1] + ri[0][2]*iold[2];
+      inew[1] = ri[1][0]*iold[0] + ri[1][1]*iold[1] + ri[1][2]*iold[2];
+      inew[2] = ri[2][0]*iold[0] + ri[2][1]*iold[1] + ri[2][2]*iold[2];
+      image[i] = ((imageint) (inew[0] + IMGMAX) & IMGMASK) |
+        (((imageint) (inew[1] + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (inew[2] + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+
+    // put all atoms in the new box
+    double **x = atom->x;
     for (int i=0; i<nlocal; i++) domain->remap(x[i],image[i]);
 
     // move atoms to the right processors

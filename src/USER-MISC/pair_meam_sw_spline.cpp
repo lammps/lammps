@@ -372,7 +372,7 @@ void PairMEAMSWSpline::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::settings(int narg, char **arg)
+void PairMEAMSWSpline::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -462,64 +462,64 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
 
 void PairMEAMSWSpline::read_file(const char* filename)
 {
-        if(comm->me == 0) {
-                FILE *fp = force->open_potential(filename);
-                if(fp == NULL) {
-                        char str[1024];
-                        sprintf(str,"Cannot open spline MEAM potential file %s", filename);
-                        error->one(FLERR,str);
-                }
+  if(comm->me == 0) {
+    FILE *fp = force->open_potential(filename);
+    if(fp == NULL) {
+      char str[1024];
+      snprintf(str,1024,"Cannot open spline MEAM potential file %s", filename);
+      error->one(FLERR,str);
+    }
 
-                // Skip first line of file.
-                char line[MAXLINE];
-                fgets(line, MAXLINE, fp);
+    // Skip first line of file.
+    char line[MAXLINE];
+    fgets(line, MAXLINE, fp);
 
-                // Parse spline functions.
-                phi.parse(fp, error);
-                F.parse(fp, error);
-                G.parse(fp, error);
-                rho.parse(fp, error);
-                U.parse(fp, error);
-                f.parse(fp, error);
-                g.parse(fp, error);
+    // Parse spline functions.
+    phi.parse(fp, error);
+    F.parse(fp, error);
+    G.parse(fp, error);
+    rho.parse(fp, error);
+    U.parse(fp, error);
+    f.parse(fp, error);
+    g.parse(fp, error);
 
-                fclose(fp);
-        }
+    fclose(fp);
+  }
 
-        // Transfer spline functions from master processor to all other processors.
-        phi.communicate(world, comm->me);
-        rho.communicate(world, comm->me);
-        f.communicate(world, comm->me);
-        U.communicate(world, comm->me);
-        g.communicate(world, comm->me);
-        F.communicate(world, comm->me);
-        G.communicate(world, comm->me);
+  // Transfer spline functions from master processor to all other processors.
+  phi.communicate(world, comm->me);
+  rho.communicate(world, comm->me);
+  f.communicate(world, comm->me);
+  U.communicate(world, comm->me);
+  g.communicate(world, comm->me);
+  F.communicate(world, comm->me);
+  G.communicate(world, comm->me);
 
-        // Calculate 'zero-point energy' of single atom in vacuum.
-        zero_atom_energy = U.eval(0.0);
+  // Calculate 'zero-point energy' of single atom in vacuum.
+  zero_atom_energy = U.eval(0.0);
 
-        // Determine maximum cutoff radius of all relevant spline functions.
-        cutoff = 0.0;
-        if(phi.cutoff() > cutoff) cutoff = phi.cutoff();
-        if(rho.cutoff() > cutoff) cutoff = rho.cutoff();
-        if(f.cutoff() > cutoff) cutoff = f.cutoff();
-        if(F.cutoff() > cutoff) cutoff = F.cutoff();
+  // Determine maximum cutoff radius of all relevant spline functions.
+  cutoff = 0.0;
+  if(phi.cutoff() > cutoff) cutoff = phi.cutoff();
+  if(rho.cutoff() > cutoff) cutoff = rho.cutoff();
+  if(f.cutoff() > cutoff) cutoff = f.cutoff();
+  if(F.cutoff() > cutoff) cutoff = F.cutoff();
 
-        // Set LAMMPS pair interaction flags.
-        for(int i = 1; i <= atom->ntypes; i++) {
-                for(int j = 1; j <= atom->ntypes; j++) {
-                        setflag[i][j] = 1;
-                        cutsq[i][j] = cutoff;
-                }
-        }
+  // Set LAMMPS pair interaction flags.
+  for(int i = 1; i <= atom->ntypes; i++) {
+    for(int j = 1; j <= atom->ntypes; j++) {
+      setflag[i][j] = 1;
+      cutsq[i][j] = cutoff;
+    }
+  }
 
-        // phi.writeGnuplot("phi.gp", "Phi(r)");
-        // rho.writeGnuplot("rho.gp", "Rho(r)");
-        // f.writeGnuplot("f.gp", "f(r)");
-        // U.writeGnuplot("U.gp", "U(rho)");
-        // g.writeGnuplot("g.gp", "g(x)");
-        // F.writeGnuplot("F.gp", "F(r)");
-        // G.writeGnuplot("G.gp", "G(x)");
+  // phi.writeGnuplot("phi.gp", "Phi(r)");
+  // rho.writeGnuplot("rho.gp", "Rho(r)");
+  // f.writeGnuplot("f.gp", "f(r)");
+  // U.writeGnuplot("U.gp", "U(rho)");
+  // g.writeGnuplot("g.gp", "g(x)");
+  // F.writeGnuplot("F.gp", "F(r)");
+  // G.writeGnuplot("G.gp", "G(x)");
 }
 
 /* ----------------------------------------------------------------------
@@ -552,7 +552,7 @@ void PairMEAMSWSpline::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMEAMSWSpline::init_one(int i, int j)
+double PairMEAMSWSpline::init_one(int /*i*/, int /*j*/)
 {
         return cutoff;
 }
@@ -560,7 +560,7 @@ double PairMEAMSWSpline::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMSWSpline::pack_forward_comm(int n, int *list, double *buf,
-                                        int pbc_flag, int *pbc)
+                                        int /*pbc_flag*/, int * /*pbc*/)
 {
         int* list_iter = list;
         int* list_iter_end = list + n;
@@ -578,14 +578,14 @@ void PairMEAMSWSpline::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSWSpline::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAMSWSpline::pack_reverse_comm(int /*n*/, int /*first*/, double * /*buf*/)
 {
         return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAMSWSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /*buf*/)
 {
 }
 

@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -24,6 +25,37 @@
 #include "neigh_list_kokkos.h"
 #include "error.h"
 #include "memory_kokkos.h"
+
+#ifdef KOKKOS_HAVE_CUDA
+
+// for detecting GPU-direct support:
+// the function  int have_gpu_direct()
+// - returns -1 if GPU-direct support is unknown
+// - returns  0 if no GPU-direct support available
+// - returns  1 if GPU-direct support is available
+
+#define GPU_DIRECT_UNKNOWN static int have_gpu_direct() {return -1;}
+
+// OpenMPI supports detecting GPU-direct as of version 2.0.0
+#if OPEN_MPI
+
+#if (OMPI_MAJOR_VERSION >= 2)
+#include <mpi-ext.h>
+#if defined(MPIX_CUDA_AWARE_SUPPORT)
+static int have_gpu_direct() { return MPIX_Query_cuda_support(); }
+#else
+GPU_DIRECT_UNKNOWN
+#endif
+
+#else // old OpenMPI
+GPU_DIRECT_UNKNOWN
+#endif
+
+#else // unknown MPI library
+GPU_DIRECT_UNKNOWN
+#endif
+
+#endif // KOKKOS_HAVE_CUDA
 
 using namespace LAMMPS_NS;
 
@@ -106,13 +138,39 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // initialize Kokkos
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  using %d GPU(s)\n",ngpu);
-    if (logfile) fprintf(logfile,"  using %d GPU(s)\n",ngpu);
+    if (screen) fprintf(screen,"  will use up to %d GPU(s) per node\n",ngpu);
+    if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpu);
   }
 
 #ifdef KOKKOS_HAVE_CUDA
   if (ngpu <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
+
+  // check and warn about GPU-direct availability when using multiple MPI tasks
+
+  int nmpi = 0;
+  MPI_Comm_size(world,&nmpi);
+  if ((nmpi > 1) && (me == 0)) {
+    if ( 1 == have_gpu_direct() ) {
+      ; // all good, nothing to warn about
+    } else if (-1 == have_gpu_direct() ) {
+      error->warning(FLERR,"Kokkos with CUDA assumes GPU-direct is available,"
+                     " but cannot determine if this is the case\n         try"
+                     " '-pk kokkos gpu/direct off' when getting segmentation faults");
+    } else if ( 0 == have_gpu_direct() ) {
+      error->warning(FLERR,"GPU-direct is NOT available, "
+                     "using '-pk kokkos gpu/direct off' by default");
+    } else {
+      ; // should never get here
+    }
+  }
+#endif
+
+#ifndef KOKKOS_HAVE_SERIAL
+  if (num_threads == 1)
+    error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
+                         "(i.e. Makefile.kokkos_mpi_only) gives better performance "
+                         "than the OpenMP backend");
 #endif
 
   Kokkos::InitArguments args;
@@ -133,6 +191,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   exchange_comm_on_host = 0;
   forward_comm_on_host = 0;
   reverse_comm_on_host = 0;
+  gpu_direct_flag = 1;
+
+#if KOKKOS_USE_CUDA
+  // only if we can safely detect, that GPU-direct is not available, change default
+  if (0 == have_gpu_direct()) gpu_direct_flag = 0;
+#endif
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
@@ -163,6 +227,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
   exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  gpu_direct_flag = 1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -204,6 +269,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+        exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
@@ -245,7 +311,24 @@ void KokkosLMP::accelerator(int narg, char **arg)
         reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"gpu/direct") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) gpu_direct_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct_flag = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
+  }
+
+  // if "gpu/direct off" and "comm device", change to "comm host"
+
+  if (!gpu_direct_flag) {
+   if (exchange_comm_classic == 0 && exchange_comm_on_host == 0)
+     exchange_comm_on_host = 1;
+   if (forward_comm_classic == 0 && forward_comm_on_host == 0)
+     forward_comm_on_host = 1;
+   if (reverse_comm_classic == 0 && reverse_comm_on_host == 0)
+     reverse_comm_on_host = 1;
   }
 
   // set newton flags

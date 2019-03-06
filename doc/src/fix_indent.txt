@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -129,7 +129,7 @@ variable rate equal 1.0
 variable r equal "v_r0 + step*dt*v_rate" :pre
 
 If the {side} keyword is specified as {out}, which is the default,
-then particles outside the indenter are pushded away from its outer
+then particles outside the indenter are pushed away from its outer
 surface, as described above.  This only applies to spherical or
 cylindrical indenters.  If the {side} keyword is specified as {in},
 the action of the indenter is reversed.  Particles inside the indenter
@@ -180,8 +180,8 @@ integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar energy and a global 3-vector of
 forces (on the indenter), which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar and vector values
-calculated by this fix are "extensive".
+commands"_Howto_output.html.  The scalar and vector values calculated
+by this fix are "extensive".
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.  Note that if you

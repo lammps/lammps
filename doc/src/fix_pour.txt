@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -237,16 +237,16 @@ appropriately.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various "output commands"_Section_howto.html#howto_15.  No
-parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
+access by various "output commands"_Howto_output.html.  No parameter
+of this fix can be used with the {start/stop} keywords of the
+"run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 For 3d simulations, a gravity fix in the -z direction must be defined
 for use in conjunction with this fix.  For 2d simulations, gravity

@@ -60,7 +60,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
         else fp = fopen(arg[iarg+1],"a");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix print file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix print file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }

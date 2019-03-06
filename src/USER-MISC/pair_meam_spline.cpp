@@ -360,7 +360,7 @@ void PairMEAMSpline::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMSpline::settings(int narg, char **arg)
+void PairMEAMSpline::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -439,7 +439,7 @@ void PairMEAMSpline::read_file(const char* filename)
     FILE *fp = force->open_potential(filename);
     if(fp == NULL) {
       char str[1024];
-      sprintf(str,"Cannot open spline MEAM potential file %s", filename);
+      snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
       error->one(FLERR,str);
     }
 
@@ -592,7 +592,7 @@ void PairMEAMSpline::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMEAMSpline::init_one(int i, int j)
+double PairMEAMSpline::init_one(int /*i*/, int /*j*/)
 {
   return cutoff;
 }
@@ -600,7 +600,7 @@ double PairMEAMSpline::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
-                                      int pbc_flag, int *pbc)
+                                      int /*pbc_flag*/, int * /*pbc*/)
 {
   int* list_iter = list;
   int* list_iter_end = list + n;
@@ -618,14 +618,14 @@ void PairMEAMSpline::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSpline::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAMSpline::pack_reverse_comm(int /*n*/, int /*first*/, double * /*buf*/)
 {
   return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMSpline::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAMSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /*buf*/)
 {
 }
 

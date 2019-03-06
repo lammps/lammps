@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -29,7 +29,7 @@ compute 1 all displace/atom refresh myVar :pre
 
 Define a computation that calculates the current displacement of each
 atom in the group from its original (reference) coordinates, including
-all effects due to atoms passing thru periodic boundaries.
+all effects due to atoms passing through periodic boundaries.
 
 A vector of four quantities per atom is calculated by this compute.
 The first 3 elements of the vector are the dx,dy,dz displacements.
@@ -57,7 +57,7 @@ correctly with time=0 atom coordinates from the restart file.
 
 :line
 
-The {refresh} option can be used in conjuction with the "dump_modify
+The {refresh} option can be used in conjunction with the "dump_modify
 refresh" command to generate incremental dump files.
 
 The definition and motivation of an incremental dump file is as
@@ -85,7 +85,7 @@ dump            1 all custom 100 tmp.dump id type x y z
 dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} &
                 refresh c_dsp delay 100 :pre
 
-The "dump_modify thresh"_dump_modify.html command will only ouptut
+The "dump_modify thresh"_dump_modify.html command will only output
 atoms that have displaced more than 0.6 Angstroms on each snapshot
 (assuming metal units).  The dump_modify {refresh} option triggers a
 call to this compute at the end of every dump.
@@ -118,9 +118,8 @@ would be empty.
 
 This compute calculates a per-atom array with 4 columns, which can be
 accessed by indices 1-4 by any command that uses per-atom values from
-a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+a compute as input.  See the "Howto output"_Howto_output.html doc page
+for an overview of LAMMPS output options.
 
 The per-atom array values will be in distance "units"_units.html.
 

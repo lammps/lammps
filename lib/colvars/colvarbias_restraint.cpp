@@ -996,11 +996,16 @@ int colvarbias_restraint_harmonic_walls::init(std::string const &conf)
   if ((lower_walls.size() > 0) && (upper_walls.size() > 0)) {
     for (i = 0; i < num_variables(); i++) {
       if (lower_walls[i] >= upper_walls[i]) {
-        cvm::error("Error: one upper wall, "+
-                   cvm::to_str(upper_walls[i])+
-                   ", is not higher than the lower wall, "+
-                   cvm::to_str(lower_walls[i])+".\n",
-                   INPUT_ERROR);
+        return cvm::error("Error: one upper wall, "+
+                          cvm::to_str(upper_walls[i])+
+                          ", is not higher than the lower wall, "+
+                          cvm::to_str(lower_walls[i])+".\n",
+                          INPUT_ERROR);
+      }
+      if (variables(i)->dist2(lower_walls[i], upper_walls[i]) < 1.0e-12) {
+        return cvm::error("Error: lower wall and upper wall are equal "
+                          "in the domain of the variable \""+
+                          variables(i)->name+"\".\n", INPUT_ERROR);
       }
     }
     if (lower_wall_k * upper_wall_k == 0.0) {
@@ -1279,13 +1284,16 @@ cvm::real colvarbias_restraint_linear::energy_difference(std::string const &conf
 
 cvm::real colvarbias_restraint_linear::restraint_potential(size_t i) const
 {
-  return force_k / variables(i)->width * (variables(i)->value() - colvar_centers[i]);
+  return force_k / variables(i)->width * (variables(i)->value() -
+                                          colvar_centers[i]).sum();
 }
 
 
 colvarvalue const colvarbias_restraint_linear::restraint_force(size_t i) const
 {
-  return -1.0 * force_k / variables(i)->width;
+  colvarvalue dummy(variables(i)->value());
+  dummy.set_ones();
+  return -1.0 * force_k / variables(i)->width * dummy;
 }
 
 

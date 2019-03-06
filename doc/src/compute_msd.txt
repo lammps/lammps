@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -29,7 +29,7 @@ compute 1 upper msd com yes average yes :pre
 
 Define a computation that calculates the mean-squared displacement
 (MSD) of the group of atoms, including all effects due to atoms
-passing thru periodic boundaries.  For computation of the non-Gaussian
+passing through periodic boundaries.  For computation of the non-Gaussian
 parameter of mean-squared displacement, see the "compute
 msd/nongauss"_compute_msd_nongauss.html command.
 
@@ -50,7 +50,7 @@ The value of the displacement will be
 
 If the {com} option is set to {yes} then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
-displacment of each atom is calculated.
+displacement of each atom is calculated.
 
 If the {average} option is set to {yes} then the reference position of
 an atom is based on the average position of that atom, corrected for
@@ -93,9 +93,8 @@ instead of many, which will change the values of msd somewhat.
 
 This compute calculates a global vector of length 4, which can be
 accessed by indices 1-4 by any command that uses global vector values
-from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+from a compute as input.  See the "Howto output"_Howto_output.html doc
+page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The vector values will be in
 distance^2 "units"_units.html.

@@ -89,6 +89,14 @@ void FixTuneKspace::init()
     error->all(FLERR,"Cannot use fix tune/kspace without a kspace style");
   if (!force->pair)
     error->all(FLERR,"Cannot use fix tune/kspace without a pair style");
+  if (strncmp(force->pair_style,"hybrid",6) == 0)
+    error->all(FLERR,"Cannot use fix tune/kspace with a hybrid pair style");
+  if (force->kspace->dispersionflag)
+    error->all(FLERR,"Cannot use fix tune/kspace with long-range dispersion");
+  if (force->kspace->tip4pflag)
+    error->all(FLERR,"Cannot use fix tune/kspace with TIP4P water");
+  if (force->kspace->dipoleflag)
+    error->all(FLERR,"Cannot use fix tune/kspace with dipole long-range solver");
 
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
   char old_acc_str[12];
@@ -273,7 +281,8 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style,
 
   // delete old kspace style and create new one
 
-  force->create_kspace(narg,arg,1);
+  force->create_kspace(arg[0],1);
+  force->kspace->settings(narg-1,&arg[1]);
   force->kspace->differentiation_flag = old_differentiation_flag;
   force->kspace->slabflag = old_slabflag;
   force->kspace->slab_volfactor = old_slab_volfactor;

@@ -350,7 +350,7 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
   FILE *fp = fopen(file,"r");
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 
@@ -781,7 +781,7 @@ void PairMultiLucy::computeLocalDensity()
 }
 /* ---------------------------------------------------------------------- */
 
-int PairMultiLucy::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMultiLucy::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
   double *rho = atom->rho;

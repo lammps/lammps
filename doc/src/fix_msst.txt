@@ -2,11 +2,11 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
- fix msst command :h3
+fix msst command :h3
 
 [Syntax:]
 
@@ -23,7 +23,7 @@ keyword = {q} or {mu} or {p0} or {v0} or {e0} or {tscale} or {beta} or {dftb} :l
   {p0} value = initial pressure in the shock equations (pressure units)
   {v0} value = initial simulation cell volume in the shock equations (distance^3 units)
   {e0} value = initial total energy (energy units)
-  {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) 
+  {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0)
   {dftb} value = {yes} or {no} for whether using MSST in conjunction with DFTB+
   {beta} value = scale factor for improved energy conservation :pre
 :ule
@@ -74,7 +74,7 @@ equations, but is used in calculating the deviation from the Hugoniot.
 
 The keyword {beta} is a scaling term that can be added to the MSST
 ionic equations of motion to account for drift in the conserved
-quantity during long timescale simulations, similar to a Berendson
+quantity during long timescale simulations, similar to a Berendsen
 thermostat. See "(Reed)"_#Reed and "(Goldman)"_#Goldman2 for more
 details.  The value of {beta} must be between 0.0 and 1.0 inclusive.
 A value of 0.0 means no contribution, a value of 1.0 means a full
@@ -156,14 +156,14 @@ thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_
 
 These fixes compute a global scalar and a global vector of 4
 quantities, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar values calculated
-by this fix are "extensive"; the vector values are "intensive".
+commands"_Howto_output.html.  The scalar values calculated by this fix
+are "extensive"; the vector values are "intensive".
 
 [Restrictions:]
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The MSST fix has been tested only for the group-ID

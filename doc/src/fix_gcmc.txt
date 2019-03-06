@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -74,7 +74,7 @@ materials, or computing vapor-liquid coexistence curves.
 Every N timesteps the fix attempts both GCMC exchanges
 (insertions or deletions) and MC moves of gas atoms or molecules.
 On those timesteps, the average number of attempted GCMC exchanges is X,
-while the average number of attempted MC moves is M. 
+while the average number of attempted MC moves is M.
 For GCMC exchanges of either molecular or atomic gasses,
 these exchanges can be either deletions or insertions,
 with equal probability.
@@ -203,7 +203,7 @@ atom translations, molecule translations, and molecule rotations,
 respectively. The values must be non-negative integers or real
 numbers, with at least one non-zero value. For example, (10,30,0)
 would result in 25% of the MC moves being atomic translations, 75%
-molecular translations, and no molecular rotations. 
+molecular translations, and no molecular rotations.
 
 Optionally, users may specify the maximum rotation angle for molecular
 rotations using the {maxangle} keyword and specifying the angle in
@@ -382,8 +382,8 @@ None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.
 
 This fix computes a global vector of length 8, which can be accessed
-by various "output commands"_Section_howto.html#howto_15.  The vector
-values are the following global cumulative quantities:
+by various "output commands"_Howto_output.html.  The vector values are
+the following global cumulative quantities:
 
 1 = translation attempts
 2 = translation successes
@@ -403,8 +403,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.

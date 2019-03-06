@@ -148,7 +148,7 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
 
   if (pstat_flag) {
     double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
@@ -269,7 +269,10 @@ void FixNHKokkos<DeviceType>::final_integrate()
     //atomKK->sync(pressure->execution_space,pressure->datamask_read);
     //atomKK->modified(pressure->execution_space,pressure->datamask_modify);
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -537,7 +540,7 @@ void FixNHKokkos<DeviceType>::nve_v()
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
@@ -545,7 +548,7 @@ void FixNHKokkos<DeviceType>::nve_v()
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   copymode = 1;
-  if (rmass)
+  if (rmass.data())
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_v<1> >(0,nlocal),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_v<0> >(0,nlocal),*this);

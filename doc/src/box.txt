@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -30,9 +30,9 @@ For triclinic (non-orthogonal) simulation boxes, the {tilt} keyword
 allows simulation domains to be created with arbitrary tilt factors,
 e.g. via the "create_box"_create_box.html or
 "read_data"_read_data.html commands.  Tilt factors determine how
-skewed the triclinic box is; see "this
-section"_Section_howto.html#howto_12 of the manual for a discussion of
-triclinic boxes in LAMMPS.
+skewed the triclinic box is; see the "Howto
+triclinic"_Howto_triclinic.html doc page for a discussion of triclinic
+boxes in LAMMPS.
 
 LAMMPS normally requires that no tilt factor can skew the box more
 than half the distance of the parallel box length, which is the 1st

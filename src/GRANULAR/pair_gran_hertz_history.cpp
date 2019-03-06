@@ -306,9 +306,9 @@ void PairGranHertzHistory::settings(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
+double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
                                     double rsq,
-                                    double factor_coul, double factor_lj,
+                                    double /*factor_coul*/, double /*factor_lj*/,
                                     double &fforce)
 {
   double radi,radj,radsum;

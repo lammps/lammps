@@ -38,22 +38,23 @@ class PairSpinDmi : public PairSpin {
   void compute_single_pair(int, double *);
 
   void compute_dmi(int, int, double *, double *, double *);
-  void compute_dmi_mech(double *);
+  void compute_dmi_mech(int, int, double, double *, double *, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_dmi_global;		// short range pair cutoff
+  double cut_spin_dmi_global;			// short range pair cutoff
 
  protected:
-  double **DM;                     	// dmi coeff in eV
-  double **v_dmx, **v_dmy, **v_dmz;	// dmi direction
-  double **cut_spin_dmi;      		// cutoff distance dmi
+  double **DM;                     		// dmi coeff in eV
+  double **v_dmx, **v_dmy, **v_dmz;		// dmi direction
+  double **vmech_dmx, **vmech_dmy, **vmech_dmz;	// dmi mech direction
+  double **cut_spin_dmi;      			// cutoff distance dmi
 
-  int lattice_flag;                     // flag for mech force computation
-  class FixNVESpin *lockfixnvespin;     // ptr to FixNVESpin for setups
+  int lattice_flag;             	        // flag for mech force computation
+  class FixNVESpin *lockfixnvespin;     	// ptr to FixNVESpin for setups
 
   void allocate();
 };

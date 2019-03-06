@@ -1,8 +1,8 @@
 # - Find quip
 # Find the native QUIP libraries.
 #
-#  QUIP_LIBRARIES    - List of libraries when using fftw3.
-#  QUIP_FOUND        - True if fftw3 found.
+#  QUIP_LIBRARIES    - List of libraries of the QUIP package
+#  QUIP_FOUND        - True if QUIP library was found.
 #
 
 find_library(QUIP_LIBRARY NAMES quip)

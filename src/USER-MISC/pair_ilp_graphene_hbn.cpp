@@ -46,7 +46,6 @@ using namespace LAMMPS_NS;
 
 PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 {
-  writedata = 1;
   restartinfo = 0;
 
   // initialize element to parameter maps
@@ -249,11 +248,9 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
         f[i][0] += fkcx - fprod1[0]*Tap;
         f[i][1] += fkcy - fprod1[1]*Tap;
         f[i][2] += fkcz - fprod1[2]*Tap;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= fkcx + fprod2[0]*Tap;
-          f[j][1] -= fkcy + fprod2[1]*Tap;
-          f[j][2] -= fkcz + fprod2[2]*Tap;
-        }
+        f[j][0] -= fkcx + fprod2[0]*Tap;
+        f[j][1] -= fkcy + fprod2[1]*Tap;
+        f[j][2] -= fkcz + fprod2[2]*Tap;
 
         // calculate the forces acted on the neighbors of atom i from atom j
         ILP_neighs_i = ILP_firstneigh[i];
@@ -274,15 +271,13 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
         for (ll = 0; ll < ILP_numneigh[j]; ll++) {
           l = ILP_neighs_j[ll];
           if (l == j) continue;
-          if (newton_pair || l < nlocal) {
-            // derivatives of the product of rji and nj respect to rl, l=0,1,2, where atom l is the neighbors of atom j
-            dprodnorm2[0] = dnormal[0][0][ll][j]*delx + dnormal[1][0][ll][j]*dely + dnormal[2][0][ll][j]*delz;
-            dprodnorm2[1] = dnormal[0][1][ll][j]*delx + dnormal[1][1][ll][j]*dely + dnormal[2][1][ll][j]*delz;
-            dprodnorm2[2] = dnormal[0][2][ll][j]*delx + dnormal[1][2][ll][j]*dely + dnormal[2][2][ll][j]*delz;
-            f[l][0] += (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
-            f[l][1] += (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
-            f[l][2] += (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
-          }
+          // derivatives of the product of rji and nj respect to rl, l=0,1,2, where atom l is the neighbors of atom j
+          dprodnorm2[0] = dnormal[0][0][ll][j]*delx + dnormal[1][0][ll][j]*dely + dnormal[2][0][ll][j]*delz;
+          dprodnorm2[1] = dnormal[0][1][ll][j]*delx + dnormal[1][1][ll][j]*dely + dnormal[2][1][ll][j]*delz;
+          dprodnorm2[2] = dnormal[0][2][ll][j]*delx + dnormal[1][2][ll][j]*dely + dnormal[2][2][ll][j]*delz;
+          f[l][0] += (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
+          f[l][1] += (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
+          f[l][2] += (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
         }
 
         if (eflag) {
@@ -729,7 +724,8 @@ void PairILPGrapheneHBN::ILP_neigh()
 
     ILP_firstneigh[i] = neighptr;
     ILP_numneigh[i] = n;
-    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please reduce the cutoff for normals");
+    if (n == 0) error->all(FLERR,"Could not build neighbor list to calculate normals, please check your configuration");
+    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please check your configuration");
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
@@ -880,7 +876,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open ILP potential file %s",filename);
+      snprintf(str,128,"Cannot open ILP potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -1010,8 +1006,8 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-double PairILPGrapheneHBN::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   double r,r2inv,r6inv,r8inv,forcelj,philj,fpair;
@@ -1047,7 +1043,7 @@ double PairILPGrapheneHBN::single(int i, int j, int itype, int jtype, double rsq
 /* ---------------------------------------------------------------------- */
 
 int PairILPGrapheneHBN::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m,id,ip,l;
 

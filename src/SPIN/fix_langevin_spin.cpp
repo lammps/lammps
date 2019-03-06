@@ -192,7 +192,7 @@ void FixLangevinSpin::add_temperature(double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinSpin::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLangevinSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

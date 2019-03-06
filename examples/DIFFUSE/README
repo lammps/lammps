@@ -47,7 +47,7 @@ compute the diffusion coefficient.  You can see that both measures
 give roughly the same answer and rapidly become roughly constant for
 the 100K step simulation.
 
-Dcoeff = 0.36
+Dcoeff = 0.33
 
 (2) in.vacf.2d
 
@@ -58,4 +58,4 @@ that point in time, converted into the diffusion coefficient.  You can
 see the VACF approach gives a more noise, fluctuating value for the
 diffusion coefficient, compared to the MSD approach.
 
-Dcoeff = 0.25 to 0.45
+Dcoeff = ~0.25

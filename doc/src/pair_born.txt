@@ -3,7 +3,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -11,39 +11,34 @@ pair_style born command :h3
 pair_style born/omp command :h3
 pair_style born/gpu command :h3
 pair_style born/coul/long command :h3
-pair_style born/coul/long/cs command :h3
-pair_style born/coul/long/cs/gpu command :h3
 pair_style born/coul/long/gpu command :h3
 pair_style born/coul/long/omp command :h3
 pair_style born/coul/msm command :h3
 pair_style born/coul/msm/omp command :h3
 pair_style born/coul/wolf command :h3
-pair_style born/coul/wolf/cs command :h3
-pair_style born/coul/wolf/cs/gpu command :h3
 pair_style born/coul/wolf/gpu command :h3
 pair_style born/coul/wolf/omp command :h3
 pair_style born/coul/dsf command :h3
-pair_style born/coul/dsf/cs command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {born} or {born/coul/long} or {born/coul/long/cs} or {born/coul/msm} or {born/coul/wolf}
+style = {born} or {born/coul/long} or {born/coul/msm} or {born/coul/wolf}
 args = list of arguments for a particular style :ul
   {born} args = cutoff
     cutoff = global cutoff for non-Coulombic interactions (distance units)
-  {born/coul/long} or {born/coul/long/cs} args = cutoff (cutoff2)
+  {born/coul/long} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {born/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/wolf} or {born/coul/wolf/cs} args = alpha cutoff (cutoff2)
+  {born/coul/wolf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/dsf} or {born/coul/dsf/cs} args = alpha cutoff (cutoff2)
+  {born/coul/dsf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (distance units) :pre
@@ -55,9 +50,7 @@ pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
 pair_style born/coul/long 10.0
-pair_style born/coul/long/cs 10.0
-pair_style born/coul/long 10.0 8.0
-pair_style born/coul/long/cs 10.0 8.0
+pair_style born/coul/long 10.0 8.
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
@@ -68,7 +61,6 @@ pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
 pair_style born/coul/wolf 0.25 10.0
 pair_style born/coul/wolf 0.25 10.0 9.0
-pair_style born/coul/wolf/cs 0.25 10.0 9.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
@@ -107,13 +99,6 @@ Wolf potential in the "coul/wolf"_pair_coul.html pair style.
 The {born/coul/dsf} style computes the Coulomb contribution with the
 damped shifted force model as in the "coul/dsf"_pair_coul.html style.
 
-Style {born/coul/long/cs} is identical to {born/coul/long} except that
-a term is added for the "core/shell model"_Section_howto.html#howto_25
-to allow charges on core and shell particles to be separated by r =
-0.0.  The same correction is introduced for the {born/coul/dsf/cs}
-style which is identical to {born/coul/dsf}.  And likewise for
-{born/coul/wolf/cs} style which is identical to {born/coul/wolf}.
-
 Note that these potentials are related to the "Buckingham
 potential"_pair_buck.html.
 
@@ -145,23 +130,22 @@ pair_style command.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -175,7 +159,7 @@ for the energy of the exp(), 1/r^6, and 1/r^8 portion of the pair
 interaction.
 
 The {born/coul/long} pair style supports the
-"pair_modify"_pair_modify.html table option ti tabulate the
+"pair_modify"_pair_modify.html table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
 These styles support the pair_modify tail option for adding long-range
@@ -194,8 +178,8 @@ respa"_run_style.html command.  They do not support the {inner},
 [Restrictions:]
 
 The {born/coul/long} style is part of the KSPACE package.  It is only
-enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

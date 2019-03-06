@@ -75,7 +75,7 @@ void FixNVETri::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVETri::initial_integrate(int vflag)
+void FixNVETri::initial_integrate(int /*vflag*/)
 {
   double dtfm;
   double omega[3];

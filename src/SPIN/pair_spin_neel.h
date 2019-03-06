@@ -51,9 +51,9 @@ class PairSpinNeel : public PairSpin {
 
   // pseudo-dipolar and pseudo-quadrupolar coeff.
 
-  double **g1, **g1_mech; 		// exchange coeffs gij
+  double **g1, **g1_mech; 		// neel coeffs gij
   double **g2, **g3; 			// g1 in eV, g2 adim, g3 in Ang
-  double **q1, **q1_mech; 		// exchange coeffs qij
+  double **q1, **q1_mech; 		// neel coeffs qij
   double **q2, **q3; 			// q1 in eV, q2 adim, q3 in Ang
   double **cut_spin_neel;		// cutoff distance exchange
 

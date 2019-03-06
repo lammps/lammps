@@ -75,7 +75,7 @@ class FixEHEX : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix ehex command: wrong number of parameters 
+E: Illegal fix ehex command: wrong number of parameters
 
 UNDOCUMENTED
 
@@ -87,11 +87,11 @@ E: Region ID for fix ehex does not exist
 
 Self-explanatory.
 
-E: Illegal fix ehex keyword 
+E: Illegal fix ehex keyword
 
 UNDOCUMENTED
 
-E: You can only use the keyword 'com' together with the keyword 'constrain' 
+E: You can only use the keyword 'com' together with the keyword 'constrain'
 
 UNDOCUMENTED
 

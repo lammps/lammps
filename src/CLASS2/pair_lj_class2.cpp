@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include "pair_lj_class2.h"
 #include "atom.h"
 #include "comm.h"
@@ -377,8 +378,8 @@ void PairLJClass2::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJClass2::single(int i, int j, int itype, int jtype, double rsq,
-                            double factor_coul, double factor_lj,
+double PairLJClass2::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj,
                             double &fforce)
 {
   double r2inv,rinv,r3inv,r6inv,forcelj,philj;
@@ -393,4 +394,14 @@ double PairLJClass2::single(int i, int j, int itype, int jtype, double rsq,
   philj = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
     offset[itype][jtype];
   return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJClass2::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  return NULL;
 }

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -126,7 +126,7 @@ sense, a restarted simulation should produce the same behavior.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various "output commands"_Section_howto.html#howto_15.
+access by various "output commands"_Howto_output.html.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -137,8 +137,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

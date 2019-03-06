@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 #include "kokkos_type.h"
+#include "pair_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -34,11 +35,24 @@ class KokkosLMP : protected Pointers {
   int num_threads,ngpu;
   int numa;
   int auto_sync;
+  int gpu_direct_flag;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();
   void accelerator(int, char **);
   int neigh_count(int);
+
+  template<class DeviceType>
+  int need_dup()
+  {
+    int value = 0;
+
+    if (neighflag == HALFTHREAD)
+      value = NeedDup<HALFTHREAD,DeviceType>::value;
+
+    return value;
+  }
+
  private:
   static void my_signal_handler(int);
 };

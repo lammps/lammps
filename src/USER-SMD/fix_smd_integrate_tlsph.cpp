@@ -86,7 +86,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
                         }
                 } else {
                         char msg[128];
-                        sprintf(msg, "Illegal keyword for smd/integrate_tlsph: %s\n", arg[iarg]);
+                        snprintf(msg,128, "Illegal keyword for smd/integrate_tlsph: %s\n", arg[iarg]);
                         error->all(FLERR, msg);
                 }
 
@@ -125,7 +125,7 @@ void FixSMDIntegrateTlsph::init() {
 /* ----------------------------------------------------------------------
  ------------------------------------------------------------------------- */
 
-void FixSMDIntegrateTlsph::initial_integrate(int vflag) {
+void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         double dtfm, vsq, scale;
 
         // update v and x of atoms in group

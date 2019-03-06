@@ -169,9 +169,9 @@ void PairCoulMSM::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCoulMSM::single(int i, int j, int itype, int jtype,
+double PairCoulMSM::single(int i, int j, int /*itype*/, int /*jtype*/,
                             double rsq,
-                            double factor_coul, double factor_lj,
+                            double factor_coul, double /*factor_lj*/,
                             double &fforce)
 {
   double r2inv,r,egamma,fgamma,prefactor;

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -96,7 +96,7 @@ the molecule (header keyword = com), and the moments of inertia of the
 molecule (header keyword = inertia).
 
 NOTE: The molecule command can be used to define molecules with bonds,
-angles, dihedrals, imporopers, or special bond lists of neighbors
+angles, dihedrals, impropers, or special bond lists of neighbors
 within a molecular topology, so that you can later add the molecules
 to your simulation, via one or more of the commands listed above.
 Since this topology-related information requires that suitable storage
@@ -117,7 +117,7 @@ A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains
 a description of the file.  Then lines are read one at a time.  Lines
 can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only whitespace after comment is deleted), it is
+line is blank (only white-space after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
 value(s) is read from the line.  If it doesn't contain a header
 keyword, the line begins the body of the file.
@@ -176,9 +176,8 @@ LAMMPS uses this info to properly exclude or weight bonded pairwise
 interactions between bonded atoms.  See the
 "special_bonds"_special_bonds.html command for more details.  One
 reason to list the special bond info explicitly is for the
-"thermalized Drude oscillator model"_tutorial_drude.html which treats
-the bonds between nuclear cores and Drude electrons in a different
-manner.
+"thermalized Drude oscillator model"_Howto_drude.html which treats the
+bonds between nuclear cores and Drude electrons in a different manner.
 
 NOTE: Whether a section is required depends on how the molecule
 template is used by other LAMMPS commands.  For example, to add a

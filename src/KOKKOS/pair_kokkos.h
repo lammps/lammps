@@ -23,6 +23,7 @@
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "Kokkos_Vectorization.hpp"
+#include "Kokkos_ScatterView.hpp"
 
 namespace LAMMPS_NS {
 
@@ -47,45 +48,48 @@ struct DoCoul<1> {
   typedef CoulTag type;
 };
 
-// Determine memory traits for force array
-// Do atomic trait when running HALFTHREAD neighbor list style
-template<int NEIGHFLAG>
-struct AtomicF {
-  enum {value = Kokkos::Unmanaged};
-};
-
-template<>
-struct AtomicF<HALFTHREAD> {
-  enum {value = Kokkos::Atomic|Kokkos::Unmanaged};
-};
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
 template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>
 struct PairComputeFunctor  {
   typedef typename PairStyle::device_type device_type ;
+  typedef ArrayTypes<device_type> AT;
 
   // Reduction type, contains evdwl, ecoul and virial[6]
   typedef EV_FLOAT value_type;
 
   // The copy of the pair style
   PairStyle c;
+  typename AT::t_f_array f;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
   // The force array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
-               device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
+  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
+  //             device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,device_type,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_f;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
-               device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
-               device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
+  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
+  //             device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,device_type,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
+
+  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
+  //             device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,device_type,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
+
+
 
   NeighListKokkos<device_type> list;
 
   PairComputeFunctor(PairStyle* c_ptr,
                           NeighListKokkos<device_type>* list_ptr):
-  c(*c_ptr),f(c.f),eatom(c.d_eatom),
-  vatom(c.d_vatom),list(*list_ptr) {};
+  c(*c_ptr),list(*list_ptr) {
+    // allocate duplicated memory
+    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.f);
+    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
+    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
+  };
 
   // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
   ~PairComputeFunctor() {c.cleanup_copy();list.copymode = 1;};
@@ -94,12 +98,25 @@ struct PairComputeFunctor  {
     return j >> SBBITS & 3;
   }
 
+  void contribute() {
+    Kokkos::Experimental::contribute(c.f, dup_f);
+
+    if (c.eflag_atom)
+      Kokkos::Experimental::contribute(c.d_eatom, dup_eatom);
+
+    if (c.vflag_atom)
+      Kokkos::Experimental::contribute(c.d_vatom, dup_vatom);
+  }
+
   // Loop over neighbors of one atom without coulomb interaction
   // This function is called in parallel
   template<int EVFLAG, int NEWTON_PAIR>
   KOKKOS_FUNCTION
   EV_FLOAT compute_item(const int& ii,
                         const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
+
+    auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+
     EV_FLOAT ev;
     const int i = list.d_ilist[ii];
     const X_FLOAT xtmp = c.x(i,0);
@@ -133,9 +150,9 @@ struct PairComputeFunctor  {
         fztmp += delz*fpair;
 
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
-          f(j,0) -= delx*fpair;
-          f(j,1) -= dely*fpair;
-          f(j,2) -= delz*fpair;
+          a_f(j,0) -= delx*fpair;
+          a_f(j,1) -= dely*fpair;
+          a_f(j,2) -= delz*fpair;
         }
 
         if (EVFLAG) {
@@ -151,9 +168,9 @@ struct PairComputeFunctor  {
 
     }
 
-    f(i,0) += fxtmp;
-    f(i,1) += fytmp;
-    f(i,2) += fztmp;
+    a_f(i,0) += fxtmp;
+    a_f(i,1) += fytmp;
+    a_f(i,2) += fztmp;
 
     return ev;
   }
@@ -164,6 +181,9 @@ struct PairComputeFunctor  {
   KOKKOS_FUNCTION
   EV_FLOAT compute_item(const int& ii,
                         const NeighListKokkos<device_type> &list, const CoulTag& ) const {
+
+    auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+
     EV_FLOAT ev;
     const int i = list.d_ilist[ii];
     const X_FLOAT xtmp = c.x(i,0);
@@ -204,9 +224,9 @@ struct PairComputeFunctor  {
         fztmp += delz*fpair;
 
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
-          f(j,0) -= delx*fpair;
-          f(j,1) -= dely*fpair;
-          f(j,2) -= delz*fpair;
+          a_f(j,0) -= delx*fpair;
+          a_f(j,1) -= dely*fpair;
+          a_f(j,2) -= delz*fpair;
         }
 
         if (EVFLAG) {
@@ -228,9 +248,9 @@ struct PairComputeFunctor  {
       }
     }
 
-    f(i,0) += fxtmp;
-    f(i,1) += fytmp;
-    f(i,2) += fztmp;
+    a_f(i,0) += fxtmp;
+    a_f(i,1) += fytmp;
+    a_f(i,2) += fztmp;
 
     return ev;
   }
@@ -240,6 +260,9 @@ struct PairComputeFunctor  {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const
   {
+    auto a_eatom = dup_eatom.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+
     const int EFLAG = c.eflag;
     const int NEWTON_PAIR = c.newton_pair;
     const int VFLAG = c.vflag_either;
@@ -247,8 +270,8 @@ struct PairComputeFunctor  {
     if (EFLAG) {
       if (c.eflag_atom) {
         const E_FLOAT epairhalf = 0.5 * epair;
-        if (NEWTON_PAIR || i < c.nlocal) eatom[i] += epairhalf;
-        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < c.nlocal) a_eatom[i] += epairhalf;
+        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) a_eatom[j] += epairhalf;
       }
     }
 
@@ -299,20 +322,20 @@ struct PairComputeFunctor  {
 
       if (c.vflag_atom) {
         if (NEWTON_PAIR || i < c.nlocal) {
-          vatom(i,0) += 0.5*v0;
-          vatom(i,1) += 0.5*v1;
-          vatom(i,2) += 0.5*v2;
-          vatom(i,3) += 0.5*v3;
-          vatom(i,4) += 0.5*v4;
-          vatom(i,5) += 0.5*v5;
+          a_vatom(i,0) += 0.5*v0;
+          a_vatom(i,1) += 0.5*v1;
+          a_vatom(i,2) += 0.5*v2;
+          a_vatom(i,3) += 0.5*v3;
+          a_vatom(i,4) += 0.5*v4;
+          a_vatom(i,5) += 0.5*v5;
         }
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) {
-          vatom(j,0) += 0.5*v0;
-          vatom(j,1) += 0.5*v1;
-          vatom(j,2) += 0.5*v2;
-          vatom(j,3) += 0.5*v3;
-          vatom(j,4) += 0.5*v4;
-          vatom(j,5) += 0.5*v5;
+          a_vatom(j,0) += 0.5*v0;
+          a_vatom(j,1) += 0.5*v1;
+          a_vatom(j,2) += 0.5*v2;
+          a_vatom(j,3) += 0.5*v3;
+          a_vatom(j,4) += 0.5*v4;
+          a_vatom(j,5) += 0.5*v5;
         }
       }
     }
@@ -350,6 +373,9 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
   KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
     return j >> SBBITS & 3;
   }
+
+
+  void contribute() {}
 
   template<int EVFLAG, int NEWTON_PAIR>
   KOKKOS_FUNCTION
@@ -489,10 +515,12 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
     PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
     if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
     else                              Kokkos::parallel_for(list->inum,ff);
+    ff.contribute();
   } else {
     PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
     if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
     else                              Kokkos::parallel_for(list->inum,ff);
+    ff.contribute();
   }
   return ev;
 }

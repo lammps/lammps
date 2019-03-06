@@ -48,14 +48,21 @@ function(CreateStyleHeader path filename)
     set(temp "")
     if(ARGC GREATER 2)
         list(REMOVE_AT ARGV 0 1)
+        set(header_list)
         foreach(FNAME ${ARGV})
+            set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${FNAME}")
             get_filename_component(FNAME ${FNAME} NAME)
+            list(APPEND header_list ${FNAME})
+        endforeach()
+        list(SORT header_list)
+        foreach(FNAME ${header_list})
             set(temp "${temp}#include \"${FNAME}\"\n")
         endforeach()
     endif()
     message(STATUS "Generating ${filename}...")
     file(WRITE "${path}/${filename}.tmp" "${temp}" )
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}/${filename}.tmp" "${path}/${filename}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${path}/${filename}")
 endfunction(CreateStyleHeader)
 
 function(GenerateStyleHeader path property style)
@@ -80,19 +87,23 @@ function(RegisterNPairStyle path)
     AddStyleHeader(${path} NPAIR)
 endfunction(RegisterNPairStyle)
 
+function(RegisterFixStyle path)
+    AddStyleHeader(${path} FIX)
+endfunction(RegisterFixStyle)
+
 function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} ANGLE_CLASS     angle_     ANGLE     ) # angle     ) # force
     FindStyleHeaders(${search_path} ATOM_CLASS      atom_vec_  ATOM_VEC  ) # atom      ) # atom      atom_vec_hybrid
     FindStyleHeaders(${search_path} BODY_CLASS      body_      BODY      ) # body      ) # atom_vec_body
     FindStyleHeaders(${search_path} BOND_CLASS      bond_      BOND      ) # bond      ) # force
-    FindStyleHeaders(${search_path} COMMAND_CLASS   ""         COMMAND   ) # command   ) # input
+    FindStyleHeaders(${search_path} COMMAND_CLASS   "[^.]"     COMMAND   ) # command   ) # input
     FindStyleHeaders(${search_path} COMPUTE_CLASS   compute_   COMPUTE   ) # compute   ) # modify
     FindStyleHeaders(${search_path} DIHEDRAL_CLASS  dihedral_  DIHEDRAL  ) # dihedral  ) # force
     FindStyleHeaders(${search_path} DUMP_CLASS      dump_      DUMP      ) # dump      ) # output    write_dump
     FindStyleHeaders(${search_path} FIX_CLASS       fix_       FIX       ) # fix       ) # modify
     FindStyleHeaders(${search_path} IMPROPER_CLASS  improper_  IMPROPER  ) # improper  ) # force
-    FindStyleHeaders(${search_path} INTEGRATE_CLASS ""         INTEGRATE ) # integrate ) # update
-    FindStyleHeaders(${search_path} KSPACE_CLASS    ""         KSPACE    ) # kspace    ) # force
+    FindStyleHeaders(${search_path} INTEGRATE_CLASS "[^.]"     INTEGRATE ) # integrate ) # update
+    FindStyleHeaders(${search_path} KSPACE_CLASS    "[^.]"     KSPACE    ) # kspace    ) # force
     FindStyleHeaders(${search_path} MINIMIZE_CLASS  min_       MINIMIZE  ) # minimize  ) # update
     FindStyleHeaders(${search_path} NBIN_CLASS      nbin_      NBIN      ) # nbin      ) # neighbor
     FindStyleHeaders(${search_path} NPAIR_CLASS     npair_     NPAIR     ) # npair     ) # neighbor

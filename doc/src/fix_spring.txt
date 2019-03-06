@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -105,19 +105,19 @@ fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-spring energy = 0.5 * K * r^2.
+"output commands"_Howto_output.html.  The scalar is the spring energy
+= 0.5 * K * r^2.
 
 This fix also computes global 4-vector which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The first 3
-quantities in the vector are xyz components of the total force added
-to the group of atoms by the spring.  In the case of the {couple}
-style, it is the force on the fix group (group-ID) or the negative of
-the force on the 2nd group (group-ID2).  The 4th quantity in the
-vector is the magnitude of the force added by the spring, as a
-positive value if (r-R0) > 0 and a negative value if (r-R0) < 0.  This
-sign convention can be useful when using the spring force to compute a
-potential of mean force (PMF).
+various "output commands"_Howto_output.html.  The first 3 quantities
+in the vector are xyz components of the total force added to the group
+of atoms by the spring.  In the case of the {couple} style, it is the
+force on the fix group (group-ID) or the negative of the force on the
+2nd group (group-ID2).  The 4th quantity in the vector is the
+magnitude of the force added by the spring, as a positive value if
+(r-R0) > 0 and a negative value if (r-R0) < 0.  This sign convention
+can be useful when using the spring force to compute a potential of
+mean force (PMF).
 
 The scalar and vector values calculated by this fix are "extensive".
 

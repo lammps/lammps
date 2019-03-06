@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -14,7 +14,7 @@ compute ID group-ID chunk/atom style args keyword values ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 chunk/atom = style name of this compute command :l
-style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or {compute/fix/variable}
+style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name
   {bin/1d} args = dim origin delta
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
@@ -40,7 +40,7 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule}
     ncbin = # of concentric circle bins between rmin and rmax
   {type} args = none
   {molecule} args = none
-  {compute/fix/variable} = c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name with no args
+  c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name args = none
     c_ID = per-atom vector calculated by a compute with ID
     c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
     f_ID = per-atom vector calculated by a fix with ID
@@ -85,7 +85,8 @@ compute 1 all chunk/atom bin/1d z lower 0.02 units reduced
 compute 1 all chunk/atom bin/2d z lower 1.0 y 0.0 2.5
 compute 1 all chunk/atom molecule region sphere nchunk once ids once compress yes
 compute 1 all chunk/atom bin/sphere 5 5 5 2.0 5.0 5 discard yes
-compute 1 all chunk/atom bin/cylinder z lower 2 10 10 2.0 5.0 3 discard yes :pre
+compute 1 all chunk/atom bin/cylinder z lower 2 10 10 2.0 5.0 3 discard yes
+compute 1 all chunk/atom c_cluster :pre
 
 [Description:]
 
@@ -101,14 +102,13 @@ msd/chunk"_compute_msd_chunk.html.  Or they can be used by the "fix
 ave/chunk"_fix_ave_chunk.html command to sum and time average a
 variety of per-atom properties over the atoms in each chunk.  Or they
 can simply be accessed by any command that uses per-atom values from a
-compute as input, as discussed in "Section
-6.15"_Section_howto.html#howto_15.
+compute as input, as discussed on the "Howto output"_Howto_output.html
+doc page.
 
-See "Section 6.23"_Section_howto.html#howto_23 for an overview of
-how this compute can be used with a variety of other commands to
-tabulate properties of a simulation.  The howto section gives several
-examples of input script commands that can be used to calculate
-interesting properties.
+See the "Howto chunk"_Howto_chunk.html doc page for an overview of how
+this compute can be used with a variety of other commands to tabulate
+properties of a simulation.  The page gives several examples of input
+script commands that can be used to calculate interesting properties.
 
 Conceptually it is important to realize that this compute does two
 simple things.  First, it sets the value of {Nchunk} = the number of
@@ -135,7 +135,6 @@ timesteps it specifies, while it accumulates per-chunk averages.
 
 The details are described below.
 
-:line
 :line
 
 The different chunk styles operate as follows.  For each style, how it
@@ -167,11 +166,11 @@ or the bounds specified by the optional {bounds} keyword.
 For orthogonal simulation boxes, the bins are layers, pencils, or
 boxes aligned with the xyz coordinate axes.  For triclinic
 (non-orthogonal) simulation boxes, the bin faces are parallel to the
-tilted faces of the simulation box.  See "this
-section"_Section_howto.html#howto_12 of the manual for a discussion of
-the geometry of triclinic boxes in LAMMPS.  As described there, a
-tilted simulation box has edge vectors a,b,c.  In that nomenclature,
-bins in the x dimension have faces with normals in the "b" cross "c"
+tilted faces of the simulation box.  See the "Howto
+triclinic"_Howto_triclinic.html doc page for a discussion of the
+geometry of triclinic boxes in LAMMPS.  As described there, a tilted
+simulation box has edge vectors a,b,c.  In that nomenclature, bins in
+the x dimension have faces with normals in the "b" cross "c"
 direction.  Bins in y have faces normal to the "a" cross "c"
 direction.  And bins in z have faces normal to the "a" cross "b"
 direction.  Note that in order to define the size and position of
@@ -211,7 +210,7 @@ between {crmin} and {crmax}.  For example, if {crmin} = 1.0 and
 {crmax} = 10.0 and {ncbin} = 9, then the first bin spans 1.0 < r <
 2.0, and the last bin spans 9.0 < r 10.0.  The geometry of the bins in
 the radial dimensions is the same whether the simulation box is
-orthogonal or triclinic; i.e. the concetric circles are not tilted or
+orthogonal or triclinic; i.e. the concentric circles are not tilted or
 scaled differently in the two different dimensions to transform them
 into ellipses.
 
@@ -296,7 +295,6 @@ this is a very general means of generating per-atom quantities to
 treat as a chunk ID.
 
 :line
-:line
 
 Normally, {Nchunk} = the number of chunks, is re-calculated every time
 this fix is invoked, though the value may or may not change.  As
@@ -323,7 +321,6 @@ the same compute chunk/atom compute.  However, the time windows they
 induce for holding {Nchunk} constant must be identical, else an error
 will be generated.
 
-:line
 :line
 
 The various optional keywords operate as follows.  Note that some of
@@ -390,8 +387,8 @@ described below, which resets {Nchunk}.  The {limit} keyword is then
 applied to the new {Nchunk} value, exactly as described in the
 preceding paragraph.  Note that in this case, all atoms will end up
 with chunk IDs <= {Nc}, but their original values (e.g. molecule ID or
-compute/fix/variable value) may have been > {Nc}, because of the
-compression operation.
+compute/fix/variable) may have been > {Nc}, because of the compression
+operation.
 
 If {compress yes} is set, and the {compress} keyword comes after the
 {limit} keyword, then the {limit} value of {Nc} is applied first to
@@ -626,7 +623,7 @@ cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The per-atom vector values are unitless chunk IDs, ranging from 1 to

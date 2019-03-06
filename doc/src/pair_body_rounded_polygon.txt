@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -29,9 +29,8 @@ pair_coeff 1 1 100.0 1.0 :pre
 Style {body/rounded/polygon} is for use with 2d models of body
 particles of style {rounded/polygon}.  It calculates pairwise
 body/body interactions which can include body particles modeled as
-1-vertex circular disks with a specified diameter.  See "Section
-6.14"_Section_howto.html#howto_14 of the manual and the
-"body"_body.html doc page for more details on using body
+1-vertex circular disks with a specified diameter.  See the "Howto
+body"_Howto_body.html doc page for more details on using body
 rounded/polygon particles.
 
 This pairwise interaction between rounded polygons is described in
@@ -117,8 +116,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 These pair styles are part of the BODY package.  They are only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.

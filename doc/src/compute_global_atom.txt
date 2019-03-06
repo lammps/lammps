@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -67,7 +67,7 @@ this command.  This command will then assign the global chunk value to
 each atom in the chunk, producing a per-atom vector or per-atom array
 as output.  The per-atom values can then be output to a dump file or
 used by any command that uses per-atom values from a compute as input,
-as discussed in "Section 6.15"_Section_howto.html#howto_15.
+as discussed on the "Howto output"_Howto_output.html doc page.
 
 As a concrete example, these commands will calculate the displacement
 of each atom from the center-of-mass of the molecule it is in, and
@@ -203,7 +203,7 @@ vector.  If multiple inputs are specified, this compute produces a
 per-atom array values, where the number of columns is equal to the
 number of inputs specified.  These values can be used by any command
 that uses per-atom vector or array values from a compute as input.
-See "Section 6.15"_Section_howto.html#howto_15 for an overview of
+See the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The per-atom vector or array values will be in whatever units the

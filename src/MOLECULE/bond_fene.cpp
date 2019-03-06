@@ -242,7 +242,7 @@ void BondFENE::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondFENE::single(int type, double rsq, int i, int j,
+double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double r0sq = r0[type] * r0[type];

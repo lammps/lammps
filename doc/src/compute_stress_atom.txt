@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -73,9 +73,9 @@ Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
 
 Details of how LAMMPS computes the virial for individual atoms for
-either pairwise or manybody potentials, and including the effects of
+either pairwise or many-body potentials, and including the effects of
 periodic boundary conditions is discussed in "(Thompson)"_#Thompson2.
-The basic idea for manybody potentials is to treat each component of
+The basic idea for many-body potentials is to treat each component of
 the force computation between a small cluster of atoms in the same
 manner as in the formula above for bond, angle, dihedral, etc
 interactions.  Namely the quantity R dot F is summed over the atoms in
@@ -142,9 +142,8 @@ global system pressure.
 
 This compute calculates a per-atom array with 6 columns, which can be
 accessed by indices 1-6 by any command that uses per-atom values from
-a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+a compute as input.  See the "Howto output"_Howto_output.html doc page
+for an overview of LAMMPS output options.
 
 The per-atom array values will be in pressure*volume
 "units"_units.html as discussed above.

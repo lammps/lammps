@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -122,8 +122,8 @@ degrees-of-freedom adjustment described in the preceding paragraph,
 for fixes that constrain molecular motion.  It does include the
 adjustment due to the {extra} option, which is applied to each bin.
 
-See "this howto section"_Section_howto.html#howto_16 of the manual for
-a discussion of different ways to compute temperature and perform
+See the "Howto thermostat"_Howto_thermostat.html doc page for a
+discussion of different ways to compute temperature and perform
 thermostatting.  Using this compute in conjunction with a
 thermostatting fix, as explained there, will effectively implement a
 profile-unbiased thermostat (PUT), as described in "(Evans)"_#Evans1.
@@ -145,8 +145,8 @@ indices ix,iy,iz = 2,3,4 would map to row M = (iz-1)*10*10 + (iy-1)*10
 indices are numbered from 1 to 10 in each dimension.
 
 These values can be used by any command that uses global scalar or
-vector or array values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+vector or array values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "intensive".  The

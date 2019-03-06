@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -13,6 +13,7 @@ dump command :h3
 "dump netcdf"_dump_netcdf.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
+"dump adios"_dump_adios.html command :h3
 
 [Syntax:]
 
@@ -27,10 +28,12 @@ args = list of arguments for a particular style :l
   {atom} args = none
   {atom/gz} args = none
   {atom/mpiio} args = none
+  {atom/adios} args = none,  discussed on "dump adios"_dump_adios.html doc page
   {cfg} args = same as {custom} args, see below
   {cfg/gz} args = same as {custom} args, see below
   {cfg/mpiio} args = same as {custom} args, see below
   {custom}, {custom/gz}, {custom/mpiio} args = see below
+  {custom/adios} args = same as {custom} args, discussed on "dump adios"_dump_adios.html doc page
   {dcd} args = none
   {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page
   {image} args = discussed on "dump image"_dump_image.html doc page
@@ -224,12 +227,12 @@ This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they represent a bounding box.  See "this
-section"_Section_howto.html#howto_12 of the doc pages for a geometric
-description of triclinic boxes, as defined by LAMMPS, simple formulas
-for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
-calculated from the triclinic parameters, and how to transform those
-parameters to and from other commonly used triclinic representations.
+of xlo, etc, since they represent a bounding box.  See the "Howto
+triclinic"_Howto_triclinic.html doc page for a geometric description
+of triclinic boxes, as defined by LAMMPS, simple formulas for how the
+6 bounding box extents (xlo_bound,xhi_bound,etc) are calculated from
+the triclinic parameters, and how to transform those parameters to and
+from other commonly used triclinic representations.
 
 The "ITEM: ATOMS" line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be
@@ -312,7 +315,7 @@ so that any machine which supports XDR should be able to read them.
 The number of atoms per snapshot cannot change with the {xtc} style.
 The {unwrap} option of the "dump_modify"_dump_modify.html command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
-atom.  Unwrapped means that if the atom has passed thru a periodic
+atom.  Unwrapped means that if the atom has passed through a periodic
 boundary one or more times, the value is printed for what the
 coordinate would be if it had not been wrapped back into the periodic
 box.  Note that these coordinates may thus be far outside the box size
@@ -530,11 +533,11 @@ so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.
 I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
 the non-orthogonal vectors of the simulation box edges, as discussed
-in "Section 6.12"_Section_howto.html#howto_12.
+on the "Howto triclinic"_Howto_triclinic.html doc page.
 
 Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
-passed thru a periodic boundary one or more times, the value is
+passed through a periodic boundary one or more times, the value is
 printed for what the coordinate would be if it had not been wrapped
 back into the periodic box.  Note that using {xu}, {yu}, {zu} means
 that the coordinate values may be far outside the box bounds printed
@@ -634,27 +637,26 @@ which could then be output into dump files.
 [Restrictions:]
 
 To write gzipped dump files, you must either compile LAMMPS with the
--DLAMMPS_GZIP option or use the styles from the COMPRESS package
-- see the "Making LAMMPS"_Section_start.html#start_2 section of
-the documentation.
+-DLAMMPS_GZIP option or use the styles from the COMPRESS package.
+See the "Build settings"_Build_settings.html doc page for details.
 
-The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part
-of the COMPRESS package.  They are only enabled if LAMMPS was built
-with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part of
+the COMPRESS package.  They are only enabled if LAMMPS was built with
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 The {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The {xtc} style is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"dump h5md"_dump_h5md.html, "dump image"_dump_image.html,
+"dump adios"_dump_adios.html "dump h5md"_dump_h5md.html, "dump image"_dump_image.html,
 "dump molfile"_dump_molfile.html, "dump_modify"_dump_modify.html,
 "undump"_undump.html
 

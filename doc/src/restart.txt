@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -49,7 +49,7 @@ as it writes successive restart files.
 Note that you can specify the restart command twice, once with a
 single filename and once with two filenames.  This would allow you,
 for example, to write out archival restart files every 100000 steps
-using a single filenname, and more frequent temporary restart files
+using a single filename, and more frequent temporary restart files
 every 1000 steps, using two filenames.  Using restart 0 will turn off
 both modes of output.
 
@@ -125,8 +125,7 @@ Restart files can be read by a "read_restart"_read_restart.html
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the "-r command-line
-switch"_Section_start.html#start_6 to convert a restart file to a data
-file.
+switch"_Run_options.html to convert a restart file to a data file.
 
 NOTE: Although the purpose of restart files is to enable restarting a
 simulation from where it left off, not all information about a

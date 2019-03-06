@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -142,8 +142,8 @@ framerate can be set using the "dump_modify"_dump_modify.html command.
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
 into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
-flag. See "this section"_Section_start.html#start_2_4 of the manual
-for instructions on how to do this.
+flag. See the "Build settings"_Build_settings.html doc page for
+details.
 
 NOTE: Because periodic boundary conditions are enforced only on
 timesteps when neighbor lists are rebuilt, the coordinates of an atom
@@ -356,16 +356,16 @@ is used to define body particles with internal state
 body style.  If this keyword is not used, such particles will be drawn
 as spheres, the same as if they were regular atoms.
 
-The "body"_body.html doc page describes the body styles LAMMPS
-currently supports, and provides more details as to the kind of body
-particles they represent and how they are drawn by this dump image
-command.  For all the body styles, individual atoms can be either a
-body particle or a usual point (non-body) particle.  Non-body
+The "Howto body"_Howto_body.html doc page describes the body styles
+LAMMPS currently supports, and provides more details as to the kind of
+body particles they represent and how they are drawn by this dump
+image command.  For all the body styles, individual atoms can be
+either a body particle or a usual point (non-body) particle.  Non-body
 particles will be drawn the same way they would be as a regular atom.
 The {bflag1} and {bflag2} settings are numerical values which are
 passed to the body style to affect how the drawing of a body particle
-is done.  See the "body"_body.html doc page for a description of what
-these parameters mean for each body style.
+is done.  See the "Howto body"_Howto_body.html doc page for a
+description of what these parameters mean for each body style.
 
 The only setting currently allowed for the {color} value is {type},
 which will color the body particles according to the atom type of the
@@ -384,12 +384,7 @@ change this via the "dump_modify"_dump_modify.html command.
 :line
 
 The {fix} keyword can be used with a "fix"_fix.html that produces
-objects to be drawn.  An example is the "fix
-surface/global"_fix_surface_global.html command which can draw lines
-or triangles for 2d/3d simulations.
-
-NOTE: Aug 2016 - The fix surface/global command is not yet added to
-LAMMPS.
+objects to be drawn.
 
 The {fflag1} and {fflag2} settings are numerical values which are
 passed to the fix to affect how the drawing of its objects is done.
@@ -546,10 +541,11 @@ a) Use the ImageMagick convert program. :ulb,l
 % convert *.jpg foo.gif
 % convert -loop 1 *.ppm foo.mpg :pre
 
-Animated GIF files from ImageMagick are unoptimized. You can use a
-program like gifsicle to optimize and massively shrink them.
-MPEG files created by ImageMagick are in MPEG-1 format with rather
-inefficient compression and low quality.
+Animated GIF files from ImageMagick are not optimized. You can use
+a program like gifsicle to optimize and thus massively shrink them.
+MPEG files created by ImageMagick are in MPEG-1 format with a rather
+inefficient compression and low quality compared to more modern
+compression styles like MPEG-4, H.264, VP8, VP9, H.265 and so on.
 
 b) Use QuickTime. :l
 
@@ -569,7 +565,7 @@ allows extremely flexible encoding and decoding of movies.
 cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
 cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi :pre
 
-Frontends for FFmpeg exist for multiple platforms. For more
+Front ends for FFmpeg exist for multiple platforms. For more
 information see the "FFmpeg homepage"_http://www.ffmpeg.org/
 
 :ule
@@ -624,8 +620,7 @@ building LAMMPS and have the FFmpeg executable available on the
 machine where LAMMPS is being run.  Typically it's name is lowercase,
 i.e. ffmpeg.
 
-See the "Making LAMMPS"_Section_start.html#start_2_4 section of the
-documentation for details on how to compile with optional switches.
+See the "Build settings"_Build_settings.html doc page for details.
 
 Note that since FFmpeg is run as an external program via a pipe,
 LAMMPS has limited control over its execution and no knowledge about

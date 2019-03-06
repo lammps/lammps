@@ -74,6 +74,7 @@ PairOxdnaHbond::~PairOxdnaHbond()
     memory->destroy(b_hb_lo);
     memory->destroy(b_hb_hi);
     memory->destroy(shift_hb);
+    memory->destroy(cutsq_hb_hc);
 
     memory->destroy(a_hb1);
     memory->destroy(theta_hb1_0);
@@ -601,7 +602,7 @@ void PairOxdnaHbond::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdnaHbond::settings(int narg, char **arg)
+void PairOxdnaHbond::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

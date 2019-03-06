@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -32,7 +32,7 @@ according to the formulation given in "(Ackland)"_#Ackland.
 Historically, LAMMPS had two, slightly different implementations of
 the algorithm from the paper. With the {legacy} keyword, it is
 possible to switch between the pre-2015 ({legacy yes}) and post-2015
-implemention ({legacy no}). The post-2015 variant is the default.
+implementation ({legacy no}). The post-2015 variant is the default.
 
 In contrast to the "centro-symmetry
 parameter"_compute_centro_atom.html this method is stable against
@@ -60,14 +60,14 @@ which computes this quantity.-
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 [Restrictions:]
 
 This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The per-atom vector values will be unitless since they are the
 integers defined above.

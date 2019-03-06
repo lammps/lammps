@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -58,9 +58,9 @@ style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
-command-line argument"_Section_start.html#start_6.  The installation
-and compilation of optional packages is explained in the "installation
-instructions"_Section_start.html#start_3.
+command-line swith"_Run_options.html.  The installation and
+compilation of optional packages is explained on the "Build
+packages"_Build_package.html doc page.
 
 For a given command, LAMMPS expects certain arguments in a specified
 order.  If you mess this up, LAMMPS will often flag the error, but it
@@ -74,7 +74,7 @@ is an integer or floating-point number, respectively, and reject the
 input with an error message (for instance, when an integer is required,
 but a floating-point number 1.0 is provided):
 
-ERROR: Expected integer parameter in input script or data file :pre
+ERROR: Expected integer parameter instead of '1.0' in input script or data file :pre
 
 Some commands allow for using variable references in place of numeric
 constants so that the value can be evaluated and may change over the
@@ -85,6 +85,9 @@ reading the input and before parsing commands,
 
 NOTE: Using a variable reference (i.e. {v_name}) is only allowed if
 the documentation of the corresponding command explicitly says it is.
+Otherwise, you will receive an error message of this kind:
+
+ERROR: Expected floating point parameter instead of 'v_name' in input script or data file :pre
 
 Generally, LAMMPS will print a message to the screen and logfile and
 exit gracefully when it encounters a fatal error.  Sometimes it will
@@ -93,7 +96,7 @@ decide if the WARNING is important or not.  A WARNING message that is
 generated in the middle of a run is only printed to the screen, not to
 the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
 crashes or hangs without spitting out an error message first then it
-could be a bug (see "this section"_#err_2) or one of the following
+could be a bug (see "this section"_Errors_bugs.html) or one of the following
 cases:
 
 LAMMPS runs in the available memory a processor allows to be

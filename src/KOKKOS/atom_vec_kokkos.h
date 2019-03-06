@@ -61,6 +61,15 @@ class AtomVecKokkos : public AtomVec {
                        const DAT::tdual_xfloat_2d &buf);
 
   virtual int
+    pack_comm_vel_kokkos(const int &n, const DAT::tdual_int_2d &list,
+                         const int & iswap, const DAT::tdual_xfloat_2d &buf,
+                         const int &pbc_flag, const int pbc[]);
+
+  virtual void
+    unpack_comm_vel_kokkos(const int &n, const int &nfirst,
+                           const DAT::tdual_xfloat_2d &buf);
+
+  virtual int
     unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list,
                       const int & iswap, const int nfirst);
 
@@ -83,6 +92,16 @@ class AtomVecKokkos : public AtomVec {
                          ExecutionSpace space) = 0;
 
   virtual int
+    pack_border_vel_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                           DAT::tdual_xfloat_2d buf,int iswap,
+                           int pbc_flag, int *pbc, ExecutionSpace space) { return 0; }
+
+  virtual void
+    unpack_border_vel_kokkos(const int &n, const int &nfirst,
+                             const DAT::tdual_xfloat_2d &buf,
+                             ExecutionSpace space) {}
+
+  virtual int
     pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &buf,
                          DAT::tdual_int_1d k_sendlist,
                          DAT::tdual_int_1d k_copylist,
@@ -93,6 +112,8 @@ class AtomVecKokkos : public AtomVec {
                            int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
                            ExecutionSpace space) = 0;
 
+
+  int no_comm_vel_flag,no_border_vel_flag;
 
  protected:
 

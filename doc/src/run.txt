@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -127,9 +127,9 @@ be redefined, e.g. to reset a thermostat temperature.  Or this could
 be useful for invoking a command you have added to LAMMPS that wraps
 some other code (e.g. as a library) to perform a computation
 periodically during a long LAMMPS run.  See the "Modify"_Modify.html
-doc page for info about how to add new commands to LAMMPS.  See "this
-section"_Section_howto.html#howto_10 of the documentation for ideas
-about how to couple LAMMPS to other codes.
+doc page for info about how to add new commands to LAMMPS.  See the
+"Howto couple"_Howto_couple.html doc page for ideas about how to
+couple LAMMPS to other codes.
 
 With the {every} option, N total steps are simulated, in shorter runs
 of M steps each.  After each M-length run, the specified commands are

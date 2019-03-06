@@ -1,0 +1,132 @@
+"Higher level section"_Commands.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+"General commands"_Commands_all.html,
+"Fix styles"_Commands_fix.html,
+"Compute styles"_Commands_compute.html,
+"Pair styles"_Commands_pair.html,
+"Bond styles"_Commands_bond.html#bond,
+"Angle styles"_Commands_bond.html#angle,
+"Dihedral styles"_Commands_bond.html#dihedral,
+"Improper styles"_Commands_bond.html#improper,
+"KSpace styles"_Commands_kspace.html :tb(c=3,ea=c)
+
+Bond, angle, dihedral, and improper commands :h3
+
+:line
+
+Bond_style potentials :h3,link(bond)
+
+All LAMMPS "bond_style"_bond_style.html commands.  Some styles have
+accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
+
+"none"_bond_none.html,
+"zero"_bond_zero.html,
+"hybrid"_bond_hybrid.html :tb(c=3,ea=c)
+
+"class2 (ko)"_bond_class2.html,
+"fene (iko)"_bond_fene.html,
+"fene/expand (o)"_bond_fene_expand.html,
+"gromos (o)"_bond_gromos.html,
+"harmonic (iko)"_bond_harmonic.html,
+"harmonic/shift (o)"_bond_harmonic_shift.html,
+"harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
+"mm3"_bond_mm3.html,
+"morse (o)"_bond_morse.html,
+"nonlinear (o)"_bond_nonlinear.html,
+"oxdna/fene"_bond_oxdna.html,
+"oxdna2/fene"_bond_oxdna.html,
+"quartic (o)"_bond_quartic.html,
+"table (o)"_bond_table.html :tb(c=4,ea=c)
+
+:line
+
+Angle_style potentials :h3,link(angle)
+
+All LAMMPS "angle_style"_angle_style.html commands.  Some styles have
+accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
+
+"none"_angle_none.html,
+"zero"_angle_zero.html,
+"hybrid"_angle_hybrid.html :tb(c=3,ea=c)
+
+"charmm (iko)"_angle_charmm.html,
+"class2 (ko)"_angle_class2.html,
+"class2/p6"_angle_class2.html,
+"cosine (ko)"_angle_cosine.html,
+"cosine/buck6d"_angle_cosine_buck6d.html,
+"cosine/delta (o)"_angle_cosine_delta.html,
+"cosine/periodic (o)"_angle_cosine_periodic.html,
+"cosine/shift (o)"_angle_cosine_shift.html,
+"cosine/shift/exp (o)"_angle_cosine_shift_exp.html,
+"cosine/squared (o)"_angle_cosine_squared.html,
+"cross"_angle_cross.html,
+"dipole (o)"_angle_dipole.html,
+"fourier (o)"_angle_fourier.html,
+"fourier/simple (o)"_angle_fourier_simple.html,
+"harmonic (iko)"_angle_harmonic.html,
+"mm3"_angle_mm3.html,
+"quartic (o)"_angle_quartic.html,
+"sdk (o)"_angle_sdk.html,
+"table (o)"_angle_table.html :tb(c=4,ea=c)
+
+:line
+
+Dihedral_style potentials :h3,link(dihedral)
+
+All LAMMPS "dihedral_style"_dihedral_style.html commands.  Some styles
+have accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
+
+"none"_dihedral_none.html,
+"zero"_dihedral_zero.html,
+"hybrid"_dihedral_hybrid.html :tb(c=3,ea=c)
+
+"charmm (iko)"_dihedral_charmm.html,
+"charmmfsw"_dihedral_charmm.html,
+"class2 (ko)"_dihedral_class2.html,
+"cosine/shift/exp (o)"_dihedral_cosine_shift_exp.html,
+"fourier (io)"_dihedral_fourier.html,
+"harmonic (io)"_dihedral_harmonic.html,
+"helix (o)"_dihedral_helix.html,
+"multi/harmonic (o)"_dihedral_multi_harmonic.html,
+"nharmonic (o)"_dihedral_nharmonic.html,
+"opls (iko)"_dihedral_opls.html,
+"quadratic (o)"_dihedral_quadratic.html,
+"spherical"_dihedral_spherical.html,
+"table (o)"_dihedral_table.html,
+"table/cut"_dihedral_table_cut.html :tb(c=4,ea=c)
+
+:line
+
+Improper_style potentials :h3,link(improper)
+
+All LAMMPS "improper_style"_improper_style.html commands.  Some styles
+have accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
+
+"none"_improper_none.html,
+"zero"_improper_zero.html,
+"hybrid"_improper_hybrid.html :tb(c=3,ea=c)
+
+"class2 (ko)"_improper_class2.html,
+"cossq (o)"_improper_cossq.html,
+"cvff (io)"_improper_cvff.html,
+"distance"_improper_distance.html,
+"distharm"_improper_distharm.html,
+"fourier (o)"_improper_fourier.html,
+"harmonic (iko)"_improper_harmonic.html,
+"inversion/harmonic"_improper_inversion_harmonic.html,
+"ring (o)"_improper_ring.html,
+"sqdistharm"_improper_sqdistharm.html,
+"umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)

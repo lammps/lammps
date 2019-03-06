@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -139,8 +139,8 @@ for "extra angle per atom", "extra dihedral per atom", and "extra
 improper per atom" if angles, dihedrals, or impropers are being added
 when bonds are created.  See the "read_data"_read_data.html or
 "create_box"_create_box.html command for more details.  Note that a
-data file with no atoms can be used if you wish to add unbonded atoms
-via the "create atoms"_create_atoms.html command, e.g. for a
+data file with no atoms can be used if you wish to add non-bonded
+atoms via the "create atoms"_create_atoms.html command, e.g. for a
 percolation simulation.
 
 NOTE: LAMMPS stores and maintains a data structure with a list of the
@@ -196,7 +196,7 @@ NOTE: Creating a bond typically alters the energy of a system.  You
 should be careful not to choose bond creation criteria that induce a
 dramatic change in energy.  For example, if you define a very stiff
 harmonic bond and create it when 2 atoms are separated by a distance
-far from the equilibribum bond length, then the 2 atoms will oscillate
+far from the equilibrium bond length, then the 2 atoms will oscillate
 dramatically when the bond is formed.  More generally, you may need to
 thermostat your system to compensate for energy changes resulting from
 created bonds (and angles, dihedrals, impropers).
@@ -211,8 +211,8 @@ are relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
 length 2, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The vector values calculated
-by this fix are "intensive".
+commands"_Howto_output.html.  The vector values calculated by this fix
+are "intensive".
 
 These are the 2 quantities:
 
@@ -226,14 +226,14 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 [Related commands:]
 
 "fix bond/break"_fix_bond_break.html, "fix
-bond/swap"_fix_bond_swap.html, "dump local"_dump.html,
-"special_bonds"_special_bonds.html
+bond/react"_fix_bond_react.html, "fix bond/swap"_fix_bond_swap.html,
+"dump local"_dump.html, "special_bonds"_special_bonds.html
 
 [Default:]
 

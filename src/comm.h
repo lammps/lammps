@@ -112,6 +112,9 @@ class Comm : protected Pointers {
   int read_lines_from_file(FILE *, int, int, char *);
   int read_lines_from_file_universe(FILE *, int, int, char *);
 
+  // extract data useful to other classes
+  virtual void *extract(const char *, int &) {return NULL;}
+
  protected:
   int bordergroup;           // only communicate this group in borders
 

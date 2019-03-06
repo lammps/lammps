@@ -1698,7 +1698,7 @@ void Thermo::compute_timeremain()
 
 void Thermo::compute_atoms()
 {
-  bivalue = atom->natoms;
+  bivalue = group->count_all();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -559,7 +559,7 @@ void FixAveHisto::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveHisto::setup(int vflag)
+void FixAveHisto::setup(int /*vflag*/)
 {
   end_of_step();
 }
@@ -937,7 +937,7 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix ave/histo file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix ave/histo file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }

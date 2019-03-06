@@ -24,7 +24,7 @@ PairREBO::PairREBO(LAMMPS *lmp) : PairAIREBO(lmp) {}
    global settings
 ------------------------------------------------------------------------- */
 
-void PairREBO::settings(int narg, char **arg)
+void PairREBO::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

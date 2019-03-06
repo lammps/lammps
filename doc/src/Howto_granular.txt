@@ -1,0 +1,57 @@
+"Higher level section"_Howto.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Granular models :h3
+
+Granular system are composed of spherical particles with a diameter,
+as opposed to point particles.  This means they have an angular
+velocity and torque can be imparted to them to cause them to rotate.
+
+To run a simulation of a granular model, you will want to use
+the following commands:
+
+"atom_style sphere"_atom_style.html
+"fix nve/sphere"_fix_nve_sphere.html
+"fix gravity"_fix_gravity.html :ul
+
+This compute
+
+"compute erotate/sphere"_compute_erotate_sphere.html :ul
+
+calculates rotational kinetic energy which can be "output with
+thermodynamic info"_Howto_output.html.
+
+Use one of these 3 pair potentials, which compute forces and torques
+between interacting pairs of particles:
+
+"pair_style"_pair_style.html gran/history
+"pair_style"_pair_style.html gran/no_history
+"pair_style"_pair_style.html gran/hertzian :ul
+
+These commands implement fix options specific to granular systems:
+
+"fix freeze"_fix_freeze.html
+"fix pour"_fix_pour.html
+"fix viscous"_fix_viscous.html
+"fix wall/gran"_fix_wall_gran.html :ul
+
+The fix style {freeze} zeroes both the force and torque of frozen
+atoms, and should be used for granular system instead of the fix style
+{setforce}.
+
+For computational efficiency, you can eliminate needless pairwise
+computations between frozen atoms by using this command:
+
+"neigh_modify"_neigh_modify.html exclude :ul
+
+NOTE: By default, for 2d systems, granular particles are still modeled
+as 3d spheres, not 2d discs (circles), meaning their moment of inertia
+will be the same as in 3d.  If you wish to model granular particles in
+2d as 2d discs, see the note on this topic on the "Howto 2d"_Howto_2d.html
+doc page, where 2d simulations are discussed.

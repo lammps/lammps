@@ -205,7 +205,7 @@ void BondHarmonicShiftCut::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonicShiftCut::single(int type, double rsq, int i, int j,
+double BondHarmonicShiftCut::single(int type, double rsq, int /*i*/, int /*j*/,
                                     double &fforce)
 {
   fforce = 0.0;

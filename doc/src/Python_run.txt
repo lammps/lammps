@@ -1,9 +1,9 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -31,7 +31,7 @@ language is, and that it can be run interactively, enabling rapid
 development and debugging.  If you use it to mostly invoke costly
 operations within LAMMPS, such as running a simulation for a
 reasonable number of timesteps, then the overhead cost of invoking
-LAMMPS thru Python will be negligible.
+LAMMPS through Python will be negligible.
 
 The Python wrapper for LAMMPS uses the "ctypes" package in Python,
 which auto-generates the interface code needed between Python and a

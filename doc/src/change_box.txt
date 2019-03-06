@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -75,9 +75,9 @@ The "create_box"_create_box.html, "read data"_read_data.html, and
 simulation box is orthogonal or triclinic and their doc pages explain
 the meaning of the xy,xz,yz tilt factors.
 
-See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
-for a geometric description of triclinic boxes, as defined by LAMMPS,
-and how to transform these parameters to and from other commonly used
+See the "Howto triclinic"_Howto_triclinic.html doc page for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
 triclinic representations.
 
 The keywords used in this command are applied sequentially to the
@@ -140,8 +140,8 @@ transformation in the sequence.  If skew is exceeded before the final
 transformation this can be avoided by changing the order of the
 sequence, or breaking the transformation into two or more smaller
 transformations.  For more information on the allowed limits for box
-skew see the discussion on triclinic boxes on "this
-page"_Section_howto.html#howto_12.
+skew see the discussion on triclinic boxes on "Howto
+triclinic"_Howto_triclinic.html doc page.
 
 :line
 
@@ -258,9 +258,7 @@ command.
 :line
 
 The {ortho} and {triclinic} keywords convert the simulation box to be
-orthogonal or triclinic (non-orthogonal).  See "this
-section"_Section_howto#howto_13 for a discussion of how non-orthogonal
-boxes are represented in LAMMPS.
+orthogonal or triclinic (non-orthogonal).
 
 The simulation box is defined as either orthogonal or triclinic when
 it is created via the "create_box"_create_box.html,
@@ -271,8 +269,8 @@ These keywords allow you to toggle the existing simulation box from
 orthogonal to triclinic and vice versa.  For example, an initial
 equilibration simulation can be run in an orthogonal box, the box can
 be toggled to triclinic, and then a "non-equilibrium MD (NEMD)
-simulation"_Section_howto.html#howto_13 can be run with deformation
-via the "fix deform"_fix_deform.html command.
+simulation"_Howto_nemd.html can be run with deformation via the "fix
+deform"_fix_deform.html command.
 
 If the simulation box is currently triclinic and has non-zero tilt in
 xy, yz, or xz, then it cannot be converted to an orthogonal box.

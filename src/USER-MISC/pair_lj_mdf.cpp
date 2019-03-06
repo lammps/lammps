@@ -82,7 +82,7 @@ void PairLJMDF::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
-  
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -109,7 +109,7 @@ void PairLJMDF::compute(int eflag, int vflag)
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 
         if (rsq > cut_inner_sq[itype][jtype]) {
-          philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);  
+          philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 
           rr = sqrt(rsq);
           dp = (cut[itype][jtype] - cut_inner[itype][jtype]);
@@ -352,9 +352,9 @@ void PairLJMDF::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJMDF::single(int i, int j, int itype, int jtype,
+double PairLJMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
-                             double factor_coul, double factor_lj,
+                             double /*factor_coul*/, double factor_lj,
                              double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;

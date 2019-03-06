@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -26,7 +26,7 @@ fix 2 all tune/kspace 100 :pre
 This fix tests each kspace style (Ewald, PPPM, and MSM), and
 automatically selects the fastest style to use for the remainder
 of the run. If the fastest style is Ewald or PPPM, the fix also
-adjusts the coulomb cutoff towards optimal speed. Future versions
+adjusts the Coulombic cutoff towards optimal speed. Future versions
 of this fix will automatically select other kspace parameters
 to use for maximum simulation speed. The kspace parameters may
 include the style, cutoff, grid points in each direction, order,
@@ -55,7 +55,7 @@ inordinate amount of wall time to complete. An N of 100 for most problems
 seems reasonable. Once an optimal parameter set is found, that set is
 used for the remainder of the run.
 
-This fix uses heristics to guide it's selection of parameter sets to test,
+This fix uses heuristics to guide it's selection of parameter sets to test,
 but the actual timed results will be used to decide which set to use in the
 simulation.
 
@@ -79,12 +79,15 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the KSPACE package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+This fix is part of the KSPACE package.  It is only enabled if LAMMPS
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
+
+This fix is not compatible with a hybrid pair style, long-range dispersion,
+TIP4P water support, or long-range point dipole support.
 
 [Related commands:]
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -156,12 +156,11 @@ integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar energy and a global 3-length vector
 of forces, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar energy is the sum
-of energy interactions for all particles interacting with the wall
-represented by the region surface.  The 3 vector quantities are the
-x,y,z components of the total force acting on the wall due to the
-particles.  The scalar and vector values calculated by this fix are
-"extensive".
+commands"_Howto_output.html.  The scalar energy is the sum of energy
+interactions for all particles interacting with the wall represented
+by the region surface.  The 3 vector quantities are the x,y,z
+components of the total force acting on the wall due to the particles.
+The scalar and vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

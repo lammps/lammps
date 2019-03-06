@@ -590,7 +590,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
    return symmetric inertia tensor as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
-void inertia_triangle(double *idiag, double *quat, double mass,
+void inertia_triangle(double *idiag, double *quat, double /*mass*/,
                       double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];

@@ -40,7 +40,7 @@ namespace user_manifold {
       nn[2] = 2*x[2];
     }
 
-    virtual void   H( double *x, double h[3][3] )
+    virtual void   H( double * /*x*/, double h[3][3] )
     {
       h[0][1] = h[0][2] = h[1][0] = h[1][2] = h[2][0] = h[2][1] = 0.0;
       h[0][0] = h[1][1] = h[2][2] = 2.0;

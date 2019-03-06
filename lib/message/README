@@ -1,0 +1,51 @@
+This directory contains the CSlib library which is required
+to use the MESSAGE package and its client/server commands
+in a LAMMPS input script.
+
+The CSlib libary is included in the LAMMPS distribution.  A fuller
+version including documentation and test programs is available at
+http://cslib.sandia.gov.  It was developed by Steve Plimpton at Sandia
+National Laboratories.
+
+You can type "make lib-message" from the src directory to see help on
+how to build this library via make commands, or you can do the same
+thing by typing "python Install.py" from within this directory, or you
+can do it manually by following the instructions below.
+
+The CSlib can be optionally built with support for sockets using
+the open-source ZeroMQ (ZMQ) library.  If it is not installed
+on your system, it is easy to download and install.
+
+Go to the ZMQ website for details: http://zeromq.org
+
+-----------------
+
+Instructions:
+
+1.  Compile CSlib from within cslib/src with one of the following:
+    % make lib_parallel     # build parallel library with ZMQ socket support
+    % make lib_serial       # build serial library with ZMQ support
+    % make lib_parallel zmq=no   # build parallel lib with no ZMQ support
+    % make lib_serial zmq=no     # build serial lib with no ZMQ support
+
+2.  Copy the produced cslib/src/libcsmpi.a or libscnompi.a file to
+    cslib/src/libmessage.a
+
+3.  Copy either lib/message/Makefile.lammps.zmq or Makefile.lammps.nozmq
+    to lib/message/Makefile.lammps, depending on whether you
+    build the library with ZMQ support or not.
+    If your ZMQ library is not in a place your shell path finds,
+    you can set the INCLUDE and PATH variables in Makefile.lammps
+    to point to the dirs where the ZMQ include and library files are.
+
+-----------------
+
+When these steps are complete you can build LAMMPS
+with the MESSAGAE package installed:
+
+% cd lammps/src
+% make yes-message
+% make mpi (or whatever target you wish)
+
+Note that if you download and unpack a new LAMMPS tarball, you will
+need to re-build the CSlib in this dir.

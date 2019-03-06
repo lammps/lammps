@@ -36,11 +36,11 @@ void Reset_Atoms( reax_system* system, control_params *control )
   reax_atom *atom;
 
   system->numH = 0;
-  if( control->hbond_cut > 0 )
+  if (control->hbond_cut > 0)
     for( i = 0; i < system->n; ++i ) {
       atom = &(system->my_atoms[i]);
       if (atom->type < 0) continue;
-      if( system->reax_param.sbp[ atom->type ].p_hbond == 1 )
+      if (system->reax_param.sbp[ atom->type ].p_hbond == 1)
         atom->Hindex = system->numH++;
       else atom->Hindex = -1;
     }
@@ -87,7 +87,7 @@ void Reset_Pressures( simulation_data *data )
 }
 
 
-void Reset_Simulation_Data( simulation_data* data, int virial )
+void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
 {
   Reset_Energies( &data->my_en );
   Reset_Energies( &data->sys_en );
@@ -127,7 +127,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
   reax_list *bonds, *hbonds;
 
   /* bonds list */
-  if( system->N > 0 ){
+  if (system->N > 0) {
     bonds = (*lists) + BONDS;
     total_bonds = 0;
 
@@ -139,9 +139,9 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
 
     /* is reallocation needed? */
-    if( total_bonds >= bonds->num_intrs * DANGER_ZONE ) {
+    if (total_bonds >= bonds->num_intrs * DANGER_ZONE) {
       workspace->realloc.bonds = 1;
-      if( total_bonds >= bonds->num_intrs ) {
+      if (total_bonds >= bonds->num_intrs) {
         fprintf(stderr,
                 "p%d: not enough space for bonds! total=%d allocated=%d\n",
                 system->my_rank, total_bonds, bonds->num_intrs );
@@ -150,14 +150,14 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
   }
 
-  if( control->hbond_cut > 0 && system->numH > 0 ) {
+  if (control->hbond_cut > 0 && system->numH > 0) {
     hbonds = (*lists) + HBONDS;
     total_hbonds = 0;
 
     /* reset start-end indexes */
     for( i = 0; i < system->n; ++i ) {
       Hindex = system->my_atoms[i].Hindex;
-      if( Hindex > -1 ) {
+      if (Hindex > -1) {
         Set_Start_Index( Hindex, total_hbonds, hbonds );
         Set_End_Index( Hindex, total_hbonds, hbonds );
         total_hbonds += system->my_atoms[i].num_hbonds;
@@ -165,9 +165,9 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
 
     /* is reallocation needed? */
-    if( total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/ ) {
+    if (total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/) {
       workspace->realloc.hbonds = 1;
-      if( total_hbonds >= hbonds->num_intrs ) {
+      if (total_hbonds >= hbonds->num_intrs) {
         fprintf(stderr,
                 "p%d: not enough space for hbonds! total=%d allocated=%d\n",
                 system->my_rank, total_hbonds, hbonds->num_intrs );

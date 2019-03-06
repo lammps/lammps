@@ -1,12 +1,14 @@
 <!-- HTML_ONLY -->
-<
+<HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="16 Jul 2018 version">
+<META NAME="docnumber" CONTENT="28 Feb 2019 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation. This software and manual is distributed under the GNU General Public License.">
 </HEAD>
 
 <BODY>
+
+<H1></H1>
 
 <!-- END_HTML_ONLY -->
 
@@ -14,121 +16,76 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html#comm)
 
 :line
 
 LAMMPS Documentation :c,h1
-16 Jul 2018 version :c,h2
+28 Feb 2019 version :c,h2
 
-Version info: :h3
-
-The LAMMPS "version" is the date when it was released, such as 1 May
-2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a
-feature, we release it immediately, and post a notice on "this page of
-the WWW site"_bug. Every 2-4 months one of the incremental releases
-is subjected to more thorough testing and labeled as a {stable} version.
-
-Each dated copy of LAMMPS contains all the
-features and bug-fixes up to and including that version date. The
-version date is printed to the screen and logfile every time you run
-LAMMPS. It is also in the file src/version.h and in the LAMMPS
-directory name created when you unpack a tarball, and at the top of
-the first page of the manual (this page).
-
-If you browse the HTML doc pages on the LAMMPS WWW site, they always
-describe the most current [development] version of LAMMPS. :ulb,l
-
-If you browse the HTML doc pages included in your tarball, they
-describe the version you have. :l
-
-The "PDF file"_Manual.pdf on the WWW site or in the tarball is updated
-about once per month.  This is because it is large, and we don't want
-it to be part of every patch. :l
-
-There is also a "Developer.pdf"_Developer.pdf file in the doc
-directory, which describes the internal structure and algorithms of
-LAMMPS.  :l
-:ule
+"What is a LAMMPS version?"_Manual_version.html
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
 
-LAMMPS is a classical molecular dynamics simulation code designed to
-run efficiently on parallel computers.  It was developed at Sandia
-National Laboratories, a US Department of Energy facility, with
-funding from the DOE.  It is an open-source code, distributed freely
-under the terms of the GNU Public License (GPL).
+LAMMPS is a classical molecular dynamics simulation code with a focus
+on materials modeling.  It was designed to run efficiently on parallel
+computers.  It was developed originally at Sandia National
+Laboratories, a US Department of Energy facility.  The majority of
+funding for LAMMPS has come from the US Department of Energy (DOE).
+LAMMPS is an open-source code, distributed freely under the terms of
+the GNU Public License (GPL).
 
-The current core group of LAMMPS developers is at Sandia National
-Labs and Temple University:
-
-"Steve Plimpton"_sjp, sjplimp at sandia.gov :ulb,l
-Aidan Thompson, athomps at sandia.gov :l
-Stan Moore, stamoor at sandia.gov :l
-"Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
-:ule
-
-Past core developers include Paul Crozier, Ray Shan and Mark Stevens,
-all at Sandia. The [LAMMPS home page] at
-"http://lammps.sandia.gov"_http://lammps.sandia.gov has more information
-about the code and its uses. Interaction with external LAMMPS developers,
-bug reports and feature requests are mainly coordinated through the
-"LAMMPS project on GitHub."_https://github.com/lammps/lammps
-The lammps.org domain, currently hosting "public continuous integration
-testing"_https://ci.lammps.org/job/lammps/ and "precompiled Linux
-RPM and Windows installer packages"_http://packages.lammps.org is located
-at Temple University and managed by Richard Berger,
-richard.berger at temple.edu.
-
-:link(bug,http://lammps.sandia.gov/bug.html)
-:link(sjp,http://www.sandia.gov/~sjplimp)
-:link(ako,http://goo.gl/1wk0)
+The "LAMMPS website"_lws has a variety of information about the code.
+It includes links to an on-line version of this manual, a "mailing
+list"_http://lammps.sandia.gov/mail.html where users can post
+questions, and a "GitHub site"_https://github.com/lammps/lammps where
+all LAMMPS development is coordinated.
 
 :line
 
-The LAMMPS documentation is organized into the following sections.  If
-you find errors or omissions in this manual or have suggestions for
-useful information to add, please send an email to the developers so
-we can improve the LAMMPS documentation.
+The content for this manual is part of the LAMMPS distribution.  You
+can build a local copy of the Manual as HTML pages or a PDF file, by
+following the steps on the "Manual build"_Manual_build.html doc page.
+There is also a "Developer.pdf"_Developer.pdf document which gives
+a brief description of the basic code structure of LAMMPS.
+
+:line
 
 Once you are familiar with LAMMPS, you may want to bookmark "this
-page"_Section_commands.html#comm at Section_commands.html#comm since
-it gives quick access to documentation for all LAMMPS commands.
-
-"PDF file"_Manual.pdf of the entire manual, generated by
-"htmldoc"_http://freecode.com/projects/htmldoc
+page"_Commands.html since it gives quick access to a doc page for
+every LAMMPS command.
 
 <!-- RST
 
 .. toctree::
    :maxdepth: 2
-   :numbered:
+   :numbered: 3
    :caption: User Documentation
    :name: userdoc
    :includehidden:
 
-   Section_intro
-   Section_start
-   Section_commands
-   Section_packages
-   Section_accelerate
-   Section_howto
+   Intro
+   Install
+   Build
+   Run_head
+   Commands
+   Packages
+   Speed
+   Howto
    Examples
-   Section_perf
    Tools
    Modify
-   Python
+   Python_head
    Errors
-   Section_history
+   Manual_build
 
 .. toctree::
    :caption: Index
    :name: index
    :hidden:
 
-   tutorials
-   commands
+   commands_list
    fixes
    computes
    pairs
@@ -146,138 +103,22 @@ Indices and tables
 END_RST -->
 
 <!-- HTML_ONLY -->
-"Introduction"_Section_intro.html :olb,l
-  1.1 "What is LAMMPS"_intro_1 :ulb,b
-  1.2 "LAMMPS features"_intro_2 :b
-  1.3 "LAMMPS non-features"_intro_3 :b
-  1.4 "Open source distribution"_intro_4 :b
-  1.5 "Acknowledgments and citations"_intro_5 :ule,b
-"Getting started"_Section_start.html :l
-  2.1 "What's in the LAMMPS distribution"_start_1 :ulb,b
-  2.2 "Making LAMMPS"_start_2 :b
-  2.3 "Making LAMMPS with optional packages"_start_3 :b
-  2.4 "Building LAMMPS as a library"_start_4 :b
-  2.5 "Running LAMMPS"_start_5 :b
-  2.6 "Command-line options"_start_6 :b
-  2.7 "Screen output"_start_7 :b
-  2.8 "Tips for users of previous versions"_start_8 :ule,b
-"Commands"_Section_commands.html :l
-  3.1 "LAMMPS input script"_cmd_1 :ulb,b
-  3.2 "Parsing rules"_cmd_2 :b
-  3.3 "Input script structure"_cmd_3 :b
-  3.4 "Commands listed by category"_cmd_4 :b
-  3.5 "Commands listed alphabetically"_cmd_5 :ule,b
-"Packages"_Section_packages.html :l
-  4.1 "Standard packages"_pkg_1 :ulb,b
-  4.2 "User packages"_pkg_2 :ule,b
-"Accelerating LAMMPS performance"_Section_accelerate.html :l
-  5.1 "Measuring performance"_acc_1 :ulb,b
-  5.2 "Algorithms and code options to boost performace"_acc_2 :b
-  5.3 "Accelerator packages with optimized styles"_acc_3 :b
-    5.3.1 "GPU package"_accelerate_gpu.html :b
-    5.3.2 "USER-INTEL package"_accelerate_intel.html :b
-    5.3.3 "KOKKOS package"_accelerate_kokkos.html :b
-    5.3.4 "USER-OMP package"_accelerate_omp.html :b
-    5.3.5 "OPT package"_accelerate_opt.html :b
-  5.4 "Comparison of various accelerator packages"_acc_4 :ule,b
-"How-to discussions"_Section_howto.html :l
-  6.1 "Restarting a simulation"_howto_1 :ulb,b
-  6.2 "2d simulations"_howto_2 :b
-  6.3 "CHARMM and AMBER force fields"_howto_3 :b
-  6.4 "Running multiple simulations from one input script"_howto_4 :b
-  6.5 "Multi-replica simulations"_howto_5 :b
-  6.6 "Granular models"_howto_6 :b
-  6.7 "TIP3P water model"_howto_7 :b
-  6.8 "TIP4P water model"_howto_8 :b
-  6.9 "SPC water model"_howto_9 :b
-  6.10 "Coupling LAMMPS to other codes"_howto_10 :b
-  6.11 "Visualizing LAMMPS snapshots"_howto_11 :b
-  6.12 "Triclinic (non-orthogonal) simulation boxes"_howto_12 :b
-  6.13 "NEMD simulations"_howto_13 :b
-  6.14 "Finite-size spherical and aspherical particles"_howto_14 :b
-  6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_howto_15 :b
-  6.16 "Thermostatting, barostatting, and compute temperature"_howto_16 :b
-  6.17 "Walls"_howto_17 :b
-  6.18 "Elastic constants"_howto_18 :b
-  6.19 "Library interface to LAMMPS"_howto_19 :b
-  6.20 "Calculating thermal conductivity"_howto_20 :b
-  6.21 "Calculating viscosity"_howto_21 :b
-  6.22 "Calculating a diffusion coefficient"_howto_22 :b
-  6.23 "Using chunks to calculate system properties"_howto_23 :b
-  6.24 "Setting parameters for pppm/disp"_howto_24 :b
-  6.25 "Polarizable models"_howto_25 :b
-  6.26 "Adiabatic core/shell model"_howto_26 :b
-  6.27 "Drude induced dipoles"_howto_27 :ule,b
+"Introduction"_Intro.html :olb,l
+"Install LAMMPS"_Install.html :l
+"Build LAMMPS"_Build.html :l
+"Run LAMMPS"_Run_head.html :l
+"Commands"_Commands.html :l
+"Optional packages"_Packages.html :l
+"Accelerate performance"_Speed.html :l
+"How-to discussions"_Howto.html :l
 "Example scripts"_Examples.html :l
-"Performance & scalability"_Section_perf.html :l
 "Auxiliary tools"_Tools.html :l
 "Modify & extend LAMMPS"_Modify.html :l
-"Use Python with LAMMPS"_Python.html :l
+"Use Python with LAMMPS"_Python_head.html :l
 "Errors"_Errors.html :l
-"Future and history"_Section_history.html :l
-  13.1 "Coming attractions"_hist_1 :ulb,b
-  13.2 "Past versions"_hist_2 :ule,b
+"Building the LAMMPS manual"_Manual_build.html :l
 :ole
 
-:link(intro_1,Section_intro.html#intro_1)
-:link(intro_2,Section_intro.html#intro_2)
-:link(intro_3,Section_intro.html#intro_3)
-:link(intro_4,Section_intro.html#intro_4)
-:link(intro_5,Section_intro.html#intro_5)
-
-:link(start_1,Section_start.html#start_1)
-:link(start_2,Section_start.html#start_2)
-:link(start_3,Section_start.html#start_3)
-:link(start_4,Section_start.html#start_4)
-:link(start_5,Section_start.html#start_5)
-:link(start_6,Section_start.html#start_6)
-:link(start_7,Section_start.html#start_7)
-:link(start_8,Section_start.html#start_8)
-
-:link(cmd_1,Section_commands.html#cmd_1)
-:link(cmd_2,Section_commands.html#cmd_2)
-:link(cmd_3,Section_commands.html#cmd_3)
-:link(cmd_4,Section_commands.html#cmd_4)
-:link(cmd_5,Section_commands.html#cmd_5)
-
-:link(pkg_1,Section_packages.html#pkg_1)
-:link(pkg_2,Section_packages.html#pkg_2)
-
-:link(acc_1,Section_accelerate.html#acc_1)
-:link(acc_2,Section_accelerate.html#acc_2)
-:link(acc_3,Section_accelerate.html#acc_3)
-:link(acc_4,Section_accelerate.html#acc_4)
-
-:link(howto_1,Section_howto.html#howto_1)
-:link(howto_2,Section_howto.html#howto_2)
-:link(howto_3,Section_howto.html#howto_3)
-:link(howto_4,Section_howto.html#howto_4)
-:link(howto_5,Section_howto.html#howto_5)
-:link(howto_6,Section_howto.html#howto_6)
-:link(howto_7,Section_howto.html#howto_7)
-:link(howto_8,Section_howto.html#howto_8)
-:link(howto_9,Section_howto.html#howto_9)
-:link(howto_10,Section_howto.html#howto_10)
-:link(howto_11,Section_howto.html#howto_11)
-:link(howto_12,Section_howto.html#howto_12)
-:link(howto_13,Section_howto.html#howto_13)
-:link(howto_14,Section_howto.html#howto_14)
-:link(howto_15,Section_howto.html#howto_15)
-:link(howto_16,Section_howto.html#howto_16)
-:link(howto_17,Section_howto.html#howto_17)
-:link(howto_18,Section_howto.html#howto_18)
-:link(howto_19,Section_howto.html#howto_19)
-:link(howto_20,Section_howto.html#howto_20)
-:link(howto_21,Section_howto.html#howto_21)
-:link(howto_22,Section_howto.html#howto_22)
-:link(howto_23,Section_howto.html#howto_23)
-:link(howto_24,Section_howto.html#howto_24)
-:link(howto_25,Section_howto.html#howto_25)
-:link(howto_26,Section_howto.html#howto_26)
-:link(howto_27,Section_howto.html#howto_27)
-
-:link(hist_1,Section_history.html#hist_1)
-:link(hist_2,Section_history.html#hist_2)
 <!-- END_HTML_ONLY -->
 
 </BODY>

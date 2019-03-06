@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -49,8 +49,8 @@ Define a computation that simply stores rigid body attributes for
 rigid bodies defined by the "fix rigid/small"_fix_rigid.html command
 or one of its NVE, NVT, NPT, NPH variants.  The data is stored as
 local data so it can be accessed by other "output
-commands"_Section_howto.html#howto_15 that process local data, such as
-the "compute reduce"_compute_reduce.html or "dump local"_dump.html
+commands"_Howto_output.html that process local data, such as the
+"compute reduce"_compute_reduce.html or "dump local"_dump.html
 commands.
 
 Note that this command only works with the "fix
@@ -92,7 +92,7 @@ dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_1\[4\] c_1\[5\
 
 This section explains the rigid body attributes that can be specified.
 
-The {id} attribute is the atomID of the atom which owns the rigid body, which is
+The {id} attribute is the atom-ID of the atom which owns the rigid body, which is
 assigned by the "fix rigid/small"_fix_rigid.html command.
 
 The {mol} attribute is the molecule ID of the rigid body.  It should
@@ -106,8 +106,8 @@ There are two options for outputting the coordinates of the center of
 mass (COM) of the body.  The {x}, {y}, {z} attributes write the COM
 "unscaled", in the appropriate distance "units"_units.html (Angstroms,
 sigma, etc).  Use {xu}, {yu}, {zu} if you want the COM "unwrapped" by
-the image flags for each atobody.  Unwrapped means that if the body
-COM has passed thru a periodic boundary one or more times, the value
+the image flags for each body.  Unwrapped means that if the body
+COM has passed through a periodic boundary one or more times, the value
 is generated what the COM coordinate would be if it had not been
 wrapped back into the periodic box.
 
@@ -154,9 +154,9 @@ array is the number of rigid bodies.  If a single keyword is
 specified, a local vector is produced.  If two or more keywords are
 specified, a local array is produced where the number of columns = the
 number of keywords.  The vector or array can be accessed by any
-command that uses local values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+command that uses local values from a compute as input.  See the
+"Howto output"_Howto_output.html doc page for an overview of LAMMPS
+output options.
 
 The vector or array values will be in whatever "units"_units.html the
 corresponding attribute is in:
@@ -175,8 +175,8 @@ inertiax,inertiay,inertiaz = mass*distance^2 units :ul
 [Restrictions:]
 
 This compute is part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

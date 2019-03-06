@@ -1,0 +1,148 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+units		real
+atom_style	full
+
+read_data	data.spce
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  4500 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  3000 bonds
+  reading angles ...
+  1500 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+pair_style	python 12.0
+pair_coeff	* * py_pot.LJCutSPCE OW HW
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 1.0
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  2 = max # of special neighbors
+
+neighbor        2.0 bin
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  1500 = # of frozen angles
+fix		2 all nvt temp 300.0 300.0 100.0
+
+# create only lj/cut table for the oxygen atoms from python
+shell rm -f spce.table
+WARNING: Shell command 'rm' failed with error 'No such file or directory' (src/input.cpp:1308)
+WARNING: Shell command 'rm' failed with error 'No such file or directory' (src/input.cpp:1308)
+pair_write      1 1 2000 rsq 0.1 12 spce.table OW-OW
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair python, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+
+# switch to tabulated potential with long-range coulomb as overlay
+pair_style      hybrid/overlay coul/long 12.0 table linear 2000
+kspace_style	pppm 1.0e-6
+pair_coeff      * * coul/long
+pair_coeff      1 1 table spce.table OW-OW
+WARNING: 1 of 2000 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:481)
+
+thermo 10
+run 100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:321)
+  G vector (1/distance) = 0.279652
+  grid = 40 40 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000394674
+  estimated relative force accuracy = 1.18855e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 34263 16000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair table, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 13.5 | 13.5 | 13.5 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -16690.019            0   -16690.019   -1268.9124 
+      10    120.58553   -17767.489            0   -16689.521   -4063.8136 
+      20    136.11736   -17882.538            0   -16665.724   -5124.6194 
+      30    137.00764   -17872.302            0   -16647.529   -5337.1515 
+      40    153.38867   -17999.256            0   -16628.046   -5213.5616 
+      50    167.70342   -18103.046            0    -16603.87   -4460.6216 
+      60    163.07134   -18034.842            0   -16577.074   -3284.9621 
+      70    169.59286   -18064.622            0   -16548.556   -2606.3642 
+      80    182.92892   -18153.485            0   -16518.202   -2385.4747 
+      90     191.2793   -18195.343            0   -16485.411   -2235.3292 
+     100    194.68587   -18192.446            0   -16452.061   -1948.3379 
+Loop time of 2.26946 on 4 procs for 100 steps with 4500 atoms
+
+Performance: 3.807 ns/day, 6.304 hours/ns, 44.063 timesteps/s
+95.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.4676     | 1.53       | 1.6054     |   4.5 | 67.42
+Bond    | 9.7752e-05 | 0.00012088 | 0.00013947 |   0.0 |  0.01
+Kspace  | 0.51974    | 0.59375    | 0.65496    |   7.2 | 26.16
+Neigh   | 0.075271   | 0.075279   | 0.075287   |   0.0 |  3.32
+Comm    | 0.028602   | 0.029937   | 0.031052   |   0.5 |  1.32
+Output  | 0.00035477 | 0.00062722 | 0.0014365  |   0.0 |  0.03
+Modify  | 0.03581    | 0.035956   | 0.036059   |   0.1 |  1.58
+Other   |            | 0.003819   |            |       |  0.17
+
+Nlocal:    1125 ave 1154 max 1092 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+Nghost:    12256.2 ave 12296 max 12213 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+Neighs:    650442 ave 678830 max 626373 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+
+Total # of neighbors = 2601768
+Ave neighs/atom = 578.171
+Ave special neighs/atom = 2
+Neighbor list builds = 3
+Dangerous builds = 0
+
+shell rm spce.table
+
+Total wall time: 0:00:02

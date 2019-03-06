@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -12,7 +12,6 @@ pair_style morse/omp command :h3
 pair_style morse/opt command :h3
 pair_style morse/smooth/linear command :h3
 pair_style morse/smooth/linear/omp command :h3
-pair_style morse/soft command :h3
 pair_style morse/kk command :h3
 
 [Syntax:]
@@ -25,10 +24,6 @@ args = list of arguments for a particular style :ul
    cutoff = global cutoff for Morse interactions (distance units)
  {morse/smooth/linear} args = cutoff
    cutoff = global cutoff for Morse interactions (distance units)
- {morse/soft} args = n lf cutoff
-   n       = soft-core parameter
-   lf      = transformation range is lf < lambda < 1
-   cutoff  = global cutoff for Morse interactions (distance units)
 :pre
 
 [Examples:]
@@ -37,10 +32,6 @@ pair_style morse 2.5
 pair_style morse/smooth/linear 2.5
 pair_coeff * * 100.0 2.0 1.5
 pair_coeff 1 1 100.0 2.0 1.5 3.0 :pre
-
-pair_style morse/soft 4 0.9 10.0
-pair_coeff * * 100.0 2.0 1.5 1.0
-pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0 :pre
 
 [Description:]
 
@@ -77,47 +68,33 @@ the {morse} and {morse/smooth/linear} styles.
 
 :line
 
-The {morse/soft} variant is similar to the {lj/cut/soft} pair style
-in that it modifies the potential at short range to have a soft core.
-This helps to avoid singularities during free energy calculation in
-which sites are created or annihilated. The formula differs from that
-of {lj/cut/soft}, and is instead given by:
-
-:c,image(Eqs/pair_morse_soft.jpg)
-
-The {morse/soft} style requires the following pair coefficients:
-
-D0 (energy units)
-alpha (1/distance units)
-r0 (distance units)
-lamda (unitless, between 0.0 and 1.0)
-cutoff (distance units) :ul
-
-The last coefficient is optional.  If not specified, the global morse
-cutoff is used.
+A version of the {morse} style with a soft core, {morse/soft}, suitable for use in
+free energy calculations, is part of the USER-FEP package and is documented with
+the "pair_fep_soft"_pair_fep_soft.html styles. The version with soft core is only
+available if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 :line
 
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -149,15 +126,11 @@ These pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 The {morse/smooth/linear} pair style is only enabled if LAMMPS was
-built with the USER-MISC package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
-
-The {morse/soft} pair style is only enabled if LAMMPS was built with
-the USER-FEP package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with the USER-MISC package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_fep_soft"_pair_fep_soft.html
 
 [Default:] none

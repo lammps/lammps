@@ -1,0 +1,80 @@
+"Higher level section"_Howto.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Walls :h3
+
+Walls in an MD simulation are typically used to bound particle motion,
+i.e. to serve as a boundary condition.
+
+Walls in LAMMPS can be of rough (made of particles) or idealized
+surfaces.  Ideal walls can be smooth, generating forces only in the
+normal direction, or frictional, generating forces also in the
+tangential direction.
+
+Rough walls, built of particles, can be created in various ways.  The
+particles themselves can be generated like any other particle, via the
+"lattice"_lattice.html and "create_atoms"_create_atoms.html commands,
+or read in via the "read_data"_read_data.html command.
+
+Their motion can be constrained by many different commands, so that
+they do not move at all, move together as a group at constant velocity
+or in response to a net force acting on them, move in a prescribed
+fashion (e.g. rotate around a point), etc.  Note that if a time
+integration fix like "fix nve"_fix_nve.html or "fix nvt"_fix_nh.html
+is not used with the group that contains wall particles, their
+positions and velocities will not be updated.
+
+"fix aveforce"_fix_aveforce.html - set force on particles to average value, so they move together
+"fix setforce"_fix_setforce.html - set force on particles to a value, e.g. 0.0
+"fix freeze"_fix_freeze.html - freeze particles for use as granular walls
+"fix nve/noforce"_fix_nve_noforce.html - advect particles by their velocity, but without force
+"fix move"_fix_move.html - prescribe motion of particles by a linear velocity, oscillation, rotation, variable :ul
+
+The "fix move"_fix_move.html command offers the most generality, since
+the motion of individual particles can be specified with
+"variable"_variable.html formula which depends on time and/or the
+particle position.
+
+For rough walls, it may be useful to turn off pairwise interactions
+between wall particles via the "neigh_modify
+exclude"_neigh_modify.html command.
+
+Rough walls can also be created by specifying frozen particles that do
+not move and do not interact with mobile particles, and then tethering
+other particles to the fixed particles, via a "bond"_bond_style.html.
+The bonded particles do interact with other mobile particles.
+
+Idealized walls can be specified via several fix commands.  "Fix
+wall/gran"_fix_wall_gran.html creates frictional walls for use with
+granular particles; all the other commands create smooth walls.
+
+"fix wall/reflect"_fix_wall_reflect.html - reflective flat walls
+"fix wall/lj93"_fix_wall.html - flat walls, with Lennard-Jones 9/3 potential
+"fix wall/lj126"_fix_wall.html - flat walls, with Lennard-Jones 12/6 potential
+"fix wall/colloid"_fix_wall.html - flat walls, with "pair_style colloid"_pair_colloid.html potential
+"fix wall/harmonic"_fix_wall.html - flat walls, with repulsive harmonic spring potential
+"fix wall/region"_fix_wall_region.html - use region surface as wall
+"fix wall/gran"_fix_wall_gran.html - flat or curved walls with "pair_style granular"_pair_gran.html potential :ul
+
+The {lj93}, {lj126}, {colloid}, and {harmonic} styles all allow the
+flat walls to move with a constant velocity, or oscillate in time.
+The "fix wall/region"_fix_wall_region.html command offers the most
+generality, since the region surface is treated as a wall, and the
+geometry of the region can be a simple primitive volume (e.g. a
+sphere, or cube, or plane), or a complex volume made from the union
+and intersection of primitive volumes.  "Regions"_region.html can also
+specify a volume "interior" or "exterior" to the specified primitive
+shape or {union} or {intersection}.  "Regions"_region.html can also be
+"dynamic" meaning they move with constant velocity, oscillate, or
+rotate.
+
+The only frictional idealized walls currently in LAMMPS are flat or
+curved surfaces specified by the "fix wall/gran"_fix_wall_gran.html
+command.  At some point we plan to allow regoin surfaces to be used as
+frictional walls, as well as triangulated surfaces.

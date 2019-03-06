@@ -1416,11 +1416,7 @@ void PairSNAP::settings(int narg, char **arg)
 
 void PairSNAP::coeff(int narg, char **arg)
 {
-  // read SNAP element names between 2 filenames
-  // nelements = # of SNAP elements
-  // elements = list of unique element names
-
-  if (narg < 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   if (nelements) {
@@ -1432,29 +1428,16 @@ void PairSNAP::coeff(int narg, char **arg)
     memory->destroy(coeffelem);
   }
 
-  nelements = narg - 4 - atom->ntypes;
-  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
-
   char* type1 = arg[0];
   char* type2 = arg[1];
   char* coefffilename = arg[2];
-  char** elemlist = &arg[3];
-  char* paramfilename = arg[3+nelements];
-  char** elemtypes = &arg[4+nelements];
+  char* paramfilename = arg[3];
+  char** elemtypes = &arg[4];
 
   // insure I,J args are * *
 
   if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
-
-  elements = new char*[nelements];
-
-  for (int i = 0; i < nelements; i++) {
-    char* elemname = elemlist[i];
-    int n = strlen(elemname) + 1;
-    elements[i] = new char[n];
-    strcpy(elements[i],elemname);
-  }
 
   // read snapcoeff and snapparam files
 
@@ -1591,7 +1574,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     fpcoeff = force->open_potential(coefffilename);
     if (fpcoeff == NULL) {
       char str[128];
-      sprintf(str,"Cannot open SNAP coefficient file %s",coefffilename);
+      snprintf(str,128,"Cannot open SNAP coefficient file %s",coefffilename);
       error->one(FLERR,str);
     }
   }
@@ -1631,22 +1614,19 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   iword = 1;
   words[iword] = strtok(NULL,"' \t\n\r\f");
 
-  int nelemfile = atoi(words[0]);
+  nelements = atoi(words[0]);
   ncoeffall = atoi(words[1]);
 
-  // Set up element lists
+  // set up element lists
 
+  elements = new char*[nelements];
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
 
-  int *found = new int[nelements];
-  for (int ielem = 0; ielem < nelements; ielem++)
-    found[ielem] = 0;
+  // Loop over nelements blocks in the SNAP coefficient file
 
-  // Loop over elements in the SNAP coefficient file
-
-  for (int ielemfile = 0; ielemfile < nelemfile; ielemfile++) {
+  for (int ielem = 0; ielem < nelements; ielem++) {
 
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
@@ -1673,33 +1653,12 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     words[iword] = strtok(NULL,"' \t\n\r\f");
 
     char* elemtmp = words[0];
-    double radtmp = atof(words[1]);
-    double wjtmp = atof(words[2]);
+    int n = strlen(elemtmp) + 1;
+    elements[ielem] = new char[n];
+    strcpy(elements[ielem],elemtmp);
 
-    // skip if element name isn't in element list
-
-    int ielem;
-    for (ielem = 0; ielem < nelements; ielem++)
-      if (strcmp(elemtmp,elements[ielem]) == 0) break;
-    if (ielem == nelements) {
-      if (comm->me == 0)
-        for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
-          ptr = fgets(line,MAXLINE,fpcoeff);
-      continue;
-    }
-
-    // skip if element already appeared
-
-    if (found[ielem]) {
-      if (comm->me == 0)
-        for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
-          ptr = fgets(line,MAXLINE,fpcoeff);
-      continue;
-    }
-
-    found[ielem] = 1;
-    radelem[ielem] = radtmp;
-    wjelem[ielem] = wjtmp;
+    radelem[ielem] = atof(words[1]);
+    wjelem[ielem] = atof(words[2]);
 
 
     if (comm->me == 0) {
@@ -1757,7 +1716,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     fpparam = force->open_potential(paramfilename);
     if (fpparam == NULL) {
       char str[128];
-      sprintf(str,"Cannot open SNAP parameter file %s",paramfilename);
+      snprintf(str,128,"Cannot open SNAP parameter file %s",paramfilename);
       error->one(FLERR,str);
     }
   }
@@ -1821,7 +1780,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (rcutfacflag == 0 || twojmaxflag == 0)
     error->all(FLERR,"Incorrect SNAP parameter file");
 
-  delete[] found;
 }
 
 /* ----------------------------------------------------------------------

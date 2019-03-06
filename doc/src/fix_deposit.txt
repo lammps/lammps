@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -116,8 +116,8 @@ side = {in}.
 
 NOTE: LAMMPS checks that the specified region is wholly inside the
 simulation box.  It can do this correctly for orthonormal simulation
-boxes.  However for "triclinic boxes"_Section_howto.html#howto_12, it
-only tests against the larger orthonormal box that bounds the tilted
+boxes.  However for "triclinic boxes"_Howto_triclinic.html, it only
+tests against the larger orthonormal box that bounds the tilted
 simulation box.  If the specified region includes volume outside the
 tilted box, then an insertion will likely fail, leading to a "lost
 atoms" error.  Thus for triclinic boxes you should insure the
@@ -255,7 +255,7 @@ temperature compute you are using.
 
 This fix writes the state of the deposition to "binary restart
 files"_restart.html.  This includes information about how many
-particles have been depositied, the random number generator seed, the
+particles have been deposited, the random number generator seed, the
 next timestep for deposition, etc.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
@@ -263,16 +263,16 @@ operation of the fix continues in an uninterrupted fashion.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various "output commands"_Section_howto.html#howto_15.  No
-parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
+access by various "output commands"_Howto_output.html.  No parameter
+of this fix can be used with the {start/stop} keywords of the
+"run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The specified insertion region cannot be a "dynamic" region, as
 defined by the "region"_region.html command.

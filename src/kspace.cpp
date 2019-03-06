@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
 {
   order_allocated = 0;
   energy = 0.0;
@@ -580,7 +580,11 @@ void KSpace::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal kspace_modify command");
+    } else {
+      int n = modify_param(narg-iarg,&arg[iarg]);
+      if (n == 0) error->all(FLERR,"Illegal kspace_modify command");
+      iarg += n;
+    }
   }
 }
 

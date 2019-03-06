@@ -45,13 +45,17 @@
 
 #ifdef _WIN32
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <winsock2.h>
-#include <Windows.h>
+#include <windows.h>
 
 namespace Kokkos {
   namespace Impl {
+#ifdef _MSC_VER
     _declspec(align(16))
+#endif
     struct cas128_t
     {
       LONGLONG lower;
@@ -60,7 +64,11 @@ namespace Kokkos {
         bool operator != (const cas128_t& a) const {
         return (lower != a.lower) || upper != a.upper;
       }
-    };
+    }
+#ifdef __GNUC__
+    __attribute__ ((aligned (16)))
+#endif
+    ;
   }
 
   template < typename T >

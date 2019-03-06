@@ -264,7 +264,7 @@ void PairOxdna2Dh::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdna2Dh::settings(int narg, char **arg)
+void PairOxdna2Dh::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

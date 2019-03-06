@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -61,7 +61,7 @@ in "(Hecht)"_#Hecht.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
 can be spheroids, ellipsoids, or line segments, or triangles, or rigid
-bodies containing multiple spheriods or ellipsoids or line segments
+bodies containing multiple spheroids or ellipsoids or line segments
 or triangles.  The collision and rotation properties of the model
 imbue the SRD particles with fluid-like properties, including an
 effective viscosity.  Thus simulations with large solute particles can
@@ -117,7 +117,7 @@ Lamda cannot be smaller than 0.6 * hgrid, else an error is generated
 SRD particles are bounded by Vmax, which is set so that an SRD
 particle will not advect further than Dmax = 4*lamda in dt_SRD.  This
 means that roughly speaking, Dmax should not be larger than a big
-particle diameter, else SRDs may pass thru big particles without
+particle diameter, else SRDs may pass through big particles without
 colliding.  A warning is generated if this is the case.
 
 Collisions between SRD particles and big particles or walls are
@@ -341,11 +341,11 @@ are relevant to this fix.
 
 This fix tabulates several SRD statistics which are stored in a vector
 of length 12, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The vector values calculated
-by this fix are "intensive", meaning they do not scale with the size
-of the simulation.  Technically, the first 8 do scale with the size of
-the simulation, but treating them as intensive means they are not
-scaled when printed as part of thermodynamic output.
+commands"_Howto_output.html.  The vector values calculated by this fix
+are "intensive", meaning they do not scale with the size of the
+simulation.  Technically, the first 8 do scale with the size of the
+simulation, but treating them as intensive means they are not scaled
+when printed as part of thermodynamic output.
 
 These are the 12 quantities.  All are values for the current timestep,
 except for quantity 5 and the last three, each of which are
@@ -371,8 +371,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the SRD
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

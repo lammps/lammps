@@ -224,7 +224,8 @@ T AddLoop( int loop ) {
 
   struct AddFunctorReduce< T, execution_space > f_add_red;
   f_add_red.data = data;
-  Kokkos::parallel_reduce( loop, f_add_red );
+  int dummy_result;
+  Kokkos::parallel_reduce( loop, f_add_red , dummy_result );
   execution_space::fence();
 
   return val;
@@ -309,7 +310,8 @@ T CASLoop( int loop ) {
 
   struct CASFunctorReduce< T, execution_space > f_cas_red;
   f_cas_red.data = data;
-  Kokkos::parallel_reduce( loop, f_cas_red );
+  int dummy_result;
+  Kokkos::parallel_reduce( loop, f_cas_red , dummy_result );
   execution_space::fence();
 
   return val;
@@ -401,7 +403,8 @@ T ExchLoop( int loop ) {
   struct ExchFunctorReduce< T, execution_space > f_exch_red;
   f_exch_red.data = data;
   f_exch_red.data2 = data2;
-  Kokkos::parallel_reduce( loop, f_exch_red );
+  int dummy_result;
+  Kokkos::parallel_reduce( loop, f_exch_red , dummy_result );
   execution_space::fence();
 
   return val;
@@ -529,7 +532,7 @@ TEST_F( TEST_CATEGORY, atomics )
   ASSERT_TRUE( ( TestAtomic::Loop< float, TEST_EXECSPACE >( 100, 3 ) ) );
 
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
-#ifndef KOKKOS_ENABLE_ROCM
+#ifndef KOKKOS_ENABLE_ROCM // ROCM doesn't yet support atomics for >64bit types
   ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 1, 1 ) ) );
   ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 1, 2 ) ) );
   ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 1, 3 ) ) );

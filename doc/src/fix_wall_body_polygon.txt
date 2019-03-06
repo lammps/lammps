@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -43,8 +43,8 @@ particles in the group interact with the wall when they are close
 enough to touch it.  The nature of the interaction between the wall
 and the polygon particles is the same as that between the polygon
 particles themselves, which is similar to a Hookean potential.  See
-"Section 6.14"_Section_howto.html#howto_14 of the manual and the
-"body"_body.html doc page for more details on using body particles.
+the "Howto body"_Howto_body.html doc page for more details on using
+body particles.
 
 The parameters {k_n}, {c_n}, {c_t} have the same meaning and units as
 those specified with the "pair_style
@@ -83,16 +83,16 @@ to the derivative of this expression.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various "output commands"_Section_howto.html#howto_15.  No
-parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
+access by various "output commands"_Howto_output.html.  No parameter
+of this fix can be used with the {start/stop} keywords of the
+"run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Any dimension (xy) that has a wall must be non-periodic.
 

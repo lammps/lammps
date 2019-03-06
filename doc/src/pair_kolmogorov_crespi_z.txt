@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -10,7 +10,7 @@ pair_style kolmogorov/crespi/z command :h3
 
 [Syntax:]
 
-pair_style hybrid/overlay kolmogorov/crespi/z cutoff :pre
+pair_style \[hybrid/overlay ...\] kolmogorov/crespi/z cutoff :pre
 
 [Examples:]
 
@@ -30,8 +30,8 @@ which is to take all normals along the z-axis.
 
 :c,image(Eqs/pair_kolmogorov_crespi_z.jpg)
 
-It is important to have a suffiently large cutoff to ensure smooth forces.
-Energies are shifted so that they go continously to zero at the cutoff assuming
+It is important to have a sufficiently large cutoff to ensure smooth forces.
+Energies are shifted so that they go continuously to zero at the cutoff assuming
 that the exponential part of {Vij} (first term) decays sufficiently fast.
 This shift is achieved by the last term in the equation for {Vij} above.
 
@@ -51,14 +51,17 @@ Other interactions can be set to zero using pair_style {none}.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
-"pair_none"_pair_none.html
-"pair_style hybrid/overlay"_pair_hybrid.html
+"pair_coeff"_pair_coeff.html,
+"pair_none"_pair_none.html,
+"pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
+"pair_style kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html,
+"pair_style lebedeva/z"_pair_lebedeva_z.html
 
 [Default:] none
 

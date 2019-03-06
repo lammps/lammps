@@ -178,7 +178,7 @@ int FixEOStableRX::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixEOStableRX::setup(int vflag)
+void FixEOStableRX::setup(int /*vflag*/)
 {
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -309,7 +309,7 @@ void FixEOStableRX::read_file(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open eos table/rx potential file %s",file);
+      snprintf(str,128,"Cannot open eos table/rx potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -419,7 +419,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   FILE *fp = fopen(file,"r");
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 
@@ -803,7 +803,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
 
 /* ---------------------------------------------------------------------- */
 
-int FixEOStableRX::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixEOStableRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   double *uChem = atom->uChem;

@@ -139,7 +139,7 @@ void ComputePairLocal::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePairLocal::init_list(int id, NeighList *ptr)
+void ComputePairLocal::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

@@ -396,8 +396,8 @@ void PairLJExpand::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJExpand::single(int i, int j, int itype, int jtype, double rsq,
-                            double factor_coul, double factor_lj,
+double PairLJExpand::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj,
                             double &fforce)
 {
   double r,rshift,rshiftsq,r2inv,r6inv,forcelj,philj;

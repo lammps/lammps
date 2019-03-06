@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -63,8 +63,8 @@ array is the number of impropers.  If a single keyword is specified, a
 local vector is produced.  If two or more keywords are specified, a
 local array is produced where the number of columns = the number of
 keywords.  The vector or array can be accessed by any command that
-uses local values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+uses local values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The output for {chi} will be in degrees.

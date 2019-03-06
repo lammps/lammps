@@ -149,8 +149,8 @@ void BondZero::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondZero::single(int type, double rsq, int i, int j,
-                        double &fforce)
+double BondZero::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
+                        double & /*fforce*/)
 {
   return 0.0;
 }

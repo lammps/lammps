@@ -20,6 +20,9 @@
 #if (__INTEL_COMPILER_BUILD_DATE > 20160720)
 #define LMP_INTEL_USE_SIMDOFF
 #endif
+#pragma warning (disable:3948)
+#pragma warning (disable:3949)
+#pragma warning (disable:13200)
 #endif
 
 #ifdef __INTEL_OFFLOAD
@@ -143,7 +146,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   }
 
 #else
-  
+
 #define IP_PRE_edge_align(n, esize)                                     \
 
 #endif
@@ -606,7 +609,7 @@ inline double MIC_Wtime() {
   if (newton)                                                           \
     f_stride = buffers->get_stride(nall);                               \
   else                                                                  \
-    f_stride = buffers->get_stride(inum);                               \
+    f_stride = buffers->get_stride(nlocal);                             \
 }
 
 #define IP_PRE_get_buffers(offload, buffers, fix, tc, f_start,          \

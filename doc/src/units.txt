@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -201,13 +201,13 @@ The units command also sets the timestep size and neighbor skin
 distance to default values for each style:
 
 For style {lj} these are dt = 0.005 tau and skin = 0.3 sigma.
-For style {real} these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
-For style {metal} these are dt = 0.001 psec and skin = 2.0 Angstroms.
-For style {si} these are dt = 1.0e-8 sec and skin = 0.001 meters.
-For style {cgs} these are dt = 1.0e-8 sec and skin = 0.1 cm.
-For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr.
-For style {micro} these are dt = 2.0 microsec and skin = 0.1 micrometers.
-For style {nano} these are dt = 0.00045 nanosec and skin = 0.1 nanometers. :ul
+For style {real} these are dt = 1.0 femtoseconds and skin = 2.0 Angstroms.
+For style {metal} these are dt = 0.001 picoseconds and skin = 2.0 Angstroms.
+For style {si} these are dt = 1.0e-8 seconds and skin = 0.001 meters.
+For style {cgs} these are dt = 1.0e-8 seconds and skin = 0.1 centimeters.
+For style {electron} these are dt = 0.001 femtoseconds and skin = 2.0 Bohr.
+For style {micro} these are dt = 2.0 microseconds and skin = 0.1 micrometers.
+For style {nano} these are dt = 0.00045 nanoseconds and skin = 0.1 nanometers. :ul
 
 [Restrictions:]
 

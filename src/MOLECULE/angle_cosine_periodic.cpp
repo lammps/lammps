@@ -222,7 +222,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosinePeriodic::equilibrium_angle(int i)
+double AngleCosinePeriodic::equilibrium_angle(int /*i*/)
 {
   return MY_PI;
 }

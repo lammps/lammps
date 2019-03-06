@@ -142,7 +142,6 @@ void PairSpinMagelec::coeff(int narg, char **arg)
   }
   if (count == 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-
 }
 
 /* ----------------------------------------------------------------------
@@ -187,8 +186,14 @@ void PairSpinMagelec::init_style()
 
 double PairSpinMagelec::init_one(int i, int j)
 {
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  ME[j][i] = ME[i][j];
+  ME_mech[j][i] = ME_mech[i][j];
+  v_mex[j][i] = v_mex[i][j];
+  v_mey[j][i] = v_mey[i][j];
+  v_mez[j][i] = v_mez[i][j];
+  cut_spin_magelec[j][i] = cut_spin_magelec[i][j];
 
   return cut_spin_magelec_global;
 }
@@ -211,7 +216,8 @@ void PairSpinMagelec::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double evdwl, ecoul;
-  double xi[3], rij[3], eij[3];
+  double xi[3], eij[3];
+  double delx,dely,delz;
   double spi[3], spj[3];
   double fi[3], fmi[3];
   double local_cut2;
@@ -263,25 +269,24 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       spj[2] = sp[j][2];
 
       evdwl = 0.0;
-
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
 
-      rij[0] = x[j][0] - xi[0];
-      rij[1] = x[j][1] - xi[1];
-      rij[2] = x[j][2] - xi[2];
-      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
       inorm = 1.0/sqrt(rsq);
-      eij[0] = inorm*rij[0];
-      eij[1] = inorm*rij[1];
-      eij[2] = inorm*rij[2];
+      eij[0] = -inorm*delx;
+      eij[1] = -inorm*dely;
+      eij[2] = -inorm*delz;
 
       local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
 
       // compute me interaction
 
       if (rsq <= local_cut2) {
-        compute_magelec(i,j,rsq,eij,fmi,spj);
+        compute_magelec(i,j,eij,fmi,spj);
         if (lattice_flag) {
           compute_magelec_mech(i,j,fi,spi,spj);
         }
@@ -301,12 +306,12 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-        evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
         evdwl *= hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
@@ -314,7 +319,9 @@ void PairSpinMagelec::compute(int eflag, int vflag)
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
 
 void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
 {
@@ -322,94 +329,106 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   double **x = atom->x;
   double **sp = atom->sp;
   double local_cut2;
-
-  double xi[3], rij[3], eij[3];
+  double xi[3], eij[3];
+  double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+ 
+  // check if interaction applies to type of ii
 
-  i = ilist[ii];
-  itype = type[i];
-
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-
-  eij[0] = eij[1] = eij[2] = 0.0;
-
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-    local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = inorm*rij[0];
-    eij[1] = inorm*rij[1];
-    eij[2] = inorm*rij[2];
-
-    if (rsq <= local_cut2) {
-      compute_magelec(i,j,rsq,eij,fmi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+	locflag =1;
+	break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+	locflag =1;
+	break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
+  // if interaction applies to type ii, 
+  // locflag = 1 and compute pair interaction
+
+  if (locflag == 1) {
+    
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+    
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
+    
+    for (int jj = 0; jj < jnum; jj++) {
+    
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+      local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
+    
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+    
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = -inorm*delx;
+      eij[1] = -inorm*dely;
+      eij[2] = -inorm*delz;
+    
+      if (rsq <= local_cut2) {
+        compute_magelec(ii,j,eij,fmi,spj);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMagelec::compute_magelec(int i, int j, double rsq, double eij[3], double fmi[3], double spj[3])
+void PairSpinMagelec::compute_magelec(int i, int j, double eij[3], double fmi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
+  double meix,meiy,meiz;
+  double vx,vy,vz;
   itype = type[i];
   jtype = type[j];
 
-  double local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
+  vx = v_mex[itype][jtype];
+  vy = v_mey[itype][jtype];
+  vz = v_mez[itype][jtype];
 
-  if (rsq <= local_cut2) {
-    double meix,meiy,meiz;
-    double rx, ry, rz;
-    double vx, vy, vz;
+  meix = vy*eij[2] - vz*eij[1];
+  meiy = vz*eij[0] - vx*eij[2];
+  meiz = vx*eij[1] - vy*eij[0];
 
-    rx = eij[0];
-    ry = eij[1];
-    rz = eij[2];
+  meix *= ME[itype][jtype];
+  meiy *= ME[itype][jtype];
+  meiz *= ME[itype][jtype];
 
-    vx = v_mex[itype][jtype];
-    vy = v_mey[itype][jtype];
-    vz = v_mez[itype][jtype];
-
-    meix = vy*rz - vz*ry;
-    meiy = vz*rx - vx*rz;
-    meiz = vx*ry - vy*rx;
-
-    meix *= ME[itype][jtype];
-    meiy *= ME[itype][jtype];
-    meiz *= ME[itype][jtype];
-
-    fmi[0] += spj[1]*meiz - spj[2]*meiy;
-    fmi[1] += spj[2]*meix - spj[0]*meiz;
-    fmi[2] += spj[0]*meiy - spj[1]*meix;
-  }
+  fmi[0] += spj[1]*meiz - spj[2]*meiy;
+  fmi[1] += spj[2]*meix - spj[0]*meiz;
+  fmi[2] += spj[0]*meiy - spj[1]*meix;
 }
 
 /* ---------------------------------------------------------------------- */

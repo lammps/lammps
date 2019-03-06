@@ -87,7 +87,7 @@ MEAM::dG_gam(const double gamma, const int ibar, double& dG) const
         //         e.g. gsmooth_factor is 99, {:
         //         gsmooth_switchpoint = -0.99
         //         G = 0.01*(-0.99/gamma)**99
-        double G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
+        G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
         G = sqrt(G);
         dG = -gsmooth_factor * G / (2.0 * gamma);
         return G;

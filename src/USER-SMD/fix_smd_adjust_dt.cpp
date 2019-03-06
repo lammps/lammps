@@ -86,13 +86,13 @@ void FixSMDTlsphDtReset::init() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSMDTlsphDtReset::setup(int vflag) {
+void FixSMDTlsphDtReset::setup(int /*vflag*/) {
         end_of_step();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixSMDTlsphDtReset::initial_integrate(int vflag) {
+void FixSMDTlsphDtReset::initial_integrate(int /*vflag*/) {
 
         //printf("in adjust_dt: dt = %20.10f\n", update->dt);
 

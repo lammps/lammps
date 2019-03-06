@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -15,7 +15,7 @@ improper_style inversion/harmonic :pre
 [Examples:]
 
 improper_style inversion/harmonic
-improper_coeff 1 18.776340 0.000000 :pre 
+improper_coeff 1 18.776340 0.000000 :pre
 
 [Description:]
 
@@ -24,15 +24,15 @@ out-of-plane angle definition and uses an harmonic potential:
 
 :c,image(Eqs/improper_inversion_harmonic.jpg)
 
-where K is the force constant and omega is the angle evaluated for 
+where K is the force constant and omega is the angle evaluated for
 all three axis-plane combinations centered around the atom I.  For
 the IL axis and the IJK plane omega looks as follows:
 
 :c,image(Eqs/umbrella.jpg)
 
-Note that the {inversion/harmonic} angle term evaluation differs to 
-the "improper_umbrella"_improper_umbrella.html due to the cyclic 
-evaluation of all possible angles omega. 
+Note that the {inversion/harmonic} angle term evaluation differs to
+the "improper_umbrella"_improper_umbrella.html due to the cyclic
+evaluation of all possible angles omega.
 
 The following coefficients must be defined for each improper type via
 the "improper_coeff"_improper_coeff.html command as in the example
@@ -45,15 +45,15 @@ omega0 (degrees) :ul
 
 If omega0 = 0 the potential term has a minimum for the planar
 structure.  Otherwise it has two minima at +/- omega0, with a barrier
-in between. 
+in between.
 
 :line
 
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-USER-MOFFF package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+USER-MOFFF package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

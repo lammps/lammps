@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -62,9 +62,9 @@ case not work or in the worst case result in undefined behavior.
 
 [Restrictions:]
 
-This fix is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+This fix is part of the PYTHON package.  It is only enabled if LAMMPS
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Building LAMMPS with the PYTHON package will link LAMMPS with the
 Python library on your system.  Settings to enable this are in the

@@ -229,7 +229,7 @@ void AngleDipole::write_data(FILE *fp)
    used by ComputeAngleLocal
 ------------------------------------------------------------------------- */
 
-double AngleDipole::single(int type, int iRef, int iDip, int iDummy)
+double AngleDipole::single(int type, int iRef, int iDip, int /*iDummy*/)
 {
   double **x = atom->x; // position vector
   double **mu = atom->mu; // point-dipole components and moment magnitude

@@ -169,7 +169,7 @@ void FixPrecessionSpin::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::post_force(int vflag)
+void FixPrecessionSpin::post_force(int /*vflag*/)
 {
   // update mag field with time (potential improvement)
 
@@ -245,7 +245,7 @@ void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int iloop)
+void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

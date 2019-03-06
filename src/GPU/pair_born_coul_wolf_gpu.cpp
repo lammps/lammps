@@ -191,9 +191,9 @@ double PairBornCoulWolfGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                      int *ilist, int *numneigh,
-                                      int **firstneigh) {
+void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag,
+                                      int /* vflag */, int *ilist,
+                                      int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,qtmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r2inv,r6inv,forcecoul,forceborn,factor_coul,factor_lj;

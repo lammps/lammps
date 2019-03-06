@@ -213,6 +213,12 @@ namespace ip_simd {
                                        _MM_SCALE_8);
   }
 
+  inline SIMD_int SIMD_gatherz(const SIMD_mask &m, const int *p,
+                               const SIMD_int &i) {
+    return _mm512_mask_i32gather_epi32( _mm512_set1_epi32(0), m, i, p,
+                                    _MM_SCALE_4);
+  }
+
   inline SIMD_float SIMD_gatherz(const SIMD_mask &m, const float *p,
                                  const SIMD_int &i) {
     return _mm512_mask_i32gather_ps( _mm512_set1_ps((float)0), m, i, p,

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -81,11 +81,11 @@ communication costs due to the high surface area of each processor's
 sub-domain.
 
 Also note that if multiple partitions are being used then P is the
-number of processors in this partition; see "this
-section"_Section_start.html#start_6 for an explanation of the
--partition command-line switch.  Also note that you can prefix the
-processors command with the "partition"_partition.html command to
-easily specify different Px,Py,Pz values for different partitions.
+number of processors in this partition; see the "-partition
+command-line switch"_Run_options.html doc page for details.  Also note
+that you can prefix the processors command with the
+"partition"_partition.html command to easily specify different
+Px,Py,Pz values for different partitions.
 
 You can use the "partition"_partition.html command to specify
 different processor grids for different partitions, e.g.
@@ -249,7 +249,7 @@ partition {Precv} which is enforced when each is setting up their own
 mapping of their processors to the simulation box.  Each of {Psend}
 and {Precv} must be integers from 1 to Np, where Np is the number of
 partitions you have defined via the "-partition command-line
-switch"_Section_start.html#start_6.
+switch"_Run_options.html.
 
 A "dependency" means that the sending partition will create its
 regular 3d grid as Px by Py by Pz and after it has done this, it will
@@ -286,8 +286,8 @@ processors and their mapping to the 3d grid to the specified file
 processors in the manner you desired, which can be tricky to figure
 out, especially when running on multiple partitions or on, a multicore
 machine or when the processor ranks were reordered by use of the
-"-reorder command-line switch"_Section_start.html#start_6 or due to
-use of MPI-specific launch options such as a config file.
+"-reorder command-line switch"_Run_options.html or due to use of
+MPI-specific launch options such as a config file.
 
 If you have multiple partitions you should insure that each one writes
 to a different file, e.g. using a "world-style variable"_variable.html
@@ -300,11 +300,11 @@ The IDs are the processor's rank in this simulation (the world), the
 universe (of multiple simulations), and the original MPI communicator
 used to instantiate LAMMPS, respectively.  The world and universe IDs
 will only be different if you are running on more than one partition;
-see the "-partition command-line switch"_Section_start.html#start_6.
-The universe and original IDs will only be different if you used the
-"-reorder command-line switch"_Section_start.html#start_6 to reorder
-the processors differently than their rank in the original
-communicator LAMMPS was instantiated with.
+see the "-partition command-line switch"_Run_options.html.  The
+universe and original IDs will only be different if you used the
+"-reorder command-line switch"_Run_options.html to reorder the
+processors differently than their rank in the original communicator
+LAMMPS was instantiated with.
 
 I,J,K are the indices of the processor in the regular 3d grid, each
 from 1 to Nd, where Nd is the number of processors in that dimension
@@ -332,7 +332,8 @@ The {part} keyword (for the receiving partition) only works with the
 
 [Related commands:]
 
-"partition"_partition.html, "-reorder command-line switch"_Section_start.html#start_6
+"partition"_partition.html, "-reorder command-line
+switch"_Run_options.html
 
 [Default:]
 

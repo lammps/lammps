@@ -86,7 +86,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   FILE *fpr_2 = force->open_potential(arg[4]);
   if (fpr_2 == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[4]);
+    snprintf(str,128,"Cannot open file %s",arg[4]);
     error->all(FLERR,str);
   }
 
@@ -99,7 +99,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   FILE *fpr = force->open_potential(arg[8]);
   if (fpr == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[8]);
+    snprintf(str,128,"Cannot open file %s",arg[8]);
     error->all(FLERR,str);
   }
 
@@ -111,7 +111,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
       fp = fopen(arg[10],"w");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open fix ttm/mod file %s",arg[10]);
+        snprintf(str,128,"Cannot open fix ttm/mod file %s",arg[10]);
         error->one(FLERR,str);
       }
     }
@@ -325,7 +325,7 @@ void FixTTMMod::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix ttm/mod with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm/mod");
+    error->all(FLERR,"Cannot use non-periodic boundares with fix ttm/mod");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm/mod with triclinic box");
   // set force prefactors
@@ -346,9 +346,9 @@ void FixTTMMod::init()
 
 void FixTTMMod::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (strstr(update->integrate_style,"verlet")) {
     post_force_setup(vflag);
-  else {
+  } else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
@@ -357,7 +357,7 @@ void FixTTMMod::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force(int vflag)
+void FixTTMMod::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -428,8 +428,7 @@ void FixTTMMod::post_force(int vflag)
               flangevin[i][1] -= pres_factor/ionic_density/dy*(C_iu*T_iu-C_i*T_i);
               flangevin[i][2] -= pres_factor/ionic_density/dz*(C_if*T_if-C_i*T_i);
             }
-          }
-          else{
+          } else {
             flangevin[i][0] -= pres_factor/ionic_density/dx*(C_ir*T_ir-C_i*T_i);
             flangevin[i][1] -= pres_factor/ionic_density/dy*(C_iu*T_iu-C_i*T_i);
             flangevin[i][2] -= pres_factor/ionic_density/dz*(C_if*T_if-C_i*T_i);
@@ -451,7 +450,7 @@ void FixTTMMod::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force_setup(int vflag)
+void FixTTMMod::post_force_setup(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -468,14 +467,14 @@ void FixTTMMod::post_force_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force_respa(int vflag, int ilevel, int iloop)
+void FixTTMMod::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force_respa_setup(int vflag, int ilevel, int iloop)
+void FixTTMMod::post_force_respa_setup(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force_setup(vflag);
 }
@@ -916,7 +915,7 @@ int FixTTMMod::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixTTMMod::size_restart(int nlocal)
+int FixTTMMod::size_restart(int /*nlocal*/)
 {
   return 4;
 }

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -28,7 +28,7 @@ keyword = {basis} or {size} or {freq} or {temp} or {random} or {units}  :l
     target = target temperature for the region between zhi-extent and zhi (temperature units)
     damp = damping parameter (time units)
     seed = random number seed for langevin kicks
-    extent = extent of thermostated region (distance units)
+    extent = extent of thermostatted region (distance units)
   {random} args = xmax ymax zmax seed
     {xmax}, {ymax}, {zmax} = maximum displacement in particular direction (distance units)
     {seed} = random number seed for random displacement
@@ -68,7 +68,7 @@ be added.
 The {random} keyword will give the atoms random displacements around
 their lattice points to simulate some initial temperature.
 
-The {temp} keyword will cause a region to be thermostated with a
+The {temp} keyword will cause a region to be thermostatted with a
 Langevin thermostat on the zhi boundary.  The size of the region is
 measured from zhi and is set with the {extent} argument.
 
@@ -87,16 +87,16 @@ define the lattice spacings.
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 The boundary on which atoms are added with append/atoms must be
 shrink/minimum.  The opposite boundary may be any boundary type other

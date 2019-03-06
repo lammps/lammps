@@ -239,7 +239,7 @@ void FixVector::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixVector::setup(int vflag)
+void FixVector::setup(int /*vflag*/)
 {
   end_of_step();
 }

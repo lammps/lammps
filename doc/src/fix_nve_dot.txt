@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -36,16 +36,16 @@ The command is equivalent to the "fix nve"_fix_nve.html.
 The particles are always considered to have a finite size.
 
 An example input file can be found in /examples/USER/cgdna/examples/duplex1/.
-A technical report with more information on this integrator can be found
-"here"_PDF/USER-CGDNA-overview.pdf.
+Further details of the implementation and stability of the integrator are contained in "(Henrich)"_#Henrich3.
+The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
 :line
 
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-"USER-CGDNA"_#USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+"USER-CGDNA"_Package_details.html#PKG-USER-CGDNA package and the MOLECULE and ASPHERE package.
+See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
@@ -59,3 +59,5 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 [(Davidchack)] R.L Davidchack, T.E. Ouldridge, and M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
 :link(Miller1)
 [(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
+:link(Henrich3)
+[(Henrich)] O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).

@@ -149,7 +149,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
 
         if (updateFlag > 0) {
                 if (comm->me == 0) {
-                        printf("**** updating ref config at step: %ld\n", update->ntimestep);
+                        printf("**** updating ref config at step: " BIGINT_FORMAT "\n", update->ntimestep);
                 }
 
                 for (i = 0; i < nlocal; i++) {
@@ -199,7 +199,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
  so can be migrated or stored with atoms
  ------------------------------------------------------------------------- */
 
-void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
+void FixSMD_TLSPH_ReferenceConfiguration::setup(int /*vflag*/) {
         int i, j, ii, jj, n, inum, jnum;
         int *ilist, *jlist, *numneigh, **firstneigh;
         double r, h, wf, wfd;
@@ -386,7 +386,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::grow_arrays(int nmax) {
  copy values within local atom-based arrays
  ------------------------------------------------------------------------- */
 
-void FixSMD_TLSPH_ReferenceConfiguration::copy_arrays(int i, int j, int delflag) {
+void FixSMD_TLSPH_ReferenceConfiguration::copy_arrays(int i, int j, int /*delflag*/) {
         npartner[j] = npartner[i];
         for (int m = 0; m < npartner[j]; m++) {
                 partner[j][m] = partner[i][m];
@@ -470,7 +470,7 @@ int FixSMD_TLSPH_ReferenceConfiguration::pack_restart(int i, double *buf) {
  unpack values from atom->extra array to restart the fix
  ------------------------------------------------------------------------- */
 
-void FixSMD_TLSPH_ReferenceConfiguration::unpack_restart(int nlocal, int nth) {
+void FixSMD_TLSPH_ReferenceConfiguration::unpack_restart(int /*nlocal*/, int /*nth*/) {
 // ipage = NULL if being called from granular pair style init()
 
 // skip to Nth set of extra values
@@ -512,7 +512,7 @@ int FixSMD_TLSPH_ReferenceConfiguration::size_restart(int nlocal) {
 
 /* ---------------------------------------------------------------------- */
 
-int FixSMD_TLSPH_ReferenceConfiguration::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int FixSMD_TLSPH_ReferenceConfiguration::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/) {
         int i, j, m;
         double *radius = atom->radius;
         double *vfrac = atom->vfrac;

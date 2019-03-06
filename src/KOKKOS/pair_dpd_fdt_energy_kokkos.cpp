@@ -186,7 +186,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
 
   k_cutsq.template sync<DeviceType>();
@@ -564,7 +564,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
         a_f(j,2) -= delz*fpair;
       }
 
-      if (rmass) {
+      if (rmass.data()) {
         mass_i = rmass[i];
         mass_j = rmass[j];
       } else {

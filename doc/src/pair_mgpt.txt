@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -159,8 +159,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the USER-MGPT package and is only enabled
-if LAMMPS is built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS is built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The MGPT potentials require the "newtion"_newton.html setting to be
 "on" for pair style interactions.

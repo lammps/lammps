@@ -138,6 +138,9 @@ void DynamicalMatrix::command(int narg, char **arg)
     else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
     else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
 
+    if (atom->map_style == 0)
+      error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
+
     // move atoms by 3-vector or specified variable(s)
 
     if (style == REGULAR) {

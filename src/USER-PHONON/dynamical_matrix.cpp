@@ -262,6 +262,7 @@ void DynamicalMatrix::calculateMatrix()
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Dynamical Matrix...\n");
 
     update->nsteps = 0;
+    int prog = 0;
     for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         for (bigint alpha=0; alpha<3; alpha++){
@@ -300,7 +301,16 @@ void DynamicalMatrix::calculateMatrix()
         if (me == 0)
             writeMatrix(fdynmat);
         dynmat_clear(dynmat);
+        if (comm->me == 0 && screen) {
+            int p = 10 * i / natoms;
+            if (p > prog) {
+              prog = p;
+              fprintf(screen," %d%%",p*10);
+              fflush(screen);
+            }
+        }
     }
+    if (comm->me == 0 && screen) fprintf(screen,"\n");
 
     for (int i=0; i < 3; i++)
         delete [] dynmat[i];

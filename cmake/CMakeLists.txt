@@ -1336,7 +1336,7 @@ set(temp_git_commit "(unknown)")
 set(temp_git_branch "(unknown)")
 set(temp_git_describe "(unknown)")
 set(temp_git_info "false")
-if(GIT_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/.git)
+if(GIT_FOUND AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
   set(temp_git_info "true")
   execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
     OUTPUT_VARIABLE temp_git_commit

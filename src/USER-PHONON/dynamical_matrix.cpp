@@ -337,7 +337,8 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
 
     if (binaryflag && fp) {
         clearerr(fp);
-        fwrite(&dynmat[0], sizeof(double), 3 * dynlen, fp);
+        for (int i=0; i<3; i++)
+            fwrite(dynmat[i], sizeof(double), dynlen, fp);
         if (ferror(fp))
             error->one(FLERR, "Error writing to binary file");
     }

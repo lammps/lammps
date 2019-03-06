@@ -29,12 +29,17 @@ class TILD : public PPPM {
   virtual void settings(int, char **);
   virtual void compute(int, int);
   double memory_usage();
-
-  void compute_group_group(int, int, int);
-
- protected:
+  class FFT3d *fft1,*fft2;
+  class Remap *remap;
+  class GridComm *cg;
+  class GridComm *cg_peratom;
   static double *uG;
   static double a_squared;
+
+  void compute_group_group(int, int, int);
+  void field_groups(int);
+
+ protected:
   double **grad_uG, **grad_uG_hat;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;

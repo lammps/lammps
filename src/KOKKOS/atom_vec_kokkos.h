@@ -139,11 +139,11 @@ class AtomVecKokkos : public AtomVec {
                    Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.capacity());
-       buffer_size = src.capacity();
-    } else if (buffer_size < src.capacity()) {
-       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity());
-       buffer_size = src.capacity();
+       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.span());
+       buffer_size = src.span();
+    } else if (buffer_size < src.span()) {
+       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.span());
+       buffer_size = src.span();
     }
     return mirror_type( buffer ,
                              src.extent(0) ,
@@ -165,11 +165,11 @@ class AtomVecKokkos : public AtomVec {
                    Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.capacity()*sizeof(typename ViewType::value_type));
-       buffer_size = src.capacity();
-    } else if (buffer_size < src.capacity()) {
-       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity()*sizeof(typename ViewType::value_type));
-       buffer_size = src.capacity();
+       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.span()*sizeof(typename ViewType::value_type));
+       buffer_size = src.span();
+    } else if (buffer_size < src.span()) {
+       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.span()*sizeof(typename ViewType::value_type));
+       buffer_size = src.span();
     }
     mirror_type tmp_view( (typename ViewType::value_type*)buffer ,
                              src.extent(0) ,

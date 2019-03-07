@@ -1074,7 +1074,7 @@ void memset_kokkos (ViewType &view) {
   #ifndef KOKKOS_USING_DEPRECATED_VIEW
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #else
-  Kokkos::parallel_for(view.capacity()*sizeof(typename ViewType::value_type)/4, f);
+  Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #endif
   ViewType::execution_space::fence();
 }

@@ -422,7 +422,7 @@ int PairCoulDSFKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairCoulDSFKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairCoulDSFKokkos<LMPHostType>;
 #endif
 }

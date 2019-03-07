@@ -529,7 +529,7 @@ double PairLJCharmmCoulCharmmKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJCharmmCoulCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairLJCharmmCoulCharmmKokkos<LMPHostType>;
 #endif
 }

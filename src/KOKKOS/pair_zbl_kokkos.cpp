@@ -433,7 +433,7 @@ void PairZBLKokkos<DeviceType>::cleanup_copy() {
 
 namespace LAMMPS_NS {
 template class PairZBLKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairZBLKokkos<LMPHostType>;
 #endif
 }

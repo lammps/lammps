@@ -947,7 +947,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
 
 namespace LAMMPS_NS {
 template class PairVashishtaKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairVashishtaKokkos<LMPHostType>;
 #endif
 }

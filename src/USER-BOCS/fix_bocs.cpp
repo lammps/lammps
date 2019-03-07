@@ -697,6 +697,11 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
                                     "of %d in read_F_table",p_basis_type);
     error->all(FLERR,errmsg);
   }
+  // cleanup
+  for (i = 0; i < N_columns; ++i) {
+    free(data[i]);
+  }
+  free(data);
   return n_entries;
 }
 

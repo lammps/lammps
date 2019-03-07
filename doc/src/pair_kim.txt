@@ -31,14 +31,10 @@ element or alloy and set of parameters, e.g. EAM for Cu with a
 specific EAM potential file.
 
 See the current list of "KIM model
-drivers"_https://openkim.org/kim-items/model-drivers/alphabetical.
+drivers"_https://openkim.org/browse/model-drivers/alphabetical.
 
 See the current list of all "KIM
-models"_https://openkim.org/kim-items/models/by-model-drivers
-
-See the list of "example KIM models"_https://openkim.org/kim-api which
-are included in the KIM library by default, in the "What is in the KIM
-API source package?" section.
+models"_https://openkim.org/browse/models/by-model-drivers
 
 To use this pair style, you must first download and install the KIM
 API library from the "OpenKIM website"_https://openkim.org.  The KIM

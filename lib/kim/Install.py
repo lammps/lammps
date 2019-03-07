@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "kim-api-v2-2.0.0"
+version = "kim-api-v2-2.0.1"
 
 # help message
 
@@ -40,10 +40,10 @@ make lib-kim args="-b -a everything"   # install KIM API lib with all models
 make lib-kim args="-n -a EAM_Dynamo_Ackland_2003_W__MO_141627196590_005"    # only add one model or model driver
 
 See the list of KIM model drivers here:
-https://openkim.org/kim-items/model-drivers/alphabetical
+https://openkim.org/browse/model-drivers/alphabetical
 
 See the list of all KIM models here:
-https://openkim.org/kim-items/models/by-model-drivers
+https://openkim.org/browse/models/by-model-drivers
 """
 
 pgroup = parser.add_mutually_exclusive_group()

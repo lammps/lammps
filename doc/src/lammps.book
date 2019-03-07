@@ -150,6 +150,7 @@ dielectric.html
 dimension.html
 displace_atoms.html
 dump.html
+dump_adios.html
 dump_h5md.html
 dump_image.html
 dump_modify.html
@@ -157,6 +158,7 @@ dump_molfile.html
 dump_netcdf.html
 dump_vtk.html
 dump_cfg_uef.html
+dynamical_matrix.html
 echo.html
 group.html
 group2ndx.html

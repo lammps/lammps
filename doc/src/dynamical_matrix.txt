@@ -1,0 +1,52 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+dynamical_matrix command :h3
+
+[Syntax:]
+
+dynamical_matrix group-ID style gamma args keyword value ... :pre
+
+group-ID = ID of group of atoms to displace :ulb,l
+style = {regular} or {eskm} :l
+gamma = finite different displacement length (distance units) :l
+one or more keyword/arg pairs may be appended :l
+  keyword = {file} or {binary}
+    {file} name = name of output file for the dynamical matrix
+    {binary} arg = {yes} or {no} or {gzip} :pre
+:ule
+
+[Examples:]
+
+dynamical_matrix 1 regular 0.000001
+dynamical_matrix 1 eskm 0.000001
+dynamical_matrix 3 regular 0.00004 file dynmat.dat
+dynamical_matrix 5 eskm 0.00000001 file dynamical.dat binary yes :pre
+
+[Description:]
+
+Calculate the dynamical matrix of the selected group.
+
+[Restrictions:]
+
+The command collects the entire dynamical matrix a single MPI rank,
+so the memory requirements can be very significant for large systems.
+
+This command assumes a periodic system.
+
+This command is part of the USER-PHONON package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
+
+[Related commands:]
+
+"fix phonon"_fix_phonon.html
+
+[Default:]
+
+The default settings are file = "dynmat.dyn", binary = no  

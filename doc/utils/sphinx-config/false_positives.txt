@@ -251,6 +251,8 @@ Botero
 Botu
 Bouguet
 boxcolor
+bp
+bpls
 bpclermont
 br
 Branduardi
@@ -625,8 +627,10 @@ dVx
 dW
 dx
 dy
+dyn
 dyne
 dynes
+dynmat
 Dyre
 Dzyaloshinskii
 Eaa
@@ -2084,6 +2088,7 @@ Pmolrotate
 Pmoltrans
 pN
 png
+Podhorszki
 Poiseuille
 Polak
 polarizabilities
@@ -2436,6 +2441,7 @@ shockvel
 si
 SiC
 Siepmann
+Sievers
 Sij
 Sikandar
 Silbert

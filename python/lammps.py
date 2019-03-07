@@ -85,14 +85,19 @@ class lammps(object):
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
 
+    if any([f.startswith('liblammps') and f.endswith('.dylib') for f in os.listdir(modpath)]):
+      lib_ext = ".dylib"
+    else:
+      lib_ext = ".so"
+
     if not self.lib:
       try:
-        if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-        else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),
+        if not name: self.lib = CDLL(join(modpath,"liblammps" + lib_ext),RTLD_GLOBAL)
+        else: self.lib = CDLL(join(modpath,"liblammps_%s" % name + lib_ext),
                               RTLD_GLOBAL)
       except:
-        if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
-        else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+        if not name: self.lib = CDLL("liblammps" + lib_ext,RTLD_GLOBAL)
+        else: self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
 
     # define ctypes API for each library method
     # NOTE: should add one of these for each lib function

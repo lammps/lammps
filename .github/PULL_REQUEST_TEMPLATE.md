@@ -8,14 +8,11 @@ __If this addresses an open GitHub Issue, mention the issue number here. Use the
 
 **Author(s)**
 
-_Please state name and affiliation of the author or authors that should be credited with the changes in this pull request. If this pull request adds new files to the distribution, please also provide a suitable "long-lived" e-mail address (e.g. from gmail, yahoo, outlook, etc.) for the *corresponding* author, i.e. the person the LAMMPS developers can contact directly with questions and requests related to maintenance and support of this code. now and in the future_
+_Please state name and affiliation of the author or authors that should be credited with the changes in this pull request. If this pull request adds new files to the distribution, please also provide a suitable "long-lived" e-mail address (ideally something that can outlive your institution's e-mail, in case you change jobs) for the *corresponding* author, i.e. the person the LAMMPS developers can contact directly with questions and requests related to maintenance and support of this contributed code._
 
 **Licensing**
 
-By submitting this pull request, I agree, that my contribution will be included in LAMMPS and redistributed under the GNU General Public License version 2.
-
-_Please complete the following statement by adding "yes" or "no":_
-My contribution may be re-licensed as LGPL (for use of LAMMPS as a library linked to proprietary software):
+By submitting this pull request, I agree, that my contribution will be included in LAMMPS and redistributed under either the GNU General Public License version 2 (GPL v2) or the GNU Lesser General Public License version 2.1 (LGPL v2.1).
 
 **Backward Compatibility**
 

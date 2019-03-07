@@ -157,7 +157,7 @@ class AtomVecKokkos : public AtomVec {
   }
 
   template<class ViewType>
-  void perform_async_copy(const ViewType& src, unsigned int space) {
+  void perform_async_copy(ViewType& src, unsigned int space) {
     typedef Kokkos::View<typename ViewType::data_type,
                  typename ViewType::array_layout,
                  typename std::conditional<
@@ -183,11 +183,11 @@ class AtomVecKokkos : public AtomVec {
     if(space == Device) {
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.h_view),
       Kokkos::deep_copy(LMPHostType(),src.d_view,tmp_view);
-      src.modified_device() = src.modified_host();
+      src.clear_sync_state();
     } else {
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.d_view),
       Kokkos::deep_copy(LMPHostType(),src.h_view,tmp_view);
-      src.modified_device() = src.modified_host();
+      src.clear_sync_state();
     }
   }
   #else

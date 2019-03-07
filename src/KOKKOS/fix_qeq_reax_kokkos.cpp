@@ -1266,7 +1266,7 @@ int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixQEqReaxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixQEqReaxKokkos<LMPHostType>;
 #endif
 }

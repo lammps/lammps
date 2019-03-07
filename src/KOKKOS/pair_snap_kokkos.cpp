@@ -16,7 +16,7 @@
 
 namespace LAMMPS_NS {
 template class PairSNAPKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairSNAPKokkos<LMPHostType>;
 #endif
 }

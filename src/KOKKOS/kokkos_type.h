@@ -24,7 +24,7 @@
 
 enum{FULL=1u,HALFTHREAD=2u,HALF=4u,N2=8u};
 
-#if defined(KOKKOS_HAVE_CXX11)
+#if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
@@ -201,7 +201,7 @@ template<>
 struct ExecutionSpaceFromDevice<LMPHostType> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Host;
 };
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
@@ -776,7 +776,7 @@ typedef tdual_int_64::t_dev_um t_int_64_um;
 
 };
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template <>
 struct ArrayTypes<LMPHostType> {
 
@@ -1087,12 +1087,12 @@ struct params_lj_coul {
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
 
-#if defined(KOKKOS_HAVE_CXX11)
+#if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 #define LAMMPS_LAMBDA [=] __device__
 #else
 #define LAMMPS_LAMBDA [=]

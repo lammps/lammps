@@ -125,7 +125,7 @@ class AtomVecKokkos : public AtomVec {
   size_t buffer_size;
   void* buffer;
 
-  #ifdef KOKKOS_HAVE_CUDA
+  #ifdef KOKKOS_ENABLE_CUDA
   template<class ViewType>
   Kokkos::View<typename ViewType::data_type,
                typename ViewType::array_layout,

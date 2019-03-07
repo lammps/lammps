@@ -187,11 +187,9 @@ void CommKokkos::forward_comm_device(int dummy)
   k_sendlist.sync<DeviceType>();
   atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
 
-  int comm_squash = 1;
-  if (comm_squash) {
-    n = avec->pack_comm_self_squash(totalsend,k_sendlist,k_sendnum_scan,
+  if (comm->nprocs == 1) {
+    n = avec->pack_comm_self_fused(totalsend,k_sendlist,k_sendnum_scan,
                     k_firstrecv,k_pbc_flag,k_pbc);
-    DeviceType::fence();
   } else {
 
   for (int iswap = 0; iswap < nswap; iswap++) {
@@ -1045,7 +1043,7 @@ void CommKokkos::borders_device() {
     atom->map_set();
   }
 
-  if (1) {
+  if (comm->nprocs == 1) {
     if (nswap > k_pbc.extent(0)) {
       k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
       k_swap = DAT::tdual_int_2d("comm:swap",3,nswap);

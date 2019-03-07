@@ -271,7 +271,7 @@ int AtomVecKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, c
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType,int TRICLINIC>
-struct AtomVecKokkos_PackCommSelfSquash {
+struct AtomVecKokkos_PackCommSelfFused {
   typedef DeviceType device_type;
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
@@ -283,7 +283,7 @@ struct AtomVecKokkos_PackCommSelfSquash {
   typename ArrayTypes<DeviceType>::t_int_1d_const _sendnum_scan;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
 
-  AtomVecKokkos_PackCommSelfSquash(
+  AtomVecKokkos_PackCommSelfFused(
       const typename DAT::tdual_x_array &x,
       const typename DAT::tdual_int_2d &list,
       const typename DAT::tdual_int_2d &pbc,
@@ -334,18 +334,18 @@ struct AtomVecKokkos_PackCommSelfSquash {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecKokkos::pack_comm_self_squash(const int &n, const DAT::tdual_int_2d &list, const DAT::tdual_int_1d &sendnum_scan,
+int AtomVecKokkos::pack_comm_self_fused(const int &n, const DAT::tdual_int_2d &list, const DAT::tdual_int_1d &sendnum_scan,
                                          const DAT::tdual_int_1d &firstrecv, const DAT::tdual_int_1d &pbc_flag, const DAT::tdual_int_2d &pbc) {
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK);
     modified(Host,X_MASK);
     if(domain->triclinic) {
-    struct AtomVecKokkos_PackCommSelfSquash<LMPHostType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
+    struct AtomVecKokkos_PackCommSelfFused<LMPHostType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
         domain->xprd,domain->yprd,domain->zprd,
         domain->xy,domain->xz,domain->yz);
     Kokkos::parallel_for(n,f);
     } else {
-    struct AtomVecKokkos_PackCommSelfSquash<LMPHostType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
+    struct AtomVecKokkos_PackCommSelfFused<LMPHostType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
         domain->xprd,domain->yprd,domain->zprd,
         domain->xy,domain->xz,domain->yz);
     Kokkos::parallel_for(n,f);
@@ -354,12 +354,12 @@ int AtomVecKokkos::pack_comm_self_squash(const int &n, const DAT::tdual_int_2d &
     sync(Device,X_MASK);
     modified(Device,X_MASK);
     if(domain->triclinic) {
-    struct AtomVecKokkos_PackCommSelfSquash<LMPDeviceType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
+    struct AtomVecKokkos_PackCommSelfFused<LMPDeviceType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
         domain->xprd,domain->yprd,domain->zprd,
         domain->xy,domain->xz,domain->yz);
     Kokkos::parallel_for(n,f);
     } else {
-    struct AtomVecKokkos_PackCommSelfSquash<LMPDeviceType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
+    struct AtomVecKokkos_PackCommSelfFused<LMPDeviceType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,
         domain->xprd,domain->yprd,domain->zprd,
         domain->xy,domain->xz,domain->yz);
     Kokkos::parallel_for(n,f);

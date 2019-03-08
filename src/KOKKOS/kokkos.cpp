@@ -344,6 +344,9 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
 
+  if (team_flag && neighflag != FULL)
+    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'team on'");
+
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;
   else neighbor->binsizeflag = 1;

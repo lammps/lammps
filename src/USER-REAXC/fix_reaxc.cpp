@@ -41,17 +41,15 @@ FixReaxC::FixReaxC(LAMMPS *lmp,int narg, char **arg) :
 {
   // perform initial allocation of atom-based arrays
   // register with atom class
-
+  
+  oldnmax = 0;
   num_bonds = NULL;
   num_hbonds = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
   // initialize arrays to MIN so atom migration is OK the 1st time
-
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    num_bonds[i] = num_hbonds[i] = MIN_REAX_BONDS;
+  // it is done in grow_arrays() now
 
   // set comm sizes needed by this fix
 
@@ -99,6 +97,11 @@ void FixReaxC::grow_arrays(int nmax)
 {
   memory->grow(num_bonds,nmax,"reaxc:num_bonds");
   memory->grow(num_hbonds,nmax,"reaxc:num_hbonds");
+  for (int i = oldnmax; i < nmax; i++) {
+    num_hbonds[i] = MIN_REAX_HBONDS;
+    num_bonds[i] = MIN_REAX_BONDS;
+  }
+  oldnmax = nmax;
 }
 
 /* ----------------------------------------------------------------------

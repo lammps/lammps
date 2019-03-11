@@ -115,6 +115,7 @@ int FixPrecessionSpin::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= MIN_POST_FORCE;
   mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
@@ -282,4 +283,11 @@ double FixPrecessionSpin::compute_scalar()
     eflag = 1;
   }
   return emag_all;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::min_post_force(int vflag)
+{
+  post_force(vflag);
 }

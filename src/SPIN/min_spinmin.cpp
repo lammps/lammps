@@ -88,7 +88,7 @@ void MinSpinMin::reset_vectors()
 }
 
 /* ----------------------------------------------------------------------
-   minimization via QuickMin damped dynamics
+   minimization via damped spin dynamics
 ------------------------------------------------------------------------- */
 
 int MinSpinMin::iterate(int maxiter)
@@ -97,16 +97,6 @@ int MinSpinMin::iterate(int maxiter)
   //double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
   //double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
-
-  //alpha_final = 0.0;
-  
-  // search for and allocate neb_spin fix
-  
-  //int ineb;
-  //for (ineb = 0; ineb < modify->nfix; ineb++)
-  //  if (strcmp(modify->fix[ineb]->style,"neb/spin") == 0) break;
-  //if (ineb == modify->nfix) error->all(FLERR,"spinmin requires use of fix neb/spin");
-  //fneb = (FixNEB_spin *) modify->fix[ineb];
 
   for (int iter = 0; iter < maxiter; iter++) {
 
@@ -118,12 +108,10 @@ int MinSpinMin::iterate(int maxiter)
 
     // optimize timestep accross processes / replicas
     
-    //dts = fneb->evaluate_dt();
     dts = evaluate_dt();
    
     // apply damped precessional dynamics to the spins
       
-    //fneb->advance_spins(dts);
     advance_spins(dts);
 
 
@@ -351,8 +339,6 @@ double MinSpinMin::evaluate_dt()
 
 void MinSpinMin::advance_spins(double dts)
 {
-  //int j=0;
-  //int *sametag = atom->sametag;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double **sp = atom->sp;
@@ -360,18 +346,14 @@ void MinSpinMin::advance_spins(double dts)
   double tdampx,tdampy,tdampz;
   double msq,scale,fm2,energy,dts2;
   double alpha;
-  //double spi[3],fmi[3];
   double cp[3],g[3];
 
-  //cp[0] = cp[1] = cp[2] = 0.0;
-  //g[0] = g[1] = g[2] = 0.0;
   dts2 = dts*dts;		
 
   // fictitious Gilbert damping of 1
+  
   alpha = 1.0;
 
-  //printf("test inside spinmin, dts %g \n",dts);
-  //printf("test inside spinmin, fmi i=%d, %g %g %g \n",1,fm[1][0],fm[1][1],fm[1][2]);
   
   // loop on all spins on proc.
 
@@ -379,22 +361,12 @@ void MinSpinMin::advance_spins(double dts)
   //  for (int i = 0; i < nlocal; i++)
   //    if (mask[i] & groupbit) {
   for (int i = 0; i < nlocal; i++) {
-
-    //spi[0] = sp[i][0];
-    //spi[1] = sp[i][1];
-    //spi[2] = sp[i][2];
-    //
-    //fmi[0] = fm[i][0];
-    //fmi[1] = fm[i][1];
-    //fmi[2] = fm[i][2];
     
     // calc. damping torque
     
     tdampx = -alpha*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
     tdampy = -alpha*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
     tdampz = -alpha*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-    
-    //printf("for %d, test tdamp: %g %g %g \n",i,tdampx,tdampy,tdampz);
     
     // apply advance algorithm (geometric, norm preserving)
     
@@ -405,15 +377,10 @@ void MinSpinMin::advance_spins(double dts)
     cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
     cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
     
-    //printf("for %d, test cp: %g %g %g \n",i,cp[0],cp[1],cp[2]);
-    
     g[0] = sp[i][0]+cp[0]*dts;
     g[1] = sp[i][1]+cp[1]*dts;
     g[2] = sp[i][2]+cp[2]*dts;
     		
-    //g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
-    //g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
-    //g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
     g[0] += (tdampx*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
     g[1] += (tdampy*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
     g[2] += (tdampz*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
@@ -421,10 +388,6 @@ void MinSpinMin::advance_spins(double dts)
     g[0] /= (1+0.25*fm2*dts2);
     g[1] /= (1+0.25*fm2*dts2);
     g[2] /= (1+0.25*fm2*dts2);
-   
-    //printf("test inside spinmin, spi i=%d, %g %g %g \n",i,sp[i][0],sp[i][1],sp[i][2]);
-    //printf("test inside spinmin, fmi i=%d, %g %g %g \n",i,fm[i][0],fm[i][1],fm[i][2]);
-    //printf("for %d, test g: %g %g %g \n",i,g[0],g[1],g[2]);
 
     sp[i][0] = g[0];
     sp[i][1] = g[1];
@@ -455,8 +418,5 @@ void MinSpinMin::advance_spins(double dts)
     //
   }
 
-  //printf("test inside spinmin, dts = %g \n",dts);
-  //printf("test inside spinmin, fmi i=%d, %g %g %g \n",1,fm[1][0],fm[1][1],fm[1][2]);
-  //printf("test inside spinmin, spi i=%d, %g %g %g \n",1,sp[1][0],sp[1][1],sp[1][2]);
 }
 

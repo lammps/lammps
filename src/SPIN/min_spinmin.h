@@ -39,14 +39,13 @@ class MinSpinMin : public Min {
 
  private:
 
-  // spin timestep
+  // global and spin timesteps
+  double dt;
   double dts;
 
   double *spvec;               // variables for atomic dof, as 1d vector
   double *fmvec;               // variables for atomic dof, as 1d vector
 
-
-  double dt;
   bigint last_negative;
 };
 

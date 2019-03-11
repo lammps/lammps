@@ -1,5 +1,4 @@
 # bcc iron in a 3d periodic box
-print "Test 1"
 
 units 		metal
 dimension 	3

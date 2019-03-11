@@ -52,7 +52,7 @@ using namespace MathConst;
 
 enum {HOOKE, HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, TANGENTIAL_MINDLIN};
+enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_SDS};
 
@@ -76,6 +76,8 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = NULL;
   maxrad_dynamic = NULL;
   maxrad_frozen = NULL;
+
+  history_transfer_factors = NULL;
 
   dt = update->dt;
 
@@ -131,7 +133,7 @@ void PairGranular::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
   double radi,radj,radsum,rsq,r,rinv;
-  double Reff, delta, dR, dR2;
+  double Reff, delta, dR, dR2, dist_to_contact;
 
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
@@ -397,16 +399,27 @@ void PairGranular::compute(int eflag, int vflag)
         damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal_prefactor;
 
         if (tangential_history){
-          shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-              history[2]*history[2]);
-
+          if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN){
+            k_tangential *= a;
+          }
+          else if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE){
+            k_tangential *= a;
+            if (a < history[3]){ //On unloading, rescale the shear displacements
+              double factor = a/history[3];
+              history[0] *= factor;
+              history[1] *= factor;
+              history[2] *= factor;
+            }
+          }
           // Rotate and update displacements.
           // See e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
           if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
             if (fabs(rsht) < EPSILON) rsht = 0;
             if (rsht > 0){
-              scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
+              shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                               history[2]*history[2]);
+              scalefac = shrmag/(shrmag - rsht); //if rsht == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
               history[0] -= rsht*nx;
               history[1] -= rsht*ny;
               history[2] -= rsht*nz;
@@ -419,6 +432,7 @@ void PairGranular::compute(int eflag, int vflag)
             history[0] += vtr1*dt;
             history[1] += vtr2*dt;
             history[2] += vtr3*dt;
+            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) history[3] = a;
           }
 
           // tangential forces = history + tangential velocity damping
@@ -430,6 +444,8 @@ void PairGranular::compute(int eflag, int vflag)
           Fscrit = tangential_coeffs[itype][jtype][2] * Fncrit;
           fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
           if (fs > Fscrit) {
+            shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                    history[2]*history[2]);
             if (shrmag != 0.0) {
               history[0] = -1.0/k_tangential*(Fscrit*fs1/fs + damp_tangential*vtr1);
               history[1] = -1.0/k_tangential*(Fscrit*fs2/fs + damp_tangential*vtr2);
@@ -469,16 +485,13 @@ void PairGranular::compute(int eflag, int vflag)
           int rhist1 = rhist0 + 1;
           int rhist2 = rhist1 + 1;
 
-          // Rolling displacement
-          rollmag = sqrt(history[rhist0]*history[rhist0] +
-              history[rhist1]*history[rhist1] +
-              history[rhist2]*history[rhist2]);
-
           rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
-
           if (historyupdate){
             if (fabs(rolldotn) < EPSILON) rolldotn = 0;
             if (rolldotn > 0){ //Rotate into tangential plane
+              rollmag = sqrt(history[rhist0]*history[rhist0] +
+                            history[rhist1]*history[rhist1] +
+                            history[rhist2]*history[rhist2]);
               scalefac = rollmag/(rollmag - rolldotn);
               history[rhist0] -= rolldotn*nx;
               history[rhist1] -= rolldotn*ny;
@@ -504,6 +517,9 @@ void PairGranular::compute(int eflag, int vflag)
 
           fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
           if (fr > Frcrit) {
+            rollmag = sqrt(history[rhist0]*history[rhist0] +
+                                    history[rhist1]*history[rhist1] +
+                                    history[rhist2]*history[rhist2]);
             if (rollmag != 0.0) {
               history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
               history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
@@ -555,9 +571,10 @@ void PairGranular::compute(int eflag, int vflag)
         tor2 = nz*fs1 - nx*fs3;
         tor3 = nx*fs2 - ny*fs1;
 
-        torque[i][0] -= radi*tor1;
-        torque[i][1] -= radi*tor2;
-        torque[i][2] -= radi*tor3;
+	dist_to_contact = radi-0.5*delta;
+        torque[i][0] -= dist_to_contact*tor1;
+        torque[i][1] -= dist_to_contact*tor2;
+        torque[i][2] -= dist_to_contact*tor3;
 
         if (twist_model[itype][jtype] != TWIST_NONE){
           tortwist1 = magtortwist * nx;
@@ -584,9 +601,10 @@ void PairGranular::compute(int eflag, int vflag)
           f[j][1] -= fy;
           f[j][2] -= fz;
 
-          torque[j][0] -= radj*tor1;
-          torque[j][1] -= radj*tor2;
-          torque[j][2] -= radj*tor3;
+	  dist_to_contact = radj-0.5*delta;
+          torque[j][0] -= dist_to_contact*tor1;
+          torque[j][1] -= dist_to_contact*tor2;
+          torque[j][2] -= dist_to_contact*tor3;
 
           if (twist_model[itype][jtype] != TWIST_NONE){
             torque[j][0] -= tortwist1;
@@ -762,9 +780,13 @@ void PairGranular::coeff(int narg, char **arg)
         tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
         iarg += 4;
       }
-      else if (strcmp(arg[iarg+1], "linear_history") == 0){
+      else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
+               (strcmp(arg[iarg+1], "mindlin") == 0) ||
+               (strcmp(arg[iarg+1], "mindlin_rescale") == 0)){
         if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
-        tangential_model_one = TANGENTIAL_HISTORY;
+        if (strcmp(arg[iarg+1], "linear_history") == 0) tangential_model_one = TANGENTIAL_HISTORY;
+        else if (strcmp(arg[iarg+1], "mindlin") == 0) tangential_model_one = TANGENTIAL_MINDLIN;
+        else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) tangential_model_one = TANGENTIAL_MINDLIN_RESCALE;
         tangential_history = 1;
         tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
         tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
@@ -896,11 +918,11 @@ void PairGranular::init_style()
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // Determine whether we need a granular neigh list, how large it needs to be
-  use_history = tangential_history || roll_history || twist_history;
+  use_history = normal_history || tangential_history || roll_history || twist_history;
 
   //For JKR, will need fix/neigh/history to keep track of touch arrays
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = 1; j <= atom->ntypes; j++)
+    for (int j = i; j <= atom->ntypes; j++)
       if (normal_model[i][j] == JKR) use_history = 1;
 
   size_history = 3*tangential_history + 3*roll_history + twist_history;
@@ -920,6 +942,19 @@ void PairGranular::init_style()
       else twist_history_index = 0;
     }
   }
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      if (tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE){
+        size_history += 1;
+        roll_history_index += 1;
+        twist_history_index += 1;
+        nondefault_history_transfer = 1;
+        history_transfer_factors = new int[size_history];
+        for (int ii = 0; ii < size_history; ++ii)
+          history_transfer_factors[ii] = -1;
+        history_transfer_factors[3] = 1;
+        break;
+      }
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->size = 1;
@@ -1610,5 +1645,14 @@ double PairGranular::pulloff_distance(double radi, double radj, int itype, int j
   E = normal_coeffs[itype][jtype][0]*THREEQUARTERS;
   a = cbrt(9*M_PI*coh*Reff/(4*E));
   return a*a/Reff - 2*sqrt(M_PI*coh*a/E);
+}
+
+/* ----------------------------------------------------------------------
+     Transfer history during fix/neigh/history exchange
+      Only needed if any history entries i-j are not just negative of j-i entries
+------------------------------------------------------------------------- */
+void PairGranular::transfer_history(double* source, double* target){
+  for (int i = 0; i < size_history; i++)
+    target[i] = history_transfer_factors[i]*source[i];
 }
 

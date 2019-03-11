@@ -28,17 +28,17 @@ pair_style granular
 pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 :pre
 
 pair_style granular
-pair_coeff * * hertz 1000.0 50.0 tangential linear_history 800.0 1.0 0.4 :pre
+pair_coeff * * hertz 1000.0 50.0 tangential mindlin 800.0 1.0 0.4 :pre
 
 pair_style granular
 pair_coeff * * hertz 1000.0 0.3 tangential linear_history 800.0 1.0 0.4 damping tsuji :pre
 
 pair_style granular
-pair_coeff 1 1 jkr 1000.0 50.0 tangential linear_history 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
+pair_coeff 1 1 jkr 1000.0 50.0 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
 pair_coeff 2 2 hertz 200.0 20.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall :pre
 
 pair_style granular
-pair_coeff 1 1 hertz 1000.0 50.0 tangential linear_history 800.0 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
+pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
 pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential linear_history 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall
 pair_coeff 1 2 dmt 1000.0 50.0 0.3 10.0 tangential linear_history 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall :pre
 
@@ -219,7 +219,9 @@ choice and associated parameters. Currently supported tangential model choices a
 expected parameters are as follows:
  
 {linear_nohistory} : \(x_\{\gamma,t\}\), \(\mu_s\)
-{linear_history} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) :ol
+{linear_history} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) 
+{mindlin} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) 
+{mindlin_rescale} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) :ol
 
 Here, \(x_\{\gamma,t\}\) is a dimensionless multiplier for the normal damping \(\eta_n\)
 that determines the magnitude of the 
@@ -273,6 +275,10 @@ F_\{n0\} = \|\mathbf\{F\}_ne + 2 F_\{pulloff\}\|
 
 Where \(F_\{pulloff\} = 3\pi \gamma R \) for {jkr}, and \(F_\{pulloff\} = 4\pi \gamma R \) for {dmt}.  
  
+The remaining tangential options all use accumulated tangential displacement (i.e. contact history). This 
+is discussed below in the context of the {linear_history} option, but the same treatment of the 
+accumulated displacement applies to the other options as well.
+
 For {tangential linear_history}, the tangential force is given by:
 
 \begin\{equation\}
@@ -320,17 +326,39 @@ equation 20 and related discussion):
 \end\{equation\}
 
 The tangential force is added to the total normal force (elastic plus damping) to produce the total force
-on the particle. The tangential force also acts at the contact point to induce a torque on each 
-particle according to:
+on the particle. The tangential force also acts at the contact point (defined as the center of the overlap region)
+to induce a torque on each particle according to:
 
 \begin\{equation\}
-\mathbf\{\tau\}_i = -R_i \mathbf\{n\} \times \mathbf\{F\}_t
+\mathbf\{\tau\}_i = -(R_i - 0.5 \delta) \mathbf\{n\} \times \mathbf\{F\}_t
 \end\{equation\}
 
 \begin\{equation\}
-\mathbf\{\tau\}_j = -R_j \mathbf\{n\} \times \mathbf\{F\}_t
+\mathbf\{\tau\}_j = -(R_j - 0.5 \delta) \mathbf\{n\} \times \mathbf\{F\}_t
 \end\{equation\}
 
+For {tangential mindlin}, the Mindlin no-slip solution is used, which differs from the {linear_history}
+option by an additional factor of {a}, the radius of the contact region. The tangential force is given by:
+
+\begin\{equation\}                                                                                                              
+\mathbf\{F\}_t =  -min(\mu_t F_\{n0\}, \|-k_t a \mathbf\{\xi\} + \mathbf\{F\}_\mathrm\{t,damp\}\|) \mathbf\{t\}                    
+\end\{equation\}    
+
+Here, {a} is the radius of the contact region, given by \(a = \delta R\) for all normal contact models, 
+except for {jkr}, where it is given implicitly by \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\), 
+see discussion above.
+
+The {mindlin_rescale} option uses the same form as {mindlin}, but the magnitude of the tangential 
+displacement is re-scaled as the contact unloads, i.e. if \(a < a_\{t_n-1\}\):
+\begin\{equation\}
+\mathbf\{\xi\} = \mathbf\{xi_\{t_n-1\}\} \frac\{a\}\{a_\{t_n-1\}\}
+\end\{equation\}
+
+This accounts for the fact that a decrease in the contact area upon unloading leads to the contact
+being unable to support the previous tangential loading, and spurious energy is created
+without the rescaling above ("Walton"_#WaltonPC). See also discussion in "Thornton et al, 2013"_#Thornton2013,
+particularly equation 18(b) of that work and associated discussion.
+ 
 :line
 
 The optional {rolling} keyword enables rolling friction, which resists pure rolling
@@ -616,3 +644,15 @@ Rolling and sliding in 3-D discrete element models. Particuology, 23, 49-55.
 :link(Thornton1991)
 [(Thornton, 1991)] Thornton, C. (1991). Interparticle sliding in the presence of adhesion.
 J. Phys. D: Appl. Phys. 24 1942
+
+:link(Mindlin1949)
+[(Mindlin, 1949)] Mindlin, R. D. (1949). Compliance of elastic bodies in contact.
+J. Appl. Mech., ASME 16, 259-268.
+
+:line(Thornton2013)
+[(Thornton et al, 2013)] Thornton, C., Cummins, S. J., & Cleary, P. W. (2013). 
+An investigation of the comparative behaviour of alternative contact force models 
+during inelastic collisions. Powder Technology, 233, 30-46.
+
+:line(WaltonPC)
+[(Otis R. Walton)] Walton, O.R., Personal Communication	  

@@ -61,9 +61,11 @@ public:
   int nmax;                // allocated size of mass_rigid
 
   void allocate();
+  void transfer_history(double*, double*);
 
 private:
   int size_history;
+  int *history_transfer_factors;
 
   //Model choices
   int **normal_model, **damping_model;

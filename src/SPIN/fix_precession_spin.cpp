@@ -171,6 +171,9 @@ void FixPrecessionSpin::setup(int vflag)
 
 void FixPrecessionSpin::post_force(int /*vflag*/)
 {
+
+  printf("test inside post force (precession) \n");
+
   // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {

@@ -161,8 +161,9 @@ void PairSpinExchange::init_style()
     if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+  // test remove if test
+  //if (ifix == modify->nfix)
+  //  error->all(FLERR,"pair/spin style requires nve/spin");
 
   // get the lattice_flag from nve/spin
 

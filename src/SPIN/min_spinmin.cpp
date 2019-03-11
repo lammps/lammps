@@ -96,7 +96,7 @@ int MinSpinMin::iterate(int maxiter)
   bigint ntimestep;
   //double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
   //double dtvone,dtv,dtf,dtfm;
-  //int flag,flagall;
+  int flag,flagall;
 
   //alpha_final = 0.0;
   
@@ -226,29 +226,44 @@ int MinSpinMin::iterate(int maxiter)
     //  }
     //}
 
-    //eprevious = ecurrent;
-    //ecurrent = energy_force(0);
-    //neval++;
+    eprevious = ecurrent;
+    ecurrent = energy_force(0);
+    neval++;
 
     //// energy tolerance criterion
     //// only check after DELAYSTEP elapsed since velocties reset to 0
     //// sync across replicas if running multi-replica minimization
 
-    //if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
+    if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
+      if (update->multireplica == 0) {
+        if (fabs(ecurrent-eprevious) <
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+          return ETOL;
+      } else {
+        if (fabs(ecurrent-eprevious) <
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+          flag = 0;
+        else flag = 1;
+        MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
+        if (flagall == 0) return ETOL;
+      }
+    }
+
+    //// magnetic force tolerance criterion
+    //// sync across replicas if running multi-replica minimization
+
+    //if (update->fmtol > 0.0) {
+    //  fmdotfm = fmnorm_sqr();
     //  if (update->multireplica == 0) {
-    //    if (fabs(ecurrent-eprevious) <
-    //        update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
-    //      return ETOL;
+    //    if (fmdotfm < update->fmtol*update->fmtol) return FTOL;
     //  } else {
-    //    if (fabs(ecurrent-eprevious) <
-    //        update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
-    //      flag = 0;
+    //    if (fmdotfm < update->fmtol*update->fmtol) flag = 0;
     //    else flag = 1;
-    //    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
-    //    if (flagall == 0) return ETOL;
+    //    MPI_Allreduce(&fmlag,&fmlagall,1,MPI_INT,MPI_SUM,universe->uworld);
+    //    if (fmlagall == 0) return FTOL;
     //  }
     //}
-
+    
     //// force tolerance criterion
     //// sync across replicas if running multi-replica minimization
 
@@ -266,11 +281,11 @@ int MinSpinMin::iterate(int maxiter)
 
     //// output for thermo, dump, restart files
 
-    //if (output->next == ntimestep) {
-    //  timer->stamp();
-    //  output->write(ntimestep);
-    //  timer->stamp(Timer::OUTPUT);
-    //}
+    if (output->next == ntimestep) {
+      timer->stamp();
+      output->write(ntimestep);
+      timer->stamp(Timer::OUTPUT);
+    }
   }
 
   return MAXITER;
@@ -296,6 +311,7 @@ double MinSpinMin::evaluate_dt()
     fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
     fmaxsqone = MAX(fmaxsqone,fmsq);
   }
+  //printf("test inside evaluate dt, fmaxsqone = %g \n",fmaxsqone);
   //for (int i = 0; i < nlocal; i++)
   //  if (mask[i] & groupbit) {
   //    fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
@@ -310,18 +326,21 @@ double MinSpinMin::evaluate_dt()
   // finding max fm over all replicas, if necessary
   // this communicator would be invalid for multiprocess replicas
 
+  fmaxsqall = fmaxsqloc;
   if (update->multireplica == 1) {
     fmaxsqall = fmaxsqloc;
     MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
   }
 
-  if (fmaxsqall < fmaxsqloc)
-    error->all(FLERR,"Incorrect fmaxall calc.");
+  //if (fmaxsqall < fmaxsqloc)
+  //  error->all(FLERR,"Incorrect fmaxall calc.");
 
   // define max timestep
   // dividing by 10 the inverse of max frequency
+  //printf("test inside evaluate dt, fmaxsqall = %g \n",fmaxsqall);
 
   dtmax = MY_2PI/(10.0*sqrt(fmaxsqall));
+  //printf("test inside evaluate dt, dtmax = %g \n",dtmax);
 
   return dtmax;
 }
@@ -341,7 +360,7 @@ void MinSpinMin::advance_spins(double dts)
   double tdampx,tdampy,tdampz;
   double msq,scale,fm2,energy,dts2;
   double alpha;
-  double spi[3],fmi[3];
+  //double spi[3],fmi[3];
   double cp[3],g[3];
 
   //cp[0] = cp[1] = cp[2] = 0.0;
@@ -351,6 +370,9 @@ void MinSpinMin::advance_spins(double dts)
   // fictitious Gilbert damping of 1
   alpha = 1.0;
 
+  //printf("test inside spinmin, dts %g \n",dts);
+  //printf("test inside spinmin, fmi i=%d, %g %g %g \n",1,fm[1][0],fm[1][1],fm[1][2]);
+  
   // loop on all spins on proc.
 
   //if (ireplica != nreplica-1 && ireplica != 0)
@@ -358,19 +380,21 @@ void MinSpinMin::advance_spins(double dts)
   //    if (mask[i] & groupbit) {
   for (int i = 0; i < nlocal; i++) {
 
-    spi[0] = sp[i][0];
-    spi[1] = sp[i][1];
-    spi[2] = sp[i][2];
-    
-    fmi[0] = fm[i][0];
-    fmi[1] = fm[i][1];
-    fmi[2] = fm[i][2];
+    //spi[0] = sp[i][0];
+    //spi[1] = sp[i][1];
+    //spi[2] = sp[i][2];
+    //
+    //fmi[0] = fm[i][0];
+    //fmi[1] = fm[i][1];
+    //fmi[2] = fm[i][2];
     
     // calc. damping torque
     
-    tdampx = -alpha*(fmi[1]*spi[2] - fmi[2]*spi[1]);
-    tdampy = -alpha*(fmi[2]*spi[0] - fmi[0]*spi[2]);
-    tdampz = -alpha*(fmi[0]*spi[1] - fmi[1]*spi[0]);
+    tdampx = -alpha*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
+    tdampy = -alpha*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
+    tdampz = -alpha*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
+    
+    //printf("for %d, test tdamp: %g %g %g \n",i,tdampx,tdampy,tdampz);
     
     // apply advance algorithm (geometric, norm preserving)
     
@@ -381,18 +405,27 @@ void MinSpinMin::advance_spins(double dts)
     cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
     cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
     
+    //printf("for %d, test cp: %g %g %g \n",i,cp[0],cp[1],cp[2]);
+    
     g[0] = sp[i][0]+cp[0]*dts;
     g[1] = sp[i][1]+cp[1]*dts;
     g[2] = sp[i][2]+cp[2]*dts;
     		
-    g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
-    g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
-    g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
+    //g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
+    //g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
+    //g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
+    g[0] += (tdampx*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
+    g[1] += (tdampy*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
+    g[2] += (tdampz*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
     		
     g[0] /= (1+0.25*fm2*dts2);
     g[1] /= (1+0.25*fm2*dts2);
     g[2] /= (1+0.25*fm2*dts2);
-    
+   
+    //printf("test inside spinmin, spi i=%d, %g %g %g \n",i,sp[i][0],sp[i][1],sp[i][2]);
+    //printf("test inside spinmin, fmi i=%d, %g %g %g \n",i,fm[i][0],fm[i][1],fm[i][2]);
+    //printf("for %d, test g: %g %g %g \n",i,g[0],g[1],g[2]);
+
     sp[i][0] = g[0];
     sp[i][1] = g[1];
     sp[i][2] = g[2];			
@@ -422,7 +455,8 @@ void MinSpinMin::advance_spins(double dts)
     //
   }
 
-  printf("test inside spinmin, dts = %g \n",dts);
-  printf("test inside spinmin, fmi i=%d, %g %g %g \n",1,fm[1][0],fm[1][1],fm[1][2]);
-  printf("test inside spinmin, spi i=%d, %g %g %g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //printf("test inside spinmin, dts = %g \n",dts);
+  //printf("test inside spinmin, fmi i=%d, %g %g %g \n",1,fm[1][0],fm[1][1],fm[1][2]);
+  //printf("test inside spinmin, spi i=%d, %g %g %g \n",1,sp[1][0],sp[1][1],sp[1][2]);
 }
+

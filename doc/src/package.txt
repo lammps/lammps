@@ -450,20 +450,20 @@ computation is done, but less communication.  However, when running in
 MPI-only mode with 1 thread per MPI task, a value of {on} will
 typically be faster, just as it is for non-accelerated pair styles.
 
-The {binsize} keyword sets the size of bins used to bin atoms in
-neighbor list builds.  The same value can be set by the "neigh_modify
-binsize"_neigh_modify.html command.  Making it an option in the
-package kokkos command allows it to be set from the command line.  The
-default value is 0.0, which means the LAMMPS default will be used,
-which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
-distance.  This is fine when neighbor lists are built on the CPU.  For
-GPU builds, a 2x larger binsize equal to the pairwise cutoff +
-neighbor skin, is often faster, which can be set by this keyword.
-Note that if you use a longer-than-usual pairwise cutoff, e.g. to
-allow for a smaller fraction of KSpace work with a "long-range
-Coulombic solver"_kspace_style.html because the GPU is faster at
-performing pairwise interactions, then this rule of thumb may give too
-large a binsize.
+The {binsize} keyword sets the size of bins used to bin atoms in 
+neighbor list builds. The same value can be set by the "neigh_modify 
+binsize"_neigh_modify.html command. Making it an option in the package 
+kokkos command allows it to be set from the command line. The default 
+value for CPUs is 0.0, which means the LAMMPS default will be used, 
+which is bins = 1/2 the size of the pairwise cutoff + neighbor skin 
+distance. This is fine when neighbor lists are built on the CPU. For GPU 
+builds, a 2x larger binsize equal to the pairwise cutoff + neighbor skin 
+is often faster, which is the default. Note that if you use a 
+longer-than-usual pairwise cutoff, e.g. to allow for a smaller fraction 
+of KSpace work with a "long-range Coulombic solver"_kspace_style.html 
+because the GPU is faster at performing pairwise interactions, then this 
+rule of thumb may give too large a binsize and the default should be 
+overridden with a smaller value. 
 
 The {comm} and {comm/exchange} and {comm/forward} and {comm/reverse} keywords determine
 whether the host or device performs the packing and unpacking of data
@@ -623,14 +623,14 @@ not used, you must invoke the package intel command in your input
 script or or via the "-pk intel" "command-line
 switch"_Run_options.html.
 
-For the KOKKOS package, the option defaults neigh = full, neigh/qeq =
-full, newton = off, binsize = 0.0, and comm = device, gpu/direct = on.
-When LAMMPS can safely detect, that GPU-direct is not available, the
-default value of gpu/direct becomes "off".
-These settings are made automatically by the required "-k on"
-"command-line switch"_Run_options.html. You can change them by
-using the package kokkos command in your input script or via the
-"-pk kokkos command-line switch"_Run_options.html.
+For the KOKKOS package, the option defaults neigh = full, neigh/qeq = 
+full, newton = off, binsize for CPUs = 0.0, binsize for GPUs = 2x LAMMPS 
+default value, and comm = device, gpu/direct = on. When LAMMPS can 
+safely detect, that GPU-direct is not available, the default value of 
+gpu/direct becomes "off". These settings are made automatically by the 
+required "-k on" "command-line switch"_Run_options.html. You can change 
+them by using the package kokkos command in your input script or via the 
+"-pk kokkos command-line switch"_Run_options.html. 
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

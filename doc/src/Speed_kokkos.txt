@@ -242,13 +242,13 @@ pairwise and bonded interactions, along with threaded communication.
 When running on Maxwell or Kepler GPUs, this will typically be
 best. For Pascal GPUs, using "half" neighbor lists and setting the
 Newton flag to "on" may be faster. For many pair styles, setting the
-neighbor binsize equal to the ghost atom cutoff will give speedup.
+neighbor binsize equal to twice the CPU default value will give speedup,
+which is the default when running on GPUs.
 Use the "-pk kokkos" "command-line switch"_Run_options.html to change
 the default "package kokkos"_package.html options. See its doc page
 for details and default settings. Experimenting with its options can
 provide a speed-up for specific calculations. For example:
 
-mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos binsize 2.8 -in in.lj      # Set binsize = neighbor ghost cutoff
 mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff :pre
 
 NOTE: For good performance of the KOKKOS package on GPUs, you must

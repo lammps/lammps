@@ -337,7 +337,8 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   //printf("test veng: %g / %g / %g \n",veng,vprev,vnext);
   //error->universe_all(FLERR,"End test");
 
-  if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0)) EFinalIni = veng;
+  if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0)) 
+    EFinalIni = veng;
 
   if (ireplica == 0) vIni=veng;
 

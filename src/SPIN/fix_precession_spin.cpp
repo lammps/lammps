@@ -173,8 +173,6 @@ void FixPrecessionSpin::setup(int vflag)
 void FixPrecessionSpin::post_force(int /*vflag*/)
 {
 
-  printf("test inside post force (precession) \n");
-
   // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {
@@ -204,7 +202,7 @@ void FixPrecessionSpin::post_force(int /*vflag*/)
 
     if (aniso_flag) {           // compute magnetic anisotropy
       compute_anisotropy(spi,fmi);
-      emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      emag -= 0.5*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
     }
 
     fm[i][0] += fmi[0];
@@ -232,9 +230,9 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
   double **sp = atom->sp;
-  fmi[0] -= sp[i][3]*hx;
-  fmi[1] -= sp[i][3]*hy;
-  fmi[2] -= sp[i][3]*hz;
+  fmi[0] += sp[i][0]*hx;
+  fmi[1] += sp[i][1]*hy;
+  fmi[2] += sp[i][3]*hz;
 }
 
 /* ---------------------------------------------------------------------- */

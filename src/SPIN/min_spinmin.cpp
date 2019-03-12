@@ -46,14 +46,13 @@ MinSpinMin::MinSpinMin(LAMMPS *lmp) : Min(lmp) {}
 
 void MinSpinMin::init()
 {
+  alpha_damp = 1.0;
+  discret_factor = 10.0;
+
   Min::init();
 
-  dt = update->dt;
+  dts = dt = update->dt;
   last_negative = update->ntimestep;
-
-  // test dts
-  dts = dt;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,8 +93,7 @@ void MinSpinMin::reset_vectors()
 int MinSpinMin::iterate(int maxiter)
 {
   bigint ntimestep;
-  //double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
-  //double dtvone,dtv,dtf,dtfm;
+  double fmdotfm,fmdotfmall;
   int flag,flagall;
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -113,106 +111,6 @@ int MinSpinMin::iterate(int maxiter)
     // apply damped precessional dynamics to the spins
       
     advance_spins(dts);
-
-
-    //// zero velocity if anti-parallel to force
-    //// else project velocity in direction of force
-
-    //double **v = atom->v;
-    //double **f = atom->f;
-    //int nlocal = atom->nlocal;
-
-    //vdotf = 0.0;
-    //for (int i = 0; i < nlocal; i++)
-    //  vdotf += v[i][0]*f[i][0] + v[i][1]*f[i][1] + v[i][2]*f[i][2];
-    //MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,world);
-
-    // sum vdotf over replicas, if necessary
-    // this communicator would be invalid for multiprocess replicas
-
-    //if (update->multireplica == 1) {
-    //  vdotf = vdotfall;
-    //  MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-    //}
-
-    //if (vdotfall < 0.0) {
-    //  last_negative = ntimestep;
-    //  for (int i = 0; i < nlocal; i++)
-    //    v[i][0] = v[i][1] = v[i][2] = 0.0;
-
-    //} else {
-    //  fdotf = 0.0;
-    //  for (int i = 0; i < nlocal; i++)
-    //    fdotf += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-    //  MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,world);
-
-    //  // sum fdotf over replicas, if necessary
-    //  // this communicator would be invalid for multiprocess replicas
-
-    //  if (update->multireplica == 1) {
-    //    fdotf = fdotfall;
-    //    MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-    //  }
-
-    //  if (fdotfall == 0.0) scale = 0.0;
-    //  else scale = vdotfall/fdotfall;
-    //  for (int i = 0; i < nlocal; i++) {
-    //    v[i][0] = scale * f[i][0];
-    //    v[i][1] = scale * f[i][1];
-    //    v[i][2] = scale * f[i][2];
-    //  }
-    //}
-
-    //// limit timestep so no particle moves further than dmax
-
-    //double *rmass = atom->rmass;
-    //double *mass = atom->mass;
-    //int *type = atom->type;
-
-    //dtvone = dt;
-
-    //for (int i = 0; i < nlocal; i++) {
-    //  vmax = MAX(fabs(v[i][0]),fabs(v[i][1]));
-    //  vmax = MAX(vmax,fabs(v[i][2]));
-    //  if (dtvone*vmax > dmax) dtvone = dmax/vmax;
-    //}
-    //MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
-
-    //// min dtv over replicas, if necessary
-    //// this communicator would be invalid for multiprocess replicas
-
-    //if (update->multireplica == 1) {
-    //  dtvone = dtv;
-    //  MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
-    //}
-
-    //dtf = dtv * force->ftm2v;
-
-    //// Euler integration step
-
-    //double **x = atom->x;
-
-    //if (rmass) {
-    //  for (int i = 0; i < nlocal; i++) {
-    //    dtfm = dtf / rmass[i];
-    //    x[i][0] += dtv * v[i][0];
-    //    x[i][1] += dtv * v[i][1];
-    //    x[i][2] += dtv * v[i][2];
-    //    v[i][0] += dtfm * f[i][0];
-    //    v[i][1] += dtfm * f[i][1];
-    //    v[i][2] += dtfm * f[i][2];
-    //  }
-    //} else {
-    //  for (int i = 0; i < nlocal; i++) {
-    //    dtfm = dtf / mass[type[i]];
-    //    x[i][0] += dtv * v[i][0];
-    //    x[i][1] += dtv * v[i][1];
-    //    x[i][2] += dtv * v[i][2];
-    //    v[i][0] += dtfm * f[i][0];
-    //    v[i][1] += dtfm * f[i][1];
-    //    v[i][2] += dtfm * f[i][2];
-    //  }
-    //}
 
     eprevious = ecurrent;
     ecurrent = energy_force(0);
@@ -237,37 +135,22 @@ int MinSpinMin::iterate(int maxiter)
       }
     }
 
-    //// magnetic force tolerance criterion
-    //// sync across replicas if running multi-replica minimization
+    // magnetic torque tolerance criterion
+    // sync across replicas if running multi-replica minimization
 
-    //if (update->fmtol > 0.0) {
-    //  fmdotfm = fmnorm_sqr();
-    //  if (update->multireplica == 0) {
-    //    if (fmdotfm < update->fmtol*update->fmtol) return FTOL;
-    //  } else {
-    //    if (fmdotfm < update->fmtol*update->fmtol) flag = 0;
-    //    else flag = 1;
-    //    MPI_Allreduce(&fmlag,&fmlagall,1,MPI_INT,MPI_SUM,universe->uworld);
-    //    if (fmlagall == 0) return FTOL;
-    //  }
-    //}
-    
-    //// force tolerance criterion
-    //// sync across replicas if running multi-replica minimization
+    if (update->ftol > 0.0) {
+      fmdotfm = fmnorm_sqr();
+      if (update->multireplica == 0) {
+        if (fmdotfm < update->ftol*update->ftol) return FTOL;
+      } else {
+        if (fmdotfm < update->ftol*update->ftol) flag = 0;
+        else flag = 1;
+        MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
+        if (flagall == 0) return FTOL;
+      }
+    }
 
-    //if (update->ftol > 0.0) {
-    //  fdotf = fnorm_sqr();
-    //  if (update->multireplica == 0) {
-    //    if (fdotf < update->ftol*update->ftol) return FTOL;
-    //  } else {
-    //    if (fdotf < update->ftol*update->ftol) flag = 0;
-    //    else flag = 1;
-    //    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
-    //    if (flagall == 0) return FTOL;
-    //  }
-    //}
-
-    //// output for thermo, dump, restart files
+    // output for thermo, dump, restart files
 
     if (output->next == ntimestep) {
       timer->stamp();
@@ -299,12 +182,6 @@ double MinSpinMin::evaluate_dt()
     fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
     fmaxsqone = MAX(fmaxsqone,fmsq);
   }
-  //printf("test inside evaluate dt, fmaxsqone = %g \n",fmaxsqone);
-  //for (int i = 0; i < nlocal; i++)
-  //  if (mask[i] & groupbit) {
-  //    fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
-  //    fmaxsqone = MAX(fmaxsqone,fmsq);
-  //  }
 
   // finding max fm on this replica
  
@@ -320,15 +197,13 @@ double MinSpinMin::evaluate_dt()
     MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
   }
 
-  //if (fmaxsqall < fmaxsqloc)
-  //  error->all(FLERR,"Incorrect fmaxall calc.");
+  if (fmaxsqall == 0.0)
+    error->all(FLERR,"Incorrect fmaxsqall calculation");
 
-  // define max timestep
-  // dividing by 10 the inverse of max frequency
-  //printf("test inside evaluate dt, fmaxsqall = %g \n",fmaxsqall);
+  // define max timestep by dividing by the 
+  // inverse of max frequency by discret_factor
 
-  dtmax = MY_2PI/(10.0*sqrt(fmaxsqall));
-  //printf("test inside evaluate dt, dtmax = %g \n",dtmax);
+  dtmax = MY_2PI/(discret_factor*sqrt(fmaxsqall));
 
   return dtmax;
 }
@@ -345,28 +220,19 @@ void MinSpinMin::advance_spins(double dts)
   double **fm = atom->fm;
   double tdampx,tdampy,tdampz;
   double msq,scale,fm2,energy,dts2;
-  double alpha;
   double cp[3],g[3];
 
   dts2 = dts*dts;		
 
-  // fictitious Gilbert damping of 1
-  
-  alpha = 1.0;
-
-  
   // loop on all spins on proc.
 
-  //if (ireplica != nreplica-1 && ireplica != 0)
-  //  for (int i = 0; i < nlocal; i++)
-  //    if (mask[i] & groupbit) {
   for (int i = 0; i < nlocal; i++) {
     
     // calc. damping torque
     
-    tdampx = -alpha*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-    tdampy = -alpha*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-    tdampz = -alpha*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
+    tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
+    tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
+    tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
     
     // apply advance algorithm (geometric, norm preserving)
     
@@ -401,22 +267,44 @@ void MinSpinMin::advance_spins(double dts)
     sp[i][1] *= scale;
     sp[i][2] *= scale;
     
-    // comm. sp[i] to atoms with same tag (for serial algo)
-    
-    // no need for simplecticity
-    //if (sector_flag == 0) {
-    //  if (sametag[i] >= 0) {
-    //    j = sametag[i];
-    //    while (j >= 0) {
-    //      sp[j][0] = sp[i][0];
-    //      sp[j][1] = sp[i][1];
-    //      sp[j][2] = sp[i][2];
-    //      j = sametag[j];
-    //    }
-    //  }
-    //}
-    //
+    // no comm. to atoms with same tag
+    // because no need for simplecticity
   }
+}
 
+/* ----------------------------------------------------------------------
+   compute and return ||mag. torque||_2^2
+------------------------------------------------------------------------- */
+
+double MinSpinMin::fmnorm_sqr()
+{
+  int i,n;
+  double *fmatom;
+
+  int nlocal = atom->nlocal;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  // calc. magnetic torques
+  
+  double local_norm2_sqr = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
+    ty = (fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
+    tz = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
+
+    local_norm2_sqr += tx*tx + ty*ty + tz*tz;
+  }
+  
+  // no extra atom calc. for spins 
+
+  if (nextra_atom)
+   error->all(FLERR,"extra atom option not available yet"); 
+
+  double norm2_sqr = 0.0;
+  MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
+
+  return norm2_sqr;
 }
 

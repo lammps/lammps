@@ -58,6 +58,11 @@ class Min : protected Pointers {
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
 
+  // spinmin quantities
+  
+  double alpha_damp;		// damping for spin minimization
+  double discret_factor;	// factor for spin timestep evaluation
+
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;
   class Compute **elist_global;     // lists of PE,virial Computes

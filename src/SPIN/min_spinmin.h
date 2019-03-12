@@ -34,12 +34,12 @@ class MinSpinMin : public Min {
   int iterate(int);
   double evaluate_dt();
   void advance_spins(double);
-
-  class FixNEB_spin *fneb;
+  double fmnorm_sqr();
 
  private:
 
   // global and spin timesteps
+  
   double dt;
   double dts;
 

@@ -29,10 +29,10 @@
 
 #include "reaxc_types.h"
 
-int Init_Output_Files( reax_system*, control_params*,
+int Init_Output_Files( LAMMPS_NS::LAMMPS*, reax_system*, control_params*,
                        output_controls*, mpi_datatypes*, char* );
 int Close_Output_Files( reax_system*, control_params*,
                         output_controls*, mpi_datatypes* );
-void  Output_Results( reax_system*, control_params*, simulation_data*,
+void  Output_Results( LAMMPS_NS::LAMMPS*, reax_system*, control_params*, simulation_data*,
                       reax_list**, output_controls*, mpi_datatypes* );
 #endif

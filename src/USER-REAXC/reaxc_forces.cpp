@@ -39,15 +39,12 @@
 #include "reaxc_valence_angles.h"
 #include "reaxc_vector.h"
 
-#include "lammps.h"
-#include "error.h"
 
 interaction_function Interaction_Functions[NUM_INTRS];
-using namespace LAMMPS_NS;
 
 void Dummy_Interaction( reax_system * /*system*/, control_params * /*control*/,
                         simulation_data * /*data*/, storage * /*workspace*/,
-                        reax_list **/*lists*/, output_controls * /*out_control*/ )
+                        reax_list ** /*lists*/, output_controls * /*out_control*/, LAMMPS_NS::LAMMPS* = NULL )
 {
 }
 
@@ -79,7 +76,7 @@ void Compute_Bonded_Forces( reax_system *system, control_params *control,
   /* Implement all force calls as function pointers */
   for( i = 0; i < NUM_INTRS; i++ ) {
     (Interaction_Functions[i])( system, control, data, workspace,
-                                lists, out_control );
+                                lists, out_control, NULL );
   }
 }
 
@@ -118,7 +115,7 @@ void Compute_Total_Force( reax_system *system, control_params *control,
 
 }
 
-void Validate_Lists( LAMMPS *lmp, reax_system *system, storage * /*workspace*/, reax_list **lists,
+void Validate_Lists( LAMMPS_NS::LAMMPS *lmp, reax_system *system, storage * /*workspace*/, reax_list **lists,
                      int step, int /*n*/, int N, int numH, MPI_Comm comm )
 {
   int i, comp, Hindex;
@@ -138,9 +135,10 @@ void Validate_Lists( LAMMPS *lmp, reax_system *system, storage * /*workspace*/, 
       else comp = bonds->num_intrs;
 
       if (End_Index(i, bonds) > comp) {
-        fprintf( stderr, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
+        char errmsg[256];
+        snprintf(errmsg, 256, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
                  step, i, End_Index(i,bonds), comp );
-        lmp->error->all(FLERR,"Failure in bond list.");
+        lmp->error->all(FLERR,errmsg);
       }
     }
   }
@@ -165,9 +163,10 @@ void Validate_Lists( LAMMPS *lmp, reax_system *system, storage * /*workspace*/, 
         else comp = hbonds->num_intrs;
 
         if (End_Index(Hindex, hbonds) > comp) {
-          fprintf(stderr,"step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
+          char errmsg[256];
+          snprintf(errmsg, 256, "step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
                   step, Hindex, End_Index(Hindex,hbonds), comp );
-          lmp->error->all(FLERR, "Failure in hydrogen bonds.");
+          lmp->error->all(FLERR, errmsg);
         }
       }
     }
@@ -175,7 +174,7 @@ void Validate_Lists( LAMMPS *lmp, reax_system *system, storage * /*workspace*/, 
 }
 
 
-void Init_Forces_noQEq( LAMMPS *lmp, reax_system *system, control_params *control,
+void Init_Forces_noQEq( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
                         reax_list **lists, output_controls * /*out_control*/,
                         MPI_Comm comm ) {
@@ -435,7 +434,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
 }
 
 
-void Compute_Forces( LAMMPS *lmp, reax_system *system, control_params *control,
+void Compute_Forces( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_params *control,
                      simulation_data *data, storage *workspace,
                      reax_list **lists, output_controls *out_control,
                      mpi_datatypes *mpi_data )

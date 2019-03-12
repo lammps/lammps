@@ -144,10 +144,10 @@ void Reset_Neighbor_Lists( LAMMPS *lmp, reax_system *system, control_params *con
     if (total_bonds >= bonds->num_intrs * DANGER_ZONE) {
       workspace->realloc.bonds = 1;
       if (total_bonds >= bonds->num_intrs) {
-        fprintf(stderr,
-                "p%d: not enough space for bonds! total=%d allocated=%d\n",
-                system->my_rank, total_bonds, bonds->num_intrs );
-        lmp->error->all(FLERR, "Can't allocate space for hbonds.");
+        char errmsg[256]; 
+        snprintf(errmsg, 256, "p%d: not enough space for bonds! total=%d allocated=%d\n",
+                system->my_rank, total_bonds, bonds->num_intrs);
+        lmp->error->one(FLERR, errmsg);
       }
     }
   }
@@ -170,10 +170,10 @@ void Reset_Neighbor_Lists( LAMMPS *lmp, reax_system *system, control_params *con
     if (total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/) {
       workspace->realloc.hbonds = 1;
       if (total_hbonds >= hbonds->num_intrs) {
-        fprintf(stderr,
-                "p%d: not enough space for hbonds! total=%d allocated=%d\n",
-                system->my_rank, total_hbonds, hbonds->num_intrs );
-        lmp->error->all(FLERR, "Can't allocate space for hbonds.");
+        char errmsg[256]; 
+        snprintf(errmsg, 256, "p%d: not enough space for hbonds! total=%d allocated=%d\n",
+                system->my_rank, total_hbonds, hbonds->num_intrs);
+        lmp->error->one(FLERR, errmsg);
       }
     }
   }

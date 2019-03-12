@@ -32,17 +32,17 @@
 void Tridiagonal_Solve( const double *a, const double *b,
                         double *c, double *d, double *x, unsigned int n);
 
-void Natural_Cubic_Spline( const double *h, const double *f,
+void Natural_Cubic_Spline( LAMMPS_NS::LAMMPS*, const double *h, const double *f,
                            cubic_spline_coef *coef, unsigned int n,
                            MPI_Comm comm );
 
-void Complete_Cubic_Spline( const double *h, const double *f, double v0, double vlast,
+void Complete_Cubic_Spline( LAMMPS_NS::LAMMPS*, const double *h, const double *f, double v0, double vlast,
                             cubic_spline_coef *coef, unsigned int n,
                             MPI_Comm comm );
 
-int Init_Lookup_Tables( reax_system*, control_params*, storage*,
+int Init_Lookup_Tables( LAMMPS_NS::LAMMPS*, reax_system*, control_params*, storage*,
                         mpi_datatypes*, char* );
 
-void Deallocate_Lookup_Tables( reax_system* );
+void Deallocate_Lookup_Tables( LAMMPS_NS::LAMMPS*, reax_system* );
 
 #endif

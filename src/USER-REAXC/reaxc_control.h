@@ -29,6 +29,9 @@
 
 #include "reaxc_types.h"
 
-char Read_Control_File( char*, control_params*, output_controls* );
+#include "lammps.h"
+#include "error.h"
+
+char Read_Control_File( LAMMPS_NS::LAMMPS *lmp, char*, control_params*, output_controls* );
 
 #endif

@@ -82,7 +82,7 @@ int Init_Simulation_Data( reax_system *system, control_params *control,
   return SUCCESS;
 }
 
-void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
+void Init_Taper( LAMMPS_NS::LAMMPS* lmp, control_params *control,  storage *workspace, MPI_Comm comm )
 {
   double d1, d7;
   double swa, swa2, swa3;
@@ -92,14 +92,16 @@ void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
   swb = control->nonb_cut;
 
   if (fabs( swa ) > 0.01)
-    fprintf( stderr, "Warning: non-zero lower Taper-radius cutoff\n" );
+    lmp->error->warning( FLERR, "Non-zero lower Taper-radius cutoff" );
 
   if (swb < 0) {
-    fprintf( stderr, "Negative upper Taper-radius cutoff\n" );
-    MPI_Abort( comm,  INVALID_INPUT );
+    lmp->error->all(FLERR,"Negative upper Taper-radius cutoff");
   }
-  else if( swb < 5 )
-    fprintf( stderr, "Warning: very low Taper-radius cutoff: %f\n", swb );
+  else if( swb < 5 ) {
+    char errmsg[256];
+    snprintf(errmsg, 256, "Very low Taper-radius cutoff: %f", swb );
+    lmp->error->warning( FLERR, errmsg );
+  }
 
   d1 = swb - swa;
   d7 = pow( d1, 7.0 );
@@ -120,12 +122,12 @@ void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
 }
 
 
-int Init_Workspace( reax_system *system, control_params *control,
+int Init_Workspace( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
                     storage *workspace, MPI_Comm comm, char *msg )
 {
   int ret;
 
-  ret = Allocate_Workspace( system, control, workspace,
+  ret = Allocate_Workspace( lmp, system, control, workspace,
                             system->local_cap, system->total_cap, comm, msg );
   if (ret != SUCCESS)
     return ret;
@@ -134,7 +136,7 @@ int Init_Workspace( reax_system *system, control_params *control,
   Reset_Workspace( system, workspace );
 
   /* Initialize the Taper function */
-  Init_Taper( control, workspace, comm );
+  Init_Taper( lmp, control, workspace, comm );
 
   return SUCCESS;
 }
@@ -179,10 +181,9 @@ int  Init_Lists( LAMMPS *lmp, reax_system *system, control_params *control,
     }
     total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
-    if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
+    if( !Make_List( lmp, system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS, comm ) ) {
-      fprintf( stderr, "not enough space for hbonds list. terminating!\n" );
-      lmp->error->all(FLERR, "Can't allocate space for hbonds.");
+      lmp->error->one(FLERR, "Not enough space for hbonds list.");
     }
   }
 
@@ -193,18 +194,16 @@ int  Init_Lists( LAMMPS *lmp, reax_system *system, control_params *control,
   }
   bond_cap = (int)(MAX( total_bonds*safezone, mincap*MIN_BONDS ));
 
-  if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
+  if( !Make_List( lmp, system->total_cap, bond_cap, TYP_BOND,
                   *lists+BONDS, comm ) ) {
-    fprintf( stderr, "not enough space for bonds list. terminating!\n" );
-    lmp->error->all(FLERR, "Can't allocate space for hbonds.");
+    lmp->error->one(FLERR, "Not enough space for bonds list.");
   }
 
   /* 3bodies list */
   cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
-  if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
+  if( !Make_List( lmp, bond_cap, cap_3body, TYP_THREE_BODY,
                   *lists+THREE_BODIES, comm ) ){
-    fprintf( stderr, "Problem in initializing angles list. Terminating!\n" );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
+    lmp->error->one(FLERR,"Problem in initializing angles list.");
   }
 
   free( hb_top );
@@ -219,60 +218,53 @@ void Initialize( LAMMPS *lmp, reax_system *system, control_params *control,
                  mpi_datatypes *mpi_data, MPI_Comm comm )
 {
   char msg[MAX_STR];
+  char errmsg[128];
 
 
   if (Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE) {
-    fprintf( stderr, "p%d: init_mpi_datatypes: could not create datatypes\n",
-             system->my_rank );
-    fprintf( stderr, "p%d: mpi_data couldn't be initialized! terminating.\n",
-             system->my_rank );
-    MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+
+    snprintf(errmsg, 128, "Could not create datatypes on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg);
   }
 
   if (Init_System(system, control, msg) == FAILURE) {
-    fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
-    fprintf( stderr, "p%d: system could not be initialized! terminating.\n",
-             system->my_rank );
-    MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+    snprintf(errmsg, 128, "System could not be initialized on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg);
   }
 
   if (Init_Simulation_Data( system, control, data, msg ) == FAILURE) {
-    fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
-    fprintf( stderr, "p%d: sim_data couldn't be initialized! terminating.\n",
-             system->my_rank );
-    MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+    snprintf(errmsg, 128, "Sim_data could not be initialized on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg);
   }
 
-  if (Init_Workspace( system, control, workspace, mpi_data->world, msg ) ==
+  if (Init_Workspace( lmp, system, control, workspace, mpi_data->world, msg ) ==
       FAILURE) {
-    fprintf( stderr, "p%d:init_workspace: not enough memory\n",
-             system->my_rank );
-    fprintf( stderr, "p%d:workspace couldn't be initialized! terminating.\n",
-             system->my_rank );
-    MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+    snprintf(errmsg, 128, "Workspace could not be initialized on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg);    
   }
 
   if (Init_Lists( lmp, system, control, data, workspace, lists, mpi_data, msg ) ==
       FAILURE) {
-      fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
-      fprintf( stderr, "p%d: system could not be initialized! terminating.\n",
-               system->my_rank );
-      MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+    snprintf(errmsg, 128, "System could not be initialized on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg);     
     }
 
-  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
-    fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
-    fprintf( stderr, "p%d: could not open output files! terminating...\n",
-             system->my_rank );
-    MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+  if (Init_Output_Files(lmp, system,control,out_control,mpi_data,msg)== FAILURE) {
+    snprintf(errmsg, 128, "Could not open output files on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg); 
   }
 
   if (control->tabulate) {
-    if (Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE) {
-      fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
-      fprintf( stderr, "p%d: couldn't create lookup table! terminating.\n",
-               system->my_rank );
-      MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
+    if (Init_Lookup_Tables( lmp, system, control, workspace, mpi_data, msg ) == FAILURE) {
+      snprintf(errmsg, 128, "Lookup table could not be created on thread %d",
+              system->my_rank);
+    lmp->error->one(FLERR,errmsg); 
     }
   }
 

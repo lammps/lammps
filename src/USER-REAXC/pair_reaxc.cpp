@@ -137,15 +137,15 @@ PairReaxC::~PairReaxC()
 
     // deallocate reax data-structures
 
-    if (control->tabulate ) Deallocate_Lookup_Tables( system);
+    if (control->tabulate ) Deallocate_Lookup_Tables( lmp, system);
 
-    if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world);
-    Delete_List( lists+BONDS, world );
-    Delete_List( lists+THREE_BODIES, world );
-    Delete_List( lists+FAR_NBRS, world );
+    if (control->hbond_cut > 0 )  Delete_List( lmp, lists+HBONDS, world);
+    Delete_List( lmp, lists+BONDS, world );
+    Delete_List( lmp, lists+THREE_BODIES, world );
+    Delete_List( lmp, lists+FAR_NBRS, world );
 
-    DeAllocate_Workspace( control, workspace );
-    DeAllocate_System( system );
+    DeAllocate_Workspace( lmp, control, workspace );
+    DeAllocate_System( lmp, system );
   }
 
   memory->destroy( system );
@@ -223,7 +223,7 @@ void PairReaxC::settings(int narg, char **arg)
     out_control->atom_info = 0;
     out_control->bond_info = 0;
     out_control->angle_info = 0;
-  } else Read_Control_File(arg[0], control, out_control);
+  } else Read_Control_File(lmp, arg[0], control, out_control);
 
   // default values
 
@@ -298,7 +298,7 @@ void PairReaxC::coeff( int nargs, char **args )
   FILE *fp;
   fp = force->open_potential(file);
   if (fp != NULL)
-    Read_Force_Field(fp, &(system->reax_param), control);
+    Read_Force_Field(lmp, fp, &(system->reax_param), control);
   else {
       char str[128];
       snprintf(str,128,"Cannot open ReaxFF potential file %s",file);
@@ -394,7 +394,7 @@ void PairReaxC::init_style( )
                    "increased neighbor list skin.");
 
   for( int i = 0; i < LIST_N; ++i )
-    if (lists[i].allacated != 1)
+    if (lists[i].allocated != 1)
       lists[i].allocated = 0;
 
   if (fix_reax == NULL) {
@@ -437,13 +437,13 @@ void PairReaxC::setup( )
 
     // initialize my data structures
 
-    PreAllocate_Space( system, control, workspace, world );
+    PreAllocate_Space( lmp, system, control, workspace, world );
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
-    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
+    if(!Make_List(lmp, system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS, world))
-      error->all(FLERR,"Pair reax/c problem in far neighbor list");
+      error->one(FLERR,"Pair reax/c problem in far neighbor list");
 
     write_reax_lists();
     Initialize( lmp, system, control, data, workspace, &lists, out_control,
@@ -582,7 +582,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   data->step = update->ntimestep;
 
-  Output_Results( system, control, data, &lists, out_control, mpi_data );
+  Output_Results( lmp, system, control, data, &lists, out_control, mpi_data );
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;

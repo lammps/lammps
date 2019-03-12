@@ -28,7 +28,9 @@
 #include "reaxc_control.h"
 #include "reaxc_tool_box.h"
 
-char Read_Control_File( char *control_file, control_params* control,
+using namespace LAMMPS_NS;
+
+char Read_Control_File( LAMMPS *lmp, char *control_file, control_params* control,
                         output_controls *out_control )
 {
   FILE *fp;
@@ -38,8 +40,7 @@ char Read_Control_File( char *control_file, control_params* control,
 
   /* open control file */
   if ( (fp = fopen( control_file, "r" ) ) == NULL ) {
-    fprintf( stderr, "error opening the control file! terminating...\n" );
-    MPI_Abort( MPI_COMM_WORLD,  FILE_NOT_FOUND );
+    lmp->error->all(FLERR, "The control file cannot be opened");
   }
 
   /* assign default values */
@@ -364,8 +365,9 @@ char Read_Control_File( char *control_file, control_params* control,
       control->restrict_type = ival;
     }
     else {
-      fprintf( stderr, "WARNING: unknown parameter %s\n", tmp[0] );
-      MPI_Abort( MPI_COMM_WORLD, 15 );
+      char errmsg[128];
+      snprintf(errmsg,128,"Unknown parameter %s in the control file", tmp[0]);
+      lmp->error->all(FLERR, errmsg);
     }
   }
 

@@ -34,7 +34,7 @@
 #include "reaxc_traj.h"
 #include "reaxc_vector.h"
 
-int Init_Output_Files( reax_system *system, control_params *control,
+int Init_Output_Files( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
                        output_controls *out_control, mpi_datatypes *mpi_data,
                        char *msg )
 {
@@ -42,7 +42,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
   int ret;
 
   if (out_control->write_steps > 0) {
-    ret = Init_Traj( system, control, out_control, mpi_data, msg );
+    ret = Init_Traj( lmp, system, control, out_control, mpi_data, msg );
     if (ret == FAILURE)
       return ret;
   }
@@ -107,7 +107,7 @@ int Close_Output_Files( reax_system *system, control_params *control,
 }
 
 
-void Output_Results( reax_system *system, control_params *control,
+void Output_Results( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
                      simulation_data *data, reax_list **lists,
                      output_controls *out_control, mpi_datatypes *mpi_data )
 {
@@ -146,7 +146,7 @@ void Output_Results( reax_system *system, control_params *control,
     /* write current frame */
     if( out_control->write_steps > 0 &&
         (data->step-data->prev_steps) % out_control->write_steps == 0 ) {
-      Append_Frame( system, control, data, lists, out_control, mpi_data );
+      Append_Frame( lmp, system, control, data, lists, out_control, mpi_data );
     }
   }
 

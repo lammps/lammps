@@ -73,11 +73,11 @@ enum BOND_LINE_OPTS  { OPT_NOBOND, OPT_BOND_BASIC, OPT_BOND_FULL, NR_OPT_BOND };
 enum ANGLE_LINE_OPTS { OPT_NOANGLE, OPT_ANGLE_BASIC, NR_OPT_ANGLE };
 
 
-int  Init_Traj( reax_system*, control_params*, output_controls*,
+int  Init_Traj( LAMMPS_NS::LAMMPS*, reax_system*, control_params*, output_controls*,
                 mpi_datatypes*, char* );
 int  End_Traj( int, output_controls* );
 
-int  Append_Frame( reax_system*, control_params*, simulation_data*,
+int  Append_Frame( LAMMPS_NS::LAMMPS*, reax_system*, control_params*, simulation_data*,
                    reax_list**, output_controls*, mpi_datatypes* );
 
 #endif

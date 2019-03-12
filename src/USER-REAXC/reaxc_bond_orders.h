@@ -42,5 +42,5 @@ void Add_dBond_to_Forces_NPT( int, int, simulation_data*,
 int BOp(storage*, reax_list*, double, int, int, far_neighbor_data*,
         single_body_parameters*, single_body_parameters*, two_body_parameters*);
 void BO( reax_system*, control_params*, simulation_data*,
-         storage*, reax_list**, output_controls* );
+         storage*, reax_list**, output_controls*, LAMMPS_NS::LAMMPS* = NULL );
 #endif

@@ -53,23 +53,25 @@ int Tokenize( char* s, char*** tok )
   return count;
 }
 
+
+
 /* safe malloc */
-void *smalloc( rc_bigint n, const char *name, MPI_Comm comm )
+void *smalloc( LAMMPS_NS::LAMMPS *lmp, rc_bigint n, const char *name, MPI_Comm comm )
 {
   void *ptr;
+  char errmsg[256];
 
   if (n <= 0) {
-    fprintf( stderr, "WARNING: trying to allocate %ld bytes for array %s. ",
-             n, name );
-    fprintf( stderr, "returning NULL.\n" );
+    snprintf(errmsg, 256, "Trying to allocate %ld bytes for array %s. "
+              "returning NULL.", n, name);
+    lmp->error->warning(FLERR,errmsg);
     return NULL;
   }
 
   ptr = malloc( n );
   if (ptr == NULL) {
-    fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s",
-             n, name );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
+    snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n, name);
+    lmp->error->one(FLERR,errmsg);
   }
 
   return ptr;
@@ -77,29 +79,30 @@ void *smalloc( rc_bigint n, const char *name, MPI_Comm comm )
 
 
 /* safe calloc */
-void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
+void *scalloc( LAMMPS_NS::LAMMPS *lmp, rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
 {
   void *ptr;
+  char errmsg[256];
 
   if (n <= 0) {
-    fprintf( stderr, "WARNING: trying to allocate %ld elements for array %s. ",
-             n, name );
-    fprintf( stderr, "returning NULL.\n" );
+    snprintf(errmsg, 256, "Trying to allocate %ld elements for array %s. "
+            "returning NULL.\n", n, name );
+    lmp->error->warning(FLERR,errmsg);
     return NULL;
   }
 
   if (size <= 0) {
-    fprintf( stderr, "WARNING: elements size for array %s is %ld. ",
-             name, size );
-    fprintf( stderr, "returning NULL.\n" );
+    snprintf(errmsg, 256, "Elements size for array %s is %ld. "
+             "returning NULL", name, size );
+             lmp->error->warning(FLERR,errmsg);
     return NULL;
   }
 
   ptr = calloc( n, size );
   if (ptr == NULL) {
-    fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s",
-             n*size, name );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
+    char errmsg[256];
+    snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n*size, name);
+    lmp->error->one(FLERR,errmsg);
   }
 
   return ptr;
@@ -107,11 +110,12 @@ void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
 
 
 /* safe free */
-void sfree( void *ptr, const char *name )
+void sfree( LAMMPS_NS::LAMMPS* lmp, void *ptr, const char *name )
 {
   if (ptr == NULL) {
-    fprintf( stderr, "WARNING: trying to free the already NULL pointer %s!\n",
-             name );
+    char errmsg[256];
+    snprintf(errmsg, 256, "Trying to free the already NULL pointer %s", name );
+    lmp->error->one(FLERR,errmsg);
     return;
   }
 

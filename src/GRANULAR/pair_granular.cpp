@@ -211,8 +211,10 @@ void PairGranular::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = fix_history->firstflag;
-  firsthistory = fix_history->firstvalue;
+  if (use_history){
+    firsttouch = fix_history->firstflag;
+    firsthistory = fix_history->firstvalue;
+  }
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -222,8 +224,10 @@ void PairGranular::compute(int eflag, int vflag)
     ztmp = x[i][2];
     itype = type[i];
     radi = radius[i];
-    touch = firsttouch[i];
-    allhistory = firsthistory[i];
+    if (use_history){
+      touch = firsttouch[i];
+      allhistory = firsthistory[i];
+    }
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -263,9 +267,11 @@ void PairGranular::compute(int eflag, int vflag)
 
       if (!touchflag){
         // unset non-touching neighbors
-        touch[jj] = 0;
-        history = &allhistory[size_history*jj];
-        for (int k = 0; k < size_history; k++) history[k] = 0.0;
+        if (use_history){
+          touch[jj] = 0;
+          history = &allhistory[size_history*jj];
+          for (int k = 0; k < size_history; k++) history[k] = 0.0;
+        }
       }
       else{
         r = sqrt(rsq);
@@ -788,7 +794,16 @@ void PairGranular::coeff(int narg, char **arg)
         else if (strcmp(arg[iarg+1], "mindlin") == 0) tangential_model_one = TANGENTIAL_MINDLIN;
         else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) tangential_model_one = TANGENTIAL_MINDLIN_RESCALE;
         tangential_history = 1;
-        tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+        if ((tangential_model_one == TANGENTIAL_MINDLIN || tangential_model_one == TANGENTIAL_MINDLIN_RESCALE) &&
+            (strcmp(arg[iarg+2], "NULL") == 0)){
+          if (normal_model_one == HERTZ || normal_model_one == HOOKE){
+            error->all(FLERR, "NULL setting for Mindlin tangential stiffness requires a normal contact model that specifies material properties");
+          }
+          tangential_coeffs_one[0] = -1;
+        }
+        else{
+          tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+        }
         tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
         tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
         iarg += 5;
@@ -879,7 +894,13 @@ void PairGranular::coeff(int narg, char **arg)
       damping_model[i][j] = damping_model[j][i] = damping_model_one;
 
       tangential_model[i][j] = tangential_model[j][i] = tangential_model_one;
-      for (int k = 0; k < 3; k++)
+      if (tangential_coeffs_one[0] == -1){
+        tangential_coeffs[i][j][0] = tangential_coeffs[j][i][0] = 8*mix_stiffnessG(Emod[i][j], Emod[i][j], poiss[i][j], poiss[i][j]);
+      }
+      else{
+        tangential_coeffs[i][j][0] = tangential_coeffs[j][i][0] = tangential_coeffs_one[0];
+      }
+      for (int k = 1; k < 3; k++)
         tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = tangential_coeffs_one[k];
 
       roll_model[i][j] = roll_model[j][i] = roll_model_one;
@@ -1276,7 +1297,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     touchflag = (rsq <= radsum*radsum);
   }
 
-  if (touchflag){
+  if (!touchflag){
     fforce = 0.0;
     for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
@@ -1373,8 +1394,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   }
   else{
     knfac = E;
-    a = sqrt(dR);
     Fne = knfac*delta;
+    a = sqrt(dR);
     if (normal_model[itype][jtype] != HOOKE){
       Fne *= a;
       knfac *= a;
@@ -1451,6 +1472,19 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal_prefactor;
 
   if (tangential_history){
+    if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN){
+      k_tangential *= a;
+    }
+    else if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE){
+      k_tangential *= a;
+      if (a < history[3]){ //On unloading, rescale the shear displacements
+        double factor = a/history[3];
+        history[0] *= factor;
+        history[1] *= factor;
+        history[2] *= factor;
+      }
+    }
+
     shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
         history[2]*history[2]);
 
@@ -1617,9 +1651,9 @@ double PairGranular::mix_stiffnessE(double Eii, double Ejj, double poisii, doubl
 	 mixing of shear modulus (G)
 ------------------------------------------------------------------------ */
 
-double PairGranular::mix_stiffnessG(double Gii, double Gjj, double poisii, double poisjj)
+double PairGranular::mix_stiffnessG(double Eii, double Ejj, double poisii, double poisjj)
 {
-  return 1/((2.0 -poisii)/Gii+(2.0-poisjj)/Gjj);
+  return 1/((2*(2-poisii)*(1+poisii)/Eii) + (2*(2-poisjj)*(1+poisjj)/Ejj));
 }
 
 /* ----------------------------------------------------------------------

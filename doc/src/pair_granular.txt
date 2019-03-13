@@ -28,10 +28,10 @@ pair_style granular
 pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 :pre
 
 pair_style granular
-pair_coeff * * hertz 1000.0 50.0 tangential mindlin 800.0 1.0 0.4 :pre
+pair_coeff * * hertz 1000.0 50.0 tangential mindlin NULL 1.0 0.4 :pre
 
 pair_style granular
-pair_coeff * * hertz 1000.0 0.3 tangential linear_history 800.0 1.0 0.4 damping tsuji :pre
+pair_coeff * * hertz/material 1e8 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji :pre
 
 pair_style granular
 pair_coeff 1 1 jkr 1000.0 50.0 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
@@ -39,8 +39,8 @@ pair_coeff 2 2 hertz 200.0 20.0 tangential linear_history 300.0 1.0 0.1 rolling 
 
 pair_style granular
 pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
-pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential linear_history 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall
-pair_coeff 1 2 dmt 1000.0 50.0 0.3 10.0 tangential linear_history 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall :pre
+pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall
+pair_coeff 1 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall :pre
 
 [Description:]
 
@@ -220,8 +220,8 @@ expected parameters are as follows:
  
 {linear_nohistory} : \(x_\{\gamma,t\}\), \(\mu_s\)
 {linear_history} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) 
-{mindlin} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) 
-{mindlin_rescale} : \(k_t\), \(x_\{\gamma,t\}\), \(\mu_s\) :ol
+{mindlin} : \(k_t\) or NULL, \(x_\{\gamma,t\}\), \(\mu_s\) 
+{mindlin_rescale} : \(k_t\) or NULL, \(x_\{\gamma,t\}\), \(\mu_s\) :ol
 
 Here, \(x_\{\gamma,t\}\) is a dimensionless multiplier for the normal damping \(\eta_n\)
 that determines the magnitude of the 
@@ -337,7 +337,7 @@ to induce a torque on each particle according to:
 \mathbf\{\tau\}_j = -(R_j - 0.5 \delta) \mathbf\{n\} \times \mathbf\{F\}_t
 \end\{equation\}
 
-For {tangential mindlin}, the Mindlin no-slip solution is used, which differs from the {linear_history}
+For {tangential mindlin}, the "Mindlin"_#Mindlin1949 no-slip solution is used, which differs from the {linear_history}
 option by an additional factor of {a}, the radius of the contact region. The tangential force is given by:
 
 \begin\{equation\}                                                                                                              
@@ -346,18 +346,27 @@ option by an additional factor of {a}, the radius of the contact region. The tan
 
 Here, {a} is the radius of the contact region, given by \(a = \delta R\) for all normal contact models, 
 except for {jkr}, where it is given implicitly by \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\), 
-see discussion above.
-
-The {mindlin_rescale} option uses the same form as {mindlin}, but the magnitude of the tangential 
-displacement is re-scaled as the contact unloads, i.e. if \(a < a_\{t_n-1\}\):
+see discussion above. To match the Mindlin solution, one should set \(k_t = 8G\), where
+\(G\) is the shear modulus, related to Young's modulus \(E\) by \(G = E/(2(1+\nu))\), where \(\nu\) 
+is Poisson's ratio. This can also be achieved by specifying {NULL} for \(k_t\), in which case
+a normal contact model that specifies material parameters \(E\) and \(\nu\) is required (e.g. {hertz/material},
+{dmt} or {jkr}). In this case, mixing of shear moduli for different particle types {i} and {j} is done according
+to:
 \begin\{equation\}
-\mathbf\{\xi\} = \mathbf\{xi_\{t_n-1\}\} \frac\{a\}\{a_\{t_n-1\}\}
+1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j 
 \end\{equation\}
 
-This accounts for the fact that a decrease in the contact area upon unloading leads to the contact
+The {mindlin_rescale} option uses the same form as {mindlin}, but the magnitude of the tangential 
+displacement is re-scaled as the contact unloads, i.e. if \(a < a_\{t_\{n-1\}\}\):
+\begin\{equation\}
+\mathbf\{\xi\} = \mathbf\{\xi_\{t_\{n-1\}\}\} \frac\{a\}\{a_\{t_\{n-1\}\}\}
+\end\{equation\}
+
+Here, \(t_\{n-1\}\) indicates the value at the previous time step. This rescaling 
+accounts for the fact that a decrease in the contact area upon unloading leads to the contact
 being unable to support the previous tangential loading, and spurious energy is created
-without the rescaling above ("Walton"_#WaltonPC). See also discussion in "Thornton et al, 2013"_#Thornton2013,
-particularly equation 18(b) of that work and associated discussion.
+without the rescaling above ("Walton"_#WaltonPC ). See also discussion in "Thornton et al, 2013"_#Thornton2013
+, particularly equation 18(b) of that work and associated discussion.
  
 :line
 
@@ -649,10 +658,10 @@ J. Phys. D: Appl. Phys. 24 1942
 [(Mindlin, 1949)] Mindlin, R. D. (1949). Compliance of elastic bodies in contact.
 J. Appl. Mech., ASME 16, 259-268.
 
-:line(Thornton2013)
+:link(Thornton2013)
 [(Thornton et al, 2013)] Thornton, C., Cummins, S. J., & Cleary, P. W. (2013). 
 An investigation of the comparative behaviour of alternative contact force models 
 during inelastic collisions. Powder Technology, 233, 30-46.
 
-:line(WaltonPC)
+:link(WaltonPC)
 [(Otis R. Walton)] Walton, O.R., Personal Communication	  

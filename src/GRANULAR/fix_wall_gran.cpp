@@ -54,7 +54,7 @@ enum{NONE,CONSTANT,EQUAL};
 
 enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, TANGENTIAL_MINDLIN};
+enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_SDS};
 
@@ -198,11 +198,24 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
           iarg += 4;
         }
-        else if (strcmp(arg[iarg+1], "linear_history") == 0){
+        else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
+            (strcmp(arg[iarg+1], "mindlin") == 0) ||
+            (strcmp(arg[iarg+1], "mindlin_rescale") == 0)){
           if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
-          tangential_model = TANGENTIAL_HISTORY;
+          if (strcmp(arg[iarg+1], "linear_history") == 0) tangential_model = TANGENTIAL_HISTORY;
+          else if (strcmp(arg[iarg+1], "mindlin") == 0) tangential_model = TANGENTIAL_MINDLIN;
+          else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) tangential_model = TANGENTIAL_MINDLIN_RESCALE;
+          if ((tangential_model == TANGENTIAL_MINDLIN || tangential_model == TANGENTIAL_MINDLIN_RESCALE) &&
+              (strcmp(arg[iarg+2], "NULL") == 0)){
+            if (normal_model == NORMAL_HERTZ || normal_model == NORMAL_HOOKE){
+              error->all(FLERR, "NULL setting for Mindlin tangential stiffness requires a normal contact model that specifies material properties");
+            }
+            tangential_coeffs[0] = 4*(2-poiss)*(1+poiss)/Emod;
+          }
+          else{
+            tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+          }
           tangential_history = 1;
-          tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
           tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
           tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
           iarg += 5;
@@ -265,7 +278,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Illegal fix wall/gran command");
       }
     }
-    size_history = (normal_model == JKR) + 3*tangential_history + 3*roll_history + twist_history;
+    size_history = 3*tangential_history + 3*roll_history + twist_history;
+    if (normal_model == JKR) size_history += 1;
+    if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) size_history += 1;
   }
 
   // wallstyle args
@@ -466,6 +481,10 @@ void FixWallGran::init()
     roll_history_index += 1;
     twist_history_index += 1;
   }
+  if (tangential_model == TANGENTIAL_MINDLIN_RESCALE){
+    roll_history_index += 1;
+    twist_history_index += 1;
+  }
 
   if (damping_model == TSUJI){
     double cor = normal_coeffs[1];
@@ -473,6 +492,8 @@ void FixWallGran::init()
         27.467*pow(cor,4)-18.022*pow(cor,5)+
         4.8218*pow(cor,6);
   }
+
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1177,6 +1198,18 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  int thist2 = thist1 + 1;
 
  if (tangential_history){
+   if (tangential_model == TANGENTIAL_MINDLIN){
+     k_tangential *= a;
+   }
+   else if (tangential_model == TANGENTIAL_MINDLIN_RESCALE){
+     k_tangential *= a;
+     if (a < history[3]){ //On unloading, rescale the shear displacements
+       double factor = a/history[thist2+1];
+       history[thist0] *= factor;
+       history[thist1] *= factor;
+       history[thist2] *= factor;
+     }
+   }
    shrmag = sqrt(history[thist0]*history[thist0] + history[thist1]*history[thist1] +
        history[thist2]*history[thist2]);
 

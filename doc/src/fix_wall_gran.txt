@@ -49,8 +49,8 @@ fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
 fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
 fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0 
 fix 3 all wall/gran granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 zplane 0.0 NULL
-fix 4 all wall/gran granular jkr 1000.0 50.0 tangential linear_history 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall zcylinder 15.0 wiggle z 3.0 2.0
-fix 5 all wall/gran granular dmt 1000.0 50.0 0.3 10.0 tangential linear_history 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall zplane 0.0 NULL :pre
+fix 4 all wall/gran granular jkr 1000.0 50.0 0.3 5.0 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall zcylinder 15.0 wiggle z 3.0 2.0
+fix 5 all wall/gran granular dmt 1000.0 50.0 0.3 10.0 tangential mindlin 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall zplane 0.0 NULL :pre
 
 [Description:]
 

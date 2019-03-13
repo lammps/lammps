@@ -69,65 +69,25 @@ FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
   kspringPerp = 0.0;
   kspringIni = 1.0;
   kspringFinal = 1.0;
-  // only regular neb for now
-  SpinLattice = false;
+  SpinLattice = false;	// no spin-lattice neb for now
 
-
+  // no available fix neb/spin options for now
   
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"lattice") == 0) 
-      error->all(FLERR,"Illegal fix neb command");
-  }
-
-    /*
     if (strcmp(arg[iarg],"parallel") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
-      if (strcmp(arg[iarg+1],"ideal") == 0) {
-        NEBLongRange = true;
-        StandardNEB = false;
-      } else if (strcmp(arg[iarg+1],"neigh") == 0) {
-        NEBLongRange = false;
-        StandardNEB = true;
-      } else error->all(FLERR,"Illegal fix neb command");
+      error->all(FLERR,"Illegal fix neb command");
       iarg += 2;
-
     } else if (strcmp(arg[iarg],"perp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
-      PerpSpring = true;
-      kspringPerp = force->numeric(FLERR,arg[iarg+1]);
-      if (kspringPerp == 0.0) PerpSpring = false;
-      if (kspringPerp < 0.0) error->all(FLERR,"Illegal fix neb command");
+      error->all(FLERR,"Illegal fix neb command");
       iarg += 2;
-
     } else if (strcmp (arg[iarg],"end") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix neb command");
-      if (strcmp(arg[iarg+1],"first") == 0) {
-        FreeEndIni = true;
-        kspringIni = force->numeric(FLERR,arg[iarg+2]);
-      } else if (strcmp(arg[iarg+1],"last") == 0) {
-        FreeEndFinal = true;
-        FinalAndInterWithRespToEIni = false;
-        FreeEndFinalWithRespToEIni = false;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
-      } else if (strcmp(arg[iarg+1],"last/efirst") == 0) {
-        FreeEndFinal = false;
-        FinalAndInterWithRespToEIni = false;
-        FreeEndFinalWithRespToEIni = true;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
-      } else if (strcmp(arg[iarg+1],"last/efirst/middle") == 0) {
-        FreeEndFinal = false;
-        FinalAndInterWithRespToEIni = true;
-        FreeEndFinalWithRespToEIni = true;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
-      } else error->all(FLERR,"Illegal fix neb command");
-
       iarg += 3;
-
+    } else if (strcmp (arg[iarg],"lattice") == 0) {
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix neb command");
   }
-  */
-
+  
   // nreplica = number of partitions
   // ireplica = which world I am in universe
   // nprocs_universe = # of procs in all replicase
@@ -171,10 +131,6 @@ FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
   newarg[2] = (char *) "pe";
   modify->add_compute(3,newarg);
   delete [] newarg;
-
-  // might need a test 
-  // => check if pe does not compute mech potentials
-
 
   // initialize local storage
 
@@ -374,14 +330,12 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   pe->addstep(update->ntimestep+1);
 
   double **x = atom->x;
-  // spin quantities
   double **sp = atom->sp;
   int *mask = atom->mask;
   double dot = 0.0;
   double prefactor = 0.0;
 
-  double **f = atom->f;
-  // spin quantities
+  //double **f = atom->f;
   double **fm = atom->fm;
   int nlocal = atom->nlocal;
 
@@ -397,9 +351,10 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   // computation of the tangent vector
 
-  // final replica
   if (ireplica == nreplica-1) {
 
+    // final replica
+    
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	
@@ -470,8 +425,10 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
         //}
       }
 
-  // initial replica
   } else if (ireplica == 0) {
+    
+    // initial replica
+    
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
@@ -537,7 +494,6 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
         //}
       }
   
-  // in-between replica
   } else {
 
     // not the first or last replica
@@ -770,7 +726,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
     //prefactor = -2.0*dot;
   } else {
     if (NEBLongRange) {
-      error->all(FLERR,"NEB_spin climber option not yet active");
+      error->all(FLERR,"Long Range NEB_spin climber option not yet active");
       //prefactor = -dot - kspring*(lenuntilIm-idealPos)/(2*meanDist);
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);

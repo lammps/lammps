@@ -45,7 +45,8 @@ class NEB_spin : protected Pointers {
   FILE *fp;
   int compressed;
   double etol;                 // energy tolerance convergence criterion
-  double ftol;                 // force tolerance convergence criterion
+  //double ftol;                 // force tolerance convergence criterion
+  double ttol;                 // torque tolerance convergence criterion
   int n1steps, n2steps;        // number of steps in stage 1 and 2
   int nevery;                  // output interval
   char *infile;                // name of file containing final state
@@ -57,9 +58,6 @@ class NEB_spin : protected Pointers {
   double *freplica;            // force on an image
   double *fmaxatomInRepl;      // force on an image
 
-  //double geodesic_distance2(double *, double *);
-  //double evaluate_dt();
-  //void advance_spins(double); 
   void readfile(char *, int);
   void initial_rotation(double *, double *, double);
   void open(char *);

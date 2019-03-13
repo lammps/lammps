@@ -71,6 +71,7 @@ could move in the gradient direction to reduce forces further.
 
 Keywords {alpha_damp} and {discret_factor} only make sense when
 a {spinmin} minimization style is declared. 
+Default values are alpha_damp = 1.0 and discret_factor = 10.0.
 
 [Restrictions:] none
 

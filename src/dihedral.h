@@ -57,6 +57,10 @@ class Dihedral : protected Pointers {
   int maxeatom,maxvatom;
 
   void ev_setup(int, int, int alloc = 1);
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void ev_tally(int, int, int, int, int, int, double,
                 double *, double *, double *, double, double, double,
                 double, double, double, double, double, double);

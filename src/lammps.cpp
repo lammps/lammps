@@ -52,6 +52,7 @@
 #include "error.h"
 
 #include "lmpinstalledpkgs.h"
+#include "lmpgitversion.h"
 
 using namespace LAMMPS_NS;
 
@@ -898,9 +899,14 @@ void LAMMPS::help()
 
   // general help message about command line and flags
 
+  if (has_git_info) {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+  } else {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\n\n");
+  }
   fprintf(fp,
-          "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-          LAMMPS_VERSION "\n\n"
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"

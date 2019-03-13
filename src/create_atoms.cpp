@@ -705,6 +705,26 @@ void CreateAtoms::add_lattice()
     bboxlo[2] = domain->sublo[2]; bboxhi[2] = domain->subhi[2];
   } else domain->bbox(domain->sublo_lamda,domain->subhi_lamda,bboxlo,bboxhi);
 
+  // narrow down the subbox by the bounding box of the given region, if available.
+  // for small regions in large boxes, this can result in a significant speedup
+
+  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
+
+    const double rxmin = domain->regions[nregion]->extent_xlo;
+    const double rxmax = domain->regions[nregion]->extent_xhi;
+    const double rymin = domain->regions[nregion]->extent_ylo;
+    const double rymax = domain->regions[nregion]->extent_yhi;
+    const double rzmin = domain->regions[nregion]->extent_zlo;
+    const double rzmax = domain->regions[nregion]->extent_zhi;
+
+    if (rxmin > bboxlo[0]) bboxlo[0] = (rxmin > bboxhi[0]) ? bboxhi[0] : rxmin;
+    if (rxmax < bboxhi[0]) bboxhi[0] = (rxmax < bboxlo[0]) ? bboxlo[0] : rxmax;
+    if (rymin > bboxlo[1]) bboxlo[1] = (rymin > bboxhi[1]) ? bboxhi[1] : rymin;
+    if (rymax < bboxhi[1]) bboxhi[1] = (rymax < bboxlo[1]) ? bboxlo[1] : rymax;
+    if (rzmin > bboxlo[2]) bboxlo[2] = (rzmin > bboxhi[2]) ? bboxhi[2] : rzmin;
+    if (rzmax < bboxhi[2]) bboxhi[2] = (rzmax < bboxlo[2]) ? bboxlo[2] : rzmax;
+  }
+
   double xmin,ymin,zmin,xmax,ymax,zmax;
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;

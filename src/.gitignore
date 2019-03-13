@@ -6,6 +6,7 @@
 
 /style_*.h
 /lmpinstalledpkgs.h
+/lmpgitversion.h
 
 /*_gpu.h
 /*_gpu.cpp

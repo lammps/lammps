@@ -13,6 +13,7 @@ dump command :h3
 "dump netcdf"_dump_netcdf.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
+"dump adios"_dump_adios.html command :h3
 
 [Syntax:]
 
@@ -27,10 +28,12 @@ args = list of arguments for a particular style :l
   {atom} args = none
   {atom/gz} args = none
   {atom/mpiio} args = none
+  {atom/adios} args = none,  discussed on "dump adios"_dump_adios.html doc page
   {cfg} args = same as {custom} args, see below
   {cfg/gz} args = same as {custom} args, see below
   {cfg/mpiio} args = same as {custom} args, see below
   {custom}, {custom/gz}, {custom/mpiio} args = see below
+  {custom/adios} args = same as {custom} args, discussed on "dump adios"_dump_adios.html doc page
   {dcd} args = none
   {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page
   {image} args = discussed on "dump image"_dump_image.html doc page
@@ -653,7 +656,7 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"dump h5md"_dump_h5md.html, "dump image"_dump_image.html,
+"dump adios"_dump_adios.html "dump h5md"_dump_h5md.html, "dump image"_dump_image.html,
 "dump molfile"_dump_molfile.html, "dump_modify"_dump_modify.html,
 "undump"_undump.html
 

@@ -195,6 +195,10 @@ class KSpace : protected Pointers {
 
   void pair_check();
   void ev_setup(int, int, int alloc = 1);
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   double estimate_table_accuracy(double, double);
 };
 

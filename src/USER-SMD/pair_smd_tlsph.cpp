@@ -448,10 +448,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         Matrix3d eye;
         eye.setIdentity();
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         /*
          * iterate over pairs of particles i, j and assign forces using PK1 stress tensor

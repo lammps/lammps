@@ -93,8 +93,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   // neighbor list info
 

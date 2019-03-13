@@ -412,8 +412,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
   ci_jfi = ci_fifj = dci_jfi = dci_fifj = 0.0;
   forcecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   inum = list->inum;
   ilist = list->ilist;

@@ -220,6 +220,10 @@ class Pair : protected Pointers {
 
   virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else ev_unset();
+  }
   void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,
                          double, double, double, double, double, double);

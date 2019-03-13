@@ -38,8 +38,7 @@ PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp) {}
 
 void PairEAMOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {

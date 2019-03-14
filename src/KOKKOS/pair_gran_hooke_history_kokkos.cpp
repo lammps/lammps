@@ -581,7 +581,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int
 
 namespace LAMMPS_NS {
 template class PairGranHookeHistoryKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairGranHookeHistoryKokkos<LMPHostType>;
 #endif
 }

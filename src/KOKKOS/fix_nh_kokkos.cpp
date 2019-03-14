@@ -733,7 +733,7 @@ void FixNHKokkos<DeviceType>::pre_exchange()
 
 namespace LAMMPS_NS {
 template class FixNHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNHKokkos<LMPHostType>;
 #endif
 }

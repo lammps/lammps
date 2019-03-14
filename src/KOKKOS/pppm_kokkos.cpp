@@ -1648,7 +1648,7 @@ void PPPMKokkos<DeviceType>::make_rho()
 
   nlocal = atomKK->nlocal;
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_make_rho_atomic>(0,nlocal),*this);
   copymode = 0;
@@ -3121,7 +3121,7 @@ double PPPMKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class PPPMKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PPPMKokkos<LMPHostType>;
 #endif
 }

@@ -387,7 +387,7 @@ void AngleCosineKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
 namespace LAMMPS_NS {
 template class AngleCosineKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class AngleCosineKokkos<LMPHostType>;
 #endif
 }

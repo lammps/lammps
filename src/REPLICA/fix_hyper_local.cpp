@@ -1197,7 +1197,7 @@ int FixHyperLocal::pack_reverse_comm(int n, int first, double *buf)
     int nonzero = 0;
     m++;                           // placeholder for count of atoms
     for (i = first; i < last; i++) {
-      if (maxstrain[i] == 0.0) continue;
+      if (maxstrain_domain[i] == 0.0) continue;
       nonzero++;
       buf[m++] = ubuf(i-first).d;      // which atom is next
       buf[m++] = maxstrain_domain[i];  // value

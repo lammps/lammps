@@ -45,7 +45,6 @@ class NEB_spin : protected Pointers {
   FILE *fp;
   int compressed;
   double etol;                 // energy tolerance convergence criterion
-  //double ftol;                 // force tolerance convergence criterion
   double ttol;                 // torque tolerance convergence criterion
   int n1steps, n2steps;        // number of steps in stage 1 and 2
   int nevery;                  // output interval

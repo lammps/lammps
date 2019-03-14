@@ -3,7 +3,6 @@
 units 		metal
 dimension 	3
 boundary 	p p f
-
 atom_style 	spin
 
 # necessary for the serial algorithm (sametag)
@@ -14,7 +13,7 @@ region 		box block 0.0 4.0 0.0 4.0 0.0 1.0
 #create_box 	1 box
 #create_atoms 	1 box
 
-read_data        ../examples/SPIN/gneb_bfo/initial.iron_spin
+read_data        initial.iron_spin
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -27,16 +26,36 @@ pair_coeff 	* * exchange 3.4 0.02726 0.2171 1.841
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
-fix 		1 all precession/spin zeeman 0.001 0.0 0.0 1.0 anisotropy 0.01 1.0 0.0 0.0 
-fix 		2 all langevin/spin 0.1 0.0 21
-fix		3 all neb/spin 1.0 
+fix 		1 all precession/spin zeeman 0.1 0.0 0.0 1.0 anisotropy 0.0001 1.0 0.0 0.0 
+fix_modify	1 energy yes
+fix 		2 all langevin/spin 0.0 0.0 21
+fix		3 all neb/spin 1.0  
 #fix		4 all nve/spin lattice no 
-#parallel ideal
 
 timestep	0.0001
 thermo		100
 
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magx      equal c_out_mag[1]
+variable 	magy      equal c_out_mag[2]
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+
+thermo          100
+thermo_style    custom step time v_magx v_magz v_magnorm etotal
+thermo_modify   format float %20.15g
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+variable	u universe 1 2 3 4
+#dump 		1 all custom 100 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+dump 		1 all custom 200 dump.$u type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
 min_style	spinmin
-neb/spin	0.0 0.1 100 10 10 final ../examples/SPIN/gneb_bfo/final.iron_spin
-#neb/spin		0.0 0.1 1000 1000 100 final ../examples/SPIN/gneb_bfo/final.iron_spin
+min_modify 	alpha_damp 1.0 discret_factor 10.0
+neb/spin	1.0e-12 1.0e-12 50000 50000 10 final final.iron_spin
+#neb/spin	1.0e-6 1.0e-6 1000 10 10 final final.iron_spin

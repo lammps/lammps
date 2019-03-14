@@ -20,12 +20,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-//#include "neb.h"
-// test spin
 #include "neb_spin.h"
 #include "compute.h"
 #include "force.h"
-
 #include "universe.h"
 #include "atom.h"
 #include "update.h"
@@ -34,10 +31,7 @@
 #include "min.h"
 #include "modify.h"
 #include "fix.h"
-//#include "fix_neb.h"
-// test spin
 #include "fix_neb_spin.h"
-
 #include "output.h"
 #include "thermo.h"
 #include "finish.h"

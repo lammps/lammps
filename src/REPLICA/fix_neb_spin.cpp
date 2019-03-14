@@ -15,7 +15,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-//#include "fix_neb.h"
 #include "fix_neb_spin.h"
 #include "universe.h"
 #include "update.h"
@@ -41,18 +40,13 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 /* ---------------------------------------------------------------------- */
 
 FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL), xnext(NULL),
-  fnext(NULL), 
-  spprev(NULL), spnext(NULL), fmnext(NULL),
-  springF(NULL), tangent(NULL),
-  xsend(NULL), xrecv(NULL), fsend(NULL), frecv(NULL), 
-  spsend(NULL), sprecv(NULL), fmsend(NULL), fmrecv(NULL), 
-  tagsend(NULL), tagrecv(NULL),
-  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL),
-  spsendall(NULL), sprecvall(NULL), fmsendall(NULL), fmrecvall(NULL),
-  tagsendall(NULL), tagrecvall(NULL), counts(NULL),
-  displacements(NULL)
+  Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL), 
+  xnext(NULL), fnext(NULL), spprev(NULL), spnext(NULL), fmnext(NULL), springF(NULL), 
+  tangent(NULL), xsend(NULL), xrecv(NULL), fsend(NULL), frecv(NULL), spsend(NULL), 
+  sprecv(NULL), fmsend(NULL), fmrecv(NULL), tagsend(NULL), tagrecv(NULL), 
+  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL), spsendall(NULL), 
+  sprecvall(NULL), fmsendall(NULL), fmrecvall(NULL), tagsendall(NULL), tagrecvall(NULL), 
+  counts(NULL), displacements(NULL)
 {
 
   if (narg < 4) error->all(FLERR,"Illegal fix neb_spin command");
@@ -145,11 +139,12 @@ FixNEB_spin::~FixNEB_spin()
   modify->delete_compute(id_pe);
   delete [] id_pe;
 
+  // memory destroy of all spin and lattice arrays
+
   memory->destroy(xprev);
   memory->destroy(xnext);
   memory->destroy(tangent);
   memory->destroy(fnext);
-  // spin quantities
   memory->destroy(spprev);
   memory->destroy(spnext);
   memory->destroy(fmnext);
@@ -158,7 +153,6 @@ FixNEB_spin::~FixNEB_spin()
   memory->destroy(xrecv);
   memory->destroy(fsend);
   memory->destroy(frecv);
-  // spin quantities
   memory->destroy(spsend);
   memory->destroy(sprecv);
   memory->destroy(fmsend);
@@ -170,7 +164,6 @@ FixNEB_spin::~FixNEB_spin()
   memory->destroy(xrecvall);
   memory->destroy(fsendall);
   memory->destroy(frecvall);
-  // spin quantities
   memory->destroy(spsendall);
   memory->destroy(sprecvall);
   memory->destroy(fmsendall);
@@ -237,7 +230,6 @@ void FixNEB_spin::init()
     memory->create(frecvall,ntotal,3,"neb:frecvall");
     memory->create(tagsendall,ntotal,"neb:tagsendall");
     memory->create(tagrecvall,ntotal,"neb:tagrecvall");
-    // spin quantities
     memory->create(spsendall,ntotal,3,"neb:xsendall");
     memory->create(sprecvall,ntotal,3,"neb:xrecvall");
     memory->create(fmsendall,ntotal,3,"neb:fsendall");
@@ -263,14 +255,10 @@ void FixNEB_spin::min_setup(int vflag)
 void FixNEB_spin::min_post_force(int /*vflag*/)
 {
   double vprev,vnext;
-  //double delxp,delyp,delzp,delxn,delyn,delzn;
-  // spin quantities
   double delspxp,delspyp,delspzp;
   double delspxn,delspyn,delspzn;
   double templen;
   double vIni=0.0;
-
-  // local spin values for geo. dist. calc.
   double spi[3],spj[3];
 
   vprev = vnext = veng = pe->compute_scalar();
@@ -290,36 +278,17 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
     MPI_Bcast(&vnext,1,MPI_DOUBLE,0,world);
   }
 
-  //printf("test veng: %g / %g / %g \n",veng,vprev,vnext);
-  //error->universe_all(FLERR,"End test");
-
   if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0)) 
-    EFinalIni = veng;
+    error->all(FLERR,"NEB_spin Free End option not yet active");
 
   if (ireplica == 0) vIni=veng;
 
-  if (FreeEndFinalWithRespToEIni) {
-    if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
-      int procFirst;
-      procFirst=universe->root_proc[0];
-      MPI_Bcast(&vIni,1,MPI_DOUBLE,procFirst,uworld);
-    } else {
-      if (me == 0)
-        MPI_Bcast(&vIni,1,MPI_DOUBLE,0,rootworld);
+  if (FreeEndFinalWithRespToEIni) 
+    error->all(FLERR,"NEB_spin Free End option not yet active");
 
-      MPI_Bcast(&vIni,1,MPI_DOUBLE,0,world);
-    }
-  }
+  if (FreeEndIni && ireplica == 0 && (update->ntimestep == 0))
+    error->all(FLERR,"NEB_spin Free End option not yet active");
 
-  if (FreeEndIni && ireplica == 0 && (update->ntimestep == 0)) EIniIni = veng;
-  /*  if (FreeEndIni && ireplica == 0) {
-    //    if (me == 0 )
-      if (update->ntimestep == 0) {
-        EIniIni = veng;
-        //      if (cmode == MULTI_PROC)
-        // MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
-      }
-      }*/
 
   // communicate atoms to/from adjacent replicas to fill xprev,xnext
 
@@ -329,15 +298,13 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   pe->addstep(update->ntimestep+1);
 
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
   double **x = atom->x;
   double **sp = atom->sp;
-  int *mask = atom->mask;
   double dot = 0.0;
   double prefactor = 0.0;
-
-  //double **f = atom->f;
   double **fm = atom->fm;
-  int nlocal = atom->nlocal;
 
   //calculating separation between images
 
@@ -351,10 +318,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   // computation of the tangent vector
 
-  if (ireplica == nreplica-1) {
-
-    // final replica
-    
+  if (ireplica == nreplica-1) {		// final replica
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	
@@ -371,64 +335,26 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	delspyp -= delpdots*sp[i][1];
 	delspzp -= delpdots*sp[i][2];
         
-        // adjust distance if pbc	
-	//domain->minimum_image(delspxp,delspyp,delspzp);
-
 	// calc. geodesic length
 	
-	spi[0]=sp[i][0];
-	spi[1]=sp[i][1];
-	spi[2]=sp[i][2];
-	spj[0]=spprev[i][0];
-	spj[1]=spprev[i][1];
-	spj[2]=spprev[i][2];
-	templen = geodesic_distance(spi, spj);
+	spi[0] = sp[i][0];
+	spi[1] = sp[i][1];
+	spi[2] = sp[i][2];
+	spj[0] = spprev[i][0];
+	spj[1] = spprev[i][1];
+	spj[2] = spprev[i][2];
+	templen = geodesic_distance(spi,spj);
 	plen += templen*templen;
 	dottangrad += delspxp*fm[i][0]+ delspyp*fm[i][1]+delspzp*fm[i][2];
         gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
-
-	//plen += delxp*delxp + delyp*delyp + delzp*delzp;
-        //dottangrad += delxp* f[i][0]+ delyp*f[i][1]+delzp*f[i][2];
-        //gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
 	
-	// final replica, no need for the tangent vector 
-	// (unless FreeEnd option)
-        if (FreeEndFinal||FreeEndFinalWithRespToEIni) {
-	  error->all(FLERR,"Free End option not yet active");
-	  //tangent[i][0]=delspxp;
-	  //tangent[i][1]=delspyp;
-	  //tangent[i][2]=delspzp;
-	  //// if needed, tlen has to be modified
-          //tlen += tangent[i][0]*tangent[i][0] +
-          //  tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
-          //dot += fm[i][0]*tangent[i][0] + fm[i][1]*tangent[i][1] +
-          //  fm[i][2]*tangent[i][2];
-	}
-       
-       
-	//delxp = x[i][0] - xprev[i][0];
-        //delyp = x[i][1] - xprev[i][1];
-        //delzp = x[i][2] - xprev[i][2];
-        //domain->minimum_image(delxp,delyp,delzp);
+	// no free end option for now 
         
-	//plen += delxp*delxp + delyp*delyp + delzp*delzp;
-        //dottangrad += delxp* f[i][0]+ delyp*f[i][1]+delzp*f[i][2];
-        //gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-        //if (FreeEndFinal||FreeEndFinalWithRespToEIni) {
-        //  tangent[i][0]=delxp;
-        //  tangent[i][1]=delyp;
-        //  tangent[i][2]=delzp;
-        //  tlen += tangent[i][0]*tangent[i][0] +
-        //    tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
-        //  dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
-        //    f[i][2]*tangent[i][2];
-        //}
+	if (FreeEndFinal||FreeEndFinalWithRespToEIni) 
+	  error->all(FLERR,"Free End option not yet active");
+      
       }
-
-  } else if (ireplica == 0) {
-    
-    // initial replica
-    
+  } else if (ireplica == 0) {		// initial replica
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
@@ -444,9 +370,6 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	delspxn -= delndots*sp[i][0];
 	delspyn -= delndots*sp[i][1];
 	delspzn -= delndots*sp[i][2];
-
-        // adjust del. if pbc	
-        //domain->minimum_image(delspxn,delspyn,delspzn);
 	
 	// calc. geodesic length
 	
@@ -456,70 +379,40 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	spj[0]=spnext[i][0];
 	spj[1]=spnext[i][1];
 	spj[2]=spnext[i][2];
-	templen = geodesic_distance(spi, spj);
+	templen = geodesic_distance(spi,spj);
 	nlen += templen*templen;
 	dottangrad += delspxn*fm[i][0] + delspyn*fm[i][1] + delspzn*fm[i][2];
         gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
-        if (FreeEndIni) {
+	
+	// no free end option for now 
+        
+        if (FreeEndIni) 
 	  error->all(FLERR,"Free End option not yet active");
-          //tangent[i][0]=delxn;
-          //tangent[i][1]=delyn;
-          //tangent[i][2]=delzn;
-	  //// if needed, tlen has to be modified
-          //tlen += tangent[i][0]*tangent[i][0] +
-          //  tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
-          //dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
-          //  f[i][2]*tangent[i][2];
-        }
 
-	//delxn = xnext[i][0] - x[i][0];
-        //delyn = xnext[i][1] - x[i][1];
-        //delzn = xnext[i][2] - x[i][2];
-        //domain->minimum_image(delxn,delyn,delzn);
-        //nlen += delxn*delxn + delyn*delyn + delzn*delzn;
-        //gradnextlen += fnext[i][0]*fnext[i][0]
-        //  + fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
-        //dotgrad += f[i][0]*fnext[i][0]
-        //  + f[i][1]*fnext[i][1] + f[i][2]*fnext[i][2];
-        //dottangrad += delxn*f[i][0]+ delyn*f[i][1] + delzn*f[i][2];
-        //gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-        //if (FreeEndIni) {
-        //  tangent[i][0]=delxn;
-        //  tangent[i][1]=delyn;
-        //  tangent[i][2]=delzn;
-        //  tlen += tangent[i][0]*tangent[i][0] +
-        //    tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
-        //  dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
-        //    f[i][2]*tangent[i][2];
-        //}
       }
-  
-  } else {
-
-    // not the first or last replica
+  } else {			// intermediate replica
 
     double vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
     double vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
-
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         
 	// calc. delp vector
+
 	delspxp = sp[i][0] - spprev[i][0];
         delspyp = sp[i][1] - spprev[i][1];
         delspzp = sp[i][2] - spprev[i][2];
         
 	// project delp vector on tangent space
+
 	delndots = delspxp*sp[i][0]+delspyp*sp[i][1]+delspzp*sp[i][2];
 	delspxp -= delpdots*sp[i][0];
 	delspyp -= delpdots*sp[i][1];
 	delspzp -= delpdots*sp[i][2];
-       
-        // adjust distance if pbc	
-	//domain->minimum_image(delspxp,delspyp,delspzp);
 
-	// calc. geodesic length
+	// calc. prev. geodesic length
+
 	spi[0]=sp[i][0];
 	spi[1]=sp[i][1];
 	spi[2]=sp[i][2];
@@ -530,18 +423,19 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	plen += templen*templen;
 
 	// calc. deln vector
-        delspxn = spnext[i][0] - sp[i][0];
+
+	delspxn = spnext[i][0] - sp[i][0];
         delspyn = spnext[i][1] - sp[i][1];
         delspzn = spnext[i][2] - sp[i][2];
         
 	// project deln vector on tangent space
+
 	delndots = delspxn*sp[i][0]+delspyn*sp[i][1]+delspzn*sp[i][2];
 	delspxn -= delndots*sp[i][0];
 	delspyn -= delndots*sp[i][1];
 	delspzn -= delndots*sp[i][2];
-        
-        // adjust distance if pbc	
-	//domain->minimum_image(delspxn,delspyn,delspzn);
+
+	// evaluate best path tangent
 
         if (vnext > veng && veng > vprev) {
           tangent[i][0] = delspxn;
@@ -567,7 +461,8 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
           }
         }
 
-	// calc. geodesic length
+	// calc. next geodesic length
+	
 	spi[0]=sp[i][0];
 	spi[1]=sp[i][1];
 	spi[2]=sp[i][2];
@@ -576,26 +471,25 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 	spj[2]=spnext[i][2];
 	templen = geodesic_distance(spi, spj);
 	nlen += templen*templen;
-        //nlen += delxn*delxn + delyn*delyn + delzn*delzn;
-        tlen += tangent[i][0]*tangent[i][0] +
-          tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
+    
+        tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] + 
+	  tangent[i][2]*tangent[i][2];
         gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
         dotpath += delspxp*delspxn + delspyp*delspyn + delspzp*delspzn;
-        dottangrad += tangent[i][0]*fm[i][0] +
-          tangent[i][1]*fm[i][1] + tangent[i][2]*fm[i][2];
-        gradnextlen += fnext[i][0]*fnext[i][0] +
-          fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
+        dottangrad += tangent[i][0]*fm[i][0] + tangent[i][1]*fm[i][1] + 
+	  tangent[i][2]*fm[i][2];
+        gradnextlen += fnext[i][0]*fnext[i][0] + fnext[i][1]*fnext[i][1] +
+	  fnext[i][2]*fnext[i][2];
         dotgrad += fm[i][0]*fnext[i][0] + fm[i][1]*fnext[i][1] +
           fm[i][2]*fnext[i][2];
 
         // no Perpendicular nudging force option active yet
-        // see fix_neb for example
-        if (kspringPerp != 0.0) 
+        
+	if (kspringPerp != 0.0) 
 	  error->all(FLERR,"NEB_spin Perpendicular nudging force not yet active");
 
       }
   }
-
 
   // MPI reduce if more than one proc for world
 
@@ -618,8 +512,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   dottangrad = bufout[6];
   dotgrad = bufout[7];
 
-
-  // project tangent vector on tangent space
+  // project tangent vector on tangent space and normalize it
 
   double buftan[3];
   double tandots;
@@ -633,20 +526,14 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
       tangent[i][0] = buftan[0];
       tangent[i][1] = buftan[1];
       tangent[i][2] = buftan[2];
-    }
 
-
-  // normalize tangent vector
-
-  if (tlen > 0.0) {
-    double tleninv = 1.0/tlen;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (tlen > 0.0) {
+	double tleninv = 1.0/tlen;
         tangent[i][0] *= tleninv;
         tangent[i][1] *= tleninv;
         tangent[i][2] *= tleninv;
       }
-  }
+    }
 
   // first or last replica has no change to forces, just return
 
@@ -659,32 +546,21 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   if (ireplica < nreplica-1)
     dotgrad = dotgrad /(gradlen*gradnextlen);
 
-  // no Free End option active yet
-  // see fix_neb for example
-  if (FreeEndIni && ireplica == 0) {
+  // no Free End options active yet
+  
+  if (FreeEndIni && ireplica == 0) 
     error->all(FLERR,"NEB_spin Free End option not yet active");
-  }
-
-  // no Free End option active yet
-  // see fix_neb for example
-  if (FreeEndFinal && ireplica == nreplica -1) {
+  if (FreeEndFinal && ireplica == nreplica -1) 
     error->all(FLERR,"NEB_spin Free End option not yet active");
-  }
-
-  // no Free End option active yet
-  // see fix_neb for example
-  if (FreeEndFinalWithRespToEIni&&ireplica == nreplica -1) {
+  if (FreeEndFinalWithRespToEIni&&ireplica == nreplica -1) 
     error->all(FLERR,"NEB_spin Free End option not yet active");
-  }
 
   // no NEB_spin long range option 
-  // see fix_neb for example
-  double lentot = 0;
-  double meanDist,idealPos,lenuntilIm,lenuntilClimber;
-  lenuntilClimber=0;
-  if (NEBLongRange) {
+  
+  if (NEBLongRange) 
     error->all(FLERR,"NEB_spin long range option not yet active");
-  }
+
+  // exit calc. if first or last replica (no gneb force)
 
   if (ireplica == 0 || ireplica == nreplica-1) return ;
 
@@ -692,47 +568,30 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   dotpath = dotpath/(plen*nlen);
   AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
 
-  double dotSpringTangent;
-  dotSpringTangent=0;
 
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) 
     if (mask[i] & groupbit) {
       dot += fm[i][0]*tangent[i][0] + fm[i][1]*tangent[i][1] +
         fm[i][2]*tangent[i][2];
-      // springF defined for perp. spring option
-      // not defined here
-      //dotSpringTangent += springF[i][0]*tangent[i][0] +
-        springF[i][1]*tangent[i][1] + springF[i][2]*tangent[i][2];}
-      //dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
-      //  f[i][2]*tangent[i][2];
-      //dotSpringTangent += springF[i][0]*tangent[i][0] +
-      //  springF[i][1]*tangent[i][1] + springF[i][2]*tangent[i][2];}
-  }
+    }
 
-  // gather all dot and dotSpring for this replica (world)
-  double dotSpringTangentall;
-  MPI_Allreduce(&dotSpringTangent,&dotSpringTangentall,1,
-                MPI_DOUBLE,MPI_SUM,world);
-  dotSpringTangent=dotSpringTangentall;
+  // gather all dot for this replica
+  
   double dotall;
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dot=dotall;
 
+  // calc. GNEB force prefactor
 
-  // implement climbing image here
-
-  if (ireplica == rclimber) {
-    error->all(FLERR,"NEB_spin climber option not yet active");
-    //prefactor = -2.0*dot;
-  } else {
-    if (NEBLongRange) {
+  if (ireplica == rclimber) prefactor = -2.0*dot;	// for climbing replica
+  else {
+    if (NEBLongRange) {					// for intermediate replica
       error->all(FLERR,"Long Range NEB_spin climber option not yet active");
-      //prefactor = -dot - kspring*(lenuntilIm-idealPos)/(2*meanDist);
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);
     }
 
-    if (FinalAndInterWithRespToEIni&& veng<vIni) {
+    if (FinalAndInterWithRespToEIni && veng<vIni) {
       for (int i = 0; i < nlocal; i++)
        if (mask[i] & groupbit) {
           fm[i][0] = 0;
@@ -749,22 +608,14 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
       fm[i][0] += prefactor*tangent[i][0];
       fm[i][1] += prefactor*tangent[i][1];
       fm[i][2] += prefactor*tangent[i][2];
-      // springF and dotSpringTangent defined for the perp. spring
-      // option, not defined yet for spins
-      //fm[i][0] += prefactor*tangent[i][0] +
-      //  AngularContr*(springF[i][0] - dotSpringTangent*tangent[i][0]);
-      //fm[i][1] += prefactor*tangent[i][1] +
-      //  AngularContr*(springF[i][1] - dotSpringTangent*tangent[i][1]);
-      //fm[i][2] += prefactor*tangent[i][2] +
-      //  AngularContr*(springF[i][2] - dotSpringTangent*tangent[i][2]);
     }
   
-  // project NEB force on tangent space
+  // project GNEB force on tangent space
 
   double fdots;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      fdots = fm[i][0]*sp[i][0]+fm[i][1]*sp[i][1]+
+      fdots = fm[i][0]*sp[i][0] + fm[i][1]*sp[i][1] +
 	fm[i][2]*sp[i][2];
       fm[i][0] -= fdots*sp[i][0];
       fm[i][1] -= fdots*sp[i][1];
@@ -794,7 +645,10 @@ double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
   dotz = spi[2]*spj[2];
   dots = dotx+doty+dotz;
 
-  dist = atan2(normcross,dots);
+  if (normcross == 0.0 && dots == 0.0) 
+    error->all(FLERR,"Incorrect calc. of geodesic_distance in Fix NEB/spin");
+  
+    dist = atan2(normcross,dots);
 
   return dist;
 }
@@ -818,7 +672,6 @@ void FixNEB_spin::inter_replica_comm()
 
   double **x = atom->x;
   double **f = atom->f;
-  // spin quantities
   double **sp = atom->sp;
   double **fm = atom->fm;
   tagint *tag = atom->tag;
@@ -880,7 +733,6 @@ void FixNEB_spin::inter_replica_comm()
         fsend[m][0] = f[i][0];
         fsend[m][1] = f[i][1];
         fsend[m][2] = f[i][2];
-  	// spin quantities
         spsend[m][0] = sp[i][0];
         spsend[m][1] = sp[i][1];
         spsend[m][2] = sp[i][2];
@@ -892,13 +744,11 @@ void FixNEB_spin::inter_replica_comm()
 
     if (ireplica > 0) {
       MPI_Irecv(xrecv[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld,&requests[0]);
-      // spin quantities
       MPI_Irecv(sprecv[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld,&requests[0]);
       MPI_Irecv(tagrecv,nebatoms,MPI_LMP_TAGINT,procprev,0,uworld,&requests[1]);
     }
     if (ireplica < nreplica-1) {
       MPI_Send(xsend[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld);
-      // spin quantities
       MPI_Send(spsend[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld);
       MPI_Send(tagsend,nebatoms,MPI_LMP_TAGINT,procnext,0,uworld);
     }
@@ -910,7 +760,6 @@ void FixNEB_spin::inter_replica_comm()
         xprev[m][0] = xrecv[i][0];
         xprev[m][1] = xrecv[i][1];
         xprev[m][2] = xrecv[i][2];
-        // spin quantities
         spprev[m][0] = sprecv[i][0];
         spprev[m][1] = sprecv[i][1];
         spprev[m][2] = sprecv[i][2];
@@ -919,7 +768,6 @@ void FixNEB_spin::inter_replica_comm()
     if (ireplica < nreplica-1) {
       MPI_Irecv(xrecv[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
       MPI_Irecv(frecv[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
-      // spin quantities
       MPI_Irecv(sprecv[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
       MPI_Irecv(fmrecv[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
       MPI_Irecv(tagrecv,nebatoms,MPI_LMP_TAGINT,procnext,0,uworld,&requests[1]);
@@ -927,7 +775,6 @@ void FixNEB_spin::inter_replica_comm()
     if (ireplica > 0) {
       MPI_Send(xsend[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
       MPI_Send(fsend[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
-      // spin quantities
       MPI_Send(spsend[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
       MPI_Send(fmsend[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
       MPI_Send(tagsend,nebatoms,MPI_LMP_TAGINT,procprev,0,uworld);
@@ -943,7 +790,6 @@ void FixNEB_spin::inter_replica_comm()
         fnext[m][0] = frecv[i][0];
         fnext[m][1] = frecv[i][1];
         fnext[m][2] = frecv[i][2];
-        // spin quantities
         spnext[m][0] = sprecv[i][0];
         spnext[m][1] = sprecv[i][1];
         spnext[m][2] = sprecv[i][2];
@@ -972,7 +818,6 @@ void FixNEB_spin::inter_replica_comm()
       fsend[m][0] = f[i][0];
       fsend[m][1] = f[i][1];
       fsend[m][2] = f[i][2];
-      // spin quantities
       spsend[m][0] = sp[i][0];
       spsend[m][1] = sp[i][1];
       spsend[m][2] = sp[i][2];
@@ -1002,7 +847,6 @@ void FixNEB_spin::inter_replica_comm()
     MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   }
-  // spin quantities
   if (spsend) {
     MPI_Gatherv(spsend[0],3*m,MPI_DOUBLE,
                 spsendall[0],counts,displacements,MPI_DOUBLE,0,world);
@@ -1017,14 +861,12 @@ void FixNEB_spin::inter_replica_comm()
 
   if (ireplica > 0 && me == 0) {
     MPI_Irecv(xrecvall[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld,&requests[0]);
-    // spin quantities
     MPI_Irecv(sprecvall[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld,&requests[0]);
     MPI_Irecv(tagrecvall,nebatoms,MPI_LMP_TAGINT,procprev,0,uworld,
               &requests[1]);
   }
   if (ireplica < nreplica-1 && me == 0) {
     MPI_Send(xsendall[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld);
-    // spin quantities
     MPI_Send(spsendall[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld);
     MPI_Send(tagsendall,nebatoms,MPI_LMP_TAGINT,procnext,0,uworld);
   }
@@ -1034,7 +876,6 @@ void FixNEB_spin::inter_replica_comm()
 
     MPI_Bcast(tagrecvall,nebatoms,MPI_INT,0,world);
     MPI_Bcast(xrecvall[0],3*nebatoms,MPI_DOUBLE,0,world);
-    // spin quantities
     MPI_Bcast(sprecvall[0],3*nebatoms,MPI_DOUBLE,0,world);
 
     for (i = 0; i < nebatoms; i++) {
@@ -1043,7 +884,6 @@ void FixNEB_spin::inter_replica_comm()
       xprev[m][0] = xrecvall[i][0];
       xprev[m][1] = xrecvall[i][1];
       xprev[m][2] = xrecvall[i][2];
-      // spin quantities
       spprev[m][0] = sprecvall[i][0];
       spprev[m][1] = sprecvall[i][1];
       spprev[m][2] = sprecvall[i][2];
@@ -1053,7 +893,6 @@ void FixNEB_spin::inter_replica_comm()
   if (ireplica < nreplica-1 && me == 0) {
     MPI_Irecv(xrecvall[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
     MPI_Irecv(frecvall[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
-    // spin quantities
     MPI_Irecv(sprecvall[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
     MPI_Irecv(sprecvall[0],3*nebatoms,MPI_DOUBLE,procnext,0,uworld,&requests[0]);
     MPI_Irecv(tagrecvall,nebatoms,MPI_LMP_TAGINT,procnext,0,uworld,
@@ -1062,7 +901,6 @@ void FixNEB_spin::inter_replica_comm()
   if (ireplica > 0 && me == 0) {
     MPI_Send(xsendall[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
     MPI_Send(fsendall[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
-    // spin quantities
     MPI_Send(spsendall[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
     MPI_Send(fmsendall[0],3*nebatoms,MPI_DOUBLE,procprev,0,uworld);
     MPI_Send(tagsendall,nebatoms,MPI_LMP_TAGINT,procprev,0,uworld);
@@ -1074,7 +912,6 @@ void FixNEB_spin::inter_replica_comm()
     MPI_Bcast(tagrecvall,nebatoms,MPI_INT,0,world);
     MPI_Bcast(xrecvall[0],3*nebatoms,MPI_DOUBLE,0,world);
     MPI_Bcast(frecvall[0],3*nebatoms,MPI_DOUBLE,0,world);
-    // spin quantities
     MPI_Bcast(sprecvall[0],3*nebatoms,MPI_DOUBLE,0,world);
     MPI_Bcast(fmrecvall[0],3*nebatoms,MPI_DOUBLE,0,world);
 
@@ -1087,7 +924,6 @@ void FixNEB_spin::inter_replica_comm()
       fnext[m][0] = frecvall[i][0];
       fnext[m][1] = frecvall[i][1];
       fnext[m][2] = frecvall[i][2];
-      // spin quantities
       spnext[m][0] = sprecvall[i][0];
       spnext[m][1] = sprecvall[i][1];
       spnext[m][2] = sprecvall[i][2];
@@ -1112,7 +948,6 @@ void FixNEB_spin::reallocate()
   memory->destroy(tangent);
   memory->destroy(fnext);
   memory->destroy(springF);
-  // spin quantities
   memory->destroy(spprev);
   memory->destroy(spnext);
   memory->destroy(fmnext);
@@ -1122,7 +957,6 @@ void FixNEB_spin::reallocate()
   memory->create(tangent,maxlocal,3,"neb:tangent");
   memory->create(fnext,maxlocal,3,"neb:fnext");
   memory->create(springF,maxlocal,3,"neb:springF");
-  // spin quantities
   memory->create(spprev,maxlocal,3,"neb:xprev");
   memory->create(spnext,maxlocal,3,"neb:xnext");
   memory->create(fmnext,maxlocal,3,"neb:fnext");
@@ -1132,7 +966,6 @@ void FixNEB_spin::reallocate()
     memory->destroy(fsend);
     memory->destroy(xrecv);
     memory->destroy(frecv);
-    // spin quantities
     memory->destroy(spsend);
     memory->destroy(fmsend);
     memory->destroy(sprecv);
@@ -1143,7 +976,6 @@ void FixNEB_spin::reallocate()
     memory->create(fsend,maxlocal,3,"neb:fsend");
     memory->create(xrecv,maxlocal,3,"neb:xrecv");
     memory->create(frecv,maxlocal,3,"neb:frecv");
-    // spin quantities
     memory->create(spsend,maxlocal,3,"neb:xsend");
     memory->create(fmsend,maxlocal,3,"neb:fsend");
     memory->create(sprecv,maxlocal,3,"neb:xrecv");

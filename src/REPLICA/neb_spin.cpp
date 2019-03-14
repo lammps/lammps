@@ -46,7 +46,6 @@ using namespace MathConst;
 
 #define MAXLINE 256
 #define CHUNK 1024
-//#define ATTRIBUTE_PERLINE 4
 // 8 attributes: tag, spin norm, position (3), spin direction (3)
 #define ATTRIBUTE_PERLINE 8
 
@@ -62,11 +61,9 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
   : Pointers(lmp)
 {
-  //double delx,dely,delz;
   double delspx,delspy,delspz;
 
   etol = etol_in;
-  //ftol = ftol_in;
   ttol = ftol_in;
   n1steps = n1steps_in;
   n2steps = n2steps_in;
@@ -98,16 +95,14 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
     spfinal[1] = buf_final[ii+1];
     spfinal[2] = buf_final[ii+2];
 
+    // circular initialization
+    // a better procedure may be developed
+
     initial_rotation(spinit,spfinal,fraction);
 
     sp[i][0] = spfinal[0];
     sp[i][1] = spfinal[1];
     sp[i][2] = spfinal[2];
-
-    // adjust distance if pbc
-    //domain->minimum_image(delx,dely,delz);
-   
-    // need to define a better procedure for circular initialization
     
     ii += 3;
   }
@@ -134,7 +129,6 @@ void NEB_spin::command(int narg, char **arg)
   if (narg < 6) error->universe_all(FLERR,"Illegal NEB_spin command");
 
   etol = force->numeric(FLERR,arg[0]);
-  //ftol = force->numeric(FLERR,arg[1]);
   ttol = force->numeric(FLERR,arg[1]);
   n1steps = force->inumeric(FLERR,arg[2]);
   n2steps = force->inumeric(FLERR,arg[3]);
@@ -143,7 +137,6 @@ void NEB_spin::command(int narg, char **arg)
   // error checks
 
   if (etol < 0.0) error->all(FLERR,"Illegal NEB_spin command");
-  //if (ftol < 0.0) error->all(FLERR,"Illegal NEB_spin command");
   if (ttol < 0.0) error->all(FLERR,"Illegal NEB_spin command");
   if (nevery <= 0) error->universe_all(FLERR,"Illegal NEB_spin command");
   if (n1steps % nevery || n2steps % nevery)
@@ -172,7 +165,6 @@ void NEB_spin::command(int narg, char **arg)
 
   // process file-style setting to setup initial configs for all replicas
 
-  // check what options are available
   if (strcmp(arg[5],"final") == 0) {
     if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB_spin command");
     infile = arg[6];
@@ -205,6 +197,7 @@ void NEB_spin::run()
   MPI_Comm_split(uworld,color,0,&roots);
 
   // search for neb_spin fix, allocate it
+  
   int ineb;
   for (ineb = 0; ineb < modify->nfix; ineb++)
     if (strcmp(modify->fix[ineb]->style,"neb/spin") == 0) break;
@@ -220,7 +213,6 @@ void NEB_spin::run()
 
   update->whichflag = 2;
   update->etol = etol;
-  //update->ftol = ftol;
   update->ftol = ttol;		// update->ftol is a torque tolerance
   update->multireplica = 1;
 
@@ -258,11 +250,6 @@ void NEB_spin::run()
                 "RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 "
                 "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
                 "... ReplicaTorqueN MaxAtomTorqueN\n");
-        //fprintf(uscreen,"Step MaxReplicaForce MaxAtomForce "
-        //        "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
-        //        "RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 "
-        //        "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
-        //        "... ReplicaForceN MaxAtomForceN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -424,7 +411,6 @@ void NEB_spin::readfile(char *file, int flag)
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
   double xx,yy,zz,delx,dely,delz;
-  // spin quantities
   double musp,spx,spy,spz;
 
   if (me_universe == 0 && screen)
@@ -469,7 +455,6 @@ void NEB_spin::readfile(char *file, int flag)
   double fraction = ireplica/(nreplica-1.0);
 
   double **x = atom->x;
-  // spin quantities
   double **sp = atom->sp;
   double spinit[3],spfinal[3];
   int nlocal = atom->nlocal;
@@ -539,9 +524,6 @@ void NEB_spin::readfile(char *file, int flag)
 	  spfinal[0] = spx;
 	  spfinal[1] = spy;
 	  spfinal[2] = spz;
-          
-	  // to be used it atomic displacements with pbc
-	  //domain->minimum_image(delx,dely,delz);
 
 	  // interpolate intermediate spin states
 
@@ -609,11 +591,10 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 {
   
   // implementing initial rotation using atan2
-  // this is not a sufficient routine, 
-  // we need more accurate verifications
-
+  // this may not be a sufficient routine, need more accurate verifications
 
   // initial, final and inter ang. values 
+  
   double itheta,iphi,ftheta,fphi,ktheta,kphi;
   double spix,spiy,spiz,spfx,spfy,spfz;
   double spkx,spky,spkz,iknorm;
@@ -648,7 +629,6 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   sploc[0] = spkx;
   sploc[1] = spky;
   sploc[2] = spkz;
-  
 }
 
 /* ----------------------------------------------------------------------
@@ -692,9 +672,6 @@ void NEB_spin::open(char *file)
 
 void NEB_spin::print_status()
 {
-  
-  //double fnorm2 = sqrt(update->minimize->fnorm_sqr());
-  
   int nlocal = atom->nlocal;
   double tx,ty,tz;
   double tnorm2,local_norm_inf,temp_inf;
@@ -709,20 +686,14 @@ void NEB_spin::print_status()
     ty = (fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
     tz = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
     tnorm2 += tx*tx + ty*ty + tz*tz;
-
     temp_inf = MAX(fabs(tx),fabs(ty));
     temp_inf = MAX(fabs(tz),temp_inf);
     local_norm_inf = MAX(temp_inf,local_norm_inf);
-
   }
 
   double fmaxreplica;
-  //MPI_Allreduce(&fnorm2,&fmaxreplica,1,MPI_DOUBLE,MPI_MAX,roots);
   MPI_Allreduce(&tnorm2,&fmaxreplica,1,MPI_DOUBLE,MPI_MAX,roots);
   
-  //double fnorminf = update->minimize->fnorm_inf();
-  //double fmaxatom;
-  //MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
   double fnorminf = 0.0;
   MPI_Allreduce(&local_norm_inf,&fnorminf,1,MPI_DOUBLE,MPI_MAX,world);
   double fmaxatom;
@@ -730,7 +701,6 @@ void NEB_spin::print_status()
 
   if (verbose) {
     freplica = new double[nreplica];
-    //MPI_Allgather(&fnorm2,1,MPI_DOUBLE,&freplica[0],1,MPI_DOUBLE,roots);
     MPI_Allgather(&tnorm2,1,MPI_DOUBLE,&freplica[0],1,MPI_DOUBLE,roots);
     fmaxatomInRepl = new double[nreplica];
     MPI_Allgather(&fnorminf,1,MPI_DOUBLE,&fmaxatomInRepl[0],1,MPI_DOUBLE,roots);

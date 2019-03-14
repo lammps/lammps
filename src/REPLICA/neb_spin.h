@@ -14,7 +14,6 @@
 #ifdef COMMAND_CLASS
 
 CommandStyle(neb/spin,NEB_spin)
-//CommandStyle(neb,NEB_spin)
 
 #else
 

@@ -95,6 +95,8 @@ namespace LAMMPS_NS {
 
 template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
 class NPairKokkos : public NPair {
+  typedef ArrayTypes<DeviceType> AT;
+
  public:
   NPairKokkos(class LAMMPS *);
   ~NPairKokkos() {}
@@ -105,6 +107,12 @@ class NPairKokkos : public NPair {
 
  private:
   int newton_pair;
+  typename AT::t_int_1d d_scalars;
+  HAT::t_int_1d h_scalars;
+  typename AT::t_int_scalar d_resize;
+  typename AT::t_int_scalar d_new_maxneighs;
+  HAT::t_int_scalar h_resize;
+  HAT::t_int_scalar h_new_maxneighs;
 
   // data from Neighbor class
 
@@ -251,7 +259,11 @@ class NeighborKokkosExecute
                         const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
                         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
                         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half,
-                        const X_FLOAT _skin):
+                        const X_FLOAT _skin,
+                        const typename AT::t_int_scalar _resize,
+                        const typename ArrayTypes<LMPHostType>::t_int_scalar _h_resize,
+                        const typename AT::t_int_scalar _new_maxneighs,
+                        const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     atom2bin(_atom2bin),c_atom2bin(_atom2bin),
@@ -272,7 +284,8 @@ class NeighborKokkosExecute
     ex_mol_intra(_ex_mol_intra),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half),
-    skin(_skin) {
+    skin(_skin),resize(_resize),h_resize(_h_resize),
+    new_maxneighs(_new_maxneighs),h_new_maxneighs(_h_new_maxneighs) {
 
     if (molecular == 2) moltemplate = 1;
     else moltemplate = 0;
@@ -280,20 +293,7 @@ class NeighborKokkosExecute
     bboxlo[0] = _bboxlo[0]; bboxlo[1] = _bboxlo[1]; bboxlo[2] = _bboxlo[2];
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
-    resize = typename AT::t_int_scalar(Kokkos::view_alloc("NeighborKokkosFunctor::resize",Kokkos::WithoutInitializing));
-#ifndef KOKKOS_USE_CUDA_UVM
-    h_resize = Kokkos::create_mirror_view(resize);
-#else
-    h_resize = resize;
-#endif
     h_resize() = 1;
-    new_maxneighs = typename AT::
-      t_int_scalar(Kokkos::view_alloc("NeighborKokkosFunctor::new_maxneighs",Kokkos::WithoutInitializing));
-#ifndef KOKKOS_USE_CUDA_UVM
-    h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
-#else
-    h_new_maxneighs = new_maxneighs;
-#endif
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 

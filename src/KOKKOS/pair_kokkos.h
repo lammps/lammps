@@ -274,7 +274,7 @@ struct PairComputeFunctor  {
       const X_FLOAT ytmp = c.x(i,1);
       const X_FLOAT ztmp = c.x(i,2);
       const int itype = c.type(i);
-    
+
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
 
@@ -388,13 +388,12 @@ struct PairComputeFunctor  {
     const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
 
-
       const int i = list.d_ilist[ii];
       const X_FLOAT xtmp = c.x(i,0);
       const X_FLOAT ytmp = c.x(i,1);
       const X_FLOAT ztmp = c.x(i,2);
       const int itype = c.type(i);
-    
+
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
 
@@ -875,14 +874,14 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
       atoms_per_team = GetTeamSize(ff, atoms_per_team, vector_length);
       Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
-      else                              Kokkos::parallel_for(policy,ff);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff,ev);
+      else                              Kokkos::parallel_for(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff);
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
       atoms_per_team = GetTeamSize(ff, atoms_per_team, vector_length);
       Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
-      else                              Kokkos::parallel_for(policy,ff);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff,ev);
+      else                              Kokkos::parallel_for(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff);
     }
   } else {
     if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {

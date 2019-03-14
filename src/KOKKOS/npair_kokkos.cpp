@@ -15,6 +15,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "domain_kokkos.h"
+#include "update.h"
 #include "neighbor_kokkos.h"
 #include "nbin_kokkos.h"
 #include "nstencil.h"
@@ -27,6 +28,16 @@ namespace LAMMPS_NS {
 template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
 NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
 
+  // use 1D view for scalars to reduce GPU memory operations
+
+  d_scalars = typename AT::t_int_1d("neighbor:scalars",2);
+  h_scalars = HAT::t_int_1d("neighbor:scalars_mirror",2);
+
+  d_resize = Kokkos::subview(d_scalars,0);
+  d_new_maxneighs = Kokkos::subview(d_scalars,1);
+
+  h_resize = Kokkos::subview(h_scalars,0);
+  h_new_maxneighs = Kokkos::subview(h_scalars,1);
 }
 
 /* ----------------------------------------------------------------------
@@ -84,27 +95,30 @@ template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
 void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
 {
   NPair::copy_stencil_info();
-
   nstencil = ns->nstencil;
 
-  int maxstencil = ns->get_maxstencil();
+  if (neighbor->last_setup_bins == update->ntimestep) {
+    // copy stencil to device as it may have changed
 
-  if (maxstencil > k_stencil.extent(0))
-    k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
-  for (int k = 0; k < maxstencil; k++)
-    k_stencil.h_view(k) = ns->stencil[k];
-    k_stencil.modify<LMPHostType>();
-    k_stencil.sync<DeviceType>();
-  if (GHOST) {
-    if (maxstencil > k_stencilxyz.extent(0))
-      k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
-    for (int k = 0; k < maxstencil; k++) {
-      k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
-      k_stencilxyz.h_view(k,1) = ns->stencilxyz[k][1];
-      k_stencilxyz.h_view(k,2) = ns->stencilxyz[k][2];
+    int maxstencil = ns->get_maxstencil();
+    
+    if (maxstencil > k_stencil.extent(0))
+      k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
+    for (int k = 0; k < maxstencil; k++)
+      k_stencil.h_view(k) = ns->stencil[k];
+      k_stencil.modify<LMPHostType>();
+      k_stencil.sync<DeviceType>();
+    if (GHOST) {
+      if (maxstencil > k_stencilxyz.extent(0))
+        k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
+      for (int k = 0; k < maxstencil; k++) {
+        k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
+        k_stencilxyz.h_view(k,1) = ns->stencilxyz[k][1];
+        k_stencilxyz.h_view(k,2) = ns->stencilxyz[k][2];
+      }
+      k_stencilxyz.modify<LMPHostType>();
+      k_stencilxyz.sync<DeviceType>();
     }
-    k_stencilxyz.modify<LMPHostType>();
-    k_stencilxyz.sync<DeviceType>();
   }
 }
 
@@ -157,7 +171,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
          bboxhi,bboxlo,
          domain->xperiodic,domain->yperiodic,domain->zperiodic,
          domain->xprd_half,domain->yprd_half,domain->zprd_half,
-	 skin);
+         skin,d_resize,h_resize,d_new_maxneighs,h_new_maxneighs);
 
   k_cutneighsq.sync<DeviceType>();
   k_ex1_type.sync<DeviceType>();
@@ -185,8 +199,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
     data.h_new_maxneighs() = list->maxneighs;
     data.h_resize() = 0;
 
-    Kokkos::deep_copy(data.resize, data.h_resize);
-    Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
+    Kokkos::deep_copy(d_scalars, h_scalars);
 #ifdef KOKKOS_ENABLE_CUDA
     #define BINS_PER_BLOCK 2
     const int factor = atoms_per_bin<64?2:1;
@@ -245,10 +258,9 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 	}
       }
     }
-    deep_copy(data.h_resize, data.resize);
+    Kokkos::deep_copy(h_scalars, d_scalars);
 
     if(data.h_resize()) {
-      deep_copy(data.h_new_maxneighs, data.new_maxneighs);
       list->maxneighs = data.h_new_maxneighs() * 1.2;
       list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;

@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
+#define DELTA 10
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,7 +55,8 @@ AtomVecAtomicKokkos::AtomVecAtomicKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecAtomicKokkos::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  int step = MAX(DELTA,nmax*0.01);
+  if (n == 0) nmax += step;
   else nmax = n;
   atomKK->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)

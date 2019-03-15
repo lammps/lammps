@@ -54,7 +54,8 @@ enum{NONE,CONSTANT,EQUAL};
 
 enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
+enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
+      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_SDS};
 
@@ -64,7 +65,8 @@ enum {ROLL_NONE, ROLL_SDS};
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
-          Fix(lmp, narg, arg), idregion(NULL), history_one(NULL), fix_rigid(NULL), mass_rigid(NULL)
+  Fix(lmp, narg, arg), idregion(NULL), history_one(NULL),
+  fix_rigid(NULL), mass_rigid(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
 
@@ -116,28 +118,25 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       kt /= force->nktv2p;
     }
     iarg = 10;
-  }
-  else {
+  } else {
     iarg = 4;
     damping_model = VISCOELASTIC;
     roll_model = twist_model = NONE;
-    while (iarg < narg){
-      if (strcmp(arg[iarg], "hooke") == 0){
+    while (iarg < narg) {
+      if (strcmp(arg[iarg], "hooke") == 0) {
         if (iarg + 2 >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hooke option");
         normal_model = NORMAL_HOOKE;
         normal_coeffs[0] = force->numeric(FLERR,arg[iarg+1]); //kn
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
         iarg += 3;
-      }
-      else if (strcmp(arg[iarg], "hertz") == 0){
+      } else if (strcmp(arg[iarg], "hertz") == 0) {
         int num_coeffs = 2;
         if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hertz option");
         normal_model = NORMAL_HERTZ;
         normal_coeffs[0] = force->numeric(FLERR,arg[iarg+1]); //kn
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
         iarg += num_coeffs+1;
-      }
-      else if (strcmp(arg[iarg], "hertz/material") == 0){
+      } else if (strcmp(arg[iarg], "hertz/material") == 0) {
         int num_coeffs = 3;
         if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hertz option");
         normal_model = HERTZ_MATERIAL;
@@ -147,8 +146,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         normal_coeffs[0] = Emod/(2*(1-poiss))*FOURTHIRDS;
         normal_coeffs[2] = poiss;
         iarg += num_coeffs+1;
-      }
-      else if (strcmp(arg[iarg], "dmt") == 0){
+      } else if (strcmp(arg[iarg], "dmt") == 0) {
         if (iarg + 4 >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hertz option");
         normal_model = DMT;
         Emod = force->numeric(FLERR,arg[iarg+1]); //E
@@ -158,8 +156,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         normal_coeffs[2] = poiss;
         normal_coeffs[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
         iarg += 5;
-      }
-      else if (strcmp(arg[iarg], "jkr") == 0){
+      } else if (strcmp(arg[iarg], "jkr") == 0) {
         if (iarg + 4 >= narg) error->all(FLERR,"Illegal wall/gran command, not enough parameters provided for JKR option");
         beyond_contact = 1;
         normal_model = JKR;
@@ -170,67 +167,57 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         normal_coeffs[2] = poiss;
         normal_coeffs[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
         iarg += 5;
-      }
-      else if (strcmp(arg[iarg], "damping") == 0){
+      } else if (strcmp(arg[iarg], "damping") == 0) {
         if (iarg+1 >= narg) error->all(FLERR, "Illegal wall/gran command, not enough parameters provided for damping model");
-        if (strcmp(arg[iarg+1], "velocity") == 0){
+        if (strcmp(arg[iarg+1], "velocity") == 0) {
           damping_model = VELOCITY;
           iarg += 1;
-        }
-        else if (strcmp(arg[iarg+1], "viscoelastic") == 0){
+        } else if (strcmp(arg[iarg+1], "viscoelastic") == 0) {
           damping_model = VISCOELASTIC;
           iarg += 1;
-        }
-        else if (strcmp(arg[iarg+1], "tsuji") == 0){
+        } else if (strcmp(arg[iarg+1], "tsuji") == 0) {
           damping_model = TSUJI;
           iarg += 1;
-        }
-        else error->all(FLERR, "Illegal wall/gran command, unrecognized damping model");
+        } else error->all(FLERR, "Illegal wall/gran command, unrecognized damping model");
         iarg += 1;
-      }
-      else if (strcmp(arg[iarg], "tangential") == 0){
+      } else if (strcmp(arg[iarg], "tangential") == 0) {
         if (iarg + 1 >= narg) error->all(FLERR,"Illegal pair_coeff command, must specify tangential model after 'tangential' keyword");
-        if (strcmp(arg[iarg+1], "linear_nohistory") == 0){
+        if (strcmp(arg[iarg+1], "linear_nohistory") == 0) {
           if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
           tangential_model = TANGENTIAL_NOHISTORY;
           tangential_coeffs[0] = 0;
           tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
           tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
           iarg += 4;
-        }
-        else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
+        } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
             (strcmp(arg[iarg+1], "mindlin") == 0) ||
-            (strcmp(arg[iarg+1], "mindlin_rescale") == 0)){
+            (strcmp(arg[iarg+1], "mindlin_rescale") == 0)) {
           if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
           if (strcmp(arg[iarg+1], "linear_history") == 0) tangential_model = TANGENTIAL_HISTORY;
           else if (strcmp(arg[iarg+1], "mindlin") == 0) tangential_model = TANGENTIAL_MINDLIN;
           else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) tangential_model = TANGENTIAL_MINDLIN_RESCALE;
           if ((tangential_model == TANGENTIAL_MINDLIN || tangential_model == TANGENTIAL_MINDLIN_RESCALE) &&
-              (strcmp(arg[iarg+2], "NULL") == 0)){
-            if (normal_model == NORMAL_HERTZ || normal_model == NORMAL_HOOKE){
+              (strcmp(arg[iarg+2], "NULL") == 0)) {
+            if (normal_model == NORMAL_HERTZ || normal_model == NORMAL_HOOKE) {
               error->all(FLERR, "NULL setting for Mindlin tangential stiffness requires a normal contact model that specifies material properties");
             }
             tangential_coeffs[0] = 4*(2-poiss)*(1+poiss)/Emod;
-          }
-          else{
+          } else {
             tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
           }
           tangential_history = 1;
           tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
           tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
           iarg += 5;
-        }
-        else{
+        } else {
           error->all(FLERR, "Illegal pair_coeff command, tangential model not recognized");
         }
-      }
-      else if (strcmp(arg[iarg], "rolling") == 0){
+      } else if (strcmp(arg[iarg], "rolling") == 0) {
         if (iarg + 1 >= narg) error->all(FLERR, "Illegal wall/gran command, not enough parameters");
-        if (strcmp(arg[iarg+1], "none") == 0){
+        if (strcmp(arg[iarg+1], "none") == 0) {
           roll_model = ROLL_NONE;
           iarg += 2;
-        }
-        else if (strcmp(arg[iarg+1], "sds") == 0){
+        } else if (strcmp(arg[iarg+1], "sds") == 0) {
           if (iarg + 4 >= narg) error->all(FLERR,"Illegal wall/gran command, not enough parameters provided for rolling model");
           roll_model = ROLL_SDS;
           roll_history = 1;
@@ -238,23 +225,19 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           roll_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
           roll_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //rolling friction coeff.
           iarg += 5;
-        }
-        else{
+        } else {
           error->all(FLERR, "Illegal wall/gran command, rolling friction model not recognized");
         }
-      }
-      else if (strcmp(arg[iarg], "twisting") == 0){
+      } else if (strcmp(arg[iarg], "twisting") == 0) {
         if (iarg + 1 >= narg) error->all(FLERR, "Illegal wall/gran command, not enough parameters");
-        if (strcmp(arg[iarg+1], "none") == 0){
+        if (strcmp(arg[iarg+1], "none") == 0) {
           twist_model = TWIST_NONE;
           iarg += 2;
-        }
-        else if (strcmp(arg[iarg+1], "marshall") == 0){
+        } else if (strcmp(arg[iarg+1], "marshall") == 0) {
           twist_model = TWIST_MARSHALL;
           twist_history = 1;
           iarg += 2;
-        }
-        else if (strcmp(arg[iarg+1], "sds") == 0){
+        } else if (strcmp(arg[iarg+1], "sds") == 0) {
           if (iarg + 4 >= narg) error->all(FLERR,"Illegal wall/gran command, not enough parameters provided for twist model");
           twist_model = TWIST_SDS;
           twist_history = 1;
@@ -262,19 +245,16 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           twist_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
           twist_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
           iarg += 5;
-        }
-        else{
+        } else {
           error->all(FLERR, "Illegal wall/gran command, twisting friction model not recognized");
         }
-      }
-      else if (strcmp(arg[iarg], "xplane") == 0 ||
+      } else if (strcmp(arg[iarg], "xplane") == 0 ||
           strcmp(arg[iarg], "yplane") == 0 ||
           strcmp(arg[iarg], "zplane") == 0 ||
           strcmp(arg[iarg], "zcylinder") == 0 ||
-          strcmp(arg[iarg], "region") == 0){
+          strcmp(arg[iarg], "region") == 0) {
         break;
-      }
-      else{
+      } else {
         error->all(FLERR, "Illegal fix wall/gran command");
       }
     }
@@ -352,7 +332,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       vshear = force->numeric(FLERR,arg[iarg+2]);
       wshear = 1;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"store_contacts") == 0){
+    } else if (strcmp(arg[iarg],"store_contacts") == 0) {
       peratom_flag = 1;
       size_peratom_cols = 8;
       peratom_freq = 1;
@@ -407,7 +387,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         history_one[i][j] = 0.0;
   }
 
-  if (peratom_flag){
+  if (peratom_flag) {
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++)
       for (int m = 0; m < size_peratom_cols; m++)
@@ -462,12 +442,12 @@ void FixWallGran::init()
   if (i < modify->nfix) fix_rigid = modify->fix[i];
 
   tangential_history_index = 0;
-  if (roll_history){
+  if (roll_history) {
     if (tangential_history) roll_history_index = 3;
     else roll_history_index = 0;
   }
-  if (twist_history){
-    if (tangential_history){
+  if (twist_history) {
+    if (tangential_history) {
       if (roll_history) twist_history_index = 6;
       else twist_history_index = 3;
     }
@@ -476,17 +456,17 @@ void FixWallGran::init()
       else twist_history_index = 0;
     }
   }
-  if (normal_model == JKR){
+  if (normal_model == JKR) {
     tangential_history_index += 1;
     roll_history_index += 1;
     twist_history_index += 1;
   }
-  if (tangential_model == TANGENTIAL_MINDLIN_RESCALE){
+  if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
     roll_history_index += 1;
     twist_history_index += 1;
   }
 
-  if (damping_model == TSUJI){
+  if (damping_model == TSUJI) {
     double cor = normal_coeffs[1];
     normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
         27.467*pow(cor,4)-18.022*pow(cor,5)+
@@ -622,7 +602,7 @@ void FixWallGran::post_force(int /*vflag*/)
       rsq = dx*dx + dy*dy + dz*dz;
 
       double rad;
-      if (pairstyle == GRANULAR && normal_model == JKR){
+      if (pairstyle == GRANULAR && normal_model == JKR) {
         rad = radius[i] + pulloff_distance(radius[i]);
       }
       else
@@ -634,8 +614,8 @@ void FixWallGran::post_force(int /*vflag*/)
             history_one[i][j] = 0.0;
       }
       else {
-        if (pairstyle == GRANULAR && normal_model == JKR && use_history){
-          if ((history_one[i][0] == 0) && (rsq > radius[i]*radius[i])){
+        if (pairstyle == GRANULAR && normal_model == JKR && use_history) {
+          if ((history_one[i][0] == 0) && (rsq > radius[i]*radius[i])) {
             // Particles have not contacted yet, and are outside of contact distance
             for (j = 0; j < size_history; j++)
               history_one[i][j] = 0.0;
@@ -650,7 +630,7 @@ void FixWallGran::post_force(int /*vflag*/)
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
         // store contact info
-        if (peratom_flag){
+        if (peratom_flag) {
           array_atom[i][0] = (double)atom->tag[i];
           array_atom[i][4] = x[i][0] - dx;
           array_atom[i][5] = x[i][1] - dy;
@@ -764,7 +744,7 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
 
-  if (peratom_flag){
+  if (peratom_flag) {
     contact[1] = fx;
     contact[2] = fy;
     contact[3] = fz;
@@ -891,7 +871,7 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
   f[1] += fy;
   f[2] += fz;
 
-  if (peratom_flag){
+  if (peratom_flag) {
     contact[1] = fx;
     contact[2] = fy;
     contact[3] = fz;
@@ -1017,7 +997,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
 
-  if (peratom_flag){
+  if (peratom_flag) {
     contact[1] = fx;
     contact[2] = fy;
     contact[3] = fz;
@@ -1056,7 +1036,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  double fs, fs1, fs2, fs3;
 
  double tor1,tor2,tor3;
- double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
+ double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
 
  //For JKR
  double R2, coh, F_pulloff, a, a2, E;
@@ -1106,7 +1086,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
 
  delta = radsum - r;
  dR = delta*Reff;
- if (normal_model == JKR){
+ if (normal_model == JKR) {
    history[0] = 1.0;
    E *= THREEQUARTERS;
    R2=Reff*Reff;
@@ -1130,7 +1110,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  else{
    knfac = E; //Hooke
    a = sqrt(dR);
-   if (normal_model != HOOKE){
+   if (normal_model != HOOKE) {
      Fne *= a;
      knfac *= a;
    }
@@ -1139,13 +1119,13 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
      Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
  }
 
- if (damping_model == VELOCITY){
+ if (damping_model == VELOCITY) {
    damp_normal = 1;
  }
- else if (damping_model == VISCOELASTIC){
+ else if (damping_model == VISCOELASTIC) {
    damp_normal = a*meff;
  }
- else if (damping_model == TSUJI){
+ else if (damping_model == TSUJI) {
    damp_normal = sqrt(meff*knfac);
  }
 
@@ -1175,11 +1155,11 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
  vrel = sqrt(vrel);
 
- if (normal_model == JKR){
+ if (normal_model == JKR) {
    F_pulloff = 3*M_PI*coh*Reff;
    Fncrit = fabs(Fne + 2*F_pulloff);
  }
- else if (normal_model == DMT){
+ else if (normal_model == DMT) {
    F_pulloff = 4*M_PI*coh*Reff;
    Fncrit = fabs(Fne + 2*F_pulloff);
  }
@@ -1197,13 +1177,13 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  int thist1 = thist0 + 1;
  int thist2 = thist1 + 1;
 
- if (tangential_history){
-   if (tangential_model == TANGENTIAL_MINDLIN){
+ if (tangential_history) {
+   if (tangential_model == TANGENTIAL_MINDLIN) {
      k_tangential *= a;
    }
-   else if (tangential_model == TANGENTIAL_MINDLIN_RESCALE){
+   else if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
      k_tangential *= a;
-     if (a < history[3]){ //On unloading, rescale the shear displacements
+     if (a < history[3]) { //On unloading, rescale the shear displacements
        double factor = a/history[thist2+1];
        history[thist0] *= factor;
        history[thist1] *= factor;
@@ -1218,7 +1198,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
    if (history_update) {
      rsht = history[thist0]*nx + history[thist1]*ny + history[thist2]*nz;
      if (fabs(rsht) < EPSILON) rsht = 0;
-     if (rsht > 0){
+     if (rsht > 0) {
        scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
        history[thist0] -= rsht*nx;
        history[thist1] -= rsht*ny;
@@ -1266,7 +1246,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  // Rolling resistance
  //****************************************
 
- if (roll_model != ROLL_NONE){
+ if (roll_model != ROLL_NONE) {
    relrot1 = omega[0];
    relrot2 = omega[1];
    relrot3 = omega[2];
@@ -1277,9 +1257,6 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
    vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
    vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
    vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
-   vrlmag = sqrt(vrl1*vrl1+vrl2*vrl2+vrl3*vrl3);
-   if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
-   else vrlmaginv = 0.0;
 
    int rhist0 = roll_history_index;
    int rhist1 = rhist0 + 1;
@@ -1292,9 +1269,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
 
    rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
 
-   if (history_update){
+   if (history_update) {
      if (fabs(rolldotn) < EPSILON) rolldotn = 0;
-     if (rolldotn > 0){ //Rotate into tangential plane
+     if (rolldotn > 0) { //Rotate into tangential plane
        scalefac = rollmag/(rollmag - rolldotn);
        history[rhist0] -= rolldotn*nx;
        history[rhist1] -= rolldotn*ny;
@@ -1334,9 +1311,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  //****************************************
  // Twisting torque, including history effects
  //****************************************
- if (twist_model != TWIST_NONE){
+ if (twist_model != TWIST_NONE) {
    magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
-   if (twist_model == TWIST_MARSHALL){
+   if (twist_model == TWIST_MARSHALL) {
      k_twist = 0.5*k_tangential*a*a;; //eq 32 of Marshall paper
      damp_twist = 0.5*damp_tangential*a*a;
      mu_twist = TWOTHIRDS*a*tangential_coeffs[2];
@@ -1346,7 +1323,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
      damp_twist = twist_coeffs[1];
      mu_twist = twist_coeffs[2];
    }
-   if (history_update){
+   if (history_update) {
      history[twist_history_index] += magtwist*dt;
    }
    magtortwist = -k_twist*history[twist_history_index] - damp_twist*magtwist;//M_t torque (eq 30)
@@ -1363,7 +1340,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  fy = ny*Fntot + fs2;
  fz = nz*Fntot + fs3;
 
- if (peratom_flag){
+ if (peratom_flag) {
    contact[1] = fx;
    contact[2] = fy;
    contact[3] = fz;
@@ -1381,7 +1358,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  torque[1] -= radius*tor2;
  torque[2] -= radius*tor3;
 
- if (twist_model != TWIST_NONE){
+ if (twist_model != TWIST_NONE) {
    tortwist1 = magtortwist * nx;
    tortwist2 = magtortwist * ny;
    tortwist3 = magtortwist * nz;
@@ -1391,7 +1368,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
    torque[2] += tortwist3;
  }
 
- if (roll_model != ROLL_NONE){
+ if (roll_model != ROLL_NONE) {
    torroll1 = Reff*(ny*fr3 - nz*fr2); //n cross fr
    torroll2 = Reff*(nz*fr1 - nx*fr3);
    torroll3 = Reff*(nx*fr2 - ny*fr1);
@@ -1425,7 +1402,7 @@ double FixWallGran::memory_usage()
 void FixWallGran::grow_arrays(int nmax)
 {
   if (use_history) memory->grow(history_one,nmax,size_history,"fix_wall_gran:history_one");
-  if (peratom_flag){
+  if (peratom_flag) {
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
   }
 }
@@ -1439,7 +1416,7 @@ void FixWallGran::copy_arrays(int i, int j, int /*delflag*/)
   if (use_history)
     for (int m = 0; m < size_history; m++)
       history_one[j][m] = history_one[i][m];
-  if (peratom_flag){
+  if (peratom_flag) {
     for (int m = 0; m < size_peratom_cols; m++)
       array_atom[j][m] = array_atom[i][m];
   }
@@ -1454,7 +1431,7 @@ void FixWallGran::set_arrays(int i)
   if (use_history)
     for (int m = 0; m < size_history; m++)
       history_one[i][m] = 0;
-  if (peratom_flag){
+  if (peratom_flag) {
     for (int m = 0; m < size_peratom_cols; m++)
       array_atom[i][m] = 0;
   }
@@ -1467,11 +1444,11 @@ void FixWallGran::set_arrays(int i)
 int FixWallGran::pack_exchange(int i, double *buf)
 {
   int n = 0;
-  if (use_history){
+  if (use_history) {
     for (int m = 0; m < size_history; m++)
       buf[n++] = history_one[i][m];
   }
-  if (peratom_flag){
+  if (peratom_flag) {
     for (int m = 0; m < size_peratom_cols; m++)
       buf[n++] = array_atom[i][m];
   }
@@ -1485,11 +1462,11 @@ int FixWallGran::pack_exchange(int i, double *buf)
 int FixWallGran::unpack_exchange(int nlocal, double *buf)
 {
   int n = 0;
-  if (use_history){
+  if (use_history) {
     for (int m = 0; m < size_history; m++)
       history_one[nlocal][m] = buf[n++];
   }
-  if (peratom_flag){
+  if (peratom_flag) {
     for (int m = 0; m < size_peratom_cols; m++)
       array_atom[nlocal][m] = buf[n++];
   }
@@ -1558,7 +1535,8 @@ void FixWallGran::reset_dt()
   dt = update->dt;
 }
 
-double FixWallGran::pulloff_distance(double radius){
+double FixWallGran::pulloff_distance(double radius)
+{
   double coh, E, a, dist;
   coh = normal_coeffs[3];
   E = normal_coeffs[0]*THREEQUARTERS;

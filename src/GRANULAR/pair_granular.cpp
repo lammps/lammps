@@ -16,10 +16,10 @@ Dan Bolintineanu (SNL), Ishan Srivastava (SNL), Jeremy Lechman(SNL)
 Leo Silbert (SNL), Gary Grest (SNL)
 ----------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include "pair_granular.h"
 #include "atom.h"
 #include "atom_vec.h"

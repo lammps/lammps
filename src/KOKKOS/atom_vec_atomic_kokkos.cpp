@@ -21,6 +21,7 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -901,7 +902,14 @@ void AtomVecAtomicKokkos::sync(ExecutionSpace space, unsigned int mask)
   if (space == Device) {
     if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
-    if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
+    if (mask & F_MASK) {
+      if (!force || force->newton) {
+        atomKK->k_f.sync<LMPDeviceType>();
+      } else { 
+        auto k_f_nlocal = Kokkos::subview(atomKK->k_f,std::make_pair(0,atom->nlocal),Kokkos::ALL);
+        k_f_nlocal.sync<LMPDeviceType>();
+      }
+    }
     if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
@@ -909,7 +917,14 @@ void AtomVecAtomicKokkos::sync(ExecutionSpace space, unsigned int mask)
   } else {
     if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
-    if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
+    if (mask & F_MASK) {
+      if (!force || force->newton) {
+        atomKK->k_f.sync<LMPHostType>();
+      } else {
+        auto k_f_nlocal = Kokkos::subview(atomKK->k_f,std::make_pair(0,atom->nlocal),Kokkos::ALL);
+        k_f_nlocal.sync<LMPHostType>();
+      }
+    }
     if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();

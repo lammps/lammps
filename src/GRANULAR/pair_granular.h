@@ -25,8 +25,8 @@ PairStyle(granular,PairGranular)
 
 namespace LAMMPS_NS {
 
-class PairGranular : public Pair{
-public:
+class PairGranular : public Pair {
+ public:
   PairGranular(class LAMMPS *);
   ~PairGranular();
   void compute(int, int);
@@ -63,7 +63,7 @@ public:
   void allocate();
   void transfer_history(double*, double*);
 
-private:
+ private:
   int size_history;
   int *history_transfer_factors;
 

@@ -22,7 +22,8 @@ field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {q} or {ix} or {iy} or {iz}
   {ix},{iy},{iz} = image flags in each dimension
   {fx},{fy},{fz} = force components :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {wrapped} or {format} :l
+keyword = {nfile} or {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {wrapped} or {format} :l
+  {nfile} value = Nfiles = how many parallel dump files exist
   {box} value = {yes} or {no} = replace simulation box with dump box
   {replace} value = {yes} or {no} = overwrite atoms with dump atoms
   {purge} value = {yes} or {no} = delete all atoms before adding dump atoms
@@ -85,9 +86,18 @@ command, after the dump snapshot is read.
 
 If the dump filename specified as {file} ends with ".gz", the dump
 file is read in gzipped format.  You cannot (yet) read a dump file
-that was written in binary format with a ".bin" suffix, or to multiple
-files via the "%" option in the dump file name.  See the
-"dump"_dump.html command for details.
+that was written in binary format with a ".bin" suffix.
+
+You can read dump files that were written (in parallel) to multiple
+files via the "%" wild-card character in the dump file name.  If any
+specified dump file name contains a "%", they must all contain it.
+See the "dump"_dump.html command for details.
+The "%" wild-card character is only supported by the {native} format
+for dump files, described next.
+
+If reading parallel dump files, you must also use the {nfile} keyword
+to tell LAMMPS how many parallel files exist, via its specified
+{Nfiles} value.
 
 The format of the dump file is selected through the {format} keyword.
 If specified, it must be the last keyword used, since all remaining

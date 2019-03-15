@@ -221,8 +221,9 @@ double PairGayBerneGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                  int *ilist, int *numneigh, int **firstneigh)
+void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag,
+                                  int /* vflag */, int *ilist,
+                                  int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;

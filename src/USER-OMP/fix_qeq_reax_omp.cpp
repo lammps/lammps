@@ -275,7 +275,7 @@ void FixQEqReaxOMP::init_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::pre_force(int vflag)
+void FixQEqReaxOMP::pre_force(int /* vflag */)
 {
 
 #ifdef OMP_TIMING

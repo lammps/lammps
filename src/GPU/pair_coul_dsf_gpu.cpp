@@ -196,9 +196,9 @@ double PairCoulDSFGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                 int *ilist, int *numneigh,
-                                 int **firstneigh)
+void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag,
+                                 int /* vflag */, int *ilist,
+                                 int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;

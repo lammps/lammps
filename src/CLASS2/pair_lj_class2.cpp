@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include "pair_lj_class2.h"
 #include "atom.h"
 #include "comm.h"
@@ -393,4 +394,14 @@ double PairLJClass2::single(int /*i*/, int /*j*/, int itype, int jtype, double r
   philj = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
     offset[itype][jtype];
   return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJClass2::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  return NULL;
 }

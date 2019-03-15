@@ -312,9 +312,8 @@ accelerated styles exist.
 "qmmm"_fix_qmmm.html -
 "qtb"_fix_qtb.html -
 "rattle"_fix_shake.html - RATTLE constraints on bonds and/or angles
-"reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information
-"reax/c/bonds"_fix_reax_bonds.html -
-"reax/c/species"_fix_reaxc_species.html -
+"reax/c/bonds"_fix_reaxc_bonds.html - write out ReaxFF bond information
+"reax/c/species"_fix_reaxc_species.html - write out ReaxFF molecule information
 "recenter"_fix_recenter.html - constrain the center-of-mass position of a group of atoms
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral
 "rhok"_fix_rhok.html -

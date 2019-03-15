@@ -36,7 +36,7 @@ AngleCosine::AngleCosine(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleCosine::~AngleCosine()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
   }

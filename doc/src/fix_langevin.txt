@@ -217,10 +217,6 @@ the particles.  As described below, this energy can then be printed
 out or added to the potential energy of the system to monitor energy
 conservation.
 
-NOTE: this accumulated energy does NOT include kinetic energy removed
-by the {zero} flag. LAMMPS will print a warning when both options are
-active.
-
 The keyword {zero} can be used to eliminate drift due to the
 thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero.  As a result, this fix

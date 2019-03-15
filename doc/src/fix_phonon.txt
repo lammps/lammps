@@ -179,7 +179,8 @@ settings"_Build_settings.html doc page for details.
 
 [Related commands:]
 
-"compute msd"_compute_msd.html
+"compute msd"_compute_msd.html,
+"dynamical_matrix"_dynamical_matrix.html
 
 [Default:]
 

@@ -103,13 +103,7 @@ namespace Impl {
 
 /** \brief  View mapping for non-specialized data type and standard layout */
 template< class Traits >
-class ViewMapping< Traits ,
-  typename std::enable_if<(
-    std::is_same< typename Traits::specialize , Kokkos::Array<> >::value &&
-    ( std::is_same< typename Traits::array_layout , Kokkos::LayoutLeft >::value ||
-      std::is_same< typename Traits::array_layout , Kokkos::LayoutRight >::value ||
-      std::is_same< typename Traits::array_layout , Kokkos::LayoutStride >::value )
-  )>::type >
+class ViewMapping< Traits , Kokkos::Array<> >
 {
 private:
 
@@ -345,64 +339,6 @@ public:
   }
 };
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-/** \brief  Assign compatible default mappings */
-
-template< class DstTraits , class SrcTraits >
-class ViewMapping< DstTraits , SrcTraits ,
-  typename std::enable_if<(
-    std::is_same< typename DstTraits::memory_space , typename SrcTraits::memory_space >::value
-    &&
-    std::is_same< typename DstTraits::specialize , Kokkos::Array<> >::value
-    &&
-    (
-      std::is_same< typename DstTraits::array_layout , Kokkos::LayoutLeft >::value ||
-      std::is_same< typename DstTraits::array_layout , Kokkos::LayoutRight >::value ||
-      std::is_same< typename DstTraits::array_layout , Kokkos::LayoutStride >::value
-    )
-    &&
-    std::is_same< typename SrcTraits::specialize , Kokkos::Array<> >::value
-    &&
-    (
-      std::is_same< typename SrcTraits::array_layout , Kokkos::LayoutLeft >::value ||
-      std::is_same< typename SrcTraits::array_layout , Kokkos::LayoutRight >::value ||
-      std::is_same< typename SrcTraits::array_layout , Kokkos::LayoutStride >::value
-    )
-  )>::type >
-{
-public:
-
-  enum { is_assignable = true };
-
-  typedef Kokkos::Impl::SharedAllocationTracker  TrackType ;
-  typedef ViewMapping< DstTraits , void >  DstType ;
-  typedef ViewMapping< SrcTraits , void >  SrcType ;
-
-  KOKKOS_INLINE_FUNCTION
-  static void assign( DstType & dst , const SrcType & src , const TrackType & src_track )
-    {
-      static_assert( std::is_same< typename DstTraits::value_type , typename SrcTraits::value_type >::value ||
-                     std::is_same< typename DstTraits::value_type , typename SrcTraits::const_value_type >::value
-                   , "View assignment must have same value type or const = non-const" );
-
-      static_assert( ViewDimensionAssignable< typename DstTraits::dimension , typename SrcTraits::dimension >::value
-                   , "View assignment must have compatible dimensions" );
-
-      static_assert( std::is_same< typename DstTraits::array_layout , typename SrcTraits::array_layout >::value ||
-                     std::is_same< typename DstTraits::array_layout , Kokkos::LayoutStride >::value ||
-                     ( DstTraits::dimension::rank == 0 ) ||
-                     ( DstTraits::dimension::rank == 1 && DstTraits::dimension::rank_dynamic == 1 )
-                   , "View assignment must have compatible layout or have rank <= 1" );
-
-      typedef typename DstType::offset_type  dst_offset_type ;
-
-      dst.m_impl_offset = dst_offset_type( src.m_impl_offset );
-      dst.m_impl_handle = src.m_impl_handle ;
-      dst.m_stride = src.m_stride ;
-    }
-};
-
 /** \brief Assign Array to non-Array */
 
 template< class DstTraits , class SrcTraits >
@@ -436,7 +372,7 @@ public:
 
   typedef Kokkos::Impl::SharedAllocationTracker  TrackType ;
   typedef ViewMapping< DstTraits , void >  DstType ;
-  typedef ViewMapping< SrcTraits , void >  SrcType ;
+  typedef ViewMapping< SrcTraits , Kokkos::Array<> >  SrcType ;
 
   KOKKOS_INLINE_FUNCTION
   static void assign( DstType & dst , const SrcType & src , const TrackType & src_track )
@@ -479,6 +415,7 @@ public:
       dst.m_impl_handle = src.m_impl_handle ;
     }
 };
+
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

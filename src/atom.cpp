@@ -58,6 +58,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   natoms = 0;
   nlocal = nghost = nmax = 0;
   ntypes = 0;
+  nellipsoids = nlines = ntris = nbodies = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
@@ -736,6 +737,45 @@ int Atom::tag_consecutive()
 
   if (idminall != 1 || idmaxall != natoms) return 0;
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   check that bonus data settings are valid
+   error if number of atoms with ellipsoid/line/tri/body flags
+   are consistent with global setting.
+------------------------------------------------------------------------- */
+
+void Atom::bonus_check()
+{
+  bigint local_ellipsoids = 0, local_lines = 0, local_tris = 0;
+  bigint local_bodies = 0, num_global;
+
+  for (int i = 0; i < nlocal; ++i) {
+    if (ellipsoid && (ellipsoid[i] >=0)) ++local_ellipsoids;
+    if (line && (line[i] >=0)) ++local_lines;
+    if (tri && (tri[i] >=0)) ++local_tris;
+    if (body && (body[i] >=0)) ++local_bodies;
+  }
+
+  MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (nellipsoids != num_global)
+    error->all(FLERR,"Inconsistent 'ellipsoids' header value and number of "
+               "atoms with enabled ellipsoid flags");
+
+  MPI_Allreduce(&local_lines,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (nlines != num_global)
+    error->all(FLERR,"Inconsistent 'lines' header value and number of "
+               "atoms with enabled line flags");
+
+  MPI_Allreduce(&local_tris,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntris != num_global)
+    error->all(FLERR,"Inconsistent 'tris' header value and number of "
+               "atoms with enabled tri flags");
+
+  MPI_Allreduce(&local_bodies,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (nbodies != num_global)
+    error->all(FLERR,"Inconsistent 'bodies' header value and number of "
+               "atoms with enabled body flags");
 }
 
 /* ----------------------------------------------------------------------
@@ -1886,7 +1926,7 @@ void Atom::setup_sort_bins()
   // check if neighbor cutoff = 0.0
   // and in that case, disable sorting
 
-  double binsize;
+  double binsize = 0.0;
   if (userbinsize > 0.0) binsize = userbinsize;
   else if (neighbor->cutneighmax > 0.0) binsize = 0.5 * neighbor->cutneighmax;
 
@@ -2044,9 +2084,7 @@ void Atom::delete_callback(const char *id, int flag)
 {
   if (id == NULL) return;
 
-  int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(id,modify->fix[ifix]->id) == 0) break;
+  int ifix = modify->find_fix(id);
 
   // compact the list of callbacks
 
@@ -2054,6 +2092,8 @@ void Atom::delete_callback(const char *id, int flag)
     int match;
     for (match = 0; match < nextra_grow; match++)
       if (extra_grow[match] == ifix) break;
+    if ((nextra_grow == 0) || (match == nextra_grow))
+      error->all(FLERR,"Trying to delete non-existent Atom::grow() callback");
     for (int i = match; i < nextra_grow-1; i++)
       extra_grow[i] = extra_grow[i+1];
     nextra_grow--;
@@ -2062,6 +2102,8 @@ void Atom::delete_callback(const char *id, int flag)
     int match;
     for (match = 0; match < nextra_restart; match++)
       if (extra_restart[match] == ifix) break;
+    if ((nextra_restart == 0) || (match == nextra_restart))
+      error->all(FLERR,"Trying to delete non-existent Atom::restart() callback");
     for (int i = match; i < nextra_restart-1; i++)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;
@@ -2070,6 +2112,8 @@ void Atom::delete_callback(const char *id, int flag)
     int match;
     for (match = 0; match < nextra_border; match++)
       if (extra_border[match] == ifix) break;
+    if ((nextra_border == 0) || (match == nextra_border))
+      error->all(FLERR,"Trying to delete non-existent Atom::border() callback");
     for (int i = match; i < nextra_border-1; i++)
       extra_border[i] = extra_border[i+1];
     nextra_border--;
@@ -2286,7 +2330,7 @@ int Atom::memcheck(const char *str)
     return 0;
   }
 
-  if (strlen(memstr) + n >= memlength) {
+  if ((int)strlen(memstr) + n >= memlength) {
     memlength += DELTA_MEMSTR;
     memory->grow(memstr,memlength,"atom:memstr");
   }

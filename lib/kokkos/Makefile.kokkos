@@ -6,16 +6,16 @@ ifndef KOKKOS_PATH
 endif
 CXXFLAGS=$(CCFLAGS)
 
-# Options: Cuda,ROCm,OpenMP,Pthread,Qthreads,Serial
+# Options: Cuda,ROCm,OpenMP,Pthreads,Qthreads,Serial
 KOKKOS_DEVICES ?= "OpenMP"
-#KOKKOS_DEVICES ?= "Pthread"
+#KOKKOS_DEVICES ?= "Pthreads"
 # Options: 
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKX
-# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72
+# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2
 # IBM:      BGQ,Power7,Power8,Power9
 # AMD-GPUS: Kaveri,Carrizo,Fiji,Vega
-# AMD-CPUS: AMDAVX,Ryzen,Epyc
+# AMD-CPUS: AMDAVX,Ryzen,EPYC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -224,7 +224,7 @@ ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
 else
   ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1)
      KOKKOS_INTERNAL_CXX11_FLAG := -std=c++11
-     #KOKKOS_INTERNAL_CXX14_FLAG := -std=c++14
+     KOKKOS_INTERNAL_CXX14_FLAG := -std=c++14
      KOKKOS_INTERNAL_CXX1Y_FLAG := -std=c++1y
      #KOKKOS_INTERNAL_CXX17_FLAG := -std=c++17
      #KOKKOS_INTERNAL_CXX1Z_FLAG := -std=c++1Z
@@ -276,6 +276,7 @@ KOKKOS_INTERNAL_USE_ARCH_PASCAL61 := $(call kokkos_has_string,$(KOKKOS_ARCH),Pas
 KOKKOS_INTERNAL_USE_ARCH_PASCAL60 := $(call kokkos_has_string,$(KOKKOS_ARCH),Pascal60)
 KOKKOS_INTERNAL_USE_ARCH_VOLTA70 := $(call kokkos_has_string,$(KOKKOS_ARCH),Volta70)
 KOKKOS_INTERNAL_USE_ARCH_VOLTA72 := $(call kokkos_has_string,$(KOKKOS_ARCH),Volta72)
+KOKKOS_INTERNAL_USE_ARCH_TURING75 := $(call kokkos_has_string,$(KOKKOS_ARCH),Turing75)
 KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLER30)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER32)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER35)  \
@@ -284,6 +285,7 @@ KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLE
                                               + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
 					      + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
 					      + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
+					      + $(KOKKOS_INTERNAL_USE_ARCH_TURING75) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53))
@@ -300,6 +302,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
 						+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
 						+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
+						+ $(KOKKOS_INTERNAL_USE_ARCH_TURING75) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53))
@@ -331,7 +334,7 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
 KOKKOS_INTERNAL_USE_ARCH_RYZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Ryzen)
-KOKKOS_INTERNAL_USE_ARCH_EPYC := $(call kokkos_has_string,$(KOKKOS_ARCH),Epyc)
+KOKKOS_INTERNAL_USE_ARCH_EPYC := $(call kokkos_has_string,$(KOKKOS_ARCH),EPYC)
 KOKKOS_INTERNAL_USE_ARCH_KAVERI := $(call kokkos_has_string,$(KOKKOS_ARCH),Kaveri)
 KOKKOS_INTERNAL_USE_ARCH_CARRIZO := $(call kokkos_has_string,$(KOKKOS_ARCH),Carrizo)
 KOKKOS_INTERNAL_USE_ARCH_FIJI := $(call kokkos_has_string,$(KOKKOS_ARCH),Fiji)
@@ -341,12 +344,12 @@ KOKKOS_INTERNAL_USE_ARCH_GFX901 := $(call kokkos_has_string,$(KOKKOS_ARCH),gfx90
 # Any AVX?
 KOKKOS_INTERNAL_USE_ARCH_SSE42      := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM))
 KOKKOS_INTERNAL_USE_ARCH_AVX        := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_AMDAVX))
-KOKKOS_INTERNAL_USE_ARCH_AVX2       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW))
+KOKKOS_INTERNAL_USE_ARCH_AVX2       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_EPYC))
 KOKKOS_INTERNAL_USE_ARCH_AVX512MIC  := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KNL))
 KOKKOS_INTERNAL_USE_ARCH_AVX512XEON := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_SKX))
 
 # Decide what ISA level we are able to support.
-KOKKOS_INTERNAL_USE_ISA_X86_64    := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM) + $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_KNL) + $(KOKKOS_INTERNAL_USE_ARCH_SKX))
+KOKKOS_INTERNAL_USE_ISA_X86_64    := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM) + $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_KNL) + $(KOKKOS_INTERNAL_USE_ARCH_SKX) + $(KOKKOS_INTERNAL_USE_ARCH_EPYC))
 KOKKOS_INTERNAL_USE_ISA_KNC       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KNC))
 KOKKOS_INTERNAL_USE_ISA_POWERPCLE := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_POWER8) + $(KOKKOS_INTERNAL_USE_ARCH_POWER9))
 KOKKOS_INTERNAL_USE_ISA_POWERPCBE := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_POWER7))
@@ -658,6 +661,19 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV81), 1)
   endif
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_EPYC), 1)
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_AMD_EPYC")
+  tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_AMD_AVX2")
+
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
+    KOKKOS_CXXFLAGS += -mavx2
+    KOKKOS_LDFLAGS += -mavx2
+  else
+    KOKKOS_CXXFLAGS += -march=znver1 -mtune=znver1
+    KOKKOS_LDFLAGS += -march=znver1 -mtune=znver1
+  endif
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX), 1)
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_ARMV80")
   tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_ARMV8_THUNDERX")
@@ -949,6 +965,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_VOLTA")
     tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_VOLTA72")
     KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_72
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_TURING75), 1)
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_TURING")
+    tmp := $(call kokkos_append_header,"\#define KOKKOS_ARCH_TURING75")
+    KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_75
   endif
 
   ifneq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)

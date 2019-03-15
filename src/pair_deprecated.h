@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(DEPRECATED,PairDeprecated)
+PairStyle(reax,PairDeprecated)
 
 #else
 

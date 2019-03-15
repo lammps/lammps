@@ -97,7 +97,7 @@ void PairSpinExchange::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type spin pairs (only one for now)
+   set coeffs for one or more type spin pairs
 ------------------------------------------------------------------------- */
 
 void PairSpinExchange::coeff(int narg, char **arg)
@@ -318,7 +318,6 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
 void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
 {
-
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
@@ -327,46 +326,70 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // check if interaction applies to type of ii
 
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-    local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    delx = xi[0] - x[j][0];
-    dely = xi[1] - x[j][1];
-    delz = xi[2] - x[j][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-
-    if (rsq <= local_cut2) {
-      compute_exchange(i,j,rsq,fmi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+	locflag =1;
+	break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+	locflag =1;
+	break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
+  // if interaction applies to type ii, 
+  // locflag = 1 and compute pair interaction
+
+  if (locflag == 1) {
+    
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+      local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq <= local_cut2) {
+        compute_exchange(ii,j,rsq,fmi,spj);
+      }
+    }
+  }	
 }
 
 /* ----------------------------------------------------------------------
@@ -527,4 +550,5 @@ void PairSpinExchange::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
+
 

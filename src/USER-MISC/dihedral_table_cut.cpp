@@ -37,6 +37,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -45,7 +46,7 @@ using namespace MathExtra;
 
 
 static const char cite_dihedral_tablecut[] =
-  "dihedral_style  tablecut  command:\n\n"
+  "dihedral_style  table/cut  command:\n\n"
   "@Article{Salerno17,\n"
   " author =  {K. M. Salerno and N. Bernstein},\n"
   " title =   {Persistence Length, End-to-End Distance, and Structure of Coarse-Grained Polymers},\n"
@@ -66,7 +67,7 @@ static const char cite_dihedral_tablecut[] =
 // ------------------------------------------------------------------------
 
 // -------------------------------------------------------------------
-// ---------    The function was stolen verbatim from the    ---------
+// ---------    The function was taken verbatim from the    ---------
 // ---------    GNU Scientific Library (GSL, version 1.15)   ---------
 // -------------------------------------------------------------------
 
@@ -1151,17 +1152,17 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
     if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     for (int i = 0; i < tb->ninput; i++)
-      fgets(line,MAXLINE,fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->phifile,tb->ninput,"dihedral:phifile");
   memory->create(tb->efile,tb->ninput,"dihedral:efile");
@@ -1172,8 +1173,8 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
   int itmp;
   for (int i = 0; i < tb->ninput; i++) {
     // Read the next line.  Make sure the file is long enough.
-    if (! fgets(line,MAXLINE,fp))
-      error->one(FLERR, "Dihedral table does not contain enough entries.");
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+
     // Skip blank lines and delete text following a '#' character
     char *pe = strchr(line, '#');
     if (pe != NULL) *pe = '\0'; //terminate string at '#' character
@@ -1183,15 +1184,10 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
     if (*pc != '\0') { //If line is not a blank line
       stringstream line_ss(line);
       if (tb->f_unspecified) {
-        //sscanf(line,"%d %lg %lg",
-        //       &itmp,&tb->phifile[i],&tb->efile[i]);
         line_ss >> itmp;
         line_ss >> tb->phifile[i];
         line_ss >> tb->efile[i];
-      }
-      else {
-        //sscanf(line,"%d %lg %lg %lg",
-        //       &itmp,&tb->phifile[i],&tb->efile[i],&tb->ffile[i]);
+      } else {
         line_ss >> itmp;
         line_ss >> tb->phifile[i];
         line_ss >> tb->efile[i];
@@ -1205,8 +1201,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
           err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
         error->one(FLERR, err_msg.str().c_str());
       }
-    }
-    else //if it is a blank line, then skip it.
+    } else //if it is a blank line, then skip it.
       i--;
   } //for (int i = 0; (i < tb->ninput) && fp; i++) {
 

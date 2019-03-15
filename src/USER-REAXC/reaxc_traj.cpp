@@ -32,12 +32,12 @@
 int Reallocate_Output_Buffer( output_controls *out_control, int req_space,
                               MPI_Comm comm )
 {
-  if( out_control->buffer_len > 0 )
+  if (out_control->buffer_len > 0)
     free( out_control->buffer );
 
   out_control->buffer_len = (int)(req_space*SAFE_ZONE);
   out_control->buffer = (char*) malloc(out_control->buffer_len*sizeof(char));
-  if( out_control->buffer == NULL ) {
+  if (out_control->buffer == NULL) {
     fprintf( stderr,
              "insufficient memory for required buffer size %d. terminating!\n",
              (int) (req_space*SAFE_ZONE) );
@@ -51,7 +51,7 @@ int Reallocate_Output_Buffer( output_controls *out_control, int req_space,
 void Write_Skip_Line( output_controls *out_control, mpi_datatypes * /*mpi_data*/,
                       int my_rank, int skip, int num_section )
 {
-  if( my_rank == MASTER_NODE )
+  if (my_rank == MASTER_NODE)
     fprintf( out_control->strj, INT2_LINE,
              "chars_to_skip_section:", skip, num_section );
 }
@@ -82,11 +82,11 @@ int Write_Header( reax_system *system, control_params *control,
   num_hdr_lines = NUM_HEADER_LINES;
   my_hdr_lines = num_hdr_lines * ( system->my_rank == MASTER_NODE );
   buffer_req = my_hdr_lines * HEADER_LINE_LEN;
-  if( buffer_req > out_control->buffer_len * DANGER_ZONE )
+  if (buffer_req > out_control->buffer_len * DANGER_ZONE)
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
 
   /* only the master node writes into trajectory header */
-  if( system->my_rank == MASTER_NODE ) {
+  if (system->my_rank == MASTER_NODE) {
     /* clear the contents of line & buffer */
     out_control->line[0] = 0;
     out_control->buffer[0] = 0;
@@ -252,7 +252,7 @@ int Write_Header( reax_system *system, control_params *control,
   }
 
   /* dump out the buffer */
-  if( system->my_rank == MASTER_NODE )
+  if (system->my_rank == MASTER_NODE)
     fprintf( out_control->strj, "%s", out_control->buffer );
 
   return SUCCESS;
@@ -273,11 +273,11 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
   Write_Skip_Line( out_control, mpi_data, me,
                    system->bigN * INIT_DESC_LEN, system->bigN );
 
-  if( out_control->traj_method == REG_TRAJ && me == MASTER_NODE )
+  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
     buffer_req = system->bigN * INIT_DESC_LEN + 1;
   else buffer_req = system->n * INIT_DESC_LEN + 1;
 
-  if( buffer_req > out_control->buffer_len * DANGER_ZONE )
+  if (buffer_req > out_control->buffer_len * DANGER_ZONE)
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
 
   out_control->line[0] = 0;
@@ -291,13 +291,13 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
              out_control->line, INIT_DESC_LEN+1 );
   }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np * INIT_DESCS + me, mpi_data->world );
-  else{
+  } else {
     buffer_len = system->n * INIT_DESC_LEN;
     for( i = 0; i < np; ++i )
-      if( i != MASTER_NODE ) {
+      if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*INIT_DESCS+i, mpi_data->world, &status );
         MPI_Get_count( &status, MPI_CHAR, &cnt );
@@ -341,11 +341,10 @@ int Init_Traj( reax_system *system, control_params *control,
   out_control->buffer = NULL;
 
   /* write trajectory header and atom info, if applicable */
-  if( out_control->traj_method == REG_TRAJ) {
-    if( system->my_rank == MASTER_NODE )
+  if (out_control->traj_method == REG_TRAJ) {
+    if (system->my_rank == MASTER_NODE)
       out_control->strj = fopen( fname, "w" );
-  }
-  else {
+  } else {
     strcpy( msg, "init_traj: unknown trajectory option" );
     return FAILURE;
   }
@@ -367,11 +366,11 @@ int Write_Frame_Header( reax_system *system, control_params *control,
   num_frm_hdr_lines = 22;
   my_frm_hdr_lines = num_frm_hdr_lines * ( me == MASTER_NODE );
   buffer_req = my_frm_hdr_lines * HEADER_LINE_LEN;
-  if( buffer_req > out_control->buffer_len * DANGER_ZONE )
+  if (buffer_req > out_control->buffer_len * DANGER_ZONE)
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
 
   /* only the master node writes into trajectory header */
-  if( me == MASTER_NODE ) {
+  if (me == MASTER_NODE) {
     /* clear the contents of line & buffer */
     out_control->line[0] = 0;
     out_control->buffer[0] = 0;
@@ -474,7 +473,7 @@ int Write_Frame_Header( reax_system *system, control_params *control,
   }
 
   /* dump out the buffer */
-  if( system->my_rank == MASTER_NODE )
+  if (system->my_rank == MASTER_NODE)
     fprintf( out_control->strj, "%s", out_control->buffer );
 
   return SUCCESS;
@@ -496,11 +495,11 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
   Write_Skip_Line( out_control, mpi_data, me,
                    system->bigN*line_len, system->bigN );
 
-  if( out_control->traj_method == REG_TRAJ && me == MASTER_NODE )
+  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
     buffer_req = system->bigN * line_len + 1;
   else buffer_req = system->n * line_len + 1;
 
-  if( buffer_req > out_control->buffer_len * DANGER_ZONE )
+  if (buffer_req > out_control->buffer_len * DANGER_ZONE)
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
 
   /* fill in buffer */
@@ -540,13 +539,13 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
     strncpy( out_control->buffer + i*line_len, out_control->line, line_len+1 );
   }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*ATOM_LINES+me, mpi_data->world );
-  else{
+  } else {
     buffer_len = system->n * line_len;
     for( i = 0; i < np; ++i )
-      if( i != MASTER_NODE ) {
+      if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*ATOM_LINES+i, mpi_data->world, &status );
         MPI_Get_count( &status, MPI_CHAR, &cnt );
@@ -588,11 +587,11 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
 
   Write_Skip_Line( out_control, mpi_data, me, num_bonds*line_len, num_bonds );
 
-  if( out_control->traj_method == REG_TRAJ && me == MASTER_NODE )
+  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
     buffer_req = num_bonds * line_len + 1;
   else buffer_req = my_bonds * line_len + 1;
 
-  if( buffer_req > out_control->buffer_len * DANGER_ZONE )
+  if (buffer_req > out_control->buffer_len * DANGER_ZONE)
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
 
   /* fill in the buffer */
@@ -630,13 +629,13 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
     }
   }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*BOND_LINES+me, mpi_data->world );
-  else{
+  } else {
     buffer_len = my_bonds * line_len;
     for( i = 0; i < np; ++i )
-      if( i != MASTER_NODE ) {
+      if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*BOND_LINES+i, mpi_data->world, &status );
         MPI_Get_count( &status, MPI_CHAR, &cnt );
@@ -672,7 +671,7 @@ int Write_Angles( reax_system *system, control_params *control,
       bo_ij = &(bonds->select.bond_list[pi]);
       i     = bo_ij->nbr;
 
-      if( bo_ij->bo_data.BO >= control->bg_cut ) // physical j&i bond
+      if (bo_ij->bo_data.BO >= control->bg_cut) // physical j&i bond
         for( pk = Start_Index( pi, thb_intrs );
              pk < End_Index( pi, thb_intrs ); ++pk ) {
           angle_ijk = &(thb_intrs->select.three_body_list[pk]);
@@ -689,11 +688,11 @@ int Write_Angles( reax_system *system, control_params *control,
 
   Write_Skip_Line( out_control, mpi_data, me, num_angles*line_len, num_angles );
 
-  if( out_control->traj_method == REG_TRAJ && me == MASTER_NODE )
+  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
     buffer_req = num_angles * line_len + 1;
   else buffer_req = my_angles * line_len + 1;
 
-  if( buffer_req > out_control->buffer_len * DANGER_ZONE )
+  if (buffer_req > out_control->buffer_len * DANGER_ZONE)
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
 
   /* fill in the buffer */
@@ -705,7 +704,7 @@ int Write_Angles( reax_system *system, control_params *control,
       bo_ij = &(bonds->select.bond_list[pi]);
       i     = bo_ij->nbr;
 
-      if( bo_ij->bo_data.BO >= control->bg_cut ) // physical j&i bond
+      if (bo_ij->bo_data.BO >= control->bg_cut) // physical j&i bond
         for( pk = Start_Index( pi, thb_intrs );
              pk < End_Index( pi, thb_intrs ); ++pk ) {
           angle_ijk = &(thb_intrs->select.three_body_list[pk]);
@@ -725,13 +724,13 @@ int Write_Angles( reax_system *system, control_params *control,
         }
     }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*ANGLE_LINES+me, mpi_data->world );
-  else{
+  } else {
     buffer_len = my_angles * line_len;
     for( i = 0; i < np; ++i )
-      if( i != MASTER_NODE ) {
+      if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*ANGLE_LINES+i, mpi_data->world, &status );
         MPI_Get_count( &status, MPI_CHAR, &cnt );
@@ -751,13 +750,13 @@ int Append_Frame( reax_system *system, control_params *control,
 {
   Write_Frame_Header( system, control, data, out_control, mpi_data );
 
-  if( out_control->write_atoms )
+  if (out_control->write_atoms)
     Write_Atoms( system, control, out_control, mpi_data );
 
-  if( out_control->write_bonds )
+  if (out_control->write_bonds)
     Write_Bonds( system, control, (*lists + BONDS), out_control, mpi_data );
 
-  if( out_control->write_angles )
+  if (out_control->write_angles)
     Write_Angles( system, control, (*lists + BONDS), (*lists + THREE_BODIES),
                   out_control, mpi_data );
 
@@ -767,7 +766,7 @@ int Append_Frame( reax_system *system, control_params *control,
 
 int End_Traj( int my_rank, output_controls *out_control )
 {
-  if( my_rank == MASTER_NODE )
+  if (my_rank == MASTER_NODE)
     fclose( out_control->strj );
 
   free( out_control->buffer );

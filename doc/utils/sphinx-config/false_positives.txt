@@ -60,6 +60,7 @@ Alejandre
 alessandro
 Alessandro
 aliceblue
+Allinger
 allocaters
 allosws
 AlO
@@ -252,6 +253,8 @@ Botero
 Botu
 Bouguet
 boxcolor
+bp
+bpls
 bpclermont
 br
 Branduardi
@@ -414,6 +417,7 @@ cossq
 costheta
 Couette
 coul
+coulgauss
 coulombic
 Coulombic
 Coulombics
@@ -439,6 +443,9 @@ CSiC
 csld
 cslib
 CSlib
+cstdio
+cstdlib
+cstring
 cstyle
 csvr
 Ctypes
@@ -512,6 +519,7 @@ deepskyblue
 defgrad
 deformable
 del
+deleteIDs
 Dellago
 delocalization
 delocalized
@@ -569,6 +577,7 @@ discretized
 disp
 dissipative
 Dissipative
+distharm
 dl
 dlambda
 DLAMMPS
@@ -577,6 +586,7 @@ dlopen
 dm
 dmax
 Dmax
+dmg
 dmi
 dnf
 Dobson
@@ -624,8 +634,10 @@ dVx
 dW
 dx
 dy
+dyn
 dyne
 dynes
+dynmat
 Dyre
 Dzyaloshinskii
 Eaa
@@ -890,6 +902,8 @@ fz
 Gahler
 gainsboro
 Galindo
+gamA
+gamR
 gammaA
 gammaFactor
 gammaR
@@ -1142,6 +1156,7 @@ inv
 invariants
 inversed
 ionocovalent
+iostreams
 iparam
 ipi
 ipp
@@ -1280,6 +1295,7 @@ Klapp
 Kloss
 kmax
 Kmax
+Knizhnik
 knl
 Kohlmeyer
 Kohn
@@ -1352,6 +1368,8 @@ lcbop
 ld
 ldfftw
 ldg
+Lebedeva
+lebedeva
 Lebold
 Lechman
 Lehoucq
@@ -1380,6 +1398,7 @@ libfftw
 libgcc
 libgpu
 libjpeg
+libkim
 liblammps
 Liblammps
 liblink
@@ -1448,6 +1467,7 @@ Lorant
 lorenz
 lossless
 lossy
+Lozovik
 lps
 lpsapi
 lrt
@@ -1535,6 +1555,7 @@ mdf
 mdpd
 mDPD
 meam
+meamc
 MEAMC
 meamf
 meanDist
@@ -1950,6 +1971,7 @@ ons
 OO
 openKIM
 OpenMP
+openmp
 openmpi
 opls
 Oppelstrup
@@ -2043,6 +2065,7 @@ peru
 Peskin
 Pettifor
 pfactor
+pgi
 ph
 Phillpot
 phiphi
@@ -2080,6 +2103,7 @@ Pmolrotate
 Pmoltrans
 pN
 png
+Podhorszki
 Poiseuille
 Polak
 polarizabilities
@@ -2095,12 +2119,14 @@ polydisperse
 polydispersity
 polyhedra
 popen
+Popov
 popstore
 Poresag
 pos
 Poschel
 posix
 Postma
+Potapkin
 potin
 Pourtois
 powderblue
@@ -2431,6 +2457,7 @@ shockvel
 si
 SiC
 Siepmann
+Sievers
 Sij
 Sikandar
 Silbert
@@ -2496,6 +2523,7 @@ Springer
 springgreen
 spx
 spz
+sqdistharm
 sqrt
 src
 srd
@@ -2514,7 +2542,9 @@ Startstep
 statcoul
 statcoulombs
 statvolt
+stdlib
 stdin
+stdio
 steelblue
 Stegailov
 Steinbach
@@ -2730,6 +2760,7 @@ ttm
 tu
 Tuckerman
 tue
+tunable
 Turkand
 Tutein
 tweakable
@@ -2805,6 +2836,8 @@ Valone
 valuev
 Valuev
 Vanden
+Vandenbrande
+Vanduyfhuys
 varavg
 Varshalovich
 Varshney
@@ -2962,6 +2995,8 @@ xy
 xyz
 xz
 xzhou
+YAFF
+yaff
 Yamada
 Yazdani
 Ybar
@@ -2980,6 +3015,7 @@ ys
 ysu
 yu
 Yu
+Yuh
 yukawa
 Yukawa
 Yusof

@@ -956,7 +956,12 @@ struct TestMDRange_3D {
           }
         , Kokkos::Min<double>(min) );
 
-      ASSERT_EQ( min, 8.0 );
+      if((N0-1)*(N1-1)*(N2-1)>0)
+        ASSERT_EQ( min, 8.0 );
+      else {
+        double min_identity = Kokkos::reduction_identity<double>::min();
+        ASSERT_EQ( min, min_identity );
+      }
     }
 #endif
 #endif

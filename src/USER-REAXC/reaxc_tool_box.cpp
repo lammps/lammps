@@ -58,7 +58,7 @@ void *smalloc( rc_bigint n, const char *name, MPI_Comm comm )
 {
   void *ptr;
 
-  if( n <= 0 ) {
+  if (n <= 0) {
     fprintf( stderr, "WARNING: trying to allocate %ld bytes for array %s. ",
              n, name );
     fprintf( stderr, "returning NULL.\n" );
@@ -66,7 +66,7 @@ void *smalloc( rc_bigint n, const char *name, MPI_Comm comm )
   }
 
   ptr = malloc( n );
-  if( ptr == NULL ) {
+  if (ptr == NULL) {
     fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s",
              n, name );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
@@ -81,14 +81,14 @@ void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
 {
   void *ptr;
 
-  if( n <= 0 ) {
+  if (n <= 0) {
     fprintf( stderr, "WARNING: trying to allocate %ld elements for array %s. ",
              n, name );
     fprintf( stderr, "returning NULL.\n" );
     return NULL;
   }
 
-  if( size <= 0 ) {
+  if (size <= 0) {
     fprintf( stderr, "WARNING: elements size for array %s is %ld. ",
              name, size );
     fprintf( stderr, "returning NULL.\n" );
@@ -96,7 +96,7 @@ void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
   }
 
   ptr = calloc( n, size );
-  if( ptr == NULL ) {
+  if (ptr == NULL) {
     fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s",
              n*size, name );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
@@ -109,7 +109,7 @@ void *scalloc( rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
 /* safe free */
 void sfree( void *ptr, const char *name )
 {
-  if( ptr == NULL ) {
+  if (ptr == NULL) {
     fprintf( stderr, "WARNING: trying to free the already NULL pointer %s!\n",
              name );
     return;

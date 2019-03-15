@@ -73,6 +73,8 @@ For specifics see the LICENSE file contained in the repository or distribution.
   * NVCC 7.5 for CUDA (with gcc 4.8.4)
   * NVCC 8.0.44 for CUDA (with gcc 5.3.0)
   * NVCC 9.1 for CUDA (with gcc 6.1.0)
+  * NVCC 9.2 for CUDA (with gcc 7.2.0)
+  * NVCC 10.0 for CUDA (with gcc 7.4.0)
 
 ### Primary tested compilers on Power 8 are:
   * GCC 6.4.0 (OpenMP,Serial)
@@ -109,7 +111,7 @@ GCC:   -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits
        -Wignored-qualifiers -Wempty-body -Wclobbered -Wuninitialized
 Intel: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 Clang: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
-NVCC: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
+NVCC:  -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 
 Other compilers are tested occasionally, in particular when pushing from develop to 
 master branch, without -Werror and only for a select set of backends.

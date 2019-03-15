@@ -65,7 +65,7 @@ int Init_ListsOMP( reax_system *system, control_params *control,
   Estimate_Storages( system, control, lists,
                      &Htop, hb_top, bond_top, &num_3body, comm );
 
-  if( control->hbond_cut > 0 ) {
+  if (control->hbond_cut > 0) {
     /* init H indexes */
     total_hbonds = 0;
     for( i = 0; i < system->n; ++i ) {
@@ -127,7 +127,7 @@ void InitializeOMP( reax_system *system, control_params *control,
   char msg[MAX_STR];
 
 
-  if( Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE ) {
+  if (Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE) {
     fprintf( stderr, "p%d: init_mpi_datatypes: could not create datatypes\n",
              system->my_rank );
     fprintf( stderr, "p%d: mpi_data couldn't be initialized! terminating.\n",
@@ -135,22 +135,22 @@ void InitializeOMP( reax_system *system, control_params *control,
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
 
-  if( Init_System(system, control, msg) == FAILURE ){
+  if (Init_System(system, control, msg) == FAILURE) {
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
     fprintf( stderr, "p%d: system could not be initialized! terminating.\n",
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
 
-  if( Init_Simulation_Data( system, control, data, msg ) == FAILURE ) {
+  if (Init_Simulation_Data( system, control, data, msg ) == FAILURE) {
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
     fprintf( stderr, "p%d: sim_data couldn't be initialized! terminating.\n",
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
 
-  if( Init_Workspace( system, control, workspace, mpi_data->world, msg ) ==
-      FAILURE ) {
+  if (Init_Workspace( system, control, workspace, mpi_data->world, msg ) ==
+      FAILURE) {
     fprintf( stderr, "p%d:init_workspace: not enough memory\n",
              system->my_rank );
     fprintf( stderr, "p%d:workspace couldn't be initialized! terminating.\n",
@@ -158,23 +158,23 @@ void InitializeOMP( reax_system *system, control_params *control,
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
 
-  if( Init_ListsOMP( system, control, data, workspace, lists, mpi_data, msg ) ==
-      FAILURE ) {
+  if (Init_ListsOMP( system, control, data, workspace, lists, mpi_data, msg ) ==
+      FAILURE) {
       fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
       fprintf( stderr, "p%d: system could not be initialized! terminating.\n",
                system->my_rank );
       MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
     }
 
-  if( Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
+  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
     fprintf( stderr, "p%d: could not open output files! terminating...\n",
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
 
-  if( control->tabulate ) {
-    if( Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE ) {
+  if (control->tabulate) {
+    if (Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE) {
       fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
       fprintf( stderr, "p%d: couldn't create lookup table! terminating.\n",
                system->my_rank );

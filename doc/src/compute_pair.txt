@@ -24,7 +24,7 @@ nsub = {n}-instance of a sub-style, if a pair style is used multiple times in a 
 compute 1 all pair gauss
 compute 1 all pair lj/cut/coul/cut ecoul
 compute 1 all pair tersoff 2 epair
-compute 1 all pair reax :pre
+compute 1 all pair reax/c :pre
 
 [Description:]
 
@@ -60,8 +60,8 @@ corrections, even if they are enabled via the
 "pair_modify"_pair_modify.html command.
 
 Some pair styles tally additional quantities, e.g. a breakdown of
-potential energy into a dozen or so components is tallied by the
-"pair_style reax"_pair_reax.html command.  These values (1 or more)
+potential energy into 14 components is tallied by the "pair_style
+reax/c"_pair_reaxc.html command.  These values (1 or more)
 are stored as a global vector by this compute.  See the doc page for
 "individual pair styles"_pair_style.html for info on these values.
 

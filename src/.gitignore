@@ -6,6 +6,7 @@
 
 /style_*.h
 /lmpinstalledpkgs.h
+/lmpgitversion.h
 
 /*_gpu.h
 /*_gpu.cpp
@@ -583,8 +584,6 @@
 /fix_qeq_reax.h
 /fix_qmmm.cpp
 /fix_qmmm.h
-/fix_reax_bonds.cpp
-/fix_reax_bonds.h
 /fix_reaxc.cpp
 /fix_reaxc.h
 /fix_reaxc_bonds.cpp
@@ -930,9 +929,6 @@
 /pair_peri_ves.h
 /pair_quip.cpp
 /pair_quip.h
-/pair_reax.cpp
-/pair_reax.h
-/pair_reax_fortran.h
 /pair_reaxc.cpp
 /pair_reaxc.h
 /pair_rebo.cpp

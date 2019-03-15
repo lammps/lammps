@@ -24,6 +24,9 @@ style_nstencil.h
 style_ntopo.h
 # other auto-generated files
 lmpinstalledpkgs.h
+# removed on 15 March 2019
+fix_wall_gran_omp.h
+fix_wall_gran_omp.cpp
 # renamed on 25 September 2018
 compute_smd_triangle_mesh_vertices.h
 compute_smd_triangle_mesh_vertices.cpp

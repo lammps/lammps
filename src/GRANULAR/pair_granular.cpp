@@ -1241,7 +1241,8 @@ void PairGranular::reset_dt()
 /* ---------------------------------------------------------------------- */
 
 double PairGranular::single(int i, int j, int itype, int jtype,
-    double rsq, double factor_coul, double factor_lj, double &fforce)
+                            double rsq, double /* factor_coul */,
+                            double /* factor_lj */, double &fforce)
 {
   double radi,radj,radsum;
   double r,rinv,delx,dely,delz, nx, ny, nz, Reff;
@@ -1604,7 +1605,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairGranular::pack_forward_comm(int n, int *list, double *buf,
-    int pbc_flag, int *pbc)
+                                    int /* pbc_flag */, int * /* pbc */)
 {
   int i,j,m;
 

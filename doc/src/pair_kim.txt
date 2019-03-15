@@ -10,18 +10,13 @@ pair_style kim command :h3
 
 [Syntax:]
 
-pair_style kim virialmode model printflag :pre
+pair_style kim model :pre
 
-virialmode = KIMvirial or LAMMPSvirial
 model = name of KIM model (potential)
-printflag = 1/0 do or do not print KIM descriptor file, optional :ul
 
 [Examples:]
 
-pair_style kim KIMvirial model_Ar_P_Morse
-pair_coeff * * Ar Ar :pre
-
-pair_style kim KIMvirial model_Ar_P_Morse 1
+pair_style kim ex_model_Ar_P_LJ
 pair_coeff * * Ar Ar :pre
 
 [Description:]
@@ -51,24 +46,18 @@ section of the "Packages details"_Packages_details.html doc page has
 instructions on how to do this with a simple make command, when
 building LAMMPS.
 
-See the examples/kim dir for an input script that uses a KIM model
-(potential) for Lennard-Jones.
+See the examples/kim dir for an input script that uses a KIM model (potential)
+for Lennard-Jones.  Note, for this example input script, the example models
+shipped with with kim-api package must be installed.  See the "Build
+package"_Build_package.html section and the ./lib/kim/README for details
+on how to build LAMMSPS with the kim-api and how to install the example models.
 
 :line
-
-The argument {virialmode} determines how the global virial is
-calculated.  If {KIMvirial} is specified, the KIM model performs the
-global virial calculation (if it knows how).  If {LAMMPSvirial} is
-specified, LAMMPS computes the global virial using its fdotr mechanism.
 
 The argument {model} is the name of the KIM model for a specific
 potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
 model.  You should get an error or warning message from either LAMMPS
 or KIM if there is an incompatibility.
-
-The argument {printflag} is optional.  If it is set to a non-zero
-value then a KIM descriptor file is printed when KIM is invoked.  This
-can be useful for debugging.  The default is to not print this file.
 
 Only a single pair_coeff command is used with the {kim} style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is
@@ -86,18 +75,14 @@ pair_coeff * * Si Si Si C :pre
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to Si as
 defined within KIM.  The final C argument maps LAMMPS atom type 4 to C
-as defined within KIM.  If a mapping value is specified as NULL, the
-mapping is not performed.  This can only be used when a {kim}
-potential is used as part of the {hybrid} pair style.  The NULL values
-are placeholders for atom types that will be used with other
-potentials.
+as defined within KIM.
 
 :line
 
 In addition to the usual LAMMPS error messages, the KIM library itself
 may generate errors, which should be printed to the screen.  In this
 case it is also useful to check the kim.log file for additional error
-information.  This file kim.log should be generated in the same
+information.  The file kim.log should be generated in the same
 directory where LAMMPS is running.
 
 To download, build, and install the KIM library on your system, see
@@ -130,7 +115,7 @@ LAMMPS was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
 This current version of pair_style kim is compatible with the
-kim-api package version 1.6.0 and higher.
+kim-api package version 2.0.0 and higher.
 
 [Related commands:]
 

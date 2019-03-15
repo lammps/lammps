@@ -37,55 +37,55 @@ pair_coeff 1  1  1030.  3.061  457.179  4.521  0.608 :pre
 
 The {buck6d/coul/gauss} styles evaluate vdW and Coulomb
 interactions following the MOF-FF force field after
-"(Schmid)"_#Schmid. The vdW term of the {buck6d} styles 
+"(Schmid)"_#Schmid. The vdW term of the {buck6d} styles
 computes a dispersion damped Buckingham potential:
 
 :c,image(Eqs/pair_buck6d.jpg)
 
-where A and C are a force constant, kappa is an ionic-pair dependent 
-reciprocal length parameter, D is a dispersion correction parameter, 
+where A and C are a force constant, kappa is an ionic-pair dependent
+reciprocal length parameter, D is a dispersion correction parameter,
 and the cutoff Rc truncates the interaction distance.
-The first term in the potential corresponds to the Buckingham 
-repulsion term and the second term to the dispersion attraction with 
-a damping correction analog to the Grimme correction used in DFT.  
-The latter corrects for artifacts occurring at short distances which 
-become an issue for soft vdW potentials. 
+The first term in the potential corresponds to the Buckingham
+repulsion term and the second term to the dispersion attraction with
+a damping correction analog to the Grimme correction used in DFT.
+The latter corrects for artifacts occurring at short distances which
+become an issue for soft vdW potentials.
 
-The {buck6d} styles include a smoothing function which is invoked 
-according to the global smoothing parameter within the specified 
-cutoff.  Hereby a parameter of i.e. 0.9 invokes the smoothing 
+The {buck6d} styles include a smoothing function which is invoked
+according to the global smoothing parameter within the specified
+cutoff.  Hereby a parameter of i.e. 0.9 invokes the smoothing
 within 90% of the cutoff.  No smoothing is applied at a value
-of 1.0. For the {gauss/dsf} style this smoothing is only applicable 
+of 1.0. For the {gauss/dsf} style this smoothing is only applicable
 for the dispersion damped Buckingham potential. For the {gauss/long}
 styles the smoothing function can also be invoked for the real
-space coulomb interactions which enforce continuous energies and 
+space coulomb interactions which enforce continuous energies and
 forces at the cutoff.
 
-Both styles {buck6d/coul/gauss/dsf} and {buck6d/coul/gauss/long} 
-evaluate a Coulomb potential using spherical Gaussian type charge 
-distributions which effectively dampen electrostatic interactions 
+Both styles {buck6d/coul/gauss/dsf} and {buck6d/coul/gauss/long}
+evaluate a Coulomb potential using spherical Gaussian type charge
+distributions which effectively dampen electrostatic interactions
 for high charges at close distances.  The electrostatic potential
 is thus evaluated as:
 
 :c,image(Eqs/pair_coul_gauss.jpg)
 
-where C is an energy-conversion constant, Qi and Qj are the 
-charges on the 2 atoms, epsilon is the dielectric constant which 
-can be set by the "dielectric"_dielectric.html command, alpha is 
-ion pair dependent damping parameter and erf() is the error-function.  
+where C is an energy-conversion constant, Qi and Qj are the
+charges on the 2 atoms, epsilon is the dielectric constant which
+can be set by the "dielectric"_dielectric.html command, alpha is
+ion pair dependent damping parameter and erf() is the error-function.
 The cutoff Rc truncates the interaction distance.
 
 The style {buck6d/coul/gauss/dsf} computes the Coulomb interaction
-via the damped shifted force model described in "(Fennell)"_#Fennell 
+via the damped shifted force model described in "(Fennell)"_#Fennell
 approximating an Ewald sum similar to the "pair coul/dsf"_pair_coul.html
-styles. In {buck6d/coul/gauss/long} an additional damping factor is 
-applied to the Coulombic term so it can be used in conjunction with the 
-"kspace_style"_kspace_style.html command and its {ewald} or {pppm} 
-options. The Coulombic cutoff in this case separates the real and 
+styles. In {buck6d/coul/gauss/long} an additional damping factor is
+applied to the Coulombic term so it can be used in conjunction with the
+"kspace_style"_kspace_style.html command and its {ewald} or {pppm}
+options. The Coulombic cutoff in this case separates the real and
 reciprocal space evaluation of the Ewald sum.
 
 If one cutoff is specified it is used for both the vdW and Coulomb
-terms.  If two cutoffs are specified, the first is used as the cutoff 
+terms.  If two cutoffs are specified, the first is used as the cutoff
 for the vdW terms, and the second is the cutoff for the Coulombic term.
 
 The following coefficients must be defined for each pair of atoms
@@ -101,9 +101,9 @@ D (distance^14 units)
 alpha (distance^-1 units)
 cutoff (distance units) :ul
 
-The second coefficient, rho, must be greater than zero. The latter 
-coefficient is optional.  If not specified, the global vdW cutoff 
-is used. 
+The second coefficient, rho, must be greater than zero. The latter
+coefficient is optional.  If not specified, the global vdW cutoff
+is used.
 
 :line
 

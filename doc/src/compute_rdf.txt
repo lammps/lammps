@@ -191,7 +191,8 @@ via "compute_modify dynamic yes"_compute_modify.html
 
 [Related commands:]
 
-"fix ave/time"_fix_ave_time.html, "compute_modify"_compute_modify.html
+"fix ave/time"_fix_ave_time.html, "compute_modify"_compute_modify.html,
+"compute adf"_compute_adf.html
 
 [Default:]
 

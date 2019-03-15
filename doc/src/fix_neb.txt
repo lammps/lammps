@@ -35,7 +35,7 @@ keyword = {parallel} or {perp} or {end} :l
 fix 1 active neb 10.0
 fix 2 all neb 1.0 perp 1.0 end last
 fix 2 all neb 1.0 perp 1.0 end first 1.0 end last 1.0
-fix 1 all neb 1.0 nudge ideal end last/efirst 1 :pre
+fix 1 all neb 1.0 parallel ideal end last/efirst 1 :pre
 
 [Description:]
 
@@ -212,7 +212,7 @@ page for more info.
 
 [Default:]
 
-The option defaults are nudge = neigh, perp = 0.0, ends is not
+The option defaults are parallel = neigh, perp = 0.0, ends is not
 specified (no inter-replica force on the end replicas).
 
 :line

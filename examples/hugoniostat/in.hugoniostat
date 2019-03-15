@@ -15,7 +15,7 @@
 units           lj
 boundary        p p p
 
-atom_style	atomic
+atom_style      atomic
 
 # Set up FCC lattice with z axis along <110>
 
@@ -39,10 +39,10 @@ pair_coeff * * 1.0 0.8908987
 fix             3 all box/relax aniso 0.0 vmax 1.0e-4 nreset 100
 
 thermo          100
-thermo_style	custom step temp pe etotal pxx pyy pzz lx ly lz 
+thermo_style    custom step temp pe etotal pxx pyy pzz lx ly lz 
 
 min_modify      line quadratic
-minimize	0.0 1.0e-6 10000 100000
+minimize        0.0 1.0e-6 10000 100000
 
 # Define initial velocity
 
@@ -50,8 +50,6 @@ velocity        all create 0.01 87287 mom yes rot yes dist gaussian
 write_restart restart.equil
 
 # Start Run #1
-
-log log.nodrag
 
 clear
 read_restart restart.equil
@@ -87,21 +85,19 @@ thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v
 
 fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (no drag)'
 
-#dump		id all atom 500 dump.hugoniostat
+#dump           id all atom 500 dump.hugoniostat
 
-#dump		2 all image 500 image.*.jpg type type &
-#		axes yes 0.8 0.02 view 60 -30
-#dump_modify	2 pad 5
+#dump           2 all image 500 image.*.jpg type type &
+#               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 5
 
-#dump		3 all movie 500 movie.mpg type type &
-#		axes yes 0.8 0.02 view 60 -30
-#dump_modify	3 pad 5
+#dump           3 all movie 500 movie.mpg type type &
+#               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 5
 
-run		10000
+run             10000
 
 # Start Run #2
-
-log log.drag
 
 clear
 read_restart restart.equil
@@ -137,11 +133,9 @@ thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v
 
 fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (with drag)'
 
-run		10000
+run             10000
 
 # Start Run #3
-
-log log.nhchains
 
 clear
 read_restart restart.equil
@@ -177,5 +171,5 @@ thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v
 
 fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (Nose-Hoover chain)'
 
-run		10000
+run             10000
 

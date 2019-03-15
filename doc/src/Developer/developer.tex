@@ -22,10 +22,10 @@ users.
 LAMMPS source files are in two directories of the distribution
 tarball.  The src directory has the majority of them, all of which are
 C++ files (*.cpp and *.h).  Many of these files are in the src
-directory itself.  There are also dozens of "packages", which can be
+directory itself.  There are also dozens of ``packages'', which can be
 included or excluded when LAMMPS is built.  See the
 doc/Section\_build.html section of the manual for more information
-about packages, or type "make" from within the src directory, which
+about packages, or type ``make'' from within the src directory, which
 lists package-related commands, such as ``make package-status''.  The
 source files for each package are in an all-uppercase sub-directory of
 src, like src/MOLECULE or src/USER-CUDA.  If the package is currently
@@ -38,17 +38,17 @@ The lib directory also contains source code for external libraries,
 used by a few of the packages.  Each sub-directory, like meam or gpu,
 contains the source files, some of which are in different languages
 such as Fortran.  The files are compiled into libraries from within
-each sub-directory, e.g. performing a "make" in the lib/meam directory
+each sub-directory, e.g. performing a ``make'' in the lib/meam directory
 creates a libmeam.a file.  These libraries are linked to during a
 LAMMPS build, if the corresponding package is installed.
 
 LAMMPS C++ source files almost always come in pairs, such as run.cpp
 and run.h.  The pair of files defines a C++ class, the Run class in
-this case, which contains the code invoked by the "run" command in a
+this case, which contains the code invoked by the ``run'' command in a
 LAMMPS input script.  As this example illustrates, source file and
 class names often have a one-to-one correspondence with a command used
 in a LAMMPS input script.  Some source files and classes do not have a
-corresponding input script command, e.g. force.cpp and the Force
+corresponding input script command, e.g. ``force.cpp'' and the Force
 class.  They are discussed in the next section.
 
 \pagebreak
@@ -57,12 +57,12 @@ class.  They are discussed in the next section.
 Though LAMMPS has a lot of source files and classes, its class
 hierarchy is quite simple, as outlined in Fig \ref{fig:classes}.  Each
 boxed name refers to a class and has a pair of associated source files
-in lammps/src, e.g. memory.cpp and memory.h.  More details on the
+in lammps/src, e.g. ``memory.cpp'' and ``memory.h''.  More details on the
 class and its methods and data structures can be found by examining
 its *.h file.
 
 LAMMPS (lammps.cpp/h) is the top-level class for the entire code.  It
-holds an "instance" of LAMMPS and can be instantiated one or more
+holds an ``instance'' of LAMMPS and can be instantiated one or more
 times by a calling code.  For example, the file src/main.cpp simply
 instantiates one instance of LAMMPS and passes it the input script.
 
@@ -81,7 +81,7 @@ enabled by a bit of cleverness in the Pointers class (see
 src/pointers.h) which every class inherits from.
 
 There are a handful of virtual parent classes in LAMMPS that define
-what LAMMPS calls "styles".  They are shaded red in Fig
+what LAMMPS calls ``styles''.  They are shaded red in Fig
 \ref{fig:classes}.  Each of these are parents of a number of child
 classes that implement the interface defined by the parent class.  For
 example, the fix style has around 100 child classes.  They are the
@@ -89,17 +89,17 @@ possible fixes that can be specified by the fix command in an input
 script, e.g. fix nve, fix shake, fix ave/time, etc.  The corresponding
 classes are Fix (for the parent class), FixNVE, FixShake, FixAveTime,
 etc.  The source files for these classes are easy to identify in the
-src directory, since they begin with the word "fix", e,g,
+src directory, since they begin with the word ``fix'', e,g,
 fix\_nve.cpp, fix\_shake,cpp, fix\_ave\_time.cpp, etc.
 
-The one exception is child class files for the "command" style.  These
+The one exception is child class files for the ``command'' style.  These
 implement specific commands in the input script that can be invoked
 before/after/between runs or which launch a simulation.  Examples are
 the create\_box, minimize, run, and velocity commands which encode the
 CreateBox, Minimize, Run, and Velocity classes.  The corresponding
 files are create\_box,cpp, minimize.cpp, run.cpp, and velocity.cpp.
-The list of command style files can be found by typing "grep
-COMMAND\_CLASS *.h" from within the src directory, since that word in
+The list of command style files can be found by typing ``grep
+COMMAND\_CLASS *.h'' from within the src directory, since that word in
 the header file identifies the class as an input script command.
 Similar words can be grepped to list files for the other LAMMPS
 styles.  E.g. ATOM\_CLASS, PAIR\_CLASS, BOND\_CLASS, REGION\_CLASS,
@@ -471,13 +471,13 @@ FixStyle(your/fix/name,FixMine)
   \end{verbatim}
  \end{center}
 
-Where "your/fix/name" is a name of your fix in the script and FixMine
+Where ``your/fix/name'' is a name of your fix in the script and FixMine
 is the name of the class. This code allows LAMMPS to find your fix
 when it parses input script. In addition, your fix header must be
-included in the file "style\_fix.h". In case if you use LAMMPS make,
+included in the file ``style\_fix.h''. In case if you use LAMMPS make,
 this file is generated automatically - all files starting with prefix
 fix\_ are included, so call your header the same way. Otherwise, don't
-forget to add your include into "style\_fix.h".
+forget to add your include into ``style\_fix.h''.
 
 Let's write a simple fix which will print average velocity at the end
 of each timestep. First of all, implement a constructor:
@@ -567,11 +567,11 @@ void FixPrintVel::end_of_step()
 \end{center}
 
 In the code above, we use MathExtra routines defined in
-"math\_extra.h".  There are bunch of math functions to work with
+``math\_extra.h''.  There are bunch of math functions to work with
 arrays of doubles as with math vectors.
 
 In this code we use an instance of Atom class. This object is stored
-in the Pointers class (see "pointers.h"). This object contains all
+in the Pointers class (see ``pointers.h''). This object contains all
 global information about the simulation system. Data from Pointers
 class available to all classes inherited from it using protected
 inheritance. Hence when you write you own class, which is going to use
@@ -689,7 +689,7 @@ int FixSavePos::unpack_exchange(int nlocal, double *buf)
 
 Now, a little bit about memory allocation. We used Memory class which
 is just a bunch of template functions for allocating 1D and 2D
-arrays. So you need to add include "memory.h" to have access to them.
+arrays. So you need to add include ``memory.h'' to have access to them.
 
 Finally, if you need to write/read some global information used in
 your fix to the restart file, you might do it by setting flag

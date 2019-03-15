@@ -206,7 +206,7 @@ void FixWallBodyPolygon::setup(int vflag)
 
 void FixWallBodyPolygon::post_force(int /*vflag*/)
 {
-  double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,rradi,wall_pos;
+  double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,wall_pos;
   int i,ni,npi,ifirst,nei,iefirst,side;
   double facc[3];
 
@@ -263,7 +263,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
   }
 
   ndiscrete = nedge = 0;
-  for (i = 0; i < nlocal; i++) 
+  for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -316,7 +316,6 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
       nei = ednum[i];
       iefirst = edfirst[i];
       eradi = enclosing_radius[i];
-      rradi = rounded_radius[i];
 
       // reset vertex and edge forces
 
@@ -332,14 +331,14 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
         edge[iefirst+ni][4] = 0;
       }
 
-      int interact, num_contacts, done;
+      int num_contacts, done;
       double delta_a, delta_ua, j_a;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
       facc[0] = facc[1] = facc[2] = 0;
-      interact = vertex_against_wall(i, wall_pos, x, f, torque, side,
-                                     contact_list, num_contacts, facc);
+      vertex_against_wall(i, wall_pos, x, f, torque, side,
+                          contact_list, num_contacts, facc);
 
       if (num_contacts >= 2) {
 
@@ -475,12 +474,11 @@ int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
                 Contact* contact_list, int &num_contacts, double* /*facc*/)
 {
   int ni, npi, ifirst, interact;
-  double xpi[3], eradi, rradi;
+  double xpi[3], rradi;
   double fx, fy, fz;
 
   npi = dnum[i];
   ifirst = dfirst[i];
-  eradi = enclosing_radius[i];
   rradi = rounded_radius[i];
 
   interact = 0;
@@ -675,7 +673,7 @@ void FixWallBodyPolygon::contact_forces(Contact& contact, double j_a,
   AtomVecBody::Bonus *bonus;
 
   ibody = contact.ibody;
-  
+
   // compute the velocity of the vertex in the space-fixed frame
 
   ibonus = atom->body[ibody];

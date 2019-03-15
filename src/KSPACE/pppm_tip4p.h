@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PPPMTIP4P : public PPPM {
  public:
-  PPPMTIP4P(class LAMMPS *, int, char **);
+  PPPMTIP4P(class LAMMPS *);
   virtual ~PPPMTIP4P () {};
   void init();
 

@@ -22,6 +22,7 @@ log.cite
 .*.swp
 *.orig
 *.rej
+vgcore.*
 .vagrant
 \#*#
 .#*

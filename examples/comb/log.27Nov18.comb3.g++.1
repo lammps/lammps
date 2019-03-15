@@ -1,0 +1,96 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Graphene-OH on Cu2O (110) surface
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data   	data.comb3-OHCCu
+  triclinic box = (0 0 0) to (21.3 24.6 33.8162) with tilt (0 0 0)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  682 atoms
+
+mass            1 16.0
+mass            2 63.5
+mass            3 1.00
+mass            4 12.0
+mass            5 12.0
+
+pair_style	comb3 polar_off
+pair_coeff	* * ffield.comb3 O Cu H C C
+Reading potential file lib.comb3 with DATE: 2014-02-01
+Reading potential file ffield.comb3 with DATE: 2014-02-01
+
+neighbor	2.0 bin
+neigh_modify	every 1 delay 0 check yes
+
+#dump            1 all cfg 10 *.cfg mass type xs ys zs id type q
+#dump_modify   	1 element O Cu H C C
+
+fix             1 all nve
+fix             2 all qeq/comb 10 1e-3 file fq.out
+
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz
+thermo_modify	norm yes
+velocity	all create 300.0 2398378
+thermo	  	10
+run  		100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair comb3, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.04 | 12.04 | 12.04 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz 
+       0          300   -4.5167776   -4.5554988   -3.9875717  -0.56792713   -19801.669    17719.012         21.3         24.6      33.8162 
+      10    467.10265   -4.5167723   -4.5770615   -4.0093169  -0.56774462    -15438.86    17719.012         21.3         24.6      33.8162 
+      20    732.82159   -4.5169309   -4.6115167   -4.0435338  -0.56798291   -12197.607    17719.012         21.3         24.6      33.8162 
+      30    906.42367    -4.517088   -4.6340807   -4.0657272  -0.56835345   -8825.2434    17719.012         21.3         24.6      33.8162 
+      40    957.57065   -4.5172533   -4.6408475   -4.0717295  -0.56911807   -12551.812    17719.012         21.3         24.6      33.8162 
+      50    920.31413    -4.517436   -4.6362215   -4.0660108  -0.57021068   -11911.093    17719.012         21.3         24.6      33.8162 
+      60       1003.2   -4.5176403    -4.647124   -4.0757679  -0.57135607    1337.5658    17719.012         21.3         24.6      33.8162 
+      70    1123.7779   -4.5178574   -4.6629041   -4.0904309  -0.57247327    7171.1488    17719.012         21.3         24.6      33.8162 
+      80    1188.3196    -4.518095   -4.6714721   -4.0978283  -0.57364387    12411.934    17719.012         21.3         24.6      33.8162 
+      90    1193.9207   -4.5183329    -4.672433   -4.0976379  -0.57479504    15405.848    17719.012         21.3         24.6      33.8162 
+     100     1197.343   -4.5185478   -4.6730896   -4.0971431  -0.57594648    17853.038    17719.012         21.3         24.6      33.8162 
+Loop time of 32.3303 on 1 procs for 100 steps with 682 atoms
+
+Performance: 0.053 ns/day, 449.032 hours/ns, 3.093 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.3833     | 8.3833     | 8.3833     |   0.0 | 25.93
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.003716   | 0.003716   | 0.003716   |   0.0 |  0.01
+Output  | 0.00026011 | 0.00026011 | 0.00026011 |   0.0 |  0.00
+Modify  | 23.942     | 23.942     | 23.942     |   0.0 | 74.05
+Other   |            | 0.001301   |            |       |  0.00
+
+Nlocal:    682 ave 682 max 682 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4154 ave 4154 max 4154 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  355216 ave 355216 max 355216 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 355216
+Ave neighs/atom = 520.845
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:34

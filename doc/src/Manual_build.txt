@@ -61,10 +61,12 @@ make pdf          # generate 2 PDF files (Manual.pdf,Developer.pdf)
 make old          # generate old-style HTML pages in old dir via txt2html
 make fetch        # fetch HTML doc pages and 2 PDF files from web site
                   #   as a tarball and unpack into html dir and 2 PDFs
-make epub         # generate LAMMPS.epub in ePUB format using Sphinx 
+make epub         # generate LAMMPS.epub in ePUB format using Sphinx
 make mobi         # generate LAMMPS.mobi in MOBI format using ebook-convert
 make clean        # remove intermediate RST files created by HTML build
 make clean-all    # remove entire build folder and any cached data :pre
+make anchor_check # check for duplicate anchor labels
+make spelling     # spell-check the manual
 
 :line
 
@@ -106,7 +108,14 @@ This will install virtualenv from the Python Package Index.
 
 Installing prerequisites for PDF build
 
-[TBA]
+Building the PDF manual requires a working C++ compiler (to
+compile the txt2html tool and a working installation of
+"HTMLDOC"_https://www.msweet.org/htmldoc/
+HTMLDOC has its own list of prerequisites, but in most cases
+you can install a binary package of it either through your
+Linux package manager or MacOS (dmg) and Windows installer
+(msi) packages from its
+"GitHub releases page at"_https://github.com/michaelrsweet/htmldoc/releases
 
 :line
 

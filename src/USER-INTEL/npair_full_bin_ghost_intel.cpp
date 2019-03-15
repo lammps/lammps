@@ -86,7 +86,7 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
 
   // only uses offload_end_neighbor to check whether we are doing offloading
   // at all, no need to correct this later
-  buffers->grow_list(list, nall, comm->nthreads, off_end,
+  buffers->grow_list(list, nall, comm->nthreads, 0, off_end,
                      _fix->nbor_pack_width());
 
   int need_ic = 0;
@@ -106,7 +106,7 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int need_ic>
-void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
+void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
                                  IntelBuffers<flt_t,acc_t> * buffers,
                                  const int pstart, const int pend) {
   if (pend-pstart == 0) return;
@@ -116,7 +116,8 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
   const int aend = nall;
 
   const ATOM_T * _noalias const x = buffers->get_x();
-  int * _noalias const firstneigh = buffers->firstneigh(list);
+  int * _noalias const intel_list = buffers->intel_list(list);
+  int ** _noalias const firstneigh = list->firstneigh;
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
@@ -140,7 +141,6 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
 
   int * _noalias const ilist = list->ilist;
   int * _noalias numneigh = list->numneigh;
-  int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int nstencil = this->nstencil;
   const int * _noalias const stencil = this->stencil;
   const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
@@ -228,7 +228,7 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
     in(cutneighsq:length(0) alloc_if(0) free_if(0)) \
     in(cutneighghostsq:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
+    in(intel_list:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(atombin:length(aend) alloc_if(0) free_if(0)) \
@@ -295,7 +295,7 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
 
       int pack_offset = maxnbors;
       int ct = (ifrom + tid * 2) * maxnbors;
-      int *neighptr = firstneigh + ct;
+      int *neighptr = intel_list + ct;
       const int obound = pack_offset + maxnbors * 2;
 
       const int toffs = tid * ncache_stride;
@@ -482,7 +482,7 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
             #endif
           }
         }
-       
+
         #ifndef _LMP_INTEL_OFFLOAD
         if (exclude) {
           int alln = n;
@@ -515,7 +515,7 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
           }
         }
         #endif
-        
+
         int ns = n - maxnbors;
         int alln = n;
         atombin[i] = ns;
@@ -528,12 +528,12 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
         if (ns > maxnbors) *overflow = 1;
 
         ilist[i] = i;
-        cnumneigh[i] = ct;
+        firstneigh[i] = intel_list + ct;
         numneigh[i] = ns;
 
         ct += ns;
         IP_PRE_edge_align(ct, sizeof(int));
-        neighptr = firstneigh + ct;
+        neighptr = intel_list + ct;
         if (ct + obound > list_size) {
           if (i < ito - 1) {
             *overflow = 1;
@@ -564,13 +564,12 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
   if (offload) {
     _fix->stop_watch(TIME_OFFLOAD_LATENCY);
     _fix->start_watch(TIME_HOST_NEIGHBOR);
+    firstneigh[0] = intel_list;
     for (int n = 0; n < aend; n++) {
       ilist[n] = n;
       numneigh[n] = 0;
     }
   } else {
-    for (int i = 0; i < aend; i++)
-      list->firstneigh[i] = firstneigh + cnumneigh[i];
     if (separate_buffers) {
       _fix->start_watch(TIME_PACK);
       _fix->set_neighbor_host_sizes();
@@ -581,10 +580,5 @@ void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
       _fix->stop_watch(TIME_PACK);
     }
   }
-  #else
-  #pragma vector aligned
-  #pragma simd
-  for (int i = 0; i < aend; i++)
-    list->firstneigh[i] = firstneigh + cnumneigh[i];
   #endif
 }

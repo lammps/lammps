@@ -51,7 +51,10 @@ decomposition will be the same, as described by
 commands.  The decomposition can be changed via the
 "balance"_balance.html or "fix balance"_fix_balance.html commands.
 
-[Restrictions:] none
+[Restrictions:]
+
+Communication style {tiled} cannot be used with {triclinic} simulation
+cells.
 
 [Related commands:]
 

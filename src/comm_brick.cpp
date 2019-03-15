@@ -1477,8 +1477,10 @@ void CommBrick::free_multi()
 
 void *CommBrick::extract(const char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"localsendlist") == 0) {
     int i, iswap, isend;
+    dim = 1;
     if (!localsendlist)
       memory->create(localsendlist,atom->nlocal,"comm:localsendlist");
     else

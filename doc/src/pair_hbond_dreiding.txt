@@ -66,7 +66,7 @@ that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
 See the "Howto bioFF"_Howto_bioFF.html doc page for more information
-on the DREIDING forcefield.
+on the DREIDING force field.
 
 NOTE: Because the Dreiding hydrogen bond potential is only one portion
 of an overall force field which typically includes other pairwise
@@ -135,9 +135,9 @@ distance cutoff Rin (distance units)
 distance cutoff Rout (distance units)
 angle cutoff (degrees) :ul
 
-A single hydrogen atom type K can be specified, or a wild-card
-asterisk can be used in place of or in conjunction with the K
-arguments to select multiple types as hydrogens.  This takes the form
+A single hydrogen atom type K can be specified, or a wild-card asterisk
+can be used in place of or in conjunction with the K arguments to
+select multiple types as hydrogen atoms.  This takes the form
 "*" or "*n" or "n*" or "m*n".  See the "pair_coeff"_pair_coeff.html
 command doc page for details.
 

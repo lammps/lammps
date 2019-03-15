@@ -5,8 +5,6 @@
 # The KIM API package can be downloaded from https://openkim.org/kim-api
 # Follow the instructions in the INSTALL file to build and install the
 # KIM API.  Add the openkim.org Models you are interested in using.
-# Make sure the directory where the "kim-api-build-conifg" utility is
-# located is on the PATH.
 #
 # As long as you have followed the KIM API build and install instructions,
 # there should not be any reason to change this file.
@@ -16,17 +14,17 @@
 # Settings that the LAMMPS build will import when this package is installed
 
 
-include ../../lib/kim/Makefile.KIM_DIR
-
-ifeq ($(wildcard $(KIM_INSTALL_DIR)/bin/kim-api-v1-build-config),)
-  KIM_CONFIG_HELPER = kim-api-v1-build-config
-else
-  KIM_CONFIG_HELPER = $(KIM_INSTALL_DIR)/bin/kim-api-v1-build-config
-endif
-ifeq ($(shell $(KIM_CONFIG_HELPER) --version 2> /dev/null),)
-  $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)
+ifeq ($(strip $(shell pkg-config --version)),)
+  $(error 'pkg-config' not found, but is required to configure the KIM API)
 endif
 
-kim_SYSINC  = $(shell $(KIM_CONFIG_HELPER) --includes)
-kim_SYSLIB  = $(shell $(KIM_CONFIG_HELPER) --ldlibs)
-kim_SYSPATH = $(shell $(KIM_CONFIG_HELPER) --ldflags)
+kim_PREFIX  := $(shell cat ../../lib/kim/kim-prefix.txt 2> /dev/null)
+kim_PREFIX  := $(if $(kim_PREFIX),$(kim_PREFIX)/lib/pkgconfig,)
+kim_PREFIX  := $(if $(shell printf -- "$${PKG_CONFIG_PATH}"),$(kim_PREFIX):$(shell printf -- "$${PKG_CONFIG_PATH}"),$(kim_PREFIX))
+
+kim_SYSINC  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --cflags libkim-api-v2 2> /dev/null)
+kim_SYSLIB  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --libs   libkim-api-v2 2> /dev/null)
+
+ifeq ($(strip $(kim_SYSINC)),)
+  $(error 'pkg-config' could not find an installed KIM API library.)
+endif

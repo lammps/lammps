@@ -18,7 +18,7 @@ t_event = timestep interval between event checks :l
 T_lo = temperature at which event times are desired :l
 T_hi = temperature at which MD simulation is performed :l
 delta = desired confidence level for stopping criterion :l
-tmax = reciprocal of lowest expected preexponential factor (time units) :l
+tmax = reciprocal of lowest expected pre-exponential factor (time units) :l
 compute-ID = ID of the compute used for event detection :l
 zero or more keyword/value pairs may be appended :l
 keyword = {min} or {neb} or {min_style} or {neb_style} or {neb_log} :l

@@ -184,7 +184,7 @@ double PairLJCutCoulDebyeGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairLJCutCoulDebyeGPU::cpu_compute(int start, int inum, int eflag,
-                                        int vflag, int *ilist,
+                                        int /* vflag */, int *ilist,
                                         int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;

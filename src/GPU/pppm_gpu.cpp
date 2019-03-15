@@ -89,10 +89,8 @@ void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 
-PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMGPU::PPPMGPU(LAMMPS *lmp) : PPPM(lmp)
 {
-  if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
-
   triclinic_support = 0;
   density_brick_gpu = vd_brick = NULL;
   kspace_split = false;

@@ -46,7 +46,7 @@
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "timer.h"
-#include "python.h"
+#include "lmppython.h"
 #include "version.h"
 #include "memory.h"
 #include "error.h"
@@ -65,13 +65,15 @@ static void print_style(FILE *fp, const char *str, int &pos);
    input is allocated at end after MPI info is setup
 ------------------------------------------------------------------------- */
 
-LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
+LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
+  memory(NULL), error(NULL), universe(NULL), input(NULL), atom(NULL),
+  update(NULL), neighbor(NULL), comm(NULL), domain(NULL), force(NULL),
+  modify(NULL), group(NULL), output(NULL), timer(NULL), kokkos(NULL),
+  atomKK(NULL), memoryKK(NULL), python(NULL), citeme(NULL)
 {
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
-  output = NULL;
-  python = NULL;
 
   clientserver = 0;
   cslib = NULL;
@@ -121,8 +123,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int partscreenflag = 0;
   int partlogflag = 0;
   int kokkosflag = 0;
-  int restartflag = 0;
-  int restartremapflag = 0;
+  int restart2data = 0;
+  int restart2dump = 0;
+  int restartremap = 0;
   int citeflag = 1;
   int helpflag = 0;
 
@@ -132,9 +135,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   else exename = NULL;
   packargs = NULL;
   num_package = 0;
-  char *rfile = NULL;
-  char *dfile = NULL;
-  int wdfirst,wdlast;
+  char *restartfile = NULL;
+  int wfirst,wlast;
   int kkfirst,kklast;
 
   int npack = 0;
@@ -248,26 +250,49 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       universe->reorder(arg[iarg+1],arg[iarg+2]);
       iarg += 3;
 
-    } else if (strcmp(arg[iarg],"-restart") == 0 ||
-               strcmp(arg[iarg],"-r") == 0) {
+    } else if (strcmp(arg[iarg],"-restart2data") == 0 ||
+               strcmp(arg[iarg],"-r2data") == 0) {
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      restartflag = 1;
-      rfile = arg[iarg+1];
-      dfile = arg[iarg+2];
+      if (restart2dump)
+        error->universe_all(FLERR,
+                            "Cannot use both -restart2data and -restart2dump");
+      restart2data = 1;
+      restartfile = arg[iarg+1];
       // check for restart remap flag
-      if (strcmp(dfile,"remap") == 0) {
+      if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
           error->universe_all(FLERR,"Invalid command-line argument");
-        restartremapflag = 1;
-        dfile = arg[iarg+3];
+        restartremap = 1;
         iarg++;
       }
-      iarg += 3;
-      // delimit any extra args for the write_data command
-      wdfirst = iarg;
+      iarg += 2;
+      // delimit args for the write_data command
+      wfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
-      wdlast = iarg;
+      wlast = iarg;
+
+    } else if (strcmp(arg[iarg],"-restart2dump") == 0 ||
+               strcmp(arg[iarg],"-r2dump") == 0) {
+      if (iarg+3 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (restart2data)
+        error->universe_all(FLERR,
+                            "Cannot use both -restart2data and -restart2dump");
+      restart2dump = 1;
+      restartfile = arg[iarg+1];
+      // check for restart remap flag
+      if (strcmp(arg[iarg+2],"remap") == 0) {
+        if (iarg+4 > narg)
+          error->universe_all(FLERR,"Invalid command-line argument");
+        restartremap = 1;
+        iarg++;
+      }
+      iarg += 2;
+      // delimit args for the write_dump command
+      wfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wlast = iarg;
 
     } else if (strcmp(arg[iarg],"-screen") == 0 ||
                strcmp(arg[iarg],"-sc") == 0) {
@@ -390,7 +415,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       }
     }
 
-    if (universe->me == 0) {
+    if ((universe->me == 0) && !helpflag) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
     }
@@ -464,7 +489,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
     // screen and logfile messages for universe and world
 
-    if (universe->me == 0) {
+    if ((universe->me == 0) && (!helpflag)) {
       if (universe->uscreen) {
         fprintf(universe->uscreen,"LAMMPS (%s)\n",universe->version);
         fprintf(universe->uscreen,"Running on %d partitions of processors\n",
@@ -477,7 +502,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       }
     }
 
-    if (me == 0) {
+    if ((me == 0) && (!helpflag)) {
       if (screen) {
         fprintf(screen,"LAMMPS (%s)\n",universe->version);
         fprintf(screen,"Processor partition = %d\n",universe->iworld);
@@ -547,6 +572,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   input = new Input(this,narg,arg);
 
   // copy package cmdline arguments
+
   if (npack > 0) {
     num_package = npack;
     packargs = new char**[npack];
@@ -561,31 +587,33 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     memory->destroy(plast);
   }
 
-  // allocate top-level classes
-
-  create();
-  post_create();
-
   // if helpflag set, print help and quit with "success" status
+  // otherwise allocate top level classes.
 
   if (helpflag) {
     if (universe->me == 0 && screen) help();
     error->done(0);
+  } else {
+    create();
+    post_create();
   }
 
-  // if restartflag set, invoke 2 commands and quit
-  // add args between wdfirst and wdlast to write_data command
-  // also add "noinit" to prevent write_data from doing system init
+  // if either restart conversion option was used, invoke 2 commands and quit
+  // add args between wfirst and wlast to write_data or write_data command
+  // add "noinit" to write_data to prevent a system init
+  // write_dump will just give a warning message about no init
 
-  if (restartflag) {
-    char cmd[128];
-    snprintf(cmd,128,"read_restart %s\n",rfile);
-    if (restartremapflag) strcat(cmd," remap\n");
+  if (restart2data || restart2dump) {
+    char cmd[256];
+    snprintf(cmd,248,"read_restart %s\n",restartfile);
+    if (restartremap) strcat(cmd," remap\n");
     input->one(cmd);
-    snprintf(cmd,128,"write_data %s",dfile);
-    for (iarg = wdfirst; iarg < wdlast; iarg++)
-      sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
-    strcat(cmd," noinit\n");
+    if (restart2data) strcpy(cmd,"write_data");
+    else strcpy(cmd,"write_dump");
+    for (iarg = wfirst; iarg < wlast; iarg++)
+      snprintf(&cmd[strlen(cmd)],246-strlen(cmd)," %s",arg[iarg]);
+    if (restart2data) strcat(cmd," noinit\n");
+    else strcat(cmd,"\n");
     input->one(cmd);
     error->done(0);
   }
@@ -733,26 +761,27 @@ void LAMMPS::post_create()
   // check that KOKKOS package classes were instantiated
   // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
 
-  if (!suffix_enable) return;
+  if (suffix_enable) {
 
-  if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
-    error->all(FLERR,"Using suffix gpu without GPU package installed");
-  if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
-    error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
-  if (strcmp(suffix,"kk") == 0 &&
-      (kokkos == NULL || kokkos->kokkos_exists == 0))
-    error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
-  if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
-    error->all(FLERR,"Using suffix omp without USER-OMP package installed");
+    if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
+      error->all(FLERR,"Using suffix gpu without GPU package installed");
+    if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
+      error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
+    if (strcmp(suffix,"kk") == 0 &&
+        (kokkos == NULL || kokkos->kokkos_exists == 0))
+      error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
+    if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
+      error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-  if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
-  if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
-  if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
+    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
-  if (suffix2) {
-    if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
-    if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
-    if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
+    if (suffix2) {
+      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+      if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
+      if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
+    }
   }
 
   // invoke any command-line package commands
@@ -885,7 +914,9 @@ void LAMMPS::help()
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
           "-pscreen basename           : basename for partition screens (-ps)\n"
-          "-restart rfile dfile ...    : convert restart to data file (-r)\n"
+          "-restart2data rfile dfile ... : convert restart to data file (-r2data)\n"
+          "-restart2dump rfile dgroup dstyle dfile ... \n"
+          "                            : convert restart to dump file (-r2dump)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
@@ -1051,12 +1082,32 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
+  char *infobuf = Info::get_os_info();
+  fprintf(fp,"OS: %s\n\n",infobuf);
+  delete[] infobuf;
+
+  infobuf = Info::get_compiler_info();
+  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
+  delete[] infobuf;
+
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
   if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
+#if defined(LAMMPS_BIGBIG)
+  fputs("-DLAMMPS_BIGBIG\n",fp);
+#elif defined(LAMMPS_SMALLBIG)
+  fputs("-DLAMMPS_SMALLBIG\n",fp);
+#else // defined(LAMMPS_SMALLSMALL)
+  fputs("-DLAMMPS_SMALLSMALL\n",fp);
+#endif
+  fprintf(fp,"\nsizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
+  fprintf(fp,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
+  fprintf(fp,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
+  fprintf(fp,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {

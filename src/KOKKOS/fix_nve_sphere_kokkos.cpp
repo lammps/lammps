@@ -75,7 +75,7 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  FixNVESphereKokkosInitialIntegrateFunctor<DeviceType> f(this); 
+  FixNVESphereKokkosInitialIntegrateFunctor<DeviceType> f(this);
   Kokkos::parallel_for(nlocal,f);
 }
 
@@ -95,7 +95,7 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     x(i,0) += dtv * v(i,0);
     x(i,1) += dtv * v(i,1);
     x(i,2) += dtv * v(i,2);
-      
+
     const double dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
@@ -139,7 +139,7 @@ void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
-      
+
     const double dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);

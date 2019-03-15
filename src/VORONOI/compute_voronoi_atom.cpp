@@ -19,6 +19,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+#include "voro++.hh"
 #include "compute_voronoi_atom.h"
 #include "atom.h"
 #include "group.h"
@@ -89,7 +90,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg], "surface") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
       // group all is a special case where we just skip group testing
-      if(strcmp(arg[iarg+1], "all") == 0) {
+      if (strcmp(arg[iarg+1], "all") == 0) {
         surface = VOROSURF_ALL;
       } else {
         sgroup = group->find(arg[iarg+1]);
@@ -265,7 +266,7 @@ void ComputeVoronoi::buildCells()
   double **x = atom->x;
 
   // setup bounds for voro++ domain for orthogonal and triclinic simulation boxes
-  if( domain->triclinic ) {
+  if (domain->triclinic) {
     // triclinic box: embed parallelepiped into orthogonal voro++ domain
 
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
@@ -355,7 +356,7 @@ void ComputeVoronoi::buildCells()
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++) {
-      if( !onlyGroup || (mask[i] & groupbit) )
+      if (!onlyGroup || (mask[i] & groupbit))
         con_poly->put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
     }
   } else {
@@ -373,7 +374,7 @@ void ComputeVoronoi::buildCells()
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
-      if( !onlyGroup || (mask[i] & groupbit) )
+      if (!onlyGroup || (mask[i] & groupbit))
         con_mono->put(i,x[i][0],x[i][1],x[i][2]);
   }
 }
@@ -624,7 +625,7 @@ double ComputeVoronoi::memory_usage()
 void ComputeVoronoi::compute_vector()
 {
   invoked_vector = update->ntimestep;
-  if( invoked_peratom < invoked_vector ) compute_peratom();
+  if (invoked_peratom < invoked_vector) compute_peratom();
 
   for( int i=0; i<size_vector; ++i ) sendvector[i] = edge[i];
   MPI_Allreduce(sendvector,edge,size_vector,MPI_DOUBLE,MPI_SUM,world);
@@ -635,7 +636,7 @@ void ComputeVoronoi::compute_vector()
 void ComputeVoronoi::compute_local()
 {
   invoked_local = update->ntimestep;
-  if( invoked_peratom < invoked_local ) compute_peratom();
+  if (invoked_peratom < invoked_local) compute_peratom();
 }
 
 /* ---------------------------------------------------------------------- */

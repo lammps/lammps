@@ -46,7 +46,7 @@ based on fluctuation-dissipation theory for a group of atoms.
 Consider a crystal with \(N\) unit cells in three dimensions labeled
 \(l = (l_1, l_2, l_3)\) where \(l_i\) are integers.  Each unit cell is
 defined by three linearly independent vectors \(\mathbf\{a\}_1\),
-\(\mathbf\{a\}_2\), \(\mathbf\{a\}_3\) forming a parallelipiped,
+\(\mathbf\{a\}_2\), \(\mathbf\{a\}_3\) forming a parallelepiped,
 containing \(K\) basis atoms labeled \(k\).
 
 Based on fluctuation-dissipation theory, the force constant
@@ -103,7 +103,7 @@ computation is then done.  After every {Noutput} measurements, the
 matrix \(\mathbf\{G\}(\mathbf\{q\})\) is calculated and inverted to
 obtain the elastic stiffness coefficients.  The dynamical matrices are
 then constructed and written to {prefix}.bin.timestep files in binary
-format and to the file {prefix}.log for each wavevector
+format and to the file {prefix}.log for each wave-vector
 \(\mathbf\{q\}\).
 
 A detailed description of this method can be found in
@@ -127,7 +127,7 @@ which lattice point; the lattice indices start from 0. An auxiliary
 code, "latgen"_http://code.google.com/p/latgen, can be employed to
 generate the compatible map file for various crystals.
 
-In case one simulates an aperiodic system, where the whole simulation
+In case one simulates a non-periodic system, where the whole simulation
 box is treated as a unit cell, one can set {map_file} as {GAMMA}, so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point
@@ -179,7 +179,8 @@ settings"_Build_settings.html doc page for details.
 
 [Related commands:]
 
-"compute msd"_compute_msd.html
+"compute msd"_compute_msd.html,
+"dynamical_matrix"_dynamical_matrix.html
 
 [Default:]
 

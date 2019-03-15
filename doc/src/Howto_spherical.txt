@@ -35,7 +35,7 @@ There are several "atom styles"_atom_style.html that allow for
 definition of finite-size particles: sphere, dipole, ellipsoid, line,
 tri, peri, and body.
 
-The sphere style defines particles that are spheriods and each
+The sphere style defines particles that are spheroids and each
 particle can have a unique diameter and mass (or density).  These
 particles store an angular velocity (omega) and can be acted upon by
 torque.  The "set" command can be used to modify the diameter and mass
@@ -236,7 +236,7 @@ particles are point masses.
 Also note that body particles cannot be modeled with the "fix
 rigid"_fix_rigid.html command.  Body particles are treated by LAMMPS
 as single particles, though they can store internal state, such as a
-list of sub-particles.  Individual body partices are typically treated
+list of sub-particles.  Individual body particles are typically treated
 as rigid bodies, and their motion integrated with a command like "fix
 nve/body"_fix_nve_body.html.  Interactions between pairs of body
 particles are computed via a command like "pair_style

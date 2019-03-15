@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -17,9 +17,9 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 "Improper styles"_Commands_bond.html#improper,
 "KSpace styles"_Commands_kspace.html :tb(c=3,ea=c)
 
-All commands :h3
+General commands :h3
 
-An alphabetic list of all LAMMPS commands.
+An alphabetic list of all general LAMMPS commands.
 
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,
@@ -48,17 +48,20 @@ An alphabetic list of all LAMMPS commands.
 "dimension"_dimension.html,
 "displace_atoms"_displace_atoms.html,
 "dump"_dump.html,
+"dump adios"_dump_adios.html,
 "dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
 "dump movie"_dump_image.html,
 "dump netcdf"_dump_netcdf.html,
 "dump netcdf/mpiio"_dump_netcdf.html,
 "dump vtk"_dump_vtk.html,
+"dynamical_matrix"_dynamical_matrix.html,
 "echo"_echo.html,
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,
 "group"_group.html,
 "group2ndx"_group2ndx.html,
+"hyper"_hyper.html,
 "if"_if.html,
 "info"_info.html,
 "improper_coeff"_improper_coeff.html,

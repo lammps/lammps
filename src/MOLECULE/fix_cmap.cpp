@@ -943,7 +943,7 @@ double FixCMAP::dihedral_angle_atan2(double fx, double fy, double fz,
 {
   // calculate the dihedral angle
 
-  double angle, arg1, arg2;
+  double angle = 0.0, arg1, arg2;
 
   arg1 = absg*(fx*bx+fy*by+fz*bz);
   arg2 = ax*bx+ay*by+az*bz;

@@ -217,7 +217,6 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,2);
   atom->delete_callback(id,0);
 
   // delete locally stored arrays
@@ -592,14 +591,13 @@ void FixFilterCorotate::pre_neighbor()
       double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
       int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
-      if (fabs(signum)!= 1)
+      if (abs(signum) != 1)
         error->all(FLERR,"Wrong orientation in cluster of size 4"
           "in fix filter/corotate!");
       clist_q0[i][8] *= signum;
       clist_q0[i][11] *= signum;
 
-    } else if (N == 5)
-    {
+    } else if (N == 5) {
       oxy = atom->map(shake_atom[m][0]);
       atom1 = atom->map(shake_atom[m][1]);
       atom2 = atom->map(shake_atom[m][2]);
@@ -666,14 +664,12 @@ void FixFilterCorotate::pre_neighbor()
       double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
       int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
-      if (fabs(signum)!= 1)
+      if (abs(signum)!= 1)
         error->all(FLERR,"Wrong orientation in cluster of size 5"
           "in fix filter/corotate!");
       clist_q0[i][8] *= signum;
       clist_q0[i][11] *= signum;
-    }
-    else
-    {
+    } else {
       error->all(FLERR,"Fix filter/corotate cluster with size > 5"
         "not yet configured...");
     }

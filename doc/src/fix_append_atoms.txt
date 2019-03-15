@@ -28,7 +28,7 @@ keyword = {basis} or {size} or {freq} or {temp} or {random} or {units}  :l
     target = target temperature for the region between zhi-extent and zhi (temperature units)
     damp = damping parameter (time units)
     seed = random number seed for langevin kicks
-    extent = extent of thermostated region (distance units)
+    extent = extent of thermostatted region (distance units)
   {random} args = xmax ymax zmax seed
     {xmax}, {ymax}, {zmax} = maximum displacement in particular direction (distance units)
     {seed} = random number seed for random displacement
@@ -68,7 +68,7 @@ be added.
 The {random} keyword will give the atoms random displacements around
 their lattice points to simulate some initial temperature.
 
-The {temp} keyword will cause a region to be thermostated with a
+The {temp} keyword will cause a region to be thermostatted with a
 Langevin thermostat on the zhi boundary.  The size of the region is
 measured from zhi and is set with the {extent} argument.
 

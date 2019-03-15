@@ -40,11 +40,11 @@ enum{FORCES=1,ENERGY,PRESSURE,ERROR};
 FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->clientserver != 1) 
+  if (lmp->clientserver != 1)
     error->all(FLERR,"Fix client/md requires LAMMPS be running as a client");
   if (!atom->map_style) error->all(FLERR,"Fix client/md requires atom map");
 
-  if (sizeof(tagint) != 4) 
+  if (sizeof(tagint) != 4)
     error->all(FLERR,"Fix client/md requires 4-byte atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
@@ -306,7 +306,7 @@ void FixClientMD::receive_fev(int vflag)
   }
 
   eng = econvert * cs->unpack_double(ENERGY);
-  
+
   if (vflag) {
     double *v = (double *) cs->unpack(PRESSURE);
 

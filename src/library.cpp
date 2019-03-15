@@ -957,7 +957,7 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
     }
 
     // perform MPI_Allgatherv on each proc's chunk of Nlocal atoms
-    
+
     int nprocs = lmp->comm->nprocs;
 
     int *recvcounts,*displs;
@@ -1078,7 +1078,7 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
-  { 
+  {
     int i,j,m,offset;
     tagint id;
 
@@ -1319,9 +1319,9 @@ void lammps_scatter_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 void lammps_scatter_atoms_subset(void *ptr, char *name,
-                                 int type, int count, 
+                                 int type, int count,
                                  int ndata, int *ids, void *data)
-{ 
+{
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
@@ -1363,9 +1363,11 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
       int *dptr = (int *) data;
 
       if (count == 1) {
-        for (i = 0; i < ndata; i++)
-          if ((m = lmp->atom->map(i+1)) >= 0)
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0)
             vector[m] = dptr[i];
+        }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {

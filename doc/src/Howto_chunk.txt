@@ -22,8 +22,8 @@ commands, to calculate various properties of a system:
 "fix ave/chunk"_fix_ave_chunk.html
 any of the "compute */chunk"_compute.html commands :ul
 
-Here, each of the 4 kinds of chunk-related commands is briefly
-overviewed.  Then some examples are given of how to compute different
+Here a brief overview for each of the 4 kinds of chunk-related commands
+is provided.  Then some examples are given of how to compute different
 properties with chunk commands.
 
 Compute chunk/atom command: :h4

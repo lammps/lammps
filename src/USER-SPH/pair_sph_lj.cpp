@@ -207,7 +207,7 @@ void PairSPHLJ::allocate() {
 void PairSPHLJ::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/lj");
+        "Illegal number of arguments for pair_style sph/lj");
 }
 
 /* ----------------------------------------------------------------------

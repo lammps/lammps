@@ -57,7 +57,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMIntel::PPPMIntel(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 
@@ -581,6 +581,12 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
   else
     nthr = comm->nthreads;
 
+  if (fix->need_zero(0)) {
+    int zl = nlocal;
+    if (force->newton_pair) zl += atom->nghost;
+    memset(f, 0, zl * sizeof(FORCE_T));
+  }
+
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
     shared(nlocal, nthr) if(!_use_lrt)
@@ -725,6 +731,12 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
   FFT_SCALAR * _noalias const particle_ekx = this->particle_ekx;
   FFT_SCALAR * _noalias const particle_eky = this->particle_eky;
   FFT_SCALAR * _noalias const particle_ekz = this->particle_ekz;
+
+  if (fix->need_zero(0)) {
+    int zl = nlocal;
+    if (force->newton_pair) zl += atom->nghost;
+    memset(f, 0, zl * sizeof(FORCE_T));
+  }
 
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \

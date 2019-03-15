@@ -75,7 +75,7 @@ void FixFreezeKokkos<DeviceType>::post_force(int vflag)
   OriginalForce original;
   Kokkos::parallel_reduce(nlocal, *this, original);
   copymode = 0;
-  
+
   foriginal[0] = original.values[0];
   foriginal[1] = original.values[1];
   foriginal[2] = original.values[2];

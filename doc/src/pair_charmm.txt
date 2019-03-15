@@ -131,7 +131,7 @@ same for both formulas or different depending on whether 2 or 4
 arguments are used in the pair_style command.  For the
 {lj/charmmfsw/coul/charmmfsh} style, the LJ term requires both an
 inner and outer cutoff, while the Coulombic term requires only one
-cutoff.  If the Coulomb cutoff is not specified (2 instead of 3
+cutoff.  If the Coulombic cutoff is not specified (2 instead of 3
 arguments), the LJ outer cutoff is used for the Coulombic cutoff.  In
 all cases where an inner and outer cutoff are specified, the inner
 cutoff distance must be less than the outer cutoff.  It is typical to
@@ -249,8 +249,7 @@ All the styles with {coul/charmm} or {coul/charmmfsh} styles are part
 of the MOLECULE package.  All the styles with {coul/long} style are
 part of the KSPACE package.  They are only enabled if LAMMPS was built
 with those packages.  See the "Build package"_Build_package.html doc
-page for more info.  Note that the MOLECULE and KSPACE packages are
-installed by default.
+page for more info.
 
 [Related commands:]
 

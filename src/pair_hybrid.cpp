@@ -281,7 +281,7 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"hybrid") == 0)
+    if (strncmp(arg[iarg],"hybrid",6) == 0)
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");

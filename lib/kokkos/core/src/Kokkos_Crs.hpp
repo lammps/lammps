@@ -100,31 +100,26 @@ public:
   row_map_type row_map;
   entries_type entries;
 
-  //! Construct an empty view.
-  Crs() : row_map(), entries() {}
+  /*
+   * Default Constructors, operators and destructor
+   */
+  KOKKOS_FUNCTION Crs() = default;
+  KOKKOS_FUNCTION Crs(Crs const &) = default;
+  KOKKOS_FUNCTION Crs(Crs &&) = default;
+  KOKKOS_FUNCTION Crs& operator=(Crs const &) = default;
+  KOKKOS_FUNCTION Crs& operator=(Crs &&) = default;
+  KOKKOS_FUNCTION ~Crs() = default;
 
-  //! Copy constructor (shallow copy).
-  Crs(const Crs& rhs) : row_map(rhs.row_map), entries(rhs.entries)
-  {}
-
+  /** \brief Assign to a view of the rhs array.
+   *         If the old view is the last view
+   *         then allocated memory is deallocated.
+   */
   template<class EntriesType, class RowMapType>
-  Crs(const RowMapType& row_map_, const EntriesType& entries_) : row_map(row_map_), entries(entries_)
-  {}
-
-  /** \brief  Assign to a view of the rhs array.
-   *          If the old view is the last view
-   *          then allocated memory is deallocated.
-   */
-  Crs& operator= (const Crs& rhs) {
-    row_map = rhs.row_map;
-    entries = rhs.entries;
-    return *this;
+  KOKKOS_INLINE_FUNCTION
+  Crs(const RowMapType& row_map_, const EntriesType& entries_) 
+     : row_map(row_map_), entries(entries_)
+  {
   }
-
-  /**  \brief  Destroy this view of the array.
-   *           If the last view then allocated memory is deallocated.
-   */
-  ~Crs() {}
 
   /**  \brief  Return number of rows in the graph
    */

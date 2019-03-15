@@ -627,7 +627,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
     if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
     if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
     *ptr = '\0';
-    if (strlen(&ep->d_name[nbegin]) < n) {
+    if ((int)strlen(&ep->d_name[nbegin]) < n) {
       strcpy(middle,&ep->d_name[nbegin]);
       if (ATOBIGINT(middle) > maxnum) maxnum = ATOBIGINT(middle);
     }
@@ -715,7 +715,7 @@ void ReadRestart::header(int incompatible)
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
         error->all(FLERR,
-                   "Cannot run 2d simulation with nonperiodic Z dimension");
+                   "Cannot run 2d simulation with non-periodic Z dimension");
 
     // read nprocs from restart file, warn if different
 
@@ -924,10 +924,12 @@ void ReadRestart::header(int incompatible)
       atom->extra_dihedral_per_atom = read_int();
     } else if (flag == EXTRA_IMPROPER_PER_ATOM) {
       atom->extra_improper_per_atom = read_int();
-    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
-      force->special_extra = read_int();
     } else if (flag == ATOM_MAXSPECIAL) {
       atom->maxspecial = read_int();
+
+      // for backward compatibility
+    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
+      force->special_extra = read_int();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

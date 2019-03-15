@@ -13,6 +13,7 @@ ARLIB =  liblammps_$@.a
 SHLIB =	 liblammps_$@.so
 ARLINK = liblammps.a
 SHLINK = liblammps.so
+TMPNAME= tmp_$@_name
 
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
@@ -53,29 +54,30 @@ endif
 # PACKEXT    = subset that require an external (downloaded) library
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace latte manybody mc meam message misc \
+	  granular kim kokkos kspace latte manybody mc message misc \
 	  molecule mpiio mscg opt peri poems \
-	  python qeq reax replica rigid shock snap spin srd voronoi
+	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
+PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
 	   user-mgpt user-misc user-mofff user-molfile \
-	   user-netcdf user-omp user-phonon user-ptm user-qmmm user-qtb \
-	   user-quip user-reaxc user-scafacos user-smd user-smtbq \
-	   user-sph user-tally user-uef user-vtk
+	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
+	   user-qtb user-quip user-reaxc user-scafacos user-smd user-smtbq \
+	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
-PACKLIB = compress gpu kim kokkos latte meam message mpiio mscg poems \
-	  python reax voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
-	  user-netcdf user-qmmm user-quip user-scafacos user-smd user-vtk
+PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
+	  python voronoi \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
+	  user-smd user-vtk
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos meam message poems reax user-atc user-awpmd user-colvars
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
 
 PACKEXT = kim latte mscg voronoi \
-	  user-h5md user-molfile user-netcdf user-qmmm user-quip \
+	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
 	  user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
@@ -153,17 +155,17 @@ help:
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo 'Gathering installed package information (may take a little while)'
-	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  lmpinstalledpkgs.tmp
-	@echo '#define LMP_INSTALLED_PKGS_H' >> lmpinstalledpkgs.tmp
-	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> lmpinstalledpkgs.tmp
+	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
+	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
+	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
 	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
-             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> lmpinstalledpkgs.tmp || :; done
-	@echo ' NULL };' >> lmpinstalledpkgs.tmp
-	@echo '#endif' >> lmpinstalledpkgs.tmp
+             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> ${TMPNAME}.lmpinstalled || :; done
+	@echo ' NULL };' >> ${TMPNAME}.lmpinstalled
+	@echo '#endif' >> ${TMPNAME}.lmpinstalled
 	@if [ -f lmpinstalledpkgs.h ]; \
-          then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
-	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
-        else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
+          then test "`diff --brief ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h`" != "" && \
+	        mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h || rm ${TMPNAME}.lmpinstalled ; \
+        else mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h ; fi
 
 # Build LAMMPS in one of 4 modes
 # exe =   exe with static compile in Obj_machine (default)

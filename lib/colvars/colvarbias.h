@@ -66,6 +66,9 @@ public:
   /// Send forces to the collective variables
   virtual void communicate_forces();
 
+  /// Carry out operations needed before next step is run
+  virtual int end_of_step();
+
   /// Load new configuration - force constant and/or centers only
   virtual int change_configuration(std::string const &conf);
 

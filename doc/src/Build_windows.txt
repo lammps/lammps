@@ -53,20 +53,20 @@ are included, but may not always up-to-date for recently added functionality
 and the corresponding new code. A machine makefile for using cygwin for
 the old build system is provided. The CMake build system is untested
 for this; you will have to request that makefiles are generated and
-manually set the compiler.  
+manually set the compiler.
 
 When compiling for Windows [not] set the -DLAMMPS_MEMALIGN define
 in the LMP_INC makefile variable and add -lwsock32 -lpsapi to the linker
-flags in LIB makefile variable. Try adding -static-libgcc or -static or 
+flags in LIB makefile variable. Try adding -static-libgcc or -static or
 both to the linker flags when your resulting LAMMPS Windows executable
 complains about missing .dll files. The CMake configuration should set
-this up automatically, but is untested. 
+this up automatically, but is untested.
 
 In case of problems, you are recommended to contact somebody with
 experience in using cygwin.  If you do come across portability problems
 requiring changes to the LAMMPS source code, or figure out corrections
 yourself, please report them on the lammps-users mailing list, or file
-them as an issue or pull request on the LAMMPS github project.
+them as an issue or pull request on the LAMMPS GitHub project.
 
 
 Using a cross-compiler :h4,link(cross)

@@ -299,7 +299,7 @@ void FixLatte::post_force(int vflag)
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
   int maxiter = -1;
-  
+
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
         &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);

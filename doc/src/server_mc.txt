@@ -15,7 +15,7 @@ server mc :pre
 mc = the protocol argument to the "server"_server.html command
 
 [Examples:]
-  
+
 server mc :pre
 
 [Description:]
@@ -46,7 +46,7 @@ examples/COUPLE/lammps_mc/in.server.
 When using this command, LAMMPS (as the server code) receives
 instructions from a Monte Carlo (MC) driver to displace random atoms,
 compute the energy before and after displacement, and run dynamics to
-equilibrate the system.  
+equilibrate the system.
 
 The MC driver performs the random displacements on random atoms,
 accepts or rejects the move in an MC sense, and orchestrates the MD
@@ -60,7 +60,7 @@ pages for more details on the actual library syntax.  The "cs" object
 in this pseudo code is a pointer to an instance of the CSlib.
 
 See the src/MESSAGE/server_mc.cpp file for details on how LAMMPS uses
-these messages.  See the examples/COUPLE/lammmps_mc/mc.cpp file for an
+these messages.  See the examples/COUPLE/lammps_mc/mc.cpp file for an
 example of how an MC driver code can use these messages.
 
 Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
@@ -83,7 +83,7 @@ cs->pack_int(1,nsteps)  # 1st field = # of timesteps to run MD :pre
 
 [Server replies]:
 
-cs->send(NATOMS,1)      # msgID = 1 with 1 field 
+cs->send(NATOMS,1)      # msgID = 1 with 1 field
 cs->pack_int(1,natoms)  # 1st field = number of atoms :pre
 
 cs->send(EINIT,2)         # msgID = 2 with 2 fields

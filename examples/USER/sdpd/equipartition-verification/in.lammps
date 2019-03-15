@@ -1,0 +1,45 @@
+dimension       3
+units           micro
+atom_style      meso
+
+variable        a equal 0.1             # lattice spacing         micrometers
+variable        L equal $a*10
+variable        T equal 300.
+variable        kB equal 1.3806504e-8   # picogram-micrometer^2/(microsecond^2-Kelvin)
+variable        rho_0 equal 1.          # density                   picograms/micrometer^3
+variable        c_0 equal 10.           # speed of sound            micrometers/microsecond
+variable        mu equal 1.             # dynamic viscosity         picogram/(micrometer-microsecond)
+variable        h equal $a*4.0          # kernel function cutoff    micrometers
+variable        mass equal $a*$a*$a*${rho_0}
+variable        dt equal 5e-4           # timestep                  microseconds
+variable        skin equal 0.1*$h
+
+region          box block -$L $L -$L $L -$L $L units box
+create_box      1 box
+lattice         sc $a
+
+create_atoms    1 box
+
+mass            * ${mass}
+set             group all meso/rho ${rho_0}
+
+pair_style      sdpd/taitwater/isothermal $T ${mu} 76787    # temperature viscosity random_seed
+pair_coeff      * * ${rho_0} ${c_0} ${h}
+
+variable        vx_sq atom vx*vx
+variable        vy_sq atom vy*vy
+variable        vz_sq atom vz*vz
+compute         v_sq all reduce ave v_vx_sq v_vy_sq v_vz_sq
+variable        vx_sq_check equal c_v_sq[1]*${mass}/${kB}/$T
+variable        vy_sq_check equal c_v_sq[2]*${mass}/${kB}/$T
+variable        vz_sq_check equal c_v_sq[3]*${mass}/${kB}/$T
+
+fix             1 all meso
+
+neighbor        ${skin} bin
+timestep        ${dt}
+
+thermo          10
+thermo_style    custom step time v_vx_sq_check v_vy_sq_check v_vz_sq_check
+
+run             200

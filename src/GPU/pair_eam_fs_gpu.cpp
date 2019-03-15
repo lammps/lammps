@@ -192,8 +192,8 @@ void PairEAMFSGPU::init_style()
 /* ---------------------------------------------------------------------- */
 
 double PairEAMFSGPU::single(int i, int j, int itype, int jtype,
-                       double rsq, double factor_coul, double factor_lj,
-                       double &fforce)
+                            double rsq, double /* factor_coul */,
+                            double /* factor_lj */, double &fforce)
 {
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
@@ -235,7 +235,7 @@ double PairEAMFSGPU::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairEAMFSGPU::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag,int *pbc)
+                                    int /* pbc_flag */, int * /* pbc */)
 {
   int i,j,m;
 

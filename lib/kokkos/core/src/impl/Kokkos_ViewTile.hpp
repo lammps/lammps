@@ -202,8 +202,8 @@ struct ViewMapping
       typedef typename src_map_type::offset_type  src_offset_type ;
 
       dst = dst_map_type(
-         dst_handle_type( src.m_handle +
-                        ( ( i_tile0 + src.m_offset.m_tile_N0 * i_tile1 ) << src_offset_type::SHIFT_T ) ) ,
+         dst_handle_type( src.m_impl_handle +
+                        ( ( i_tile0 + src.m_impl_offset.m_tile_N0 * i_tile1 ) << src_offset_type::SHIFT_T ) ) ,
          dst_offset_type() );
     }
 };

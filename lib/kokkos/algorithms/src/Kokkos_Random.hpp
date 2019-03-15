@@ -697,6 +697,7 @@ namespace Kokkos {
     typedef Random_XorShift64<DeviceType> generator_type;
     typedef DeviceType device_type;
 
+    KOKKOS_INLINE_FUNCTION
     Random_XorShift64_Pool() {
       num_states_ = 0;
     }
@@ -709,12 +710,14 @@ namespace Kokkos {
 #endif
     }
 
+    KOKKOS_INLINE_FUNCTION
     Random_XorShift64_Pool(const Random_XorShift64_Pool& src):
       locks_(src.locks_),
       state_(src.state_),
       num_states_(src.num_states_)
     {}
 
+    KOKKOS_INLINE_FUNCTION
     Random_XorShift64_Pool operator = (const Random_XorShift64_Pool& src) {
       locks_ = src.locks_;
       state_ = src.state_;
@@ -958,6 +961,7 @@ namespace Kokkos {
 
     typedef DeviceType device_type;
 
+    KOKKOS_INLINE_FUNCTION
     Random_XorShift1024_Pool() {
       num_states_ = 0;
     }
@@ -972,6 +976,7 @@ namespace Kokkos {
 #endif
     }
 
+    KOKKOS_INLINE_FUNCTION
     Random_XorShift1024_Pool(const Random_XorShift1024_Pool& src):
       locks_(src.locks_),
       state_(src.state_),
@@ -979,6 +984,7 @@ namespace Kokkos {
       num_states_(src.num_states_)
     {}
 
+    KOKKOS_INLINE_FUNCTION
     Random_XorShift1024_Pool operator = (const Random_XorShift1024_Pool& src) {
       locks_ = src.locks_;
       state_ = src.state_;

@@ -331,7 +331,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh_touch[i];
-  
+
   F_FLOAT fx_i = 0.0;
   F_FLOAT fy_i = 0.0;
   F_FLOAT fz_i = 0.0;
@@ -343,7 +343,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   for (int jj = 0; jj < jnum; jj++) {
     const int m = d_neighbors_touch(i, jj);
     const int j = d_neighbors(i, m) & NEIGHMASK;
-    
+
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
@@ -363,16 +363,16 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     V_FLOAT vr1 = v(i,0) - v(j,0);
     V_FLOAT vr2 = v(i,1) - v(j,1);
     V_FLOAT vr3 = v(i,2) - v(j,2);
-      
+
     // normal component
 
     V_FLOAT vnnr = vr1*delx + vr2*dely + vr3*delz;
     V_FLOAT vn1 = delx*vnnr * rsqinv;
     V_FLOAT vn2 = dely*vnnr * rsqinv;
     V_FLOAT vn3 = delz*vnnr * rsqinv;
-      
+
     // tangential component
-      
+
     V_FLOAT vt1 = vr1 - vn1;
     V_FLOAT vt2 = vr2 - vn2;
     V_FLOAT vt3 = vr3 - vn3;
@@ -467,7 +467,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     torquex_i -= irad*tor1;
     torquey_i -= irad*tor2;
     torquez_i -= irad*tor3;
-      
+
     if (NEWTON_PAIR || j < nlocal) {
       a_f(j,0) -= fx;
       a_f(j,1) -= fy;
@@ -550,7 +550,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int
 							       F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
 							       X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();  
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   F_FLOAT v[6];
 

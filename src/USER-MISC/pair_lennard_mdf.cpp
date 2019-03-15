@@ -389,7 +389,7 @@ double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
 void *PairLJ_AB_MDF::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"aparm") == 0) return (void *) aparm;
-  if (strcmp(str,"bparm") == 0) return (void *) bparm;
+  if (strcmp(str,"a") == 0) return (void *) aparm;
+  if (strcmp(str,"b") == 0) return (void *) bparm;
   return NULL;
 }

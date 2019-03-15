@@ -414,7 +414,7 @@ void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double
    compute the mechanical force due to the dmi interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3], 
+void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3],
     double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;

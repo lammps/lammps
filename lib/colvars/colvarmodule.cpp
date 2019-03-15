@@ -62,8 +62,6 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   use_scripted_forces = false;
   scripting_after_biases = false;
 
-  b_analysis = false;
-
   colvarmodule::debug_gradients_step_size = 1.0e-07;
 
   colvarmodule::rotation::monitor_crossings = false;
@@ -139,7 +137,7 @@ int colvarmodule::read_config_file(char const  *config_filename)
   // read the config file into a string
   std::string conf = "";
   std::string line;
-  while (colvarparse::getline_nocomments(config_s, line)) {
+  while (parse->read_config_line(config_s, line)) {
     // Delete lines that contain only white space after removing comments
     if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
       conf.append(line+"\n");
@@ -159,11 +157,12 @@ int colvarmodule::read_config_string(std::string const &config_str)
   // strip the comments away
   std::string conf = "";
   std::string line;
-  while (colvarparse::getline_nocomments(config_s, line)) {
+  while (parse->read_config_line(config_s, line)) {
     // Delete lines that contain only white space after removing comments
     if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
       conf.append(line+"\n");
   }
+
   return parse_config(conf);
 }
 
@@ -190,6 +189,12 @@ std::istream & colvarmodule::getline(std::istream &is, std::string &line)
 int colvarmodule::parse_config(std::string &conf)
 {
   extra_conf.clear();
+
+  // Check that the input has matching braces
+  if (colvarparse::check_braces(conf, 0) != COLVARS_OK) {
+    return cvm::error("Error: unmatched curly braces in configuration.\n",
+                      INPUT_ERROR);
+  }
 
   // Parse global options
   if (catch_input_errors(parse_global_params(conf))) {
@@ -235,6 +240,12 @@ int colvarmodule::parse_config(std::string &conf)
 }
 
 
+std::string const & colvarmodule::get_config() const
+{
+  return parse->get_config();
+}
+
+
 int colvarmodule::append_new_config(std::string const &new_conf)
 {
   extra_conf += new_conf;
@@ -246,9 +257,13 @@ int colvarmodule::parse_global_params(std::string const &conf)
 {
   colvarmodule *cvm = cvm::main();
 
-  std::string index_file_name;
-  if (parse->get_keyval(conf, "indexFile", index_file_name)) {
-    cvm->read_index_file(index_file_name.c_str());
+  {
+    std::string index_file_name;
+    size_t pos = 0;
+    while (parse->key_lookup(conf, "indexFile", &index_file_name, &pos)) {
+      cvm->read_index_file(index_file_name.c_str());
+      index_file_name.clear();
+    }
   }
 
   if (parse->get_keyval(conf, "smp", proxy->b_smp_active, proxy->b_smp_active)) {
@@ -257,7 +272,12 @@ int colvarmodule::parse_global_params(std::string const &conf)
     }
   }
 
-  parse->get_keyval(conf, "analysis", b_analysis, b_analysis);
+  bool b_analysis = true;
+  if (parse->get_keyval(conf, "analysis", b_analysis, true,
+                        colvarparse::parse_silent)) {
+    cvm::log("Warning: keyword \"analysis\" is deprecated: it is now set "
+             "to true; individual analyses are performed only if requested.");
+  }
 
   parse->get_keyval(conf, "debugGradientsStepSize", debug_gradients_step_size,
                     debug_gradients_step_size,
@@ -698,9 +718,7 @@ int colvarmodule::calc()
   error_code |= calc_biases();
   error_code |= update_colvar_forces();
 
-  if (cvm::b_analysis) {
-    error_code |= analyze();
-  }
+  error_code |= analyze();
 
   // write trajectory files, if needed
   if (cv_traj_freq && cv_traj_name.size()) {
@@ -718,6 +736,8 @@ int colvarmodule::calc()
     }
     write_output_files();
   }
+
+  error_code |= end_of_step();
 
   return error_code;
 }
@@ -1039,6 +1059,33 @@ int colvarmodule::analyze()
 }
 
 
+int colvarmodule::end_of_step()
+{
+  if (cvm::debug()) {
+    cvm::log("colvarmodule::end_of_step(), step = "+cvm::to_str(it)+".\n");
+  }
+
+  for (std::vector<colvar *>::iterator cvi = variables_active()->begin();
+       cvi != variables_active()->end();
+       cvi++) {
+    cvm::increase_depth();
+    (*cvi)->end_of_step();
+    cvm::decrease_depth();
+  }
+
+  // perform bias-specific analysis
+  for (std::vector<colvarbias *>::iterator bi = biases.begin();
+       bi != biases.end();
+       bi++) {
+    cvm::increase_depth();
+    (*bi)->end_of_step();
+    cvm::decrease_depth();
+  }
+
+  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+}
+
+
 int colvarmodule::setup()
 {
   if (this->size() == 0) return cvm::get_error();
@@ -1073,9 +1120,9 @@ colvarmodule::~colvarmodule()
 
 int colvarmodule::reset()
 {
-  parse->init();
-
   cvm::log("Resetting the Collective Variables module.\n");
+
+  parse->init();
 
   // Iterate backwards because we are deleting the elements as we go
   for (std::vector<colvarbias *>::reverse_iterator bi = biases.rbegin();
@@ -1878,7 +1925,6 @@ long      colvarmodule::it = 0;
 long      colvarmodule::it_restart = 0;
 size_t    colvarmodule::restart_out_freq = 0;
 size_t    colvarmodule::cv_traj_freq = 0;
-bool      colvarmodule::b_analysis = false;
 bool      colvarmodule::use_scripted_forces = false;
 bool      colvarmodule::scripting_after_biases = true;
 

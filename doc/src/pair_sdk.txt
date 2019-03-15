@@ -48,7 +48,7 @@ given by
 
 :c,image(Eqs/pair_cmm.jpg)
 
-as required for the SDK Coarse-grained MD parametrization discussed in
+as required for the SDK Coarse-grained MD parameterization discussed in
 "(Shinoda)"_#Shinoda3 and "(DeVane)"_#DeVane.  Rc is the cutoff.
 
 Style {lj/sdk/coul/long} computes the adds Coulombic interactions

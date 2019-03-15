@@ -72,11 +72,11 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
-  
+
   typename ArrayTypes<DeviceType>::t_tagint_1d tag;
   typename ArrayTypes<DeviceType>::t_int_1d d_npartner;
   typename ArrayTypes<DeviceType>::t_tagint_2d d_partner;
-  typename ArrayTypes<DeviceType>::t_float_2d d_valuepartner; 
+  typename ArrayTypes<DeviceType>::t_float_2d d_valuepartner;
 
   typename ArrayTypes<DeviceType>::t_int_scalar d_resize;
   typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;

@@ -19,7 +19,7 @@ barostat attempts to equilibrate the system to the requested T and/or
 P.
 
 Barostatting in LAMMPS is performed by "fixes"_fix.html.  Two
-barosttating methods are currently available: Nose-Hoover (npt and
+barostatting methods are currently available: Nose-Hoover (npt and
 nph) and Berendsen:
 
 "fix npt"_fix_nh.html

@@ -61,7 +61,7 @@ in "(Hecht)"_#Hecht.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
 can be spheroids, ellipsoids, or line segments, or triangles, or rigid
-bodies containing multiple spheriods or ellipsoids or line segments
+bodies containing multiple spheroids or ellipsoids or line segments
 or triangles.  The collision and rotation properties of the model
 imbue the SRD particles with fluid-like properties, including an
 effective viscosity.  Thus simulations with large solute particles can
@@ -117,7 +117,7 @@ Lamda cannot be smaller than 0.6 * hgrid, else an error is generated
 SRD particles are bounded by Vmax, which is set so that an SRD
 particle will not advect further than Dmax = 4*lamda in dt_SRD.  This
 means that roughly speaking, Dmax should not be larger than a big
-particle diameter, else SRDs may pass thru big particles without
+particle diameter, else SRDs may pass through big particles without
 colliding.  A warning is generated if this is the case.
 
 Collisions between SRD particles and big particles or walls are

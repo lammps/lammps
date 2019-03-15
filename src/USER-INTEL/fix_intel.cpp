@@ -65,6 +65,8 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   _nbor_pack_width = 1;
   _three_body_neighbor = 0;
+  _pair_intel_count = 0;
+  _hybrid_nonpair = 0;
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = -1.0;
@@ -266,8 +268,7 @@ FixIntel::~FixIntel()
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance != 0.0 && time1 != NULL && time2 != NULL &&
-        overflow != NULL) {
+    if (_offload_balance != 0.0) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(time1,time2,overflow:alloc_if(0) free_if(1))
     }
@@ -312,36 +313,59 @@ void FixIntel::init()
   }
   #endif
 
-  int nstyles = 0;
+  const int nstyles = _pair_intel_count;
   if (force->pair_match("hybrid", 1) != NULL) {
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        nstyles++;
+    _pair_hybrid_flag = 1;
+    if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
+      error->all(FLERR,
+                 "Intel package requires fdotr virial with newton on.");
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        nstyles++;
-      else
-        force->pair->no_virial_fdotr_compute = 1;
+    _pair_hybrid_flag = 1;
+    if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
+      error->all(FLERR,
+                 "Intel package requires fdotr virial with newton on.");
+  } else
+    _pair_hybrid_flag = 0;
+
+  if (nstyles > 1 && _pair_hybrid_flag) _pair_hybrid_flag = 2;
+  else if (force->newton_pair == 0) _pair_hybrid_flag = 0;
+
+  _pair_hybrid_zero = 0;
+  _zero_master = 0;
+
+  if (_pair_hybrid_flag && _hybrid_nonpair)
+    if (_pair_hybrid_flag > 1 || force->newton_pair == 0)
+      _pair_hybrid_zero = 1;
+  _hybrid_nonpair = 0;
+
+  _pair_intel_count = 0;
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (offload_balance() != 0.0) {
+    _pair_hybrid_zero = 0;
+    if (force->newton_pair == 0) _pair_hybrid_flag = 0;
+    if (nstyles > 1)
+      error->all(FLERR,
+        "Currently, cannot offload more than one intel style with hybrid.");
   }
-  if (nstyles > 1)
-    error->all(FLERR,
-               "Currently, cannot use more than one intel style with hybrid.");
+  #endif
 
   check_neighbor_intel();
+
   int off_mode = 0;
   if (_offload_balance != 0.0) off_mode = 1;
   if (_precision_mode == PREC_MODE_SINGLE) {
     _single_buffers->zero_ev();
     _single_buffers->grow_ncache(off_mode,_nthreads);
+    _single_buffers->free_list_ptrs();
   } else if (_precision_mode == PREC_MODE_MIXED) {
     _mixed_buffers->zero_ev();
     _mixed_buffers->grow_ncache(off_mode,_nthreads);
+    _mixed_buffers->free_list_ptrs();
   } else {
     _double_buffers->zero_ev();
     _double_buffers->grow_ncache(off_mode,_nthreads);
+    _double_buffers->free_list_ptrs();
   }
 
   _need_reduce = 0;
@@ -349,7 +373,7 @@ void FixIntel::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::setup(int /*vflag*/)
+void FixIntel::setup(int vflag)
 {
   if (neighbor->style != Neighbor::BIN)
     error->all(FLERR,
@@ -395,8 +419,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL &&
-        overflow != NULL) {
+    if (_offload_balance !=0.0) {
       #pragma offload_transfer target(mic:_cop)  \
         nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
         in(overflow:length(5) alloc_if(1) free_if(0))
@@ -419,6 +442,21 @@ void FixIntel::pair_init_check(const bool cdmessage)
     #endif
   }
 
+  #ifndef LMP_INTEL_NBOR_COMPAT
+  if (force->pair->manybody_flag && atom->molecular) {
+    int flag = 0;
+    if (atom->nbonds > 0 && force->special_lj[1] == 0.0 &&
+        force->special_coul[1] == 0.0) flag = 1;
+    if (atom->nangles > 0 && force->special_lj[2] == 0.0 &&
+        force->special_coul[2] == 0.0) flag = 1;
+    if (atom->ndihedrals > 0 && force->special_lj[3] == 0.0 &&
+        force->special_coul[3] == 0.0) flag = 1;
+    if (flag)
+      error->all(FLERR,"Add -DLMP_INTEL_NBOR_COMPAT to build for special_bond"
+                 " exclusions with Intel");
+  }
+  #endif
+
   int need_tag = 0;
   if (atom->molecular) need_tag = 1;
 
@@ -434,6 +472,8 @@ void FixIntel::pair_init_check(const bool cdmessage)
     strcpy(kmode, "double");
     get_double_buffers()->need_tag(need_tag);
   }
+
+  _pair_intel_count++;
 
   #ifdef _LMP_INTEL_OFFLOAD
   set_offload_affinity();
@@ -477,15 +517,11 @@ void FixIntel::bond_init_check()
   if (force->pair_match("/intel", 0) != NULL)
     intel_pair = 1;
   else if (force->pair_match("hybrid", 1) != NULL) {
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    _hybrid_nonpair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    _hybrid_nonpair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   }
 
   if (intel_pair == 0)
@@ -501,15 +537,11 @@ void FixIntel::kspace_init_check()
   if (force->pair_match("/intel", 0) != NULL)
     intel_pair = 1;
   else if (force->pair_match("hybrid", 1) != NULL) {
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    _hybrid_nonpair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    _hybrid_nonpair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   }
 
   if (intel_pair == 0)
@@ -522,56 +554,72 @@ void FixIntel::check_neighbor_intel()
 {
   #ifdef _LMP_INTEL_OFFLOAD
   _full_host_list = 0;
-  #endif
-  const int nrequest = neighbor->nrequest;
 
+  const int nrequest = neighbor->nrequest;
   for (int i = 0; i < nrequest; ++i) {
-    #ifdef _LMP_INTEL_OFFLOAD
     if (_offload_balance != 0.0 && neighbor->requests[i]->intel == 0) {
       _full_host_list = 1;
       _offload_noghost = 0;
     }
-    #endif
+    if (neighbor->requests[i]->skip && _offload_balance != 0.0)
+      error->all(FLERR, "Cannot yet use hybrid styles with Intel offload.");
 
     // avoid flagging a neighbor list as both USER-INTEL and USER-OMP
     if (neighbor->requests[i]->intel)
       neighbor->requests[i]->omp = 0;
-
-    if (neighbor->requests[i]->skip)
-      error->all(FLERR, "Hybrid styles with Intel package are unsupported.");
   }
+  #else
+  // avoid flagging a neighbor list as both USER-INTEL and USER-OMP
+  const int nrequest = neighbor->nrequest;
+  for (int i = 0; i < nrequest; ++i)
+    if (neighbor->requests[i]->intel)
+      neighbor->requests[i]->omp = 0;
+  #endif
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::pre_reverse(int /*eflag*/, int /*vflag*/)
+void FixIntel::_sync_main_arrays(const int prereverse)
 {
+  if (!prereverse) _zero_master = 1;
+  int done_this_step = prereverse;
+  if (_pair_hybrid_zero == 0) done_this_step = 1;
   if (_force_array_m != 0) {
     if (_need_reduce) {
       reduce_results(&_force_array_m[0].x);
       _need_reduce = 0;
     }
     add_results(_force_array_m, _ev_array_d, _results_eatom, _results_vatom,0);
-    _force_array_m = 0;
+    if (done_this_step) _force_array_m = 0;
+    else _ev_array_d = 0;
   } else if (_force_array_d != 0) {
     if (_need_reduce) {
       reduce_results(&_force_array_d[0].x);
       _need_reduce = 0;
     }
     add_results(_force_array_d, _ev_array_d, _results_eatom, _results_vatom,0);
-    _force_array_d = 0;
+    if (done_this_step) _force_array_d = 0;
+    else _ev_array_d = 0;
   } else if (_force_array_s != 0) {
     if (_need_reduce) {
       reduce_results(&_force_array_s[0].x);
       _need_reduce = 0;
     }
     add_results(_force_array_s, _ev_array_s, _results_eatom, _results_vatom,0);
-    _force_array_s = 0;
+    if (done_this_step) _force_array_s = 0;
+    else _ev_array_s = 0;
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_sync_mode == 1) sync_coprocessor();
   #endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIntel::pre_reverse(int /*eflag*/, int /*vflag*/)
+{
+  _sync_main_arrays(1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -657,7 +705,7 @@ template <class ft, class acc_t>
 void FixIntel::add_results(const ft * _noalias const f_in,
                            const acc_t * _noalias const ev_global,
                            const int eatom, const int vatom,
-                           const int /*offload*/) {
+                           const int offload) {
   start_watch(TIME_PACK);
   int f_length;
   #ifdef _LMP_INTEL_OFFLOAD

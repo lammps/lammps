@@ -241,17 +241,16 @@ elif [ "$MACHINE" = "white" ]; then
 
   BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
   IBM_MODULE_LIST="<COMPILER_NAME>/xl/<COMPILER_VERSION>"
-  CUDA_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/5.4.0"
-  CUDA_MODULE_LIST2="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/6.3.0,ibm/xl/13.1.6"
+  CUDA_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/6.4.0,ibm/xl/16.1.0"
 
   # Don't do pthread on white.
   GCC_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
 
   # Format: (compiler module-list build-list exe-name warning-flag)
   COMPILERS=("gcc/5.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
-             "ibm/13.1.6 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
-             "cuda/8.0.44 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
-             "cuda/9.0.103 $CUDA_MODULE_LIST2 $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+             "gcc/6.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "ibm/16.1.0 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
+             "cuda/9.0.103 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
   )
 
   if [ -z "$ARCH_FLAG" ]; then
@@ -362,7 +361,7 @@ elif [ "$MACHINE" = "apollo" ]; then
                "gcc/5.3.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
                "intel/16.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
                "clang/3.9.0 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
-               "clang/6.0 $CLANG_MODULE_LIST "Cuda_Pthread" clang++ $CUDA_WARNING_FLAGS"
+               "clang/6.0 $CLANG_MODULE_LIST "Cuda_Pthread,OpenMP" clang++ $CUDA_WARNING_FLAGS"
                "cuda/9.1 $CUDA_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
     )
   else

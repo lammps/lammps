@@ -34,6 +34,10 @@ class Atom : protected Pointers {
   int tag_enable;               // 0/1 if atom ID tags are defined
   int molecular;                // 0 = atomic, 1 = standard molecular system,
                                 // 2 = molecule template system
+  bigint nellipsoids;           // number of ellipsoids
+  bigint nlines;                // number of lines
+  bigint ntris;                 // number of triangles
+  bigint nbodies;               // number of bodies
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
@@ -232,6 +236,8 @@ class Atom : protected Pointers {
   void tag_check();
   void tag_extend();
   int tag_consecutive();
+
+  void bonus_check();
 
   int parse_data(const char *);
   int count_words(const char *);
@@ -495,12 +501,6 @@ E: Atom sort did not operate correctly
 
 This is an internal LAMMPS error.  Please report it to the
 developers.
-
-E: Atom sorting has bin size = 0.0
-
-The neighbor cutoff is being used as the bin size, but it is zero.
-Thus you must explicitly list a bin size in the atom_modify sort
-command or turn off sorting.
 
 E: Too many atom sorting bins
 

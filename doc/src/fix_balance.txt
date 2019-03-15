@@ -57,7 +57,7 @@ This command adjusts the size and shape of processor sub-domains
 within the simulation box, to attempt to balance the number of
 particles and thus the computational cost (load) evenly across
 processors.  The load balancing is "dynamic" in the sense that
-rebalancing is performed periodically during the simulation.  To
+re-balancing is performed periodically during the simulation.  To
 perform "static" balancing, before or between runs, see the
 "balance"_balance.html command.
 
@@ -178,15 +178,15 @@ The {group-ID} is ignored.  However the impact of balancing on
 different groups of atoms can be affected by using the {group} weight
 style as described below.
 
-The {Nfreq} setting determines how often a rebalance is performed.  If
-{Nfreq} > 0, then rebalancing will occur every {Nfreq} steps.  Each
-time a rebalance occurs, a reneighboring is triggered, so {Nfreq}
-should not be too small.  If {Nfreq} = 0, then rebalancing will be
+The {Nfreq} setting determines how often a re-balance is performed.  If
+{Nfreq} > 0, then re-balancing will occur every {Nfreq} steps.  Each
+time a re-balance occurs, a reneighboring is triggered, so {Nfreq}
+should not be too small.  If {Nfreq} = 0, then re-balancing will be
 done every time reneighboring normally occurs, as determined by the
 the "neighbor"_neighbor.html and "neigh_modify"_neigh_modify.html
 command settings.
 
-On rebalance steps, rebalancing will only be attempted if the current
+On re-balance steps, re-balancing will only be attempted if the current
 imbalance factor, as defined above, exceeds the {thresh} setting.
 
 :line
@@ -208,7 +208,7 @@ to {Niter} times.  After each dimension finishes, the imbalance factor
 is re-computed, and the balancing operation halts if the {stopthresh}
 criterion is met.
 
-A rebalance operation in a single dimension is performed using a
+A re-balance operation in a single dimension is performed using a
 density-dependent recursive multisectioning algorithm, where the
 position of each cutting plane (line in 2d) in the dimension is
 adjusted independently.  This is similar to a recursive bisectioning
@@ -226,19 +226,19 @@ the recursion progresses, the count of particles on either side of the
 plane gets closer to the target value.
 
 The density-dependent part of this algorithm is often an advantage
-when you rebalance a system that is already nearly balanced.  It
+when you re-balance a system that is already nearly balanced.  It
 typically converges more quickly than the geometric bisectioning
 algorithm used by the "balance"_balance.html command.  However, if can
-be a disadvantage if you attempt to rebalance a system that is far
+be a disadvantage if you attempt to re-balance a system that is far
 from balanced, and converge more slowly.  In this case you probably
 want to use the "balance"_balance.html command before starting a run,
 so that you begin the run with a balanced system.
 
-Once the rebalancing is complete and final processor sub-domains
+Once the re-balancing is complete and final processor sub-domains
 assigned, particles migrate to their new owning processor as part of
 the normal reneighboring procedure.
 
-NOTE: At each rebalance operation, the bisectioning for each cutting
+NOTE: At each re-balance operation, the bisectioning for each cutting
 plane (line in 2d) typically starts with low and high bounds separated
 by the extent of a processor's sub-domain in one dimension.  The size
 of this bracketing region shrinks based on the local density, as
@@ -248,7 +248,7 @@ typically be positioned to better than 1 part in 1000 accuracy
 (relative to the perfect target position).  For {Niter} = 20, it will
 be accurate to better than 1 part in a million.  Thus there is no need
 to set {Niter} to a large value.  This is especially true if you are
-rebalancing often enough that each time you expect only an incremental
+re-balancing often enough that each time you expect only an incremental
 adjustment in the cutting planes is necessary.  LAMMPS will check if
 the threshold accuracy is reached (in a dimension) is less iterations
 than {Niter} and exit early.
@@ -283,7 +283,7 @@ in that sub-box.
 :line
 
 The {out} keyword writes text to the specified {filename} with the
-results of each rebalancing operation.  The file contains the bounds
+results of each re-balancing operation.  The file contains the bounds
 of the sub-domain for each processor after the balancing operation
 completes.  The format of the file is compatible with the
 "Pizza.py"_pizza {mdump} tool which has support for manipulating and
@@ -344,13 +344,13 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global scalar which is the imbalance factor
-after the most recent rebalance and a global vector of length 3 with
-additional information about the most recent rebalancing.  The 3
+after the most recent re-balance and a global vector of length 3 with
+additional information about the most recent re-balancing.  The 3
 values in the vector are as follows:
 
 1 = max # of particles per processor
-2 = total # iterations performed in last rebalance
-3 = imbalance factor right before the last rebalance was performed :ul
+2 = total # iterations performed in last re-balance
+3 = imbalance factor right before the last re-balance was performed :ul
 
 As explained above, the imbalance factor is the ratio of the maximum
 number of particles (or total weight) on any processor to the average
@@ -371,8 +371,13 @@ minimization"_minimize.html.
 For 2d simulations, the {z} style cannot be used.  Nor can a "z"
 appear in {dimstr} for the {shift} style.
 
+Balancing through recursive bisectioning ({rcb} style) requires
+"comm_style tiled"_comm_style.html
+
 [Related commands:]
 
-"group"_group.html, "processors"_processors.html, "balance"_balance.html
+"group"_group.html, "processors"_processors.html, "balance"_balance.html,
+"comm_style"_comm_style.html
 
 [Default:] none
+:link(pizza,http://pizza.sandia.gov)

@@ -158,7 +158,7 @@ void PairSPHHeatConduction::allocate() {
 void PairSPHHeatConduction::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/heatconduction");
+        "Illegal number of arguments for pair_style sph/heatconduction");
 }
 
 /* ----------------------------------------------------------------------

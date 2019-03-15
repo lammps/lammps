@@ -429,14 +429,14 @@ char *Input::nextword(char *str, char **next)
     start += 3;
     *next = stop+3;
     if (**next && !isspace(**next))
-      error->all(FLERR,"Input line quote not followed by whitespace");
+      error->all(FLERR,"Input line quote not followed by white-space");
   } else if (*start == '"' || *start == '\'') {
     stop = strchr(&start[1],*start);
     if (!stop) error->all(FLERR,"Unbalanced quotes in input line");
     start++;
     *next = stop+1;
     if (**next && !isspace(**next))
-      error->all(FLERR,"Input line quote not followed by whitespace");
+      error->all(FLERR,"Input line quote not followed by white-space");
   } else {
     stop = &start[strcspn(start," \t\n\v\f\r")];
     if (*stop == '\0') *next = stop;
@@ -1138,7 +1138,7 @@ void Input::partition()
 {
   if (narg < 3) error->all(FLERR,"Illegal partition command");
 
-  int yesflag;
+  int yesflag = 0;
   if (strcmp(arg[0],"yes") == 0) yesflag = 1;
   else if (strcmp(arg[0],"no") == 0) yesflag = 0;
   else error->all(FLERR,"Illegal partition command");
@@ -1633,7 +1633,8 @@ void Input::kspace_modify()
 
 void Input::kspace_style()
 {
-  force->create_kspace(narg,arg,1);
+  force->create_kspace(arg[0],1);
+  if (force->kspace) force->kspace->settings(narg-1,&arg[1]);
 }
 
 /* ---------------------------------------------------------------------- */

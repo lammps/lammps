@@ -225,8 +225,7 @@ atomfile-style variable.  The variable is evaluated and atoms whose
 per-atom values are 0.0, are removed from the dynamic group. If the {property}
 keyword is used, the per-atom property name must be a previously defined
 per-atom property.  The per-atom property is evaluated and atoms whose
-values are 0.0 are removed from the dynamic group, otherwise they
-are added to the group.
+values are 0.0 are removed from the dynamic group.
 
 The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of {N}, which is the

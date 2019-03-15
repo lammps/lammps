@@ -170,7 +170,7 @@ The size of the MPI datatype does not match the size of a bigint.
 
 E: Small to big integers are not sized correctly
 
-This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
+This error occurs when the sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 

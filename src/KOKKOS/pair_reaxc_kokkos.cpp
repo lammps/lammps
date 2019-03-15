@@ -530,9 +530,7 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
       Natural_Cubic_Spline( &h[1], &fCEclmb[1],
                             &(LR[i][j].CEclmb[1]), control->tabulate+1,
                             world );
-    }// else{
-     // LR[i][j].n = 0;
-    //}//
+    }
   }
   free(h);
   free(fh);
@@ -556,7 +554,7 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 
   for( i = 0; i <= ntypes; ++i ) {
     for( j = i; j <= ntypes; ++j )
-      if( LR[i][j].n ) {
+      if (LR[i][j].n) {
         sfree( LR[i][j].y, "LR[i,j].y" );
         sfree( LR[i][j].H, "LR[i,j].H" );
         sfree( LR[i][j].vdW, "LR[i,j].vdW" );
@@ -622,7 +620,7 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
       lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
         Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
     }
-  else{ // no shielding
+  else { // no shielding
     exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
     exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -854,7 +852,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbo);
     //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi);
     //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi2);
-  } else { 
+  } else {
     ndup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_CdDelta);
     //ndup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbo);
     //ndup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi);
@@ -1319,7 +1317,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
     /* Cubic Spline Interpolation */
     int r = (int)(rij * t.inv_dx);
-    if( r == 0 )  ++r;
+    if (r == 0)  ++r;
     const F_FLOAT base = (double)(r+1) * t.dx;
     const F_FLOAT dif = rij - base;
 
@@ -1436,14 +1434,6 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
   d_CdDelta = typename AT::t_ffloat_1d("reax/c/kk:CdDelta",nmax);
   d_sum_ovun = typename AT::t_ffloat_2d_dl("reax/c/kk:sum_ovun",nmax,3);
 
-  // FixReaxCSpecies
-  if (fixspecies_flag) {
-    memoryKK->destroy_kokkos(k_tmpid,tmpid);
-    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
-    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
-  }
-
   // FixReaxCBonds
   d_abo = typename AT::t_ffloat_2d("reax/c/kk:abo",nmax,maxbo);
   d_neighid = typename AT::t_tagint_2d("reax/c/kk:neighid",nmax,maxbo);
@@ -1536,7 +1526,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         const int jj_index = hb_index - hb_first_i;
         if (jj_index >= maxhb) {
           d_resize_hb() = 1;
@@ -1704,7 +1694,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
@@ -1927,7 +1917,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
@@ -2290,7 +2280,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder3, const int &ii) 
   const F_FLOAT Clp = 2.0 * gp[15] * explp1 * (2.0 + vlpex);
   d_dDelta_lp[i] = Clp;
 
-  if( paramssing(itype).mass > 21.0 ) {
+  if (paramssing(itype).mass > 21.0) {
     nlp_temp = 0.5 * (paramssing(itype).valency_e - paramssing(itype).valency);
     d_Delta_lp_temp[i] = paramssing(itype).nlp_opt - nlp_temp;
   } else {
@@ -2569,10 +2559,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   const F_FLOAT vlpex = Delta_e - 2.0 * (int)(Delta_e/2.0);
   const F_FLOAT explp1 = exp(-gp[15] * SQR(2.0 + vlpex));
   const F_FLOAT nlp = explp1 - (int)(Delta_e / 2.0);
-  if( vlpex >= 0.0 ){
+  if (vlpex >= 0.0) {
     vlpadj = 0.0;
     dSBO2 = prod_SBO - 1.0;
-  } else{
+  } else {
     vlpadj = nlp;
     dSBO2 = (prod_SBO - 1.0) * (1.0 - p_val8 * d_dDelta_lp[i]);
   }
@@ -2580,13 +2570,13 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   SBO = SBOp + (1.0 - prod_SBO) * (-d_Delta_boc[i] - p_val8 * vlpadj);
   dSBO1 = -8.0 * prod_SBO * ( d_Delta_boc[i] + p_val8 * vlpadj );
 
-  if( SBO <= 0.0 ) {
+  if (SBO <= 0.0) {
     SBO2 = 0.0;
     CSBO2 = 0.0;
-  } else if( SBO > 0.0 && SBO <= 1.0 ) {
+  } else if (SBO > 0.0 && SBO <= 1.0) {
     SBO2 = pow( SBO, p_val9 );
     CSBO2 = p_val9 * pow( SBO, p_val9 - 1.0 );
-  } else if( SBO > 1.0 && SBO < 2.0 ) {
+  } else if (SBO > 1.0 && SBO < 2.0) {
     SBO2 = 2.0 - pow( 2.0-SBO, p_val9 );
     CSBO2 = p_val9 * pow( 2.0 - SBO, p_val9 - 1.0 );
   } else {
@@ -2642,8 +2632,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       // theta and derivatives
 
       cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if( cos_theta > 1.0 ) cos_theta  = 1.0;
-      if( cos_theta < -1.0 ) cos_theta  = -1.0;
+      if (cos_theta > 1.0) cos_theta  = 1.0;
+      if (cos_theta < -1.0) cos_theta  = -1.0;
       theta = acos(cos_theta);
 
       const F_FLOAT inv_dists = 1.0 / (rij * rik);
@@ -2684,7 +2674,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       theta_0 = theta_0*constPI/180.0;
 
       expval2theta  = exp( -p_val2 * (theta_0-theta)*(theta_0-theta) );
-      if( p_val1 >= 0 )
+      if (p_val1 >= 0)
         expval12theta = p_val1 * (1.0 - expval2theta);
       else // To avoid linear Me-H-Me angles (6/6/06)
         expval12theta = p_val1 * -expval2theta;
@@ -2912,8 +2902,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
       const F_FLOAT rik = sqrt(rsqik);
 
       cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if( cos_ijk > 1.0 ) cos_ijk  = 1.0;
-      if( cos_ijk < -1.0 ) cos_ijk  = -1.0;
+      if (cos_ijk > 1.0) cos_ijk  = 1.0;
+      if (cos_ijk < -1.0) cos_ijk  = -1.0;
       theta_ijk = acos(cos_ijk);
 
       // dcos_ijk
@@ -2927,7 +2917,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
       }
 
       sin_ijk = sin( theta_ijk );
-      if( sin_ijk >= 0 && sin_ijk <= 1e-10 )
+      if (sin_ijk >= 0 && sin_ijk <= 1e-10)
         tan_ijk_i = cos_ijk / 1e-10;
       else if( sin_ijk <= 0 && sin_ijk >= -1e-10 )
         tan_ijk_i = -cos_ijk / 1e-10;
@@ -2954,8 +2944,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         BOA_jl = bo_jl - thb_cut;
 
         cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
-        if( cos_jil > 1.0 ) cos_jil  = 1.0;
-        if( cos_jil < -1.0 ) cos_jil  = -1.0;
+        if (cos_jil > 1.0) cos_jil  = 1.0;
+        if (cos_jil < -1.0) cos_jil  = -1.0;
         theta_jil = acos(cos_jil);
 
         // dcos_jil
@@ -2970,7 +2960,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         }
 
         sin_jil = sin( theta_jil );
-        if( sin_jil >= 0 && sin_jil <= 1e-10 )
+        if (sin_jil >= 0 && sin_jil <= 1e-10)
           tan_jil_i = cos_jil / 1e-10;
         else if( sin_jil <= 0 && sin_jil >= -1e-10 )
           tan_jil_i = -cos_jil / 1e-10;
@@ -3010,21 +3000,21 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         hnhe = rik * rjl * sin_ijk * cos_jil;
 
         poem = 2.0 * rik * rjl * sin_ijk * sin_jil;
-        if( poem < 1e-20 ) poem = 1e-20;
+        if (poem < 1e-20) poem = 1e-20;
 
         tel = SQR(rik) + SQR(rij) + SQR(rjl) - SQR(rlk) -
               2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
 
         arg = tel / poem;
-        if( arg >  1.0 ) arg =  1.0;
-        if( arg < -1.0 ) arg = -1.0;
+        if (arg >  1.0) arg =  1.0;
+        if (arg < -1.0) arg = -1.0;
 
         F_FLOAT sin_ijk_rnd = sin_ijk;
         F_FLOAT sin_jil_rnd = sin_jil;
 
-        if( sin_ijk >= 0 && sin_ijk <= 1e-10 ) sin_ijk_rnd = 1e-10;
+        if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
         else if( sin_ijk <= 0 && sin_ijk >= -1e-10 ) sin_ijk_rnd = -1e-10;
-        if( sin_jil >= 0 && sin_jil <= 1e-10 ) sin_jil_rnd = 1e-10;
+        if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
         else if( sin_jil <= 0 && sin_jil >= -1e-10 ) sin_jil_rnd = -1e-10;
 
         // dcos_omega_di
@@ -3198,7 +3188,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
 
   const int i = d_ilist[ii];
   const int itype = type(i);
-  if( paramssing(itype).p_hbond != 1 ) return;
+  if (paramssing(itype).p_hbond != 1) return;
 
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -3218,7 +3208,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
     const int j_index = jj - j_start;
     const F_FLOAT bo_ij = d_BO(i,j_index);
 
-    if( paramssing(jtype).p_hbond == 2 && bo_ij >= HB_THRESHOLD ) {
+    if (paramssing(jtype).p_hbond == 2 && bo_ij >= HB_THRESHOLD) {
       hblist[top] = jj;
       top ++;
     }
@@ -3258,8 +3248,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
 
       // theta and derivatives
       cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if( cos_theta > 1.0 ) cos_theta  = 1.0;
-      if( cos_theta < -1.0 ) cos_theta  = -1.0;
+      if (cos_theta > 1.0) cos_theta  = 1.0;
+      if (cos_theta < -1.0) cos_theta  = -1.0;
       theta = acos(cos_theta);
 
       const F_FLOAT inv_dists = 1.0 / (rij * rik);
@@ -3477,8 +3467,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     // Stabilisation terminal triple bond
     F_FLOAT estriph = 0.0;
 
-    if( BO_i >= 1.00 ) {
-      if( gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
+    if (BO_i >= 1.00) {
+      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
                          (jmass == 12.0000 && imass == 15.9990) ) {
         const F_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50) );
         const F_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
@@ -4239,6 +4229,14 @@ void PairReaxCKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const boo
 template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
+
+  if (nmax > k_tmpid.extent(0)) {
+    memoryKK->destroy_kokkos(k_tmpid,tmpid);
+    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
+    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+  }
+
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpeciesZero>(0,nmax),*this);
 

@@ -63,9 +63,11 @@ public:
 
   const size_type nwork;
 
+  KOKKOS_INLINE_FUNCTION
   ReduceFunctor( const size_type & arg_nwork )
     : nwork( arg_nwork ) {}
 
+  KOKKOS_INLINE_FUNCTION
   ReduceFunctor( const ReduceFunctor & rhs )
     : nwork( rhs.nwork ) {}
 
@@ -102,6 +104,7 @@ class ReduceFunctorFinal : public ReduceFunctor< long, DeviceType > {
 public:
   typedef typename ReduceFunctor< long, DeviceType >::value_type value_type;
 
+  KOKKOS_INLINE_FUNCTION
   ReduceFunctorFinal( const size_t n )
     : ReduceFunctor< long, DeviceType >( n ) {}
 

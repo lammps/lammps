@@ -111,8 +111,7 @@ For the {hertz/material} model, the force is given by:
 Here, \(E_\{eff\} = E = \left(\frac\{1-\nu_i^2\}\{E_i\} + \frac\{1-\nu_j^2\}\{E_j\}\right)^\{-1\}\) 
 is the effective Young's modulus,
 with \(\nu_i, \nu_j \) the Poisson ratios of the particles of types {i} and {j}. Note that
-if the elastic and shear moduli of the 
-two particles are the same, the {hertz/material}
+if the elastic modulus and the shear modulus of the two particles are the same, the {hertz/material}
 model is equivalent to the {hertz} model with \(k_N = 4/3 E_\{eff\}\)
 
 The {dmt} model corresponds to the "(Derjaguin-Muller-Toporov)"_#DMT1975 cohesive model, 
@@ -188,7 +187,7 @@ for all models except {jkr}, for which it is given implicitly according to \(del
 In this case, \eta_\{n0\}\ is in units of 1/({time}*{distance}).
 
 The {tsuji} model is based on the work of "(Tsuji et al)"_#Tsuji1992. Here, the
-damping coefficient specified as part of the normal model is intepreted
+damping coefficient specified as part of the normal model is interpreted
 as a restitution coefficient \(e\). The damping constant \(\eta_n\) is given by:
 
 \begin\{equation\}
@@ -242,7 +241,7 @@ The tangential damping force \(\mathbf\{F\}_\mathrm\{t,damp\}\) is given by:
 \mathbf\{F\}_\mathrm\{t,damp\} = -\eta_t \mathbf\{v\}_\{t,rel\}
 \end\{equation\}
 
-The tangetial damping prefactor \(\eta_t\) is calculated by scaling the normal damping \(\eta_n\) (see above): 
+The tangential damping prefactor \(\eta_t\) is calculated by scaling the normal damping \(\eta_n\) (see above): 
 \begin\{equation\}
 \eta_t = -x_\{\gamma,t\} \eta_n
 \end\{equation\}
@@ -292,7 +291,7 @@ duration of the contact:
 \mathbf\{\xi\} = \int_\{t0\}^t \mathbf\{v\}_\{t,rel\}(\tau) \mathrm\{d\}\tau 
 \end\{equation\}
 
-This accumlated tangential displacement must be adjusted to account for changes 
+This accumulated tangential displacement must be adjusted to account for changes 
 in the frame of reference 
 of the contacting pair of particles during contact. This occurs due to the overall motion of the contacting particles
 in a rigid-body-like fashion during the duration of the contact. There are two modes of motion
@@ -304,7 +303,7 @@ made by rotating the accumulated displacement into the plane that is tangential
 to the contact vector at each step, 
 or equivalently removing any component of the tangential displacement
 that lies along \(\mathbf\{n\}\), and rescaling to preserve the magnitude. 
-This folllows the discussion in "Luding"_#Luding2008, see equation 17 and 
+This follows the discussion in "Luding"_#Luding2008, see equation 17 and 
 relevant discussion in that work:
 
 \begin\{equation\}
@@ -350,7 +349,7 @@ see discussion above. To match the Mindlin solution, one should set \(k_t = 8G\)
 \(G\) is the shear modulus, related to Young's modulus \(E\) by \(G = E/(2(1+\nu))\), where \(\nu\) 
 is Poisson's ratio. This can also be achieved by specifying {NULL} for \(k_t\), in which case
 a normal contact model that specifies material parameters \(E\) and \(\nu\) is required (e.g. {hertz/material},
-{dmt} or {jkr}). In this case, mixing of shear moduli for different particle types {i} and {j} is done according
+{dmt} or {jkr}). In this case, mixing of the shear modulus for different particle types {i} and {j} is done according
 to:
 \begin\{equation\}
 1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j 
@@ -381,7 +380,7 @@ If the {rolling} keyword is not specified, the model defaults to {none}.
 For {rolling sds}, rolling friction is computed via a spring-dashpot-slider, using a 
 'pseudo-force' formulation, as detailed by "Luding"_#Luding2008. Unlike the formulation
 in "Marshall"_#Marshall2009, this allows for the required adjustment of 
-rolling displacement due to changes in the frame of referenece of the contacting pair. 
+rolling displacement due to changes in the frame of reference of the contacting pair. 
 The rolling pseudo-force is computed analogously to the tangential force:
  
 \begin\{equation\}
@@ -487,7 +486,7 @@ Finally, the twisting torque on each particle is given by:
 :line
 
 LAMMPS automatically sets pairwise cutoff values for {pair_style granular} based on particle radii (and in the case
-of {jkr} pulloff distances). In the vast majority of situations, this is adequate.
+of {jkr} pull-off distances). In the vast majority of situations, this is adequate.
 However, a cutoff value can optionally be appended to the {pair_style granular} command to specify
 a global cutoff (i.e. a cutoff for all atom types). Additionally, the optional {cutoff} keyword 
 can be passed to the {pair_coeff} command, followed by a cutoff value. 
@@ -533,7 +532,7 @@ Mixing of coefficients is carried out using geometric averaging for
 most quantities, e.g. if friction coefficient for type 1-type 1 interactions
 is set to \(\mu_1\), and friction coefficient for type 2-type 2 interactions
 is set to \(\mu_2\), the friction coefficient for type1-type2 interactions
-is computed as \(\sqrt\{\mu_1\mu_2\}\) (unless explictly specified to 
+is computed as \(\sqrt\{\mu_1\mu_2\}\) (unless explicitly specified to 
 a different value by a {pair_coeff 1 2 ...} command. The exception to this is 
 elastic modulus, only applicable to {hertz/material}, {dmt} and {jkr} normal 
 contact models. In that case, the effective elastic modulus is computed as:
@@ -542,7 +541,7 @@ contact models. In that case, the effective elastic modulus is computed as:
 E_\{eff,ij\} = \left(\frac\{1-\nu_i^2\}\{E_i\} + \frac\{1-\nu_j^2\}\{E_j\}\right)^\{-1\}
 \end\{equation\}
 
-If the {i-j} coefficients \(E_\{ij\}\) and \(\nu_\{ij\}\) are explictly specified, 
+If the {i-j} coefficients \(E_\{ij\}\) and \(\nu_\{ij\}\) are explicitly specified, 
 the effective modulus is computed as:
 
 \begin\{equation\}

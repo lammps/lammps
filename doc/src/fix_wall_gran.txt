@@ -7,7 +7,6 @@
 :line
 
 fix wall/gran command :h3
-fix wall/gran/omp command :h3
 
 [Syntax:]
 
@@ -150,28 +149,6 @@ cylinder is moving in the z-direction along it's axis.  A dimension of
 the clockwise direction for {vshear} > 0 or counter-clockwise for
 {vshear} < 0.  In this case, {vshear} is the tangential velocity of
 the wall at whatever {radius} has been defined.
-
-:line
-
-Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the "Speed packages"_Speed_packages.html doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Build
-package"_Build_package.html doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the "-suffix command-line
-switch"_Run_options.html when you invoke LAMMPS, or you can use the
-"suffix"_suffix.html command in your input script.
-
-See the "Speed packages"_Speed_packages.html doc page for more
-instructions on how to use the accelerated styles effectively.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

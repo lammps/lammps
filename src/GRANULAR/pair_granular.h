@@ -21,7 +21,6 @@ PairStyle(granular,PairGranular)
 #define LMP_PAIR_GRANULAR_H
 
 #include "pair.h"
-#include "pair_granular.h"
 
 namespace LAMMPS_NS {
 

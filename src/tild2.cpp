@@ -581,6 +581,10 @@ void TILD::field_groups(int AA_flag){
 
   double partial_group;
 
+
+  fft1->compute(work_A, work_A,1);
+
+
   /************************************************************************
    * OLD RIGGLEMAN CODE
   ///////////////////////////////////////////////
@@ -628,5 +632,25 @@ void TILD::field_groups(int AA_flag){
   ***************************************************************************/
 
   
+
+}
+
+
+// void TILD::get_k_alias(int id, double k[domain->dimension]){
+
+// }
+
+void TILD::field_gradient(FFT_SCALAR *in, 
+                          FFT_SCALAR *out, int flag,
+                          int dir)
+{
+  int i; 
+  int Dim = domain->dimension;
+  double k2, kv[Dim];
+  fft1->compute(in, in, 1);
+
+  // for (i = 0; i <)
+
+  fft2->compute(in, out, -1);
 
 }

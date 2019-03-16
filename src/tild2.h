@@ -38,6 +38,8 @@ class TILD : public PPPM {
 
   void compute_group_group(int, int, int);
   void field_groups(int);
+  void field_gradient(FFT_SCALAR*, FFT_SCALAR*, int, int);
+  // void get_k_alias(int, double *);
 
  protected:
   double **grad_uG, **grad_uG_hat;

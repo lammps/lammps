@@ -33,6 +33,7 @@ class CommKokkos : public CommBrick {
   CommKokkos(class LAMMPS *);
   ~CommKokkos();
   void init();
+  void setup();
 
   void forward_comm(int dummy = 0);    // forward comm of atom coords
   void reverse_comm();                 // reverse comm of atom coords
@@ -82,7 +83,7 @@ class CommKokkos : public CommBrick {
   void grow_recv_kokkos(int, ExecutionSpace space = Host);
   void grow_list(int, int);
   void grow_swap(int);
-  void copy_pbc_info();
+  void copy_swap_info();
 };
 
 }

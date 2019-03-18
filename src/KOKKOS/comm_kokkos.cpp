@@ -140,6 +140,31 @@ void CommKokkos::init()
     forward_comm_classic = true;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void CommKokkos::setup()
+{
+  CommBrick::setup();
+
+  k_pbc_flag = DAT::tdual_int_1d("comm:pbc_flag",nswap);
+  k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
+
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    k_pbc_flag.h_view[iswap] = pbc_flag[iswap];
+    k_pbc.h_view(iswap,0) = pbc[iswap][0];
+    k_pbc.h_view(iswap,1) = pbc[iswap][1];
+    k_pbc.h_view(iswap,2) = pbc[iswap][2];
+    k_pbc.h_view(iswap,3) = pbc[iswap][3];
+    k_pbc.h_view(iswap,4) = pbc[iswap][4];
+    k_pbc.h_view(iswap,5) = pbc[iswap][5];
+  }
+  k_pbc_flag.modify<LMPHostType>();
+  k_pbc.modify<LMPHostType>();
+
+  k_pbc_flag.sync<LMPDeviceType>();
+  k_pbc.sync<LMPDeviceType>();
+}
+
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep
    other per-atom attributes may also be sent via pack/unpack routines
@@ -759,7 +784,7 @@ void CommKokkos::borders()
   }
 
   if (comm->nprocs == 1 && !forward_comm_classic)
-    copy_pbc_info();
+    copy_swap_info();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1049,38 +1074,25 @@ void CommKokkos::borders_device() {
 }
 
 /* ----------------------------------------------------------------------
-   copy pbc info
+   copy swap info
 ------------------------------------------------------------------------- */
 
-void CommKokkos::copy_pbc_info()
+void CommKokkos::copy_swap_info()
 {
-  if (nswap > k_pbc.extent(0)) {
-    k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
-    k_swap = DAT::tdual_int_2d("comm:swap",3,nswap);
-    k_pbc_flag    .d_view = Kokkos::subview(k_swap.d_view,0,Kokkos::ALL);
-    k_firstrecv   .d_view = Kokkos::subview(k_swap.d_view,1,Kokkos::ALL);
-    k_sendnum_scan.d_view = Kokkos::subview(k_swap.d_view,2,Kokkos::ALL);
-    k_pbc_flag    .h_view = Kokkos::subview(k_swap.h_view,0,Kokkos::ALL);
-    k_firstrecv   .h_view = Kokkos::subview(k_swap.h_view,1,Kokkos::ALL);
-    k_sendnum_scan.h_view = Kokkos::subview(k_swap.h_view,2,Kokkos::ALL);
+  if (nswap > k_swap.extent(1)) {
+    k_swap = DAT::tdual_int_2d("comm:swap",2,nswap);
+    k_firstrecv    = Kokkos::subview(k_swap,0,Kokkos::ALL);
+    k_sendnum_scan = Kokkos::subview(k_swap,1,Kokkos::ALL);
   }
   int scan = 0;
   for (int iswap = 0; iswap < nswap; iswap++) {
     scan += sendnum[iswap];
     k_sendnum_scan.h_view[iswap] = scan;
     k_firstrecv.h_view[iswap] = firstrecv[iswap];
-    k_pbc_flag.h_view[iswap] = pbc_flag[iswap];
-    k_pbc.h_view(iswap,0) = pbc[iswap][0];
-    k_pbc.h_view(iswap,1) = pbc[iswap][1];
-    k_pbc.h_view(iswap,2) = pbc[iswap][2];
-    k_pbc.h_view(iswap,3) = pbc[iswap][3];
-    k_pbc.h_view(iswap,4) = pbc[iswap][4];
-    k_pbc.h_view(iswap,5) = pbc[iswap][5];
   }
   totalsend = scan;
 
   k_swap.modify<LMPHostType>();
-  k_pbc.modify<LMPHostType>();
 }
 
 /* ----------------------------------------------------------------------

@@ -1046,10 +1046,6 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
    reverse communication invoked by a Fix with variable size data
    query fix for pack size to insure buf_send is big enough
    handshake sizes before each Irecv/Send to insure buf_recv is big enough
-   this removes the if tests on sendnum and recvnum to make MPI calls,
-     as in reverse_comm_fix(), b/c the caller may still want to
-     exchange a message even if the send/recv swap has no atoms,
-     e.g. a reduced count = 0 of atoms to send/recv, as in fix hyper/local
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_fix_variable(Fix *fix)
@@ -1074,12 +1070,14 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
                    &nrecv,1,MPI_INT,sendproc[iswap],0,world,
                    MPI_STATUS_IGNORE);
 
-      if (nrecv > maxrecv) grow_recv(nrecv);
-      MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
-                world,&request);
-
-      MPI_Send(buf_send,nsend,MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,MPI_STATUS_IGNORE);
+      if (sendnum[iswap]) {
+        if (nrecv > maxrecv) grow_recv(nrecv);
+        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      }
+      if (recvnum[iswap])
+        MPI_Send(buf_send,nsend,MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 

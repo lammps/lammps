@@ -181,9 +181,6 @@ void Hyper::command(int narg, char **arg)
 
   if (hyperenable) fix_hyper->init_hyper();
 
-  timer->barrier_start();
-  time_start = timer->get_wall(Timer::TOTAL);
-
   // perform initial minimization and bond list creation
 
   int nevent = 0;
@@ -197,6 +194,14 @@ void Hyper::command(int narg, char **arg)
   fix_event->store_event();
   if (hyperenable) fix_hyper->build_bond_list(0);
   fix_event->restore_state_quench();
+
+  // reset stats and timers to skip HD setup
+
+  nbuild = ndanger = 0;
+  time_dynamics = time_quench = 0.0;
+
+  timer->barrier_start();
+  time_start = timer->get_wall(Timer::TOTAL);
 
   // main loop: dynamics, store state, quench, check event, restore state
 

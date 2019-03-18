@@ -1261,16 +1261,24 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,k,m;
 
-  m = 0;
+  // return if n = 0
+  // b/c if there are no atoms (n = 0), the message will not have
+  //   been sent by Comm::reverse_comm_fix() or reverse_comm_fix_variable()
+  // so must not read nonzero from first buf location (would be zero anyway)
+
+  if (n == 0) return;
 
   // STRAIN
   // unpack maxstrain vector
   // nonzero # of entries, each has offset to which atom in receiver's list
   // use MAX, b/c want maximum abs value strain for each atom's bonds
-  
+
+  m = 0;
+
   if (commflag == STRAIN) {
     int offset;
     int nonzero = (int) ubuf(buf[m++]).i;   // # of atoms with values
+
     for (int iatom = 0; iatom < nonzero; iatom++) {
       offset = (int) ubuf(buf[m++]).i;      // offset into list for which atom
       j = list[offset];

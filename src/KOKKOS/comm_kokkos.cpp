@@ -57,10 +57,10 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   memory->destroy(buf_recv);
   buf_recv = NULL;
 
-  k_exchange_sendlist = DAT::
-    tdual_int_1d("comm:k_exchange_sendlist",100);
-  k_exchange_copylist = DAT::
-    tdual_int_1d("comm:k_exchange_copylist",100);
+  k_exchange_lists = DAT::
+    tdual_int_1d("comm:k_exchange_lists",2,100);
+  k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,KOKKOS::ALL);
+  k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,KOKKOS::ALL);
   k_count = DAT::tdual_int_scalar("comm:k_count");
   k_sendflag = DAT::tdual_int_1d("comm:k_sendflag",100);
 
@@ -619,8 +619,9 @@ void CommKokkos::exchange_device()
           k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
         }
       }
-      k_exchange_copylist.sync<LMPHostType>();
-      k_exchange_sendlist.sync<LMPHostType>();
+
+      auto k_exchange_lists_short = Kokkos::subview(k_exchange_lists,KOKKOS::ALL,k_count.h_view());
+      k_exchange_lists_short.template sync<LMPHostType>();
       k_sendflag.sync<LMPHostType>();
 
       int sendpos = nlocal-1;
@@ -634,8 +635,8 @@ void CommKokkos::exchange_device()
           k_exchange_copylist.h_view(i) = -1;
       }
 
-      k_exchange_copylist.modify<LMPHostType>();
-      k_exchange_copylist.sync<DeviceType>();
+      k_exchange_copylist_short.modify<LMPHostType>();
+      k_exchange_copylist_short.sync<DeviceType>();
       nsend = k_count.h_view();
       if (nsend > maxsend) grow_send_kokkos(nsend,1);
       nsend =

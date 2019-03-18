@@ -57,10 +57,9 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   memory->destroy(buf_recv);
   buf_recv = NULL;
 
-  k_exchange_lists = DAT::
-    tdual_int_1d("comm:k_exchange_lists",2,100);
-  k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,KOKKOS::ALL);
-  k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,KOKKOS::ALL);
+  k_exchange_lists = DAT::tdual_int_2d("comm:k_exchange_lists",2,100);
+  k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
+  k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
   k_count = DAT::tdual_int_scalar("comm:k_count");
   k_sendflag = DAT::tdual_int_1d("comm:k_sendflag",100);
 
@@ -188,6 +187,8 @@ void CommKokkos::forward_comm_device(int dummy)
   atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
 
   if (comm->nprocs == 1) {
+    k_swap.sync<DeviceType>();
+    k_pbc.sync<DeviceType>();
     n = avec->pack_comm_self_fused(totalsend,k_sendlist,k_sendnum_scan,
                     k_firstrecv,k_pbc_flag,k_pbc);
   } else {
@@ -620,8 +621,7 @@ void CommKokkos::exchange_device()
         }
       }
 
-      auto k_exchange_lists_short = Kokkos::subview(k_exchange_lists,KOKKOS::ALL,k_count.h_view());
-      k_exchange_lists_short.template sync<LMPHostType>();
+      k_exchange_lists.sync<LMPHostType>();
       k_sendflag.sync<LMPHostType>();
 
       int sendpos = nlocal-1;
@@ -635,6 +635,7 @@ void CommKokkos::exchange_device()
           k_exchange_copylist.h_view(i) = -1;
       }
 
+      auto k_exchange_copylist_short = Kokkos::subview(k_exchange_copylist,k_count.h_view());
       k_exchange_copylist_short.modify<LMPHostType>();
       k_exchange_copylist_short.sync<DeviceType>();
       nsend = k_count.h_view();
@@ -749,14 +750,16 @@ void CommKokkos::borders()
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) borders_device<LMPHostType>();
     else borders_device<LMPDeviceType>();
-    return;
+  } else {
+    atomKK->sync(Host,ALL_MASK);
+    k_sendlist.sync<LMPHostType>();
+    CommBrick::borders();
+    k_sendlist.modify<LMPHostType>();
+    atomKK->modified(Host,ALL_MASK);
   }
 
-  atomKK->sync(Host,ALL_MASK);
-  k_sendlist.sync<LMPHostType>();
-  CommBrick::borders();
-  k_sendlist.modify<LMPHostType>();
-  atomKK->modified(Host,ALL_MASK);
+  if (comm->nprocs == 1 && !forward_comm_classic)
+    copy_pbc_info();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1043,40 +1046,43 @@ void CommKokkos::borders_device() {
     atomKK->sync(Host,TAG_MASK);
     atom->map_set();
   }
-
-  if (comm->nprocs == 1) {
-    if (nswap > k_pbc.extent(0)) {
-      k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
-      k_swap = DAT::tdual_int_2d("comm:swap",3,nswap);
-      k_pbc_flag    .d_view = Kokkos::subview(k_swap.d_view,0,Kokkos::ALL);
-      k_firstrecv   .d_view = Kokkos::subview(k_swap.d_view,1,Kokkos::ALL);
-      k_sendnum_scan.d_view = Kokkos::subview(k_swap.d_view,2,Kokkos::ALL);
-      k_pbc_flag    .h_view = Kokkos::subview(k_swap.h_view,0,Kokkos::ALL);
-      k_firstrecv   .h_view = Kokkos::subview(k_swap.h_view,1,Kokkos::ALL);
-      k_sendnum_scan.h_view = Kokkos::subview(k_swap.h_view,2,Kokkos::ALL);
-    }
-    int scan = 0;
-    for (int iswap = 0; iswap < nswap; iswap++) {
-      scan += sendnum[iswap];
-      k_sendnum_scan.h_view[iswap] = scan;
-      k_firstrecv.h_view[iswap] = firstrecv[iswap];
-      k_pbc_flag.h_view[iswap] = pbc_flag[iswap];
-      k_pbc.h_view(iswap,0) = pbc[iswap][0];
-      k_pbc.h_view(iswap,1) = pbc[iswap][1];
-      k_pbc.h_view(iswap,2) = pbc[iswap][2];
-      k_pbc.h_view(iswap,3) = pbc[iswap][3];
-      k_pbc.h_view(iswap,4) = pbc[iswap][4];
-      k_pbc.h_view(iswap,5) = pbc[iswap][5];
-    }
-    totalsend = scan;
-
-    k_swap.modify<LMPHostType>();
-    k_pbc.modify<LMPHostType>();
-
-    k_swap.sync<LMPDeviceType>();
-    k_pbc.sync<LMPDeviceType>();
-  }
 }
+
+/* ----------------------------------------------------------------------
+   copy pbc info
+------------------------------------------------------------------------- */
+
+void CommKokkos::copy_pbc_info()
+{
+  if (nswap > k_pbc.extent(0)) {
+    k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
+    k_swap = DAT::tdual_int_2d("comm:swap",3,nswap);
+    k_pbc_flag    .d_view = Kokkos::subview(k_swap.d_view,0,Kokkos::ALL);
+    k_firstrecv   .d_view = Kokkos::subview(k_swap.d_view,1,Kokkos::ALL);
+    k_sendnum_scan.d_view = Kokkos::subview(k_swap.d_view,2,Kokkos::ALL);
+    k_pbc_flag    .h_view = Kokkos::subview(k_swap.h_view,0,Kokkos::ALL);
+    k_firstrecv   .h_view = Kokkos::subview(k_swap.h_view,1,Kokkos::ALL);
+    k_sendnum_scan.h_view = Kokkos::subview(k_swap.h_view,2,Kokkos::ALL);
+  }
+  int scan = 0;
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    scan += sendnum[iswap];
+    k_sendnum_scan.h_view[iswap] = scan;
+    k_firstrecv.h_view[iswap] = firstrecv[iswap];
+    k_pbc_flag.h_view[iswap] = pbc_flag[iswap];
+    k_pbc.h_view(iswap,0) = pbc[iswap][0];
+    k_pbc.h_view(iswap,1) = pbc[iswap][1];
+    k_pbc.h_view(iswap,2) = pbc[iswap][2];
+    k_pbc.h_view(iswap,3) = pbc[iswap][3];
+    k_pbc.h_view(iswap,4) = pbc[iswap][4];
+    k_pbc.h_view(iswap,5) = pbc[iswap][5];
+  }
+  totalsend = scan;
+
+  k_swap.modify<LMPHostType>();
+  k_pbc.modify<LMPHostType>();
+}
+
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
    if flag = 1, realloc

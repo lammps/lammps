@@ -33,7 +33,6 @@ class DihedralTableCut : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  double single(int type, int i1, int i2, int i3, int i4);
 
  protected:
   double *aat_k,*aat_theta0_1,*aat_theta0_2;

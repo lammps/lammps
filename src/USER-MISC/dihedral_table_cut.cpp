@@ -1006,10 +1006,6 @@ void DihedralTableCut::write_restart(FILE *fp)
 {
   fwrite(&tabstyle,sizeof(int),1,fp);
   fwrite(&tablength,sizeof(int),1,fp);
-
-  fwrite(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1023,19 +1019,10 @@ void DihedralTableCut::read_restart(FILE *fp)
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
-
-    fread(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
   }
 
-  MPI_Bcast(&aat_k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&aat_theta0_1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&aat_theta0_2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
 
 /* ---------------------------------------------------------------------- */

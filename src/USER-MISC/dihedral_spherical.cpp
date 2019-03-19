@@ -41,7 +41,9 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -817,10 +819,11 @@ void DihedralSpherical::write_data(FILE *fp)
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fprintf(fp,"%d %d ", i , nterms[i]);
     for (int j = 0; j < nterms[i]; j++) {
-      fprintf(fp, "%g %g %g %g %g %g %g %g %g ",
-              phi_mult[i][j],    phi_shift[i][j],    phi_offset[i][j],
-              theta1_mult[i][j], theta1_shift[i][j], theta1_offset[i][j],
-              theta2_mult[i][j], theta2_shift[i][j], theta2_offset[i][j]);
+      fprintf(fp, "%g %g %g %g %g %g %g %g %g %g ", Ccoeff[i][j],
+              phi_mult[i][j], phi_shift[i][j]*180.0/MY_PI, phi_offset[i][j],
+              theta1_mult[i][j], theta1_shift[i][j]*180.0/MY_PI,
+              theta1_offset[i][j], theta2_mult[i][j],
+              theta2_shift[i][j]*180.0/MY_PI, theta2_offset[i][j]);
     }
     fprintf(fp,"\n");
   }

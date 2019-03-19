@@ -37,7 +37,7 @@ For more details on this, please refer to the OpenKIM homepage.
 
 This command is part of the KIM package.  It is only enabled if
 LAMMPS was built with that package.  Furthermore, its correct
-functioning is dependend on compiling LAMMPS with libcurl support.
+functioning depends on compiling LAMMPS with libcurl support.
 See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]

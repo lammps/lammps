@@ -169,8 +169,8 @@ used to build the GPU library.
 
 KIM package :h4,link(kim)
 
-To build with this package, the KIM library must be downloaded and
-built on your system.  It must include the KIM models that you want to
+To build with this package, the KIM library with API v2 must be downloaded
+and built on your system.  It must include the KIM models that you want to
 use with LAMMPS. If you want to use the "kim_query"_kim_query.html
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
@@ -178,9 +178,9 @@ development headers and the curl-config tool.
 Note that in LAMMPS lingo, a KIM model driver is a pair style
 (e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
 element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.  Also note that installing the KIM API
-library with all its models, may take around 30 min to build.  Of
-course you only need to do that once.
+specific EAM potential file.  Also note that downloading and installing
+the KIM API library with all its models, may take a long time (10s of
+minutes to hours) to build.  Of course you only need to do that once.
 
 See the list of KIM model drivers here:
 https://openkim.org/browse/model-drivers/alphabetical

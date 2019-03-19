@@ -13,7 +13,6 @@
 
 #ifdef FIX_CLASS
 
-//FixStyle(neb,FixNEB)
 FixStyle(neb/spin,FixNEB_spin)
 
 #else
@@ -36,8 +35,6 @@ class FixNEB_spin : public Fix {
   void init();
   void min_setup(int);
   void min_post_force(int);
-  //void advance_spins(double);
-  //double evaluate_dt();
 
  private:
   int me,nprocs,nprocs_universe;
@@ -60,13 +57,11 @@ class FixNEB_spin : public Fix {
   int maxlocal;                // size of xprev,xnext,tangent arrays
   double *nlenall;
   double **xprev,**xnext,**fnext;
-  // spin quantities
   double **spprev,**spnext,**fmnext;
   double **springF;
   double **tangent;
   double **xsend,**xrecv;      // coords to send/recv to/from other replica
   double **fsend,**frecv;      // coords to send/recv to/from other replica
-  // spin quantities
   double **spsend,**sprecv;      // sp to send/recv to/from other replica
   double **fmsend,**fmrecv;      // fm to send/recv to/from other replica
   tagint *tagsend,*tagrecv;    // ditto for atom IDs
@@ -74,7 +69,6 @@ class FixNEB_spin : public Fix {
                                  // info gathered from all procs in my replica
   double **xsendall,**xrecvall;    // coords to send/recv to/from other replica
   double **fsendall,**frecvall;    // force to send/recv to/from other replica
-  // spin quantities
   double **spsendall,**sprecvall;    // sp to send/recv to/from other replica
   double **fmsendall,**fmrecvall;    // fm to send/recv to/from other replica
   tagint *tagsendall,*tagrecvall;  // ditto for atom IDs

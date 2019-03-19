@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+
+   Please cite the related publication:
+------------------------------------------------------------------------- */
+
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>

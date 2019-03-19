@@ -68,6 +68,7 @@ An alphabetic list of all general LAMMPS commands.
 "improper_style"_improper_style.html,
 "include"_include.html,
 "jump"_jump.html,
+"kim_query"_kim_query.html,
 "kspace_modify"_kspace_modify.html,
 "kspace_style"_kspace_style.html,
 "label"_label.html,

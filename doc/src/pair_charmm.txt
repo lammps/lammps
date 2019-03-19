@@ -249,8 +249,7 @@ All the styles with {coul/charmm} or {coul/charmmfsh} styles are part
 of the MOLECULE package.  All the styles with {coul/long} style are
 part of the KSPACE package.  They are only enabled if LAMMPS was built
 with those packages.  See the "Build package"_Build_package.html doc
-page for more info.  Note that the MOLECULE and KSPACE packages are
-installed by default.
+page for more info.
 
 [Related commands:]
 

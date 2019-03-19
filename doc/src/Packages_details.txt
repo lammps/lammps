@@ -63,6 +63,7 @@ as contained in the file name.
 "SRD"_#PKG-SRD,
 "VORONOI"_#PKG-VORONOI :tb(c=6,ea=c)
 
+"USER-ADIOS"_#PKG-USER-ADIOS,
 "USER-ATC"_#PKG-USER-ATC,
 "USER-AWPMD"_#PKG-USER-AWPMD,
 "USER-BOCS"_#PKG-USER-BOCS,
@@ -346,12 +347,11 @@ system.
 
 Information about the KIM project can be found at its website:
 https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
-Elliott (U Minnesota) and James Sethna (Cornell U).
+Elliott (U Minnesota).
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
 API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style in collaboration with Valeriu Smirichinski (U
-Minnesota).
+developed the pair style.
 
 [Install:]
 
@@ -975,6 +975,31 @@ examples/voronoi :ul
 
 :line
 
+USER-ADIOS package :link(PKG-USER-ADIOS),h4
+
+[Contents:]
+
+ADIOS is a high-performance I/O library. This package implements the 
+dump "atom/adios" and dump "custom/adios" commands to write data using
+the ADIOS library. 
+
+[Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-adios on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-ADIOS: filenames -> commands
+src/USER-ADIOS/README
+examples/USER/adios
+https://github.com/ornladios/ADIOS2 :ul
+
+:line
+
 USER-ATC package :link(PKG-USER-ATC),h4
 
 [Contents:]
@@ -1306,7 +1331,7 @@ src/USER-FEP: filenames -> commands
 src/USER-FEP/README
 "fix adapt/fep"_fix_adapt_fep.html
 "compute fep"_compute_fep.html
-"pair_style */soft"_pair_lj_soft.html
+"pair_style */soft"_pair_fep_soft.html
 examples/USER/fep
 tools/fep/README
 tools/fep :ul
@@ -1700,14 +1725,19 @@ USER-PHONON package :link(PKG-USER-PHONON),h4
 A "fix phonon"_fix_phonon.html command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
+And a "dynamical_matrix" command to compute the dynamical matrix
+from finite differences.
 
-[Author:] Ling-Ti Kong (Shanghai Jiao Tong University).
+[Authors:] Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
+and Charlie Sievers (UC Davis) for "dynamical_matrix"
+
 
 [Supporting info:]
 
 src/USER-PHONON: filenames -> commands
 src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
+"dynamical_matrix"_dynamical_matrix.html
 examples/USER/phonon :ul
 
 :line
@@ -2102,5 +2132,3 @@ src/USER-YAFF/README
 "pair_style mm3/switch3/coulgauss/long"_pair_mm3_switch3_coulgauss.html
 "pair_style lj/switch3/coulgauss/long"_pair_lj_switch3_coulgauss.html
 examples/USER/yaff :ul
-
-

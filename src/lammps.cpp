@@ -46,12 +46,13 @@
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "timer.h"
-#include "python.h"
+#include "lmppython.h"
 #include "version.h"
 #include "memory.h"
 #include "error.h"
 
 #include "lmpinstalledpkgs.h"
+#include "lmpgitversion.h"
 
 using namespace LAMMPS_NS;
 
@@ -898,9 +899,14 @@ void LAMMPS::help()
 
   // general help message about command line and flags
 
+  if (has_git_info) {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+  } else {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\n\n");
+  }
   fprintf(fp,
-          "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-          LAMMPS_VERSION "\n\n"
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
@@ -1087,7 +1093,7 @@ void LAMMPS::print_config(FILE *fp)
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s\n\n",infobuf);
+  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
 
   fputs("Active compile time flags:\n\n",fp);

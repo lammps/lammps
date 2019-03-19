@@ -215,8 +215,8 @@ double PairLJCutCoulLongGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
-                                       int vflag, int *ilist, int *numneigh,
-                                       int **firstneigh)
+                                       int /* vflag */, int *ilist,
+                                       int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;

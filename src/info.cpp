@@ -260,10 +260,15 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-    fprintf(out,"\nLAMMPS version: %s / %s\n\n",
-            universe->version, universe->num_ver);
-
-    char *infobuf = get_os_info();
+    if (lmp->has_git_info) {
+      fprintf(out,"\nLAMMPS version: %s / %s\nGit info: %s / %s / %s\n\n",
+              universe->version, universe->num_ver,lmp->git_branch,
+              lmp->git_descriptor,lmp->git_commit);
+    } else {
+      fprintf(out,"\nLAMMPS version: %s / %s\n\n",
+              universe->version, universe->num_ver);
+    }
+    const char *infobuf = get_os_info();
     fprintf(out,"OS information: %s\n\n",infobuf);
     delete[] infobuf;
 
@@ -273,7 +278,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
 
     infobuf = get_compiler_info();
-    fprintf(out,"\nCompiler: %s\n",infobuf);
+    fprintf(out,"\nCompiler: %s with %s\n",infobuf,get_openmp_info());
     delete[] infobuf;
 
     fputs("\nActive compile time flags:\n\n",out);
@@ -532,6 +537,12 @@ void Info::command(int narg, char **arg)
       fprintf(out,"Region[%3d]: %s,  style = %s,  side = %s\n",
               i, regs[i]->id, regs[i]->style,
               regs[i]->interior ? "in" : "out");
+      if (regs[i]->bboxflag)
+        fprintf(out,"     Boundary: lo %g %g %g  hi %g %g %g\n",
+                regs[i]->extent_xlo, regs[i]->extent_ylo,
+                regs[i]->extent_zlo, regs[i]->extent_xhi,
+                regs[i]->extent_yhi, regs[i]->extent_zhi);
+      else fprintf(out,"     No Boundary\n");
     }
   }
 
@@ -1142,6 +1153,41 @@ char *Info::get_compiler_info()
   snprintf(buf,_INFOBUF_SIZE,"(Unknown)");
 #endif
   return buf;
+}
+
+const char *Info::get_openmp_info()
+{
+
+#if !defined(_OPENMP)
+  return (const char *)"OpenMP not enabled";
+#else
+
+// Supported OpenMP version corresponds to the release date of the
+// specifications as posted at https://www.openmp.org/specifications/
+
+#if _OPENMP > 201811
+  return (const char *)"OpenMP newer than version 5.0";
+#elif _OPENMP == 201811
+  return (const char *)"OpenMP 5.0";
+#elif _OPENMP == 201611
+  return (const char *)"OpenMP 5.0 preview 1";
+#elif _OPENMP == 201511
+  return (const char *)"OpenMP 4.5";
+#elif _OPENMP == 201307
+  return (const char *)"OpenMP 4.0";
+#elif _OPENMP == 201107
+  return (const char *)"OpenMP 3.1";
+#elif _OPENMP == 200805
+  return (const char *)"OpenMP 3.0";
+#elif _OPENMP == 200505
+  return (const char *)"OpenMP 2.5";
+#elif _OPENMP == 200203
+  return (const char *)"OpenMP 2.0";
+#else
+  return (const char *)"unknown OpenMP version";
+#endif
+
+#endif
 }
 
 /* ---------------------------------------------------------------------- */

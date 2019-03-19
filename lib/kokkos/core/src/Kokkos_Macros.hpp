@@ -170,6 +170,10 @@
     // see https://github.com/kokkos/kokkos/issues/1470
     #define KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
   #endif
+
+  #if ( 10000 > CUDA_VERSION )
+    #define KOKKOS_ENABLE_PRE_CUDA_10_DEPRECATION_API
+  #endif
 #endif // #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
 
 //----------------------------------------------------------------------------

@@ -311,7 +311,7 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_ItemSize(const int &i) const;
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   template<int HalfNeigh, int Newton, int Tri>
   __device__ inline
   void build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
@@ -388,7 +388,7 @@ struct NPairKokkosBuildFunctor {
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   __device__ inline
 
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
@@ -449,7 +449,7 @@ struct NPairKokkosBuildFunctorSize {
     c.template build_ItemSize<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   __device__ inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     c.template build_ItemSizeCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);

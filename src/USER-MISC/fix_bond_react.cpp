@@ -457,8 +457,6 @@ FixBondReact::~FixBondReact()
   memory->destroy(global_mega_glove);
 
   if (stabilization_flag == 1) {
-    delete [] exclude_group;
-
     // check nfix in case all fixes have already been deleted
     if (id_fix1 && modify->nfix) modify->delete_fix(id_fix1);
     delete [] id_fix1;
@@ -473,6 +471,18 @@ FixBondReact::~FixBondReact()
   delete [] statted_id;
   delete [] guess_branch;
   delete [] pioneer_count;
+
+  char **newarg;
+  newarg = new char*[2];
+  newarg[0] = master_group;
+  newarg[1] = (char *) "delete";
+  group->assign(2,newarg);
+  if (stabilization_flag == 1) {
+    newarg[0] = exclude_group;
+    group->assign(2,newarg);
+    delete [] exclude_group;
+  }
+  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1022,13 +1032,24 @@ void FixBondReact::close_partner()
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) continue;
 
-      if (rsq > distsq[i1][0]) {
-        partner[i1] = tag[i2];
-        distsq[i1][0] = rsq;
-      }
-      if (rsq > distsq[i2][0]) {
-        partner[i2] = tag[i1];
-        distsq[i2][0] = rsq;
+      if (closeneigh[rxnID] == 0) {
+        if (rsq > distsq[i1][0]) {
+          partner[i1] = tag[i2];
+          distsq[i1][0] = rsq;
+        }
+        if (rsq > distsq[i2][0]) {
+          partner[i2] = tag[i1];
+          distsq[i2][0] = rsq;
+        }
+      } else {
+        if (rsq < distsq[i1][1]) {
+          partner[i1] = tag[i2];
+          distsq[i1][1] = rsq;
+        }
+        if (rsq < distsq[i2][1]) {
+          partner[i2] = tag[i1];
+          distsq[i2][1] = rsq;
+        }
       }
     }
   }
@@ -1174,13 +1195,16 @@ void FixBondReact::superimpose_algorithm()
   for (int i = 0; i < nreacts; i++) {
     if (reaction_count_total[i] > max_rxn[i]) {
       // let's randomly choose rxns to skip, unbiasedly from local and ghostly
-      int local_rxncounts[nprocs];
-      int all_localskips[nprocs];
+      int *local_rxncounts;
+      int *all_localskips;
+      memory->create(local_rxncounts,nprocs,"bond/react:local_rxncounts");
+      memory->create(all_localskips,nprocs,"bond/react:all_localskips");
       MPI_Gather(&local_rxn_count[i],1,MPI_INT,local_rxncounts,1,MPI_INT,0,world);
       if (me == 0) {
         int overstep = reaction_count_total[i] - max_rxn[i];
         int delta_rxn = reaction_count[i] + ghostly_rxn_count[i];
-        int rxn_by_proc[delta_rxn];
+        int *rxn_by_proc;
+        memory->create(rxn_by_proc,delta_rxn,"bond/react:rxn_by_proc");
         for (int j = 0; j < delta_rxn; j++)
           rxn_by_proc[j] = -1; // corresponds to ghostly
         int itemp = 0;
@@ -1195,10 +1219,13 @@ void FixBondReact::superimpose_algorithm()
           if (rxn_by_proc[j] == -1) nghostlyskips[i]++;
           else all_localskips[rxn_by_proc[j]]++;
         }
+        memory->destroy(rxn_by_proc);
       }
       reaction_count_total[i] = max_rxn[i];
       MPI_Scatter(&all_localskips[0],1,MPI_INT,&nlocalskips[i],1,MPI_INT,0,world);
       MPI_Bcast(&nghostlyskips[i],1,MPI_INT,0,world);
+      memory->destroy(local_rxncounts);
+      memory->destroy(all_localskips);
     }
   }
 
@@ -2170,7 +2197,7 @@ void FixBondReact::update_everything()
 
   for (int pass = 0; pass < 2; pass++) {
     update_num_mega = 0;
-    int iskip[nreacts];
+    int *iskip = new int[nreacts];
     for (int i = 0; i < nreacts; i++) iskip[i] = 0;
     if (pass == 0) {
       for (int i = 0; i < local_num_mega; i++) {
@@ -2191,6 +2218,7 @@ void FixBondReact::update_everything()
         update_num_mega++;
       }
     }
+    delete [] iskip;
 
     // mark to-delete atoms
     for (int i = 0; i < update_num_mega; i++) {
@@ -3020,7 +3048,7 @@ int FixBondReact::pack_reverse_comm(int n, int first, double *buf)
 
   for (i = first; i < last; i++) {
     buf[m++] = ubuf(partner[i]).d;
-    if (closeneigh[rxnID] < 0)
+    if (closeneigh[rxnID] != 0)
       buf[m++] = distsq[i][1];
     else
       buf[m++] = distsq[i][0];
@@ -3039,11 +3067,11 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
   if (commflag != 1) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      if (closeneigh[rxnID] < 0)
+      if (closeneigh[rxnID] != 0)
         if (buf[m+1] < distsq[j][1]) {
         partner[j] = (tagint) ubuf(buf[m++]).i;
           distsq[j][1] = buf[m++];
-      } else m += 2;
+        } else m += 2;
       else
         if (buf[m+1] > distsq[j][0]) {
           partner[j] = (tagint) ubuf(buf[m++]).i;

@@ -136,6 +136,9 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
 FixFFL::~FixFFL() {
   delete random;
 
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
+
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);
   memory->destroy(ffl_tmp2);

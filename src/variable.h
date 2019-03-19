@@ -125,7 +125,7 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int);
+  void print_var_error(const char *, int, const char *, int, int global=1);
   void print_tree(Tree *, int);
 };
 

@@ -29,6 +29,7 @@
 #include "update.h"
 #include "force.h"
 #include "group.h"
+#include "pair.h"
 #include "kspace.h"
 #include "respa.h"
 #include "memory.h"
@@ -39,7 +40,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {}
+  FixQEq(lmp, narg, arg) {
+  if (reax_flag) extract_reax();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,6 +75,22 @@ void FixQEqShielded::init()
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixQEqShielded::extract_reax()
+{
+  Pair *pair = force->pair_match("reax/c",1);
+  if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
+  int tmp;
+  chi = (double *) pair->extract("chi",tmp);
+  eta = (double *) pair->extract("eta",tmp);
+  gamma = (double *) pair->extract("gamma",tmp);
+  if (chi == NULL || eta == NULL || gamma == NULL)
+    error->all(FLERR,
+        "Fix qeq/slater could not extract params from pair reax/c");
+}
+
 
 /* ---------------------------------------------------------------------- */
 

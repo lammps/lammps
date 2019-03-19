@@ -78,7 +78,6 @@ double ComputeReduceRegion::compute_one(int m, int flag)
     n = value2index[m];
   }
 
-  int aidx = argindex[m];
   int j = argindex[m];
 
   double one = 0.0;

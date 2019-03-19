@@ -48,6 +48,7 @@ packages:
 "POEMS"_Build_extras.html#poems,
 "PYTHON"_Build_extras.html#python,
 "VORONOI"_Build_extras.html#voronoi,
+"USER-ADIOS"_Build_extras.html#user-adios,
 "USER-ATC"_Build_extras.html#user-atc,
 "USER-AWPMD"_Build_extras.html#user-awpmd,
 "USER-COLVARS"_Build_extras.html#user-colvars,

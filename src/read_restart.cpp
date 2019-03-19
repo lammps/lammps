@@ -627,7 +627,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
     if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
     if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
     *ptr = '\0';
-    if (strlen(&ep->d_name[nbegin]) < n) {
+    if ((int)strlen(&ep->d_name[nbegin]) < n) {
       strcpy(middle,&ep->d_name[nbegin]);
       if (ATOBIGINT(middle) > maxnum) maxnum = ATOBIGINT(middle);
     }

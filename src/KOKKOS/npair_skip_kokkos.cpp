@@ -151,7 +151,7 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &
 
 namespace LAMMPS_NS {
 template class NPairSkipKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairSkipKokkos<LMPHostType>;
 #endif
 }

@@ -53,7 +53,7 @@ void NeighListKokkos<Device>::grow(int nmax)
 
 namespace LAMMPS_NS {
 template class NeighListKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NeighListKokkos<LMPHostType>;
 #endif
 }

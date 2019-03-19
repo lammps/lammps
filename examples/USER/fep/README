@@ -9,3 +9,6 @@ compute fep examples
 
 * `CC-CO` -- free energy difference of transforming ethane into
   methanol, in water (more complex). FEP, TI and BAR methods.
+  
+* 'C7inEthanol' -- insertion / deletion of a hexane molecule in ethanol.
+  The hexane is described by the lj/class2/coul/long/soft potential.

@@ -1,5 +1,5 @@
 #HTMLDOC 1.8.28
--t pdf14 -f "../Manual.pdf" --book --toclevels 4 --no-numbered --toctitle "Table of Contents" --title --textcolor #000000 --linkcolor #0000ff --linkstyle plain --bodycolor #ffffff --size Universal --left 1.00in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --header1 ... --footer ..1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=9 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Sans --bodyfont Serif --headfootsize 11.0 --headfootfont Sans-Bold --charset iso-8859-15 --links --embedfonts --pagemode document --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 680 --no-strict --no-overflow
+-t pdf14 -f "Manual.pdf" --book --toclevels 4 --no-numbered --toctitle "Table of Contents" --title --textcolor #000000 --linkcolor #0000ff --linkstyle plain --bodycolor #ffffff --size Universal --left 1.00in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --header1 ... --footer ..1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=9 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Sans --bodyfont Serif --headfootsize 11.0 --headfootfont Sans-Bold --charset iso-8859-15 --links --embedfonts --pagemode document --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 680 --no-strict --no-overflow
 Manual.html
 Intro.html
 Intro_overview.html
@@ -150,6 +150,7 @@ dielectric.html
 dimension.html
 displace_atoms.html
 dump.html
+dump_adios.html
 dump_h5md.html
 dump_image.html
 dump_modify.html
@@ -157,6 +158,7 @@ dump_molfile.html
 dump_netcdf.html
 dump_vtk.html
 dump_cfg_uef.html
+dynamical_matrix.html
 echo.html
 group.html
 group2ndx.html
@@ -595,7 +597,7 @@ pair_lj_expand.html
 pair_lj_long.html
 pair_lj_smooth.html
 pair_lj_smooth_linear.html
-pair_lj_soft.html
+pair_fep_soft.html
 pair_lj_switch3_coulgauss.html
 pair_lubricate.html
 pair_lubricateU.html

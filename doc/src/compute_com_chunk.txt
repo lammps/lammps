@@ -35,7 +35,7 @@ doc pages for details of how chunks can be defined and examples of how
 they can be used to measure properties of a system.
 
 This compute calculates the x,y,z coordinates of the center-of-mass
-for each chunk, which includes all effects due to atoms passing thru
+for each chunk, which includes all effects due to atoms passing through
 periodic boundaries.
 
 Note that only atoms in the specified group contribute to the

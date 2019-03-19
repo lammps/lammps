@@ -36,7 +36,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

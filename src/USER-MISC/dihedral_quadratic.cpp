@@ -38,7 +38,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

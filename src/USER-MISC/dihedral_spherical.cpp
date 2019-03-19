@@ -41,7 +41,8 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp) {
+DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp)
+{
   writedata = 1;
 }
 

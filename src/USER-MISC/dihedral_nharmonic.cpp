@@ -35,7 +35,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp) {
+DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
+{
   writedata = 1;
 }
 

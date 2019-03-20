@@ -1071,7 +1071,6 @@ void CommKokkos::copy_swap_info()
   // create map of ghost to local atom id
   // store periodic boundary transform from local to ghost
 
-  memory->create(list,totalsend,"comm:list");
   if (totalsend > k_pbc.extent(0)) {
     k_pbc = DAT::tdual_int_2d("comm:pbc",totalsend,6);
     k_swap2 = DAT::tdual_int_2d("comm:swap2",2,totalsend);

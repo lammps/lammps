@@ -312,28 +312,29 @@ struct AtomVecKokkos_PackCommSelfFused {
     int i = ii;
     if (iswap > 0)
       i = ii - _sendnum_scan[iswap-1];
-      const int _nfirst = _firstrecv[iswap];
-      const int nlocal = _firstrecv[0];
 
-      int j = _list(iswap,i);
-      if (j >= nlocal)
-        j = _g2l(j-nlocal);
+    const int _nfirst = _firstrecv[iswap];
+    const int nlocal = _firstrecv[0];
 
-      if (_pbc_flag(ii) == 0) {
-          _xw(i+_nfirst,0) = _x(j,0);
-          _xw(i+_nfirst,1) = _x(j,1);
-          _xw(i+_nfirst,2) = _x(j,2);
+    int j = _list(iswap,i);
+    if (j >= nlocal)
+      j = _g2l(j-nlocal);
+
+    if (_pbc_flag(ii) == 0) {
+        _xw(i+_nfirst,0) = _x(j,0);
+        _xw(i+_nfirst,1) = _x(j,1);
+        _xw(i+_nfirst,2) = _x(j,2);
+    } else {
+      if (TRICLINIC == 0) {
+        _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd;
+        _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd;
+        _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
       } else {
-        if (TRICLINIC == 0) {
-          _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd;
-          _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd;
-          _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
-        } else {
-          _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd + _pbc(ii,5)*_xy + _pbc(ii,4)*_xz;
-          _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd + _pbc(ii,3)*_yz;
-          _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
-        }
+        _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd + _pbc(ii,5)*_xy + _pbc(ii,4)*_xz;
+        _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd + _pbc(ii,3)*_yz;
+        _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
       }
+    }
   }
 };
 

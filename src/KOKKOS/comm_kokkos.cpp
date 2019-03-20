@@ -1068,7 +1068,9 @@ void CommKokkos::copy_swap_info()
   }
   totalsend = scan;
 
-  int* list = NULL;
+  // create map of ghost to local atom id
+  // store periodic boundary transform from local to ghost
+
   memory->create(list,totalsend,"comm:list");
   if (totalsend > k_pbc.extent(0)) {
     k_pbc = DAT::tdual_int_2d("comm:pbc",totalsend,6);
@@ -1076,9 +1078,6 @@ void CommKokkos::copy_swap_info()
     k_pbc_flag = Kokkos::subview(k_swap2,0,Kokkos::ALL);
     k_g2l = Kokkos::subview(k_swap2,1,Kokkos::ALL);
   }
-
-  // create map of ghost atoms to local atoms
-  // store periodic boundary transform from local to ghost
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     for (int i = 0; i < sendnum[iswap]; i++) {
@@ -1109,8 +1108,6 @@ void CommKokkos::copy_swap_info()
   k_swap.modify<LMPHostType>();
   k_swap2.modify<LMPHostType>();
   k_pbc.modify<LMPHostType>();
-
-  memory->destroy(list);
 }
 
 /* ----------------------------------------------------------------------

@@ -33,7 +33,6 @@ class CommKokkos : public CommBrick {
   CommKokkos(class LAMMPS *);
   ~CommKokkos();
   void init();
-  void setup();
 
   void forward_comm(int dummy = 0);    // forward comm of atom coords
   void reverse_comm();                 // reverse comm of atom coords
@@ -66,8 +65,10 @@ class CommKokkos : public CommBrick {
   //double *buf_recv;                 // recv buffer for all comm
 
   DAT::tdual_int_2d k_swap;
+  DAT::tdual_int_2d k_swap2;
   DAT::tdual_int_2d k_pbc;
   DAT::tdual_int_1d k_pbc_flag;
+  DAT::tdual_int_1d k_g2l;
   DAT::tdual_int_1d k_firstrecv;
   DAT::tdual_int_1d k_sendnum_scan;
   int totalsend;

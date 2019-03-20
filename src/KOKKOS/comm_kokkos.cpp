@@ -140,31 +140,6 @@ void CommKokkos::init()
     forward_comm_classic = true;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void CommKokkos::setup()
-{
-  CommBrick::setup();
-
-  k_pbc_flag = DAT::tdual_int_1d("comm:pbc_flag",nswap);
-  k_pbc = DAT::tdual_int_2d("comm:pbc",nswap,6);
-
-  for (int iswap = 0; iswap < nswap; iswap++) {
-    k_pbc_flag.h_view[iswap] = pbc_flag[iswap];
-    k_pbc.h_view(iswap,0) = pbc[iswap][0];
-    k_pbc.h_view(iswap,1) = pbc[iswap][1];
-    k_pbc.h_view(iswap,2) = pbc[iswap][2];
-    k_pbc.h_view(iswap,3) = pbc[iswap][3];
-    k_pbc.h_view(iswap,4) = pbc[iswap][4];
-    k_pbc.h_view(iswap,5) = pbc[iswap][5];
-  }
-  k_pbc_flag.modify<LMPHostType>();
-  k_pbc.modify<LMPHostType>();
-
-  k_pbc_flag.sync<LMPDeviceType>();
-  k_pbc.sync<LMPDeviceType>();
-}
-
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep
    other per-atom attributes may also be sent via pack/unpack routines
@@ -211,11 +186,12 @@ void CommKokkos::forward_comm_device(int dummy)
   k_sendlist.sync<DeviceType>();
   atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
 
-  if (comm->nprocs == 1) {
+  if (comm->nprocs == 1 && !ghost_velocity) {
     k_swap.sync<DeviceType>();
+    k_swap2.sync<DeviceType>();
     k_pbc.sync<DeviceType>();
     n = avec->pack_comm_self_fused(totalsend,k_sendlist,k_sendnum_scan,
-                    k_firstrecv,k_pbc_flag,k_pbc);
+                    k_firstrecv,k_pbc_flag,k_pbc,k_g2l);
   } else {
 
   for (int iswap = 0; iswap < nswap; iswap++) {
@@ -783,7 +759,7 @@ void CommKokkos::borders()
     atomKK->modified(Host,ALL_MASK);
   }
 
-  if (comm->nprocs == 1 && !forward_comm_classic)
+  if (comm->nprocs == 1 && !ghost_velocity && !forward_comm_classic)
     copy_swap_info();
 }
 
@@ -1092,7 +1068,49 @@ void CommKokkos::copy_swap_info()
   }
   totalsend = scan;
 
+  int* list = NULL;
+  memory->create(list,totalsend,"comm:list");
+  if (totalsend > k_pbc.extent(0)) {
+    k_pbc = DAT::tdual_int_2d("comm:pbc",totalsend,6);
+    k_swap2 = DAT::tdual_int_2d("comm:swap2",2,totalsend);
+    k_pbc_flag = Kokkos::subview(k_swap2,0,Kokkos::ALL);
+    k_g2l = Kokkos::subview(k_swap2,1,Kokkos::ALL);
+  }
+
+  // create map of ghost atoms to local atoms
+  // store periodic boundary transform from local to ghost
+
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    for (int i = 0; i < sendnum[iswap]; i++) {
+      int source = sendlist[iswap][i] - atom->nlocal;
+      int dest = firstrecv[iswap] + i - atom->nlocal;
+      k_pbc_flag.h_view(dest) = pbc_flag[iswap];
+      k_pbc.h_view(dest,0) = pbc[iswap][0];
+      k_pbc.h_view(dest,1) = pbc[iswap][1];
+      k_pbc.h_view(dest,2) = pbc[iswap][2];
+      k_pbc.h_view(dest,3) = pbc[iswap][3];
+      k_pbc.h_view(dest,4) = pbc[iswap][4];
+      k_pbc.h_view(dest,5) = pbc[iswap][5];
+      k_g2l.h_view(dest) = atom->nlocal + source;
+
+      if (source >= 0) {
+        k_pbc_flag.h_view(dest) = k_pbc_flag.h_view(dest) || k_pbc_flag.h_view(source);
+        k_pbc.h_view(dest,0) += k_pbc.h_view(source,0);
+        k_pbc.h_view(dest,1) += k_pbc.h_view(source,1);
+        k_pbc.h_view(dest,2) += k_pbc.h_view(source,2);
+        k_pbc.h_view(dest,3) += k_pbc.h_view(source,3);
+        k_pbc.h_view(dest,4) += k_pbc.h_view(source,4);
+        k_pbc.h_view(dest,5) += k_pbc.h_view(source,5);
+        k_g2l.h_view(dest) = k_g2l.h_view(source);
+      }
+    }
+  }
+
   k_swap.modify<LMPHostType>();
+  k_swap2.modify<LMPHostType>();
+  k_pbc.modify<LMPHostType>();
+
+  memory->destroy(list);
 }
 
 /* ----------------------------------------------------------------------

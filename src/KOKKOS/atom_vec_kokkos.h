@@ -56,7 +56,8 @@ class AtomVecKokkos : public AtomVec {
                          const DAT::tdual_int_1d &sendnum_scan,
                          const DAT::tdual_int_1d &firstrecv,
                          const DAT::tdual_int_1d &pbc_flag,
-                         const DAT::tdual_int_2d &pbc);
+                         const DAT::tdual_int_2d &pbc,
+                         const DAT::tdual_int_1d &g2l);
 
   virtual int
     pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &list,

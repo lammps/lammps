@@ -13,23 +13,24 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(spinmin,MinSpinMin)
+MinimizeStyle(spin,MinSpin)
 
 #else
 
-#ifndef LMP_MIN_SPINMIN_H
-#define LMP_MIN_SPINMIN_H
+#ifndef LMP_MIN_SPIN_H
+#define LMP_MIN_SPIN_H
 
 #include "min.h"
 
 namespace LAMMPS_NS {
 
-class MinSpinMin : public Min {
+class MinSpin : public Min {
  public:
-  MinSpinMin(class LAMMPS *);
-  ~MinSpinMin() {}
+  MinSpin(class LAMMPS *);
+  ~MinSpin() {}
   void init();
   void setup_style();
+  int modify_param(int, char **);
   void reset_vectors();
   int iterate(int);
   double evaluate_dt();
@@ -42,6 +43,9 @@ class MinSpinMin : public Min {
   
   double dt;
   double dts;
+
+  double alpha_damp;            // damping for spin minimization
+  double discret_factor;        // factor for spin timestep evaluation
 
   double *spvec;               // variables for atomic dof, as 1d vector
   double *fmvec;               // variables for atomic dof, as 1d vector

@@ -55,7 +55,7 @@ variable	u universe 1 2 3 4
 #dump 		1 all custom 100 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 dump 		1 all custom 200 dump.$u type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-min_style	spinmin
+min_style	spin
 min_modify 	alpha_damp 1.0 discret_factor 10.0
 neb/spin	1.0e-12 1.0e-12 50000 50000 10 final final.iron_spin
 #neb/spin	1.0e-6 1.0e-6 1000 10 10 final final.iron_spin

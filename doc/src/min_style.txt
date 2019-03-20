@@ -11,7 +11,7 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {spinmin} :ul
+style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {spin} :ul
 
 [Examples:]
 
@@ -62,18 +62,14 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
-Style {spinmin} is a damped spin dynamics with a variable 
+Style {spin} is a damped spin dynamics with a variable 
 timestep as described in "(Tranchida)"_#Tranchida.
-The value of the fictitious Gilbert damping and of the dividing
-factor for the adaptive timestep can be modified by the
-{alpha_damp} and {discret_factor} options respectively. 
-Those options can be defined using the "min_modify"_min_modify.html 
-command.
+See the "min/spin"_min_spin.html doc page for more information.
 
 Either the {quickmin} and {fire} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.
 
-The {spinmin} style is useful in the context of geodesic nudged 
+The {spin} style is useful in the context of geodesic nudged 
 elastic band (GNEB) calculations via the "neb/spin"_neb_spin.html
 command.
 

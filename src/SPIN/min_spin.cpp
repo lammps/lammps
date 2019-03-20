@@ -19,7 +19,7 @@
 
 #include <mpi.h>
 #include <cmath>
-#include "min_spinmin.h"
+#include "min_spin.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
@@ -27,7 +27,6 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
-
 #include <cstdlib>
 #include <cstring>
 #include "modify.h"
@@ -46,11 +45,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-MinSpinMin::MinSpinMin(LAMMPS *lmp) : Min(lmp) {}
+MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void MinSpinMin::init()
+void MinSpin::init()
 {
   alpha_damp = 1.0;
   discret_factor = 10.0;
@@ -63,13 +62,35 @@ void MinSpinMin::init()
 
 /* ---------------------------------------------------------------------- */
 
-void MinSpinMin::setup_style()
+void MinSpin::setup_style()
 {
   double **v = atom->v;
   int nlocal = atom->nlocal;
 
+  // check if the atom/spin style is defined
+
+  if (!atom->sp_flag)
+    error->all(FLERR,"min/spin requires atom/spin style");
+
   for (int i = 0; i < nlocal; i++)
     v[i][0] = v[i][1] = v[i][2] = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MinSpin::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"alpha_damp") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    alpha_damp = force->numeric(FLERR,arg[1]);
+    return 2;
+  }
+  if (strcmp(arg[0],"discret_factor") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    discret_factor = force->numeric(FLERR,arg[1]);
+    return 2;
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -77,7 +98,7 @@ void MinSpinMin::setup_style()
    called after atoms have migrated
 ------------------------------------------------------------------------- */
 
-void MinSpinMin::reset_vectors()
+void MinSpin::reset_vectors()
 {
   // atomic dof
 
@@ -96,7 +117,7 @@ void MinSpinMin::reset_vectors()
    minimization via damped spin dynamics
 ------------------------------------------------------------------------- */
 
-int MinSpinMin::iterate(int maxiter)
+int MinSpin::iterate(int maxiter)
 {
   bigint ntimestep;
   double fmdotfm,fmdotfmall;
@@ -172,7 +193,7 @@ int MinSpinMin::iterate(int maxiter)
    evaluate max timestep
 ---------------------------------------------------------------------- */
 
-double MinSpinMin::evaluate_dt()
+double MinSpin::evaluate_dt()
 {
   double dtmax;
   double fmsq;
@@ -218,7 +239,7 @@ double MinSpinMin::evaluate_dt()
    geometric damped advance of spins
 ---------------------------------------------------------------------- */
 
-void MinSpinMin::advance_spins(double dts)
+void MinSpin::advance_spins(double dts)
 {
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -282,7 +303,7 @@ void MinSpinMin::advance_spins(double dts)
    compute and return ||mag. torque||_2^2
 ------------------------------------------------------------------------- */
 
-double MinSpinMin::fmnorm_sqr()
+double MinSpin::fmnorm_sqr()
 {
   int i,n;
   double *fmatom;

@@ -109,7 +109,7 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
     sp[i][0] = spfinal[0];
     sp[i][1] = spfinal[1];
     sp[i][2] = spfinal[2];
-    
+
     ii += 3;
   }
 }
@@ -228,8 +228,8 @@ void NEB_spin::run()
   
   if (update->minimize->searchflag)
     error->all(FLERR,"NEB_spin requires damped dynamics minimizer");
-  if (strcmp(update->minimize_style,"spinmin") != 0)
-    error->all(FLERR,"NEB_spin requires spinmin minimizer");
+  if (strcmp(update->minimize_style,"spin") != 0)
+    error->all(FLERR,"NEB_spin requires spin minimizer");
 
   // setup regular NEB_spin minimization
   
@@ -530,10 +530,14 @@ void NEB_spin::readfile(char *file, int flag)
 	  spfinal[0] = spx;
 	  spfinal[1] = spy;
 	  spfinal[2] = spz;
+  
+	  printf("test spinit[0]:%g \n",sp[m][0]);
 
 	  // interpolate intermediate spin states
 
 	  initial_rotation(spinit,spfinal,fraction);
+  
+	  printf("test spfinal[0]:%g \n",spfinal[0]);
 
 	  sp[m][0] = spfinal[0];
 	  sp[m][1] = spfinal[1];
@@ -555,6 +559,8 @@ void NEB_spin::readfile(char *file, int flag)
 
     nread += nchunk;
   }
+
+  printf("test sp[1][2]:%g \n",sp[1][2]);
 
   // check that all atom IDs in file were found by a proc
 
@@ -613,11 +619,15 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   spfy = sploc[1];
   spfz = sploc[2];
 
+  iphi = itheta = fphi = ftheta = 0.0;
+
   iphi = acos(spiz);
-  itheta = acos(spix/sin(iphi));
+  if (sin(iphi) != 0.0)
+   itheta = acos(spix/sin(iphi));
 
   fphi = acos(spfz);
-  ftheta = acos(spfx/sin(fphi));
+  if (sin(fphi) != 0.0)
+    ftheta = acos(spfx/sin(fphi));
  
   kphi = iphi + fraction*(fphi-iphi);
   ktheta = itheta + fraction*(ftheta-itheta);
@@ -626,11 +636,68 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   spky = sin(ktheta)*sin(kphi);
   spkz = cos(kphi);
 
-  iknorm = spkx*spkx+spky*spky+spkz*spkz;
+  double knormsq = spkx*spkx+spky*spky+spkz*spkz;
+  if (knormsq != 0.0)
+    iknorm = 1.0/sqrt(knormsq);
 
   spkx *= iknorm;
   spky *= iknorm;
   spkz *= iknorm;
+
+  //sploc[0] = spkx;
+  //sploc[1] = spky;
+  //sploc[2] = spkz;
+ 
+  //double kx,ky,kz;
+  //double spix,spiy,spiz,spfx,spfy,spfz;
+  //double kcrossx,kcrossy,kcrossz,knormsq;
+  //double spkx,spky,spkz;
+  //double sdot,omega,iknorm;
+
+  //spix = spi[0];
+  //spiy = spi[1];
+  //spiz = spi[2];
+
+  //spfx = sploc[0];
+  //spfy = sploc[1];
+  //spfz = sploc[2];
+  //
+  //kx = spiy*spfz - spiz*spfy;
+  //ky = spiz*spfx - spix*spfz;
+  //kz = spix*spfy - spiy*spfx;
+
+  //knormsq = kx*kx+ky*ky+kz*kz;
+  //
+  //if (knormsq != 0.0) {
+  //  iknorm = 1.0/sqrt(knormsq);
+  //  kx *= iknorm;
+  //  ky *= iknorm;
+  //  kz *= iknorm;
+  //}
+  //
+  //kcrossx = ky*spiz - kz*spiy;
+  //kcrossy = kz*spix - kx*spiz;
+  //kcrossz = kx*spiy - ky*spix;
+
+  //sdot = spix*spfx + spiy*spfy + spiz*spfz;
+
+  //omega = acos(sdot);
+  //omega *= fraction;
+
+  //spkx = spix*cos(omega) + kcrossx*sin(omega); 
+  //spky = spiy*cos(omega) + kcrossy*sin(omega); 
+  //spkz = spiz*cos(omega) + kcrossz*sin(omega); 
+  //
+  //iknorm = 1.0/sqrt(spkx*spkx+spky*spky+spkz*spkz);
+  //if (iknorm == 0.0)
+  //  error->all(FLERR,"Incorrect rotation operation");
+
+  //spkx *= iknorm;
+  //spky *= iknorm;
+  //spkz *= iknorm;
+ 
+  printf("init: %g %g %g \n",spix,spiy,spiz);
+  printf("fina: %g %g %g \n",spkx,spky,spkz);
 
   sploc[0] = spkx;
   sploc[1] = spky;

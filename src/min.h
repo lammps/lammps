@@ -38,6 +38,7 @@ class Min : protected Pointers {
   int request(class Pair *, int, double);
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
+  virtual int modify_param(int, char **) {return 0;}
   double fnorm_sqr();
   double fnorm_inf();
 
@@ -57,11 +58,6 @@ class Min : protected Pointers {
 
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
-
-  // spinmin quantities
-  
-  double alpha_damp;		// damping for spin minimization
-  double discret_factor;	// factor for spin timestep evaluation
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

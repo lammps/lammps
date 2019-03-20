@@ -230,8 +230,8 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
   double **sp = atom->sp;
-  fmi[0] += sp[i][0]*hx;
-  fmi[1] += sp[i][1]*hy;
+  fmi[0] += sp[i][3]*hx;
+  fmi[1] += sp[i][3]*hy;
   fmi[2] += sp[i][3]*hz;
 }
 

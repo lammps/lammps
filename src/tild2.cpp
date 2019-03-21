@@ -654,3 +654,21 @@ void TILD::field_gradient(FFT_SCALAR *in,
   fft2->compute(in, out, -1);
 
 }
+
+
+int TILD::factorable(int n)
+{
+  int i;
+
+  while (n > 1) {
+    for (i = 0; i < nfactors; i++) {
+      if (n % factors[i] == 0) {
+        n /= factors[i];
+        break;
+      }
+    }
+    if (i == nfactors) return 0;
+  }
+
+  return 1;
+}

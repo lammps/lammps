@@ -580,21 +580,6 @@ void KSpace::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"tild/gauss_a2") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      gauss_a2= atof(arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"tild/interaction_param") == 0) {
-      if (strcmp(arg[iarg+1],"all") == 0){
-        if (iarg+3 > narg) error->all(FLERR,"Illegal kspace_modify command");
-        kappa = atof(arg[iarg+2]);
-      }
-      else {
-        if (iarg + 4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-        group1 = atoi(arg[iarg+2]);
-        group2 = atoi(arg[iarg+3]);
-        chi    = atof(arg[iarg+4]);
-      }
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
       if (n == 0) error->all(FLERR,"Illegal kspace_modify command");

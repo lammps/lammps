@@ -70,6 +70,10 @@ class TILD : public PPPM {
   void deallocate();
   void slabcorr();
   void init_gauss();
+  // TILD Variables
+  double gauss_a2, kappa, chi; 
+  int group1, group2;
+  /* std::vector<std::vector<int>> chi_interactions(&group->ngroups); */
 
   // group-group interactions
 

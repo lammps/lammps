@@ -58,7 +58,7 @@ namespace LAMMPS_NS {
         bigint dynlen;             // rank of dynamical matrix
         int scaleflag;
         int me;
-        int *groupmap;
+        bigint *groupmap;
 
         int compressed;            // 1 if dump file is written compressed, 0 no
         int binaryflag;            // 1 if dump file is written binary, 0 no

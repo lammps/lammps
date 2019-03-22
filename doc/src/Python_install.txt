@@ -25,7 +25,7 @@ run "make install-python" or run the python/install.py script explicitly :ul
 
 When calling "make install-python" LAMMPS will try to install the
 python module and the shared library into the python site-packages folders;
-either the system-wide ones, or the local users ones (in case of unsufficient
+either the system-wide ones, or the local users ones (in case of insufficient
 permissions for the global install). Python will then find the module
 and shared library file automatically.
 

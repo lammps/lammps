@@ -45,7 +45,7 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
 PairHybrid::~PairHybrid()
 {
-  if (nstyles) {
+  if (nstyles > 0) {
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete [] keywords[m];
@@ -243,11 +243,18 @@ void PairHybrid::settings(int narg, char **arg)
 
   // delete old lists, since cannot just change settings
 
-  if (nstyles) {
-    for (int m = 0; m < nstyles; m++) delete styles[m];
-    delete [] styles;
-    for (int m = 0; m < nstyles; m++) delete [] keywords[m];
-    delete [] keywords;
+  if (nstyles > 0) {
+    for (int m = 0; m < nstyles; m++) {
+      delete styles[m];
+      delete [] keywords[m];
+      if (special_lj[m])   delete [] special_lj[m];
+      if (special_coul[m]) delete [] special_coul[m];
+    }
+    delete[] styles;
+    delete[] keywords;
+    delete[] multiple;
+    delete[] special_lj;
+    delete[] special_coul;
   }
 
   if (allocated) {
@@ -669,6 +676,12 @@ void PairHybrid::read_restart(FILE *fp)
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
   // allocate list of sub-styles
+
+  delete[] styles;
+  delete[] keywords;
+  delete[] multiple;
+  delete[] special_lj;
+  delete[] special_coul;
 
   styles = new Pair*[nstyles];
   keywords = new char*[nstyles];

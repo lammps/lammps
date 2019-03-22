@@ -170,7 +170,14 @@ void FixPrecessionSpin::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::post_force(int /*vflag*/)
+void FixPrecessionSpin::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::post_force(int vflag)
 {
 
   // update mag field with time (potential improvement)

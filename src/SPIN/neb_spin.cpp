@@ -44,7 +44,6 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -101,14 +100,22 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
     spfinal[1] = buf_final[ii+1];
     spfinal[2] = buf_final[ii+2];
 
-    // circular initialization
-    // a better procedure may be developed
-
-    initial_rotation(spinit,spfinal,fraction);
-
-    sp[i][0] = spfinal[0];
-    sp[i][1] = spfinal[1];
-    sp[i][2] = spfinal[2];
+    // interpolate intermediate spin states
+  
+    if (fraction == 0.0) {
+      sp[i][0] = spinit[0];
+      sp[i][1] = spinit[1];
+      sp[i][2] = spinit[2];
+    } else if (fraction == 1.0) {
+      sp[i][0] = spfinal[0];
+      sp[i][1] = spfinal[1];
+      sp[i][2] = spfinal[2];
+    } else {
+      initial_rotation(spinit,spfinal,fraction);
+      sp[i][0] = spfinal[0];
+      sp[i][1] = spfinal[1];
+      sp[i][2] = spfinal[2];
+    }
 
     ii += 3;
   }
@@ -499,7 +506,7 @@ void NEB_spin::readfile(char *file, int flag)
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
 
-      // adjust atom coord based on replica fraction
+      // adjust spin coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
       // for flag = 1, replace existing coord with new coord
       // ignore image flags of final x
@@ -530,19 +537,24 @@ void NEB_spin::readfile(char *file, int flag)
 	  spfinal[0] = spx;
 	  spfinal[1] = spy;
 	  spfinal[2] = spz;
-  
-	  printf("test spinit[0]:%g \n",sp[m][0]);
-
+ 
 	  // interpolate intermediate spin states
 
-	  initial_rotation(spinit,spfinal,fraction);
-  
-	  printf("test spfinal[0]:%g \n",spfinal[0]);
-
-	  sp[m][0] = spfinal[0];
-	  sp[m][1] = spfinal[1];
-	  sp[m][2] = spfinal[2];
 	  sp[m][3] = musp;
+	  if (fraction == 0.0) {
+	    sp[m][0] = spinit[0];
+	    sp[m][1] = spinit[1];
+	    sp[m][2] = spinit[2];
+	  } else if (fraction == 1.0) {
+	    sp[m][0] = spfinal[0];
+	    sp[m][1] = spfinal[1];
+	    sp[m][2] = spfinal[2];
+	  } else {
+	    initial_rotation(spinit,spfinal,fraction);
+	    sp[m][0] = spfinal[0];
+	    sp[m][1] = spfinal[1];
+	    sp[m][2] = spfinal[2];
+	  }
         } else {
           sp[m][3] = musp;
 	  x[m][0] = xx;
@@ -559,8 +571,6 @@ void NEB_spin::readfile(char *file, int flag)
 
     nread += nchunk;
   }
-
-  printf("test sp[1][2]:%g \n",sp[1][2]);
 
   // check that all atom IDs in file were found by a proc
 
@@ -605,6 +615,10 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   // implementing initial rotation using atan2
   // this may not be a sufficient routine, need more accurate verifications
 
+  // interpolation only for intermediate replica
+
+  if (fraction == 0.0 || fraction == 1.0) return;
+
   // initial, final and inter ang. values 
   
   double itheta,iphi,ftheta,fphi,ktheta,kphi;
@@ -636,7 +650,7 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   spky = sin(ktheta)*sin(kphi);
   spkz = cos(kphi);
 
-  double knormsq = spkx*spkx+spky*spky+spkz*spkz;
+  double knormsq = spkx*spkx + spky*spky + spkz*spkz;
   if (knormsq != 0.0)
     iknorm = 1.0/sqrt(knormsq);
 
@@ -696,9 +710,6 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   //spky *= iknorm;
   //spkz *= iknorm;
  
-  printf("init: %g %g %g \n",spix,spiy,spiz);
-  printf("fina: %g %g %g \n",spkx,spky,spkz);
-
   sploc[0] = spkx;
   sploc[1] = spky;
   sploc[2] = spkz;

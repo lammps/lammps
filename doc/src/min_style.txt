@@ -16,7 +16,7 @@ style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {spin} :ul
 [Examples:]
 
 min_style cg
-min_style spinmin
+min_style spin
 min_style fire :pre
 
 [Description:]
@@ -62,16 +62,12 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
-Style {spin} is a damped spin dynamics with a variable 
-timestep as described in "(Tranchida)"_#Tranchida.
+Style {spin} is a damped spin dynamics with an adaptive 
+timestep.
 See the "min/spin"_min_spin.html doc page for more information.
 
 Either the {quickmin} and {fire} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.
-
-The {spin} style is useful in the context of geodesic nudged 
-elastic band (GNEB) calculations via the "neb/spin"_neb_spin.html
-command.
 
 NOTE: The damped dynamic minimizers use whatever timestep you have
 defined via the "timestep"_timestep.html command.  Often they will

@@ -47,7 +47,16 @@ enum{REVERSE_RHO};
 
 /* ------------------------------------------------------------ */
 
-TILD::TILD(LAMMPS *lmp) : PPPM(lmp)
+TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
+  factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
+  u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
+  v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
+  fkz(NULL), density_fft(NULL), work1(NULL), work2(NULL), gf_b(NULL), rho1d(NULL),
+  rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL), sf_precoeff1(NULL), sf_precoeff2(NULL),
+  sf_precoeff3(NULL), sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL),
+  acons(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
+  density_B_fft(NULL), fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),
+  part2grid(NULL), boxlo(NULL)
  {
     if (screen) fprintf(screen,"TILD construction...\n");
     if (logfile) fprintf(logfile,"TILD construction...\n");
@@ -137,7 +146,6 @@ void TILD::settings(int narg, char **arg)
 {
     if (narg < 1) error->all(FLERR,"Illegal kspace_style tild command");
     accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
-//   std::cout<<"help me "<< std::endl;
 }
 
 TILD::~TILD(){

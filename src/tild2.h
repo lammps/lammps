@@ -234,8 +234,18 @@ class TILD : public KSpace{
   // group-group interactions
 
 //   void slabcorr_groups(int,int,int);
-  void allocate_groups();
-  void deallocate_groups();
+  void set_fft_parameters(int&, int&, int&, int&, int&,int&,
+                          int&, int&,int&, int&, int&,int&,
+                          int&, int&,int&, int&, int&,int&,
+                          int&, int&,int&, int&, int&,
+                          int&, int&, int&,
+                          double&, double&, int&);
+
+  virtual void particle_map(double, double, double,
+                             double, int **, int, int,
+                             int, int, int,
+                             int, int, int);
+
 };
 
 }

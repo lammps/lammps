@@ -318,6 +318,72 @@ void TILD::deallocate()
   delete cg;
 }
 
+/* ----------------------------------------------------------------------
+   allocate per-atom memory that depends on # of K-vectors and order
+------------------------------------------------------------------------- */
+
+void PPPM::allocate_peratom()
+{
+  peratom_allocate_flag = 1;
+
+  if (differentiation_flag != 1)
+    memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                            nxlo_out,nxhi_out,"pppm:u_brick");
+
+  memory->create3d_offset(v0_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:v0_brick");
+
+  memory->create3d_offset(v1_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:v1_brick");
+  memory->create3d_offset(v2_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:v2_brick");
+  memory->create3d_offset(v3_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:v3_brick");
+  memory->create3d_offset(v4_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:v4_brick");
+  memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:v5_brick");
+
+  // create ghost grid object for rho and electric field communication
+
+  int (*procneigh)[2] = comm->procneigh;
+
+  if (differentiation_flag == 1)
+    cg_peratom =
+      new GridComm(lmp,world,6,1,
+                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  else
+    cg_peratom =
+      new GridComm(lmp,world,7,1,
+                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+}
+
+/* ----------------------------------------------------------------------
+   deallocate per-atom memory that depends on # of K-vectors and order
+------------------------------------------------------------------------- */
+
+void PPPM::deallocate_peratom()
+{
+  peratom_allocate_flag = 0;
+
+  memory->destroy3d_offset(v0_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v1_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v2_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v3_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v4_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v5_brick,nzlo_out,nylo_out,nxlo_out);
+
+  if (differentiation_flag != 1)
+    memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
+
+  delete cg_peratom;
+}
 
 // Need to create functionality that would loop over all places owned by 
 // this processor and use that to generate the position for the gaussian. and assign them as well.

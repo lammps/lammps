@@ -33,6 +33,7 @@ using namespace MathConst;
 double *TILD::uG, TILD::a_squared;
 
 #define SMALL 0.00001
+#define OFFSET 16384
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -153,10 +154,162 @@ void TILD::init()
 
 
 void TILD::setup(){
+
+  if (slabflag == 0 && domain->nonperiodic > 0)
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
+  if (slabflag == 1) {
+    if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
+        domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
+      error->all(FLERR,"Incorrect boundaries with slab PPPMDisp");
+  }
+
+  double *prd;
+
+  // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
+
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+  volume = xprd * yprd * zprd_slab;
+
+ // compute fkx,fky,fkz for my FFT grid pts
+
+  double unitkx = (2.0*MY_PI/xprd);
+  double unitky = (2.0*MY_PI/yprd);
+  double unitkz = (2.0*MY_PI/zprd_slab);
+
+  init_gauss();
+
   return;
 }
 
+void TILD::setup_grid()
+{
+  // free all arrays previously allocated
+
+  deallocate();
+  deallocate_peratom();
+
+  // reset portion of global grid that each proc owns
+
+  set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
+                      nxlo_fft, nylo_fft, nzlo_fft,
+                      nxhi_fft, nyhi_fft, nzhi_fft,
+                      nxlo_in, nylo_in, nzlo_in,
+                      nxhi_in, nyhi_in, nzhi_in,
+                      nxlo_out, nylo_out, nzlo_out,
+                      nxhi_out, nyhi_out, nzhi_out,
+                      nlower, nupper,
+                      ngrid, nfft, nfft_both,
+                      shift, shiftone, order);
+
+
+  // reallocate K-space dependent memory
+  // check if grid communication is now overlapping if not allowed
+  // don't invoke allocate_peratom(), compute() will allocate when needed
+
+  allocate();
+
+  if (function[0]) {
+    cg->ghost_notify();
+    if (overlap_allowed == 0 && cg->ghost_overlap())
+      error->all(FLERR,"PPPM grid stencil extends "
+                 "beyond nearest neighbor processor");
+    cg->setup();
+  }
+  if (function[1] + function[2] + function[3]) {
+    cg_6->ghost_notify();
+    if (overlap_allowed == 0 && cg_6->ghost_overlap())
+      error->all(FLERR,"PPPM grid stencil extends "
+                 "beyond nearest neighbor processor");
+    cg_6->setup();
+  }
+
+  // pre-compute Green's function denomiator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  if (function[0]) {
+    compute_gf_denom(gf_b, order);
+    compute_rho_coeff(rho_coeff, drho_coeff, order);
+    if (differentiation_flag == 1)
+      compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
+                          nxlo_fft, nylo_fft, nzlo_fft,
+                          nxhi_fft, nyhi_fft, nzhi_fft,
+                          sf_precoeff1, sf_precoeff2, sf_precoeff3,
+                          sf_precoeff4, sf_precoeff5, sf_precoeff6);
+  }
+  if (function[1] + function[2] + function[3]) {
+    compute_gf_denom(gf_b_6, order_6);
+    compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
+    if (differentiation_flag == 1)
+      compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
+                          nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
+                          nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
+                          sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
+                          sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
+  }
+
+  // pre-compute volume-dependent coeffs
+
+  setup();
+}
+
 void TILD::compute(int i1, int i2){
+  
+  int i; 
+  // convert atoms from box to lambda coords
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = evflag_atom = eflag_global = vflag_global =
+         eflag_atom = vflag_atom = 0;
+
+  if (evflag_atom && !peratom_allocate_flag) {
+    allocate_peratom();
+    if (function[0]) {
+      cg_peratom->ghost_notify();
+      cg_peratom->setup();
+    }
+    if (function[1] + function[2] + function[3]) {
+      cg_peratom_6->ghost_notify();
+      cg_peratom_6->setup();
+    }
+    peratom_allocate_flag = 1;
+  }
+
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
+  }
+  // extend size of per-atom arrays if necessary
+
+  if (atom->nmax > nmax) {
+
+    if (function[0]) memory->destroy(part2grid);
+    if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
+    nmax = atom->nmax;
+    if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
+    if (function[1] + function[2] + function[3])
+      memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
+  }
+
+  // find grid points for all my particles 
+  // distribute particles' densities on the grid
+  // communication between processors and remapping two fft
+  // Convolution in k-space and backtransformation 
+  // communication between processors
+  // calculation of forces
+
+    particle_map(delxinv_den, delyinv_den, delzinv_den, shift_den, part2grid_den, nupper_den, nlower_den,
+                 nxlo_out_den, nylo_out_den, nzlo_out_den, nxhi_out_den, nyhi_out_den, nzhi_out_den);
+    make_rho_g();
+
   return;
 }
 

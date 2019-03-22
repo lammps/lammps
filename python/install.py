@@ -1,55 +1,94 @@
 #!/usr/bin/env python
 
-# copy LAMMPS src/liblammps.so and lammps.py to system dirs
-
-from __future__ import print_function
-
-instructions = """
-Syntax: python install.py [-h] [pydir]
-        pydir = target dir for lammps.py and liblammps.so
-                default = Python site-packages dir
+"""
+Installer script to install the LAMMPS python module and the corresponding
+shared library into either the system-wide site-packages tree, or - failing
+that - into the corresponding user tree. Called from the 'install-python'
+build target in the conventional and CMake based build systems
 """
 
+# copy LAMMPS shared library and lammps.py to system dirs
+
+from __future__ import print_function
 import sys,os,shutil
+from argparse import ArgumentParser
 
-if (len(sys.argv) > 1 and sys.argv[1] == "-h") or len(sys.argv) > 2:
-  print(instructions)
-  sys.exit()
+parser = ArgumentParser(prog='install.py',
+                        description='LAMMPS python module installer script')
 
-if len(sys.argv) == 2: pydir = sys.argv[1]
-else: pydir = ""
+parser.add_argument("-m", "--module", required=True,
+                    help="path to the source of the LAMMPS Python module")
+parser.add_argument("-l", "--lib", required=True,
+                    help="path to the compiled LAMMPS shared library")
+parser.add_argument("-v", "--version", required=True,
+                    help="path to the LAMMPS version.h header file")
+parser.add_argument("-d","--dir",
+                    help="custom installation folder for module and library")
 
-# copy lammps.py to pydir if it exists
-# if pydir not specified, install in site-packages via distutils setup()
+args = parser.parse_args()
 
-if pydir:
-  if not os.path.isdir(pydir):
-    print( "ERROR: pydir %s does not exist" % pydir)
-    sys.exit()
-  str = "cp ../python/lammps.py %s" % pydir
-  print(str)
+# validate arguments and make paths absolute
+
+if args.module:
+  if not os.path.exists(args.module):
+    print( "ERROR: LAMMPS module file %s does not exist" % args.module)
+    parser.print_help()
+    sys.exit(1)
+  else:
+    args.module = os.path.abspath(args.module)
+
+if args.lib:
+  if not os.path.exists(args.lib):
+    print( "ERROR: LAMMPS shared library %s does not exist" % args.lib)
+    parser.print_help()
+    sys.exit(1)
+  else:
+    args.lib = os.path.abspath(args.lib)
+
+if args.version:
+  if not os.path.exists(args.version):
+    print( "ERROR: LAMMPS version header file %s does not exist" % args.version)
+    parser.print_help()
+    sys.exit(1)
+  else:
+    args.version = os.path.abspath(args.version)
+
+if args.dir:
+  if not os.path.isdir(args.dir):
+    print( "ERROR: Installation folder %s does not exist" % args.dir)
+    parser.print_help()
+    sys.exit(1)
+  else:
+    args.dir = os.path.abspath(args.dir)
+
+# if a custom directory is given, we copy the files directly
+# without any special processing or additional steps to that folder
+
+if args.dir:
+  print("Copying LAMMPS Python module to custom folder %s" % args.dir)
   try:
-    shutil.copyfile("../python/lammps.py", os.path.join(pydir,'lammps.py') )
+    shutil.copyfile(args.module, os.path.join(args.dir,'lammps.py'))
   except shutil.Error:
-    pass # source and destination are identical
+    pass # fail silently
 
-  str = "cp ../src/liblammps.so %s" % pydir
-  print(str)
+  print("Copying LAMMPS shared library to custom folder %s" % args.dir)
   try:
-     shutil.copyfile("../src/liblammps.so", os.path.join(pydir,"liblammps.so") )
+    shutil.copyfile(args.lib, os.path.join(args.dir,os.path.basename(args.lib)))
   except shutil.Error:
-    pass # source and destination are identical
+    pass # fail silently
+
   sys.exit()
   
-print("installing lammps.py in Python site-packages dir")
-
-os.chdir('../python')                # in case invoked via make in src dir
-
 # extract version string from header
-fp = open('../src/version.h','r')
+fp = open(args.version,'r')
 txt=fp.read().split('"')[1].split()
 verstr=txt[0]+txt[1]+txt[2]
 fp.close()
+
+print("Installing LAMMPS Python module version %s into site-packages folder" % verstr)
+
+# we need to switch to the folder of the python module
+os.chdir(os.path.dirname(args.module))
 
 from distutils.core import setup
 from distutils.sysconfig import get_python_lib
@@ -63,13 +102,12 @@ try:
         author = "Steve Plimpton",
         author_email = "sjplimp@sandia.gov",
         url = "http://lammps.sandia.gov",
-        description = "LAMMPS molecular dynamics library",
+        description = "LAMMPS Molecular Dynamics Python module",
         py_modules = ["lammps"],
-        data_files = [(get_python_lib(), ["../src/liblammps.so"])])
+        data_files = [(get_python_lib(), [args.lib])])
 except:
   tryuser=True
-  print ("Installation into global site-packages dir failed.\nTrying user site dir %s now." % site.USER_SITE)
-
+  print ("Installation into global site-packages folder failed.\nTrying user folder %s now." % site.USER_SITE)
 
 if tryuser:
   try:
@@ -79,11 +117,11 @@ if tryuser:
     author = "Steve Plimpton",
     author_email = "sjplimp@sandia.gov",
     url = "http://lammps.sandia.gov",
-    description = "LAMMPS molecular dynamics library",
+    description = "LAMMPS Molecular Dynamics Python module",
     py_modules = ["lammps"],
-    data_files = [(site.USER_SITE, ["../src/liblammps.so"])])
+    data_files = [(site.USER_SITE, [args.lib])])
   except: 
-    print("Installation into user site package dir failed.\nGo to ../python and install manually.")
+    print("Installation into user site package folder failed.")
 
 
 

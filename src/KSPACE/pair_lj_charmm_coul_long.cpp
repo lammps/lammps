@@ -59,27 +59,27 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulLong::~PairLJCharmmCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(eps14);
-      memory->destroy(sigma14);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(lj14_1);
-      memory->destroy(lj14_2);
-      memory->destroy(lj14_3);
-      memory->destroy(lj14_4);
-      memory->destroy(offset);
-    }
-    if (ftable) free_tables();
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
+    memory->destroy(offset);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */

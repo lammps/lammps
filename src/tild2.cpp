@@ -318,11 +318,172 @@ void TILD::deallocate()
   delete cg;
 }
 
+
+/* ----------------------------------------------------------------------
+   set global size of PPPM grid = nx,ny,nz_pppm
+   used for charge accumulation, FFTs, and electric field interpolation
+------------------------------------------------------------------------- */
+
+void TILD::set_grid_global()
+{
+  // use xprd,yprd,zprd (even if triclinic, and then scale later)
+  // adjust z dimension for 2d slab PPPM
+  // 3d PPPM just uses zprd since slab_volfactor = 1.0
+
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double zprd_slab = zprd*slab_volfactor;
+
+  // make initial g_ewald estimate
+  // based on desired accuracy and real space cutoff
+  // fluid-occupied volume used to estimate real-space error
+  // zprd used rather than zprd_slab
+
+  double h;
+  bigint natoms = atom->natoms;
+
+  if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use kspace_modify gewald for uncharged system");
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
+  }
+
+  // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
+  // nz_pppm uses extended zprd_slab instead of zprd
+  // reduce it until accuracy target is met
+
+  if (!gridflag) {
+
+    if (differentiation_flag == 1 || stagger_flag) {
+
+      h = h_x = h_y = h_z = 4.0/g_ewald;
+      int count = 0;
+      while (1) {
+
+        // set grid dimension
+        nx_pppm = static_cast<int> (xprd/h_x);
+        ny_pppm = static_cast<int> (yprd/h_y);
+        nz_pppm = static_cast<int> (zprd_slab/h_z);
+
+        if (nx_pppm <= 1) nx_pppm = 2;
+        if (ny_pppm <= 1) ny_pppm = 2;
+        if (nz_pppm <= 1) nz_pppm = 2;
+
+        //set local grid dimension
+        int npey_fft,npez_fft;
+        if (nz_pppm >= nprocs) {
+          npey_fft = 1;
+          npez_fft = nprocs;
+        } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+
+        int me_y = me % npey_fft;
+        int me_z = me / npey_fft;
+
+        nxlo_fft = 0;
+        nxhi_fft = nx_pppm - 1;
+        nylo_fft = me_y*ny_pppm/npey_fft;
+        nyhi_fft = (me_y+1)*ny_pppm/npey_fft - 1;
+        nzlo_fft = me_z*nz_pppm/npez_fft;
+        nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
+
+        double df_kspace = compute_df_kspace();
+
+        count++;
+
+        // break loop if the accuracy has been reached or
+        // too many loops have been performed
+
+        if (df_kspace <= accuracy) break;
+        if (count > 500) error->all(FLERR, "Could not compute grid size");
+        h *= 0.95;
+        h_x = h_y = h_z = h;
+      }
+
+    } else {
+
+      double err;
+      h_x = h_y = h_z = 1.0/g_ewald;
+
+      nx_pppm = static_cast<int> (xprd/h_x) + 1;
+      ny_pppm = static_cast<int> (yprd/h_y) + 1;
+      nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
+
+      err = estimate_ik_error(h_x,xprd,natoms);
+      while (err > accuracy) {
+        err = estimate_ik_error(h_x,xprd,natoms);
+        nx_pppm++;
+        h_x = xprd/nx_pppm;
+      }
+
+      err = estimate_ik_error(h_y,yprd,natoms);
+      while (err > accuracy) {
+        err = estimate_ik_error(h_y,yprd,natoms);
+        ny_pppm++;
+        h_y = yprd/ny_pppm;
+      }
+
+      err = estimate_ik_error(h_z,zprd_slab,natoms);
+      while (err > accuracy) {
+        err = estimate_ik_error(h_z,zprd_slab,natoms);
+        nz_pppm++;
+        h_z = zprd_slab/nz_pppm;
+      }
+    }
+
+    // scale grid for triclinic skew
+
+    if (triclinic) {
+      double tmp[3];
+      tmp[0] = nx_pppm/xprd;
+      tmp[1] = ny_pppm/yprd;
+      tmp[2] = nz_pppm/zprd;
+      lamda2xT(&tmp[0],&tmp[0]);
+      nx_pppm = static_cast<int>(tmp[0]) + 1;
+      ny_pppm = static_cast<int>(tmp[1]) + 1;
+      nz_pppm = static_cast<int>(tmp[2]) + 1;
+    }
+  }
+
+  // boost grid size until it is factorable
+
+  while (!factorable(nx_pppm)) nx_pppm++;
+  while (!factorable(ny_pppm)) ny_pppm++;
+  while (!factorable(nz_pppm)) nz_pppm++;
+
+  if (triclinic == 0) {
+    h_x = xprd/nx_pppm;
+    h_y = yprd/ny_pppm;
+    h_z = zprd_slab/nz_pppm;
+  } else {
+    double tmp[3];
+    tmp[0] = nx_pppm;
+    tmp[1] = ny_pppm;
+    tmp[2] = nz_pppm;
+    x2lamdaT(&tmp[0],&tmp[0]);
+    h_x = 1.0/tmp[0];
+    h_y = 1.0/tmp[1];
+    h_z = 1.0/tmp[2];
+  }
+
+  if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
+    error->all(FLERR,"PPPM grid is too large");
+}
+
+/* ----------------------------------------------------------------------
+   check if all factors of n are in list of factors
+   return 1 if yes, 0 if no
+------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    allocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
-void PPPM::allocate_peratom()
+void TILD::allocate_peratom()
 {
   peratom_allocate_flag = 1;
 
@@ -368,7 +529,7 @@ void PPPM::allocate_peratom()
    deallocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
-void PPPM::deallocate_peratom()
+void TILD::deallocate_peratom()
 {
   peratom_allocate_flag = 0;
 

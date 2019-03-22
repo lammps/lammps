@@ -70,6 +70,10 @@ class TILD : public PPPM {
   void deallocate();
   void slabcorr();
   void init_gauss();
+  int factorable(int);
+  void set_grid_global();
+  void allocate_peratom();
+  void deallocate_peratom();
   // TILD Variables
   double gauss_a2, kappa, chi; 
   int group1, group2;

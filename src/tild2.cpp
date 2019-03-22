@@ -1029,7 +1029,9 @@ void TILD::field_gradient(FFT_SCALAR *in,
   double k2, kv[Dim];
   fft1->compute(in, in, 1);
 
-  // for (i = 0; i <)
+  for ( i = 0; i < GRID_POINTS ; i++){
+    TILD::get_k_alias;
+  }
 
   fft2->compute(in, out, -1);
 
@@ -1051,4 +1053,58 @@ int TILD::factorable(int n)
   }
 
   return 1;
+}
+
+double TILD::get_k_alias(int id, double k[]){
+  double kmag = 0.0;
+  int dim = domain->dimensions; 
+  int i, id2, n[Dim] , j , has_nyquist = 0;
+  for ( i=0 ; i<Dim ; i++ )
+    if ( Nx[i] % 2 == 0 )
+      has_nyquist = 1;
+
+  id2 = unstack_stack( id ) ;
+  unstack(id2, n);
+
+
+  if ( Nx[0] % 2 == 0 && n[0] == Nx[0] / 2 )
+    k[0] = 0.0 ;
+  else if ( double(n[0]) < double(Nx[0]) / 2.)
+   k[0] = 2*PI*double(n[0])/L[0];
+  else
+   k[0] = 2*PI*double(n[0]-Nx[0])/L[0];
+
+  if (Dim>1) {
+    if ( Nx[1] % 2 == 0 && n[1] == Nx[1] / 2 )
+      k[1] = 0.0 ;
+    else if ( double(n[1]) < double(Nx[1]) / 2.)
+      k[1] = 2*PI*double(n[1])/L[1];
+    else
+      k[1] = 2*PI*double(n[1]-Nx[1])/L[1];
+  }
+
+  if (Dim==3) {
+    if ( Nx[2] % 2 == 0 && n[2] == Nx[2] / 2 )
+      k[2] = 0.0 ;
+    else if ( double(n[2]) < double(Nx[2]) / 2.)
+      k[2] = 2*PI*double(n[2])/L[2];
+    else
+      k[2] = 2*PI*double(n[2]-Nx[2])/L[2];
+  }
+
+  // Kills off the Nyquist modes
+  if ( id2 != 0 && has_nyquist ) {
+    for ( i=0 ; i<Dim ; i++ ) {
+      if ( k[i] == 0.0 ) {
+        for ( j=0 ; j<Dim ; j++ ) k[j] = 0.0 ;
+        kmag = 0.0;
+        break;
+      }
+    }
+  }
+  
+  for (i=0; i<Dim; i++) kmag += k[i]*k[i];
+
+  return kmag;
+
 }

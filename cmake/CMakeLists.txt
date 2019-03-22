@@ -1488,6 +1488,10 @@ if(BUILD_LIB AND BUILD_SHARED_LIBS)
     WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
     COMMENT "Installing LAMMPS Python module"
     )
+else()
+  add_custom_target(
+    install-python
+    echo "Installation of the LAMMPS Python module requires building the LAMMPS shared library")
 endif()
 
 ###############################################################################

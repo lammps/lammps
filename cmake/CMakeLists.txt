@@ -381,19 +381,10 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
 endif()
 
 if(PKG_PYTHON)
-  find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(BUILD_LIB AND BUILD_SHARED_LIBS)
-    if(NOT PYTHON_INSTDIR)
-      execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  endif()
 endif()
 
 find_package(JPEG QUIET)
@@ -1482,6 +1473,22 @@ install(
         ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
 )
+
+###############################################################################
+# Install LAMMPS module into site-packages folder
+# Only available, if a shared library is built
+###############################################################################
+if(BUILD_LIB AND BUILD_SHARED_LIBS)
+  find_package(PythonInterp)
+  add_custom_target(
+    install-python
+    ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+    -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
+    -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+    WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
+    COMMENT "Installing LAMMPS Python module"
+    )
+endif()
 
 ###############################################################################
 # Testing

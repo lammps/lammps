@@ -6,6 +6,6 @@
 
 units metal
 info variables out log
-kim_query latconst get_test_result test=TE_156715955670_004 species=["Al"] model=MO_800509458712_001 prop=structure-cubic-crystal-npt keys=["a"] units=["angstrom"] 
+kim_query latconst get_test_result test=TE_156715955670 species=["Al"] model=MO_800509458712 prop=structure-cubic-crystal-npt keys=["a"] units=["angstrom"]
 info variables out log
 lattice fcc ${latconst}

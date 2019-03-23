@@ -52,7 +52,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v2.0.0-beta.1 (and newer) package
+   Designed for use with the kim-api-v2-2.0.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -114,7 +114,7 @@ void KimQuery::command(int narg, char **arg)
   varcmd[2] = value;
 
   input->variable->set(3,varcmd);
-  
+
   delete[] varcmd;
   delete[] value;
 #else

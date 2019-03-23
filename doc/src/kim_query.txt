@@ -18,7 +18,7 @@ web_query_flags = a series of keyword=value pairs that represent the web query; 
 
 [Examples:]
 
-kim_query latconst get_test_result test=TE_156715955670_004 model=MO_800509458712_001 &
+kim_query latconst get_test_result test=TE_156715955670 model=MO_800509458712 &
   prop=structure-cubic-crystal-npt species=\["Al"\] keys=\["a"\] units=\["angstrom"\] :pre
 
 [Description:]
@@ -43,4 +43,3 @@ See the "Build package"_Build_package.html doc page for more info.
 [Related commands:]
 
 "pair_style kim"_pair_kim.html, "variable"_variable.html
-

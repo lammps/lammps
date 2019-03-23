@@ -97,7 +97,7 @@ int Make_List(int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
 
 void Delete_List( reax_list *l, MPI_Comm comm )
 {
-  if( l->allocated == 0 )
+  if (l->allocated == 0)
     return;
   l->allocated = 0;
 

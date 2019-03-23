@@ -217,7 +217,9 @@ void PairLJClass2CoulCut::settings(int narg, char **arg)
 
 void PairLJClass2CoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 6)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

@@ -207,6 +207,12 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
 
+    if ((category == MOLECULE) && (!atom->molecular))
+      error->all(FLERR,"Group command requires atom attribute molecule");
+
+    if ((category == ID) && (!atom->tag_enable))
+      error->all(FLERR,"Group command requires atom IDs");
+
     // args = logical condition
 
     if (narg > 3 &&
@@ -362,10 +368,13 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"include") == 0) {
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[2],"molecule") != 0)
-      error->all(FLERR,"Illegal group command");
+    if (strcmp(arg[2],"molecule") == 0) {
+      if (!atom->molecular)
+        error->all(FLERR,"Group command requires atom attribute molecule");
 
-    add_molecules(igroup,bit);
+      add_molecules(igroup,bit);
+
+    } else error->all(FLERR,"Illegal group command");
 
   // style = subtract
 

@@ -516,7 +516,7 @@ double PairLJGromacsCoulGromacsKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJGromacsCoulGromacsKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairLJGromacsCoulGromacsKokkos<LMPHostType>;
 #endif
 }

@@ -11,6 +11,8 @@ get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib 
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
 
+find_package(Git)
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
@@ -85,7 +87,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 # this is fast, so check for it all the time
 message(STATUS "Running check for auto-generated files from make-based build system")
 file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h)
+list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
 foreach(_SRC ${SRC_AUTOGEN_FILES})
   get_filename_component(FILENAME "${_SRC}" NAME)
   if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
@@ -178,7 +180,7 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
   USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
   USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM)
+  USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -200,6 +202,17 @@ if(PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
 endif()
 
 include_directories(${LAMMPS_SOURCE_DIR})
+
+
+if(PKG_USER-ADIOS)
+  # The search for ADIOS2 must come before MPI because
+  # it includes its own MPI search with the latest FindMPI.cmake
+  # script that defines the MPI::MPI_C target 
+  enable_language(C)
+  find_package(ADIOS2 REQUIRED)
+  list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
+endif()
+
 
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
@@ -453,7 +466,7 @@ if(PKG_VORONOI)
     set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
 
     ExternalProject_Add(voro_build
-      URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
+      URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
       CONFIGURE_COMMAND "" BUILD_COMMAND make ${VORO_BUILD_OPTIONS} BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
       )
@@ -559,10 +572,15 @@ if(PKG_USER-PLUMED)
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz
-      URL_MD5 b1be7c48971627febc11c61b70767fc5
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.4/plumed-src-2.4.4.tgz
+      URL_MD5 71ed465bdc7c2059e282dbda8d564e71
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> ${CONFIGURE_REQUEST_PIC})
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                                               ${CONFIGURE_REQUEST_PIC}
+                                                --enable-modules=all
+                                               CXX=${CMAKE_MPI_CXX_COMPILER}
+                                               CC=${CMAKE_MPI_C_COMPILER}
+    )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)
@@ -608,14 +626,15 @@ if(PKG_USER-NETCDF)
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
 
+
 if(PKG_USER-SMD)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)
   if(DOWNLOAD_EIGEN3)
     message(STATUS "Eigen3 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
-      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
+      URL_MD5 f2a417d083fe8ca4b8ed2bc613d20f07
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
     ExternalProject_get_property(Eigen3_build SOURCE_DIR)
@@ -651,28 +670,34 @@ if(PKG_USER-VTK)
 endif()
 
 if(PKG_KIM)
-  option(DOWNLOAD_KIM "Download KIM-API v1 from OpenKIM instead of using an already installed one)" OFF)
+  option(DOWNLOAD_KIM "Download KIM-API v2 from OpenKIM instead of using an already installed one" OFF)
   if(DOWNLOAD_KIM)
-    message(STATUS "KIM-API v1 download requested - we will build our own")
+    message(STATUS "KIM-API v2 download requested - we will build our own")
+    enable_language(C)
+    enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
-      URL_MD5 9f66efc128da33039e30659f36fc6d00
-      BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+      URL https://s3.openkim.org/kim-api/kim-api-v2-2.0.1.txz
+      URL_MD5 289c57f0c3bc2a549662283cac1c4ef1
+      BINARY_DIR build
+      CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                 -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+                 -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
-    set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
-    set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
+    set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)
+    set(KIM-API-V2_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api-v2${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
-    find_package(KIM)
-    if(NOT KIM_FOUND)
-      message(FATAL_ERROR "KIM-API v1 not found, help CMake to find it by setting KIM_LIBRARY and KIM_INCLUDE_DIR, or set DOWNLOAD_KIM=ON to download it")
+    find_package(KIM-API-V2)
+    if(NOT KIM-API-V2_FOUND)
+      message(FATAL_ERROR "KIM-API v2 not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
-  include_directories(${KIM_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS "${KIM-API-V2_LDFLAGS}")
+  include_directories(${KIM-API-V2_INCLUDE_DIRS})
 endif()
 
 if(PKG_MESSAGE)
@@ -756,7 +781,7 @@ endif()
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
 include(CheckIncludeFileCXX)
-foreach(HEADER math.h)
+foreach(HEADER cmath)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
@@ -1303,6 +1328,40 @@ message(STATUS "Generating lmpinstalledpkgs.h...")
 file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${temp}" )
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h")
 
+######################################
+# Generate lmpgitversion.h
+######################################
+set(temp "#ifndef LMP_GIT_VERSION_H\n#define LMP_GIT_VERSION_H\n")
+set(temp_git_commit "(unknown)")
+set(temp_git_branch "(unknown)")
+set(temp_git_describe "(unknown)")
+set(temp_git_info "false")
+if(GIT_FOUND AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
+  set(temp_git_info "true")
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git rev-parse HEAD
+    OUTPUT_VARIABLE temp_git_commit
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git rev-parse --abbrev-ref HEAD
+    OUTPUT_VARIABLE temp_git_branch
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git describe --dirty=-modified
+    OUTPUT_VARIABLE temp_git_describe
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+
+set(temp "${temp}const bool LAMMPS_NS::LAMMPS::has_git_info = ${temp_git_info};\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_commit[] = \"${temp_git_commit}\";\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_branch[] = \"${temp_git_branch}\";\n")
+set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"${temp_git_describe}\";\n")
+set(temp "${temp}#endif\n\n")
+
+message(STATUS "Generating lmpgitversion.h...")
+file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${temp}" )
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
+
 ###########################################
 # Actually add executable and lib to build
 ############################################
@@ -1348,6 +1407,7 @@ if(BUILD_EXE)
     add_test(ShowHelp ${LAMMPS_BINARY} -help)
   endif()
 endif()
+
 
 ###############################################################################
 # Build documentation

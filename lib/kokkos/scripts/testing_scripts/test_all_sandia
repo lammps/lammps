@@ -88,6 +88,8 @@ CXX_FLAGS_EXTRA=""
 LD_FLAGS_EXTRA=""
 KOKKOS_OPTIONS=""
 
+CXX_STANDARD="c++11"
+
 #
 # Handle arguments.
 #
@@ -141,6 +143,9 @@ do
       ;;
     --cxxflags-extra*)
       CXX_FLAGS_EXTRA="${key#*=}"
+      ;;
+    --cxxstandard*)
+      CXX_STANDARD="${key#*=}"
       ;;
     --ldflags-extra*)
       LD_FLAGS_EXTRA="${key#*=}"
@@ -227,18 +232,30 @@ elif [ "$MACHINE" = "white" ]; then
   export SLURM_TASKS_PER_NODE=32
 
   BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
-  IBM_MODULE_LIST="<COMPILER_NAME>/xl/<COMPILER_VERSION>"
+  IBM_MODULE_LIST="<COMPILER_NAME>/xl/<COMPILER_VERSION>,gcc/7.2.0"
   CUDA_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/7.2.0,ibm/xl/16.1.0"
+  CUDA10_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/7.4.0,ibm/xl/16.1.0"
 
   # Don't do pthread on white.
   GCC_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
 
-  # Format: (compiler module-list build-list exe-name warning-flag)
-  COMPILERS=("gcc/6.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
-             "gcc/7.2.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
-             "ibm/16.1.0 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
-             "cuda/9.2.88 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
-  )
+  if [ "$SPOT_CHECK" = "True" ]; then
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("gcc/6.4.0 $BASE_MODULE_LIST "OpenMP_Serial" g++ $GCC_WARNING_FLAGS"
+               "gcc/7.2.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "ibm/16.1.0 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
+               "cuda/9.2.88 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+    )
+  else
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("gcc/6.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/7.2.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "ibm/16.1.0 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
+               "ibm/16.1.1 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
+               "cuda/9.2.88 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/10.0.130 $CUDA10_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+    )
+  fi
 
   if [ -z "$ARCH_FLAG" ]; then
     ARCH_FLAG="--arch=Power8,Kepler37"
@@ -323,6 +340,7 @@ elif [ "$MACHINE" = "apollo" ]; then
   BASE_MODULE_LIST="sems-env,kokkos-env,sems-<COMPILER_NAME>/<COMPILER_VERSION>,kokkos-hwloc/1.10.1/base"
   CUDA_MODULE_LIST="sems-env,kokkos-env,kokkos-<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/4.8.4,kokkos-hwloc/1.10.1/base"
   CUDA8_MODULE_LIST="sems-env,kokkos-env,kokkos-<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/5.3.0,kokkos-hwloc/1.10.1/base"
+  CUDA10_MODULE_LIST="sems-env,kokkos-env,<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/5.3.0,kokkos-hwloc/1.10.1/base"
 
   CLANG_MODULE_LIST="sems-env,kokkos-env,sems-git,sems-cmake/3.5.2,<COMPILER_NAME>/<COMPILER_VERSION>,cuda/9.0.69"
   CLANG7_MODULE_LIST="sems-env,kokkos-env,sems-git,sems-cmake/3.5.2,<COMPILER_NAME>/<COMPILER_VERSION>,cuda/9.1"
@@ -344,6 +362,7 @@ elif [ "$MACHINE" = "apollo" ]; then
   else
     # Format: (compiler module-list build-list exe-name warning-flag)
     COMPILERS=("cuda/9.1 $CUDA8_MODULE_LIST $BUILD_LIST_CUDA_NVCC $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/10.0 $CUDA10_MODULE_LIST $BUILD_LIST_CUDA_NVCC $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
                "clang/6.0 $CLANG_MODULE_LIST $BUILD_LIST_CUDA_CLANG clang++ $CUDA_WARNING_FLAGS"
                "clang/7.0 $CLANG7_MODULE_LIST $BUILD_LIST_CUDA_CLANG clang++ $CUDA_WARNING_FLAGS"
                "clang/3.9.0 $CLANG_MODULE_LIST $BUILD_LIST_CLANG clang++ $CLANG_WARNING_FLAGS"
@@ -629,6 +648,8 @@ single_build_and_test() {
   local cxxflags="${cxxflags} ${CXX_FLAGS_EXTRA}"
   local ldflags="${ldflags} ${LD_FLAGS_EXTRA}"
 
+  local cxx_standard="${CXX_STANDARD}"
+
   if [[ "$KOKKOS_CUDA_OPTIONS" != "" ]]; then
     local extra_args="$extra_args $KOKKOS_CUDA_OPTIONS"
   fi
@@ -650,7 +671,7 @@ single_build_and_test() {
       run_cmd ls fake_problem >& ${desc}.configure.log || { report_and_log_test_result 1 $desc configure && return 0; }
     fi
   else
-    run_cmd ${KOKKOS_PATH}/generate_makefile.bash --with-devices=$build $ARCH_FLAG --compiler=$(which $compiler_exe) --cxxflags=\"$cxxflags\" --ldflags=\"$ldflags\" $extra_args &>> ${desc}.configure.log || { report_and_log_test_result 1 ${desc} configure && return 0; }
+    run_cmd ${KOKKOS_PATH}/generate_makefile.bash --with-devices=$build $ARCH_FLAG --compiler=$(which $compiler_exe) --cxxflags=\"$cxxflags\" --cxxstandard=\"$cxx_standard\" --ldflags=\"$ldflags\" $extra_args &>> ${desc}.configure.log || { report_and_log_test_result 1 ${desc} configure && return 0; }
     local -i build_start_time=$(date +%s)
     run_cmd make -j 48 build-test >& ${desc}.build.log || { report_and_log_test_result 1 ${desc} build && return 0; }
     local -i build_end_time=$(date +%s)

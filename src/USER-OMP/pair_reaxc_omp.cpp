@@ -205,7 +205,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0 ) t_start = MPI_Wtime();
   // setup data structures
 
   setup();
@@ -218,7 +218,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   write_reax_lists();
 
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }

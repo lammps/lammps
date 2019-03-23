@@ -130,13 +130,13 @@ accelerated styles exist.
 "comb"_pair_comb.html - charge-optimized many-body (COMB) potential
 "comb3"_pair_comb.html - charge-optimized many-body (COMB3) potential
 "coul/cut"_pair_coul.html - cutoff Coulombic potential
-"coul/cut/soft"_pair_lj_soft.html - Coulombic potential with a soft core
+"coul/cut/soft"_pair_fep_soft.html - Coulombic potential with a soft core
 "coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
 "coul/diel"_pair_coul_diel.html - Coulomb potential with dielectric permittivity
 "coul/dsf"_pair_coul.html - Coulombics with damped-shifted-force model
 "coul/long"_pair_coul.html - long-range Coulombic potential
 "coul/long/cs"_pair_cs.html - long-range Coulombic potential and core/shell
-"coul/long/soft"_pair_lj_soft.html - long-range Coulombic potential with a soft core
+"coul/long/soft"_pair_fep_soft.html - long-range Coulombic potential with a soft core
 "coul/msm"_pair_coul.html - long-range MSM Coulombics
 "coul/shield"_pair_coul_shield.html - Coulombics for boron nitride for use with "ilp/graphene/hbn"_pair_ilp_graphene_hbn.html potential
 "coul/streitz"_pair_coul.html - Coulombics via Streitz/Mintmire Slater orbitals
@@ -174,37 +174,41 @@ accelerated styles exist.
 "kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html - Kolmogorov-Crespi (KC) potential with no simplifications
 "kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html - Kolmogorov-Crespi (KC) potential with normals along z-axis
 "lcbop"_pair_lcbop.html - long-range bond-order potential (LCBOP)
+"lebedeva/z"_pair_lebedeva_z.html - Lebedeva inter-layer potential for graphene with normals along z-axis
 "lennard/mdf"_pair_mdf.html - LJ potential in A/B form with a taper function
 "line/lj"_pair_line_lj.html - LJ potential between line segments
 "list"_pair_list.html - potential between pairs of atoms explicitly listed in an input file
 "lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb
-"lj/charmm/coul/long/soft"_pair_lj_soft.html - CHARMM with long-range Coulomb and a soft core
+"lj/charmm/coul/long/soft"_pair_fep_soft.html - CHARMM with long-range Coulomb and a soft core
 "lj/charmm/coul/msm"_pair_charmm.html - CHARMM with long-range MSM Coulombics
 "lj/charmmfsw/coul/charmmfsh"_pair_charmm.html - CHARMM with force switching and shifting
 "lj/charmmfsw/coul/long"_pair_charmm.html - CHARMM with force switching and long-rnage Coulombics
 "lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
 "lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
+"lj/class2/coul/cut/soft"_pair_fep_soft.html - COMPASS with cutoff Coulomb with a soft core
 "lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
+"lj/class2/coul/long/soft"_pair_fep_soft.html - COMPASS with long-range Coulomb with a soft core
+"lj/class2/soft"_pair_fep_soft.html - COMPASS (class 2) force field with no Coulomb with a soft core
 "lj/cubic"_pair_lj_cubic.html - LJ with cubic after inflection point
 "lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
 "lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
-"lj/cut/coul/cut/soft"_pair_lj_soft.html - LJ with cutoff Coulomb with a soft core
+"lj/cut/coul/cut/soft"_pair_fep_soft.html - LJ with cutoff Coulomb with a soft core
 "lj/cut/coul/debye"_pair_lj.html - LJ with Debye screening added to Coulomb
 "lj/cut/coul/dsf"_pair_lj.html - LJ with Coulombics via damped shifted forces
 "lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulombics
 "lj/cut/coul/long/cs"_pair_cs.html - ditto with core/shell adjustments
-"lj/cut/coul/long/soft"_pair_lj_soft.html - LJ with long-range Coulombics with a soft core
+"lj/cut/coul/long/soft"_pair_fep_soft.html - LJ with long-range Coulombics with a soft core
 "lj/cut/coul/msm"_pair_lj.html - LJ with long-range MSM Coulombics
 "lj/cut/coul/wolf"_pair_lj.html - LJ with Coulombics via Wolf potential
 "lj/cut/dipole/cut"_pair_dipole.html - point dipoles with cutoff
 "lj/cut/dipole/long"_pair_dipole.html - point dipoles with long-range Ewald
-"lj/cut/soft"_pair_lj_soft.html - LJ with a soft core
+"lj/cut/soft"_pair_fep_soft.html - LJ with a soft core
 "lj/cut/thole/long"_pair_thole.html - LJ with Coulombics with thole damping
 "lj/cut/tip4p/cut"_pair_lj.html - LJ with cutoff Coulomb for TIP4P water
 "lj/cut/tip4p/long"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
-"lj/cut/tip4p/long/soft"_pair_lj_soft.html - LJ with cutoff Coulomb for TIP4P water with a soft core
+"lj/cut/tip4p/long/soft"_pair_fep_soft.html - LJ with cutoff Coulomb for TIP4P water with a soft core
 "lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
 "lj/expand/coul/long"_pair_lj_expand.html - Lennard-Jones for variable size particles with long-range Coulombics
 "lj/gromacs"_pair_gromacs.html - GROMACS-style Lennard-Jones potential
@@ -219,6 +223,7 @@ accelerated styles exist.
 "lj/sf/dipole/sf"_pair_dipole.html - LJ with dipole interaction with shifted forces
 "lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "lj/smooth/linear"_pair_lj_smooth_linear.html - linear smoothed LJ potential
+"lj/switch3/coulgauss"_pair_lj_switch3_coulgauss - smoothed LJ vdW potential with Gaussian electrostatics
 "lj96/cut"_pair_lj96.html - Lennard-Jones 9/6 potential
 "lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "lubricate/poly"_pair_lubricate.html - hydrodynamic lubrication forces with polydispersity
@@ -231,6 +236,7 @@ accelerated styles exist.
 "meam/sw/spline"_pair_meam_sw_spline.html - splined version of MEAM with a Stillinger-Weber term
 "mgpt"_pair_mgpt.html - simplified model generalized pseudopotential theory (MGPT) potential
 "mie/cut"_pair_mie.html - Mie potential
+"mm3/switch3/coulgauss"_pair_mm3_switch3_coulgauss - smoothed MM3 vdW potential with Gaussian electrostatics
 "momb"_pair_momb.html - Many-Body Metal-Organic (MOMB) force field
 "morse"_pair_morse.html - Morse potential
 "morse/smooth/linear"_pair_morse.html - linear smoothed Morse potential
@@ -293,7 +299,7 @@ accelerated styles exist.
 "thole"_pair_thole.html - Coulomb interactions with thole damping
 "tip4p/cut"_pair_coul.html - Coulomb for TIP4P water w/out LJ
 "tip4p/long"_pair_coul.html - long-range Coulombics for TIP4P water w/out LJ
-"tip4p/long/soft"_pair_lj_soft.html -
+"tip4p/long/soft"_pair_fep_soft.html -
 "tri/lj"_pair_tri_lj.html - LJ potential between triangles
 "ufm"_pair_ufm.html -
 "vashishta"_pair_vashishta.html - Vashishta 2-body and 3-body potential

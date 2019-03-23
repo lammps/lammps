@@ -366,7 +366,7 @@ void BondClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
 namespace LAMMPS_NS {
 template class BondClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class BondClass2Kokkos<LMPHostType>;
 #endif
 }

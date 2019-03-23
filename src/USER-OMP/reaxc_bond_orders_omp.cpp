@@ -113,7 +113,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
   rvec_Add(workspace->forceReduction[reductionOffset+i],temp );
 
-  if( system->pair_ptr->vflag_atom) {
+  if (system->pair_ptr->vflag_atom) {
     rvec_Scale(fi_tmp, -1.0, temp);
     rvec_ScaledSum( delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x );
 
@@ -147,7 +147,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
   rvec_Add(workspace->forceReduction[reductionOffset+j],temp );
 
-  if( system->pair_ptr->vflag_atom) {
+  if (system->pair_ptr->vflag_atom) {
     rvec_Scale(fj_tmp, -1.0, temp);
     rvec_ScaledSum( delji, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x );
 
@@ -171,7 +171,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
     rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
 
-    if( system->pair_ptr->vflag_atom ) {
+    if (system->pair_ptr->vflag_atom) {
       rvec_Scale(fk_tmp, -1.0, temp);
       rvec_ScaledSum(delki,1.,system->my_atoms[k].x,-1.,system->my_atoms[i].x);
 
@@ -201,7 +201,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
     rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
 
-    if( system->pair_ptr->vflag_atom ) {
+    if (system->pair_ptr->vflag_atom) {
       rvec_Scale(fk_tmp, -1.0, temp);
       rvec_ScaledSum(delki,1.,system->my_atoms[k].x,-1.,system->my_atoms[i].x);
 
@@ -313,7 +313,7 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
     rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
 
     /* pressure */
-    if( k != i ) {
+    if (k != i) {
       ivec_Sum( rel_box, nbr_k->rel_box, nbr_j->rel_box ); //rel_box(k, i)
       rvec_iMultiply( ext_press, rel_box, temp );
       rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
@@ -490,10 +490,10 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
         if(type_j < 0) continue;
         bo_ij = &( bonds->select.bond_list[pj].bo_data );
 
-        if( i < j || workspace->bond_mark[j] > 3) {
+        if (i < j || workspace->bond_mark[j] > 3) {
           twbp = &( system->reax_param.tbp[type_i][type_j] );
 
-          if( twbp->ovc < 0.001 && twbp->v13cor < 0.001 ) {
+          if (twbp->ovc < 0.001 && twbp->v13cor < 0.001) {
             bo_ij->C1dbo = 1.000000;
             bo_ij->C2dbo = 0.000000;
             bo_ij->C3dbo = 0.000000;
@@ -515,7 +515,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
             Deltap_boc_j = workspace->Deltap_boc[j];
 
             /* on page 1 */
-            if( twbp->ovc >= 0.001 ) {
+            if (twbp->ovc >= 0.001) {
               /* Correction for overcoordination */
               exp_p1i = exp( -p_boc1 * Deltap_i );
               exp_p2i = exp( -p_boc2 * Deltap_i );
@@ -556,7 +556,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
               Cf1_ij = Cf1_ji = 0.0;
             }
 
-            if( twbp->v13cor >= 0.001 ) {
+            if (twbp->v13cor >= 0.001) {
               /* Correction for 1-3 bond orders */
               exp_f4 =exp(-(twbp->p_boc4 * SQR( bo_ij->BO ) -
                             Deltap_boc_i) * twbp->p_boc3 + twbp->p_boc5);
@@ -607,13 +607,13 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
           }
 
           /* neglect bonds that are < 1e-10 */
-          if( bo_ij->BO < 1e-10 )
+          if (bo_ij->BO < 1e-10)
             bo_ij->BO = 0.0;
-          if( bo_ij->BO_s < 1e-10 )
+          if (bo_ij->BO_s < 1e-10)
             bo_ij->BO_s = 0.0;
-          if( bo_ij->BO_pi < 1e-10 )
+          if (bo_ij->BO_pi < 1e-10)
             bo_ij->BO_pi = 0.0;
-          if( bo_ij->BO_pi2 < 1e-10 )
+          if (bo_ij->BO_pi2 < 1e-10)
             bo_ij->BO_pi2 = 0.0;
 
           workspace->total_bond_order[i] += bo_ij->BO; //now keeps total_BO
@@ -654,7 +654,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
         type_j = system->my_atoms[j].type;
         if(type_j < 0) continue;
 
-        if( i < j || workspace->bond_mark[j] > 3) {
+        if (i < j || workspace->bond_mark[j] > 3) {
           // Computed in previous for-loop
         } else {
           /* We only need to update bond orders from bo_ji
@@ -705,7 +705,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
       workspace->Clp[j] = 2.0 * p_lp1 * explp1 * (2.0 + workspace->vlpex[j]);
       workspace->dDelta_lp[j] = workspace->Clp[j];
 
-      if( sbp_j->mass > 21.0 ) {
+      if (sbp_j->mass > 21.0) {
         workspace->nlp_temp[j] = 0.5 * (sbp_j->valency_e - sbp_j->valency);
         workspace->Delta_lp_temp[j] = sbp_j->nlp_opt - workspace->nlp_temp[j];
         workspace->dDelta_lp_temp[j] = 0.;

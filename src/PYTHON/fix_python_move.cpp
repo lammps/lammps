@@ -25,7 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "python.h"
+#include "lmppython.h"
 #include "error.h"
 #include "python_compat.h"
 

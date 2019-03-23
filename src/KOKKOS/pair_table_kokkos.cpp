@@ -550,7 +550,7 @@ void PairTableKokkos<DeviceType>::cleanup_copy() {
 
 namespace LAMMPS_NS {
 template class PairTableKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairTableKokkos<LMPHostType>;
 #endif
 

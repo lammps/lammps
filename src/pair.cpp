@@ -151,13 +151,13 @@ void Pair::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       ncoultablebits = force->inumeric(FLERR,arg[iarg+1]);
-      if (ncoultablebits > sizeof(float)*CHAR_BIT)
+      if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       ndisptablebits = force->inumeric(FLERR,arg[iarg+1]);
-      if (ndisptablebits > sizeof(float)*CHAR_BIT)
+      if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
@@ -1619,7 +1619,7 @@ void Pair::write_file(int narg, char **arg)
   eamfp[0] = eamfp[1] = 0.0;
   double *eamfp_hold;
 
-  Pair *epair = force->pair_match("eam",0);
+  Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
 
   // if atom style defines charge, swap in dummy q vec
@@ -1695,7 +1695,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   if (sizeof(int) != sizeof(float))
     error->all(FLERR,"Bitmapped lookup tables require int/float be same size");
 
-  if (ntablebits > sizeof(float)*CHAR_BIT)
+  if (ntablebits > (int)sizeof(float)*CHAR_BIT)
     error->all(FLERR,"Too many total bits for bitmapped lookup table");
 
   if (inner >= outer)
@@ -1719,7 +1719,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
   int nmantbits = ntablebits - nexpbits;
 
-  if (nexpbits > sizeof(float)*CHAR_BIT - FLT_MANT_DIG)
+  if (nexpbits > (int)sizeof(float)*CHAR_BIT - FLT_MANT_DIG)
     error->all(FLERR,"Too many exponent bits for lookup table");
   if (nmantbits+1 > FLT_MANT_DIG)
     error->all(FLERR,"Too many mantissa bits for lookup table");

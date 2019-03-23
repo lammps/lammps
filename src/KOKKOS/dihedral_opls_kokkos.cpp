@@ -536,7 +536,7 @@ void DihedralOPLSKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const 
 
 namespace LAMMPS_NS {
 template class DihedralOPLSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class DihedralOPLSKokkos<LMPHostType>;
 #endif
 }

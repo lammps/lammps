@@ -100,6 +100,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   q1 = NULL;
   q2 = NULL;
   streitz_flag = 0;
+  reax_flag = 0;
   qv = NULL;
 
   comm_forward = comm_reverse = 1;
@@ -117,6 +118,8 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[7],"coul/streitz") == 0) {
     streitz_flag = 1;
+  } else if (strcmp(arg[7],"reax/c") == 0) {
+    reax_flag = 1;
   } else {
     read_file(arg[7]);
   }
@@ -138,7 +141,7 @@ FixQEq::~FixQEq()
 
   memory->destroy(shld);
 
-  if (!streitz_flag) {
+  if (!streitz_flag && !reax_flag) {
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);
@@ -475,7 +478,7 @@ int FixQEq::pack_forward_comm(int n, int *list, double *buf,
 {
   int m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = d[list[m]];
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = s[list[m]];
@@ -493,7 +496,7 @@ void FixQEq::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
   else if( pack_flag == 2)
     for(m = 0, i = first; m < n; m++, i++) s[i] = buf[m];

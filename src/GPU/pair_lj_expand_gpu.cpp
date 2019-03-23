@@ -181,8 +181,9 @@ double PairLJExpandGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJExpandGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                  int *ilist, int *numneigh, int **firstneigh)
+void PairLJExpandGPU::cpu_compute(int start, int inum, int eflag,
+                                  int /* vflag */, int *ilist,
+                                  int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;

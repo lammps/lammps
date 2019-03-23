@@ -1,5 +1,5 @@
 #HTMLDOC 1.8.28
--t pdf14 -f "../Manual.pdf" --book --toclevels 4 --no-numbered --toctitle "Table of Contents" --title --textcolor #000000 --linkcolor #0000ff --linkstyle plain --bodycolor #ffffff --size Universal --left 1.00in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --header1 ... --footer ..1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=9 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Sans --bodyfont Serif --headfootsize 11.0 --headfootfont Sans-Bold --charset iso-8859-15 --links --embedfonts --pagemode document --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 680 --no-strict --no-overflow
+-t pdf14 -f "Manual.pdf" --book --toclevels 4 --no-numbered --toctitle "Table of Contents" --title --textcolor #000000 --linkcolor #0000ff --linkstyle plain --bodycolor #ffffff --size Universal --left 1.00in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --header1 ... --footer ..1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=9 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Sans --bodyfont Serif --headfootsize 11.0 --headfootfont Sans-Bold --charset iso-8859-15 --links --embedfonts --pagemode document --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 680 --no-strict --no-overflow
 Manual.html
 Intro.html
 Intro_overview.html
@@ -150,6 +150,7 @@ dielectric.html
 dimension.html
 displace_atoms.html
 dump.html
+dump_adios.html
 dump_h5md.html
 dump_image.html
 dump_modify.html
@@ -157,6 +158,7 @@ dump_molfile.html
 dump_netcdf.html
 dump_vtk.html
 dump_cfg_uef.html
+dynamical_matrix.html
 echo.html
 group.html
 group2ndx.html
@@ -585,6 +587,7 @@ pair_kim.html
 pair_kolmogorov_crespi_full.html
 pair_kolmogorov_crespi_z.html
 pair_lcbop.html
+pair_lebedeva_z.html
 pair_line_lj.html
 pair_list.html
 pair_lj.html
@@ -594,7 +597,8 @@ pair_lj_expand.html
 pair_lj_long.html
 pair_lj_smooth.html
 pair_lj_smooth_linear.html
-pair_lj_soft.html
+pair_fep_soft.html
+pair_lj_switch3_coulgauss.html
 pair_lubricate.html
 pair_lubricateU.html
 pair_mdf.html
@@ -604,6 +608,7 @@ pair_meam_sw_spline.html
 pair_meso.html
 pair_mgpt.html
 pair_mie.html
+pair_mm3_switch3_coulgauss.html
 pair_momb.html
 pair_morse.html
 pair_multi_lucy.html
@@ -667,6 +672,7 @@ bond_harmonic_shift.html
 bond_harmonic_shift_cut.html
 bond_hybrid.html
 bond_morse.html
+bond_mm3.html
 bond_none.html
 bond_nonlinear.html
 bond_oxdna.html
@@ -686,11 +692,13 @@ angle_cosine_periodic.html
 angle_cosine_shift.html
 angle_cosine_shift_exp.html
 angle_cosine_squared.html
+angle_cross.html
 angle_dipole.html
 angle_fourier.html
 angle_fourier_simple.html
 angle_harmonic.html
 angle_hybrid.html
+angle_mm3.html
 angle_none.html
 angle_quartic.html
 angle_sdk.html
@@ -724,6 +732,7 @@ improper_class2.html
 improper_cossq.html
 improper_cvff.html
 improper_distance.html
+improper_distharm.html
 improper_fourier.html
 improper_harmonic.html
 improper_hybrid.html
@@ -731,6 +740,7 @@ improper_inversion_harmonic.html
 improper_none.html
 improper_ring.html
 improper_umbrella.html
+improper_sqdistharm.html
 improper_zero.html
 
 lammps_commands_kspace.html

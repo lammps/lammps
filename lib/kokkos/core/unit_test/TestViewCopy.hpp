@@ -56,17 +56,13 @@ struct TestViewCopy {
 
   using InExecSpace = ExecSpace;
 
-  static void test_view_copy()
+  static void test_view_copy(const int dim0, const int dim1, const int dim2)
   {
 #if defined( KOKKOS_ENABLE_CUDA ) || defined( KOKKOS_ENABLE_ROCM )
    // ExecSpace = CudaUVM, CudaHostPinned
    // This test will fail at runtime with an illegal memory access if something goes wrong
    // Test 1: deep_copy from host_mirror_space to ExecSpace and ExecSpace back to host_mirror_space
    {
-    const int dim0 = 4;
-    const int dim1 = 2;
-    const int dim2 = 3;
-
     typedef Kokkos::View<double****,InExecSpace> Rank4ViewType;
     Rank4ViewType view_4;
     view_4 = Rank4ViewType("view_4", dim0, dim1, dim2, dim2);
@@ -88,19 +84,21 @@ struct TestViewCopy {
 
    // Test 2: deep_copy from Cuda to ExecSpace and ExecSpace back to Cuda
    {
-    const int dim0 = 4;
-    const int dim1 = 2;
-    const int dim2 = 3;
-
     typedef Kokkos::View<double****,InExecSpace> Rank4ViewType;
     Rank4ViewType view_4;
     view_4 = Rank4ViewType("view_4", dim0, dim1, dim2, dim2);
 
 #if defined( KOKKOS_ENABLE_CUDA )
-    typedef Kokkos::Cuda space_type;
+    typedef typename std::conditional<
+        Kokkos::Impl::MemorySpaceAccess<Kokkos::CudaSpace,typename InExecSpace::memory_space>::accessible,
+        Kokkos::CudaSpace,
+        InExecSpace>::type space_type;
 #endif
 #if defined( KOKKOS_ENABLE_ROCM )
-    typedef Kokkos::Experimental::ROCm space_type;
+    typedef typename std::conditional<
+        Kokkos::Impl::MemorySpaceAccess<Kokkos::ROCmSpace,typename InExecSpace::memory_space>::accessible,
+        Kokkos::ROCmSpace,
+        InExecSpace>::type space_type;
 #endif
     Kokkos::View<double**,Kokkos::LayoutLeft,space_type> srcView("srcView", dim2, dim2);
 
@@ -118,10 +116,6 @@ struct TestViewCopy {
 
    // Test 3: deep_copy from host_space to ExecSpace and ExecSpace back to host_space
    {
-    const int dim0 = 4;
-    const int dim1 = 2;
-    const int dim2 = 3;
-
     typedef Kokkos::View<double****,InExecSpace> Rank4ViewType;
     Rank4ViewType view_4;
     view_4 = Rank4ViewType("view_4", dim0, dim1, dim2, dim2);
@@ -149,7 +143,41 @@ struct TestViewCopy {
 
 TEST_F( TEST_CATEGORY , view_copy_tests ) {
   //Only include this file to be compiled with CudaUVM and CudaHostPinned
-  TestViewCopy< TEST_EXECSPACE >::test_view_copy();
+  TestViewCopy< TEST_EXECSPACE >::test_view_copy(4,2,3);
+  TestViewCopy< TEST_EXECSPACE >::test_view_copy(4,2,0);
+}
+
+TEST_F( TEST_CATEGORY , view_copy_degenerated ) {
+  //Only include this file to be compiled with CudaUVM and CudaHostPinned
+  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_def_1;
+  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_1( reinterpret_cast<int*>(-1), 0 );
+  Kokkos::View<int*> v_m_def_1;
+  Kokkos::View<int*> v_m_1("v_m_1", 0);
+
+  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_def_2;
+  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_2( reinterpret_cast<int*>(-1), 0 );
+  Kokkos::View<int*> v_m_def_2;
+  Kokkos::View<int*> v_m_2("v_m_2", 0);
+
+  Kokkos::deep_copy(v_um_def_1, v_um_def_2);
+  Kokkos::deep_copy(v_um_def_1, v_um_2);
+  Kokkos::deep_copy(v_um_def_1, v_m_def_2);
+  Kokkos::deep_copy(v_um_def_1, v_m_2);
+
+  Kokkos::deep_copy(v_um_1, v_um_def_2);
+  Kokkos::deep_copy(v_um_1, v_um_2);
+  Kokkos::deep_copy(v_um_1, v_m_def_2);
+  Kokkos::deep_copy(v_um_1, v_m_2);
+
+  Kokkos::deep_copy(v_m_def_1, v_um_def_2);
+  Kokkos::deep_copy(v_m_def_1, v_um_2);
+  Kokkos::deep_copy(v_m_def_1, v_m_def_2);
+  Kokkos::deep_copy(v_m_def_1, v_m_2);
+
+  Kokkos::deep_copy(v_m_1, v_um_def_2);
+  Kokkos::deep_copy(v_m_1, v_um_2);
+  Kokkos::deep_copy(v_m_1, v_m_def_2);
+  Kokkos::deep_copy(v_m_1, v_m_2);
 }
 
 } // namespace Test

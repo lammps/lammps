@@ -204,7 +204,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
 namespace LAMMPS_NS {
 template class FixMomentumKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixMomentumKokkos<LMPHostType>;
 #endif
 }

@@ -33,8 +33,9 @@ class FixPrecessionSpin : public Fix {
   int setmask();
   void init();
   void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
+  void post_force(int);
+  void post_force_respa(int, int, int);
+  void min_post_force(int);
   double compute_scalar();
 
   int zeeman_flag, aniso_flag;

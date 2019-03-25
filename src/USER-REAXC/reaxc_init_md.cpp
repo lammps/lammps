@@ -127,7 +127,7 @@ int Init_Workspace( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params 
 {
   int ret;
 
-  ret = Allocate_Workspace( lmp, system, control, workspace,
+  ret = Allocate_Workspace( system, control, workspace,
                             system->local_cap, system->total_cap, comm, msg );
   if (ret != SUCCESS)
     return ret;
@@ -181,10 +181,11 @@ int  Init_Lists( LAMMPS *lmp, reax_system *system, control_params *control,
     }
     total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
-    if( !Make_List( lmp, system->Hcap, total_hbonds, TYP_HBOND,
+    if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS, comm ) ) {
       lmp->error->one(FLERR, "Not enough space for hbonds list.");
     }
+    (*lists+HBONDS)->error_ptr = system->error_ptr;
   }
 
   total_bonds = 0;
@@ -194,17 +195,19 @@ int  Init_Lists( LAMMPS *lmp, reax_system *system, control_params *control,
   }
   bond_cap = (int)(MAX( total_bonds*safezone, mincap*MIN_BONDS ));
 
-  if( !Make_List( lmp, system->total_cap, bond_cap, TYP_BOND,
+  if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
                   *lists+BONDS, comm ) ) {
     lmp->error->one(FLERR, "Not enough space for bonds list.");
   }
+  (*lists+BONDS)->error_ptr = system->error_ptr;
 
   /* 3bodies list */
   cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
-  if( !Make_List( lmp, bond_cap, cap_3body, TYP_THREE_BODY,
+  if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
                   *lists+THREE_BODIES, comm ) ){
     lmp->error->one(FLERR,"Problem in initializing angles list.");
   }
+  (*lists+THREE_BODIES)->error_ptr = system->error_ptr;
 
   free( hb_top );
   free( bond_top );

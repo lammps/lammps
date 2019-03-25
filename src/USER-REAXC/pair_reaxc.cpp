@@ -108,6 +108,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = NULL;
   system->pair_ptr = this;
+  system->error_ptr = this->lmp->error;
+  control->error_ptr = this->lmp->error;
 
   system->omp_active = 0;
 
@@ -139,13 +141,13 @@ PairReaxC::~PairReaxC()
 
     if (control->tabulate ) Deallocate_Lookup_Tables( lmp, system);
 
-    if (control->hbond_cut > 0 )  Delete_List( lmp, lists+HBONDS, world);
-    Delete_List( lmp, lists+BONDS, world );
-    Delete_List( lmp, lists+THREE_BODIES, world );
-    Delete_List( lmp, lists+FAR_NBRS, world );
+    if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world);
+    Delete_List( lists+BONDS, world );
+    Delete_List( lists+THREE_BODIES, world );
+    Delete_List( lists+FAR_NBRS, world );
 
-    DeAllocate_Workspace( lmp, control, workspace );
-    DeAllocate_System( lmp, system );
+    DeAllocate_Workspace( control, workspace );
+    DeAllocate_System( system );
   }
 
   memory->destroy( system );
@@ -437,13 +439,14 @@ void PairReaxC::setup( )
 
     // initialize my data structures
 
-    PreAllocate_Space( lmp, system, control, workspace, world );
+    PreAllocate_Space( system, control, workspace, world );
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
-    if(!Make_List(lmp, system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
+    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS, world))
       error->one(FLERR,"Pair reax/c problem in far neighbor list");
+    (lists+FAR_NBRS)->error_ptr=lmp->error;
 
     write_reax_lists();
     Initialize( lmp, system, control, data, workspace, &lists, out_control,
@@ -466,7 +469,7 @@ void PairReaxC::setup( )
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( lmp, system, control, data, workspace, &lists, mpi_data );
+    ReAllocate( system, control, data, workspace, &lists, mpi_data );
   }
 
   bigint local_ngroup = list->inum;

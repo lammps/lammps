@@ -58,11 +58,11 @@ void Natural_Cubic_Spline( LAMMPS_NS::LAMMPS* lmp, const double *h, const double
   double *a, *b, *c, *d, *v;
 
   /* allocate space for the linear system */
-  a = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  b = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  c = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  d = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  v = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
+  a = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  b = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  c = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  d = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  v = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
 
   /* build the linear system */
   a[0] = a[1] = a[n-1] = 0;
@@ -92,11 +92,11 @@ void Natural_Cubic_Spline( LAMMPS_NS::LAMMPS* lmp, const double *h, const double
     coef[i-1].a = f[i];
   }
 
-  sfree(lmp,  a, "cubic_spline:a" );
-  sfree(lmp,  b, "cubic_spline:b" );
-  sfree(lmp,  c, "cubic_spline:c" );
-  sfree(lmp,  d, "cubic_spline:d" );
-  sfree(lmp,  v, "cubic_spline:v" );
+  sfree(lmp->error,  a, "cubic_spline:a" );
+  sfree(lmp->error,  b, "cubic_spline:b" );
+  sfree(lmp->error,  c, "cubic_spline:c" );
+  sfree(lmp->error,  d, "cubic_spline:d" );
+  sfree(lmp->error,  v, "cubic_spline:v" );
 }
 
 
@@ -109,11 +109,11 @@ void Complete_Cubic_Spline( LAMMPS_NS::LAMMPS* lmp, const double *h, const doubl
   double *a, *b, *c, *d, *v;
 
   /* allocate space for the linear system */
-  a = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  b = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  c = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  d = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
-  v = (double*) smalloc(lmp,  n * sizeof(double), "cubic_spline:a", comm );
+  a = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  b = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  c = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  d = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
+  v = (double*) smalloc(lmp->error,  n * sizeof(double), "cubic_spline:a", comm );
 
   /* build the linear system */
   a[0] = 0;
@@ -142,11 +142,11 @@ void Complete_Cubic_Spline( LAMMPS_NS::LAMMPS* lmp, const double *h, const doubl
     coef[i-1].a = f[i];
   }
 
-  sfree(lmp,  a, "cubic_spline:a" );
-  sfree(lmp,  b, "cubic_spline:b" );
-  sfree(lmp,  c, "cubic_spline:c" );
-  sfree(lmp,  d, "cubic_spline:d" );
-  sfree(lmp,  v, "cubic_spline:v" );
+  sfree(lmp->error,  a, "cubic_spline:a" );
+  sfree(lmp->error,  b, "cubic_spline:b" );
+  sfree(lmp->error,  c, "cubic_spline:c" );
+  sfree(lmp->error,  d, "cubic_spline:d" );
+  sfree(lmp->error,  v, "cubic_spline:v" );
 }
 
 
@@ -171,23 +171,23 @@ int Init_Lookup_Tables( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_par
   num_atom_types = system->reax_param.num_atom_types;
   dr = control->nonb_cut / control->tabulate;
   h = (double*)
-    smalloc(lmp,  (control->tabulate+2) * sizeof(double), "lookup:h", comm );
+    smalloc(lmp->error,  (control->tabulate+2) * sizeof(double), "lookup:h", comm );
   fh = (double*)
-    smalloc(lmp,  (control->tabulate+2) * sizeof(double), "lookup:fh", comm );
+    smalloc(lmp->error,  (control->tabulate+2) * sizeof(double), "lookup:fh", comm );
   fvdw = (double*)
-    smalloc(lmp,  (control->tabulate+2) * sizeof(double), "lookup:fvdw", comm );
+    smalloc(lmp->error,  (control->tabulate+2) * sizeof(double), "lookup:fvdw", comm );
   fCEvd = (double*)
-    smalloc(lmp,  (control->tabulate+2) * sizeof(double), "lookup:fCEvd", comm );
+    smalloc(lmp->error,  (control->tabulate+2) * sizeof(double), "lookup:fCEvd", comm );
   fele = (double*)
-    smalloc(lmp,  (control->tabulate+2) * sizeof(double), "lookup:fele", comm );
+    smalloc(lmp->error,  (control->tabulate+2) * sizeof(double), "lookup:fele", comm );
   fCEclmb = (double*)
-    smalloc(lmp,  (control->tabulate+2) * sizeof(double), "lookup:fCEclmb", comm );
+    smalloc(lmp->error,  (control->tabulate+2) * sizeof(double), "lookup:fCEclmb", comm );
 
   LR = (LR_lookup_table**)
-    scalloc(lmp,  num_atom_types, sizeof(LR_lookup_table*), "lookup:LR", comm );
+    scalloc(lmp->error,  num_atom_types, sizeof(LR_lookup_table*), "lookup:LR", comm );
   for( i = 0; i < num_atom_types; ++i )
     LR[i] = (LR_lookup_table*)
-      scalloc(lmp,  num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]", comm );
+      scalloc(lmp->error,  num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]", comm );
 
   for( i = 0; i < MAX_ATOM_TYPES; ++i )
     existing_types[i] = 0;
@@ -207,21 +207,21 @@ int Init_Lookup_Tables( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_par
           LR[i][j].dx = dr;
           LR[i][j].inv_dx = control->tabulate / control->nonb_cut;
           LR[i][j].y = (LR_data*)
-            smalloc(lmp,  LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y", comm );
+            smalloc(lmp->error,  LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y", comm );
           LR[i][j].H = (cubic_spline_coef*)
-            smalloc(lmp,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H" ,
+            smalloc(lmp->error,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H" ,
                      comm );
           LR[i][j].vdW = (cubic_spline_coef*)
-            smalloc(lmp,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW",
+            smalloc(lmp->error,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW",
                      comm);
           LR[i][j].CEvd = (cubic_spline_coef*)
-            smalloc(lmp,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd",
+            smalloc(lmp->error,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd",
                      comm);
           LR[i][j].ele = (cubic_spline_coef*)
-            smalloc(lmp,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele",
+            smalloc(lmp->error,  LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele",
                      comm );
           LR[i][j].CEclmb = (cubic_spline_coef*)
-            smalloc(lmp,  LR[i][j].n*sizeof(cubic_spline_coef),
+            smalloc(lmp->error,  LR[i][j].n*sizeof(cubic_spline_coef),
                      "lookup:LR[i,j].CEclmb", comm );
 
           for( r = 1; r <= control->tabulate; ++r ) {
@@ -291,14 +291,14 @@ void Deallocate_Lookup_Tables( LAMMPS_NS::LAMMPS* lmp, reax_system *system )
   for( i = 0; i < ntypes; ++i ) {
     for( j = i; j < ntypes; ++j )
       if (LR[i][j].n) {
-        sfree(lmp,  LR[i][j].y, "LR[i,j].y" );
-        sfree(lmp,  LR[i][j].H, "LR[i,j].H" );
-        sfree(lmp,  LR[i][j].vdW, "LR[i,j].vdW" );
-        sfree(lmp,  LR[i][j].CEvd, "LR[i,j].CEvd" );
-        sfree(lmp,  LR[i][j].ele, "LR[i,j].ele" );
-        sfree(lmp,  LR[i][j].CEclmb, "LR[i,j].CEclmb" );
+        sfree(lmp->error,  LR[i][j].y, "LR[i,j].y" );
+        sfree(lmp->error,  LR[i][j].H, "LR[i,j].H" );
+        sfree(lmp->error,  LR[i][j].vdW, "LR[i,j].vdW" );
+        sfree(lmp->error,  LR[i][j].CEvd, "LR[i,j].CEvd" );
+        sfree(lmp->error,  LR[i][j].ele, "LR[i,j].ele" );
+        sfree(lmp->error,  LR[i][j].CEclmb, "LR[i,j].CEclmb" );
       }
-    sfree(lmp,  LR[i], "LR[i]" );
+    sfree(lmp->error,  LR[i], "LR[i]" );
   }
-  sfree(lmp,  LR, "LR" );
+  sfree(lmp->error,  LR, "LR" );
 }

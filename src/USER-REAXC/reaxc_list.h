@@ -29,8 +29,8 @@
 
 #include "reaxc_types.h"
 
-int  Make_List( LAMMPS_NS::LAMMPS*, int, int, int, reax_list*, MPI_Comm );
-void Delete_List( LAMMPS_NS::LAMMPS*, reax_list*, MPI_Comm );
+int  Make_List( int, int, int, reax_list*, MPI_Comm );
+void Delete_List( reax_list*, MPI_Comm );
 
 inline int  Num_Entries(int,reax_list*);
 inline int  Start_Index( int, reax_list* );

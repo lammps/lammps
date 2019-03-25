@@ -99,54 +99,54 @@ char Read_Force_Field( LAMMPS_NS::LAMMPS* lmp, FILE *fp, reax_interaction *reax,
 
   /* Allocating structures in reax_interaction */
   reax->sbp = (single_body_parameters*)
-    scalloc(lmp,  reax->num_atom_types, sizeof(single_body_parameters), "sbp",
+    scalloc(lmp->error,  reax->num_atom_types, sizeof(single_body_parameters), "sbp",
              comm );
   reax->tbp = (two_body_parameters**)
-    scalloc(lmp,  reax->num_atom_types, sizeof(two_body_parameters*), "tbp", comm );
+    scalloc(lmp->error,  reax->num_atom_types, sizeof(two_body_parameters*), "tbp", comm );
   reax->thbp= (three_body_header***)
-    scalloc(lmp,  reax->num_atom_types, sizeof(three_body_header**), "thbp", comm );
+    scalloc(lmp->error,  reax->num_atom_types, sizeof(three_body_header**), "thbp", comm );
   reax->hbp = (hbond_parameters***)
-    scalloc(lmp,  reax->num_atom_types, sizeof(hbond_parameters**), "hbp", comm );
+    scalloc(lmp->error,  reax->num_atom_types, sizeof(hbond_parameters**), "hbp", comm );
   reax->fbp = (four_body_header****)
-    scalloc(lmp,  reax->num_atom_types, sizeof(four_body_header***), "fbp", comm );
+    scalloc(lmp->error,  reax->num_atom_types, sizeof(four_body_header***), "fbp", comm );
   tor_flag  = (char****)
-    scalloc(lmp,  reax->num_atom_types, sizeof(char***), "tor_flag", comm );
+    scalloc(lmp->error,  reax->num_atom_types, sizeof(char***), "tor_flag", comm );
 
   for( i = 0; i < reax->num_atom_types; i++ ) {
     reax->tbp[i] = (two_body_parameters*)
-      scalloc(lmp,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]",
+      scalloc(lmp->error,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]",
                comm );
     reax->thbp[i]= (three_body_header**)
-      scalloc(lmp,  reax->num_atom_types, sizeof(three_body_header*), "thbp[i]",
+      scalloc(lmp->error,  reax->num_atom_types, sizeof(three_body_header*), "thbp[i]",
                comm );
     reax->hbp[i] = (hbond_parameters**)
-      scalloc(lmp,  reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]",
+      scalloc(lmp->error,  reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]",
                comm );
     reax->fbp[i] = (four_body_header***)
-      scalloc(lmp,  reax->num_atom_types, sizeof(four_body_header**), "fbp[i]",
+      scalloc(lmp->error,  reax->num_atom_types, sizeof(four_body_header**), "fbp[i]",
                comm );
     tor_flag[i]  = (char***)
-      scalloc(lmp,  reax->num_atom_types, sizeof(char**), "tor_flag[i]", comm );
+      scalloc(lmp->error,  reax->num_atom_types, sizeof(char**), "tor_flag[i]", comm );
 
     for( j = 0; j < reax->num_atom_types; j++ ) {
       reax->thbp[i][j]= (three_body_header*)
-        scalloc(lmp,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]",
+        scalloc(lmp->error,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]",
                  comm );
       reax->hbp[i][j] = (hbond_parameters*)
-        scalloc(lmp,  reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]",
+        scalloc(lmp->error,  reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]",
                  comm );
       reax->fbp[i][j] = (four_body_header**)
-        scalloc(lmp,  reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]",
+        scalloc(lmp->error,  reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]",
                  comm );
       tor_flag[i][j]  = (char**)
-        scalloc(lmp,  reax->num_atom_types, sizeof(char*), "tor_flag[i,j]", comm );
+        scalloc(lmp->error,  reax->num_atom_types, sizeof(char*), "tor_flag[i,j]", comm );
 
       for (k=0; k < reax->num_atom_types; k++) {
         reax->fbp[i][j][k] = (four_body_header*)
-          scalloc(lmp,  reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]",
+          scalloc(lmp->error,  reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]",
                    comm );
         tor_flag[i][j][k]  = (char*)
-          scalloc(lmp,  reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]",
+          scalloc(lmp->error,  reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]",
                    comm );
       }
     }

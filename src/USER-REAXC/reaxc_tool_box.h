@@ -37,7 +37,7 @@ double Get_Time( );
 int   Tokenize( char*, char*** );
 
 /* from lammps */
-void *smalloc( LAMMPS_NS::LAMMPS*, rc_bigint, const char*, MPI_Comm );
-void *scalloc( LAMMPS_NS::LAMMPS*, rc_bigint, rc_bigint, const char*, MPI_Comm );
-void sfree( LAMMPS_NS::LAMMPS*, void*, const char* );
+void *smalloc( LAMMPS_NS::Error*, rc_bigint, const char*, MPI_Comm );
+void *scalloc( LAMMPS_NS::Error*, rc_bigint, rc_bigint, const char*, MPI_Comm );
+void sfree( LAMMPS_NS::Error*, void*, const char* );
 #endif

@@ -29,118 +29,118 @@
 #include "reaxc_tool_box.h"
 
 /************* allocate list space ******************/
-int Make_List( LAMMPS_NS::LAMMPS *lmp, int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
+int Make_List( int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
 {
   l->allocated = 1;
 
   l->n = n;
   l->num_intrs = num_intrs;
 
-  if (l->index) sfree(lmp, l->index, "list:index");
-  if (l->end_index) sfree(lmp, l->end_index, "list:end_index");
-  l->index = (int*) smalloc(lmp,  n * sizeof(int), "list:index", comm );
-  l->end_index = (int*) smalloc(lmp,  n * sizeof(int), "list:end_index", comm );
+  if (l->index) sfree(l->error_ptr, l->index, "list:index");
+  if (l->end_index) sfree(l->error_ptr, l->end_index, "list:end_index");
+  l->index = (int*) smalloc(l->error_ptr,  n * sizeof(int), "list:index", comm );
+  l->end_index = (int*) smalloc(l->error_ptr,  n * sizeof(int), "list:end_index", comm );
 
   l->type = type;
 
   switch(l->type) {
   case TYP_VOID:
-    if (l->select.v) sfree(lmp, l->select.v, "list:v");
-    l->select.v = (void*) smalloc(lmp, l->num_intrs * sizeof(void*), "list:v", comm);
+    if (l->select.v) sfree(l->error_ptr, l->select.v, "list:v");
+    l->select.v = (void*) smalloc(l->error_ptr, l->num_intrs * sizeof(void*), "list:v", comm);
     break;
 
   case TYP_THREE_BODY:
-    if (l->select.three_body_list) sfree(lmp, l->select.three_body_list,"list:three_bodies");
+    if (l->select.three_body_list) sfree(l->error_ptr, l->select.three_body_list,"list:three_bodies");
     l->select.three_body_list = (three_body_interaction_data*)
-      smalloc(lmp,  l->num_intrs * sizeof(three_body_interaction_data),
+      smalloc(l->error_ptr,  l->num_intrs * sizeof(three_body_interaction_data),
                "list:three_bodies", comm );
     break;
 
   case TYP_BOND:
-    if (l->select.bond_list) sfree(lmp, l->select.bond_list,"list:bonds");
+    if (l->select.bond_list) sfree(l->error_ptr, l->select.bond_list,"list:bonds");
     l->select.bond_list = (bond_data*)
-      smalloc(lmp,  l->num_intrs * sizeof(bond_data), "list:bonds", comm );
+      smalloc(l->error_ptr,  l->num_intrs * sizeof(bond_data), "list:bonds", comm );
     break;
 
   case TYP_DBO:
-    if (l->select.dbo_list) sfree(lmp, l->select.dbo_list,"list:dbonds");
+    if (l->select.dbo_list) sfree(l->error_ptr, l->select.dbo_list,"list:dbonds");
     l->select.dbo_list = (dbond_data*)
-      smalloc(lmp,  l->num_intrs * sizeof(dbond_data), "list:dbonds", comm );
+      smalloc(l->error_ptr,  l->num_intrs * sizeof(dbond_data), "list:dbonds", comm );
     break;
 
   case TYP_DDELTA:
-    if (l->select.dDelta_list) sfree(lmp, l->select.dDelta_list,"list:dDeltas");
+    if (l->select.dDelta_list) sfree(l->error_ptr, l->select.dDelta_list,"list:dDeltas");
     l->select.dDelta_list = (dDelta_data*)
-      smalloc(lmp,  l->num_intrs * sizeof(dDelta_data), "list:dDeltas", comm );
+      smalloc(l->error_ptr,  l->num_intrs * sizeof(dDelta_data), "list:dDeltas", comm );
     break;
 
   case TYP_FAR_NEIGHBOR:
-    if (l->select.far_nbr_list) sfree(lmp, l->select.far_nbr_list,"list:far_nbrs");
+    if (l->select.far_nbr_list) sfree(l->error_ptr, l->select.far_nbr_list,"list:far_nbrs");
     l->select.far_nbr_list = (far_neighbor_data*)
-      smalloc(lmp, l->num_intrs * sizeof(far_neighbor_data), "list:far_nbrs", comm);
+      smalloc(l->error_ptr, l->num_intrs * sizeof(far_neighbor_data), "list:far_nbrs", comm);
     break;
 
   case TYP_HBOND:
-    if (l->select.hbond_list) sfree(lmp, l->select.hbond_list,"list:hbonds");
+    if (l->select.hbond_list) sfree(l->error_ptr, l->select.hbond_list,"list:hbonds");
     l->select.hbond_list = (hbond_data*)
-      smalloc(lmp,  l->num_intrs * sizeof(hbond_data), "list:hbonds", comm );
+      smalloc(l->error_ptr,  l->num_intrs * sizeof(hbond_data), "list:hbonds", comm );
     break;
 
   default:
     char errmsg[128];
     snprintf(errmsg, 128, "No %d list type defined", l->type);
-    lmp->error->all(FLERR,errmsg);
+    l->error_ptr->all(FLERR,errmsg);
   }
 
   return SUCCESS;
 }
 
 
-void Delete_List( LAMMPS_NS::LAMMPS *lmp, reax_list *l, MPI_Comm comm )
+void Delete_List( reax_list *l, MPI_Comm comm )
 {
   if (l->allocated == 0)
     return;
   l->allocated = 0;
 
-  sfree(lmp,  l->index, "list:index" );
-  sfree(lmp,  l->end_index, "list:end_index" );
+  sfree(l->error_ptr,  l->index, "list:index" );
+  sfree(l->error_ptr,  l->end_index, "list:end_index" );
   l->index = NULL;
   l->end_index = NULL;
 
   switch(l->type) {
   case TYP_VOID:
-    sfree(lmp,  l->select.v, "list:v" );
+    sfree(l->error_ptr,  l->select.v, "list:v" );
     l->select.v = NULL;
     break;
   case TYP_HBOND:
-    sfree(lmp,  l->select.hbond_list, "list:hbonds" );
+    sfree(l->error_ptr,  l->select.hbond_list, "list:hbonds" );
     l->select.hbond_list = NULL;
     break;
   case TYP_FAR_NEIGHBOR:
-    sfree(lmp,  l->select.far_nbr_list, "list:far_nbrs" );
+    sfree(l->error_ptr,  l->select.far_nbr_list, "list:far_nbrs" );
     l->select.far_nbr_list = NULL;
     break;
   case TYP_BOND:
-    sfree(lmp,  l->select.bond_list, "list:bonds" );
+    sfree(l->error_ptr,  l->select.bond_list, "list:bonds" );
     l->select.bond_list = NULL;
     break;
   case TYP_DBO:
-    sfree(lmp,  l->select.dbo_list, "list:dbos" );
+    sfree(l->error_ptr,  l->select.dbo_list, "list:dbos" );
     l->select.dbo_list = NULL;
     break;
   case TYP_DDELTA:
-    sfree(lmp,  l->select.dDelta_list, "list:dDeltas" );
+    sfree(l->error_ptr,  l->select.dDelta_list, "list:dDeltas" );
     l->select.dDelta_list = NULL;
     break;
   case TYP_THREE_BODY:
-    sfree(lmp,  l->select.three_body_list, "list:three_bodies" );
+    sfree(l->error_ptr,  l->select.three_body_list, "list:three_bodies" );
     l->select.three_body_list = NULL;
     break;
 
   default:
     char errmsg[128];
     snprintf(errmsg, 128, "No %d list type defined", l->type);
-    lmp->error->all(FLERR,errmsg);
+    l->error_ptr->all(FLERR,errmsg);
   }
 }
 

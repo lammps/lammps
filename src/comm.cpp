@@ -810,7 +810,12 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
                             procs_rvous,outbuf_rvous,ptr);
 
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
-  if (flag == 0) return 0;    // all nout_rvous are 0, no 2nd comm stage
+  if (flag == 0) {
+    if (statflag) rendezvous_stats(n,0,nrvous,nrvous_out,insize,outsize,
+                                   (bigint) nrvous_out*sizeof(int) + 
+                                   irregular1_bytes);
+    return 0;    // all nout_rvous are 0, no 2nd comm stage
+  }
 
   // irregular comm of outbuf from rendezvous decomp back to caller decomp
   // caller will free outbuf
@@ -952,8 +957,16 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     memory->destroy(recvcount);
     memory->destroy(sdispls);
     memory->destroy(rdispls);
+    if (statflag) rendezvous_stats(n,0,nrvous,nrvous_out,insize,outsize,
+                                   (bigint) nrvous_out*sizeof(int) + 
+                                   4*nprocs*sizeof(int) + all2all1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
+
+
+
+
+
 
   // create procs and outbuf for All2all if necesary
   
@@ -1102,10 +1115,15 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
       fprintf(screen,"  input data (MB): %g %g %g %g\n",
               1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
               1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
-      fprintf(screen,"  output datum count: "
-              BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-              size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
-              size_out_max/outsize,size_out_min/outsize);
+      if (outsize)
+        fprintf(screen,"  output datum count: "
+                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+                size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+                size_out_max/outsize,size_out_min/outsize);
+      else 
+        fprintf(screen,"  output datum count: "
+                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+                0,0.0,0,0);
       fprintf(screen,"  output data (MB): %g %g %g %g\n",
               1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
               1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
@@ -1116,10 +1134,15 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
       fprintf(screen,"  input rvous data (MB): %g %g %g %g\n",
               1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
               1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
-      fprintf(screen,"  output rvous datum count: "
-              BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-              size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
-              size_outrvous_max/outsize,size_outrvous_min/outsize);
+      if (outsize)
+        fprintf(screen,"  output rvous datum count: "
+                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+                size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+                size_outrvous_max/outsize,size_outrvous_min/outsize);
+      else
+        fprintf(screen,"  output rvous datum count: "
+                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+                0,0.0,0,0);
       fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",
               1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
               1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);

@@ -53,6 +53,7 @@ Commands :h1
    include
    info
    jump
+   kim_query
    kspace_modify
    kspace_style
    label

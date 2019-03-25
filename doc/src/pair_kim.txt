@@ -42,12 +42,9 @@ section of the "Packages details"_Packages_details.html doc page has
 instructions on how to do this with a simple make command, when
 building LAMMPS.
 
-See the examples/kim dir for an input script that uses a KIM model (potential)
-for Lennard-Jones.  Note, for this example input script, the example models
-shipped with with kim-api package must be installed.  See the "Build
-package"_Build_package.html section and the ./lib/kim/README for details
-on how to build LAMMSPS with the kim-api and how to install the example models.
-
+See the examples/kim dir for an input script that uses a KIM model
+(potential) for Lennard-Jones.
+ 
 :line
 
 The argument {model} is the name of the KIM model for a specific

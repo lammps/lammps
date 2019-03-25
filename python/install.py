@@ -118,6 +118,7 @@ try:
         author_email = "sjplimp@sandia.gov",
         url = "https://lammps.sandia.gov",
         description = "LAMMPS Molecular Dynamics Python module",
+        license = "GPL",
         py_modules = ["lammps"],
         data_files = [(get_python_lib(prefix=args.prefix), [args.lib])])
 except:
@@ -128,14 +129,13 @@ if tryuser:
   try:
     sys.argv = ["setup.py","install","--user"]    # as if had run "python setup.py install --user"
     setup(name = "lammps",
-    version = verstr,
-    author = "Steve Plimpton",
-    author_email = "sjplimp@sandia.gov",
-    url = "https://lammps.sandia.gov",
-    description = "LAMMPS Molecular Dynamics Python module",
-    py_modules = ["lammps"],
-    data_files = [(site.USER_SITE, [args.lib])])
+          version = verstr,
+          author = "Steve Plimpton",
+          author_email = "sjplimp@sandia.gov",
+          url = "https://lammps.sandia.gov",
+          description = "LAMMPS Molecular Dynamics Python module",
+          license = "GPL",
+          py_modules = ["lammps"],
+          data_files = [(site.USER_SITE, [args.lib])])
   except:
     print("Installation into user site package folder failed.")
-
-

@@ -39,7 +39,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralHelix::DihedralHelix(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralHelix::DihedralHelix(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

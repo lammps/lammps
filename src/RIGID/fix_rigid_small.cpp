@@ -1592,7 +1592,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous),
                                  0,proclist,
                                  rendezvous_body,0,buf,sizeof(OutRvous),
-                                 (void *) this,1);
+                                 (void *) this);
   OutRvous *outbuf = (OutRvous *) buf;
   
   memory->destroy(proclist);

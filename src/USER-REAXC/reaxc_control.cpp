@@ -28,9 +28,8 @@
 #include "reaxc_control.h"
 #include "reaxc_tool_box.h"
 
-using namespace LAMMPS_NS;
 
-char Read_Control_File( LAMMPS *lmp, char *control_file, control_params* control,
+char Read_Control_File( char *control_file, control_params* control,
                         output_controls *out_control )
 {
   FILE *fp;
@@ -40,7 +39,7 @@ char Read_Control_File( LAMMPS *lmp, char *control_file, control_params* control
 
   /* open control file */
   if ( (fp = fopen( control_file, "r" ) ) == NULL ) {
-    lmp->error->all(FLERR, "The control file cannot be opened");
+    control->error_ptr->all(FLERR, "The control file cannot be opened");
   }
 
   /* assign default values */
@@ -367,7 +366,7 @@ char Read_Control_File( LAMMPS *lmp, char *control_file, control_params* control
     else {
       char errmsg[128];
       snprintf(errmsg,128,"Unknown parameter %s in the control file", tmp[0]);
-      lmp->error->all(FLERR, errmsg);
+      control->error_ptr->all(FLERR, errmsg);
     }
   }
 

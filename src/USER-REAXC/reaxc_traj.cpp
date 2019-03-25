@@ -29,7 +29,7 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 
-int Reallocate_Output_Buffer( LAMMPS_NS::LAMMPS *lmp, output_controls *out_control, int req_space,
+int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_control, int req_space,
                               MPI_Comm comm )
 {
   if (out_control->buffer_len > 0)
@@ -40,7 +40,7 @@ int Reallocate_Output_Buffer( LAMMPS_NS::LAMMPS *lmp, output_controls *out_contr
   if (out_control->buffer == NULL) {
     char errmsg[256];
     snprintf(errmsg, 256, "Insufficient memory for required buffer size %d", (int) (req_space*SAFE_ZONE));
-    lmp->error->one(FLERR,errmsg);
+    error_ptr->one(FLERR,errmsg);
   }
 
   return SUCCESS;
@@ -56,7 +56,7 @@ void Write_Skip_Line( output_controls *out_control, mpi_datatypes * /*mpi_data*/
 }
 
 
-int Write_Header( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
+int Write_Header( reax_system *system, control_params *control,
                   output_controls *out_control, mpi_datatypes *mpi_data )
 {
   int  num_hdr_lines, my_hdr_lines, buffer_req;
@@ -82,7 +82,7 @@ int Write_Header( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *c
   my_hdr_lines = num_hdr_lines * ( system->my_rank == MASTER_NODE );
   buffer_req = my_hdr_lines * HEADER_LINE_LEN;
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( lmp, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req, mpi_data->world );
 
   /* only the master node writes into trajectory header */
   if (system->my_rank == MASTER_NODE) {
@@ -258,7 +258,7 @@ int Write_Header( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *c
 }
 
 
-int Write_Init_Desc( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_params * /*control*/,
+int Write_Init_Desc( reax_system *system, control_params * /*control*/,
                      output_controls *out_control, mpi_datatypes *mpi_data )
 {
   int i, me, np, cnt, buffer_len, buffer_req;
@@ -277,7 +277,7 @@ int Write_Init_Desc( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_params
   else buffer_req = system->n * INIT_DESC_LEN + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( lmp, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
 
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
@@ -310,7 +310,7 @@ int Write_Init_Desc( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_params
 }
 
 
-int Init_Traj( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
+int Init_Traj( reax_system *system, control_params *control,
                output_controls *out_control, mpi_datatypes *mpi_data,
                char *msg )
 {
@@ -347,14 +347,14 @@ int Init_Traj( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *cont
     strcpy( msg, "init_traj: unknown trajectory option" );
     return FAILURE;
   }
-  Write_Header( lmp, system, control, out_control, mpi_data );
-  Write_Init_Desc( lmp, system, control, out_control, mpi_data );
+  Write_Header( system, control, out_control, mpi_data );
+  Write_Init_Desc( system, control, out_control, mpi_data );
 
   return SUCCESS;
 }
 
 
-int Write_Frame_Header( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_params *control,
+int Write_Frame_Header( reax_system *system, control_params *control,
                         simulation_data *data, output_controls *out_control,
                         mpi_datatypes *mpi_data )
 {
@@ -366,7 +366,7 @@ int Write_Frame_Header( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_par
   my_frm_hdr_lines = num_frm_hdr_lines * ( me == MASTER_NODE );
   buffer_req = my_frm_hdr_lines * HEADER_LINE_LEN;
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( lmp, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req, mpi_data->world );
 
   /* only the master node writes into trajectory header */
   if (me == MASTER_NODE) {
@@ -480,7 +480,7 @@ int Write_Frame_Header( LAMMPS_NS::LAMMPS *lmp, reax_system *system, control_par
 
 
 
-int Write_Atoms( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params * /*control*/,
+int Write_Atoms( reax_system *system, control_params * /*control*/,
                  output_controls *out_control, mpi_datatypes *mpi_data )
 {
   int i, me, np, line_len, buffer_len, buffer_req, cnt;
@@ -499,7 +499,7 @@ int Write_Atoms( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params * /
   else buffer_req = system->n * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( lmp, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
 
   /* fill in buffer */
   out_control->line[0] = 0;
@@ -530,7 +530,7 @@ int Write_Atoms( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params * /
                p_atom->f[0], p_atom->f[1], p_atom->f[2], p_atom->q );
       break;
     default:
-      lmp->error->all(FLERR,"Write_traj_atoms: unknown atom trajectory format");
+      system->error_ptr->all(FLERR,"Write_traj_atoms: unknown atom trajectory format");
     }
 
     strncpy( out_control->buffer + i*line_len, out_control->line, line_len+1 );
@@ -556,7 +556,7 @@ int Write_Atoms( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params * /
 }
 
 
-int Write_Bonds( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control, reax_list *bonds,
+int Write_Bonds( reax_system *system, control_params *control, reax_list *bonds,
                 output_controls *out_control, mpi_datatypes *mpi_data)
 {
   int i, j, pj, me, np;
@@ -589,7 +589,7 @@ int Write_Bonds( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *co
   else buffer_req = my_bonds * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( lmp, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
 
   /* fill in the buffer */
   out_control->line[0] = 0;
@@ -616,7 +616,7 @@ int Write_Bonds( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *co
                    bo_ij->bo_data.BO_pi, bo_ij->bo_data.BO_pi2 );
           break;
         default:
-          lmp->error->all(FLERR, "Write_traj_bonds: FATAL! invalid bond_info option");
+          system->error_ptr->all(FLERR, "Write_traj_bonds: FATAL! invalid bond_info option");
         }
         strncpy( out_control->buffer + my_bonds*line_len,
                  out_control->line, line_len+1 );
@@ -645,7 +645,7 @@ int Write_Bonds( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *co
 }
 
 
-int Write_Angles( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
+int Write_Angles( reax_system *system, control_params *control,
                   reax_list *bonds, reax_list *thb_intrs,
                   output_controls *out_control, mpi_datatypes *mpi_data )
 {
@@ -689,7 +689,7 @@ int Write_Angles( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *c
   else buffer_req = my_angles * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( lmp, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
 
   /* fill in the buffer */
   my_angles = 0;
@@ -740,20 +740,20 @@ int Write_Angles( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *c
 }
 
 
-int Append_Frame( LAMMPS_NS::LAMMPS* lmp, reax_system *system, control_params *control,
+int Append_Frame( reax_system *system, control_params *control,
                   simulation_data *data, reax_list **lists,
                   output_controls *out_control, mpi_datatypes *mpi_data )
 {
-  Write_Frame_Header( lmp, system, control, data, out_control, mpi_data );
+  Write_Frame_Header( system, control, data, out_control, mpi_data );
 
   if (out_control->write_atoms)
-    Write_Atoms( lmp, system, control, out_control, mpi_data );
+    Write_Atoms( system, control, out_control, mpi_data );
 
   if (out_control->write_bonds)
-    Write_Bonds( lmp, system, control, (*lists + BONDS), out_control, mpi_data );
+    Write_Bonds( system, control, (*lists + BONDS), out_control, mpi_data );
 
   if (out_control->write_angles)
-    Write_Angles( lmp, system, control, (*lists + BONDS), (*lists + THREE_BODIES),
+    Write_Angles( system, control, (*lists + BONDS), (*lists + THREE_BODIES),
                   out_control, mpi_data );
 
   return SUCCESS;

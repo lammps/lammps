@@ -29,6 +29,6 @@
 
 #include "reaxc_types.h"
 
-char Read_Force_Field( LAMMPS_NS::LAMMPS*, FILE*, reax_interaction*, control_params* );
+char Read_Force_Field( FILE*, reax_interaction*, control_params* );
 
 #endif

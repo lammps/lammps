@@ -139,7 +139,7 @@ PairReaxC::~PairReaxC()
 
     // deallocate reax data-structures
 
-    if (control->tabulate ) Deallocate_Lookup_Tables( lmp, system);
+    if (control->tabulate ) Deallocate_Lookup_Tables( system);
 
     if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world);
     Delete_List( lists+BONDS, world );
@@ -225,7 +225,7 @@ void PairReaxC::settings(int narg, char **arg)
     out_control->atom_info = 0;
     out_control->bond_info = 0;
     out_control->angle_info = 0;
-  } else Read_Control_File(lmp, arg[0], control, out_control);
+  } else Read_Control_File(arg[0], control, out_control);
 
   // default values
 
@@ -300,7 +300,7 @@ void PairReaxC::coeff( int nargs, char **args )
   FILE *fp;
   fp = force->open_potential(file);
   if (fp != NULL)
-    Read_Force_Field(lmp, fp, &(system->reax_param), control);
+    Read_Force_Field(fp, &(system->reax_param), control);
   else {
       char str[128];
       snprintf(str,128,"Cannot open ReaxFF potential file %s",file);
@@ -449,7 +449,7 @@ void PairReaxC::setup( )
     (lists+FAR_NBRS)->error_ptr=lmp->error;
 
     write_reax_lists();
-    Initialize( lmp, system, control, data, workspace, &lists, out_control,
+    Initialize( system, control, data, workspace, &lists, out_control,
                 mpi_data, world );
     for( int k = 0; k < system->N; ++k ) {
       num_bonds[k] = system->my_atoms[k].num_bonds;
@@ -585,7 +585,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   data->step = update->ntimestep;
 
-  Output_Results( lmp, system, control, data, &lists, out_control, mpi_data );
+  Output_Results( system, control, data, &lists, out_control, mpi_data );
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;

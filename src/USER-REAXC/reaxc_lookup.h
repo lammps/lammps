@@ -40,9 +40,9 @@ void Complete_Cubic_Spline( LAMMPS_NS::LAMMPS*, const double *h, const double *f
                             cubic_spline_coef *coef, unsigned int n,
                             MPI_Comm comm );
 
-int Init_Lookup_Tables( LAMMPS_NS::LAMMPS*, reax_system*, control_params*, storage*,
+int Init_Lookup_Tables( reax_system*, control_params*, storage*,
                         mpi_datatypes*, char* );
 
-void Deallocate_Lookup_Tables( LAMMPS_NS::LAMMPS*, reax_system* );
+void Deallocate_Lookup_Tables( reax_system* );
 
 #endif

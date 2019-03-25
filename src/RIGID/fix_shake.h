@@ -159,8 +159,8 @@ class FixShake : public Fix {
 
   struct ShakeInfo {
     tagint atomID;
+    tagint shake_atom[4];
     int shake_flag;
-    int shake_atom[4];
     int shake_type[3];
   };
 

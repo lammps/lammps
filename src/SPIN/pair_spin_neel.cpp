@@ -174,7 +174,7 @@ void PairSpinNeel::init_style()
     ifix++;
   }
   if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+    error->warning(FLERR,"Using pair/spin style without nve/spin");
 
   // get the lattice_flag from nve/spin
 

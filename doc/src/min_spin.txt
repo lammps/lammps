@@ -27,7 +27,8 @@ timestep, according to:
 
 :c,image(Eqs/min_spin_damping.jpg)
 
-with lambda a damping coefficient (similar to a Gilbert damping)
+with lambda a damping coefficient (similar to a Gilbert
+damping).
 Lambda can be defined by setting the {alpha_damp} keyword with the 
 "min_modify"_min_modify.html command. 
 
@@ -50,7 +51,10 @@ command.
 NOTE: The {spin} style replaces the force tolerance by a torque
 tolerance. See "minimize"_minimize.html for more explanation. 
 
-[Restrictions:] none
+[Restrictions:] 
+
+This minimization procedure is only applied to spin degrees of
+fredom for a frozen lattice configuration.
 
 [Related commands:]
 

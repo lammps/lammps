@@ -32,7 +32,6 @@
 #include "modify.h"
 #include "math_special.h"
 #include "math_const.h"
-#include "fix_neb_spin.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

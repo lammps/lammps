@@ -30,8 +30,6 @@ neigh_modify 	every 10 check yes delay 20
 #fix 		1 all precession/spin zeeman 0.001 0.0 0.0 1.0 anisotropy 0.01 1.0 0.0 0.0 
 fix 		1 all precession/spin anisotropy 0.0000033 0.0 0.0 1.0
 fix_modify	1 energy yes
-fix 		2 all langevin/spin 0.0 0.1 21
-fix		3 all nve/spin lattice no 
 
 timestep	0.0001
 

@@ -94,7 +94,7 @@ different kinds (e.g. global and per-atom) cannot be mixed.  Atom
 attributes are per-atom vector values.  See the doc page for
 individual "compute" and "fix" commands to see what kinds of
 quantities they generate.  See the optional {kind} keyword below for
-how to force the fix ave/histo command to dis-ambiguate if necessary.
+how to force the fix ave/histo command to disambiguate if necessary.
 
 Note that the output of this command is a single histogram for all
 input values combined together, not one histogram per input value.

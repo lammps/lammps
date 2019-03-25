@@ -280,7 +280,7 @@ bias.  The output of these stats are the vector values 14 and 15,
 described below.  If this keyword is not enabled, the output
 of the stats will be zero.
 
-The {check/bias} keyword turns on extra computation and communcation
+The {check/bias} keyword turns on extra computation and communication
 to check if any biased bonds are closer than {Dcut} to each other,
 which should not be the case if LHD is operating correctly.  Thus it
 is a debugging check.  The {Nevery} setting determines how often the

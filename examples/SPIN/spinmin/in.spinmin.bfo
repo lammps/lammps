@@ -52,4 +52,4 @@ dump 		1 all custom 50 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3
 
 min_style	spin
 min_modify 	alpha_damp 1.0 discret_factor 10.0
-minimize        0.0 0.0 10000 1000
+minimize        1.0e-10 0.0 1000 100

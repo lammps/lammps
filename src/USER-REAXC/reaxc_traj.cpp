@@ -556,7 +556,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
 }
 
 
-int Write_Bonds( reax_system *system, control_params *control, reax_list *bonds,
+int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
                 output_controls *out_control, mpi_datatypes *mpi_data)
 {
   int i, j, pj, me, np;

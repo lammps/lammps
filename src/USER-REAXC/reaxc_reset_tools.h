@@ -29,16 +29,12 @@
 
 #include "reaxc_types.h"
 
-#include "lammps.h"
-#include "error.h"
-using namespace LAMMPS_NS;
-
 void Reset_Pressures( simulation_data* );
 void Reset_Simulation_Data( simulation_data*, int );
 void Reset_Timing( reax_timing* );
 void Reset_Workspace( reax_system*, storage* );
-void Reset_Neighbor_Lists( LAMMPS *lmp, reax_system*, control_params*, storage*,
+void Reset_Neighbor_Lists( reax_system*, control_params*, storage*,
                            reax_list**, MPI_Comm );
-void Reset( LAMMPS *lmp, reax_system*, control_params*, simulation_data*, storage*,
+void Reset( reax_system*, control_params*, simulation_data*, storage*,
             reax_list**, MPI_Comm );
 #endif

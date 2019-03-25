@@ -521,7 +521,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   setup();
 
-  Reset( lmp, system, control, data, workspace, &lists, world );
+  Reset( system, control, data, workspace, &lists, world );
   workspace->realloc.num_far = write_reax_lists();
   // timing for filling in the reax lists
   if (comm->me == 0) {
@@ -531,7 +531,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   // forces
 
-  Compute_Forces(lmp, system,control,data,workspace,&lists,out_control,mpi_data);
+  Compute_Forces(system,control,data,workspace,&lists,out_control,mpi_data);
   read_reax_forces(vflag);
 
   for(int k = 0; k < system->N; ++k) {

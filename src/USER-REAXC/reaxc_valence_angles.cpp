@@ -76,7 +76,7 @@ void Calculate_dCos_Theta( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_jk,
 
 void Valence_Angles( reax_system *system, control_params *control,
                      simulation_data *data, storage *workspace,
-                     reax_list **lists, output_controls * /*out_control*/, LAMMPS_NS::LAMMPS* lmp)
+                     reax_list **lists, output_controls * /*out_control*/ )
 {
   int i, j, pi, k, pk, t;
   int type_i, type_j, type_k;
@@ -408,7 +408,7 @@ void Valence_Angles( reax_system *system, control_params *control,
       char errmsg[128];
       snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
                data->step, num_thb_intrs, thb_intrs->num_intrs);
-      lmp->error->one(FLERR, errmsg);
+      control->error_ptr->one(FLERR, errmsg);
     }
   }
 

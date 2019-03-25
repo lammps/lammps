@@ -32,7 +32,7 @@
 
 void Atom_Energy( reax_system *system, control_params *control,
                   simulation_data *data, storage *workspace, reax_list **lists,
-                  output_controls * /*out_control*/, LAMMPS_NS::LAMMPS* lmp )
+                  output_controls * /*out_control*/ )
 {
   int i, j, pj, type_i, type_j;
   double Delta_lpcorr, dfvl;

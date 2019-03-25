@@ -906,9 +906,9 @@ typedef void (*evolve_function)(reax_system*, control_params*,
                                 simulation_data*, storage*, reax_list**,
                                 output_controls*, mpi_datatypes* );
 
-typedef void (*interaction_function) ( reax_system*, control_params*,
+typedef void (*interaction_function) (reax_system*, control_params*,
                                       simulation_data*, storage*,
-                                      reax_list**, output_controls*, LAMMPS_NS::LAMMPS*);
+                                      reax_list**, output_controls*);
 
 typedef void (*print_interaction)(reax_system*, control_params*,
                                   simulation_data*, storage*,

@@ -30,7 +30,7 @@
 #include "reaxc_types.h"
 
 void Valence_Angles( reax_system*, control_params*, simulation_data*,
-                     storage*, reax_list**, output_controls*, LAMMPS_NS::LAMMPS* = NULL);
+                     storage*, reax_list**, output_controls*);
 
 void Calculate_Theta( rvec, double, rvec, double, double*, double* );
 

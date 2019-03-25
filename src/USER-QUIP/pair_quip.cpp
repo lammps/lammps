@@ -75,8 +75,7 @@ void PairQUIP::compute(int eflag, int vflag)
 
   double *quip_local_e, *quip_force, *quip_local_virial, *quip_virial, quip_energy, *lattice;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   inum = list->inum;
   ilist = list->ilist;

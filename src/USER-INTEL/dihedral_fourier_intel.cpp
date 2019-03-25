@@ -73,9 +73,7 @@ void DihedralFourierIntel::compute(int eflag, int vflag,
                                    IntelBuffers<flt_t,acc_t> *buffers,
                                    const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (vflag && !eflag) {

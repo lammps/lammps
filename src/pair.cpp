@@ -688,8 +688,7 @@ double Pair::mix_distance(double sig1, double sig2)
 
 void Pair::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */

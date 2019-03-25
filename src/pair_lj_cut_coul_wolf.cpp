@@ -77,8 +77,7 @@ void PairLJCutCoulWolf::compute(int eflag, int vflag)
 
   evdwl = 0.0;
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

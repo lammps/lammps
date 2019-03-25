@@ -46,9 +46,8 @@ PairBuckLongCoulLongOMP::PairBuckLongCoulLongOMP(LAMMPS *lmp) :
 
 void PairBuckLongCoulLongOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
+
   const int order1 = ewald_order&(1<<1);
   const int order6 = ewald_order&(1<<6);
 

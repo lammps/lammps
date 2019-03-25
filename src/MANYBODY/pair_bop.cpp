@@ -297,8 +297,7 @@ void PairBOP::compute(int eflag, int vflag)
   ilist = list->ilist;
   firstneigh = list->firstneigh;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // BOP Neighbor lists must be updated every timestep
   maxnall=nall;

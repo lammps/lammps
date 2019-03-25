@@ -45,10 +45,7 @@ AngleDipoleOMP::AngleDipoleOMP(class LAMMPS *lmp)
 
 void AngleDipoleOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   if (!force->newton_bond)
     error->all(FLERR,"'newton' flag for bonded interactions must be 'on'");

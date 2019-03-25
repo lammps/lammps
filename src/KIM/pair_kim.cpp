@@ -191,10 +191,7 @@ void PairKIM::compute(int eflag , int vflag)
 {
    int kimerror;
 
-   if (eflag || vflag)
-      ev_setup(eflag,vflag);
-   else
-      ev_unset();
+   ev_init(eflag,vflag);
 
    // grow kim_particleSpecies and kim_particleContributing array if necessary
    // needs to be atom->nmax in length

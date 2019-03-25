@@ -156,8 +156,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
   double df2,df4t1,df4t4,df4t5,df4t6,df5c3,rsint;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;

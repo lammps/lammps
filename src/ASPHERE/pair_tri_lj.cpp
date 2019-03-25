@@ -77,8 +77,7 @@ void PairTriLJ::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   AtomVecTri::Bonus *bonus = avec->bonus;
   double **x = atom->x;

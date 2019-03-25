@@ -42,7 +42,9 @@ PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) : Pair(lmp)
 
 PairBuckCoulCut::~PairBuckCoulCut()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 

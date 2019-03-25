@@ -38,8 +38,9 @@ PairLJExpand::PairLJExpand(LAMMPS *lmp) : Pair(lmp)
 
 PairLJExpand::~PairLJExpand()
 {
-  if (!copymode) {
-   if (allocated) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -52,7 +53,6 @@ PairLJExpand::~PairLJExpand()
     memory->destroy(lj3);
     memory->destroy(lj4);
     memory->destroy(offset);
-   }
   }
 }
 

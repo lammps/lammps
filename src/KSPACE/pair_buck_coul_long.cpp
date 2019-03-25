@@ -50,23 +50,23 @@ PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairBuckCoulLong::~PairBuckCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(a);
-      memory->destroy(rho);
-      memory->destroy(c);
-      memory->destroy(rhoinv);
-      memory->destroy(buck1);
-      memory->destroy(buck2);
-      memory->destroy(offset);
-    }
-    if (ftable) free_tables();
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(c);
+    memory->destroy(rhoinv);
+    memory->destroy(buck1);
+    memory->destroy(buck2);
+    memory->destroy(offset);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -51,27 +51,27 @@ PairBuck6dCoulGaussLong::PairBuck6dCoulGaussLong(LAMMPS *lmp) : Pair(lmp)
 
 PairBuck6dCoulGaussLong::~PairBuck6dCoulGaussLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(alpha_ij);
-      memory->destroy(buck6d1);
-      memory->destroy(buck6d2);
-      memory->destroy(buck6d3);
-      memory->destroy(buck6d4);
-      memory->destroy(c0);
-      memory->destroy(c1);
-      memory->destroy(c2);
-      memory->destroy(c3);
-      memory->destroy(c4);
-      memory->destroy(c5);
-      memory->destroy(rsmooth_sq);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(alpha_ij);
+    memory->destroy(buck6d1);
+    memory->destroy(buck6d2);
+    memory->destroy(buck6d3);
+    memory->destroy(buck6d4);
+    memory->destroy(c0);
+    memory->destroy(c1);
+    memory->destroy(c2);
+    memory->destroy(c3);
+    memory->destroy(c4);
+    memory->destroy(c5);
+    memory->destroy(rsmooth_sq);
+    memory->destroy(offset);
   }
 }
 

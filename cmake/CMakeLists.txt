@@ -613,8 +613,9 @@ if(PKG_USER-PLUMED)
 endif()
 
 if(PKG_USER-MOLFILE)
+  set(MOLFILE_INCLUDE_DIRS "${LAMMPS_LIB_SOURCE_DIR}/molfile" CACHE STRING "Path to VMD molfile plugin headers")
   add_library(molfile INTERFACE)
-  target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
+  target_include_directories(molfile INTERFACE ${MOLFILE_INCLUDE_DIRS})
   target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
   list(APPEND LAMMPS_LINK_LIBS molfile)
 endif()
@@ -625,7 +626,6 @@ if(PKG_USER-NETCDF)
   list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARIES})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
-
 
 if(PKG_USER-SMD)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)

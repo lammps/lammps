@@ -51,7 +51,7 @@ MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {}
 void MinSpin::init()
 {
   alpha_damp = 1.0;
-  discret_factor = 10.0;
+  discrete_factor = 10.0;
 
   Min::init();
 
@@ -84,9 +84,9 @@ int MinSpin::modify_param(int narg, char **arg)
     alpha_damp = force->numeric(FLERR,arg[1]);
     return 2;
   }
-  if (strcmp(arg[0],"discret_factor") == 0) {
+  if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    discret_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = force->numeric(FLERR,arg[1]);
     return 2;
   }
   return 0;
@@ -229,9 +229,9 @@ double MinSpin::evaluate_dt()
     error->all(FLERR,"Incorrect fmaxsqall calculation");
 
   // define max timestep by dividing by the 
-  // inverse of max frequency by discret_factor
+  // inverse of max frequency by discrete_factor
 
-  dtmax = MY_2PI/(discret_factor*sqrt(fmaxsqall));
+  dtmax = MY_2PI/(discrete_factor*sqrt(fmaxsqall));
 
   return dtmax;
 }

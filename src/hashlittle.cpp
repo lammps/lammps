@@ -2,10 +2,26 @@
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net
 
-#include "stddef.h"
-#include "stdint.h"
+#include <cmath>
+#include <stddef.h>
+#include <stdint.h>
 
-#define HASH_LITTLE_ENDIAN 1       // Intel and AMD are little endian
+// if the system defines the __BYTE_ORDER__ define,
+// we use it instead of guessing the platform
+
+#if defined(__BYTE_ORDER__)
+# if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#  define HASH_LITTLE_ENDIAN 1
+# else
+#  define HASH_LITTLE_ENDIAN 0
+# endif
+#else   // heuristic platform guess
+# if defined(__bg__)
+#  define HASH_LITTLE_ENDIAN 0       // IBM BlueGene is big endian
+# else
+#  define HASH_LITTLE_ENDIAN 1       // Intel and AMD x86 are little endian
+# endif
+#endif
 
 #define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
 

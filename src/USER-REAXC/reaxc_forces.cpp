@@ -116,7 +116,7 @@ void Compute_Total_Force( reax_system *system, control_params *control,
 }
 
 void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **lists,
-                     int step, int /*n*/, int N, int numH, MPI_Comm comm )
+                     int step, int /*n*/, int N, int numH )
 {
   int i, comp, Hindex;
   reax_list *bonds, *hbonds;
@@ -176,8 +176,7 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
 
 void Init_Forces_noQEq( reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls * /*out_control*/,
-                        MPI_Comm comm ) {
+                        reax_list **lists, output_controls * /*out_control*/ ) {
   int i, j, pj;
   int start_i, end_i;
   int type_i, type_j;
@@ -311,13 +310,13 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   workspace->realloc.num_hbonds = num_hbonds;
 
   Validate_Lists( system, workspace, lists, data->step,
-                  system->n, system->N, system->numH, comm );
+                  system->n, system->N, system->numH);
 }
 
 
 void Estimate_Storages( reax_system *system, control_params *control,
                         reax_list **lists, int *Htop, int *hb_top,
-                        int *bond_top, int *num_3body, MPI_Comm /*comm*/ )
+                        int *bond_top, int *num_3body )
 {
   int i, j, pj;
   int start_i, end_i;
@@ -439,10 +438,9 @@ void Compute_Forces( reax_system *system, control_params *control,
                      reax_list **lists, output_controls *out_control,
                      mpi_datatypes *mpi_data )
 {
-  MPI_Comm comm = mpi_data->world;
 
   Init_Forces_noQEq( system, control, data, workspace,
-                       lists, out_control, comm );
+                       lists, out_control);
 
   /********* bonded interactions ************/
   Compute_Bonded_Forces( system, control, data, workspace,

@@ -44,7 +44,6 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   double     val;
   MPI_Comm comm;
   int me;
-  
   comm = MPI_COMM_WORLD;
   MPI_Comm_rank(comm, &me);
 
@@ -99,55 +98,45 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
   /* Allocating structures in reax_interaction */
   reax->sbp = (single_body_parameters*)
-    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(single_body_parameters), "sbp",
-             comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(single_body_parameters), "sbp");
   reax->tbp = (two_body_parameters**)
-    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters*), "tbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters*), "tbp");
   reax->thbp= (three_body_header***)
-    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header**), "thbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header**), "thbp");
   reax->hbp = (hbond_parameters***)
-    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters**), "hbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters**), "hbp");
   reax->fbp = (four_body_header****)
-    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header***), "fbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header***), "fbp");
   tor_flag  = (char****)
-    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char***), "tor_flag", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char***), "tor_flag");
 
   for( i = 0; i < reax->num_atom_types; i++ ) {
     reax->tbp[i] = (two_body_parameters*)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]");
     reax->thbp[i]= (three_body_header**)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header*), "thbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header*), "thbp[i]");
     reax->hbp[i] = (hbond_parameters**)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]");
     reax->fbp[i] = (four_body_header***)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header**), "fbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header**), "fbp[i]");
     tor_flag[i]  = (char***)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char**), "tor_flag[i]", comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char**), "tor_flag[i]");
 
     for( j = 0; j < reax->num_atom_types; j++ ) {
       reax->thbp[i][j]= (three_body_header*)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]",
-                 comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]");
       reax->hbp[i][j] = (hbond_parameters*)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]",
-                 comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]");
       reax->fbp[i][j] = (four_body_header**)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]",
-                 comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]");
       tor_flag[i][j]  = (char**)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char*), "tor_flag[i,j]", comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char*), "tor_flag[i,j]");
 
       for (k=0; k < reax->num_atom_types; k++) {
         reax->fbp[i][j][k] = (four_body_header*)
-          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]",
-                   comm );
+          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]");
         tor_flag[i][j][k]  = (char*)
-          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]",
-                   comm );
+          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]");
       }
     }
   }
@@ -163,7 +152,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     /* Sanity checks */
     
     if (c < 9) {
-      control->error_ptr->one(FLERR,"Inconsistent ffield file");
+      control->error_ptr->all(FLERR,"Inconsistent ffield file");
     }
 
     for( j = 0; j < (int)(strlen(tmp[0])); ++j )
@@ -185,7 +174,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      control->error_ptr->one(FLERR,"Inconsistent ffield file");
+      control->error_ptr->all(FLERR,"Inconsistent ffield file");
     }
 
     val = atof(tmp[0]); reax->sbp[i].alpha      = val;
@@ -203,7 +192,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      control->error_ptr->one(FLERR,"Inconsistent ffield file");
+      control->error_ptr->all(FLERR,"Inconsistent ffield file");
     }
 
     val = atof(tmp[0]); reax->sbp[i].r_pi_pi    = val;
@@ -221,7 +210,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      control->error_ptr->one(FLERR,"Inconsistent ffield file");
+      control->error_ptr->all(FLERR,"Inconsistent ffield file");
     }
 
     val = atof(tmp[0]); reax->sbp[i].p_ovun2    = val;
@@ -240,7 +229,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
       /* Sanity check */
       if (c > 2) {
-        control->error_ptr->one(FLERR,"Force field file incompatible with 'lgvdw yes'");
+        control->error_ptr->all(FLERR,"Force field file incompatible with 'lgvdw yes'");
       }
 
       val = atof(tmp[0]); reax->sbp[i].lgcij           = val;
@@ -336,8 +325,6 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     /* line 1 */
     fgets(s,MAX_LINE,fp);
     c=Tokenize(s,&tmp);
-
-    
 
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;

@@ -81,7 +81,7 @@ int Init_Simulation_Data( reax_system *system, control_params *control,
   return SUCCESS;
 }
 
-void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
+void Init_Taper( control_params *control,  storage *workspace )
 {
   double d1, d7;
   double swa, swa2, swa3;
@@ -122,12 +122,12 @@ void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
 
 
 int Init_Workspace( reax_system *system, control_params *control,
-                    storage *workspace, MPI_Comm comm, char *msg )
+                    storage *workspace, char *msg )
 {
   int ret;
 
   ret = Allocate_Workspace( system, control, workspace,
-                            system->local_cap, system->total_cap, comm, msg );
+                            system->local_cap, system->total_cap, msg );
   if (ret != SUCCESS)
     return ret;
 
@@ -135,7 +135,7 @@ int Init_Workspace( reax_system *system, control_params *control,
   Reset_Workspace( system, workspace );
 
   /* Initialize the Taper function */
-  Init_Taper( control, workspace, comm );
+  Init_Taper( control, workspace);
 
   return SUCCESS;
 }
@@ -159,17 +159,15 @@ int  Init_Lists( reax_system *system, control_params *control,
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
-  MPI_Comm comm;
 
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;
 
-  comm = mpi_data->world;
   bond_top = (int*) calloc( system->total_cap, sizeof(int) );
   hb_top = (int*) calloc( system->local_cap, sizeof(int) );
   Estimate_Storages( system, control, lists,
-                     &Htop, hb_top, bond_top, &num_3body, comm );
+                     &Htop, hb_top, bond_top, &num_3body);
 
   if (control->hbond_cut > 0) {
     /* init H indexes */
@@ -181,7 +179,7 @@ int  Init_Lists( reax_system *system, control_params *control,
     total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
     if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
-                    *lists+HBONDS, comm ) ) {
+                    *lists+HBONDS ) ) {
       control->error_ptr->one(FLERR, "Not enough space for hbonds list.");
     }
     (*lists+HBONDS)->error_ptr = system->error_ptr;
@@ -195,7 +193,7 @@ int  Init_Lists( reax_system *system, control_params *control,
   bond_cap = (int)(MAX( total_bonds*safezone, mincap*MIN_BONDS ));
 
   if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
-                  *lists+BONDS, comm ) ) {
+                  *lists+BONDS ) ) {
     control->error_ptr->one(FLERR, "Not enough space for bonds list.");
   }
   (*lists+BONDS)->error_ptr = system->error_ptr;
@@ -203,7 +201,7 @@ int  Init_Lists( reax_system *system, control_params *control,
   /* 3bodies list */
   cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
   if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
-                  *lists+THREE_BODIES, comm ) ){
+                  *lists+THREE_BODIES ) ){
     control->error_ptr->one(FLERR,"Problem in initializing angles list.");
   }
   (*lists+THREE_BODIES)->error_ptr = system->error_ptr;
@@ -242,7 +240,7 @@ void Initialize( reax_system *system, control_params *control,
     control->error_ptr->one(FLERR,errmsg);
   }
 
-  if (Init_Workspace( system, control, workspace, mpi_data->world, msg ) ==
+  if (Init_Workspace( system, control, workspace, msg ) ==
       FAILURE) {
     snprintf(errmsg, 128, "Workspace could not be initialized on thread %d",
               system->my_rank);

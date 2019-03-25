@@ -56,7 +56,7 @@ int Tokenize( char* s, char*** tok )
 
 
 /* safe malloc */
-void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name, MPI_Comm comm )
+void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
 {
   void *ptr;
   char errmsg[256];
@@ -79,7 +79,7 @@ void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name, MPI_C
 
 
 /* safe calloc */
-void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const char *name, MPI_Comm comm )
+void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const char *name )
 {
   void *ptr;
   char errmsg[256];

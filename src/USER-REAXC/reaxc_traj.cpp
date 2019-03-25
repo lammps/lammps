@@ -29,8 +29,7 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 
-int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_control, int req_space,
-                              MPI_Comm comm )
+int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_control, int req_space )
 {
   if (out_control->buffer_len > 0)
     free( out_control->buffer );
@@ -82,7 +81,7 @@ int Write_Header( reax_system *system, control_params *control,
   my_hdr_lines = num_hdr_lines * ( system->my_rank == MASTER_NODE );
   buffer_req = my_hdr_lines * HEADER_LINE_LEN;
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req );
 
   /* only the master node writes into trajectory header */
   if (system->my_rank == MASTER_NODE) {
@@ -277,7 +276,7 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
   else buffer_req = system->n * INIT_DESC_LEN + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
@@ -366,7 +365,7 @@ int Write_Frame_Header( reax_system *system, control_params *control,
   my_frm_hdr_lines = num_frm_hdr_lines * ( me == MASTER_NODE );
   buffer_req = my_frm_hdr_lines * HEADER_LINE_LEN;
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req );
 
   /* only the master node writes into trajectory header */
   if (me == MASTER_NODE) {
@@ -499,7 +498,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
   else buffer_req = system->n * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   /* fill in buffer */
   out_control->line[0] = 0;
@@ -589,7 +588,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
   else buffer_req = my_bonds * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   /* fill in the buffer */
   out_control->line[0] = 0;
@@ -689,7 +688,7 @@ int Write_Angles( reax_system *system, control_params *control,
   else buffer_req = my_angles * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   /* fill in the buffer */
   my_angles = 0;

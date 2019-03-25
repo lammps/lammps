@@ -28,20 +28,15 @@
 #define __ALLOCATE_H_
 
 #include "reaxc_types.h"
-
-#include "lammps.h"
-#include "error.h"
-using namespace LAMMPS_NS;
-
-int  PreAllocate_Space( reax_system*, control_params*, storage*, MPI_Comm );
+int  PreAllocate_Space( reax_system*, control_params*, storage* );
 
 int  Allocate_System( reax_system*, int, int, char* );
 void DeAllocate_System( reax_system* );
 
 int  Allocate_Workspace( reax_system*, control_params*, storage*,
-                         int, int, MPI_Comm, char* );
+                         int, int, char* );
 void DeAllocate_Workspace( control_params*, storage* );
 
 void ReAllocate( reax_system*, control_params*, simulation_data*, storage*,
-                 reax_list**, mpi_datatypes* );
+                 reax_list** );
 #endif

@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
    process's box throughout the whole simulation. therefore
    we need to make upper bound estimates for various data structures */
 int PreAllocate_Space( reax_system *system, control_params * /*control*/,
-                       storage * workspace, MPI_Comm comm )
+                       storage * workspace )
 {
   int mincap = system->mincap;
   double safezone = system->safezone;
@@ -55,7 +55,7 @@ int PreAllocate_Space( reax_system *system, control_params * /*control*/,
   system->total_cap = MAX( (int)(system->N * safezone), mincap );
 
   system->my_atoms = (reax_atom*)
-    scalloc(system->error_ptr,  system->total_cap, sizeof(reax_atom), "my_atoms", comm );
+    scalloc(system->error_ptr,  system->total_cap, sizeof(reax_atom), "my_atoms");
 
   // Nullify some arrays only used in omp styles
   // Should be safe to do here since called in pair->setup();
@@ -212,7 +212,7 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
 
 int Allocate_Workspace( reax_system * /*system*/, control_params * control,
                         storage *workspace, int local_cap, int total_cap,
-                        MPI_Comm comm, char * /*msg*/ )
+                        char * /*msg*/ )
 {
   int i, total_real, total_rvec, local_rvec;
 
@@ -224,84 +224,84 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   /* communication storage */
   for( i = 0; i < MAX_NBRS; ++i ) {
     workspace->tmp_dbl[i] = (double*)
-      scalloc(control->error_ptr,  total_cap, sizeof(double), "tmp_dbl", comm );
+      scalloc(control->error_ptr,  total_cap, sizeof(double), "tmp_dbl");
     workspace->tmp_rvec[i] = (rvec*)
-      scalloc(control->error_ptr,  total_cap, sizeof(rvec), "tmp_rvec", comm );
+      scalloc(control->error_ptr,  total_cap, sizeof(rvec), "tmp_rvec");
     workspace->tmp_rvec2[i] = (rvec2*)
-      scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "tmp_rvec2", comm );
+      scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "tmp_rvec2");
   }
 
   /* bond order related storage  */
   workspace->within_bond_box = (int*)
-    scalloc(control->error_ptr,  total_cap, sizeof(int), "skin", comm );
-  workspace->total_bond_order = (double*) smalloc(control->error_ptr,  total_real, "total_bo", comm );
-  workspace->Deltap = (double*) smalloc(control->error_ptr,  total_real, "Deltap", comm );
-  workspace->Deltap_boc = (double*) smalloc(control->error_ptr,  total_real, "Deltap_boc", comm );
-  workspace->dDeltap_self = (rvec*) smalloc(control->error_ptr,  total_rvec, "dDeltap_self", comm );
-  workspace->Delta = (double*) smalloc(control->error_ptr,  total_real, "Delta", comm );
-  workspace->Delta_lp = (double*) smalloc(control->error_ptr,  total_real, "Delta_lp", comm );
+    scalloc(control->error_ptr,  total_cap, sizeof(int), "skin");
+  workspace->total_bond_order = (double*) smalloc(control->error_ptr,  total_real, "total_bo");
+  workspace->Deltap = (double*) smalloc(control->error_ptr,  total_real, "Deltap");
+  workspace->Deltap_boc = (double*) smalloc(control->error_ptr,  total_real, "Deltap_boc");
+  workspace->dDeltap_self = (rvec*) smalloc(control->error_ptr,  total_rvec, "dDeltap_self");
+  workspace->Delta = (double*) smalloc(control->error_ptr,  total_real, "Delta");
+  workspace->Delta_lp = (double*) smalloc(control->error_ptr,  total_real, "Delta_lp");
   workspace->Delta_lp_temp = (double*)
-    smalloc(control->error_ptr,  total_real, "Delta_lp_temp", comm );
-  workspace->dDelta_lp = (double*) smalloc(control->error_ptr,  total_real, "dDelta_lp", comm );
+    smalloc(control->error_ptr,  total_real, "Delta_lp_temp");
+  workspace->dDelta_lp = (double*) smalloc(control->error_ptr,  total_real, "dDelta_lp");
   workspace->dDelta_lp_temp = (double*)
-    smalloc(control->error_ptr,  total_real, "dDelta_lp_temp", comm );
-  workspace->Delta_e = (double*) smalloc(control->error_ptr,  total_real, "Delta_e", comm );
-  workspace->Delta_boc = (double*) smalloc(control->error_ptr,  total_real, "Delta_boc", comm );
-  workspace->Delta_val = (double*) smalloc(control->error_ptr,  total_real, "Delta_val", comm );
-  workspace->nlp = (double*) smalloc(control->error_ptr,  total_real, "nlp", comm );
-  workspace->nlp_temp = (double*) smalloc(control->error_ptr,  total_real, "nlp_temp", comm );
-  workspace->Clp = (double*) smalloc(control->error_ptr,  total_real, "Clp", comm );
-  workspace->vlpex = (double*) smalloc(control->error_ptr,  total_real, "vlpex", comm );
+    smalloc(control->error_ptr,  total_real, "dDelta_lp_temp");
+  workspace->Delta_e = (double*) smalloc(control->error_ptr,  total_real, "Delta_e");
+  workspace->Delta_boc = (double*) smalloc(control->error_ptr,  total_real, "Delta_boc");
+  workspace->Delta_val = (double*) smalloc(control->error_ptr,  total_real, "Delta_val");
+  workspace->nlp = (double*) smalloc(control->error_ptr,  total_real, "nlp");
+  workspace->nlp_temp = (double*) smalloc(control->error_ptr,  total_real, "nlp_temp");
+  workspace->Clp = (double*) smalloc(control->error_ptr,  total_real, "Clp");
+  workspace->vlpex = (double*) smalloc(control->error_ptr,  total_real, "vlpex");
   workspace->bond_mark = (int*)
-    scalloc(control->error_ptr,  total_cap, sizeof(int), "bond_mark", comm );
+    scalloc(control->error_ptr,  total_cap, sizeof(int), "bond_mark");
   workspace->done_after = (int*)
-    scalloc(control->error_ptr,  total_cap, sizeof(int), "done_after", comm );
+    scalloc(control->error_ptr,  total_cap, sizeof(int), "done_after");
 
   /* QEq storage */
   workspace->Hdia_inv = (double*)
-    scalloc(control->error_ptr,  total_cap, sizeof(double), "Hdia_inv", comm );
-  workspace->b_s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_s", comm );
-  workspace->b_t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_t", comm );
-  workspace->b_prc = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prc", comm );
-  workspace->b_prm = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prm", comm );
-  workspace->s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "s", comm );
-  workspace->t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "t", comm );
+    scalloc(control->error_ptr,  total_cap, sizeof(double), "Hdia_inv");
+  workspace->b_s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_s");
+  workspace->b_t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_t");
+  workspace->b_prc = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prc");
+  workspace->b_prm = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prm");
+  workspace->s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "s");
+  workspace->t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "t");
   workspace->droptol = (double*)
-    scalloc(control->error_ptr,  total_cap, sizeof(double), "droptol", comm );
-  workspace->b = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "b", comm );
-  workspace->x = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "x", comm );
+    scalloc(control->error_ptr,  total_cap, sizeof(double), "droptol");
+  workspace->b = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "b");
+  workspace->x = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "x");
 
   /* GMRES storage */
-  workspace->y = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "y", comm );
-  workspace->z = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "z", comm );
-  workspace->g = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "g", comm );
-  workspace->h = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "h", comm );
-  workspace->hs = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hs", comm );
-  workspace->hc = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hc", comm );
-  workspace->v = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "v", comm );
+  workspace->y = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "y");
+  workspace->z = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "z");
+  workspace->g = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "g");
+  workspace->h = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "h");
+  workspace->hs = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hs");
+  workspace->hc = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hc");
+  workspace->v = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "v");
 
   for( i = 0; i < RESTART+1; ++i ) {
-    workspace->h[i] = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "h[i]", comm );
-    workspace->v[i] = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "v[i]", comm );
+    workspace->h[i] = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "h[i]");
+    workspace->v[i] = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "v[i]");
   }
 
   /* CG storage */
-  workspace->r = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "r", comm );
-  workspace->d = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "d", comm );
-  workspace->q = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "q", comm );
-  workspace->p = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "p", comm );
-  workspace->r2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "r2", comm );
-  workspace->d2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "d2", comm );
-  workspace->q2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "q2", comm );
-  workspace->p2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "p2", comm );
+  workspace->r = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "r");
+  workspace->d = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "d");
+  workspace->q = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "q");
+  workspace->p = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "p");
+  workspace->r2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "r2");
+  workspace->d2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "d2");
+  workspace->q2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "q2");
+  workspace->p2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "p2");
 
   /* integrator storage */
-  workspace->v_const = (rvec*) smalloc(control->error_ptr,  local_rvec, "v_const", comm );
+  workspace->v_const = (rvec*) smalloc(control->error_ptr,  local_rvec, "v_const");
 
   /* force related storage */
-  workspace->f = (rvec*) scalloc(control->error_ptr,  total_cap, sizeof(rvec), "f", comm );
+  workspace->f = (rvec*) scalloc(control->error_ptr,  total_cap, sizeof(rvec), "f");
   workspace->CdDelta = (double*)
-    scalloc(control->error_ptr,  total_cap, sizeof(double), "CdDelta", comm );
+    scalloc(control->error_ptr,  total_cap, sizeof(double), "CdDelta");
 
   // storage for reductions with multiple threads
 #ifdef LMP_USER_OMP
@@ -322,17 +322,16 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
 
 
 static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
-                                      int num_intrs, MPI_Comm comm )
+                                      int num_intrs )
 {
-  Delete_List( far_nbrs, comm );
-  if(!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs, comm )){
+  Delete_List( far_nbrs);
+  if(!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs )){
     far_nbrs->error_ptr->one(FLERR,"Problem in initializing far neighbors list");
   }
 }
 
 
-static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
-                                   MPI_Comm comm )
+static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds )
 {
   int i, total_hbonds;
 
@@ -346,8 +345,8 @@ static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
     }
   total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
-  Delete_List( hbonds, comm );
-  if (!Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds, comm )) {
+  Delete_List( hbonds);
+  if (!Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds )) {
     hbonds->error_ptr->one(FLERR, "Not enough space for hydrogen bonds list");
   }
 
@@ -356,8 +355,7 @@ static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
 
 
 static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
-                                  int *total_bonds, int *est_3body,
-                                  MPI_Comm comm )
+                                  int *total_bonds, int *est_3body )
 {
   int i;
 
@@ -378,8 +376,8 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
       sfree(system->error_ptr, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
 #endif
 
-  Delete_List( bonds, comm );
-  if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds, comm)) {
+  Delete_List( bonds);
+  if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
     bonds->error_ptr->one(FLERR, "Not enough space for bonds list");
   }
 
@@ -401,14 +399,12 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 
 
 void ReAllocate( reax_system *system, control_params *control,
-                 simulation_data *data, storage *workspace, reax_list **lists,
-                 mpi_datatypes *mpi_data )
+                 simulation_data *data, storage *workspace, reax_list **lists )
 {
   int num_bonds, est_3body, Hflag, ret;
   int renbr, newsize;
   reallocate_data *realloc;
   reax_list *far_nbrs;
-  MPI_Comm comm;
   char msg[200];
 
   int mincap = system->mincap;
@@ -416,7 +412,6 @@ void ReAllocate( reax_system *system, control_params *control,
   double saferzone = system->saferzone;
 
   realloc = &(workspace->realloc);
-  comm = mpi_data->world;
 
   if( system->n >= DANGER_ZONE * system->local_cap ||
       (0 && system->n <= LOOSE_ZONE * system->local_cap) ) {
@@ -434,18 +429,18 @@ void ReAllocate( reax_system *system, control_params *control,
     /* system */
     ret = Allocate_System( system, system->local_cap, system->total_cap, msg );
     if (ret != SUCCESS) {
-      char errmsg[128];
-      snprintf(errmsg, 128, "Not enough space for atom_list: total_cap=%d", system->total_cap);
+      char errmsg[256];
+      snprintf(errmsg, 256, "Not enough space for atom_list: total_cap=%d", system->total_cap);
       system->error_ptr->one(FLERR, errmsg);
     }
 
     /* workspace */
     DeAllocate_Workspace( control, workspace );
     ret = Allocate_Workspace( system, control, workspace, system->local_cap,
-                              system->total_cap, comm, msg );
+                              system->total_cap, msg );
     if (ret != SUCCESS) {
-      char errmsg[128];
-      snprintf(errmsg, 128, "Not enough space for workspace: local_cap=%d total_cap=%d", system->local_cap, system->total_cap);
+      char errmsg[256];
+      snprintf(errmsg, 256, "Not enough space for workspace: local_cap=%d total_cap=%d", system->local_cap, system->total_cap);
       system->error_ptr->one(FLERR, errmsg);
     }
   }
@@ -458,15 +453,15 @@ void ReAllocate( reax_system *system, control_params *control,
 
     if (Nflag || realloc->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
       if (realloc->num_far > far_nbrs->num_intrs) {
-        char errmsg[128];
-        snprintf(errmsg, 128, "step%d-ran out of space on far_nbrs: top=%d, max=%d", data->step, realloc->num_far, far_nbrs->num_intrs);
+        char errmsg[256];
+        snprintf(errmsg, 256, "step%d-ran out of space on far_nbrs: top=%d, max=%d", data->step, realloc->num_far, far_nbrs->num_intrs);
         system->error_ptr->one(FLERR, errmsg);
       }
 
       newsize = static_cast<int>
         (MAX( realloc->num_far*safezone, mincap*MIN_NBRS ));
 
-      Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize, comm );
+      Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize);
       realloc->num_far = 0;
     }
   }
@@ -481,7 +476,7 @@ void ReAllocate( reax_system *system, control_params *control,
     }
 
     if (Hflag || realloc->hbonds) {
-      ret = Reallocate_HBonds_List( system, (*lists)+HBONDS, comm );
+      ret = Reallocate_HBonds_List( system, (*lists)+HBONDS);
       realloc->hbonds = 0;
     }
   }
@@ -490,14 +485,14 @@ void ReAllocate( reax_system *system, control_params *control,
   num_bonds = est_3body = -1;
   if (Nflag || realloc->bonds) {
     Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
-                           &est_3body, comm );
+                           &est_3body);
     realloc->bonds = 0;
     realloc->num_3body = MAX( realloc->num_3body, est_3body ) * 2;
   }
 
   /* 3-body list */
   if (realloc->num_3body > 0) {
-    Delete_List( (*lists)+THREE_BODIES, comm );
+    Delete_List( (*lists)+THREE_BODIES);
 
     if (num_bonds == -1)
       num_bonds = ((*lists)+BONDS)->num_intrs;
@@ -505,7 +500,7 @@ void ReAllocate( reax_system *system, control_params *control,
     realloc->num_3body = (int)(MAX(realloc->num_3body*safezone, MIN_3BODIES));
 
     if( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
-                    (*lists)+THREE_BODIES, comm ) ) {
+                    (*lists)+THREE_BODIES ) ) {
       system->error_ptr->one(FLERR, "Problem in initializing angles list");
     }
     realloc->num_3body = -1;

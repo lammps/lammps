@@ -29,9 +29,6 @@
 
 #include "reaxc_types.h"
 
-#include "lammps.h"
-#include "error.h"
-
 char Read_Control_File( char*, control_params*, output_controls* );
 
 #endif

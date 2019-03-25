@@ -306,12 +306,12 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   // storage for reductions with multiple threads
 #ifdef LMP_USER_OMP
   workspace->CdDeltaReduction = (double *) scalloc(control->error_ptr, sizeof(double), total_cap*control->nthreads,
-                                                 "cddelta_reduce", comm);
+                                                 "cddelta_reduce");
 
   workspace->forceReduction = (rvec *) scalloc(control->error_ptr, sizeof(rvec), total_cap*control->nthreads,
-                                               "forceReduction", comm);
+                                               "forceReduction");
 
-  workspace->valence_angle_atom_myoffset = (int *) scalloc(control->error_ptr, sizeof(int), total_cap, "valence_angle_atom_myoffset", comm);
+  workspace->valence_angle_atom_myoffset = (int *) scalloc(control->error_ptr, sizeof(int), total_cap, "valence_angle_atom_myoffset");
   workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
 #else
   LMP_UNUSED_PARAM(control);
@@ -391,7 +391,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
   if (system->omp_active)
     for (i = 0; i < bonds->num_intrs; ++i)
       bonds->select.bond_list[i].bo_data.CdboReduction =
-        (double*) smalloc(system->error_ptr, sizeof(double)*nthreads, "CdboReduction", comm);
+        (double*) smalloc(system->error_ptr, sizeof(double)*nthreads, "CdboReduction");
 #endif
 
   return SUCCESS;

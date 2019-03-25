@@ -22,8 +22,12 @@ parser.add_argument("-l", "--lib", required=True,
                     help="path to the compiled LAMMPS shared library")
 parser.add_argument("-v", "--version", required=True,
                     help="path to the LAMMPS version.h header file")
-parser.add_argument("-d","--dir",
-                    help="custom installation folder for module and library")
+
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-d","--dir",
+                    help="Legacy custom installation folder for module and library")
+pgroup.add_argument("-p","--prefix",
+                    help="Installation prefix for module and library")
 
 args = parser.parse_args()
 
@@ -61,6 +65,14 @@ if args.dir:
   else:
     args.dir = os.path.abspath(args.dir)
 
+if args.prefix:
+  if not os.path.isdir(args.prefix):
+    print( "ERROR: Installation prefix folder %s does not exist" % args.prefix)
+    parser.print_help()
+    sys.exit(1)
+  else:
+    args.prefix = os.path.abspath(args.prefix)
+
 # if a custom directory is given, we copy the files directly
 # without any special processing or additional steps to that folder
 
@@ -78,7 +90,7 @@ if args.dir:
     pass # fail silently
 
   sys.exit()
-  
+
 # extract version string from header
 fp = open(args.version,'r')
 txt=fp.read().split('"')[1].split()
@@ -96,15 +108,18 @@ import site
 tryuser=False
 
 try:
-  sys.argv = ["setup.py","install"]    # as if had run "python setup.py install"
+  if args.prefix:
+    sys.argv = ["setup.py","install","--prefix=%s" % args.prefix]    # as if had run "python setup.py install --prefix=XXX"
+  else:
+    sys.argv = ["setup.py","install"]    # as if had run "python setup.py install"
   setup(name = "lammps",
         version = verstr,
         author = "Steve Plimpton",
         author_email = "sjplimp@sandia.gov",
-        url = "http://lammps.sandia.gov",
+        url = "https://lammps.sandia.gov",
         description = "LAMMPS Molecular Dynamics Python module",
         py_modules = ["lammps"],
-        data_files = [(get_python_lib(), [args.lib])])
+        data_files = [(get_python_lib(prefix=args.prefix), [args.lib])])
 except:
   tryuser=True
   print ("Installation into global site-packages folder failed.\nTrying user folder %s now." % site.USER_SITE)
@@ -116,12 +131,11 @@ if tryuser:
     version = verstr,
     author = "Steve Plimpton",
     author_email = "sjplimp@sandia.gov",
-    url = "http://lammps.sandia.gov",
+    url = "https://lammps.sandia.gov",
     description = "LAMMPS Molecular Dynamics Python module",
     py_modules = ["lammps"],
     data_files = [(site.USER_SITE, [args.lib])])
-  except: 
+  except:
     print("Installation into user site package folder failed.")
-
 
 

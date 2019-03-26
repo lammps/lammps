@@ -901,7 +901,8 @@ void NEB_spin::print_status()
               gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
-        fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
+        //fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
+        fprintf(ulogfile,"%12.8g %12.8g %12.8g %12.8g ",rdist[i],all[i][0],all[i][2],all[i][5]);
       if (verbose) {
         fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                 NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,

@@ -109,10 +109,6 @@ class Comm : protected Pointers {
 
   void ring(int, int, void *, int, void (*)(int, char *, void *),
             void *, void *, int self = 1);
-  int rendezvous(int, int, char *, int, int, int *, 
-                 int (*)(int, char *, int &, int *&, char *&, void *), 
-                 int, char *&, int, void *, int statflag=0);
-
   int read_lines_from_file(FILE *, int, int, char *);
   int read_lines_from_file_universe(FILE *, int, int, char *);
 
@@ -146,15 +142,6 @@ class Comm : protected Pointers {
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
-
-  int rendezvous_irregular(int, char *, int, int, int *, 
-                           int (*)(int, char *, int &, int *&, char *&, void *), 
-                           int, char *&, int, void *, int);
-  int rendezvous_all2all(int, char *, int, int, int *, 
-                         int (*)(int, char *, int &, int *&, char *&, void *), 
-                         int, char *&, int, void *, int);
-  void rendezvous_stats(int, int, int, int, int, int, bigint);
-
  public:
   enum{MULTIPLE};
 };

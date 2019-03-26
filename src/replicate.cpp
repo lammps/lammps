@@ -76,7 +76,7 @@ void Replicate::command(int narg, char **arg)
   if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store atom quantities");
 
-  // record wall time for atom replication
+  // Record wall time for atom replication
 
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
@@ -762,15 +762,15 @@ void Replicate::command(int narg, char **arg)
     special.build();
   }
 
-  // total time
+  // Wall time
 
   MPI_Barrier(world);
   double time2 = MPI_Wtime();
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"  replicate CPU = %g secs\n",time2-time1);
+      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
     if (logfile)
-      fprintf(logfile,"  replicate CPU = %g secs\n",time2-time1);
+      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
   }
 }

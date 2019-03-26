@@ -21,13 +21,11 @@
 #include "modify.h"
 #include "fix.h"
 #include "accelerator_kokkos.h"
-#include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-
-#define RVOUS 1   // 0 for irregular, 1 for all2all
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,8 +54,18 @@ Special::~Special()
 
 void Special::build()
 {
+  int i,j,k,size;
+  int max,maxall,nbuf;
+  tagint *buf;
+
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+
+  int nlocal = atom->nlocal;
+
+  tagint *tag = atom->tag;
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **nspecial = atom->nspecial;
 
   if (me == 0 && screen) {
     const double * const special_lj   = force->special_lj;
@@ -71,56 +79,223 @@ void Special::build()
 
   // initialize nspecial counters to 0
 
-  int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
     nspecial[i][0] = 0;
     nspecial[i][1] = 0;
     nspecial[i][2] = 0;
   }
 
-  // setup atomIDs and procowner vectors in rendezvous decomposition
+  // -----------------------------------------------------
+  // compute nspecial[i][0] = # of 1-2 neighbors of atom i
+  // -----------------------------------------------------
 
-  atom_owners();
+  // bond partners stored by atom itself
 
-  // tally nspecial[i][0] = # of 1-2 neighbors of atom i
+  for (i = 0; i < nlocal; i++) nspecial[i][0] = num_bond[i];
+
+  // if newton_bond off, then done
+  // else only counted 1/2 of all bonds, so count other half
+
+  if (force->newton_bond) {
+
+    // nbufmax = largest buffer needed to hold info from any proc
+    // info for each atom = global tag of 2nd atom in each bond
+
+    nbuf = 0;
+    for (i = 0; i < nlocal; i++) nbuf += num_bond[i];
+    memory->create(buf,nbuf,"special:buf");
+
+    // fill buffer with global tags of bond partners of my atoms
+
+    size = 0;
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_bond[i]; j++)
+        buf[size++] = bond_atom[i][j];
+
+    // cycle buffer around ring of procs back to self
+    // when receive buffer, scan tags for atoms I own
+    // when find one, increment nspecial count for that atom
+
+    comm->ring(size,sizeof(tagint),buf,1,ring_one,NULL,(void *)this);
+
+    memory->destroy(buf);
+  }
+
+  // ----------------------------------------------------
   // create onetwo[i] = list of 1-2 neighbors for atom i
+  // ----------------------------------------------------
 
-  if (force->newton_bond) onetwo_build_newton();
-  else onetwo_build_newton_off();
+  max = 0;
+  for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
 
-  // print max # of 1-2 neighbors
+  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %d = max # of 1-2 neighbors\n",maxall);
     if (logfile) fprintf(logfile,"  %d = max # of 1-2 neighbors\n",maxall);
   }
 
+  memory->create(onetwo,nlocal,maxall,"special:onetwo");
+
+  // count = accumulating counter
+
+  memory->create(count,nlocal,"special:count");
+  for (i = 0; i < nlocal; i++) count[i] = 0;
+
+  // add bond partners stored by atom to onetwo list
+
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < num_bond[i]; j++)
+      onetwo[i][count[i]++] = bond_atom[i][j];
+
+  // if newton_bond off, then done
+  // else only stored 1/2 of all bonds, so store other half
+
+  if (force->newton_bond) {
+
+    // nbufmax = largest buffer needed to hold info from any proc
+    // info for each atom = 2 global tags in each bond
+
+    nbuf = 0;
+    for (i = 0; i < nlocal; i++) nbuf += 2*num_bond[i];
+    memory->create(buf,nbuf,"special:buf");
+
+    // fill buffer with global tags of both atoms in bond
+
+    size = 0;
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_bond[i]; j++) {
+        buf[size++] = tag[i];
+        buf[size++] = bond_atom[i][j];
+      }
+
+    // cycle buffer around ring of procs back to self
+    // when receive buffer, scan 2nd-atom tags for atoms I own
+    // when find one, add 1st-atom tag to onetwo list for 2nd atom
+
+    comm->ring(size,sizeof(tagint),buf,2,ring_two,NULL,(void *)this);
+
+    memory->destroy(buf);
+  }
+
+  memory->destroy(count);
+
+  // -----------------------------------------------------
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
+  // -----------------------------------------------------
 
   if (force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
     combine();
     fix_alteration();
-    memory->destroy(procowner);
-    memory->destroy(atomIDs);
-    timer_output(time1);
     return;
   }
 
-  // tally nspecial[i][1] = # of 1-3 neighbors of atom i
+  // -----------------------------------------------------
+  // compute nspecial[i][1] = # of 1-3 neighbors of atom i
+  // -----------------------------------------------------
+
+  // nbufmax = largest buffer needed to hold info from any proc
+  // info for each atom = 2 scalars + list of 1-2 neighbors
+
+  nbuf = 0;
+  for (i = 0; i < nlocal; i++) nbuf += 2 + nspecial[i][0];
+  memory->create(buf,nbuf,"special:buf");
+
+  // fill buffer with:
+  // (1) = counter for 1-3 neighbors, initialized to 0
+  // (2) = # of 1-2 neighbors
+  // (3:N) = list of 1-2 neighbors
+
+  size = 0;
+  for (i = 0; i < nlocal; i++) {
+    buf[size++] = 0;
+    buf[size++] = nspecial[i][0];
+    for (j = 0; j < nspecial[i][0]; j++) buf[size++] = onetwo[i][j];
+  }
+
+  // cycle buffer around ring of procs back to self
+  // when receive buffer, scan list of 1-2 neighbors for atoms I own
+  // when find one, increment 1-3 count by # of 1-2 neighbors of my atom,
+  //   subtracting one since my list will contain original atom
+
+  comm->ring(size,sizeof(tagint),buf,3,ring_three,buf,(void *)this);
+
+  // extract count from buffer that has cycled back to me
+  // nspecial[i][1] = # of 1-3 neighbors of atom i
+
+  j = 0;
+  for (i = 0; i < nlocal; i++) {
+    nspecial[i][1] = buf[j];
+    j += 2 + nspecial[i][0];
+  }
+
+  memory->destroy(buf);
+
+  // ----------------------------------------------------
   // create onethree[i] = list of 1-3 neighbors for atom i
+  // ----------------------------------------------------
 
-  onethree_build();
-
-  // print max # of 1-3 neighbors
+  max = 0;
+  for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][1]);
+  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %d = max # of 1-3 neighbors\n",maxall);
     if (logfile) fprintf(logfile,"  %d = max # of 1-3 neighbors\n",maxall);
   }
+
+  memory->create(onethree,nlocal,maxall,"special:onethree");
+
+  // nbufmax = largest buffer needed to hold info from any proc
+  // info for each atom = 4 scalars + list of 1-2 neighs + list of 1-3 neighs
+
+  nbuf = 0;
+  for (i = 0; i < nlocal; i++) nbuf += 4 + nspecial[i][0] + nspecial[i][1];
+  memory->create(buf,nbuf,"special:buf");
+
+  // fill buffer with:
+  // (1) = global tag of original atom
+  // (2) = # of 1-2 neighbors
+  // (3) = # of 1-3 neighbors
+  // (4) = counter for 1-3 neighbors, initialized to 0
+  // (5:N) = list of 1-2 neighbors
+  // (N+1:2N) space for list of 1-3 neighbors
+
+  size = 0;
+  for (i = 0; i < nlocal; i++) {
+    buf[size++] = tag[i];
+    buf[size++] = nspecial[i][0];
+    buf[size++] = nspecial[i][1];
+    buf[size++] = 0;
+    for (j = 0; j < nspecial[i][0]; j++) buf[size++] = onetwo[i][j];
+    size += nspecial[i][1];
+  }
+
+  // cycle buffer around ring of procs back to self
+  // when receive buffer, scan list of 1-2 neighbors for atoms I own
+  // when find one, add its neighbors to 1-3 list
+  //   increment the count in buf(i+4)
+  //   exclude the atom whose tag = original
+  //   this process may include duplicates but they will be culled later
+
+  comm->ring(size,sizeof(tagint),buf,4,ring_four,buf,(void *)this);
+
+  // fill onethree with buffer values that have been returned to me
+  // sanity check: accumulated buf[i+3] count should equal
+  //   nspecial[i][1] for each atom
+
+  j = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (buf[j+3] != nspecial[i][1])
+      error->one(FLERR,"1-3 bond count is inconsistent");
+    j += 4 + nspecial[i][0];
+    for (k = 0; k < nspecial[i][1]; k++)
+      onethree[i][k] = buf[j++];
+  }
+
+  memory->destroy(buf);
 
   // done if special_bond weights for 1-4 are set to 1.0
 
@@ -129,410 +304,117 @@ void Special::build()
     if (force->special_angle) angle_trim();
     combine();
     fix_alteration();
-    memory->destroy(procowner);
-    memory->destroy(atomIDs);
-    timer_output(time1);
     return;
   }
 
-  // tally nspecial[i][2] = # of 1-4 neighbors of atom i
+  // -----------------------------------------------------
+  // compute nspecial[i][2] = # of 1-4 neighbors of atom i
+  // -----------------------------------------------------
+
+  // nbufmax = largest buffer needed to hold info from any proc
+  // info for each atom = 2 scalars + list of 1-3 neighbors
+
+  nbuf = 0;
+  for (i = 0; i < nlocal; i++) nbuf += 2 + nspecial[i][1];
+  memory->create(buf,nbuf,"special:buf");
+
+  // fill buffer with:
+  // (1) = counter for 1-4 neighbors, initialized to 0
+  // (2) = # of 1-3 neighbors
+  // (3:N) = list of 1-3 neighbors
+
+  size = 0;
+  for (i = 0; i < nlocal; i++) {
+    buf[size++] = 0;
+    buf[size++] = nspecial[i][1];
+    for (j = 0; j < nspecial[i][1]; j++) buf[size++] = onethree[i][j];
+  }
+
+  // cycle buffer around ring of procs back to self
+  // when receive buffer, scan list of 1-3 neighbors for atoms I own
+  // when find one, increment 1-4 count by # of 1-2 neighbors of my atom
+  //   may include duplicates and original atom but they will be culled later
+
+  comm->ring(size,sizeof(tagint),buf,5,ring_five,buf,(void *)this);
+
+  // extract count from buffer that has cycled back to me
+  // nspecial[i][2] = # of 1-4 neighbors of atom i
+
+  j = 0;
+  for (i = 0; i < nlocal; i++) {
+    nspecial[i][2] = buf[j];
+    j += 2 + nspecial[i][1];
+  }
+
+  memory->destroy(buf);
+
+  // ----------------------------------------------------
   // create onefour[i] = list of 1-4 neighbors for atom i
+  // ----------------------------------------------------
 
-  onefour_build();
-
-  // print max # of 1-4 neighbors
+  max = 0;
+  for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][2]);
+  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %d = max # of 1-4 neighbors\n",maxall);
     if (logfile) fprintf(logfile,"  %d = max # of 1-4 neighbors\n",maxall);
   }
 
-  // finish processing the onetwo, onethree, onefour lists
+  memory->create(onefour,nlocal,maxall,"special:onefour");
+
+  // nbufmax = largest buffer needed to hold info from any proc
+  // info for each atom = 3 scalars + list of 1-3 neighs + list of 1-4 neighs
+
+  nbuf = 0;
+  for (i = 0; i < nlocal; i++)
+    nbuf += 3 + nspecial[i][1] + nspecial[i][2];
+  memory->create(buf,nbuf,"special:buf");
+
+  // fill buffer with:
+  // (1) = # of 1-3 neighbors
+  // (2) = # of 1-4 neighbors
+  // (3) = counter for 1-4 neighbors, initialized to 0
+  // (4:N) = list of 1-3 neighbors
+  // (N+1:2N) space for list of 1-4 neighbors
+
+  size = 0;
+  for (i = 0; i < nlocal; i++) {
+    buf[size++] = nspecial[i][1];
+    buf[size++] = nspecial[i][2];
+    buf[size++] = 0;
+    for (j = 0; j < nspecial[i][1]; j++) buf[size++] = onethree[i][j];
+    size += nspecial[i][2];
+  }
+
+  // cycle buffer around ring of procs back to self
+  // when receive buffer, scan list of 1-3 neighbors for atoms I own
+  // when find one, add its neighbors to 1-4 list
+  //   incrementing the count in buf(i+4)
+  //   this process may include duplicates but they will be culled later
+
+  comm->ring(size,sizeof(tagint),buf,6,ring_six,buf,(void *)this);
+
+  // fill onefour with buffer values that have been returned to me
+  // sanity check: accumulated buf[i+2] count should equal
+  //  nspecial[i][2] for each atom
+
+  j = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (buf[j+2] != nspecial[i][2])
+      error->one(FLERR,"1-4 bond count is inconsistent");
+    j += 3 + nspecial[i][1];
+    for (k = 0; k < nspecial[i][2]; k++)
+      onefour[i][k] = buf[j++];
+  }
+
+  memory->destroy(buf);
 
   dedup();
   if (force->special_angle) angle_trim();
   if (force->special_dihedral) dihedral_trim();
   combine();
   fix_alteration();
-  memory->destroy(procowner);
-  memory->destroy(atomIDs);
-
-  timer_output(time1);
-}
-
-/* ----------------------------------------------------------------------
-   setup atomIDs and procowner
-------------------------------------------------------------------------- */
-
-void Special::atom_owners()
-{
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
-
-  int *proclist;
-  memory->create(proclist,nlocal,"special:proclist");
-  IDRvous *idbuf = (IDRvous *) 
-    memory->smalloc((bigint) nlocal*sizeof(IDRvous),"special:idbuf");
-
-  // setup input buf for rendezvous comm
-  // one datum for each owned atom: datum = owning proc, atomID
-  // each proc assigned every 1/Pth atom
-
-  for (int i = 0; i < nlocal; i++) {
-    proclist[i] = tag[i] % nprocs;
-    idbuf[i].me = me;
-    idbuf[i].atomID = tag[i];
-  }
-
-  // perform rendezvous operation
-  
-  char *buf;
-  comm->rendezvous(RVOUS,nlocal,(char *) idbuf,sizeof(IDRvous),0,proclist,
-                   rendezvous_ids,0,buf,0,(void *) this);
-
-  memory->destroy(proclist);
-  memory->sfree(idbuf);
-}
-
-/* ----------------------------------------------------------------------
-   onetwo build when newton_bond flag on
-   uses rendezvous comm
-------------------------------------------------------------------------- */
-
-void Special::onetwo_build_newton()
-{
-  int i,j,m;
-
-  tagint *tag = atom->tag;
-  int *num_bond = atom->num_bond;
-  tagint **bond_atom = atom->bond_atom;
-  int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-
-  // nsend = # of my datums to send
-    
-  int nsend = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < num_bond[i]; j++) {
-      m = atom->map(bond_atom[i][j]);
-      if (m < 0 || m >= nlocal) nsend++;
-    }
-  }
-
-  int *proclist;
-  memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *) 
-    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
-
-  // setup input buf to rendezvous comm
-  // one datum for each unowned bond partner: bond partner ID, atomID
-  // owning proc for each datum = bond partner ID % nprocs
-
-  nsend = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < num_bond[i]; j++) {
-      m = atom->map(bond_atom[i][j]);
-      if (m >= 0 && m < nlocal) continue;
-      proclist[nsend] = bond_atom[i][j] % nprocs;
-      inbuf[nsend].atomID = bond_atom[i][j];
-      inbuf[nsend].partnerID = tag[i];
-      nsend++;
-    }
-  }
-  
-  // perform rendezvous operation
-
-  char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
-  PairRvous *outbuf = (PairRvous *) buf;
-    
-  memory->destroy(proclist);
-  memory->sfree(inbuf);
-
-  // set nspecial[0] and onetwo for all owned atoms
-  // based on owned info plus rendezvous output info
-  // output datums = pairs of atoms that are 1-2 neighbors
-
-  for (i = 0; i < nlocal; i++) {
-    nspecial[i][0] = num_bond[i];
-    for (j = 0; j < num_bond[i]; j++) {
-      m = atom->map(bond_atom[i][j]);
-      if (m >= 0 && m < nlocal) nspecial[m][0]++;
-    }
-  }
-
-  for (m = 0; m < nreturn; m++) {
-    i = atom->map(outbuf[m].atomID);
-    nspecial[i][0]++;
-  }
-  
-  int max = 0;
-  for (i = 0; i < nlocal; i++)
-    max = MAX(max,nspecial[i][0]);
-  
-  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-  memory->create(onetwo,nlocal,maxall,"special:onetwo");
-  
-  for (i = 0; i < nlocal; i++) nspecial[i][0] = 0;
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < num_bond[i]; j++) {
-      onetwo[i][nspecial[i][0]++] = bond_atom[i][j];
-      m = atom->map(bond_atom[i][j]);
-      if (m >= 0 && m < nlocal) onetwo[m][nspecial[m][0]++] = tag[i];
-    }
-  }
-
-  for (m = 0; m < nreturn; m++) {
-    i = atom->map(outbuf[m].atomID);
-    onetwo[i][nspecial[i][0]++] = outbuf[m].partnerID;
-  }
-  
-  memory->sfree(outbuf);
-}
-
-/* ----------------------------------------------------------------------
-   onetwo build with newton_bond flag off
-   no need for rendezvous comm
-------------------------------------------------------------------------- */
-
-void Special::onetwo_build_newton_off()
-{
-  int i,j;
-
-  int *num_bond = atom->num_bond;
-  tagint **bond_atom = atom->bond_atom;
-  int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-
-  int max = 0;
-  for (i = 0; i < nlocal; i++)
-    max = MAX(max,num_bond[i]);
-  
-  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-  memory->create(onetwo,nlocal,maxall,"special:onetwo");
-  
-  // nsend = # of my datums to send
-  // include nlocal datums with owner of each atom
-    
-  for (i = 0; i < nlocal; i++) {
-    nspecial[i][0] = num_bond[i];
-    for (j = 0; j < num_bond[i]; j++)
-      onetwo[i][j] = bond_atom[i][j];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   onethree build
-   uses rendezvous comm
-------------------------------------------------------------------------- */
-
-void Special::onethree_build()
-{
-  int i,j,k,m,proc;
-
-  tagint *tag = atom->tag;
-  int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-
-  // nsend = # of my datums to send
-
-  int nsend = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][0]; j++) {
-      m = atom->map(onetwo[i][j]);
-      if (m < 0 || m >= nlocal) nsend += nspecial[i][0]-1;
-    }
-  }
-
-  int *proclist;
-  memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *) 
-    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
-
-  // setup input buf to rendezvous comm
-  // datums = pairs of onetwo partners where either is unknown
-  //          these pairs are onethree neighbors
-  //          datum = onetwo ID, onetwo ID
-  // owning proc for each datum = onetwo ID % nprocs
-
-  nsend = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][0]; j++) {
-      m = atom->map(onetwo[i][j]);
-      if (m >= 0 && m < nlocal) continue;
-      proc = onetwo[i][j] % nprocs;
-      for (k = 0; k < nspecial[i][0]; k++) {
-        if (j == k) continue;
-        proclist[nsend] = proc;
-        inbuf[nsend].atomID = onetwo[i][j];
-        inbuf[nsend].partnerID = onetwo[i][k];
-        nsend++;
-      }
-    }
-  }
-
-  // perform rendezvous operation
-
-  char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
-  PairRvous *outbuf = (PairRvous *) buf;
-
-  memory->destroy(proclist);
-  memory->sfree(inbuf);
-
-  // set nspecial[1] and onethree for all owned atoms
-  // based on owned info plus rendezvous output info
-  // output datums = pairs of atoms that are 1-3 neighbors
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][0]; j++) {
-      m = atom->map(onetwo[i][j]);
-      if (m >= 0 && m < nlocal) nspecial[m][1] += nspecial[i][0]-1;
-    }
-  }
-
-  for (m = 0; m < nreturn; m++) {
-    i = atom->map(outbuf[m].atomID);
-    nspecial[i][1]++;
-  }
-  
-  int max = 0;
-  for (i = 0; i < nlocal; i++)
-    max = MAX(max,nspecial[i][1]);
-  
-  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-  memory->create(onethree,nlocal,maxall,"special:onethree");
-
-  for (i = 0; i < nlocal; i++) nspecial[i][1] = 0;
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][0]; j++) {
-      m = atom->map(onetwo[i][j]);
-      if (m < 0 || m >= nlocal) continue;
-      for (k = 0; k < nspecial[i][0]; k++) {
-        if (j == k) continue;
-        onethree[m][nspecial[m][1]++] = onetwo[i][k];
-      }
-    }
-  }
-
-  for (m = 0; m < nreturn; m++) {
-    i = atom->map(outbuf[m].atomID);
-    onethree[i][nspecial[i][1]++] = outbuf[m].partnerID;
-  }
-
-  memory->sfree(outbuf);
-}
-
-/* ----------------------------------------------------------------------
-   onefour build
-   uses rendezvous comm
-------------------------------------------------------------------------- */
-
-void Special::onefour_build()
-{
-  int i,j,k,m,proc;
-
-  tagint *tag = atom->tag;
-  int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-
-  // nsend = # of my datums to send
-
-  int nsend = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][1]; j++) {
-      m = atom->map(onethree[i][j]);
-      if (m < 0 || m >= nlocal) nsend += nspecial[i][0];
-    }
-  }
-
-  int *proclist;
-  memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *) 
-    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
-
-  // setup input buf to rendezvous comm
-  // datums = pairs of onethree and onetwo partners where onethree is unknown
-  //          these pairs are onefour neighbors
-  //          datum = onetwo ID, onetwo ID
-  // owning proc for each datum = onethree ID % nprocs
-
-  nsend = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][1]; j++) {
-      m = atom->map(onethree[i][j]);
-      if (m >= 0 && m < nlocal) continue;
-      proc = onethree[i][j] % nprocs;
-      for (k = 0; k < nspecial[i][0]; k++) {
-        proclist[nsend] = proc;
-        inbuf[nsend].atomID = onethree[i][j];
-        inbuf[nsend].partnerID = onetwo[i][k];
-        nsend++;
-      }
-    }
-  }
-
-  // perform rendezvous operation
-
-  char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
-  PairRvous *outbuf = (PairRvous *) buf;
-
-  memory->destroy(proclist);
-  memory->sfree(inbuf);
-
-  // set nspecial[2] and onefour for all owned atoms
-  // based on owned info plus rendezvous output info
-  // output datums = pairs of atoms that are 1-4 neighbors
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][1]; j++) {
-      m = atom->map(onethree[i][j]);
-      if (m >= 0 && m < nlocal) nspecial[m][2] += nspecial[i][0];
-    }
-  }
-
-  for (m = 0; m < nreturn; m++) {
-    i = atom->map(outbuf[m].atomID);
-    nspecial[i][2]++;
-  }
-  
-  int max = 0;
-  for (i = 0; i < nlocal; i++)
-    max = MAX(max,nspecial[i][2]);
-  
-  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-  memory->create(onefour,nlocal,maxall,"special:onefour");
-
-  for (i = 0; i < nlocal; i++) nspecial[i][2] = 0;
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < nspecial[i][1]; j++) {
-      m = atom->map(onethree[i][j]);
-      if (m < 0 || m >= nlocal) continue;
-      for (k = 0; k < nspecial[i][0]; k++) {
-        onefour[m][nspecial[m][2]++] = onetwo[i][k];
-      }
-    }
-  }
-
-  for (m = 0; m < nreturn; m++) {
-    i = atom->map(outbuf[m].atomID);
-    onefour[i][nspecial[i][2]++] = outbuf[m].partnerID;
-  }
-
-  memory->sfree(outbuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -777,24 +659,21 @@ void Special::combine()
    trim list of 1-3 neighbors by checking defined angles
    delete a 1-3 neigh if they are not end atoms of a defined angle
      and if they are not 1,3 or 2,4 atoms of a defined dihedral
-   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::angle_trim()
 {
-  int i,j,k,m;;
+  int i,j,m,n;
 
   int *num_angle = atom->num_angle;
   int *num_dihedral = atom->num_dihedral;
   tagint **angle_atom1 = atom->angle_atom1;
-  tagint **angle_atom2 = atom->angle_atom2;
   tagint **angle_atom3 = atom->angle_atom3;
   tagint **dihedral_atom1 = atom->dihedral_atom1;
   tagint **dihedral_atom2 = atom->dihedral_atom2;
   tagint **dihedral_atom3 = atom->dihedral_atom3;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
   int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   // stats on old 1-3 neighbor counts
@@ -813,206 +692,73 @@ void Special::angle_trim()
               "  %g = # of 1-3 neighbors before angle trim\n",allcount);
   }
 
-  // if angles or dihedrals are defined
-  // rendezvous angle 1-3 and dihedral 1-3,2-4 pairs
+  // if angles or dihedrals are defined,
+  // flag each 1-3 neigh if it appears in an angle or dihedral
 
   if ((num_angle && atom->nangles) || (num_dihedral && atom->ndihedrals)) {
 
-    // nsend = # of my datums to send
-    // latter is only for angles or dihedrlas where I own atom2 (newton bond off)
+    // dflag = flag for 1-3 neighs of all owned atoms
 
-    int nsend = 0;
+    int maxcount = 0;
+    for (i = 0; i < nlocal; i++) maxcount = MAX(maxcount,nspecial[i][1]);
+    memory->create(dflag,nlocal,maxcount,"special::dflag");
+
     for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < num_angle[i]; j++) {
-	if (tag[i] != angle_atom2[i][j]) continue;
-	m = atom->map(angle_atom1[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(angle_atom3[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-      }
-      for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(dihedral_atom3[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-      }
+      n = nspecial[i][1];
+      for (j = 0; j < n; j++) dflag[i][j] = 0;
     }
 
-    int *proclist;
-    memory->create(proclist,nsend,"special:proclist");
-    PairRvous *inbuf = (PairRvous *) 
-      memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+    // nbufmax = largest buffer needed to hold info from any proc
+    // info for each atom = list of 1,3 atoms in each angle stored by atom
+    //   and list of 1,3 and 2,4 atoms in each dihedral stored by atom
 
-    // setup input buf to rendezvous comm
-    // datums = pairs of onetwo partners where either is unknown
-    //          these pairs are onethree neighbors
-    //          datum = onetwo ID, onetwo ID
-    // owning proc for each datum = onetwo ID % nprocs
-
-    nsend = 0;
+    int nbuf = 0;
     for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < num_angle[i]; j++) {
-	if (tag[i] != angle_atom2[i][j]) continue;
-
-	m = atom->map(angle_atom1[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = angle_atom1[i][j] % nprocs;
-	  inbuf[nsend].atomID = angle_atom1[i][j];
-	  inbuf[nsend].partnerID = angle_atom3[i][j];
-	  nsend++;
-	}
-
-	m = atom->map(angle_atom3[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = angle_atom3[i][j] % nprocs;
-	  inbuf[nsend].atomID = angle_atom3[i][j];
-	  inbuf[nsend].partnerID = angle_atom1[i][j];
-	  nsend++;
-	}
-      }
-
-      for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom1[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom1[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom3[i][j];
-	  nsend++;
-	}
-
-	m = atom->map(dihedral_atom3[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom3[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom3[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom1[i][j];
-	  nsend++;
-	}
-
-      	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom4[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom4[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom2[i][j];
-	  nsend++;
-	}
-      }
+      if (num_angle && atom->nangles) nbuf += 2*num_angle[i];
+      if (num_dihedral && atom->ndihedrals) nbuf += 2*2*num_dihedral[i];
     }
+    int *buf;
+    memory->create(buf,nbuf,"special:buf");
 
-    // perform rendezvous operation
-    
-    char *buf;
-    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                   0,proclist,
-                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
-    PairRvous *outbuf = (PairRvous *) buf;
+    // fill buffer with list of 1,3 atoms in each angle
+    // and with list of 1,3 and 2,4 atoms in each dihedral
 
-    memory->destroy(proclist);
-    memory->sfree(inbuf);
+    int size = 0;
+    if (num_angle && atom->nangles)
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < num_angle[i]; j++) {
+          buf[size++] = angle_atom1[i][j];
+          buf[size++] = angle_atom3[i][j];
+        }
 
-    // flag all onethree atoms to keep
+    if (num_dihedral && atom->ndihedrals)
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < num_dihedral[i]; j++) {
+          buf[size++] = dihedral_atom1[i][j];
+          buf[size++] = dihedral_atom3[i][j];
+          buf[size++] = dihedral_atom2[i][j];
+          buf[size++] = dihedral_atom4[i][j];
+        }
 
-    int max = 0;
-    for (i = 0; i < nlocal; i++)
-      max = MAX(max,nspecial[i][1]);
-    MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    
-    int **flag;
-    memory->create(flag,nlocal,maxall,"special:flag");
+    // cycle buffer around ring of procs back to self
+    // when receive buffer, scan list of 1,3 atoms looking for atoms I own
+    // when find one, scan its 1-3 neigh list and mark I,J as in an angle
 
-    for (i = 0; i < nlocal; i++)
+    comm->ring(size,sizeof(tagint),buf,7,ring_seven,NULL,(void *)this);
+
+    // delete 1-3 neighbors if they are not flagged in dflag
+
+    for (i = 0; i < nlocal; i++) {
+      m = 0;
       for (j = 0; j < nspecial[i][1]; j++)
-	flag[i][j] = 0;
-    
-    // reset nspecial[1] and onethree for all owned atoms based on output info
-    // based on owned info plus rendezvous output info
-    // output datums = pairs of atoms that are 1-3 neighbors
-    
-    for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < num_angle[i]; j++) {
-	if (tag[i] != angle_atom2[i][j]) continue;
-
-	m = atom->map(angle_atom1[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == angle_atom3[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-
-	m = atom->map(angle_atom3[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == angle_atom1[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-      }
-
-      for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == dihedral_atom3[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-
-	m = atom->map(dihedral_atom3[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == dihedral_atom1[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == dihedral_atom2[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-      }
+        if (dflag[i][j]) onethree[i][m++] = onethree[i][j];
+      nspecial[i][1] = m;
     }
 
-    for (m = 0; m < nreturn; m++) {
-      i = atom->map(outbuf[m].atomID);
-      for (k = 0; k < nspecial[i][1]; k++)
-	if (onethree[i][k] == outbuf[m].partnerID) {
-	  flag[i][k] = 1;
-	  break;
-	}
-    }
-	
-    memory->destroy(outbuf);
+    // clean up
 
-    // use flag values to compress onefour list for each atom
-
-    for (i = 0; i < nlocal; i++) {
-      j = 0;
-      while (j < nspecial[i][1]) {
-	if (flag[i][j] == 0) {
-	  onethree[i][j] = onethree[i][nspecial[i][1]-1];
-	  flag[i][j] = flag[i][nspecial[i][1]-1];
-	  nspecial[i][1]--;
-	} else j++;
-      }
-    }
-    
-    memory->destroy(flag);
+    memory->destroy(dflag);
+    memory->destroy(buf);
 
   // if no angles or dihedrals are defined, delete all 1-3 neighs
 
@@ -1037,21 +783,18 @@ void Special::angle_trim()
 }
 
 /* ----------------------------------------------------------------------
-   trim list of 1-4 neighbors by checking all defined dihedrals
+   trim list of 1-4 neighbors by checking defined dihedrals
    delete a 1-4 neigh if they are not end atoms of a defined dihedral
-   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::dihedral_trim()
 {
-  int i,j,k,m;
+  int i,j,m,n;
 
   int *num_dihedral = atom->num_dihedral;
   tagint **dihedral_atom1 = atom->dihedral_atom1;
-  tagint **dihedral_atom2 = atom->dihedral_atom2;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
   int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   // stats on old 1-4 neighbor counts
@@ -1070,134 +813,58 @@ void Special::dihedral_trim()
               "  %g = # of 1-4 neighbors before dihedral trim\n",allcount);
   }
 
-  // if dihedrals are defined, rendezvous the dihedral 1-4 pairs
+  // if dihedrals are defined, flag each 1-4 neigh if it appears in a dihedral
 
   if (num_dihedral && atom->ndihedrals) {
 
-    // nsend = # of my datums to send
+    // dflag = flag for 1-4 neighs of all owned atoms
 
-    int nsend = 0;
+    int maxcount = 0;
+    for (i = 0; i < nlocal; i++) maxcount = MAX(maxcount,nspecial[i][2]);
+    memory->create(dflag,nlocal,maxcount,"special::dflag");
+
     for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-      }
+      n = nspecial[i][2];
+      for (j = 0; j < n; j++) dflag[i][j] = 0;
     }
 
-    int *proclist;
-    memory->create(proclist,nsend,"special:proclist");
-    PairRvous *inbuf = (PairRvous *) 
-      memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
-    
-    // setup input buf to rendezvous comm
-    // datums = pairs of onefour atom IDs in a dihedral defined for my atoms
-    //          only dihedrals where I own atom2 (in case newton_bond off)
-    //          datum = atom1 ID and atom4 ID
-    //          send the datum twice, to owner of atom1 ID and atom4 ID
-    // owning procs for each datum = atom1 or atom4 ID % nprocs
+    // nbufmax = largest buffer needed to hold info from any proc
+    // info for each atom = list of 1,4 atoms in each dihedral stored by atom
 
-    nsend = 0;
-    for (i = 0; i < nlocal; i++) {
+    int nbuf = 0;
+    for (i = 0; i < nlocal; i++) nbuf += 2*num_dihedral[i];
+    int *buf;
+    memory->create(buf,nbuf,"special:buf");
+
+    // fill buffer with list of 1,4 atoms in each dihedral
+
+    int size = 0;
+    for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom1[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom1[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom4[i][j];
-	  nsend++;
-	}
-
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom4[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom4[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom1[i][j];
-	  nsend++;
-	}
+        buf[size++] = dihedral_atom1[i][j];
+        buf[size++] = dihedral_atom4[i][j];
       }
-    }
 
-    // perform rendezvous operation
-    
-    char *buf;
-    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                   0,proclist,
-                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
-    PairRvous *outbuf = (PairRvous *) buf;
+    // cycle buffer around ring of procs back to self
+    // when receive buffer, scan list of 1,4 atoms looking for atoms I own
+    // when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
 
-    memory->destroy(proclist);
-    memory->sfree(inbuf);
+    comm->ring(size,sizeof(tagint),buf,8,ring_eight,NULL,(void *)this);
 
-    // flag all of my onefour IDs to keep
+    // delete 1-4 neighbors if they are not flagged in dflag
 
-    int max = 0;
-    for (i = 0; i < nlocal; i++)
-      max = MAX(max,nspecial[i][2]);
-    MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    
-    int **flag;
-    memory->create(flag,nlocal,maxall,"special:flag");
-
-    for (i = 0; i < nlocal; i++)
+    for (i = 0; i < nlocal; i++) {
+      m = 0;
       for (j = 0; j < nspecial[i][2]; j++)
-	flag[i][j] = 0;
-    
-    for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][2]; k++)
-	    if (onefour[m][k] == dihedral_atom4[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][2]; k++)
-	    if (onefour[m][k] == dihedral_atom1[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
-      }
+        if (dflag[i][j]) onefour[i][m++] = onefour[i][j];
+      nspecial[i][2] = m;
     }
 
-    for (m = 0; m < nreturn; m++) {
-      i = atom->map(outbuf[m].atomID);
-      for (k = 0; k < nspecial[i][2]; k++)
-	if (onefour[i][k] == outbuf[m].partnerID) {
-	  flag[i][k] = 1;
-	  break;
-	}
-    }
+    // clean up
 
-    memory->destroy(outbuf);
+    memory->destroy(dflag);
+    memory->destroy(buf);
 
-    // use flag values to compress onefour list for each atom
-
-    for (i = 0; i < nlocal; i++) {
-      j = 0;
-      while (j < nspecial[i][2]) {
-	if (flag[i][j] == 0) {
-	  onefour[i][j] = onefour[i][nspecial[i][2]-1];
-	  flag[i][j] = flag[i][nspecial[i][2]-1];
-	  nspecial[i][2]--;
-	} else j++;
-      }
-    }
-    
-    memory->destroy(flag);
-    
   // if no dihedrals are defined, delete all 1-4 neighs
 
   } else {
@@ -1221,95 +888,262 @@ void Special::dihedral_trim()
 }
 
 /* ----------------------------------------------------------------------
-   process data for atoms assigned to me in rendezvous decomposition
-   inbuf = list of N IDRvous datums
-   no outbuf
+   when receive buffer, scan tags for atoms I own
+   when find one, increment nspecial count for that atom
 ------------------------------------------------------------------------- */
 
-int Special::rendezvous_ids(int n, char *inbuf,
-			    int &flag, int *&proclist, char *&outbuf,
-			    void *ptr)
-{
-  Special *sptr = (Special *) ptr;
-  Memory *memory = sptr->memory;
-
-  int *procowner;
-  tagint *atomIDs;
-  
-  memory->create(procowner,n,"special:procowner");
-  memory->create(atomIDs,n,"special:atomIDs");
-  
-  IDRvous *in = (IDRvous *) inbuf;
-
-  for (int i = 0; i < n; i++) {
-    procowner[i] = in[i].me;
-    atomIDs[i] = in[i].atomID;
-  }
-
-  // store rendezvous data in Special class
-  
-  sptr->nrvous = n;
-  sptr->procowner = procowner;
-  sptr->atomIDs = atomIDs;
-
-  // flag = 0: no second comm needed in rendezvous
-  
-  flag = 0;
-  return 0;
-}
-				  
-
-/* ----------------------------------------------------------------------
-   process data for atoms assigned to me in rendezvous decomposition
-   inbuf = list of N PairRvous datums
-   outbuf = same list of N PairRvous datums, routed to different procs
-------------------------------------------------------------------------- */
-
-int Special::rendezvous_pairs(int n, char *inbuf,
-                             int &flag, int *&proclist, char *&outbuf,
-                             void *ptr)
+void Special::ring_one(int ndatum, char *cbuf, void *ptr)
 {
   Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
-  Memory *memory = sptr->memory;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
 
-  // clear atom map so it can be used here as a hash table
-  // faster than an STL map for large atom counts
-
-  atom->map_clear();
-
-  // hash atom IDs stored in rendezvous decomposition
-  
-  int nrvous = sptr->nrvous;
-  tagint *atomIDs = sptr->atomIDs;
-
-  for (int i = 0; i < nrvous; i++)
-    atom->map_one(atomIDs[i],i);
-
-  // proclist = owner of atomID in caller decomposition
-  
-  PairRvous *in = (PairRvous *) inbuf;
-  int *procowner = sptr->procowner;
-  memory->create(proclist,n,"special:proclist");
-
+  tagint *buf = (tagint *) cbuf;
   int m;
-  for (int i = 0; i < n; i++) {
-    m = atom->map(in[i].atomID);
-    proclist[i] = procowner[m];
+
+  for (int i = 0; i < ndatum; i++) {
+    m = atom->map(buf[i]);
+    if (m >= 0 && m < nlocal) nspecial[m][0]++;
   }
+}
 
-  outbuf = inbuf;
-  
-  // re-create atom map
+/* ----------------------------------------------------------------------
+   when receive buffer, scan 2nd-atom tags for atoms I own
+   when find one, add 1st-atom tag to onetwo list for 2nd atom
+------------------------------------------------------------------------- */
 
-  atom->map_init(0);
-  atom->nghost = 0;
-  atom->map_set();
+void Special::ring_two(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int nlocal = atom->nlocal;
 
-  // flag = 1: outbuf = inbuf
-  
-  flag = 1;
-  return n;
+  tagint **onetwo = sptr->onetwo;
+  int *count = sptr->count;
+
+  tagint *buf = (tagint *) cbuf;
+  int m;
+
+  for (int i = 1; i < ndatum; i += 2) {
+    m = atom->map(buf[i]);
+    if (m >= 0 && m < nlocal) onetwo[m][count[m]++] = buf[i-1];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1-2 neighbors for atoms I own
+   when find one, increment 1-3 count by # of 1-2 neighbors of my atom,
+     subtracting one since my list will contain original atom
+------------------------------------------------------------------------- */
+
+void Special::ring_three(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  tagint *buf = (tagint *) cbuf;
+  int i,j,m,n,num12;
+
+  i = 0;
+  while (i < ndatum) {
+    n = buf[i];
+    num12 = buf[i+1];
+    for (j = 0; j < num12; j++) {
+      m = atom->map(buf[i+2+j]);
+      if (m >= 0 && m < nlocal)
+        n += nspecial[m][0] - 1;
+    }
+    buf[i] = n;
+    i += 2 + num12;
+  }
+}
+
+/* ----------------------------------------------------------------------
+  when receive buffer, scan list of 1-2 neighbors for atoms I own
+  when find one, add its neighbors to 1-3 list
+    increment the count in buf(i+4)
+    exclude the atom whose tag = original
+    this process may include duplicates but they will be culled later
+------------------------------------------------------------------------- */
+
+void Special::ring_four(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  tagint **onetwo = sptr->onetwo;
+
+  tagint *buf = (tagint *) cbuf;
+  tagint original;
+  int i,j,k,m,n,num12,num13;
+
+  i = 0;
+  while (i < ndatum) {
+    original = buf[i];
+    num12 = buf[i+1];
+    num13 = buf[i+2];
+    n = buf[i+3];
+    for (j = 0; j < num12; j++) {
+      m = atom->map(buf[i+4+j]);
+      if (m >= 0 && m < nlocal)
+        for (k = 0; k < nspecial[m][0]; k++)
+          if (onetwo[m][k] != original)
+            buf[i+4+num12+(n++)] = onetwo[m][k];
+    }
+    buf[i+3] = n;
+    i += 4 + num12 + num13;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1-3 neighbors for atoms I own
+   when find one, increment 1-4 count by # of 1-2 neighbors of my atom
+     may include duplicates and original atom but they will be culled later
+------------------------------------------------------------------------- */
+
+void Special::ring_five(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  tagint *buf = (tagint *) cbuf;
+  int i,j,m,n,num13;
+
+  i = 0;
+  while (i < ndatum) {
+    n = buf[i];
+    num13 = buf[i+1];
+    for (j = 0; j < num13; j++) {
+      m = atom->map(buf[i+2+j]);
+      if (m >= 0 && m < nlocal) n += nspecial[m][0];
+    }
+      buf[i] = n;
+      i += 2 + num13;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1-3 neighbors for atoms I own
+   when find one, add its neighbors to 1-4 list
+     incrementing the count in buf(i+4)
+     this process may include duplicates but they will be culled later
+------------------------------------------------------------------------- */
+
+void Special::ring_six(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  tagint **onetwo = sptr->onetwo;
+
+  tagint *buf = (tagint *) cbuf;
+  int i,j,k,m,n,num13,num14;
+
+  i = 0;
+  while (i < ndatum) {
+    num13 = buf[i];
+    num14 = buf[i+1];
+    n = buf[i+2];
+    for (j = 0; j < num13; j++) {
+      m = atom->map(buf[i+3+j]);
+      if (m >= 0 && m < nlocal)
+        for (k = 0; k < nspecial[m][0]; k++)
+          buf[i+3+num13+(n++)] = onetwo[m][k];
+    }
+    buf[i+2] = n;
+    i += 3 + num13 + num14;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1,3 atoms looking for atoms I own
+   when find one, scan its 1-3 neigh list and mark I,J as in an angle
+------------------------------------------------------------------------- */
+
+void Special::ring_seven(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  tagint **onethree = sptr->onethree;
+  int **dflag = sptr->dflag;
+
+  tagint *buf = (tagint *) cbuf;
+  tagint iglobal,jglobal;
+  int i,m,ilocal,jlocal;
+
+  i = 0;
+  while (i < ndatum) {
+    iglobal = buf[i];
+    jglobal = buf[i+1];
+    ilocal = atom->map(iglobal);
+    jlocal = atom->map(jglobal);
+    if (ilocal >= 0 && ilocal < nlocal)
+      for (m = 0; m < nspecial[ilocal][1]; m++)
+        if (jglobal == onethree[ilocal][m]) {
+          dflag[ilocal][m] = 1;
+          break;
+        }
+    if (jlocal >= 0 && jlocal < nlocal)
+      for (m = 0; m < nspecial[jlocal][1]; m++)
+        if (iglobal == onethree[jlocal][m]) {
+          dflag[jlocal][m] = 1;
+          break;
+        }
+    i += 2;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1,4 atoms looking for atoms I own
+   when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
+------------------------------------------------------------------------- */
+
+void Special::ring_eight(int ndatum, char *cbuf, void *ptr)
+{
+  Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  tagint **onefour = sptr->onefour;
+  int **dflag = sptr->dflag;
+
+  tagint *buf = (tagint *) cbuf;
+  tagint iglobal,jglobal;
+  int i,m,ilocal,jlocal;
+
+  i = 0;
+  while (i < ndatum) {
+    iglobal = buf[i];
+    jglobal = buf[i+1];
+    ilocal = atom->map(iglobal);
+    jlocal = atom->map(jglobal);
+    if (ilocal >= 0 && ilocal < nlocal)
+      for (m = 0; m < nspecial[ilocal][2]; m++)
+        if (jglobal == onefour[ilocal][m]) {
+          dflag[ilocal][m] = 1;
+          break;
+        }
+    if (jlocal >= 0 && jlocal < nlocal)
+      for (m = 0; m < nspecial[jlocal][2]; m++)
+        if (iglobal == onefour[jlocal][m]) {
+          dflag[jlocal][m] = 1;
+          break;
+        }
+    i += 2;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1325,15 +1159,3 @@ void Special::fix_alteration()
       modify->fix[ifix]->rebuild_special();
 }
 
-/* ----------------------------------------------------------------------
-   print timing output
-------------------------------------------------------------------------- */
-
-void Special::timer_output(double time1)
-{
-  double time2 = MPI_Wtime();
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"  special bonds CPU = %g secs\n",time2-time1);
-    if (logfile) fprintf(logfile,"  special bonds CPU = %g secs\n",time2-time1);
-  }
-}

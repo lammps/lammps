@@ -120,11 +120,6 @@ class FixShake : public Fix {
   int nmol;
 
   void find_clusters();
-  void atom_owners();
-  void partner_info(int *, tagint **, int **, int **, int **, int **);
-  void nshake_info(int *, tagint **, int **);
-  void shake_info(int *, tagint **, int **);
-  
   int masscheck(double);
   void unconstrained_update();
   void unconstrained_update_respa(int);
@@ -136,40 +131,12 @@ class FixShake : public Fix {
   int bondtype_findset(int, tagint, tagint, int);
   int angletype_findset(int, tagint, tagint, int);
 
-  // data used by rendezvous callback methods
+  // static variable for ring communication callback to access class data
+  // callback functions for ring communication
 
-  int nrvous;
-  tagint *atomIDs;
-  int *procowner;
-
-  struct IDRvous {
-    int me;
-    tagint atomID;
-  };
-
-  struct PartnerInfo {
-    tagint atomID,partnerID;
-    int mask,type,massflag,bondtype;
-  };
-
-  struct NShakeInfo {
-    tagint atomID,partnerID;
-    int nshake;
-  };
-
-  struct ShakeInfo {
-    tagint atomID;
-    tagint shake_atom[4];
-    int shake_flag;
-    int shake_type[3];
-  };
-
-  // callback functions for rendezvous communication
-
-  static int rendezvous_ids(int, char *, int &, int *&, char *&, void *);
-  static int rendezvous_partners_info(int, char *, int &, int *&, char *&, void *);
-  static int rendezvous_nshake(int, char *, int &, int *&, char *&, void *);
-  static int rendezvous_shake(int, char *, int &, int *&, char *&, void *);
+  static void ring_bonds(int, char *, void *);
+  static void ring_nshake(int, char *, void *);
+  static void ring_shake(int, char *, void *);
 };
 
 }

@@ -1382,6 +1382,7 @@ libAtoms
 libawpmd
 libch
 libcolvars
+libcurl
 libdir
 libdl
 libfftw

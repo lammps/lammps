@@ -116,8 +116,7 @@ void PairLubricateU::compute(int eflag, int vflag)
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // skip compute() if called from integrate::setup()
   // this is b/c do not want compute() to update velocities twice on a restart

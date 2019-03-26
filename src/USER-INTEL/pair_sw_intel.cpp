@@ -95,9 +95,7 @@ void PairSWIntel::compute(int eflag, int vflag,
                           IntelBuffers<flt_t,acc_t> *buffers,
                           const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;

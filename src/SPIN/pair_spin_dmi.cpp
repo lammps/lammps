@@ -173,9 +173,8 @@ void PairSpinDmi::init_style()
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
     ifix++;
   }
-  // test remove if test
-  //if (ifix == modify->nfix)
-  //  error->all(FLERR,"pair/spin style requires nve/spin");
+  if ((ifix == modify->nfix) && (comm->me == 0))
+    error->warning(FLERR,"Using pair/spin style without nve/spin");
 
   // get the lattice_flag from nve/spin
 
@@ -234,13 +233,12 @@ void PairSpinDmi::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -297,32 +295,32 @@ void PairSpinDmi::compute(int eflag, int vflag)
       // compute dmi interaction
 
       if (rsq <= local_cut2) {
-	compute_dmi(i,j,eij,fmi,spj);
-	if (lattice_flag) {
-	  compute_dmi_mech(i,j,rsq,eij,fi,spi,spj);
-	}
+        compute_dmi(i,j,eij,fmi,spj);
+        if (lattice_flag) {
+          compute_dmi_mech(i,j,rsq,eij,fi,spi,spj);
+        }
       }
 
-      f[i][0] += fi[0];	
-      f[i][1] += fi[1];	  	
+      f[i][0] += fi[0];
+      f[i][1] += fi[1];
       f[i][2] += fi[2];
-      fm[i][0] += fmi[0];	
-      fm[i][1] += fmi[1];	  	
+      fm[i][0] += fmi[0];
+      fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fi[0];	
-        f[j][1] -= fi[1];	  	
+        f[j][0] -= fi[0];
+        f[j][1] -= fi[1];
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
-	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	evdwl *= hbar;
+        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        evdwl *= hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-	  evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
+          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
@@ -344,7 +342,7 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype,ntypes;
+  int j,jnum,itype,jtype,ntypes;
   int k,locflag;
   int *jlist,*numneigh,**firstneigh;
 
@@ -352,7 +350,7 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
- 
+
   // check if interaction applies to type of ii
 
   itype = type[ii];
@@ -362,20 +360,20 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
   while (k <= ntypes) {
     if (k <= itype) {
       if (setflag[k][itype] == 1) {
-	locflag =1;
-	break;
+        locflag =1;
+        break;
       }
       k++;
     } else if (k > itype) {
       if (setflag[itype][k] == 1) {
-	locflag =1;
-	break;
+        locflag =1;
+        break;
       }
       k++;
     } else error->all(FLERR,"Wrong type number");
   }
 
-  // if interaction applies to type ii, 
+  // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction
 
   //i = ilist[ii];
@@ -424,7 +422,7 @@ void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double
 {
   int *type = atom->type;
   int itype, jtype;
-  double dmix, dmiy, dmiz;	
+  double dmix, dmiy, dmiz;
   itype = type[i];
   jtype = type[j];
 
@@ -446,7 +444,7 @@ void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3],
 {
   int *type = atom->type;
   int itype, jtype;
-  double dmix,dmiy,dmiz;	
+  double dmix,dmiy,dmiz;
   itype = type[i];
   jtype = type[j];
   double csx,csy,csz,cdmx,cdmy,cdmz,irij;
@@ -511,7 +509,7 @@ void PairSpinDmi::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&DM[i][j],sizeof(double),1,fp);
+        fwrite(&DM[i][j],sizeof(double),1,fp);
         fwrite(&v_dmx[i][j],sizeof(double),1,fp);
         fwrite(&v_dmy[i][j],sizeof(double),1,fp);
         fwrite(&v_dmz[i][j],sizeof(double),1,fp);

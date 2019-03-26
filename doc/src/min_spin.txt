@@ -3,7 +3,6 @@
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
 :link(lc,Commands_all.html)
-
 :line
 
 min_style spin command :h3
@@ -14,8 +13,7 @@ min_style spin :pre
 
 [Examples:]
 
-min_style 	spin
-min_modify      alpha_damp 1.0 discret_factor 10.0 :pre
+min_style 	spin :pre 
 
 [Description:]
 
@@ -27,30 +25,34 @@ timestep, according to:
 
 :c,image(Eqs/min_spin_damping.jpg)
 
-with lambda a damping coefficient (similar to a Gilbert damping)
+with lambda a damping coefficient (similar to a Gilbert
+damping).
 Lambda can be defined by setting the {alpha_damp} keyword with the 
 "min_modify"_min_modify.html command. 
 
 The minimization procedure solves this equation using an
-adaptive timestep. The value of this timestep is conditionned 
+adaptive timestep. The value of this timestep is defined 
 by the largest precession frequency that has to be solved in the 
 system:
 
 :c,image(Eqs/min_spin_timestep.jpg)
 
-with |omega|_{max} the norm of the largest precession frequency
+with {|omega|_{max}} the norm of the largest precession frequency
 in the system (across all processes, and across all replicas if a
 spin/neb calculation is performed). 
 
-Kappa defines a discretization factor {discret_factor} for the 
+Kappa defines a discretization factor {discrete_factor} for the 
 definition of this timestep. 
-{discret_factor} can be defined with the "min_modify"_min_modify.html
+{discrete_factor} can be defined with the "min_modify"_min_modify.html
 command.
 
 NOTE: The {spin} style replaces the force tolerance by a torque
 tolerance. See "minimize"_minimize.html for more explanation. 
 
-[Restrictions:] none
+[Restrictions:] 
+
+This minimization procedure is only applied to spin degrees of
+freedom for a frozen lattice configuration.
 
 [Related commands:]
 
@@ -59,5 +61,5 @@ tolerance. See "minimize"_minimize.html for more explanation.
 
 [Default:]
 
-The option defaults are alpha_damp = 1.0 and discret_factor =
+The option defaults are {alpha_damp} = 1.0 and {discrete_factor} =
 10.0.

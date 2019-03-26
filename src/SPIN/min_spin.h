@@ -45,7 +45,7 @@ class MinSpin : public Min {
   double dts;
 
   double alpha_damp;            // damping for spin minimization
-  double discret_factor;        // factor for spin timestep evaluation
+  double discrete_factor;       // factor for spin timestep evaluation
 
   double *spvec;               // variables for atomic dof, as 1d vector
   double *fmvec;               // variables for atomic dof, as 1d vector

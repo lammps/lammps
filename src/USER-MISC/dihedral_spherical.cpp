@@ -216,8 +216,7 @@ void DihedralSpherical::compute(int eflag, int vflag)
   //    perp34on23[d] = v34[d] - proj34on23[d]
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
 
   for (n = 0; n < ndihedrallist; n++) {

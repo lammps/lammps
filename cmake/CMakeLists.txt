@@ -613,8 +613,9 @@ if(PKG_USER-PLUMED)
 endif()
 
 if(PKG_USER-MOLFILE)
+  set(MOLFILE_INCLUDE_DIRS "${LAMMPS_LIB_SOURCE_DIR}/molfile" CACHE STRING "Path to VMD molfile plugin headers")
   add_library(molfile INTERFACE)
-  target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
+  target_include_directories(molfile INTERFACE ${MOLFILE_INCLUDE_DIRS})
   target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
   list(APPEND LAMMPS_LINK_LIBS molfile)
 endif()
@@ -625,7 +626,6 @@ if(PKG_USER-NETCDF)
   list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARIES})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
-
 
 if(PKG_USER-SMD)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)
@@ -670,6 +670,12 @@ if(PKG_USER-VTK)
 endif()
 
 if(PKG_KIM)
+  find_package(CURL)
+  if(CURL_FOUND)
+    include_directories(${CURL_INCLUDE_DIRS}) 
+    list(APPEND LAMMPS_LINK_LIBS ${CURL_LIBRARIES})
+    add_definitions(-DLMP_KIM_CURL)
+  endif()
   option(DOWNLOAD_KIM "Download KIM-API v2 from OpenKIM instead of using an already installed one" OFF)
   if(DOWNLOAD_KIM)
     message(STATUS "KIM-API v2 download requested - we will build our own")
@@ -1331,36 +1337,14 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 ######################################
 # Generate lmpgitversion.h
 ######################################
-set(temp "#ifndef LMP_GIT_VERSION_H\n#define LMP_GIT_VERSION_H\n")
-set(temp_git_commit "(unknown)")
-set(temp_git_branch "(unknown)")
-set(temp_git_describe "(unknown)")
-set(temp_git_info "false")
-if(GIT_FOUND AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
-  set(temp_git_info "true")
-  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git rev-parse HEAD
-    OUTPUT_VARIABLE temp_git_commit
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git rev-parse --abbrev-ref HEAD
-    OUTPUT_VARIABLE temp_git_branch
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git describe --dirty=-modified
-    OUTPUT_VARIABLE temp_git_describe
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
-
-set(temp "${temp}const bool LAMMPS_NS::LAMMPS::has_git_info = ${temp_git_info};\n")
-set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_commit[] = \"${temp_git_commit}\";\n")
-set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_branch[] = \"${temp_git_branch}\";\n")
-set(temp "${temp}const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"${temp_git_describe}\";\n")
-set(temp "${temp}#endif\n\n")
-
-message(STATUS "Generating lmpgitversion.h...")
-file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${temp}" )
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
+add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
+  -DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -DGIT_FOUND="${GIT_FOUND}"
+  -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+list(APPEND LAMMPS_DEPS gitversion)
 
 ###########################################
 # Actually add executable and lib to build

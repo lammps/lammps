@@ -169,16 +169,18 @@ used to build the GPU library.
 
 KIM package :h4,link(kim)
 
-To build with this package, the KIM library must be downloaded and
-built on your system.  It must include the KIM models that you want to
-use with LAMMPS.
+To build with this package, the KIM library with API v2 must be downloaded
+and built on your system.  It must include the KIM models that you want to
+use with LAMMPS. If you want to use the "kim_query"_kim_query.html
+command, you also need to have libcurl installed with the matching
+development headers and the curl-config tool.
 
 Note that in LAMMPS lingo, a KIM model driver is a pair style
 (e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
 element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.  Also note that installing the KIM API
-library with all its models, may take around 30 min to build.  Of
-course you only need to do that once.
+specific EAM potential file.  Also note that downloading and installing
+the KIM API library with all its models, may take a long time (10s of
+minutes to hours) to build.  Of course you only need to do that once.
 
 See the list of KIM model drivers here:
 https://openkim.org/browse/model-drivers/alphabetical
@@ -893,7 +895,17 @@ USER-MOLFILE package :h4,link(user-molfile)
 
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_USER-MOLFILE=yes".
+-D MOLFILE_INCLUDE_DIRS=path   # (optional) path where VMD molfile plugin headers are installed
+-D PKG_USER-MOLFILE=yes     :pre
+
+
+Using "-D PKG_USER-MOLFILE=yes" enables the package, and setting
+"-D MOLFILE_INCLUDE DIRS" allows to provide a custom location for
+the molfile plugin header files. These should match the ABI of the
+plugin files used, and thus one typically sets them to include
+folder of the local VMD installation in use. LAMMPS ships with a
+couple of default header files that correspond to a popular VMD
+version, usually the latest release.
 
 [Traditional make]:
 
@@ -902,7 +914,11 @@ loading library libdl.a that is typically present on all systems.  It
 is required for LAMMPS to link with this package.  If the setting is
 not valid for your system, you will need to edit the Makefile.lammps
 file.  See lib/molfile/README and lib/molfile/Makefile.lammps for
-details.
+details. It is also possible to configure a different folder with
+the VMD molfile plugin header files. LAMMPS ships with a couple of
+default headers, but these are not compatible with all VMD versions,
+so it is often best to change this setting to the location of the
+same include files of the local VMD installation in use.
 
 :line
 

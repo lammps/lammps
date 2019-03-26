@@ -11,6 +11,7 @@ atom in the system
 * minimizing spin configurations with an adaptive timestep scheme
 * performing geodesic NEB calculations
 * computing and outputing magnetic quantities
+* minimizing the energy or total torque of a magnetic system
 
 The different options provided by this package are explained in the 
 LAMMPS documentation.

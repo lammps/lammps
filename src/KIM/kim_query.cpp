@@ -64,8 +64,10 @@
 #include "input.h"
 #include "variable.h"
 
+#if defined(LMP_KIM_CURL)
 #include <sys/types.h>
 #include <curl/curl.h>
+#endif
 
 using namespace LAMMPS_NS;
 

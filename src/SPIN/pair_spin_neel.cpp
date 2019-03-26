@@ -351,7 +351,7 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // check if interaction applies to type of ii
 
   itype = type[ii];
@@ -361,20 +361,20 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   while (k <= ntypes) {
     if (k <= itype) {
       if (setflag[k][itype] == 1) {
-	locflag =1;
-	break;
+        locflag =1;
+        break;
       }
       k++;
     } else if (k > itype) {
       if (setflag[itype][k] == 1) {
-	locflag =1;
-	break;
+        locflag =1;
+        break;
       }
       k++;
     } else error->all(FLERR,"Wrong type number");
   }
 
-  // if interaction applies to type ii, 
+  // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction
 
   if (locflag == 1) {

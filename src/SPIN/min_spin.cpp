@@ -19,6 +19,8 @@
 
 #include <mpi.h>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "min_spin.h"
 #include "universe.h"
 #include "atom.h"
@@ -27,8 +29,6 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
-#include <cstdlib>
-#include <cstring>
 #include "modify.h"
 #include "math_special.h"
 #include "math_const.h"
@@ -104,10 +104,10 @@ void MinSpin::reset_vectors()
   // size sp is 4N vector
   nvec = 4 * atom->nlocal;
   if (nvec) spvec = atom->sp[0];
-  
+
   nvec = 3 * atom->nlocal;
   if (nvec) fmvec = atom->fm[0];
-  
+
   if (nvec) xvec = atom->x[0];
   if (nvec) fvec = atom->f[0];
 }
@@ -119,7 +119,7 @@ void MinSpin::reset_vectors()
 int MinSpin::iterate(int maxiter)
 {
   bigint ntimestep;
-  double fmdotfm,fmdotfmall;
+  double fmdotfm;
   int flag,flagall;
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -132,12 +132,12 @@ int MinSpin::iterate(int maxiter)
 
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
-   
+
     energy_force(0);
     dts = evaluate_dt();
-   
+
     // apply damped precessional dynamics to the spins
-      
+
     advance_spins(dts);
 
     eprevious = ecurrent;
@@ -200,11 +200,10 @@ double MinSpin::evaluate_dt()
   double fmsq;
   double fmaxsqone,fmaxsqloc,fmaxsqall;
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
   double **fm = atom->fm;
 
-  // finding max fm on this proc. 
-  
+  // finding max fm on this proc.
+
   fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
     fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
@@ -212,10 +211,10 @@ double MinSpin::evaluate_dt()
   }
 
   // finding max fm on this replica
- 
-  fmaxsqloc = fmaxsqone; 
-  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world); 
-  
+
+  fmaxsqloc = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
+
   // finding max fm over all replicas, if necessary
   // this communicator would be invalid for multiprocess replicas
 
@@ -228,7 +227,7 @@ double MinSpin::evaluate_dt()
   if (fmaxsqall == 0.0)
     error->all(FLERR,"Incorrect fmaxsqall calculation");
 
-  // define max timestep by dividing by the 
+  // define max timestep by dividing by the
   // inverse of max frequency by discrete_factor
 
   dtmax = MY_2PI/(discrete_factor*sqrt(fmaxsqall));
@@ -243,58 +242,57 @@ double MinSpin::evaluate_dt()
 void MinSpin::advance_spins(double dts)
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tdampx,tdampy,tdampz;
   double msq,scale,fm2,energy,dts2;
   double cp[3],g[3];
 
-  dts2 = dts*dts;		
+  dts2 = dts*dts;
 
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
-    
+
     // calc. damping torque
-    
+
     tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
     tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
     tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-    
+
     // apply advance algorithm (geometric, norm preserving)
-    
+
     fm2 = (tdampx*tdampx+tdampy*tdampy+tdampz*tdampz);
     energy = (sp[i][0]*tdampx)+(sp[i][1]*tdampy)+(sp[i][2]*tdampz);
-    
+
     cp[0] = tdampy*sp[i][2]-tdampz*sp[i][1];
     cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
     cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
-    
+
     g[0] = sp[i][0]+cp[0]*dts;
     g[1] = sp[i][1]+cp[1]*dts;
     g[2] = sp[i][2]+cp[2]*dts;
-    		
+
     g[0] += (tdampx*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
     g[1] += (tdampy*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
     g[2] += (tdampz*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
-    		
+
     g[0] /= (1+0.25*fm2*dts2);
     g[1] /= (1+0.25*fm2*dts2);
     g[2] /= (1+0.25*fm2*dts2);
 
     sp[i][0] = g[0];
     sp[i][1] = g[1];
-    sp[i][2] = g[2];			
-    
+    sp[i][2] = g[2];
+
     // renormalization (check if necessary)
-    
+
     msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
     scale = 1.0/sqrt(msq);
     sp[i][0] *= scale;
     sp[i][1] *= scale;
     sp[i][2] *= scale;
-    
+
     // no comm. to atoms with same tag
     // because no need for simplecticity
   }
@@ -306,16 +304,13 @@ void MinSpin::advance_spins(double dts)
 
 double MinSpin::fmnorm_sqr()
 {
-  int i,n;
-  double *fmatom;
-
   int nlocal = atom->nlocal;
   double tx,ty,tz;
   double **sp = atom->sp;
   double **fm = atom->fm;
 
   // calc. magnetic torques
-  
+
   double local_norm2_sqr = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
@@ -324,11 +319,11 @@ double MinSpin::fmnorm_sqr()
 
     local_norm2_sqr += tx*tx + ty*ty + tz*tz;
   }
-  
-  // no extra atom calc. for spins 
+
+  // no extra atom calc. for spins
 
   if (nextra_atom)
-   error->all(FLERR,"extra atom option not available yet"); 
+    error->all(FLERR,"extra atom option not available yet");
 
   double norm2_sqr = 0.0;
   MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);

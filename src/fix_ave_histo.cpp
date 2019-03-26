@@ -32,7 +32,7 @@ using namespace FixConst;
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{SCALAR,VECTOR,WINDOW};
-enum{GLOBAL,PERATOM,LOCAL};
+enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 
 #define INVOKED_SCALAR 1
@@ -46,8 +46,10 @@ enum{IGNORE,END,EXTRA};
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL), stats_list(NULL),
-  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL), coord(NULL), vector(NULL)
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  ids(NULL), fp(NULL), stats_list(NULL),
+  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL), 
+  coord(NULL), vector(NULL)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
 
@@ -188,9 +190,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     memory->sfree(earg);
   }
 
-  // setup and error check
-  // kind = inputs are all global, or all per-atom, or all local
-  // for fix inputs, check that fix frequency is acceptable
+  // check input args for kind consistency
+  // all inputs must all be global, per-atom, or local
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/histo command");
@@ -201,39 +202,64 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/histo command");
 
-  int kindflag;
+  int kindglobal,kindperatom,kindlocal;
+
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == X || which[i] == V || which[i] == F) kindflag = PERATOM;
-    else if (which[i] == COMPUTE) {
+    kindglobal = kindperatom = kindlocal = 0;
+
+    if (which[i] == X || which[i] == V || which[i] == F) {
+      kindperatom = 1;
+
+    } else if (which[i] == COMPUTE) {
       int c_id = modify->find_compute(ids[i]);
       if (c_id < 0) error->all(FLERR,"Fix ave/histo input is invalid compute");
       Compute *compute = modify->compute[c_id];
+      // computes can produce multiple kinds of output
       if (compute->scalar_flag || compute->vector_flag || compute->array_flag)
-        kindflag = GLOBAL;
-      else if (compute->peratom_flag) kindflag = PERATOM;
-      else if (compute->local_flag) kindflag = LOCAL;
-      else error->all(FLERR,"Fix ave/histo input is invalid compute");
+        kindglobal = 1;
+      if (compute->peratom_flag) kindperatom = 1;
+      if (compute->local_flag) kindlocal = 1;
+
     } else if (which[i] == FIX) {
       int f_id = modify->find_fix(ids[i]);
       if (f_id < 0) error->all(FLERR,"Fix ave/histo input is invalid fix");
       Fix *fix = modify->fix[f_id];
+      // fixes can produce multiple kinds of output
       if (fix->scalar_flag || fix->vector_flag || fix->array_flag)
-        kindflag = GLOBAL;
-      else if (fix->peratom_flag) kindflag = PERATOM;
-      else if (fix->local_flag) kindflag = LOCAL;
-      else error->all(FLERR,"Fix ave/histo input is invalid fix");
+        kindglobal = 1;
+      if (fix->peratom_flag) kindperatom = 1;
+      if (fix->local_flag) kindlocal = 1;
+
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
-      if (ivariable < 0) error->all(FLERR,"Fix ave/histo input is invalid variable");
-      if (input->variable->equalstyle(ivariable)) kindflag = GLOBAL;
-      else if (input->variable->atomstyle(ivariable)) kindflag = PERATOM;
-      else error->all(FLERR,"Fix ave/histo input is invalid variable");
+      if (ivariable < 0) 
+        error->all(FLERR,"Fix ave/histo input is invalid variable");
+      // variables only produce one kind of output
+      if (input->variable->equalstyle(ivariable)) kindglobal = 1;
+      else if (input->variable->atomstyle(ivariable)) kindperatom = 1;
+      else error->all(FLERR,"Fix ave/histo input is invalid kind of variable");
     }
-    if (i == 0) kind = kindflag;
-    else if (kindflag != kind)
-      error->all(FLERR,
-                 "Fix ave/histo inputs are not all global, peratom, or local");
+
+    if (kind == DEFAULT) {
+      if (kindglobal + kindperatom + kindlocal > 1)
+        error->all(FLERR,"Fix ave/histo input kind is ambiguous");
+      if (kindglobal) kind = GLOBAL;
+      if (kindperatom) kind = PERATOM;
+      if (kindlocal) kind = LOCAL;
+    } else if (kind == GLOBAL) {
+      if (!kindglobal) 
+        error->all(FLERR,"Fix ave/histo input kind is invalid");
+    } else if (kind == PERATOM) {
+      if (!kindperatom) 
+        error->all(FLERR,"Fix ave/histo input kind is invalid");
+    } else if (kind == LOCAL) {
+      if (!kindlocal) 
+        error->all(FLERR,"Fix ave/histo input kind is invalid");
+    }
   }
+
+  // more error checks
+  // for fix inputs, check that fix frequency is acceptable
 
   if (kind == PERATOM && mode == SCALAR)
     error->all(FLERR,
@@ -919,6 +945,7 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
   // option defaults
 
   fp = NULL;
+  kind = DEFAULT;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
@@ -941,6 +968,13 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
           error->one(FLERR,str);
         }
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"kind") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
+      if (strcmp(arg[iarg+1],"global") == 0) kind = GLOBAL;
+      else if (strcmp(arg[iarg+1],"peratom") == 0) kind = PERATOM;
+      else if (strcmp(arg[iarg+1],"local") == 0) kind = LOCAL;
+      else error->all(FLERR,"Illegal fix ave/histo command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");

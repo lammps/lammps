@@ -595,15 +595,6 @@ void FixRigidSmall::init()
     }
   }
 
-  // error if maxextent > comm->cutghost
-  // NOTE: could just warn if an override flag set
-  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
-  //       for atom types in rigid bodies - need a more careful test
-
-  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if (maxextent > cutghost)
-    error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
-
   // error if npt,nph fix comes before rigid fix
 
   for (i = 0; i < modify->nfix; i++) {
@@ -661,6 +652,16 @@ void FixRigidSmall::setup_pre_neighbor()
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
+
+  // error if maxextent > comm->cutghost
+  // NOTE: could just warn if an override flag set
+  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
+  //       for atom types in rigid bodies - need a more careful test
+  // must check here, not in init, b/c neigh/comm values set after fix init
+
+  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (maxextent > cutghost) 
+    error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
 
   //check(1);
 

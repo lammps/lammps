@@ -257,8 +257,8 @@ void Special::onetwo_build_newton()
   // output datums = pairs of atoms that are 1-2 neighbors
 
   for (i = 0; i < nlocal; i++) {
-    nspecial[i][0] = num_bond[i];
     for (j = 0; j < num_bond[i]; j++) {
+      nspecial[i][0]++;
       m = atom->map(bond_atom[i][j]);
       if (m >= 0 && m < nlocal) nspecial[m][0]++;
     }

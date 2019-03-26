@@ -601,7 +601,7 @@ void FixRigidSmall::init()
   //       for atom types in rigid bodies - need a more careful test
 
   double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if (maxextent > cutghost) 
+  if (maxextent > cutghost)
     error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
 
   // error if npt,nph fix comes before rigid fix
@@ -1549,7 +1549,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 
   // allocate buffer for input to rendezvous comm
   // ncount = # of my atoms in bodies
-  
+
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1559,7 +1559,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 
   int *proclist;
   memory->create(proclist,ncount,"rigid/small:proclist");
-  InRvous *inbuf = (InRvous *) 
+  InRvous *inbuf = (InRvous *)
     memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
 
   // setup buf to pass to rendezvous comm
@@ -1594,13 +1594,13 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
                                  rendezvous_body,0,buf,sizeof(OutRvous),
                                  (void *) this);
   OutRvous *outbuf = (OutRvous *) buf;
-  
+
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
   // set bodytag of all owned atoms based on outbuf info for constituent atoms
 
-  for (i = 0; i < nlocal; i++) 
+  for (i = 0; i < nlocal; i++)
     if (!(mask[i] & groupbit)) bodytag[i] = 0;
 
   for (m = 0; m < nreturn; m++)
@@ -1650,7 +1650,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   InRvous *in = (InRvous *) inbuf;
   std::map<tagint,int> hash;
   tagint id;
-  
+
   int ncount = 0;
   for (i = 0; i < n; i++) {
     id = in[i].bodyID;
@@ -1722,7 +1722,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   // compute rsqfar for all bodies I own
   // set rsqfar back in caller
-  
+
   double rsqfar = 0.0;
 
   for (int i = 0; i < n; i++) {
@@ -1742,7 +1742,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   int nout = n;
   memory->create(proclist,nout,"rigid/small:proclist");
-  OutRvous *out = (OutRvous *) 
+  OutRvous *out = (OutRvous *)
     memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
 
   for (int i = 0; i < nout; i++) {

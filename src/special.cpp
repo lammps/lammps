@@ -171,7 +171,7 @@ void Special::atom_owners()
 
   int *proclist;
   memory->create(proclist,nlocal,"special:proclist");
-  IDRvous *idbuf = (IDRvous *) 
+  IDRvous *idbuf = (IDRvous *)
     memory->smalloc((bigint) nlocal*sizeof(IDRvous),"special:idbuf");
 
   // setup input buf for rendezvous comm
@@ -185,7 +185,7 @@ void Special::atom_owners()
   }
 
   // perform rendezvous operation
-  
+
   char *buf;
   comm->rendezvous(RVOUS,nlocal,(char *) idbuf,sizeof(IDRvous),0,proclist,
                    rendezvous_ids,0,buf,0,(void *) this);
@@ -210,7 +210,7 @@ void Special::onetwo_build_newton()
   int nlocal = atom->nlocal;
 
   // nsend = # of my datums to send
-    
+
   int nsend = 0;
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < num_bond[i]; j++) {
@@ -221,7 +221,7 @@ void Special::onetwo_build_newton()
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *) 
+  PairRvous *inbuf = (PairRvous *)
     memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
@@ -239,7 +239,7 @@ void Special::onetwo_build_newton()
       nsend++;
     }
   }
-  
+
   // perform rendezvous operation
 
   char *buf;
@@ -248,7 +248,7 @@ void Special::onetwo_build_newton()
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
-    
+
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
@@ -268,14 +268,14 @@ void Special::onetwo_build_newton()
     i = atom->map(outbuf[m].atomID);
     nspecial[i][0]++;
   }
-  
+
   int max = 0;
   for (i = 0; i < nlocal; i++)
     max = MAX(max,nspecial[i][0]);
-  
+
   MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onetwo,nlocal,maxall,"special:onetwo");
-  
+
   for (i = 0; i < nlocal; i++) nspecial[i][0] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -290,7 +290,7 @@ void Special::onetwo_build_newton()
     i = atom->map(outbuf[m].atomID);
     onetwo[i][nspecial[i][0]++] = outbuf[m].partnerID;
   }
-  
+
   memory->sfree(outbuf);
 }
 
@@ -311,13 +311,13 @@ void Special::onetwo_build_newton_off()
   int max = 0;
   for (i = 0; i < nlocal; i++)
     max = MAX(max,num_bond[i]);
-  
+
   MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onetwo,nlocal,maxall,"special:onetwo");
-  
+
   // nsend = # of my datums to send
   // include nlocal datums with owner of each atom
-    
+
   for (i = 0; i < nlocal; i++) {
     nspecial[i][0] = num_bond[i];
     for (j = 0; j < num_bond[i]; j++)
@@ -350,7 +350,7 @@ void Special::onethree_build()
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *) 
+  PairRvous *inbuf = (PairRvous *)
     memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
@@ -402,11 +402,11 @@ void Special::onethree_build()
     i = atom->map(outbuf[m].atomID);
     nspecial[i][1]++;
   }
-  
+
   int max = 0;
   for (i = 0; i < nlocal; i++)
     max = MAX(max,nspecial[i][1]);
-  
+
   MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onethree,nlocal,maxall,"special:onethree");
 
@@ -456,7 +456,7 @@ void Special::onefour_build()
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *) 
+  PairRvous *inbuf = (PairRvous *)
     memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
@@ -507,11 +507,11 @@ void Special::onefour_build()
     i = atom->map(outbuf[m].atomID);
     nspecial[i][2]++;
   }
-  
+
   int max = 0;
   for (i = 0; i < nlocal; i++)
     max = MAX(max,nspecial[i][2]);
-  
+
   MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onefour,nlocal,maxall,"special:onefour");
 
@@ -843,7 +843,7 @@ void Special::angle_trim()
 
     int *proclist;
     memory->create(proclist,nsend,"special:proclist");
-    PairRvous *inbuf = (PairRvous *) 
+    PairRvous *inbuf = (PairRvous *)
       memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
     // setup input buf to rendezvous comm
@@ -904,7 +904,7 @@ void Special::angle_trim()
     }
 
     // perform rendezvous operation
-    
+
     char *buf;
     int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                    0,proclist,
@@ -921,18 +921,18 @@ void Special::angle_trim()
     for (i = 0; i < nlocal; i++)
       max = MAX(max,nspecial[i][1]);
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    
+
     int **flag;
     memory->create(flag,nlocal,maxall,"special:flag");
 
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < nspecial[i][1]; j++)
 	flag[i][j] = 0;
-    
+
     // reset nspecial[1] and onethree for all owned atoms based on output info
     // based on owned info plus rendezvous output info
     // output datums = pairs of atoms that are 1-3 neighbors
-    
+
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_angle[i]; j++) {
 	if (tag[i] != angle_atom2[i][j]) continue;
@@ -1011,7 +1011,7 @@ void Special::angle_trim()
 	} else j++;
       }
     }
-    
+
     memory->destroy(flag);
 
   // if no angles or dihedrals are defined, delete all 1-3 neighs
@@ -1089,9 +1089,9 @@ void Special::dihedral_trim()
 
     int *proclist;
     memory->create(proclist,nsend,"special:proclist");
-    PairRvous *inbuf = (PairRvous *) 
+    PairRvous *inbuf = (PairRvous *)
       memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
-    
+
     // setup input buf to rendezvous comm
     // datums = pairs of onefour atom IDs in a dihedral defined for my atoms
     //          only dihedrals where I own atom2 (in case newton_bond off)
@@ -1123,7 +1123,7 @@ void Special::dihedral_trim()
     }
 
     // perform rendezvous operation
-    
+
     char *buf;
     int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                    0,proclist,
@@ -1140,14 +1140,14 @@ void Special::dihedral_trim()
     for (i = 0; i < nlocal; i++)
       max = MAX(max,nspecial[i][2]);
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-    
+
     int **flag;
     memory->create(flag,nlocal,maxall,"special:flag");
 
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < nspecial[i][2]; j++)
 	flag[i][j] = 0;
-    
+
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_dihedral[i]; j++) {
 	if (tag[i] != dihedral_atom2[i][j]) continue;
@@ -1195,9 +1195,9 @@ void Special::dihedral_trim()
 	} else j++;
       }
     }
-    
+
     memory->destroy(flag);
-    
+
   // if no dihedrals are defined, delete all 1-4 neighs
 
   } else {
@@ -1235,10 +1235,10 @@ int Special::rendezvous_ids(int n, char *inbuf,
 
   int *procowner;
   tagint *atomIDs;
-  
+
   memory->create(procowner,n,"special:procowner");
   memory->create(atomIDs,n,"special:atomIDs");
-  
+
   IDRvous *in = (IDRvous *) inbuf;
 
   for (int i = 0; i < n; i++) {
@@ -1247,17 +1247,17 @@ int Special::rendezvous_ids(int n, char *inbuf,
   }
 
   // store rendezvous data in Special class
-  
+
   sptr->nrvous = n;
   sptr->procowner = procowner;
   sptr->atomIDs = atomIDs;
 
   // flag = 0: no second comm needed in rendezvous
-  
+
   flag = 0;
   return 0;
 }
-				  
+				
 
 /* ----------------------------------------------------------------------
    process data for atoms assigned to me in rendezvous decomposition
@@ -1279,7 +1279,7 @@ int Special::rendezvous_pairs(int n, char *inbuf,
   atom->map_clear();
 
   // hash atom IDs stored in rendezvous decomposition
-  
+
   int nrvous = sptr->nrvous;
   tagint *atomIDs = sptr->atomIDs;
 
@@ -1287,7 +1287,7 @@ int Special::rendezvous_pairs(int n, char *inbuf,
     atom->map_one(atomIDs[i],i);
 
   // proclist = owner of atomID in caller decomposition
-  
+
   PairRvous *in = (PairRvous *) inbuf;
   int *procowner = sptr->procowner;
   memory->create(proclist,n,"special:proclist");
@@ -1299,7 +1299,7 @@ int Special::rendezvous_pairs(int n, char *inbuf,
   }
 
   outbuf = inbuf;
-  
+
   // re-create atom map
 
   atom->map_init(0);
@@ -1307,7 +1307,7 @@ int Special::rendezvous_pairs(int n, char *inbuf,
   atom->map_set();
 
   // flag = 1: outbuf = inbuf
-  
+
   flag = 1;
   return n;
 }

@@ -15,6 +15,10 @@
    Contributing authors: Julien Tranchida (SNL)
 
    Please cite the related publication:
+   Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015). 
+   Method for finding mechanism and activation energy of magnetic transitions, 
+   applied to skyrmion and antivortex annihilation. 
+   Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
 // lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
@@ -27,6 +31,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "neb_spin.h"
+#include "citeme.h"
 #include "compute.h"
 #include "force.h"
 #include "universe.h"
@@ -49,6 +54,21 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+static const char cite_neb_spin[] =
+  "neb/spin command:\n\n"
+  "@article{bessarab2015method,\n"
+  "title={Method for finding mechanism and activation energy of "
+  "magnetic transitions, applied to skyrmion and antivortex "
+  "annihilation},\n"
+  "author={Bessarab, P.F. and Uzdin, V.M. and J{\'o}nsson, H.},\n"
+  "journal={Computer Physics Communications},\n"
+  "volume={196},\n"
+  "pages={335--347},\n"
+  "year={2015},\n"
+  "publisher={Elsevier}\n"
+  "doi={10.1016/j.cpc.2015.07.001}\n"
+  "}\n\n";
+
 #define MAXLINE 256
 #define CHUNK 1024
 // 8 attributes: tag, spin norm, position (3), spin direction (3)
@@ -56,7 +76,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-NEB_spin::NEB_spin(LAMMPS *lmp) : Pointers(lmp) {}
+NEB_spin::NEB_spin(LAMMPS *lmp) : Pointers(lmp) {
+  if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
+}
 
 /* ----------------------------------------------------------------------
    internal NEB_spin constructor, called from TAD

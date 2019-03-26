@@ -566,6 +566,10 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   if (NEBLongRange) 
     error->all(FLERR,"NEB_spin long range option not yet active");
 
+  // test output length
+  
+  //printf("testi irep / plen: %d %g \n",ireplica,nlen);
+
   // exit calc. if first or last replica (no gneb force)
 
   if (ireplica == 0 || ireplica == nreplica-1) return ;
@@ -587,11 +591,12 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dot=dotall;
 
+  // for intermediate replica
   // calc. GNEB force prefactor
 
   if (ireplica == rclimber) prefactor = -2.0*dot;	// for climbing replica
   else {
-    if (NEBLongRange) {					// for intermediate replica
+    if (NEBLongRange) {	
       error->all(FLERR,"Long Range NEB_spin climber option not yet active");
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);

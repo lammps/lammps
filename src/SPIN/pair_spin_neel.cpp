@@ -173,7 +173,7 @@ void PairSpinNeel::init_style()
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
+  if ((ifix == modify->nfix) && (comm->me == 0))
     error->warning(FLERR,"Using pair/spin style without nve/spin");
 
   // get the lattice_flag from nve/spin
@@ -343,7 +343,7 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
 
-  int i,j,jnum,itype,jtype,ntypes;
+  int j,jnum,itype,jtype,ntypes;
   int k,locflag;
   int *jlist,*numneigh,**firstneigh;
 

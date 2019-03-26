@@ -173,7 +173,7 @@ void PairSpinDmi::init_style()
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
+  if ((ifix == modify->nfix) && (comm->me == 0))
     error->warning(FLERR,"Using pair/spin style without nve/spin");
 
   // get the lattice_flag from nve/spin

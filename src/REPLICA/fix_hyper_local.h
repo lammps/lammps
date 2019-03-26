@@ -93,7 +93,7 @@ class FixHyperLocal : public FixHyper {
 
   double mybias;             // sum of bias potentials for biased bonds
   double maxbondlen;         // cummulative max length of any bond
-  double maxdriftsq;         // max distance any bond atom drifts from quenched x 
+  double maxdriftsq;         // max distance any bond atom drifts from quenched x
 
   double sumbiascoeff;       // sum of all bond bias coeffs at each timestep
   double avebiascoeff;       // cummulative sumbiascoeff/allbonds across steps

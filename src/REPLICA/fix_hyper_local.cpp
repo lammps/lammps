@@ -46,7 +46,7 @@ enum{IGNORE,WARN,ERROR};
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   FixHyper(lmp, narg, arg), blist(NULL), biascoeff(NULL), numbond(NULL),
-  maxhalf(NULL), eligible(NULL), maxhalfstrain(NULL), old2now(NULL), 
+  maxhalf(NULL), eligible(NULL), maxhalfstrain(NULL), old2now(NULL),
   tagold(NULL), xold(NULL), maxstrain(NULL), maxstrain_domain(NULL),
   biasflag(NULL), bias(NULL), cpage(NULL), clist(NULL), numcoeff(NULL)
 {
@@ -325,7 +325,7 @@ void FixHyperLocal::setup_pre_reverse(int eflag, int vflag)
 {
   // only called for dynamics, not minimization
   // setupflag prevents boostostat update of bias coeffs in setup
-  // also prevents increments of nbias_running, nobias_running, 
+  // also prevents increments of nbias_running, nobias_running,
   //   negstrain_running, sumbiascoeff
 
   setupflag = 1;
@@ -474,8 +474,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       maxstrain[i] = MAX(maxstrain[i],estrain);
       maxstrain[j] = MAX(maxstrain[j],estrain);
       if (estrain > halfstrain) {
-	halfstrain = estrain;
-	ijhalf = m;
+        halfstrain = estrain;
+        ijhalf = m;
       }
       m++;
     }
@@ -544,22 +544,22 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     i = old2now[iold];
     emax = selfstrain = maxstrain[i];
     ncount = 0;
-    
+
     for (jj = 0; jj < jnum; jj++) {
       jold = jlist[jj];
       j = old2now[jold];
 
       // special case for missing (drifted) J atom
-      
+
       if (j < 0) {
         emax = MAX(emax,qfactor);
-	if (selfstrain == qfactor) ncount++;
+        if (selfstrain == qfactor) ncount++;
         continue;
       }
 
       emax = MAX(emax,maxstrain[j]);
       if (selfstrain == maxstrain[j]) ncount++;
-      
+
       // optional diagnostic
       // tally largest distance from subbox that a ghost atom is (rmaxbig)
       // and the largest distance if strain < qfactor (rmax)
@@ -583,7 +583,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
         }
       }
     }
-    
+
     if (maxhalfstrain[iold] < selfstrain) eligible[iold] = 0;
     if (selfstrain < emax) eligible[iold] = 0;
     else if (ncount > 1) {
@@ -855,7 +855,7 @@ void FixHyperLocal::build_bond_list(int natom)
   }
 
   // store old bond coeffs so can persist them in new blist
-  // while loop allows growing value of maxbondperatom 
+  // while loop allows growing value of maxbondperatom
   // will loop at most 2 times, stops when maxbondperatom is large enough
   // requires reverse comm, no forward comm:
   //    b/c new coeff list is stored only by current owned atoms
@@ -893,7 +893,7 @@ void FixHyperLocal::build_bond_list(int natom)
       numcoeff[i]++;
 
       if (numcoeff[j] < maxbondperatom) {
-        clist[j][numcoeff[j]].biascoeff = biascoeff[m]; 
+        clist[j][numcoeff[j]].biascoeff = biascoeff[m];
         clist[j][numcoeff[j]].tag = tag[i];
       }
       numcoeff[j]++;
@@ -935,7 +935,7 @@ void FixHyperLocal::build_bond_list(int natom)
     memory->create(maxhalf,maxlocal,"hyper/local:maxhalf");
     memory->create(maxhalfstrain,maxlocal,"hyper/local:maxhalfstrain");
   }
-  
+
   if (nall > maxall) {
     memory->destroy(xold);
     memory->destroy(tagold);
@@ -1285,12 +1285,12 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
       maxstrain[j] = MAX(maxstrain[j],buf[m]);
       m++;
     }
-    
+
   // STRAINDOMAIN
   // unpack maxstrain_domain vector
   // use MAX, b/c want maximum abs value strain for each atom's domain
   // could also use SUM, b/c exactly one ghost or owned value is non-zero
-  
+
   } else if (commflag == STRAINDOMAIN) {
     int offset;
     int nonzero = (int) ubuf(buf[m++]).i;   // # of atoms with values

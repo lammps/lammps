@@ -1475,23 +1475,47 @@ install(
 )
 
 ###############################################################################
-# Install LAMMPS module into site-packages folder
-# Only available, if a shared library is built
+# Install LAMMPS lib and python module into site-packages folder with
+# "install-python" target.  Behaves exactly like "make install-python" for
+# conventional build.  Only available, if a shared library is built.
+# This is primarily for people that only want to use the Python wrapper.
 ###############################################################################
 if(BUILD_LIB AND BUILD_SHARED_LIBS)
   find_package(PythonInterp)
-  add_custom_target(
-    install-python
-    ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
-    -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
-    -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
-    WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
-    COMMENT "Installing LAMMPS Python module"
-    )
+  if (${PYTHONINTERP_FOUND})
+    add_custom_target(
+      install-python
+      ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
+      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
+      COMMENT "Installing LAMMPS Python module")
+  else()
+    add_custom_target(
+      install-python
+      echo "Must have Python installed to install the LAMMPS Python module")
+  endif()
 else()
   add_custom_target(
     install-python
-    echo "Installation of the LAMMPS Python module requires building the LAMMPS shared library")
+    echo "Must build LAMMPS as a shared library to use the Python module")
+endif()
+
+###############################################################################
+# Add LAMMPS python module to "install" target. This is taylored for building
+# LAMMPS for package managers and with different prefix settings.
+# This requires either a shared library or that the PYTHON package is included.
+###############################################################################
+if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
+  find_package(PythonInterp)
+  if (${PYTHONINTERP_FOUND})
+    if(NOT PYTHON_INSTDIR)
+      execute_process(COMMAND ${PYTHON_EXECUTABLE}
+        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+  endif()
 endif()
 
 ###############################################################################

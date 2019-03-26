@@ -660,7 +660,7 @@ void FixRigidSmall::setup(int vflag)
   // must check here, not in init, b/c neigh/comm values set after fix init
 
   double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if (maxextent > cutghost) 
+  if (maxextent > cutghost)
     error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
 
   //check(1);

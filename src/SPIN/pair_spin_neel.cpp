@@ -14,7 +14,6 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-			 Mitch Wood (SNL)
 
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).

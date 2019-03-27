@@ -1482,7 +1482,7 @@ install(
 ###############################################################################
 if(BUILD_LIB AND BUILD_SHARED_LIBS)
   find_package(PythonInterp)
-  if (${PYTHONINTERP_FOUND})
+  if (PYTHONINTERP_FOUND)
     add_custom_target(
       install-python
       ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
@@ -1493,12 +1493,12 @@ if(BUILD_LIB AND BUILD_SHARED_LIBS)
   else()
     add_custom_target(
       install-python
-      echo "Must have Python installed to install the LAMMPS Python module")
+      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
   endif()
 else()
   add_custom_target(
     install-python
-    echo "Must build LAMMPS as a shared library to use the Python module")
+    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
 endif()
 
 ###############################################################################
@@ -1508,12 +1508,11 @@ endif()
 ###############################################################################
 if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
   find_package(PythonInterp)
-  if (${PYTHONINTERP_FOUND})
-    if(NOT PYTHON_INSTDIR)
-      execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
+  if (PYTHONINTERP_FOUND)
+    execute_process(COMMAND ${PYTHON_EXECUTABLE}
+      -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+      OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
   endif()
 endif()

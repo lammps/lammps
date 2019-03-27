@@ -66,26 +66,24 @@ class FixWallGran : public Fix {
   bigint time_origin;
   double kn,kt,gamman,gammat,xmu;
 
-  //For granular
-  //Model choices
+  // for granular model choices
   int normal_model, damping_model;
   int tangential_model, roll_model, twist_model;
-
   int beyond_contact;
 
-  //History flags
+  // history flags
   int normal_history, tangential_history, roll_history, twist_history;
 
-  //Indices of history entries
+  // indices of history entries
   int normal_history_index;
   int tangential_history_index;
   int roll_history_index;
   int twist_history_index;
 
-  //Material coefficients
+  // material coefficients
   double Emod, poiss, Gmod;
 
-  //Contact model coefficients
+  // contact model coefficients
   double normal_coeffs[4];
   double tangential_coeffs[3];
   double roll_coeffs[3];
@@ -97,7 +95,7 @@ class FixWallGran : public Fix {
   char *idregion;
 
   int use_history;       // if particle/wall interaction stores history
-  int history_update;   // flag for whether shear history is updated
+  int history_update;    // flag for whether shear history is updated
   int size_history;      // # of shear history values per contact
 
   // shear history for single contact per particle
@@ -110,7 +108,8 @@ class FixWallGran : public Fix {
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 
-  // Store particle interactions
+  // store particle interactions
+
   int store;
 };
 

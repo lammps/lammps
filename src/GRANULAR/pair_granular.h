@@ -66,29 +66,29 @@ class PairGranular : public Pair {
   int size_history;
   int *history_transfer_factors;
 
-  //Model choices
+  // model choices
   int **normal_model, **damping_model;
   int **tangential_model, **roll_model, **twist_model;
 
-  //History flags
+  // history flags
   int normal_history, tangential_history, roll_history, twist_history;
 
-  //Indices of history entries
+  // indices of history entries
   int normal_history_index;
   int tangential_history_index;
   int roll_history_index;
   int twist_history_index;
 
-  //Per-type material coefficients
+  // per-type material coefficients
   double **Emod, **poiss, **Gmod;
 
-  //Per-type coefficients, set in pair coeff command
+  // per-type coefficients, set in pair coeff command
   double ***normal_coeffs;
   double ***tangential_coeffs;
   double ***roll_coeffs;
   double ***twist_coeffs;
 
-  //Optional user-specified global cutoff, per-type user-specified cutoffs
+  // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;
   double cutoff_global;
 

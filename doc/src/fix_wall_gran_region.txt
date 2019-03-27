@@ -48,8 +48,8 @@ Here are snapshots of example models using this command.
 Corresponding input scripts can be found in examples/granregion.
 Click on the images to see a bigger picture.  Movies of these
 simulations are "here on the Movies
-page"_http://lammps.sandia.gov/movies.html#granregion of the
-LAMMPS web site.
+page"_http://lammps.sandia.gov/movies.html#granregion of the LAMMPS
+web site.
 
 :image(JPG/gran_funnel_small.jpg,JPG/gran_funnel.png)
 :image(JPG/gran_mixer_small.jpg,JPG/gran_mixer.png)
@@ -129,15 +129,16 @@ to make the two faces differ by epsilon in their position.
 
 The nature of the wall/particle interactions are determined by the
 {fstyle} setting.  It can be any of the styles defined by the
-"pair_style gran/*"_pair_gran.html or the more general "pair_style granular"_pair_granular.html"
-commands.  Currently the options are {hooke}, {hooke/history}, or {hertz/history} for the former,
-and {granular} with all the possible options of the associated {pair_coeff} command
-for the latter.  The equation for the
-force between the wall and particles touching it is the same as the
-corresponding equation on the "pair_style gran/*"_pair_gran.html 
-and "pair_style_granular"_pair_granular.html doc
-pages, but the effective radius is calculated using the radius of the
-particle and the radius of curvature of the wall at the contact point.
+"pair_style gran/*"_pair_gran.html or the more general "pair_style
+granular"_pair_granular.html" commands.  Currently the options are
+{hooke}, {hooke/history}, or {hertz/history} for the former, and
+{granular} with all the possible options of the associated
+{pair_coeff} command for the latter.  The equation for the force
+between the wall and particles touching it is the same as the
+corresponding equation on the "pair_style gran/*"_pair_gran.html and
+"pair_style_granular"_pair_granular.html doc pages, but the effective
+radius is calculated using the radius of the particle and the radius
+of curvature of the wall at the contact point.
 
 Specifically, delta = radius - r = overlap of particle with wall,
 m_eff = mass of particle, and RiRj/Ri+Rj is the effective radius, with
@@ -150,17 +151,17 @@ particle.
 
 The parameters {Kn}, {Kt}, {gamma_n}, {gamma_t}, {xmu} and {dampflag}
 have the same meaning and units as those specified with the
-"pair_style gran/*"_pair_gran.html commands.  This means a NULL can
-be used for either {Kt} or {gamma_t} as described on that page.  If a
+"pair_style gran/*"_pair_gran.html commands.  This means a NULL can be
+used for either {Kt} or {gamma_t} as described on that page.  If a
 NULL is used for {Kt}, then a default value is used where {Kt} = 2/7
 {Kn}.  If a NULL is used for {gamma_t}, then a default value is used
 where {gamma_t} = 1/2 {gamma_n}.
 
-
-All the model choices for cohesion, tangential friction, rolling friction
-and twisting friction supported by the "pair_style granular"_pair_granular.html
-through its {pair_coeff} command are also supported for walls. These are discussed 
-in greater detail on the doc page for "pair_style granular"_pair_granular.html.
+All the model choices for cohesion, tangential friction, rolling
+friction and twisting friction supported by the "pair_style
+granular"_pair_granular.html through its {pair_coeff} command are also
+supported for walls. These are discussed in greater detail on the doc
+page for "pair_style granular"_pair_granular.html.
 
 Note that you can choose a different force styles and/or different
 values for the 6 wall/particle coefficients than for particle/particle
@@ -169,9 +170,9 @@ material.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-Similar to "fix wall/gran"_fix_wall_gran.html command, this fix
-writes the shear friction state of atoms interacting with the wall to
-"binary restart files"_restart.html, so that a simulation can continue
+Similar to "fix wall/gran"_fix_wall_gran.html command, this fix writes
+the shear friction state of atoms interacting with the wall to "binary
+restart files"_restart.html, so that a simulation can continue
 correctly if granular potentials with shear "history" effects are
 being used.  This fix also includes info about a moving region in the
 restart file.  See the "read_restart"_read_restart.html command for
@@ -185,14 +186,14 @@ So you must re-define your region and if it is a moving region, define
 its motion attributes in a way that is consistent with the simulation
 that wrote the restart file.  In particular, if you want to change the
 region motion attributes (e.g. its velocity), then you should ensure
-the position/orientation of the region at the initial restart
-timestep is the same as it was on the timestep the restart file was
-written.  If this is not possible, you may need to ignore info in the
-restart file by defining a new fix wall/gran/region command in your
-restart script, e.g. with a different fix ID.  Or if you want to keep
-the shear history info but discard the region motion information, you
-can use the same fix ID for fix wall/gran/region, but assign it a
-region with a different region ID.
+the position/orientation of the region at the initial restart timestep
+is the same as it was on the timestep the restart file was written.
+If this is not possible, you may need to ignore info in the restart
+file by defining a new fix wall/gran/region command in your restart
+script, e.g. with a different fix ID.  Or if you want to keep the
+shear history info but discard the region motion information, you can
+use the same fix ID for fix wall/gran/region, but assign it a region
+with a different region ID.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for

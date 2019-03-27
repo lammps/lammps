@@ -98,7 +98,7 @@ class Pair : protected Pointers {
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
-  int beyond_contact, nondefault_history_transfer; //for granular styles
+  int beyond_contact, nondefault_history_transfer;   // for granular styles
 
   // KOKKOS host/device flag and data masks
 

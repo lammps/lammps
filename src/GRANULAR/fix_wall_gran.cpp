@@ -124,21 +124,27 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     roll_model = twist_model = NONE;
     while (iarg < narg) {
       if (strcmp(arg[iarg], "hooke") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hooke option");
+        if (iarg + 2 >= narg) 
+          error->all(FLERR,"Illegal fix wall/gran command, "
+                     "not enough parameters provided for Hooke option");
         normal_model = NORMAL_HOOKE;
         normal_coeffs[0] = force->numeric(FLERR,arg[iarg+1]); //kn
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
         iarg += 3;
       } else if (strcmp(arg[iarg], "hertz") == 0) {
         int num_coeffs = 2;
-        if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hertz option");
+        if (iarg + num_coeffs >= narg) 
+          error->all(FLERR,"Illegal fix wall/gran command, "
+                     "not enough parameters provided for Hertz option");
         normal_model = NORMAL_HERTZ;
         normal_coeffs[0] = force->numeric(FLERR,arg[iarg+1]); //kn
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
         iarg += num_coeffs+1;
       } else if (strcmp(arg[iarg], "hertz/material") == 0) {
         int num_coeffs = 3;
-        if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hertz option");
+        if (iarg + num_coeffs >= narg) 
+          error->all(FLERR,"Illegal fix wall/gran command, "
+                     "not enough parameters provided for Hertz option");
         normal_model = HERTZ_MATERIAL;
         Emod = force->numeric(FLERR,arg[iarg+1]); //E
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
@@ -147,7 +153,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         normal_coeffs[2] = poiss;
         iarg += num_coeffs+1;
       } else if (strcmp(arg[iarg], "dmt") == 0) {
-        if (iarg + 4 >= narg) error->all(FLERR,"Illegal fix wall/gran command, not enough parameters provided for Hertz option");
+        if (iarg + 4 >= narg) 
+          error->all(FLERR,"Illegal fix wall/gran command, "
+                     "not enough parameters provided for Hertz option");
         normal_model = DMT;
         Emod = force->numeric(FLERR,arg[iarg+1]); //E
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
@@ -157,7 +165,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         normal_coeffs[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
         iarg += 5;
       } else if (strcmp(arg[iarg], "jkr") == 0) {
-        if (iarg + 4 >= narg) error->all(FLERR,"Illegal wall/gran command, not enough parameters provided for JKR option");
+        if (iarg + 4 >= narg) 
+          error->all(FLERR,"Illegal wall/gran command, "
+                     "not enough parameters provided for JKR option");
         beyond_contact = 1;
         normal_model = JKR;
         Emod = force->numeric(FLERR,arg[iarg+1]); //E
@@ -168,7 +178,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         normal_coeffs[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
         iarg += 5;
       } else if (strcmp(arg[iarg], "damping") == 0) {
-        if (iarg+1 >= narg) error->all(FLERR, "Illegal wall/gran command, not enough parameters provided for damping model");
+        if (iarg+1 >= narg) 
+          error->all(FLERR, "Illegal wall/gran command, "
+                     "not enough parameters provided for damping model");
         if (strcmp(arg[iarg+1], "velocity") == 0) {
           damping_model = VELOCITY;
           iarg += 1;
@@ -178,58 +190,80 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         } else if (strcmp(arg[iarg+1], "tsuji") == 0) {
           damping_model = TSUJI;
           iarg += 1;
-        } else error->all(FLERR, "Illegal wall/gran command, unrecognized damping model");
+        } else error->all(FLERR, "Illegal wall/gran command, "
+                          "unrecognized damping model");
         iarg += 1;
       } else if (strcmp(arg[iarg], "tangential") == 0) {
-        if (iarg + 1 >= narg) error->all(FLERR,"Illegal pair_coeff command, must specify tangential model after 'tangential' keyword");
+        if (iarg + 1 >= narg) 
+          error->all(FLERR,"Illegal pair_coeff command, "
+                     "must specify tangential model after tangential keyword");
         if (strcmp(arg[iarg+1], "linear_nohistory") == 0) {
-          if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
+          if (iarg + 3 >= narg) 
+            error->all(FLERR,"Illegal pair_coeff command, "
+                       "not enough parameters provided for tangential model");
           tangential_model = TANGENTIAL_NOHISTORY;
           tangential_coeffs[0] = 0;
-          tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-          tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
+          // gammat and friction coeff
+          tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+2]);
+          tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+3]);
           iarg += 4;
         } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
             (strcmp(arg[iarg+1], "mindlin") == 0) ||
             (strcmp(arg[iarg+1], "mindlin_rescale") == 0)) {
-          if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
-          if (strcmp(arg[iarg+1], "linear_history") == 0) tangential_model = TANGENTIAL_HISTORY;
-          else if (strcmp(arg[iarg+1], "mindlin") == 0) tangential_model = TANGENTIAL_MINDLIN;
-          else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) tangential_model = TANGENTIAL_MINDLIN_RESCALE;
-          if ((tangential_model == TANGENTIAL_MINDLIN || tangential_model == TANGENTIAL_MINDLIN_RESCALE) &&
+          if (iarg + 4 >= narg) 
+            error->all(FLERR,"Illegal pair_coeff command, "
+                       "not enough parameters provided for tangential model");
+          if (strcmp(arg[iarg+1], "linear_history") == 0) 
+            tangential_model = TANGENTIAL_HISTORY;
+          else if (strcmp(arg[iarg+1], "mindlin") == 0) 
+            tangential_model = TANGENTIAL_MINDLIN;
+          else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) 
+            tangential_model = TANGENTIAL_MINDLIN_RESCALE;
+          if ((tangential_model == TANGENTIAL_MINDLIN || 
+               tangential_model == TANGENTIAL_MINDLIN_RESCALE) &&
               (strcmp(arg[iarg+2], "NULL") == 0)) {
             if (normal_model == NORMAL_HERTZ || normal_model == NORMAL_HOOKE) {
-              error->all(FLERR, "NULL setting for Mindlin tangential stiffness requires a normal contact model that specifies material properties");
+              error->all(FLERR, "NULL setting for Mindlin tangential "
+                         "stiffness requires a normal contact model "
+                         "that specifies material properties");
             }
             tangential_coeffs[0] = 4*(2-poiss)*(1+poiss)/Emod;
           } else {
             tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
           }
           tangential_history = 1;
-          tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-          tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+          // gammat and friction coeff
+          tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+3]);
+          tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+4]);
           iarg += 5;
         } else {
-          error->all(FLERR, "Illegal pair_coeff command, tangential model not recognized");
+          error->all(FLERR, "Illegal pair_coeff command, "
+                     "tangential model not recognized");
         }
       } else if (strcmp(arg[iarg], "rolling") == 0) {
-        if (iarg + 1 >= narg) error->all(FLERR, "Illegal wall/gran command, not enough parameters");
+        if (iarg + 1 >= narg) 
+          error->all(FLERR, "Illegal wall/gran command, not enough parameters");
         if (strcmp(arg[iarg+1], "none") == 0) {
           roll_model = ROLL_NONE;
           iarg += 2;
         } else if (strcmp(arg[iarg+1], "sds") == 0) {
-          if (iarg + 4 >= narg) error->all(FLERR,"Illegal wall/gran command, not enough parameters provided for rolling model");
+          if (iarg + 4 >= narg) 
+            error->all(FLERR,"Illegal wall/gran command, "
+                       "not enough parameters provided for rolling model");
           roll_model = ROLL_SDS;
           roll_history = 1;
-          roll_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kR
-          roll_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
-          roll_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //rolling friction coeff.
+          // kR, gammaR, rolling friction coeff
+          roll_coeffs[0] = force->numeric(FLERR,arg[iarg+2]);
+          roll_coeffs[1] = force->numeric(FLERR,arg[iarg+3]);
+          roll_coeffs[2] = force->numeric(FLERR,arg[iarg+4]);
           iarg += 5;
         } else {
-          error->all(FLERR, "Illegal wall/gran command, rolling friction model not recognized");
+          error->all(FLERR, "Illegal wall/gran command, "
+                     "rolling friction model not recognized");
         }
       } else if (strcmp(arg[iarg], "twisting") == 0) {
-        if (iarg + 1 >= narg) error->all(FLERR, "Illegal wall/gran command, not enough parameters");
+        if (iarg + 1 >= narg)
+          error->all(FLERR, "Illegal wall/gran command, not enough parameters");
         if (strcmp(arg[iarg+1], "none") == 0) {
           twist_model = TWIST_NONE;
           iarg += 2;
@@ -238,7 +272,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           twist_history = 1;
           iarg += 2;
         } else if (strcmp(arg[iarg+1], "sds") == 0) {
-          if (iarg + 4 >= narg) error->all(FLERR,"Illegal wall/gran command, not enough parameters provided for twist model");
+          if (iarg + 4 >= narg) 
+            error->all(FLERR,"Illegal wall/gran command, "
+                       "not enough parameters provided for twist model");
           twist_model = TWIST_SDS;
           twist_history = 1;
           twist_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
@@ -246,7 +282,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           twist_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
           iarg += 5;
         } else {
-          error->all(FLERR, "Illegal wall/gran command, twisting friction model not recognized");
+          error->all(FLERR, "Illegal wall/gran command, "
+                     "twisting friction model not recognized");
         }
       } else if (strcmp(arg[iarg], "xplane") == 0 ||
           strcmp(arg[iarg], "yplane") == 0 ||
@@ -472,8 +509,6 @@ void FixWallGran::init()
         27.467*pow(cor,4)-18.022*pow(cor,5)+
         4.8218*pow(cor,6);
   }
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -616,7 +651,8 @@ void FixWallGran::post_force(int /*vflag*/)
       else {
         if (pairstyle == GRANULAR && normal_model == JKR && use_history) {
           if ((history_one[i][0] == 0) && (rsq > radius[i]*radius[i])) {
-            // Particles have not contacted yet, and are outside of contact distance
+            // Particles have not contacted yet,
+            // and are outside of contact distance
             for (j = 0; j < size_history; j++)
               history_one[i][j] = 0.0;
             continue;
@@ -824,7 +860,8 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
     history[1] += vtr2*dt;
     history[2] += vtr3*dt;
   }
-  shrmag = sqrt(history[0]*history[0] + history[1]*history[1] + history[2]*history[2]);
+  shrmag = sqrt(history[0]*history[0] + history[1]*history[1] + 
+                history[2]*history[2]);
 
   // rotate shear displacements
 
@@ -954,7 +991,8 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
     history[1] += vtr2*dt;
     history[2] += vtr3*dt;
   }
-  shrmag = sqrt(history[0]*history[0] + history[1]*history[1] + history[2]*history[2]);
+  shrmag = sqrt(history[0]*history[0] + history[1]*history[1] + 
+                history[2]*history[2]);
 
   // rotate history displacements
 
@@ -1015,371 +1053,381 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   torque[2] -= radius*tor3;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void FixWallGran::granular(double rsq, double dx, double dy, double dz,
-    double *vwall, double rwall, double *v,
-    double *f, double *omega, double *torque,
-    double radius, double meff, double *history,
-    double *contact)
+                           double *vwall, double rwall, double *v,
+                           double *f, double *omega, double *torque,
+                           double radius, double meff, double *history,
+                           double *contact)
 {
- double fx,fy,fz,nx,ny,nz;
- double radsum,r,rinv;
- double Reff, delta, dR, dR2;
+  double fx,fy,fz,nx,ny,nz;
+  double radsum,r,rinv;
+  double Reff, delta, dR, dR2;
 
- double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
- double wr1,wr2,wr3;
- double vtr1,vtr2,vtr3,vrel;
+  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
+  double wr1,wr2,wr3;
+  double vtr1,vtr2,vtr3,vrel;
 
- double knfac, damp_normal, damp_normal_prefactor;
- double k_tangential, damp_tangential;
- double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
- double fs, fs1, fs2, fs3;
+  double knfac, damp_normal, damp_normal_prefactor;
+  double k_tangential, damp_tangential;
+  double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
+  double fs, fs1, fs2, fs3;
 
- double tor1,tor2,tor3;
- double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
+  double tor1,tor2,tor3;
+  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
 
- //For JKR
- double R2, coh, F_pulloff, a, a2, E;
- double t0, t1, t2, t3, t4, t5, t6;
- double sqrt1, sqrt2, sqrt3;
+  // for JKR
+  double R2, coh, F_pulloff, a, a2, E;
+  double t0, t1, t2, t3, t4, t5, t6;
+  double sqrt1, sqrt2, sqrt3;
 
- //Rolling
- double k_roll, damp_roll;
- double torroll1, torroll2, torroll3;
- double rollmag, rolldotn, scalefac;
- double fr, fr1, fr2, fr3;
+  // rolling
+  double k_roll, damp_roll;
+  double torroll1, torroll2, torroll3;
+  double rollmag, rolldotn, scalefac;
+  double fr, fr1, fr2, fr3;
 
- //Twisting
- double k_twist, damp_twist, mu_twist;
- double signtwist, magtwist, magtortwist, Mtcrit;
- double tortwist1, tortwist2, tortwist3;
+  // twisting
+  double k_twist, damp_twist, mu_twist;
+  double signtwist, magtwist, magtortwist, Mtcrit;
+  double tortwist1, tortwist2, tortwist3;
 
- double shrmag,rsht;
+  double shrmag,rsht;
 
- r = sqrt(rsq);
- radsum = rwall + radius;
+  r = sqrt(rsq);
+  radsum = rwall + radius;
 
- E = normal_coeffs[0];
+  E = normal_coeffs[0];
 
- radsum = radius + rwall;
- if (rwall == 0) Reff = radius;
- else Reff = radius*rwall/(radius+rwall);
+  radsum = radius + rwall;
+  if (rwall == 0) Reff = radius;
+  else Reff = radius*rwall/(radius+rwall);
 
- rinv = 1.0/r;
+  rinv = 1.0/r;
 
- nx = dx*rinv;
- ny = dy*rinv;
- nz = dz*rinv;
+  nx = dx*rinv;
+  ny = dy*rinv;
+  nz = dz*rinv;
 
- // relative translational velocity
+  // relative translational velocity
 
- vr1 = v[0] - vwall[0];
- vr2 = v[1] - vwall[1];
- vr3 = v[2] - vwall[2];
+  vr1 = v[0] - vwall[0];
+  vr2 = v[1] - vwall[1];
+  vr3 = v[2] - vwall[2];
 
- // normal component
+  // normal component
 
- vnnr = vr1*nx + vr2*ny + vr3*nz; //v_R . n
- vn1 = nx*vnnr;
- vn2 = ny*vnnr;
- vn3 = nz*vnnr;
+  vnnr = vr1*nx + vr2*ny + vr3*nz; //v_R . n
+  vn1 = nx*vnnr;
+  vn2 = ny*vnnr;
+  vn3 = nz*vnnr;
 
- delta = radsum - r;
- dR = delta*Reff;
- if (normal_model == JKR) {
-   history[0] = 1.0;
-   E *= THREEQUARTERS;
-   R2=Reff*Reff;
-   coh = normal_coeffs[3];
-   dR2 = dR*dR;
-   t0 = coh*coh*R2*R2*E;
-   t1 = PI27SQ*t0;
-   t2 = 8*dR*dR2*E*E*E;
-   t3 = 4*dR2*E;
-   sqrt1 = MAX(0, t0*(t1+2*t2)); //In case of sqrt(0) < 0 due to precision issues
-   t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
-   t5 = t3/t4 + t4/E;
-   sqrt2 = MAX(0, 2*dR + t5);
-   t6 = sqrt(sqrt2);
-   sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
-   a = INVROOT6*(t6 + sqrt(sqrt3));
-   a2 = a*a;
-   knfac = normal_coeffs[0]*a;
-   Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
- }
- else{
-   knfac = E; //Hooke
-   a = sqrt(dR);
-   if (normal_model != HOOKE) {
-     Fne *= a;
-     knfac *= a;
-   }
-   Fne = knfac*delta;
-   if (normal_model == DMT)
-     Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
- }
+  delta = radsum - r;
+  dR = delta*Reff;
+  if (normal_model == JKR) {
+    history[0] = 1.0;
+    E *= THREEQUARTERS;
+    R2=Reff*Reff;
+    coh = normal_coeffs[3];
+    dR2 = dR*dR;
+    t0 = coh*coh*R2*R2*E;
+    t1 = PI27SQ*t0;
+    t2 = 8*dR*dR2*E*E*E;
+    t3 = 4*dR2*E;
+    sqrt1 = MAX(0, t0*(t1+2*t2)); // in case sqrt(0) < 0 due to precision issues
+    t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+    t5 = t3/t4 + t4/E;
+    sqrt2 = MAX(0, 2*dR + t5);
+    t6 = sqrt(sqrt2);
+    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+    a = INVROOT6*(t6 + sqrt(sqrt3));
+    a2 = a*a;
+    knfac = normal_coeffs[0]*a;
+    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
+  }
+  else{
+    knfac = E; //Hooke
+    a = sqrt(dR);
+    if (normal_model != HOOKE) {
+      Fne *= a;
+      knfac *= a;
+    }
+    Fne = knfac*delta;
+    if (normal_model == DMT)
+      Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
+  }
 
- if (damping_model == VELOCITY) {
-   damp_normal = 1;
- }
- else if (damping_model == VISCOELASTIC) {
-   damp_normal = a*meff;
- }
- else if (damping_model == TSUJI) {
-   damp_normal = sqrt(meff*knfac);
- }
+  if (damping_model == VELOCITY) {
+    damp_normal = 1;
+  }
+  else if (damping_model == VISCOELASTIC) {
+    damp_normal = a*meff;
+  }
+  else if (damping_model == TSUJI) {
+    damp_normal = sqrt(meff*knfac);
+  }
 
- damp_normal_prefactor = normal_coeffs[1]*damp_normal;
- Fdamp = -damp_normal_prefactor*vnnr;
+  damp_normal_prefactor = normal_coeffs[1]*damp_normal;
+  Fdamp = -damp_normal_prefactor*vnnr;
 
- Fntot = Fne + Fdamp;
+  Fntot = Fne + Fdamp;
 
- //****************************************
- //Tangential force, including history effects
- //****************************************
+  //****************************************
+  // tangential force, including history effects
+  //****************************************
 
- // tangential component
- vt1 = vr1 - vn1;
- vt2 = vr2 - vn2;
- vt3 = vr3 - vn3;
+  // tangential component
+  vt1 = vr1 - vn1;
+  vt2 = vr2 - vn2;
+  vt3 = vr3 - vn3;
 
- // relative rotational velocity
- wr1 = radius*omega[0] * rinv;
- wr2 = radius*omega[1] * rinv;
- wr3 = radius*omega[2] * rinv;
+  // relative rotational velocity
+  wr1 = radius*omega[0] * rinv;
+  wr2 = radius*omega[1] * rinv;
+  wr3 = radius*omega[2] * rinv;
 
- // relative tangential velocities
- vtr1 = vt1 - (nz*wr2-ny*wr3);
- vtr2 = vt2 - (nx*wr3-nz*wr1);
- vtr3 = vt3 - (ny*wr1-nx*wr2);
- vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
- vrel = sqrt(vrel);
+  // relative tangential velocities
+  vtr1 = vt1 - (nz*wr2-ny*wr3);
+  vtr2 = vt2 - (nx*wr3-nz*wr1);
+  vtr3 = vt3 - (ny*wr1-nx*wr2);
+  vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+  vrel = sqrt(vrel);
 
- if (normal_model == JKR) {
-   F_pulloff = 3*M_PI*coh*Reff;
-   Fncrit = fabs(Fne + 2*F_pulloff);
- }
- else if (normal_model == DMT) {
-   F_pulloff = 4*M_PI*coh*Reff;
-   Fncrit = fabs(Fne + 2*F_pulloff);
- }
- else{
-   Fncrit = fabs(Fntot);
- }
+  if (normal_model == JKR) {
+    F_pulloff = 3*M_PI*coh*Reff;
+    Fncrit = fabs(Fne + 2*F_pulloff);
+  }
+  else if (normal_model == DMT) {
+    F_pulloff = 4*M_PI*coh*Reff;
+    Fncrit = fabs(Fne + 2*F_pulloff);
+  }
+  else{
+    Fncrit = fabs(Fntot);
+  }
 
- //------------------------------
- //Tangential forces
- //------------------------------
- k_tangential = tangential_coeffs[0];
- damp_tangential = tangential_coeffs[1]*damp_normal_prefactor;
+  //------------------------------
+  // tangential forces
+  //------------------------------
 
- int thist0 = tangential_history_index;
- int thist1 = thist0 + 1;
- int thist2 = thist1 + 1;
+  k_tangential = tangential_coeffs[0];
+  damp_tangential = tangential_coeffs[1]*damp_normal_prefactor;
 
- if (tangential_history) {
-   if (tangential_model == TANGENTIAL_MINDLIN) {
-     k_tangential *= a;
-   }
-   else if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
-     k_tangential *= a;
-     if (a < history[3]) { //On unloading, rescale the shear displacements
-       double factor = a/history[thist2+1];
-       history[thist0] *= factor;
-       history[thist1] *= factor;
-       history[thist2] *= factor;
-     }
-   }
-   shrmag = sqrt(history[thist0]*history[thist0] + history[thist1]*history[thist1] +
-       history[thist2]*history[thist2]);
+  int thist0 = tangential_history_index;
+  int thist1 = thist0 + 1;
+  int thist2 = thist1 + 1;
 
-   // Rotate and update displacements.
-   // See e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-   if (history_update) {
-     rsht = history[thist0]*nx + history[thist1]*ny + history[thist2]*nz;
-     if (fabs(rsht) < EPSILON) rsht = 0;
-     if (rsht > 0) {
-       scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
-       history[thist0] -= rsht*nx;
-       history[thist1] -= rsht*ny;
-       history[thist2] -= rsht*nz;
-       //Also rescale to preserve magnitude
-       history[thist0] *= scalefac;
-       history[thist1] *= scalefac;
-       history[thist2] *= scalefac;
-     }
-     //Update history
-     history[thist0] += vtr1*dt;
-     history[thist1] += vtr2*dt;
-     history[thist2] += vtr3*dt;
-   }
+  if (tangential_history) {
+    if (tangential_model == TANGENTIAL_MINDLIN) {
+      k_tangential *= a;
+    }
+    else if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
+      k_tangential *= a;
+      if (a < history[3]) { //On unloading, rescale the shear displacements
+        double factor = a/history[thist2+1];
+        history[thist0] *= factor;
+        history[thist1] *= factor;
+        history[thist2] *= factor;
+      }
+    }
+    shrmag = sqrt(history[thist0]*history[thist0] + 
+                  history[thist1]*history[thist1] +
+                  history[thist2]*history[thist2]);
 
-   // tangential forces = history + tangential velocity damping
-   fs1 = -k_tangential*history[thist0] - damp_tangential*vtr1;
-   fs2 = -k_tangential*history[thist1] - damp_tangential*vtr2;
-   fs3 = -k_tangential*history[thist2] - damp_tangential*vtr3;
+    // rotate and update displacements.
+    // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
+    if (history_update) {
+      rsht = history[thist0]*nx + history[thist1]*ny + history[thist2]*nz;
+      if (fabs(rsht) < EPSILON) rsht = 0;
+      if (rsht > 0) {
+        // if rhst == shrmag, contacting pair has rotated 90 deg in one step,
+        // in which case you deserve a crash!
+        scalefac = shrmag/(shrmag - rsht); 
+        history[thist0] -= rsht*nx;
+        history[thist1] -= rsht*ny;
+        history[thist2] -= rsht*nz;
+        // also rescale to preserve magnitude
+        history[thist0] *= scalefac;
+        history[thist1] *= scalefac;
+        history[thist2] *= scalefac;
+      }
+      // update history
+      history[thist0] += vtr1*dt;
+      history[thist1] += vtr2*dt;
+      history[thist2] += vtr3*dt;
+    }
 
-   // rescale frictional displacements and forces if needed
-   Fscrit = tangential_coeffs[2] * Fncrit;
-   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-   if (fs > Fscrit) {
-     if (shrmag != 0.0) {
-       history[thist0] = -1.0/k_tangential*(Fscrit*fs1/fs + damp_tangential*vtr1);
-       history[thist1] = -1.0/k_tangential*(Fscrit*fs2/fs + damp_tangential*vtr2);
-       history[thist2] = -1.0/k_tangential*(Fscrit*fs3/fs + damp_tangential*vtr3);
-       fs1 *= Fscrit/fs;
-       fs2 *= Fscrit/fs;
-       fs3 *= Fscrit/fs;
-     } else fs1 = fs2 = fs3 = 0.0;
-   }
- }
- else{ //Classic pair gran/hooke (no history)
-   fs = meff*damp_tangential*vrel;
-   if (vrel != 0.0) Ft = MIN(Fne,fs) / vrel;
-   else Ft = 0.0;
-   fs1 = -Ft*vtr1;
-   fs2 = -Ft*vtr2;
-   fs3 = -Ft*vtr3;
- }
+    // tangential forces = history + tangential velocity damping
+    fs1 = -k_tangential*history[thist0] - damp_tangential*vtr1;
+    fs2 = -k_tangential*history[thist1] - damp_tangential*vtr2;
+    fs3 = -k_tangential*history[thist2] - damp_tangential*vtr3;
 
- //****************************************
- // Rolling resistance
- //****************************************
+    // rescale frictional displacements and forces if needed
+    Fscrit = tangential_coeffs[2] * Fncrit;
+    fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+    if (fs > Fscrit) {
+      if (shrmag != 0.0) {
+        history[thist0] = -1.0/k_tangential*(Fscrit*fs1/fs + 
+                                             damp_tangential*vtr1);
+        history[thist1] = -1.0/k_tangential*(Fscrit*fs2/fs + 
+                                             damp_tangential*vtr2);
+        history[thist2] = -1.0/k_tangential*(Fscrit*fs3/fs + 
+                                             damp_tangential*vtr3);
+        fs1 *= Fscrit/fs;
+        fs2 *= Fscrit/fs;
+        fs3 *= Fscrit/fs;
+      } else fs1 = fs2 = fs3 = 0.0;
+    }
+  } else { // classic pair gran/hooke (no history)
+    fs = meff*damp_tangential*vrel;
+    if (vrel != 0.0) Ft = MIN(Fne,fs) / vrel;
+    else Ft = 0.0;
+    fs1 = -Ft*vtr1;
+    fs2 = -Ft*vtr2;
+    fs3 = -Ft*vtr3;
+  }
 
- if (roll_model != ROLL_NONE) {
-   relrot1 = omega[0];
-   relrot2 = omega[1];
-   relrot3 = omega[2];
+  //****************************************
+  // rolling resistance
+  //****************************************
 
-   // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-   // This is different from the Marshall papers, which use the Bagi/Kuhn formulation
-   // for rolling velocity (see Wang et al for why the latter is wrong)
-   vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
-   vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
-   vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
+  if (roll_model != ROLL_NONE) {
+    relrot1 = omega[0];
+    relrot2 = omega[1];
+    relrot3 = omega[2];
 
-   int rhist0 = roll_history_index;
-   int rhist1 = rhist0 + 1;
-   int rhist2 = rhist1 + 1;
+    // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
+    // This is different from the Marshall papers,
+    // which use the Bagi/Kuhn formulation
+    // for rolling velocity (see Wang et al for why the latter is wrong)
+    vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
+    vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
+    vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
 
-   // Rolling displacement
-   rollmag = sqrt(history[rhist0]*history[rhist0] +
-       history[rhist1]*history[rhist1] +
-       history[rhist2]*history[rhist2]);
+    int rhist0 = roll_history_index;
+    int rhist1 = rhist0 + 1;
+    int rhist2 = rhist1 + 1;
 
-   rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+    // rolling displacement
+    rollmag = sqrt(history[rhist0]*history[rhist0] +
+                   history[rhist1]*history[rhist1] +
+                   history[rhist2]*history[rhist2]);
 
-   if (history_update) {
-     if (fabs(rolldotn) < EPSILON) rolldotn = 0;
-     if (rolldotn > 0) { //Rotate into tangential plane
-       scalefac = rollmag/(rollmag - rolldotn);
-       history[rhist0] -= rolldotn*nx;
-       history[rhist1] -= rolldotn*ny;
-       history[rhist2] -= rolldotn*nz;
-       //Also rescale to preserve magnitude
-       history[rhist0] *= scalefac;
-       history[rhist1] *= scalefac;
-       history[rhist2] *= scalefac;
-     }
-     history[rhist0] += vrl1*dt;
-     history[rhist1] += vrl2*dt;
-     history[rhist2] += vrl3*dt;
-   }
+    rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
 
-   k_roll = roll_coeffs[0];
-   damp_roll = roll_coeffs[1];
-   fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
-   fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
-   fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
+    if (history_update) {
+      if (fabs(rolldotn) < EPSILON) rolldotn = 0;
+      if (rolldotn > 0) { // rotate into tangential plane
+        scalefac = rollmag/(rollmag - rolldotn);
+        history[rhist0] -= rolldotn*nx;
+        history[rhist1] -= rolldotn*ny;
+        history[rhist2] -= rolldotn*nz;
+        // also rescale to preserve magnitude
+        history[rhist0] *= scalefac;
+        history[rhist1] *= scalefac;
+        history[rhist2] *= scalefac;
+      }
+      history[rhist0] += vrl1*dt;
+      history[rhist1] += vrl2*dt;
+      history[rhist2] += vrl3*dt;
+    }
 
-   // rescale frictional displacements and forces if needed
-   Frcrit = roll_coeffs[2] * Fncrit;
+    k_roll = roll_coeffs[0];
+    damp_roll = roll_coeffs[1];
+    fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
+    fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
+    fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
 
-   fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
-   if (fr > Frcrit) {
-     if (rollmag != 0.0) {
-       history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
-       history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
-       history[rhist2] = -1.0/k_roll*(Frcrit*fr3/fr + damp_roll*vrl3);
-       fr1 *= Frcrit/fr;
-       fr2 *= Frcrit/fr;
-       fr3 *= Frcrit/fr;
-     } else fr1 = fr2 = fr3 = 0.0;
-   }
- }
+    // rescale frictional displacements and forces if needed
+    Frcrit = roll_coeffs[2] * Fncrit;
 
- //****************************************
- // Twisting torque, including history effects
- //****************************************
- if (twist_model != TWIST_NONE) {
-   magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
-   if (twist_model == TWIST_MARSHALL) {
-     k_twist = 0.5*k_tangential*a*a;; //eq 32 of Marshall paper
-     damp_twist = 0.5*damp_tangential*a*a;
-     mu_twist = TWOTHIRDS*a*tangential_coeffs[2];
-   }
-   else{
-     k_twist = twist_coeffs[0];
-     damp_twist = twist_coeffs[1];
-     mu_twist = twist_coeffs[2];
-   }
-   if (history_update) {
-     history[twist_history_index] += magtwist*dt;
-   }
-   magtortwist = -k_twist*history[twist_history_index] - damp_twist*magtwist;//M_t torque (eq 30)
-   signtwist = (magtwist > 0) - (magtwist < 0);
-   Mtcrit = mu_twist*Fncrit;//critical torque (eq 44)
-   if (fabs(magtortwist) > Mtcrit) {
-     history[twist_history_index] = 1.0/k_twist*(Mtcrit*signtwist - damp_twist*magtwist);
-     magtortwist = -Mtcrit * signtwist; //eq 34
-   }
- }
- // Apply forces & torques
+    fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
+    if (fr > Frcrit) {
+      if (rollmag != 0.0) {
+        history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
+        history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
+        history[rhist2] = -1.0/k_roll*(Frcrit*fr3/fr + damp_roll*vrl3);
+        fr1 *= Frcrit/fr;
+        fr2 *= Frcrit/fr;
+        fr3 *= Frcrit/fr;
+      } else fr1 = fr2 = fr3 = 0.0;
+    }
+  }
 
- fx = nx*Fntot + fs1;
- fy = ny*Fntot + fs2;
- fz = nz*Fntot + fs3;
+  //****************************************
+  // twisting torque, including history effects
+  //****************************************
 
- if (peratom_flag) {
-   contact[1] = fx;
-   contact[2] = fy;
-   contact[3] = fz;
- }
+  if (twist_model != TWIST_NONE) {
+    magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
+    if (twist_model == TWIST_MARSHALL) {
+      k_twist = 0.5*k_tangential*a*a;; // eq 32 of Marshall paper
+      damp_twist = 0.5*damp_tangential*a*a;
+      mu_twist = TWOTHIRDS*a*tangential_coeffs[2];
+    }
+    else{
+      k_twist = twist_coeffs[0];
+      damp_twist = twist_coeffs[1];
+      mu_twist = twist_coeffs[2];
+    }
+    if (history_update) {
+      history[twist_history_index] += magtwist*dt;
+    }
+    // M_t torque (eq 30)
+    magtortwist = -k_twist*history[twist_history_index] - damp_twist*magtwist;
+    signtwist = (magtwist > 0) - (magtwist < 0);
+    Mtcrit = mu_twist*Fncrit; // critical torque (eq 44)
+    if (fabs(magtortwist) > Mtcrit) {
+      history[twist_history_index] = 1.0/k_twist*(Mtcrit*signtwist - 
+                                                  damp_twist*magtwist);
+      magtortwist = -Mtcrit * signtwist; // eq 34
+    }
+  }
 
- f[0] += fx;
- f[1] += fy;
- f[2] += fz;
+  // apply forces & torques
 
- tor1 = ny*fs3 - nz*fs2;
- tor2 = nz*fs1 - nx*fs3;
- tor3 = nx*fs2 - ny*fs1;
+  fx = nx*Fntot + fs1;
+  fy = ny*Fntot + fs2;
+  fz = nz*Fntot + fs3;
 
- torque[0] -= radius*tor1;
- torque[1] -= radius*tor2;
- torque[2] -= radius*tor3;
+  if (peratom_flag) {
+    contact[1] = fx;
+    contact[2] = fy;
+    contact[3] = fz;
+  }
 
- if (twist_model != TWIST_NONE) {
-   tortwist1 = magtortwist * nx;
-   tortwist2 = magtortwist * ny;
-   tortwist3 = magtortwist * nz;
+  f[0] += fx;
+  f[1] += fy;
+  f[2] += fz;
 
-   torque[0] += tortwist1;
-   torque[1] += tortwist2;
-   torque[2] += tortwist3;
- }
+  tor1 = ny*fs3 - nz*fs2;
+  tor2 = nz*fs1 - nx*fs3;
+  tor3 = nx*fs2 - ny*fs1;
 
- if (roll_model != ROLL_NONE) {
-   torroll1 = Reff*(ny*fr3 - nz*fr2); //n cross fr
-   torroll2 = Reff*(nz*fr1 - nx*fr3);
-   torroll3 = Reff*(nx*fr2 - ny*fr1);
+  torque[0] -= radius*tor1;
+  torque[1] -= radius*tor2;
+  torque[2] -= radius*tor3;
 
-   torque[0] += torroll1;
-   torque[1] += torroll2;
-   torque[2] += torroll3;
- }
+  if (twist_model != TWIST_NONE) {
+    tortwist1 = magtortwist * nx;
+    tortwist2 = magtortwist * ny;
+    tortwist3 = magtortwist * nz;
+
+    torque[0] += tortwist1;
+    torque[1] += tortwist2;
+    torque[2] += tortwist3;
+  }
+
+  if (roll_model != ROLL_NONE) {
+    torroll1 = Reff*(ny*fr3 - nz*fr2); //n cross fr
+    torroll2 = Reff*(nz*fr1 - nx*fr3);
+    torroll3 = Reff*(nx*fr2 - ny*fr1);
+
+    torque[0] += torroll1;
+    torque[1] += torroll2;
+    torque[2] += torroll3;
+  }
 }
-
-
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
@@ -1389,9 +1437,10 @@ double FixWallGran::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 0.0;
-  if (use_history) bytes += nmax*size_history * sizeof(double);   // shear history
-  if (fix_rigid) bytes += nmax * sizeof(int);             // mass_rigid
-  if (peratom_flag) bytes += nmax*size_peratom_cols*sizeof(double); //store contacts
+  if (use_history) bytes += nmax*size_history * sizeof(double);  // shear history
+  if (fix_rigid) bytes += nmax * sizeof(int);                    // mass_rigid
+  // store contacts
+  if (peratom_flag) bytes += nmax*size_peratom_cols*sizeof(double); 
   return bytes;
 }
 
@@ -1401,7 +1450,8 @@ double FixWallGran::memory_usage()
 
 void FixWallGran::grow_arrays(int nmax)
 {
-  if (use_history) memory->grow(history_one,nmax,size_history,"fix_wall_gran:history_one");
+  if (use_history) memory->grow(history_one,nmax,size_history,
+                                "fix_wall_gran:history_one");
   if (peratom_flag) {
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
   }

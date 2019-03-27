@@ -408,7 +408,8 @@ void FixNeighHistory::pre_exchange_newton()
         m = npartner[j]++;
         partner[j][m] = tag[i];
         jvalues = &valuepartner[j][dnum*m];
-        if (pair->nondefault_history_transfer) pair->transfer_history(onevalues, jvalues);
+        if (pair->nondefault_history_transfer) 
+          pair->transfer_history(onevalues,jvalues);
         else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
       }
     }
@@ -521,7 +522,8 @@ void FixNeighHistory::pre_exchange_no_newton()
           m = npartner[j]++;
           partner[j][m] = tag[i];
           jvalues = &valuepartner[j][dnum*m];
-          if (pair->nondefault_history_transfer) pair->transfer_history(onevalues, jvalues);
+          if (pair->nondefault_history_transfer) 
+            pair->transfer_history(onevalues, jvalues);
           else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
         }
       }

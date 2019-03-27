@@ -59,7 +59,7 @@ cutoff angle2
 filename
 keyword :ul
 
-The cutoff dihedral style uses a tabulated dihedral interaction with a 
+The cutoff dihedral style uses a tabulated dihedral interaction with a
 cutoff function:
 
 :c,image(Eqs/dihedral_table_cut.jpg)

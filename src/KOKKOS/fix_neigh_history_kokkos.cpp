@@ -77,7 +77,7 @@ template <class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
   copymode = 1;
-  
+
   h_resize() = 1;
   while (h_resize() > 0) {
     FixNeighHistoryKokkosZeroPartnerCountFunctor<DeviceType> zero(this);
@@ -156,7 +156,7 @@ template <class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 {
   tag = atomKK->k_tag.view<DeviceType>();
-  
+
   int inum = pair->list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(pair->list);
   d_numneigh = k_list->d_numneigh;
@@ -179,7 +179,7 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
   }
 
   copymode = 1;
-  
+
   FixNeighHistoryKokkosPostNeighborFunctor<DeviceType> f(this);
   Kokkos::parallel_for(inum,f);
 
@@ -251,7 +251,7 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
   k_npartner.template sync<LMPHostType>(); // force reallocation on host
   k_partner.template sync<LMPHostType>();
   k_valuepartner.template sync<LMPHostType>();
-  
+
   memoryKK->grow_kokkos(k_npartner,npartner,nmax,"neighbor_history:npartner");
   memoryKK->grow_kokkos(k_partner,partner,nmax,maxpartner,"neighbor_history:partner");
   memoryKK->grow_kokkos(k_valuepartner,valuepartner,nmax,dnum*maxpartner,"neighbor_history:valuepartner");
@@ -329,7 +329,7 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixNeighHistoryKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNeighHistoryKokkos<LMPHostType>;
 #endif
 }

@@ -191,8 +191,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   int *num_hbonds = fix_reax->num_hbonds;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
@@ -205,7 +204,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0 ) t_start = MPI_Wtime();
   // setup data structures
 
   setup();
@@ -218,7 +217,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   write_reax_lists();
 
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }
@@ -582,7 +581,7 @@ int PairReaxCOMP::write_reax_lists()
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxCOMP::read_reax_forces(int vflag)
+void PairReaxCOMP::read_reax_forces(int /* vflag */)
 {
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)

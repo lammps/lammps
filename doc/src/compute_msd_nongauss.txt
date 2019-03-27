@@ -28,7 +28,7 @@ compute 1 upper msd/nongauss com yes :pre
 
 Define a computation that calculates the mean-squared displacement
 (MSD) and non-Gaussian parameter (NGP) of the group of atoms,
-including all effects due to atoms passing thru periodic boundaries.
+including all effects due to atoms passing through periodic boundaries.
 
 A vector of three quantities is calculated by this compute.  The first
 element of the vector is the total squared dx,dy,dz displacements
@@ -48,7 +48,7 @@ others.
 
 If the {com} option is set to {yes} then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
-displacment of each atom is calculated.
+displacement of each atom is calculated.
 
 See the "compute msd"_compute_msd.html doc page for further important
 NOTEs, which also apply to this compute.

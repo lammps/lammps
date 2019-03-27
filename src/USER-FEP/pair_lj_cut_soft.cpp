@@ -77,8 +77,7 @@ void PairLJCutSoft::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -323,8 +322,7 @@ void PairLJCutSoft::compute_outer(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -566,6 +564,9 @@ double PairLJCutSoft::init_one(int i, int j)
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
                                sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
+    if (lambda[i][i] != lambda[j][j])
+      error->all(FLERR,"Pair lj/cut/soft different lambda values in mix");
+    lambda[i][j] = lambda[i][i];
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 

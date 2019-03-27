@@ -108,3 +108,7 @@ else()
 
 endif()
 #-----------------------------------------------------------------------------
+
+# build and install pkgconfig file
+CONFIGURE_FILE(kokkos.pc.in kokkos.pc @ONLY)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/kokkos.pc DESTINATION lib/pkgconfig)

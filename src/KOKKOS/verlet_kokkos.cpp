@@ -537,7 +537,7 @@ void VerletKokkos::run(int n)
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
       Kokkos::parallel_for(atomKK->k_f.extent(0),
         ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
-      atomKK->k_f.modified_host() = 0; // special case
+      atomKK->k_f.clear_sync_state(); // special case
       atomKK->k_f.modify<LMPDeviceType>();
     }
 
@@ -585,8 +585,8 @@ void VerletKokkos::force_clear()
 {
   if (external_force_clear) return;
 
-  atomKK->k_f.modified_host() = 0; // ignore host forces/torques since device views
-  atomKK->k_torque.modified_host() = 0; //   will be cleared below
+  atomKK->k_f.clear_sync_state(); // ignore host forces/torques since device views
+  atomKK->k_torque.clear_sync_state(); //   will be cleared below
 
   // clear force on all particles
   // if either newton flag is set, also include ghosts

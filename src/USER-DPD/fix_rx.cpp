@@ -758,8 +758,10 @@ void FixRX::pre_force(int /*vflag*/)
     memory->create( diagnosticCounterPerODE[FuncSum], nlocal, "FixRX::diagnosticCounterPerODE");
   }
 
-  //#pragma omp parallel \
-  //   reduction(+: nSteps, nIters, nFuncs, nFails )
+#if 0
+  #pragma omp parallel \
+     reduction(+: nSteps, nIters, nFuncs, nFails )
+#endif
   {
     double *rwork = new double[8*nspecies];
 

@@ -255,7 +255,7 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
       #endif
       lmp->memory->destroy(cnumneigh);
     }
-      
+
     #ifdef _LMP_INTEL_OFFLOAD
     if (_off_map_ilist != NULL) {
       const int * ilist = _off_map_ilist;
@@ -295,7 +295,7 @@ void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list,
 {
   const int size = list->get_maxlocal();
   int list_num;
-  for (list_num = 0; list_num < _n_list_ptrs; list_num++) 
+  for (list_num = 0; list_num < _n_list_ptrs; list_num++)
     if (_neigh_list_ptrs[list_num].list_ptr == (void*)list) break;
   if (list_num == _n_list_ptrs) {
     if (_n_list_ptrs == _max_list_ptrs) {

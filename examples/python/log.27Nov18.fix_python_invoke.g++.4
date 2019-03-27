@@ -1,0 +1,100 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+  Time spent = 0.000408888 secs
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+python         end_of_step_callback here """
+from __future__ import print_function
+from lammps import lammps
+def end_of_step_callback(lmp):
+  L = lammps(ptr=lmp)
+  t = L.extract_global("ntimestep", 0)
+  print("### END OF STEP ###", t)
+def post_force_callback(lmp, v):
+  L = lammps(ptr=lmp)
+  t = L.extract_global("ntimestep", 0)
+  print("### POST_FORCE ###", t)
+"""
+
+fix		1 all nve
+fix     2 all python/invoke 50 end_of_step end_of_step_callback
+fix     3 all python/invoke 50 post_force post_force_callback
+
+#dump		id all atom 50 dump.melt
+
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		250
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.705 | 2.705 | 2.705 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            3   -6.7733681            0   -2.2744931   -3.7033504 
+      50    1.6754119   -4.7947589            0   -2.2822693    5.6615925 
+     100    1.6503357    -4.756014            0   -2.2811293    5.8050524 
+     150    1.6596605   -4.7699432            0   -2.2810749    5.7830138 
+     200    1.6371874   -4.7365462            0   -2.2813789    5.9246674 
+     250    1.6323462   -4.7292021            0   -2.2812949    5.9762238 
+Loop time of 0.227907 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 473877.870 tau/day, 1096.940 timesteps/s
+97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.15923    | 0.16507    | 0.17227    |   1.2 | 72.43
+Neigh   | 0.02438    | 0.025177   | 0.025757   |   0.4 | 11.05
+Comm    | 0.022418   | 0.030157   | 0.036685   |   2.9 | 13.23
+Output  | 0.00052595 | 0.00092125 | 0.0011675  |   0.0 |  0.40
+Modify  | 0.0053911  | 0.0057266  | 0.006294   |   0.5 |  2.51
+Other   |            | 0.0008523  |            |       |  0.37
+
+Nlocal:    1000 ave 1010 max 982 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    2703.75 ave 2713 max 2689 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Neighs:    37915.5 ave 39239 max 36193 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+
+Total # of neighbors = 151662
+Ave neighs/atom = 37.9155
+Neighbor list builds = 12
+Dangerous builds not checked
+Total wall time: 0:00:00

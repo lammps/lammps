@@ -130,7 +130,12 @@ T atomic_exchange( volatile T * const dest ,
 #endif
 
   int done = 0;
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+  unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
+#else
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
+#endif
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -141,7 +146,11 @@ T atomic_exchange( volatile T * const dest ,
         done = 1;
       }
     }
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
+#else
     done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
+#endif
   }
   return return_val;
 }
@@ -409,6 +418,23 @@ void atomic_assign( volatile T * const dest_v , const T val )
 
 #endif
 #endif
+
+// dummy for non-CUDA Kokkos headers being processed by NVCC
+#if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
+template <typename T>
+__inline__ __device__
+T atomic_exchange(volatile T * const, const Kokkos::Impl::identity_t<T>)
+{
+  return T();
+}
+
+template < typename T >
+__inline__ __device__
+void atomic_assign(volatile T * const, const Kokkos::Impl::identity_t<T>)
+{
+}
+#endif
+
 } // namespace Kokkos
 
 #endif

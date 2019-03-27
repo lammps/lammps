@@ -269,7 +269,7 @@ void PPPMDisp::init()
                         "comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPMDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -657,7 +657,7 @@ void PPPMDisp::setup()
 {
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPMDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -928,9 +928,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   int i;
   // convert atoms from box to lamda coords
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

@@ -146,7 +146,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   }
 
 #else
-  
+
 #define IP_PRE_edge_align(n, esize)                                     \
 
 #endif

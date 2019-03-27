@@ -269,7 +269,10 @@ void FixNHKokkos<DeviceType>::final_integrate()
     //atomKK->sync(pressure->execution_space,pressure->datamask_read);
     //atomKK->modified(pressure->execution_space,pressure->datamask_modify);
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -730,7 +733,7 @@ void FixNHKokkos<DeviceType>::pre_exchange()
 
 namespace LAMMPS_NS {
 template class FixNHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNHKokkos<LMPHostType>;
 #endif
 }

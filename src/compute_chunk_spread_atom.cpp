@@ -117,7 +117,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
                    "does not exist");
 
       char *ptr = strstr(modify->compute[icompute]->style,"/chunk");
-      if (!ptr || (ptr !=  modify->compute[icompute]->style + 
+      if (!ptr || (ptr !=  modify->compute[icompute]->style +
                    strlen(modify->compute[icompute]->style) - strlen("/chunk")))
         error->all(FLERR,"Compute for compute chunk/spread/atom "
                    "does not calculate per-chunk values");

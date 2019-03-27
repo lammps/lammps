@@ -13,6 +13,7 @@ Bond Styles :h1
    bond_harmonic_shift
    bond_harmonic_shift_cut
    bond_hybrid
+   bond_mm3
    bond_morse
    bond_none
    bond_nonlinear

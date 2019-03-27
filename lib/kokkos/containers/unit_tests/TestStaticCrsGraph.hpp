@@ -46,6 +46,7 @@
 #include <vector>
 
 #include <Kokkos_StaticCrsGraph.hpp>
+#include <Kokkos_Core.hpp>
 
 /*--------------------------------------------------------------------------*/
 namespace Test {

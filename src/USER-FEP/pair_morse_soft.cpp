@@ -53,8 +53,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -116,7 +115,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
           // Force computation:
           fpair = 3.0*a*B*dexp3*s1 + 2.0*a*D*(dexp2 - dexp);
           fpair /= r;
-        }else{
+        } else {
           llf = MathSpecial::powint( l / shift_range, nlambda );
           phi = V0 + B*dexp3;
           phi *= llf;
@@ -124,7 +123,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
           // Force computation:
           if (r == 0.0){
             fpair = 0.0;
-          }else{
+          } else {
             fpair = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
             fpair *= llf / r;
           }
@@ -234,7 +233,8 @@ void PairMorseSoft::settings(int narg, char **arg)
 
 double PairMorseSoft::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
 
@@ -259,8 +259,7 @@ double PairMorseSoft::init_one(int i, int j)
     if (l >= shift_range){
       s1  = (l - 1.0) / (shift_range - 1.0);
       offset[i][j] = V0 + B*dexp3 * s1;
-
-    }else{
+    } else {
       llf = MathSpecial::powint( l / shift_range, nlambda );
       offset[i][j] = V0 + B*dexp3;
       offset[i][j] *= llf;
@@ -392,7 +391,7 @@ double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double 
     // Force computation:
     fforce = 3.0*a*B*dexp3*s1 + 2.0*a*D*(dexp2 - dexp);
     fforce /= r;
-  }else{
+  } else {
     llf = MathSpecial::powint( l / shift_range, nlambda );
     phi = V0 + B*dexp3;
     phi *= llf;
@@ -400,7 +399,7 @@ double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double 
     // Force computation:
     if (r == 0.0){
       fforce = 0.0;
-    }else{
+    } else {
       fforce = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
       fforce *= llf / r;
     }

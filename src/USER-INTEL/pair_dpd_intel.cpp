@@ -82,9 +82,7 @@ void PairDPDIntel::compute(int eflag, int vflag,
                            IntelBuffers<flt_t,acc_t> *buffers,
                            const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -521,7 +519,7 @@ void PairDPDIntel::pack_force_const(ForceConst<flt_t> &fc,
     }
   }
   if (mytypes > 1 || atom->molecular) _onetype = 0;
-  
+
   for (int i = 0; i < 4; i++) {
     fc.special_lj[i] = force->special_lj[i];
     fc.special_lj[0] = 1.0;

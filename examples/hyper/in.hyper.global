@@ -1,0 +1,97 @@
+# 3d EAM surface for global HD
+
+# nearest neighbor distance = a * sqrt(2)/2 = 2.77 Angs for Pt with a = 3.92
+# hop event on (100) surface is same distance
+# exchange event is 2 atoms moving same distance
+
+variable        Tequil index 500.0
+variable        Vmax index 0.5
+variable        qfactor index 0.3
+variable        cutbond index 3.2
+variable        cutevent index 1.1
+variable        steps index 100000
+variable        nevent index 1000
+variable        zoom index 1.8
+variable        seed index 826626413
+variable        tol index 1.0e-15
+
+units           metal
+atom_style	atomic
+atom_modify     map array
+boundary        p p p
+
+lattice		fcc 3.92
+region		box block 0 6 0 6 0 4
+create_box	3 box
+create_atoms	1 box
+
+mass            * 1.0
+
+change_box      all z final -0.1 5.0 boundary p p f 
+create_atoms    2 single 3.5 3.5 4
+
+# define frozen substrate and mobile atoms
+
+group           adatom type 2
+region          base block INF INF INF INF 0 1.8
+set             region base type 3
+group           base type 3
+group           mobile type 1 2
+
+# pair style
+
+pair_style	eam/alloy
+pair_coeff	* * ptvoterlammps.eam Pt Pt Pt
+
+neighbor	0.5 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 mobile nve
+fix		2 mobile langevin ${Tequil} ${Tequil} 1.0 ${seed} zero yes
+
+timestep	0.005
+
+compute         tmobile mobile temp
+
+thermo		100
+thermo_modify   temp tmobile
+
+# thermal equilibration
+
+run             1000
+reset_timestep  0
+
+# pin base so will not move during quenches
+
+fix             freeze base setforce 0.0 0.0 0.0
+
+# event detection
+
+compute         event all event/displace ${cutevent}
+
+# hyper/global
+
+fix             HG mobile hyper/global ${cutbond} ${qfactor} ${Vmax} ${Tequil}
+
+# thermo output
+
+thermo_style    custom step temp pe f_HG f_HG[*]
+
+thermo_modify   lost ignore
+thermo_modify   temp tmobile
+
+thermo          ${nevent}
+
+# dump output options
+
+region          substrate block INF INF INF INF 1.8 3.8
+region          adatoms block INF INF INF INF 3.8 INF
+variable        acolor atom rmask(base)+2*rmask(substrate)+3*rmask(adatoms)
+
+dump		1 all image 1000000 global.*.jpg v_acolor type &
+		zoom ${zoom} adiam 2.5 view 0.0 0.0 up 0 1 0 axes yes 0.9 0.01
+dump_modify	1 pad 6 amap 1 3 sa 1 3 blue red green
+
+# run
+
+hyper           ${steps} ${nevent} HG event min ${tol} ${tol} 1000 1000 dump 1

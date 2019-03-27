@@ -96,8 +96,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // loop over FENE bonds
 

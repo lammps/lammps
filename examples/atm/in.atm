@@ -1,31 +1,31 @@
 # Axilrod-Teller-Muto potential example
 
-variable	x index 1
-variable	y index 1
-variable	z index 1
+variable        x index 1
+variable        y index 1
+variable        z index 1
 
-variable	xx equal 10*$x
-variable	yy equal 10*$y
-variable	zz equal 10*$z
+variable        xx equal 10*$x
+variable        yy equal 10*$y
+variable        zz equal 10*$z
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc 0.65
-region		box block 0 ${xx} 0 ${yy} 0 ${zz}
-create_box	1 box
-create_atoms	1 box
+lattice         fcc 0.65
+region          box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box      1 box
+create_atoms    1 box
 
-pair_style	hybrid/overlay lj/cut 4.5 atm 4.5 2.5
-pair_coeff	* * lj/cut 1.0 1.0
-pair_coeff	* * atm * 0.072
+pair_style      hybrid/overlay lj/cut 4.5 atm 4.5 2.5
+pair_coeff      * * lj/cut 1.0 1.0
+pair_coeff      * * atm * 0.072
 
-mass		* 1.0
-velocity	all create 1.033 12345678 loop geom
+mass            * 1.0
+velocity        all create 1.033 12345678 loop geom
 
-fix		1 all nvt temp 1.033 1.033 0.05
+fix             1 all nvt temp 1.033 1.033 0.05
 
 timestep        0.002
-thermo		5
+thermo          5
 
-run 		25
+run             25

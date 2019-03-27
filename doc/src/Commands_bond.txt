@@ -5,7 +5,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 :link(ld,Manual.html)
 :link(lc,Commands_all.html)
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -37,6 +37,7 @@ OPT.
 "harmonic (iko)"_bond_harmonic.html,
 "harmonic/shift (o)"_bond_harmonic_shift.html,
 "harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
+"mm3"_bond_mm3.html,
 "morse (o)"_bond_morse.html,
 "nonlinear (o)"_bond_nonlinear.html,
 "oxdna/fene"_bond_oxdna.html,
@@ -60,17 +61,19 @@ OPT.
 "charmm (iko)"_angle_charmm.html,
 "class2 (ko)"_angle_class2.html,
 "class2/p6"_angle_class2.html,
-"cosine (o)"_angle_cosine.html,
+"cosine (ko)"_angle_cosine.html,
 "cosine/buck6d"_angle_cosine_buck6d.html,
 "cosine/delta (o)"_angle_cosine_delta.html,
 "cosine/periodic (o)"_angle_cosine_periodic.html,
 "cosine/shift (o)"_angle_cosine_shift.html,
 "cosine/shift/exp (o)"_angle_cosine_shift_exp.html,
 "cosine/squared (o)"_angle_cosine_squared.html,
+"cross"_angle_cross.html,
 "dipole (o)"_angle_dipole.html,
 "fourier (o)"_angle_fourier.html,
 "fourier/simple (o)"_angle_fourier_simple.html,
 "harmonic (iko)"_angle_harmonic.html,
+"mm3"_angle_mm3.html,
 "quartic (o)"_angle_quartic.html,
 "sdk (o)"_angle_sdk.html,
 "table (o)"_angle_table.html :tb(c=4,ea=c)
@@ -120,8 +123,10 @@ OPT.
 "cossq (o)"_improper_cossq.html,
 "cvff (io)"_improper_cvff.html,
 "distance"_improper_distance.html,
+"distharm"_improper_distharm.html,
 "fourier (o)"_improper_fourier.html,
 "harmonic (iko)"_improper_harmonic.html,
 "inversion/harmonic"_improper_inversion_harmonic.html,
 "ring (o)"_improper_ring.html,
+"sqdistharm"_improper_sqdistharm.html,
 "umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)

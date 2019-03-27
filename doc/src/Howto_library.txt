@@ -87,7 +87,7 @@ commands to LAMMPS to execute, the same as if they were coming from an
 input script.
 
 Via these functions, the calling code can read or generate a series of
-LAMMPS commands one or multiple at a time and pass it thru the library
+LAMMPS commands one or multiple at a time and pass it through the library
 interface to setup a problem and then run it in stages.  The caller
 can interleave the command function calls with operations it performs,
 calls to extract information from or set information within LAMMPS, or
@@ -185,7 +185,7 @@ by the same function if the caller needs to know the ordering.  The
 lammps_gather_subset() function allows the caller to request values
 for only a subset of atoms (identified by ID).
 For all 3 gather function, per-atom image flags can be retrieved in 2 ways.
-If the count is specified as 1, they are returned 
+If the count is specified as 1, they are returned
 in a packed format with all three image flags stored in a single integer.
 If the count is specified as 3, the values are unpacked into xyz flags
 by the library before returning them.

@@ -39,7 +39,7 @@ atom_style body nparticle 2 10
 atom_style hybrid charge bond
 atom_style hybrid charge body nparticle 2 5
 atom_style spin
-atom_style template myMols 
+atom_style template myMols
 atom_style tdpd 2 :pre
 
 [Description:]
@@ -87,7 +87,7 @@ quantities.
 {line} | end points, angular velocity | rigid bodies |
 {meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
-{peri} | mass, volume | mesocopic Peridynamic models |
+{peri} | mass, volume | mesoscopic Peridynamic models |
 {smd} | volume, kernel diameter, contact radius, mass | solid and fluid SPH particles |
 {sphere} | diameter, mass, angular velocity | granular models |
 {spin} | magnetic moment | system with magnetic particles |
@@ -309,9 +309,9 @@ force fields"_pair_eff.html.
 The {dpd} style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
-The {edpd}, {mdpd}, and {tdpd} styles are part of the USER-MESO package 
-for energy-conserving dissipative particle dynamics (eDPD), many-body 
-dissipative particle dynamics (mDPD), and transport dissipative particle 
+The {edpd}, {mdpd}, and {tdpd} styles are part of the USER-MESO package
+for energy-conserving dissipative particle dynamics (eDPD), many-body
+dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
 The {meso} style is part of the USER-SPH package for smoothed particle

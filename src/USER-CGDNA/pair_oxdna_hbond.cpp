@@ -74,6 +74,7 @@ PairOxdnaHbond::~PairOxdnaHbond()
     memory->destroy(b_hb_lo);
     memory->destroy(b_hb_hi);
     memory->destroy(shift_hb);
+    memory->destroy(cutsq_hb_hc);
 
     memory->destroy(a_hb1);
     memory->destroy(theta_hb1_0);
@@ -160,8 +161,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   double df1,df4t1,df4t4,df4t2,df4t3,df4t7,df4t8;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;

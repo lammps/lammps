@@ -57,10 +57,15 @@ Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated "angle_coeff"_angle_coeff.html command.
 
-Note that there are also additional angle styles submitted by users
-which are included in the LAMMPS distribution.  The full list of all
-angle styles are is on the "Commands bond"_Commands_bond.html#angle
-doc page.
+Click on the style to display the formula it computes, any additional
+arguments specified in the angle_style command, and coefficients
+specified by the associated "angle_coeff"_angle_coeff.html command.
+
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands
+angle"_Commands_bond.html#angle doc page are followed by one or more
+of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 "none"_angle_none.html - turn off angle interactions
 "zero"_angle_zero.html - topology but no interactions
@@ -76,10 +81,12 @@ doc page.
 "cosine/shift"_angle_cosine_shift.html - angle cosine with a shift
 "cosine/shift/exp"_angle_cosine_shift_exp.html - cosine with shift and exponential term in spring constant
 "cosine/squared"_angle_cosine_squared.html - angle with cosine squared term
+"cross"_angle_cross.html - cross term coupling angle and bond lengths
 "dipole"_angle_dipole.html - angle that controls orientation of a point dipole
 "fourier"_angle_fourier.html - angle with multiple cosine terms
 "fourier/simple"_angle_fourier_simple.html - angle with a single cosine term
 "harmonic"_angle_harmonic.html - harmonic angle
+"mm3"_angle_mm3.html - anharmonic angle
 "quartic"_angle_quartic.html - angle with cubic and quartic terms
 "sdk"_angle_sdk.html - harmonic angle with repulsive SDK pair style between 1-3 atoms
 "table"_angle_table.html - tabulated by angle :ul

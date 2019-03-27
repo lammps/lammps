@@ -1,7 +1,7 @@
 # Makefile for LAMMPS documentation
 
-SHELL 	      = /bin/bash
-SHA1          = $(shell echo $USER-$PWD | python utils/sha1sum.py)
+SHELL         = /bin/bash
+SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
 BUILDDIR      = /tmp/lammps-docs-$(SHA1)
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
@@ -39,7 +39,7 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       create HTML doc pages in html dir"
 	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  old        create old-style HTML doc pages in old dir"
+	@echo "  old        create old-style HTML doc pages and Manual.pdf in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
 	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
@@ -48,6 +48,7 @@ help:
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
 	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
 
@@ -55,7 +56,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR) html old epub
+	rm -rf $(RSTDIR) html old epub latex
 	rm -rf spelling
 
 clean-spelling:
@@ -114,21 +115,44 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: utils/txt2html/txt2html.exe
+pdf: $(OBJECTS) $(ANCHORCHECK)
 	@(\
-		set -e; \
+                . $(VENV)/bin/activate ;\
+                cp -r src/* $(RSTDIR)/ ;\
+                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+                echo "############################################" ;\
+                doc_anchor_check src/*.txt ;\
+                echo "############################################" ;\
+                deactivate ;\
+	)
+	@cd latex && \
+          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+	  mv temp Makefile && \
+	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+	  mv tmp.tex LAMMPS.tex && \
+	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+	  mv tmp.tex LAMMPS.tex && \
+	  make && \
+	  make && \
+	  mv LAMMPS.pdf ../Manual.pdf && \
+	  cd ../; 
+	@(\
 		cd src/Developer; \
 		pdflatex developer; \
 		pdflatex developer; \
 		mv developer.pdf ../../Developer.pdf; \
-		cd ..; \
-		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch lammps.book;          \
-		for s in `echo *.txt | sed -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q ^$$s lammps.book || \
-			echo WARNING: doc file $$s missing in src/lammps.book; done; \
-		rm *.html; \
+		cd ../../; \
 	)
+	@rm -rf latex/_sources
+	@rm -rf latex/PDF
+	@rm -rf latex/USER
+	@cp -r src/PDF latex/PDF
+	@cp -r src/USER latex/USER
+	@rm -rf latex/PDF/.[sg]*
+	@rm -rf latex/USER/.[sg]*
+	@rm -rf latex/USER/*/.[sg]*
+	@rm -rf latex/USER/*/*.[sg]*
+	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
 
 old: utils/txt2html/txt2html.exe
 	@rm -rf old
@@ -138,6 +162,18 @@ old: utils/txt2html/txt2html.exe
 	  cp Eqs/*.jpg ../old/Eqs; \
 	  cp JPG/* ../old/JPG; \
 	  cp PDF/* ../old/PDF;
+	@(      set -e;\
+		cd src/Developer; \
+		pdflatex developer; \
+		pdflatex developer; \
+		mv developer.pdf ../../old/Developer.pdf; \
+		cd ../../old; \
+	        for s in `echo ../src/*.txt | sed -e 's,\.\./src/,,g' -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
+			do grep -q ^$$s ../src/lammps.book || \
+			echo WARNING: doc file $$s missing in src/lammps.book; done; \
+		htmldoc --batch ../src/lammps.book;          \
+	)
+
 
 fetch:
 	@rm -rf html_www Manual_www.pdf Developer_www.pdf
@@ -176,7 +212,6 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
-		pip install sphinxcontrib-images; \
 		deactivate;\
 	)
 

@@ -103,8 +103,6 @@ public:
 void TaskQueueSpecialization< Kokkos::OpenMP >::execute
   ( TaskQueue< Kokkos::OpenMP > * const queue )
 {
-  using execution_space = Kokkos::OpenMP ;
-  using queue_type      = TaskQueue< execution_space > ;
   using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
@@ -213,8 +211,6 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
   iff_single_thread_recursive_execute
     ( TaskQueue< Kokkos::OpenMP > * const queue )
 {
-  using execution_space = Kokkos::OpenMP ;
-  using queue_type      = TaskQueue< execution_space > ;
   using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 

@@ -87,8 +87,7 @@ void PairGW::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -521,7 +520,7 @@ void PairGW::setup_params()
         for (m = 0; m < nparams; m++) {
           if (i == params[m].ielement && j == params[m].jelement &&
               k == params[m].kelement) {
-            if (n >= 0) 
+            if (n >= 0)
               error->all(FLERR,"Potential file has duplicate entry");
             n = m;
           }

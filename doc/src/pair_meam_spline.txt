@@ -152,7 +152,7 @@ info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style meam"_pair_meam.html
+"pair_coeff"_pair_coeff.html, "pair_style meam/c"_pair_meamc.html
 
 [Default:] none
 

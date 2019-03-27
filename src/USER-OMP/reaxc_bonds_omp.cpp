@@ -42,9 +42,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-void BondsOMP( reax_system *system, control_params *control,
+void BondsOMP( reax_system *system, control_params * /* control */,
             simulation_data *data, storage *workspace, reax_list **lists,
-            output_controls *out_control )
+            output_controls * /* out_control */)
 {
 #ifdef OMP_TIMING
   double endTimeBase, startTimeBase;
@@ -99,9 +99,9 @@ void BondsOMP( reax_system *system, control_params *control,
     for (pj = start_i; pj < end_i; ++pj) {
       j = bonds->select.bond_list[pj].nbr;
 
-      if( system->my_atoms[i].orig_id > system->my_atoms[j].orig_id ) continue;
+      if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id) continue;
 
-      if( system->my_atoms[i].orig_id == system->my_atoms[j].orig_id ) {
+      if (system->my_atoms[i].orig_id == system->my_atoms[j].orig_id) {
         if (system->my_atoms[j].x[2] <  system->my_atoms[i].x[2]) continue;
         if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
             system->my_atoms[j].x[1] <  system->my_atoms[i].x[1]) continue;

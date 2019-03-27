@@ -89,12 +89,31 @@ this auxiliary information should be defined in the usual way, e.g. in
 a data file read in by a "read_data"_read_data.html command, before
 using the rerun command.
 
+Also note that the frequency of thermodynamic or dump output from the
+rerun simulation will depend on settings made in the rerun script, the
+same as for output from any LAMMPS simulation.  See further info below
+as to what that means if the timesteps for snapshots read from dump
+files do not match the specified output frequency.
+
 :line
 
 If more than one dump file is specified, the dump files are read one
 after the other.  It is assumed that snapshot timesteps will be in
 ascending order.  If a snapshot is encountered that is not in
-ascending order, it will cause the rerun command to complete.
+ascending order, it will skip the snapshot until it reads one that is.
+This allows skipping of a duplicate snapshot (same timestep),
+e.g. that appeared at the end of one file and beginning of the next.
+However if you specify a series of dump files in an incorrect order
+(with respect to the timesteps they contain), you may skip large
+numbers of snapshots
+
+Note that the dump files specified as part of the {dump} keyword can
+be parallel files, i.e. written as multiple files either per processor
+and/or per snapshot.  If that is the case they will also be read in
+parallel which can make the rerun command operate dramatically faster
+for large systems.  See the doc page for the "read_dump"_read_dump and
+"dump"_dump.html commands which describe how to read and write
+parallel dump files.
 
 The {first}, {last}, {every}, {skip} keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until
@@ -150,8 +169,8 @@ indent"_fix_indent.html and "fix langevin"_fix_langevin.html.  So you
 should think carefully as to whether that makes sense for the manner
 in which you are reprocessing the dump snapshots.
 
-If you only want the rerun script to perform analyses that do not
-involve pair interactions, such as use compute msd to calculated
+If you only want the rerun script to perform an analysis that does
+not involve pair interactions, such as use compute msd to calculated
 displacements over time, you do not need to define a "pair
 style"_pair_style.html, which may also mean neighbor lists will not
 need to be calculated which saves time.  The "comm_modify
@@ -177,12 +196,12 @@ a timestep it expects to be, LAMMPS will flag an error.
 
 The various forms of LAMMPS output, as defined by the
 "thermo_style"_thermo_style.html, "thermo"_thermo.html,
-"dump"_dump.html, and "restart"_restart.html commands occur on
-specific timesteps.  If successive dump snapshots skip those
-timesteps, then no output will be produced.  E.g. if you request
-thermodynamic output every 100 steps, but the dump file snapshots are
-every 1000 steps, then you will only see thermodynamic output every
-1000 steps.
+"dump"_dump.html, and "restart"_restart.html commands occur with
+specified frequency, e.g. every N steps.  If the timestep for a dump
+snapshot is not a multiple of N, then it will be read and processed,
+but no output will be produced.  If you want output for every dump
+snapshot, you can simply use N=1 for an output frequency, e.g. for
+thermodynamic output or new dump file output.
 
 :line
 

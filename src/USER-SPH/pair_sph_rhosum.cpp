@@ -72,10 +72,7 @@ void PairSPHRhoSum::compute(int eflag, int vflag) {
   // neighbor list variables
   int inum, *ilist, *numneigh, **firstneigh;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double *rho = atom->rho;
@@ -228,7 +225,7 @@ void PairSPHRhoSum::allocate() {
 void PairSPHRhoSum::settings(int narg, char **arg) {
   if (narg != 1)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/rhosum");
+        "Illegal number of arguments for pair_style sph/rhosum");
   nstep = force->inumeric(FLERR,arg[0]);
 }
 

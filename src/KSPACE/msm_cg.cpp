@@ -90,9 +90,7 @@ void MSMCG::compute(int eflag, int vflag)
 
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-    eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
+  ev_init(eflag,vflag);
 
   // invoke allocate_peratom() if needed for first time
 
@@ -199,7 +197,7 @@ void MSMCG::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for nonperiodic
+  // compute direct interation for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {

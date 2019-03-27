@@ -108,7 +108,7 @@ E: Cannot use EwaldDisp with 2d simulation
 
 This is a current restriction of this command.
 
-E: Cannot use nonperiodic boundaries with EwaldDisp
+E: Cannot use non-periodic boundaries with EwaldDisp
 
 For kspace style ewald/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d

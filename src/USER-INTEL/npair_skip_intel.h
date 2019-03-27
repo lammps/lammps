@@ -46,7 +46,7 @@ class NPairSkipIntel : public NPair {
   ~NPairSkipIntel();
   virtual void copy_neighbor_info();
   void build(class NeighList *);
-  
+
  protected:
   FixIntel *_fix;
   int *_inum_starts, *_inum_counts, *_full_props;

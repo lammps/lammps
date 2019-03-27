@@ -161,7 +161,7 @@ more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
 
-The fix species currently only works with "pair_style
+The "fix reax/c/species" currently only works with "pair_style
 reax/c"_pair_reaxc.html and it requires that the "pair_style
 reax/c"_pair_reaxc.html be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
@@ -177,8 +177,7 @@ It should be possible to extend it to other reactive pair_styles (such as
 
 [Related commands:]
 
-"pair_style reax/c"_pair_reaxc.html, "fix
-reax/bonds"_fix_reax_bonds.html
+"pair_style reax/c"_pair_reaxc.html, "fix reax/c/bonds"_fix_reaxc_bonds.html
 
 [Default:]
 

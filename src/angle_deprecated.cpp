@@ -52,6 +52,6 @@ void AngleDeprecated::settings(int, char **)
     writemsg(lmp,"\nAngle style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
-}  
+}
 
 

@@ -72,7 +72,7 @@ void NPairIntel::copy_cutsq_info(IntelBuffers<flt_t,acc_t> *buffers) {
   if (cutneighghostsq)
     use_ghost_cut = 1;
   buffers->set_ntypes(tp1, use_ghost_cut);
-  
+
   flt_t **cutneighsqb = buffers->get_cutneighsq();
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = 1; j <= atom->ntypes; j++)
@@ -116,7 +116,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   #ifdef _LMP_INTEL_OFFLOAD
   if (offload_noghost && offload) nall_t = atom->nlocal;
   #endif
-  
+
   const int pack_width = _fix->nbor_pack_width();
 
   const ATOM_T * _noalias const x = buffers->get_x();
@@ -146,7 +146,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   int ** _noalias const firstneigh = list->firstneigh;
   int * _noalias const numneigh = list->numneigh;
   int * _noalias const cnumneigh = buffers->cnumneigh();
- 
+
   const int nstencil = this->nstencil;
   const int * _noalias const stencil = this->stencil;
   const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
@@ -204,7 +204,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
     }
   }
   const int special_bound = sb;
-  
+
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
   const int * _noalias const bins = this->bins;
@@ -547,7 +547,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
               j = -j - 1;
             } else
               ofind_special(which, special, nspecial, i, tag[j]);
-            
+
             if (which) {
               j = j ^ (which << SBBITS);
               if (which < special_bound) addme = 0;
@@ -562,7 +562,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           if (THREE) {
             alln = n2;
             n2 = pack_offset + maxnbors;
-            
+
             #if defined(LMP_SIMD_COMPILER)
             #pragma vector aligned
             #ifdef LMP_INTEL_NBOR_COMPAT
@@ -592,7 +592,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             }
           }
         }
-        
+
         #ifndef _LMP_INTEL_OFFLOAD
         if (exclude) {
           neighptr2 = neighptr;
@@ -643,7 +643,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             n += pack_width;
           }
           #endif
-          
+
           for (int u = pack_offset + maxnbors; u < n2; u++) {
             #ifdef LMP_INTEL_3BODY_FAST
             neighptr[n] = neighptr2[u];

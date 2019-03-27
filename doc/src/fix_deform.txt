@@ -86,7 +86,7 @@ Change the volume and/or shape of the simulation box during a dynamics
 run.  Orthogonal simulation boxes have 3 adjustable parameters
 (x,y,z).  Triclinic (non-orthogonal) simulation boxes have 6
 adjustable parameters (x,y,z,xy,xz,yz).  Any or all of them can be
-adjusted independently and simultaneously by this command.  
+adjusted independently and simultaneously by this command.
 
 This fix can be used to perform non-equilibrium MD (NEMD) simulations
 of a continuously strained system.  See the "fix

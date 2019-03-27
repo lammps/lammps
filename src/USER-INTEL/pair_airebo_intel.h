@@ -110,7 +110,7 @@ path and name are correct.
 E: Cannot yet use airebo/intel with hybrid.
 
 Pair style airebo/intel cannot currently be used as part of a hybrid
-pair style (with the exception of hybrid/overlay). 
+pair style (with the exception of hybrid/overlay).
 
 
 */

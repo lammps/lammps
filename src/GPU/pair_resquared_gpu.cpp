@@ -94,8 +94,7 @@ PairRESquaredGPU::~PairRESquaredGPU()
 
 void PairRESquaredGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -219,8 +218,9 @@ double PairRESquaredGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairRESquaredGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                  int *ilist, int *numneigh, int **firstneigh)
+void PairRESquaredGPU::cpu_compute(int start, int inum, int eflag,
+                                   int /* vflag */, int *ilist,
+                                   int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;

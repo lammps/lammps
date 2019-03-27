@@ -23,7 +23,7 @@ index = which temperature (0 to N-1) I am simulating (optional) :ul
 [Examples:]
 
 temper/npt 100000 100 $t nptfix 0 58728 1
-temper/npt 2500000 1000 300 nptfix  0 32285 $p 
+temper/npt 2500000 1000 300 nptfix  0 32285 $p
 temper/npt 5000000 2000 $t nptfix 0 12523 1 $w :pre
 
 [Description:]
@@ -43,7 +43,7 @@ of pressure, this command works much like the "temper"_temper.html
 command. See the documentation on "temper"_temper.html for information
 on how the parallel tempering is handled in general.
 
-:line 
+:line
 
 [Restrictions:]
 

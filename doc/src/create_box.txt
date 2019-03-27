@@ -58,7 +58,7 @@ edge vectors starting from the origin given by A = (xhi-xlo,0,0); B =
 (xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  {Xy,xz,yz} can be 0.0 or
 positive or negative values and are called "tilt factors" because they
 are the amount of displacement applied to faces of an originally
-orthogonal box to transform it into the parallelipiped.
+orthogonal box to transform it into the parallelepiped.
 
 By default, a {prism} region used with the create_box command must
 have tilt factors (xy,xz,yz) that do not skew the box more than half

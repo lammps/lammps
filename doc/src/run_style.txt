@@ -191,7 +191,7 @@ hybrid/overlay"_pair_hybrid.html command.  In this scenario, different
 sub-styles of the hybrid pair style are evaluated at different rRESPA
 levels.  This can be useful, for example, to set different timesteps
 for hybrid coarse-grained/all-atom models.  The {hybrid} keyword
-requires as many level assignments as there are hybrid substyles,
+requires as many level assignments as there are hybrid sub-styles,
 which assigns each sub-style to a rRESPA level, following their order
 of definition in the pair_style command. Since the {hybrid} keyword
 operates on pair style computations, it is mutually exclusive with

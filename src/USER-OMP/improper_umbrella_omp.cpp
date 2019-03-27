@@ -43,10 +43,7 @@ ImproperUmbrellaOMP::ImproperUmbrellaOMP(class LAMMPS *lmp)
 
 void ImproperUmbrellaOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -212,17 +209,17 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
     dahy = ary-c*hry;
     dahz = arz-c*hrz;
 
-    f2[0] = (dhay*vb1z - dhaz*vb1y)*rar;
-    f2[1] = (dhaz*vb1x - dhax*vb1z)*rar;
-    f2[2] = (dhax*vb1y - dhay*vb1x)*rar;
+    f2[0] = (dhay*vb1z - dhaz*vb1y)*rar*a;
+    f2[1] = (dhaz*vb1x - dhax*vb1z)*rar*a;
+    f2[2] = (dhax*vb1y - dhay*vb1x)*rar*a;
 
-    f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar;
-    f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar;
-    f3[2] = (-dhax*vb2y + dhay*vb2x)*rar;
+    f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar*a;
+    f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar*a;
+    f3[2] = (-dhax*vb2y + dhay*vb2x)*rar*a;
 
-    f4[0] = dahx*rhr;
-    f4[1] = dahy*rhr;
-    f4[2] = dahz*rhr;
+    f4[0] = dahx*rhr*a;
+    f4[1] = dahy*rhr*a;
+    f4[2] = dahz*rhr*a;
 
     f1[0] = -(f2[0] + f3[0] + f4[0]);
     f1[1] = -(f2[1] + f3[1] + f4[1]);
@@ -231,27 +228,27 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
     // apply force to each of 4 atoms
 
     if (NEWTON_BOND || i1 < nlocal) {
-      f[i1].x += f1[0]*a;
-      f[i1].y += f1[1]*a;
-      f[i1].z += f1[2]*a;
+      f[i1].x += f1[0];
+      f[i1].y += f1[1];
+      f[i1].z += f1[2];
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      f[i2].x += f3[0]*a;
-      f[i2].y += f3[1]*a;
-      f[i2].z += f3[2]*a;
+      f[i2].x += f3[0];
+      f[i2].y += f3[1];
+      f[i2].z += f3[2];
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      f[i3].x += f2[0]*a;
-      f[i3].y += f2[1]*a;
-      f[i3].z += f2[2]*a;
+      f[i3].x += f2[0];
+      f[i3].y += f2[1];
+      f[i3].z += f2[2];
     }
 
     if (NEWTON_BOND || i4 < nlocal) {
-      f[i4].x += f4[0]*a;
-      f[i4].y += f4[1]*a;
-      f[i4].z += f4[2]*a;
+      f[i4].x += f4[0];
+      f[i4].y += f4[1];
+      f[i4].z += f4[2];
     }
 
     if (EVFLAG) {
@@ -270,7 +267,7 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
       vb3y = x[i4].y - x[i3].y;
       vb3z = x[i4].z - x[i3].z;
 
-      ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f3,f4,
+      ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f2,f4,
                    vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
     }
   }

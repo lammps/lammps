@@ -83,7 +83,7 @@ class FixIntel : public Fix {
   }
   inline void set_reduce_flag() { if (_nthreads > 1) _need_reduce = 1; }
   inline int lrt() {
-    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1) 
+    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1)
       return _lrt;
     else return 0;
   }
@@ -104,7 +104,7 @@ class FixIntel : public Fix {
   int _pair_intel_count, _pair_hybrid_flag;
   // These should be removed in subsequent update w/ simpler hybrid arch
   int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
-  
+
  public:
   inline int* get_overflow_flag() { return _overflow_flag; }
   inline int* get_off_overflow_flag() { return _off_overflow_flag; }
@@ -215,7 +215,7 @@ class FixIntel : public Fix {
   _alignvar(double _stopwatch_offload_pair[1],64);
 
   void _sync_main_arrays(const int prereverse);
-  
+
   template <class ft>
   void reduce_results(ft * _noalias const f_in);
 
@@ -512,13 +512,13 @@ issues. Please use 14.0.1.106 or 15.1.133 or later.
 
 E: Currently, cannot offload more than one intel style with hybrid.
 
-Currently, when using offload, hybrid pair styles can only use the intel 
+Currently, when using offload, hybrid pair styles can only use the intel
 suffix for one of the pair styles.
 
 E: Cannot yet use hybrid styles with Intel offload.
 
 The hybrid pair style configuration is not yet supported when using offload
-within the Intel package. Support is limited to hybrid/overlay or a hybrid 
+within the Intel package. Support is limited to hybrid/overlay or a hybrid
 style that does not require a skip list.
 
 W: Leaving a core/node free can improve performance for offload
@@ -564,7 +564,7 @@ atoms throughout the simulation.
 E: Intel package requires fdotr virial with newton on.
 
 This error can occur with a hybrid pair style that mixes styles that are
-incompatible with the newton pair setting turned on. Try turning the 
+incompatible with the newton pair setting turned on. Try turning the
 newton pair setting off.
 
 E: Add -DLMP_INTEL_NBOR_COMPAT to build for special_bond exclusions with Intel

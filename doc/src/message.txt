@@ -22,11 +22,11 @@ mode = {file} or {zmq} or {mpi/one} or {mpi/two} :l
     socket-ID for server = *:5555, see description below
   {mpi/one} arg = none
   {mpi/two} arg = filename
-    filename = file used to establish communication bewteen 2 MPI jobs :pre
+    filename = file used to establish communication between 2 MPI jobs :pre
 :ule
 
 [Examples:]
-  
+
 message client md file tmp.couple
 message server md file tmp.couple :pre
 
@@ -93,7 +93,7 @@ localhost:5555        # client and server running on same machine
 192.168.1.1:5555      # server is 192.168.1.1
 deptbox.uni.edu:5555  # server is deptbox.uni.edu :pre
 
-The server specifes "*:5555" where "*" represents all available
+The server specifies "*:5555" where "*" represents all available
 interfaces on the server's machine, and the port ID must match
 what the client specifies.
 

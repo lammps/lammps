@@ -214,7 +214,7 @@ void PPPM::init()
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -411,7 +411,7 @@ void PPPM::setup()
   // perform some checks to avoid illegal boundaries with read_data
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -630,9 +630,7 @@ void PPPM::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

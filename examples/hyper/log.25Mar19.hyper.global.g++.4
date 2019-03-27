@@ -1,0 +1,1250 @@
+LAMMPS (28 Feb 2019)
+# 3d EAM surface for global HD
+
+# nearest neighbor distance = a * sqrt(2)/2 = 2.77 Angs for Pt with a = 3.92
+# hop event on (100) surface is same distance
+# exchange event is 2 atoms moving same distance
+
+variable        Tequil index 500.0
+variable        Vmax index 0.5
+variable        qfactor index 0.3
+variable        cutbond index 3.2
+variable        cutevent index 1.1
+variable        steps index 100000
+variable        nevent index 1000
+variable        zoom index 1.8
+variable        seed index 826626413
+variable        tol index 1.0e-15
+
+units           metal
+atom_style	atomic
+atom_modify     map array
+boundary        p p p
+
+lattice		fcc 3.92
+Lattice spacing in x,y,z = 3.92 3.92 3.92
+region		box block 0 6 0 6 0 4
+create_box	3 box
+Created orthogonal box = (0 0 0) to (23.52 23.52 15.68)
+  2 by 2 by 1 MPI processor grid
+create_atoms	1 box
+Created 576 atoms
+  Time spent = 0.000785828 secs
+
+mass            * 1.0
+
+change_box      all z final -0.1 5.0 boundary p p f
+  orthogonal box = (0 0 -0.392) to (23.52 23.52 19.6)
+create_atoms    2 single 3.5 3.5 4
+Created 1 atoms
+  Time spent = 5.79357e-05 secs
+
+# define frozen substrate and mobile atoms
+
+group           adatom type 2
+1 atoms in group adatom
+region          base block INF INF INF INF 0 1.8
+set             region base type 3
+  288 settings made for type
+group           base type 3
+288 atoms in group base
+group           mobile type 1 2
+289 atoms in group mobile
+
+# pair style
+
+pair_style	eam/alloy
+pair_coeff	* * ptvoterlammps.eam Pt Pt Pt
+
+neighbor	0.5 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 mobile nve
+fix		2 mobile langevin ${Tequil} ${Tequil} 1.0 ${seed} zero yes
+fix		2 mobile langevin 500.0 ${Tequil} 1.0 ${seed} zero yes
+fix		2 mobile langevin 500.0 500.0 1.0 ${seed} zero yes
+fix		2 mobile langevin 500.0 500.0 1.0 826626413 zero yes
+
+timestep	0.005
+
+compute         tmobile mobile temp
+
+thermo		100
+thermo_modify   temp tmobile
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:487)
+
+# thermal equilibration
+
+run             1000
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.07583
+  ghost atom cutoff = 6.07583
+  binsize = 3.03792, bins = 8 8 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.327 | 3.327 | 3.327 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -3213.9136            0   -3213.9136   -51843.125 
+     100    223.70164   -3209.0653            0   -3200.7375    -26575.84 
+     200    345.18355   -3206.1371            0   -3193.2869   -42327.268 
+     300    411.05681   -3203.8465            0   -3188.5442   -32455.226 
+     400    446.05938   -3202.2976            0   -3185.6922   -35377.683 
+     500    435.52439   -3200.2131            0   -3183.9999   -31477.028 
+     600    474.70282   -3199.4049            0   -3181.7332   -34761.287 
+     700    492.00191   -3201.1592            0   -3182.8435   -33036.989 
+     800    440.88631     -3198.37            0   -3181.9572   -34669.762 
+     900    475.14414   -3198.5845            0   -3180.8964   -31191.883 
+    1000    476.87852   -3197.3442            0   -3179.5914   -33731.074 
+Loop time of 0.339602 on 4 procs for 1000 steps with 577 atoms
+
+Performance: 1272.077 ns/day, 0.019 hours/ns, 2944.623 timesteps/s
+98.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.25294    | 0.26196    | 0.27409    |   1.5 | 77.14
+Neigh   | 0.017554   | 0.018856   | 0.020498   |   0.8 |  5.55
+Comm    | 0.027196   | 0.040838   | 0.050409   |   4.2 | 12.03
+Output  | 0.00025296 | 0.0002721  | 0.00030828 |   0.0 |  0.08
+Modify  | 0.013425   | 0.014212   | 0.014999   |   0.5 |  4.18
+Other   |            | 0.00346    |            |       |  1.02
+
+Nlocal:    144.25 ave 147 max 141 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+Nghost:    527.5 ave 533 max 523 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+Neighs:    3477.25 ave 3585 max 3399 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+
+Total # of neighbors = 13909
+Ave neighs/atom = 24.1057
+Neighbor list builds = 91
+Dangerous builds = 0
+reset_timestep  0
+
+# pin base so will not move during quenches
+
+fix             freeze base setforce 0.0 0.0 0.0
+
+# event detection
+
+compute         event all event/displace ${cutevent}
+compute         event all event/displace 1.1
+
+# hyper/global
+
+fix             HG mobile hyper/global ${cutbond} ${qfactor} ${Vmax} ${Tequil}
+fix             HG mobile hyper/global 3.2 ${qfactor} ${Vmax} ${Tequil}
+fix             HG mobile hyper/global 3.2 0.3 ${Vmax} ${Tequil}
+fix             HG mobile hyper/global 3.2 0.3 0.5 ${Tequil}
+fix             HG mobile hyper/global 3.2 0.3 0.5 500.0
+
+# thermo output
+
+thermo_style    custom step temp pe f_HG f_HG[*]
+WARNING: New thermo_style command, previous thermo_modify settings will be lost (../output.cpp:705)
+
+thermo_modify   lost ignore
+thermo_modify   temp tmobile
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:487)
+
+thermo          ${nevent}
+thermo          1000
+
+# dump output options
+
+region          substrate block INF INF INF INF 1.8 3.8
+region          adatoms block INF INF INF INF 3.8 INF
+variable        acolor atom rmask(base)+2*rmask(substrate)+3*rmask(adatoms)
+
+dump		1 all image 1000000 global.*.jpg v_acolor type 		zoom ${zoom} adiam 2.5 view 0.0 0.0 up 0 1 0 axes yes 0.9 0.01
+dump		1 all image 1000000 global.*.jpg v_acolor type 		zoom 1.8 adiam 2.5 view 0.0 0.0 up 0 1 0 axes yes 0.9 0.01
+dump_modify	1 pad 6 amap 1 3 sa 1 3 blue red green
+
+# run
+
+hyper           ${steps} ${nevent} HG event min ${tol} ${tol} 1000 1000 dump 1
+hyper           100000 ${nevent} HG event min ${tol} ${tol} 1000 1000 dump 1
+hyper           100000 1000 HG event min ${tol} ${tol} 1000 1000 dump 1
+hyper           100000 1000 HG event min 1.0e-15 ${tol} 1000 1000 dump 1
+hyper           100000 1000 HG event min 1.0e-15 1.0e-15 1000 1000 dump 1
+WARNING: Resetting reneighboring criteria during hyper (../hyper.cpp:133)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.07583
+  ghost atom cutoff = 6.07583
+  binsize = 3.03792, bins = 8 8 7
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix hyper/global, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 6.015 | 6.015 | 6.015 Mbytes
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+       0    476.87852   -3197.3442            0            0            0            0            0            0            0            0            0            0            0            0            0 
+      53    476.87852   -3217.9192            0            0            0            0            0            0            0            0            0            0            0            0            0 
+Loop time of 0.0358047 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+       0    476.87852   -3197.3442   0.33187212    2213.7063   0.17396269          129          131    6.0069324            0            0            0    3.3552688            0            0            0 
+    1000    487.34979   -3198.3697   0.19401776    90.283981   0.23468448          543          548    6.0069324        0.165            0            0    3.9974111    6134.6092            0            0 
+Loop time of 0.342707 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    1000    487.34979   -3198.3697   0.19401776    90.283981   0.23468448          543          548    6.0069324        0.165            0            0    3.9974111    6134.6092            0            0 
+    1059    487.34979   -3217.9192   0.19401776    90.283981   0.23468448          543          548    6.0069324   0.15580737            0            0    3.9974111    6134.6092            0            0 
+Loop time of 0.0359111 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    1000    487.34979   -3198.3697   0.19401776    90.283981   0.23468448          543          548    6.0069324        0.165            0            0    3.9974111    6134.6092            0            0 
+    2000    522.93873   -3197.4748    0.1540961    35.745265   0.24952495          120          131    6.0069324       0.1645            0            0    4.0370436    10213.644            0            0 
+Loop time of 0.305975 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    2000    522.93873   -3197.4748    0.1540961    35.745265   0.24952495          120          131    6.0069324       0.1645            0            0    4.0370436    10213.644            0            0 
+    2057    522.93873   -3217.9192    0.1540961    35.745265   0.24952495          120          131    6.0069324   0.15994166            0            0    4.0370436    10213.644            0            0 
+Loop time of 0.0335248 on 4 procs for 57 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    2000    522.93873   -3197.4748    0.1540961    35.745265   0.24952495          120          131    6.0069324       0.1645            0            0    4.0370436    10213.644            0            0 
+    3000     485.3853   -3198.0446  0.081070047     6.563707   0.27460406          120          131    6.0069324        0.145            0            0    4.0370436    13331.739            0            0 
+Loop time of 0.269706 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    3000     485.3853   -3198.0446  0.081070047     6.563707   0.27460406          120          131    6.0069324        0.145            0            0    4.0370436    13331.739            0            0 
+    3059     485.3853   -3217.9192  0.081070047     6.563707   0.27460406          120          131    6.0069324   0.14220333            0            0    4.0370436    13331.739            0            0 
+Loop time of 0.0265908 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    3000     485.3853   -3198.0446  0.081070047     6.563707   0.27460406          120          131    6.0069324        0.145            0            0    4.0370436    13331.739            0            0 
+    4000    522.88476   -3199.0496  0.020170911    1.5970319   0.29388643          548          555    6.0069324      0.17575            0            0    4.0370436    14355.723            0            0 
+Loop time of 0.229504 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    4000    522.88476   -3199.0496  0.020170911    1.5970319   0.29388643          548          555    6.0069324      0.17575            0            0    4.0370436    14355.723            0            0 
+    4060    522.88476   -3217.9192  0.020170911    1.5970319   0.29388643          548          555    6.0069324   0.17315271            0            0    4.0370436    14355.723            0            0 
+Loop time of 0.0280094 on 4 procs for 60 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    4000    522.88476   -3199.0496  0.020170911    1.5970319   0.29388643          548          555    6.0069324      0.17575            0            0    4.0370436    14355.723            0            0 
+    5000    462.24647   -3197.3076   0.11575138    14.679837   0.26299192          130          132    6.0069324       0.1664            0            0    4.0370436    19342.466            0            0 
+Loop time of 0.234847 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    5000    462.24647   -3197.3076   0.11575138    14.679837   0.26299192          130          132    6.0069324       0.1664            0            0    4.0370436    19342.466            0            0 
+    5054    462.24647   -3217.9192   0.11575138    14.679837   0.26299192          130          132    6.0069324   0.16462208            0            0    4.0370436    19342.466            0            0 
+Loop time of 0.026547 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    5000    462.24647   -3197.3076   0.11575138    14.679837   0.26299192          130          132    6.0069324       0.1664            0            0    4.0370436    19342.466            0            0 
+    6000    463.33022   -3196.1897   0.37378421    5855.6457   0.15072771          122          123    6.0069324   0.15583333            0            0    4.0370436    22854.021            0            0 
+Loop time of 0.244725 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    6000    463.33022   -3196.1897   0.37378421    5855.6457   0.15072771          122          123    6.0069324   0.15583333            0            0    4.0370436    22854.021            0            0 
+    6054    463.33022   -3217.9192   0.37378421    5855.6457   0.15072771          122          123    6.0069324   0.15444334            0            0    4.0370436    22854.021            0            0 
+Loop time of 0.0267512 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    6000    463.33022   -3196.1897   0.37378421    5855.6457   0.15072771          122          123    6.0069324   0.15583333            0            0    4.0370436    22854.021            0            0 
+    7000    496.34089   -3198.1795   0.29031005    843.70994   0.19427864          547          552    6.0069324   0.14885714            0            0    4.1079381    27854.511            0            0 
+Loop time of 0.229727 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    7000    496.34089   -3198.1795   0.29031005    843.70994   0.19427864          547          552    6.0069324   0.14885714            0            0    4.1079381    27854.511            0            0 
+    7055    496.34089   -3217.9192   0.29031005    843.70994   0.19427864          547          552    6.0069324   0.14769667            0            0    4.1079381    27854.511            0            0 
+Loop time of 0.0260235 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    7000    496.34089   -3198.1795   0.29031005    843.70994   0.19427864          547          552    6.0069324   0.14885714            0            0    4.1079381    27854.511            0            0 
+    8000    468.63017   -3197.6685            0            1   0.31412476          275          556    6.0069324      0.14075      0.00175            0    4.1079381    31930.231            0            0 
+Loop time of 0.230083 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    8000    468.63017   -3197.6685            0            1   0.31412476          275          556    6.0069324      0.14075      0.00175            0    4.1079381    31930.231            0            0 
+    8056    468.63017   -3217.9192            0            1   0.31412476          275          556    6.0069324    0.1397716 0.0017378352            0    4.1079381    31930.231            0            0 
+Loop time of 0.0261552 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    8000    468.63017   -3197.6685            0            1   0.31412476          275          556    6.0069324      0.14075      0.00175            0    4.1079381    31930.231            0            0 
+    9000    467.53307   -3198.3982            0            1    0.3075376          543          544    6.0069324   0.14888889 0.0015555556            0    4.1079381    35292.432            0            0 
+Loop time of 0.22948 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    9000    467.53307   -3198.3982            0            1    0.3075376          543          544    6.0069324   0.14888889 0.0015555556            0    4.1079381    35292.432            0            0 
+    9051    467.53307   -3217.9192            0            1    0.3075376          543          544    6.0069324   0.14804994 0.0015467904            0    4.1079381    35292.432            0            0 
+Loop time of 0.0240657 on 4 procs for 51 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+    9000    467.53307   -3198.3982            0            1    0.3075376          543          544    6.0069324   0.14888889 0.0015555556            0    4.1079381    35292.432            0            0 
+   10000    496.73768   -3197.9106   0.11921512    15.908682   0.26180389          543          548    6.0069324       0.1531       0.0014            0    4.1079381    40303.236            0            0 
+Loop time of 0.237951 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   10000    496.73768   -3197.9106   0.11921512    15.908682   0.26180389          543          548    6.0069324       0.1531       0.0014            0    4.1079381    40303.236            0            0 
+   10061    496.73768   -3217.9192   0.11921512    15.908682   0.26180389          543          548    6.0069324   0.15217175 0.0013915118            0    4.1079381    40303.236            0            0 
+Loop time of 0.0275102 on 4 procs for 61 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   10000    496.73768   -3197.9106   0.11921512    15.908682   0.26180389          543          548    6.0069324       0.1531       0.0014            0    4.1079381    40303.236            0            0 
+   11000    526.76049   -3199.3263   0.24399827    287.99939   0.21466325          408          419    6.0069324   0.15945455 0.0012727273            0    4.1079381    42710.668            0            0 
+Loop time of 0.226262 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   11000    526.76049   -3199.3263   0.24399827    287.99939   0.21466325          408          419    6.0069324   0.15945455 0.0012727273            0    4.1079381    42710.668            0            0 
+   11058    526.76049   -3217.9192   0.24399827    287.99939   0.21466325          408          419    6.0069324   0.15861819 0.0012660517            0    4.1079381    42710.668            0            0 
+Loop time of 0.0257103 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   11000    526.76049   -3199.3263   0.24399827    287.99939   0.21466325          408          419    6.0069324   0.15945455 0.0012727273            0    4.1079381    42710.668            0            0 
+   12000    488.24107   -3198.2441   0.34073209    2719.0951   0.16931693          409          400    6.0069324   0.15558333 0.0011666667            0    4.1079381    47154.117            0            0 
+Loop time of 0.226415 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   12000    488.24107   -3198.2441   0.34073209    2719.0951   0.16931693          409          400    6.0069324   0.15558333 0.0011666667            0    4.1079381    47154.117            0            0 
+   12053    488.24107   -3217.9192   0.34073209    2719.0951   0.16931693          409          400    6.0069324    0.1548992 0.0011615365            0    4.1079381    47154.117            0            0 
+Loop time of 0.0232868 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   12000    488.24107   -3198.2441   0.34073209    2719.0951   0.16931693          409          400    6.0069324   0.15558333 0.0011666667            0    4.1079381    47154.117            0            0 
+   13000    467.87203   -3197.0681            0            1   0.32542353          275          556    6.0069324   0.14869231 0.0015384615            0    4.1079381    54700.864            0            0 
+Loop time of 0.234386 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   13000    467.87203   -3197.0681            0            1   0.32542353          275          556    6.0069324   0.14869231 0.0015384615            0    4.1079381    54700.864            0            0 
+   13055    467.87203   -3217.9192            0            1   0.32542353          275          556    6.0069324   0.14806588 0.0015319801            0    4.1079381    54700.864            0            0 
+Loop time of 0.0268174 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   13000    467.87203   -3197.0681            0            1   0.32542353          275          556    6.0069324   0.14869231 0.0015384615            0    4.1079381    54700.864            0            0 
+   14000    494.97859   -3197.9767  0.061678009    4.1849114    0.2808878          544          555    6.0069324   0.16885714 0.0014285714            0    4.1079381    55284.212            0            0 
+Loop time of 0.236772 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   14000    494.97859   -3197.9767  0.061678009    4.1849114    0.2808878          544          555    6.0069324   0.16885714 0.0014285714            0    4.1079381    55284.212            0            0 
+   14059    494.97859   -3217.9192  0.061678009    4.1849114    0.2808878          544          555    6.0069324   0.16814852 0.0014225763            0    4.1079381    55284.212            0            0 
+Loop time of 0.0262685 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   14000    494.97859   -3197.9767  0.061678009    4.1849114    0.2808878          544          555    6.0069324   0.16885714 0.0014285714            0    4.1079381    55284.212            0            0 
+   15000    487.47593   -3196.3193            0            1   0.30681413          124          135    6.0069324   0.16526667 0.0013333333            0    4.1079381    58845.637            0            0 
+Loop time of 0.228132 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   15000    487.47593   -3196.3193            0            1   0.30681413          124          135    6.0069324   0.16526667 0.0013333333            0    4.1079381    58845.637            0            0 
+   15056    487.47593   -3217.9192            0            1   0.30681413          124          135    6.0069324   0.16465197 0.0013283741            0    4.1079381    58845.637            0            0 
+Loop time of 0.0253892 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   15000    487.47593   -3196.3193            0            1   0.30681413          124          135    6.0069324   0.16526667 0.0013333333            0    4.1079381    58845.637            0            0 
+   16000    514.29619   -3198.6976   0.15192442    33.988268   0.25030702          287          568    6.0069324     0.160375      0.00125            0    4.1079381    65959.225            0            0 
+Loop time of 0.226636 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   16000    514.29619   -3198.6976   0.15192442    33.988268   0.25030702          287          568    6.0069324     0.160375      0.00125            0    4.1079381    65959.225            0            0 
+   16057    514.29619   -3217.9192   0.15192442    33.988268   0.25030702          287          568    6.0069324   0.15980569 0.0012455627            0    4.1079381    65959.225            0            0 
+Loop time of 0.0258105 on 4 procs for 57 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   16000    514.29619   -3198.6976   0.15192442    33.988268   0.25030702          287          568    6.0069324     0.160375      0.00125            0    4.1079381    65959.225            0            0 
+   17000    518.58789   -3197.5021    0.1333678    22.094631   0.25689258          116          123    6.0069324   0.16088235 0.0011764706            0    4.1079381    70525.413            0            0 
+Loop time of 0.233751 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   17000    518.58789   -3197.5021    0.1333678    22.094631   0.25689258          116          123    6.0069324   0.16088235 0.0011764706            0    4.1079381    70525.413            0            0 
+   17052    518.58789   -3217.9192    0.1333678    22.094631   0.25689258          116          123    6.0069324   0.16039174 0.0011728829            0    4.1079381    70525.413            0            0 
+Loop time of 0.0248473 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   17000    518.58789   -3197.5021    0.1333678    22.094631   0.25689258          116          123    6.0069324   0.16088235 0.0011764706            0    4.1079381    70525.413            0            0 
+   18000    505.83228   -3198.9838   0.08205079    6.7148239   0.27428244          552          563    6.0069324   0.15644444 0.0011111111            0    4.1079381    73252.823            0            0 
+Loop time of 0.240134 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   18000    505.83228   -3198.9838   0.08205079    6.7148239   0.27428244          552          563    6.0069324   0.15644444 0.0011111111            0    4.1079381    73252.823            0            0 
+   18056    505.83228   -3217.9192   0.08205079    6.7148239   0.27428244          552          563    6.0069324   0.15595924  0.001107665            0    4.1079381    73252.823            0            0 
+Loop time of 0.0243995 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   18000    505.83228   -3198.9838   0.08205079    6.7148239   0.27428244          552          563    6.0069324   0.15644444 0.0011111111            0    4.1079381    73252.823            0            0 
+   19000    527.41862   -3198.5008  0.040305357    2.5483534   0.28765437          424          263    6.0069324   0.15589474 0.0010526316            0    4.1079381     75984.28            0            0 
+Loop time of 0.22821 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   19000    527.41862   -3198.5008  0.040305357    2.5483534   0.28765437          424          263    6.0069324   0.15589474 0.0010526316            0    4.1079381     75984.28            0            0 
+   19052    527.41862   -3217.9192  0.040305357    2.5483534   0.28765437          424          263    6.0069324   0.15546924 0.0010497586            0    4.1079381     75984.28            0            0 
+Loop time of 0.0237539 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   19000    527.41862   -3198.5008  0.040305357    2.5483534   0.28765437          424          263    6.0069324   0.15589474 0.0010526316            0    4.1079381     75984.28            0            0 
+   20000    451.64207   -3198.7796  0.047092391    2.9831142   0.28552298          570          403    6.0069324      0.15125        0.001            0    4.1079381    81688.471            0            0 
+Loop time of 0.226179 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   20000    451.64207   -3198.7796  0.047092391    2.9831142   0.28552298          570          403    6.0069324      0.15125        0.001            0    4.1079381    81688.471            0            0 
+   20053    451.64207   -3217.9192  0.047092391    2.9831142   0.28552298          570          403    6.0069324   0.15085025  0.000997357            0    4.1079381    81688.471            0            0 
+Loop time of 0.0244102 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   20000    451.64207   -3198.7796  0.047092391    2.9831142   0.28552298          570          403    6.0069324      0.15125        0.001            0    4.1079381    81688.471            0            0 
+   21000    469.69339   -3200.6427            0            1    0.3308786          267          268    6.0069324   0.14852381 0.00095238095            0    4.1079381    87660.496            0            0 
+Loop time of 0.234504 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   21000    469.69339   -3200.6427            0            1    0.3308786          267          268    6.0069324   0.14852381 0.00095238095            0    4.1079381    87660.496            0            0 
+   21050    469.69339   -3217.9192            0            1    0.3308786          267          268    6.0069324   0.14817102 0.00095011876            0    4.1079381    87660.496            0            0 
+Loop time of 0.0231035 on 4 procs for 50 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   21000    469.69339   -3200.6427            0            1    0.3308786          267          268    6.0069324   0.14852381 0.00095238095            0    4.1079381    87660.496            0            0 
+   22000    473.26326   -3199.3284            0            1   0.31249141          544          555    6.0069324   0.14786364 0.00090909091            0    4.1079381    91920.285            0            0 
+Loop time of 0.235723 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   22000    473.26326   -3199.3284            0            1   0.31249141          544          555    6.0069324   0.14786364 0.00090909091            0    4.1079381    91920.285            0            0 
+   22054    473.26326   -3217.9192            0            1   0.31249141          544          555    6.0069324   0.14750159 0.00090686497            0    4.1079381    91920.285            0            0 
+Loop time of 0.024776 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   22000    473.26326   -3199.3284            0            1   0.31249141          544          555    6.0069324   0.14786364 0.00090909091            0    4.1079381    91920.285            0            0 
+   23000    496.07543   -3198.2605   0.30577111    1207.9075   0.18697914          572          403    6.0069324   0.15665217 0.0011304348            0    4.1079381    92558.536            0            0 
+Loop time of 0.229916 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   23000    496.07543   -3198.2605   0.30577111    1207.9075   0.18697914          572          403    6.0069324   0.15665217 0.0011304348            0    4.1079381    92558.536            0            0 
+   23056    496.07543   -3217.9192   0.30577111    1207.9075   0.18697914          572          403    6.0069324   0.15627169 0.0011276891            0    4.1079381    92558.536            0            0 
+Loop time of 0.0252325 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   23000    496.07543   -3198.2605   0.30577111    1207.9075   0.18697914          572          403    6.0069324   0.15665217 0.0011304348            0    4.1079381    92558.536            0            0 
+   24000    465.43821    -3199.468            0            1   0.31415739          543          544    6.0069324   0.15466667 0.0010833333            0    4.1079381    97530.178            0            0 
+Loop time of 0.231022 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   24000    465.43821    -3199.468            0            1   0.31415739          543          544    6.0069324   0.15466667 0.0010833333            0    4.1079381    97530.178            0            0 
+   24054    465.43821   -3217.9192            0            1   0.31415739          543          544    6.0069324   0.15431945 0.0010809013            0    4.1079381    97530.178            0            0 
+Loop time of 0.0246248 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   24000    465.43821    -3199.468            0            1   0.31415739          543          544    6.0069324   0.15466667 0.0010833333            0    4.1079381    97530.178            0            0 
+   25000    489.80528    -3200.439   0.25812453    399.74019   0.20865662          543          544    6.0069324      0.15368      0.00104            0    4.1079381    103216.01            0            0 
+Loop time of 0.239562 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   25000    489.80528    -3200.439   0.25812453    399.74019   0.20865662          543          544    6.0069324      0.15368      0.00104            0    4.1079381    103216.01            0            0 
+   25060    489.80528   -3217.9192   0.25812453    399.74019   0.20865662          543          544    6.0069324   0.15331205   0.00103751            0    4.1079381    103216.01            0            0 
+Loop time of 0.0290521 on 4 procs for 60 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   25000    489.80528    -3200.439   0.25812453    399.74019   0.20865662          543          544    6.0069324      0.15368      0.00104            0    4.1079381    103216.01            0            0 
+   26000    454.33199   -3197.9264   0.15449017    36.073692   0.24938278          283          272    6.0069324   0.15788462        0.001            0    4.1079381    106857.47            0            0 
+Loop time of 0.231679 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   26000    454.33199   -3197.9264   0.15449017    36.073692   0.24938278          283          272    6.0069324   0.15788462        0.001            0    4.1079381    106857.47            0            0 
+   26053    454.33199   -3217.9192   0.15449017    36.073692   0.24938278          283          272    6.0069324   0.15756343 0.00099796569            0    4.1079381    106857.47            0            0 
+Loop time of 0.0229361 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   26000    454.33199   -3197.9264   0.15449017    36.073692   0.24938278          283          272    6.0069324   0.15788462        0.001            0    4.1079381    106857.47            0            0 
+   27000    493.26662   -3198.8515   0.17523126    58.378293   0.24178166          260          271    6.0069324   0.15388889 0.00096296296            0    4.1079381     114287.4            0            0 
+Loop time of 0.228356 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   27000    493.26662   -3198.8515   0.17523126    58.378293   0.24178166          260          271    6.0069324   0.15388889 0.00096296296            0    4.1079381     114287.4            0            0 
+   27056    493.26662   -3217.9192   0.17523126    58.378293   0.24178166          260          271    6.0069324   0.15357037 0.00096096984            0    4.1079381     114287.4            0            0 
+Loop time of 0.0249045 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   27000    493.26662   -3198.8515   0.17523126    58.378293   0.24178166          260          271    6.0069324   0.15388889 0.00096296296            0    4.1079381     114287.4            0            0 
+   28000    516.59709   -3198.7939  0.017083929     1.486614   0.29483028          543          548    6.0069324   0.15278571 0.00092857143            0    4.1079381    117735.24            0            0 
+Loop time of 0.226666 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   28000    516.59709   -3198.7939  0.017083929     1.486614   0.29483028          543          548    6.0069324   0.15278571 0.00092857143            0    4.1079381    117735.24            0            0 
+   28054    516.59709   -3217.9192  0.017083929     1.486614   0.29483028          543          548    6.0069324   0.15249162 0.00092678406            0    4.1079381    117735.24            0            0 
+Loop time of 0.0245788 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   28000    516.59709   -3198.7939  0.017083929     1.486614   0.29483028          543          548    6.0069324   0.15278571 0.00092857143            0    4.1079381    117735.24            0            0 
+   29000    498.78313   -3197.7551            0            1   0.43523955          543          544    6.0069324   0.15648276 0.00089655172            0    4.3557073    122569.32            0            0 
+Loop time of 0.239195 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   29000    498.78313   -3197.7551            0            1   0.43523955          543          544    6.0069324   0.15648276 0.00089655172            0    4.3557073    122569.32            0            0 
+   29059    498.78313   -3217.9192            0            1   0.43523955          543          544    6.0069324   0.15616504 0.00089473141            0    4.3557073    122569.32            0            0 
+Loop time of 0.0290976 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   29000    498.78313   -3197.7551            0            1   0.43523955          543          544    6.0069324   0.15648276 0.00089655172            0    4.3557073    122569.32            0            0 
+   30000    466.86137   -3199.5233   0.23621441    240.39961   0.21790229          126          127    6.0069324   0.15756667 0.00086666667            0    4.3557073    127229.34            0            0 
+Loop time of 0.232616 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   30000    466.86137   -3199.5233   0.23621441    240.39961   0.21790229          126          127    6.0069324   0.15756667 0.00086666667            0    4.3557073    127229.34            0            0 
+   30059    466.86137   -3217.9192   0.23621441    240.39961   0.21790229          126          127    6.0069324   0.15725739 0.00086496557            0    4.3557073    127229.34            0            0 
+Loop time of 0.0269623 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   30000    466.86137   -3199.5233   0.23621441    240.39961   0.21790229          126          127    6.0069324   0.15756667 0.00086666667            0    4.3557073    127229.34            0            0 
+   31000    471.12992   -3199.7598            0            1   0.30984418          567          572    6.0069324   0.15541935 0.00087096774            0    4.3557073     131258.9            0            0 
+Loop time of 0.229214 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   31000    471.12992   -3199.7598            0            1   0.30984418          567          572    6.0069324   0.15541935 0.00087096774            0    4.3557073     131258.9            0            0 
+   31053    471.12992   -3217.9192            0            1   0.30984418          567          572    6.0069324   0.15515409 0.00086948121            0    4.3557073     131258.9            0            0 
+Loop time of 0.0240388 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   31000    471.12992   -3199.7598            0            1   0.30984418          567          572    6.0069324   0.15541935 0.00087096774            0    4.3557073     131258.9            0            0 
+   32000     510.4372   -3198.4263   0.38770138    8088.2308   0.14217507          511          546    6.0069324   0.15328125   0.00084375            0    4.3557073    136077.46            0            0 
+Loop time of 0.230157 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   32000     510.4372   -3198.4263   0.38770138    8088.2308   0.14217507          511          546    6.0069324   0.15328125   0.00084375            0    4.3557073    136077.46            0            0 
+   32057     510.4372   -3217.9192   0.38770138    8088.2308   0.14217507          511          546    6.0069324    0.1530087 0.00084224974            0    4.3557073    136077.46            0            0 
+Loop time of 0.0259738 on 4 procs for 57 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   32000     510.4372   -3198.4263   0.38770138    8088.2308   0.14217507          511          546    6.0069324   0.15328125   0.00084375            0    4.3557073    136077.46            0            0 
+   33000     517.9664   -3198.8477  0.065094278    4.5302347   0.27979105          136          255    6.0069324   0.15212121 0.00081818182            0    4.3557073    140653.16            0            0 
+Loop time of 0.240719 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   33000     517.9664   -3198.8477  0.065094278    4.5302347   0.27979105          136          255    6.0069324   0.15212121 0.00081818182            0    4.3557073    140653.16            0            0 
+   33055     517.9664   -3217.9192  0.065094278    4.5302347   0.27979105          136          255    6.0069324    0.1518681 0.00081682045            0    4.3557073    140653.16            0            0 
+Loop time of 0.0254009 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   33000     517.9664   -3198.8477  0.065094278    4.5302347   0.27979105          136          255    6.0069324   0.15212121 0.00081818182            0    4.3557073    140653.16            0            0 
+   34000    539.21923   -3197.9619   0.10137745    10.515709   0.26786575          119          400    6.0069324   0.15088235 0.00079411765            0    4.3557073    146106.36            0            0 
+Loop time of 0.228472 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   34000    539.21923   -3197.9619   0.10137745    10.515709   0.26786575          119          400    6.0069324   0.15088235 0.00079411765            0    4.3557073    146106.36            0            0 
+   34053    539.21923   -3217.9192   0.10137745    10.515709   0.26786575          119          400    6.0069324   0.15064752 0.00079288168            0    4.3557073    146106.36            0            0 
+Loop time of 0.0239374 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   34000    539.21923   -3197.9619   0.10137745    10.515709   0.26786575          119          400    6.0069324   0.15088235 0.00079411765            0    4.3557073    146106.36            0            0 
+   35000    495.28481   -3198.2101   0.03728079    2.3756005   0.28859913          543          544    6.0069324   0.14882857 0.00077142857            0    4.3557073    152132.21            0            0 
+Loop time of 0.227014 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   35000    495.28481   -3198.2101   0.03728079    2.3756005   0.28859913          543          544    6.0069324   0.14882857 0.00077142857            0    4.3557073    152132.21            0            0 
+   35061    495.28481   -3217.9192   0.03728079    2.3756005   0.28859913          543          544    6.0069324   0.14856964 0.00077008642            0    4.3557073    152132.21            0            0 
+Loop time of 0.0271087 on 4 procs for 61 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   35000    495.28481   -3198.2101   0.03728079    2.3756005   0.28859913          543          544    6.0069324   0.14882857 0.00077142857            0    4.3557073    152132.21            0            0 
+   36000    522.02047   -3197.5464  0.023049198    1.7073613   0.29300366          132          139    6.0069324      0.14975      0.00075            0    4.3557073    155779.35            0            0 
+Loop time of 0.230395 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   36000    522.02047   -3197.5464  0.023049198    1.7073613   0.29300366          132          139    6.0069324      0.14975      0.00075            0    4.3557073    155779.35            0            0 
+   36058    522.02047   -3217.9192  0.023049198    1.7073613   0.29300366          132          139    6.0069324   0.14950912 0.00074879361            0    4.3557073    155779.35            0            0 
+Loop time of 0.0274341 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   36000    522.02047   -3197.5464  0.023049198    1.7073613   0.29300366          132          139    6.0069324      0.14975      0.00075            0    4.3557073    155779.35            0            0 
+   37000    493.66881   -3198.2972   0.29065621    850.51576   0.19411822          110          121    6.0069324   0.14783784 0.00072972973            0    4.3557073     159446.9            0            0 
+Loop time of 0.239665 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   37000    493.66881   -3198.2972   0.29065621    850.51576   0.19411822          110          121    6.0069324   0.14783784 0.00072972973            0    4.3557073     159446.9            0            0 
+   37055    493.66881   -3217.9192   0.29065621    850.51576   0.19411822          110          121    6.0069324   0.14761841 0.00072864661            0    4.3557073     159446.9            0            0 
+Loop time of 0.0258739 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   37000    493.66881   -3198.2972   0.29065621    850.51576   0.19411822          110          121    6.0069324   0.14783784 0.00072972973            0    4.3557073     159446.9            0            0 
+   38000    471.56021   -3200.0689   0.21390468    143.23918   0.22692985          546          559    6.0069324       0.1505 0.00071052632            0    4.3557073    161793.64            0            0 
+Loop time of 0.231827 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   38000    471.56021   -3200.0689   0.21390468    143.23918   0.22692985          546          559    6.0069324       0.1505 0.00071052632            0    4.3557073    161793.64            0            0 
+   38050    471.56021   -3217.9192   0.21390468    143.23918   0.22692985          546          559    6.0069324   0.15030223 0.00070959264            0    4.3557073    161793.64            0            0 
+Loop time of 0.0234141 on 4 procs for 50 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   38000    471.56021   -3200.0689   0.21390468    143.23918   0.22692985          546          559    6.0069324       0.1505 0.00071052632            0    4.3557073    161793.64            0            0 
+   39000    488.60708   -3198.2279   0.29546108    950.85261   0.19187758          410          412    6.0069324   0.14884615 0.00069230769            0    4.3557073    167145.63            0            0 
+Loop time of 0.227483 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   39000    488.60708   -3198.2279   0.29546108    950.85261   0.19187758          410          412    6.0069324   0.14884615 0.00069230769            0    4.3557073    167145.63            0            0 
+   39062    488.60708   -3217.9192   0.29546108    950.85261   0.19187758          410          412    6.0069324    0.1486099 0.00069120885            0    4.3557073    167145.63            0            0 
+Loop time of 0.028059 on 4 procs for 62 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   39000    488.60708   -3198.2279   0.29546108    950.85261   0.19187758          410          412    6.0069324   0.14884615 0.00069230769            0    4.3557073    167145.63            0            0 
+   40000    507.73002   -3196.8491  0.012490865    1.3362947   0.29622904          543          544    6.0069324      0.15095     0.000675            0    4.3557073    171194.28            0            0 
+Loop time of 0.231293 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   40000    507.73002   -3196.8491  0.012490865    1.3362947   0.29622904          543          544    6.0069324      0.15095     0.000675            0    4.3557073    171194.28            0            0 
+   40064    507.73002   -3217.9192  0.012490865    1.3362947   0.29622904          543          544    6.0069324   0.15070887 0.00067392173            0    4.3557073    171194.28            0            0 
+Loop time of 0.0308156 on 4 procs for 64 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   40000    507.73002   -3196.8491  0.012490865    1.3362947   0.29622904          543          544    6.0069324      0.15095     0.000675            0    4.3557073    171194.28            0            0 
+   41000    479.11448    -3200.241            0            1   0.94094448          542          544    6.0069324   0.16480488 0.00065853659            0    5.4178316    171224.32            0            0 
+Loop time of 0.239781 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   41000    479.11448    -3200.241            0            1   0.94094448          542          544    6.0069324   0.16480488 0.00065853659            0    5.4178316    171224.32            0            0 
+   41055    479.11448   -3217.9192            0            1   0.94094448          542          544    6.0069324   0.16458409 0.00065765437            0    5.4178316    171224.32            0            0 
+Loop time of 0.0248787 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   41000    479.11448    -3200.241   0.31626598    1541.0515   0.18185743          398          404    6.0069324   0.16480488 0.00065853659    2.3326665    5.4178316    171224.32            1            2 
+   42000    495.84675   -3198.6432    0.1729929    55.422961   0.24261343          275          264    6.0069324    0.1692381 0.0011190476    2.3326665    5.4178316    174484.67            1            2 
+Loop time of 0.226913 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   42000    495.84675   -3198.6432    0.1729929    55.422961   0.24261343          275          264    6.0069324    0.1692381 0.0011190476    2.3326665    5.4178316    174484.67            1            2 
+   42056    495.84675   -3217.9192    0.1729929    55.422961   0.24261343          275          264    6.0069324   0.16901274 0.0011175575    2.3326665    5.4178316    174484.67            1            2 
+Loop time of 0.0239749 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   42000    495.84675   -3198.6432    0.1729929    55.422961   0.24261343          275          264    6.0069324    0.1692381 0.0011190476    2.3326665    5.4178316    174484.67            1            2 
+   43000    533.30453   -3198.6415            0            1   0.34377427          263          577    6.0069324   0.17646512 0.0010930233    2.3326665    5.4178316    175038.14            1            2 
+Loop time of 0.224798 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   43000    533.30453   -3198.6415            0            1   0.34377427          263          577    6.0069324   0.17646512 0.0010930233    2.3326665    5.4178316    175038.14            1            2 
+   43054    533.30453   -3217.9192            0            1   0.34377427          263          577    6.0069324   0.17624379 0.0010916523    2.3326665    5.4178316    175038.14            1            2 
+Loop time of 0.0243425 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   43000    533.30453   -3198.6415            0            1   0.34377427          263          577    6.0069324   0.17646512 0.0010930233    2.3326665    5.4178316    175038.14            1            2 
+   44000    497.19886   -3199.3252            0            1   0.32411085          262          264    6.0069324   0.17947727 0.0010681818    2.3326665    5.4178316    175732.69            1            2 
+Loop time of 0.23413 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   44000    497.19886   -3199.3252            0            1   0.32411085          262          264    6.0069324   0.17947727 0.0010681818    2.3326665    5.4178316    175732.69            1            2 
+   44056    497.19886   -3217.9192            0            1   0.32411085          262          264    6.0069324   0.17924914  0.001066824    2.3326665    5.4178316    175732.69            1            2 
+Loop time of 0.0264681 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   44000    497.19886   -3199.3252            0            1   0.32411085          262          264    6.0069324   0.17947727 0.0010681818    2.3326665    5.4178316    175732.69            1            2 
+   45000    501.66497   -3198.3133            0            1   0.89133337          262          264    6.0069324   0.18806667 0.0010444444    2.3326665    5.4178316    175885.32            1            2 
+Loop time of 0.233324 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   45000    501.66497   -3198.3133            0            1   0.89133337          262          264    6.0069324   0.18806667 0.0010444444    2.3326665    5.4178316    175885.32            1            2 
+   45053    501.66497   -3217.9192            0            1   0.89133337          262          264    6.0069324   0.18784543 0.0010432158    2.3326665    5.4178316    175885.32            1            2 
+Loop time of 0.0239007 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   45000    501.66497   -3198.3133   0.31380779    1455.5922   0.18306993          549          547    6.0069324   0.18806667 0.0010444444     2.332667    5.4178316    175885.32            2            4 
+   46000    512.99827   -3198.7869   0.30973921    1324.4339   0.18505929          547          552    6.0069324   0.18545652 0.0010217391     2.332667    5.4178316    180703.66            2            4 
+Loop time of 0.227399 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   46000    512.99827   -3198.7869   0.30973921    1324.4339   0.18505929          547          552    6.0069324   0.18545652 0.0010217391     2.332667    5.4178316    180703.66            2            4 
+   46058    512.99827   -3217.9192   0.30973921    1324.4339   0.18505929          547          552    6.0069324   0.18522298 0.0010204525     2.332667    5.4178316    180703.66            2            4 
+Loop time of 0.025696 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   46000    512.99827   -3198.7869   0.30973921    1324.4339   0.18505929          547          552    6.0069324   0.18545652 0.0010217391     2.332667    5.4178316    180703.66            2            4 
+   47000    508.06284   -3198.0819   0.17828926     62.67216   0.24064067          271          544    6.0069324   0.18404255        0.001     2.332667    5.4178316    186245.92            2            4 
+Loop time of 0.232521 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   47000    508.06284   -3198.0819   0.17828926     62.67216   0.24064067          271          544    6.0069324   0.18404255        0.001     2.332667    5.4178316    186245.92            2            4 
+   47062    508.06284   -3217.9192   0.17828926     62.67216   0.24064067          271          544    6.0069324   0.18380009 0.00099868259     2.332667    5.4178316    186245.92            2            4 
+Loop time of 0.0288792 on 4 procs for 62 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   47000    508.06284   -3198.0819   0.17828926     62.67216   0.24064067          271          544    6.0069324   0.18404255        0.001     2.332667    5.4178316    186245.92            2            4 
+   48000    512.83356   -3200.0643            0            1   0.96810224          258          544    6.0069324    0.1921875 0.00097916667     2.332667    5.5485401    188226.87            2            4 
+Loop time of 0.241704 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   48000    512.83356   -3200.0643            0            1   0.96810224          258          544    6.0069324    0.1921875 0.00097916667     2.332667    5.5485401    188226.87            2            4 
+   48051    512.83356   -3217.9192            0            1   0.96810224          258          544    6.0069324   0.19198352 0.00097812741     2.332667    5.5485401    188226.87            2            4 
+Loop time of 0.0259903 on 4 procs for 51 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   48000    512.83356   -3200.0643   0.36239559    4495.5483   0.15738105          280          407    6.0069324    0.1921875 0.00097916667     2.332667    5.5485401    188226.87            3            6 
+   49000     490.9639   -3198.6936   0.21113624    134.32512   0.22802517          114          115    6.0069324   0.18993878 0.00095918367     2.332667    5.5485401     191519.1            3            6 
+Loop time of 0.22826 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   49000     490.9639   -3198.6936   0.21113624    134.32512   0.22802517          114          115    6.0069324   0.18993878 0.00095918367     2.332667    5.5485401     191519.1            3            6 
+   49054     490.9639   -3217.9192   0.21113624    134.32512   0.22802517          114          115    6.0069324   0.18972969 0.00095812778     2.332667    5.5485401     191519.1            3            6 
+Loop time of 0.024157 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   49000     490.9639   -3198.6936   0.21113624    134.32512   0.22802517          114          115    6.0069324   0.18993878 0.00095918367     2.332667    5.5485401     191519.1            3            6 
+   50000    502.62206   -3199.7905   0.22799901    198.66723   0.22126947          119          400    6.0069324       0.1885      0.00094     2.332667    5.5485401    195910.67            3            6 
+Loop time of 0.226578 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   50000    502.62206   -3199.7905   0.22799901    198.66723   0.22126947          119          400    6.0069324       0.1885      0.00094     2.332667    5.5485401    195910.67            3            6 
+   50059    502.62206   -3217.9192   0.22799901    198.66723   0.22126947          119          400    6.0069324   0.18827783 0.00093889211     2.332667    5.5485401    195910.67            3            6 
+Loop time of 0.0268276 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   50000    502.62206   -3199.7905   0.22799901    198.66723   0.22126947          119          400    6.0069324       0.1885      0.00094     2.332667    5.5485401    195910.67            3            6 
+   51000    508.29336   -3198.9059   0.14109933    26.437299   0.25416947          264          275    6.0069324   0.18907843 0.00092156863     2.332667    5.5485401    199067.94            3            6 
+Loop time of 0.23022 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   51000    508.29336   -3198.9059   0.14109933    26.437299   0.25416947          264          275    6.0069324   0.18907843 0.00092156863     2.332667    5.5485401    199067.94            3            6 
+   51055    508.29336   -3217.9192   0.14109933    26.437299   0.25416947          264          275    6.0069324   0.18887474 0.00092057585     2.332667    5.5485401    199067.94            3            6 
+Loop time of 0.0267057 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   51000    508.29336   -3198.9059   0.14109933    26.437299   0.25416947          264          275    6.0069324   0.18907843 0.00092156863     2.332667    5.5485401    199067.94            3            6 
+   52000    506.84322   -3198.7391            0            1   0.35895473          264          275    6.0069324   0.19369231 0.00090384615     2.332667    5.5485401    199119.85            3            6 
+Loop time of 0.248939 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   52000    506.84322   -3198.7391            0            1   0.35895473          264          275    6.0069324   0.19369231 0.00090384615     2.332667    5.5485401    199119.85            3            6 
+   52061    506.84322   -3217.9192            0            1   0.35895473          264          275    6.0069324   0.19346536 0.00090278712     2.332667    5.5485401    199119.85            3            6 
+Loop time of 0.0283017 on 4 procs for 61 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   52000    506.84322   -3198.7391            0            1   0.35895473          264          275    6.0069324   0.19369231 0.00090384615     2.332667    5.5485401    199119.85            3            6 
+   53000    477.74415   -3199.3706            0            1   0.31797782          264          275    6.0069324    0.1960566 0.00088679245     2.332667    5.5485401    200597.61            3            6 
+Loop time of 0.226147 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   53000    477.74415   -3199.3706            0            1   0.31797782          264          275    6.0069324    0.1960566 0.00088679245     2.332667    5.5485401    200597.61            3            6 
+   53056    477.74415   -3217.9192            0            1   0.31797782          264          275    6.0069324   0.19584967 0.00088585645     2.332667    5.5485401    200597.61            3            6 
+Loop time of 0.0249364 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   53000    477.74415   -3199.3706            0            1   0.31797782          264          275    6.0069324    0.1960566 0.00088679245     2.332667    5.5485401    200597.61            3            6 
+   54000    467.64603   -3198.6476   0.12868765    19.820426   0.25852702          575          280    6.0069324   0.19614815 0.00087037037     2.332667    5.5485401     203111.2            3            6 
+Loop time of 0.242983 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   54000    467.64603   -3198.6476   0.12868765    19.820426   0.25852702          575          280    6.0069324   0.19614815 0.00087037037     2.332667    5.5485401     203111.2            3            6 
+   54051    467.64603   -3217.9192   0.12868765    19.820426   0.25852702          575          280    6.0069324   0.19596307 0.00086954913     2.332667    5.5485401     203111.2            3            6 
+Loop time of 0.0256515 on 4 procs for 51 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   54000    467.64603   -3198.6476   0.12868765    19.820426   0.25852702          575          280    6.0069324   0.19614815 0.00087037037     2.332667    5.5485401     203111.2            3            6 
+   55000    504.56378   -3198.2318   0.01979034     1.582988   0.29400296          556          567    6.0069324       0.1934 0.00085454545     2.332667    5.5485401    209967.08            3            6 
+Loop time of 0.243744 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   55000    504.56378   -3198.2318   0.01979034     1.582988   0.29400296          556          567    6.0069324       0.1934 0.00085454545     2.332667    5.5485401    209967.08            3            6 
+   55057    504.56378   -3217.9192   0.01979034     1.582988   0.29400296          556          567    6.0069324   0.19319977 0.00085366075     2.332667    5.5485401    209967.08            3            6 
+Loop time of 0.0273646 on 4 procs for 57 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   55000    504.56378   -3198.2318   0.01979034     1.582988   0.29400296          556          567    6.0069324       0.1934 0.00085454545     2.332667    5.5485401    209967.08            3            6 
+   56000    564.45428   -3198.7813   0.20223936    109.26492   0.23151007           78           91    6.0069324   0.19246429 0.00083928571     2.332667    5.5485401    215831.27            3            6 
+Loop time of 0.238614 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   56000    564.45428   -3198.7813   0.20223936    109.26492   0.23151007           78           91    6.0069324   0.19246429 0.00083928571     2.332667    5.5485401    215831.27            3            6 
+   56052    564.45428   -3217.9192   0.20223936    109.26492   0.23151007           78           91    6.0069324   0.19228573 0.0008385071     2.332667    5.5485401    215831.27            3            6 
+Loop time of 0.0241504 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   56000    564.45428   -3198.7813   0.20223936    109.26492   0.23151007           78           91    6.0069324   0.19246429 0.00083928571     2.332667    5.5485401    215831.27            3            6 
+   57000    515.72168   -3198.6584   0.31159686    1382.7848   0.18415364          544          577    6.0069324   0.19210526 0.0008245614     2.332667    5.5485401    222695.11            3            6 
+Loop time of 0.30046 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   57000    515.72168   -3198.6584   0.31159686    1382.7848   0.18415364          544          577    6.0069324   0.19210526 0.0008245614     2.332667    5.5485401    222695.11            3            6 
+   57059    515.72168   -3217.9192   0.31159686    1382.7848   0.18415364          544          577    6.0069324   0.19190662 0.00082370879     2.332667    5.5485401    222695.11            3            6 
+Loop time of 0.0361512 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   57000    515.72168   -3198.6584   0.31159686    1382.7848   0.18415364          544          577    6.0069324   0.19210526 0.0008245614     2.332667    5.5485401    222695.11            3            6 
+   58000    493.40021   -3198.8621            0            1   0.30931038          275          577    6.0069324   0.18989655 0.00081034483     2.332667    5.5485401    225894.02            3            6 
+Loop time of 0.304723 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   58000    493.40021   -3198.8621            0            1   0.30931038          275          577    6.0069324   0.18989655 0.00081034483     2.332667    5.5485401    225894.02            3            6 
+   58055    493.40021   -3217.9192            0            1   0.30931038          275          577    6.0069324   0.18971665 0.00080957713     2.332667    5.5485401    225894.02            3            6 
+Loop time of 0.034838 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   58000    493.40021   -3198.8621            0            1   0.30931038          275          577    6.0069324   0.18989655 0.00081034483     2.332667    5.5485401    225894.02            3            6 
+   59000    459.13337    -3198.423   0.32299123    1801.3772   0.17849812          117          288    6.0069324        0.189 0.00079661017     2.332667    5.5485401    232785.62            3            6 
+Loop time of 0.267864 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   59000    459.13337    -3198.423   0.32299123    1801.3772   0.17849812          117          288    6.0069324        0.189 0.00079661017     2.332667    5.5485401    232785.62            3            6 
+   59052    459.13337   -3217.9192   0.32299123    1801.3772   0.17849812          117          288    6.0069324   0.18883357 0.00079590869     2.332667    5.5485401    232785.62            3            6 
+Loop time of 0.0229472 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   59000    459.13337    -3198.423   0.32299123    1801.3772   0.17849812          117          288    6.0069324        0.189 0.00079661017     2.332667    5.5485401    232785.62            3            6 
+   60000    491.26878   -3198.9291   0.28012983    666.16416   0.19893876          560          567    6.0069324   0.18678333 0.00078333333     2.332667    5.5485401    236949.88            3            6 
+Loop time of 0.224423 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   60000    491.26878   -3198.9291   0.28012983    666.16416   0.19893876          560          567    6.0069324   0.18678333 0.00078333333     2.332667    5.5485401    236949.88            3            6 
+   60051    491.26878   -3217.9192   0.28012983    666.16416   0.19893876          560          567    6.0069324    0.1866247 0.00078266807     2.332667    5.5485401    236949.88            3            6 
+Loop time of 0.0231369 on 4 procs for 51 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   60000    491.26878   -3198.9291   0.28012983    666.16416   0.19893876          560          567    6.0069324   0.18678333 0.00078333333     2.332667    5.5485401    236949.88            3            6 
+   61000    469.65564   -3198.3735  0.086199081    7.3934564   0.27291787          562          564    6.0069324   0.18445902 0.0007704918     2.332667    5.5485401    245720.88            3            6 
+Loop time of 0.228656 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   61000    469.65564   -3198.3735  0.086199081    7.3934564   0.27291787          562          564    6.0069324   0.18445902 0.0007704918     2.332667    5.5485401    245720.88            3            6 
+   61053    469.65564   -3217.9192  0.086199081    7.3934564   0.27291787          562          564    6.0069324   0.18429889 0.00076982294     2.332667    5.5485401    245720.88            3            6 
+Loop time of 0.0245876 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   61000    469.65564   -3198.3735  0.086199081    7.3934564   0.27291787          562          564    6.0069324   0.18445902 0.0007704918     2.332667    5.5485401    245720.88            3            6 
+   62000    520.14843   -3198.5458   0.35275062    3593.8982   0.16280322          116          123    6.0069324   0.18312903 0.00075806452     2.332667    5.5485401    250136.37            3            6 
+Loop time of 0.232165 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   62000    520.14843   -3198.5458   0.35275062    3593.8982   0.16280322          116          123    6.0069324   0.18312903 0.00075806452     2.332667    5.5485401    250136.37            3            6 
+   62056    520.14843   -3217.9192   0.35275062    3593.8982   0.16280322          116          123    6.0069324   0.18296377 0.00075738043     2.332667    5.5485401    250136.37            3            6 
+Loop time of 0.0275648 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   62000    520.14843   -3198.5458   0.35275062    3593.8982   0.16280322          116          123    6.0069324   0.18312903 0.00075806452     2.332667    5.5485401    250136.37            3            6 
+   63000    506.90141   -3196.9575  0.019630501    1.5771264   0.29405188          577          555    6.0069324   0.18190476 0.00074603175     2.332667    5.5485401    257004.48            3            6 
+Loop time of 0.236446 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   63000    506.90141   -3196.9575  0.019630501    1.5771264   0.29405188          577          555    6.0069324   0.18190476 0.00074603175     2.332667    5.5485401    257004.48            3            6 
+   63059    506.90141   -3217.9192  0.019630501    1.5771264   0.29405188          577          555    6.0069324   0.18173457 0.00074533374     2.332667    5.5485401    257004.48            3            6 
+Loop time of 0.0258729 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   63000    506.90141   -3196.9575  0.019630501    1.5771264   0.29405188          577          555    6.0069324   0.18190476 0.00074603175     2.332667    5.5485401    257004.48            3            6 
+   64000    435.29185   -3197.3025   0.08981574    8.0408468   0.27172259          266          267    6.0069324   0.18060937  0.000734375     2.332667    5.5485401    261196.79            3            6 
+Loop time of 0.224694 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   64000    435.29185   -3197.3025   0.08981574    8.0408468   0.27172259          266          267    6.0069324   0.18060937  0.000734375     2.332667    5.5485401    261196.79            3            6 
+   64053    435.29185   -3217.9192   0.08981574    8.0408468   0.27172259          266          267    6.0069324   0.18045993 0.00073376735     2.332667    5.5485401    261196.79            3            6 
+Loop time of 0.023932 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   64000    435.29185   -3197.3025   0.08981574    8.0408468   0.27172259          266          267    6.0069324   0.18060937  0.000734375     2.332667    5.5485401    261196.79            3            6 
+   65000    484.45338   -3198.1013   0.27900382    648.98038   0.19944752           85           87    6.0069324   0.17955385 0.00072307692     2.332667    5.5485401    267611.45            3            6 
+Loop time of 0.225038 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   65000    484.45338   -3198.1013   0.27900382    648.98038   0.19944752           85           87    6.0069324   0.17955385 0.00072307692     2.332667    5.5485401    267611.45            3            6 
+   65053    484.45338   -3217.9192   0.27900382    648.98038   0.19944752           85           87    6.0069324   0.17940756 0.00072248782     2.332667    5.5485401    267611.45            3            6 
+Loop time of 0.0248089 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   65000    484.45338   -3198.1013   0.27900382    648.98038   0.19944752           85           87    6.0069324   0.17955385 0.00072307692     2.332667    5.5485401    267611.45            3            6 
+   66000    497.23553    -3199.036   0.25525209    373.95984   0.20989193          412          411    6.0069324   0.17804545 0.00071212121     2.332667    5.5485401    274383.49            3            6 
+Loop time of 0.233376 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   66000    497.23553    -3199.036   0.25525209    373.95984   0.20989193          412          411    6.0069324   0.17804545 0.00071212121     2.332667    5.5485401    274383.49            3            6 
+   66058    497.23553   -3217.9192   0.25525209    373.95984   0.20989193          412          411    6.0069324   0.17788913 0.00071149596     2.332667    5.5485401    274383.49            3            6 
+Loop time of 0.0279601 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   66000    497.23553    -3199.036   0.25525209    373.95984   0.20989193          412          411    6.0069324   0.17804545 0.00071212121     2.332667    5.5485401    274383.49            3            6 
+   67000    488.34684   -3198.7152   0.27967841     659.2212   0.19914288          264          275    6.0069324   0.17935821 0.00070149254     2.332667    5.5485401    274635.62            3            6 
+Loop time of 0.237521 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   67000    488.34684   -3198.7152   0.27967841     659.2212   0.19914288          264          275    6.0069324   0.17935821 0.00070149254     2.332667    5.5485401    274635.62            3            6 
+   67055    488.34684   -3217.9192   0.27967841     659.2212   0.19914288          264          275    6.0069324    0.1792111 0.00070091716     2.332667    5.5485401    274635.62            3            6 
+Loop time of 0.0262208 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   67000    488.34684   -3198.7152   0.27967841     659.2212   0.19914288          264          275    6.0069324   0.17935821 0.00070149254     2.332667    5.5485401    274635.62            3            6 
+   68000    547.06201   -3198.7151   0.11427629    14.185774   0.26349624          261          263    6.0069324   0.17882353 0.00069117647     2.332667    5.5485401    277575.99            3            6 
+Loop time of 0.224043 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   68000    547.06201   -3198.7151   0.11427629    14.185774   0.26349624          261          263    6.0069324   0.17882353 0.00069117647     2.332667    5.5485401    277575.99            3            6 
+   68060    547.06201   -3217.9192   0.11427629    14.185774   0.26349624          261          263    6.0069324   0.17866588 0.00069056715     2.332667    5.5485401    277575.99            3            6 
+Loop time of 0.0288572 on 4 procs for 60 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   68000    547.06201   -3198.7151   0.11427629    14.185774   0.26349624          261          263    6.0069324   0.17882353 0.00069117647     2.332667    5.5485401    277575.99            3            6 
+   69000    508.94771   -3198.9475   0.10069537    10.350552   0.26809482          264          275    6.0069324   0.18095652 0.00068115942     2.332667    5.5485401    279847.52            3            6 
+Loop time of 0.227692 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   69000    508.94771   -3198.9475   0.10069537    10.350552   0.26809482          264          275    6.0069324   0.18095652 0.00068115942     2.332667    5.5485401    279847.52            3            6 
+   69056    508.94771   -3217.9192   0.10069537    10.350552   0.26809482          264          275    6.0069324   0.18080978 0.00068060704     2.332667    5.5485401    279847.52            3            6 
+Loop time of 0.0247979 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   69000    508.94771   -3198.9475   0.10069537    10.350552   0.26809482          264          275    6.0069324   0.18095652 0.00068115942     2.332667    5.5485401    279847.52            3            6 
+   70000    499.92534   -3198.5636    0.3528879    3605.3669   0.16272731          283          288    6.0069324   0.18142857 0.00072857143     2.332667    5.5485401    281504.52            3            6 
+Loop time of 0.232204 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   70000    499.92534   -3198.5636    0.3528879    3605.3669   0.16272731          283          288    6.0069324   0.18142857 0.00072857143     2.332667    5.5485401    281504.52            3            6 
+   70054    499.92534   -3217.9192    0.3528879    3605.3669   0.16272731          283          288    6.0069324   0.18128872 0.00072800982     2.332667    5.5485401    281504.52            3            6 
+Loop time of 0.0249009 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   70000    499.92534   -3198.5636    0.3528879    3605.3669   0.16272731          283          288    6.0069324   0.18142857 0.00072857143     2.332667    5.5485401    281504.52            3            6 
+   71000    506.70688    -3197.313  0.082678879     6.813425   0.27407627          541          543    6.0069324   0.18050704 0.00071830986     2.332667    5.5485401    286003.61            3            6 
+Loop time of 0.229025 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   71000    506.70688    -3197.313  0.082678879     6.813425   0.27407627          541          543    6.0069324   0.18050704 0.00071830986     2.332667    5.5485401    286003.61            3            6 
+   71059    506.70688   -3217.9192  0.082678879     6.813425   0.27407627          541          543    6.0069324   0.18035717 0.00071771345     2.332667    5.5485401    286003.61            3            6 
+Loop time of 0.0265949 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   71000    506.70688    -3197.313  0.082678879     6.813425   0.27407627          541          543    6.0069324   0.18050704 0.00071830986     2.332667    5.5485401    286003.61            3            6 
+   72000    464.23294   -3197.7357            0            1   0.31542276          275          577    6.0069324   0.18266667 0.00070833333     2.332667    5.5485401    286734.83            3            6 
+Loop time of 0.228346 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   72000    464.23294   -3197.7357            0            1   0.31542276          275          577    6.0069324   0.18266667 0.00070833333     2.332667    5.5485401    286734.83            3            6 
+   72053    464.23294   -3217.9192            0            1   0.31542276          275          577    6.0069324    0.1825323 0.0007078123     2.332667    5.5485401    286734.83            3            6 
+Loop time of 0.026114 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   72000    464.23294   -3197.7357            0            1   0.31542276          275          577    6.0069324   0.18266667 0.00070833333     2.332667    5.5485401    286734.83            3            6 
+   73000    529.30216   -3198.1231    0.1005148    10.307265   0.26815543          411          416    6.0069324   0.18394521 0.00069863014     2.332667    5.5485401    287872.93            3            6 
+Loop time of 0.229123 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   73000    529.30216   -3198.1231    0.1005148    10.307265   0.26815543          411          416    6.0069324   0.18394521 0.00069863014     2.332667    5.5485401    287872.93            3            6 
+   73054    529.30216   -3217.9192    0.1005148    10.307265   0.26815543          411          416    6.0069324   0.18380924 0.00069811372     2.332667    5.5485401    287872.93            3            6 
+Loop time of 0.0243089 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   73000    529.30216   -3198.1231    0.1005148    10.307265   0.26815543          411          416    6.0069324   0.18394521 0.00069863014     2.332667    5.5485401    287872.93            3            6 
+   74000    490.65557   -3199.6766   0.14904687    31.792497   0.25133954          111          116    6.0069324   0.18322973 0.00068918919     2.332667    5.5485401    294766.16            3            6 
+Loop time of 0.236133 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   74000    490.65557   -3199.6766   0.14904687    31.792497   0.25133954          111          116    6.0069324   0.18322973 0.00068918919     2.332667    5.5485401    294766.16            3            6 
+   74055    490.65557   -3217.9192   0.14904687    31.792497   0.25133954          111          116    6.0069324   0.18309365 0.00068867733     2.332667    5.5485401    294766.16            3            6 
+Loop time of 0.0264881 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   74000    490.65557   -3199.6766   0.14904687    31.792497   0.25133954          111          116    6.0069324   0.18322973 0.00068918919     2.332667    5.5485401    294766.16            3            6 
+   75000    475.22638   -3198.1558   0.37341486    5805.6632   0.15094809          563          564    6.0069324      0.18212 0.00073333333     2.332667    5.5485401    302150.54            3            6 
+Loop time of 0.228974 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   75000    475.22638   -3198.1558   0.37341486    5805.6632   0.15094809          563          564    6.0069324      0.18212 0.00073333333     2.332667    5.5485401    302150.54            3            6 
+   75053    475.22638   -3217.9192   0.37341486    5805.6632   0.15094809          563          564    6.0069324   0.18199139 0.00073281548     2.332667    5.5485401    302150.54            3            6 
+Loop time of 0.0246332 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   75000    475.22638   -3198.1558   0.37341486    5805.6632   0.15094809          563          564    6.0069324      0.18212 0.00073333333     2.332667    5.5485401    302150.54            3            6 
+   76000    523.91803   -3198.8966  0.038679316    2.4539737   0.28816267          263          264    6.0069324   0.18286842 0.00072368421     2.332667    5.5485401     304160.3            3            6 
+Loop time of 0.223991 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   76000    523.91803   -3198.8966  0.038679316    2.4539737   0.28816267          263          264    6.0069324   0.18286842 0.00072368421     2.332667    5.5485401     304160.3            3            6 
+   76058    523.91803   -3217.9192  0.038679316    2.4539737   0.28816267          263          264    6.0069324   0.18272897 0.00072313235     2.332667    5.5485401     304160.3            3            6 
+Loop time of 0.0268497 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   76000    523.91803   -3198.8966  0.038679316    2.4539737   0.28816267          263          264    6.0069324   0.18286842 0.00072368421     2.332667    5.5485401     304160.3            3            6 
+   77000    511.16512   -3199.1926            0            1   0.31251901          264          275    6.0069324   0.18790909 0.00071428571     2.332667    5.5485401    304174.43            3            6 
+Loop time of 0.226324 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   77000    511.16512   -3199.1926            0            1   0.31251901          264          275    6.0069324   0.18790909 0.00071428571     2.332667    5.5485401    304174.43            3            6 
+   77059    511.16512   -3217.9192            0            1   0.31251901          264          275    6.0069324   0.18776522 0.00071373882     2.332667    5.5485401    304174.43            3            6 
+Loop time of 0.026314 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   77000    511.16512   -3199.1926            0            1   0.31251901          264          275    6.0069324   0.18790909 0.00071428571     2.332667    5.5485401    304174.43            3            6 
+   78000    554.58169   -3199.0107  0.022175428    1.6730858   0.29327193          263          264    6.0069324   0.19037179 0.00094871795     2.332667    5.5485401    304438.98            3            6 
+Loop time of 0.234504 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   78000    554.58169   -3199.0107  0.022175428    1.6730858   0.29327193          263          264    6.0069324   0.19037179 0.00094871795     2.332667    5.5485401    304438.98            3            6 
+   78062    554.58169   -3217.9192  0.022175428    1.6730858   0.29327193          263          264    6.0069324   0.19022059 0.00094796444     2.332667    5.5485401    304438.98            3            6 
+Loop time of 0.0297351 on 4 procs for 62 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   78000    554.58169   -3199.0107  0.022175428    1.6730858   0.29327193          263          264    6.0069324   0.19037179 0.00094871795     2.332667    5.5485401    304438.98            3            6 
+   79000    523.97176   -3198.2366    0.1672356    48.490735   0.24473985          556          567    6.0069324   0.19017722 0.00093670886     2.332667    5.5485401    306076.23            3            6 
+Loop time of 0.228044 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   79000    523.97176   -3198.2366    0.1672356    48.490735   0.24473985          556          567    6.0069324   0.19017722 0.00093670886     2.332667    5.5485401    306076.23            3            6 
+   79057    523.97176   -3217.9192    0.1672356    48.490735   0.24473985          556          567    6.0069324    0.1900401 0.00093603349     2.332667    5.5485401    306076.23            3            6 
+Loop time of 0.026444 on 4 procs for 57 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   79000    523.97176   -3198.2366    0.1672356    48.490735   0.24473985          556          567    6.0069324   0.19017722 0.00093670886     2.332667    5.5485401    306076.23            3            6 
+   80000    479.09781   -3197.6134            0            1   0.30854872          263          577    6.0069324    0.1902125     0.000925     2.332667    5.5485401    308522.09            3            6 
+Loop time of 0.224854 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   80000    479.09781   -3197.6134            0            1   0.30854872          263          577    6.0069324    0.1902125     0.000925     2.332667    5.5485401    308522.09            3            6 
+   80059    479.09781   -3217.9192            0            1   0.30854872          263          577    6.0069324   0.19007232 0.00092431832     2.332667    5.5485401    308522.09            3            6 
+Loop time of 0.0272751 on 4 procs for 59 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   80000    479.09781   -3197.6134            0            1   0.30854872          263          577    6.0069324    0.1902125     0.000925     2.332667    5.5485401    308522.09            3            6 
+   81000    517.52613   -3198.2236   0.29863857    1023.6251   0.19038135          254          256    6.0069324   0.18996296 0.00091358025     2.332667    5.5485401    311171.12            3            6 
+Loop time of 0.226269 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   81000    517.52613   -3198.2236   0.29863857    1023.6251   0.19038135          254          256    6.0069324   0.18996296 0.00091358025     2.332667    5.5485401    311171.12            3            6 
+   81056    517.52613   -3217.9192   0.29863857    1023.6251   0.19038135          254          256    6.0069324   0.18983172 0.00091294907     2.332667    5.5485401    311171.12            3            6 
+Loop time of 0.0258186 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   81000    517.52613   -3198.2236   0.29863857    1023.6251   0.19038135          254          256    6.0069324   0.18996296 0.00091358025     2.332667    5.5485401    311171.12            3            6 
+   82000    503.95678   -3197.7481  0.091495497    8.3605139   0.27116565          263          264    6.0069324   0.18862195 0.0010365854     2.332667    5.5485401    315319.38            3            6 
+Loop time of 0.235559 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   82000    503.95678   -3197.7481  0.091495497    8.3605139   0.27116565          263          264    6.0069324   0.18862195 0.0010365854     2.332667    5.5485401    315319.38            3            6 
+   82055    503.95678   -3217.9192  0.091495497    8.3605139   0.27116565          263          264    6.0069324   0.18849552 0.0010358906     2.332667    5.5485401    315319.38            3            6 
+Loop time of 0.0261242 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   82000    503.95678   -3197.7481  0.091495497    8.3605139   0.27116565          263          264    6.0069324   0.18862195 0.0010365854     2.332667    5.5485401    315319.38            3            6 
+   83000    537.67639   -3197.6886            0            1   0.32414276          263          264    6.0069324    0.1896988 0.0010240964     2.332667    5.5485401    316613.84            3            6 
+Loop time of 0.227873 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   83000    537.67639   -3197.6886            0            1   0.32414276          263          264    6.0069324    0.1896988 0.0010240964     2.332667    5.5485401    316613.84            3            6 
+   83064    537.67639   -3217.9192            0            1   0.32414276          263          264    6.0069324   0.18955263 0.0010233073     2.332667    5.5485401    316613.84            3            6 
+Loop time of 0.0301323 on 4 procs for 64 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   83000    537.67639   -3197.6886            0            1   0.32414276          263          264    6.0069324    0.1896988 0.0010240964     2.332667    5.5485401    316613.84            3            6 
+   84000    510.26841   -3199.5428   0.23554832    236.71181   0.21817723          142          424    6.0069324         0.19 0.0010119048     2.332667    5.5485401    318598.08            3            6 
+Loop time of 0.228573 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   84000    510.26841   -3199.5428   0.23554832    236.71181   0.21817723          142          424    6.0069324         0.19 0.0010119048     2.332667    5.5485401    318598.08            3            6 
+   84052    510.26841   -3217.9192   0.23554832    236.71181   0.21817723          142          424    6.0069324   0.18988245 0.0010112787     2.332667    5.5485401    318598.08            3            6 
+Loop time of 0.0254717 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   84000    510.26841   -3199.5428   0.23554832    236.71181   0.21817723          142          424    6.0069324         0.19 0.0010119048     2.332667    5.5485401    318598.08            3            6 
+   85000    472.16876   -3197.5248            0            1   0.34247044          264          275    6.0069324   0.18970588        0.001     2.332667    5.5485401    323882.61            3            6 
+Loop time of 0.231174 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   85000    472.16876   -3197.5248            0            1   0.34247044          264          275    6.0069324   0.18970588        0.001     2.332667    5.5485401    323882.61            3            6 
+   85055    472.16876   -3217.9192            0            1   0.34247044          264          275    6.0069324   0.18958321 0.00099935336     2.332667    5.5485401    323882.61            3            6 
+Loop time of 0.0253472 on 4 procs for 55 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   85000    472.16876   -3197.5248            0            1   0.34247044          264          275    6.0069324   0.18970588        0.001     2.332667    5.5485401    323882.61            3            6 
+   86000    509.30024   -3198.3226   0.20619306    119.76563   0.22996793          275          276    6.0069324   0.19110465 0.00098837209     2.332667    5.5485401    325788.44            3            6 
+Loop time of 0.241364 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   86000    509.30024   -3198.3226   0.20619306    119.76563   0.22996793          275          276    6.0069324   0.19110465 0.00098837209     2.332667    5.5485401    325788.44            3            6 
+   86053    509.30024   -3217.9192   0.20619306    119.76563   0.22996793          275          276    6.0069324   0.19098695 0.00098776336     2.332667    5.5485401    325788.44            3            6 
+Loop time of 0.0262635 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   86000    509.30024   -3198.3226   0.20619306    119.76563   0.22996793          275          276    6.0069324   0.19110465 0.00098837209     2.332667    5.5485401    325788.44            3            6 
+   87000    478.57944   -3199.3497   0.19192384    86.001287   0.23548611          260          271    6.0069324    0.1897931 0.00097701149     2.332667    5.5485401    330047.59            3            6 
+Loop time of 0.230381 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   87000    478.57944   -3199.3497   0.19192384    86.001287   0.23548611          260          271    6.0069324    0.1897931 0.00097701149     2.332667    5.5485401    330047.59            3            6 
+   87058    478.57944   -3217.9192   0.19192384    86.001287   0.23548611          260          271    6.0069324   0.18966666 0.00097636059     2.332667    5.5485401    330047.59            3            6 
+Loop time of 0.0275965 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   87000    478.57944   -3199.3497   0.19192384    86.001287   0.23548611          260          271    6.0069324    0.1897931 0.00097701149     2.332667    5.5485401    330047.59            3            6 
+   88000    515.63138   -3198.9629   0.35491784    3779.2911   0.16160071          543          577    6.0069324   0.18827273 0.00096590909     2.332667    5.5485401    337304.34            3            6 
+Loop time of 0.229339 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   88000    515.63138   -3198.9629   0.35491784    3779.2911   0.16160071          543          577    6.0069324   0.18827273 0.00096590909     2.332667    5.5485401    337304.34            3            6 
+   88050    515.63138   -3217.9192   0.35491784    3779.2911   0.16160071          543          577    6.0069324   0.18816581 0.00096536059     2.332667    5.5485401    337304.34            3            6 
+Loop time of 0.0253522 on 4 procs for 50 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   88000    515.63138   -3198.9629   0.35491784    3779.2911   0.16160071          543          577    6.0069324   0.18827273 0.00096590909     2.332667    5.5485401    337304.34            3            6 
+   89000    520.37063   -3197.8234            0            1   0.92013924          262          275    6.0069324   0.19148315 0.0011123596     2.332667    5.5485401    339909.57            3            6 
+Loop time of 0.234048 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   89000    520.37063   -3197.8234            0            1   0.92013924          262          275    6.0069324   0.19148315 0.0011123596     2.332667    5.5485401    339909.57            3            6 
+   89052    520.37063   -3217.9192            0            1   0.92013924          262          275    6.0069324   0.19137133   0.00111171     2.332667    5.5485401    339909.57            3            6 
+Loop time of 0.0242915 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   89000    520.37063   -3197.8234   0.34652166    3110.1454   0.16621101          111          112    6.0069324   0.19148315 0.0011123596     2.332667    5.5485401    339909.57            4            8 
+   90000    455.69218   -3197.8262   0.30521336    1192.3721   0.18724742          416          415    6.0069324       0.1905       0.0011     2.332667    5.5485401    345606.41            4            8 
+Loop time of 0.239736 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   90000    455.69218   -3197.8262   0.30521336    1192.3721   0.18724742          416          415    6.0069324       0.1905       0.0011     2.332667    5.5485401    345606.41            4            8 
+   90058    455.69218   -3217.9192   0.30521336    1192.3721   0.18724742          416          415    6.0069324   0.19037731 0.0010992916     2.332667    5.5485401    345606.41            4            8 
+Loop time of 0.027481 on 4 procs for 58 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   90000    455.69218   -3197.8262   0.30521336    1192.3721   0.18724742          416          415    6.0069324       0.1905       0.0011     2.332667    5.5485401    345606.41            4            8 
+   91000    506.17768   -3197.1344  0.035696451    2.2898339   0.28909279          547          548    6.0069324   0.18983516 0.0010879121     2.332667    5.5485401    350825.27            4            8 
+Loop time of 0.23396 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   91000    506.17768   -3197.1344  0.035696451    2.2898339   0.28909279          547          548    6.0069324   0.18983516 0.0010879121     2.332667    5.5485401    350825.27            4            8 
+   91051    506.17768   -3217.9192  0.035696451    2.2898339   0.28909279          547          548    6.0069324   0.18972883 0.0010873027     2.332667    5.5485401    350825.27            4            8 
+Loop time of 0.0249534 on 4 procs for 51 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   91000    506.17768   -3197.1344  0.035696451    2.2898339   0.28909279          547          548    6.0069324   0.18983516 0.0010879121     2.332667    5.5485401    350825.27            4            8 
+   92000     478.3025   -3197.9483            0            1   0.30393958          544          556    6.0069324   0.19196739  0.001076087     2.332667    5.5485401    352816.62            4            8 
+Loop time of 0.233376 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   92000     478.3025   -3197.9483            0            1   0.30393958          544          556    6.0069324   0.19196739  0.001076087     2.332667    5.5485401    352816.62            4            8 
+   92060     478.3025   -3217.9192            0            1   0.30393958          544          556    6.0069324   0.19184228 0.0010753856     2.332667    5.5485401    352816.62            4            8 
+Loop time of 0.0286014 on 4 procs for 60 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   92000     478.3025   -3197.9483            0            1   0.30393958          544          556    6.0069324   0.19196739  0.001076087     2.332667    5.5485401    352816.62            4            8 
+   93000    485.23153   -3199.9299   0.16699022    48.215364   0.24483006          544          556    6.0069324    0.1942043 0.0010645161     2.332667    5.5485401    354391.05            4            8 
+Loop time of 0.234626 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   93000    485.23153   -3199.9299   0.16699022    48.215364   0.24483006          544          556    6.0069324    0.1942043 0.0010645161     2.332667    5.5485401    354391.05            4            8 
+   93056    485.23153   -3217.9192   0.16699022    48.215364   0.24483006          544          556    6.0069324   0.19408743 0.0010638755     2.332667    5.5485401    354391.05            4            8 
+Loop time of 0.0261769 on 4 procs for 56 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   93000    485.23153   -3199.9299   0.16699022    48.215364   0.24483006          544          556    6.0069324    0.1942043 0.0010645161     2.332667    5.5485401    354391.05            4            8 
+   94000    499.72991   -3199.3195            0            1   0.30394408          544          556    6.0069324   0.19443617 0.0010531915     2.332667    5.5485401    360147.54            4            8 
+Loop time of 0.229448 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   94000    499.72991   -3199.3195            0            1   0.30394408          544          556    6.0069324   0.19443617 0.0010531915     2.332667    5.5485401    360147.54            4            8 
+   94061    499.72991   -3217.9192            0            1   0.30394408          544          556    6.0069324   0.19431008 0.0010525085     2.332667    5.5485401    360147.54            4            8 
+Loop time of 0.0281783 on 4 procs for 61 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   94000    499.72991   -3199.3195            0            1   0.30394408          544          556    6.0069324   0.19443617 0.0010531915     2.332667    5.5485401    360147.54            4            8 
+   95000    509.83941   -3199.0903  0.078854869     6.234781   0.27532912          555          556    6.0069324   0.19681053 0.0010421053     2.332667    5.5485401    360599.28            4            8 
+Loop time of 0.224206 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   95000    509.83941   -3199.0903  0.078854869     6.234781   0.27532912          555          556    6.0069324   0.19681053 0.0010421053     2.332667    5.5485401    360599.28            4            8 
+   95060    509.83941   -3217.9192  0.078854869     6.234781   0.27532912          555          556    6.0069324    0.1966863 0.0010414475     2.332667    5.5485401    360599.28            4            8 
+Loop time of 0.027992 on 4 procs for 60 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   95000    509.83941   -3199.0903  0.078854869     6.234781   0.27532912          555          556    6.0069324   0.19681053 0.0010421053     2.332667    5.5485401    360599.28            4            8 
+   96000    486.83779   -3197.2106   0.31070799    1354.5503   0.18458755          136          431    6.0069324   0.19620833   0.00103125     2.332667    5.5485401    365489.89            4            8 
+Loop time of 0.228167 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   96000    486.83779   -3197.2106   0.31070799    1354.5503   0.18458755          136          431    6.0069324   0.19620833   0.00103125     2.332667    5.5485401    365489.89            4            8 
+   96053    486.83779   -3217.9192   0.31070799    1354.5503   0.18458755          136          431    6.0069324   0.19610007  0.001030681     2.332667    5.5485401    365489.89            4            8 
+Loop time of 0.024569 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   96000    486.83779   -3197.2106   0.31070799    1354.5503   0.18458755          136          431    6.0069324   0.19620833   0.00103125     2.332667    5.5485401    365489.89            4            8 
+   97000    499.91835   -3199.2446    0.2280334    198.82589   0.22125548          280          111    6.0069324   0.19491753 0.0010206186     2.332667    5.5485401    372336.45            4            8 
+Loop time of 0.23889 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   97000    499.91835   -3199.2446    0.2280334    198.82589   0.22125548          280          111    6.0069324   0.19491753 0.0010206186     2.332667    5.5485401    372336.45            4            8 
+   97052    499.91835   -3217.9192    0.2280334    198.82589   0.22125548          280          111    6.0069324   0.19481309 0.0010200717     2.332667    5.5485401    372336.45            4            8 
+Loop time of 0.0262206 on 4 procs for 52 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   97000    499.91835   -3199.2446    0.2280334    198.82589   0.22125548          280          111    6.0069324   0.19491753 0.0010206186     2.332667    5.5485401    372336.45            4            8 
+   98000    547.56456   -3197.2191   0.27848637    641.23302   0.19968088          430          136    6.0069324    0.1957449 0.0010102041     2.332667    5.5485401    377711.41            4            8 
+Loop time of 0.239305 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   98000    547.56456   -3197.2191   0.27848637    641.23302   0.19968088          430          136    6.0069324    0.1957449 0.0010102041     2.332667    5.5485401    377711.41            4            8 
+   98054    547.56456   -3217.9192   0.27848637    641.23302   0.19968088          430          136    6.0069324    0.1956371 0.0010096477     2.332667    5.5485401    377711.41            4            8 
+Loop time of 0.0272166 on 4 procs for 54 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   98000    547.56456   -3197.2191   0.27848637    641.23302   0.19968088          430          136    6.0069324    0.1957449 0.0010102041     2.332667    5.5485401    377711.41            4            8 
+   99000    504.19627   -3196.6567            0            1   0.33814873          287          276    6.0069324   0.19517172        0.001     2.332667    5.5485401    381676.19            4            8 
+Loop time of 0.235176 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   99000    504.19627   -3196.6567            0            1   0.33814873          287          276    6.0069324   0.19517172        0.001     2.332667    5.5485401    381676.19            4            8 
+   99053    504.19627   -3217.9192            0            1   0.33814873          287          276    6.0069324   0.19506729 0.00099946493     2.332667    5.5485401    381676.19            4            8 
+Loop time of 0.0249114 on 4 procs for 53 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+   99000    504.19627   -3196.6567            0            1   0.33814873          287          276    6.0069324   0.19517172        0.001     2.332667    5.5485401    381676.19            4            8 
+  100000    542.04702   -3198.2211   0.37630331    6208.2061   0.14921597          563          564    6.0069324      0.19442      0.00099     2.332667    5.5485401     385211.4            4            8 
+Loop time of 0.226452 on 4 procs for 1000 steps with 577 atoms
+
+Step Temp PotEng f_HG f_HG[1] f_HG[2] f_HG[3] f_HG[4] f_HG[5] f_HG[6] f_HG[7] f_HG[8] f_HG[9] f_HG[10] f_HG[11] f_HG[12] 
+  100000    542.04702   -3198.2211   0.37630331    6208.2061   0.14921597          563          564    6.0069324      0.19442      0.00099     2.332667    5.5485401     385211.4            4            8 
+  100060    542.04702   -3217.9192   0.37630331    6208.2061   0.14921597          563          564    6.0069324   0.19430342 0.00098940636     2.332667    5.5485401     385211.4            4            8 
+Loop time of 0.0303354 on 4 procs for 60 steps with 577 atoms
+
+Final hyper stats ...
+
+Cummulative quantities for fix hyper:
+  hyper time = 385211
+  time boost factor = 770.423
+  event timesteps = 4
+  # of atoms in events = 8
+Quantities for this hyper run:
+  event timesteps = 4
+  # of atoms in events = 8
+  max length of any bond = 5.54854
+  max drift distance of any atom = 2.33267
+  fraction of biased bonds with zero bias = 0.19442
+  fraction of biased bonds with negative strain = 0.00099
+Current quantities:
+  ave bonds/atom = 6.00693
+
+Loop time of 26.6054 on 4 procs for 100000 steps with 577 atoms
+
+Performance: 1623.732 ns/day, 0.015 hours/ns, 3758.639 timesteps/s
+100.6% CPU use with 4 MPI tasks x no OpenMP threads
+
+Hyper stats:
+  Dynamics time (%) = 23.5897 (88.665)
+  Quench   time (%) = 2.6357 (9.90664)
+  Other    time (%) = 0.875172 (3.28945)
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 18.942     | 19.435     | 20.026     |  10.1 | 73.05
+Neigh   | 1.3021     | 1.3833     | 1.4611     |   6.2 |  5.20
+Comm    | 2.1376     | 2.1725     | 2.2239     |   2.2 |  8.17
+Output  | 0.0033467  | 0.0034443  | 0.0037186  |   0.3 |  0.01
+Modify  | 2.0693     | 2.7356     | 3.2627     |  30.2 | 10.28
+Other   |            | 0.8752     |            |       |  3.29
+
+Nlocal:    144.25 ave 152 max 139 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+Nghost:    533.25 ave 538 max 526 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+Neighs:    3368.25 ave 3528 max 3240 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+
+Total # of neighbors = 13473
+Ave neighs/atom = 23.3501
+Neighbor list builds = 10072
+Dangerous builds = 0
+Total wall time: 0:00:27

@@ -48,7 +48,7 @@ Trung Ngyuen (Northwestern U), GPU and RIGID and BODY packages
 Mike Parks (Sandia), PERI package for Peridynamics
 Roy Pollock (LLNL), Ewald and PPPM solvers
 Christian Trott (Sandia), USER-CUDA and KOKKOS packages
-Ilya Valuev (JIHT), USER-AWPMD package for wave-packet MD
+Ilya Valuev (JIHT), USER-AWPMD package for wave packet MD
 Greg Wagner (Northwestern U), MEAM package for MEAM potential :ul
 
 :line
@@ -58,7 +58,7 @@ page"_http://lammps.sandia.gov/history.html of the website, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners.  Folks involved in the design and testing of the original
 version of LAMMPS were the following:
-    
+
 John Carpenter (Mayo Clinic, formerly at Cray Research)
 Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
 Steve Lustig (Dupont)

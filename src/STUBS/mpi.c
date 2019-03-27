@@ -463,8 +463,8 @@ int MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
 /* copy values from data1 to data2 */
 
 int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
-		   MPI_Datatype datatype, MPI_Op op,
-		   int root, MPI_Comm comm)
+                   MPI_Datatype datatype, MPI_Op op,
+                   int root, MPI_Comm comm)
 {
   int n = count * stubtypesize(datatype);
 
@@ -550,8 +550,8 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 /* copy values from data1 to data2 */
 
 int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-		void *recvbuf, int *recvcounts, int *displs,
-		MPI_Datatype recvtype, int root, MPI_Comm comm)
+                void *recvbuf, int *recvcounts, int *displs,
+                MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
   int n = sendcount * stubtypesize(sendtype);
 
@@ -581,8 +581,8 @@ int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 /* copy values from data1 to data2 */
 
 int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
-		 MPI_Datatype sendtype, void *recvbuf, int recvcount,
-		 MPI_Datatype recvtype, int root, MPI_Comm comm)
+                 MPI_Datatype sendtype, void *recvbuf, int recvcount,
+                 MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
   int n = recvcount * stubtypesize(recvtype);
 

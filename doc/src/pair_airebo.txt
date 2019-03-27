@@ -103,7 +103,7 @@ would be 10.2 Angstroms.
 
 By default, the longer-ranged interaction is smoothly switched off
 between 2.16 and 3.0 sigma. By specifying {cutoff_min} in addition
-to {cutoff}, the switching can be configured to take place between 
+to {cutoff}, the switching can be configured to take place between
 {cutoff_min} and {cutoff}. {cutoff_min} can only be specified if all
 optional arguments are given.
 

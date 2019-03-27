@@ -174,9 +174,9 @@ void Universe::add_world(char *str)
 
     // str may not be empty and may only consist of digits or 'x'
 
-    int len = strlen(str);
+    size_t len = strlen(str);
     if (len < 1) valid = false;
-    for (int i=0; i < len; ++i)
+    for (size_t i=0; i < len; ++i)
       if (isdigit(str[i]) || str[i] == 'x') continue;
       else valid = false;
 

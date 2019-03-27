@@ -62,22 +62,14 @@ page for details.
 
 :line
 
-Here is an alphabetic list of improper styles defined in LAMMPS.  Click on
-the style to display the formula it computes and coefficients
-specified by the associated "improper_coeff"_improper_coeff.html command.
+The list of all improper styles defined in LAMMPS is given on the
+"improper_style"_improper_style.html doc page.  They are also listed
+in more compact form on the "Commands
+improper"_Commands_bond.html#improper doc page.
 
-Note that there are also additional improper styles submitted by users
-which are included in the LAMMPS distribution.  The full list of all
-improper styles is on the "Commands bond"_Commands_bond.html#improper
-doc page.
-
-"improper_style none"_improper_none.html - turn off improper interactions
-"improper_style hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
-
-"improper_style class2"_improper_class2.html - COMPASS (class 2) improper
-"improper_style cvff"_improper_cvff.html - CVFF improper
-"improper_style harmonic"_improper_harmonic.html - harmonic improper
-"improper_style umbrella"_improper_umbrella.html - DREIDING improper :ul
+On either of those pages, click on the style to display the formula it
+computes and its coefficients as specified by the associated
+improper_coeff command.
 
 :line
 

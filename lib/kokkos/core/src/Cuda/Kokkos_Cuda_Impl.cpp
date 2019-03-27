@@ -561,7 +561,11 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     }
   #endif
 
+  #ifdef KOKKOS_ENABLE_PRE_CUDA_10_DEPRECATION_API
   cudaThreadSetCacheConfig(cudaFuncCachePreferShared);
+  #else
+  cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
+  #endif
 
   // Init the array for used for arbitrarily sized atomics
   Impl::initialize_host_cuda_lock_arrays();
@@ -689,9 +693,13 @@ Cuda::size_type cuda_internal_multiprocessor_count()
 
 CudaSpace::size_type cuda_internal_maximum_concurrent_block_count()
 {
+  #if defined(KOKKOS_ARCH_KEPLER)
+  // Compute capability 3.0 through 3.7
+  enum : int { max_resident_blocks_per_multiprocessor = 16 };
+  #else
   // Compute capability 5.0 through 6.2
   enum : int { max_resident_blocks_per_multiprocessor = 32 };
-
+  #endif
    return CudaInternal::singleton().m_multiProcCount
           * max_resident_blocks_per_multiprocessor ;
 };

@@ -83,8 +83,10 @@ not in the specified fix group.  Local quantities are calculated by
 each processor based on the atoms it owns, but there may be zero or
 more per atoms.
 
-Note that a single fix may produces either global or per-atom or local
-quantities (or none at all), but never more than one of these.
+Note that a single fix can produce either global or per-atom or local
+quantities (or none at all), but not both global and per-atom.  It can
+produce local quantities in tandem with global or per-atom quantities.
+The fix doc page will explain.
 
 Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
@@ -156,10 +158,6 @@ what it does, as listed below.  Here is an alphabetic list of fix
 styles available in LAMMPS.  They are also listed in more compact form
 on the "Commands fix"_Commands_fix.html doc page.
 
-There are also additional fix styles (not listed here) submitted by
-users which are included in the LAMMPS distribution.  The full list of
-all fix styles is on the "Commands fix"_Commands_fix.html doc page.
-
 There are also additional accelerated fix styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
 The individual style names on the "Commands fix"_Commands_fix.html doc
@@ -167,182 +165,187 @@ page are followed by one or more of (g,i,k,o,t) to indicate which
 accelerated styles exist.
 
 "adapt"_fix_adapt.html - change a simulation parameter over time
-"adapt/fep"_fix_adapt_fep.html - 
+"adapt/fep"_fix_adapt_fep.html -
 "addforce"_fix_addforce.html - add a force to each atom
-"addtorque"_fix_addtorque.html - 
+"addtorque"_fix_addtorque.html -
 "append/atoms"_fix_append_atoms.html - append atoms to a running simulation
-"atc"_fix_atc.html - 
+"atc"_fix_atc.html -
 "atom/swap"_fix_atom_swap.html - Monte Carlo atom type swapping
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
 "ave/chunk"_fix_ave_chunk.html - compute per-chunk time-averaged quantities
 "ave/correlate"_fix_ave_correlate.html - compute/output time correlations
-"ave/correlate/long"_fix_ave_correlate_long.html - 
+"ave/correlate/long"_fix_ave_correlate_long.html -
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
-"ave/histo/weight"_fix_ave_histo.html - 
+"ave/histo/weight"_fix_ave_histo.html -
 "ave/time"_fix_ave_time.html - compute/output global time-averaged quantities
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "balance"_fix_balance.html - perform dynamic load-balancing
-"bocs"_fix_bocs.html - 
+"bocs"_fix_bocs.html -
 "bond/break"_fix_bond_break.html - break bonds on the fly
 "bond/create"_fix_bond_create.html - create bonds on the fly
-"bond/react"_fix_bond_react.html - 
+"bond/react"_fix_bond_react.html -
 "bond/swap"_fix_bond_swap.html - Monte Carlo bond swapping
 "box/relax"_fix_box_relax.html - relax box size during energy minimization
-"client/md"_fix_client_md.html - 
-"cmap"_fix_cmap.html - 
-"colvars"_fix_colvars.html - 
-"controller"_fix_controller.html - 
+"client/md"_fix_client_md.html -
+"cmap"_fix_cmap.html -
+"colvars"_fix_colvars.html -
+"controller"_fix_controller.html -
 "deform"_fix_deform.html - change the simulation box size/shape
 "deposit"_fix_deposit.html - add new atoms above a surface
-"dpd/energy"_fix_dpd_energy.html - 
+"dpd/energy"_fix_dpd_energy.html -
 "drag"_fix_drag.html - drag atoms towards a defined coordinate
-"drude"_fix_drude.html - 
-"drude/transform/direct"_fix_drude_transform.html - 
-"drude/transform/inverse"_fix_drude_transform.html - 
+"drude"_fix_drude.html -
+"drude/transform/direct"_fix_drude_transform.html -
+"drude/transform/inverse"_fix_drude_transform.html -
 "dt/reset"_fix_dt_reset.html - reset the timestep based on velocity, forces
-"edpd/source"_fix_dpd_source.html - 
+"edpd/source"_fix_dpd_source.html -
 "efield"_fix_efield.html - impose electric field on system
-"ehex"_fix_ehex.html - ehanced heat exchange algorithm
+"ehex"_fix_ehex.html - enhanced heat exchange algorithm
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
-"eos/cv"_fix_eos_cv.html - 
-"eos/table"_fix_eos_table.html - 
-"eos/table/rx"_fix_eos_table_rx.html - 
+"eos/cv"_fix_eos_cv.html -
+"eos/table"_fix_eos_table.html -
+"eos/table/rx"_fix_eos_table_rx.html -
 "evaporate"_fix_evaporate.html - remove atoms from simulation periodically
 "external"_fix_external.html - callback to an external driver program
-"ffl"_fix_ffl.html - 
-"filter/corotate"_fix_filter_corotate.html - 
-"flow/gauss"_fix_flow_gauss.html - 
+"ffl"_fix_ffl.html -
+"filter/corotate"_fix_filter_corotate.html -
+"flow/gauss"_fix_flow_gauss.html -
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gcmc"_fix_gcmc.html - grand canonical insertions/deletions
 "gld"_fix_gcmc.html - generalized Langevin dynamics integrator
-"gld"_fix_gld.html - 
-"gle"_fix_gle.html - 
+"gld"_fix_gld.html -
+"gle"_fix_gle.html -
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
-"grem"_fix_grem.html - 
+"grem"_fix_grem.html -
 "halt"_fix_halt.html - terminate a dynamics run or minimization
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
-"imd"_fix_imd.html - 
+"hyper/global"_fix_hyper_global.html - global hyperdynamics
+"hyper/local"_fix_hyper_local.html - local hyperdynamics
+"imd"_fix_imd.html -
 "indent"_fix_indent.html - impose force due to an indenter
-"ipi"_fix_ipi.html - 
+"ipi"_fix_ipi.html -
 "langevin"_fix_langevin.html - Langevin temperature control
-"langevin/drude"_fix_langevin_drude.html - 
-"langevin/eff"_fix_langevin_eff.html - 
-"langevin/spin"_fix_langevin_spin.html - 
+"langevin/drude"_fix_langevin_drude.html -
+"langevin/eff"_fix_langevin_eff.html -
+"langevin/spin"_fix_langevin_spin.html -
 "latte"_fix_latte.html - wrapper on LATTE density-functional tight-binding code
-"lb/fluid"_fix_lb_fluid.html - 
-"lb/momentum"_fix_lb_momentum.html - 
-"lb/pc"_fix_lb_pc.html - 
-"lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html - 
-"lb/viscous"_fix_lb_viscous.html - 
+"lb/fluid"_fix_lb_fluid.html -
+"lb/momentum"_fix_lb_momentum.html -
+"lb/pc"_fix_lb_pc.html -
+"lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html -
+"lb/viscous"_fix_lb_viscous.html -
 "lineforce"_fix_lineforce.html - constrain atoms to move in a line
-"manifoldforce"_fix_manifoldforce.html - 
-"meso"_fix_meso.html - 
-"meso/stationary"_fix_meso_stationary.html - 
+"manifoldforce"_fix_manifoldforce.html -
+"meso"_fix_meso.html -
+"meso"_fix_meso_move.html - move mesoscopic SPH/SDPD particles in a prescribed fashion
+"meso/move"_fix_meso_move.html -
+"meso/stationary"_fix_meso_stationary.html -
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms
 "move"_fix_move.html - move atoms in a prescribed fashion
-"mscg"_fix_mscg.html - 
+"mscg"_fix_mscg.html -
 "msst"_fix_msst.html - multi-scale shock technique (MSST) integration
-"mvv/dpd"_fix_mvv_dpd.html - 
-"mvv/edpd"_fix_mvv_dpd.html - 
-"mvv/tdpd"_fix_mvv_dpd.html - 
+"mvv/dpd"_fix_mvv_dpd.html -
+"mvv/edpd"_fix_mvv_dpd.html -
+"mvv/tdpd"_fix_mvv_dpd.html -
 "neb"_fix_neb.html - nudged elastic band (NEB) spring forces
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
-"nph/body"_fix_nph_body.html - 
+"nph/body"_fix_nph_body.html -
 "nph/body"_fix_nve_body.html - NPH for body particles
-"nph/eff"_fix_nh_eff.html - 
+"nph/eff"_fix_nh_eff.html -
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
 "nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "npt"_fix_nh.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
-"npt/body"_fix_npt_body.html - 
+"npt/body"_fix_npt_body.html -
 "npt/body"_fix_nve_body.html - NPT for body particles
-"npt/eff"_fix_nh_eff.html - 
+"npt/eff"_fix_nh_eff.html -
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
-"npt/uef"_fix_nh_uef.html - 
+"npt/uef"_fix_nh_uef.html -
 "nve"_fix_nve.html - constant NVE time integration
 "nve/asphere"_fix_nve_asphere.html - NVE for aspherical particles
 "nve/asphere/noforce"_fix_nve_asphere_noforce.html - NVE for aspherical particles without forces"
-"nve/awpmd"_fix_nve_awpmd.html - 
+"nve/awpmd"_fix_nve_awpmd.html -
 "nve/body"_fix_nve_body.html - NVE for body particles
-"nve/dot"_fix_nve_dot.html - 
-"nve/dotc/langevin"_fix_nve_dotc_langevin.html - 
-"nve/eff"_fix_nve_eff.html - 
+"nve/dot"_fix_nve_dot.html -
+"nve/dotc/langevin"_fix_nve_dotc_langevin.html -
+"nve/eff"_fix_nve_eff.html -
 "nve/limit"_fix_nve_limit.html - NVE with limited step length
 "nve/line"_fix_nve_line.html - NVE for line segments
-"nve/manifold/rattle"_fix_nve_manifold_rattle.html - 
+"nve/manifold/rattle"_fix_nve_manifold_rattle.html -
 "nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
 "nve/sphere"_fix_nve_sphere.html - NVE for spherical particles
-"nve/spin"_fix_nve_spin.html - 
+"nve/spin"_fix_nve_spin.html -
 "nve/tri"_fix_nve_tri.html - NVE for triangles
-"nvk"_fix_nvk.html - 
+"nvk"_fix_nvk.html -
 "nvt"_fix_nh.html - constant NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
 "nvt/body"_fix_nve_body.html - NVT for body particles
-"nvt/body"_fix_nvt_body.html - 
-"nvt/eff"_fix_nh_eff.html - 
-"nvt/manifold/rattle"_fix_nvt_manifold_rattle.html - 
+"nvt/body"_fix_nvt_body.html -
+"nvt/eff"_fix_nh_eff.html -
+"nvt/manifold/rattle"_fix_nvt_manifold_rattle.html -
 "nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
-"nvt/sllod/eff"_fix_nvt_sllod_eff.html - 
+"nvt/sllod/eff"_fix_nvt_sllod_eff.html -
 "nvt/sphere"_fix_nvt_sphere.html - NVT for spherical particles
-"nvt/uef"_fix_nh_uef.html - 
+"nvt/uef"_fix_nh_uef.html -
 "oneway"_fix_oneway.html - constrain particles on move in one direction
 "orient/bcc"_fix_orient.html - add grain boundary migration force for BCC
 "orient/fcc"_fix_orient.html - add grain boundary migration force for FCC
-"phonon"_fix_phonon.html - 
-"pimd"_fix_pimd.html - 
+"phonon"_fix_phonon.html -
+"pimd"_fix_pimd.html -
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
+"plumed"_fix_plumed.html - wrapper on PLUMED free energy library
 "poems"_fix_poems.html - constrain clusters of atoms to move as coupled rigid bodies
 "pour"_fix_pour.html - pour new atoms/molecules into a granular simulation domain
-"precession/spin"_fix_precession_spin.html - 
+"precession/spin"_fix_precession_spin.html -
 "press/berendsen"_fix_press_berendsen.html - pressure control by Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
 "property/atom"_fix_property_atom.html - add customized per-atom values
-"python/invoke"_fix_python_invoke.html - 
-"python/move"_fix_python_move.html - 
-"qbmsst"_fix_qbmsst.html - 
+"python/invoke"_fix_python_invoke.html -
+"python/move"_fix_python_move.html -
+"qbmsst"_fix_qbmsst.html -
 "qeq/comb"_fix_qeq_comb.html - charge equilibration for COMB potential
 "qeq/dynamic"_fix_qeq.html - charge equilibration via dynamic method
 "qeq/fire"_fix_qeq.html - charge equilibration via FIRE minimizer
 "qeq/point"_fix_qeq.html - charge equilibration via point method
-"qeq/reax"_fix_qeq_reax.html - 
+"qeq/reax"_fix_qeq_reax.html -
 "qeq/shielded"_fix_qeq.html - charge equilibration via shielded method
 "qeq/slater"_fix_qeq.html - charge equilibration via Slater method
-"qmmm"_fix_qmmm.html - 
-"qtb"_fix_qtb.html - 
+"qmmm"_fix_qmmm.html -
+"qtb"_fix_qtb.html -
 "rattle"_fix_shake.html - RATTLE constraints on bonds and/or angles
-"reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information
-"reax/c/bonds"_fix_reax_bonds.html - 
-"reax/c/species"_fix_reaxc_species.html - 
+"reax/c/bonds"_fix_reaxc_bonds.html - write out ReaxFF bond information
+"reax/c/species"_fix_reaxc_species.html - write out ReaxFF molecule information
 "recenter"_fix_recenter.html - constrain the center-of-mass position of a group of atoms
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral
-"rhok"_fix_rhok.html - 
+"rhok"_fix_rhok.html -
 "rigid"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NVE integration
 "rigid/nph"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NPH integration
-"rigid/nph/small"_fix_rigid.html - 
+"rigid/nph/small"_fix_rigid.html -
 "rigid/npt"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NPT integration
-"rigid/npt/small"_fix_rigid.html - 
+"rigid/npt/small"_fix_rigid.html -
 "rigid/nve"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with alternate NVE integration
-"rigid/nve/small"_fix_rigid.html - 
+"rigid/nve/small"_fix_rigid.html -
 "rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NVT integration
-"rigid/nvt/small"_fix_rigid.html - 
+"rigid/nvt/small"_fix_rigid.html -
 "rigid/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVE integration
 "rigid/small/nph"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NPH integration
 "rigid/small/npt"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NPT integration
 "rigid/small/nve"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with alternate NVE integration
 "rigid/small/nvt"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVT integration
-"rx"_fix_rx.html - 
-"saed/vtk"_fix_saed_vtk.html - 
+"rigid/meso"_fix_rigid_meso.html - constrain clusters of mesoscopic SPH/SDPD particles to move as a rigid body
+"rx"_fix_rx.html -
+"saed/vtk"_fix_saed_vtk.html -
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
-"shardlow"_fix_shardlow.html - 
-"smd"_fix_smd.html - 
-"smd/adjust_dt"_fix_smd_adjust_dt.html - 
-"smd/integrate_tlsph"_fix_smd_integrate_tlsph.html - 
-"smd/integrate_ulsph"_fix_smd_integrate_ulsph.html - 
-"smd/move_tri_surf"_fix_smd_move_triangulated_surface.html - 
-"smd/setvel"_fix_smd_setvel.html - 
-"smd/wall_surface"_fix_smd_wall_surface.html - 
+"shardlow"_fix_shardlow.html -
+"smd"_fix_smd.html -
+"smd/adjust_dt"_fix_smd_adjust_dt.html -
+"smd/integrate_tlsph"_fix_smd_integrate_tlsph.html -
+"smd/integrate_ulsph"_fix_smd_integrate_ulsph.html -
+"smd/move_tri_surf"_fix_smd_move_triangulated_surface.html -
+"smd/setvel"_fix_smd_setvel.html -
+"smd/wall_surface"_fix_smd_wall_surface.html -
 "spring"_fix_spring.html - apply harmonic spring force to group of atoms
 "spring/chunk"_fix_spring_chunk.html - apply harmonic spring force to each chunk of atoms
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of group of atoms
@@ -350,28 +353,28 @@ accelerated styles exist.
 "srd"_fix_srd.html - stochastic rotation dynamics (SRD)
 "store/force"_fix_store_force.html - store force on each atom
 "store/state"_fix_store_state.html - store attributes for each atom
-"tdpd/source"_fix_dpd_source.html - 
+"tdpd/source"_fix_dpd_source.html -
 "temp/berendsen"_fix_temp_berendsen.html - temperature control by Berendsen thermostat
 "temp/csld"_fix_temp_csvr.html - canonical sampling thermostat with Langevin dynamics
 "temp/csvr"_fix_temp_csvr.html - canonical sampling thermostat with Hamiltonian dynamics
 "temp/rescale"_fix_temp_rescale.html - temperature control by velocity rescaling
-"temp/rescale/eff"_fix_temp_rescale_eff.html - 
+"temp/rescale/eff"_fix_temp_rescale_eff.html -
 "tfmc"_fix_tfmc.html - perform force-bias Monte Carlo with time-stamped method
 "thermal/conductivity"_fix_thermal_conductivity.html - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
-"ti/spring"_fix_ti_spring.html - 
+"ti/spring"_fix_ti_spring.html -
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration
 "ttm"_fix_ttm.html - two-temperature model for electronic/atomic coupling
-"ttm/mod"_fix_ttm.html - 
+"ttm/mod"_fix_ttm.html -
 "tune/kspace"_fix_tune_kspace.html - auto-tune KSpace parameters
 "vector"_fix_vector.html - accumulate a global vector every N timesteps
 "viscosity"_fix_viscosity.html - Muller-Plathe momentum exchange for viscosity calculation
 "viscous"_fix_viscous.html - viscous damping for granular simulations
-"wall/body/polygon"_fix_wall_body_polygon.html - 
-"wall/body/polyhedron"_fix_wall_body_polyhedron.html - 
+"wall/body/polygon"_fix_wall_body_polygon.html -
+"wall/body/polyhedron"_fix_wall_body_polyhedron.html -
 "wall/colloid"_fix_wall.html - Lennard-Jones wall interacting with finite-size particles
-"wall/ees"_fix_wall_ees.html - 
+"wall/ees"_fix_wall_ees.html -
 "wall/gran"_fix_wall_gran.html - frictional wall(s) for granular simulations
-"wall/gran/region"_fix_wall_gran_region.html - 
+"wall/gran/region"_fix_wall_gran_region.html -
 "wall/harmonic"_fix_wall.html - harmonic spring wall
 "wall/lj1043"_fix_wall.html - Lennard-Jones 10-4-3 wall
 "wall/lj126"_fix_wall.html - Lennard-Jones 12-6 wall
@@ -379,7 +382,7 @@ accelerated styles exist.
 "wall/piston"_fix_wall_piston.html - moving reflective piston wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "wall/region"_fix_wall_region.html - use region surface as wall
-"wall/region/ees"_fix_wall_ees.html - 
+"wall/region/ees"_fix_wall_ees.html -
 "wall/srd"_fix_wall_srd.html - slip/no-slip wall for SRD particles :ul
 
 [Restrictions:]

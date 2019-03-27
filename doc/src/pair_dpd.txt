@@ -97,7 +97,7 @@ The GPU-accelerated versions of these styles are implemented based on
 the work of "(Afshar)"_#Afshar and "(Phillips)"_#Phillips.
 
 NOTE: If you are modeling DPD polymer chains, you may want to use the
-"pair_style srp"_pair_srp.html command in conjuction with these pair
+"pair_style srp"_pair_srp.html command in conjunction with these pair
 styles.  It is a soft segmental repulsive potential (SRP) that can
 prevent DPD polymer chains from crossing each other.
 
@@ -178,7 +178,7 @@ simulation), you should experiment with forcing reneighboring more
 often and see if system energies/trajectories change.
 
 These pair styles requires you to use the "comm_modify vel
-yes"_comm_modify.html command so that velocites are stored by ghost
+yes"_comm_modify.html command so that velocities are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the

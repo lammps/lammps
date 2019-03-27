@@ -24,7 +24,7 @@ keyword = {angmom} :l
 
 [Examples:]
 
-fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 
+fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10
 fix 1 all nve/dotc/langevin 0.1 0.1 78.9375 457145 angmom 10 :pre
 
 [Description:]
@@ -79,9 +79,9 @@ a Gaussian random number) for speed.
 :line
 
 {Tstart} and {Tstop} have to be constant values, i.e. they cannot
-be variables. If used together with the oxDNA force field for 
+be variables. If used together with the oxDNA force field for
 coarse-grained simulation of DNA please note that T = 0.1 in oxDNA units
-corresponds to T = 300 K.  
+corresponds to T = 300 K.
 
 The {damp} parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 0.03
@@ -92,10 +92,10 @@ viscosity of the solvent, i.e. a small relaxation time implies a
 hi-viscosity solvent and vice versa.  See the discussion about gamma
 and viscosity in the documentation for the "fix
 viscous"_fix_viscous.html command for more details.
-Note that the value 78.9375 in the second example above corresponds 
-to a diffusion constant, which is about an order of magnitude larger 
+Note that the value 78.9375 in the second example above corresponds
+to a diffusion constant, which is about an order of magnitude larger
 than realistic ones. This has been used to sample configurations faster
-in Brownian dynamics simulations. 
+in Brownian dynamics simulations.
 
 The random # {seed} must be a positive integer. A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -114,7 +114,7 @@ The scale factor after the {angmom} keyword gives the ratio of the rotational to
 the translational friction coefficient.
 
 An example input file can be found in /examples/USER/cgdna/examples/duplex2/.
-Further details of the implementation and stability of the integrators are contained in "(Henrich)"_#Henrich4.              
+Further details of the implementation and stability of the integrators are contained in "(Henrich)"_#Henrich4.
 The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
 :line

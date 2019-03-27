@@ -42,10 +42,10 @@ END_RST -->
 "Input script structure"_Commands_structure.html
 "Commands by category"_Commands_category.html :all(b)
 
-"All commands"_Commands_all.html 
-"Fix commands"_Commands_fix.html 
-"Compute commands"_Commands_compute.html 
-"Pair commands"_Commands_pair.html 
+"General commands"_Commands_all.html
+"Fix commands"_Commands_fix.html
+"Compute commands"_Commands_compute.html
+"Pair commands"_Commands_pair.html
 "Bond, angle, dihedral, improper commands"_Commands_bond.html
 "KSpace solvers"_Commands_kspace.html  :all(b)
 

@@ -45,7 +45,7 @@ enum{DEGREE, RADIAN, COSINE};
 
 ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL), klo(NULL), khi(NULL), 
+  ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL), klo(NULL), khi(NULL),
   hist(NULL), histall(NULL),
   rcutinnerj(NULL), rcutinnerk(NULL),
   rcutouterj(NULL), rcutouterk(NULL),
@@ -53,7 +53,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   iatomcount(NULL), iatomcountall(NULL), iatomflag(NULL),
   maxjatom(NULL), maxkatom(NULL),
   numjatom(NULL), numkatom(NULL),
-  neighjatom(NULL),neighkatom(NULL), 
+  neighjatom(NULL),neighkatom(NULL),
   jatomflag(NULL), katomflag(NULL),
   maxjkatom(NULL), numjkatom(NULL),
   neighjkatom(NULL), bothjkatom(NULL), delrjkatom(NULL)
@@ -99,7 +99,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
 
   if (!nargtriple) ntriples = 1;
   else {
-    if (nargtriple % nargsperadf) 
+    if (nargtriple % nargsperadf)
       error->all(FLERR,"Illegal compute adf command");
     ntriples = nargtriple/nargsperadf;
   }
@@ -140,8 +140,8 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
       force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[m],ihi[m]);
       force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[m],jhi[m]);
       force->bounds(FLERR,arg[iarg+2],atom->ntypes,klo[m],khi[m]);
-      if (ilo[m] > ihi[m] || 
-          jlo[m] > jhi[m] || 
+      if (ilo[m] > ihi[m] ||
+          jlo[m] > jhi[m] ||
           klo[m] > khi[m])
         error->all(FLERR,"Illegal compute adf command");
       rcutinnerj[m] = force->numeric(FLERR,arg[iarg+3]);
@@ -157,7 +157,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // identify central atom types
- 
+
   int i,j,k;
 
   for (int m = 0; m < ntriples; m++) {
@@ -311,13 +311,13 @@ void ComputeADF::init()
 
   int x0;
   if (ordinate_style == DEGREE) {
-    deltax = MY_PI / nbin * rad2deg;    
-    deltaxinv = nbin / MY_PI; 
+    deltax = MY_PI / nbin * rad2deg;
+    deltaxinv = nbin / MY_PI;
     x0 = 0.0;
 
   } else if (ordinate_style == RADIAN) {
     deltax = MY_PI / nbin;
-    deltaxinv = nbin / MY_PI; 
+    deltaxinv = nbin / MY_PI;
     x0 = 0.0;
 
   } else if (ordinate_style == COSINE) {
@@ -392,7 +392,7 @@ void ComputeADF::compute_array()
   // tally the ADFs
   // all three atoms i, j, and k must be in fix group
   // tally I,J,K triple only if I is central atom
-  // and J,K matches unordered neighbor types (JJ,KK) 
+  // and J,K matches unordered neighbor types (JJ,KK)
 
   double **x = atom->x;
   int *type = atom->type;
@@ -422,22 +422,22 @@ void ComputeADF::compute_array()
       numkatom[m] = 0;
       numjkatom[m] = 0;
     }
-        
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
-      
+
       // if both weighting factors are 0, skip this pair
       // could be 0 and still be in neigh list for long-range Coulombics
       // want consistency with non-charged triples which wouldn't be in list
-      
+
       if (factor_lj == 0.0 && factor_coul == 0.0) continue;
-      
+
       if (!(mask[j] & groupbit)) continue;
       jtype = type[j];
-      
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -451,8 +451,8 @@ void ComputeADF::compute_array()
         if (!iatomflag[m][itype]) continue;
 
         int jflag = 0;
-        if (jatomflag[m][jtype] && 
-            rsq >= rcutinnerj[m]*rcutinnerj[m] && 
+        if (jatomflag[m][jtype] &&
+            rsq >= rcutinnerj[m]*rcutinnerj[m] &&
             rsq <= rcutouterj[m]*rcutouterj[m]) {
           jflag = 1;
           jatom = numjatom[m]++;
@@ -462,10 +462,10 @@ void ComputeADF::compute_array()
             memory->grow(neighjatom[m],maxjatom[m],"adf:neighjatom");
           }
         }
-        
+
         int kflag = 0;
-        if (katomflag[m][jtype] && 
-            rsq >= rcutinnerk[m]*rcutinnerk[m] && 
+        if (katomflag[m][jtype] &&
+            rsq >= rcutinnerk[m]*rcutinnerk[m] &&
             rsq <= rcutouterk[m]*rcutouterk[m]) {
           kflag = 1;
           katom = numkatom[m]++;
@@ -492,7 +492,7 @@ void ComputeADF::compute_array()
             memory->grow(delrjkatom[m],maxjkatom[m],4,"adf:delrjkatom");
           }
 
-          // indicate if atom in both lists 
+          // indicate if atom in both lists
 
           if (jflag && kflag)
             bothjkatom[m][jk] = 1;
@@ -558,7 +558,7 @@ void ComputeADF::compute_array()
   // copy into output array
 
   for (m = 0; m < ntriples; m++) {
-  
+
     double count = 0;
     for (ibin = 0; ibin < nbin; ibin++)
       count += histall[m][ibin];

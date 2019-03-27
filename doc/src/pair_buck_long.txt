@@ -154,8 +154,7 @@ details.
 
 This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.  Note that the
-KSPACE package is installed by default.
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

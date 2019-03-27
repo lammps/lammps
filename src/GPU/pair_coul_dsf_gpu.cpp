@@ -97,8 +97,7 @@ PairCoulDSFGPU::~PairCoulDSFGPU()
 
 void PairCoulDSFGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -196,9 +195,9 @@ double PairCoulDSFGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                 int *ilist, int *numneigh,
-                                 int **firstneigh)
+void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag,
+                                 int /* vflag */, int *ilist,
+                                 int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;

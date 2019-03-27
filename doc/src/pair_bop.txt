@@ -28,7 +28,7 @@ comm_modify cutoff 14.70 :pre
 [Description:]
 
 The {bop} pair style computes Bond-Order Potentials (BOP) based on
-quantum mechanical theory incorporating both sigma and pi bondings.
+quantum mechanical theory incorporating both sigma and pi bonding.
 By analytically deriving the BOP from quantum mechanical theory its
 transferability to different phases can approach that of quantum
 mechanical methods.  This potential is similar to the original BOP

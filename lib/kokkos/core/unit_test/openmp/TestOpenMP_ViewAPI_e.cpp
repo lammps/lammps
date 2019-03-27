@@ -43,3 +43,4 @@
 
 #include <openmp/TestOpenMP_Category.hpp>
 #include <TestViewAPI_e.hpp>
+#include <TestViewCopy.hpp>

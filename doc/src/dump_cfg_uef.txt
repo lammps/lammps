@@ -28,10 +28,10 @@ dump 2 all cfg/uef 100 dump.*.cfg mass type xs ys zs id c_stress :pre
 [Description:]
 
 This command is used to dump atomic coordinates in the
-reference frame of the applied flow field when 
+reference frame of the applied flow field when
 "fix nvt/uef"_fix_nh_uef.html or
-"fix npt/uef"_fix_nh_uef.html or is used. Only the atomic 
-coordinates and frame-invariant scalar quantities 
+"fix npt/uef"_fix_nh_uef.html or is used. Only the atomic
+coordinates and frame-invariant scalar quantities
 will be in the flow frame. If velocities are selected
 as output, for example, they will not be in the same
 reference frame as the atomic positions.

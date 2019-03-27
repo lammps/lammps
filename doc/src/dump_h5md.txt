@@ -17,7 +17,7 @@ group-ID = ID of the group of atoms to be imaged :l
 h5md = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
 N = dump every this many timesteps :l
 file.h5 = name of file to write to :l
-args = list of data elements to dump, with their dump "subintervals"
+args = list of data elements to dump, with their dump "sub-intervals"
   position options
   image
   velocity options
@@ -63,7 +63,7 @@ another particle group must specify {create_group yes}.
 :link(h5md,http://nongnu.org/h5md/)
 
 Each data element is written every N*N_element steps. For {image}, no
-subinterval is needed as it must be present at the same interval as
+sub-interval is needed as it must be present at the same interval as
 {position}.  {image} must be given after {position} in any case.  The
 box information (edges in each dimension) is stored at the same
 interval than the {position} element, if present. Else it is stored
@@ -76,7 +76,7 @@ written to a dump file may be slightly outside the simulation box.
 [Use from write_dump:]
 
 It is possible to use this dump style with the
-"write_dump"_write_dump.html command.  In this case, the subintervals
+"write_dump"_write_dump.html command.  In this case, the sub-intervals
 must not be set at all.  The write_dump command can be used either to
 create a new file or to add current data to an existing dump file by
 using the {file_from} keyword.

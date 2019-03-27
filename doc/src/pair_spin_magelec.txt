@@ -25,7 +25,7 @@ pair_coeff * * magelec 4.5 0.00109 1.0 1.0 1.0 :pre
 
 Style {spin/me} computes a magneto-electric interaction between
 pairs of magnetic spins. According to the derivation reported in
-"(Katsura)"_#Katsura1, this interaction is defined as: 
+"(Katsura)"_#Katsura1, this interaction is defined as:
 
 :c,image(Eqs/pair_spin_me_interaction.jpg)
 
@@ -69,5 +69,5 @@ package"_Build_package.html doc page for more info.
 [(Katsura)] H. Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)
 
 :link(Tranchida4)
-[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson, 
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson,
 Journal of Computational Physics, (2018).

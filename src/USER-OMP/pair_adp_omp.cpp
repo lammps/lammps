@@ -39,9 +39,7 @@ PairADPOMP::PairADPOMP(LAMMPS *lmp) :
 
 void PairADPOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;

@@ -247,7 +247,7 @@ to {Niter} times.  After each dimension finishes, the imbalance factor
 is re-computed, and the balancing operation halts if the {stopthresh}
 criterion is met.
 
-A rebalance operation in a single dimension is performed using a
+A re-balance operation in a single dimension is performed using a
 recursive multisectioning algorithm, where the position of each
 cutting plane (line in 2d) in the dimension is adjusted independently.
 This is similar to a recursive bisectioning for a single value, except
@@ -261,11 +261,11 @@ information, so that they become closer together over time.  Thus as
 the recursion progresses, the count of particles on either side of the
 plane gets closer to the target value.
 
-Once the rebalancing is complete and final processor sub-domains
+Once the re-balancing is complete and final processor sub-domains
 assigned, particles are migrated to their new owning processor, and
 the balance procedure ends.
 
-NOTE: At each rebalance operation, the bisectioning for each cutting
+NOTE: At each re-balance operation, the bisectioning for each cutting
 plane (line in 2d) typically starts with low and high bounds separated
 by the extent of a processor's sub-domain in one dimension.  The size
 of this bracketing region shrinks by 1/2 every iteration.  Thus if
@@ -348,7 +348,7 @@ specified groups, its weight is not changed.  If it belongs to
 multiple groups, its weight is the product of the weight factors.
 
 This weight style is useful in combination with pair style
-"hybrid"_pair_hybrid.html, e.g. when combining a more costly manybody
+"hybrid"_pair_hybrid.html, e.g. when combining a more costly many-body
 potential with a fast pair-wise potential.  It is also useful when
 using "run_style respa"_run_style.html where some portions of the
 system have many bonded interactions and others none.  It assumes that
@@ -510,10 +510,13 @@ each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 For 2d simulations, the {z} style cannot be used.  Nor can a "z"
 appear in {dimstr} for the {shift} style.
 
+Balancing through recursive bisectioning ({rcb} style) requires
+"comm_style tiled"_comm_style.html
+
 [Related commands:]
 
 "group"_group.html, "processors"_processors.html,
-"fix balance"_fix_balance.html
+"fix balance"_fix_balance.html, "comm_style"_comm_style.html
 
 [Default:] none
 :link(pizza,http://pizza.sandia.gov)

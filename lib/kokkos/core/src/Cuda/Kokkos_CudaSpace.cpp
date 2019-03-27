@@ -453,6 +453,8 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+  // Set last element zero, in case c_str is too long
+  header.m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 
   // Copy to device memory
   Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
@@ -491,6 +493,9 @@ SharedAllocationRecord( const Kokkos::CudaUVMSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+
+  // Set last element zero, in case c_str is too long
+  RecordBase::m_alloc_ptr->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 }
 
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
@@ -525,6 +530,8 @@ SharedAllocationRecord( const Kokkos::CudaHostPinnedSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+  // Set last element zero, in case c_str is too long
+  RecordBase::m_alloc_ptr->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 }
 
 //----------------------------------------------------------------------------
@@ -822,7 +829,8 @@ void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
   }
   if(bytes > current_size) {
     current_size = bytes;
-    ptr = Kokkos::kokkos_realloc<Kokkos::CudaSpace>(ptr,current_size);
+    Kokkos::kokkos_free<Kokkos::CudaSpace>(ptr);
+    ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",current_size);
   }
   if((bytes < current_size) && (force_shrink)) {
     current_size = bytes;

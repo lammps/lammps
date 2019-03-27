@@ -64,6 +64,7 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
     memory->destroy(cut_cxst_hc);
     memory->destroy(b_cxst_lo);
     memory->destroy(b_cxst_hi);
+    memory->destroy(cutsq_cxst_hc);
 
     memory->destroy(a_cxst1);
     memory->destroy(theta_cxst1_0);
@@ -155,8 +156,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
   double df2,df4t1,df4t4,df4t5,df4t6,df5c3,rsint;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;

@@ -454,9 +454,7 @@ void MSM::compute(int eflag, int vflag)
 
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-    eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
+  ev_init(eflag,vflag);
 
   if (scalar_pressure_flag && vflag_either) {
     if (vflag_atom)
@@ -533,7 +531,7 @@ void MSM::compute(int eflag, int vflag)
     restriction(n);
   }
 
-  // compute direct interation for top grid level for nonperiodic
+  // compute direct interation for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {
@@ -1120,7 +1118,7 @@ void MSM::set_grid_global()
   if (nx_msm[0] >= OFFSET || ny_msm[0] >= OFFSET || nz_msm[0] >= OFFSET)
     error->all(FLERR,"MSM grid is too large");
 
-  // compute number of extra grid points needed for nonperiodic boundary conditions
+  // compute number of extra grid points needed for non-periodic boundary conditions
 
   if (domain->nonperiodic) {
     alpha[0] = -(order/2 - 1);
@@ -1254,7 +1252,7 @@ void MSM::set_grid_local()
     nzlo_out[n] = nlo - order;
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
 
-    // add extra grid points for nonperiodic boundary conditions
+    // add extra grid points for non-periodic boundary conditions
 
     if (domain->nonperiodic) {
 

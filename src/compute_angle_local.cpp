@@ -53,7 +53,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   bstyle = new int[nvalues];
   vstr = new char*[nvalues];
   vvar = new int[nvalues];
-  
+
   nvalues = 0;
   tflag = 0;
   nvar = 0;
@@ -78,7 +78,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
 
   setflag = 0;
   tstr = NULL;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
       setflag = 1;
@@ -114,7 +114,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
       if (!input->variable->internalstyle(tvar))
         error->all(FLERR,"Variable for compute angle/local is invalid style");
     }
-  } else if (setflag) 
+  } else if (setflag)
     error->all(FLERR,"Compute angle/local set with no variable");
 
   // initialize output
@@ -289,7 +289,7 @@ int ComputeAngleLocal::compute_angles(int flag)
 
       if (nvalues == 1) ptr = &vlocal[m];
       else ptr = alocal[m];
-      
+
       if (nvar) {
 	ivar = 0;
 	if (tstr) input->variable->internal_set(tvar,theta);

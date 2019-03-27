@@ -16,7 +16,7 @@ pair_style snap :pre
 [Examples:]
 
 pair_style snap
-pair_coeff * * InP.snapcoeff In P InP.snapparam In In P P :pre
+pair_coeff * * InP.snapcoeff InP.snapparam In In P P :pre
 
 [Description:]
 
@@ -48,14 +48,12 @@ not set in the pair_style or pair_coeff command; they are specified in
 the SNAP potential files themselves.
 
 Only a single pair_coeff command is used with the {snap} style which
-specifies two SNAP files and the list SNAP element(s) to be
-extracted.
-The SNAP elements are mapped to LAMMPS atom types by specifying
-N additional arguments after the 2nd filename in the pair_coeff
-command, where N is the number of LAMMPS atom types:
+specifies a SNAP coefficient file followed by a SNAP parameter file
+and then N additional arguments specifying the mapping of SNAP
+elements to LAMMPS atom types, where N is the number of 
+LAMMPS atom types:
 
-SNAP element file
-Elem1, Elem2, ...
+SNAP coefficient file
 SNAP parameter file
 N element names = mapping of SNAP elements to atom types :ul
 
@@ -63,13 +61,11 @@ As an example, if a LAMMPS indium phosphide simulation has 4 atoms
 types, with the first two being indium and the 3rd and 4th being
 phophorous, the pair_coeff command would look like this:
 
-pair_coeff * * snap InP.snapcoeff In P InP.snapparam In In P P :pre
+pair_coeff * * snap InP.snapcoeff InP.snapparam In In P P :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
-The two filenames are for the element and parameter files, respectively.
-The 'In' and 'P' arguments (between the file names) are the two elements
-which will be extracted from the element file. The
-two trailing 'In' arguments map LAMMPS atom types 1 and 2 to the
+The two filenames are for the coefficient and parameter files, respectively.
+The two trailing 'In' arguments map LAMMPS atom types 1 and 2 to the
 SNAP 'In' element. The two trailing 'P' arguments map LAMMPS atom types
 3 and 4 to the SNAP 'P' element.
 
@@ -79,10 +75,11 @@ This can be used when a {snap} potential is used as part of the
 {hybrid} pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
 
-The name of the SNAP element file usually ends in the
+The name of the SNAP coefficient file usually ends in the
 ".snapcoeff" extension. It may contain coefficients
-for many SNAP elements.
-Only those elements listed in the pair_coeff command are extracted.
+for many SNAP elements. The only requirement is that it
+contain at least those element names appearing in the
+LAMMPS mapping list. 
 The name of the SNAP parameter file usually ends in the ".snapparam"
 extension. It contains a small number
 of parameters that define the overall form of the SNAP potential.
@@ -103,15 +100,13 @@ by the following commands:
         zbl $\{zblcutinner\} $\{zblcutouter\} snap
         pair_coeff * * zbl 0.0
         pair_coeff 1 1 zbl $\{zblz\}
-        pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &
-        ../potentials/Ta06A.snapparam Ta :pre
+        pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta :pre
 
 It is convenient to keep these commands in a separate file that can
 be inserted in any LAMMPS input script using the "include"_include.html
 command.
 
-The top of the SNAP element file can contain any number of blank and comment
-lines (start with #), but follows a strict
+The top of the SNAP coefficient file can contain any number of blank and comment lines (start with #), but follows a strict
 format after that. The first non-blank non-comment
 line must contain two integers:
 

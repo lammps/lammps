@@ -78,7 +78,7 @@ virial is included in the calculation performed by the "compute
 pressure"_compute_pressure.html or
 "compute stress/atom"_compute_stress_atom.html
 commands.  See the "thermo_style"_thermo_style.html command for info
-on how pressure is output. 
+on how pressure is output.
 
 NOTE: You must specify the {virial yes} setting for a fix if you
 are doing "box relaxation"_fix_box_relax.html and

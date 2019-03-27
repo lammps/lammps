@@ -422,6 +422,9 @@ public:
   /// Perform analysis
   int analyze();
 
+  /// Carry out operations needed before next step is run
+  int end_of_step();
+
   /// \brief Read a collective variable trajectory (post-processing
   /// only, not called at runtime)
   int read_traj(char const *traj_filename,
@@ -545,9 +548,6 @@ public:
 
   /// Frequency for collective variables trajectory output
   static size_t cv_traj_freq;
-
-  /// \brief True if only analysis is performed and not a run
-  static bool   b_analysis;
 
   /// Frequency for saving output restarts
   static size_t restart_out_freq;

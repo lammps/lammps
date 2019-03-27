@@ -339,7 +339,7 @@ below.
 The rules for formatting the file are as follows.  A comment character
 "#" can be used anywhere on a line; text starting with the comment
 character is stripped.  Blank lines are skipped.  The first "word" of
-a non-blank line, delimited by white space, is the "string" assigned
+a non-blank line, delimited by white-space, is the "string" assigned
 to the variable.
 
 For the {atomfile} style, a filename is provided which contains one or
@@ -358,7 +358,7 @@ The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
 A comment character "#" can be used anywhere on a line; text starting
 with the comment character is stripped.  Blank lines are skipped.  The
-first "word" of a non-blank line, delimited by white space, is read as
+first "word" of a non-blank line, delimited by white-space, is read as
 the count N of per-atom lines to immediately follow.  N can be be the
 total number of atoms in the system, or only a subset.  The next N
 lines have the following format

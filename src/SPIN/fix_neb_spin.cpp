@@ -492,7 +492,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
         // no Perpendicular nudging force option active yet
         
 	if (kspringPerp != 0.0) 
-	  error->all(FLERR,"NEB_spin Perpendicular nudging force not yet active");
+	  error->all(FLERR,"NEB_spin Perpendicular spring force not yet active");
 
       }
   }
@@ -565,10 +565,6 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   
   if (NEBLongRange) 
     error->all(FLERR,"NEB_spin long range option not yet active");
-
-  // test output length
-  
-  //printf("testi irep / plen: %d %g \n",ireplica,nlen);
 
   // exit calc. if first or last replica (no gneb force)
 

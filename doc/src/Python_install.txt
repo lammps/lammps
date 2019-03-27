@@ -18,7 +18,7 @@ The python source code in lammps.py is the Python wrapper on the
 LAMMPS library interface. The liblammps.so or liblammps.dylib file
 is the shared LAMMPS library that Python loads dynamically.
 
-You can insure Python can find these files in one of two ways:
+You can achieve that Python can find these files in one of two ways:
 
 set two environment variables pointing to the location in the source tree
 run "make install-python" or run the python/install.py script explicitly :ul
@@ -27,7 +27,8 @@ When calling "make install-python" LAMMPS will try to install the
 python module and the shared library into the python site-packages folders;
 either the system-wide ones, or the local users ones (in case of insufficient
 permissions for the global install). Python will then find the module
-and shared library file automatically.
+and shared library file automatically. The exact location of these folders
+depends on your python version and your operating system.
 
 If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
@@ -52,12 +53,12 @@ you can invoke install.py from the python directory manually as
 
 The -m flag points to the lammps.py python module file to be installed,
 the -l flag points to the LAMMPS shared library file to be installed,
-the -v flag points to the version.h file in the LAMMPS source and the
-optional -d flag to the desired installation folder, if you don't want
-the Python specific site-packages folder. If you want to copy these files to
-non-standard locations, you will need to set your PYTHONPATH and
-LD_LIBRARY_PATH (and DYLD_LIBRARY_PATH) environment variables
-accordingly, as described above.
+the -v flag points to the version.h file in the LAMMPS source
+and the optional -d flag to a custom (legacy) installation folder :ul
+
+If you use a legacy installation folder, you will need to set your
+PYTHONPATH and LD_LIBRARY_PATH (and/or DYLD_LIBRARY_PATH) environment
+variables accordingly, as described above.
 
 Note that if you want Python to be able to load different versions of
 the LAMMPS shared library (see "this section"_Python_shlib.html), you will

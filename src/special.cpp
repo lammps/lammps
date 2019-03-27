@@ -334,7 +334,6 @@ void Special::onethree_build()
 {
   int i,j,k,m,proc;
 
-  tagint *tag = atom->tag;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
 
@@ -440,7 +439,6 @@ void Special::onefour_build()
 {
   int i,j,k,m,proc;
 
-  tagint *tag = atom->tag;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
 

@@ -1121,9 +1121,7 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                 size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
                 size_out_max/outsize,size_out_min/outsize);
       else
-        fprintf(screen,"  output datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                0,0.0,0,0);
+        fprintf(screen,"  output datum count: %d %g %d %d\n",0,0.0,0,0);
       fprintf(screen,"  output data (MB): %g %g %g %g\n",
               1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
               1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
@@ -1140,9 +1138,7 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                 size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
                 size_outrvous_max/outsize,size_outrvous_min/outsize);
       else
-        fprintf(screen,"  output rvous datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                0,0.0,0,0);
+        fprintf(screen,"  output rvous datum count: %d %g %d %d\n",0,0.0,0,0);
       fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",
               1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
               1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);

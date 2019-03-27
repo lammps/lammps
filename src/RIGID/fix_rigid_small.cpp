@@ -1629,7 +1629,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
                                    int &rflag, int *&proclist, char *&outbuf,
                                    void *ptr)
 {
-  int i,j,m;
+  int i,m;
   double delx,dely,delz,rsq;
   int *iclose;
   tagint *idclose;

@@ -246,6 +246,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallGran::~FixWallGran()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,0);

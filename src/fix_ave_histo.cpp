@@ -46,9 +46,9 @@ enum{IGNORE,END,EXTRA};
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
   ids(NULL), fp(NULL), stats_list(NULL),
-  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL), 
+  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL),
   coord(NULL), vector(NULL)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
@@ -232,7 +232,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
-      if (ivariable < 0) 
+      if (ivariable < 0)
         error->all(FLERR,"Fix ave/histo input is invalid variable");
       // variables only produce one kind of output
       if (input->variable->equalstyle(ivariable)) kindglobal = 1;
@@ -247,13 +247,13 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (kindperatom) kind = PERATOM;
       if (kindlocal) kind = LOCAL;
     } else if (kind == GLOBAL) {
-      if (!kindglobal) 
+      if (!kindglobal)
         error->all(FLERR,"Fix ave/histo input kind is invalid");
     } else if (kind == PERATOM) {
-      if (!kindperatom) 
+      if (!kindperatom)
         error->all(FLERR,"Fix ave/histo input kind is invalid");
     } else if (kind == LOCAL) {
-      if (!kindlocal) 
+      if (!kindlocal)
         error->all(FLERR,"Fix ave/histo input kind is invalid");
     }
   }

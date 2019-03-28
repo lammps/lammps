@@ -77,7 +77,7 @@ struct FixWallGranKokkosHookeHistoryFunctor {
   FixWallGranKokkosHookeHistoryFunctor(FixWallGranKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &i) const {
-    c.hooke_history_item<WallStyle>(i);
+    c.template hooke_history_item<WallStyle>(i);
   }
 };
 }

@@ -61,7 +61,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 
   // keep default behavior of history[i][j] = -history[j][i]
 
-  nondefault_history_transfer = 0; 
+  nondefault_history_transfer = 0;
 }
 
 /* ---------------------------------------------------------------------- */

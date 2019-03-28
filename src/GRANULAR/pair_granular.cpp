@@ -52,7 +52,7 @@ using namespace MathConst;
 
 enum {HOOKE, HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, 
+enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
       TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_SDS};
@@ -320,7 +320,7 @@ void PairGranular::compute(int eflag, int vflag)
           t2 = 8*dR*dR2*E*E*E;
           t3 = 4*dR2*E;
           // in case sqrt(0) < 0 due to precision issues
-          sqrt1 = MAX(0, t0*(t1+2*t2)); 
+          sqrt1 = MAX(0, t0*(t1+2*t2));
           t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
           t5 = t3/t4 + t4/E;
           sqrt2 = MAX(0, 2*dR + t5);
@@ -405,7 +405,7 @@ void PairGranular::compute(int eflag, int vflag)
         if (tangential_history) {
           if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN) {
             k_tangential *= a;
-          } else if (tangential_model[itype][jtype] == 
+          } else if (tangential_model[itype][jtype] ==
                      TANGENTIAL_MINDLIN_RESCALE) {
             k_tangential *= a;
             // on unloading, rescale the shear displacements
@@ -439,7 +439,7 @@ void PairGranular::compute(int eflag, int vflag)
             history[0] += vtr1*dt;
             history[1] += vtr2*dt;
             history[2] += vtr3*dt;
-            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) 
+            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE)
               history[3] = a;
           }
 
@@ -455,11 +455,11 @@ void PairGranular::compute(int eflag, int vflag)
             shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                     history[2]*history[2]);
             if (shrmag != 0.0) {
-              history[0] = -1.0/k_tangential*(Fscrit*fs1/fs + 
+              history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
                                               damp_tangential*vtr1);
-              history[1] = -1.0/k_tangential*(Fscrit*fs2/fs + 
+              history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
                                               damp_tangential*vtr2);
-              history[2] = -1.0/k_tangential*(Fscrit*fs3/fs + 
+              history[2] = -1.0/k_tangential*(Fscrit*fs3/fs +
                                               damp_tangential*vtr3);
               fs1 *= Fscrit/fs;
               fs2 *= Fscrit/fs;
@@ -486,15 +486,15 @@ void PairGranular::compute(int eflag, int vflag)
 
           // rolling velocity,
           // see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-          // this is different from the Marshall papers, 
+          // this is different from the Marshall papers,
           // which use the Bagi/Kuhn formulation
           // for rolling velocity (see Wang et al for why the latter is wrong)
           // - 0.5*((radj-radi)/radsum)*vtr1;
           // - 0.5*((radj-radi)/radsum)*vtr2;
           // - 0.5*((radj-radi)/radsum)*vtr3;
 
-          vrl1 = Reff*(relrot2*nz - relrot3*ny); 
-          vrl2 = Reff*(relrot3*nx - relrot1*nz); 
+          vrl1 = Reff*(relrot2*nz - relrot3*ny);
+          vrl2 = Reff*(relrot3*nx - relrot1*nz);
           vrl3 = Reff*(relrot1*ny - relrot2*nx);
 
           int rhist0 = roll_history_index;
@@ -566,12 +566,12 @@ void PairGranular::compute(int eflag, int vflag)
           if (historyupdate) {
             history[twist_history_index] += magtwist*dt;
           }
-          magtortwist = -k_twist*history[twist_history_index] - 
+          magtortwist = -k_twist*history[twist_history_index] -
             damp_twist*magtwist; // M_t torque (eq 30)
           signtwist = (magtwist > 0) - (magtwist < 0);
           Mtcrit = mu_twist*Fncrit; // critical torque (eq 44)
           if (fabs(magtortwist) > Mtcrit) {
-            history[twist_history_index] = 1.0/k_twist*(Mtcrit*signtwist - 
+            history[twist_history_index] = 1.0/k_twist*(Mtcrit*signtwist -
                                                         damp_twist*magtwist);
             magtortwist = -Mtcrit * signtwist; // eq 34
           }
@@ -729,7 +729,7 @@ void PairGranular::coeff(int narg, char **arg)
   int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "hooke") == 0) {
-      if (iarg + 2 >= narg) 
+      if (iarg + 2 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hooke option");
       normal_model_one = HOOKE;
@@ -738,7 +738,7 @@ void PairGranular::coeff(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg], "hertz") == 0) {
       int num_coeffs = 2;
-      if (iarg + num_coeffs >= narg) 
+      if (iarg + num_coeffs >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = HERTZ;
@@ -747,7 +747,7 @@ void PairGranular::coeff(int narg, char **arg)
       iarg += num_coeffs+1;
     } else if (strcmp(arg[iarg], "hertz/material") == 0) {
       int num_coeffs = 3;
-      if (iarg + num_coeffs >= narg) 
+      if (iarg + num_coeffs >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz/material option");
       normal_model_one = HERTZ_MATERIAL;
@@ -756,7 +756,7 @@ void PairGranular::coeff(int narg, char **arg)
       normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
       iarg += num_coeffs+1;
     } else if (strcmp(arg[iarg], "dmt") == 0) {
-      if (iarg + 4 >= narg) 
+      if (iarg + 4 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = DMT;
@@ -766,7 +766,7 @@ void PairGranular::coeff(int narg, char **arg)
       normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); // cohesion
       iarg += 5;
     } else if (strcmp(arg[iarg], "jkr") == 0) {
-      if (iarg + 4 >= narg) 
+      if (iarg + 4 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for JKR option");
       beyond_contact = 1;
@@ -777,7 +777,7 @@ void PairGranular::coeff(int narg, char **arg)
       normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); // cohesion
       iarg += 5;
     } else if (strcmp(arg[iarg], "damping") == 0) {
-      if (iarg+1 >= narg) 
+      if (iarg+1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, "
                    "not enough parameters provided for damping model");
       if (strcmp(arg[iarg+1], "velocity") == 0) {
@@ -793,11 +793,11 @@ void PairGranular::coeff(int narg, char **arg)
                         "unrecognized damping model");
       iarg += 1;
     } else if (strcmp(arg[iarg], "tangential") == 0) {
-      if (iarg + 1 >= narg) 
+      if (iarg + 1 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, must specify "
                    "tangential model after tangential keyword");
       if (strcmp(arg[iarg+1], "linear_nohistory") == 0) {
-        if (iarg + 3 >= narg) 
+        if (iarg + 3 >= narg)
           error->all(FLERR,"Illegal pair_coeff command, "
                      "not enough parameters provided for tangential model");
         tangential_model_one = TANGENTIAL_NOHISTORY;
@@ -809,17 +809,17 @@ void PairGranular::coeff(int narg, char **arg)
       } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
                (strcmp(arg[iarg+1], "mindlin") == 0) ||
                (strcmp(arg[iarg+1], "mindlin_rescale") == 0)) {
-        if (iarg + 4 >= narg) 
+        if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal pair_coeff command, "
                      "not enough parameters provided for tangential model");
-        if (strcmp(arg[iarg+1], "linear_history") == 0) 
+        if (strcmp(arg[iarg+1], "linear_history") == 0)
           tangential_model_one = TANGENTIAL_HISTORY;
         else if (strcmp(arg[iarg+1], "mindlin") == 0)
           tangential_model_one = TANGENTIAL_MINDLIN;
-        else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0) 
+        else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0)
           tangential_model_one = TANGENTIAL_MINDLIN_RESCALE;
         tangential_history = 1;
-        if ((tangential_model_one == TANGENTIAL_MINDLIN || 
+        if ((tangential_model_one == TANGENTIAL_MINDLIN ||
              tangential_model_one == TANGENTIAL_MINDLIN_RESCALE) &&
             (strcmp(arg[iarg+2], "NULL") == 0)) {
           if (normal_model_one == HERTZ || normal_model_one == HOOKE) {
@@ -840,13 +840,13 @@ void PairGranular::coeff(int narg, char **arg)
                    "tangential model not recognized");
       }
     } else if (strcmp(arg[iarg], "rolling") == 0) {
-      if (iarg + 1 >= narg) 
+      if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       if (strcmp(arg[iarg+1], "none") == 0) {
         roll_model_one = ROLL_NONE;
         iarg += 2;
       } else if (strcmp(arg[iarg+1], "sds") == 0) {
-        if (iarg + 4 >= narg) 
+        if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal pair_coeff command, "
                      "not enough parameters provided for rolling model");
         roll_model_one = ROLL_SDS;
@@ -861,7 +861,7 @@ void PairGranular::coeff(int narg, char **arg)
                    "rolling friction model not recognized");
       }
     } else if (strcmp(arg[iarg], "twisting") == 0) {
-      if (iarg + 1 >= narg) 
+      if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       if (strcmp(arg[iarg+1], "none") == 0) {
         twist_model_one = TWIST_NONE;
@@ -886,14 +886,14 @@ void PairGranular::coeff(int narg, char **arg)
                      "twisting friction model not recognized");
       }
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
-      if (iarg + 1 >= narg) 
+      if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       cutoff_one = force->numeric(FLERR,arg[iarg+1]);
     } else error->all(FLERR, "Illegal pair coeff command");
   }
 
   // error not to specify normal or tangential model
-  if ((normal_model_one < 0) || (tangential_model_one < 0)) 
+  if ((normal_model_one < 0) || (tangential_model_one < 0))
     error->all(FLERR, "Illegal pair coeff command, "
                "must specify normal or tangential contact model");
 
@@ -914,7 +914,7 @@ void PairGranular::coeff(int narg, char **arg)
       if (normal_model_one != HERTZ && normal_model_one != HOOKE) {
         Emod[i][j] = Emod[j][i] = normal_coeffs_one[0];
         poiss[i][j] = poiss[j][i] = normal_coeffs_one[2];
-        normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = 
+        normal_coeffs[i][j][0] = normal_coeffs[j][i][0] =
           FOURTHIRDS*mix_stiffnessE(Emod[i][j],Emod[i][j],
                                     poiss[i][j],poiss[i][j]);
       } else {
@@ -927,14 +927,14 @@ void PairGranular::coeff(int narg, char **arg)
 
       tangential_model[i][j] = tangential_model[j][i] = tangential_model_one;
       if (tangential_coeffs_one[0] == -1) {
-        tangential_coeffs[i][j][0] = tangential_coeffs[j][i][0] = 
+        tangential_coeffs[i][j][0] = tangential_coeffs[j][i][0] =
           8*mix_stiffnessG(Emod[i][j],Emod[i][j],poiss[i][j],poiss[i][j]);
       } else {
-        tangential_coeffs[i][j][0] = tangential_coeffs[j][i][0] = 
+        tangential_coeffs[i][j][0] = tangential_coeffs[j][i][0] =
           tangential_coeffs_one[0];
       }
       for (int k = 1; k < 3; k++)
-        tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = 
+        tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] =
           tangential_coeffs_one[k];
 
       roll_model[i][j] = roll_model[j][i] = roll_model_one;
@@ -974,7 +974,7 @@ void PairGranular::init_style()
 
   // determine whether we need a granular neigh list, how large it needs to be
 
-  use_history = normal_history || tangential_history || 
+  use_history = normal_history || tangential_history ||
     roll_history || twist_history;
 
   // for JKR, will need fix/neigh/history to keep track of touch arrays
@@ -1133,36 +1133,36 @@ double PairGranular::init_one(int i, int j)
     }
 
     if (normal_model[i][j] == HERTZ || normal_model[i][j] == HOOKE)
-      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = 
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] =
         mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
     else
-      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = 
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] =
         mix_stiffnessE(Emod[i][i], Emod[j][j], poiss[i][i], poiss[j][j]);
 
-    normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = 
+    normal_coeffs[i][j][1] = normal_coeffs[j][i][1] =
       mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
     if ((normal_model[i][j] == JKR) || (normal_model[i][j] == DMT))
-      normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = 
+      normal_coeffs[i][j][3] = normal_coeffs[j][i][3] =
         mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
 
     for (int k = 0; k < 3; k++)
-      tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = 
+      tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] =
         mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
 
     if (roll_model[i][j] != ROLL_NONE) {
       for (int k = 0; k < 3; k++)
-        roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = 
+        roll_coeffs[i][j][k] = roll_coeffs[j][i][k] =
           mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
     }
 
     if (twist_model[i][j] != TWIST_NONE && twist_model[i][j] != TWIST_MARSHALL) {
       for (int k = 0; k < 3; k++)
-        twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = 
+        twist_coeffs[i][j][k] = twist_coeffs[j][i][k] =
           mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
     }
   }
 
-  // It is possible that cut[i][j] at this point is still 0.0. 
+  // It is possible that cut[i][j] at this point is still 0.0.
   // This can happen when
   // there is a future fix_pour after the current run. A cut[i][j] = 0.0 creates
   // problems because neighbor.cpp uses min(cut[i][j]) to decide on the bin size
@@ -1176,7 +1176,7 @@ double PairGranular::init_one(int i, int j)
     if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
         ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
         // radius info about both i and j exist
-        ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) { 
+        ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) {
       cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
       pulloff = 0.0;
       if (normal_model[i][j] == JKR) {
@@ -1194,7 +1194,7 @@ double PairGranular::init_one(int i, int j)
 
     } else {
 
-      // radius info about either i or j does not exist 
+      // radius info about either i or j does not exist
       // (i.e. not present and not about to get poured;
       // set to largest value to not interfere with neighbor list)
 
@@ -1520,7 +1520,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     } else if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
       k_tangential *= a;
       // on unloading, rescale the shear displacements
-      if (a < history[3]) { 
+      if (a < history[3]) {
         double factor = a/history[3];
         history[0] *= factor;
         history[1] *= factor;
@@ -1551,7 +1551,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     }
 
   // classic pair gran/hooke (no history)
-  } else { 
+  } else {
     fs = meff*damp_tangential*vrel;
     if (vrel != 0.0) Ft = MIN(Fne,fs) / vrel;
     else Ft = 0.0;
@@ -1570,7 +1570,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     relrot3 = omega[i][2] - omega[j][2];
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-    // this is different from the Marshall papers, 
+    // this is different from the Marshall papers,
     // which use the Bagi/Kuhn formulation
     // for rolling velocity (see Wang et al for why the latter is wrong)
 
@@ -1690,7 +1690,7 @@ double PairGranular::memory_usage()
    mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
 
-double PairGranular::mix_stiffnessE(double Eii, double Ejj, 
+double PairGranular::mix_stiffnessE(double Eii, double Ejj,
                                     double poisii, double poisjj)
 {
   return 1/((1-poisii*poisii)/Eii+(1-poisjj*poisjj)/Ejj);
@@ -1700,14 +1700,14 @@ double PairGranular::mix_stiffnessE(double Eii, double Ejj,
    mixing of shear modulus (G)
 ------------------------------------------------------------------------ */
 
-double PairGranular::mix_stiffnessG(double Eii, double Ejj, 
+double PairGranular::mix_stiffnessG(double Eii, double Ejj,
                                     double poisii, double poisjj)
 {
   return 1/((2*(2-poisii)*(1+poisii)/Eii) + (2*(2-poisjj)*(1+poisjj)/Ejj));
 }
 
 /* ----------------------------------------------------------------------
-   mixing of everything else 
+   mixing of everything else
 ------------------------------------------------------------------------- */
 
 double PairGranular::mix_geom(double valii, double valjj)
@@ -1720,7 +1720,7 @@ double PairGranular::mix_geom(double valii, double valjj)
    compute pull-off distance (beyond contact) for a given radius and atom type
 ------------------------------------------------------------------------- */
 
-double PairGranular::pulloff_distance(double radi, double radj, 
+double PairGranular::pulloff_distance(double radi, double radj,
                                       int itype, int jtype)
 {
   double E, coh, a, Reff;

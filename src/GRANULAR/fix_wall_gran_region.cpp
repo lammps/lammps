@@ -47,7 +47,7 @@ enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), 
+  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL),
   ncontact(NULL),
   walls(NULL), history_many(NULL), c2r(NULL)
 {

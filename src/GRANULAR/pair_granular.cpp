@@ -170,13 +170,10 @@ void PairGranular::compute(int eflag, int vflag)
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
 
-  bool touchflag;
+  bool touchflag = false;
+  const bool historyupdate = (update->setupflag) ? false : true;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
-
-  int historyupdate = 1;
-  if (update->setupflag) historyupdate = 0;
+  ev_init(eflag,vflag);
 
   // update rigid body info for owned & ghost atoms if using FixRigid masses
   // body[i] = which body atom I is in, -1 if none

@@ -69,7 +69,6 @@ class FixWallGran : public Fix {
   // for granular model choices
   int normal_model, damping_model;
   int tangential_model, roll_model, twist_model;
-  int beyond_contact;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;

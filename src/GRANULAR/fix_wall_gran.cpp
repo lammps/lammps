@@ -168,7 +168,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal wall/gran command, "
                      "not enough parameters provided for JKR option");
-        beyond_contact = 1;
         normal_model = JKR;
         Emod = force->numeric(FLERR,arg[iarg+1]); //E
         normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping

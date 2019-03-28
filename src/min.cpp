@@ -655,7 +655,11 @@ void Min::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = 2;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal min_modify command");
+    } else {
+      int n = modify_param(narg-iarg,&arg[iarg]);
+      if (n == 0) error->all(FLERR,"Illegal fix_modify command");
+      iarg += n;
+    }
   }
 }
 

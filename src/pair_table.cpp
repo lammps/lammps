@@ -74,8 +74,7 @@ void PairTable::compute(int eflag, int vflag)
   int tlm1 = tablength - 1;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -379,7 +378,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) 
+    for (int i = 0; i < tb->ninput; i++)
       utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 

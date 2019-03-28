@@ -191,8 +191,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   int *num_hbonds = fix_reax->num_hbonds;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;

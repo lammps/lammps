@@ -42,9 +42,7 @@ void PairLJCharmmCoulMSMOMP::compute(int eflag, int vflag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
       "with OMP MSM Pair styles");
 
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

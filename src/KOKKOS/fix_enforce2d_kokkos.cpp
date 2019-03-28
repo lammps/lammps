@@ -162,7 +162,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 
 namespace LAMMPS_NS {
 template class FixEnforce2DKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixEnforce2DKokkos<LMPHostType>;
 #endif
 }

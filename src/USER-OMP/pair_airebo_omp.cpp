@@ -49,9 +49,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
 {
   double pv0=0.0,pv1=0.0,pv2=0.0;
 
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   REBO_neigh_thr();
 

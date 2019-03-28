@@ -31,14 +31,10 @@ element or alloy and set of parameters, e.g. EAM for Cu with a
 specific EAM potential file.
 
 See the current list of "KIM model
-drivers"_https://openkim.org/kim-items/model-drivers/alphabetical.
+drivers"_https://openkim.org/browse/model-drivers/alphabetical.
 
 See the current list of all "KIM
-models"_https://openkim.org/kim-items/models/by-model-drivers
-
-See the list of "example KIM models"_https://openkim.org/kim-api which
-are included in the KIM library by default, in the "What is in the KIM
-API source package?" section.
+models"_https://openkim.org/browse/models/by-model-drivers
 
 To use this pair style, you must first download and install the KIM
 API library from the "OpenKIM website"_https://openkim.org.  The KIM
@@ -46,12 +42,9 @@ section of the "Packages details"_Packages_details.html doc page has
 instructions on how to do this with a simple make command, when
 building LAMMPS.
 
-See the examples/kim dir for an input script that uses a KIM model (potential)
-for Lennard-Jones.  Note, for this example input script, the example models
-shipped with with kim-api package must be installed.  See the "Build
-package"_Build_package.html section and the ./lib/kim/README for details
-on how to build LAMMSPS with the kim-api and how to install the example models.
-
+See the examples/kim dir for an input script that uses a KIM model
+(potential) for Lennard-Jones.
+ 
 :line
 
 The argument {model} is the name of the KIM model for a specific

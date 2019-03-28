@@ -154,6 +154,7 @@ DumpCustomADIOS::~DumpCustomADIOS()
         internal->fh.Close();
     }
     delete internal->ad;
+    delete internal;
 }
 
 /* ---------------------------------------------------------------------- */

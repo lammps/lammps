@@ -512,7 +512,7 @@ void CommTiled::forward_comm(int /*dummy*/)
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
       }
       if (sendother[iswap]) {
-        for (i = 0; i < nsendproc[iswap]; i++) {
+        for (i = 0; i < nsend; i++) {
           n = avec->pack_comm(sendnum[iswap][i],sendlist[iswap][i],
                               buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);

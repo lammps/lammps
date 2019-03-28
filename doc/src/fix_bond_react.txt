@@ -385,6 +385,10 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
+When fix bond/react is 'unfixed,' all internally-created groups are
+deleted. Therefore, fix bond/react can only be unfixed after unfixing
+all other fixes that use any group created by fix bond/react.
+
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if

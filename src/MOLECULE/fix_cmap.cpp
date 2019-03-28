@@ -341,8 +341,7 @@ void FixCMAP::post_force(int vflag)
 
   ecmap = 0.0;
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (n = 0; n < ncrosstermlist; n++) {
     i1 = crosstermlist[n][0];

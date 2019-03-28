@@ -84,7 +84,7 @@ class TILD : public KSpace{
   int nfactors;
   int *factors;
   double cutoff;
-  double volume;
+  double kappa;
   double delxinv,delyinv,delzinv,delvolinv;
   double h_x,h_y,h_z;
   double shift,shiftone;
@@ -117,17 +117,10 @@ class TILD : public KSpace{
 
   // group-group interactions
 
-  int group_allocate_flag;
   FFT_SCALAR ***density_A_brick,***density_B_brick;
   FFT_SCALAR *density_A_fft,*density_B_fft;
 
-  class FFT3d *fft1,*fft2;
-  class Remap *remap;
-  class GridComm *cg;
-  class GridComm *cg_peratom;
-
   int **part2grid;             // storage for particle -> grid mapping
-  int nmax;
 
   double *boxlo;
                                // TIP4P settings
@@ -142,11 +135,8 @@ class TILD : public KSpace{
   double derivf();
   double final_accuracy();
 
-  virtual void allocate();
   virtual void allocate_peratom();
-  virtual void deallocate();
   virtual void deallocate_peratom();
-  int factorable(int);
   double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
   virtual double compute_qopt();
@@ -155,9 +145,17 @@ class TILD : public KSpace{
   virtual void compute_gf_ad();
   void compute_sf_precoeff();
 
-  virtual void particle_map();
+  virtual void particle_map(double, double, double,
+                             double, int **, int, int,
+                             int, int, int,
+                             int, int, int);
+  virtual void particle_map_c(double, double, double,
+                              double, int **, int, int,
+                              int, int, int,
+                              int, int, int );
   virtual void make_rho();
   virtual void brick2fft();
+  virtual void assign_interactions(int, char**);
 
   virtual void poisson();
   virtual void poisson_ik();
@@ -175,7 +173,6 @@ class TILD : public KSpace{
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
   void compute_rho_coeff();
-  void slabcorr();
 
   // grid communication
 
@@ -240,11 +237,6 @@ class TILD : public KSpace{
                           int&, int&,int&, int&, int&,
                           int&, int&, int&,
                           double&, double&, int&);
-
-  virtual void particle_map(double, double, double,
-                             double, int **, int, int,
-                             int, int, int,
-                             int, int, int);
 
 };
 

@@ -732,7 +732,7 @@ void TILD::init_gauss(){
          ngrid*sizeof(FFT_SCALAR));
 
 
-  double pref = V / ( pow(2.0* sqrt(MY_PI * gauss_a2), Dim ));
+  // double pref = V / ( pow(2.0* sqrt(MY_PI * gauss_a2), Dim ));
 
 
   // decomposition of FFT mesh
@@ -1114,5 +1114,75 @@ double TILD::get_k_alias(int id, double k[]){
   for (i=0; i<Dim; i++) kmag += k[i]*k[i];
 
   return kmag;
+
+}
+
+void TILD::particle_map(double delx, double dely, double delz,
+                             double sft, int** p2g, int nup, int nlow,
+                             int nxlo, int nylo, int nzlo,
+                             int nxhi, int nyhi, int nzhi)
+{
+  int nx,ny,nz;
+
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+
+    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+    // current particle coord can be outside global and local box
+    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
+
+    nx = static_cast<int> ((x[i][0]-boxlo[0])*delx+sft) - OFFSET;
+    ny = static_cast<int> ((x[i][1]-boxlo[1])*dely+sft) - OFFSET;
+    nz = static_cast<int> ((x[i][2]-boxlo[2])*delz+sft) - OFFSET;
+
+    p2g[i][0] = nx;
+    p2g[i][1] = ny;
+    p2g[i][2] = nz;
+
+    // check that entire stencil around nx,ny,nz will fit in my 3d brick
+
+    if (nx+nlow < nxlo || nx+nup > nxhi ||
+        ny+nlow < nylo || ny+nup > nyhi ||
+        nz+nlow < nzlo || nz+nup > nzhi)
+      flag = 1;
+  }
+
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
+}
+
+
+void TILD::particle_map_c(double delx, double dely, double delz,
+                               double sft, int** p2g, int nup, int nlow,
+                               int nxlo, int nylo, int nzlo,
+                               int nxhi, int nyhi, int nzhi)
+{
+  particle_map(delx, dely, delz, sft, p2g, nup, nlow,
+               nxlo, nylo, nzlo, nxhi, nyhi, nzhi);
+}
+
+void TILD::assign_interactions(int narg, char **arg){
+  int i;
+
+  if (domain->box_exist == 0)
+    error->all(FLERR,"TILD command before simulation box is defined");
+  if (narg < 2) error->all(FLERR,"Illegal group command");
+
+  if (strcmp(arg[0],"all") == 0) {
+  if (narg > 2) error->all(FLERR,"Illegal group command");
+
+    kappa = atof(arg[1]);
+  }
+  else
+  {
+    int igroup1 = group->find(arg[0]);
+    int igroup1 = group->find(arg[1]);
+        
+  }
 
 }

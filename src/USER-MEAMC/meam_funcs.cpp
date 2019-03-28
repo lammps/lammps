@@ -144,6 +144,28 @@ MEAM::zbl(const double r, const int z1, const int z2)
 }
 
 //-----------------------------------------------------------------------------
+// Compute embedding function F(rhobar) and derivative F'(rhobar), eqn I.5
+//
+double
+MEAM::embedding(const double A, const double Ec, const double rhobar, double& dF) const
+{
+  const double AEc = A * Ec;
+
+  if (rhobar > 0.0) {
+      dF = AEc * (1.0 + log(rhobar));
+      return AEc * rhobar * log(rhobar);
+  } else {
+    if (this->emb_lin_neg == 0) {
+      dF = 0.0;
+      return 0.0;
+    } else {
+      dF = - AEc;
+      return - AEc * rhobar;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 // Compute Rose energy function, I.16
 //
 double

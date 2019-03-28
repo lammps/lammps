@@ -187,6 +187,7 @@ protected:
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
   static double zbl(const double r, const int z1, const int z2);
+  double embedding(const double A, const double Ec, const double rhobar, double& dF) const;
   static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
 
   static void get_shpfcn(const lattice_t latt, double (&s)[3]);

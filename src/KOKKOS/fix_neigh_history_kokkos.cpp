@@ -509,7 +509,7 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   ExecutionSpace space)
 {
   Kokkos::parallel_for(
-    nrecv/16,
+    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2),
     FixNeighHistoryKokkos_UnpackExchangeFunctor<DeviceType>(
       k_buf,k_npartner,k_partner,k_valuepartner,indices,dnum));
 

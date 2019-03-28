@@ -36,17 +36,18 @@ See the README file in the top-level LAMMPS directory.
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define PI27SQ 266.47931882941264802866    // 27*PI**2
 #define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
 #define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
 #define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
-#define FOURTHIRDS 1.333333333333333       // 4/3
+#define FOURTHIRDS 4.0/3.0                 // 4/3
 #define THREEQUARTERS 0.75                 // 3/4
-#define TWOPI 6.28318530717959             // 2*PI
 
 #define EPSILON 1e-10
 
@@ -251,8 +252,8 @@ void PairGranular::compute(int eflag, int vflag)
         if (touch[jj]) {
           R2 = Reff*Reff;
           coh = normal_coeffs[itype][jtype][3];
-          a = cbrt(9.0*M_PI*coh*R2/(4*E));
-          delta_pulloff = a*a/Reff - 2*sqrt(M_PI*coh*a/E);
+          a = cbrt(9.0*MY_PI*coh*R2/(4*E));
+          delta_pulloff = a*a/Reff - 2*sqrt(MY_PI*coh*a/E);
           dist_pulloff = radsum-delta_pulloff;
           touchflag = (rsq < dist_pulloff*dist_pulloff);
         } else {
@@ -318,15 +319,15 @@ void PairGranular::compute(int eflag, int vflag)
           t3 = 4*dR2*E;
           // in case sqrt(0) < 0 due to precision issues
           sqrt1 = MAX(0, t0*(t1+2*t2));
-          t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+          t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
           t5 = t3/t4 + t4/E;
           sqrt2 = MAX(0, 2*dR + t5);
           t6 = sqrt(sqrt2);
-          sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+          sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
           a = INVROOT6*(t6 + sqrt(sqrt3));
           a2 = a*a;
           knfac = normal_coeffs[itype][jtype][0]*a;
-          Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
+          Fne = knfac*a2/Reff - MY_2PI*a2*sqrt(4*coh*E/(MY_PI*a));
         } else {
           knfac = E; // Hooke
           Fne = knfac*delta;
@@ -383,10 +384,10 @@ void PairGranular::compute(int eflag, int vflag)
         }
 
         if (normal_model[itype][jtype] == JKR) {
-          F_pulloff = 3*M_PI*coh*Reff;
+          F_pulloff = 3*MY_PI*coh*Reff;
           Fncrit = fabs(Fne + 2*F_pulloff);
         } else if (normal_model[itype][jtype] == DMT) {
-          F_pulloff = 4*M_PI*coh*Reff;
+          F_pulloff = 4*MY_PI*coh*Reff;
           Fncrit = fabs(Fne + 2*F_pulloff);
         } else {
           Fncrit = fabs(Fntot);
@@ -899,9 +900,8 @@ void PairGranular::coeff(int narg, char **arg)
   if (damping_model_one == TSUJI) {
     double cor;
     cor = normal_coeffs_one[1];
-    damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
-        27.467*pow(cor,4)-18.022*pow(cor,5)+
-        4.8218*pow(cor,6);
+    damp = 1.2728-4.2783*cor+11.087*square(cor)-22.348*cube(cor)+
+        27.467*powint(cor,4)-18.022*powint(cor,5)+4.8218*powint(cor,6);
   } else damp = normal_coeffs_one[1];
 
   for (int i = ilo; i <= ihi; i++) {
@@ -1335,8 +1335,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     E *= THREEQUARTERS;
     R2 = Reff*Reff;
     coh = normal_coeffs[itype][jtype][3];
-    a = cbrt(9.0*M_PI*coh*R2/(4*E));
-    delta_pulloff = a*a/Reff - 2*sqrt(M_PI*coh*a/E);
+    a = cbrt(9.0*MY_PI*coh*R2/(4*E));
+    delta_pulloff = a*a/Reff - 2*sqrt(MY_PI*coh*a/E);
     dist_pulloff = radsum+delta_pulloff;
     touchflag = (rsq <= dist_pulloff*dist_pulloff);
   } else touchflag = (rsq <= radsum*radsum);
@@ -1427,15 +1427,15 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     t3 = 4*dR2*E;
     // in case sqrt(0) < 0 due to precision issues
     sqrt1 = MAX(0, t0*(t1+2*t2));
-    t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+    t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
     t5 = t3/t4 + t4/E;
     sqrt2 = MAX(0, 2*dR + t5);
     t6 = sqrt(sqrt2);
-    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
     a = INVROOT6*(t6 + sqrt(sqrt3));
     a2 = a*a;
     knfac = normal_coeffs[itype][jtype][0]*a;
-    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
+    Fne = knfac*a2/Reff - MY_2PI*a2*sqrt(4*coh*E/(MY_PI*a));
   } else {
     knfac = E;
     Fne = knfac*delta;
@@ -1496,10 +1496,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   vrel = sqrt(vrel);
 
   if (normal_model[itype][jtype] == JKR) {
-    F_pulloff = 3*M_PI*coh*Reff;
+    F_pulloff = 3*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   } else if (normal_model[itype][jtype] == DMT) {
-    F_pulloff = 4*M_PI*coh*Reff;
+    F_pulloff = 4*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   } else {
     Fncrit = fabs(Fntot);
@@ -1725,8 +1725,8 @@ double PairGranular::pulloff_distance(double radi, double radj,
   if (Reff <= 0) return 0;
   coh = normal_coeffs[itype][itype][3];
   E = normal_coeffs[itype][jtype][0]*THREEQUARTERS;
-  a = cbrt(9*M_PI*coh*Reff/(4*E));
-  return a*a/Reff - 2*sqrt(M_PI*coh*a/E);
+  a = cbrt(9*MY_PI*coh*Reff/(4*E));
+  return a*a/Reff - 2*sqrt(MY_PI*coh*a/E);
 }
 
 /* ----------------------------------------------------------------------

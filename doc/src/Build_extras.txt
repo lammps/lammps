@@ -82,17 +82,19 @@ which GPU hardware to build for.
 
 [CMake build]:
 
--D GPU_API=value      # value = opencl (default) or cuda
--D GPU_PREC=value     # precision setting
-                      # value = double or mixed (default) or single
--D OCL_TUNE=value     # hardware choice for GPU_API=opencl
-                      # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
--D GPU_ARCH=value     # primary GPU hardware choice for GPU_API=cuda
-                      # value = sm_XX, see below
-                      # default is Cuda-compiler dependent, but typically sm_20
--D CUDPP_OPT=value    # optimization setting for GPU_API=cuda
-                      # enables CUDA Performance Primitives Optimizations
-                      # yes (default) or no :pre
+-D GPU_API=value          # value = opencl (default) or cuda
+-D GPU_PREC=value         # precision setting
+                          # value = double or mixed (default) or single
+-D OCL_TUNE=value         # hardware choice for GPU_API=opencl
+                          # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
+-D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
+                          # value = sm_XX, see below
+                          # default is Cuda-compiler dependent, but typically sm_20
+-D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
+                          # enables CUDA Performance Primitives Optimizations
+                          # value = yes (default) or no
+-D CUDA_MPS_SUPPORT=value # enables some tweaks required to run with active nvidia-cuda-mps daemon
+                          # value = yes or no (default)
 
 GPU_ARCH settings for different GPU hardware is as follows:
 

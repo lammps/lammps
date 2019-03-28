@@ -822,20 +822,20 @@ void Special::angle_trim()
     int nsend = 0;
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_angle[i]; j++) {
-	if (tag[i] != angle_atom2[i][j]) continue;
-	m = atom->map(angle_atom1[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(angle_atom3[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
+        if (tag[i] != angle_atom2[i][j]) continue;
+        m = atom->map(angle_atom1[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
+        m = atom->map(angle_atom3[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
       }
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(dihedral_atom3[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
+        if (tag[i] != dihedral_atom2[i][j]) continue;
+        m = atom->map(dihedral_atom1[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
+        m = atom->map(dihedral_atom3[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
+        m = atom->map(dihedral_atom4[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
       }
     }
 
@@ -853,51 +853,51 @@ void Special::angle_trim()
     nsend = 0;
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_angle[i]; j++) {
-	if (tag[i] != angle_atom2[i][j]) continue;
+        if (tag[i] != angle_atom2[i][j]) continue;
 
-	m = atom->map(angle_atom1[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = angle_atom1[i][j] % nprocs;
-	  inbuf[nsend].atomID = angle_atom1[i][j];
-	  inbuf[nsend].partnerID = angle_atom3[i][j];
-	  nsend++;
-	}
+        m = atom->map(angle_atom1[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = angle_atom1[i][j] % nprocs;
+          inbuf[nsend].atomID = angle_atom1[i][j];
+          inbuf[nsend].partnerID = angle_atom3[i][j];
+          nsend++;
+        }
 
-	m = atom->map(angle_atom3[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = angle_atom3[i][j] % nprocs;
-	  inbuf[nsend].atomID = angle_atom3[i][j];
-	  inbuf[nsend].partnerID = angle_atom1[i][j];
-	  nsend++;
-	}
+        m = atom->map(angle_atom3[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = angle_atom3[i][j] % nprocs;
+          inbuf[nsend].atomID = angle_atom3[i][j];
+          inbuf[nsend].partnerID = angle_atom1[i][j];
+          nsend++;
+        }
       }
 
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
+        if (tag[i] != dihedral_atom2[i][j]) continue;
 
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom1[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom1[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom3[i][j];
-	  nsend++;
-	}
+        m = atom->map(dihedral_atom1[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = dihedral_atom1[i][j] % nprocs;
+          inbuf[nsend].atomID = dihedral_atom1[i][j];
+          inbuf[nsend].partnerID = dihedral_atom3[i][j];
+          nsend++;
+        }
 
-	m = atom->map(dihedral_atom3[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom3[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom3[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom1[i][j];
-	  nsend++;
-	}
+        m = atom->map(dihedral_atom3[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = dihedral_atom3[i][j] % nprocs;
+          inbuf[nsend].atomID = dihedral_atom3[i][j];
+          inbuf[nsend].partnerID = dihedral_atom1[i][j];
+          nsend++;
+        }
 
-      	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom4[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom4[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom2[i][j];
-	  nsend++;
-	}
+        m = atom->map(dihedral_atom4[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = dihedral_atom4[i][j] % nprocs;
+          inbuf[nsend].atomID = dihedral_atom4[i][j];
+          inbuf[nsend].partnerID = dihedral_atom2[i][j];
+          nsend++;
+        }
       }
     }
 
@@ -925,7 +925,7 @@ void Special::angle_trim()
 
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < nspecial[i][1]; j++)
-	flag[i][j] = 0;
+        flag[i][j] = 0;
 
     // reset nspecial[1] and onethree for all owned atoms based on output info
     // based on owned info plus rendezvous output info
@@ -933,68 +933,68 @@ void Special::angle_trim()
 
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_angle[i]; j++) {
-	if (tag[i] != angle_atom2[i][j]) continue;
+        if (tag[i] != angle_atom2[i][j]) continue;
 
-	m = atom->map(angle_atom1[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == angle_atom3[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(angle_atom1[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][1]; k++)
+            if (onethree[m][k] == angle_atom3[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
 
-	m = atom->map(angle_atom3[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == angle_atom1[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(angle_atom3[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][1]; k++)
+            if (onethree[m][k] == angle_atom1[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
       }
 
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
+        if (tag[i] != dihedral_atom2[i][j]) continue;
 
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == dihedral_atom3[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(dihedral_atom1[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][1]; k++)
+            if (onethree[m][k] == dihedral_atom3[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
 
-	m = atom->map(dihedral_atom3[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == dihedral_atom1[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(dihedral_atom3[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][1]; k++)
+            if (onethree[m][k] == dihedral_atom1[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
 
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][1]; k++)
-	    if (onethree[m][k] == dihedral_atom2[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(dihedral_atom4[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][1]; k++)
+            if (onethree[m][k] == dihedral_atom2[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
       }
     }
 
     for (m = 0; m < nreturn; m++) {
       i = atom->map(outbuf[m].atomID);
       for (k = 0; k < nspecial[i][1]; k++)
-	if (onethree[i][k] == outbuf[m].partnerID) {
-	  flag[i][k] = 1;
-	  break;
-	}
+        if (onethree[i][k] == outbuf[m].partnerID) {
+          flag[i][k] = 1;
+          break;
+        }
     }
-	
+        
     memory->destroy(outbuf);
 
     // use flag values to compress onefour list for each atom
@@ -1002,11 +1002,11 @@ void Special::angle_trim()
     for (i = 0; i < nlocal; i++) {
       j = 0;
       while (j < nspecial[i][1]) {
-	if (flag[i][j] == 0) {
-	  onethree[i][j] = onethree[i][nspecial[i][1]-1];
-	  flag[i][j] = flag[i][nspecial[i][1]-1];
-	  nspecial[i][1]--;
-	} else j++;
+        if (flag[i][j] == 0) {
+          onethree[i][j] = onethree[i][nspecial[i][1]-1];
+          flag[i][j] = flag[i][nspecial[i][1]-1];
+          nspecial[i][1]--;
+        } else j++;
       }
     }
 
@@ -1077,11 +1077,11 @@ void Special::dihedral_trim()
     int nsend = 0;
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) nsend++;
+        if (tag[i] != dihedral_atom2[i][j]) continue;
+        m = atom->map(dihedral_atom1[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
+        m = atom->map(dihedral_atom4[i][j]);
+        if (m < 0 || m >= nlocal) nsend++;
       }
     }
 
@@ -1100,23 +1100,23 @@ void Special::dihedral_trim()
     nsend = 0;
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
+        if (tag[i] != dihedral_atom2[i][j]) continue;
 
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom1[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom1[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom4[i][j];
-	  nsend++;
-	}
+        m = atom->map(dihedral_atom1[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = dihedral_atom1[i][j] % nprocs;
+          inbuf[nsend].atomID = dihedral_atom1[i][j];
+          inbuf[nsend].partnerID = dihedral_atom4[i][j];
+          nsend++;
+        }
 
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m < 0 || m >= nlocal) {
-	  proclist[nsend] = dihedral_atom4[i][j] % nprocs;
-	  inbuf[nsend].atomID = dihedral_atom4[i][j];
-	  inbuf[nsend].partnerID = dihedral_atom1[i][j];
-	  nsend++;
-	}
+        m = atom->map(dihedral_atom4[i][j]);
+        if (m < 0 || m >= nlocal) {
+          proclist[nsend] = dihedral_atom4[i][j] % nprocs;
+          inbuf[nsend].atomID = dihedral_atom4[i][j];
+          inbuf[nsend].partnerID = dihedral_atom1[i][j];
+          nsend++;
+        }
       }
     }
 
@@ -1144,39 +1144,39 @@ void Special::dihedral_trim()
 
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < nspecial[i][2]; j++)
-	flag[i][j] = 0;
+        flag[i][j] = 0;
 
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_dihedral[i]; j++) {
-	if (tag[i] != dihedral_atom2[i][j]) continue;
+        if (tag[i] != dihedral_atom2[i][j]) continue;
 
-	m = atom->map(dihedral_atom1[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][2]; k++)
-	    if (onefour[m][k] == dihedral_atom4[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(dihedral_atom1[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][2]; k++)
+            if (onefour[m][k] == dihedral_atom4[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
 
-	m = atom->map(dihedral_atom4[i][j]);
-	if (m >= 0 && m < nlocal) {
-	  for (k = 0; k < nspecial[m][2]; k++)
-	    if (onefour[m][k] == dihedral_atom1[i][j]) {
-	      flag[m][k] = 1;
-	      break;
-	    }
-	}
+        m = atom->map(dihedral_atom4[i][j]);
+        if (m >= 0 && m < nlocal) {
+          for (k = 0; k < nspecial[m][2]; k++)
+            if (onefour[m][k] == dihedral_atom1[i][j]) {
+              flag[m][k] = 1;
+              break;
+            }
+        }
       }
     }
 
     for (m = 0; m < nreturn; m++) {
       i = atom->map(outbuf[m].atomID);
       for (k = 0; k < nspecial[i][2]; k++)
-	if (onefour[i][k] == outbuf[m].partnerID) {
-	  flag[i][k] = 1;
-	  break;
-	}
+        if (onefour[i][k] == outbuf[m].partnerID) {
+          flag[i][k] = 1;
+          break;
+        }
     }
 
     memory->destroy(outbuf);
@@ -1186,11 +1186,11 @@ void Special::dihedral_trim()
     for (i = 0; i < nlocal; i++) {
       j = 0;
       while (j < nspecial[i][2]) {
-	if (flag[i][j] == 0) {
-	  onefour[i][j] = onefour[i][nspecial[i][2]-1];
-	  flag[i][j] = flag[i][nspecial[i][2]-1];
-	  nspecial[i][2]--;
-	} else j++;
+        if (flag[i][j] == 0) {
+          onefour[i][j] = onefour[i][nspecial[i][2]-1];
+          flag[i][j] = flag[i][nspecial[i][2]-1];
+          nspecial[i][2]--;
+        } else j++;
       }
     }
 
@@ -1225,8 +1225,8 @@ void Special::dihedral_trim()
 ------------------------------------------------------------------------- */
 
 int Special::rendezvous_ids(int n, char *inbuf,
-			    int &flag, int *&proclist, char *&outbuf,
-			    void *ptr)
+                            int &flag, int *&proclist, char *&outbuf,
+                            void *ptr)
 {
   Special *sptr = (Special *) ptr;
   Memory *memory = sptr->memory;
@@ -1255,7 +1255,7 @@ int Special::rendezvous_ids(int n, char *inbuf,
   flag = 0;
   return 0;
 }
-				
+                                
 
 /* ----------------------------------------------------------------------
    process data for atoms assigned to me in rendezvous decomposition

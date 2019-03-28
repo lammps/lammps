@@ -61,6 +61,8 @@ class TILD : public KSpace{
   double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
   double ***cs,***sn;
   int factorable(int);
+  double **param;
+  virtual int modify_param(int, char**);
 
   // group-group interactions
 

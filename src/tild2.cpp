@@ -158,6 +158,9 @@ void TILD::init()
     if (screen) fprintf(screen,"TILD initialization ...\n");
     if (logfile) fprintf(logfile,"TILD initialization ...\n");
   }
+
+  memory->create(param, group->ngroup, group->ngroup,"tild:param");
+
 }
 
 
@@ -1166,23 +1169,40 @@ void TILD::particle_map_c(double delx, double dely, double delz,
                nxlo, nylo, nzlo, nxhi, nyhi, nzhi);
 }
 
-void TILD::assign_interactions(int narg, char **arg){
+int TILD::modify_param(int narg, char **arg){
   int i;
+
+  if (strcmp(arg[0],"tild/params") == 0) {
 
   if (domain->box_exist == 0)
     error->all(FLERR,"TILD command before simulation box is defined");
-  if (narg < 2) error->all(FLERR,"Illegal group command");
+  if (narg < 3) error->all(FLERR,"Illegal kspace_modify tild command");
 
-  if (strcmp(arg[0],"all") == 0) {
-  if (narg > 2) error->all(FLERR,"Illegal group command");
+  if (strcmp(arg[1],"all") == 0) {
+  if (narg != 3) error->all(FLERR,"Illegal kspace_modify tild command");
 
     kappa = atof(arg[1]);
+    param[0][0]= atof(arg[1]);
   }
   else
   {
-    int igroup1 = group->find(arg[0]);
+    if (narg != 4) error->all(FLERR,"Illegal kspace_modify tild command");
     int igroup1 = group->find(arg[1]);
+    int igroup2 = group->find(arg[2]);
         
+    if (igroup1 == -1){
+      error->all(FLERR, "group1 not found in kspace_modify tild command");
+    }
+    if (igroup2 == -1){
+      error->all(FLERR, "group2 not found in kspace_modify tild command");
   }
+    if (igroup1 == 0 || igroup2 == 0)
+      error->all(FLERR, "all group specified in 'group1 group2 param' format");
 
+    param[igroup1][igroup2] = param[igroup2][igroup1] = atof(arg[3]);
+
+}
+  } else 
+    error->all(FLERR,"Illegal kspace_modify tild command");
+  return narg;
 }

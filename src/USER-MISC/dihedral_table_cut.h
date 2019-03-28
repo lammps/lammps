@@ -20,7 +20,6 @@ DihedralStyle(table/cut,DihedralTableCut)
 #ifndef LMP_DIHEDRAL_TABLE_CUT_H
 #define LMP_DIHEDRAL_TABLE_CUT_H
 
-#include <stdio.h>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -34,26 +33,18 @@ class DihedralTableCut : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int type, int i1, int i2, int i3, int i4);
 
  protected:
-  double *k1,*k2,*k3;
-  double *phi1,*phi2,*phi3;
   double *aat_k,*aat_theta0_1,*aat_theta0_2;
-  int *setflag_d;
-  int *setflag_aat;
 
   void allocate();
 
   int tabstyle,tablength;
-  // double *phi0;       <- equilibrium angles not supported
   char *checkU_fname;
   char *checkF_fname;
 
   struct Table {
     int ninput;
-    //double phi0;      <-equilibrium angles not supported
     int f_unspecified; // boolean (but MPI does not like type "bool")
     int use_degrees;   // boolean (but MPI does not like type "bool")
     double *phifile,*efile,*ffile;

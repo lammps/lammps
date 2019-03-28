@@ -987,8 +987,7 @@ void PairComb3::compute(int eflag, int vflag)
 
   evdwl = eng_tmp = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Build short range neighbor list
   Short_neigh();

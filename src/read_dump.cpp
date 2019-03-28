@@ -94,7 +94,7 @@ ReadDump::~ReadDump()
 
   memory->destroy(fields);
   memory->destroy(buf);
-  
+
   for (int i = 0; i < nreader; i++) delete readers[i];
   delete [] readers;
   delete [] nsnapatoms;
@@ -359,7 +359,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
         readers[i]->skip();
       }
 
-      if (eofflag) 
+      if (eofflag)
         error->one(FLERR,"Read dump parallel files "
                    "do not all have same timestep");
     }
@@ -466,7 +466,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
         readers[i]->skip();
       }
 
-      if (eofflag) 
+      if (eofflag)
         error->one(FLERR,"Read dump parallel files "
                    "do not all have same timestep");
     }
@@ -724,7 +724,7 @@ void ReadDump::read_atoms()
       otherproc = 0;
       ofirst = (bigint) otherproc * nsnap/nprocs_cluster;
       olast = (bigint) (otherproc+1) * nsnap/nprocs_cluster;
-      if (olast-ofirst > MAXSMALLINT) 
+      if (olast-ofirst > MAXSMALLINT)
         error->one(FLERR,"Read dump snapshot is too large for a proc");
       nnew = static_cast<int> (olast - ofirst);
 
@@ -765,7 +765,7 @@ void ReadDump::read_atoms()
     } else {
       ofirst = (bigint) me_cluster * nsnap/nprocs_cluster;
       olast = (bigint) (me_cluster+1) * nsnap/nprocs_cluster;
-      if (olast-ofirst > MAXSMALLINT) 
+      if (olast-ofirst > MAXSMALLINT)
         error->one(FLERR,"Read dump snapshot is too large for a proc");
       nnew = static_cast<int> (olast - ofirst);
       if (nnew > maxnew || maxnew == 0) {
@@ -791,7 +791,7 @@ void ReadDump::read_atoms()
     bigint sum = 0;
     for (int i = 0; i < nreader; i++)
       sum += nsnapatoms[i];
-    if (sum > MAXSMALLINT) 
+    if (sum > MAXSMALLINT)
       error->one(FLERR,"Read dump snapshot is too large for a proc");
     nnew = static_cast<int> (sum);
     if (nnew > maxnew || maxnew == 0) {
@@ -811,7 +811,7 @@ void ReadDump::read_atoms()
       }
       nnew += nsnap;
     }
-  }  
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -943,7 +943,7 @@ void ReadDump::process_atoms()
         ntrim++;
       } else i++;
     }
-    
+
     atom->nlocal = nlocal;
     bigint nblocal = atom->nlocal;
     MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);

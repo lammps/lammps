@@ -103,6 +103,13 @@ the line search fails because the step distance backtracks to 0.0
 the number of outer iterations or timesteps exceeds {maxiter}
 the number of total force evaluations exceeds {maxeval} :ul
 
+NOTE: the "minimization style"_min_style.html {spin} replaces
+the force tolerance {ftol} by a torque tolerance.
+The minimization procedure stops if the 2-norm (length) of the 
+global torque vector (defined as the cross product between the 
+spins and their precession vectors omega) is less than {ftol}, 
+or if any of the other criteria are met.
+
 NOTE: You can also use the "fix halt"_fix_halt.html command to specify
 a general criterion for exiting a minimization, that is a calculation
 performed on the state of the current system, as defined by an

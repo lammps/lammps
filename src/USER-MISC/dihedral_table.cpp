@@ -549,8 +549,7 @@ void DihedralTable::compute(int eflag, int vflag)
 
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
 
   for (n = 0; n < ndihedrallist; n++) {

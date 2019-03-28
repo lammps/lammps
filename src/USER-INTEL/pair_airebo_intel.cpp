@@ -292,8 +292,7 @@ template<class flt_t, class acc_t>
 void PairAIREBOIntel::compute(
     int eflag, int vflag, IntelBuffers<flt_t,acc_t> * buffers
 ) {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   const int inum = list->inum;

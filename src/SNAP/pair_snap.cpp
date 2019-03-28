@@ -176,8 +176,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
   int *jlist,*numneigh,**firstneigh;
   evdwl = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -486,8 +485,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 #pragma omp master
 #endif
     {
-      if (eflag || vflag) ev_setup(eflag,vflag);
-      else evflag = vflag_fdotr = 0;
+      ev_init(eflag,vflag);
     }
 
 #if defined(_OPENMP)

@@ -108,8 +108,7 @@ PairAIREBO::~PairAIREBO()
 
 void PairAIREBO::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();

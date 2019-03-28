@@ -45,10 +45,7 @@ DihedralCharmmOMP::DihedralCharmmOMP(class LAMMPS *lmp)
 
 void DihedralCharmmOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 

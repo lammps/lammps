@@ -107,6 +107,12 @@ dump		1 all image 10000000 local.*.jpg v_acolor type size 1024 1024 &
 		zoom ${zoom} adiam 2.5 view 0.0 0.0 up 0 1 0 axes yes 0.9 0.01
 dump_modify	1 pad 6 amap 1 3 sa 1 3 blue red green
 
+# test of histogramming and dump output of bias coeffs
+
+#fix            histo all ave/histo 10 100 1000 0.9 1.1 100 f_HL &
+#               mode vector kind local file tmp.histo
+#dump           2 all local 1000 tmp.local f_HL
+
 # run
 
 hyper           ${steps} ${nevent} HL event min ${tol} ${tol} 1000 1000 dump 1

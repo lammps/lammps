@@ -252,6 +252,7 @@ Boresch
 Botero
 Botu
 Bouguet
+Bourne
 boxcolor
 bp
 bpls
@@ -634,6 +635,7 @@ dVx
 dW
 dx
 dy
+dylib
 dyn
 dyne
 dynes
@@ -1308,6 +1310,7 @@ Kondor
 konglt
 Koning
 Kooser
+Korn
 Koskinen
 Koster
 Kosztin
@@ -1392,6 +1395,7 @@ libAtoms
 libawpmd
 libch
 libcolvars
+libcurl
 libdir
 libdl
 libfftw

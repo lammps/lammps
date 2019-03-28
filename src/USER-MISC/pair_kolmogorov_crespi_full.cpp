@@ -115,8 +115,7 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
   int *KC_neighs_i,*KC_neighs_j;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

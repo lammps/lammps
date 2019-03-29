@@ -26,6 +26,8 @@
 #include <iostream>
 #include "fft3d_wrap.h"
 #include "pppm.h"
+#include <complex>
+#include "group.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -34,6 +36,8 @@ double *TILD::uG, TILD::a_squared;
 
 #define SMALL 0.00001
 #define OFFSET 16384
+#define PI 3.141592653589793238462643383279
+#define I std::complex<double>(0.0, 1.0)
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f

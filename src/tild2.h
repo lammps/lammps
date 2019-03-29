@@ -41,11 +41,11 @@ class TILD : public KSpace{
 
   void compute_group_group(int, int, int);
   void field_groups(int);
-  void field_gradient(FFT_SCALAR*, FFT_SCALAR*, int, int);
+  void field_gradient(FFT_SCALAR*, FFT_SCALAR**, int);
   // void get_k_alias(int, double *);
 
  protected:
-  double **grad_uG, **grad_uG_hat;
+  double **grad_uG, **grad_uG_hat, *temp;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
@@ -78,6 +78,7 @@ class TILD : public KSpace{
   void slabcorr();
   void init_gauss();
   double get_k_alias(int, double*);
+  void get_k_alias();
 
 
 
@@ -105,7 +106,6 @@ class TILD : public KSpace{
   FFT_SCALAR ***v0_brick,***v1_brick,***v2_brick;
   FFT_SCALAR ***v3_brick,***v4_brick,***v5_brick;
   double *greensfn;
-  double **vg;
   double *fkx,*fky,*fkz;
   FFT_SCALAR *density_fft;
   FFT_SCALAR *work1,*work2;

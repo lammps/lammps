@@ -994,7 +994,7 @@ void Special::angle_trim()
           break;
         }
     }
-        
+
     memory->destroy(outbuf);
 
     // use flag values to compress onefour list for each atom
@@ -1255,7 +1255,7 @@ int Special::rendezvous_ids(int n, char *inbuf,
   flag = 0;
   return 0;
 }
-                                
+
 
 /* ----------------------------------------------------------------------
    process data for atoms assigned to me in rendezvous decomposition

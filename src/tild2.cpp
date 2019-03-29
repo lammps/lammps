@@ -28,6 +28,7 @@
 #include "pppm.h"
 #include <complex>
 #include "group.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -39,6 +40,9 @@ double *TILD::uG, TILD::a_squared;
 #define PI 3.141592653589793238462643383279
 #define I std::complex<double>(0.0, 1.0)
 
+enum{REVERSE_RHO};
+enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
+
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
 #define ONEF  1.0f
@@ -47,7 +51,6 @@ double *TILD::uG, TILD::a_squared;
 #define ONEF  1.0
 #endif
 
-enum{REVERSE_RHO};
 
 /* ------------------------------------------------------------ */
 
@@ -842,7 +845,7 @@ void TILD::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
   // map my particle charge onto my local 3d density grid
 
-  make_rho_groups(groupbit_A,groupbit_B,AA_flag);
+  // make_rho_groups(groupbit_A,groupbit_B,AA_flag);
   
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
@@ -879,7 +882,7 @@ void TILD::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   // compute potential gradient on my FFT grid and
   //   portion of group-group energy/force on this proc's FFT grid
 
-  poisson_groups(AA_flag);
+  // poisson_groups(AA_flag);
 
   const double qscale = qqrd2e * scale;
 
@@ -905,8 +908,8 @@ void TILD::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
   if (triclinic) domain->lamda2x(atom->nlocal);
 
-  if (slabflag == 1)
-    slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
+  // if (slabflag == 1)
+  //   slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
 
   return;
 }
@@ -1211,4 +1214,452 @@ int TILD::modify_param(int narg, char** arg)
   } else 
         error->all(FLERR, "Illegal kspace_modify tild command");
   return narg;
+}
+
+/* ----------------------------------------------------------------------
+   ghost-swap to accumulate full density in brick decomposition
+   remap density from 3d brick decomposition to FFTdecomposition
+   for coulomb interaction or dispersion interaction with geometric
+   mixing
+------------------------------------------------------------------------- */
+void TILD::brick2fft(int nxlo_i, int nylo_i, int nzlo_i,
+                         int nxhi_i, int nyhi_i, int nzhi_i,
+                         FFT_SCALAR*** dbrick, FFT_SCALAR* dfft, FFT_SCALAR* work,
+                         LAMMPS_NS::Remap* rmp)
+{
+  int n,ix,iy,iz;
+
+  // copy grabs inner portion of density from 3d brick
+  // remap could be done as pre-stage of FFT,
+  //   but this works optimally on only double values, not complex values
+
+  n = 0;
+  for (iz = nzlo_i; iz <= nzhi_i; iz++)
+    for (iy = nylo_i; iy <= nyhi_i; iy++)
+      for (ix = nxlo_i; ix <= nxhi_i; ix++)
+        dfft[n++] = dbrick[iz][iy][ix];
+
+  rmp->perform(dfft,dfft,work);
+}
+
+/* ----------------------------------------------------------------------
+   pack own values to buf to send to another proc
+------------------------------------------------------------------------- */
+void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  int n = 0;
+
+  if (flag == FORWARD_IK) {
+    FFT_SCALAR *xsrc = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *ysrc = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *zsrc = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = xsrc[list[i]];
+      buf[n++] = ysrc[list[i]];
+      buf[n++] = zsrc[list[i]];
+    }
+  } else if (flag == FORWARD_AD) {
+    FFT_SCALAR *src = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+  } else if (flag == FORWARD_IK_PERATOM) {
+    FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) buf[n++] = esrc[list[i]];
+      if (vflag_atom) {
+        buf[n++] = v0src[list[i]];
+        buf[n++] = v1src[list[i]];
+        buf[n++] = v2src[list[i]];
+        buf[n++] = v3src[list[i]];
+        buf[n++] = v4src[list[i]];
+        buf[n++] = v5src[list[i]];
+      }
+    }
+  } else if (flag == FORWARD_AD_PERATOM) {
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = v0src[list[i]];
+      buf[n++] = v1src[list[i]];
+      buf[n++] = v2src[list[i]];
+      buf[n++] = v3src[list[i]];
+      buf[n++] = v4src[list[i]];
+      buf[n++] = v5src[list[i]];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unpack another proc's own values from buf and set own ghost values
+------------------------------------------------------------------------- */
+void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  int n = 0;
+
+  if (flag == FORWARD_IK) {
+    FFT_SCALAR *xdest = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *ydest = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *zdest = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      xdest[list[i]] = buf[n++];
+      ydest[list[i]] = buf[n++];
+      zdest[list[i]] = buf[n++];
+    }
+  } else if (flag == FORWARD_AD) {
+    FFT_SCALAR *dest = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] = buf[i];
+  } else if (flag == FORWARD_IK_PERATOM) {
+    FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) esrc[list[i]] = buf[n++];
+      if (vflag_atom) {
+        v0src[list[i]] = buf[n++];
+        v1src[list[i]] = buf[n++];
+        v2src[list[i]] = buf[n++];
+        v3src[list[i]] = buf[n++];
+        v4src[list[i]] = buf[n++];
+        v5src[list[i]] = buf[n++];
+      }
+    }
+  } else if (flag == FORWARD_AD_PERATOM) {
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      v0src[list[i]] = buf[n++];
+      v1src[list[i]] = buf[n++];
+      v2src[list[i]] = buf[n++];
+      v3src[list[i]] = buf[n++];
+      v4src[list[i]] = buf[n++];
+      v5src[list[i]] = buf[n++];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack ghost values into buf to send to another proc
+------------------------------------------------------------------------- */
+void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  if (flag == REVERSE_RHO) {
+    FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unpack another proc's ghost values from buf and add to own values
+------------------------------------------------------------------------- */
+void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  if (flag == REVERSE_RHO) {
+    FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] += buf[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
+------------------------------------------------------------------------- */
+void TILD::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
+{
+  // loop thru all possible factorizations of nprocs
+  // surf = surface area of largest proc sub-domain
+  // innermost if test minimizes surface area and surface/volume ratio
+
+  int bestsurf = 2 * (nx + ny);
+  int bestboxx = 0;
+  int bestboxy = 0;
+
+  int boxx,boxy,surf,ipx,ipy;
+
+  ipx = 1;
+  while (ipx <= nprocs) {
+    if (nprocs % ipx == 0) {
+      ipy = nprocs/ipx;
+      boxx = nx/ipx;
+      if (nx % ipx) boxx++;
+      boxy = ny/ipy;
+      if (ny % ipy) boxy++;
+      surf = boxx + boxy;
+      if (surf < bestsurf ||
+          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+        bestsurf = surf;
+        bestboxx = boxx;
+        bestboxy = boxy;
+        *px = ipx;
+        *py = ipy;
+      }
+    }
+    ipx++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   set the FFT parameters
+------------------------------------------------------------------------- */
+void TILD::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
+                                   int& nxlo_f,int& nylo_f,int& nzlo_f,
+                                   int& nxhi_f,int& nyhi_f,int& nzhi_f,
+                                   int& nxlo_i,int& nylo_i,int& nzlo_i,
+                                   int& nxhi_i,int& nyhi_i,int& nzhi_i,
+                                   int& nxlo_o,int& nylo_o,int& nzlo_o,
+                                   int& nxhi_o,int& nyhi_o,int& nzhi_o,
+                                   int& nlow, int& nupp,
+                                   int& ng, int& nf, int& nfb,
+                                   double& sft,double& sftone, int& ord)
+{
+  // global indices of PPPM grid range from 0 to N-1
+  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
+  //   global PPPM grid that I own without ghost cells
+  // for slab PPPM, assign z grid as if it were not extended
+
+  nxlo_i = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_p);
+  nxhi_i = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_p) - 1;
+
+  nylo_i = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_p);
+  nyhi_i = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_p) - 1;
+
+  nzlo_i = static_cast<int>
+      (comm->zsplit[comm->myloc[2]] * nz_p/slab_volfactor);
+  nzhi_i = static_cast<int>
+      (comm->zsplit[comm->myloc[2]+1] * nz_p/slab_volfactor) - 1;
+
+  // nlow,nupp = stencil size for mapping particles to PPPM grid
+
+  nlow = -(ord-1)/2;
+  nupp = ord/2;
+
+  // sft values for particle <-> grid mapping
+  // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
+
+  if (ord % 2) sft = OFFSET + 0.5;
+  else sft = OFFSET;
+  if (ord % 2) sftone = 0.0;
+  else sftone = 0.5;
+
+  // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
+  //   global PPPM grid that my particles can contribute charge to
+  // effectively nlo_in,nhi_in + ghost cells
+  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
+  //           position a particle in my box can be at
+  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
+  //   qdist = offset due to TIP4P fictitious charge
+  //   convert to triclinic if necessary
+  // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+  // for slab PPPM, assign z grid as if it were not extended
+
+  double *prd,*sublo,*subhi;
+
+  if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+
+  double dist[3];
+  double cuthalf = 0.5*neighbor->skin + qdist;
+  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
+  else {
+    dist[0] = cuthalf/domain->prd[0];
+    dist[1] = cuthalf/domain->prd[1];
+    dist[2] = cuthalf/domain->prd[2];
+  }
+
+  int nlo,nhi;
+
+  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
+                            nx_p/xprd + sft) - OFFSET;
+  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
+                            nx_p/xprd + sft) - OFFSET;
+  nxlo_o = nlo + nlow;
+  nxhi_o = nhi + nupp;
+
+  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
+                            ny_p/yprd + sft) - OFFSET;
+  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
+                            ny_p/yprd + sft) - OFFSET;
+  nylo_o = nlo + nlow;
+  nyhi_o = nhi + nupp;
+
+  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
+                            nz_p/zprd_slab + sft) - OFFSET;
+  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
+                            nz_p/zprd_slab + sft) - OFFSET;
+  nzlo_o = nlo + nlow;
+  nzhi_o = nhi + nupp;
+
+  // for slab PPPM, change the grid boundary for processors at +z end
+  //   to include the empty volume between periodically repeating slabs
+  // for slab PPPM, want charge data communicated from -z proc to +z proc,
+  //   but not vice versa, also want field data communicated from +z proc to
+  //   -z proc, but not vice versa
+  // this is accomplished by nzhi_i = nzhi_o on +z end (no ghost cells)
+
+  if (slabflag && (comm->myloc[2] == comm->procgrid[2]-1)) {
+    nzhi_i = nz_p - 1;
+    nzhi_o = nz_p - 1;
+  }
+
+  // decomposition of FFT mesh
+  // global indices range from 0 to N-1
+  // proc owns entire x-dimension, clump of columns in y,z dimensions
+  // npey_fft,npez_fft = # of procs in y,z dims
+  // if nprocs is small enough, proc can own 1 or more entire xy planes,
+  //   else proc owns 2d sub-blocks of yz plane
+  // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
+  // nlo_fft,nhi_fft = lower/upper limit of the section
+  //   of the global FFT mesh that I own
+
+  int npey_fft,npez_fft;
+  if (nz_p >= nprocs) {
+    npey_fft = 1;
+    npez_fft = nprocs;
+  } else procs2grid2d(nprocs,ny_p,nz_p,&npey_fft,&npez_fft);
+
+  int me_y = me % npey_fft;
+  int me_z = me / npey_fft;
+
+  nxlo_f = 0;
+  nxhi_f = nx_p - 1;
+  nylo_f = me_y*ny_p/npey_fft;
+  nyhi_f = (me_y+1)*ny_p/npey_fft - 1;
+  nzlo_f = me_z*nz_p/npez_fft;
+  nzhi_f = (me_z+1)*nz_p/npez_fft - 1;
+
+  // PPPM grid for this proc, including ghosts
+
+  ng = (nxhi_o-nxlo_o+1) * (nyhi_o-nylo_o+1) *
+    (nzhi_o-nzlo_o+1);
+
+  // FFT arrays on this proc, without ghosts
+  // nfft = FFT points in FFT decomposition on this proc
+  // nfft_brick = FFT points in 3d brick-decomposition on this proc
+  // nfft_both = greater of 2 values
+
+  nf = (nxhi_f-nxlo_f+1) * (nyhi_f-nylo_f+1) *
+    (nzhi_f-nzlo_f+1);
+  int nfft_brick = (nxhi_i-nxlo_i+1) * (nyhi_i-nylo_i+1) *
+    (nzhi_i-nzlo_i+1);
+  nfb = MAX(nf,nfft_brick);
+
+}
+
+/* ----------------------------------------------------------------------
+   estimate kspace force error for ik method
+------------------------------------------------------------------------- */
+double TILD::estimate_ik_error(double h, double prd, bigint natoms)
+{
+  double sum = 0.0;
+  if (natoms == 0) return 0.0;
+  for (int m = 0; m < order; m++)
+    sum += acons[order][m] * pow(h*g_ewald,2.0*m);
+  double value = q2 * pow(h*g_ewald,(double)order) *
+    sqrt(g_ewald*prd*sqrt(MY_2PI)*sum/natoms) / (prd*prd);
+
+  return value;
+}
+
+/* ----------------------------------------------------------------------
+ allocate group-group memory that depends on # of K-vectors and order
+ ------------------------------------------------------------------------- */
+void TILD::allocate_groups()
+{
+  group_allocate_flag = 1;
+
+  memory->create3d_offset(density_A_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:density_A_brick");
+  memory->create3d_offset(density_B_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:density_B_brick");
+  memory->create(density_A_fft,nfft_both,"pppm:density_A_fft");
+  memory->create(density_B_fft,nfft_both,"pppm:density_B_fft");
+}
+
+/* ----------------------------------------------------------------------
+ deallocate group-group memory that depends on # of K-vectors and order
+ ------------------------------------------------------------------------- */
+void TILD::deallocate_groups()
+{
+  group_allocate_flag = 0;
+
+  memory->destroy3d_offset(density_A_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(density_B_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy(density_A_fft);
+  memory->destroy(density_B_fft);
+}
+
+/* ----------------------------------------------------------------------
+ compute estimated kspace force error
+------------------------------------------------------------------------- */
+double TILD::compute_df_kspace()
+{
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double zprd_slab = zprd*slab_volfactor;
+  bigint natoms = atom->natoms;
+  double df_kspace = 0.0;
+  // if (differentiation_flag == 1 || stagger_flag) {
+  //   double qopt = compute_qopt();
+  //   df_kspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
+  // } else {
+  //   double lprx = estimate_ik_error(h_x,xprd,natoms);
+  //   double lpry = estimate_ik_error(h_y,yprd,natoms);
+  //   double lprz = estimate_ik_error(h_z,zprd_slab,natoms);
+  //   df_kspace = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
+  // }
+  return df_kspace;
+}
+
+/* ----------------------------------------------------------------------
+   remap density from 3d brick decomposition to FFT decomposition
+------------------------------------------------------------------------- */
+void TILD::brick2fft()
+{
+  int n,ix,iy,iz;
+
+  // copy grabs inner portion of density from 3d brick
+  // remap could be done as pre-stage of FFT,
+  //   but this works optimally on only double values, not complex values
+
+  n = 0;
+  for (iz = nzlo_in; iz <= nzhi_in; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++)
+        density_fft[n++] = density_brick[iz][iy][ix];
+
+  remap->perform(density_fft,density_fft,work1);
 }

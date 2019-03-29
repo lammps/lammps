@@ -36,8 +36,8 @@ class TILD : public KSpace{
   static double *uG;
   static double a_squared;
   void setup_grid();
-  virtual int timing_1d(int, double &);
-  virtual int timing_3d(int, double &);
+  // virtual int timing_1d(int, double &);
+  // virtual int timing_3d(int, double &);
 
   void compute_group_group(int, int, int);
   void field_groups(int);
@@ -141,11 +141,11 @@ class TILD : public KSpace{
   virtual void deallocate_peratom();
   double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
-  virtual double compute_qopt();
-  virtual void compute_gf_denom();
-  virtual void compute_gf_ik();
-  virtual void compute_gf_ad();
-  void compute_sf_precoeff();
+  // virtual double compute_qopt();
+  // virtual void compute_gf_denom();
+  // virtual void compute_gf_ik();
+  // virtual void compute_gf_ad();
+  // void compute_sf_precoeff();
 
   virtual void particle_map(double, double, double,
                              double, int **, int, int,
@@ -155,20 +155,23 @@ class TILD : public KSpace{
                               double, int **, int, int,
                               int, int, int,
                               int, int, int );
-  virtual void make_rho();
+  // virtual void make_rho();
+  // virtual void make_rho_a();
+  virtual void brick2fft(int, int, int, int, int, int,
+                         FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
+                         LAMMPS_NS::Remap *);
   virtual void brick2fft();
-  virtual void assign_interactions(int, char**);
 
-  virtual void poisson();
-  virtual void poisson_ik();
-  virtual void poisson_ad();
+  // virtual void poisson();
+  // virtual void poisson_ik();
+  // virtual void poisson_ad();
 
-  virtual void fieldforce();
-  virtual void fieldforce_ik();
-  virtual void fieldforce_ad();
+  // virtual void fieldforce();
+  // virtual void fieldforce_ik();
+  // virtual void fieldforce_ad();
 
-  virtual void poisson_peratom();
-  virtual void fieldforce_peratom();
+  // virtual void poisson_peratom();
+  // virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
@@ -187,52 +190,21 @@ class TILD : public KSpace{
 
   int triclinic;               // domain settings, orthog or triclinic
   void setup_triclinic();
-  void compute_gf_ik_triclinic();
-  void poisson_ik_triclinic();
-  void poisson_groups_triclinic();
+  // void compute_gf_ik_triclinic();
+  // void poisson_ik_triclinic();
+  // void poisson_groups_triclinic();
 
   // group-group interactions
 
   virtual void allocate_groups();
   virtual void deallocate_groups();
-  virtual void make_rho_groups(int, int, int);
-  virtual void poisson_groups(int);
-  virtual void slabcorr_groups(int,int,int);
-  virtual void make_rho_none();
+  // virtual void make_rho_groups(int, int, int);
+  // virtual void poisson_groups(int);
+  // virtual void slabcorr_groups(int,int,int);
+  // virtual void make_rho_none();
 
-  virtual void brick2fft(int, int, int, int, int, int,
-                         FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
-                         LAMMPS_NS::Remap *);
-  virtual void brick2fft_a();
-  virtual void brick2fft_none();
-
-/* ----------------------------------------------------------------------
-   denominator for Hockney-Eastwood Green's function
-     of x,y,z = sin(kx*deltax/2), etc
-
-            inf                 n-1
-   S(n,k) = Sum  W(k+pi*j)**2 = Sum b(l)*(z*z)**l
-           j=-inf               l=0
-
-          = -(z*z)**n /(2n-1)! * (d/dx)**(2n-1) cot(x)  at z = sin(x)
-   gf_b = denominator expansion coeffs
-------------------------------------------------------------------------- */
-
-  inline double gf_denom(const double &x, const double &y,
-                         const double &z) const {
-    double sx,sy,sz;
-    sz = sy = sx = 0.0;
-    for (int l = order-1; l >= 0; l--) {
-      sx = gf_b[l] + sx*x;
-      sy = gf_b[l] + sy*y;
-      sz = gf_b[l] + sz*z;
-    }
-    double s = sx*sy*sz;
-    return s*s;
-  };
   // group-group interactions
 
-//   void slabcorr_groups(int,int,int);
   void set_fft_parameters(int&, int&, int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,int&,

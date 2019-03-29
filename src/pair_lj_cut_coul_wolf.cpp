@@ -217,7 +217,8 @@ void PairLJCutCoulWolf::settings(int narg, char **arg)
 
   alf = force->numeric(FLERR,arg[0]);
   cut_lj_global = force->numeric(FLERR,arg[1]);
-  if (narg == 2) cut_coul = cut_lj_global;
+  if (narg == 3) cut_coul = force->numeric(FLERR,arg[2]);
+  else           cut_coul = cut_lj_global;
 
   if (allocated) {
     int i,j;

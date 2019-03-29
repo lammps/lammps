@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "kim-api-v2-2.0.1"
+version = "kim-api-2.0.2"
 
 # help message
 
@@ -154,7 +154,7 @@ if buildflag:
   # add all OpenKIM models, if desired
   if everythingflag:
     print("Adding all OpenKIM models, this will take a while ...")
-    cmd = '%s/bin/kim-api-v2-collections-management install system OpenKIM' % (kimdir)
+    cmd = '%s/bin/kim-api-collections-management install system OpenKIM' % (kimdir)
     txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     if verboseflag:
       print(txt.decode("UTF-8"))
@@ -171,7 +171,7 @@ if addflag:
     sys.exit("\nkim-api is not installed")
 
   # download single model
-  cmd = '%s/bin/kim-api-v2-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
+  cmd = '%s/bin/kim-api-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
   txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
   if verboseflag:
     print(txt.decode("UTF-8"))

@@ -195,7 +195,7 @@ https://openkim.org/browse/models/by-model-drivers
 If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
 inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG_CONFIG_PATH
-environment variable so that libkim-api-v2 can be found.
+environment variable so that libkim-api can be found.
 
 [Traditional make]:
 

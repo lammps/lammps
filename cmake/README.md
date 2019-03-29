@@ -1504,6 +1504,16 @@ target API.
   </td>
 </tr>
 <tr>
+  <td><code>CUDA_MPS_SUPPORT</code> (CUDA only)</td>
+  <td>Enable tweaks for running with Nvidia CUDA Multi-process services daemon</td>
+  <td>
+  <dl>
+    <dt><code>on</code></dt>
+    <dt><code>off</code> (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>BIN2C</code> (CUDA only)</td>
   <td>Path to bin2c executable, will automatically pick up the first one in your $PATH.</td>
   <td>(automatic)</td>

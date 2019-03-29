@@ -933,7 +933,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                                                "rendezvous:inbuf");
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,
-		inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
+                inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
 
   if (!inorder) {
     memory->destroy(procs_a2a);
@@ -1036,7 +1036,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   outbuf = (char *) memory->smalloc((bigint) nout*outsize,"rendezvous:outbuf");
 
   MPI_Alltoallv(outbuf_a2a,sendcount,sdispls,MPI_CHAR,
-		outbuf,recvcount,rdispls,MPI_CHAR,world);
+                outbuf,recvcount,rdispls,MPI_CHAR,world);
 
   memory->destroy(procs_rvous);
   memory->sfree(outbuf_rvous);

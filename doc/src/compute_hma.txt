@@ -132,7 +132,13 @@ output"_Howto_output.html doc page for an overview of LAMMPS output options.
 The vector values calculated by this compute are "extensive".  The
 scalar value will be in energy "units"_units.html.
 
-[Restrictions:] Usage restricted to canonical (NVT) ensemble simulation only.
+[Restrictions:]
+
+This compute is distributed as the USER-HMA package.  It is only
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
+
+Usage restricted to canonical (NVT) ensemble simulation only.
 
 [Related commands:]
 

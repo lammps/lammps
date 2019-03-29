@@ -207,7 +207,7 @@ include_directories(${LAMMPS_SOURCE_DIR})
 if(PKG_USER-ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
-  # script that defines the MPI::MPI_C target 
+  # script that defines the MPI::MPI_C target
   enable_language(C)
   find_package(ADIOS2 REQUIRED)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
@@ -381,19 +381,10 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
 endif()
 
 if(PKG_PYTHON)
-  find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(BUILD_LIB AND BUILD_SHARED_LIBS)
-    if(NOT PYTHON_INSTDIR)
-      execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  endif()
 endif()
 
 find_package(JPEG QUIET)
@@ -672,19 +663,19 @@ endif()
 if(PKG_KIM)
   find_package(CURL)
   if(CURL_FOUND)
-    include_directories(${CURL_INCLUDE_DIRS}) 
+    include_directories(${CURL_INCLUDE_DIRS})
     list(APPEND LAMMPS_LINK_LIBS ${CURL_LIBRARIES})
     add_definitions(-DLMP_KIM_CURL)
   endif()
-  option(DOWNLOAD_KIM "Download KIM-API v2 from OpenKIM instead of using an already installed one" OFF)
+  option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" OFF)
   if(DOWNLOAD_KIM)
-    message(STATUS "KIM-API v2 download requested - we will build our own")
+    message(STATUS "KIM-API download requested - we will build our own")
     enable_language(C)
     enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-v2-2.0.1.txz
-      URL_MD5 289c57f0c3bc2a549662283cac1c4ef1
+      URL https://s3.openkim.org/kim-api/kim-api-2.0.2.txz
+      URL_MD5 537d9c0abd30f85b875ebb584f9143fa
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -693,17 +684,17 @@ if(PKG_KIM)
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
-    set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)
-    set(KIM-API-V2_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api-v2${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(KIM-API_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api)
+    set(KIM-API_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
-    find_package(KIM-API-V2)
-    if(NOT KIM-API-V2_FOUND)
-      message(FATAL_ERROR "KIM-API v2 not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
+    find_package(KIM-API)
+    if(NOT KIM-API_FOUND)
+      message(FATAL_ERROR "KIM-API not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS "${KIM-API-V2_LDFLAGS}")
-  include_directories(${KIM-API-V2_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS "${KIM-API_LDFLAGS}")
+  include_directories(${KIM-API_INCLUDE_DIRS})
 endif()
 
 if(PKG_MESSAGE)
@@ -1466,6 +1457,49 @@ install(
         ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
 )
+
+###############################################################################
+# Install LAMMPS lib and python module into site-packages folder with
+# "install-python" target.  Behaves exactly like "make install-python" for
+# conventional build.  Only available, if a shared library is built.
+# This is primarily for people that only want to use the Python wrapper.
+###############################################################################
+if(BUILD_LIB AND BUILD_SHARED_LIBS)
+  find_package(PythonInterp)
+  if (PYTHONINTERP_FOUND)
+    add_custom_target(
+      install-python
+      ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
+      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
+      COMMENT "Installing LAMMPS Python module")
+  else()
+    add_custom_target(
+      install-python
+      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+  endif()
+else()
+  add_custom_target(
+    install-python
+    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+endif()
+
+###############################################################################
+# Add LAMMPS python module to "install" target. This is taylored for building
+# LAMMPS for package managers and with different prefix settings.
+# This requires either a shared library or that the PYTHON package is included.
+###############################################################################
+if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
+  find_package(PythonInterp)
+  if (PYTHONINTERP_FOUND)
+    execute_process(COMMAND ${PYTHON_EXECUTABLE}
+      -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+      OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+  endif()
+endif()
 
 ###############################################################################
 # Testing

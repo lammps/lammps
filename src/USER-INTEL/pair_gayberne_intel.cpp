@@ -73,6 +73,8 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
                                 const ForceConst<flt_t> &fc)
 {
   ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nall = atom->nlocal + atom->nghost;

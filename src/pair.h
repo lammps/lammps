@@ -98,6 +98,8 @@ class Pair : protected Pointers {
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
+  int beyond_contact, nondefault_history_transfer;   // for granular styles
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -190,6 +192,7 @@ class Pair : protected Pointers {
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
+  virtual void transfer_history(double *, double*) {}
 
   // management of callbacks to be run from ev_tally()
 
@@ -211,6 +214,7 @@ class Pair : protected Pointers {
   int offset_flag,mix_flag;            // flags for offset and mixing
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
+
 
  public:
   // custom data type for accessing Coulomb tables

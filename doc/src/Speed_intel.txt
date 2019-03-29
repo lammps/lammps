@@ -34,6 +34,10 @@ rebo, sw, tersoff :l
 K-Space Styles: pppm, pppm/disp :l
 :ule
 
+IMPORTANT NOTE: None of the styles in the USER-INTEL package currently
+support computing per-atom stress.  If any compute or fix in your
+input requires it, LAMMPS will abort with an error message.
+
 [Speed-ups to expect:]
 
 The speedups will depend on your simulation, the hardware, which

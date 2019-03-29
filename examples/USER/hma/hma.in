@@ -1,0 +1,36 @@
+# Harmonically mapped average example
+
+units lj 
+dimension 3 
+boundary p p p 
+atom_style atomic 
+atom_modify map array
+# ---------- Create Atoms ----------------------------
+lattice 	fcc 1.0
+region	box block 0 4 0 4 0 4 units lattice
+create_box	1 box
+lattice	fcc 1.0 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1  
+create_atoms 1 region box
+# ---------- Define Interatomic Potential --------------------- 
+pair_style lj/smooth/linear 3
+pair_coeff * * 1.0 1.0 
+mass 1 1.0
+
+atom_modify sort 0 1
+velocity all create 0.1 45678 dist gaussian
+
+compute u all pe 
+  
+compute p all pressure NULL pair  
+
+compute hma all HMA settemp u p 9.579586686264458 cv
+
+timestep 0.005
+
+fix settemp all nvt temp 1.0 1.0 0.5
+thermo_style custom elapsed temp c_u c_hma[1] c_p c_hma[2] c_hma[3]
+thermo_modify format float '%22.15e'
+thermo 500
+run 20000
+thermo 20
+run 200000

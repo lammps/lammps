@@ -231,44 +231,44 @@ void TILD::setup_grid()
 
   allocate();
 
-  if (function[0]) {
-    cg->ghost_notify();
-    if (overlap_allowed == 0 && cg->ghost_overlap())
-      error->all(FLERR,"PPPM grid stencil extends "
-                 "beyond nearest neighbor processor");
-    cg->setup();
-  }
-  if (function[1] + function[2] + function[3]) {
-    cg_6->ghost_notify();
-    if (overlap_allowed == 0 && cg_6->ghost_overlap())
-      error->all(FLERR,"PPPM grid stencil extends "
-                 "beyond nearest neighbor processor");
-    cg_6->setup();
-  }
+  // if (function[0]) {
+  //   cg->ghost_notify();
+  //   if (overlap_allowed == 0 && cg->ghost_overlap())
+  //     error->all(FLERR,"PPPM grid stencil extends "
+  //                "beyond nearest neighbor processor");
+  //   cg->setup();
+  // }
+  // if (function[1] + function[2] + function[3]) {
+  //   cg_6->ghost_notify();
+  //   if (overlap_allowed == 0 && cg_6->ghost_overlap())
+  //     error->all(FLERR,"PPPM grid stencil extends "
+  //                "beyond nearest neighbor processor");
+  //   cg_6->setup();
+  // }
 
-  // pre-compute Green's function denomiator expansion
-  // pre-compute 1d charge distribution coefficients
+  // // pre-compute Green's function denomiator expansion
+  // // pre-compute 1d charge distribution coefficients
 
-  if (function[0]) {
-    compute_gf_denom(gf_b, order);
-    compute_rho_coeff(rho_coeff, drho_coeff, order);
-    if (differentiation_flag == 1)
-      compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
-                          nxlo_fft, nylo_fft, nzlo_fft,
-                          nxhi_fft, nyhi_fft, nzhi_fft,
-                          sf_precoeff1, sf_precoeff2, sf_precoeff3,
-                          sf_precoeff4, sf_precoeff5, sf_precoeff6);
-  }
-  if (function[1] + function[2] + function[3]) {
-    compute_gf_denom(gf_b_6, order_6);
-    compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
-    if (differentiation_flag == 1)
-      compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
-                          nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
-                          nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                          sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
-                          sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
-  }
+  // if (function[0]) {
+  //   compute_gf_denom(gf_b, order);
+  //   compute_rho_coeff(rho_coeff, drho_coeff, order);
+  //   if (differentiation_flag == 1)
+  //     compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
+  //                         nxlo_fft, nylo_fft, nzlo_fft,
+  //                         nxhi_fft, nyhi_fft, nzhi_fft,
+  //                         sf_precoeff1, sf_precoeff2, sf_precoeff3,
+  //                         sf_precoeff4, sf_precoeff5, sf_precoeff6);
+  // }
+  // if (function[1] + function[2] + function[3]) {
+  //   compute_gf_denom(gf_b_6, order_6);
+  //   compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
+  //   if (differentiation_flag == 1)
+  //     compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
+  //                         nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
+  //                         nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
+  //                         sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
+  //                         sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
+  // }
 
   // pre-compute volume-dependent coeffs
 
@@ -280,50 +280,50 @@ void TILD::compute(int i1, int i2){
   int i; 
   // convert atoms from box to lambda coords
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  // if (eflag || vflag) ev_setup(eflag,vflag);
+  // else evflag = evflag_atom = eflag_global = vflag_global =
+  //        eflag_atom = vflag_atom = 0;
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    if (function[0]) {
-      cg_peratom->ghost_notify();
-      cg_peratom->setup();
-    }
-    if (function[1] + function[2] + function[3]) {
-      cg_peratom_6->ghost_notify();
-      cg_peratom_6->setup();
-    }
-    peratom_allocate_flag = 1;
-  }
+  // if (evflag_atom && !peratom_allocate_flag) {
+  //   allocate_peratom();
+  //   if (function[0]) {
+  //     cg_peratom->ghost_notify();
+  //     cg_peratom->setup();
+  //   }
+  //   if (function[1] + function[2] + function[3]) {
+  //     cg_peratom_6->ghost_notify();
+  //     cg_peratom_6->setup();
+  //   }
+  //   peratom_allocate_flag = 1;
+  // }
 
-  if (triclinic == 0) boxlo = domain->boxlo;
-  else {
-    boxlo = domain->boxlo_lamda;
-    domain->x2lamda(atom->nlocal);
-  }
-  // extend size of per-atom arrays if necessary
+  // if (triclinic == 0) boxlo = domain->boxlo;
+  // else {
+  //   boxlo = domain->boxlo_lamda;
+  //   domain->x2lamda(atom->nlocal);
+  // }
+  // // extend size of per-atom arrays if necessary
 
-  if (atom->nmax > nmax) {
+  // if (atom->nmax > nmax) {
 
-    if (function[0]) memory->destroy(part2grid);
-    if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
-    nmax = atom->nmax;
-    if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
-    if (function[1] + function[2] + function[3])
-      memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
-  }
+  //   if (function[0]) memory->destroy(part2grid);
+  //   if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
+  //   nmax = atom->nmax;
+  //   if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
+  //   if (function[1] + function[2] + function[3])
+  //     memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
+  // }
 
-  // find grid points for all my particles 
-  // distribute particles' densities on the grid
-  // communication between processors and remapping two fft
-  // Convolution in k-space and backtransformation 
-  // communication between processors
-  // calculation of forces
+  // // find grid points for all my particles 
+  // // distribute particles' densities on the grid
+  // // communication between processors and remapping two fft
+  // // Convolution in k-space and backtransformation 
+  // // communication between processors
+  // // calculation of forces
 
-    particle_map(delxinv_den, delyinv_den, delzinv_den, shift_den, part2grid_den, nupper_den, nlower_den,
-                 nxlo_out_den, nylo_out_den, nzlo_out_den, nxhi_out_den, nyhi_out_den, nzhi_out_den);
-    make_rho_g();
+  //   particle_map(delxinv_den, delyinv_den, delzinv_den, shift_den, part2grid_den, nupper_den, nlower_den,
+  //                nxlo_out_den, nylo_out_den, nzlo_out_den, nxhi_out_den, nyhi_out_den, nzhi_out_den);
+  //   make_rho_g();
 
   return;
 }
@@ -476,7 +476,8 @@ void TILD::deallocate()
   memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
   memory->destroy2d_offset(drho_coeff,(1-order_allocated)/2);
 
-  // memory->destroy(uG);
+  memory->destroy(uG);
+  memory->destroy(temp);
   memory->destroy(grad_uG);
   memory->destroy(grad_uG_hat);
 
@@ -798,16 +799,17 @@ void TILD::init_gauss(){
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         xper = (l * (xprd - 0.5)) / npey_fft;
         mdr2=xper*xper + yper*yper + zper*zper;
-        uG[n++] = exp(-mdr2 * 0.25 / a_squared) * pref;
+        uG[n++] = exp(-mdr2 * 0.25 / a_squared) ;
       }
     }
   }
 
   // Do the field gradient of the uG
+  field_gradient(uG, grad_uG, 0);
 
   // Do the FFT of the Gaussian function
-
-
+  for (int i = 0; i < Dim; i++)
+  fft1->compute(grad_uG[i], grad_uG_hat[i], 1);
 
 }
 
@@ -1030,25 +1032,18 @@ void TILD::field_groups(int AA_flag){
 
 }
 
-
-// void TILD::get_k_alias(int id, double k[domain->dimension]){
-
-// }
-
 void TILD::field_gradient(FFT_SCALAR *in, 
-                          FFT_SCALAR *out, int flag,
-                          int dir)
+                          FFT_SCALAR **out, int flag)
 {
   int i; 
   int Dim = domain->dimension;
   double k2, kv[Dim];
   fft1->compute(in, in, 1);
 
-  for ( i = 0; i < GRID_POINTS ; i++){
-    TILD::get_k_alias;
-  }
+  get_k_alias();
 
-  fft2->compute(in, out, -1);
+  for (i = 0; i < Dim; i++)
+  fft2->compute(in, out[i], -1);
 
 }
 
@@ -1070,57 +1065,63 @@ int TILD::factorable(int n)
   return 1;
 }
 
-double TILD::get_k_alias(int id, double k[]){
-  double kmag = 0.0;
-  int dim = domain->dimensions; 
-  int i, id2, n[Dim] , j , has_nyquist = 0;
-  for ( i=0 ; i<Dim ; i++ )
-    if ( Nx[i] % 2 == 0 )
-      has_nyquist = 1;
+void TILD::get_k_alias(){
+  int Dim = domain->dimension; 
+  int k[Dim];
+  int x, y, z;
+  int n=0;
+  double *prd;
 
-  id2 = unstack_stack( id ) ;
-  unstack(id2, n);
+  // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
 
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
 
-  if ( Nx[0] % 2 == 0 && n[0] == Nx[0] / 2 )
-    k[0] = 0.0 ;
-  else if ( double(n[0]) < double(Nx[0]) / 2.)
-   k[0] = 2*PI*double(n[0])/L[0];
-  else
-   k[0] = 2*PI*double(n[0]-Nx[0])/L[0];
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
 
-  if (Dim>1) {
-    if ( Nx[1] % 2 == 0 && n[1] == Nx[1] / 2 )
-      k[1] = 0.0 ;
-    else if ( double(n[1]) < double(Nx[1]) / 2.)
-      k[1] = 2*PI*double(n[1])/L[1];
-    else
-      k[1] = 2*PI*double(n[1]-Nx[1])/L[1];
-  }
+  // id2 = unstack_stack( id ) ;
+  // unstack(id2, n);
+  for (z = nzlo_fft; z <= nzhi_fft; z++) {
+    for (y = nylo_fft; y <= nyhi_fft; y++) {
+      for (x = nxlo_fft; x <= nxhi_fft; x++) {
 
-  if (Dim==3) {
-    if ( Nx[2] % 2 == 0 && n[2] == Nx[2] / 2 )
-      k[2] = 0.0 ;
-    else if ( double(n[2]) < double(Nx[2]) / 2.)
-      k[2] = 2*PI*double(n[2])/L[2];
-    else
-      k[2] = 2*PI*double(n[2]-Nx[2])/L[2];
-  }
+          if (nx_pppm % 2 == 0 && x == nx_pppm / 2)
+              k[0] = 0.0;
+          else if (double(x) < double(nx_pppm) / 2.)
+              k[0] = 2 * PI * double(x) / xprd;
+          else
+              k[0] = 2 * PI * double(y - nx_pppm) / xprd;
 
-  // Kills off the Nyquist modes
-  if ( id2 != 0 && has_nyquist ) {
-    for ( i=0 ; i<Dim ; i++ ) {
-      if ( k[i] == 0.0 ) {
-        for ( j=0 ; j<Dim ; j++ ) k[j] = 0.0 ;
-        kmag = 0.0;
-        break;
+          if (ny_pppm % 2 == 0 && y == ny_pppm / 2)
+              k[1] = 0.0;
+          else if (double(y) < double(ny_pppm) / 2.)
+              k[1] = 2 * PI * double(y) / yprd;
+          else
+              k[1] = 2 * PI * double(y - ny_pppm) / yprd;
+
+          if (Dim == 3) {
+              if (nz_pppm % 2 == 0 && z == nz_pppm / 2)
+                  k[2] = 0.0;
+              else if (double(z) < double(nz_pppm) / 2.)
+                  k[2] = 2 * PI * double(z) / zprd;
+              else
+                  k[2] = 2 * PI * double(z - nz_pppm) / zprd;
+          }
+
+          grad_uG[0][n] = uG[n] * k[0];
+          grad_uG[1][n] = uG[n] * k[1];
+          if (Dim == 3)
+            grad_uG[2][n] = uG[n] * k[2];
+          n++;
       }
     }
   }
-  
-  for (i=0; i<Dim; i++) kmag += k[i]*k[i];
 
-  return kmag;
+
 
 }
 

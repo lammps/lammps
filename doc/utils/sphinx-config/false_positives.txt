@@ -156,6 +156,8 @@ ba
 Babadi
 backcolor
 Baczewski
+Bagi
+Bagnold
 Bal
 balancer
 Balankura
@@ -347,6 +349,7 @@ Cij
 cis
 civ
 clearstore
+Cleary
 Clebsch
 clemson
 Clermont
@@ -373,6 +376,7 @@ Coeff
 CoefficientN
 coeffs
 Coeffs
+cohesionless
 Coker
 Colberg
 coleman
@@ -450,6 +454,7 @@ cuda
 Cuda
 CUDA
 CuH
+Cummins
 Curk
 customIDs
 cutbond
@@ -493,6 +498,7 @@ darkturquoise
 darkviolet
 Das
 Dasgupta
+dashpot
 dat
 datafile
 datums
@@ -530,6 +536,7 @@ Dequidt
 der
 derekt
 Derjagin
+Derjaguin
 Derlet
 Deserno
 Destree
@@ -1081,6 +1088,7 @@ Hyoungki
 hyperdynamics
 hyperradius
 hyperspherical
+hysteretic
 Ibanez
 ibar
 ibm
@@ -1140,6 +1148,7 @@ interconvert
 interial
 interlayer
 intermolecular
+Interparticle
 interstitials
 Intr
 intra
@@ -1158,6 +1167,7 @@ IPython
 Isele
 isenthalpic
 ish
+Ishida
 iso
 isodemic
 isoenergetic
@@ -1453,6 +1463,7 @@ logfile
 logfreq
 logicals
 Lomdahl
+Lond
 lookups
 Lookups
 LoopVar
@@ -1468,6 +1479,7 @@ lsfftw
 ltbbmalloc
 lubricateU
 lucy
+Luding
 Lussetti
 Lustig
 lwsock
@@ -1506,6 +1518,7 @@ manybody
 MANYBODY
 Maras
 Marrink
+Marroquin
 Marsaglia
 Marseille
 Martyna
@@ -1517,6 +1530,7 @@ masstotal
 Masuhiro
 Matchett
 Materias
+mathbf
 matlab
 matplotlib
 Mattox
@@ -1605,6 +1619,7 @@ Mie
 Mikami
 Militzer
 Minary
+Mindlin
 mincap
 mingw
 minima
@@ -2290,6 +2305,7 @@ rg
 Rg
 Rhaphson
 rheological
+rheology
 rhodo
 Rhodo
 rhodopsin
@@ -2606,6 +2622,7 @@ Tait
 taitwater
 Tajkhorshid
 Tamaskovics
+Tanaka
 tanh
 Tartakovsky
 taskset
@@ -2693,6 +2710,7 @@ tokyo
 tol
 toolchain
 topologies
+Toporov
 Torder
 torsions
 Tosi
@@ -2737,6 +2755,7 @@ Tsrd
 Tstart
 tstat
 Tstop
+Tsuji
 Tsuzuki
 tt
 Tt

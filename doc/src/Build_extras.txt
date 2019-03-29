@@ -94,7 +94,7 @@ which GPU hardware to build for.
                           # enables CUDA Performance Primitives Optimizations
                           # value = yes (default) or no
 -D CUDA_MPS_SUPPORT=value # enables some tweaks required to run with active nvidia-cuda-mps daemon
-                          # value = yes or no (default)
+                          # value = yes or no (default) :pre
 
 GPU_ARCH settings for different GPU hardware is as follows:
 

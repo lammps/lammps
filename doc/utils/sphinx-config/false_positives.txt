@@ -1267,6 +1267,7 @@ kcl
 Kd
 KDevelop
 ke
+kepler
 KE
 Keblinski
 keflag
@@ -1675,6 +1676,7 @@ mpiexec
 mpiio
 mpirun
 mplayer
+mps
 Mryglod
 mscg
 MSCG
@@ -1958,6 +1960,7 @@ oneway
 onn
 ons
 OO
+opencl
 openKIM
 OpenMP
 openmp

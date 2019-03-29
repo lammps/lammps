@@ -88,7 +88,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
         int n = strlen(arg[iarg+2]) + 1;
         tstr = new char[n];
         strcpy(tstr,arg[iarg+2]);
-	tflag = 1;
+        tflag = 1;
       } else error->all(FLERR,"Illegal compute angle/local command");
       iarg += 3;
     } else error->all(FLERR,"Illegal compute angle/local command");
@@ -102,9 +102,9 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for copute angle/local does not exist");
+        error->all(FLERR,"Variable name for copute angle/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute angle/local is invalid style");
+        error->all(FLERR,"Variable for compute angle/local is invalid style");
     }
 
     if (tstr) {
@@ -153,7 +153,7 @@ void ComputeAngleLocal::init()
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for compute angle/local does not exist");
+        error->all(FLERR,"Variable name for compute angle/local does not exist");
     }
 
     if (tstr) {
@@ -261,53 +261,53 @@ int ComputeAngleLocal::compute_angles(int flag)
       // theta needed by one or more outputs
 
       if (tflag) {
-	delx1 = x[atom1][0] - x[atom2][0];
-	dely1 = x[atom1][1] - x[atom2][1];
-	delz1 = x[atom1][2] - x[atom2][2];
-	domain->minimum_image(delx1,dely1,delz1);
+        delx1 = x[atom1][0] - x[atom2][0];
+        dely1 = x[atom1][1] - x[atom2][1];
+        delz1 = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx1,dely1,delz1);
 
-	rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-	r1 = sqrt(rsq1);
-	
-	delx2 = x[atom3][0] - x[atom2][0];
-	dely2 = x[atom3][1] - x[atom2][1];
-	delz2 = x[atom3][2] - x[atom2][2];
-	domain->minimum_image(delx2,dely2,delz2);
+        rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+        r1 = sqrt(rsq1);
+        
+        delx2 = x[atom3][0] - x[atom2][0];
+        dely2 = x[atom3][1] - x[atom2][1];
+        delz2 = x[atom3][2] - x[atom2][2];
+        domain->minimum_image(delx2,dely2,delz2);
 
-	rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-	r2 = sqrt(rsq2);
+        rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+        r2 = sqrt(rsq2);
 
-	// c = cosine of angle
-	// theta = angle in radians
+        // c = cosine of angle
+        // theta = angle in radians
 
-	c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-	c /= r1*r2;
-	if (c > 1.0) c = 1.0;
-	if (c < -1.0) c = -1.0;
-	theta = acos(c);
+        c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+        c /= r1*r2;
+        if (c > 1.0) c = 1.0;
+        if (c < -1.0) c = -1.0;
+        theta = acos(c);
       }
 
       if (nvalues == 1) ptr = &vlocal[m];
       else ptr = alocal[m];
 
       if (nvar) {
-	ivar = 0;
-	if (tstr) input->variable->internal_set(tvar,theta);
+        ivar = 0;
+        if (tstr) input->variable->internal_set(tvar,theta);
       }
 
       for (n = 0; n < nvalues; n++) {
-	switch (bstyle[n]) {
-	case THETA:
-	  ptr[n] = 180.0*theta/MY_PI;
-	  break;
-	case ENG:
-	  if (atype > 0) ptr[n] = angle->single(atype,atom1,atom2,atom3);
-	  else ptr[n] = 0.0;
-	  break;
-	case VARIABLE:
-	  ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	  ivar++;
-	  break;
+        switch (bstyle[n]) {
+        case THETA:
+          ptr[n] = 180.0*theta/MY_PI;
+          break;
+        case ENG:
+          if (atype > 0) ptr[n] = angle->single(atype,atom1,atom2,atom3);
+          else ptr[n] = 0.0;
+          break;
+        case VARIABLE:
+          ptr[n] = input->variable->compute_equal(vvar[ivar]);
+          ivar++;
+          break;
         }
       }
 

@@ -676,6 +676,7 @@ void TILD::allocate_peratom()
                           nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
+  memory->create(gradWgroup, group->ngroup, nfft, "tild:gradWgroup");
 
   // create ghost grid object for rho and electric field communication
 

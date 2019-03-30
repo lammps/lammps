@@ -212,6 +212,8 @@ class TILD : public KSpace{
                           int&, int&,int&, int&, int&,
                           int&, int&, int&,
                           double&, double&, int&);
+  void accumulate_gradient();
+  void force_field_grad();
 
 };
 

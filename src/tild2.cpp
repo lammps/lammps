@@ -1664,3 +1664,28 @@ void TILD::brick2fft()
 
   remap->perform(density_fft,density_fft,work1);
 }
+
+void TILD::accumulate_gradient(){
+
+  int Dim = domain->dimension;
+  bool do_fft = false;
+  for (int i = 0; i < group->ngroup; i++){
+
+    for (int j = 0; j < group->ngroup; j++){
+      if (fabs(param[i][j]) > 1e-8){
+        do_fft = true; 
+        break;
+      }
+    }
+
+    if (do_fft){
+      fft1->compute(density_fft_group[i], ktmp, 1);
+
+      for (int j = 0; j < Dim; j++)
+        for (int k=0; k < nfft; k++){
+          grad
+        }
+
+    }
+  }
+}

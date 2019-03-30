@@ -142,7 +142,9 @@ class TILD : public KSpace{
   virtual void deallocate_peratom();
   double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
-  // virtual double compute_qopt();
+  virtual double compute_qopt();
+  virtual double compute_qopt_ik();
+  virtual double compute_qopt_ad();
   // virtual void compute_gf_denom();
   // virtual void compute_gf_ik();
   // virtual void compute_gf_ad();
@@ -157,11 +159,13 @@ class TILD : public KSpace{
                               int, int, int,
                               int, int, int );
   // virtual void make_rho();
-  // virtual void make_rho_a();
+  virtual void make_rho_none();
   virtual void brick2fft(int, int, int, int, int, int,
                          FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
                          LAMMPS_NS::Remap *);
   virtual void brick2fft();
+  virtual void brick2fft_none();
+
 
   // virtual void poisson();
   // virtual void poisson_ik();
@@ -214,6 +218,15 @@ class TILD : public KSpace{
                           double&, double&, int&);
   void accumulate_gradient();
   void force_field_grad();
+
+  FFT_SCALAR ****density_brick_types;
+  FFT_SCALAR **density_fft_types;
+  FFT_SCALAR *ktmp;
+  FFT_SCALAR *ktmp2;
+  double *tmp;
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
+                     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
+
 
 };
 

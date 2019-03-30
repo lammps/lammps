@@ -33,11 +33,10 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-double *TILD::uG, TILD::a_squared;
-
 #define SMALL 0.00001
 #define OFFSET 16384
 #define PI 3.141592653589793238462643383279
+#define MAXORDER   7
 #define I std::complex<double>(0.0, 1.0)
 
 enum{REVERSE_RHO};
@@ -156,7 +155,10 @@ void TILD::settings(int narg, char **arg)
 }
 
 TILD::~TILD(){
-  return;
+  deallocate();
+  deallocate_groups();
+  deallocate_peratom();
+
 }
 
 void TILD::init()
@@ -165,6 +167,32 @@ void TILD::init()
     if (screen) fprintf(screen,"TILD initialization ...\n");
     if (logfile) fprintf(logfile,"TILD initialization ...\n");
   }
+
+  triclinic_check();
+  if (domain->dimension == 2)
+    error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
+  if (comm->style != 0)
+    error->universe_all(FLERR,"PPPMDisp can only currently be used with "
+                        "comm_style brick");
+
+  if (slabflag == 0 && domain->nonperiodic > 0)
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
+  if (slabflag == 1) {
+    if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
+        domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
+      error->all(FLERR,"Incorrect boundaries with slab PPPMDisp");
+  }
+
+  if (order > MAXORDER || order_6 > MAXORDER) {
+    char str[128];
+    sprintf(str,"TILD coulomb order cannot be greater than %d",MAXORDER);
+    error->all(FLERR,str);
+  }
+
+  // free all arrays previously allocated
+  deallocate();
+  deallocate_groups();
+  deallocate_peratom();
 
   memory->create(param, group->ngroup, group->ngroup,"tild:param");
 
@@ -202,6 +230,12 @@ void TILD::setup(){
   double unitky = (2.0*MY_PI/yprd);
   double unitkz = (2.0*MY_PI/zprd_slab);
 
+  delxinv = nx_pppm/xprd;
+  delyinv = ny_pppm/yprd;
+  delzinv = nz_pppm/zprd_slab;
+
+  delvolinv = delxinv*delyinv*delzinv;
+
   init_gauss();
 
   return;
@@ -213,19 +247,29 @@ void TILD::setup_grid()
 
   deallocate();
   deallocate_peratom();
+  if (group_allocate_flag) deallocate_groups();
 
   // reset portion of global grid that each proc owns
 
   set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
-                      nxlo_fft, nylo_fft, nzlo_fft,
-                      nxhi_fft, nyhi_fft, nzhi_fft,
-                      nxlo_in, nylo_in, nzlo_in,
-                      nxhi_in, nyhi_in, nzhi_in,
-                      nxlo_out, nylo_out, nzlo_out,
-                      nxhi_out, nyhi_out, nzhi_out,
-                      nlower, nupper,
-                      ngrid, nfft, nfft_both,
-                      shift, shiftone, order);
+                    nxlo_fft, nylo_fft, nzlo_fft,
+                    nxhi_fft, nyhi_fft, nzhi_fft,
+                    nxlo_in, nylo_in, nzlo_in,
+                    nxhi_in, nyhi_in, nzhi_in,
+                    nxlo_out, nylo_out, nzlo_out,
+                    nxhi_out, nyhi_out, nzhi_out,
+                    nlower, nupper,
+                    ngrid, nfft, nfft_both,
+                    shift, shiftone, order);
+
+
+  set_grid_global();
+  set_grid_local();
+
+  
+  // reallocate K-space dependent memory
+  // check if grid communication is now overlapping if not allowed
+  // don't invoke allocate peratom() or group(), will be allocated when needed
 
 
   // reallocate K-space dependent memory
@@ -234,53 +278,65 @@ void TILD::setup_grid()
 
   allocate();
 
-  // if (function[0]) {
-  //   cg->ghost_notify();
-  //   if (overlap_allowed == 0 && cg->ghost_overlap())
-  //     error->all(FLERR,"PPPM grid stencil extends "
-  //                "beyond nearest neighbor processor");
-  //   cg->setup();
-  // }
-  // if (function[1] + function[2] + function[3]) {
-  //   cg_6->ghost_notify();
-  //   if (overlap_allowed == 0 && cg_6->ghost_overlap())
-  //     error->all(FLERR,"PPPM grid stencil extends "
-  //                "beyond nearest neighbor processor");
-  //   cg_6->setup();
-  // }
-
-  // // pre-compute Green's function denomiator expansion
-  // // pre-compute 1d charge distribution coefficients
-
-  // if (function[0]) {
-  //   compute_gf_denom(gf_b, order);
-  //   compute_rho_coeff(rho_coeff, drho_coeff, order);
-  //   if (differentiation_flag == 1)
-  //     compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
-  //                         nxlo_fft, nylo_fft, nzlo_fft,
-  //                         nxhi_fft, nyhi_fft, nzhi_fft,
-  //                         sf_precoeff1, sf_precoeff2, sf_precoeff3,
-  //                         sf_precoeff4, sf_precoeff5, sf_precoeff6);
-  // }
-  // if (function[1] + function[2] + function[3]) {
-  //   compute_gf_denom(gf_b_6, order_6);
-  //   compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
-  //   if (differentiation_flag == 1)
-  //     compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
-  //                         nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
-  //                         nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-  //                         sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
-  //                         sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
-  // }
+    cg->ghost_notify();
+    if (overlap_allowed == 0 && cg->ghost_overlap())
+      error->all(FLERR,"PPPM grid stencil extends "
+                 "beyond nearest neighbor processor");
+    cg->setup();
 
   // pre-compute volume-dependent coeffs
 
   setup();
 }
 
-void TILD::compute(int i1, int i2){
+void TILD::compute(int eflag, int vflag){
+
+  double density;
+  output->thermo->evaluate_keyword("density",&density);
   
   int i; 
+
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
+  }
+
+  // convert atoms from box to lamda coords
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = evflag_atom = eflag_global = vflag_global =
+         eflag_atom = vflag_atom = 0;
+
+  if (evflag_atom && !peratom_allocate_flag) {
+    allocate_peratom();
+      cg_peratom->ghost_notify();
+      cg_peratom->setup();
+    peratom_allocate_flag = 1;
+  }
+
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
+  }
+  // extend size of per-atom arrays if necessary
+
+  if (atom->nmax > nmax) {
+
+    memory->destroy(part2grid);
+    nmax = atom->nmax;
+    memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
+  }
+
+  particle_map(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
+                nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
+
+  make_rho_none();
+
+  cg->reverse_comm(this, REVERSE_RHO);
+
+  brick2fft_none();
   // convert atoms from box to lambda coords
 
   // if (eflag || vflag) ev_setup(eflag,vflag);
@@ -317,15 +373,13 @@ void TILD::compute(int i1, int i2){
   //     memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
   // }
 
-  // // find grid points for all my particles 
-  // // distribute particles' densities on the grid
-  // // communication between processors and remapping two fft
-  // // Convolution in k-space and backtransformation 
-  // // communication between processors
-  // // calculation of forces
+  // find grid points for all my particles 
+  // distribute particles' densities on the grid
+  // communication between processors and remapping two fft
+  // Convolution in k-space and backtransformation 
+  // communication between processors
+  // calculation of forces
 
-  //   particle_map(delxinv_den, delyinv_den, delzinv_den, shift_den, part2grid_den, nupper_den, nlower_den,
-  //                nxlo_out_den, nylo_out_den, nzlo_out_den, nxhi_out_den, nyhi_out_den, nzhi_out_den);
   //   make_rho_g();
 
   return;
@@ -563,6 +617,8 @@ void TILD::set_grid_global()
         nzlo_fft = me_z*nz_pppm/npez_fft;
         nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
+        double qopt = compute_qopt();
+
         double df_kspace = compute_df_kspace();
 
         count++;
@@ -677,6 +733,9 @@ void TILD::allocate_peratom()
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
   memory->create(gradWgroup, group->ngroup, nfft, "tild:gradWgroup");
+  memory->create(ktmp, nfft, "tild:ktmp");
+  memory->create(ktmp2, nfft, "tild:ktmp2");
+  memory->create(tmp, nfft, "tild:tmp");
 
   // create ghost grid object for rho and electric field communication
 
@@ -701,7 +760,6 @@ void TILD::allocate_peratom()
 /* ----------------------------------------------------------------------
    deallocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
-
 void TILD::deallocate_peratom()
 {
   peratom_allocate_flag = 0;
@@ -1665,6 +1723,303 @@ void TILD::brick2fft()
   remap->perform(density_fft,density_fft,work1);
 }
 
+
+/* ----------------------------------------------------------------------
+   create discretized "density" on section of global grid due to my particles
+   density(x,y,z) = dispersion "density" at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid --- case when mixing rules don't apply
+------------------------------------------------------------------------- */
+void TILD::make_rho_none()
+{
+  int k,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0,w;
+
+  int ngroups = group->ngroup;
+  // clear 3d density array
+  // for (k = 0; k < nsplit_alloc; k++)
+  //   memset(&(density_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6]),0,
+  //          ngrid_6*sizeof(FFT_SCALAR));
+  for (k = 0; k < ngroups; k++)
+    memset(&(density_brick_types[k][nzlo_out][nylo_out][nxlo_out]),0,
+           ngrid*sizeof(FFT_SCALAR));
+
+
+  // loop over my particles, add their contribution to nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  int type;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+
+    //do the following for all 4 grids
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+    compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
+    type = atom->type[i];
+    z0 = delvolinv;
+    for (n = nlower; n <= nupper; n++) {
+      mz = n+nz;
+      y0 = z0*rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          w = x0*rho1d[0][l];
+          for (k = 0; k < group->ngroup; k++)
+            density_brick_types[k][mz][my][mx] += w;
+            // density_brick_types[k][mz][my][mx] += w*B[nsplit*type + k];
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   ghost-swap to accumulate full density in brick decomposition
+   remap density from 3d brick decomposition to FFTdecomposition
+   for dispersion with special case
+------------------------------------------------------------------------- */
+
+void TILD::brick2fft_none()
+{
+  int k,n,ix,iy,iz;
+
+  // copy grabs inner portion of density from 3d brick
+  // remap could be done as pre-stage of FFT,
+  //   but this works optimally on only double values, not complex values
+
+  for (k = 0; k<group->ngroup; k++) {
+    n = 0;
+    for (iz = nzlo_in; iz <= nzhi_in; iz++)
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+          density_fft_types[k][n++] = density_brick_types[k][iz][iy][ix];
+  }
+
+  for (k=0; k<group->ngroup; k++)
+    remap->perform(density_fft_types[k],density_fft_types[k],work1);
+}
+
+/* ----------------------------------------------------------------------
+   Compute qopt for Coulomb interactions
+------------------------------------------------------------------------- */
+double TILD::compute_qopt()
+{
+  double qopt;
+  if (differentiation_flag == 1) {
+    qopt = compute_qopt_ad();
+  } else {
+    qopt = compute_qopt_ik();
+  }
+  double qopt_all;
+  MPI_Allreduce(&qopt,&qopt_all,1,MPI_DOUBLE,MPI_SUM,world);
+  return qopt_all;
+}
+
+/* ----------------------------------------------------------------------
+   Compute qopt for the ik differentiation scheme and Coulomb interaction
+------------------------------------------------------------------------- */
+double TILD::compute_qopt_ik()
+{
+  double qopt = 0.0;
+  int k,l,m;
+  double *prd;
+
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+
+  double unitkx = (2.0*MY_PI/xprd);
+  double unitky = (2.0*MY_PI/yprd);
+  double unitkz = (2.0*MY_PI/zprd_slab);
+
+  int nx,ny,nz,kper,lper,mper;
+  double sqk, u2;
+  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+  double sum1,sum2, sum3,dot1,dot2;
+
+  int nbx = 2;
+  int nby = 2;
+  int nbz = 2;
+
+  for (m = nzlo_fft; m <= nzhi_fft; m++) {
+    mper = m - nz_pppm*(2*m/nz_pppm);
+
+    for (l = nylo_fft; l <= nyhi_fft; l++) {
+      lper = l - ny_pppm*(2*l/ny_pppm);
+
+      for (k = nxlo_fft; k <= nxhi_fft; k++) {
+        kper = k - nx_pppm*(2*k/nx_pppm);
+
+        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
+          pow(unitkz*mper,2.0);
+
+        if (sqk != 0.0) {
+          sum1 = 0.0;
+          sum2 = 0.0;
+          sum3 = 0.0;
+          for (nx = -nbx; nx <= nbx; nx++) {
+            qx = unitkx*(kper+nx_pppm*nx);
+            sx = exp(-0.25*pow(qx/g_ewald,2.0));
+            wx = 1.0;
+            argx = 0.5*qx*xprd/nx_pppm;
+            if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+            for (ny = -nby; ny <= nby; ny++) {
+              qy = unitky*(lper+ny_pppm*ny);
+              sy = exp(-0.25*pow(qy/g_ewald,2.0));
+              wy = 1.0;
+              argy = 0.5*qy*yprd/ny_pppm;
+              if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+              for (nz = -nbz; nz <= nbz; nz++) {
+                qz = unitkz*(mper+nz_pppm*nz);
+                sz = exp(-0.25*pow(qz/g_ewald,2.0));
+                wz = 1.0;
+                argz = 0.5*qz*zprd_slab/nz_pppm;
+                if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+
+                dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
+                dot2 = qx*qx+qy*qy+qz*qz;
+                u2 =  pow(wx*wy*wz,2.0);
+                sum1 += sx*sy*sz*sx*sy*sz/dot2*4.0*4.0*MY_PI*MY_PI;
+                sum2 += u2*sx*sy*sz*4.0*MY_PI/dot2*dot1;
+                sum3 += u2;
+              }
+            }
+          }
+          sum2 *= sum2;
+          sum3 *= sum3*sqk;
+          qopt += sum1 -sum2/sum3;
+        }
+      }
+    }
+  }
+  return qopt;
+}
+
+/* ----------------------------------------------------------------------
+   Compute qopt for the ad differentiation scheme and Coulomb interaction
+------------------------------------------------------------------------- */
+double TILD::compute_qopt_ad()
+{
+  double qopt = 0.0;
+  int k,l,m;
+  double *prd;
+
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+
+
+  double unitkx = (2.0*MY_PI/xprd);
+  double unitky = (2.0*MY_PI/yprd);
+  double unitkz = (2.0*MY_PI/zprd_slab);
+
+  int nx,ny,nz,kper,lper,mper;
+  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+  double u2, sqk;
+  double sum1,sum2,sum3,sum4,dot2;
+
+  int nbx = 2;
+  int nby = 2;
+  int nbz = 2;
+
+  for (m = nzlo_fft; m <= nzhi_fft; m++) {
+    mper = m - nz_pppm*(2*m/nz_pppm);
+
+    for (l = nylo_fft; l <= nyhi_fft; l++) {
+      lper = l - ny_pppm*(2*l/ny_pppm);
+
+      for (k = nxlo_fft; k <= nxhi_fft; k++) {
+        kper = k - nx_pppm*(2*k/nx_pppm);
+
+        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
+          pow(unitkz*mper,2.0);
+
+        if (sqk != 0.0) {
+
+          sum1 = 0.0;
+          sum2 = 0.0;
+          sum3 = 0.0;
+          sum4 = 0.0;
+          for (nx = -nbx; nx <= nbx; nx++) {
+            qx = unitkx*(kper+nx_pppm*nx);
+            sx = exp(-0.25*pow(qx/g_ewald,2.0));
+            wx = 1.0;
+            argx = 0.5*qx*xprd/nx_pppm;
+            if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+            for (ny = -nby; ny <= nby; ny++) {
+              qy = unitky*(lper+ny_pppm*ny);
+              sy = exp(-0.25*pow(qy/g_ewald,2.0));
+              wy = 1.0;
+              argy = 0.5*qy*yprd/ny_pppm;
+              if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+              for (nz = -nbz; nz <= nbz; nz++) {
+                qz = unitkz*(mper+nz_pppm*nz);
+                sz = exp(-0.25*pow(qz/g_ewald,2.0));
+                wz = 1.0;
+                argz = 0.5*qz*zprd_slab/nz_pppm;
+                if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+
+                dot2 = qx*qx+qy*qy+qz*qz;
+                u2 =  pow(wx*wy*wz,2.0);
+                sum1 += sx*sy*sz*sx*sy*sz/dot2*4.0*4.0*MY_PI*MY_PI;
+                sum2 += sx*sy*sz * u2*4.0*MY_PI;
+                sum3 += u2;
+                sum4 += dot2*u2;
+              }
+            }
+          }
+          sum2 *= sum2;
+          qopt += sum1 - sum2/(sum3*sum4);
+        }
+      }
+    }
+  }
+  return qopt;
+}
+
+/* ----------------------------------------------------------------------
+   charge assignment into rho1d
+   dx,dy,dz = distance of particle from "lower left" grid point
+------------------------------------------------------------------------- */
+void TILD::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
+                              const FFT_SCALAR &dz, int ord,
+                             FFT_SCALAR **rho_c, FFT_SCALAR **r1d)
+{
+  int k,l;
+  FFT_SCALAR r1,r2,r3;
+
+  for (k = (1-ord)/2; k <= ord/2; k++) {
+    r1 = r2 = r3 = ZEROF;
+
+    for (l = ord-1; l >= 0; l--) {
+      r1 = rho_c[l][k] + r1*dx;
+      r2 = rho_c[l][k] + r2*dy;
+      r3 = rho_c[l][k] + r3*dz;
+    }
+    r1d[0][k] = r1;
+    r1d[1][k] = r2;
+    r1d[2][k] = r3;
+  }
+}
+
 void TILD::accumulate_gradient(){
 
   int Dim = domain->dimension;
@@ -1679,12 +2034,16 @@ void TILD::accumulate_gradient(){
     }
 
     if (do_fft){
-      fft1->compute(density_fft_group[i], ktmp, 1);
+      fft1->compute(density_fft_types[i], ktmp, 1);
 
-      for (int j = 0; j < Dim; j++)
+      for (int j = 0; j < Dim; j++){
         for (int k=0; k < nfft; k++){
-          grad
+          gradWgroup[i][k] += grad_uG_hat[j][k] * ktmp[k];
         }
+      
+        fft1->compute(ktmp, tmp, -1);
+      }
+
 
     }
   }

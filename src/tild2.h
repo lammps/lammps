@@ -33,8 +33,8 @@ class TILD : public KSpace{
   class Remap *remap;
   class GridComm *cg;
   class GridComm *cg_peratom;
-  static double *uG;
-  static double a_squared;
+  double *uG;
+  double a_squared;
   void setup_grid();
   // virtual int timing_1d(int, double &);
   // virtual int timing_3d(int, double &);
@@ -46,6 +46,7 @@ class TILD : public KSpace{
 
  protected:
   double **grad_uG, **grad_uG_hat, *temp;
+  double **gradWgroup;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;

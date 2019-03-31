@@ -322,7 +322,7 @@ pkg_depends(USER-SCAFACOS MPI)
 
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
-if(BUILD_OMP OR PKG_KOKKOS OR PKG_USER-INTEL)
+if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -1066,10 +1066,6 @@ if(PKG_USER-INTEL)
 
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
         message(FATAL_ERROR "USER-INTEL needs at least a 2016 intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
-    endif()
-
-    if(NOT BUILD_OMP)
-        message(FATAL_ERROR "USER-INTEL requires OpenMP")
     endif()
 
     if(NOT ${LAMMPS_MEMALIGN} STREQUAL "64")

@@ -944,7 +944,7 @@ if(PKG_USER-OMP)
 
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
-    RegisterFixStyle("${USER-OMP_SOURCES_DIR}/fix_omp.h")
+    RegisterFixStyle(${USER-OMP_SOURCES_DIR}/fix_omp.h)
 
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
@@ -1057,33 +1057,72 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
-    find_package(TBB REQUIRED)
-    find_package(MKL REQUIRED)
+  add_definitions(-DLMP_USER_INTEL)
 
-    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-      message(FATAL_ERROR "USER-INTEL is only useful together with intel compiler")
-    endif()
+  set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
+  set(INTEL_ARCH_VALUES cpu knl)
+  set_property(CACHE INTEL_ARCH PROPERTY STRINGS ${INTEL_ARCH_VALUES})
+  validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
+  string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
 
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
-        message(FATAL_ERROR "USER-INTEL needs at least a 2016 intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
-    endif()
-
-    if(NOT ${LAMMPS_MEMALIGN} STREQUAL "64")
-        message(FATAL_ERROR "USER-INTEL is only useful with LAMMPS_MEMALIGN=64")
-    endif()
-
-    set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
-    set(INTEL_ARCH_VALUES cpu knl)
-    set_property(CACHE INTEL_ARCH PROPERTY STRINGS ${INTEL_ARCH_VALUES})
-    validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
-    string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
-
-    if(INTEL_ARCH STREQUAL "KNL")
-      set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
-      set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
-      add_compile_options(-xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
-      add_definitions(-DLMP_INTEL_OFFLOAD)
+  #    add_definitions(-DLMP_INTEL_USELRT)
+  find_package(Threads QUIET)
+  if(Threads_FOUND)
+    set(INTEL_LRT_MODE "threads" CACHE STRING "Long-range threads mode (none, threads, or c++11)")
+  else()
+    set(INTEL_LRT_MODE "none" CACHE STRING "Long-range threads mode (none, threads, or c++11)")
+  endif()
+  set(INTEL_LRT_VALUES none threads c++11)
+  set_property(CACHE INTEL_LRT_MODE PROPERTY STRINGS ${INTEL_LRT_VALUES})
+  validate_option(INTEL_LRT_MODE INTEL_LRT_VALUES)
+  string(TOUPPER ${INTEL_LRT_MODE} INTEL_LRT_MODE)
+  if(INTEL_LRT_MODE STREQUAL "THREADS")
+    if(Threads_FOUND)
+      add_definitions(-DLMP_INTEL_USELRT)
+      list(APPEND LAMMPS_LINK_LIBS ${CMAKE_THREAD_LIBS_INIT})
     else()
+      message(FATAL_ERROR "Must have working threads library for Long-range thread support")
+    endif()
+  endif()
+  if(INTEL_LRT_MODE STREQUAL "C++11")
+    add_definitions(-DLMP_INTEL_USERLRT -DLMP_INTEL_LRT11)
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
+      message(FATAL_ERROR "USER-INTEL needs at least a 2016 Intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
+    endif()
+  else()
+    message(WARNING "USER-INTEL gives best performance with Intel compilers")
+  endif()
+
+  find_package(TBB QUIET)
+  if(TBB_FOUND)
+    list(APPEND LAMMPS_LINK_LIBS ${TBB_MALLOC_LIBRARIES})
+  else()
+    add_definitions(-DLMP_INTEL_NO_TBB)
+  endif()
+
+  find_package(MKL QUIET)
+  if(MKL_FOUND)
+    add_definitions(-DLMP_USE_MKL_RNG)
+    list(APPEND LAMMPS_LINK_LIBS ${MKL_LIBRARIES})
+  endif()
+
+  if((NOT ${LAMMPS_MEMALIGN} STREQUAL "64") AND (NOT ${LAMMPS_MEMALIGN} STREQUAL "128") AND (NOT ${LAMMPS_MEMALIGN} STREQUAL "256"))
+    message(FATAL_ERROR "USER-INTEL only supports memory alignment of 64, 128 or 256")
+  endif()
+
+  if(INTEL_ARCH STREQUAL "KNL")
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      message(FATAL_ERROR "Must use Intel compiler with USER-INTEL for KNL architecture")
+    endif()
+    set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
+    set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
+    add_compile_options(-xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
+    add_definitions(-DLMP_INTEL_OFFLOAD)
+  else()
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
       else()
@@ -1096,33 +1135,33 @@ if(PKG_USER-INTEL)
           add_compile_options(${_FLAG})
         endif()
       endforeach()
+    else()
+      add_compile_options(-O3 -ffast-math)
     endif()
+  endif()
 
-    add_definitions(-DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG)
+  # collect sources
+  set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
+  set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/fix_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/fix_nh_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
+                         ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
 
-    list(APPEND LAMMPS_LINK_LIBS ${TBB_MALLOC_LIBRARIES} ${MKL_LIBRARIES})
+  set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
 
-    set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
-    set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/intel_preprocess.h
-                           ${USER-INTEL_SOURCES_DIR}/intel_buffers.h
-                           ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
-                           ${USER-INTEL_SOURCES_DIR}/math_extra_intel.h
-                           ${USER-INTEL_SOURCES_DIR}/nbin_intel.h
-                           ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
-                           ${USER-INTEL_SOURCES_DIR}/npair_intel.h
-                           ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
-                           ${USER-INTEL_SOURCES_DIR}/intel_simd.h
-                           ${USER-INTEL_SOURCES_DIR}/intel_intrinsics.h)
+  # detect styles which have a USER-INTEL version
+  RegisterStylesExt(${USER-INTEL_SOURCES_DIR} intel USER-INTEL_SOURCES)
+  RegisterNBinStyle(${USER-INTEL_SOURCES_DIR}/nbin_intel.h)
+  RegisterNPairStyle(${USER-INTEL_SOURCES_DIR}/npair_intel.h)
+  RegisterFixStyle(${USER-INTEL_SOURCES_DIR}/fix_intel.h)
+  RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
 
-    set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
+  get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
 
-    # detects styles which have USER-INTEL version
-    RegisterStylesExt(${USER-INTEL_SOURCES_DIR} opt USER-INTEL_SOURCES)
-
-    get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
-
-    list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
-    include_directories(${USER-INTEL_SOURCES_DIR})
+  list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
+  include_directories(${USER-INTEL_SOURCES_DIR})
 endif()
 
 if(PKG_GPU)

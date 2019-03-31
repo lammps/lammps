@@ -714,6 +714,7 @@ void TILD::set_grid_global()
 void TILD::allocate_peratom()
 {
   peratom_allocate_flag = 1;
+  int Dim = domain->dimension;
 
   if (differentiation_flag != 1)
     memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -732,7 +733,7 @@ void TILD::allocate_peratom()
                           nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
-  memory->create(gradWgroup, group->ngroup, nfft, "tild:gradWgroup");
+  memory->create(gradWgroup, group->ngroup, Dim, nfft, "tild:gradWgroup");
   memory->create(ktmp, nfft, "tild:ktmp");
   memory->create(ktmp2, nfft, "tild:ktmp2");
   memory->create(tmp, nfft, "tild:tmp");
@@ -2023,6 +2024,8 @@ void TILD::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
 void TILD::accumulate_gradient(){
 
   int Dim = domain->dimension;
+  double rho0;
+  output->thermo->evaluate_keyword("density",&rho0);
   bool do_fft = false;
   for (int i = 0; i < group->ngroup; i++){
 
@@ -2036,15 +2039,23 @@ void TILD::accumulate_gradient(){
     if (do_fft){
       fft1->compute(density_fft_types[i], ktmp, 1);
 
-      for (int j = 0; j < Dim; j++){
-        for (int k=0; k < nfft; k++){
+      for (int j = 0; j < Dim; j++) {
+        for (int k = 0; k < nfft; k++) {
           gradWgroup[i][k] += grad_uG_hat[j][k] * ktmp[k];
         }
-      
+
         fft1->compute(ktmp, tmp, -1);
       }
 
-
+      for (int i2 = 0; i2 < group->ngroup; i++) {
+        if (fabs(param[i][i2]) > 1e-8) {
+          for (int j = 0; j < Dim; j++) {
+            for (int k = 0; k < nfft; k++) {
+              gradWgroup[i][j][k] += tmp[k] * param[i][i2] / rho0;
+            }
+          }
+        }
+      }
     }
   }
 }

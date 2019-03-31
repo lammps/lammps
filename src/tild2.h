@@ -46,7 +46,7 @@ class TILD : public KSpace{
 
  protected:
   double **grad_uG, **grad_uG_hat, *temp;
-  double **gradWgroup;
+  double ***gradWgroup;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;

@@ -29,6 +29,8 @@
 #include <complex>
 #include "group.h"
 #include "neighbor.h"
+#include "output.h"
+#include "thermo.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

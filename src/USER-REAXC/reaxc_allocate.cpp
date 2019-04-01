@@ -35,9 +35,7 @@
 #include <omp.h>
 #endif
 
-#include "lammps.h"
 #include "error.h"
-using namespace LAMMPS_NS;
 
 /* allocate space for my_atoms
    important: we cannot know the exact number of atoms that will fall into a

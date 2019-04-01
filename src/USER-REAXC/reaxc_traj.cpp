@@ -29,6 +29,8 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 
+#include "error.h"
+
 int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_control, int req_space )
 {
   if (out_control->buffer_len > 0)

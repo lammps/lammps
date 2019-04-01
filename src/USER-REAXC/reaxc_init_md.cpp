@@ -36,6 +36,7 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
+#include "error.h"
 
 int Init_System( reax_system *system, control_params *control, char * /*msg*/ )
 {

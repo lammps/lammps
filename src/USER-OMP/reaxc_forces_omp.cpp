@@ -292,7 +292,7 @@ void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list
         char errmsg[256];
         snprintf(errmsg, 256, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
                   step, i, End_Index(i,bonds), comp );
-        system->error_ptr->all(FLERR,errmsg);
+        system->error_ptr->one(FLERR,errmsg);
       }
     }
   }
@@ -319,7 +319,7 @@ void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list
           char errmsg[256];
           snprintf(errmsg, 256, "step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
                   step, Hindex, End_Index(Hindex,hbonds), comp );
-          system->error_ptr->all(FLERR, errmsg);
+          system->error_ptr->one(FLERR, errmsg);
         }
       }
     }

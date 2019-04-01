@@ -30,6 +30,8 @@
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
+#include "error.h"
+
 static double Dot( double* v1, double* v2, int k )
 {
   double ret = 0.0;

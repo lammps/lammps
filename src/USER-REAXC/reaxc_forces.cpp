@@ -39,6 +39,8 @@
 #include "reaxc_valence_angles.h"
 #include "reaxc_vector.h"
 
+#include "error.h"
+
 
 interaction_function Interaction_Functions[NUM_INTRS];
 
@@ -138,7 +140,7 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
         char errmsg[256];
         snprintf(errmsg, 256, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
                  step, i, End_Index(i,bonds), comp );
-        system->error_ptr->all(FLERR,errmsg);
+        system->error_ptr->one(FLERR,errmsg);
       }
     }
   }

@@ -30,6 +30,8 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
+#include "error.h"
+
 
 void Reset_Atoms( reax_system* system, control_params *control )
 {

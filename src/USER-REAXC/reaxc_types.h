@@ -39,9 +39,8 @@
 #include <sys/time.h>
 #include "accelerator_kokkos.h"
 
-#include "lammps.h"
-#include "error.h"
-using LAMMPS_NS::Error;
+
+namespace LAMMPS_NS { class Error;}
 
 #if defined LMP_USER_OMP
 #define OMP_TIMING 0
@@ -415,7 +414,7 @@ struct _reax_system
   boundary_cutoff  bndry_cuts;
   reax_atom       *my_atoms;
 
-  class Error     *error_ptr;
+  class LAMMPS_NS::Error    *error_ptr;
   class Pair *pair_ptr;
   int my_bonds;
   int mincap;
@@ -493,7 +492,8 @@ typedef struct
 
   int lgflag;
   int enobondsflag;
-  class Error     *error_ptr;
+  class LAMMPS_NS::Error *error_ptr;
+  int me; 
 
 } control_params;
 
@@ -780,7 +780,7 @@ struct _reax_list
 
   int type;
   list_type select;
-  class Error     *error_ptr;
+  class LAMMPS_NS::Error     *error_ptr;
 };
 typedef _reax_list  reax_list;
 

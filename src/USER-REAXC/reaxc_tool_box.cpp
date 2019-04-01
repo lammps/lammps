@@ -27,6 +27,8 @@
 #include "pair_reaxc.h"
 #include "reaxc_tool_box.h"
 
+#include "error.h"
+
 struct timeval tim;
 double t_end;
 

@@ -29,8 +29,6 @@
 #include "reaxc_ffield.h"
 #include "reaxc_tool_box.h"
 
-#include "lammps.h"
-#include "error.h"
 
 char Read_Force_Field( FILE *fp, reax_interaction *reax,
                        control_params *control )

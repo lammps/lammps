@@ -28,6 +28,8 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 
+#include "error.h"
+
 /************* allocate list space ******************/
 int Make_List(int n, int num_intrs, int type, reax_list *l )
 {

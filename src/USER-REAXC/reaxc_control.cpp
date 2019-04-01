@@ -28,6 +28,8 @@
 #include "reaxc_control.h"
 #include "reaxc_tool_box.h"
 
+#include "error.h"
+
 char Read_Control_File( char *control_file, control_params* control,
                         output_controls *out_control )
 {

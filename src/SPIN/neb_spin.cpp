@@ -283,7 +283,7 @@ void NEB_spin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-		"GradV0dottan ... GradVNdottan\n");
+		"GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -296,7 +296,7 @@ void NEB_spin::run()
 	fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
 	    "GradV0 GradV1 GradVc EBF EBR RDT "
 	    "RD1 PE1 RD2 PE2 ... RDN PEN "
-	    "GradV0dottan ... GradVNdottan\n");
+	    "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -368,7 +368,7 @@ void NEB_spin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-		"GradV0dottan ... GradVNdottan\n");
+		"GradV0dottan DN0... GradVNdottan DNN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -381,7 +381,7 @@ void NEB_spin::run()
 	fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
 	    "GradV0 GradV1 GradVc EBF EBR RDT "
 	    "RD1 PE1 RD2 PE2 ... RDN PEN "
-	    "GradV0dottan ... GradVNdottan\n");
+	    "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -873,8 +873,9 @@ void NEB_spin::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-	for (int i = 0; i < nreplica; i++)
-	  fprintf(uscreen,"%12.8g ",all[i][5]);
+	for (int i = 0; i < nreplica-1; i++)
+	  fprintf(uscreen,"%12.8g %12.8g ",all[i][2],all[i][5]);
+	fprintf(uscreen,"%12.8g %12.8g ",NAN,all[nreplica-1][5]);
       }
       fprintf(uscreen,"\n");
     }
@@ -888,8 +889,9 @@ void NEB_spin::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-	for (int i = 0; i < nreplica; i++)
-	  fprintf(ulogfile,"%12.8g ",all[i][5]);
+	for (int i = 0; i < nreplica-1; i++)
+	  fprintf(ulogfile,"%12.8g %12.8g ",all[i][2],all[i][5]);
+	fprintf(ulogfile,"%12.8g %12.8g ",NAN,all[nreplica-1][5]);
       }
       fprintf(ulogfile,"\n");
       fflush(ulogfile);

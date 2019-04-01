@@ -1,0 +1,7 @@
+Interpolate.x tries to perform a cubic polynomial interpolation
+of the MEP found 
+
+Compile the program with:
+gcc interpolate.c -o interpolate.x -lm -lgsl
+
+

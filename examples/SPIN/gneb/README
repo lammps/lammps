@@ -1,5 +1,5 @@
-Run this example as:
+Run those examples as:
 
-mpirun -np 3 lmp_g++ -partition 3x1 -in in.tad
+mpirun -np 4 lmp_mpi -in in.gneb.iron -partition 4x1
 
 You should be able to use any number of replicas >= 3.

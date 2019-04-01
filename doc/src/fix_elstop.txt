@@ -44,7 +44,9 @@ considered, the simulated range of the ions can be severely overestimated
 The electronic stopping is implemented by applying a friction force
 to each atom as:
 
-:c,image(Eqs/fix_elstop.jpg)
+\begin\{equation\}
+\vec\{F\}_i = \vec\{F\}^0_i - \frac\{\vec\{v\}_i\}\{\|\vec\{v\}_i\|\} \cdot S_e
+\end\{equation\}
 
 where \(\vec\{F\}_i\) is the resulting total force on the atom. \(\vec\{F\}^0_i\)
 is the original force applied to the atom, \(\vec\{v\}_i\) is its velocity and

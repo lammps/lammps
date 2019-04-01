@@ -15,6 +15,10 @@
    Contributing authors: Julien Tranchida (SNL)
 
    Please cite the related publication:
+   Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015). 
+   Method for finding mechanism and activation energy of magnetic transitions, 
+   applied to skyrmion and antivortex annihilation. 
+   Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -467,6 +471,15 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
           }
         }
 
+        // project tangent vector on tangent space
+	
+	double sdottan;
+	sdottan = sp[i][0]*tangent[i][0] + sp[i][1]*tangent[i][1] +
+	  sp[i][2]*tangent[i][2];
+	tangent[i][0] -= sdottan*sp[i][0];
+	tangent[i][1] -= sdottan*sp[i][1];
+	tangent[i][2] -= sdottan*sp[i][2];
+	
 	// calc. next geodesic length
 	
 	spi[0]=sp[i][0];
@@ -518,7 +531,8 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   dottangrad = bufout[6];
   dotgrad = bufout[7];
 
-  // project tangent vector on tangent space and normalize it
+  // check projection of tangent vector on tangent space 
+  // and normalize it
 
   double buftan[3];
   double tandots;
@@ -655,7 +669,7 @@ double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
   if (normcross == 0.0 && dots == 0.0) 
     error->all(FLERR,"Incorrect calc. of geodesic_distance in Fix NEB/spin");
   
-    dist = atan2(normcross,dots);
+  dist = atan2(normcross,dots);
 
   return dist;
 }

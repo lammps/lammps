@@ -281,10 +281,9 @@ void NEB_spin::run()
     if (uscreen) {
       if (verbose) {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
-                "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
-                "RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 "
-                "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
-                "... ReplicaTorqueN MaxAtomTorqueN\n");
+                "GradV0 GradV1 GradVc EBF EBR RDT "
+                "RD1 PE1 RD2 PE2 ... RDN PEN "
+		"GradV0dottan ... GradVNdottan\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -294,11 +293,10 @@ void NEB_spin::run()
 
     if (ulogfile) {
       if (verbose) {
-        fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
-                "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
-                "RDN PEN pathangle1 angletangrad1 anglegrad1 gradV1 "
-                "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
-                "... ReplicaTorqueN MaxAtomTorqueN\n");
+	fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
+	    "GradV0 GradV1 GradVc EBF EBR RDT "
+	    "RD1 PE1 RD2 PE2 ... RDN PEN "
+	    "GradV0dottan ... GradVNdottan\n");
       } else {
         fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -370,9 +368,7 @@ void NEB_spin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-                "pathangle1 angletangrad1 anglegrad1 gradV1 "
-                "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
-                "... ReplicaForceN MaxAtomForceN\n");
+		"GradV0dottan ... GradVNdottan\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -382,12 +378,10 @@ void NEB_spin::run()
     }
     if (ulogfile) {
       if (verbose) {
-        fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
-                "GradV0 GradV1 GradVc EBF EBR RDT "
-                "RD1 PE1 RD2 PE2 ... RDN PEN "
-                "pathangle1 angletangrad1 anglegrad1 gradV1 "
-                "ReplicaForce1 MaxAtomForce1 pathangle2 angletangrad2 "
-                "... ReplicaForceN MaxAtomForceN\n");
+	fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
+	    "GradV0 GradV1 GradVc EBF EBR RDT "
+	    "RD1 PE1 RD2 PE2 ... RDN PEN "
+	    "GradV0dottan ... GradVNdottan\n");
       } else {
         fprintf(ulogfile,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -879,17 +873,8 @@ void NEB_spin::print_status()
       for (int i = 0; i < nreplica; i++)
         fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);
-        for (int i = 1; i < nreplica-1; i++)
-          fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                  180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
-                  180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);
-        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
+	for (int i = 0; i < nreplica; i++)
+	  fprintf(uscreen,"%12.8g ",all[i][5]);
       }
       fprintf(uscreen,"\n");
     }
@@ -901,20 +886,10 @@ void NEB_spin::print_status()
               gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
-        //fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
-        fprintf(ulogfile,"%12.8g %12.8g %12.8g %12.8g ",rdist[i],all[i][0],all[i][2],all[i][5]);
+        fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       if (verbose) {
-        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);
-        for (int i = 1; i < nreplica-1; i++)
-          fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                  180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
-                  180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);
-        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
+	for (int i = 0; i < nreplica; i++)
+	  fprintf(ulogfile,"%12.8g ",all[i][5]);
       }
       fprintf(ulogfile,"\n");
       fflush(ulogfile);

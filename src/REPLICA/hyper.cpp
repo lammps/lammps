@@ -40,9 +40,7 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *lmp) :
-  Pointers(lmp), dumplist(NULL)
-{}
+Hyper::Hyper(LAMMPS *lmp) : Pointers(lmp), dumplist(NULL) {}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation
@@ -183,9 +181,6 @@ void Hyper::command(int narg, char **arg)
 
   if (hyperenable) fix_hyper->init_hyper();
 
-  timer->barrier_start();
-  time_start = timer->get_wall(Timer::TOTAL);
-
   // perform initial minimization and bond list creation
 
   int nevent = 0;
@@ -199,6 +194,14 @@ void Hyper::command(int narg, char **arg)
   fix_event->store_event();
   if (hyperenable) fix_hyper->build_bond_list(0);
   fix_event->restore_state_quench();
+
+  // reset stats and timers to skip HD setup
+
+  nbuild = ndanger = 0;
+  time_dynamics = time_quench = 0.0;
+
+  timer->barrier_start();
+  time_start = timer->get_wall(Timer::TOTAL);
 
   // main loop: dynamics, store state, quench, check event, restore state
 
@@ -260,11 +263,12 @@ void Hyper::command(int narg, char **arg)
   double maxdrift = 0.0;
   double maxbondlen = 0.0;
   double fraczero = 1.0;
+  double fracneg = 1.0;
 
-  double nnewbond,avenboost,aveboostcoeff,maxboostcoeff,minboostcoeff;
-  double maxbondperatom,neighbondperbond,aveboostnow;
+  double nnewbond,avenbias,avebiascoeff,minbiascoeff,maxbiascoeff;
+  double maxbondperatom,neighbondperbond,avebiasnow;
   double tbondbuild,rmaxever,rmaxeverbig,allghost_toofar;
-  double lostbond,lostbondcoeff,biasoverlap,nonmatchbiascoeff;
+  double lostbond,lostbondcoeff,biasoverlap;
 
   if (hyperenable) {
     t_hyper = fix_hyper->query(1);
@@ -274,115 +278,70 @@ void Hyper::command(int narg, char **arg)
     maxdrift = fix_hyper->query(5);
     maxbondlen = fix_hyper->query(6);
     fraczero = fix_hyper->query(7);
+    fracneg = fix_hyper->query(8);
 
     if (hyperstyle == LOCAL) {
-      nnewbond = fix_hyper->query(8);
-      maxbondperatom = fix_hyper->query(9);
-      avenboost = fix_hyper->query(10);
-      aveboostcoeff = fix_hyper->query(11);
-      maxboostcoeff = fix_hyper->query(12);
-      minboostcoeff = fix_hyper->query(13);
-      neighbondperbond = fix_hyper->query(14);
-      aveboostnow = fix_hyper->query(15);
-      tbondbuild = fix_hyper->query(16);
-      rmaxever = fix_hyper->query(17);
-      rmaxeverbig = fix_hyper->query(18);
-      allghost_toofar = fix_hyper->query(19);
-      lostbond = fix_hyper->query(20);
-      lostbondcoeff = fix_hyper->query(21);
-      biasoverlap = fix_hyper->query(22);
-      nonmatchbiascoeff = fix_hyper->query(23);
+      nnewbond = fix_hyper->query(9);
+      maxbondperatom = fix_hyper->query(10);
+      avenbias = fix_hyper->query(11);
+      avebiascoeff = fix_hyper->query(12);
+      minbiascoeff = fix_hyper->query(13);
+      maxbiascoeff = fix_hyper->query(14);
+      neighbondperbond = fix_hyper->query(15);
+      avebiasnow = fix_hyper->query(16);
+      tbondbuild = fix_hyper->query(17);
+      rmaxever = fix_hyper->query(18);
+      rmaxeverbig = fix_hyper->query(19);
+      allghost_toofar = fix_hyper->query(20);
+      biasoverlap = fix_hyper->query(21);
     }
   }
 
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Cummulative quantities for fix hyper:\n");
-      fprintf(screen,"  hyper time = %g\n",t_hyper);
-      fprintf(screen,"  time boost factor = %g\n",t_hyper/(nsteps*update->dt));
-      fprintf(screen,"  event timesteps = %d\n",nevent_running);
-      fprintf(screen,"  # of atoms in events = %d\n",nevent_atoms_running);
-      fprintf(screen,"Quantities for this hyper run:\n");
-      fprintf(screen,"  event timesteps = %d\n",nevent);
-      fprintf(screen,"  # of atoms in events = %d\n",nevent_atoms);
-      fprintf(screen,"  max length of any bond = %g\n",maxbondlen);
-      fprintf(screen,"  max drift distance of any atom = %g\n",maxdrift);
-      fprintf(screen,"  fraction of steps & bonds with zero bias = %g\n",
-              fraczero);
-      fprintf(screen,"Current quantities:\n");
-      fprintf(screen,"  ave bonds/atom = %g\n",avebonds);
+    FILE *out;
+    for (int iout = 0; iout < 2; iout++) {
+      if (iout == 0) out = screen;
+      if (iout == 1) out = logfile;
+      if (!out) continue;
+      fprintf(out,"Cummulative quantities for fix hyper:\n");
+      fprintf(out,"  hyper time = %g\n",t_hyper);
+      fprintf(out,"  time boost factor = %g\n",t_hyper/(nsteps*update->dt));
+      fprintf(out,"  event timesteps = %d\n",nevent_running);
+      fprintf(out,"  # of atoms in events = %d\n",nevent_atoms_running);
+      fprintf(out,"Quantities for this hyper run:\n");
+      fprintf(out,"  event timesteps = %d\n",nevent);
+      fprintf(out,"  # of atoms in events = %d\n",nevent_atoms);
+      fprintf(out,"  max length of any bond = %g\n",maxbondlen);
+      fprintf(out,"  max drift distance of any atom = %g\n",maxdrift);
+      fprintf(out,"  fraction of biased bonds with zero bias = %g\n",fraczero);
+      fprintf(out,"  fraction of biased bonds with negative strain = %g\n",
+              fracneg);
+      fprintf(out,"Current quantities:\n");
+      fprintf(out,"  ave bonds/atom = %g\n",avebonds);
 
       if (hyperstyle == LOCAL) {
-        fprintf(screen,"Cummulative quantities specific to fix hyper/local:\n");
-        fprintf(screen,"  # of new bonds formed = %g\n",nnewbond);
-        fprintf(screen,"  max bonds/atom = %g\n",maxbondperatom);
-        fprintf(screen,"Quantities for this hyper run specific to "
+        fprintf(out,"Cummulative quantities specific to fix hyper/local:\n");
+        fprintf(out,"  # of new bonds formed = %g\n",nnewbond);
+        fprintf(out,"  max bonds/atom = %g\n",maxbondperatom);
+        fprintf(out,"Quantities for this hyper run specific to "
                 "fix hyper/local:\n");
-        fprintf(screen,"  ave boosted bonds/step = %g\n",avenboost);
-        fprintf(screen,"  ave boost coeff of all bonds = %g\n",aveboostcoeff);
-        fprintf(screen,"  max boost coeff of any bond = %g\n",maxboostcoeff);
-        fprintf(screen,"  min boost coeff of any bond = %g\n",minboostcoeff);
-        fprintf(screen,"  max dist from my box of any "
+        fprintf(out,"  ave biased bonds/step = %g\n",avenbias);
+        fprintf(out,"  ave bias coeff of all bonds = %g\n",avebiascoeff);
+        fprintf(out,"  min bias coeff of any bond = %g\n",minbiascoeff);
+        fprintf(out,"  max bias coeff of any bond = %g\n",maxbiascoeff);
+        fprintf(out,"  max dist from my subbox of any "
                 "non-maxstrain bond ghost atom = %g\n",rmaxever);
-        fprintf(screen,"  max dist from my box of any bond ghost atom = %g\n",
+        fprintf(out,"  max dist from my box of any bond ghost atom = %g\n",
                 rmaxeverbig);
-        fprintf(screen,"  count of bond ghost neighbors "
+        fprintf(out,"  count of bond ghost neighbors "
                 "not found on reneighbor steps = %g\n",allghost_toofar);
-        fprintf(screen,"  lost bond partners = %g\n",lostbond);
-        fprintf(screen,"  ave bias coeff for lost bond partners = %g\n",
-                lostbondcoeff);
-        fprintf(screen,"  bias overlaps = %g\n",biasoverlap);
-        fprintf(screen,"  non-matching bias coeffs = %g\n",nonmatchbiascoeff);
-        fprintf(screen,"  CPU time for bond builds = %g\n",tbondbuild);
-        fprintf(screen,"Current quantities specific to fix hyper/local:\n");
-        fprintf(screen,"  neighbor bonds/bond = %g\n",neighbondperbond);
-        fprintf(screen,"  ave boost coeff for all bonds = %g\n",aveboostnow);
+        fprintf(out,"  bias overlaps = %g\n",biasoverlap);
+        fprintf(out,"  CPU time for bond builds = %g\n",tbondbuild);
+        fprintf(out,"Current quantities specific to fix hyper/local:\n");
+        fprintf(out,"  neighbor bonds/bond = %g\n",neighbondperbond);
+        fprintf(out,"  ave boost coeff for all bonds = %g\n",avebiasnow);
       }
-      fprintf(screen,"\n");
-    }
-
-    if (logfile) {
-      fprintf(logfile,"Cummulative quantities for fix hyper:\n");
-      fprintf(logfile,"  hyper time = %g\n",t_hyper);
-      fprintf(logfile,"  event timesteps = %d\n",nevent_running);
-      fprintf(logfile,"  # of atoms in events = %d\n",nevent_atoms_running);
-      fprintf(logfile,"Quantities for this hyper run:\n");
-      fprintf(logfile,"  event timesteps = %d\n",nevent);
-      fprintf(logfile,"  # of atoms in events = %d\n",nevent_atoms);
-      fprintf(logfile,"  max length of any bond = %g\n",maxbondlen);
-      fprintf(logfile,"  max drift distance of any atom = %g\n",maxdrift);
-      fprintf(logfile,"  fraction of steps & bonds with zero bias = %g\n",
-              fraczero);
-      fprintf(logfile,"Current quantities:\n");
-      fprintf(logfile,"  ave bonds/atom = %g\n",avebonds);
-
-      if (hyperstyle == LOCAL) {
-        fprintf(logfile,"Cummulative quantities specific tofix hyper/local:\n");
-        fprintf(logfile,"  # of new bonds formed = %g\n",nnewbond);
-        fprintf(logfile,"  max bonds/atom = %g\n",maxbondperatom);
-        fprintf(logfile,"Quantities for this hyper run specific to "
-                "fix hyper/local:\n");
-        fprintf(logfile,"  ave boosted bonds/step = %g\n",avenboost);
-        fprintf(logfile,"  ave boost coeff of all bonds = %g\n",aveboostcoeff);
-        fprintf(logfile,"  max boost coeff of any bond = %g\n",maxboostcoeff);
-        fprintf(logfile,"  min boost coeff of any bond = %g\n",minboostcoeff);
-        fprintf(logfile,"  max dist from my box of any "
-                "non-maxstrain bond ghost atom = %g\n",rmaxever);
-        fprintf(logfile,"  max dist from my box of any bond ghost atom = %g\n",
-                rmaxeverbig);
-        fprintf(logfile,"  count of ghost bond neighbors "
-                "not found on reneighbor steps = %g\n",allghost_toofar);
-        fprintf(logfile,"  lost bond partners = %g\n",lostbond);
-        fprintf(logfile,"  ave bias coeff for lost bond partners = %g\n",
-                lostbondcoeff);
-        fprintf(logfile,"  bias overlaps = %g\n",biasoverlap);
-        fprintf(logfile,"  non-matching bias coeffs = %g\n",nonmatchbiascoeff);
-        fprintf(logfile,"  CPU time for bond builds = %g\n",tbondbuild);
-        fprintf(logfile,"Current quantities specific to fix hyper/local:\n");
-        fprintf(logfile,"  neighbor bonds/bond = %g\n",neighbondperbond);
-        fprintf(logfile,"  ave boost coeff for all bonds = %g\n",aveboostnow);
-      }
-      fprintf(logfile,"\n");
+      fprintf(out,"\n");
     }
   }
 

@@ -5,15 +5,15 @@ set(temp_git_describe "(unknown)")
 set(temp_git_info "false")
 if(GIT_FOUND AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
   set(temp_git_info "true")
-  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git rev-parse HEAD
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/.. rev-parse HEAD
     OUTPUT_VARIABLE temp_git_commit
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git rev-parse --abbrev-ref HEAD
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/.. rev-parse --abbrev-ref HEAD
     OUTPUT_VARIABLE temp_git_branch
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/../.git describe --dirty=-modified
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C ${CMAKE_CURRENT_SOURCE_DIR}/.. describe --dirty=-modified
     OUTPUT_VARIABLE temp_git_describe
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)

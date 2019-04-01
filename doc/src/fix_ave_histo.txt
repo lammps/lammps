@@ -35,6 +35,7 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {ti
   {mode} arg = {scalar} or {vector}
     scalar = all input values are scalars
     vector = all input values are vectors
+  {kind} arg = {global} or {peratom} or {local}
   {file} arg = filename
     filename = name of file to output histogram(s) to
   {ave} args = {one} or {running} or {window}
@@ -92,7 +93,8 @@ either all global, all per-atom, or all local quantities.  Inputs of
 different kinds (e.g. global and per-atom) cannot be mixed.  Atom
 attributes are per-atom vector values.  See the doc page for
 individual "compute" and "fix" commands to see what kinds of
-quantities they generate.
+quantities they generate.  See the optional {kind} keyword below for
+how to force the fix ave/histo command to disambiguate if necessary.
 
 Note that the output of this command is a single histogram for all
 input values combined together, not one histogram per input value.
@@ -231,6 +233,14 @@ keyword is set to {vector}, then all input values must be global or
 per-atom or local vectors, or columns of global or per-atom or local
 arrays.
 
+The {kind} keyword only needs to be set if a compute or fix produces
+more than one kind of output (global, per-atom, local).  If this is
+not the case, then LAMMPS will determine what kind of input is
+provided and whether all the input arguments are consistent.  If a
+compute or fix produces more than one kind of output, the {kind}
+keyword should be used to specify which output will be used.  The
+remaining input arguments must still be consistent.
+
 The {beyond} keyword determines how input values that fall outside the
 {lo} to {hi} bounds are treated.  Values such that {lo} <= value <=
 {hi} are assigned to one bin.  Values on a bin boundary are assigned
@@ -240,7 +250,7 @@ If {beyond} is set to {end} then values < {lo} are counted in the
 first bin and values > {hi} are counted in the last bin.  If {beyond}
 is set to {extend} then two extra bins are created, so that there are
 Nbins+2 total bins.  Values < {lo} are counted in the first bin and
-values > {hi} are counted in the last bin (Nbins+1).  Values between
+values > {hi} are counted in the last bin (Nbins+2).  Values between
 {lo} and {hi} (inclusive) are counted in bins 2 through Nbins+1.  The
 "coordinate" stored and printed for these two extra bins is {lo} and
 {hi}.
@@ -354,5 +364,6 @@ ave/chunk"_fix_ave_chunk.html, "fix ave/time"_fix_ave_time.html,
 
 [Default:] none
 
-The option defaults are mode = scalar, ave = one, start = 0, no file
-output, beyond = ignore, and title 1,2,3 = strings as described above.
+The option defaults are mode = scalar, kind = figured out from input
+arguments, ave = one, start = 0, no file output, beyond = ignore, and
+title 1,2,3 = strings as described above.

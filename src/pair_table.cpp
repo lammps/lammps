@@ -378,7 +378,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) 
+    for (int i = 0; i < tb->ninput; i++)
       utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 

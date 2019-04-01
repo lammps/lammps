@@ -120,6 +120,9 @@ void ReadData::command(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
+  MPI_Barrier(world);
+  double time1 = MPI_Wtime();
+
   // optional args
 
   addflag = NONE;
@@ -905,6 +908,18 @@ void ReadData::command(int narg, char **arg)
     force->improper = saved_improper;
 
     force->kspace = saved_kspace;
+  }
+
+  // total time
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  read_data CPU = %g secs\n",time2-time1);
+    if (logfile)
+      fprintf(logfile,"  read_data CPU = %g secs\n",time2-time1);
   }
 }
 

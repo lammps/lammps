@@ -275,7 +275,8 @@ mpi-stubs:
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
-	@$(PYTHON) ../python/install.py
+	@$(PYTHON) ../python/install.py -v ../src/version.h \
+		-m ../python/lammps.py -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 

@@ -63,7 +63,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   Rmax=force->numeric(FLERR,arg[5]);
   bin_width=force->numeric(FLERR,arg[6]);
 
-  if ((bin_width <= 0.0) || (bin_width < Rmax))
+  if ((bin_width <= 0.0) || (bin_width > Rmax))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
   if ((zhi < zlo) || ((zhi-zlo) < bin_width))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
@@ -76,7 +76,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   // NOTE: at 2^22 = 4.2M bins, we will be close to exhausting allocatable
   // memory on a 32-bit environment. so we use this as an upper limit.
 
-  if ((nbins < 1) || (nzbins < 1) || (nbins > 2>>22) || (nbins > 2>>22))
+  if ((nbins < 1) || (nzbins < 1) || (nbins > 2<<22) || (nzbins > 2<<22))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   array_flag=1;

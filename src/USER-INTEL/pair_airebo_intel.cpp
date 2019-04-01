@@ -293,6 +293,9 @@ void PairAIREBOIntel::compute(
     int eflag, int vflag, IntelBuffers<flt_t,acc_t> * buffers
 ) {
   ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
+
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   const int inum = list->inum;

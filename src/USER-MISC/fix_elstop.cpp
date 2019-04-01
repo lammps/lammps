@@ -54,20 +54,6 @@ FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;       // Run fix every step
 
 
-  // Make sure the id for the kinetic energy compute is unique
-  // by prepending the ID of this fix.
-  int n = strlen(id) + strlen("_ke_atom") + 1;
-  id_ke_atom = new char[n];
-  strcpy(id_ke_atom, id);
-  strcat(id_ke_atom, "_ke_atom");
-
-  char *newarg[3];
-  newarg[0] = id_ke_atom;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "ke/atom";
-  modify->add_compute(3, newarg);
-
-
   // args: 0 = fix ID, 1 = group ID,  2 = "elstop"
   //       3 = Ecut,   4 = file path
   // optional rest: "region" <region name>
@@ -133,8 +119,6 @@ FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
 FixElstop::~FixElstop()
 {
   memory->destroy(elstop_ranges);
-  modify->delete_compute(id_ke_atom);
-  delete id_ke_atom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,12 +136,6 @@ void FixElstop::init()
 {
   SeLoss_sync_flag = 0;
   SeLoss = 0.0;
-
-  int ikeatom = modify->find_compute(id_ke_atom);
-  if (ikeatom < 0)
-    error->all(FLERR, "KE compute ID for fix elstop does not exist");
-  c_ke = modify->compute[ikeatom];
-
 
   // need an occasional full neighbor list
   int irequest = neighbor->request(this, instance_me);
@@ -193,9 +171,6 @@ void FixElstop::post_force(int /*vflag*/)
   neighbor->build_one(list);
   int *numneigh = list->numneigh;
 
-  c_ke->compute_peratom();
-  double *ke = c_ke->vector_atom;
-
   for (int i = 0; i < nlocal; ++i) {
 
     // Do fast checks first, only then the region check
@@ -204,7 +179,11 @@ void FixElstop::post_force(int /*vflag*/)
     // Avoid atoms outside bulk material
     if (numneigh[i] < minneigh) continue;
 
-    double energy = ke[i];
+    int itype = type[i];
+    double massone = (atom->rmass) ? atom->rmass[i] : atom->mass[itype];
+    double v2 = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+    double energy = 0.5 * force->mvv2e * massone * v2;
+
     if (energy < Ecut) continue;
     if (energy < elstop_ranges[0][0]) continue;
     if (energy > elstop_ranges[0][table_entries - 1])
@@ -226,7 +205,6 @@ void FixElstop::post_force(int /*vflag*/)
       else iup = ihalf;
     }
 
-    int itype = type[i];
     double Se_lo = elstop_ranges[itype][idown];
     double Se_hi = elstop_ranges[itype][iup];
     double E_lo = elstop_ranges[0][idown];
@@ -235,7 +213,6 @@ void FixElstop::post_force(int /*vflag*/)
     // Get elstop with a simple linear interpolation
     double Se = (Se_hi - Se_lo) / (E_hi - E_lo) * (energy - E_lo) + Se_lo;
 
-    double v2 = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
     double vabs = sqrt(v2);
     double factor = -Se / vabs;
 

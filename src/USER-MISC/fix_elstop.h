@@ -53,12 +53,10 @@ class FixElstop : public Fix {
   double **elstop_ranges; // [ 0][i]: energies
                           // [>0][i]: stopping powers per type
 
-  char *id_ke_atom; // name of kinetic energy compute
   int iregion; // region index if used, else -1
   int minneigh; // minimum number of neighbors
 
   class NeighList *list;
-  class Compute *c_ke;
 };
 
 }
@@ -77,10 +75,6 @@ command-line option when running LAMMPS to see the offending line.
 E: Region ID for fix elstop does not exist
 
 Self-explanatory.
-
-E: KE compute ID for fix elstop does not exist
-
-Internal error. Should not happen.
 
 E: Atom kinetic energy too high for fix elstop
 

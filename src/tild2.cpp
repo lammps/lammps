@@ -2063,14 +2063,63 @@ void TILD::accumulate_gradient(){
       }
 
       for (int i2 = 0; i2 < group->ngroup; i++) {
-        if (fabs(param[i][i2]) > 1e-8) {
-          for (int j = 0; j < Dim; j++) {
-            for (int k = 0; k < nfft; k++) {
-              gradWgroup[i][j][k] += tmp[k] * param[i][i2] / rho0;
+
+void TILD::fieldforce_param(){
+  int i,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR ekx,eky,ekz;
+  int ngroups = group -> ngroup;
+  int dim=domain->dimension;
+
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of E-field on particle
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double **f = atom->f;
+  int *mask = atom->mask;
+  for (int k = 0; k < ngroups; k++) groupbits[k] = group->bitmask[k];
+
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+    compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
+
+    ekx = eky = ekz = ZEROF;
+    for (n = nlower; n <= nupper; n++) {
+      mz = n+nz;
+      z0 = rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          for (int k = 0; k < group->ngroup; k++){
+            if (mask[i] & groupbits[k]){
+              ekx -= x0 *gradWgroup[k][0][mz][my][mx];
+              eky -= x0 *gradWgroup[k][1][mz][my][mx];
+              ekz -= x0 *gradWgroup[k][2][mz][my][mx];
             }
           }
         }
       }
     }
+
+    // convert field to force
+    
+    f[i][0] += delvolinv*ekx;
+    f[i][1] += delvolinv*eky;
+    f[i][2] += delvolinv*ekz;
   }
 }

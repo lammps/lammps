@@ -1118,7 +1118,7 @@ void TILD::field_gradient(FFT_SCALAR *in,
 
   for (i = 0; i < Dim; i++) {
     fft2->compute(out[j], out[j], -1);
-}
+  }
 }
 
 int TILD::factorable(int n)
@@ -1192,10 +1192,10 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
           if (Dim == 3){
             out[2][n++] = wk1[n+1] * k[2];
             out[2][n++] = wk1[n+1] * k[2];
-      }
+          }
           
+      }
     }
-  }
   }
 
 }
@@ -2036,33 +2036,64 @@ void TILD::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
   }
 }
 
-void TILD::accumulate_gradient(){
-
+void TILD::accumulate_gradient() {
   int Dim = domain->dimension;
   double rho0;
-  output->thermo->evaluate_keyword("density",&rho0);
+  int n = 0;
+  output->thermo->evaluate_keyword("density", &rho0);
   bool do_fft = false;
-  for (int i = 0; i < group->ngroup; i++){
-
-    for (int j = 0; j < group->ngroup; j++){
-      if (fabs(param[i][j]) > 1e-8){
-        do_fft = true; 
+  for (int i = 0; i < group->ngroup; i++) {
+    for (int j = 0; j < group->ngroup; j++) {
+      if (fabs(param[i][j]) != 0.0f) {
+        do_fft = true;
         break;
       }
     }
 
-    if (do_fft){
-      fft1->compute(density_fft_types[i], ktmp, 1);
+    if (do_fft) {
+
+      n = 0;
+      for (int k = 0; k < nfft; k++) {
+        work1[n] = density_fft_types[i][n];
+        work1[n++] = ZEROF;
+      }
+      fft1->compute(work1, ktmp, 1);
 
       for (int j = 0; j < Dim; j++) {
+        n = 0;
         for (int k = 0; k < nfft; k++) {
-          gradWgroup[i][j][k] += grad_uG_hat[j][k] * ktmp[k];
+          ktmp2[n++] = grad_uG_hat[j][k] * ktmp[k];
+          ktmp2[n++] = grad_uG_hat[j][k] * ktmp[k];
         }
 
-        fft1->compute(ktmp, tmp, -1);
-      }
+        fft1->compute(ktmp2, ktmp2, -1);
 
-      for (int i2 = 0; i2 < group->ngroup; i++) {
+        n = 0;
+        for (int k = 0; k < nfft; k++) {
+          tmp[n] = ktmp[n];
+          n +=2;
+        }
+
+        for (int i2 = 0; i2 < group->ngroup; i++) {
+          if (fabs(param[i][i2]) != 0.0f) {
+            n = 0;
+            for (int k = nzlo_in; k <= nzhi_in; k++)
+              for (int m = nylo_in; j <= nyhi_in; j++)
+                for (int o = nxlo_in; i <= nxhi_in; i++) {
+                  gradWgroup[i][j][k][m][o] = tmp[n++] * param[i][i2] / rho0;
+                }
+            // for (int j = 0; j < Dim; j++) {
+            //   for (int k = 0; k < nfft; k++) {
+            //     gradWgroup[i][j][k] += tmp[k] * param[i][i2] / rho0;
+            //     i=0;
+            //   }
+            // }
+          }
+        }
+      }
+    }
+  }
+}
 
 void TILD::fieldforce_param(){
   int i,l,m,n,nx,ny,nz,mx,my,mz;

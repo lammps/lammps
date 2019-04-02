@@ -2048,7 +2048,7 @@ void TILD::accumulate_gradient(){
 
       for (int j = 0; j < Dim; j++) {
         for (int k = 0; k < nfft; k++) {
-          gradWgroup[i][k] += grad_uG_hat[j][k] * ktmp[k];
+          gradWgroup[i][j][k] += grad_uG_hat[j][k] * ktmp[k];
         }
 
         fft1->compute(ktmp, tmp, -1);

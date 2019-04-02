@@ -346,15 +346,16 @@ option by an additional factor of {a}, the radius of the contact region. The tan
 
 Here, {a} is the radius of the contact region, given by \(a = \delta R\) for all normal contact models, 
 except for {jkr}, where it is given implicitly by \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\), 
-see discussion above. To match the Mindlin solution, one should set \(k_t = 8G\), where
-\(G\) is the shear modulus, related to Young's modulus \(E\) by \(G = E/(2(1+\nu))\), where \(\nu\) 
-is Poisson's ratio. This can also be achieved by specifying {NULL} for \(k_t\), in which case
-a normal contact model that specifies material parameters \(E\) and \(\nu\) is required (e.g. {hertz/material},
-{dmt} or {jkr}). In this case, mixing of shear moduli for different particle types {i} and {j} is done according
-to:
+see discussion above. To match the Mindlin solution, one should set \(k_t = 8G^*\), where
+\(G^*\) is the effective shear modulus, which relates to material properties according to:
+
 \begin\{equation\}
-1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j 
+1/G^* = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j 
 \end\{equation\}
+
+This can also be achieved by specifying {NULL} for \(k_t\), in which case
+a normal contact model that specifies material parameters \(E\) and \(\nu\) is required (e.g. {hertz/material},
+{dmt} or {jkr}). 
 
 The {mindlin_rescale} option uses the same form as {mindlin}, but the magnitude of the tangential 
 displacement is re-scaled as the contact unloads, i.e. if \(a < a_\{t_\{n-1\}\}\):

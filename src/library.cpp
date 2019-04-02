@@ -802,10 +802,14 @@ void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_atoms(void * /*ptr*/, char * /*name */,
+void lammps_gather_atoms(void *ptr, char * /*name */,
                          int /*type*/, int /*count*/, void * /*data*/)
 {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
   lmp->error->all(FLERR,"Library function lammps_gather_atoms() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
 }
 #else
 void lammps_gather_atoms(void *ptr, char *name,
@@ -936,10 +940,14 @@ void lammps_gather_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_atoms_concat(void * /*ptr*/, char * /*name */,
+void lammps_gather_atoms_concat(void *ptr, char * /*name */,
                                 int /*type*/, int /*count*/, void * /*data*/)
 {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
   lmp->error->all(FLERR,"Library function lammps_gather_atoms_concat() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
 }
 #else
 void lammps_gather_atoms_concat(void *ptr, char *name,
@@ -1088,11 +1096,15 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_atoms_subset(void * /*ptr*/, char * /*name */,
+void lammps_gather_atoms_subset(void *ptr, char * /*name */,
                                 int /*type*/, int /*count*/,
                                 int /*ndata*/, int * /*ids*/, void * /*data*/)
 {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
   lmp->error->all(FLERR,"Library function lammps_gather_atoms_subset() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
 }
 #else
 void lammps_gather_atoms_subset(void *ptr, char *name,
@@ -1231,10 +1243,14 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_scatter_atoms(void * /*ptr*/, char * /*name */,
+void lammps_scatter_atoms(void *ptr, char * /*name */,
                           int /*type*/, int /*count*/, void * /*data*/)
 {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
   lmp->error->all(FLERR,"Library function lammps_scatter_atoms() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
 }
 #else
 void lammps_scatter_atoms(void *ptr, char *name,
@@ -1352,11 +1368,15 @@ void lammps_scatter_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 #if defined(LAMMPS_BIGBIG)
-void lammps_scatter_atoms_subset(void * /*ptr*/, char * /*name */,
+void lammps_scatter_atoms_subset(void *ptr, char * /*name */,
                                 int /*type*/, int /*count*/,
                                 int /*ndata*/, int * /*ids*/, void * /*data*/)
 {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
   lmp->error->all(FLERR,"Library function lammps_scatter_atoms_subset() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
 }
 #else
 void lammps_scatter_atoms_subset(void *ptr, char *name,

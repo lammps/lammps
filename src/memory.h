@@ -598,6 +598,42 @@ class Memory : protected Pointers {
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
+   create a 5d array with indices
+   2nd index from n2lo to n2hi inclusive
+   3rd index from n3lo to n3hi inclusive
+   4th index from n4lo to n4hi inclusive
+   5th index from n5lo to n5hi inclusive
+   cannot grow it
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+  TYPE *****create5d_offset(TYPE *****&array, int n1, int n2lo, int n2hi,
+                           int n3lo, int n3hi, int n4lo, int n4hi, int n5lo, 
+                           int n5hi, const char *name)
+  {
+    int n2 = n2hi - n2lo + 1;
+    int n3 = n3hi - n3lo + 1;
+    int n4 = n4hi - n4lo + 1;
+    int n5 = n5hi - n5lo + 1;
+    create(array,n1,n2,n3,n4,n5,name);
+
+    bigint m = ((bigint) n1) * n2 * n3 * n4;
+    for (bigint i = 0; i < m; i++) array[0][0][0][i] -= n5lo;
+    m = ((bigint) n1) * n2 * n3;
+    for (bigint i = 0; i < m; i++) array[0][0][i] -= n4lo;
+    m = ((bigint) n1) * n2;
+    for (bigint i = 0; i < m; i++) array [0][i] -= n3lo;
+    for (int i = 0; i < n1; i++) array[i] -= n2lo;
+    return array;
+  }
+
+  template <typename TYPE>
+  TYPE *****create5d_offset(TYPE ******& /*array*/, int /*n1*/, int /*n2lo*/, int /*n2hi*/,
+                           int /*n3lo*/, int /*n3hi*/, int /*n4lo*/, int /*n4hi*/,
+                           const char *name)
+  {fail(name); return NULL;}
+
+/* ----------------------------------------------------------------------
    destroy a 5d array
 ------------------------------------------------------------------------- */
 
@@ -613,6 +649,23 @@ class Memory : protected Pointers {
     array = NULL;
   }
 
+/* ----------------------------------------------------------------------
+   free a 5d array with indices 2,3,4 and 5 offset
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+  void destroy5d_offset(TYPE *****&array,
+                        int n2_offset, int n3_offset, int n4_offset,
+                        int n5_offset)
+  {
+    if (array == NULL) return;
+    sfree(&array[0][n2_offset][n3_offset][n4_offset][n5_offset]);
+    sfree(&array[0][n2_offset][n3_offset][n4_offset]);
+    sfree(&array[0][n2_offset][n3_offset]);
+    sfree(&array[0][n2_offset]);
+    sfree(array);
+    array = NULL;
+  }
 /* ----------------------------------------------------------------------
    memory usage of arrays, including pointers
 ------------------------------------------------------------------------- */

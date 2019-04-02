@@ -1754,11 +1754,15 @@ void TILD::make_rho_none()
   // (mx,my,mz) = global coords of moving stencil pt
   int type;
   double **x = atom->x;
+  int *mask = atom->mask;
+  int *mass= atom->mass;
   int nlocal = atom->nlocal;
+  memory->create(groupbits, ngroups, "tild:groupbits");
+  for (k = 0; k < ngroups; k++) groupbits[k] = group->bitmask[k];
 
   for (int i = 0; i < nlocal; i++) {
 
-    //do the following for all 4 grids
+    // do the following for all 4 grids
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
@@ -1767,7 +1771,7 @@ void TILD::make_rho_none()
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
     type = atom->type[i];
-    z0 = delvolinv;
+    z0 = delvolinv * mass[i];
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       y0 = z0*rho1d[2][n];
@@ -1778,6 +1782,7 @@ void TILD::make_rho_none()
           mx = l+nx;
           w = x0*rho1d[0][l];
           for (k = 0; k < group->ngroup; k++)
+            if (mask[i] & groupbits[k])
             density_brick_types[k][mz][my][mx] += w;
             // density_brick_types[k][mz][my][mx] += w*B[nsplit*type + k];
         }

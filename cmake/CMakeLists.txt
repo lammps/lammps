@@ -560,6 +560,20 @@ if(PKG_USER-PLUMED)
 
   option(DOWNLOAD_PLUMED "Download Plumed package instead of using an already installed one" OFF)
   if(DOWNLOAD_PLUMED)
+    if(BUILD_MPI)
+      set(PLUMED_CONFIG_MPI "--enable-mpi")
+      set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
+      set(PLUMED_CONFIG_CXX  ${CMAKE_MPI_CXX_COMPILER})
+    else()
+      set(PLUMED_CONFIG_MPI "--disable-mpi")
+      set(PLUMED_CONFIG_CC  ${CMAKE_C_COMPILER})
+      set(PLUMED_CONFIG_CXX  ${CMAKE_CXX_COMPILER})
+    endif()
+    if(BUILD_OMP)
+      set(PLUMED_CONFIG_OMP "--enable-openmp")
+    else()
+      set(PLUMED_CONFIG_OMP "--disable-openmp")
+    endif()
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
@@ -568,9 +582,11 @@ if(PKG_USER-PLUMED)
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                                ${CONFIGURE_REQUEST_PIC}
-                                                --enable-modules=all
-                                               CXX=${CMAKE_MPI_CXX_COMPILER}
-                                               CC=${CMAKE_MPI_C_COMPILER}
+                                               --enable-modules=all
+                                               ${PLUMED_CONFIG_MPI}
+                                               ${PLUMED_CONFIG_OMP}
+                                               CXX=${PLUMED_CONFIG_CXX}
+                                               CC=${PLUMED_CONFIG_CC}
     )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})

@@ -1,3 +1,7 @@
+# preset that turns on all existing packages. using the combination
+# this preset with the nolib.cmake preset should configure a LAMMPS
+# binary, that can be compiled with just a working C++ compiler.
+
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GPU
                       GRANULAR KIM KOKKOS KSPACE LATTE MANYBODY MC MEAM MISC
                       MOLECULE MPIIO MSCG OPT PERI POEMS

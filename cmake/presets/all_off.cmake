@@ -1,3 +1,6 @@
+# preset that turns on all existing packages off. can be used to reset
+# an existing package selection without losing any other settings
+
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GPU
                       GRANULAR KIM KOKKOS KSPACE LATTE MANYBODY MC MEAM MISC
                       MOLECULE MPIIO MSCG OPT PERI POEMS

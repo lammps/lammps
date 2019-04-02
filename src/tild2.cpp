@@ -407,8 +407,8 @@ void TILD::allocate()
   memory->create(work2,2*nfft_both,"pppm:work2");
   memory->create(vg,nfft_both,6,"pppm:vg");
   memory->create(uG,nfft,"pppm:uG");
-  memory->create(grad_uG,domain->dimension,nfft_both,"pppm:grad_uG");
-  memory->create(grad_uG_hat,domain->dimension,nfft_both,"pppm:grad_uG_hat");
+  memory->create(grad_uG,domain->dimension,2*nfft,"pppm:grad_uG");
+  memory->create(grad_uG_hat,domain->dimension,2*nfft,"pppm:grad_uG_hat");
 
   if (triclinic == 0) {
     memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
@@ -735,10 +735,14 @@ void TILD::allocate_peratom()
                           nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
-  memory->create(gradWgroup, group->ngroup, Dim, nfft, "tild:gradWgroup");
-  memory->create(ktmp, nfft, "tild:ktmp");
-  memory->create(ktmp2, nfft, "tild:ktmp2");
+  memory->create5d_offset(gradWgroup,0, group->ngroup, 0, Dim,
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:gradWgroup");
+  // memory->create(gradWgroup, group->ngroup, Dim, , "tild:gradWgroup");
+  memory->create(ktmp,2*nfft,"tild:ktmp");
+  memory->create(ktmp2,2*nfft, "tild:ktmp2");
   memory->create(tmp, nfft, "tild:tmp");
+  memory->create(groupbits, group->ngroup, "tild:groupbits");
 
   // create ghost grid object for rho and electric field communication
 
@@ -1100,18 +1104,22 @@ void TILD::field_groups(int AA_flag){
 void TILD::field_gradient(FFT_SCALAR *in, 
                           FFT_SCALAR **out, int flag)
 {
-  int i; 
+  int i,j; 
   int Dim = domain->dimension;
   double k2, kv[Dim];
-  fft1->compute(in, in, 1);
+  int n = 0;
+  for (i = 0; i < nfft; i++) {
+    work1[n++] = in[i];
+    work1[n++] = ZEROF;
+  }
+  fft1->compute(work1, work1, 1);
 
-  get_k_alias();
+  get_k_alias(work1, out);
 
-  for (i = 0; i < Dim; i++)
-  fft2->compute(in, out[i], -1);
-
+  for (i = 0; i < Dim; i++) {
+    fft2->compute(out[j], out[j], -1);
 }
-
+}
 
 int TILD::factorable(int n)
 {
@@ -1130,7 +1138,7 @@ int TILD::factorable(int n)
   return 1;
 }
 
-void TILD::get_k_alias(){
+void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
   int Dim = domain->dimension; 
   int k[Dim];
   int x, y, z;
@@ -1177,16 +1185,18 @@ void TILD::get_k_alias(){
                   k[2] = 2 * PI * double(z - nz_pppm) / zprd;
           }
 
-          grad_uG[0][n] = uG[n] * k[0];
-          grad_uG[1][n] = uG[n] * k[1];
-          if (Dim == 3)
-            grad_uG[2][n] = uG[n] * k[2];
-          n++;
+          out[0][n++] = wk1[n+1] * k[0];
+          out[0][n++] = -wk1[n-1] * k[0];
+          out[1][n++] = wk1[n+1] * k[1];
+          out[1][n++] = -wk1[n-1] * k[1];
+          if (Dim == 3){
+            out[2][n++] = wk1[n+1] * k[2];
+            out[2][n++] = wk1[n+1] * k[2];
       }
+          
     }
   }
-
-
+  }
 
 }
 
@@ -1755,9 +1765,8 @@ void TILD::make_rho_none()
   int type;
   double **x = atom->x;
   int *mask = atom->mask;
-  int *mass= atom->mass;
+  double *mass= atom->mass;
   int nlocal = atom->nlocal;
-  memory->create(groupbits, ngroups, "tild:groupbits");
   for (k = 0; k < ngroups; k++) groupbits[k] = group->bitmask[k];
 
   for (int i = 0; i < nlocal; i++) {
@@ -1770,7 +1779,6 @@ void TILD::make_rho_none()
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
-    type = atom->type[i];
     z0 = delvolinv * mass[i];
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;

@@ -175,7 +175,7 @@ owned by different processors.
 
 IMPORTANT NOTE: These functions are not compatible with the
 -DLAMMPS_BIGBIG setting when compiling LAMMPS.  Dummy functions
-that result in an error message and abort will be substiuted
+that result in an error message and abort will be substituted
 instead of resulting in random crashes and memory corruption.
 
 The lammps_gather_atoms() function does this for all N atoms in the

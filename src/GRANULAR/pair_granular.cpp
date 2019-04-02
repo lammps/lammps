@@ -872,16 +872,16 @@ void PairGranular::coeff(int narg, char **arg)
         if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal pair_coeff command, "
                      "not enough parameters provided for twist model");
-          twist_model_one = TWIST_SDS;
-          twist_history = 1;
-          // kt and gammat and friction coeff
-          twist_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]);
-          twist_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-          twist_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
-          iarg += 5;
+        twist_model_one = TWIST_SDS;
+        twist_history = 1;
+        // kt and gammat and friction coeff
+        twist_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]);
+        twist_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
+        twist_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        iarg += 5;
       } else {
-          error->all(FLERR, "Illegal pair_coeff command, "
-                     "twisting friction model not recognized");
+        error->all(FLERR, "Illegal pair_coeff command, "
+                   "twisting friction model not recognized");
       }
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)

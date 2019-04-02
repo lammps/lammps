@@ -36,6 +36,10 @@
 #include "atom_kokkos.h"
 #include "kokkos.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;

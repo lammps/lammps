@@ -1060,6 +1060,9 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
+  if(LAMMPS_SIZES STREQUAL BIGBIG)
+    message(FATAL_ERROR "The USER-INTEL Package is not compatible with -DLAMMPS_BIGBIG")
+  endif()
   add_definitions(-DLMP_USER_INTEL)
 
   set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
@@ -1068,7 +1071,6 @@ if(PKG_USER-INTEL)
   validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
   string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
 
-  #    add_definitions(-DLMP_INTEL_USELRT)
   find_package(Threads QUIET)
   if(Threads_FOUND)
     set(INTEL_LRT_MODE "threads" CACHE STRING "Long-range threads mode (none, threads, or c++11)")

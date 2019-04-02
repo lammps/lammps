@@ -108,7 +108,8 @@ command-line options.  Several useful ones are:
 -D CMAKE_BUILD_TYPE=type      # type = Release or Debug
 -G output                     # style of output CMake generates
 -DVARIABLE=value              # setting for a LAMMPS feature to enable
--D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir :pre
+-D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir
+-C path/to/preset/file        # load some CMake settings before configuring :pre
 
 All the LAMMPS-specific -D variables that a LAMMPS build supports are
 described on the pages linked to from the "Build"_Build.html doc page.

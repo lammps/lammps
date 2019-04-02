@@ -34,6 +34,7 @@ class TILD : public KSpace{
   class GridComm *cg;
   class GridComm *cg_peratom;
   double *uG;
+  int *groupbits;
   double a_squared;
   void setup_grid();
   // virtual int timing_1d(int, double &);
@@ -46,7 +47,7 @@ class TILD : public KSpace{
 
  protected:
   double **grad_uG, **grad_uG_hat, *temp;
-  double ***gradWgroup;
+  double *****gradWgroup;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
@@ -79,7 +80,7 @@ class TILD : public KSpace{
   void slabcorr();
   void init_gauss();
   double get_k_alias(int, double*);
-  void get_k_alias();
+  void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
 
 
 
@@ -132,7 +133,7 @@ class TILD : public KSpace{
   double alpha;                // geometric factor
 
   void set_grid_global();
-  void set_grid_local();
+//   void set_grid_local();
   void adjust_gewald();
   double newton_raphson_f();
   double derivf();
@@ -172,6 +173,7 @@ class TILD : public KSpace{
   // virtual void poisson_ad();
 
   // virtual void fieldforce();
+  virtual void fieldforce_param();
   // virtual void fieldforce_ik();
   // virtual void fieldforce_ad();
 

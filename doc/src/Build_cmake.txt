@@ -28,7 +28,7 @@ Makefile(s). Example:
 
 cd lammps                        # change to the LAMMPS distribution directory
 mkdir build; cd build            # create a new directory (folder) for build
-cmake ../cmake \[options ...\]   # configuration with (command-line) cmake
+cmake \[options ...\] ../cmake     # configuration with (command-line) cmake
 make                             # compilation :pre
 
 The cmake command will detect available features, enable selected
@@ -41,7 +41,8 @@ If your machine has multiple CPU cores (most do these days), using a
 command like "make -jN" (with N being the number of available local
 CPU cores) can be much faster.  If you plan to do development on
 LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
-ccache (= Compiler Cache) software may speed up compilation even more.
+ccache (= Compiler Cache) software may speed up repeated compilation
+even more.
 
 After compilation, you can optionally copy the LAMMPS executable and
 library into your system folders (by default under $HOME/.local) with:

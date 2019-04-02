@@ -149,16 +149,23 @@ system. Using these files you can enable/disable portions of the
 available packages in LAMMPS. If you need a custom preset you can take
 one of them as a starting point and customize it to your needs.
 
-cmake -C ../cmake/presets/all_on.cmake \[OPTIONS\] ../cmake  | enable all packages
-cmake -C ../cmake/presets/all_off.cmake \[OPTIONS\] ../cmake | disable all packages
-cmake -C ../cmake/presets/minimal.cmake \[OPTIONS\] ../cmake | enable just a few core packages
-cmake -C ../cmake/presets/most.cmake \[OPTIONS\] ../cmake | enable most common packages
-cmake -C ../cmake/presets/nolib.cmake \[OPTIONS\] ../cmake | disable packages that do require extra libraries or tools
-cmake -C ../cmake/presets/mingw.cmake \[OPTIONS\] ../cmake | enable all packages compatible with MinGW (cross-)compilation on Windows :tb(s=|,a=l)s
+cmake -C ../cmake/presets/all_on.cmake  \[OPTIONS\] ../cmake |
+      enable all packages |
+cmake -C ../cmake/presets/all_off.cmake \[OPTIONS\] ../cmake |
+      disable all packages |
+cmake -C ../cmake/presets/minimal.cmake \[OPTIONS\] ../cmake |
+      enable just a few core packages |
+cmake -C ../cmake/presets/most.cmake    \[OPTIONS\] ../cmake |
+      enable most common packages |
+cmake -C ../cmake/presets/nolib.cmake   \[OPTIONS\] ../cmake |
+      disable packages that do require extra libraries or tools |
+cmake -C ../cmake/presets/mingw.cmake \[OPTIONS\] ../cmake |
+      enable all packages compatible with MinGW compilers :tb(c=2,s=|,a=l)
 
 NOTE: Running cmake this way manipulates the variable cache in your
 current build directory. You can combine multiple presets and options
-with multiple cmake runs.
+in a single cmake run, or change settings incrementally by running
+cmake with new flags.
 
 [Example:]
 

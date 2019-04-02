@@ -265,8 +265,8 @@ void TILD::setup_grid()
                     shift, shiftone, order);
 
 
-  set_grid_global();
-  set_grid_local();
+  // set_grid_global();
+  // set_grid_local();
 
   
   // reallocate K-space dependent memory

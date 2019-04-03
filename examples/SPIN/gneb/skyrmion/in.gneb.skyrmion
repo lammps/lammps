@@ -1,4 +1,3 @@
-# bcc iron in a 3d periodic box
 
 units 		metal
 dimension 	3
@@ -8,17 +7,12 @@ atom_style 	spin
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
-#lattice 	sc 3.0
-#region 		box block 0.0 20.0 0.0 20.0 0.0 1.0
-#create_box 	1 box
-#create_atoms 	1 box
-
 read_data        initial.skyrmion
 
 # setting mass, mag. moments, and interactions for bcc iron
+# (mass not necessary for fixed lattice calculation)
 
 mass		1 55.845
-#set 		group all spin 2.2 -1.0 0.0 0.0
 
 pair_style 	hybrid/overlay spin/exchange 3.1 spin/dmi 3.1
 pair_coeff 	* * spin/exchange exchange 3.1 0.01593 0.06626915552 1.211
@@ -31,10 +25,8 @@ fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0 anisotropy 5e-05 0.0 0.0 1.0
 fix_modify	1 energy yes
 fix 		2 all langevin/spin 0.0 0.0 21
 fix		3 all neb/spin 1.0  
-#fix		4 all nve/spin lattice no 
 
 timestep	0.0001
-#run		0
 
 compute 	out_mag    all spin
 variable 	magx      equal c_out_mag[1]
@@ -49,10 +41,8 @@ thermo_modify   format float %20.15g
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 variable	u universe 1 2 3 4
-#dump 		1 all custom 100 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 dump 		1 all custom 1 dump.$u type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
 min_style	spin
-min_modify 	alpha_damp 1.0 discret_factor 10.0
-neb/spin	1.0e-16 1.0e-16 1000 1000 10 final final.skyrmion
-#neb/spin	1.0e-16 1.0e-16 10 10 10 final final.skyrmion
+min_modify 	alpha_damp 1.0 discrete_factor 10.0
+neb/spin	1.0e-12 1.0e-12 10000 10000 10 final final.skyrmion

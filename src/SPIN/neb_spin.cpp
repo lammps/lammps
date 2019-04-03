@@ -637,52 +637,9 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 
   // initial, final and inter ang. values 
   
-  double itheta,iphi,ftheta,fphi,ktheta,kphi;
-  double spix,spiy,spiz,spfx,spfy,spfz;
-  double spkx,spky,spkz,iknorm;
-
-  spix = spi[0];
-  spiy = spi[1];
-  spiz = spi[2];
-
-  spfx = sploc[0];
-  spfy = sploc[1];
-  spfz = sploc[2];
-
-  iphi = itheta = fphi = ftheta = 0.0;
-
-  iphi = acos(spiz);
-  if (sin(iphi) != 0.0)
-   itheta = acos(spix/sin(iphi));
-
-  fphi = acos(spfz);
-  if (sin(fphi) != 0.0)
-    ftheta = acos(spfx/sin(fphi));
- 
-  kphi = iphi + fraction*(fphi-iphi);
-  ktheta = itheta + fraction*(ftheta-itheta);
- 
-  spkx = cos(ktheta)*sin(kphi);
-  spky = sin(ktheta)*sin(kphi);
-  spkz = cos(kphi);
-
-  double knormsq = spkx*spkx + spky*spky + spkz*spkz;
-  if (knormsq != 0.0)
-    iknorm = 1.0/sqrt(knormsq);
-
-  spkx *= iknorm;
-  spky *= iknorm;
-  spkz *= iknorm;
-
-  //sploc[0] = spkx;
-  //sploc[1] = spky;
-  //sploc[2] = spkz;
- 
-  //double kx,ky,kz;
+  //double itheta,iphi,ftheta,fphi,ktheta,kphi;
   //double spix,spiy,spiz,spfx,spfy,spfz;
-  //double kcrossx,kcrossy,kcrossz,knormsq;
-  //double spkx,spky,spkz;
-  //double sdot,omega,iknorm;
+  //double spkx,spky,spkz,iknorm;
 
   //spix = spi[0];
   //spiy = spi[1];
@@ -691,40 +648,89 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   //spfx = sploc[0];
   //spfy = sploc[1];
   //spfz = sploc[2];
-  //
-  //kx = spiy*spfz - spiz*spfy;
-  //ky = spiz*spfx - spix*spfz;
-  //kz = spix*spfy - spiy*spfx;
 
-  //knormsq = kx*kx+ky*ky+kz*kz;
-  //
-  //if (knormsq != 0.0) {
+  //iphi = itheta = fphi = ftheta = 0.0;
+
+  //iphi = acos(spiz);
+  //if (sin(iphi) != 0.0)
+  // itheta = acos(spix/sin(iphi));
+
+  //fphi = acos(spfz);
+  //if (sin(fphi) != 0.0)
+  //  ftheta = acos(spfx/sin(fphi));
+ 
+  //kphi = iphi + fraction*(fphi-iphi);
+  //ktheta = itheta + fraction*(ftheta-itheta);
+ 
+  //spkx = cos(ktheta)*sin(kphi);
+  //spky = sin(ktheta)*sin(kphi);
+  //spkz = cos(kphi);
+
+  //double knormsq = spkx*spkx + spky*spky + spkz*spkz;
+  //if (knormsq != 0.0)
   //  iknorm = 1.0/sqrt(knormsq);
-  //  kx *= iknorm;
-  //  ky *= iknorm;
-  //  kz *= iknorm;
-  //}
-  //
-  //kcrossx = ky*spiz - kz*spiy;
-  //kcrossy = kz*spix - kx*spiz;
-  //kcrossz = kx*spiy - ky*spix;
-
-  //sdot = spix*spfx + spiy*spfy + spiz*spfz;
-
-  //omega = acos(sdot);
-  //omega *= fraction;
-
-  //spkx = spix*cos(omega) + kcrossx*sin(omega); 
-  //spky = spiy*cos(omega) + kcrossy*sin(omega); 
-  //spkz = spiz*cos(omega) + kcrossz*sin(omega); 
-  //
-  //iknorm = 1.0/sqrt(spkx*spkx+spky*spky+spkz*spkz);
-  //if (iknorm == 0.0)
-  //  error->all(FLERR,"Incorrect rotation operation");
 
   //spkx *= iknorm;
   //spky *= iknorm;
   //spkz *= iknorm;
+
+  //sploc[0] = spkx;
+  //sploc[1] = spky;
+  //sploc[2] = spkz;
+ 
+  double kx,ky,kz;
+  double spix,spiy,spiz,spfx,spfy,spfz;
+  double kcrossx,kcrossy,kcrossz,knormsq;
+  double kdots;
+  double spkx,spky,spkz;
+  double sdot,omega,iknorm,isnorm;
+
+  spix = spi[0];
+  spiy = spi[1];
+  spiz = spi[2];
+
+  spfx = sploc[0];
+  spfy = sploc[1];
+  spfz = sploc[2];
+  
+  kx = spiy*spfz - spiz*spfy;
+  ky = spiz*spfx - spix*spfz;
+  kz = spix*spfy - spiy*spfx;
+
+  knormsq = kx*kx+ky*ky+kz*kz;
+  
+  if (knormsq != 0.0) {
+    iknorm = 1.0/sqrt(knormsq);
+    kx *= iknorm;
+    ky *= iknorm;
+    kz *= iknorm;
+  }
+  
+  kcrossx = ky*spiz - kz*spiy;
+  kcrossy = kz*spix - kx*spiz;
+  kcrossz = kx*spiy - ky*spix;
+
+  kdots = kx*spix + ky*spiz + kz*spiz;
+  sdot = spix*spfx + spiy*spfy + spiz*spfz;
+
+  omega = acos(sdot);
+  omega *= fraction;
+
+  spkx = spix*cos(omega) + kcrossx*sin(omega); 
+  spky = spiy*cos(omega) + kcrossy*sin(omega); 
+  spkz = spiz*cos(omega) + kcrossz*sin(omega); 
+
+  spkx += kx*kdots*(1.0-cos(omega));
+  spky += ky*kdots*(1.0-cos(omega));
+  spkz += kz*kdots*(1.0-cos(omega));
+
+  isnorm = 1.0/sqrt(spkx*spkx+spky*spky+spkz*spkz);
+  if (isnorm == 0.0)
+    error->all(FLERR,"Incorrect rotation operation");
+
+  spkx *= isnorm;
+  spky *= isnorm;
+  spkz *= isnorm;
  
   sploc[0] = spkx;
   sploc[1] = spky;

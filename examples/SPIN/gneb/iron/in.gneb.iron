@@ -1,4 +1,3 @@
-# bcc iron in a 3d periodic box
 
 units 		metal
 dimension 	3
@@ -11,6 +10,7 @@ atom_modify 	map array
 read_data        initial.iron_spin
 
 # setting mass, mag. moments, and interactions for bcc iron
+# (mass not necessary for fixed lattice calculation)
 
 mass		1 55.845
 

@@ -26,7 +26,6 @@
 #include <iostream>
 #include "fft3d_wrap.h"
 #include "pppm.h"
-#include <complex>
 #include "group.h"
 #include "neighbor.h"
 #include "output.h"
@@ -39,7 +38,6 @@ using namespace MathConst;
 #define OFFSET 16384
 #define PI 3.141592653589793238462643383279
 #define MAXORDER   7
-#define I std::complex<double>(0.0, 1.0)
 
 enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};

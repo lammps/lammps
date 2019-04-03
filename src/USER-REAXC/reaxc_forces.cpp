@@ -168,7 +168,7 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
           char errmsg[256];
           snprintf(errmsg, 256, "step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
                   step, Hindex, End_Index(Hindex,hbonds), comp );
-          system->error_ptr->all(FLERR, errmsg);
+          system->error_ptr->one(FLERR, errmsg);
         }
       }
     }

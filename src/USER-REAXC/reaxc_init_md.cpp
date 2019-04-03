@@ -223,49 +223,34 @@ void Initialize( reax_system *system, control_params *control,
 
 
   if (Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE) {
-
-    snprintf(errmsg, 128, "Could not create datatypes on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg);
+    control->error_ptr->one(FLERR,"Could not create datatypes");
   }
 
   if (Init_System(system, control, msg) == FAILURE) {
-    snprintf(errmsg, 128, "System could not be initialized on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg);
+    control->error_ptr->one(FLERR,"System could not be initialized");
   }
 
   if (Init_Simulation_Data( system, control, data, msg ) == FAILURE) {
-    snprintf(errmsg, 128, "Sim_data could not be initialized on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg);
+    control->error_ptr->one(FLERR,"Sim_data could not be initialized");
   }
 
   if (Init_Workspace( system, control, workspace, msg ) ==
       FAILURE) {
-    snprintf(errmsg, 128, "Workspace could not be initialized on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg);    
+    control->error_ptr->one(FLERR,"Workspace could not be initialized");    
   }
 
   if (Init_Lists( system, control, data, workspace, lists, mpi_data, msg ) ==
       FAILURE) {
-    snprintf(errmsg, 128, "System could not be initialized on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg);     
+    control->error_ptr->one(FLERR,"Lists could not be initialized");     
     }
 
   if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
-    snprintf(errmsg, 128, "Could not open output files on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg); 
+    control->error_ptr->one(FLERR,"Could not open output files"); 
   }
 
   if (control->tabulate) {
     if (Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE) {
-      snprintf(errmsg, 128, "Lookup table could not be created on thread %d",
-              system->my_rank);
-    control->error_ptr->one(FLERR,errmsg); 
+    control->error_ptr->one(FLERR,"Lookup table could not be created"); 
     }
   }
 

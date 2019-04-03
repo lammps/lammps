@@ -531,7 +531,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
                p_atom->f[0], p_atom->f[1], p_atom->f[2], p_atom->q );
       break;
     default:
-      system->error_ptr->all(FLERR,"Write_traj_atoms: unknown atom trajectory format");
+      system->error_ptr->one(FLERR,"Write_traj_atoms: unknown atom trajectory format");
     }
 
     strncpy( out_control->buffer + i*line_len, out_control->line, line_len+1 );
@@ -617,7 +617,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
                    bo_ij->bo_data.BO_pi, bo_ij->bo_data.BO_pi2 );
           break;
         default:
-          system->error_ptr->all(FLERR, "Write_traj_bonds: FATAL! invalid bond_info option");
+          system->error_ptr->one(FLERR, "Write_traj_bonds: FATAL! invalid bond_info option");
         }
         strncpy( out_control->buffer + my_bonds*line_len,
                  out_control->line, line_len+1 );

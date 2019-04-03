@@ -66,7 +66,7 @@ void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
   if (n <= 0) {
     snprintf(errmsg, 256, "Trying to allocate %ld bytes for array %s. "
               "returning NULL.", n, name);
-    error_ptr->warning(FLERR,errmsg);
+    error_ptr->one(FLERR,errmsg);
     return NULL;
   }
 
@@ -89,14 +89,14 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
   if (n <= 0) {
     snprintf(errmsg, 256, "Trying to allocate %ld elements for array %s. "
             "returning NULL.\n", n, name );
-    error_ptr->warning(FLERR,errmsg);
+    error_ptr->one(FLERR,errmsg);
     return NULL;
   }
 
   if (size <= 0) {
     snprintf(errmsg, 256, "Elements size for array %s is %ld. "
              "returning NULL", name, size );
-             error_ptr->warning(FLERR,errmsg);
+             error_ptr->one(FLERR,errmsg);
     return NULL;
   }
 

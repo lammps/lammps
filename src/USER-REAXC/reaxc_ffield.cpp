@@ -61,7 +61,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   n = atoi(tmp[0]);
   if (n < 1) {
     if (me == 0)
-      control->error_ptr->warning( FLERR, "Number of globals in ffield file is 0" );
+      control->error_ptr->warning( FLERR, "Number of globals in ffield file is 0. The file will not be read." );
     fclose(fp);
     free(s);
     free(tmp);
@@ -141,6 +141,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
   reax->gp.vdw_type = 0;
 
+  char errmsg[1024];
 
   for( i = 0; i < reax->num_atom_types; i++ ) {
     /* line one */
@@ -152,7 +153,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
         control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");	
     
     if (c < 9) {
-      control->error_ptr->all(FLERR,"Inconsistent ffield file");
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     for( j = 0; j < (int)(strlen(tmp[0])); ++j )
@@ -174,7 +176,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      control->error_ptr->all(FLERR,"Inconsistent ffield file");
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     val = atof(tmp[0]); reax->sbp[i].alpha      = val;
@@ -192,7 +195,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      control->error_ptr->all(FLERR,"Inconsistent ffield file");
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     val = atof(tmp[0]); reax->sbp[i].r_pi_pi    = val;
@@ -210,7 +214,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      control->error_ptr->all(FLERR,"Inconsistent ffield file");
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     val = atof(tmp[0]); reax->sbp[i].p_ovun2    = val;
@@ -287,7 +292,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
         }
       } else {
         char errmsg[256];
-        snprintf(errmsg, 256, "Inconsistent vdWaals-parameters "
+        snprintf(errmsg, 256, "Inconsistent vdWaals-parameters: "
                  "No shielding or inner-wall set for element %s",
                  reax->sbp[i].name);
         control->error_ptr->all(FLERR, errmsg);

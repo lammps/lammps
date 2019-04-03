@@ -49,3 +49,5 @@ Thumbs.db
 /Testing
 /cmake_install.cmake
 /lmp
+/
+.vscode/ipch

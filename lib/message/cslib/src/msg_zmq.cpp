@@ -12,7 +12,11 @@
    See the README file in the top-level CSlib directory.
 ------------------------------------------------------------------------- */
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <zmq.h>
 #include <string.h>
 #include <stdlib.h>

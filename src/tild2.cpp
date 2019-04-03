@@ -1191,7 +1191,7 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
           out[1][n++] = -wk1[n-1] * k[1];
           if (Dim == 3){
             out[2][n++] = wk1[n+1] * k[2];
-            out[2][n++] = wk1[n+1] * k[2];
+            out[2][n++] = -wk1[n-1] * k[2];
           }
           
       }

@@ -1126,7 +1126,7 @@ void TILD::field_gradient(FFT_SCALAR *in,
   get_k_alias(work1, out);
 
   for (i = 0; i < Dim; i++) {
-    fft2->compute(out[j], out[j], -1);
+    fft1->compute(out[j], out[j], -1);
   }
 }
 
@@ -1444,10 +1444,10 @@ void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
   if (flag == REVERSE_RHO_NONE) {
     for (int k = 0; k < group->ngroup; k++) {
       FFT_SCALAR *src = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++)
-      buf[i] = src[list[i]];
+      for (int i = 0; i < nlist; i++)
+        buf[i] = src[list[i]];
+    }
   }
-}
 }
 
 /* ----------------------------------------------------------------------
@@ -1458,10 +1458,10 @@ void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
   if (flag == REVERSE_RHO_NONE) {
     for (int k = 0; k < group->ngroup; k++) {
       FFT_SCALAR *dest = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
-    for (int i = 0; i < nlist; i++)
-      dest[list[i]] += buf[i];
+      for (int i = 0; i < nlist; i++)
+        dest[list[i]] += buf[i];
+    }
   }
-}
 }
 
 /* ----------------------------------------------------------------------

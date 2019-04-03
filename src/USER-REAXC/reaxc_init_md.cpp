@@ -91,13 +91,13 @@ void Init_Taper( control_params *control,  storage *workspace )
   swa = control->nonb_low;
   swb = control->nonb_cut;
 
-  if (fabs( swa ) > 0.01 && control->my_rank == 0)
+  if (fabs( swa ) > 0.01 && control->me == 0)
     control->error_ptr->warning( FLERR, "Non-zero lower Taper-radius cutoff" );
 
   if (swb < 0) {
     control->error_ptr->all(FLERR,"Negative upper Taper-radius cutoff");
   }
-  else if( swb < 5 && control->my_rank == 0) {
+  else if( swb < 5 && control->me == 0) {
     char errmsg[256];
     snprintf(errmsg, 256, "Very low Taper-radius cutoff: %f", swb );
     control->error_ptr->warning( FLERR, errmsg );

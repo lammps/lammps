@@ -91,6 +91,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
     memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 
   MPI_Comm_rank(world,&system->my_rank);
+  control->me = system->my_rank;
 
   system->my_coords[0] = 0;
   system->my_coords[1] = 0;

@@ -39,7 +39,7 @@ using namespace MathConst;
 #define PI 3.141592653589793238462643383279
 #define MAXORDER   7
 
-enum{REVERSE_RHO};
+enum{REVERSE_RHO, REVERSE_RHO_NONE};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 #ifdef FFT_SINGLE
@@ -342,7 +342,7 @@ void TILD::compute(int eflag, int vflag){
 
   make_rho_none();
 
-  cg->reverse_comm(this, REVERSE_RHO);
+  cg->reverse_comm(this, REVERSE_RHO_NONE);
 
   brick2fft_none();
   // convert atoms from box to lambda coords
@@ -1437,13 +1437,14 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 /* ----------------------------------------------------------------------
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
-void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
-{
-  if (flag == REVERSE_RHO) {
-    FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
+void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
+  if (flag == REVERSE_RHO_NONE) {
+    for (int k = 0; k < group->ngroup; k++) {
+      FFT_SCALAR *src = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
   }
+}
 }
 
 /* ----------------------------------------------------------------------
@@ -1451,11 +1452,13 @@ void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 ------------------------------------------------------------------------- */
 void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
-  if (flag == REVERSE_RHO) {
-    FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
+  if (flag == REVERSE_RHO_NONE) {
+    for (int k = 0; k < group->ngroup; k++) {
+      FFT_SCALAR *dest = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
   }
+}
 }
 
 /* ----------------------------------------------------------------------

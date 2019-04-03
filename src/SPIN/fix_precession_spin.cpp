@@ -115,6 +115,7 @@ int FixPrecessionSpin::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= MIN_POST_FORCE;
   mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
@@ -169,8 +170,16 @@ void FixPrecessionSpin::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::post_force(int /*vflag*/)
+void FixPrecessionSpin::min_setup(int vflag)
 {
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::post_force(int /* vflag */)
+{
+
   // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {
@@ -200,7 +209,7 @@ void FixPrecessionSpin::post_force(int /*vflag*/)
 
     if (aniso_flag) {           // compute magnetic anisotropy
       compute_anisotropy(spi,fmi);
-      emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      emag -= 0.5*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
     }
 
     fm[i][0] += fmi[0];
@@ -228,9 +237,9 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
   double **sp = atom->sp;
-  fmi[0] -= sp[i][3]*hx;
-  fmi[1] -= sp[i][3]*hy;
-  fmi[2] -= sp[i][3]*hz;
+  fmi[0] += sp[i][3]*hx;
+  fmi[1] += sp[i][3]*hy;
+  fmi[2] += sp[i][3]*hz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -279,4 +288,11 @@ double FixPrecessionSpin::compute_scalar()
     eflag = 1;
   }
   return emag_all;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::min_post_force(int vflag)
+{
+  post_force(vflag);
 }

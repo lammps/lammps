@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "kim-api-v2-2.0.1"
+version = "kim-api-2.0.2"
 
 # help message
 
@@ -40,10 +40,10 @@ make lib-kim args="-b -a everything"   # install KIM API lib with all models
 make lib-kim args="-n -a EAM_Dynamo_Ackland_2003_W__MO_141627196590_005"    # only add one model or model driver
 
 See the list of KIM model drivers here:
-https://openkim.org/kim-items/model-drivers/alphabetical
+https://openkim.org/browse/model-drivers/alphabetical
 
 See the list of all KIM models here:
-https://openkim.org/kim-items/models/by-model-drivers
+https://openkim.org/browse/models/by-model-drivers
 """
 
 pgroup = parser.add_mutually_exclusive_group()
@@ -154,7 +154,7 @@ if buildflag:
   # add all OpenKIM models, if desired
   if everythingflag:
     print("Adding all OpenKIM models, this will take a while ...")
-    cmd = '%s/bin/kim-api-v2-collections-management install system OpenKIM' % (kimdir)
+    cmd = '%s/bin/kim-api-collections-management install system OpenKIM' % (kimdir)
     txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     if verboseflag:
       print(txt.decode("UTF-8"))
@@ -171,7 +171,7 @@ if addflag:
     sys.exit("\nkim-api is not installed")
 
   # download single model
-  cmd = '%s/bin/kim-api-v2-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
+  cmd = '%s/bin/kim-api-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
   txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
   if verboseflag:
     print(txt.decode("UTF-8"))

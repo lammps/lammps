@@ -154,8 +154,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   double tptofp;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // loop over stacking interaction neighours using bond topology
 

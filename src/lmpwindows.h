@@ -24,14 +24,13 @@
 inline double pow(int i, int j){
   return pow((double)i,j);
 }
-#endif
-inline double sqrt(int i){
-  return sqrt((double) i);
-}
-
 inline double fabs(int i){
   return fabs((double) i);
 }
+inline double sqrt(int i){
+  return sqrt((double) i);
+}
+#endif
 
 inline double trunc(double x) {
   return x > 0 ? floor(x) : ceil(x);

@@ -85,9 +85,7 @@ PairMEAMSWSpline::~PairMEAMSWSpline()
 
 void PairMEAMSWSpline::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag, vflag);
-  else evflag = vflag_fdotr =
-         eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag, vflag);
 
   double cutforcesq = cutoff*cutoff;
 

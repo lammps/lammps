@@ -19,7 +19,7 @@
 #
 
 #
-# Copyright (c) 2013--2018, Regents of the University of Minnesota.
+# Copyright (c) 2013--2019, Regents of the University of Minnesota.
 # All rights reserved.
 #
 # Contributors:
@@ -28,23 +28,23 @@
 #    Ryan S. Elliott
 #
 
-# - Find KIM-API-V2
+# - Find KIM-API
 #
 # sets standard pkg_check_modules variables plus:
 #
-# KIM-API-V2-CMAKE_C_COMPILER
-# KIM-API-V2-CMAKE_CXX_COMPILER
-# KIM-API-V2-CMAKE_Fortran_COMPILER
+# KIM-API-CMAKE_C_COMPILER
+# KIM-API-CMAKE_CXX_COMPILER
+# KIM-API-CMAKE_Fortran_COMPILER
 #
 find_package(PkgConfig REQUIRED)
 include(FindPackageHandleStandardArgs)
 
-pkg_check_modules(KIM-API-V2 REQUIRED libkim-api-v2>=2.0)
+pkg_check_modules(KIM-API REQUIRED libkim-api>=2.0)
 
-pkg_get_variable(KIM-API-V2-CMAKE_C_COMPILER libkim-api-v2 CMAKE_C_COMPILER)
-pkg_get_variable(KIM-API-V2-CMAKE_CXX_COMPILER libkim-api-v2 CMAKE_CXX_COMPILER)
-pkg_get_variable(KIM-API-V2_CMAKE_Fortran_COMPILER libkim-api-v2 CMAKE_Fortran_COMPILER)
+pkg_get_variable(KIM-API-V2-CMAKE_C_COMPILER libkim-api CMAKE_C_COMPILER)
+pkg_get_variable(KIM-API-V2-CMAKE_CXX_COMPILER libkim-api CMAKE_CXX_COMPILER)
+pkg_get_variable(KIM-API-V2_CMAKE_Fortran_COMPILER libkim-api CMAKE_Fortran_COMPILER)
 
-# handle the QUIETLY and REQUIRED arguments and set KIM-API-V2_FOUND to TRUE
+# handle the QUIETLY and REQUIRED arguments and set KIM-API_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(KIM-API-V2 REQUIRED_VARS KIM-API-V2_LIBRARIES)
+find_package_handle_standard_args(KIM-API REQUIRED_VARS KIM-API_LIBRARIES)

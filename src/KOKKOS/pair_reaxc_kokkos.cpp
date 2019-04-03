@@ -669,8 +669,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   atomKK->sync(execution_space,datamask_read);
   k_params_sing.template sync<DeviceType>();
@@ -4284,7 +4283,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
 }
 
 template class PairReaxCKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairReaxCKokkos<LMPHostType>;
 #endif
 }

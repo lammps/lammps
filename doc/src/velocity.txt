@@ -134,7 +134,7 @@ The {mom} and {rot} keywords are used by {create}.  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 
-*line
+:line
 
 If specified, the {temp} keyword is used by {create} and {scale} to
 specify a "compute"_compute.html that calculates temperature in a

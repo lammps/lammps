@@ -11,6 +11,8 @@ get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib 
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
 
+find_package(Git)
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
@@ -85,7 +87,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 # this is fast, so check for it all the time
 message(STATUS "Running check for auto-generated files from make-based build system")
 file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h)
+list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
 foreach(_SRC ${SRC_AUTOGEN_FILES})
   get_filename_component(FILENAME "${_SRC}" NAME)
   if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
@@ -205,7 +207,7 @@ include_directories(${LAMMPS_SOURCE_DIR})
 if(PKG_USER-ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
-  # script that defines the MPI::MPI_C target 
+  # script that defines the MPI::MPI_C target
   enable_language(C)
   find_package(ADIOS2 REQUIRED)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
@@ -320,7 +322,7 @@ pkg_depends(USER-SCAFACOS MPI)
 
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
-if(BUILD_OMP OR PKG_KOKKOS OR PKG_USER-INTEL)
+if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -379,19 +381,10 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
 endif()
 
 if(PKG_PYTHON)
-  find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(BUILD_LIB AND BUILD_SHARED_LIBS)
-    if(NOT PYTHON_INSTDIR)
-      execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  endif()
 endif()
 
 find_package(JPEG QUIET)
@@ -567,6 +560,20 @@ if(PKG_USER-PLUMED)
 
   option(DOWNLOAD_PLUMED "Download Plumed package instead of using an already installed one" OFF)
   if(DOWNLOAD_PLUMED)
+    if(BUILD_MPI)
+      set(PLUMED_CONFIG_MPI "--enable-mpi")
+      set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
+      set(PLUMED_CONFIG_CXX  ${CMAKE_MPI_CXX_COMPILER})
+    else()
+      set(PLUMED_CONFIG_MPI "--disable-mpi")
+      set(PLUMED_CONFIG_CC  ${CMAKE_C_COMPILER})
+      set(PLUMED_CONFIG_CXX  ${CMAKE_CXX_COMPILER})
+    endif()
+    if(BUILD_OMP)
+      set(PLUMED_CONFIG_OMP "--enable-openmp")
+    else()
+      set(PLUMED_CONFIG_OMP "--disable-openmp")
+    endif()
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
@@ -575,9 +582,11 @@ if(PKG_USER-PLUMED)
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                                ${CONFIGURE_REQUEST_PIC}
-                                                --enable-modules=all
-                                               CXX=${CMAKE_MPI_CXX_COMPILER}
-                                               CC=${CMAKE_MPI_C_COMPILER}
+                                               --enable-modules=all
+                                               ${PLUMED_CONFIG_MPI}
+                                               ${PLUMED_CONFIG_OMP}
+                                               CXX=${PLUMED_CONFIG_CXX}
+                                               CC=${PLUMED_CONFIG_CC}
     )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
@@ -611,9 +620,13 @@ if(PKG_USER-PLUMED)
 endif()
 
 if(PKG_USER-MOLFILE)
+  set(MOLFILE_INCLUDE_DIRS "${LAMMPS_LIB_SOURCE_DIR}/molfile" CACHE STRING "Path to VMD molfile plugin headers")
   add_library(molfile INTERFACE)
-  target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
-  target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
+  target_include_directories(molfile INTERFACE ${MOLFILE_INCLUDE_DIRS})
+  # no need to link with -ldl on windows
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
+  endif()
   list(APPEND LAMMPS_LINK_LIBS molfile)
 endif()
 
@@ -623,7 +636,6 @@ if(PKG_USER-NETCDF)
   list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARIES})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
-
 
 if(PKG_USER-SMD)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)
@@ -668,15 +680,21 @@ if(PKG_USER-VTK)
 endif()
 
 if(PKG_KIM)
-  option(DOWNLOAD_KIM "Download KIM-API v2 from OpenKIM instead of using an already installed one" OFF)
+  find_package(CURL)
+  if(CURL_FOUND)
+    include_directories(${CURL_INCLUDE_DIRS})
+    list(APPEND LAMMPS_LINK_LIBS ${CURL_LIBRARIES})
+    add_definitions(-DLMP_KIM_CURL)
+  endif()
+  option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" OFF)
   if(DOWNLOAD_KIM)
-    message(STATUS "KIM-API v2 download requested - we will build our own")
+    message(STATUS "KIM-API download requested - we will build our own")
     enable_language(C)
     enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-v2-2.0.1.txz
-      URL_MD5 289c57f0c3bc2a549662283cac1c4ef1
+      URL https://s3.openkim.org/kim-api/kim-api-2.0.2.txz
+      URL_MD5 537d9c0abd30f85b875ebb584f9143fa
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -685,17 +703,17 @@ if(PKG_KIM)
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
-    set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)
-    set(KIM-API-V2_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api-v2${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(KIM-API_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api)
+    set(KIM-API_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
-    find_package(KIM-API-V2)
-    if(NOT KIM-API-V2_FOUND)
-      message(FATAL_ERROR "KIM-API v2 not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
+    find_package(KIM-API)
+    if(NOT KIM-API_FOUND)
+      message(FATAL_ERROR "KIM-API not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS "${KIM-API-V2_LDFLAGS}")
-  include_directories(${KIM-API-V2_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS "${KIM-API_LDFLAGS}")
+  include_directories(${KIM-API_INCLUDE_DIRS})
 endif()
 
 if(PKG_MESSAGE)
@@ -710,6 +728,7 @@ if(PKG_MESSAGE)
     set_target_properties(cslib PROPERTIES OUTPUT_NAME "csmpi")
   else()
     target_compile_definitions(cslib PRIVATE -DMPI_NO)
+    target_include_directories(cslib PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src/STUBS_MPI)
     set_target_properties(cslib PROPERTIES OUTPUT_NAME "csnompi")
   endif()
 
@@ -945,7 +964,7 @@ if(PKG_USER-OMP)
 
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
-    RegisterFixStyle("${USER-OMP_SOURCES_DIR}/fix_omp.h")
+    RegisterFixStyle(${USER-OMP_SOURCES_DIR}/fix_omp.h)
 
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
@@ -1058,37 +1077,79 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
-    find_package(TBB REQUIRED)
-    find_package(MKL REQUIRED)
+  if(LAMMPS_SIZES STREQUAL BIGBIG)
+    message(FATAL_ERROR "The USER-INTEL Package is not compatible with -DLAMMPS_BIGBIG")
+  endif()
+  add_definitions(-DLMP_USER_INTEL)
 
-    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-      message(FATAL_ERROR "USER-INTEL is only useful together with intel compiler")
-    endif()
+  set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
+  set(INTEL_ARCH_VALUES cpu knl)
+  set_property(CACHE INTEL_ARCH PROPERTY STRINGS ${INTEL_ARCH_VALUES})
+  validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
+  string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
 
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
-        message(FATAL_ERROR "USER-INTEL needs at least a 2016 intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
-    endif()
-
-    if(NOT BUILD_OMP)
-        message(FATAL_ERROR "USER-INTEL requires OpenMP")
-    endif()
-
-    if(NOT ${LAMMPS_MEMALIGN} STREQUAL "64")
-        message(FATAL_ERROR "USER-INTEL is only useful with LAMMPS_MEMALIGN=64")
-    endif()
-
-    set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
-    set(INTEL_ARCH_VALUES cpu knl)
-    set_property(CACHE INTEL_ARCH PROPERTY STRINGS ${INTEL_ARCH_VALUES})
-    validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
-    string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
-
-    if(INTEL_ARCH STREQUAL "KNL")
-      set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
-      set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
-      add_compile_options(-xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
-      add_definitions(-DLMP_INTEL_OFFLOAD)
+  find_package(Threads QUIET)
+  if(Threads_FOUND)
+    set(INTEL_LRT_MODE "threads" CACHE STRING "Long-range threads mode (none, threads, or c++11)")
+  else()
+    set(INTEL_LRT_MODE "none" CACHE STRING "Long-range threads mode (none, threads, or c++11)")
+  endif()
+  set(INTEL_LRT_VALUES none threads c++11)
+  set_property(CACHE INTEL_LRT_MODE PROPERTY STRINGS ${INTEL_LRT_VALUES})
+  validate_option(INTEL_LRT_MODE INTEL_LRT_VALUES)
+  string(TOUPPER ${INTEL_LRT_MODE} INTEL_LRT_MODE)
+  if(INTEL_LRT_MODE STREQUAL "THREADS")
+    if(Threads_FOUND)
+      add_definitions(-DLMP_INTEL_USELRT)
+      list(APPEND LAMMPS_LINK_LIBS ${CMAKE_THREAD_LIBS_INIT})
     else()
+      message(FATAL_ERROR "Must have working threads library for Long-range thread support")
+    endif()
+  endif()
+  if(INTEL_LRT_MODE STREQUAL "C++11")
+    add_definitions(-DLMP_INTEL_USERLRT -DLMP_INTEL_LRT11)
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
+      message(FATAL_ERROR "USER-INTEL needs at least a 2016 Intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
+    endif()
+  else()
+    message(WARNING "USER-INTEL gives best performance with Intel compilers")
+  endif()
+
+  find_package(TBB QUIET)
+  if(TBB_FOUND)
+    list(APPEND LAMMPS_LINK_LIBS ${TBB_MALLOC_LIBRARIES})
+  else()
+    add_definitions(-DLMP_INTEL_NO_TBB)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      message(WARNING "USER-INTEL with Intel compilers should use TBB malloc libraries")
+    endif()
+  endif()
+
+  find_package(MKL QUIET)
+  if(MKL_FOUND)
+    add_definitions(-DLMP_USE_MKL_RNG)
+    list(APPEND LAMMPS_LINK_LIBS ${MKL_LIBRARIES})
+  else()
+    message(STATUS "Pair style dpd/intel will be faster with MKL libraries")
+  endif()
+
+  if((NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows") AND (NOT ${LAMMPS_MEMALIGN} STREQUAL "64") AND (NOT ${LAMMPS_MEMALIGN} STREQUAL "128") AND (NOT ${LAMMPS_MEMALIGN} STREQUAL "256"))
+    message(FATAL_ERROR "USER-INTEL only supports memory alignment of 64, 128 or 256 on this platform")
+  endif()
+
+  if(INTEL_ARCH STREQUAL "KNL")
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      message(FATAL_ERROR "Must use Intel compiler with USER-INTEL for KNL architecture")
+    endif()
+    set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
+    set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
+    add_compile_options(-xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
+    add_definitions(-DLMP_INTEL_OFFLOAD)
+  else()
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
       else()
@@ -1101,33 +1162,33 @@ if(PKG_USER-INTEL)
           add_compile_options(${_FLAG})
         endif()
       endforeach()
+    else()
+      add_compile_options(-O3 -ffast-math)
     endif()
+  endif()
 
-    add_definitions(-DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG)
+  # collect sources
+  set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
+  set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/fix_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/fix_nh_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
+                         ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
+                         ${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
 
-    list(APPEND LAMMPS_LINK_LIBS ${TBB_MALLOC_LIBRARIES} ${MKL_LIBRARIES})
+  set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
 
-    set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
-    set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/intel_preprocess.h
-                           ${USER-INTEL_SOURCES_DIR}/intel_buffers.h
-                           ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
-                           ${USER-INTEL_SOURCES_DIR}/math_extra_intel.h
-                           ${USER-INTEL_SOURCES_DIR}/nbin_intel.h
-                           ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
-                           ${USER-INTEL_SOURCES_DIR}/npair_intel.h
-                           ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
-                           ${USER-INTEL_SOURCES_DIR}/intel_simd.h
-                           ${USER-INTEL_SOURCES_DIR}/intel_intrinsics.h)
+  # detect styles which have a USER-INTEL version
+  RegisterStylesExt(${USER-INTEL_SOURCES_DIR} intel USER-INTEL_SOURCES)
+  RegisterNBinStyle(${USER-INTEL_SOURCES_DIR}/nbin_intel.h)
+  RegisterNPairStyle(${USER-INTEL_SOURCES_DIR}/npair_intel.h)
+  RegisterFixStyle(${USER-INTEL_SOURCES_DIR}/fix_intel.h)
+  RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
 
-    set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
+  get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
 
-    # detects styles which have USER-INTEL version
-    RegisterStylesExt(${USER-INTEL_SOURCES_DIR} opt USER-INTEL_SOURCES)
-
-    get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
-
-    list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
-    include_directories(${USER-INTEL_SOURCES_DIR})
+  list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
+  include_directories(${USER-INTEL_SOURCES_DIR})
 endif()
 
 if(PKG_GPU)
@@ -1169,6 +1230,10 @@ if(PKG_GPU)
         message(FATAL_ERROR "Could not find bin2c, use -DBIN2C=/path/to/bin2c to help cmake finding it.")
       endif()
       option(CUDPP_OPT "Enable CUDPP_OPT" ON)
+      option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
+      if(CUDA_MPS_SUPPORT)
+        set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
+      endif()
 
       set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
 
@@ -1232,7 +1297,7 @@ if(PKG_GPU)
       add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
       target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
       target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
-      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT ${GPU_CUDA_MPS_FLAGS})
       if(CUDPP_OPT)
         target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
         target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
@@ -1325,6 +1390,18 @@ set(temp "${temp}  NULL\n};\n#endif\n\n")
 message(STATUS "Generating lmpinstalledpkgs.h...")
 file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${temp}" )
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h")
+
+######################################
+# Generate lmpgitversion.h
+######################################
+add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
+  -DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -DGIT_FOUND="${GIT_FOUND}"
+  -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+list(APPEND LAMMPS_DEPS gitversion)
 
 ###########################################
 # Actually add executable and lib to build
@@ -1446,6 +1523,49 @@ install(
         ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
 )
+
+###############################################################################
+# Install LAMMPS lib and python module into site-packages folder with
+# "install-python" target.  Behaves exactly like "make install-python" for
+# conventional build.  Only available, if a shared library is built.
+# This is primarily for people that only want to use the Python wrapper.
+###############################################################################
+if(BUILD_LIB AND BUILD_SHARED_LIBS)
+  find_package(PythonInterp)
+  if (PYTHONINTERP_FOUND)
+    add_custom_target(
+      install-python
+      ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
+      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
+      COMMENT "Installing LAMMPS Python module")
+  else()
+    add_custom_target(
+      install-python
+      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+  endif()
+else()
+  add_custom_target(
+    install-python
+    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+endif()
+
+###############################################################################
+# Add LAMMPS python module to "install" target. This is taylored for building
+# LAMMPS for package managers and with different prefix settings.
+# This requires either a shared library or that the PYTHON package is included.
+###############################################################################
+if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
+  find_package(PythonInterp)
+  if (PYTHONINTERP_FOUND)
+    execute_process(COMMAND ${PYTHON_EXECUTABLE}
+      -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+      OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+  endif()
+endif()
 
 ###############################################################################
 # Testing

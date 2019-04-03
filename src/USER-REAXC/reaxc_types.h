@@ -392,8 +392,6 @@ typedef struct
   double ghost_cutoff;
 } boundary_cutoff;
 
-using LAMMPS_NS::Pair;
-
 struct _reax_system
 {
   reax_interaction reax_param;
@@ -411,7 +409,7 @@ struct _reax_system
   boundary_cutoff  bndry_cuts;
   reax_atom       *my_atoms;
 
-  class Pair *pair_ptr;
+  class LAMMPS_NS::Pair *pair_ptr;
   int my_bonds;
   int mincap;
   double safezone, saferzone;

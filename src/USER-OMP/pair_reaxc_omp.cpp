@@ -113,7 +113,7 @@ PairReaxCOMP::~PairReaxCOMP()
   if (setup_flag) {
     reax_list * bonds = lists+BONDS;
     for (int i=0; i<bonds->num_intrs; ++i)
-      sfree(LAMMPS_NS::Pointers::lmp->error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+      sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
   }
   memory->destroy(num_nbrs_offset);
 

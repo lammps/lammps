@@ -406,6 +406,9 @@ void TILD::allocate()
 {
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick");
+  memory->create4d_offset(density_brick_types,group->ngroup,
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm:density_brick_types");
 
   memory->create(density_fft,nfft_both,"pppm:density_fft");
   memory->create(greensfn,nfft_both,"pppm:greensfn");

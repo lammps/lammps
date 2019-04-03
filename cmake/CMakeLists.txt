@@ -728,6 +728,7 @@ if(PKG_MESSAGE)
     set_target_properties(cslib PROPERTIES OUTPUT_NAME "csmpi")
   else()
     target_compile_definitions(cslib PRIVATE -DMPI_NO)
+    target_include_directories(cslib PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src/STUBS_MPI)
     set_target_properties(cslib PROPERTIES OUTPUT_NAME "csnompi")
   endif()
 

@@ -1225,7 +1225,7 @@ void Special::dihedral_trim()
 ------------------------------------------------------------------------- */
 
 int Special::rendezvous_ids(int n, char *inbuf,
-                            int &flag, int *&proclist, char *&outbuf,
+                            int &flag, int *& /*proclist*/, char *& /*outbuf*/,
                             void *ptr)
 {
   Special *sptr = (Special *) ptr;

@@ -155,9 +155,17 @@ void TILD::settings(int narg, char **arg)
 }
 
 TILD::~TILD(){
+  delete [] factors;
   deallocate();
   deallocate_groups();
   deallocate_peratom();
+  memory->destroy(part2grid);
+  part2grid = NULL;
+
+  // check whether cutoff and pair style are set
+
+  triclinic = domain->triclinic;
+  pair_check();
 
 }
 

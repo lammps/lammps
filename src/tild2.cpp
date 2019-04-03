@@ -735,7 +735,7 @@ void TILD::allocate_peratom()
                           nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
-  memory->create5d_offset(gradWgroup,0, group->ngroup, 0, Dim,
+  memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWgroup");
   // memory->create(gradWgroup, group->ngroup, Dim, , "tild:gradWgroup");

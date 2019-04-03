@@ -431,7 +431,6 @@ void PairReaxC::setup( )
     int *num_hbonds = fix_reax->num_hbonds;
 
     control->vlist_cut = neighbor->cutneighmax;
-    control->me = comm->me;
 
     // determine the local and total capacity
 

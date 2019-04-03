@@ -26,7 +26,6 @@
 #include <iostream>
 #include "fft3d_wrap.h"
 #include "pppm.h"
-#include <complex>
 #include "group.h"
 #include "neighbor.h"
 #include "output.h"
@@ -39,7 +38,6 @@ using namespace MathConst;
 #define OFFSET 16384
 #define PI 3.141592653589793238462643383279
 #define MAXORDER   7
-#define I std::complex<double>(0.0, 1.0)
 
 enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
@@ -157,9 +155,17 @@ void TILD::settings(int narg, char **arg)
 }
 
 TILD::~TILD(){
+  delete [] factors;
   deallocate();
   deallocate_groups();
   deallocate_peratom();
+  memory->destroy(part2grid);
+  part2grid = NULL;
+
+  // check whether cutoff and pair style are set
+
+  triclinic = domain->triclinic;
+  pair_check();
 
 }
 
@@ -735,7 +741,7 @@ void TILD::allocate_peratom()
                           nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
-  memory->create5d_offset(gradWgroup,0, group->ngroup, 0, Dim,
+  memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWgroup");
   // memory->create(gradWgroup, group->ngroup, Dim, , "tild:gradWgroup");

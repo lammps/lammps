@@ -68,7 +68,7 @@ class FixPIMD : public Fix {
   /* inter-partition communication */
 
   int max_nsend;
-  int* tag_send;
+  tagint* tag_send;
   double *buf_send;
 
   int max_nlocal;

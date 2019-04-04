@@ -268,7 +268,7 @@ void Hyper::command(int narg, char **arg)
   double nnewbond,avenbias,avebiascoeff,minbiascoeff,maxbiascoeff;
   double maxbondperatom,neighbondperbond,avebiasnow;
   double tbondbuild,rmaxever,rmaxeverbig,allghost_toofar;
-  double lostbond,lostbondcoeff,biasoverlap;
+  double biasoverlap;
 
   if (hyperenable) {
     t_hyper = fix_hyper->query(1);

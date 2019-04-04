@@ -353,8 +353,6 @@ void FixHyperLocal::pre_neighbor()
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
 
-  double **x = atom->x;
-
   for (m = 0; m < nblocal; m++) {
     iold = blist[m].iold;
     jold = blist[m].jold;
@@ -407,7 +405,7 @@ void FixHyperLocal::pre_neighbor()
 void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 {
   int i,j,m,ii,jj,inum,jnum,iold,jold,ibond,nbond,ijhalf,ncount;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double delx,dely,delz;
   double r,r0,estrain,emax,ebias,vbias,fbias,fbiasr;
   double halfstrain,selfstrain;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -811,7 +809,7 @@ void FixHyperLocal::min_pre_neighbor()
 void FixHyperLocal::build_bond_list(int natom)
 {
   int i,j,ii,jj,m,n,iold,jold,ilocal,jlocal,inum,jnum,nbond;
-  tagint itag,jtag;
+  tagint jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,distsq,oldcoeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -1006,7 +1004,6 @@ void FixHyperLocal::build_bond_list(int natom)
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    itag = tag[i];
     tagold[i] = tag[i];
 
     jlist = firstneigh[i];
@@ -1420,7 +1417,6 @@ double FixHyperLocal::compute_vector(int i)
   }
 
   if (i == 4) {
-    const int nlocal = atom->nlocal;
     bigint allneigh,thisneigh;
     thisneigh = listfull->ipage->ndatum;
     MPI_Allreduce(&thisneigh,&allneigh,1,MPI_LMP_BIGINT,MPI_SUM,world);

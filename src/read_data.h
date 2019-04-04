@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class ReadData : protected Pointers {
  public:
   ReadData(class LAMMPS *);
-  ~ReadData();
+  virtual ~ReadData();
   void command(int, char **);
 
  protected:

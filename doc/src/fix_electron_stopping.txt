@@ -6,14 +6,14 @@
 
 :line
 
-fix elstop command :h3
+fix electron/stopping command :h3
 
 [Syntax:]
 
-fix ID group-ID elstop Ecut file keyword value ... :pre
+fix ID group-ID electron/stopping Ecut file keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-elstop = style name of this fix command :l
+electron/stopping = style name of this fix command :l
 Ecut = minimum kinetic energy for electronic stopping (energy units) :l
 file = name of the file containing the electronic stopping power table :l
 zero or more keyword/value pairs may be appended to args :l
@@ -21,14 +21,14 @@ keyword = {region} or {minneigh} :l
   {region} value = region-ID
     region-ID = region, whose atoms will be affected by this fix
   {minneigh} value = minneigh
-    minneigh = minimum number of neighbors for atoms to have elstop applied :pre
+    minneigh = minimum number of neighbors an atom to have stopping applied :pre
 :ule
 
 [Examples:]
 
-fix el all elstop 10.0 elstop-table.txt
-fix el all elstop 10.0 elstop-table.txt minneigh 3
-fix el mygroup elstop 1.0 elstop-table.txt region bulk :pre
+fix el all electron/stopping 10.0 elstop-table.txt
+fix el all electron/stopping 10.0 elstop-table.txt minneigh 3
+fix el mygroup electron/stopping 1.0 elstop-table.txt region bulk :pre
 
 [Description:]
 
@@ -48,9 +48,9 @@ to each atom as:
 \vec\{F\}_i = \vec\{F\}^0_i - \frac\{\vec\{v\}_i\}\{\|\vec\{v\}_i\|\} \cdot S_e
 \end\{equation\}
 
-where \(\vec\{F\}_i\) is the resulting total force on the atom. \(\vec\{F\}^0_i\)
-is the original force applied to the atom, \(\vec\{v\}_i\) is its velocity and
-\(S_e\) is the stopping power of the ion.
+where \(\vec\{F\}_i\) is the resulting total force on the atom.
+\(\vec\{F\}^0_i\) is the original force applied to the atom, \(\vec\{v\}_i\) is
+its velocity and \(S_e\) is the stopping power of the ion.
 
 NOTE: In addition to electronic stopping, atomic cascades and irradiation
 simulations require the use of an adaptive timestep (see
@@ -79,10 +79,10 @@ in bulk material. An alternative is to disable the check for neighbors by
 setting {minneigh} to zero and using the {region} keyword. This is necessary
 when running simulations of cluster bombardment.
 
-If the {region} keyword is used, the atom must also be in the specified geometric
-"region"_region.html in order to have electronic stopping applied to it. This is
-useful if the position of the bulk material is fixed. By default the electronic
-stopping is applied everywhere in the simulation cell.
+If the {region} keyword is used, the atom must also be in the specified
+geometric "region"_region.html in order to have electronic stopping applied to
+it. This is useful if the position of the bulk material is fixed. By default
+the electronic stopping is applied everywhere in the simulation cell.
 
 :line
 

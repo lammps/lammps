@@ -264,7 +264,7 @@ fix_drude_transform.html
 fix_dt_reset.html
 fix_efield.html
 fix_ehex.html
-fix_elstop.html
+fix_electron_stopping.html
 fix_enforce2d.html
 fix_eos_cv.html
 fix_eos_table.html

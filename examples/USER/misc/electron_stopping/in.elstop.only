@@ -1,6 +1,6 @@
-# Test case / example for the electronic stopping fix elstop
+# Test case / example for fix electron/stopping
 # One fast atom, no other interactions.
-# Elstop only applied in a smaller box in the middle.
+# Stopping only applied in a smaller box in the middle.
 #
 # Also uses fix dt/reset, as one should when energies are high
 # enough to require electronic stopping.
@@ -25,7 +25,7 @@ pair_style zero 1
 pair_coeff * * 1
 
 fix fdt all dt/reset 1 NULL 0.001 0.1 emax 20.0
-fix fel all elstop 1.0 Si.Si.elstop minneigh 0 region rsmallbox
+fix fel all electron/stopping 1.0 Si.Si.elstop minneigh 0 region rsmallbox
 fix fnve all nve
 
 compute ek all ke/atom

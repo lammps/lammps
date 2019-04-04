@@ -692,7 +692,6 @@ elong
 Elsevier
 Elsner
 Elstner
-elstop
 elt
 emacs
 emax

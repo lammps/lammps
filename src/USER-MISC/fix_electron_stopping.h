@@ -18,22 +18,22 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(elstop,FixElstop)
+FixStyle(electron/stopping,FixElectronStopping)
 
 #else
 
-#ifndef LMP_FIX_ELSTOP_H
-#define LMP_FIX_ELSTOP_H
+#ifndef LMP_FIX_ELECTRON_STOPPING_H
+#define LMP_FIX_ELECTRON_STOPPING_H
 
 #include "fix.h"
 
 
 namespace LAMMPS_NS {
 
-class FixElstop : public Fix {
+class FixElectronStopping : public Fix {
  public:
-  FixElstop(class LAMMPS *, int, char **);
-  ~FixElstop();
+  FixElectronStopping(class LAMMPS *, int, char **);
+  ~FixElectronStopping();
   int setmask();
   void init();
   void post_force(int);
@@ -72,33 +72,33 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Region ID for fix elstop does not exist
+E: Region ID for fix electron/stopping does not exist
 
 Self-explanatory.
 
-E: Atom kinetic energy too high for fix elstop
+E: Atom kinetic energy too high for fix electron/stopping
 
-The group given in the fix elstop command includes an atom that has
-a kinetic energy higher than the largest energy in the elstop table.
-Reconsider whether the table is physically applicable to your system.
+The group given in the fix electron/stopping command includes an atom
+that has a kinetic energy higher than the largest energy in the stopping
+table. Reconsider whether the table is physically applicable to your system.
 
 E: Cannot open stopping range table ...
 
-The file containing the elstop table could not be opened. Chck the
-given path and the file's permissions.
+The file containing the electronic stopping table could not be opened.
+Check the given path and the file's permissions.
 
-E: fix elstop: Invalid table line
+E: fix electron/stopping: Invalid table line
 
-A line in the elstop table file contained too many or too few columns.
+A line in the stopping table file contained too many or too few columns.
 
-E: fix elstop: Energies must be in ascending order
+E: fix electron/stopping: Energies must be in ascending order
 
-The first column in the elstop table must be sorted from the smallest
+The first column in the stopping table must be sorted from the smallest
 energy to the largest.
 
-E: Did not find any data in elstop table file
+E: Did not find any data in electronic stopping table file
 
-Parsing the elstop table file produced no lines that were identifiable
+Parsing the stopping table file produced no lines that were identifiable
 as energies/stopping powers. Most likely the file is empty or contains
 only comments.
 

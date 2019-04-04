@@ -1,9 +1,9 @@
 LAMMPS (28 Feb 2019)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
-# Test case / example for the electronic stopping fix elstop
+# Test case / example for fix electron/stopping
 # One fast atom, no other interactions.
-# Elstop only applied in a smaller box in the middle.
+# Stopping only applied in a smaller box in the middle.
 #
 # Also uses fix dt/reset, as one should when energies are high
 # enough to require electronic stopping.
@@ -20,20 +20,20 @@ region rsmallbox block -90 90 -90 90 -90 90
 
 create_box 1 rbox
 Created orthogonal box = (-100 -100 -100) to (100 100 100)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 
 mass 1 28.0855
 
 create_atoms 1 single 0 0 0
 Created 1 atoms
-  Time spent = 2.00272e-05 secs
+  create_atoms CPU = 4.05312e-06 secs
 velocity all set 1120 1620 389
 
 pair_style zero 1
 pair_coeff * * 1
 
 fix fdt all dt/reset 1 NULL 0.001 0.1 emax 20.0
-fix fel all elstop 1.0 Si.Si.elstop minneigh 0 region rsmallbox
+fix fel all electron/stopping 1.0 Si.Si.elstop minneigh 0 region rsmallbox
 fix fnve all nve
 
 compute ek all ke/atom
@@ -45,8 +45,6 @@ thermo_style custom step time dt f_fel c_ektot
 #dump mydump all custom 200 elstop.only.dump id x y z vx vy vz fx fy fz c_ek
 
 run 10000
-WARNING: More than one compute ke/atom (src/compute_ke_atom.cpp:55)
-WARNING: More than one compute ke/atom (src/compute_ke_atom.cpp:55)
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -59,12 +57,12 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-  (2) fix elstop, occasional
+  (2) fix electron/stopping, occasional
       attributes: full, newton on
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 3.637 | 4.2 | 5.887 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 13.31 | 13.31 | 13.31 Mbytes
 Step Time Dt f_fel c_ektot 
        0            0  4.98128e-05            0    5865.5525 
      100 0.0049972222 5.0137252e-05    76.048699     5789.883 
@@ -167,32 +165,32 @@ Step Time Dt f_fel c_ektot
     9800   0.57677384 6.0949329e-05    1947.6558    3917.8967 
     9900   0.58286878 6.0949329e-05    1947.6558    3917.8967 
    10000   0.58896371 6.0949329e-05    1947.6558    3917.8967 
-Loop time of 3.82192 on 4 procs for 10000 steps with 1 atoms
+Loop time of 1.25184 on 1 procs for 10000 steps with 1 atoms
 
-Performance: 13.778 ns/day, 1.742 hours/ns, 2616.487 timesteps/s
-76.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 42.066 ns/day, 0.571 hours/ns, 7988.216 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0006454  | 0.00077975 | 0.001003   |   0.0 |  0.02
-Neigh   | 1.3094     | 1.3771     | 1.441      |   4.0 | 36.03
-Comm    | 0.13665    | 0.16207    | 0.20281    |   6.1 |  4.24
-Output  | 0.036584   | 0.046189   | 0.060792   |   4.2 |  1.21
-Modify  | 2.1326     | 2.212      | 2.3096     |   4.3 | 57.88
-Other   |            | 0.02382    |            |       |  0.62
+Pair    | 0.0005827  | 0.0005827  | 0.0005827  |   0.0 |  0.05
+Neigh   | 1.2134     | 1.2134     | 1.2134     |   0.0 | 96.93
+Comm    | 0.02822    | 0.02822    | 0.02822    |   0.0 |  2.25
+Output  | 0.0017159  | 0.0017159  | 0.0017159  |   0.0 |  0.14
+Modify  | 0.0052147  | 0.0052147  | 0.0052147  |   0.0 |  0.42
+Other   |            | 0.002664   |            |       |  0.21
 
-Nlocal:    0.25 ave 1 max 0 min
-Histogram: 3 0 0 0 0 0 0 0 0 1
+Nlocal:    1 ave 1 max 1 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:    0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:    0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Histogram: 1 0 0 0 0 0 0 0 0 0
 FullNghs:  0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 0
 Ave neighs/atom = 0
 Neighbor list builds = 960
 Dangerous builds = 568
-Total wall time: 0:00:03
+Total wall time: 0:00:01

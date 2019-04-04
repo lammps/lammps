@@ -199,7 +199,7 @@ accelerated styles exist.
 "edpd/source"_fix_dpd_source.html -
 "efield"_fix_efield.html - impose electric field on system
 "ehex"_fix_ehex.html - enhanced heat exchange algorithm
-"elstop"_fix_elstop.html - electronic stopping power as a friction force
+"electron/stopping"_fix_electron_stopping.html - electronic stopping power as a friction force
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "eos/cv"_fix_eos_cv.html -
 "eos/table"_fix_eos_table.html -

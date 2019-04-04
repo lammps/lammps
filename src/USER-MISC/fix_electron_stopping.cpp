@@ -19,7 +19,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "fix_elstop.h"
+#include "fix_electron_stopping.h"
 #include "mpi.h"
 #include "atom.h"
 #include "update.h"
@@ -42,7 +42,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
+FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   scalar_flag = 1;  // Has compute_scalar
@@ -51,16 +51,17 @@ FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;       // Run fix every step
 
 
-  // args: 0 = fix ID, 1 = group ID,  2 = "elstop"
+  // args: 0 = fix ID, 1 = group ID,  2 = "electron/stopping"
   //       3 = Ecut,   4 = file path
   // optional rest: "region" <region name>
   //                "minneigh" <min number of neighbors>
 
-  if (narg < 5)
-    error->all(FLERR, "Illegal fix elstop command: too few arguments");
+  if (narg < 5) error->all(FLERR,
+      "Illegal fix electron/stopping command: too few arguments");
 
   Ecut = force->numeric(FLERR, arg[3]);
-  if (Ecut <= 0.0) error->all(FLERR, "Illegal fix elstop command: Ecut <= 0");
+  if (Ecut <= 0.0) error->all(FLERR,
+      "Illegal fix electron/stopping command: Ecut <= 0");
 
   int iarg = 5;
   iregion = -1;
@@ -69,27 +70,28 @@ FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iregion >= 0)
-         error->all(FLERR, "Illegal fix elstop command: region given twice");
-      if (iarg+2 > narg)
-        error->all(FLERR, "Illegal fix elstop command: region name missing");
+      if (iregion >= 0) error->all(FLERR,
+          "Illegal fix electron/stopping command: region given twice");
+      if (iarg+2 > narg) error->all(FLERR,
+          "Illegal fix electron/stopping command: region name missing");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion < 0)
-        error->all(FLERR, "Region ID for fix elstop does not exist");
+      if (iregion < 0) error->all(FLERR,
+          "Region ID for fix electron/stopping does not exist");
       iarg += 2;
     }
     else if (strcmp(arg[iarg], "minneigh") == 0) {
-      if (minneighflag)
-         error->all(FLERR, "Illegal fix elstop command: minneigh given twice");
+      if (minneighflag) error->all(FLERR,
+          "Illegal fix electron/stopping command: minneigh given twice");
       minneighflag = true;
-      if (iarg+2 > narg)
-        error->all(FLERR, "Illegal fix elstop command: minneigh number missing");
+      if (iarg+2 > narg) error->all(FLERR,
+          "Illegal fix electron/stopping command: minneigh number missing");
       minneigh = force->inumeric(FLERR, arg[iarg+1]);
-      if (minneigh < 0)
-        error->all(FLERR, "Illegal fix elstop command: minneigh < 0");
+      if (minneigh < 0) error->all(FLERR,
+          "Illegal fix electron/stopping command: minneigh < 0");
       iarg += 2;
     }
-    else error->all(FLERR, "Illegal fix elstop command: unknown argument");
+    else error->all(FLERR,
+        "Illegal fix electron/stopping command: unknown argument");
   }
 
 
@@ -98,7 +100,7 @@ FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
   const int ncol = atom->ntypes + 1;
   if (comm->me == 0) {
     maxlines = 300;
-    memory->create(elstop_ranges, ncol, maxlines, "elstop:tabs");
+    memory->create(elstop_ranges, ncol, maxlines, "electron/stopping:table");
     read_table(arg[4]);
   }
 
@@ -106,21 +108,21 @@ FixElstop::FixElstop(LAMMPS *lmp, int narg, char **arg) :
   MPI_Bcast(&table_entries, 1 , MPI_INT, 0, world);
 
   if (comm->me != 0)
-    memory->create(elstop_ranges, ncol, maxlines, "elstop:tabs");
+    memory->create(elstop_ranges, ncol, maxlines, "electron/stopping:table");
 
   MPI_Bcast(&elstop_ranges[0][0], ncol*maxlines, MPI_DOUBLE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixElstop::~FixElstop()
+FixElectronStopping::~FixElectronStopping()
 {
   memory->destroy(elstop_ranges);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixElstop::setmask()
+int FixElectronStopping::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -129,7 +131,7 @@ int FixElstop::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElstop::init()
+void FixElectronStopping::init()
 {
   SeLoss_sync_flag = 0;
   SeLoss = 0.0;
@@ -145,14 +147,14 @@ void FixElstop::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElstop::init_list(int /*id*/, NeighList *ptr)
+void FixElectronStopping::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixElstop::post_force(int /*vflag*/)
+void FixElectronStopping::post_force(int /*vflag*/)
 {
   SeLoss_sync_flag = 0;
 
@@ -183,8 +185,8 @@ void FixElstop::post_force(int /*vflag*/)
 
     if (energy < Ecut) continue;
     if (energy < elstop_ranges[0][0]) continue;
-    if (energy > elstop_ranges[0][table_entries - 1])
-      error->one(FLERR, "Atom kinetic energy too high for fix elstop");
+    if (energy > elstop_ranges[0][table_entries - 1]) error->one(FLERR,
+          "Atom kinetic energy too high for fix electron/stopping");
 
     if (iregion >= 0) {
       // Only apply in the given region
@@ -207,7 +209,7 @@ void FixElstop::post_force(int /*vflag*/)
     double E_lo = elstop_ranges[0][idown];
     double E_hi = elstop_ranges[0][iup];
 
-    // Get elstop with a simple linear interpolation
+    // Get electronic stopping with a simple linear interpolation
     double Se = (Se_hi - Se_lo) / (E_hi - E_lo) * (energy - E_lo) + Se_lo;
 
     double vabs = sqrt(v2);
@@ -223,7 +225,7 @@ void FixElstop::post_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-double FixElstop::compute_scalar()
+double FixElectronStopping::compute_scalar()
 {
   // only sum across procs when changed since last call
 
@@ -236,7 +238,7 @@ double FixElstop::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElstop::read_table(const char *file)
+void FixElectronStopping::read_table(const char *file)
 {
   char line[MAXLINE];
 
@@ -266,30 +268,31 @@ void FixElstop::read_table(const char *file)
     }
 
     if (i != ncol || pch != NULL) // too short or too long
-      error->one(FLERR, "fix elstop: Invalid table line");
+      error->one(FLERR, "fix electron/stopping: Invalid table line");
 
     if (l >= 1 && elstop_ranges[0][l] <= elstop_ranges[0][l-1])
-      error->one(FLERR, "fix elstop: Energies must be in ascending order");
+      error->one(FLERR,
+          "fix electron/stopping: Energies must be in ascending order");
 
     l++;
   }
   table_entries = l;
 
   if (table_entries == 0)
-    error->one(FLERR, "Did not find any data in elstop table file");
+    error->one(FLERR, "Did not find any data in electron/stopping table file");
 
   fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixElstop::grow_table()
+void FixElectronStopping::grow_table()
 {
   const int ncol = atom->ntypes + 1;
   int new_maxlines = 2 * maxlines;
 
   double **new_array;
-  memory->create(new_array, ncol, new_maxlines, "elstop:tabscopy");
+  memory->create(new_array, ncol, new_maxlines, "electron/stopping:table");
 
   for (int i = 0; i < ncol; i++)
     memcpy(new_array[i], elstop_ranges[i], maxlines*sizeof(double));

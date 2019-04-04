@@ -43,7 +43,7 @@ This was tested for:
   the output delta to a Gray code (a^(a>>1)) so a string of 1's (as
   is commonly produced by subtraction) look like a single 1-bit
   difference.
-* the base values were pseudorandom, all zero but one bit set, or 
+* the base values were pseudorandom, all zero but one bit set, or
   all zero plus a counter that starts at zero.
 
 Some k values for my "a-=c; a^=rot(c,k); c+=b;" arrangement that
@@ -53,7 +53,7 @@ satisfy this are
    14  9  3  7 17  3
 Well, "9 15 3 18 27 15" didn't quite get 32 bits diffing
 for "differ" defined as + with a one-bit base and a two-bit delta.  I
-used http://burtleburtle.net/bob/hash/avalanche.html to choose 
+used http://burtleburtle.net/bob/hash/avalanche.html to choose
 the operations, constants, and arrangements of the variables.
 
 This does not achieve avalanche.  There are input bits of (a,b,c)
@@ -92,7 +92,7 @@ produce values of c that look totally different.  This was tested for
   the output delta to a Gray code (a^(a>>1)) so a string of 1's (as
   is commonly produced by subtraction) look like a single 1-bit
   difference.
-* the base values were pseudorandom, all zero but one bit set, or 
+* the base values were pseudorandom, all zero but one bit set, or
   all zero plus a counter that starts at zero.
 
 These constants passed:
@@ -155,7 +155,6 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
   u.ptr = key;
   if (HASH_LITTLE_ENDIAN && ((u.i & 0x3) == 0)) {
     const uint32_t *k = (const uint32_t *)key;         /* read 32-bit chunks */
-    const uint8_t  *k8;
 
     /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
     while (length > 12)
@@ -169,7 +168,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     }
 
     /*----------------------------- handle the last (probably partial) block */
-    /* 
+    /*
      * "k[2]&0xffffff" actually reads beyond the end of the string, but
      * then masks off the part it's not allowed to read.  Because the
      * string is aligned, the masked-off tail is in the same word as the
@@ -199,7 +198,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 
 #else /* make valgrind happy */
 
-    k8 = (const uint8_t *)k;
+    const uint8_t  *k8 = (const uint8_t *)k;
     switch(length)
     {
     case 12: c+=k[2]; b+=k[1]; a+=k[0]; break;
@@ -314,9 +313,9 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 
 #else  /* PURIFY_HATES_HASHLITTLE */
 /* I don't know what it is about Jenkins' hashlittle function, but
- * it drives purify insane, even with VALGRIND defined.  It makes 
+ * it drives purify insane, even with VALGRIND defined.  It makes
  * purify unusable!!  The code execution doesn't even make sense.
- * Below is a (probably) weaker hash function that at least allows 
+ * Below is a (probably) weaker hash function that at least allows
  * testing with purify.
  */
 #define MAXINT_DIV_PHI  11400714819323198485U

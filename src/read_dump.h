@@ -86,7 +86,7 @@ private:
   double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;  // dump snapshot box params
   double xprd,yprd,zprd;
 
-  bigint *nsnapatoms;       // # of atoms in one snapshot from 
+  bigint *nsnapatoms;       // # of atoms in one snapshot from
                             //   one (parallel) dump file
                             // nreader-length vector b/c a reader proc
                             //   may read from multiple parallel dump files

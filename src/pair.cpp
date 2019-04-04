@@ -103,6 +103,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   num_tally_compute = 0;
   list_tally_compute = NULL;
 
+  nondefault_history_transfer = 0;
+  beyond_contact = 0;
+
   // KOKKOS per-fix data masks
 
   execution_space = Host;

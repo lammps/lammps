@@ -45,7 +45,7 @@ class Special : protected Pointers {
   };
 
   // private methods
-  
+
   void atom_owners();
   void onetwo_build_newton();
   void onetwo_build_newton_off();

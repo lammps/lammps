@@ -738,7 +738,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
      inbuf = vector of input datums
      insize = byte size of each input datum
      inorder = 0 for inbuf in random proc order, 1 for datums ordered by proc
-     procs: inorder 0 = proc to send each datum to, 1 = # of datums/proc, 
+     procs: inorder 0 = proc to send each datum to, 1 = # of datums/proc,
      callback = caller function to invoke in rendezvous decomposition
                 takes input datums, returns output datums
      outorder = same as inorder, but for datums returned by callback()
@@ -781,11 +781,11 @@ rendezvous(int which, int n, char *inbuf, int insize,
 int Comm::
 rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
                      int (*callback)(int, char *, int &, int *&, char *&, void *),
-                     int outorder, char *&outbuf, 
+                     int outorder, char *&outbuf,
                      int outsize, void *ptr, int statflag)
 {
   // irregular comm of inbuf from caller decomp to rendezvous decomp
-  
+
   Irregular *irregular = new Irregular(lmp);
 
   int nrvous;
@@ -812,7 +812,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
   if (flag == 0) {
     if (statflag) rendezvous_stats(n,0,nrvous,nrvous_out,insize,outsize,
-                                   (bigint) nrvous_out*sizeof(int) + 
+                                   (bigint) nrvous_out*sizeof(int) +
                                    irregular1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd comm stage
   }
@@ -821,9 +821,9 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   // caller will free outbuf
 
   irregular = new Irregular(lmp);
-  
+
   int nout;
-  if (outorder) 
+  if (outorder)
     nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
   else nout = irregular->create_data(nrvous_out,procs_rvous);
 
@@ -842,7 +842,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   // last arg to stats() = memory for procs_rvous + irregular comm
 
   if (statflag) rendezvous_stats(n,nout,nrvous,nrvous_out,insize,outsize,
-                                 (bigint) nrvous_out*sizeof(int) + 
+                                 (bigint) nrvous_out*sizeof(int) +
                                  MAX(irregular1_bytes,irregular2_bytes));
   return nout;
 }
@@ -863,7 +863,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   char *inbuf_a2a,*outbuf_a2a;
 
   // create procs and inbuf for All2all if necesary
-  
+
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
     inbuf_a2a = (char *) memory->smalloc((bigint) n*insize,
@@ -894,10 +894,10 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   }
 
   // create args for MPI_Alltoallv() on input data
-  
+
   memory->create(sendcount,nprocs,"rendezvous:sendcount");
   memcpy(sendcount,procs_a2a,nprocs*sizeof(int));
-  
+
   memory->create(recvcount,nprocs,"rendezvous:recvcount");
   MPI_Alltoall(sendcount,1,MPI_INT,recvcount,1,MPI_INT,world);
 
@@ -912,14 +912,14 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // test for overflow of input data due to imbalance or insize
   // means that individual sdispls or rdispls values overflow
-  
+
   int overflow = 0;
   if ((bigint) n*insize > MAXSMALLINT) overflow = 1;
   if ((bigint) nrvous*insize > MAXSMALLINT) overflow = 1;
   int overflowall;
   MPI_Allreduce(&overflow,&overflowall,1,MPI_INT,MPI_MAX,world);
   if (overflowall) error->all(FLERR,"Overflow input size in rendezvous_a2a");
-  
+
   for (int i = 0; i < nprocs; i++) {
     sendcount[i] *= insize;
     sdispls[i] *= insize;
@@ -933,7 +933,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                                                "rendezvous:inbuf");
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,
-		inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
+                inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
 
   if (!inorder) {
     memory->destroy(procs_a2a);
@@ -958,7 +958,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     memory->destroy(sdispls);
     memory->destroy(rdispls);
     if (statflag) rendezvous_stats(n,0,nrvous,nrvous_out,insize,outsize,
-                                   (bigint) nrvous_out*sizeof(int) + 
+                                   (bigint) nrvous_out*sizeof(int) +
                                    4*nprocs*sizeof(int) + all2all1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
@@ -969,7 +969,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
 
   // create procs and outbuf for All2all if necesary
-  
+
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");
 
@@ -991,8 +991,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offsets[iproc] += outsize;
       offset += outsize;
     }
-    
-    all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + 
+
+    all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) +
       nrvous_out*outsize;
 
   } else {
@@ -1004,9 +1004,9 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   // comm outbuf from rendezvous decomposition back to caller
 
   memcpy(sendcount,procs_a2a,nprocs*sizeof(int));
-  
+
   MPI_Alltoall(sendcount,1,MPI_INT,recvcount,1,MPI_INT,world);
-  
+
   sdispls[0] = rdispls[0] = 0;
   for (int i = 1; i < nprocs; i++) {
     sdispls[i] = sdispls[i-1] + sendcount[i-1];
@@ -1016,13 +1016,13 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // test for overflow of outbuf due to imbalance or outsize
   // means that individual sdispls or rdispls values overflow
-  
+
   overflow = 0;
   if ((bigint) nrvous*outsize > MAXSMALLINT) overflow = 1;
   if ((bigint) nout*outsize > MAXSMALLINT) overflow = 1;
   MPI_Allreduce(&overflow,&overflowall,1,MPI_INT,MPI_MAX,world);
   if (overflowall) error->all(FLERR,"Overflow output in rendezvous_a2a");
-  
+
   for (int i = 0; i < nprocs; i++) {
     sendcount[i] *= outsize;
     sdispls[i] *= outsize;
@@ -1036,7 +1036,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   outbuf = (char *) memory->smalloc((bigint) nout*outsize,"rendezvous:outbuf");
 
   MPI_Alltoallv(outbuf_a2a,sendcount,sdispls,MPI_CHAR,
-		outbuf,recvcount,rdispls,MPI_CHAR,world);
+                outbuf,recvcount,rdispls,MPI_CHAR,world);
 
   memory->destroy(procs_rvous);
   memory->sfree(outbuf_rvous);
@@ -1058,8 +1058,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   // last arg to stats() = mem for procs_rvous + per-proc vecs + reordering ops
 
   if (statflag) rendezvous_stats(n,nout,nrvous,nrvous_out,insize,outsize,
-                                 (bigint) nrvous_out*sizeof(int) + 
-                                 4*nprocs*sizeof(int) + 
+                                 (bigint) nrvous_out*sizeof(int) +
+                                 4*nprocs*sizeof(int) +
                                  MAX(all2all1_bytes,all2all2_bytes));
   return nout;
 }
@@ -1120,10 +1120,8 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                 BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
                 size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
                 size_out_max/outsize,size_out_min/outsize);
-      else 
-        fprintf(screen,"  output datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                0,0.0,0,0);
+      else
+        fprintf(screen,"  output datum count: %d %g %d %d\n",0,0.0,0,0);
       fprintf(screen,"  output data (MB): %g %g %g %g\n",
               1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
               1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
@@ -1140,9 +1138,7 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                 size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
                 size_outrvous_max/outsize,size_outrvous_min/outsize);
       else
-        fprintf(screen,"  output rvous datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                0,0.0,0,0);
+        fprintf(screen,"  output rvous datum count: %d %g %d %d\n",0,0.0,0,0);
       fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",
               1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
               1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);

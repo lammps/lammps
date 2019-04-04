@@ -595,15 +595,6 @@ void FixRigidSmall::init()
     }
   }
 
-  // error if maxextent > comm->cutghost
-  // NOTE: could just warn if an override flag set
-  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
-  //       for atom types in rigid bodies - need a more careful test
-
-  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if (maxextent > cutghost) 
-    error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
-
   // error if npt,nph fix comes before rigid fix
 
   for (i = 0; i < modify->nfix; i++) {
@@ -661,6 +652,16 @@ void FixRigidSmall::setup_pre_neighbor()
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
+
+  // error if maxextent > comm->cutghost
+  // NOTE: could just warn if an override flag set
+  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
+  //       for atom types in rigid bodies - need a more careful test
+  // must check here, not in init, b/c neigh/comm values set after fix init
+
+  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (maxextent > cutghost)
+    error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
 
   //check(1);
 
@@ -1549,7 +1550,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 
   // allocate buffer for input to rendezvous comm
   // ncount = # of my atoms in bodies
-  
+
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1559,7 +1560,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 
   int *proclist;
   memory->create(proclist,ncount,"rigid/small:proclist");
-  InRvous *inbuf = (InRvous *) 
+  InRvous *inbuf = (InRvous *)
     memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
 
   // setup buf to pass to rendezvous comm
@@ -1594,13 +1595,13 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
                                  rendezvous_body,0,buf,sizeof(OutRvous),
                                  (void *) this);
   OutRvous *outbuf = (OutRvous *) buf;
-  
+
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
   // set bodytag of all owned atoms based on outbuf info for constituent atoms
 
-  for (i = 0; i < nlocal; i++) 
+  for (i = 0; i < nlocal; i++)
     if (!(mask[i] & groupbit)) bodytag[i] = 0;
 
   for (m = 0; m < nreturn; m++)
@@ -1628,7 +1629,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
                                    int &rflag, int *&proclist, char *&outbuf,
                                    void *ptr)
 {
-  int i,j,m;
+  int i,m;
   double delx,dely,delz,rsq;
   int *iclose;
   tagint *idclose;
@@ -1650,7 +1651,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   InRvous *in = (InRvous *) inbuf;
   std::map<tagint,int> hash;
   tagint id;
-  
+
   int ncount = 0;
   for (i = 0; i < n; i++) {
     id = in[i].bodyID;
@@ -1722,7 +1723,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   // compute rsqfar for all bodies I own
   // set rsqfar back in caller
-  
+
   double rsqfar = 0.0;
 
   for (int i = 0; i < n; i++) {
@@ -1742,7 +1743,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   int nout = n;
   memory->create(proclist,nout,"rigid/small:proclist");
-  OutRvous *out = (OutRvous *) 
+  OutRvous *out = (OutRvous *)
     memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
 
   for (int i = 0; i < nout; i++) {

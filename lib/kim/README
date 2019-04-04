@@ -17,7 +17,7 @@ As of KIM API version 2, the KIM package also provides a LAMMPS command
 to perform queries through the OpenKIM web API. This feature requires
 that the CURL library (libcurl) development package and its configuration
 query tool, curl-config, are installed. The provided Makefile.lammps
-is set up to automatically detect this. 
+is set up to automatically detect this.
 
 -----------------
 
@@ -26,17 +26,17 @@ Instructions:
 1. Configure lammps for use with the kim-api library installed in this directory
 
 # replace X.Y.Z as appropriate here and below
-$ printf "${PWD}/installed-kim-api-vX-X.Y.Z" > ./kim-prefix.txt
+$ printf "${PWD}/installed-kim-api-X-X.Y.Z" > ./kim-prefix.txt
 
 2. Download and unpack the kim-api
 
-$ wget http://s3.openkim.org/kim-api/kim-api-vX-X.Y.Z.txz
-$ tar zxvf kim-api-vX-X.Y.Z.txz
+$ wget http://s3.openkim.org/kim-api/kim-api-X.Y.Z.txz
+$ tar zxvf kim-api-X.Y.Z.txz
 
 # configure the kim-api
-$ cd kim-api-vX-X.Y.Z
+$ cd kim-api-X.Y.Z
 $ mkdir build && cd build
-$ cmake ..  -DCMAKE_INSTALL_PREFIX=${PWD}/../../installed-kim-api-vX-X.Y.Z
+$ cmake ..  -DCMAKE_INSTALL_PREFIX=${PWD}/../../installed-kim-api-X.Y.Z
 
 3. Build and install the kim-api and model
 
@@ -46,14 +46,14 @@ $ make install
 4. Remove source and build files
 
 $ cd ../../
-$ rm -rf kim-api-vX-X.Y.Z
-$ rm -rf kim-api-vX-X.Y.Z.txz
+$ rm -rf kim-api-X.Y.Z
+$ rm -rf kim-api-X.Y.Z.txz
 
 5. To add items do the following (replace the kim item name with your
    desired value)
 
-$ source ${PWD}/kim-api-vX-X.Y.Z/bin/kim-api-vX-activate
-$ kim-api-vX-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
+$ source ${PWD}/kim-api-X.Y.Z/bin/kim-api-activate
+$ kim-api-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
 
 
 -----------------

@@ -156,6 +156,8 @@ ba
 Babadi
 backcolor
 Baczewski
+Bagi
+Bagnold
 Bal
 balancer
 Balankura
@@ -250,6 +252,7 @@ Boresch
 Botero
 Botu
 Bouguet
+Bourne
 boxcolor
 bp
 bpls
@@ -347,6 +350,7 @@ Cij
 cis
 civ
 clearstore
+Cleary
 Clebsch
 clemson
 Clermont
@@ -373,6 +377,7 @@ Coeff
 CoefficientN
 coeffs
 Coeffs
+cohesionless
 Coker
 Colberg
 coleman
@@ -450,6 +455,7 @@ cuda
 Cuda
 CUDA
 CuH
+Cummins
 Curk
 customIDs
 cutbond
@@ -493,6 +499,7 @@ darkturquoise
 darkviolet
 Das
 Dasgupta
+dashpot
 dat
 datafile
 datums
@@ -530,6 +537,7 @@ Dequidt
 der
 derekt
 Derjagin
+Derjaguin
 Derlet
 Deserno
 Destree
@@ -628,6 +636,7 @@ dVx
 dW
 dx
 dy
+dylib
 dyn
 dyne
 dynes
@@ -1081,6 +1090,7 @@ Hyoungki
 hyperdynamics
 hyperradius
 hyperspherical
+hysteretic
 Ibanez
 ibar
 ibm
@@ -1140,6 +1150,7 @@ interconvert
 interial
 interlayer
 intermolecular
+Interparticle
 interstitials
 Intr
 intra
@@ -1158,6 +1169,7 @@ IPython
 Isele
 isenthalpic
 ish
+Ishida
 iso
 isodemic
 isoenergetic
@@ -1268,6 +1280,7 @@ kcl
 Kd
 KDevelop
 ke
+kepler
 KE
 Keblinski
 keflag
@@ -1302,6 +1315,7 @@ Kondor
 konglt
 Koning
 Kooser
+Korn
 Koskinen
 Koster
 Kosztin
@@ -1454,6 +1468,7 @@ logfile
 logfreq
 logicals
 Lomdahl
+Lond
 lookups
 Lookups
 LoopVar
@@ -1469,6 +1484,7 @@ lsfftw
 ltbbmalloc
 lubricateU
 lucy
+Luding
 Lussetti
 Lustig
 lwsock
@@ -1507,6 +1523,7 @@ manybody
 MANYBODY
 Maras
 Marrink
+Marroquin
 Marsaglia
 Marseille
 Martyna
@@ -1518,6 +1535,7 @@ masstotal
 Masuhiro
 Matchett
 Materias
+mathbf
 matlab
 matplotlib
 Mattox
@@ -1606,6 +1624,7 @@ Mie
 Mikami
 Militzer
 Minary
+Mindlin
 mincap
 mingw
 minima
@@ -1677,6 +1696,7 @@ mpiexec
 mpiio
 mpirun
 mplayer
+mps
 Mryglod
 mscg
 MSCG
@@ -1960,6 +1980,7 @@ oneway
 onn
 ons
 OO
+opencl
 openKIM
 OpenMP
 openmp
@@ -2292,6 +2313,7 @@ rg
 Rg
 Rhaphson
 rheological
+rheology
 rhodo
 Rhodo
 rhodopsin
@@ -2608,6 +2630,7 @@ Tait
 taitwater
 Tajkhorshid
 Tamaskovics
+Tanaka
 tanh
 Tartakovsky
 taskset
@@ -2695,6 +2718,7 @@ tokyo
 tol
 toolchain
 topologies
+Toporov
 Torder
 torsions
 Tosi
@@ -2739,6 +2763,7 @@ Tsrd
 Tstart
 tstat
 Tstop
+Tsuji
 Tsuzuki
 tt
 Tt

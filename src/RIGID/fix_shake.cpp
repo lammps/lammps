@@ -694,10 +694,9 @@ int FixShake::dof(int igroup)
 void FixShake::find_clusters()
 {
   int i,j,m,n,imol,iatom;
-  int flag,flag_all,nbuf,size;
+  int flag,flag_all;
   tagint tagprev;
   double massone;
-  tagint *buf;
 
   if (me == 0 && screen) {
     if (!rattle) fprintf(screen,"Finding SHAKE clusters ...\n");
@@ -794,7 +793,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   partner_info(npartner,partner_tag,partner_mask,partner_type,
-	       partner_massflag,partner_bondtype);
+               partner_massflag,partner_bondtype);
 
   // error check for unfilled partner info
   // if partner_type not set, is an error
@@ -816,7 +815,7 @@ void FixShake::find_clusters()
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all) error->all(FLERR,"Did not find fix shake partner info");
-  
+
   // -----------------------------------------------------
   // identify SHAKEable bonds
   // set nshake[i] = # of SHAKE bonds attached to atom i
@@ -873,7 +872,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   nshake_info(npartner,partner_tag,partner_nshake);
-  
+
   // -----------------------------------------------------
   // error checks
   // no atom with nshake > 3
@@ -1052,7 +1051,7 @@ void FixShake::atom_owners()
 
   int *proclist;
   memory->create(proclist,nlocal,"shake:proclist");
-  IDRvous *idbuf = (IDRvous *) 
+  IDRvous *idbuf = (IDRvous *)
     memory->smalloc((bigint) nlocal*sizeof(IDRvous),"shake:idbuf");
 
   // setup input buf to rendezvous comm
@@ -1068,7 +1067,7 @@ void FixShake::atom_owners()
 
   // perform rendezvous operation
   // each proc assigned every 1/Pth atom
-  
+
   char *buf;
   comm->rendezvous(RVOUS,nlocal,(char *) idbuf,sizeof(IDRvous),
                    0,proclist,
@@ -1083,15 +1082,15 @@ void FixShake::atom_owners()
 ------------------------------------------------------------------------- */
 
 void FixShake::partner_info(int *npartner, tagint **partner_tag,
-			    int **partner_mask, int **partner_type,
-			    int **partner_massflag, int **partner_bondtype)
+                            int **partner_mask, int **partner_type,
+                            int **partner_massflag, int **partner_bondtype)
 {
   int i,j,m,n;
   int nlocal = atom->nlocal;
 
   // nsend = # of my datums to send
   // one datum for every off-processor partner
-  
+
   int nsend = 0;
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < npartner[i]; j++) {
@@ -1102,7 +1101,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PartnerInfo *inbuf = (PartnerInfo *) 
+  PartnerInfo *inbuf = (PartnerInfo *)
     memory->smalloc((bigint) nsend*sizeof(PartnerInfo),"special:inbuf");
 
   // set values in 4 partner arrays for all partner atoms I own
@@ -1117,9 +1116,9 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
-  
+
   double massone;
-  
+
   nsend = 0;
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < npartner[i]; j++) {
@@ -1129,7 +1128,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
       partner_bondtype[i][j] = 0;
 
       m = atom->map(partner_tag[i][j]);
-      
+
       if (m >= 0 && m < nlocal) {
         partner_mask[i][j] = mask[m];
         partner_type[i][j] = type[m];
@@ -1144,29 +1143,29 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
           n = bondtype_findset(m,tag[i],partner_tag[i][j],0);
           if (n) partner_bondtype[i][j] = n;
         }
-	
+
       } else {
-	proclist[nsend] = partner_tag[i][j] % nprocs;
-	inbuf[nsend].atomID = partner_tag[i][j];
-	inbuf[nsend].partnerID = tag[i];
-	inbuf[nsend].mask = mask[i];
-	inbuf[nsend].type = type[i];
+        proclist[nsend] = partner_tag[i][j] % nprocs;
+        inbuf[nsend].atomID = partner_tag[i][j];
+        inbuf[nsend].partnerID = tag[i];
+        inbuf[nsend].mask = mask[i];
+        inbuf[nsend].type = type[i];
         if (nmass) {
           if (rmass) massone = rmass[i];
           else massone = mass[type[i]];
-	  inbuf[nsend].massflag = masscheck(massone);
+          inbuf[nsend].massflag = masscheck(massone);
         } else inbuf[nsend].massflag = 0;
 
-	// my atom may own bond, in which case set partner_bondtype
-	// else receiver of this datum will own the bond and return the value
-	
+        // my atom may own bond, in which case set partner_bondtype
+        // else receiver of this datum will own the bond and return the value
+
         n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
         if (n) {
-	  partner_bondtype[i][j] = n;
-	  inbuf[nsend].bondtype = n;
-	} else inbuf[nsend].bondtype = 0;
-	
-	nsend++;
+          partner_bondtype[i][j] = n;
+          inbuf[nsend].bondtype = n;
+        } else inbuf[nsend].bondtype = 0;
+
+        nsend++;
       }
     }
   }
@@ -1182,13 +1181,13 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
                                  0,buf,sizeof(PartnerInfo),
                                  (void *) this);
   PartnerInfo *outbuf = (PartnerInfo *) buf;
-    
+
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
   // set partner 4 values for un-onwed partners based on output info
   // outbuf.atomID = my owned atom, outbuf.partnerID = partner the info is for
-  
+
   for (m = 0; m < nreturn; m++) {
     i = atom->map(outbuf[m].atomID);
     for (j = 0; j < npartner[i]; j++)
@@ -1200,7 +1199,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
     // only set partner_bondtype if my atom did not set it
     //   when setting up rendezvous
     // if this proc set it, then sender of this datum set outbuf.bondtype = 0
-    
+
     if (partner_bondtype[i][j] == 0)
       partner_bondtype[i][j] = outbuf[m].bondtype;
   }
@@ -1213,14 +1212,14 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
 ------------------------------------------------------------------------- */
 
 void FixShake::nshake_info(int *npartner, tagint **partner_tag,
-			   int **partner_nshake)
+                           int **partner_nshake)
 {
-  int i,j,m,n;
+  int i,j,m;
   int nlocal = atom->nlocal;
 
   // nsend = # of my datums to send
   // one datum for every off-processor partner
-  
+
   int nsend = 0;
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < npartner[i]; j++) {
@@ -1231,7 +1230,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  NShakeInfo *inbuf = (NShakeInfo *) 
+  NShakeInfo *inbuf = (NShakeInfo *)
     memory->smalloc((bigint) nsend*sizeof(NShakeInfo),"special:inbuf");
 
   // set partner_nshake for all partner atoms I own
@@ -1251,11 +1250,11 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
       if (m >= 0 && m < nlocal) {
         partner_nshake[i][j] = nshake[m];
       } else {
-	proclist[nsend] = partner_tag[i][j] % nprocs;
-	inbuf[nsend].atomID = partner_tag[i][j];
-	inbuf[nsend].partnerID = tag[i];
-	inbuf[nsend].nshake = nshake[i];
-	nsend++;
+        proclist[nsend] = partner_tag[i][j] % nprocs;
+        inbuf[nsend].atomID = partner_tag[i][j];
+        inbuf[nsend].partnerID = tag[i];
+        inbuf[nsend].nshake = nshake[i];
+        nsend++;
       }
     }
   }
@@ -1270,7 +1269,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
                                  rendezvous_nshake,0,buf,sizeof(NShakeInfo),
                                  (void *) this);
   NShakeInfo *outbuf = (NShakeInfo *) buf;
-    
+
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
@@ -1292,14 +1291,14 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
 ------------------------------------------------------------------------- */
 
 void FixShake::shake_info(int *npartner, tagint **partner_tag,
-			  int **partner_shake)
+                          int **partner_shake)
 {
-  int i,j,m,n;
+  int i,j,m;
   int nlocal = atom->nlocal;
 
   // nsend = # of my datums to send
   // one datum for every off-processor partner
-  
+
   int nsend = 0;
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < npartner[i]; j++) {
@@ -1310,7 +1309,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  ShakeInfo *inbuf = (ShakeInfo *) 
+  ShakeInfo *inbuf = (ShakeInfo *)
     memory->smalloc((bigint) nsend*sizeof(ShakeInfo),"special:inbuf");
 
   // set 3 shake arrays for all partner atoms I own
@@ -1326,7 +1325,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
     for (j = 0; j < npartner[i]; j++) {
       if (partner_shake[i][j] == 0) continue;
       m = atom->map(partner_tag[i][j]);
-      
+
       if (m >= 0 && m < nlocal) {
         shake_flag[m] = shake_flag[i];
         shake_atom[m][0] = shake_atom[i][0];
@@ -1338,8 +1337,8 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
         shake_type[m][2] = shake_type[i][2];
 
       } else {
-	proclist[nsend] = partner_tag[i][j] % nprocs;
-	inbuf[nsend].atomID = partner_tag[i][j];
+        proclist[nsend] = partner_tag[i][j] % nprocs;
+        inbuf[nsend].atomID = partner_tag[i][j];
         inbuf[nsend].shake_flag = shake_flag[i];
         inbuf[nsend].shake_atom[0] = shake_atom[i][0];
         inbuf[nsend].shake_atom[1] = shake_atom[i][1];
@@ -1348,7 +1347,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
         inbuf[nsend].shake_type[0] = shake_type[i][0];
         inbuf[nsend].shake_type[1] = shake_type[i][1];
         inbuf[nsend].shake_type[2] = shake_type[i][2];
-	nsend++;
+        nsend++;
       }
     }
   }
@@ -1363,7 +1362,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
                                  rendezvous_shake,0,buf,sizeof(ShakeInfo),
                                  (void *) this);
   ShakeInfo *outbuf = (ShakeInfo *) buf;
-    
+
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
@@ -1391,18 +1390,18 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
 ------------------------------------------------------------------------- */
 
 int FixShake::rendezvous_ids(int n, char *inbuf,
-			     int &flag, int *&proclist, char *&outbuf,
-			     void *ptr)
+                             int &flag, int *&proclist, char *&outbuf,
+                             void *ptr)
 {
   FixShake *fsptr = (FixShake *) ptr;
   Memory *memory = fsptr->memory;
 
   tagint *atomIDs;
   int *procowner;
-  
+
   memory->create(atomIDs,n,"special:atomIDs");
   memory->create(procowner,n,"special:procowner");
-  
+
   IDRvous *in = (IDRvous *) inbuf;
 
   for (int i = 0; i < n; i++) {
@@ -1411,13 +1410,13 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
   }
 
   // store rendezvous data in FixShake class
-  
+
   fsptr->nrvous = n;
   fsptr->atomIDs = atomIDs;
   fsptr->procowner = procowner;
 
   // flag = 0: no second comm needed in rendezvous
-  
+
   flag = 0;
   return 0;
 }
@@ -1429,11 +1428,11 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
 ------------------------------------------------------------------------- */
 
 int FixShake::rendezvous_partners_info(int n, char *inbuf,
-				       int &flag, int *&proclist, char *&outbuf,
-				       void *ptr)
+                                       int &flag, int *&proclist, char *&outbuf,
+                                       void *ptr)
 {
   int i,m;
-  
+
   FixShake *fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
@@ -1444,7 +1443,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
   atom->map_clear();
 
   // hash atom IDs stored in rendezvous decomposition
-  
+
   int nrvous = fsptr->nrvous;
   tagint *atomIDs = fsptr->atomIDs;
 
@@ -1453,13 +1452,10 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
 
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID = 4 values
-  
+
   PartnerInfo *in = (PartnerInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
-
-  double massone;
-  int nmass = fsptr->nmass;
 
   for (i = 0; i < n; i++) {
     m = atom->map(in[i].atomID);
@@ -1467,7 +1463,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
   }
 
   outbuf = inbuf;
-  
+
   // re-create atom map
 
   atom->map_init(0);
@@ -1475,7 +1471,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
   atom->map_set();
 
   // flag = 1: outbuf = inbuf
-  
+
   flag = 1;
   return n;
 }
@@ -1487,11 +1483,11 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
 ------------------------------------------------------------------------- */
 
 int FixShake::rendezvous_nshake(int n, char *inbuf,
-				int &flag, int *&proclist, char *&outbuf,
-				void *ptr)
+                                int &flag, int *&proclist, char *&outbuf,
+                                void *ptr)
 {
-  int i,j,m;
-  
+  int i,m;
+
   FixShake *fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
@@ -1502,7 +1498,7 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
   atom->map_clear();
 
   // hash atom IDs stored in rendezvous decomposition
-  
+
   int nrvous = fsptr->nrvous;
   tagint *atomIDs = fsptr->atomIDs;
 
@@ -1511,18 +1507,18 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
 
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID
-  
+
   NShakeInfo *in = (NShakeInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
-  
+
   for (i = 0; i < n; i++) {
     m = atom->map(in[i].atomID);
     proclist[i] = procowner[m];
   }
 
   outbuf = inbuf;
-  
+
   // re-create atom map
 
   atom->map_init(0);
@@ -1530,7 +1526,7 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
   atom->map_set();
 
   // flag = 1: outbuf = inbuf
-  
+
   flag = 1;
   return n;
 }
@@ -1544,8 +1540,8 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
                                int &flag, int *&proclist, char *&outbuf,
                                void *ptr)
 {
-  int i,j,m;
-  
+  int i,m;
+
   FixShake *fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
@@ -1556,7 +1552,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
   atom->map_clear();
 
   // hash atom IDs stored in rendezvous decomposition
-  
+
   int nrvous = fsptr->nrvous;
   tagint *atomIDs = fsptr->atomIDs;
 
@@ -1565,7 +1561,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
 
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID
-  
+
   ShakeInfo *in = (ShakeInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
@@ -1576,7 +1572,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
   }
 
   outbuf = inbuf;
-  
+
   // re-create atom map
 
   atom->map_init(0);
@@ -1584,7 +1580,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
   atom->map_set();
 
   // flag = 1: outbuf = inbuf;
-  
+
   flag = 1;
   return n;
 }

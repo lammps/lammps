@@ -22,9 +22,6 @@ FixStyle(rigid/small,FixRigidSmall)
 
 #include "fix.h"
 
-// replace this later
-//#include <map>
-
 namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {

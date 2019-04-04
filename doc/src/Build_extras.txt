@@ -82,17 +82,19 @@ which GPU hardware to build for.
 
 [CMake build]:
 
--D GPU_API=value      # value = opencl (default) or cuda
--D GPU_PREC=value     # precision setting
-                      # value = double or mixed (default) or single
--D OCL_TUNE=value     # hardware choice for GPU_API=opencl
-                      # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
--D GPU_ARCH=value     # primary GPU hardware choice for GPU_API=cuda
-                      # value = sm_XX, see below
-                      # default is Cuda-compiler dependent, but typically sm_20
--D CUDPP_OPT=value    # optimization setting for GPU_API=cuda
-                      # enables CUDA Performance Primitives Optimizations
-                      # yes (default) or no :pre
+-D GPU_API=value          # value = opencl (default) or cuda
+-D GPU_PREC=value         # precision setting
+                          # value = double or mixed (default) or single
+-D OCL_TUNE=value         # hardware choice for GPU_API=opencl
+                          # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
+-D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
+                          # value = sm_XX, see below
+                          # default is Cuda-compiler dependent, but typically sm_20
+-D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
+                          # enables CUDA Performance Primitives Optimizations
+                          # value = yes (default) or no
+-D CUDA_MPS_SUPPORT=value # enables some tweaks required to run with active nvidia-cuda-mps daemon
+                          # value = yes or no (default) :pre
 
 GPU_ARCH settings for different GPU hardware is as follows:
 
@@ -195,7 +197,7 @@ https://openkim.org/browse/models/by-model-drivers
 If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
 inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG_CONFIG_PATH
-environment variable so that libkim-api-v2 can be found.
+environment variable so that libkim-api can be found.
 
 [Traditional make]:
 
@@ -857,23 +859,34 @@ file.
 USER-INTEL package :h4,link(user-intel)
 
 To build with this package, you must choose which hardware you want to
-build for, either Intel CPUs or Intel KNLs.  You should also typically
-"install the USER-OMP package"_#user-omp, as it can be used in tandem
-with the USER-INTEL package to good effect, as explained on the "Speed
-intel"_Speed_intel.html doc page.
+build for, either x86 CPUs or Intel KNLs in offload mode.  You should
+also typically "install the USER-OMP package"_#user-omp, as it can be
+used in tandem with the USER-INTEL package to good effect, as explained
+on the "Speed intel"_Speed_intel.html doc page.
 
 [CMake build]:
 
 -D INTEL_ARCH=value     # value = cpu (default) or knl
--D BUILD_OMP=yes        # also required to build with the USER-INTEl package :pre
+-D INTEL_LRT_MODE=value # value = threads, none, or c++11 :pre
 
-Requires an Intel compiler as well as the Intel TBB and MKL libraries.
+In Long-range thread mode (LRT) a modified verlet style is used, that
+operates the Kspace calculation in a separate thread concurrently to
+other calculations. This has to be enabled in the "package intel"_package.html
+command at runtime. With the setting "threads" it used the pthreads
+library, while c++11 will use the built-in thread support of C++11
+compilers. The option "none" skips compilation of this feature. The
+default is to use "threads" if pthreads is available and otherwise "none".
+
+Best performance is achieved with Intel hardware, Intel compilers, as well as
+the Intel TBB and MKL libraries. However, the code also compiles, links, and
+runs with other compilers and without TBB and MKL.
 
 [Traditional make]:
 
 Choose which hardware to compile for in Makefile.machine via the
 following settings.  See src/MAKE/OPTIONS/Makefile.intel_cpu* and
-Makefile.knl files for examples.
+Makefile.knl files for examples. and src/USER-INTEL/README for
+additional information.
 
 For CPUs:
 

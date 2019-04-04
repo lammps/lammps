@@ -761,7 +761,7 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
 #ifdef LAMMPS_RS_ALLREDUCE_INPLACE
   MPI_Allreduce(MPI_IN_PLACE,work1,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work1[me];
-#else 
+#else
 #ifdef LAMMPS_RS_ALLREDUCE
   MPI_Allreduce(work1,work2,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work2[me];

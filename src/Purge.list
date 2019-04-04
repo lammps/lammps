@@ -25,6 +25,9 @@ style_ntopo.h
 # other auto-generated files
 lmpinstalledpkgs.h
 lmpgitversion.h
+# removed on 15 March 2019
+fix_wall_gran_omp.h
+fix_wall_gran_omp.cpp
 # renamed on 7 January 2019
 pair_lebedeva.cpp
 pair_lebedeva.h

@@ -225,7 +225,7 @@ OPT.
 "wall/body/polyhedron"_fix_wall_body_polyhedron.html,
 "wall/colloid"_fix_wall.html,
 "wall/ees"_fix_wall_ees.html,
-"wall/gran (o)"_fix_wall_gran.html,
+"wall/gran"_fix_wall_gran.html,
 "wall/gran/region"_fix_wall_gran_region.html,
 "wall/harmonic"_fix_wall.html,
 "wall/lj1043"_fix_wall.html,

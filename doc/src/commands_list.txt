@@ -62,6 +62,7 @@ Commands :h1
    mass
    message
    min_modify
+   min_spin
    min_style
    minimize
    molecule

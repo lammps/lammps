@@ -124,7 +124,7 @@ class FixShake : public Fix {
   void partner_info(int *, tagint **, int **, int **, int **, int **);
   void nshake_info(int *, tagint **, int **);
   void shake_info(int *, tagint **, int **);
-  
+
   int masscheck(double);
   void unconstrained_update();
   void unconstrained_update_respa(int);

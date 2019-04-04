@@ -117,6 +117,13 @@ mobi: epub
 
 pdf: $(OBJECTS) $(ANCHORCHECK)
 	@(\
+		cd src/Developer; \
+		pdflatex developer; \
+		pdflatex developer; \
+		mv developer.pdf ../../Developer.pdf; \
+		cd ../../; \
+	)
+	@(\
                 . $(VENV)/bin/activate ;\
                 cp -r src/* $(RSTDIR)/ ;\
                 sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
@@ -135,14 +142,7 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 	  make && \
 	  make && \
 	  mv LAMMPS.pdf ../Manual.pdf && \
-	  cd ../; 
-	@(\
-		cd src/Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
-		mv developer.pdf ../../Developer.pdf; \
-		cd ../../; \
-	)
+	  cd ../;
 	@rm -rf latex/_sources
 	@rm -rf latex/PDF
 	@rm -rf latex/USER
@@ -211,7 +211,7 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx; \
+		pip install Sphinx==1.7.6; \
 		deactivate;\
 	)
 

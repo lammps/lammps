@@ -155,11 +155,13 @@ make
 
 The CMake build exposes a lot of different options. In the old build system
 some of the package selections were possible by using special make target like
-`make yes-std` or `make no-lib`. Achieving the same result with cmake requires
+`make yes-std` or `make no-lib`. Achieving a similar result with cmake requires
 specifying all options manually. This can quickly become a very long command
 line that is hard to handle.  While these could be stored in a simple script
 file, there is another way of defining "presets" to compile LAMMPS in a certain
-way.
+way. Since the cmake build process - contrary to the conventional build system -
+includes the compilation of the bundled libraries into the standard build process,
+the grouping of those presets is somewhat different.
 
 A preset is a regular CMake script file that can use constructs such as
 variables, lists and for-loops to manipulate configuration options and create
@@ -171,10 +173,10 @@ Such a file can then be passed to cmake via the `-C` flag. Several examples of
 presets can be found in the `cmake/presets` folder.
 
 ```bash
-# build LAMMPS with all "standard" packages which don't use libraries and enable GPU package
+# build LAMMPS with all packages enabled which don't use external libraries and enable GPU package
 mkdir build
 cd build
-cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
+cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GPU=on ../cmake
 ```
 
 # Reference
@@ -1429,6 +1431,17 @@ TODO
   </dl>
   </td>
 </tr>
+<tr>
+  <td><code>INTEL_LRT_MODE</code></td>
+  <td>How to support Long-range thread mode in Verlet integration</td>
+  <td>
+  <dl>
+    <dt><code>threads</code> (default, if pthreads available)</dt>
+    <dt><code>none</code> (default, if pthreads not available)</dt>
+    <dt><code>c++11</code></dt>
+  </dl>
+  </td>
+</tr>
 </tbody>
 </table>
 
@@ -1500,6 +1513,16 @@ target API.
   <dl>
     <dt><code>on</code> (default)</dt>
     <dt><code>off</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>CUDA_MPS_SUPPORT</code> (CUDA only)</td>
+  <td>Enable tweaks for running with Nvidia CUDA Multi-process services daemon</td>
+  <td>
+  <dl>
+    <dt><code>on</code></dt>
+    <dt><code>off</code> (default)</dt>
   </dl>
   </td>
 </tr>

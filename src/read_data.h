@@ -31,7 +31,7 @@ class ReadData : protected Pointers {
   ~ReadData();
   void command(int, char **);
 
- private:
+ protected:
   int me,compressed;
   char *line,*copy,*keyword,*buffer,*style;
   FILE *fp;
@@ -109,6 +109,11 @@ class ReadData : protected Pointers {
   void impropercoeffs(int);
 
   void fix(int, char *);
+
+  virtual void init_flags(int *);
+  virtual bool parse_section(int, int *);
+  virtual bool parse_header(int);
+  virtual bool check_section(char *);
 };
 
 }

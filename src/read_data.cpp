@@ -57,6 +57,11 @@ using namespace LAMMPS_NS;
                            // customize for new sections
 #define NSECTIONS 25       // change when add to header::section_keywords
 
+#define NFLAGS 10
+
+enum{ATOMFLAG=0,TOPOFLAG,BONDFLAG,ANGLEFLAG,DIHEDRALFLAG,
+     IMPROPERFLAG,ELLIPSOIDFLAG,LINEFLAG,TRIFLAG,BODYFLAG};
+
 enum{NONE,APPEND,VALUE,MERGE};
 
 // pair style suffixes to ignore
@@ -389,13 +394,8 @@ void ReadData::command(int narg, char **arg)
 
   // flags for this data file
 
-  int atomflag,topoflag;
-  int bondflag,angleflag,dihedralflag,improperflag;
-  int ellipsoidflag,lineflag,triflag,bodyflag;
-
-  atomflag = topoflag = 0;
-  bondflag = angleflag = dihedralflag = improperflag = 0;
-  ellipsoidflag = lineflag = triflag = bodyflag = 0;
+  int flags[NFLAGS];
+  init_flags(flags);
 
   // values in this data file
 
@@ -411,7 +411,6 @@ void ReadData::command(int narg, char **arg)
 
   nlocal_previous = atom->nlocal;
   int firstpass = 1;
-
   while (1) {
 
     // open file on proc 0
@@ -504,214 +503,10 @@ void ReadData::command(int narg, char **arg)
         if (i < nfix) continue;
       }
 
-      if (strcmp(keyword,"Atoms") == 0) {
-        atomflag = 1;
-        if (firstpass) {
-          if (me == 0 && !style_match(style,atom->atom_style))
-            error->warning(FLERR,"Atom style in data file differs "
-                           "from currently defined atom style");
-          atoms();
-        } else skip_lines(natoms);
-      } else if (strcmp(keyword,"Velocities") == 0) {
-        if (atomflag == 0)
-          error->all(FLERR,"Must read Atoms before Velocities");
-        if (firstpass) velocities();
-        else skip_lines(natoms);
-
-      } else if (strcmp(keyword,"Bonds") == 0) {
-        topoflag = bondflag = 1;
-        if (nbonds == 0)
-          error->all(FLERR,"Invalid data file section: Bonds");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bonds");
-        bonds(firstpass);
-      } else if (strcmp(keyword,"Angles") == 0) {
-        topoflag = angleflag = 1;
-        if (nangles == 0)
-          error->all(FLERR,"Invalid data file section: Angles");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Angles");
-        angles(firstpass);
-      } else if (strcmp(keyword,"Dihedrals") == 0) {
-        topoflag = dihedralflag = 1;
-        if (ndihedrals == 0)
-          error->all(FLERR,"Invalid data file section: Dihedrals");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Dihedrals");
-        dihedrals(firstpass);
-      } else if (strcmp(keyword,"Impropers") == 0) {
-        topoflag = improperflag = 1;
-        if (nimpropers == 0)
-          error->all(FLERR,"Invalid data file section: Impropers");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Impropers");
-        impropers(firstpass);
-
-      } else if (strcmp(keyword,"Ellipsoids") == 0) {
-        ellipsoidflag = 1;
-        if (!avec_ellipsoid)
-          error->all(FLERR,"Invalid data file section: Ellipsoids");
-        if (atomflag == 0)
-          error->all(FLERR,"Must read Atoms before Ellipsoids");
-        if (firstpass)
-          bonus(nellipsoids,(AtomVec *) avec_ellipsoid,"ellipsoids");
-        else skip_lines(nellipsoids);
-      } else if (strcmp(keyword,"Lines") == 0) {
-        lineflag = 1;
-        if (!avec_line)
-          error->all(FLERR,"Invalid data file section: Lines");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Lines");
-        if (firstpass) bonus(nlines,(AtomVec *) avec_line,"lines");
-        else skip_lines(nlines);
-      } else if (strcmp(keyword,"Triangles") == 0) {
-        triflag = 1;
-        if (!avec_tri)
-          error->all(FLERR,"Invalid data file section: Triangles");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Triangles");
-        if (firstpass) bonus(ntris,(AtomVec *) avec_tri,"triangles");
-        else skip_lines(ntris);
-      } else if (strcmp(keyword,"Bodies") == 0) {
-        bodyflag = 1;
-        if (!avec_body)
-          error->all(FLERR,"Invalid data file section: Bodies");
-        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bodies");
-        bodies(firstpass);
-
-      } else if (strcmp(keyword,"Masses") == 0) {
-        if (firstpass) mass();
-        else skip_lines(ntypes);
-      } else if (strcmp(keyword,"Pair Coeffs") == 0) {
-        if (force->pair == NULL)
-          error->all(FLERR,"Must define pair_style before Pair Coeffs");
-        if (firstpass) {
-          if (me == 0 && !style_match(style,force->pair_style))
-            error->warning(FLERR,"Pair style in data file differs "
-                           "from currently defined pair style");
-          paircoeffs();
-        } else skip_lines(ntypes);
-      } else if (strcmp(keyword,"PairIJ Coeffs") == 0) {
-        if (force->pair == NULL)
-          error->all(FLERR,"Must define pair_style before PairIJ Coeffs");
-        if (firstpass) {
-          if (me == 0 && !style_match(style,force->pair_style))
-            error->warning(FLERR,"Pair style in data file differs "
-                           "from currently defined pair style");
-          pairIJcoeffs();
-        } else skip_lines(ntypes*(ntypes+1)/2);
-      } else if (strcmp(keyword,"Bond Coeffs") == 0) {
-        if (atom->avec->bonds_allow == 0)
-          error->all(FLERR,"Invalid data file section: Bond Coeffs");
-        if (force->bond == NULL)
-          error->all(FLERR,"Must define bond_style before Bond Coeffs");
-        if (firstpass) {
-          if (me == 0 && !style_match(style,force->bond_style))
-            error->warning(FLERR,"Bond style in data file differs "
-                           "from currently defined bond style");
-          bondcoeffs();
-        } else skip_lines(nbondtypes);
-      } else if (strcmp(keyword,"Angle Coeffs") == 0) {
-        if (atom->avec->angles_allow == 0)
-          error->all(FLERR,"Invalid data file section: Angle Coeffs");
-        if (force->angle == NULL)
-          error->all(FLERR,"Must define angle_style before Angle Coeffs");
-        if (firstpass) {
-          if (me == 0 && !style_match(style,force->angle_style))
-            error->warning(FLERR,"Angle style in data file differs "
-                           "from currently defined angle style");
-          anglecoeffs(0);
-        } else skip_lines(nangletypes);
-      } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
-        if (force->dihedral == NULL)
-          error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
-        if (firstpass) {
-          if (me == 0 && !style_match(style,force->dihedral_style))
-            error->warning(FLERR,"Dihedral style in data file differs "
-                           "from currently defined dihedral style");
-          dihedralcoeffs(0);
-        } else skip_lines(ndihedraltypes);
-      } else if (strcmp(keyword,"Improper Coeffs") == 0) {
-        if (atom->avec->impropers_allow == 0)
-          error->all(FLERR,"Invalid data file section: Improper Coeffs");
-        if (force->improper == NULL)
-          error->all(FLERR,"Must define improper_style before Improper Coeffs");
-        if (firstpass) {
-          if (me == 0 && !style_match(style,force->improper_style))
-            error->warning(FLERR,"Improper style in data file differs "
-                           "from currently defined improper style");
-          impropercoeffs(0);
-        } else skip_lines(nimpropertypes);
-
-      } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
-        if (atom->avec->angles_allow == 0)
-          error->all(FLERR,"Invalid data file section: BondBond Coeffs");
-        if (force->angle == NULL)
-          error->all(FLERR,"Must define angle_style before BondBond Coeffs");
-        if (firstpass) anglecoeffs(1);
-        else skip_lines(nangletypes);
-      } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
-        if (atom->avec->angles_allow == 0)
-          error->all(FLERR,"Invalid data file section: BondAngle Coeffs");
-        if (force->angle == NULL)
-          error->all(FLERR,"Must define angle_style before BondAngle Coeffs");
-        if (firstpass) anglecoeffs(2);
-        else skip_lines(nangletypes);
-
-      } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,
-                     "Invalid data file section: MiddleBondTorsion Coeffs");
-        if (force->dihedral == NULL)
-          error->all(FLERR,
-                     "Must define dihedral_style before "
-                     "MiddleBondTorsion Coeffs");
-        if (firstpass) dihedralcoeffs(1);
-        else skip_lines(ndihedraltypes);
-      } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
-        if (force->dihedral == NULL)
-          error->all(FLERR,
-                     "Must define dihedral_style before EndBondTorsion Coeffs");
-        if (firstpass) dihedralcoeffs(2);
-        else skip_lines(ndihedraltypes);
-      } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
-        if (force->dihedral == NULL)
-          error->all(FLERR,
-                     "Must define dihedral_style before AngleTorsion Coeffs");
-        if (firstpass) dihedralcoeffs(3);
-        else skip_lines(ndihedraltypes);
-      } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,
-                     "Invalid data file section: AngleAngleTorsion Coeffs");
-        if (force->dihedral == NULL)
-          error->all(FLERR,
-                     "Must define dihedral_style before "
-                     "AngleAngleTorsion Coeffs");
-        if (firstpass) dihedralcoeffs(4);
-        else skip_lines(ndihedraltypes);
-      } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,"Invalid data file section: BondBond13 Coeffs");
-        if (force->dihedral == NULL)
-          error->all(FLERR,
-                     "Must define dihedral_style before BondBond13 Coeffs");
-        if (firstpass) dihedralcoeffs(5);
-        else skip_lines(ndihedraltypes);
-
-      } else if (strcmp(keyword,"AngleAngle Coeffs") == 0) {
-        if (atom->avec->impropers_allow == 0)
-          error->all(FLERR,"Invalid data file section: AngleAngle Coeffs");
-        if (force->improper == NULL)
-          error->all(FLERR,
-                     "Must define improper_style before AngleAngle Coeffs");
-        if (firstpass) impropercoeffs(1);
-        else skip_lines(nimpropertypes);
-
-      } else {
-        char str[128];
-        snprintf(str,128,"Unknown identifier in data file: %s",keyword);
-        error->all(FLERR,str);
+      if (!parse_section(firstpass, flags)) {
+	char str[128];
+	snprintf(str,128,"Unknown identifier in data file: %s",keyword);
+	error->all(FLERR,str);
       }
 
       parse_keyword(0);
@@ -719,7 +514,7 @@ void ReadData::command(int narg, char **arg)
 
     // error if natoms > 0 yet no atoms were read
 
-    if (natoms > 0 && atomflag == 0)
+    if (natoms > 0 && flags[ATOMFLAG] == 0)
       error->all(FLERR,"No atoms in data file");
 
     // close file
@@ -737,18 +532,18 @@ void ReadData::command(int narg, char **arg)
     // at end of 1st pass, error check for required sections
     // customize for new sections
 
-    if ((nbonds && !bondflag) || (nangles && !angleflag) ||
-        (ndihedrals && !dihedralflag) || (nimpropers && !improperflag))
+    if ((nbonds && !flags[BONDFLAG]) || (nangles && !flags[ANGLEFLAG]) ||
+        (ndihedrals && !flags[DIHEDRALFLAG]) || (nimpropers && !flags[IMPROPERFLAG]))
       error->one(FLERR,"Needed molecular topology not in data file");
 
-    if ((nellipsoids && !ellipsoidflag) || (nlines && !lineflag) ||
-        (ntris && !triflag) || (nbodies && !bodyflag))
+    if ((nellipsoids && !flags[ELLIPSOIDFLAG]) || (nlines && !flags[LINEFLAG]) ||
+        (ntris && !flags[TRIFLAG]) || (nbodies && !flags[BODYFLAG]))
       error->one(FLERR,"Needed bonus data not in data file");
 
     // break out of loop if no molecular topology in file
     // else make 2nd pass
 
-    if (!topoflag) break;
+    if (!flags[TOPOFLAG]) break;
     firstpass = 0;
 
     // reallocate bond,angle,diehdral,improper arrays via grow()
@@ -923,6 +718,230 @@ void ReadData::command(int narg, char **arg)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ReadData::init_flags(int *flags)
+{
+  for (int i = 0; i < NFLAGS; i++)
+    flags[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   parse a data file section
+     returns false if no section could be recognized
+     returns true otherwise
+------------------------------------------------------------------------- */
+
+bool ReadData::parse_section(int firstpass, int *flags)
+{
+  if (strcmp(keyword,"Atoms") == 0) {
+    flags[ATOMFLAG] = 1;
+    if (firstpass) {
+      if (me == 0 && !style_match(style,atom->atom_style))
+	error->warning(FLERR,"Atom style in data file differs "
+		       "from currently defined atom style");
+      atoms();
+    } else skip_lines(natoms);
+  } else if (strcmp(keyword,"Velocities") == 0) {
+    if (flags[ATOMFLAG] == 0)
+      error->all(FLERR,"Must read Atoms before Velocities");
+    if (firstpass) velocities();
+    else skip_lines(natoms);
+
+  } else if (strcmp(keyword,"Bonds") == 0) {
+    flags[TOPOFLAG] = flags[BONDFLAG] = 1;
+    if (nbonds == 0)
+      error->all(FLERR,"Invalid data file section: Bonds");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Bonds");
+    bonds(firstpass);
+  } else if (strcmp(keyword,"Angles") == 0) {
+    flags[TOPOFLAG] = flags[ANGLEFLAG] = 1;
+    if (nangles == 0)
+      error->all(FLERR,"Invalid data file section: Angles");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Angles");
+    angles(firstpass);
+  } else if (strcmp(keyword,"Dihedrals") == 0) {
+    flags[TOPOFLAG] = flags[DIHEDRALFLAG] = 1;
+    if (ndihedrals == 0)
+      error->all(FLERR,"Invalid data file section: Dihedrals");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Dihedrals");
+    dihedrals(firstpass);
+  } else if (strcmp(keyword,"Impropers") == 0) {
+    flags[TOPOFLAG] = flags[IMPROPERFLAG] = 1;
+    if (nimpropers == 0)
+      error->all(FLERR,"Invalid data file section: Impropers");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Impropers");
+    impropers(firstpass);
+
+  } else if (strcmp(keyword,"Ellipsoids") == 0) {
+    flags[ELLIPSOIDFLAG] = 1;
+    if (!avec_ellipsoid)
+      error->all(FLERR,"Invalid data file section: Ellipsoids");
+    if (flags[ATOMFLAG] == 0)
+      error->all(FLERR,"Must read Atoms before Ellipsoids");
+    if (firstpass)
+      bonus(nellipsoids,(AtomVec *) avec_ellipsoid,"ellipsoids");
+    else skip_lines(nellipsoids);
+  } else if (strcmp(keyword,"Lines") == 0) {
+    flags[LINEFLAG] = 1;
+    if (!avec_line)
+      error->all(FLERR,"Invalid data file section: Lines");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Lines");
+    if (firstpass) bonus(nlines,(AtomVec *) avec_line,"lines");
+    else skip_lines(nlines);
+  } else if (strcmp(keyword,"Triangles") == 0) {
+    flags[TRIFLAG] = 1;
+    if (!avec_tri)
+      error->all(FLERR,"Invalid data file section: Triangles");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Triangles");
+    if (firstpass) bonus(ntris,(AtomVec *) avec_tri,"triangles");
+    else skip_lines(ntris);
+  } else if (strcmp(keyword,"Bodies") == 0) {
+    flags[BODYFLAG] = 1;
+    if (!avec_body)
+      error->all(FLERR,"Invalid data file section: Bodies");
+    if (flags[ATOMFLAG] == 0) error->all(FLERR,"Must read Atoms before Bodies");
+    bodies(firstpass);
+
+  } else if (strcmp(keyword,"Masses") == 0) {
+    if (firstpass) mass();
+    else skip_lines(ntypes);
+  } else if (strcmp(keyword,"Pair Coeffs") == 0) {
+    if (force->pair == NULL)
+      error->all(FLERR,"Must define pair_style before Pair Coeffs");
+    if (firstpass) {
+      if (me == 0 && !style_match(style,force->pair_style))
+	error->warning(FLERR,"Pair style in data file differs "
+		       "from currently defined pair style");
+      paircoeffs();
+    } else skip_lines(ntypes);
+  } else if (strcmp(keyword,"PairIJ Coeffs") == 0) {
+    if (force->pair == NULL)
+      error->all(FLERR,"Must define pair_style before PairIJ Coeffs");
+    if (firstpass) {
+      if (me == 0 && !style_match(style,force->pair_style))
+	error->warning(FLERR,"Pair style in data file differs "
+		       "from currently defined pair style");
+      pairIJcoeffs();
+    } else skip_lines(ntypes*(ntypes+1)/2);
+  } else if (strcmp(keyword,"Bond Coeffs") == 0) {
+    if (atom->avec->bonds_allow == 0)
+      error->all(FLERR,"Invalid data file section: Bond Coeffs");
+    if (force->bond == NULL)
+      error->all(FLERR,"Must define bond_style before Bond Coeffs");
+    if (firstpass) {
+      if (me == 0 && !style_match(style,force->bond_style))
+	error->warning(FLERR,"Bond style in data file differs "
+		       "from currently defined bond style");
+      bondcoeffs();
+    } else skip_lines(nbondtypes);
+  } else if (strcmp(keyword,"Angle Coeffs") == 0) {
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR,"Invalid data file section: Angle Coeffs");
+    if (force->angle == NULL)
+      error->all(FLERR,"Must define angle_style before Angle Coeffs");
+    if (firstpass) {
+      if (me == 0 && !style_match(style,force->angle_style))
+	error->warning(FLERR,"Angle style in data file differs "
+		       "from currently defined angle style");
+      anglecoeffs(0);
+    } else skip_lines(nangletypes);
+  } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
+    if (force->dihedral == NULL)
+      error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
+    if (firstpass) {
+      if (me == 0 && !style_match(style,force->dihedral_style))
+	error->warning(FLERR,"Dihedral style in data file differs "
+		       "from currently defined dihedral style");
+      dihedralcoeffs(0);
+    } else skip_lines(ndihedraltypes);
+  } else if (strcmp(keyword,"Improper Coeffs") == 0) {
+    if (atom->avec->impropers_allow == 0)
+      error->all(FLERR,"Invalid data file section: Improper Coeffs");
+    if (force->improper == NULL)
+      error->all(FLERR,"Must define improper_style before Improper Coeffs");
+    if (firstpass) {
+      if (me == 0 && !style_match(style,force->improper_style))
+	error->warning(FLERR,"Improper style in data file differs "
+		       "from currently defined improper style");
+      impropercoeffs(0);
+    } else skip_lines(nimpropertypes);
+
+  } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR,"Invalid data file section: BondBond Coeffs");
+    if (force->angle == NULL)
+      error->all(FLERR,"Must define angle_style before BondBond Coeffs");
+    if (firstpass) anglecoeffs(1);
+    else skip_lines(nangletypes);
+  } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR,"Invalid data file section: BondAngle Coeffs");
+    if (force->angle == NULL)
+      error->all(FLERR,"Must define angle_style before BondAngle Coeffs");
+    if (firstpass) anglecoeffs(2);
+    else skip_lines(nangletypes);
+
+  } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR,
+		 "Invalid data file section: MiddleBondTorsion Coeffs");
+    if (force->dihedral == NULL)
+      error->all(FLERR,
+		 "Must define dihedral_style before "
+		 "MiddleBondTorsion Coeffs");
+    if (firstpass) dihedralcoeffs(1);
+    else skip_lines(ndihedraltypes);
+  } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
+    if (force->dihedral == NULL)
+      error->all(FLERR,
+		 "Must define dihedral_style before EndBondTorsion Coeffs");
+    if (firstpass) dihedralcoeffs(2);
+    else skip_lines(ndihedraltypes);
+  } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
+    if (force->dihedral == NULL)
+      error->all(FLERR,
+		 "Must define dihedral_style before AngleTorsion Coeffs");
+    if (firstpass) dihedralcoeffs(3);
+    else skip_lines(ndihedraltypes);
+  } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR,
+		 "Invalid data file section: AngleAngleTorsion Coeffs");
+    if (force->dihedral == NULL)
+      error->all(FLERR,
+		 "Must define dihedral_style before "
+		 "AngleAngleTorsion Coeffs");
+    if (firstpass) dihedralcoeffs(4);
+    else skip_lines(ndihedraltypes);
+  } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR,"Invalid data file section: BondBond13 Coeffs");
+    if (force->dihedral == NULL)
+      error->all(FLERR,
+		 "Must define dihedral_style before BondBond13 Coeffs");
+    if (firstpass) dihedralcoeffs(5);
+    else skip_lines(ndihedraltypes);
+
+  } else if (strcmp(keyword,"AngleAngle Coeffs") == 0) {
+    if (atom->avec->impropers_allow == 0)
+      error->all(FLERR,"Invalid data file section: AngleAngle Coeffs");
+    if (force->improper == NULL)
+      error->all(FLERR,
+		 "Must define improper_style before AngleAngle Coeffs");
+    if (firstpass) impropercoeffs(1);
+    else skip_lines(nimpropertypes);
+
+  } else return false;
+  return true;
+}
+
 /* ----------------------------------------------------------------------
    read free-format header of data file
    1st line and blank lines are skipped
@@ -937,17 +956,6 @@ void ReadData::header(int firstpass)
 {
   int n;
   char *ptr;
-
-  // customize for new sections
-
-  const char *section_keywords[NSECTIONS] =
-    {"Atoms","Velocities","Ellipsoids","Lines","Triangles","Bodies",
-     "Bonds","Angles","Dihedrals","Impropers",
-     "Masses","Pair Coeffs","PairIJ Coeffs","Bond Coeffs","Angle Coeffs",
-     "Dihedral Coeffs","Improper Coeffs",
-     "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
-     "EndBondTorsion Coeffs","AngleTorsion Coeffs",
-     "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs"};
 
   // skip 1st line of file
 
@@ -995,117 +1003,7 @@ void ReadData::header(int firstpass)
       if (n < nfix) continue;
     }
 
-    // search line for header keyword and set corresponding variable
-    // customize for new header lines
-    // check for triangles before angles so "triangles" not matched as "angles"
-    int extra_flag_value = 0;
-
-    if (strstr(line,"atoms")) {
-      sscanf(line,BIGINT_FORMAT,&natoms);
-      if (addflag == NONE) atom->natoms = natoms;
-      else if (firstpass) atom->natoms += natoms;
-
-    } else if (strstr(line,"ellipsoids")) {
-      if (!avec_ellipsoid)
-        error->all(FLERR,"No ellipsoids allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nellipsoids);
-      if (addflag == NONE) atom->nellipsoids = nellipsoids;
-      else if (firstpass) atom->nellipsoids += nellipsoids;
-
-    } else if (strstr(line,"lines")) {
-      if (!avec_line)
-        error->all(FLERR,"No lines allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nlines);
-      if (addflag == NONE) atom->nlines = nlines;
-      else if (firstpass) atom->nlines += nlines;
-
-    } else if (strstr(line,"triangles")) {
-      if (!avec_tri)
-        error->all(FLERR,"No triangles allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&ntris);
-      if (addflag == NONE) atom->ntris = ntris;
-      else if (firstpass) atom->ntris += ntris;
-
-    } else if (strstr(line,"bodies")) {
-      if (!avec_body)
-        error->all(FLERR,"No bodies allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nbodies);
-      if (addflag == NONE) atom->nbodies = nbodies;
-      else if (firstpass) atom->nbodies += nbodies;
-
-    } else if (strstr(line,"bonds")) {
-      sscanf(line,BIGINT_FORMAT,&nbonds);
-      if (addflag == NONE) atom->nbonds = nbonds;
-      else if (firstpass) atom->nbonds += nbonds;
-    } else if (strstr(line,"angles")) {
-      sscanf(line,BIGINT_FORMAT,&nangles);
-      if (addflag == NONE) atom->nangles = nangles;
-      else if (firstpass) atom->nangles += nangles;
-    } else if (strstr(line,"dihedrals")) {
-      sscanf(line,BIGINT_FORMAT,&ndihedrals);
-      if (addflag == NONE) atom->ndihedrals = ndihedrals;
-      else if (firstpass) atom->ndihedrals += ndihedrals;
-    } else if (strstr(line,"impropers")) {
-      sscanf(line,BIGINT_FORMAT,&nimpropers);
-      if (addflag == NONE) atom->nimpropers = nimpropers;
-      else if (firstpass) atom->nimpropers += nimpropers;
-
-    // Atom class type settings are only set by first data file
-
-    } else if (strstr(line,"atom types")) {
-      sscanf(line,"%d",&ntypes);
-      if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
-    } else if (strstr(line,"bond types")) {
-      sscanf(line,"%d",&nbondtypes);
-      if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
-    } else if (strstr(line,"angle types")) {
-      sscanf(line,"%d",&nangletypes);
-      if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
-    } else if (strstr(line,"dihedral types")) {
-      sscanf(line,"%d",&ndihedraltypes);
-      if (addflag == NONE)
-        atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
-    } else if (strstr(line,"improper types")) {
-      sscanf(line,"%d",&nimpropertypes);
-      if (addflag == NONE)
-        atom->nimpropertypes = nimpropertypes + extra_improper_types;
-
-    // these settings only used by first data file
-    // also, these are obsolescent. we parse them to maintain backward
-    // compatibility, but the recommended way is to set them via keywords
-    // in the LAMMPS input file. In case these flags are set in both,
-    // the input and the data file, we use the larger of the two.
-
-    } else if (strstr(line,"extra bond per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
-      atom->extra_bond_per_atom = MAX(atom->extra_bond_per_atom,extra_flag_value);
-    } else if (strstr(line,"extra angle per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
-      atom->extra_angle_per_atom = MAX(atom->extra_angle_per_atom,extra_flag_value);
-    } else if (strstr(line,"extra dihedral per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
-      atom->extra_dihedral_per_atom = MAX(atom->extra_dihedral_per_atom,extra_flag_value);
-    } else if (strstr(line,"extra improper per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
-      atom->extra_improper_per_atom = MAX(atom->extra_improper_per_atom,extra_flag_value);
-    } else if (strstr(line,"extra special per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
-      force->special_extra = MAX(force->special_extra,extra_flag_value);
-
-    // local copy of box info
-    // so can treat differently for first vs subsequent data files
-
-    } else if (strstr(line,"xlo xhi")) {
-      sscanf(line,"%lg %lg",&boxlo[0],&boxhi[0]);
-    } else if (strstr(line,"ylo yhi")) {
-      sscanf(line,"%lg %lg",&boxlo[1],&boxhi[1]);
-    } else if (strstr(line,"zlo zhi")) {
-      sscanf(line,"%lg %lg",&boxlo[2],&boxhi[2]);
-    } else if (strstr(line,"xy xz yz")) {
-      triclinic = 1;
-      sscanf(line,"%lg %lg %lg",&xy,&xz,&yz);
-
-    } else break;
+    if (!parse_header(firstpass)) break;
   }
 
   // error check on total system size
@@ -1124,9 +1022,7 @@ void ReadData::header(int firstpass)
   // check that exiting string is a valid section keyword
 
   parse_keyword(1);
-  for (n = 0; n < NSECTIONS; n++)
-    if (strcmp(keyword,section_keywords[n]) == 0) break;
-  if (n == NSECTIONS) {
+  if (!check_section(keyword)) {
     char str[128];
     sprintf(str,"Unknown identifier in data file: %s",keyword);
     error->all(FLERR,str);
@@ -1163,6 +1059,147 @@ void ReadData::header(int firstpass)
   }
 }
 
+/* ----------------------------------------------------------------------
+   parse one header, returns 1 if any header was sucessfully parsed
+------------------------------------------------------------------------- */
+
+bool ReadData::parse_header(int firstpass)
+{
+  // search line for header keyword and set corresponding variable
+  // customize for new header lines
+  // check for triangles before angles so "triangles" not matched as "angles"
+  int extra_flag_value = 0;
+
+  if (strstr(line,"atoms")) {
+    sscanf(line,BIGINT_FORMAT,&natoms);
+    if (addflag == NONE) atom->natoms = natoms;
+    else if (firstpass) atom->natoms += natoms;
+
+  } else if (strstr(line,"ellipsoids")) {
+    if (!avec_ellipsoid)
+      error->all(FLERR,"No ellipsoids allowed with this atom style");
+    sscanf(line,BIGINT_FORMAT,&nellipsoids);
+    if (addflag == NONE) atom->nellipsoids = nellipsoids;
+    else if (firstpass) atom->nellipsoids += nellipsoids;
+
+  } else if (strstr(line,"lines")) {
+    if (!avec_line)
+      error->all(FLERR,"No lines allowed with this atom style");
+    sscanf(line,BIGINT_FORMAT,&nlines);
+    if (addflag == NONE) atom->nlines = nlines;
+    else if (firstpass) atom->nlines += nlines;
+
+  } else if (strstr(line,"triangles")) {
+    if (!avec_tri)
+      error->all(FLERR,"No triangles allowed with this atom style");
+    sscanf(line,BIGINT_FORMAT,&ntris);
+    if (addflag == NONE) atom->ntris = ntris;
+    else if (firstpass) atom->ntris += ntris;
+
+  } else if (strstr(line,"bodies")) {
+    if (!avec_body)
+      error->all(FLERR,"No bodies allowed with this atom style");
+    sscanf(line,BIGINT_FORMAT,&nbodies);
+    if (addflag == NONE) atom->nbodies = nbodies;
+    else if (firstpass) atom->nbodies += nbodies;
+
+  } else if (strstr(line,"bonds")) {
+    sscanf(line,BIGINT_FORMAT,&nbonds);
+    if (addflag == NONE) atom->nbonds = nbonds;
+    else if (firstpass) atom->nbonds += nbonds;
+  } else if (strstr(line,"angles")) {
+    sscanf(line,BIGINT_FORMAT,&nangles);
+    if (addflag == NONE) atom->nangles = nangles;
+    else if (firstpass) atom->nangles += nangles;
+  } else if (strstr(line,"dihedrals")) {
+    sscanf(line,BIGINT_FORMAT,&ndihedrals);
+    if (addflag == NONE) atom->ndihedrals = ndihedrals;
+    else if (firstpass) atom->ndihedrals += ndihedrals;
+  } else if (strstr(line,"impropers")) {
+    sscanf(line,BIGINT_FORMAT,&nimpropers);
+    if (addflag == NONE) atom->nimpropers = nimpropers;
+    else if (firstpass) atom->nimpropers += nimpropers;
+
+    // Atom class type settings are only set by first data file
+
+  } else if (strstr(line,"atom types")) {
+    sscanf(line,"%d",&ntypes);
+    if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
+  } else if (strstr(line,"bond types")) {
+    sscanf(line,"%d",&nbondtypes);
+    if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
+  } else if (strstr(line,"angle types")) {
+    sscanf(line,"%d",&nangletypes);
+    if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
+  } else if (strstr(line,"dihedral types")) {
+    sscanf(line,"%d",&ndihedraltypes);
+    if (addflag == NONE)
+      atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
+  } else if (strstr(line,"improper types")) {
+    sscanf(line,"%d",&nimpropertypes);
+    if (addflag == NONE)
+      atom->nimpropertypes = nimpropertypes + extra_improper_types;
+
+    // these settings only used by first data file
+    // also, these are obsolescent. we parse them to maintain backward
+    // compatibility, but the recommended way is to set them via keywords
+    // in the LAMMPS input file. In case these flags are set in both,
+    // the input and the data file, we use the larger of the two.
+
+  } else if (strstr(line,"extra bond per atom")) {
+    if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+    atom->extra_bond_per_atom = MAX(atom->extra_bond_per_atom,extra_flag_value);
+  } else if (strstr(line,"extra angle per atom")) {
+    if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+    atom->extra_angle_per_atom = MAX(atom->extra_angle_per_atom,extra_flag_value);
+  } else if (strstr(line,"extra dihedral per atom")) {
+    if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+    atom->extra_dihedral_per_atom = MAX(atom->extra_dihedral_per_atom,extra_flag_value);
+  } else if (strstr(line,"extra improper per atom")) {
+    if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+    atom->extra_improper_per_atom = MAX(atom->extra_improper_per_atom,extra_flag_value);
+  } else if (strstr(line,"extra special per atom")) {
+    if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+    force->special_extra = MAX(force->special_extra,extra_flag_value);
+
+    // local copy of box info
+    // so can treat differently for first vs subsequent data files
+
+  } else if (strstr(line,"xlo xhi")) {
+    sscanf(line,"%lg %lg",&boxlo[0],&boxhi[0]);
+  } else if (strstr(line,"ylo yhi")) {
+    sscanf(line,"%lg %lg",&boxlo[1],&boxhi[1]);
+  } else if (strstr(line,"zlo zhi")) {
+    sscanf(line,"%lg %lg",&boxlo[2],&boxhi[2]);
+  } else if (strstr(line,"xy xz yz")) {
+    triclinic = 1;
+    sscanf(line,"%lg %lg %lg",&xy,&xz,&yz);
+
+  } else return false;
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+   check if str is a valid section name
+     returns true if valid
+------------------------------------------------------------------------- */
+
+bool ReadData::check_section(char *str)
+{
+  const char *section_keywords[NSECTIONS] =
+    {"Atoms","Velocities","Ellipsoids","Lines","Triangles","Bodies",
+     "Bonds","Angles","Dihedrals","Impropers",
+     "Masses","Pair Coeffs","PairIJ Coeffs","Bond Coeffs","Angle Coeffs",
+     "Dihedral Coeffs","Improper Coeffs",
+     "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
+     "EndBondTorsion Coeffs","AngleTorsion Coeffs",
+     "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs"};
+
+  for (int i = 0; i < NSECTIONS; i++)
+    if (strcmp(str,section_keywords[i]) == 0) return true;
+  return false;
+}
+ 
 /* ----------------------------------------------------------------------
    read all atoms
 ------------------------------------------------------------------------- */

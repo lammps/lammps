@@ -23,6 +23,16 @@
 # endif
 #endif
 
+// declaration to indicate intended fallthrough cases in switch statements
+// and thus silence the warnings produced by g++ -Wextra
+
+#if defined(__GNUC__)
+#define _fallthrough  __attribute__ ((fallthrough))
+#else
+#define _fallthrough
+#endif
+
+
 #define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
 
 /*
@@ -291,17 +301,17 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     /*-------------------------------- last block: affect all 32 bits of (c) */
     switch(length)                   /* all the case statements fall through */
     {
-    case 12: c+=((uint32_t)k[11])<<24;
-    case 11: c+=((uint32_t)k[10])<<16;
-    case 10: c+=((uint32_t)k[9])<<8;
-    case 9 : c+=k[8];
-    case 8 : b+=((uint32_t)k[7])<<24;
-    case 7 : b+=((uint32_t)k[6])<<16;
-    case 6 : b+=((uint32_t)k[5])<<8;
-    case 5 : b+=k[4];
-    case 4 : a+=((uint32_t)k[3])<<24;
-    case 3 : a+=((uint32_t)k[2])<<16;
-    case 2 : a+=((uint32_t)k[1])<<8;
+    case 12: c+=((uint32_t)k[11])<<24; _fallthrough;
+    case 11: c+=((uint32_t)k[10])<<16; _fallthrough;
+    case 10: c+=((uint32_t)k[9])<<8;   _fallthrough;
+    case 9 : c+=k[8];                  _fallthrough;
+    case 8 : b+=((uint32_t)k[7])<<24;  _fallthrough;
+    case 7 : b+=((uint32_t)k[6])<<16;  _fallthrough;
+    case 6 : b+=((uint32_t)k[5])<<8;   _fallthrough;
+    case 5 : b+=k[4];                  _fallthrough;
+    case 4 : a+=((uint32_t)k[3])<<24;  _fallthrough;
+    case 3 : a+=((uint32_t)k[2])<<16;  _fallthrough;
+    case 2 : a+=((uint32_t)k[1])<<8;   _fallthrough;
     case 1 : a+=k[0];
              break;
     case 0 : return c;

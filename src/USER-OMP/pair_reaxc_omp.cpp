@@ -113,7 +113,7 @@ PairReaxCOMP::~PairReaxCOMP()
   if (setup_flag) {
     reax_list * bonds = lists+BONDS;
     for (int i=0; i<bonds->num_intrs; ++i)
-      sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+      sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
   }
   memory->destroy(num_nbrs_offset);
 
@@ -209,7 +209,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   setup();
 
-  Reset( system, control, data, workspace, &lists, world );
+  Reset( system, control, data, workspace, &lists );
 
   // Why not update workspace like in MPI-only code?
   // Using the MPI-only way messes up the hb energy
@@ -410,12 +410,12 @@ void PairReaxCOMP::setup( )
 
     // initialize my data structures
 
-    PreAllocate_Space( system, control, workspace, world );
+    PreAllocate_Space( system, control, workspace );
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
-                  lists+FAR_NBRS, world))
+                  lists+FAR_NBRS))
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
 
     write_reax_lists();
@@ -445,7 +445,7 @@ void PairReaxCOMP::setup( )
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( system, control, data, workspace, &lists, mpi_data );
+    ReAllocate( system, control, data, workspace, &lists );
   }
 }
 

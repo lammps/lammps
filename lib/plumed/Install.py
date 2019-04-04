@@ -75,6 +75,8 @@ if pathflag:
     if not os.path.isdir(plumedpath):
       sys.exit("Plumed2 path %s does not exist" % plumedpath)
     homedir = fullpath(plumedpath)
+    if not os.path.isdir(os.path.join(homedir, 'include', 'plumed', 'core')):
+      sys.exit("No Plumed2 installation found at %s" % plumedpath)
 
 # download and unpack plumed2 tarball
 

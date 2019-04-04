@@ -109,8 +109,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = NULL;
   system->pair_ptr = this;
-  system->error_ptr = this->lmp->error;
-  control->error_ptr = this->lmp->error;
+  system->error_ptr = error;
+  control->error_ptr = error;
 
   system->omp_active = 0;
 
@@ -447,7 +447,7 @@ void PairReaxC::setup( )
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS))
       error->one(FLERR,"Pair reax/c problem in far neighbor list");
-    (lists+FAR_NBRS)->error_ptr=lmp->error;
+    (lists+FAR_NBRS)->error_ptr=error;
 
     write_reax_lists();
     Initialize( system, control, data, workspace, &lists, out_control,

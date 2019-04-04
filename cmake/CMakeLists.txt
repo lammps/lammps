@@ -367,7 +367,7 @@ if(PKG_KSPACE)
   endif()
 endif()
 
-if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-PLUMED OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
@@ -577,8 +577,8 @@ if(PKG_USER-PLUMED)
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.4/plumed-src-2.4.4.tgz
-      URL_MD5 71ed465bdc7c2059e282dbda8d564e71
+      URL https://github.com/plumed/plumed2/releases/download/v2.5.1/plumed-src-2.5.1.tgz
+      URL_MD5 c2a7b519e32197a120cdf47e0f194f81
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                                ${CONFIGURE_REQUEST_PIC}
@@ -593,10 +593,9 @@ if(PKG_USER-PLUMED)
     list(APPEND LAMMPS_DEPS plumed_build)
     if(PLUMED_MODE STREQUAL "STATIC")
       add_definitions(-D__PLUMED_WRAPPER_CXX=1)
-      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/plumed/obj/kernel.o
-        "${PLUMED_INSTALL_DIR}/lib/plumed/obj/PlumedStatic.o" ${GSL_LIBRARIES} ${CMAKE_DL_LIBS})
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.a ${GSL_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_DL_LIBS})
     elseif(PLUMED_MODE STREQUAL "SHARED")
-      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.so ${CMAKE_DL_LIBS})
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.so ${PLUMED_INSTALL_DIR}/lib/libplumedKernel.so ${CMAKE_DL_LIBS})
     elseif(PLUMED_MODE STREQUAL "RUNTIME")
       add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_INSTALL_DIR}/lib/libplumedKernel.so)
       list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumedWrapper.a -rdynamic ${CMAKE_DL_LIBS})

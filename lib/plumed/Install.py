@@ -17,7 +17,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.4.4"
+version = "2.5.1"
 mode = "static"
 
 # help message
@@ -43,6 +43,7 @@ checksums = { \
         '2.4.3' : 'b1be7c48971627febc11c61b70767fc5', \
         '2.4.4' : '71ed465bdc7c2059e282dbda8d564e71', \
         '2.5.0' : '6224cd089493661e19ceacccd35cf911', \
+        '2.5.1' : 'c2a7b519e32197a120cdf47e0f194f81', \
         }
 
 # parse and process arguments
@@ -67,6 +68,7 @@ if not args.build and not args.path:
 buildflag = args.build
 pathflag = args.path is not None
 plumedpath = args.path
+mode = args.mode
 
 homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
@@ -129,7 +131,7 @@ if os.path.isfile("Makefile.lammps.%s" % mode):
   lines1 = open(plumedinc, 'r').readlines()
   lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
   fp = open("Makefile.lammps", 'w')
-  fp.write(os.path.join("PLUMED_LIBDIR=", homedir, "lib\n"))
+  fp.write("PLUMED_LIBDIR=" + os.path.join(homedir, "lib\n"))
   for line in lines1:
     fp.write(line)
   for line in lines2:

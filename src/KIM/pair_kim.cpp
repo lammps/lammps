@@ -481,7 +481,7 @@ void PairKIM::init_style()
       for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
       {
         lmps_stripped_neigh_ptr[i]
-            = &(lmps_stripped_neigh_list[(i-1)*(neighbor->oneatom)]);
+            = &(lmps_stripped_neigh_list[i*(neighbor->oneatom)]);
       }
 
    }

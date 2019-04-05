@@ -19,7 +19,7 @@ pair_style granular command :h3
 
 pair_style granular cutoff :pre
 
-cutoff = global cutoff (optional).  See discussion below. :l
+cutoff = global cutoff (optional).  See discussion below. :ul
 
 [Examples:]
 

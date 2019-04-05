@@ -22,10 +22,6 @@
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 
-// customize by adding a new server protocol enum
-
-enum{MD,MC};
-
 /* ---------------------------------------------------------------------- */
 
 void Message::command(int narg, char **arg)
@@ -38,12 +34,10 @@ void Message::command(int narg, char **arg)
   else error->all(FLERR,"Illegal message command");
   lmp->clientserver = clientserver;
 
-  // customize by adding a new server protocol
+  // validate supported protocols
 
-  int protocol;
-  if (strcmp(arg[1],"md") == 0) protocol = MD;
-  else if (strcmp(arg[1],"mc") == 0) protocol = MC;
-  else error->all(FLERR,"Unknown message protocol");
+  if ((strcmp(arg[1],"md") != 0) && (strcmp(arg[1],"mc") != 0))
+    error->all(FLERR,"Unknown message protocol");
 
   // instantiate CSlib with chosen communication mode
 

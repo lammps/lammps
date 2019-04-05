@@ -78,7 +78,7 @@ ServerMD::~ServerMD()
 
 void ServerMD::loop()
 {
-  int i,j,m;
+  int j,m;
 
   // cs = instance of CSlib
 

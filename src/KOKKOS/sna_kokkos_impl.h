@@ -20,7 +20,7 @@
 #include <cstring>
 #include <cstdlib>
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
 
 static const double MY_PI  = 3.14159265358979323846; // pi
 
@@ -1300,3 +1300,5 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += jdim * jdim * jdim * jdim * jdim * sizeof(std::complex<double>);
   return bytes;
 }
+
+} // namespace LAMMPS_NS

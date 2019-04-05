@@ -164,10 +164,11 @@ void PairSpinMagelec::init_style()
   int ifix = 0;
   while (ifix < modify->nfix) {
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
+    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
     ifix++;
   }
   if ((ifix == modify->nfix) && (comm->me == 0))
-    error->warning(FLERR,"Using pair/spin style without nve/spin");
+    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
 
   // get the lattice_flag from nve/spin
 

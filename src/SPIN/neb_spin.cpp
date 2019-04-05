@@ -111,6 +111,8 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   double **sp = atom->sp;
   int nlocal = atom->nlocal;
 
+  int temp_flag,rot_flag;
+  temp_flag = rot_flag = 0;
   int ii = 0;
   double spinit[3],spfinal[3];
   for (int i = 0; i < nlocal; i++) {
@@ -123,7 +125,7 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
     spfinal[2] = buf_final[ii+2];
 
     // interpolate intermediate spin states
-  
+ 
     if (fraction == 0.0) {
       sp[i][0] = spinit[0];
       sp[i][1] = spinit[1];
@@ -133,7 +135,8 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
       sp[i][1] = spfinal[1];
       sp[i][2] = spfinal[2];
     } else {
-      initial_rotation(spinit,spfinal,fraction);
+      temp_flag = initial_rotation(spinit,spfinal,fraction);
+      rot_flag = MAX(temp_flag,rot_flag);
       sp[i][0] = spfinal[0];
       sp[i][1] = spfinal[1];
       sp[i][2] = spfinal[2];
@@ -141,6 +144,14 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
 
     ii += 3;
   }
+
+  // warning message if one or more couples (spi,spf) were aligned
+  // this breaks Rodrigues' formula, and an arbitrary rotation
+  // vector has to be chosen
+  
+  if ((rot_flag > 0) && (comm->me == 0))
+    error->warning(FLERR,"arbitrary initial rotation of one or more spin(s)");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -494,6 +505,8 @@ void NEB_spin::readfile(char *file, int flag)
 
   int ncount = 0;
 
+  int temp_flag,rot_flag;
+  temp_flag = rot_flag = 0;
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
@@ -566,7 +579,8 @@ void NEB_spin::readfile(char *file, int flag)
 	    sp[m][1] = spfinal[1];
 	    sp[m][2] = spfinal[2];
 	  } else {
-	    initial_rotation(spinit,spfinal,fraction);
+            temp_flag = initial_rotation(spinit,spfinal,fraction);
+            rot_flag = MAX(temp_flag,rot_flag);
 	    sp[m][0] = spfinal[0];
 	    sp[m][1] = spfinal[1];
 	    sp[m][2] = spfinal[2];
@@ -587,6 +601,13 @@ void NEB_spin::readfile(char *file, int flag)
 
     nread += nchunk;
   }
+
+  // warning message if one or more couples (spi,spf) were aligned
+  // this breaks Rodrigues' formula, and an arbitrary rotation
+  // vector has to be chosen
+  
+  if ((rot_flag > 0) && (comm->me == 0))
+    error->warning(FLERR,"arbitrary initial rotation of one or more spin(s)");
 
   // check that all atom IDs in file were found by a proc
 
@@ -621,69 +642,24 @@ void NEB_spin::readfile(char *file, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   initial configuration of spin sploc using Rodrigues' formula
+   initial configuration of intermediate spins using Rodrigues' formula
    interpolates between initial (spi) and final (stored in sploc) 
 ------------------------------------------------------------------------- */
 
-void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
+int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 {
   
-  // implementing initial rotation using atan2
-  // this may not be a sufficient routine, need more accurate verifications
+  // no interpolation for initial and final replica
 
-  // interpolation only for intermediate replica
+  if (fraction == 0.0 || fraction == 1.0) return 0;
 
-  if (fraction == 0.0 || fraction == 1.0) return;
-
-  // initial, final and inter ang. values 
-  
-  //double itheta,iphi,ftheta,fphi,ktheta,kphi;
-  //double spix,spiy,spiz,spfx,spfy,spfz;
-  //double spkx,spky,spkz,iknorm;
-
-  //spix = spi[0];
-  //spiy = spi[1];
-  //spiz = spi[2];
-
-  //spfx = sploc[0];
-  //spfy = sploc[1];
-  //spfz = sploc[2];
-
-  //iphi = itheta = fphi = ftheta = 0.0;
-
-  //iphi = acos(spiz);
-  //if (sin(iphi) != 0.0)
-  // itheta = acos(spix/sin(iphi));
-
-  //fphi = acos(spfz);
-  //if (sin(fphi) != 0.0)
-  //  ftheta = acos(spfx/sin(fphi));
- 
-  //kphi = iphi + fraction*(fphi-iphi);
-  //ktheta = itheta + fraction*(ftheta-itheta);
- 
-  //spkx = cos(ktheta)*sin(kphi);
-  //spky = sin(ktheta)*sin(kphi);
-  //spkz = cos(kphi);
-
-  //double knormsq = spkx*spkx + spky*spky + spkz*spkz;
-  //if (knormsq != 0.0)
-  //  iknorm = 1.0/sqrt(knormsq);
-
-  //spkx *= iknorm;
-  //spky *= iknorm;
-  //spkz *= iknorm;
-
-  //sploc[0] = spkx;
-  //sploc[1] = spky;
-  //sploc[2] = spkz;
- 
+  int rot_flag = 0;
   double kx,ky,kz;
   double spix,spiy,spiz,spfx,spfy,spfz;
   double kcrossx,kcrossy,kcrossz,knormsq;
   double kdots;
   double spkx,spky,spkz;
-  double sdot,omega,iknorm,isnorm;
+  double sidotsf,omega,iknorm,isnorm;
 
   spix = spi[0];
   spiy = spi[1];
@@ -698,43 +674,73 @@ void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   kz = spix*spfy - spiy*spfx;
 
   knormsq = kx*kx+ky*ky+kz*kz;
-  
-  if (knormsq != 0.0) {
-    iknorm = 1.0/sqrt(knormsq);
-    kx *= iknorm;
-    ky *= iknorm;
-    kz *= iknorm;
+  sidotsf = spix*spfx + spiy*spfy + spiz*spfz;
+
+  // if knormsq == 0.0, init and final spins are aligned
+  // Rodrigues' formula breaks, needs to define another axis k
+
+  if (knormsq == 0.0) {
+    if (sidotsf > 0.0) { 	// spins aligned and in same direction
+      return 0;
+    } else if (sidotsf < 0.0) {	// spins aligned and in opposite directions
+      
+      // defining a rotation axis
+      // first guess, k = spi x [100]
+      // second guess, k = spi x [010]
+
+      if (spiy*spiy + spiz*spiz != 0.0) { // spin not along [100]
+	kx = 0.0;
+	ky = spiz;
+	kz = -spiy;
+      } else if (spix*spix + spiz*spiz != 0.0) { // spin not along [010]
+	kx = -spiz;
+	ky = 0.0;
+	kz = spix;
+      } else error->all(FLERR,"Incorrect initial rotation operation");
+      rot_flag = 1;
+    }
   }
-  
+
   kcrossx = ky*spiz - kz*spiy;
   kcrossy = kz*spix - kx*spiz;
   kcrossz = kx*spiy - ky*spix;
 
   kdots = kx*spix + ky*spiz + kz*spiz;
-  sdot = spix*spfx + spiy*spfy + spiz*spfz;
 
-  omega = acos(sdot);
+  omega = acos(sidotsf);
   omega *= fraction;
 
-  spkx = spix*cos(omega) + kcrossx*sin(omega); 
-  spky = spiy*cos(omega) + kcrossy*sin(omega); 
-  spkz = spiz*cos(omega) + kcrossz*sin(omega); 
+  // applying Rodrigues' formula
+
+  spkx = spix*cos(omega); 
+  spky = spiy*cos(omega); 
+  spkz = spiz*cos(omega); 
+
+  spkx += kcrossx*sin(omega); 
+  spky += kcrossy*sin(omega); 
+  spkz += kcrossz*sin(omega); 
 
   spkx += kx*kdots*(1.0-cos(omega));
   spky += ky*kdots*(1.0-cos(omega));
   spkz += kz*kdots*(1.0-cos(omega));
 
+  // normalizing resulting spin vector
+
   isnorm = 1.0/sqrt(spkx*spkx+spky*spky+spkz*spkz);
   if (isnorm == 0.0)
-    error->all(FLERR,"Incorrect rotation operation");
+    error->all(FLERR,"Incorrect initial rotation operation");
 
   spkx *= isnorm;
   spky *= isnorm;
   spkz *= isnorm;
  
+  // returns rotated spin
+
   sploc[0] = spkx;
   sploc[1] = spky;
   sploc[2] = spkz;
+
+  return rot_flag;
 }
 
 /* ----------------------------------------------------------------------

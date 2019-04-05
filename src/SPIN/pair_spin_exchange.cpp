@@ -162,7 +162,7 @@ void PairSpinExchange::init_style()
     ifix++;
   }
   if ((ifix == modify->nfix) && (comm->me == 0))
-    error->warning(FLERR,"Using pair/spin style without nve/spin");
+    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
 
   // get the lattice_flag from nve/spin
 

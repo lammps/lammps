@@ -7,11 +7,10 @@ atom_style 	spin
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
-read_data        initial.skyrmion
-
 # setting mass, mag. moments, and interactions for bcc iron
 # (mass not necessary for fixed lattice calculation)
 
+read_data       initial.skyrmion
 mass		1 55.845
 
 pair_style 	hybrid/overlay spin/exchange 3.1 spin/dmi 3.1

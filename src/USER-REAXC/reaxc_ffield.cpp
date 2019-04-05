@@ -151,7 +151,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     /* Sanity checks */
     if (c == 2 && !lgflag)
         control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");	
-    
+
     if (c < 9) {
       snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
       control->error_ptr->all(FLERR, errmsg);
@@ -320,7 +320,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   if (c == 2 && !lgflag) {
       control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
     }
-  
+
   l = atoi(tmp[0]);
 
   /* a line of comments */

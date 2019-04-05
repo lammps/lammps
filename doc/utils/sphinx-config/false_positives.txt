@@ -289,6 +289,7 @@ Cao
 Capolungo
 Caro
 cartesian
+CasP
 Caswell
 Cates
 Cavium
@@ -656,6 +657,7 @@ ec
 Ec
 ecoul
 ecp
+Ecut
 edgeIDs
 edihed
 edim
@@ -1255,6 +1257,7 @@ Jy
 Jz
 jzimmer
 Kadiri
+Kai
 Kalia
 Kamberaj
 Kapfer
@@ -1285,6 +1288,7 @@ Keir
 Kelchner
 Kelkar
 Kemper
+keV
 Keyes
 Khersonskii
 Khrapak
@@ -1627,6 +1631,7 @@ minima
 minimizations
 minimizer
 minimizers
+minneigh
 minorder
 minSteps
 mintcream
@@ -2944,6 +2949,7 @@ Wi
 Wicaksono
 wih
 Wijk
+Wikipedia
 wildcard
 Wildcard
 Wirnsberger

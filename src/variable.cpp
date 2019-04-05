@@ -2181,7 +2181,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (tree) {
           Tree *newtree = new Tree();
           newtree->type = opprevious;
-          if (opprevious == UNARY) {
+          if ((opprevious == UNARY) || (opprevious == NOT)) {
             newtree->first = treestack[--ntreestack];
             newtree->second = NULL;
             newtree->nextra = 0;

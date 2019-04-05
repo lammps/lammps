@@ -55,8 +55,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
       sprintf( temp, "%s.pot", control->sim_name );
       if ((out_control->pot = fopen( temp, "w" )) != NULL) {
         fflush( out_control->pot );
-      }
-      else {
+      } else {
         strcpy( msg, "init_out_controls: .pot file could not be opened\n" );
         return FAILURE;
       }
@@ -74,8 +73,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
                 "step", "Pint/norm[x]", "Pint/norm[y]", "Pint/norm[z]",
                 "Pext/Ptot[x]", "Pext/Ptot[y]", "Pext/Ptot[z]", "Pkin/V" );
         fflush( out_control->prs );
-      }
-      else {
+      } else {
         strcpy(msg,"init_out_controls: .prs file couldn't be opened\n");
         return FAILURE;
       }

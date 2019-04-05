@@ -90,8 +90,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   mpi_data = (mpi_datatypes *)
     memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 
-  MPI_Comm_rank(world,&system->my_rank);
-  control->me = system->my_rank;
+  control->me = system->my_rank = comm->me;
 
   system->my_coords[0] = 0;
   system->my_coords[1] = 0;
@@ -383,6 +382,14 @@ void PairReaxC::init_style( )
     error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c requires newton pair on");
+  if ((atom->map_max_tag > 99999999) && (comm->me == 0))
+    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c "
+                   "native output files may get misformatted or corrupted");
+
+  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
+
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for pair style reax/c");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs

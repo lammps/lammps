@@ -1148,7 +1148,7 @@ void AtomVecEllipsoid::data_atom(double *coord, imageint imagetmp,
   ellipsoid[nlocal] = atoi(values[2]);
   if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
   else if (ellipsoid[nlocal] == 1) ellipsoid[nlocal] = 0;
-  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid ellipsoidflag in Atoms section of data file");
 
   rmass[nlocal] = atof(values[3]);
   if (rmass[nlocal] <= 0.0)

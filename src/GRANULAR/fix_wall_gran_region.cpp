@@ -47,8 +47,9 @@ enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-      FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL),
-      walls(NULL), history_many(NULL), c2r(NULL)
+  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL),
+  ncontact(NULL),
+  walls(NULL), history_many(NULL), c2r(NULL)
 {
   restart_global = 1;
   motion_resetflag = 0;
@@ -190,7 +191,8 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
 
       if (pairstyle == GRANULAR && normal_model == JKR){
-        nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]+pulloff_distance(radius[i]));
+        nc = region->surface(x[i][0],x[i][1],x[i][2],
+                             radius[i]+pulloff_distance(radius[i]));
       }
       else{
         nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]);
@@ -278,8 +280,9 @@ void FixWallGranRegion::post_force(int /*vflag*/)
               v[i],f[i],omega[i],torque[i],
               radius[i],meff,history_many[i][c2r[ic]], contact);
         else if (pairstyle == GRANULAR)
-          granular(rsq,dx,dy,dz,vwall,region->contact[ic].radius, v[i],f[i],omega[i],torque[i], radius[i],meff,history_many[i][c2r[ic]], contact);
-
+          granular(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
+                   v[i],f[i],omega[i],torque[i],
+                   radius[i],meff,history_many[i][c2r[ic]],contact);
       }
     }
   }
@@ -364,11 +367,11 @@ void FixWallGranRegion::grow_arrays(int nmax)
   if (use_history) {
     memory->grow(ncontact,nmax,"fix_wall_gran:ncontact");
     memory->grow(walls,nmax,tmax,"fix_wall_gran:walls");
-    memory->grow(history_many,nmax,tmax,size_history,"fix_wall_gran:history_many");
+    memory->grow(history_many,nmax,tmax,size_history,
+                 "fix_wall_gran:history_many");
   }
-  if (peratom_flag){
+  if (peratom_flag)
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
-  }
 }
 
 /* ----------------------------------------------------------------------

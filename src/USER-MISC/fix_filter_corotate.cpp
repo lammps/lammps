@@ -217,7 +217,6 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,2);
   atom->delete_callback(id,0);
 
   // delete locally stored arrays

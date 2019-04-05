@@ -1115,7 +1115,7 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *bu
 {
   int m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = h_d[list[m]];
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = h_s[list[m]];
@@ -1134,7 +1134,7 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
 {
   int i, m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
   else if( pack_flag == 2)
     for(m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
@@ -1266,7 +1266,7 @@ int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixQEqReaxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixQEqReaxKokkos<LMPHostType>;
 #endif
 }

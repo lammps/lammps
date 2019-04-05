@@ -137,11 +137,12 @@ Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,
 such as "Tersoff"_pair_tersoff.html and
 "Stillinger-Weber"_pair_sw.html cannot be used.  "EAM"_pair_eam.html
-potentials only include the pair potential portion of the EAM
-interaction when used by this compute, not the embedding term.
+potentials will re-use previously computed embedding term contributions,
+so the computed pairwise forces and energies are based on the whole
+system and not valid if particles have been moved since.
 
-Not all Kspace styles support calculation of group/group interactions.
-The {ewald} and {pppm} styles do.
+Not all "Kspace styles"_kspace_style.html support the calculation of
+group/group interactions. The regular {ewald} and {pppm} styles do.
 
 [Related commands:] none
 

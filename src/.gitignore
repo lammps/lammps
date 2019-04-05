@@ -6,6 +6,7 @@
 
 /style_*.h
 /lmpinstalledpkgs.h
+/lmpgitversion.h
 
 /*_gpu.h
 /*_gpu.cpp
@@ -24,6 +25,11 @@
 /*_rx.cpp
 /*_ssa.h
 /*_ssa.cpp
+
+/kim_query.cpp
+/kim_query.h
+/pair_kim.cpp
+/pair_kim.h
 
 /kokkos.cpp
 /kokkos.h
@@ -583,8 +589,6 @@
 /fix_qeq_reax.h
 /fix_qmmm.cpp
 /fix_qmmm.h
-/fix_reax_bonds.cpp
-/fix_reax_bonds.h
 /fix_reaxc.cpp
 /fix_reaxc.h
 /fix_reaxc_bonds.cpp
@@ -819,8 +823,6 @@
 /pair_hbond_dreiding_morse.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
-/pair_kim.cpp
-/pair_kim.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
@@ -930,9 +932,6 @@
 /pair_peri_ves.h
 /pair_quip.cpp
 /pair_quip.h
-/pair_reax.cpp
-/pair_reax.h
-/pair_reax_fortran.h
 /pair_reaxc.cpp
 /pair_reaxc.h
 /pair_rebo.cpp

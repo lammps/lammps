@@ -83,6 +83,8 @@ class AtomVecLine : public AtomVec {
 
   void set_length(int, double);
 
+  int nlocal_bonus;
+
  private:
   tagint *tag;
   int *type,*mask;
@@ -93,7 +95,7 @@ class AtomVecLine : public AtomVec {
   double **omega,**torque;
   int *line;
 
-  int nlocal_bonus,nghost_bonus,nmax_bonus;
+  int nghost_bonus,nmax_bonus;
 
   void grow_bonus();
   void copy_bonus(int, int);

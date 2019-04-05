@@ -53,7 +53,7 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
 
 namespace LAMMPS_NS {
 template class NPairCopyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairCopyKokkos<LMPHostType>;
 #endif
 }

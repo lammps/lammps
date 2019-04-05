@@ -45,7 +45,6 @@ as contained in the file name.
 "LATTE"_#PKG-LATTE,
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
-"MEAM"_#PKG-MEAM,
 "MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
@@ -56,7 +55,6 @@ as contained in the file name.
 "POEMS"_#PKG-POEMS,
 "PYTHON"_#PKG-PYTHON,
 "QEQ"_#PKG-QEQ,
-"REAX"_#PKG-REAX,
 "REPLICA"_#PKG-REPLICA2,
 "RIGID"_#PKG-RIGID,
 "SHOCK"_#PKG-SHOCK,
@@ -65,6 +63,7 @@ as contained in the file name.
 "SRD"_#PKG-SRD,
 "VORONOI"_#PKG-VORONOI :tb(c=6,ea=c)
 
+"USER-ADIOS"_#PKG-USER-ADIOS,
 "USER-ATC"_#PKG-USER-ATC,
 "USER-AWPMD"_#PKG-USER-AWPMD,
 "USER-BOCS"_#PKG-USER-BOCS,
@@ -102,7 +101,8 @@ as contained in the file name.
 "USER-SPH"_#PKG-USER-SPH,
 "USER-TALLY"_#PKG-USER-TALLY,
 "USER-UEF"_#PKG-USER-UEF,
-"USER-VTK"_#PKG-USER-VTK :tb(c=6,ea=c)
+"USER-VTK"_#PKG-USER-VTK,
+"USER-YAFF"_#PKG-USER-YAFF, :tb(c=6,ea=c)
 
 :line
 
@@ -341,18 +341,19 @@ KIM package :link(PKG-KIM),h4
 A "pair_style kim"_pair_kim.html command which is a wrapper on the
 Knowledge Base for Interatomic Models (KIM) repository of interatomic
 potentials, enabling any of them to be used in LAMMPS simulations.
+Also a "kim_query"_kim_query.html command, which allows to query
+the OpenKIM database for stored properties.
 
 To use this package you must have the KIM library available on your
 system.
 
 Information about the KIM project can be found at its website:
 https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
-Elliott (U Minnesota) and James Sethna (Cornell U).
+Elliott (U Minnesota).
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
 API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style in collaboration with Valeriu Smirichinski (U
-Minnesota).
+developed the pair style.
 
 [Install:]
 
@@ -530,37 +531,6 @@ src/MC: filenames -> commands
 "fix gcmc"_fix_gcmc.html
 "pair_style dsmc"_pair_dsmc.html
 http://lammps.sandia.gov/movies.html#gcmc :ul
-
-:line
-
-MEAM package :link(PKG-MEAM),h4
-
-[Contents:]
-
-A pair style for the modified embedded atom (MEAM) potential.
-
-Please note that the use of the MEAM package is discouraged as
-it has been superseded by the "USER-MEAMC"_#PKG-USER-MEAMC package,
-which is a direct translation of the MEAM package to C++.
-USER-MEAMC contains additional optimizations making it run faster
-than MEAM on most machines, while providing the identical features
-and user interface.
-
-[Author:] Greg Wagner (Northwestern U) while at Sandia.
-
-[Install:]
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/MEAM: filenames -> commands
-src/meam/README
-lib/meam/README
-"pair_style meam"_pair_meam.html
-examples/meam :ul
 
 :line
 
@@ -834,38 +804,6 @@ examples/streitz :ul
 
 :line
 
-REAX package :link(PKG-REAX),h4
-
-[Contents:]
-
-NOTE: the use of the REAX package is discouraged, as it is no longer
-maintained. Please use the "USER-REAXC"_#PKG-USER-REAXC package instead,
-and possibly the KOKKOS enabled variant of that, which has a more robust
-memory management.
-
-A pair style which wraps a Fortran library which implements the ReaxFF
-potential, which is a universal reactive force field.  Also included is
-a "fix reax/bonds"_fix_reax_bonds.html command for monitoring molecules
-as bonds are created and destroyed.
-
-[Author:] Aidan Thompson (Sandia).
-
-[Install:]
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/REAX: filenames -> commands
-lib/reax/README
-"pair_style reax"_pair_reax.html
-"fix reax/bonds"_fix_reax_bonds.html
-examples/reax :ul
-
-:line
-
 REPLICA package :link(PKG-REPLICA2),h4
 
 [Contents:]
@@ -1036,6 +974,31 @@ src/VORONOI/README
 lib/voronoi/README
 "compute voronoi/atom"_compute_voronoi_atom.html
 examples/voronoi :ul
+
+:line
+
+USER-ADIOS package :link(PKG-USER-ADIOS),h4
+
+[Contents:]
+
+ADIOS is a high-performance I/O library. This package implements the 
+dump "atom/adios" and dump "custom/adios" commands to write data using
+the ADIOS library. 
+
+[Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-adios on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-ADIOS: filenames -> commands
+src/USER-ADIOS/README
+examples/USER/adios
+https://github.com/ornladios/ADIOS2 :ul
 
 :line
 
@@ -1370,7 +1333,7 @@ src/USER-FEP: filenames -> commands
 src/USER-FEP/README
 "fix adapt/fep"_fix_adapt_fep.html
 "compute fep"_compute_fep.html
-"pair_style */soft"_pair_lj_soft.html
+"pair_style */soft"_pair_fep_soft.html
 examples/USER/fep
 tools/fep/README
 tools/fep :ul
@@ -1552,10 +1515,9 @@ USER-MEAMC package :link(PKG-USER-MEAMC),h4
 [Contents:]
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the "MEAM"_#PKG-MEAM package
-to plain C++. In contrast to the MEAM package, no library
-needs to be compiled and the pair style can be instantiated
-multiple times.
+translated from the Fortran version in the (obsolete) "MEAM" package
+to plain C++. The USER-MEAMC fully replaces the MEAM package, which
+has been removed from LAMMPS after the 12 December 2018 version.
 
 [Author:] Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
 based on the Fortran version of Greg Wagner (Northwestern U) while at
@@ -1565,8 +1527,8 @@ Sandia.
 
 src/USER-MEAMC: filenames -> commands
 src/USER-MEAMC/README
-"pair_style meam/c"_pair_meam.html
-examples/meam :ul
+"pair_style meam/c"_pair_meamc.html
+examples/meamc :ul
 
 :line
 
@@ -1765,14 +1727,19 @@ USER-PHONON package :link(PKG-USER-PHONON),h4
 A "fix phonon"_fix_phonon.html command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
+And a "dynamical_matrix" command to compute the dynamical matrix
+from finite differences.
 
-[Author:] Ling-Ti Kong (Shanghai Jiao Tong University).
+[Authors:] Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
+and Charlie Sievers (UC Davis) for "dynamical_matrix"
+
 
 [Supporting info:]
 
 src/USER-PHONON: filenames -> commands
 src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
+"dynamical_matrix"_dynamical_matrix.html
 examples/USER/phonon :ul
 
 :line
@@ -1894,9 +1861,8 @@ USER-REAXC package :link(PKG-USER-REAXC),h4
 
 [Contents:]
 
-A pair style which implements the ReaxFF potential in C/C++ (in
-contrast to the "REAX package"_#PKG-REAX and its Fortran library).  ReaxFF
-is universal reactive force field.  See the src/USER-REAXC/README file
+A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
+is a universal reactive force field.  See the src/USER-REAXC/README file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
 
@@ -1907,7 +1873,7 @@ for monitoring molecules as bonds are created and destroyed.
 src/USER-REAXC: filenames -> commands
 src/USER-REAXC/README
 "pair_style reax/c"_pair_reaxc.html
-"fix reax/c/bonds"_fix_reax_bonds.html
+"fix reax/c/bonds"_fix_reaxc_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
 
@@ -2134,3 +2100,37 @@ lib/vtk/README
 "dump vtk"_dump_vtk.html :ul
 
 
+:line
+
+USER-YAFF package :link(PKG-USER-YAFF),h4
+
+[Contents:]
+
+Some potentials that are also implemented in the Yet Another Force Field ("YAFF"_yaff) code.
+The expressions and their use are discussed in the following papers
+
+Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015) "link"_vanduyfhuys2015
+Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018) "link"_vanduyfhuys2018 :ul
+
+which discuss the "QuickFF"_quickff methodology.
+
+
+:link(vanduyfhuys2015,http://dx.doi.org/10.1002/jcc.23877)
+:link(vanduyfhuys2018,http://dx.doi.org/10.1002/jcc.25173)
+:link(quickff,http://molmod.github.io/QuickFF)
+:link(yaff,https://github.com/molmod/yaff)
+
+
+[Author:] Steven Vandenbrande.
+
+[Supporting info:]
+
+src/USER-YAFF/README
+"angle_style cross"_angle_cross.html
+"angle_style mm3"_angle_mm3.html
+"bond_style mm3"_bond_mm3.html
+"improper_style distharm"_improper_distharm.html
+"improper_style sqdistharm"_improper_sqdistharm.html
+"pair_style mm3/switch3/coulgauss/long"_pair_mm3_switch3_coulgauss.html
+"pair_style lj/switch3/coulgauss/long"_pair_lj_switch3_coulgauss.html
+examples/USER/yaff :ul

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,12 +21,11 @@ PairStyle(granular,PairGranular)
 #define LMP_PAIR_GRANULAR_H
 
 #include "pair.h"
-#include "pair_granular.h"
 
 namespace LAMMPS_NS {
 
-class PairGranular : public Pair{
-public:
+class PairGranular : public Pair {
+ public:
   PairGranular(class LAMMPS *);
   ~PairGranular();
   void compute(int, int);
@@ -63,33 +62,33 @@ public:
   void allocate();
   void transfer_history(double*, double*);
 
-private:
+ private:
   int size_history;
   int *history_transfer_factors;
 
-  //Model choices
+  // model choices
   int **normal_model, **damping_model;
   int **tangential_model, **roll_model, **twist_model;
 
-  //History flags
+  // history flags
   int normal_history, tangential_history, roll_history, twist_history;
 
-  //Indices of history entries
+  // indices of history entries
   int normal_history_index;
   int tangential_history_index;
   int roll_history_index;
   int twist_history_index;
 
-  //Per-type material coefficients
+  // per-type material coefficients
   double **Emod, **poiss, **Gmod;
 
-  //Per-type coefficients, set in pair coeff command
+  // per-type coefficients, set in pair coeff command
   double ***normal_coeffs;
   double ***tangential_coeffs;
   double ***roll_coeffs;
   double ***twist_coeffs;
 
-  //Optional user-specified global cutoff, per-type user-specified cutoffs
+  // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;
   double cutoff_global;
 

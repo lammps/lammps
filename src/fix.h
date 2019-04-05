@@ -223,6 +223,10 @@ class Fix : protected Pointers {
 
   int dynamic;    // recount atoms for temperature computes
 
+  void ev_init(int eflag, int vflag) {
+    if (eflag||vflag) ev_setup(eflag, vflag);
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);
   void v_setup(int);

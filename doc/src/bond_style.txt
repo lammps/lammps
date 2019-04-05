@@ -86,6 +86,7 @@ accelerated styles exist.
 "harmonic"_bond_harmonic.html - harmonic bond
 "harmonic/shift"_bond_harmonic_shift.html - shifted harmonic bond
 "harmonic/shift/cut"_bond_harmonic_shift_cut.html - shifted harmonic bond with a cutoff
+"mm3"_bond_mm3.html - MM3 anharmonic bond
 "morse"_bond_morse.html - Morse bond
 "nonlinear"_bond_nonlinear.html - nonlinear bond
 "oxdna/fene"_bond_oxdna.html - modified FENE bond suitable for DNA modeling

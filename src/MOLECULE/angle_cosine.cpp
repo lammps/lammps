@@ -36,7 +36,7 @@ AngleCosine::AngleCosine(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleCosine::~AngleCosine()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
   }
@@ -52,8 +52,7 @@ void AngleCosine::compute(int eflag, int vflag)
   double rsq1,rsq2,r1,r2,c,a,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -137,9 +137,9 @@ PairReaxC::~PairReaxC()
 
     // deallocate reax data-structures
 
-    if( control->tabulate ) Deallocate_Lookup_Tables( system );
+    if (control->tabulate ) Deallocate_Lookup_Tables( system);
 
-    if( control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world );
+    if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world);
     Delete_List( lists+BONDS, world );
     Delete_List( lists+THREE_BODIES, world );
     Delete_List( lists+FAR_NBRS, world );
@@ -157,7 +157,7 @@ PairReaxC::~PairReaxC()
   memory->destroy( mpi_data );
 
   // deallocate interface storage
-  if( allocated ) {
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
@@ -361,7 +361,8 @@ void PairReaxC::init_style( )
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
-    if (strstr(modify->fix[iqeq]->style,"qeq/reax")) break;
+    if (strstr(modify->fix[iqeq]->style,"qeq/reax")
+       || strstr(modify->fix[iqeq]->style,"qeq/shielded")) break;
   if (iqeq == modify->nfix && qeqflag == 1)
     error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
 
@@ -496,8 +497,7 @@ void PairReaxC::compute(int eflag, int vflag)
   int *num_hbonds = fix_reax->num_hbonds;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
@@ -510,7 +510,7 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures
 
@@ -519,7 +519,7 @@ void PairReaxC::compute(int eflag, int vflag)
   Reset( system, control, data, workspace, &lists, world );
   workspace->realloc.num_far = write_reax_lists();
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }
@@ -683,7 +683,7 @@ int PairReaxC::estimate_reax_lists()
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= SQR(control->nonb_cut) )
+      if (d_sqr <= SQR(control->nonb_cut))
         ++num_nbrs;
     }
   }
@@ -735,7 +735,7 @@ int PairReaxC::write_reax_lists()
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= (cutoff_sqr) ){
+      if (d_sqr <= (cutoff_sqr)) {
         dist[j] = sqrt( d_sqr );
         set_far_nbr( &far_list[num_nbrs], j, dist[j], dvec );
         ++num_nbrs;

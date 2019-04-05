@@ -101,10 +101,95 @@ namespace Impl {
       result = run_me< Kokkos::DualView<Scalar**,Kokkos::LayoutLeft,Device> >(size,3);
     }
 
-   };
+  };
+
+  template < typename Scalar, class ViewType >
+  struct SumViewEntriesFunctor {
+
+    typedef Scalar value_type;
+
+    ViewType fv;
+
+    SumViewEntriesFunctor ( const ViewType & fv_ ) : fv(fv_) {}
+
+    KOKKOS_INLINE_FUNCTION
+    void operator() ( const int i , value_type & total ) const {
+      for ( size_t j = 0; j < fv.extent(1); ++j ) {
+        total += fv(i,j);
+      }
+    }
+
+  };
+  
+
+  template <typename Scalar, class Device>
+  struct test_dual_view_deep_copy
+  {
+    typedef Scalar scalar_type;
+    typedef Device execution_space;
+
+    template <typename ViewType>
+    void run_me() {
+
+      const unsigned int n = 10;
+      const unsigned int m = 5;
+      const unsigned int sum_total = n * m;
+
+      ViewType a("A",n,m);
+      ViewType b("B",n,m);
+
+      Kokkos::deep_copy( a.d_view , 1 );
+
+      a.template modify<typename ViewType::execution_space>();
+      a.template sync<typename ViewType::host_mirror_space>();
+
+      // Check device view is initialized as expected
+      scalar_type a_d_sum = 0;
+      // Execute on the execution_space associated with t_dev's memory space
+      typedef typename ViewType::t_dev::memory_space::execution_space t_dev_exec_space;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy<t_dev_exec_space>(0,n), SumViewEntriesFunctor<scalar_type, typename ViewType::t_dev>(a.d_view), a_d_sum );
+      ASSERT_EQ(a_d_sum, sum_total);
+
+      // Check host view is synced as expected
+      scalar_type a_h_sum = 0;
+      for ( size_t i = 0; i < a.h_view.extent(0); ++i )
+        for ( size_t j = 0; j < a.h_view.extent(1); ++j ) {
+          a_h_sum += a.h_view(i,j);
+        }
+
+      ASSERT_EQ(a_h_sum, sum_total);
+
+
+      // Test deep_copy
+      Kokkos::deep_copy( b, a );
+      b.template sync<typename ViewType::host_mirror_space>();
+
+      // Perform same checks on b as done on a
+      // Check device view is initialized as expected
+      scalar_type b_d_sum = 0;
+      // Execute on the execution_space associated with t_dev's memory space
+      Kokkos::parallel_reduce( Kokkos::RangePolicy<t_dev_exec_space>(0,n), SumViewEntriesFunctor<scalar_type, typename ViewType::t_dev>(b.d_view), b_d_sum );
+      ASSERT_EQ(b_d_sum, sum_total);
+
+      // Check host view is synced as expected
+      scalar_type b_h_sum = 0;
+      for ( size_t i = 0; i < b.h_view.extent(0); ++i )
+        for ( size_t j = 0; j < b.h_view.extent(1); ++j ) {
+          b_h_sum += b.h_view(i,j);
+        }
+
+      ASSERT_EQ(b_h_sum, sum_total);
+
+    } // end run_me
+
+    test_dual_view_deep_copy()
+    {
+      run_me< Kokkos::DualView<Scalar**,Kokkos::LayoutLeft,Device> >();
+    }
+
+  };
 
 } // namespace Impl
-
 
 
 
@@ -116,8 +201,19 @@ void test_dualview_combinations(unsigned int size)
 
 }
 
+template <typename Scalar, typename Device>
+void test_dualview_deep_copy()
+{
+  Impl::test_dual_view_deep_copy<Scalar,Device> ();
+}
+
 TEST_F( TEST_CATEGORY, dualview_combination) {
     test_dualview_combinations<int,TEST_EXECSPACE>(10);
+}
+
+TEST_F( TEST_CATEGORY, dualview_deep_copy) {
+    test_dualview_deep_copy<int,TEST_EXECSPACE>();
+    test_dualview_deep_copy<double,TEST_EXECSPACE>();
 }
 
 

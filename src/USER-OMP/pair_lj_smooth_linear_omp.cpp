@@ -36,9 +36,7 @@ PairLJSmoothLinearOMP::PairLJSmoothLinearOMP(LAMMPS *lmp) :
 
 void PairLJSmoothLinearOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

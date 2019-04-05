@@ -11,6 +11,8 @@ get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib 
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
 
+find_package(Git)
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
@@ -85,7 +87,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 # this is fast, so check for it all the time
 message(STATUS "Running check for auto-generated files from make-based build system")
 file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h)
+list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
 foreach(_SRC ${SRC_AUTOGEN_FILES})
   get_filename_component(FILENAME "${_SRC}" NAME)
   if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
@@ -171,14 +173,14 @@ set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MESSAGE MISC MOLECULE PERI REAX REPLICA RIGID SHOCK
+  KSPACE MANYBODY MC MESSAGE MISC MOLECULE PERI REPLICA RIGID SHOCK
   SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD
   USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
   USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
   USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
   USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM)
+  USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -191,15 +193,26 @@ endforeach()
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE OR PKG_USER-SCAFACOS)
+if(PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE OR PKG_USER-SCAFACOS)
   enable_language(Fortran)
 endif()
 
-if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
+if(PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
   enable_language(C)
 endif()
 
 include_directories(${LAMMPS_SOURCE_DIR})
+
+
+if(PKG_USER-ADIOS)
+  # The search for ADIOS2 must come before MPI because
+  # it includes its own MPI search with the latest FindMPI.cmake
+  # script that defines the MPI::MPI_C target
+  enable_language(C)
+  find_package(ADIOS2 REQUIRED)
+  list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
+endif()
+
 
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
@@ -368,19 +381,10 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
 endif()
 
 if(PKG_PYTHON)
-  find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(BUILD_LIB AND BUILD_SHARED_LIBS)
-    if(NOT PYTHON_INSTDIR)
-      execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  endif()
 endif()
 
 find_package(JPEG QUIET)
@@ -453,7 +457,7 @@ if(PKG_VORONOI)
     set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
 
     ExternalProject_Add(voro_build
-      URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
+      URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
       CONFIGURE_COMMAND "" BUILD_COMMAND make ${VORO_BUILD_OPTIONS} BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
       )
@@ -559,10 +563,15 @@ if(PKG_USER-PLUMED)
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz
-      URL_MD5 b1be7c48971627febc11c61b70767fc5
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.4/plumed-src-2.4.4.tgz
+      URL_MD5 71ed465bdc7c2059e282dbda8d564e71
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> ${CONFIGURE_REQUEST_PIC})
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                                               ${CONFIGURE_REQUEST_PIC}
+                                                --enable-modules=all
+                                               CXX=${CMAKE_MPI_CXX_COMPILER}
+                                               CC=${CMAKE_MPI_C_COMPILER}
+    )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)
@@ -595,8 +604,9 @@ if(PKG_USER-PLUMED)
 endif()
 
 if(PKG_USER-MOLFILE)
+  set(MOLFILE_INCLUDE_DIRS "${LAMMPS_LIB_SOURCE_DIR}/molfile" CACHE STRING "Path to VMD molfile plugin headers")
   add_library(molfile INTERFACE)
-  target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
+  target_include_directories(molfile INTERFACE ${MOLFILE_INCLUDE_DIRS})
   target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
   list(APPEND LAMMPS_LINK_LIBS molfile)
 endif()
@@ -614,8 +624,8 @@ if(PKG_USER-SMD)
     message(STATUS "Eigen3 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
-      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
+      URL_MD5 f2a417d083fe8ca4b8ed2bc613d20f07
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
     ExternalProject_get_property(Eigen3_build SOURCE_DIR)
@@ -651,28 +661,40 @@ if(PKG_USER-VTK)
 endif()
 
 if(PKG_KIM)
-  option(DOWNLOAD_KIM "Download KIM-API v1 from OpenKIM instead of using an already installed one)" OFF)
+  find_package(CURL)
+  if(CURL_FOUND)
+    include_directories(${CURL_INCLUDE_DIRS})
+    list(APPEND LAMMPS_LINK_LIBS ${CURL_LIBRARIES})
+    add_definitions(-DLMP_KIM_CURL)
+  endif()
+  option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" OFF)
   if(DOWNLOAD_KIM)
-    message(STATUS "KIM-API v1 download requested - we will build our own")
+    message(STATUS "KIM-API download requested - we will build our own")
+    enable_language(C)
+    enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
-      URL_MD5 9f66efc128da33039e30659f36fc6d00
-      BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+      URL https://s3.openkim.org/kim-api/kim-api-2.0.2.txz
+      URL_MD5 537d9c0abd30f85b875ebb584f9143fa
+      BINARY_DIR build
+      CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                 -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+                 -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
-    set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
-    set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
+    set(KIM-API_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api)
+    set(KIM-API_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
-    find_package(KIM)
-    if(NOT KIM_FOUND)
-      message(FATAL_ERROR "KIM-API v1 not found, help CMake to find it by setting KIM_LIBRARY and KIM_INCLUDE_DIR, or set DOWNLOAD_KIM=ON to download it")
+    find_package(KIM-API)
+    if(NOT KIM-API_FOUND)
+      message(FATAL_ERROR "KIM-API not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
-  include_directories(${KIM_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS "${KIM-API_LDFLAGS}")
+  include_directories(${KIM-API_INCLUDE_DIRS})
 endif()
 
 if(PKG_MESSAGE)
@@ -756,7 +778,7 @@ endif()
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
 include(CheckIncludeFileCXX)
-foreach(HEADER math.h)
+foreach(HEADER cmath)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
@@ -826,7 +848,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
+foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   USER-QMMM)
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
@@ -1146,6 +1168,10 @@ if(PKG_GPU)
         message(FATAL_ERROR "Could not find bin2c, use -DBIN2C=/path/to/bin2c to help cmake finding it.")
       endif()
       option(CUDPP_OPT "Enable CUDPP_OPT" ON)
+      option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
+      if(CUDA_MPS_SUPPORT)
+        set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
+      endif()
 
       set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
 
@@ -1209,7 +1235,7 @@ if(PKG_GPU)
       add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
       target_link_libraries(gpu ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
       target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
-      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT ${GPU_CUDA_MPS_FLAGS})
       if(CUDPP_OPT)
         target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
         target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
@@ -1303,6 +1329,18 @@ message(STATUS "Generating lmpinstalledpkgs.h...")
 file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${temp}" )
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h")
 
+######################################
+# Generate lmpgitversion.h
+######################################
+add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
+  -DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -DGIT_FOUND="${GIT_FOUND}"
+  -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+list(APPEND LAMMPS_DEPS gitversion)
+
 ###########################################
 # Actually add executable and lib to build
 ############################################
@@ -1325,7 +1363,7 @@ if(BUILD_LIB)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   configure_file(FindLAMMPS.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/FindLAMMPS${LAMMPS_LIB_SUFFIX}.cmake @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FindLAMMPS${LAMMPS_LIB_SUFFIX}.cmake DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/Module)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FindLAMMPS${LAMMPS_LIB_SUFFIX}.cmake DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/Modules)
 else()
   list(APPEND LMP_SOURCES ${LIB_SOURCES})
 endif()
@@ -1348,6 +1386,7 @@ if(BUILD_EXE)
     add_test(ShowHelp ${LAMMPS_BINARY} -help)
   endif()
 endif()
+
 
 ###############################################################################
 # Build documentation
@@ -1422,6 +1461,49 @@ install(
         ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
 )
+
+###############################################################################
+# Install LAMMPS lib and python module into site-packages folder with
+# "install-python" target.  Behaves exactly like "make install-python" for
+# conventional build.  Only available, if a shared library is built.
+# This is primarily for people that only want to use the Python wrapper.
+###############################################################################
+if(BUILD_LIB AND BUILD_SHARED_LIBS)
+  find_package(PythonInterp)
+  if (PYTHONINTERP_FOUND)
+    add_custom_target(
+      install-python
+      ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
+      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
+      COMMENT "Installing LAMMPS Python module")
+  else()
+    add_custom_target(
+      install-python
+      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+  endif()
+else()
+  add_custom_target(
+    install-python
+    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+endif()
+
+###############################################################################
+# Add LAMMPS python module to "install" target. This is taylored for building
+# LAMMPS for package managers and with different prefix settings.
+# This requires either a shared library or that the PYTHON package is included.
+###############################################################################
+if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
+  find_package(PythonInterp)
+  if (PYTHONINTERP_FOUND)
+    execute_process(COMMAND ${PYTHON_EXECUTABLE}
+      -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+      OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+  endif()
+endif()
 
 ###############################################################################
 # Testing

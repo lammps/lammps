@@ -59,7 +59,9 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 
   comm_forward = 1;
 
-  nondefault_history_transfer = 0; //keep default behavior of history[i][j] = -history[j][i]
+  // keep default behavior of history[i][j] = -history[j][i]
+
+  nondefault_history_transfer = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,8 +103,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;

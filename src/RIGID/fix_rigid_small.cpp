@@ -28,12 +28,14 @@
 #include "modify.h"
 #include "group.h"
 #include "comm.h"
+#include "neighbor.h"
 #include "force.h"
 #include "input.h"
 #include "output.h"
 #include "variable.h"
 #include "random_mars.h"
 #include "math_const.h"
+#include "hashlittle.h"
 #include "memory.h"
 #include "error.h"
 
@@ -42,6 +44,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+
+#define RVOUS 1   // 0 for irregular, 1 for all2all
 
 #define MAXLINE 1024
 #define CHUNK 1024
@@ -70,8 +74,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL),
   avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL),
   itensor(NULL), mass_body(NULL), langextra(NULL), random(NULL),
-  id_dilate(NULL), onemols(NULL), hash(NULL), bbox(NULL), ctr(NULL),
-  idclose(NULL), rsqclose(NULL)
+  id_dilate(NULL), onemols(NULL)
 {
   int i;
 
@@ -107,18 +110,18 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // parse args for rigid body specification
 
   int *mask = atom->mask;
-  tagint *bodyid = NULL;
+  tagint *bodyID = NULL;
   int nlocal = atom->nlocal;
 
   if (narg < 4) error->all(FLERR,"Illegal fix rigid/small command");
   if (strcmp(arg[3],"molecule") == 0) {
     if (atom->molecule_flag == 0)
       error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
-    bodyid = atom->molecule;
+    bodyID = atom->molecule;
 
   } else if (strcmp(arg[3],"custom") == 0) {
     if (narg < 5) error->all(FLERR,"Illegal fix rigid/small command");
-      bodyid = new tagint[nlocal];
+      bodyID = new tagint[nlocal];
       customflag = 1;
 
       // determine whether atom-style variable or atom property is used.
@@ -126,9 +129,11 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
         if (custom_index == -1)
-          error->all(FLERR,"Fix rigid/small custom requires previously defined property/atom");
+          error->all(FLERR,"Fix rigid/small custom requires "
+                     "previously defined property/atom");
         else if (is_double)
-          error->all(FLERR,"Fix rigid/small custom requires integer-valued property/atom");
+          error->all(FLERR,"Fix rigid/small custom requires "
+                     "integer-valued property/atom");
 
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
@@ -139,15 +144,17 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
-            bodyid[i] = (tagint)(value[i] - minval + 1);
-          else bodyid[i] = 0;
+            bodyID[i] = (tagint)(value[i] - minval + 1);
+          else bodyID[i] = 0;
 
       } else if (strstr(arg[4],"v_") == arg[4]) {
         int ivariable = input->variable->find(arg[4]+2);
         if (ivariable < 0)
-          error->all(FLERR,"Variable name for fix rigid/small custom does not exist");
+          error->all(FLERR,"Variable name for fix rigid/small custom "
+                     "does not exist");
         if (input->variable->atomstyle(ivariable) == 0)
-          error->all(FLERR,"Fix rigid/small custom variable is no atom-style variable");
+          error->all(FLERR,"Fix rigid/small custom variable is not "
+                     "atom-style variable");
         double *value = new double[nlocal];
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
@@ -158,8 +165,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
-            bodyid[i] = (tagint)((tagint)value[i] - minval + 1);
-          else bodyid[0] = 0;
+            bodyID[i] = (tagint)((tagint)value[i] - minval + 1);
+          else bodyID[0] = 0;
         delete[] value;
       } else error->all(FLERR,"Unsupported fix rigid custom property");
   } else error->all(FLERR,"Illegal fix rigid/small command");
@@ -167,10 +174,11 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (atom->map_style == 0)
     error->all(FLERR,"Fix rigid/small requires an atom map, see atom_modify");
 
-  // maxmol = largest bodyid #
+  // maxmol = largest bodyID #
+
   maxmol = -1;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) maxmol = MAX(maxmol,bodyid[i]);
+    if (mask[i] & groupbit) maxmol = MAX(maxmol,bodyID[i]);
 
   tagint itmp;
   MPI_Allreduce(&maxmol,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
@@ -400,8 +408,19 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // sets bodytag for owned atoms
   // body attributes are computed later by setup_bodies()
 
-  create_bodies(bodyid);
-  if (customflag) delete [] bodyid;
+  double time1 = MPI_Wtime();
+
+  create_bodies(bodyID);
+  if (customflag) delete [] bodyID;
+
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  create bodies CPU = %g secs\n",time2-time1);
+    if (logfile)
+      fprintf(logfile,"  create bodies CPU = %g secs\n",time2-time1);
+  }
 
   // set nlocal_body and allocate bodies I own
 
@@ -569,7 +588,8 @@ void FixRigidSmall::init()
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        snprintf(str,128,"Fix %s alters forces after fix rigid",
+                 modify->fix[i]->id);
         error->warning(FLERR,str);
       }
     }
@@ -632,6 +652,16 @@ void FixRigidSmall::setup_pre_neighbor()
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
+
+  // error if maxextent > comm->cutghost
+  // NOTE: could just warn if an override flag set
+  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
+  //       for atom types in rigid bodies - need a more careful test
+  // must check here, not in init, b/c neigh/comm values set after fix init
+
+  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (maxextent > cutghost)
+    error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
 
   //check(1);
 
@@ -1514,175 +1544,72 @@ void FixRigidSmall::set_v()
    set bodytag for all owned atoms
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::create_bodies(tagint *bodyid)
+void FixRigidSmall::create_bodies(tagint *bodyID)
 {
-  int i,m,n;
-  double unwrap[3];
+  int i,m;
 
-  // error check on image flags of atoms in rigid bodies
+  // allocate buffer for input to rendezvous comm
+  // ncount = # of my atoms in bodies
 
-  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  int *periodicity = domain->periodicity;
-  int xbox,ybox,zbox;
-
-  int flag = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
-    if ((xbox && !periodicity[0]) || (ybox && !periodicity[1]) ||
-        (zbox && !periodicity[2])) flag = 1;
-  }
-
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all(FLERR,"Fix rigid/small atom has non-zero image flag "
-                          "in a non-periodic dimension");
-
-  // allocate buffer for passing messages around ring of procs
-  // percount = max number of values to put in buffer for each of ncount
 
   int ncount = 0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) ncount++;
 
-  int percount = 5;
-  double *buf;
-  memory->create(buf,ncount*percount,"rigid/small:buf");
+  int *proclist;
+  memory->create(proclist,ncount,"rigid/small:proclist");
+  InRvous *inbuf = (InRvous *)
+    memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
 
-  // create map hash for storing unique body IDs of my atoms
-  // key = body ID
-  // value = index into per-body data structure
-  // n = # of entries in hash
-
-  hash = new std::map<tagint,int>();
-  hash->clear();
-
-  // setup hash
-  // key = body ID
-  // value = index into N-length data structure
-  // n = count of unique bodies my atoms are part of
-
-  n = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    if (hash->find(bodyid[i]) == hash->end()) (*hash)[bodyid[i]] = n++;
-  }
-
-  // bbox = bounding box of each rigid body my atoms are part of
-
-  memory->create(bbox,n,6,"rigid/small:bbox");
-
-  for (i = 0; i < n; i++) {
-    bbox[i][0] = bbox[i][2] = bbox[i][4] = BIG;
-    bbox[i][1] = bbox[i][3] = bbox[i][5] = -BIG;
-  }
-
-  // pack my atoms into buffer as body ID, unwrapped coords
+  // setup buf to pass to rendezvous comm
+  // one BodyMsg datum for each constituent atom
+  // datum = me, local index of atom, atomID, bodyID, unwrapped coords
+  // owning proc for each datum = random hash of bodyID
 
   double **x = atom->x;
-
-  m = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = bodyid[i];
-    buf[m++] = unwrap[0];
-    buf[m++] = unwrap[1];
-    buf[m++] = unwrap[2];
-  }
-
-  // pass buffer around ring of procs
-  // func = update bbox with atom coords from every proc
-  // when done, have full bbox for every rigid body my atoms are part of
-
-  comm->ring(m,sizeof(double),buf,1,ring_bbox,NULL,(void *)this);
-
-  // check if any bbox is size 0.0, meaning rigid body is a single particle
-
-  flag = 0;
-  for (i = 0; i < n; i++)
-    if (bbox[i][0] == bbox[i][1] && bbox[i][2] == bbox[i][3] &&
-        bbox[i][4] == bbox[i][5]) flag = 1;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall)
-    error->all(FLERR,"One or more rigid bodies are a single particle");
-
-  // ctr = center pt of each rigid body my atoms are part of
-
-  memory->create(ctr,n,6,"rigid/small:bbox");
-
-  for (i = 0; i < n; i++) {
-    ctr[i][0] = 0.5 * (bbox[i][0] + bbox[i][1]);
-    ctr[i][1] = 0.5 * (bbox[i][2] + bbox[i][3]);
-    ctr[i][2] = 0.5 * (bbox[i][4] + bbox[i][5]);
-  }
-
-  // idclose = ID of atom in body closest to center pt (smaller ID if tied)
-  // rsqclose = distance squared from idclose to center pt
-
-  memory->create(idclose,n,"rigid/small:idclose");
-  memory->create(rsqclose,n,"rigid/small:rsqclose");
-
-  for (i = 0; i < n; i++) rsqclose[i] = BIG;
-
-  // pack my atoms into buffer as body ID, atom ID, unwrapped coords
-
   tagint *tag = atom->tag;
+  imageint *image = atom->image;
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = bodyid[i];
-    buf[m++] = ubuf(tag[i]).d;
-    buf[m++] = unwrap[0];
-    buf[m++] = unwrap[1];
-    buf[m++] = unwrap[2];
+    proclist[m] = hashlittle(&bodyID[i],sizeof(tagint),0) % nprocs;
+    inbuf[m].me = me;
+    inbuf[m].ilocal = i;
+    inbuf[m].atomID = tag[i];
+    inbuf[m].bodyID = bodyID[i];
+    domain->unmap(x[i],image[i],inbuf[m].x);
+    m++;
   }
 
-  // pass buffer around ring of procs
-  // func = update idclose,rsqclose with atom IDs from every proc
-  // when done, have idclose for every rigid body my atoms are part of
+  // perform rendezvous operation
+  // each proc owns random subset of bodies
+  // receives all atoms in those bodies
+  // func = compute bbox of each body, find atom closest to geometric center
 
-  comm->ring(m,sizeof(double),buf,2,ring_nearest,NULL,(void *)this);
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous),
+                                 0,proclist,
+                                 rendezvous_body,0,buf,sizeof(OutRvous),
+                                 (void *) this);
+  OutRvous *outbuf = (OutRvous *) buf;
 
-  // set bodytag of all owned atoms, based on idclose
-  // find max value of rsqclose across all procs
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
 
-  double rsqmax = 0.0;
-  for (i = 0; i < nlocal; i++) {
-    bodytag[i] = 0;
-    if (!(mask[i] & groupbit)) continue;
-    m = hash->find(bodyid[i])->second;
-    bodytag[i] = idclose[m];
-    rsqmax = MAX(rsqmax,rsqclose[m]);
-  }
+  // set bodytag of all owned atoms based on outbuf info for constituent atoms
 
-  // pack my atoms into buffer as bodytag of owning atom, unwrapped coords
+  for (i = 0; i < nlocal; i++)
+    if (!(mask[i] & groupbit)) bodytag[i] = 0;
 
-  m = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = ubuf(bodytag[i]).d;
-    buf[m++] = unwrap[0];
-    buf[m++] = unwrap[1];
-    buf[m++] = unwrap[2];
-  }
+  for (m = 0; m < nreturn; m++)
+    bodytag[outbuf[m].ilocal] = outbuf[m].atomID;
 
-  // pass buffer around ring of procs
-  // func = update rsqfar for atoms belonging to bodies I own
-  // when done, have rsqfar for all atoms in bodies I own
+  memory->sfree(outbuf);
 
-  rsqfar = 0.0;
-  comm->ring(m,sizeof(double),buf,3,ring_farthest,NULL,(void *)this);
-
-  // find maxextent of rsqfar across all procs
+  // maxextent = max of rsqfar across all procs
   // if defined, include molecule->maxextent
 
   MPI_Allreduce(&rsqfar,&maxextent,1,MPI_DOUBLE,MPI_MAX,world);
@@ -1691,125 +1618,156 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
     for (int i = 0; i < nmol; i++)
       maxextent = MAX(maxextent,onemols[i]->maxextent);
   }
+}
+
+/* ----------------------------------------------------------------------
+   process rigid bodies assigned to me
+   buf = list of N BodyMsg datums
+------------------------------------------------------------------------- */
+
+int FixRigidSmall::rendezvous_body(int n, char *inbuf,
+                                   int &rflag, int *&proclist, char *&outbuf,
+                                   void *ptr)
+{
+  int i,m;
+  double delx,dely,delz,rsq;
+  int *iclose;
+  tagint *idclose;
+  double *x,*xown,*rsqclose;
+  double **bbox,**ctr;
+
+  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
+  Memory *memory = frsptr->memory;
+  Error *error = frsptr->error;
+  MPI_Comm world = frsptr->world;
+
+  // setup hash
+  // use STL map instead of atom->map
+  //   b/c know nothing about body ID values specified by user
+  // ncount = number of bodies assigned to me
+  // key = body ID
+  // value = index into Ncount-length data structure
+
+  InRvous *in = (InRvous *) inbuf;
+  std::map<tagint,int> hash;
+  tagint id;
+
+  int ncount = 0;
+  for (i = 0; i < n; i++) {
+    id = in[i].bodyID;
+    if (hash.find(id) == hash.end()) hash[id] = ncount++;
+  }
+
+  // bbox = bounding box of each rigid body
+
+  memory->create(bbox,ncount,6,"rigid/small:bbox");
+
+  for (m = 0; m < ncount; m++) {
+    bbox[m][0] = bbox[m][2] = bbox[m][4] = BIG;
+    bbox[m][1] = bbox[m][3] = bbox[m][5] = -BIG;
+  }
+
+  for (i = 0; i < n; i++) {
+    m = hash.find(in[i].bodyID)->second;
+    x = in[i].x;
+    bbox[m][0] = MIN(bbox[m][0],x[0]);
+    bbox[m][1] = MAX(bbox[m][1],x[0]);
+    bbox[m][2] = MIN(bbox[m][2],x[1]);
+    bbox[m][3] = MAX(bbox[m][3],x[1]);
+    bbox[m][4] = MIN(bbox[m][4],x[2]);
+    bbox[m][5] = MAX(bbox[m][5],x[2]);
+  }
+
+  // check if any bbox is size 0.0, meaning rigid body is a single particle
+
+  int flag = 0;
+  for (m = 0; m < ncount; m++)
+    if (bbox[m][0] == bbox[m][1] && bbox[m][2] == bbox[m][3] &&
+        bbox[m][4] == bbox[m][5]) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);    // sync here?
+  if (flagall)
+    error->all(FLERR,"One or more rigid bodies are a single particle");
+
+  // ctr = geometric center pt of each rigid body
+
+  memory->create(ctr,ncount,3,"rigid/small:bbox");
+
+  for (m = 0; m < ncount; m++) {
+    ctr[m][0] = 0.5 * (bbox[m][0] + bbox[m][1]);
+    ctr[m][1] = 0.5 * (bbox[m][2] + bbox[m][3]);
+    ctr[m][2] = 0.5 * (bbox[m][4] + bbox[m][5]);
+  }
+
+  // idclose = atomID closest to center point of each body
+
+  memory->create(idclose,ncount,"rigid/small:idclose");
+  memory->create(iclose,ncount,"rigid/small:iclose");
+  memory->create(rsqclose,ncount,"rigid/small:rsqclose");
+  for (m = 0; m < ncount; m++) rsqclose[m] = BIG;
+
+  for (i = 0; i < n; i++) {
+    m = hash.find(in[i].bodyID)->second;
+    x = in[i].x;
+    delx = x[0] - ctr[m][0];
+    dely = x[1] - ctr[m][1];
+    delz = x[2] - ctr[m][2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq <= rsqclose[m]) {
+      if (rsq == rsqclose[m] && in[i].atomID > idclose[m]) continue;
+      iclose[m] = i;
+      idclose[m] = in[i].atomID;
+      rsqclose[m] = rsq;
+    }
+  }
+
+  // compute rsqfar for all bodies I own
+  // set rsqfar back in caller
+
+  double rsqfar = 0.0;
+
+  for (int i = 0; i < n; i++) {
+    m = hash.find(in[i].bodyID)->second;
+    xown = in[iclose[m]].x;
+    x = in[i].x;
+    delx = x[0] - xown[0];
+    dely = x[1] - xown[1];
+    delz = x[2] - xown[2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    rsqfar = MAX(rsqfar,rsq);
+  }
+
+  frsptr->rsqfar = rsqfar;
+
+  // pass list of OutRvous datums back to comm->rendezvous
+
+  int nout = n;
+  memory->create(proclist,nout,"rigid/small:proclist");
+  OutRvous *out = (OutRvous *)
+    memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
+
+  for (int i = 0; i < nout; i++) {
+    proclist[i] = in[i].me;
+    out[i].ilocal = in[i].ilocal;
+    m = hash.find(in[i].bodyID)->second;
+    out[i].atomID = idclose[m];
+  }
+
+  outbuf = (char *) out;
 
   // clean up
+  // Comm::rendezvous will delete proclist and out (outbuf)
 
-  delete hash;
-  memory->destroy(buf);
   memory->destroy(bbox);
   memory->destroy(ctr);
   memory->destroy(idclose);
+  memory->destroy(iclose);
   memory->destroy(rsqclose);
-}
 
-/* ----------------------------------------------------------------------
-   process rigid body atoms from another proc
-   update bounding box for rigid bodies my atoms are part of
-------------------------------------------------------------------------- */
+  // flag = 2: new outbuf
 
-void FixRigidSmall::ring_bbox(int n, char *cbuf, void *ptr)
-{
-  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
-  std::map<tagint,int> *hash = frsptr->hash;
-  double **bbox = frsptr->bbox;
-
-  double *buf = (double *) cbuf;
-  int ndatums = n/4;
-
-  int j,imol;
-  double *x;
-
-  int m = 0;
-  for (int i = 0; i < ndatums; i++, m += 4) {
-    imol = static_cast<int> (buf[m]);
-    if (hash->find(imol) != hash->end()) {
-      j = hash->find(imol)->second;
-      x = &buf[m+1];
-      bbox[j][0] = MIN(bbox[j][0],x[0]);
-      bbox[j][1] = MAX(bbox[j][1],x[0]);
-      bbox[j][2] = MIN(bbox[j][2],x[1]);
-      bbox[j][3] = MAX(bbox[j][3],x[1]);
-      bbox[j][4] = MIN(bbox[j][4],x[2]);
-      bbox[j][5] = MAX(bbox[j][5],x[2]);
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   process rigid body atoms from another proc
-   update nearest atom to body center for rigid bodies my atoms are part of
-------------------------------------------------------------------------- */
-
-void FixRigidSmall::ring_nearest(int n, char *cbuf, void *ptr)
-{
-  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
-  std::map<tagint,int> *hash = frsptr->hash;
-  double **ctr = frsptr->ctr;
-  tagint *idclose = frsptr->idclose;
-  double *rsqclose = frsptr->rsqclose;
-
-  double *buf = (double *) cbuf;
-  int ndatums = n/5;
-
-  int j,imol;
-  tagint tag;
-  double delx,dely,delz,rsq;
-  double *x;
-
-  int m = 0;
-  for (int i = 0; i < ndatums; i++, m += 5) {
-    imol = static_cast<int> (buf[m]);
-    if (hash->find(imol) != hash->end()) {
-      j = hash->find(imol)->second;
-      tag = (tagint) ubuf(buf[m+1]).i;
-      x = &buf[m+2];
-      delx = x[0] - ctr[j][0];
-      dely = x[1] - ctr[j][1];
-      delz = x[2] - ctr[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq <= rsqclose[j]) {
-        if (rsq == rsqclose[j] && tag > idclose[j]) continue;
-        idclose[j] = tag;
-        rsqclose[j] = rsq;
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   process rigid body atoms from another proc
-   update rsqfar = distance from owning atom to other atom
-------------------------------------------------------------------------- */
-
-void FixRigidSmall::ring_farthest(int n, char *cbuf, void *ptr)
-{
-  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
-  double **x = frsptr->atom->x;
-  imageint *image = frsptr->atom->image;
-  int nlocal = frsptr->atom->nlocal;
-
-  double *buf = (double *) cbuf;
-  int ndatums = n/4;
-
-  int iowner;
-  tagint tag;
-  double delx,dely,delz,rsq;
-  double *xx;
-  double unwrap[3];
-
-  int m = 0;
-  for (int i = 0; i < ndatums; i++, m += 4) {
-    tag = (tagint) ubuf(buf[m]).i;
-    iowner = frsptr->atom->map(tag);
-    if (iowner < 0 || iowner >= nlocal) continue;
-    frsptr->domain->unmap(x[iowner],image[iowner],unwrap);
-    xx = &buf[m+1];
-    delx = xx[0] - unwrap[0];
-    dely = xx[1] - unwrap[1];
-    delz = xx[2] - unwrap[2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    frsptr->rsqfar = MAX(frsptr->rsqfar,rsq);
-  }
+  rflag = 2;
+  return nout;
 }
 
 /* ----------------------------------------------------------------------
@@ -2472,9 +2430,9 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   int nlocal = atom->nlocal;
 
-  hash = new std::map<tagint,int>();
+  std::map<tagint,int> hash;
   for (i = 0; i < nlocal; i++)
-    if (bodyown[i] >= 0) (*hash)[atom->molecule[i]] = bodyown[i];
+    if (bodyown[i] >= 0) hash[atom->molecule[i]] = bodyown[i];
 
   // open file and read header
 
@@ -2533,11 +2491,11 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
       id = ATOTAGINT(values[0]);
       if (id <= 0 || id > maxmol)
         error->all(FLERR,"Invalid rigid body ID in fix rigid/small file");
-      if (hash->find(id) == hash->end()) {
+      if (hash.find(id) == hash.end()) {
         buf = next + 1;
         continue;
       }
-      m = (*hash)[id];
+      m = hash[id];
       inbody[m] = 1;
 
       if (which == 0) {
@@ -2576,7 +2534,6 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   delete [] buffer;
   delete [] values;
-  delete hash;
 }
 
 /* ----------------------------------------------------------------------

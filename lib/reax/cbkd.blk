@@ -1,7 +1,0 @@
-      integer Lvirial,Latomvirial
-
-      common
-     $/cbkd/ d(3,nat),estrain(nat)
-
-      common
-     $/cbkvirial/ atomvirial(6,nat),virial(6),Lvirial,Latomvirial

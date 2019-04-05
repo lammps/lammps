@@ -561,7 +561,11 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     }
   #endif
 
+  #ifdef KOKKOS_ENABLE_PRE_CUDA_10_DEPRECATION_API
   cudaThreadSetCacheConfig(cudaFuncCachePreferShared);
+  #else
+  cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
+  #endif
 
   // Init the array for used for arbitrarily sized atomics
   Impl::initialize_host_cuda_lock_arrays();

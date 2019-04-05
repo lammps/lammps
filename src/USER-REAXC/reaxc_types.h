@@ -491,7 +491,7 @@ typedef struct
   int lgflag;
   int enobondsflag;
   class LAMMPS_NS::Error *error_ptr;
-  int me; 
+  int me;
 
 } control_params;
 

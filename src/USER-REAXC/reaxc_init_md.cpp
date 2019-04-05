@@ -236,21 +236,21 @@ void Initialize( reax_system *system, control_params *control,
 
   if (Init_Workspace( system, control, workspace, msg ) ==
       FAILURE) {
-    control->error_ptr->one(FLERR,"Workspace could not be initialized");    
+    control->error_ptr->one(FLERR,"Workspace could not be initialized");
   }
 
   if (Init_Lists( system, control, data, workspace, lists, mpi_data, msg ) ==
       FAILURE) {
-    control->error_ptr->one(FLERR,"Lists could not be initialized");     
+    control->error_ptr->one(FLERR,"Lists could not be initialized");
     }
 
   if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
-    control->error_ptr->one(FLERR,"Could not open output files"); 
+    control->error_ptr->one(FLERR,"Could not open output files");
   }
 
   if (control->tabulate) {
     if (Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE) {
-    control->error_ptr->one(FLERR,"Lookup table could not be created"); 
+    control->error_ptr->one(FLERR,"Lookup table could not be created");
     }
   }
 

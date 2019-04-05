@@ -1578,6 +1578,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
 
+        } else if (nbracket == 1 && compute->local_flag) {
+          print_var_error(FLERR,"Cannot access local data via indexing",ivar);
         } else print_var_error(FLERR,
                                "Mismatched compute in variable formula",ivar);
 
@@ -2179,7 +2181,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (tree) {
           Tree *newtree = new Tree();
           newtree->type = opprevious;
-          if (opprevious == UNARY) {
+          if ((opprevious == UNARY) || (opprevious == NOT)) {
             newtree->first = treestack[--ntreestack];
             newtree->second = NULL;
             newtree->nextra = 0;

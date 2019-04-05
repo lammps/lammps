@@ -191,8 +191,6 @@ void FixHyperGlobal::pre_neighbor()
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
 
-  double **x = atom->x;
-
   for (m = 0; m < nblocal; m++) {
     iold = blist[m].iold;
     jold = blist[m].jold;

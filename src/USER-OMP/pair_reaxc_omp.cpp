@@ -343,6 +343,15 @@ void PairReaxCOMP::init_style( )
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c/omp requires newton pair on");
 
+ if ((atom->map_tag_max > 99999999) && (comm->me == 0))
+    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c/omp "
+                   "native output files may get misformatted or corrupted");
+
+  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
+
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for pair style reax/c/omp");
+
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 

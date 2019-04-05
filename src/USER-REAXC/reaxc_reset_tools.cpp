@@ -144,7 +144,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     if (total_bonds >= bonds->num_intrs * DANGER_ZONE) {
       workspace->realloc.bonds = 1;
       if (total_bonds >= bonds->num_intrs) {
-        char errmsg[256]; 
+        char errmsg[256];
         snprintf(errmsg, 256, "Not enough space for bonds! total=%d allocated=%d\n",
                 total_bonds, bonds->num_intrs);
         control->error_ptr->one(FLERR, errmsg);
@@ -170,7 +170,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     if (total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/) {
       workspace->realloc.hbonds = 1;
       if (total_hbonds >= hbonds->num_intrs) {
-        char errmsg[256]; 
+        char errmsg[256];
         snprintf(errmsg, 256, "Not enough space for hbonds! total=%d allocated=%d\n",
                 total_hbonds, hbonds->num_intrs);
         control->error_ptr->one(FLERR, errmsg);

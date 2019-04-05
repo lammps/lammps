@@ -477,7 +477,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE *****grow(TYPE *****&array, int n1, int n2, int n3, int n4,
+  TYPE *****grow(TYPE *****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, int /*n4*/,
           const char *name)
   {
           fail(name); return NULL;

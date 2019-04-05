@@ -58,7 +58,7 @@ void Write_Skip_Line( output_controls *out_control, mpi_datatypes * /*mpi_data*/
 
 
 int Write_Header( reax_system *system, control_params *control,
-                  output_controls *out_control, mpi_datatypes *mpi_data )
+                  output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
 {
   int  num_hdr_lines, my_hdr_lines, buffer_req;
   char ensembles[ens_N][25] =  { "NVE", "NVT", "fully flexible NPT",
@@ -357,7 +357,7 @@ int Init_Traj( reax_system *system, control_params *control,
 
 int Write_Frame_Header( reax_system *system, control_params *control,
                         simulation_data *data, output_controls *out_control,
-                        mpi_datatypes *mpi_data )
+                        mpi_datatypes * /*mpi_data*/ )
 {
   int me, num_frm_hdr_lines, my_frm_hdr_lines, buffer_req;
 

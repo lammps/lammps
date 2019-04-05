@@ -343,7 +343,7 @@ void PairReaxCOMP::init_style( )
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c/omp requires newton pair on");
 
- if ((atom->map_max_tag > 99999999) && (comm->me == 0))
+ if ((atom->map_tag_max > 99999999) && (comm->me == 0))
     error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c/omp "
                    "native output files may get misformatted or corrupted");
 

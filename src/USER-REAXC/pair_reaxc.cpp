@@ -382,7 +382,7 @@ void PairReaxC::init_style( )
     error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c requires newton pair on");
-  if ((atom->map_max_tag > 99999999) && (comm->me == 0))
+  if ((atom->map_tag_max > 99999999) && (comm->me == 0))
     error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c "
                    "native output files may get misformatted or corrupted");
 

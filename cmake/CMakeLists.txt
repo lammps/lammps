@@ -1446,7 +1446,16 @@ if(BUILD_EXE)
   if(ENABLE_TESTING)
     add_test(ShowHelp ${LAMMPS_BINARY} -help)
   endif()
+
+  enable_language(C)
+  get_filename_component(MSI2LMP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tools/msi2lmp/src ABSOLUTE)
+  file(GLOB MSI2LMP_SOURCES ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
+  add_executable(msi2lmp ${MSI2LMP_SOURCES})
+  target_link_libraries(msi2lmp m)
+  install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 endif()
+
 
 
 ###############################################################################

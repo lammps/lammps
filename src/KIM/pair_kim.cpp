@@ -671,9 +671,9 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
          va[j*6+4]+=buf[m++];
          va[j*6+5]+=buf[m++];
       }
+   } else {
+     ; // do nothing
    }
-   else
-      ;// do nothing
 
    return;
 }
@@ -716,9 +716,7 @@ int PairKIM::get_neigh(void const * const dataObject,
 
    NeighList * neiobj = Model->neighborLists[neighborListIndex];
 
-   int inum, *ilist, *numneigh, **firstneigh;
-   inum = neiobj->inum;             //# of I atoms neighbors are stored for
-   ilist = neiobj->ilist;           //local indices of I atoms
+   int *numneigh, **firstneigh;
    numneigh = neiobj->numneigh;     // # of J neighbors for each I atom
    firstneigh = neiobj->firstneigh; // ptr to 1st J int value of each I atom
 
@@ -1035,10 +1033,10 @@ void PairKIM::set_kim_model_has_flags()
   for (int i = 0; i < numberOfComputeArgumentNames; ++i)
   {
     KIM_ComputeArgumentName computeArgumentName;
-    int kimerror = KIM_COMPUTE_ARGUMENT_NAME_GetComputeArgumentName(
+    KIM_COMPUTE_ARGUMENT_NAME_GetComputeArgumentName(
         i, &computeArgumentName);
     KIM_SupportStatus supportStatus;
-    kimerror = KIM_ComputeArguments_GetArgumentSupportStatus(
+    KIM_ComputeArguments_GetArgumentSupportStatus(
         pargs, computeArgumentName, &supportStatus);
 
     if (KIM_ComputeArgumentName_Equal(computeArgumentName,
@@ -1097,10 +1095,10 @@ void PairKIM::set_kim_model_has_flags()
   for (int i = 0; i < numberOfComputeCallbackNames; ++i)
   {
     KIM_ComputeCallbackName computeCallbackName;
-    int kimerror = KIM_COMPUTE_CALLBACK_NAME_GetComputeCallbackName(
+    KIM_COMPUTE_CALLBACK_NAME_GetComputeCallbackName(
         i, &computeCallbackName);
     KIM_SupportStatus supportStatus;
-    kimerror = KIM_ComputeArguments_GetCallbackSupportStatus(
+    KIM_ComputeArguments_GetCallbackSupportStatus(
         pargs, computeCallbackName, &supportStatus);
 
     if (KIM_SupportStatus_Equal(supportStatus, KIM_SUPPORT_STATUS_required))

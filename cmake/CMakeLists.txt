@@ -320,10 +320,15 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
 
+include(CheckIncludeFileCXX)
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
+  check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
+  if(NOT HAVE_OMP_H_INCLUDE)
+    message(FATAL_ERROR "Cannot find required 'omp.h' header file")
+  endif()
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
@@ -796,7 +801,6 @@ endif()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFileCXX)
 foreach(HEADER cmath)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})

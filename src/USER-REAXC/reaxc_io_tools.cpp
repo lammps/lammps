@@ -92,13 +92,15 @@ int Close_Output_Files( reax_system *system, control_params *control,
     End_Traj( system->my_rank, out_control );
 
   if (system->my_rank == MASTER_NODE) {
-    if (out_control->energy_update_freq > 0) {
+    if (out_control->pot) {
       fclose( out_control->pot );
+      out_control->pot = NULL;
     }
 
-    if( control->ensemble == NPT || control->ensemble == iNPT ||
-        control->ensemble == sNPT )
-      fclose( out_control->prs );
+    if (out_control->prs) {
+      fclose(out_control->prs);
+      out_control->prs = NULL;
+    }
   }
 
   return SUCCESS;
@@ -122,7 +124,7 @@ void Output_Results( reax_system *system, control_params *control,
         out_control->energy_update_freq > 0 &&
         data->step % out_control->energy_update_freq == 0 ) {
 
-      if (control->virial) {
+      if (control->virial && out_control->prs) {
         fprintf( out_control->prs,
                  "%8d%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
                  data->step,

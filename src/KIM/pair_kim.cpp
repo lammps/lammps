@@ -189,8 +189,6 @@ void PairKIM::set_contributing()
 
 void PairKIM::compute(int eflag , int vflag)
 {
-   int kimerror;
-
    ev_init(eflag,vflag);
 
    // grow kim_particleSpecies and kim_particleContributing array if necessary
@@ -238,7 +236,7 @@ void PairKIM::compute(int eflag , int vflag)
    lmps_local_tot_num_atoms = (int) nall;
 
    // compute via KIM model
-   kimerror = KIM_Model_Compute(pkim, pargs);
+   int kimerror = KIM_Model_Compute(pkim, pargs);
    if (kimerror) error->all(FLERR,"KIM Compute returned error");
 
    // compute virial before reverse comm!
@@ -434,10 +432,9 @@ void PairKIM::coeff(int narg, char **arg)
    kim_particle_codes = new int[lmps_num_unique_elements];
    kim_particle_codes_ok = true;
    for(int i = 0; i < lmps_num_unique_elements; i++){
-      int kimerror;
       int supported;
       int code;
-      kimerror = KIM_Model_GetSpeciesSupportAndCode(
+      KIM_Model_GetSpeciesSupportAndCode(
           pkim,
           KIM_SpeciesName_FromString(lmps_unique_elements[i]),
           &supported,
@@ -467,8 +464,6 @@ void PairKIM::init_style()
 
    if (domain->dimension != 3)
       error->all(FLERR,"PairKIM only works with 3D problems");
-
-   int kimerror;
 
    // setup lmps_stripped_neigh_list for neighbors of one atom, if needed
    if (lmps_using_molecular) {
@@ -720,9 +715,8 @@ int PairKIM::get_neigh(void const * const dataObject,
    *numberOfNeighbors = 0;
 
    NeighList * neiobj = Model->neighborLists[neighborListIndex];
-   int nAtoms = Model->lmps_local_tot_num_atoms;
 
-   int j, jj, inum, *ilist, *numneigh, **firstneigh;
+   int inum, *ilist, *numneigh, **firstneigh;
    inum = neiobj->inum;             //# of I atoms neighbors are stored for
    ilist = neiobj->ilist;           //local indices of I atoms
    numneigh = neiobj->numneigh;     // # of J neighbors for each I atom
@@ -750,8 +744,6 @@ int PairKIM::get_neigh(void const * const dataObject,
 
 void PairKIM::kim_free()
 {
-   int kimerror;
-
    if (kim_init_ok)
    {
      int kimerror = KIM_Model_ComputeArgumentsDestroy(pkim, &pargs);

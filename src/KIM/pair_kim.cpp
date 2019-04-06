@@ -50,7 +50,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v2-2.0.0 (and newer) package
+   Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -313,7 +313,7 @@ void PairKIM::settings(int narg, char **arg)
                         (0 == strcmp("LAMMPSvirial", arg[0]))))
      {
        error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with "
-                  "kim-api-v2.");
+                  "kim-api.");
      }
      else
        error->all(FLERR,"Illegal pair_style command");

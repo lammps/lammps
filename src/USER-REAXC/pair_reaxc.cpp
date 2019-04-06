@@ -73,12 +73,13 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   ghostneigh = 1;
-  no_virial_fdotr_compute = 1;
 
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
+  memset(system,0,sizeof(reax_system));
   control = (control_params *)
     memory->smalloc(sizeof(control_params),"reax:control");
+  memset(control,0,sizeof(control_params));
   data = (simulation_data *)
     memory->smalloc(sizeof(simulation_data),"reax:data");
   workspace = (storage *)
@@ -88,6 +89,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   memset(lists,0,LIST_N * sizeof(reax_list));
   out_control = (output_controls *)
     memory->smalloc(sizeof(output_controls),"reax:out_control");
+  memset(out_control,0,sizeof(output_controls));
   mpi_data = (mpi_datatypes *)
     memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 
@@ -512,7 +514,7 @@ void PairReaxC::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  if (vflag_either) control->virial = 1;
+  if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
   system->n = atom->nlocal; // my atoms

@@ -448,7 +448,7 @@ void PairILPGrapheneHBN::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->all(FLERR,"The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR,"The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0]/nn;
       normal[i][1] = n1[1]/nn;
@@ -591,7 +591,7 @@ void PairILPGrapheneHBN::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->all(FLERR,"The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR,"The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0]/nn;
       normal[i][1] = n1[1]/nn;
@@ -631,7 +631,7 @@ void PairILPGrapheneHBN::calc_normal()
       }
     }
     else {
-      error->all(FLERR,"There are too many neighbors for calculating normals");
+      error->one(FLERR,"There are too many neighbors for calculating normals");
     }
 
 //##############################################################################################
@@ -738,7 +738,7 @@ void PairILPGrapheneHBN::ILP_neigh()
 
     ILP_firstneigh[i] = neighptr;
     ILP_numneigh[i] = n;
-    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please check your configuration");
+    if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");

@@ -91,6 +91,7 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_reax_c_omp);
 
+  no_virial_fdotr_compute = 1;
   suffix_flag |= Suffix::OMP;
   system->pair_ptr = this;
   system->omp_active = 1;

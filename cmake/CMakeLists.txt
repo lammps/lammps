@@ -448,7 +448,7 @@ endif()
 
 
 if(PKG_VORONOI)
-  find_package(VORO QUIET)
+  find_package(VORO)
   if(VORO_FOUND)
     set(DOWNLOAD_VORO_DEFAULT OFF)
   else()
@@ -487,7 +487,13 @@ if(PKG_VORONOI)
 endif()
 
 if(PKG_LATTE)
-  option(DOWNLOAD_LATTE "Download the LATTE library instead of using an already installed one" OFF)
+  find_package(LATTE)
+  if(LATTE_FOUND)
+    set(DOWNLOAD_LATTE_DEFAULT OFF)
+  else()
+    set(DOWNLOAD_LATTE_DEFAULT ON)
+  endif()
+  option(DOWNLOAD_LATTE "Download the LATTE library instead of using an already installed one" ${DOWNLOAD_LATTE_DEFAULT})
   if(DOWNLOAD_LATTE)
     if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR
       message(FATAL_ERROR "For downlading LATTE you need at least cmake-3.7")

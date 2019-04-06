@@ -194,7 +194,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  if (vflag_global) control->virial = 1;
+  if (vflag_either) control->virial = 1;
   else control->virial = 0;
 
   system->n = atom->nlocal; // my atoms

@@ -91,7 +91,6 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_reax_c_omp);
 
-  no_virial_fdotr_compute = 1;
   suffix_flag |= Suffix::OMP;
   system->pair_ptr = this;
   system->omp_active = 1;
@@ -194,7 +193,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  if (vflag_either) control->virial = 1;
+  if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
   system->n = atom->nlocal; // my atoms

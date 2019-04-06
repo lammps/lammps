@@ -41,9 +41,9 @@ include(FindPackageHandleStandardArgs)
 
 pkg_check_modules(KIM-API REQUIRED libkim-api>=2.0)
 
-pkg_get_variable(KIM-API-V2-CMAKE_C_COMPILER libkim-api CMAKE_C_COMPILER)
-pkg_get_variable(KIM-API-V2-CMAKE_CXX_COMPILER libkim-api CMAKE_CXX_COMPILER)
-pkg_get_variable(KIM-API-V2_CMAKE_Fortran_COMPILER libkim-api CMAKE_Fortran_COMPILER)
+pkg_get_variable(KIM-API-CMAKE_C_COMPILER libkim-api CMAKE_C_COMPILER)
+pkg_get_variable(KIM-API-CMAKE_CXX_COMPILER libkim-api CMAKE_CXX_COMPILER)
+pkg_get_variable(KIM-API_CMAKE_Fortran_COMPILER libkim-api CMAKE_Fortran_COMPILER)
 
 # handle the QUIETLY and REQUIRED arguments and set KIM-API_FOUND to TRUE
 # if all listed variables are TRUE

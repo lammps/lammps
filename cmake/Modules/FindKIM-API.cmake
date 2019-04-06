@@ -36,14 +36,23 @@
 # KIM-API-CMAKE_CXX_COMPILER
 # KIM-API-CMAKE_Fortran_COMPILER
 #
-find_package(PkgConfig REQUIRED)
+
+if(KIM-API_FIND_QUIETLY)
+  set(REQ_OR_QUI "QUIET")
+else()
+  set(REQ_OR_QUI "REQUIRED")
+endif()
+
+find_package(PkgConfig ${REQ_OR_QUI})
 include(FindPackageHandleStandardArgs)
 
-pkg_check_modules(KIM-API REQUIRED libkim-api>=2.0)
+pkg_check_modules(KIM-API ${REQ_OR_QUI} libkim-api>=2.0)
 
-pkg_get_variable(KIM-API-CMAKE_C_COMPILER libkim-api CMAKE_C_COMPILER)
-pkg_get_variable(KIM-API-CMAKE_CXX_COMPILER libkim-api CMAKE_CXX_COMPILER)
-pkg_get_variable(KIM-API_CMAKE_Fortran_COMPILER libkim-api CMAKE_Fortran_COMPILER)
+if(KIM-API_FOUND)
+  pkg_get_variable(KIM-API-CMAKE_C_COMPILER libkim-api CMAKE_C_COMPILER)
+  pkg_get_variable(KIM-API-CMAKE_CXX_COMPILER libkim-api CMAKE_CXX_COMPILER)
+  pkg_get_variable(KIM-API_CMAKE_Fortran_COMPILER libkim-api CMAKE_Fortran_COMPILER)
+endif()
 
 # handle the QUIETLY and REQUIRED arguments and set KIM-API_FOUND to TRUE
 # if all listed variables are TRUE

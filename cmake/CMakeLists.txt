@@ -1472,6 +1472,7 @@ if(BUILD_EXE)
   add_executable(msi2lmp ${MSI2LMP_SOURCES})
   target_link_libraries(msi2lmp m)
   install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 endif()
 

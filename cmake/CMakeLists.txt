@@ -1538,10 +1538,13 @@ if(BUILD_DOC)
 endif()
 
 ###############################################################################
-# Install potential files in data directory
+# Install potential and force field files in data directory
 ###############################################################################
 set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
 install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials/ DESTINATION ${LAMMPS_POTENTIALS_DIR})
+
+set(LAMMPS_FRC_FILES_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/frc_files)
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../tools/msi2lmp/frc_files/ DESTINATION ${LAMMPS_FRC_FILES_DIR})
 
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)

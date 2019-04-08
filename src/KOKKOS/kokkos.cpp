@@ -184,8 +184,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   binsize = 0.0;
   gpu_direct_flag = 1;
-  team_flag = 0;
-  team_flag_set = 0;
+  neigh_thread = 0;
+  neigh_thread_set = 0;
   neighflag_qeq_set = 0;
   if (ngpu > 0) {
     neighflag = FULL;
@@ -319,12 +319,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"team") == 0) {
+    } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) team_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) team_flag = 1;
+      if (strcmp(arg[iarg+1],"off") == 0) neigh_thread = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) neigh_thread = 1;
       else error->all(FLERR,"Illegal package kokkos command");
-      team_flag_set = 1;
+      neigh_thread_set = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
@@ -345,8 +345,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
 
-  if (team_flag && neighflag != FULL)
-    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'team on'");
+  if (neigh_thread && neighflag != FULL)
+    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'neigh/thread on'");
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;

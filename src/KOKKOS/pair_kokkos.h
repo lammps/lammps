@@ -867,11 +867,11 @@ template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
 
-  if (!fpair->lmp->kokkos->team_flag_set)
+  if (!fpair->lmp->kokkos->neigh_thread_set)
     if (list->inum <= 16384)
-      fpair->lmp->kokkos->team_flag = 1;
+      fpair->lmp->kokkos->neigh_thread = 1;
 
-  if (fpair->lmp->kokkos->team_flag) {
+  if (fpair->lmp->kokkos->neigh_thread) {
     int vector_length = 8;
     int atoms_per_team = 32;
 

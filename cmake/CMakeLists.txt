@@ -87,6 +87,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 # this is fast, so check for it all the time
 message(STATUS "Running check for auto-generated files from make-based build system")
 file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
+file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/packages_*.h)
 list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
 foreach(_SRC ${SRC_AUTOGEN_FILES})
   get_filename_component(FILENAME "${_SRC}" NAME)
@@ -172,21 +173,17 @@ set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
-  KSPACE MANYBODY MC MESSAGE MISC MOLECULE PERI REPLICA RIGID SHOCK
-  SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD
-  USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
-  USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
-  USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
-  USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
-  USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
+set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
+  GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MOLECULE PERI POEMS QEQ
+  REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS
+  USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
+  USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
+  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC
+  USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF
+  USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-set(OTHER_PACKAGES CORESHELL QEQ)
-foreach(PKG ${DEFAULT_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
-foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -213,7 +210,6 @@ if(PKG_USER-ADIOS)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
 endif()
 
-
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
@@ -232,7 +228,6 @@ else()
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
   list(APPEND LAMMPS_LINK_LIBS mpi_stubs)
 endif()
-
 
 set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallsmall: all 32-bit, smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
 set(LAMMPS_SIZES_VALUES smallbig bigbig smallsmall)
@@ -844,6 +839,8 @@ foreach(PKG ${DEFAULT_PACKAGES})
     list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
     include_directories(${${PKG}_SOURCES_DIR})
   endif()
+
+  RegisterPackages(${${PKG}_SOURCES_DIR})
 endforeach()
 
 # packages that need defines set
@@ -862,6 +859,8 @@ foreach(PKG ${ACCEL_PACKAGES})
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
+
+  RegisterPackages(${${PKG}_SOURCES_DIR})
 endforeach()
 
 ##############################################
@@ -1370,6 +1369,7 @@ endif()
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
+GeneratePackagesHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 
 include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
@@ -1378,7 +1378,7 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-set(temp_PKG_LIST ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+set(temp_PKG_LIST ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
 list(SORT temp_PKG_LIST)
 foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
@@ -1598,7 +1598,7 @@ endif()
 ###############################################################################
 # Print package summary
 ###############################################################################
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")
   endif()

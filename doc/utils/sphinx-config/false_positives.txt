@@ -289,6 +289,7 @@ Cao
 Capolungo
 Caro
 cartesian
+CasP
 Caswell
 Cates
 Cavium
@@ -348,6 +349,7 @@ Cii
 Cij
 cis
 civ
+Clang
 clearstore
 Cleary
 Clebsch
@@ -656,6 +658,7 @@ ec
 Ec
 ecoul
 ecp
+Ecut
 edgeIDs
 edihed
 edim
@@ -1134,6 +1137,7 @@ infty
 inhomogeneities
 inhomogeneous
 init
+initio
 initializations
 InP
 inregion
@@ -1255,6 +1259,7 @@ Jy
 Jz
 jzimmer
 Kadiri
+Kai
 Kalia
 Kamberaj
 Kapfer
@@ -1285,6 +1290,7 @@ Keir
 Kelchner
 Kelkar
 Kemper
+keV
 Keyes
 Khersonskii
 Khrapak
@@ -1538,6 +1544,7 @@ Mattox
 Mattson
 maxangle
 maxbond
+maxelt
 maxeval
 maxfiles
 Maxfoo
@@ -1627,6 +1634,7 @@ minima
 minimizations
 minimizer
 minimizers
+minneigh
 minorder
 minSteps
 mintcream
@@ -2809,6 +2817,7 @@ unimodal
 unitless
 Universite
 unix
+unmaintained
 unoptimized
 unpadded
 unphysical
@@ -2944,6 +2953,7 @@ Wi
 Wicaksono
 wih
 Wijk
+Wikipedia
 wildcard
 Wildcard
 Wirnsberger

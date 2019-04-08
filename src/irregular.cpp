@@ -921,7 +921,7 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 
   // post all receives, starting after self copies
 
-  bigint offset = num_self*nbytes;
+  bigint offset = num_self*(bigint)nbytes;
   for (int irecv = 0; irecv < nrecv_proc; irecv++) {
     MPI_Irecv(&recvbuf[offset],num_recv[irecv]*nbytes,MPI_CHAR,
               proc_recv[irecv],0,world,&request[irecv]);
@@ -964,13 +964,6 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
   // wait on all incoming messages
 
   if (nrecv_proc) MPI_Waitall(nrecv_proc,request,status);
-
-  // approximate memory tally
-  // DEBUG lines
-
-  //bigint irregular_bytes = 2*nprocs*sizeof(int);
-  //irregular_bytes += maxindex*sizeof(int);
-  //irregular_bytes += maxbuf;
 }
 
 /* ----------------------------------------------------------------------

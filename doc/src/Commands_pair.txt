@@ -98,6 +98,7 @@ OPT.
 "gran/hertz/history (o)"_pair_gran.html,
 "gran/hooke (o)"_pair_gran.html,
 "gran/hooke/history (ko)"_pair_gran.html,
+"granular"_pair_granular.html,
 "gw"_pair_gw.html,
 "gw/zbl"_pair_gw.html,
 "hbond/dreiding/lj (o)"_pair_hbond_dreiding.html,

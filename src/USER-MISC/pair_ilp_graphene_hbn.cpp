@@ -111,7 +111,7 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
   tagint itag,jtag;
   double prodnorm1,prodnorm2,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1,fpair2;
-  double rsq,r,Rcut,rhosq1,rhosq2,exp0,exp1,exp2,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
+  double rsq,r,Rcut,rhosq1,rhosq2,exp0,exp1,exp2,r2inv,r6inv,r8inv,Tap,dTap,Vilp;
   double frho1,frho2,TSvdw,TSvdw2inv,Erep,fsum,rdsq1,rdsq2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *ILP_neighs_i,*ILP_neighs_j;
@@ -131,6 +131,10 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
   double fp2[3] = {0.0, 0.0, 0.0};
   double fprod1[3] = {0.0, 0.0, 0.0};
   double fprod2[3] = {0.0, 0.0, 0.0};
+  double fk[3] = {0.0, 0.0, 0.0};
+  double fl[3] = {0.0, 0.0, 0.0};
+  double delkj[3] = {0.0, 0.0, 0.0};
+  double delli[3] = {0.0, 0.0, 0.0};
 
   inum = list->inum;
   ilist = list->ilist;
@@ -213,7 +217,7 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
         frho1 = exp1*p.C;
         frho2 = exp2*p.C;
         Erep = p.epsilon + frho1 + frho2;
-        Vkc = -p.C6*r6inv/TSvdw + exp0*Erep;
+        Vilp = -p.C6*r6inv/TSvdw + exp0*Erep;
 
         // derivatives
         fpair = -6.0*p.C6*r8inv/TSvdw + p.d/p.seff*p.C6*(TSvdw-1.0)*TSvdw2inv*r8inv*r + p.lambda*exp0/r*Erep;
@@ -240,9 +244,9 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
         fprod2[0] = prodnorm2*dprodnorm2[0]*fpair2;
         fprod2[1] = prodnorm2*dprodnorm2[1]*fpair2;
         fprod2[2] = prodnorm2*dprodnorm2[2]*fpair2;
-        fkcx = (delx*fsum - fp1[0] - fp2[0])*Tap - Vkc*dTap*delx/r;
-        fkcy = (dely*fsum - fp1[1] - fp2[1])*Tap - Vkc*dTap*dely/r;
-        fkcz = (delz*fsum - fp1[2] - fp2[2])*Tap - Vkc*dTap*delz/r;
+        fkcx = (delx*fsum - fp1[0] - fp2[0])*Tap - Vilp*dTap*delx/r;
+        fkcy = (dely*fsum - fp1[1] - fp2[1])*Tap - Vilp*dTap*dely/r;
+        fkcz = (delz*fsum - fp1[2] - fp2[2])*Tap - Vilp*dTap*delz/r;
 
         f[i][0] += fkcx - fprod1[0]*Tap;
         f[i][1] += fkcy - fprod1[1]*Tap;
@@ -260,9 +264,16 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
           dprodnorm1[0] = dnormal[0][0][kk][i]*delx + dnormal[1][0][kk][i]*dely + dnormal[2][0][kk][i]*delz;
           dprodnorm1[1] = dnormal[0][1][kk][i]*delx + dnormal[1][1][kk][i]*dely + dnormal[2][1][kk][i]*delz;
           dprodnorm1[2] = dnormal[0][2][kk][i]*delx + dnormal[1][2][kk][i]*dely + dnormal[2][2][kk][i]*delz;
-          f[k][0] += (-prodnorm1*dprodnorm1[0]*fpair1)*Tap;
-          f[k][1] += (-prodnorm1*dprodnorm1[1]*fpair1)*Tap;
-          f[k][2] += (-prodnorm1*dprodnorm1[2]*fpair1)*Tap;
+          fk[0] = (-prodnorm1*dprodnorm1[0]*fpair1)*Tap;
+          fk[1] = (-prodnorm1*dprodnorm1[1]*fpair1)*Tap;
+          fk[2] = (-prodnorm1*dprodnorm1[2]*fpair1)*Tap;
+          f[k][0] += fk[0];
+          f[k][1] += fk[1];
+          f[k][2] += fk[2];
+          delkj[0] = x[k][0] - x[j][0];
+          delkj[1] = x[k][1] - x[j][1];
+          delkj[2] = x[k][2] - x[j][2];
+          if (evflag) ev_tally_xyz(k,j,nlocal,newton_pair,0.0,0.0,fk[0],fk[1],fk[2],delkj[0],delkj[1],delkj[2]);
         }
 
         // calculate the forces acted on the neighbors of atom j from atom i
@@ -274,20 +285,24 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
           dprodnorm2[0] = dnormal[0][0][ll][j]*delx + dnormal[1][0][ll][j]*dely + dnormal[2][0][ll][j]*delz;
           dprodnorm2[1] = dnormal[0][1][ll][j]*delx + dnormal[1][1][ll][j]*dely + dnormal[2][1][ll][j]*delz;
           dprodnorm2[2] = dnormal[0][2][ll][j]*delx + dnormal[1][2][ll][j]*dely + dnormal[2][2][ll][j]*delz;
-          f[l][0] += (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
-          f[l][1] += (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
-          f[l][2] += (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
+          fl[0] = (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
+          fl[1] = (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
+          fl[2] = (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
+          f[l][0] += fl[0];
+          f[l][1] += fl[1];
+          f[l][2] += fl[2];
+          delli[0] = x[l][0] - x[i][0];
+          delli[1] = x[l][1] - x[i][1];
+          delli[2] = x[l][2] - x[i][2];
+          if (evflag) ev_tally_xyz(l,i,nlocal,newton_pair,0.0,0.0,fl[0],fl[1],fl[2],delli[0],delli[1],delli[2]);
         }
 
         if (eflag) {
-          if (tap_flag) evdwl = Tap*Vkc;
-          else  evdwl = Vkc - offset[itype][jtype];
+          if (tap_flag) evdwl = Tap*Vilp;
+          else  evdwl = Vilp - offset[itype][jtype];
         }
 
-        if (evflag){
-          ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
-                       fkcx,fkcy,fkcz,delx,dely,delz);
-        }
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,fkcx,fkcy,fkcz,delx,dely,delz);
       }
     }
   }
@@ -433,7 +448,7 @@ void PairILPGrapheneHBN::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->all(FLERR,"The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR,"The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0]/nn;
       normal[i][1] = n1[1]/nn;
@@ -576,7 +591,7 @@ void PairILPGrapheneHBN::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->all(FLERR,"The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR,"The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0]/nn;
       normal[i][1] = n1[1]/nn;
@@ -616,7 +631,7 @@ void PairILPGrapheneHBN::calc_normal()
       }
     }
     else {
-      error->all(FLERR,"There are too many neighbors for calculating normals");
+      error->one(FLERR,"There are too many neighbors for calculating normals");
     }
 
 //##############################################################################################
@@ -723,8 +738,7 @@ void PairILPGrapheneHBN::ILP_neigh()
 
     ILP_firstneigh[i] = neighptr;
     ILP_numneigh[i] = n;
-    if (n == 0) error->all(FLERR,"Could not build neighbor list to calculate normals, please check your configuration");
-    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please check your configuration");
+    if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
@@ -1010,7 +1024,7 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
                          double &fforce)
 {
   double r,r2inv,r6inv,r8inv,forcelj,philj,fpair;
-  double Tap,dTap,Vkc,TSvdw,TSvdw2inv;
+  double Tap,dTap,Vilp,TSvdw,TSvdw2inv;
 
   int iparam_ij = elem2param[map[itype]][map[jtype]];
   Param& p = params[iparam_ij];
@@ -1028,13 +1042,13 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
 
   TSvdw = 1.0 + exp(-p.d*(r/p.seff - 1.0));
   TSvdw2inv = pow(TSvdw,-2.0);
-  Vkc = -p.C6*r6inv/TSvdw;
+  Vilp = -p.C6*r6inv/TSvdw;
   // derivatives
   fpair = -6.0*p.C6*r8inv/TSvdw + p.d/p.seff*p.C6*(TSvdw - 1.0)*r6inv*TSvdw2inv/r;
   forcelj = fpair;
-  fforce = factor_lj*(forcelj*Tap - Vkc*dTap/r);
+  fforce = factor_lj*(forcelj*Tap - Vilp*dTap/r);
 
-  philj = Vkc*Tap;
+  philj = Vilp*Tap;
   return factor_lj*philj;
 }
 

@@ -1390,7 +1390,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
 ------------------------------------------------------------------------- */
 
 int FixShake::rendezvous_ids(int n, char *inbuf,
-                             int &flag, int *&proclist, char *&outbuf,
+                             int &flag, int *& /*proclist*/, char *& /*outbuf*/,
                              void *ptr)
 {
   FixShake *fsptr = (FixShake *) ptr;

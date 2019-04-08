@@ -113,7 +113,7 @@ PairReaxCOMP::~PairReaxCOMP()
   if (setup_flag) {
     reax_list * bonds = lists+BONDS;
     for (int i=0; i<bonds->num_intrs; ++i)
-      sfree(bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+      sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
   }
   memory->destroy(num_nbrs_offset);
 
@@ -196,6 +196,10 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
+  if (vflag_atom)
+     error->all(FLERR,"Pair style reax/c/omp does not support "
+                "computing per-atom stress");
+
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
@@ -209,7 +213,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   setup();
 
-  Reset( system, control, data, workspace, &lists, world );
+  Reset( system, control, data, workspace, &lists );
 
   // Why not update workspace like in MPI-only code?
   // Using the MPI-only way messes up the hb energy
@@ -343,6 +347,15 @@ void PairReaxCOMP::init_style( )
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c/omp requires newton pair on");
 
+ if ((atom->map_tag_max > 99999999) && (comm->me == 0))
+    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c/omp "
+                   "native output files may get misformatted or corrupted");
+
+  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
+
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for pair style reax/c/omp");
+
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
@@ -410,12 +423,12 @@ void PairReaxCOMP::setup( )
 
     // initialize my data structures
 
-    PreAllocate_Space( system, control, workspace, world );
+    PreAllocate_Space( system, control, workspace );
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
-                  lists+FAR_NBRS, world))
+                  lists+FAR_NBRS))
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
 
     write_reax_lists();
@@ -445,7 +458,7 @@ void PairReaxCOMP::setup( )
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( system, control, data, workspace, &lists, mpi_data );
+    ReAllocate( system, control, data, workspace, &lists );
   }
 }
 

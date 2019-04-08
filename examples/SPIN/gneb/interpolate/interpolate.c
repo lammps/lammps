@@ -67,8 +67,7 @@ int main() {
   
   // reading input file
 
-  if((data=fopen("reac_coords_iron_verbose.dat","r")) == NULL) {
-  //if((data=fopen("neb_init.dat","r")) == NULL) {
+  if((data=fopen("neb_init.dat","r")) == NULL) {
     printf("Incorrect input file name.");
     return 0;
   }

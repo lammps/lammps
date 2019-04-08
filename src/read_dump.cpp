@@ -40,6 +40,7 @@
 #include "variable.h"
 #include "error.h"
 #include "memory.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -266,7 +267,7 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   // unrecognized style
 
-  else error->all(FLERR,"Unknown dump reader style");
+  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp).c_str());
 
   // pass any arguments to readers
 

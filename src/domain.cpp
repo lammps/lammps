@@ -40,6 +40,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1714,6 +1715,9 @@ void Domain::add_region(int narg, char **arg)
     return;
   }
 
+  if (strcmp(arg[1],"none") == 0)
+    error->all(FLERR,"Unrecognized region style 'none'");
+
   if (find_region(arg[0]) >= 0) error->all(FLERR,"Reuse of region ID");
 
   // extend Region list if necessary
@@ -1752,12 +1756,10 @@ void Domain::add_region(int narg, char **arg)
     }
   }
 
-  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
   if (region_map->find(arg[1]) != region_map->end()) {
     RegionCreator region_creator = (*region_map)[arg[1]];
     regions[nregion] = region_creator(lmp, narg, arg);
-  }
-  else error->all(FLERR,"Unknown region style");
+  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp).c_str());
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable

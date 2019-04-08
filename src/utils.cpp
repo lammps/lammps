@@ -128,7 +128,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
 std::string utils::check_packages_for_style(std::string style,
                                             std::string name, LAMMPS *lmp)
 {
-  std::string errmsg = "Unrecognized " + style + " style " + name;
+  std::string errmsg = "Unrecognized " + style + " style '" + name + "'";
   const char *pkg = lmp->match_style(style.c_str(),name.c_str());
 
   if (pkg) {

@@ -361,7 +361,7 @@ E: Atom IDs must be used for molecular systems
 
 Atom IDs are used to identify and find partner atoms in bonds.
 
-E: Unknown atom style
+E: Unrecognized atom style
 
 The choice of atom style is unknown.
 

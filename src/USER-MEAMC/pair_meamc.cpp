@@ -226,6 +226,9 @@ void PairMEAMC::coeff(int narg, char **arg)
   }
   nelements = narg - 4 - atom->ntypes;
   if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (nelements > maxelt)
+    error->all(FLERR,"Too many elements extracted from MEAM library. "
+                      "Increase 'maxelt' in meam.h and recompile.");
   elements = new char*[nelements];
   mass = new double[nelements];
 

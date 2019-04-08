@@ -76,8 +76,10 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
+  memset(system,0,sizeof(reax_system));
   control = (control_params *)
     memory->smalloc(sizeof(control_params),"reax:control");
+  memset(control,0,sizeof(control_params));
   data = (simulation_data *)
     memory->smalloc(sizeof(simulation_data),"reax:data");
   workspace = (storage *)
@@ -87,6 +89,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   memset(lists,0,LIST_N * sizeof(reax_list));
   out_control = (output_controls *)
     memory->smalloc(sizeof(output_controls),"reax:out_control");
+  memset(out_control,0,sizeof(output_controls));
   mpi_data = (mpi_datatypes *)
     memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 

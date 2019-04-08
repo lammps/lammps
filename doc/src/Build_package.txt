@@ -159,6 +159,8 @@ cmake -C ../cmake/presets/most.cmake    \[OPTIONS\] ../cmake |
       enable most common packages |
 cmake -C ../cmake/presets/nolib.cmake   \[OPTIONS\] ../cmake |
       disable packages that do require extra libraries or tools |
+cmake -C ../cmake/presets/clang.cmake   \[OPTIONS\] ../cmake |
+      change settings to use the Clang compilers by default |
 cmake -C ../cmake/presets/mingw.cmake \[OPTIONS\] ../cmake |
       enable all packages compatible with MinGW compilers :tb(c=2,s=|,a=l)
 

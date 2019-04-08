@@ -200,7 +200,6 @@ endif()
 
 include_directories(${LAMMPS_SOURCE_DIR})
 
-
 if(PKG_USER-ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
@@ -435,7 +434,6 @@ else()
   set(CMAKE_REQUEST_PIC)
   set(CUDA_REQUEST_PIC)
 endif()
-
 
 if(PKG_VORONOI)
   option(DOWNLOAD_VORO "Download and compile the Voro++ library instead of using an already installed one" OFF)
@@ -909,7 +907,6 @@ if(PKG_USER-H5MD)
   include_directories(${HDF5_INCLUDE_DIRS})
 endif()
 
-
 ######################################################################
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
@@ -1365,6 +1362,7 @@ endif()
 ######################################################
 # Generate style headers based on global list of
 # styles registered during package selection
+# Generate packages headers from all packages
 ######################################################
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
@@ -1447,7 +1445,6 @@ if(BUILD_EXE)
     add_test(ShowHelp ${LAMMPS_BINARY} -help)
   endif()
 endif()
-
 
 ###############################################################################
 # Build documentation

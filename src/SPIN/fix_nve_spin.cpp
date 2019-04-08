@@ -88,7 +88,6 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   npairs = 0;
   npairspin = 0;
 
-
   // checking if map array or hash is defined
 
   if (atom->map_style == 0)
@@ -250,13 +249,10 @@ void FixNVESpin::init()
   // init. size of stacking lists (sectoring)
 
   nlocal_max = atom->nlocal;
-  stack_head = memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
-  stack_foot = memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
-  backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
-  forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
-  if (nlocal_max == 0)
-    error->all(FLERR,"Incorrect value of nlocal_max");
-
+  memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
+  memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
+  memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+  memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -389,8 +385,8 @@ void FixNVESpin::pre_neighbor()
 
   if (nlocal_max < nlocal) {                    // grow linked lists if necessary
     nlocal_max = nlocal;
-    backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
-    forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
+    memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+    memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
   }
 
   for (int j = 0; j < nsectors; j++) {

@@ -144,8 +144,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   double df2,df4f6t1,df4t4,df4t5,df4t6,rsint;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;

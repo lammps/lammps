@@ -95,8 +95,7 @@ double PairEAMGPU::memory_usage()
 
 void PairEAMGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute density on each atom on GPU
 

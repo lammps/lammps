@@ -17,13 +17,18 @@
 ifeq ($(strip $(shell pkg-config --version)),)
   $(error 'pkg-config' not found, but is required to configure the KIM API)
 endif
-
 kim_PREFIX  := $(shell cat ../../lib/kim/kim-prefix.txt 2> /dev/null)
 kim_PREFIX  := $(if $(kim_PREFIX),$(kim_PREFIX)/lib/pkgconfig,)
 kim_PREFIX  := $(if $(shell printf -- "$${PKG_CONFIG_PATH}"),$(kim_PREFIX):$(shell printf -- "$${PKG_CONFIG_PATH}"),$(kim_PREFIX))
 
-kim_SYSINC  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --cflags libkim-api-v2 2> /dev/null)
-kim_SYSLIB  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --libs   libkim-api-v2 2> /dev/null)
+# there is no usable libcurl installation
+ifeq ($(shell curl-config --version 2> /dev/null),)
+kim_SYSINC  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --cflags libkim-api 2> /dev/null)
+kim_SYSLIB  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --libs   libkim-api 2> /dev/null)
+else
+kim_SYSINC  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --cflags libkim-api 2> /dev/null) $(shell curl-config --cflags) -DLMP_KIM_CURL
+kim_SYSLIB  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --libs   libkim-api 2> /dev/null) $(shell curl-config --libs)
+endif
 
 ifeq ($(strip $(kim_SYSINC)),)
   $(error 'pkg-config' could not find an installed KIM API library.)

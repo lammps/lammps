@@ -874,14 +874,14 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
       atoms_per_team = GetTeamSize(ff, atoms_per_team, vector_length);
       Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff,ev);
-      else                              Kokkos::parallel_for(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
+      else                              Kokkos::parallel_for(policy,ff);
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
       atoms_per_team = GetTeamSize(ff, atoms_per_team, vector_length);
       Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff,ev);
-      else                              Kokkos::parallel_for(Kokkos::Experimental::require(policy,Kokkos::Experimental::WorkItemProperty::HintLightWeight),ff);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
+      else                              Kokkos::parallel_for(policy,ff);
     }
   } else {
     if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {

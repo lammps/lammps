@@ -233,6 +233,7 @@ class Neighbor : protected Pointers {
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
   virtual void grow_ex_mol_intra_kokkos() {}
+  virtual void set_binsize_kokkos() {}
 };
 
 namespace NeighConst {

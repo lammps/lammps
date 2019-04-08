@@ -71,8 +71,7 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
   double rsq, tmp, wfd, delVdotDelR;
   double prefactor, wiener[3][3], f_random[3];
 
-  if (eflag || vflag) ev_setup (eflag, vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;

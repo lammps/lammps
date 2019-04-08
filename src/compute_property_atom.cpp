@@ -141,7 +141,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_mu;
-    } else if (strcmp(arg[iarg],"spx") == 0) { 		// pack magnetic variables
+    } else if (strcmp(arg[iarg],"spx") == 0) {          // pack magnetic variables
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");

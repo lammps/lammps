@@ -32,7 +32,7 @@
 #define MAXLINE 1024
 #define MAXWORD 3
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
 
 // Outstanding issues with quadratic term
 // 1. there seems to a problem with compute_optimized energy calc
@@ -137,8 +137,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -674,4 +673,5 @@ double PairSNAPKokkos<DeviceType>::memory_usage()
   bytes += (ncoeff*3)*sizeof(double);
   bytes += snaKK.memory_usage();
   return bytes;
+}
 }

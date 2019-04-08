@@ -72,7 +72,9 @@ void Error::universe_all(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
   snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
@@ -97,7 +99,9 @@ void Error::universe_one(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
   snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
@@ -148,7 +152,9 @@ void Error::all(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
   snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
@@ -198,7 +204,9 @@ void Error::one(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
   snprintf(msg, 100, "ERROR on proc %d: %s (%s:%d)\n", me, str, truncpath(file), line);

@@ -36,6 +36,8 @@ class KokkosLMP : protected Pointers {
   int numa;
   int auto_sync;
   int gpu_direct_flag;
+  int newtonflag;
+  double binsize;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();

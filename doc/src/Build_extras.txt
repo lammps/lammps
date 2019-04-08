@@ -247,7 +247,10 @@ Maxwell50 = NVIDIA Maxwell generation CC 5.0
 Maxwell52 = NVIDIA Maxwell generation CC 5.2
 Maxwell53 = NVIDIA Maxwell generation CC 5.3
 Pascal60 = NVIDIA Pascal generation CC 6.0
-Pascal61 = NVIDIA Pascal generation CC 6.1 :ul
+Pascal61 = NVIDIA Pascal generation CC 6.1
+Volta70 = NVIDIA Volta generation CC 7.0
+Volta72 = NVIDIA Volta generation CC 7.2
+Turing75 = NVIDIA Turing generation CC 7.5 :ul
 
 [CMake build]:
 

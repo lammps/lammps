@@ -431,7 +431,7 @@ value as listed below.
 The {neigh} keyword determines how neighbor lists are built. A value of 
 {half} uses a thread-safe variant of half-neighbor lists, the same as 
 used by most pair styles in LAMMPS, which is the default when running on 
-CPUs (i.e. CUDA backend not enabled). 
+CPUs (i.e. the Kokkos CUDA back end is not enabled). 
 
 A value of {full} uses a full neighbor lists and is the default when 
 running on GPUs. This performs twice as much computation as the {half} 

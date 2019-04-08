@@ -200,6 +200,7 @@ Berkowitz
 berlin
 Berne
 Bertotti
+Bessarab
 Beutler
 bgq
 Bh
@@ -592,6 +593,7 @@ Dmax
 dmg
 dmi
 dnf
+DNi
 Dobson
 Dodds
 dodgerblue
@@ -963,6 +965,8 @@ gmail
 gmake
 gmask
 Gmask
+gneb
+GNEB
 googlemail
 Gordan
 GPa
@@ -2368,6 +2372,7 @@ rNEMD
 ro
 Rochus
 Rockett
+Rodrigues
 Rohart
 Ronchetti
 Rosati
@@ -2772,6 +2777,7 @@ tt
 Tt
 TThis
 ttm
+ttol
 tu
 Tuckerman
 tue
@@ -2844,6 +2850,7 @@ utsa
 Uttormark
 uvm
 uwo
+Uzdin
 vacf
 valent
 Valeriu
@@ -2943,7 +2950,7 @@ wB
 Wbody
 webpage
 Weckner
-WeinenE
+WeinanE
 Wennberg
 Westview
 wget

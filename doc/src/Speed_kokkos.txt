@@ -194,8 +194,8 @@ the default "package kokkos"_package.html options. See its doc page for
 details and default settings. Experimenting with its options can provide 
 a speed-up for specific calculations. For example: 
 
-mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.lj      #  Newton on, half neighbor list, threaded comm
-mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton off neigh full comm no -in in.reax      # Newton off, full neighbor list, non-threaded comm :pre
+mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.reax      #  Newton on, half neighbor list, threaded comm
+mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton off neigh full comm no -in in.lj      # Newton off, full neighbor list, non-threaded comm :pre
 
 NOTE: MPI tasks and threads should be bound to cores as described
 above for CPUs.

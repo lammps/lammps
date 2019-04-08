@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
 #include "utils.h"
+#include "lammps.h"
 #include "error.h"
 
 /*! \file utils.cpp */
@@ -119,6 +121,24 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     if (s) *s = '\0'; // truncate string to empty in case error is NULL
   }
   return;
+}
+
+/* ------------------------------------------------------------------ */
+
+std::string utils::check_packages_for_style(std::string style,
+                                            std::string name, LAMMPS *lmp)
+{
+  std::string errmsg = "Unrecognized " + style + " style " + name;
+  const char *pkg = lmp->match_style(style.c_str(),name.c_str());
+
+  if (pkg) {
+    errmsg += " is part of the " + std::string(pkg) + " package";
+    if (lmp->is_installed_pkg(pkg))
+      errmsg += ", but seems to be missing because of a dependency";
+    else
+      errmsg += " which is not enabled in this LAMMPS binary.";
+  }
+  return errmsg;
 }
 
 /* ------------------------------------------------------------------ */

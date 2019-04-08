@@ -187,8 +187,6 @@ means that the GNEB calculation will terminate if the torque criterion
 is met by every replica.  The torques being compared to {ftol} include
 the inter-replica nudging forces.
 
-###################################################################
-
 The maximum number of iterations in each stage is set by {N1} and
 {N2}.  These are effectively timestep counts since each iteration of
 damped dynamics is like a single timestep in a dynamics
@@ -196,36 +194,40 @@ damped dynamics is like a single timestep in a dynamics
 replica and its normalized distance along the reaction path (reaction
 coordinate RD) will be printed to the screen and log file every
 {Nevery} timesteps.  The RD is 0 and 1 for the first and last replica.
-For intermediate replicas, it is the cumulative distance (normalized
-by the total cumulative distance) between adjacent replicas, where
-"distance" is defined as the length of the 3N-vector of differences in
-atomic coordinates, where N is the number of NEB atoms involved in the
-transition.  These outputs allow you to monitor NEB's progress in
+For intermediate replicas, it is the cumulative angular distance 
+(normalized by the total cumulative angular distance) between adjacent 
+replicas, where "distance" is defined as the length of the 3N-vector of 
+the geodesic distances in spin coordinates, with N the number of
+GNEB spinsi involved (see equation (13) in "(Bessarab)"_#Bessarab).
+These outputs allow you to monitor NEB's progress in
 finding a good energy barrier.  {N1} and {N2} must both be multiples
 of {Nevery}.
 
-In the first stage of NEB, the set of replicas should converge toward
+In the first stage of GNEB, the set of replicas should converge toward
 a minimum energy path (MEP) of conformational states that transition
 over a barrier.  The MEP for a transition is defined as a sequence of
-3N-dimensional states, each of which has a potential energy gradient
-parallel to the MEP itself.  The configuration of highest energy along
-a MEP corresponds to a saddle point.  The replica states will also be
-roughly equally spaced along the MEP due to the inter-replica nudging
-force added by the "fix neb"_fix_neb.html command.
+3N-dimensional spin states, each of which has a potential energy 
+gradient parallel to the MEP itself.  
+The configuration of highest energy along a MEP corresponds to a saddle 
+point.  The replica states will also be roughly equally spaced along 
+the MEP due to the inter-replica nudging force added by the 
+"fix neb"_fix_neb.html command.
 
-In the second stage of NEB, the replica with the highest energy is
+In the second stage of GNEB, the replica with the highest energy is
 selected and the inter-replica forces on it are converted to a force
-that drives its atom coordinates to the top or saddle point of the
+that drives its spin coordinates to the top or saddle point of the
 barrier, via the barrier-climbing calculation described in
-"(HenkelmanB)"_#HenkelmanB.  As before, the other replicas rearrange
+"(Bessarab)"_#Bessarab.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
-When both stages are complete, if the NEB calculation was successful,
+When both stages are complete, if the GNEB calculation was successful,
 the configurations of the replicas should be along (close to) the MEP
-and the replica with the highest energy should be an atomic
+and the replica with the highest energy should be a spin
 configuration at (close to) the saddle point of the transition. The
 potential energies for the set of replicas represents the energy
 profile of the transition along the MEP.
+
+###################################################################
 
 :line
 

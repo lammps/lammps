@@ -449,7 +449,7 @@ interactions to {off} or {on}, the same as the "newton"_newton.html
 command allows. The default for GPUs is {off} because this will almost 
 always give better performance for the KOKKOS package. This means more 
 computation is done, but less communication. However, when running on 
-CPUs a value of {on} is the deafult since it can often be faster, just 
+CPUs a value of {on} is the default since it can often be faster, just 
 as it is for non-accelerated pair styles 
 
 The {binsize} keyword sets the size of bins used to bin atoms in 

@@ -50,7 +50,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v2-2.0.0 (and newer) package
+   Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -189,8 +189,6 @@ void PairKIM::set_contributing()
 
 void PairKIM::compute(int eflag , int vflag)
 {
-   int kimerror;
-
    ev_init(eflag,vflag);
 
    // grow kim_particleSpecies and kim_particleContributing array if necessary
@@ -238,7 +236,7 @@ void PairKIM::compute(int eflag , int vflag)
    lmps_local_tot_num_atoms = (int) nall;
 
    // compute via KIM model
-   kimerror = KIM_Model_Compute(pkim, pargs);
+   int kimerror = KIM_Model_Compute(pkim, pargs);
    if (kimerror) error->all(FLERR,"KIM Compute returned error");
 
    // compute virial before reverse comm!
@@ -313,7 +311,7 @@ void PairKIM::settings(int narg, char **arg)
                         (0 == strcmp("LAMMPSvirial", arg[0]))))
      {
        error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with "
-                  "kim-api-v2.");
+                  "kim-api.");
      }
      else
        error->all(FLERR,"Illegal pair_style command");
@@ -434,10 +432,9 @@ void PairKIM::coeff(int narg, char **arg)
    kim_particle_codes = new int[lmps_num_unique_elements];
    kim_particle_codes_ok = true;
    for(int i = 0; i < lmps_num_unique_elements; i++){
-      int kimerror;
       int supported;
       int code;
-      kimerror = KIM_Model_GetSpeciesSupportAndCode(
+      KIM_Model_GetSpeciesSupportAndCode(
           pkim,
           KIM_SpeciesName_FromString(lmps_unique_elements[i]),
           &supported,
@@ -467,8 +464,6 @@ void PairKIM::init_style()
 
    if (domain->dimension != 3)
       error->all(FLERR,"PairKIM only works with 3D problems");
-
-   int kimerror;
 
    // setup lmps_stripped_neigh_list for neighbors of one atom, if needed
    if (lmps_using_molecular) {
@@ -676,9 +671,9 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
          va[j*6+4]+=buf[m++];
          va[j*6+5]+=buf[m++];
       }
+   } else {
+     ; // do nothing
    }
-   else
-      ;// do nothing
 
    return;
 }
@@ -720,11 +715,8 @@ int PairKIM::get_neigh(void const * const dataObject,
    *numberOfNeighbors = 0;
 
    NeighList * neiobj = Model->neighborLists[neighborListIndex];
-   int nAtoms = Model->lmps_local_tot_num_atoms;
 
-   int j, jj, inum, *ilist, *numneigh, **firstneigh;
-   inum = neiobj->inum;             //# of I atoms neighbors are stored for
-   ilist = neiobj->ilist;           //local indices of I atoms
+   int *numneigh, **firstneigh;
    numneigh = neiobj->numneigh;     // # of J neighbors for each I atom
    firstneigh = neiobj->firstneigh; // ptr to 1st J int value of each I atom
 
@@ -750,8 +742,6 @@ int PairKIM::get_neigh(void const * const dataObject,
 
 void PairKIM::kim_free()
 {
-   int kimerror;
-
    if (kim_init_ok)
    {
      int kimerror = KIM_Model_ComputeArgumentsDestroy(pkim, &pargs);
@@ -1043,10 +1033,10 @@ void PairKIM::set_kim_model_has_flags()
   for (int i = 0; i < numberOfComputeArgumentNames; ++i)
   {
     KIM_ComputeArgumentName computeArgumentName;
-    int kimerror = KIM_COMPUTE_ARGUMENT_NAME_GetComputeArgumentName(
+    KIM_COMPUTE_ARGUMENT_NAME_GetComputeArgumentName(
         i, &computeArgumentName);
     KIM_SupportStatus supportStatus;
-    kimerror = KIM_ComputeArguments_GetArgumentSupportStatus(
+    KIM_ComputeArguments_GetArgumentSupportStatus(
         pargs, computeArgumentName, &supportStatus);
 
     if (KIM_ComputeArgumentName_Equal(computeArgumentName,
@@ -1105,10 +1095,10 @@ void PairKIM::set_kim_model_has_flags()
   for (int i = 0; i < numberOfComputeCallbackNames; ++i)
   {
     KIM_ComputeCallbackName computeCallbackName;
-    int kimerror = KIM_COMPUTE_CALLBACK_NAME_GetComputeCallbackName(
+    KIM_COMPUTE_CALLBACK_NAME_GetComputeCallbackName(
         i, &computeCallbackName);
     KIM_SupportStatus supportStatus;
-    kimerror = KIM_ComputeArguments_GetCallbackSupportStatus(
+    KIM_ComputeArguments_GetCallbackSupportStatus(
         pargs, computeCallbackName, &supportStatus);
 
     if (KIM_SupportStatus_Equal(supportStatus, KIM_SUPPORT_STATUS_required))

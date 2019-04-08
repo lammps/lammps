@@ -196,6 +196,10 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
+  if (vflag_atom)
+     error->all(FLERR,"Pair style reax/c/omp does not support "
+                "computing per-atom stress");
+
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system

@@ -349,6 +349,7 @@ Cii
 Cij
 cis
 civ
+Clang
 clearstore
 Cleary
 Clebsch
@@ -1543,6 +1544,7 @@ Mattox
 Mattson
 maxangle
 maxbond
+maxelt
 maxeval
 maxfiles
 Maxfoo

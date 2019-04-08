@@ -262,8 +262,8 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 
 /* ---------------------------------------------------------------------- */
 
-void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list **lists,
-                     int step, int n, int N, int numH, MPI_Comm comm )
+void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list **lists,
+                       int step, int n, int N, int numH, MPI_Comm /*comm*/)
 {
   int i, comp, Hindex;
   reax_list *bonds, *hbonds;

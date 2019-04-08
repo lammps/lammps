@@ -156,7 +156,7 @@ int Init_MPI_Datatypes( reax_system *system, storage * /*workspace*/,
 
 int  Init_Lists( reax_system *system, control_params *control,
                  simulation_data * /*data*/, storage * /*workspace*/, reax_list **lists,
-                 mpi_datatypes *mpi_data, char * /*msg*/ )
+                 mpi_datatypes * /*mpi_data*/, char * /*msg*/ )
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
@@ -219,8 +219,6 @@ void Initialize( reax_system *system, control_params *control,
                  mpi_datatypes *mpi_data, MPI_Comm comm )
 {
   char msg[MAX_STR];
-  char errmsg[128];
-
 
   if (Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE) {
     control->error_ptr->one(FLERR,"Could not create datatypes");

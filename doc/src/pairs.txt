@@ -42,6 +42,7 @@ Pair Styles :h1
    pair_gauss
    pair_gayberne
    pair_gran
+   pair_granular
    pair_gromacs
    pair_gw
    pair_hbond_dreiding

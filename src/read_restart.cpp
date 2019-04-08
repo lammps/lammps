@@ -81,6 +81,9 @@ void ReadRestart::command(int narg, char **arg)
   if (domain->box_exist)
     error->all(FLERR,"Cannot read_restart after simulation box is defined");
 
+  MPI_Barrier(world);
+  double time1 = MPI_Wtime();
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
@@ -561,6 +564,18 @@ void ReadRestart::command(int narg, char **arg)
   if (atom->molecular == 1) {
     Special special(lmp);
     special.build();
+  }
+
+  // total time
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  read_restart CPU = %g secs\n",time2-time1);
+    if (logfile)
+      fprintf(logfile,"  read_restart CPU = %g secs\n",time2-time1);
   }
 }
 

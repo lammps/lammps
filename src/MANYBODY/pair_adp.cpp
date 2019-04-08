@@ -133,8 +133,7 @@ void PairADP::compute(int eflag, int vflag)
   double sumlamxx,sumlamyy,sumlamzz,sumlamyz,sumlamxz,sumlamxy;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // grow local arrays if necessary
   // need to be atom->nmax in length

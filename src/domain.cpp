@@ -763,9 +763,9 @@ void Domain::image_check()
         continue;
       }
 
-      delx = unwrap[i][0] - unwrap[k][0];
-      dely = unwrap[i][1] - unwrap[k][1];
-      delz = unwrap[i][2] - unwrap[k][2];
+      delx = fabs(unwrap[i][0] - unwrap[k][0]);
+      dely = fabs(unwrap[i][1] - unwrap[k][1]);
+      delz = fabs(unwrap[i][2] - unwrap[k][2]);
 
       if (xperiodic && delx > xprd_half) flag = 1;
       if (yperiodic && dely > yprd_half) flag = 1;

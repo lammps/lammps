@@ -1,40 +1,259 @@
-.TH LAMMPS "2018-08-22"
+.TH LAMMPS "11 April 2019" "2019-04-11"
 .SH NAME
 .B LAMMPS
 \- Molecular Dynamics Simulator.
 
 .SH SYNOPSIS
-.B lmp 
--in in.file
+.B lmp
+\-in <input file> [OPTIONS] ...
 
 or
 
-mpirun \-np 2 
-.B lmp 
--in in.file
+mpirun \-np 2
+.B lmp
+<input file> [OPTIONS] ...
+
+or
+
+.B lmp
+\-r2data file.restart file.data
 
 .SH DESCRIPTION
-.B LAMMPS 
-LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale 
-Atomic/Molecular Massively Parallel Simulator. LAMMPS has potentials for soft 
-materials (biomolecules, polymers) and solid-state materials (metals, 
-semiconductors) and coarse-grained or mesoscopic systems. It can be used to 
-model atoms or, more generically, as a parallel particle simulator at the 
+.B LAMMPS
+is a classical molecular dynamics code, and an acronym for \fBL\fRarge-scale
+\fBA\fRtomic/\fBM\fRolecular \fBM\fRassively \fBP\fRarallel \fBS\fRimulator.
+.B LAMMPS
+has potentials for soft
+materials (bio-molecules, polymers) and solid-state materials (metals,
+semiconductors) and coarse-grained or mesoscopic systems. It can be used to
+model atoms or, more generically, as a parallel particle simulator at the
 atomic, meso, or continuum scale.
 
-See http://lammps.sandia.gov/ for documentation.
+See https://lammps.sandia.gov/ for more information and documentation.
+
+.SH EXECUTABLE NAME
+The
+.B LAMMPS
+executable can have different names depending on how it was configured,
+compiled and installed. It will be either
+.B lmp
+or
+.B lmp_<machine name>.
+The <machine name> suffix corresponds to the (machine specific) makefile
+used to compile
+.B LAMMPS
+when using the conventional build process. When building
+.B LAMMPS
+using
+.B CMake
+this <machine name> parameter can be chosen arbitrarily at configuration
+time, but more common is to just use
+.B lmp
+without a suffix. In this manpage we will use
+.B lmp
+to represent any of those names.
 
 .SH OPTIONS
-See https://lammps.sandia.gov/doc/Run_options.html for details on
-command-line options.
 
-.SH COPYRIGHT 
-© 2003--2018 Sandia Corporation
+.TP
+\fB\-h\fR or \fB\-help\fR
+Print a brief help summary and a list of settings and options compiled
+into this executable. It also explicitly lists all LAMMPS styles
+(atom_style, fix, compute, pair_style, bond_style, etc) available in
+the specific executable. This can tell you if the command you want to
+use was included via the appropriate package at compile time.
+LAMMPS will print the info and immediately exit if this switch is used.
+.TP
+\fB\-e\fR or \fB\-echo\fR
+Set the style of command echoing. The style can be
+.B none
+or
+.B screen
+or
+.B log
+or
+.B both.
+Depending on the style, each command read from the input script will
+be echoed to the screen and/or logfile. This can be useful to figure
+out which line of your script is causing an input error.
+The default value is
+.B log.
+.TP
+\fB\-i <input file>\fR or \fB\-in <input file>\fR
+Specify a file to use as an input script. If it is not specified,
+LAMMPS reads its script from standard input. This is a required
+switch when running LAMMPS in multi-partition mode.
+.TP
+\fB\-k on/off [keyword value]\fR or \fB\-kokkos on/off [keyword value]\fR
+Enable or disable general KOKKOS support, as provided by the KOKKOS
+package.  Even if LAMMPS is built with this package, this switch must
+be set to \fBon\fR to enable running with KOKKOS-enabled styles. More
+details on this switch and its optional keyword value pairs are discussed
+at: https://lammps.sandia.gov/doc/Run_options.html
+.TP
+\fB\-l <log file>\fR or \fB\-log <log file>\fR
+Specify a log file for LAMMPS to write status information to.
+The default value is "log.lammps". If the file name "none" is used,
+\fBLAMMPS\fR will not write a log file. In multi-partition mode only
+some high-level all-partition information is written to the "<log file>"
+file, the remainder is written in a per-partition file "<log file>.N"
+with "N" being the respective partition number, unless overridden
+by the \-plog flag (see below).
+.TP
+\fB\-m <number>\fR or \fB\-mpicolor <number>\fR
+If used, this must be the first command-line argument after the
+.B LAMMPS
+executable name. It is only used when
+.B LAMMPS
+is launched by an mpirun command which also launches one or more
+other executable(s) at the same time.
+.B LAMMPS
+and the other executable(s) perform an MPI_Comm_split(), each with
+their own different colors, to split the MPI_COMM_WORLD communicator
+for each executable to the subset of processors they are supposed to
+be actually running on. Currently, this is only used in
+.B LAMMPS
+to perform client/server messaging with another application.
+.B LAMMPS
+can act as either a client or server (or both).
+.TP
+\fB\-nc\fR or \fB\-nocite\fR
+Disable writing the "log.cite" file which is normally written to
+list references for specific cite-able features used during a
+.B LAMMPS
+run.
+.TP
+\fB\-pk <style> [options]\fR or \fB\-package <style> [options]\fR
+Invoke the \fBpackage\R command with <style> and optional arguments.
+The syntax is the same as if the command appeared in an input script.
+For example "-pk gpu 2" is the same as "package gpu 2" in the input
+script. The possible styles and options are discussed in the
+.B LAMMPS
+manual for the "package" command. This switch can be used multiple
+times, e.g. to set options for the USER-INTEL and USER-OMP packages
+when used together. Along with the "-sf" or "-suffix" switch, this
+is a convenient mechanism for invoking accelerator packages and their
+options without having to edit an input script.
+.TP
+\fB\-p\fR or \fB\-partition\fR
+Invoke
+.B LAMMPS
+in multi-partition mode. Without this,
+.B LAMMPS
+uses all P processors allocated via MPI to run a single simulation.
+If this switch is used, the P processors are split into separate
+partitions and each partition runs its own simulation. The arguments
+to the switch specify the number of processors in each partition.
+Arguments of the form "MxN" mean M partitions, each with N processors.
+Arguments of the form "N" mean a single partition with N processors.
+The sum of processors in all partitions must be equal P. Thus the
+command “-partition 8x2 4 5” has 10 partitions and runs on a total
+of 25 processors.  Running with multiple partitions is required for
+multi-replica simulations, where each replica runs on on one or more
+few processors.
+.TP
+\fB\-pl <basename>\fR or \fB\-plog <basename>\fR
+Specify the base name for the per-partition log files in multi-partition
+runs, where partition N writes log information to <basename>.N.
+If basename is set to "none", then no per-partition log files are created.
+This overrides the name specified in the \-log command-line option.
+.TP
+\fB\-ps <basename>\fR or \fB\-pscreen <basename>\fR
+Specify the base name for the per-partition screen files in multi-partition
+runs, where partition N writes screen output to <basename>.N.
+If basename is set to "none", then no per-partition screen files are created.
+The default value is "screen" or whatever is set by the \-screen flag.
+.TP
+\fB\-r2data <restart file> [remap] <data file>\fR or
+\fB\-restart2data <restart file> [remap] <data file>\fR
+Convert <restart file> previously written by
+.B LAMMPS
+into a data file and immediately exit. This option has replaced the
+external restart2data executable. Following <restart file>
+argument, the optional word "remap" may be used. This has the
+same effect like adding it to a "read_restart" command.
+The syntax following the <data file> name is identical to the
+arguments of the "write_data" command. See the
+.B LAMMPS
+manual for details on either of the two commands.
+.TP
+\fB\-r2dump <restart file> [remap] <dump file>\fR or
+\fB\-restart2dump <restart file> [remap] <dump file>\fR
+Convert <restart file> previously written by
+.B LAMMPS
+into a dump file and immediately exit. Following <restart file>
+argument, the optional word "remap" may be used. This has the
+same effect like adding it to a "read_restart" command.
+The syntax following the <dump file> name is identical to the
+arguments of the "dump" command. See the
+.B LAMMPS
+manual for details on either of the two commands.
+.TP
+\fB\-sc <file name>\fR or \fB\-screen <file name>\fR
+Specify a file for
+.B LAMMPS
+to write its screen information to. By default, this will be
+the standard output. If <file name> is "none", (most) screen
+output will be suppressed.  In multi-partition mode only
+some high-level all-partition information is written to the
+screen or "<file name>" file, the remainder is written in a
+per-partition file "screen.N" or "<file name>.N" 
+with "N" being the respective partition number, and unless
+overridden by the \-pscreen flag (see above).
+.TP
+\fB\-sf <suffix>\fR or \fB\-suffix <suffix>\fR
+Use variants of various styles in the input, if they exist. This is
+achieved by transparently trying to convert a style named <my/style>
+into <my/style/suffix> if that latter style exists, but otherwise
+fall back to the former. The most useful suffixes are  "gpu",
+"intel", "kk", "omp", "opt", or "hybrid". These refer to styles from
+optional packages that LAMMPS can be built with. The hybrid suffix is
+special, as it enables, having two suffixes tried (e.g. first "intel"
+and then "omp") and thus requires two arguments. Along with the
+"-package" command-line switch, this is a convenient mechanism for
+invoking styles from accelerator packages and setting their options
+without having to edit an input script.
+
+See https://lammps.sandia.gov/doc/Run_options.html for additional
+details and discussions on command-line options.
+
+.SH LAMMPS BASICS
+LAMMPS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, LAMMPS exits.  Each
+command causes LAMMPS to take some action.  It may set or change an
+internal, read and parse a file, or run a simulation.  Most commands
+have default settings, which means you only need to use the command
+if you wish to change the default.
+
+The ordering of commands in an input script is usually not very important
+unless a command like "run" is encountered, which starts some calculation
+using the current internal state. Also, if a "pair_style" or "bond_style"
+other similar style command is issued that has a different name from what
+was previously active, it will replace the previous style and wipe out
+all corresponding "pair_coeff" or "bond_coeff" or equivalent settings.
+Some commands are only valid when they follow other commands.  For
+example you cannot set the temperature of a group of atoms until atoms
+have been defined and a group command is used to define which atoms
+belong to the group of a given name. Sometimes command B will use values
+that can be set by command A. This means command A must precede command
+B in the input to have the desired effect. Some commands must be issued
+.B before
+the simulation box is defined and others can only be issued
+.B after.
+Many input script errors are detected by
+.B LAMMPS
+and an ERROR or WARNING message is printed.  The documentation for
+each command lists restrictions on how the command can be used, and
+the chapter on errors in the
+.B LAMMPS
+manual gives some additional information about error messages, if possible.
+
+.SH COPYRIGHT
+© 2003--2019 Sandia Corporation
 
 This package is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
 This package is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

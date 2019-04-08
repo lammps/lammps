@@ -103,8 +103,7 @@ void BondHybrid::compute(int eflag, int vflag)
   // set neighbor->bondlist to sub-style bondlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];

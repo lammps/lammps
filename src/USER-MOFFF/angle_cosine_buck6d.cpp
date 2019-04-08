@@ -69,8 +69,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
   double rcu,rqu,sme,smf;
 
   eangle = evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-3 virial contribution
 

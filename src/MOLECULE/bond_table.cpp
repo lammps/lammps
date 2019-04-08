@@ -68,8 +68,7 @@ void BondTable::compute(int eflag, int vflag)
   double u,mdu;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

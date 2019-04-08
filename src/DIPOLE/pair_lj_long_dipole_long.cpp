@@ -405,8 +405,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
   double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;

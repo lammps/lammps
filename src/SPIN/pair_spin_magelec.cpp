@@ -166,8 +166,8 @@ void PairSpinMagelec::init_style()
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+  if ((ifix == modify->nfix) && (comm->me == 0))
+    error->warning(FLERR,"Using pair/spin style without nve/spin");
 
   // get the lattice_flag from nve/spin
 
@@ -225,8 +225,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -333,7 +332,7 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype,ntypes;
+  int j,jnum,itype,jtype,ntypes;
   int k,locflag;
   int *jlist,*numneigh,**firstneigh;
 
@@ -341,7 +340,7 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
- 
+
   // check if interaction applies to type of ii
 
   itype = type[ii];
@@ -351,42 +350,42 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   while (k <= ntypes) {
     if (k <= itype) {
       if (setflag[k][itype] == 1) {
-	locflag =1;
-	break;
+        locflag =1;
+        break;
       }
       k++;
     } else if (k > itype) {
       if (setflag[itype][k] == 1) {
-	locflag =1;
-	break;
+        locflag =1;
+        break;
       }
       k++;
     } else error->all(FLERR,"Wrong type number");
   }
 
-  // if interaction applies to type ii, 
+  // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction
 
   if (locflag == 1) {
-    
+
     xi[0] = x[ii][0];
     xi[1] = x[ii][1];
     xi[2] = x[ii][2];
-    
+
     jlist = firstneigh[ii];
     jnum = numneigh[ii];
-    
+
     for (int jj = 0; jj < jnum; jj++) {
-    
+
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = type[j];
       local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
-    
+
       spj[0] = sp[j][0];
       spj[1] = sp[j][1];
       spj[2] = sp[j][2];
-    
+
       delx = xi[0] - x[j][0];
       dely = xi[1] - x[j][1];
       delz = xi[2] - x[j][2];
@@ -395,7 +394,7 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
       eij[0] = -inorm*delx;
       eij[1] = -inorm*dely;
       eij[2] = -inorm*delz;
-    
+
       if (rsq <= local_cut2) {
         compute_magelec(ii,j,eij,fmi,spj);
       }

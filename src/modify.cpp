@@ -28,6 +28,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1058,7 +1059,7 @@ int Modify::check_rigid_group_overlap(int groupbit)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 

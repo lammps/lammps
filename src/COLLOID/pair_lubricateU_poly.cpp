@@ -78,8 +78,7 @@ void PairLubricateUPoly::compute(int eflag, int vflag)
   double **f = atom->f;
   double **torque = atom->torque;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // grow per-atom arrays if necessary
   // need to be atom->nmax in length

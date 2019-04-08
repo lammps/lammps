@@ -33,6 +33,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -709,19 +710,19 @@ void Velocity::zero(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();
-    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
       modify->fix[rfix]->setup_pre_neighbor();
       modify->fix[rfix]->zero_momentum();
-    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
       modify->fix[rfix]->zero_momentum();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else if (strcmp(arg[0],"angular") == 0) {
     if (rfix < 0) zero_rotation();
-    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
       modify->fix[rfix]->setup_pre_neighbor();
       modify->fix[rfix]->zero_rotation();
-    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
       modify->fix[rfix]->zero_rotation();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 

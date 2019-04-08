@@ -457,8 +457,6 @@ FixBondReact::~FixBondReact()
   memory->destroy(global_mega_glove);
 
   if (stabilization_flag == 1) {
-    delete [] exclude_group;
-
     // check nfix in case all fixes have already been deleted
     if (id_fix1 && modify->nfix) modify->delete_fix(id_fix1);
     delete [] id_fix1;
@@ -473,6 +471,18 @@ FixBondReact::~FixBondReact()
   delete [] statted_id;
   delete [] guess_branch;
   delete [] pioneer_count;
+
+  char **newarg;
+  newarg = new char*[2];
+  newarg[0] = master_group;
+  newarg[1] = (char *) "delete";
+  group->assign(2,newarg);
+  if (stabilization_flag == 1) {
+    newarg[0] = exclude_group;
+    group->assign(2,newarg);
+    delete [] exclude_group;
+  }
+  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */

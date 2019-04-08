@@ -95,8 +95,7 @@ void ImproperRing::compute(int eflag, int vflag)
    double   cjiji, ckjji, ckjkj, fix, fiy, fiz, fjx, fjy, fjz, fkx, fky, fkz;
 
    eimproper = 0.0;
-   if (eflag || vflag) ev_setup(eflag,vflag);
-   else evflag = 0;
+   ev_init(eflag,vflag);
 
    /* References to simulation data. */
    double **x = atom->x;

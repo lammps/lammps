@@ -1,0 +1,111 @@
+.TH MSI2LMP "v3.9.9" "2018-11-05"
+.SH NAME
+.B MSI2LMP
+\- Converter for Materials Studio files to LAMMPS
+
+.SH SYNOPSIS
+.B msi2lmp
+<ROOTNAME> [-class <I|1|II|2|O|0>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle] [-shift <x> <y> <z>]
+
+.SH DESCRIPTION
+.PP
+.B MSI2LMP
+is a tool bundled with LAMMPS to aide in the conversion of simulation
+inputs from Biovia's Materials Studio software for use with LAMMPS.
+It is a standalone program that generates a LAMMPS data file based on
+the information in an MS .car file (atom coordinates), an .mdf file
+(molecular topology and atom types) and an .frc (forcefield parameters)
+file.  The .car and .mdf files are specific to a molecular system while
+the .frc file is specific to a forcefield (variant).  The only coherency
+needed between .frc and .car/.mdf files are the atom types.
+.PP
+
+.SH OPTIONS
+.TP
+\fB\<ROOTNAME>\fR
+This has to be the first argument and is a
+.B mandatory
+argument. It defines the root of the file names; i.e. for a
+.B <ROOTNAME>
+of benzene, you have to provide the files 'benzene.car' and 'benzene.mdf'
+in the current working directory.
+.B msi2lmp
+will then read and process those files according to its remaining settings.
+All other settins are optional and have defaults as listed.
+.TP
+\fB\-c <I,1,II,2,O,0>\fR, \fB\-class <I,1,II,2,O,0>\fR
+The \-c or \-class option selects the force field class, i.e which pair
+styles and bond styles and so on are required in the LAMMPS input file.
+Class I or class 1 uses similar combination of functional forms as Amber
+and Charmm force field and support the force fields 
+.B cvff
+and
+.B clayff.
+Class II or class 2 corresponds to the more complex force fields
+.B COMPASS
+and
+.B pcff.
+Class O or class 0 finally is an experimental and incomplete extension
+and supports generating output for
+.B OPLS-AA
+.TP
+\fB\-f <ffname>\fR, \fB\-frc <ffname>\fR
+The \-c or \-frc option allows the selection of the force field parameter
+file
+.B<ffname>.frc.
+Valid names for <ffname> with this distribution are: cvff, clayff, cvff_aug,
+pcff, compass_published, cff91, and oplsaa. If the argument is a pathname,
+i.e. it starts with a '.' or a '/', then this absolute path is used to read
+the force field, otherwise
+.B msi2lmp
+will look in the folder pointed to by the environment variable
+$MSI2LMP_LIBRARY. If the variable is not set, then it will look in the current
+directory. The extension '.frc' is appended, if missing.
+Default is to look for the cvff.frc force field file.
+.TP
+\fB\-p <loglevel>\fR, \fB\-print <loglevel>\fR,
+Selects the amount of information messages about the progress of the
+conversion printed to the screen.
+.B <loglevel>
+can be a number from 0 (silent except for errors) to 3 (very detailed).
+.TP
+\fB\-i\fR, \fB\-ignore\fR,
+Ignore errors about missing parameters and use 0.0 for the respective
+force constants making these no-ops. Is correct to be used for a few
+molecules and settings, but often an indication, that either the atom
+type assignment have errors, or the force field file is missing entries.
+.TP
+\fB\-n\fR, \fB\-nocenter\fR,
+Do not center the box around the (geometrical) center of the atoms,
+but around the origin. Default is to recenter.
+.TP
+\fB\-o\fR, \fB\-oldstyle\fR,
+Write out a data file without style hint comments to be compatible
+with old LAMMPS versions. Default is to write out those comments.
+.TP
+\fB-s <x> <y> <z>\fR, \fB-shift <x> <y> <z>\fR,
+Shift the entire system (box and coordinates) by a vector
+(default: 0.0 0.0 0.0).
+.TP
+
+.SH EXAMPLES
+
+msi2lmp benzene -c 2 -p 1 -f ../frc_files/pcff.frc
+
+msi2lmp benzene-class1 -c I
+
+msi2lmp decane -c 0 -f oplsaa
+
+
+.SH COPYRIGHT
+© 2003--2019 Sandia Corporation
+
+This package is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This package is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+

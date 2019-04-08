@@ -88,7 +88,6 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
   : Pointers(lmp)
 {
-  double delspx,delspy,delspz;
 
   etol = etol_in;
   ttol = ftol_in;
@@ -450,7 +449,7 @@ void NEB_spin::readfile(char *file, int flag)
   tagint tag;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
-  double xx,yy,zz,delx,dely,delz;
+  double xx,yy,zz;
   double musp,spx,spy,spz;
 
   if (me_universe == 0 && screen)
@@ -701,6 +700,20 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
     }
   }
 
+  // knormsq should not be 0 anymore
+
+  if (knormsq == 0.0)
+    error->all(FLERR,"Incorrect initial rotation operation");
+
+  // normalize k vector
+
+  iknorm = 1.0/sqrt(knormsq);
+  kx *= iknorm;
+  ky *= iknorm;
+  kz *= iknorm;
+
+  // calc. k x spi and total rotation angle
+
   kcrossx = ky*spiz - kz*spiy;
   kcrossy = kz*spix - kx*spiz;
   kcrossz = kx*spiy - ky*spix;
@@ -710,7 +723,7 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   omega = acos(sidotsf);
   omega *= fraction;
 
-  // applying Rodrigues' formula
+  // apply Rodrigues' formula
 
   spkx = spix*cos(omega); 
   spky = spiy*cos(omega); 
@@ -873,7 +886,6 @@ void NEB_spin::print_status()
   }
 
   if (me_universe == 0) {
-    const double todeg=180.0/MY_PI;
     FILE *uscreen = universe->uscreen;
     FILE *ulogfile = universe->ulogfile;
     if (uscreen) {

@@ -47,7 +47,7 @@ of the energy barrier associated with a transition state, e.g.
 spins to perform a collective rotation from one energy basin to
 another. 
 The implementation in LAMMPS follows the discussion in the
-following paper: "(Bessarab)"_#Bessarab.
+following paper: "(BessarabA)"_#BessarabA.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the "-partition command-line
@@ -78,11 +78,11 @@ GNEB magnetic atoms which are the only ones that inter-replica springs
 are applied to.  
 If the group does not include all magnetic atoms, then non-GNEB
 magnetic atoms have no inter-replica springs and the torques they feel 
-and their precessional motion is computed in the usual way due only 
+and their precession motion is computed in the usual way due only 
 to other magnetic atoms within their replica.  
 Conceptually, the non-GNEB atoms provide a background force field for 
 the GNEB atoms.  
-Their magnetic spins can be allowed to precess during the GNEB 
+Their magnetic spins can be allowed to evolve during the GNEB 
 minimization procedure.
 
 The initial spin configuration for each of the replicas can be
@@ -117,7 +117,8 @@ The "angular distance" between them is calculated, and the new direction
 is assigned to be a fraction of the angular distance.
 
 NOTE: The "angular distance" between the starting and final point is 
-evaluated in the geodesic sense, as described in "(Bessarab)"_#Bessarab. 
+evaluated in the geodesic sense, as described in 
+"(BessarabA)"_#BessarabA. 
 
 NOTE: The angular interpolation between the starting and final point 
 is achieved using Rodrigues formula:
@@ -142,7 +143,7 @@ If they point toward the same direction, the intermediate images
 conserve the same orientation.
 If the initial and final spins are aligned, but point toward
 opposite directions, an arbitrary rotation vector belonging to
-the plane perpandicular to initial and final spins is chosen. 
+the plane perpendicular to initial and final spins is chosen. 
 In this case, a warning message is displayed.
 
 For a {file-style} setting of {each}, a filename is specified which is
@@ -177,14 +178,14 @@ The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
 
 The minimizer tolerances for energy and force are set by {etol} and
-{ftol}, the same as for the "minimize"_minimize.html command.
+{ttol}, the same as for the "minimize"_minimize.html command.
 
 A non-zero {etol} means that the GNEB calculation will terminate if the
 energy criterion is met by every replica.  The energies being compared
 to {etol} do not include any contribution from the inter-replica
-nudging forces, since these are non-conservative.  A non-zero {ftol}
+nudging forces, since these are non-conservative.  A non-zero {ttol}
 means that the GNEB calculation will terminate if the torque criterion
-is met by every replica.  The torques being compared to {ftol} include
+is met by every replica.  The torques being compared to {ttol} include
 the inter-replica nudging forces.
 
 The maximum number of iterations in each stage is set by {N1} and
@@ -198,7 +199,7 @@ For intermediate replicas, it is the cumulative angular distance
 (normalized by the total cumulative angular distance) between adjacent 
 replicas, where "distance" is defined as the length of the 3N-vector of 
 the geodesic distances in spin coordinates, with N the number of
-GNEB spinsi involved (see equation (13) in "(Bessarab)"_#Bessarab).
+GNEB spins involved (see equation (13) in "(BessarabA)"_#BessarabA).
 These outputs allow you to monitor NEB's progress in
 finding a good energy barrier.  {N1} and {N2} must both be multiples
 of {Nevery}.
@@ -217,7 +218,7 @@ In the second stage of GNEB, the replica with the highest energy is
 selected and the inter-replica forces on it are converted to a force
 that drives its spin coordinates to the top or saddle point of the
 barrier, via the barrier-climbing calculation described in
-"(Bessarab)"_#Bessarab.  As before, the other replicas rearrange
+"(BessarabA)"_#BessarabA.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the GNEB calculation was successful,
@@ -227,37 +228,22 @@ configuration at (close to) the saddle point of the transition. The
 potential energies for the set of replicas represents the energy
 profile of the transition along the MEP.
 
-###################################################################
-
 :line
-
-A few other settings in your input script are required or advised to
-perform a NEB calculation.  See the NOTE about the choice of timestep
-at the beginning of this doc page.
 
 An atom map must be defined which it is not by default for "atom_style
 atomic"_atom_style.html problems.  The "atom_modify
 map"_atom_modify.html command can be used to do this.
 
-The minimizers in LAMMPS operate on all atoms in your system, even
-non-NEB atoms, as defined above.  To prevent non-NEB atoms from moving
-during the minimization, you should use the "fix
-setforce"_fix_setforce.html command to set the force on each of those
-atoms to 0.0.  This is not required, and may not even be desired in
-some cases, but if those atoms move too far (e.g. because the initial
-state of your system was not well-minimized), it can cause problems
-for the NEB procedure.
+An initial value can be defined for the timestep. Although, the {spin} 
+minimization algorithm is an adaptive timestep methodology, so that 
+this timestep is likely to evolve during the calculation.  
 
-The damped dynamics "minimizers"_min_style.html, such as {quickmin}
-and {fire}), adjust the position and velocity of the atoms via an
-Euler integration step.  Thus you must define an appropriate
-"timestep"_timestep.html to use with NEB.  As mentioned above, NEB
-will often converge more quickly if you use a timestep about 10x
-larger than you would normally use for dynamics simulations.
+The minimizers in LAMMPS operate on all spins in your system, even
+non-GNEB atoms, as defined above.  
 
 :line
 
-Each file read by the neb command containing atomic coordinates used
+Each file read by the neb/spin command containing spin coordinates used
 to initialize one or more replicas must be formatted as follows.
 
 The file can be ASCII text or a gzipped text file (detected by a .gz
@@ -266,130 +252,103 @@ starting with "#" which are ignored.  The first non-blank, non-comment
 line should list N = the number of lines to follow.  The N successive
 lines contain the following information:
 
-ID1 x1 y1 z1
-ID2 x2 y2 z2
+ID1 g1 x1 y1 z1 sx1 sy1 sz1
+ID2 g2 x2 y2 z2 sx2 sy2 sz2
 ...
-IDN xN yN zN :pre
+IDN gN yN zN sxN syN szN :pre
 
-The fields are the atom ID, followed by the x,y,z coordinates.  The
-lines can be listed in any order.  Additional trailing information on
+The fields are the atom ID, the norm of the associated magnetic spin, 
+followed by the {x,y,z} coordinates and the {sx,sy,sz} spin coordinates.
+The lines can be listed in any order.  Additional trailing information on
 the line is OK, such as a comment.
 
-Note that for a typical NEB calculation you do not need to specify
-initial coordinates for very many atoms to produce differing starting
+Note that for a typical GNEB calculation you do not need to specify
+initial spin coordinates for very many atoms to produce differing starting
 and final replicas whose intermediate replicas will converge to the
-energy barrier.  Typically only new coordinates for atoms
+energy barrier.  Typically only new spin coordinates for atoms
 geometrically near the barrier need be specified.
 
 Also note there is no requirement that the atoms in the file
-correspond to the NEB atoms in the group defined by the "fix
-neb"_fix_neb.html command.  Not every NEB atom need be in the file,
-and non-NEB atoms can be listed in the file.
+correspond to the GNEB atoms in the group defined by the "fix
+neb"_fix_neb.html command.  Not every GNEB atom need be in the file,
+and non-GNEB atoms can be listed in the file.
 
 :line
 
-Four kinds of output can be generated during a NEB calculation: energy
+Four kinds of output can be generated during a GNEB calculation: energy
 barrier statistics, thermodynamic output by each replica, dump files,
 and restart files.
 
 When running with multiple partitions (each of which is a replica in
 this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
-contains the timestep, the maximum force per replica, the maximum
-force per atom (in any replica), potential gradients in the initial,
+contains the timestep, the maximum torque per replica, the maximum
+torque per atom (in any replica), potential gradients in the initial,
 final, and climbing replicas, the forward and backward energy
 barriers, the total reaction coordinate (RDT), and the normalized
 reaction coordinate and potential energy of each replica.
 
-The "maximum force per replica" is the two-norm of the 3N-length force
-vector for the atoms in each replica, maximized across replicas, which
-is what the {ftol} setting is checking against.  In this case, N is
-all the atoms in each replica.  The "maximum force per atom" is the
-maximum force component of any atom in any replica.  The potential
-gradients are the two-norm of the 3N-length force vector solely due to
-the interaction potential i.e.  without adding in inter-replica
-forces.
+The "maximum torque per replica" is the two-norm of the
+3N-length vector given by the cross product of a spin by its
+precession vector omega, in each replica, maximized across replicas, 
+which is what the {ttol} setting is checking against.  In this case, N is
+all the atoms in each replica.  The "maximum torque per atom" is the
+maximum torque component of any atom in any replica.  The potential
+gradients are the two-norm of the 3N-length magnetic precession vector 
+solely due to the interaction potential i.e. without adding in 
+inter-replica forces, and projected along the path tangent (as detailed 
+in Appendix D of "(BessarabA)"_#BessarabA).
 
 The "reaction coordinate" (RD) for each replica is the two-norm of the
-3N-length vector of distances between its atoms and the preceding
-replica's atoms, added to the RD of the preceding replica. The RD of
-the first replica RD1 = 0.0; the RD of the final replica RDN = RDT,
-the total reaction coordinate.  The normalized RDs are divided by RDT,
-so that they form a monotonically increasing sequence from zero to
-one. When computing RD, N only includes the atoms being operated on by
-the fix neb command.
+3N-length vector of geodesic distances between its spins and the preceding
+replica's spins (see equation (13) of "(BessarabA)"_#BessarabA), added to 
+the RD of the preceding replica. The RD of the first replica RD1 = 0.0; 
+the RD of the final replica RDN = RDT, the total reaction coordinate.  
+The normalized RDs are divided by RDT, so that they form a monotonically 
+increasing sequence from zero to one. When computing RD, N only includes 
+the spins being operated on by the fix neb/spin command.
 
 The forward (reverse) energy barrier is the potential energy of the
 highest replica minus the energy of the first (last) replica.
 
 Supplementary information for all replicas can be printed out to the
 screen and master log.lammps file by adding the verbose keyword. This
-information include the following.  The "path angle" (pathangle) for
-the replica i which is the angle between the 3N-length vectors (Ri-1 -
-Ri) and (Ri+1 - Ri) (where Ri is the atomic coordinates of replica
-i). A "path angle" of 180 indicates that replicas i-1, i and i+1 are
-aligned.  "angletangrad" is the angle between the 3N-length tangent
-vector and the 3N-length force vector at image i. The tangent vector
-is calculated as in "(HenkelmanA)"_#HenkelmanA for all intermediate
-replicas and at R2 - R1 and RM - RM-1 for the first and last replica,
-respectively.  "anglegrad" is the angle between the 3N-length energy
-gradient vector of replica i and that of replica i+1. It is not
-defined for the final replica and reads nan.  gradV is the norm of the
-energy gradient of image i.  ReplicaForce is the two-norm of the
-3N-length force vector (including nudging forces) for replica i.
-MaxAtomForce is the maximum force component of any atom in replica i.
+information include the following. 
+The "GradVidottan" are the projections of the potential gradient for 
+the replica i on its tangent vector (as detailed in Appendix D of 
+"(BessarabA)"_#BessarabA).
+The "DNi" are the non normalized geodesic distances (see equation (13) 
+of "(BessarabA)"_#BessarabA), between a replica i and the next replica 
+i+1. For the last replica, this distance is not defined and a "NAN"
+value is the corresponding output. 
 
 When a NEB calculation does not converge properly, the supplementary
-information can help understanding what is going wrong. For instance
-when the path angle becomes acute, the definition of tangent used in
-the NEB calculation is questionable and the NEB cannot may diverge
-"(Maras)"_#Maras2.
-
+information can help understanding what is going wrong. 
 
 When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For a
-NEB calculation, these contain the thermodynamic output for each
+GNEB calculation, these contain the thermodynamic output for each
 replica.
 
 If "dump"_dump.html commands in the input script define a filename
 that includes a {universe} or {uloop} style "variable"_variable.html,
 then one dump file (per dump command) will be created for each
-replica.  At the end of the NEB calculation, the final snapshot in
+replica.  At the end of the GNEB calculation, the final snapshot in
 each file will contain the sequence of snapshots that transition the
 system over the energy barrier.  Earlier snapshots will show the
 convergence of the replicas to the MEP.
 
 Likewise, "restart"_restart.html filenames can be specified with a
 {universe} or {uloop} style "variable"_variable.html, to generate
-restart files for each replica.  These may be useful if the NEB
+restart files for each replica.  These may be useful if the GNEB
 calculation fails to converge properly to the MEP, and you wish to
 restart the calculation from an intermediate point with altered
 parameters.
 
-There are 2 Python scripts provided in the tools/python directory,
-neb_combine.py and neb_final.py, which are useful in analyzing output
-from a NEB calculation.  Assume a NEB simulation with M replicas, and
-the NEB atoms labeled with a specific atom type.
-
-The neb_combine.py script extracts atom coords for the NEB atoms from
-all M dump files and creates a single dump file where each snapshot
-contains the NEB atoms from all the replicas and one copy of non-NEB
-atoms from the first replica (presumed to be identical in other
-replicas).  This can be visualized/animated to see how the NEB atoms
-relax as the NEB calculation proceeds.
-
-The neb_final.py script extracts the final snapshot from each of the M
-dump files to create a single dump file with M snapshots.  This can be
-visualized to watch the system make its transition over the energy
-barrier.
-
-To illustrate, here are images from the final snapshot produced by the
-neb_combine.py script run on the dump files produced by the two
-example input scripts in examples/neb.  Click on them to see a larger
-image.
-
-:image(JPG/hop1_small.jpg,JPG/hop1.jpg)
-:image(JPG/hop2_small.jpg,JPG/hop2.jpg)
+A c file script in provided in the examples/SPIN/gneb/interpolate
+directory, that interpolates the MEP given the information provided 
+by the verbose output option (as detailed in Appendix D of
+"(BessarabA)"_#BessarabA). 
 
 :line
 
@@ -411,6 +370,6 @@ none
 
 :line
 
-:link(Bessarab)
-[(Bessarab)] Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
+:link(BessarabA)
+[(BessarabA)] Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).

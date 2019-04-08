@@ -310,7 +310,6 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  double **x = atom->x;
   double **sp = atom->sp;
   double dot = 0.0;
   double prefactor = 0.0;
@@ -322,7 +321,8 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   nlen = 0.0;
   double tlen = 0.0;
   double gradnextlen = 0.0;
-  double delndots, delpdots;
+  double delndots = 0.0;
+  double delpdots = 0.0;
 
   dotgrad = gradlen = dotpath = dottangrad = 0.0;
 
@@ -584,10 +584,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   if (ireplica == 0 || ireplica == nreplica-1) return ;
 
-  double AngularContr;
   dotpath = dotpath/(plen*nlen);
-  AngularContr = 0.5 *(1+cos(MY_PI * dotpath));
-
 
   for (int i = 0; i < nlocal; i++) 
     if (mask[i] & groupbit) {
@@ -620,7 +617,6 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
           fm[i][2] = 0;
         }
       prefactor =  kspring*(nlen-plen);
-      AngularContr=0;
     }
   }
 

@@ -637,9 +637,8 @@ void CommKokkos::exchange_device()
             k_exchange_copylist.h_view(i) = -1;
         }
 
-        auto k_exchange_copylist_short = Kokkos::subview(k_exchange_copylist,k_count.h_view());
-        k_exchange_copylist_short.template modify<LMPHostType>();
-        k_exchange_copylist_short.template sync<DeviceType>();
+        k_exchange_copylist.modify<LMPHostType>();
+        k_exchange_copylist.sync<DeviceType>();
         nsend = k_count.h_view();
         if (nsend > maxsend) grow_send_kokkos(nsend,1);
         nsend =

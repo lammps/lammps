@@ -21,10 +21,11 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
+#define DELTA 16384
 
 /* ---------------------------------------------------------------------- */
 
@@ -1175,41 +1176,61 @@ bigint AtomVecBondKokkos::memory_usage()
 
 void AtomVecBondKokkos::sync(ExecutionSpace space, unsigned int mask)
 {
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+
+  // avoid unnecessary data transfer
+
+  auto k_x = Kokkos::subview(atomKK->k_x,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_v = Kokkos::subview(atomKK->k_v,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_f = Kokkos::subview(atomKK->k_f,std::make_pair(0,(!force || force->newton)?nall:nlocal),Kokkos::ALL);
+  auto k_tag = Kokkos::subview(atomKK->k_tag,std::make_pair(0,nall));
+  auto k_type = Kokkos::subview(atomKK->k_type,std::make_pair(0,nall));
+  auto k_mask = Kokkos::subview(atomKK->k_mask,std::make_pair(0,nall));
+  auto k_image = Kokkos::subview(atomKK->k_image,std::make_pair(0,nall));
+  auto k_q = Kokkos::subview(atomKK->k_q,std::make_pair(0,nall));
+  auto k_molecule = Kokkos::subview(atomKK->k_molecule,std::make_pair(0,nall));
+  auto k_nspecial = Kokkos::subview(atomKK->k_nspecial,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_special = Kokkos::subview(atomKK->k_special,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_num_bond = Kokkos::subview(atomKK->k_num_bond,std::make_pair(0,nall));
+  auto k_bond_type = Kokkos::subview(atomKK->k_bond_type,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_bond_atom = Kokkos::subview(atomKK->k_bond_atom,std::make_pair(0,nall),Kokkos::ALL);
+
   if (space == Device) {
-    if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
-    if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
-    if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
-    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
-    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
-    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
-    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
-    if (mask & MOLECULE_MASK) atomKK->k_molecule.sync<LMPDeviceType>();
+    if (mask & X_MASK) k_x.sync<LMPDeviceType>();
+    if (mask & V_MASK) k_v.sync<LMPDeviceType>();
+    if (mask & F_MASK) k_f.sync<LMPDeviceType>();
+    if (mask & TAG_MASK) k_tag.sync<LMPDeviceType>();
+    if (mask & TYPE_MASK) k_type.sync<LMPDeviceType>();
+    if (mask & MASK_MASK) k_mask.sync<LMPDeviceType>();
+    if (mask & IMAGE_MASK) k_image.sync<LMPDeviceType>();
+    if (mask & MOLECULE_MASK) k_molecule.sync<LMPDeviceType>();
     if (mask & SPECIAL_MASK) {
-      atomKK->k_nspecial.sync<LMPDeviceType>();
-      atomKK->k_special.sync<LMPDeviceType>();
+      k_nspecial.sync<LMPDeviceType>();
+      k_special.sync<LMPDeviceType>();
     }
     if (mask & BOND_MASK) {
-      atomKK->k_num_bond.sync<LMPDeviceType>();
-      atomKK->k_bond_type.sync<LMPDeviceType>();
-      atomKK->k_bond_atom.sync<LMPDeviceType>();
+      k_num_bond.sync<LMPDeviceType>();
+      k_bond_type.sync<LMPDeviceType>();
+      k_bond_atom.sync<LMPDeviceType>();
     }
   } else {
-    if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
-    if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
-    if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
-    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
-    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
-    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
-    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
-    if (mask & MOLECULE_MASK) atomKK->k_molecule.sync<LMPHostType>();
+    if (mask & X_MASK) k_x.sync<LMPHostType>();
+    if (mask & V_MASK) k_v.sync<LMPHostType>();
+    if (mask & F_MASK) k_f.sync<LMPHostType>();
+    if (mask & TAG_MASK) k_tag.sync<LMPHostType>();
+    if (mask & TYPE_MASK) k_type.sync<LMPHostType>();
+    if (mask & MASK_MASK) k_mask.sync<LMPHostType>();
+    if (mask & IMAGE_MASK) k_image.sync<LMPHostType>();
+    if (mask & MOLECULE_MASK) k_molecule.sync<LMPHostType>();
     if (mask & SPECIAL_MASK) {
-      atomKK->k_nspecial.sync<LMPHostType>();
-      atomKK->k_special.sync<LMPHostType>();
+      k_nspecial.sync<LMPHostType>();
+      k_special.sync<LMPHostType>();
     }
     if (mask & BOND_MASK) {
-      atomKK->k_num_bond.sync<LMPHostType>();
-      atomKK->k_bond_type.sync<LMPHostType>();
-      atomKK->k_bond_atom.sync<LMPHostType>();
+      k_num_bond.sync<LMPHostType>();
+      k_bond_type.sync<LMPHostType>();
+      k_bond_atom.sync<LMPHostType>();
     }
   }
 }

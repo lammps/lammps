@@ -21,10 +21,11 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
+#define DELTA 16384
 
 /* ---------------------------------------------------------------------- */
 
@@ -1068,24 +1069,38 @@ bigint AtomVecChargeKokkos::memory_usage()
 
 void AtomVecChargeKokkos::sync(ExecutionSpace space, unsigned int mask)
 {
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+
+  // avoid unnecessary data transfer
+
+  auto k_x = Kokkos::subview(atomKK->k_x,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_v = Kokkos::subview(atomKK->k_v,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_f = Kokkos::subview(atomKK->k_f,std::make_pair(0,(!force || force->newton)?nall:nlocal),Kokkos::ALL);
+  auto k_tag = Kokkos::subview(atomKK->k_tag,std::make_pair(0,nall));
+  auto k_type = Kokkos::subview(atomKK->k_type,std::make_pair(0,nall));
+  auto k_mask = Kokkos::subview(atomKK->k_mask,std::make_pair(0,nall));
+  auto k_image = Kokkos::subview(atomKK->k_image,std::make_pair(0,nall));
+  auto k_q = Kokkos::subview(atomKK->k_q,std::make_pair(0,nall));
+
   if (space == Device) {
-    if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
-    if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
-    if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
-    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
-    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
-    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
-    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
-    if (mask & Q_MASK) atomKK->k_q.sync<LMPDeviceType>();
+    if (mask & X_MASK) k_x.sync<LMPDeviceType>();
+    if (mask & V_MASK) k_v.sync<LMPDeviceType>();
+    if (mask & F_MASK) k_f.sync<LMPDeviceType>();
+    if (mask & TAG_MASK) k_tag.sync<LMPDeviceType>();
+    if (mask & TYPE_MASK) k_type.sync<LMPDeviceType>();
+    if (mask & MASK_MASK) k_mask.sync<LMPDeviceType>();
+    if (mask & IMAGE_MASK) k_image.sync<LMPDeviceType>();
+    if (mask & Q_MASK) k_q.sync<LMPDeviceType>();
   } else {
-    if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
-    if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
-    if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
-    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
-    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
-    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
-    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
-    if (mask & Q_MASK) atomKK->k_q.sync<LMPHostType>();
+    if (mask & X_MASK) k_x.sync<LMPHostType>();
+    if (mask & V_MASK) k_v.sync<LMPHostType>();
+    if (mask & F_MASK) k_f.sync<LMPHostType>();
+    if (mask & TAG_MASK) k_tag.sync<LMPHostType>();
+    if (mask & TYPE_MASK) k_type.sync<LMPHostType>();
+    if (mask & MASK_MASK) k_mask.sync<LMPHostType>();
+    if (mask & IMAGE_MASK) k_image.sync<LMPHostType>();
+    if (mask & Q_MASK) k_q.sync<LMPHostType>();
   }
 }
 

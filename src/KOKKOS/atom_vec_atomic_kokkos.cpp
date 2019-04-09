@@ -25,7 +25,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10
+#define DELTA 16384
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,8 +56,7 @@ AtomVecAtomicKokkos::AtomVecAtomicKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecAtomicKokkos::grow(int n)
 {
-  int step = MAX(DELTA,nmax*0.01);
-  if (n == 0) nmax += step;
+  if (n == 0) nmax += DELTA;
   else nmax = n;
   atomKK->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
@@ -899,36 +898,35 @@ bigint AtomVecAtomicKokkos::memory_usage()
 
 void AtomVecAtomicKokkos::sync(ExecutionSpace space, unsigned int mask)
 {
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+
+  // avoid unnecessary data transfer
+
+  auto k_x = Kokkos::subview(atomKK->k_x,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_v = Kokkos::subview(atomKK->k_v,std::make_pair(0,nall),Kokkos::ALL);
+  auto k_f = Kokkos::subview(atomKK->k_f,std::make_pair(0,(!force || force->newton)?nall:nlocal),Kokkos::ALL);
+  auto k_tag = Kokkos::subview(atomKK->k_tag,std::make_pair(0,nall));
+  auto k_type = Kokkos::subview(atomKK->k_type,std::make_pair(0,nall));
+  auto k_mask = Kokkos::subview(atomKK->k_mask,std::make_pair(0,nall));
+  auto k_image = Kokkos::subview(atomKK->k_image,std::make_pair(0,nall));
+
   if (space == Device) {
-    if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
-    if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
-    if (mask & F_MASK) {
-      if (!force || force->newton) {
-        atomKK->k_f.sync<LMPDeviceType>();
-      } else { 
-        auto k_f_nlocal = Kokkos::subview(atomKK->k_f,std::make_pair(0,atom->nlocal),Kokkos::ALL);
-        k_f_nlocal.sync<LMPDeviceType>();
-      }
-    }
-    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
-    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
-    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
-    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
+    if (mask & X_MASK) k_x.sync<LMPDeviceType>();
+    if (mask & V_MASK) k_v.sync<LMPDeviceType>();
+    if (mask & F_MASK) k_f.sync<LMPDeviceType>();
+    if (mask & TAG_MASK) k_tag.sync<LMPDeviceType>();
+    if (mask & TYPE_MASK) k_type.sync<LMPDeviceType>();
+    if (mask & MASK_MASK) k_mask.sync<LMPDeviceType>();
+    if (mask & IMAGE_MASK) k_image.sync<LMPDeviceType>();
   } else {
-    if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
-    if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
-    if (mask & F_MASK) {
-      if (!force || force->newton) {
-        atomKK->k_f.sync<LMPHostType>();
-      } else {
-        auto k_f_nlocal = Kokkos::subview(atomKK->k_f,std::make_pair(0,atom->nlocal),Kokkos::ALL);
-        k_f_nlocal.sync<LMPHostType>();
-      }
-    }
-    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
-    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
-    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
-    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
+    if (mask & X_MASK) k_x.sync<LMPHostType>();
+    if (mask & V_MASK) k_v.sync<LMPHostType>();
+    if (mask & F_MASK) k_f.sync<LMPHostType>();
+    if (mask & TAG_MASK) k_tag.sync<LMPHostType>();
+    if (mask & TYPE_MASK) k_type.sync<LMPHostType>();
+    if (mask & MASK_MASK) k_mask.sync<LMPHostType>();
+    if (mask & IMAGE_MASK) k_image.sync<LMPHostType>();
   }
 }
 

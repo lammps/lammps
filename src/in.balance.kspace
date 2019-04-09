@@ -1,14 +1,14 @@
 # 3d Lennard-Jones melt
 
 units		lj
-#atom_style	charge
+atom_style	bond
 processors      * 1 1
+read_data 	input-diblock.conf
 
 lattice		fcc 0.8442
 region		box block 0 10 0 10 0 10
-create_box	3 box
-create_atoms	1 box
-mass		* 1.0
+# create_box	3 box
+# create_atoms	1 box
 
 region		long block 3 6 0 10 0 10
 set             region long type 2
@@ -16,25 +16,31 @@ set             region long type 2
 
 velocity	all create 1.0 87287
 
-pair_style	lj/long/coul/long long off 2.5
+pair_style	gauss 24
 pair_coeff	* * 1.0 1.0 2.5
-pair_coeff      * 2 1.0 1.0 5.0
+# pair_coeff      * 2 1.0 1.0 5.0
 
-kspace_style    tild
-kspace_modify   tild/a_squared
+kspace_style    tild 1.0e-4
+kspace_modify   tild/gauss_a2 1.0
 
-# kspace_style    pppm/disp 1.0e-4
-# kspace_modify   gewald/disp 0.1
+# kspace_style    pppm/tild 1.0e-10
+kspace_modify 	mesh 100 100 100
+# kspace_style    pppm 1.0e-10
+# kspace_modify   gewald/disp 0.000000001
 
-neighbor	0.3 bin
-neigh_modify	every 2 delay 4 check yes
+# neighbor	0.3 bin
+# neigh_modify	every 2 delay 4 check yes
 
 group		fast type 1
 group		slow type 2
-fix		0 all balance 20 1.0 shift x 5 1.0 &
-                weight group 2 fast 1.0 slow 2.0 weight time 0.66
+kspace_modify 	tild/params fast slow 3
+kspace_modify 	tild/params all 20
+# fix		0 all balance 20 1.0 shift x 5 1.0 &
+#                 weight group 2 fast 1.0 slow 2.0 weight time 0.66
 
 fix		1 all nve
+# jim 		halpert
+# compute		test fast group/group slow kspace yes 
 
 #dump		id all atom 50 dump.melt
 
@@ -45,6 +51,7 @@ fix		1 all nve
 #dump		3 all movie 25 movie.mpg type type &
 #		axes yes 0.8 0.02 view 60 -30
 #dump_modify	3 pad 3
+dump trj all custom 010 test.lammpstrj id type mol x y z
 
-thermo		50
-run		500
+thermo		10
+run		5000

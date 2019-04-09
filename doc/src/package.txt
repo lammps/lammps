@@ -64,13 +64,16 @@ args = arguments specific to the style :l
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse} or {gpu/direct}
+    keywords = {neigh} or {neigh/qeq} or {neigh/thread} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse} or {gpu/direct}
       {neigh} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
       {neigh/qeq} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
+      {neigh/thread} value = {off} or {on}
+        off = thread only over atoms
+        on = thread over both atoms and neighbors
       {newton} = {off} or {on}
         off = set Newton pairwise and bonded flags off
         on = set Newton pairwise and bonded flags on
@@ -442,7 +445,15 @@ running on CPUs, a {half} neighbor list is the default because it are
 often faster, just as it is for non-accelerated pair styles. Similarly, 
 the {neigh/qeq} keyword determines how neighbor lists are built for "fix 
 qeq/reax/kk"_fix_qeq_reax.html. If not explicitly set, the value of 
-{neigh/qeq} will match {neigh}. 
+{neigh/qeq} will match {neigh}.
+
+If the {neigh/thread} keyword is set to {off}, then the KOKKOS package 
+threads only over atoms. However, for small systems, this may not expose 
+enough parallelism to keep a GPU busy. When this keyword is set to {on}, 
+the KOKKOS package threads over both atoms and neighbors of atoms. 
+Using {neigh/thread} {on} may be slower for large systems, so this this 
+option is turned on by default only when there are 16K atoms or less 
+owned by an MPI rank. 
 
 The {newton} keyword sets the Newton flags for pairwise and bonded 
 interactions to {off} or {on}, the same as the "newton"_newton.html 
@@ -630,11 +641,12 @@ neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default
 value, comm = device, gpu/direct = on. When LAMMPS can safely detect 
 that GPU-direct is not available, the default value of gpu/direct 
 becomes "off". For CPUs or Xeon Phis, the option defaults are neigh = 
-half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. These 
-settings are made automatically by the required "-k on" "command-line 
-switch"_Run_options.html. You can change them by using the package 
-kokkos command in your input script or via the "-pk kokkos command-line 
-switch"_Run_options.html.
+half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The 
+option neigh/thread = on when there are 16K atoms or less on an MPI 
+rank, otherwise it is "off". These settings are made automatically by 
+the required "-k on" "command-line switch"_Run_options.html. You can 
+change them by using the package kokkos command in your input script or 
+via the "-pk kokkos command-line switch"_Run_options.html.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

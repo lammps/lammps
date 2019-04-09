@@ -21,11 +21,10 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
-#define DELTA 16384
+#define DELTA 10
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,7 +58,8 @@ AtomVecMolecularKokkos::AtomVecMolecularKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecMolecularKokkos::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  int step = MAX(DELTA,nmax*0.01);
+  if (n == 0) nmax += step;
   else nmax = n;
   atomKK->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
@@ -2050,123 +2050,87 @@ bigint AtomVecMolecularKokkos::memory_usage()
 
 void AtomVecMolecularKokkos::sync(ExecutionSpace space, unsigned int mask)
 {
-  int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
-
-  // avoid unnecessary data transfer
-
-  auto k_x = Kokkos::subview(atomKK->k_x,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_v = Kokkos::subview(atomKK->k_v,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_f = Kokkos::subview(atomKK->k_f,std::make_pair(0,(!force || force->newton)?nall:nlocal),Kokkos::ALL);
-  auto k_tag = Kokkos::subview(atomKK->k_tag,std::make_pair(0,nall));
-  auto k_type = Kokkos::subview(atomKK->k_type,std::make_pair(0,nall));
-  auto k_mask = Kokkos::subview(atomKK->k_mask,std::make_pair(0,nall));
-  auto k_image = Kokkos::subview(atomKK->k_image,std::make_pair(0,nall));
-  auto k_molecule = Kokkos::subview(atomKK->k_molecule,std::make_pair(0,nall));
-  auto k_nspecial = Kokkos::subview(atomKK->k_nspecial,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_special = Kokkos::subview(atomKK->k_special,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_num_bond = Kokkos::subview(atomKK->k_num_bond,std::make_pair(0,nall));
-  auto k_bond_type = Kokkos::subview(atomKK->k_bond_type,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_bond_atom = Kokkos::subview(atomKK->k_bond_atom,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_num_angle = Kokkos::subview(atomKK->k_num_angle,std::make_pair(0,nall));
-  auto k_angle_type = Kokkos::subview(atomKK->k_angle_type,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_angle_atom1 = Kokkos::subview(atomKK->k_angle_atom1,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_angle_atom2 = Kokkos::subview(atomKK->k_angle_atom2,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_angle_atom3 = Kokkos::subview(atomKK->k_angle_atom3,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_num_dihedral = Kokkos::subview(atomKK->k_num_dihedral,std::make_pair(0,nall));
-  auto k_dihedral_type = Kokkos::subview(atomKK->k_dihedral_type,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_dihedral_atom1 = Kokkos::subview(atomKK->k_dihedral_atom1,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_dihedral_atom2 = Kokkos::subview(atomKK->k_dihedral_atom2,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_dihedral_atom3 = Kokkos::subview(atomKK->k_dihedral_atom3,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_dihedral_atom4 = Kokkos::subview(atomKK->k_dihedral_atom4,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_num_improper = Kokkos::subview(atomKK->k_num_improper,std::make_pair(0,nall));
-  auto k_improper_type = Kokkos::subview(atomKK->k_improper_type,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_improper_atom1 = Kokkos::subview(atomKK->k_improper_atom1,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_improper_atom2 = Kokkos::subview(atomKK->k_improper_atom2,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_improper_atom3 = Kokkos::subview(atomKK->k_improper_atom3,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_improper_atom4 = Kokkos::subview(atomKK->k_improper_atom4,std::make_pair(0,nall),Kokkos::ALL);
-
   if (space == Device) {
-    if (mask & X_MASK) k_x.sync<LMPDeviceType>();
-    if (mask & V_MASK) k_v.sync<LMPDeviceType>();
-    if (mask & F_MASK) k_f.sync<LMPDeviceType>();
-    if (mask & TAG_MASK) k_tag.sync<LMPDeviceType>();
-    if (mask & TYPE_MASK) k_type.sync<LMPDeviceType>();
-    if (mask & MASK_MASK) k_mask.sync<LMPDeviceType>();
-    if (mask & IMAGE_MASK) k_image.sync<LMPDeviceType>();
-    if (mask & MOLECULE_MASK) k_molecule.sync<LMPDeviceType>();
+    if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
+    if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
+    if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
+    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
+    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
+    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
+    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
+    if (mask & MOLECULE_MASK) atomKK->k_molecule.sync<LMPDeviceType>();
     if (mask & SPECIAL_MASK) {
-      k_nspecial.sync<LMPDeviceType>();
-      k_special.sync<LMPDeviceType>();
+      atomKK->k_nspecial.sync<LMPDeviceType>();
+      atomKK->k_special.sync<LMPDeviceType>();
     }
     if (mask & BOND_MASK) {
-      k_num_bond.sync<LMPDeviceType>();
-      k_bond_type.sync<LMPDeviceType>();
-      k_bond_atom.sync<LMPDeviceType>();
+      atomKK->k_num_bond.sync<LMPDeviceType>();
+      atomKK->k_bond_type.sync<LMPDeviceType>();
+      atomKK->k_bond_atom.sync<LMPDeviceType>();
     }
     if (mask & ANGLE_MASK) {
-      k_num_angle.sync<LMPDeviceType>();
-      k_angle_type.sync<LMPDeviceType>();
-      k_angle_atom1.sync<LMPDeviceType>();
-      k_angle_atom2.sync<LMPDeviceType>();
-      k_angle_atom3.sync<LMPDeviceType>();
+      atomKK->k_num_angle.sync<LMPDeviceType>();
+      atomKK->k_angle_type.sync<LMPDeviceType>();
+      atomKK->k_angle_atom1.sync<LMPDeviceType>();
+      atomKK->k_angle_atom2.sync<LMPDeviceType>();
+      atomKK->k_angle_atom3.sync<LMPDeviceType>();
     }
     if (mask & DIHEDRAL_MASK) {
-      k_num_dihedral.sync<LMPDeviceType>();
-      k_dihedral_type.sync<LMPDeviceType>();
-      k_dihedral_atom1.sync<LMPDeviceType>();
-      k_dihedral_atom2.sync<LMPDeviceType>();
-      k_dihedral_atom3.sync<LMPDeviceType>();
-      k_dihedral_atom4.sync<LMPDeviceType>();
+      atomKK->k_num_dihedral.sync<LMPDeviceType>();
+      atomKK->k_dihedral_type.sync<LMPDeviceType>();
+      atomKK->k_dihedral_atom1.sync<LMPDeviceType>();
+      atomKK->k_dihedral_atom2.sync<LMPDeviceType>();
+      atomKK->k_dihedral_atom3.sync<LMPDeviceType>();
+      atomKK->k_dihedral_atom4.sync<LMPDeviceType>();
     }
     if (mask & IMPROPER_MASK) {
-      k_num_improper.sync<LMPDeviceType>();
-      k_improper_type.sync<LMPDeviceType>();
-      k_improper_atom1.sync<LMPDeviceType>();
-      k_improper_atom2.sync<LMPDeviceType>();
-      k_improper_atom3.sync<LMPDeviceType>();
-      k_improper_atom4.sync<LMPDeviceType>();
+      atomKK->k_num_improper.sync<LMPDeviceType>();
+      atomKK->k_improper_type.sync<LMPDeviceType>();
+      atomKK->k_improper_atom1.sync<LMPDeviceType>();
+      atomKK->k_improper_atom2.sync<LMPDeviceType>();
+      atomKK->k_improper_atom3.sync<LMPDeviceType>();
+      atomKK->k_improper_atom4.sync<LMPDeviceType>();
     }
   } else {
-    if (mask & X_MASK) k_x.sync<LMPHostType>();
-    if (mask & V_MASK) k_v.sync<LMPHostType>();
-    if (mask & F_MASK) k_f.sync<LMPHostType>();
-    if (mask & TAG_MASK) k_tag.sync<LMPHostType>();
-    if (mask & TYPE_MASK) k_type.sync<LMPHostType>();
-    if (mask & MASK_MASK) k_mask.sync<LMPHostType>();
-    if (mask & IMAGE_MASK) k_image.sync<LMPHostType>();
-    if (mask & MOLECULE_MASK) k_molecule.sync<LMPHostType>();
+    if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
+    if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
+    if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
+    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
+    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
+    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
+    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
+    if (mask & MOLECULE_MASK) atomKK->k_molecule.sync<LMPHostType>();
     if (mask & SPECIAL_MASK) {
-      k_nspecial.sync<LMPHostType>();
-      k_special.sync<LMPHostType>();
+      atomKK->k_nspecial.sync<LMPHostType>();
+      atomKK->k_special.sync<LMPHostType>();
     }
     if (mask & BOND_MASK) {
-      k_num_bond.sync<LMPHostType>();
-      k_bond_type.sync<LMPHostType>();
-      k_bond_atom.sync<LMPHostType>();
+      atomKK->k_num_bond.sync<LMPHostType>();
+      atomKK->k_bond_type.sync<LMPHostType>();
+      atomKK->k_bond_atom.sync<LMPHostType>();
     }
     if (mask & ANGLE_MASK) {
-      k_num_angle.sync<LMPHostType>();
-      k_angle_type.sync<LMPHostType>();
-      k_angle_atom1.sync<LMPHostType>();
-      k_angle_atom2.sync<LMPHostType>();
-      k_angle_atom3.sync<LMPHostType>();
+      atomKK->k_num_angle.sync<LMPHostType>();
+      atomKK->k_angle_type.sync<LMPHostType>();
+      atomKK->k_angle_atom1.sync<LMPHostType>();
+      atomKK->k_angle_atom2.sync<LMPHostType>();
+      atomKK->k_angle_atom3.sync<LMPHostType>();
     }
     if (mask & DIHEDRAL_MASK) {
-      k_num_dihedral.sync<LMPHostType>();
-      k_dihedral_type.sync<LMPHostType>();
-      k_dihedral_atom1.sync<LMPHostType>();
-      k_dihedral_atom2.sync<LMPHostType>();
-      k_dihedral_atom3.sync<LMPHostType>();
-      k_dihedral_atom4.sync<LMPHostType>();
+      atomKK->k_num_dihedral.sync<LMPHostType>();
+      atomKK->k_dihedral_type.sync<LMPHostType>();
+      atomKK->k_dihedral_atom1.sync<LMPHostType>();
+      atomKK->k_dihedral_atom2.sync<LMPHostType>();
+      atomKK->k_dihedral_atom3.sync<LMPHostType>();
+      atomKK->k_dihedral_atom4.sync<LMPHostType>();
     }
     if (mask & IMPROPER_MASK) {
-      k_num_improper.sync<LMPHostType>();
-      k_improper_type.sync<LMPHostType>();
-      k_improper_atom1.sync<LMPHostType>();
-      k_improper_atom2.sync<LMPHostType>();
-      k_improper_atom3.sync<LMPHostType>();
-      k_improper_atom4.sync<LMPHostType>();
+      atomKK->k_num_improper.sync<LMPHostType>();
+      atomKK->k_improper_type.sync<LMPHostType>();
+      atomKK->k_improper_atom1.sync<LMPHostType>();
+      atomKK->k_improper_atom2.sync<LMPHostType>();
+      atomKK->k_improper_atom3.sync<LMPHostType>();
+      atomKK->k_improper_atom4.sync<LMPHostType>();
     }
   }
 }

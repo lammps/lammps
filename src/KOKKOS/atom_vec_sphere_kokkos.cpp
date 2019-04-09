@@ -27,11 +27,10 @@
 #include "memory.h"
 #include "error.h"
 #include "memory_kokkos.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
-#define DELTA 16384
+#define DELTA 10
 
 static const double MY_PI  = 3.14159265358979323846; // pi
 
@@ -94,7 +93,8 @@ void AtomVecSphereKokkos::init()
 
 void AtomVecSphereKokkos::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  int step = MAX(DELTA,nmax*0.01);
+  if (n == 0) nmax += step;
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
@@ -2792,47 +2792,30 @@ bigint AtomVecSphereKokkos::memory_usage()
 
 void AtomVecSphereKokkos::sync(ExecutionSpace space, unsigned int mask)
 {
-  int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
-
-  // avoid unnecessary data transfer
-
-  auto k_x = Kokkos::subview(atomKK->k_x,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_v = Kokkos::subview(atomKK->k_v,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_f = Kokkos::subview(atomKK->k_f,std::make_pair(0,(!force || force->newton)?nall:nlocal),Kokkos::ALL);
-  auto k_tag = Kokkos::subview(atomKK->k_tag,std::make_pair(0,nall));
-  auto k_type = Kokkos::subview(atomKK->k_type,std::make_pair(0,nall));
-  auto k_mask = Kokkos::subview(atomKK->k_mask,std::make_pair(0,nall));
-  auto k_image = Kokkos::subview(atomKK->k_image,std::make_pair(0,nall));
-  auto k_radius = Kokkos::subview(atomKK->k_radius,std::make_pair(0,nall));
-  auto k_rmass = Kokkos::subview(atomKK->k_rmass,std::make_pair(0,nall));
-  auto k_omega = Kokkos::subview(atomKK->k_omega,std::make_pair(0,nall),Kokkos::ALL);
-  auto k_torque = Kokkos::subview(atomKK->k_torque,std::make_pair(0,nall),Kokkos::ALL);
-
   if (space == Device) {
-    if (mask & X_MASK) k_x.sync<LMPDeviceType>();
-    if (mask & V_MASK) k_v.sync<LMPDeviceType>();
-    if (mask & F_MASK) k_f.sync<LMPDeviceType>();
-    if (mask & TAG_MASK) k_tag.sync<LMPDeviceType>();
-    if (mask & TYPE_MASK) k_type.sync<LMPDeviceType>();
-    if (mask & MASK_MASK) k_mask.sync<LMPDeviceType>();
-    if (mask & IMAGE_MASK) k_image.sync<LMPDeviceType>();
-    if (mask & RADIUS_MASK) k_radius.sync<LMPDeviceType>();
-    if (mask & RMASS_MASK) k_rmass.sync<LMPDeviceType>();
-    if (mask & OMEGA_MASK) k_omega.sync<LMPDeviceType>();
-    if (mask & TORQUE_MASK) k_torque.sync<LMPDeviceType>();
+    if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
+    if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
+    if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
+    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
+    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
+    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
+    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
+    if (mask & RADIUS_MASK) atomKK->k_radius.sync<LMPDeviceType>();
+    if (mask & RMASS_MASK) atomKK->k_rmass.sync<LMPDeviceType>();
+    if (mask & OMEGA_MASK) atomKK->k_omega.sync<LMPDeviceType>();
+    if (mask & TORQUE_MASK) atomKK->k_torque.sync<LMPDeviceType>();
   } else {
-    if (mask & X_MASK) k_x.sync<LMPHostType>();
-    if (mask & V_MASK) k_v.sync<LMPHostType>();
-    if (mask & F_MASK) k_f.sync<LMPHostType>();
-    if (mask & TAG_MASK) k_tag.sync<LMPHostType>();
-    if (mask & TYPE_MASK) k_type.sync<LMPHostType>();
-    if (mask & MASK_MASK) k_mask.sync<LMPHostType>();
-    if (mask & IMAGE_MASK) k_image.sync<LMPHostType>();
-    if (mask & RADIUS_MASK) k_radius.sync<LMPHostType>();
-    if (mask & RMASS_MASK) k_rmass.sync<LMPHostType>();
-    if (mask & OMEGA_MASK) k_omega.sync<LMPHostType>();
-    if (mask & TORQUE_MASK) k_torque.sync<LMPHostType>();
+    if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
+    if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
+    if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
+    if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
+    if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
+    if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
+    if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
+    if (mask & RADIUS_MASK) atomKK->k_radius.sync<LMPHostType>();
+    if (mask & RMASS_MASK) atomKK->k_rmass.sync<LMPHostType>();
+    if (mask & OMEGA_MASK) atomKK->k_omega.sync<LMPHostType>();
+    if (mask & TORQUE_MASK) atomKK->k_torque.sync<LMPHostType>();
   }
 }
 

@@ -20,41 +20,16 @@ FixStyle(setforce/spin,FixSetForceSpin)
 #ifndef LMP_FIX_SET_FORCE_SPIN_H
 #define LMP_FIX_SET_FORCE_SPIN_H
 
-#include "fix.h"
-//#include "fix_setforce.h"
-
-// only post_force and post_force_respa != from FixSetForce
+#include "fix_setforce.h"
 
 namespace LAMMPS_NS {
 
-//class FixSetForceSpin : public FixSetForce {
-class FixSetForceSpin : public Fix {
+class FixSetForceSpin : public FixSetForce {
  public:
   FixSetForceSpin(class LAMMPS *, int, char **);
-  virtual ~FixSetForceSpin();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  void min_setup(int);
   virtual void post_force(int);
   void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_vector(int);
-
-  double memory_usage();
-
- protected:
-  double xvalue,yvalue,zvalue;
-  int varflag,iregion;
-  char *xstr,*ystr,*zstr;
-  char *idregion;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
-  double foriginal[3],foriginal_all[3];
-  int force_flag;
-  int nlevels_respa,ilevel_respa;
-
-  int maxatom;
-  double **sforce;
+  void single_setforce_spin(int, double *); 
 };
 
 }

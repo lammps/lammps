@@ -490,10 +490,10 @@ are rebuilt. The data is only for atoms that migrate to new processors.
 "Forward" communication happens every timestep. "Reverse" communication 
 happens every timestep if the {newton} option is on. The data is for 
 atom coordinates and any other atom properties that needs to be updated 
-for ghost atoms owned by each processor. 
+for ghost atoms owned by each processor.
 
 The {comm} keyword is simply a short-cut to set the same value for both 
-the {comm/exchange} and {comm/forward} and {comm/reverse} keywords. 
+the {comm/exchange} and {comm/forward} and {comm/reverse} keywords.
 
 The value options for all 3 keywords are {no} or {host} or {device}. A 
 value of {no} means to use the standard non-KOKKOS method of 
@@ -501,26 +501,26 @@ packing/unpacking data for the communication. A value of {host} means to
 use the host, typically a multi-core CPU, and perform the 
 packing/unpacking in parallel with threads. A value of {device} means to 
 use the device, typically a GPU, to perform the packing/unpacking 
-operation. 
+operation.
 
 The optimal choice for these keywords depends on the input script and 
 the hardware used. The {no} value is useful for verifying that the 
 Kokkos-based {host} and {device} values are working correctly. It is the 
-default when running on CPUs since it is usually the fastest. 
+default when running on CPUs since it is usually the fastest.
 
 When running on CPUs or Xeon Phi, the {host} and {device} values work 
 identically. When using GPUs, the {device} value is the default since it 
 will typically be optimal if all of your styles used in your input 
 script are supported by the KOKKOS package. In this case data can stay 
 on the GPU for many timesteps without being moved between the host and 
-GPU, if you use the {device} value. This requires that your MPI is able 
-to access GPU memory directly. Currently that is true for OpenMPI 1.8 
-(or later versions), Mvapich2 1.9 (or later), and CrayMPI. If your 
-script uses styles (e.g. fixes) which are not yet supported by the 
-KOKKOS package, then data has to be move between the host and device 
-anyway, so it is typically faster to let the host handle communication, 
-by using the {host} value. Using {host} instead of {no} will enable use 
-of multiple threads to pack/unpack communicated data. 
+GPU, if you use the {device} value. If your script uses styles (e.g. 
+fixes) which are not yet supported by the KOKKOS package, then data has 
+to be move between the host and device anyway, so it is typically faster 
+to let the host handle communication, by using the {host} value. Using 
+{host} instead of {no} will enable use of multiple threads to 
+pack/unpack communicated data. When running small systems on a GPU, 
+performing the exchange pack/unpack on the host CPU can give speedup 
+since it reduces the number of CUDA kernel launches.
 
 The {gpu/direct} keyword chooses whether GPU-direct will be used. When 
 this keyword is set to {on}, buffers in GPU memory are passed directly 
@@ -533,7 +533,8 @@ the {gpu/direct} keyword is automatically set to {off} by default. When
 the {gpu/direct} keyword is set to {off} while any of the {comm} 
 keywords are set to {device}, the value for these {comm} keywords will 
 be automatically changed to {host}. This setting has no effect if not 
-running on GPUs.
+running on GPUs. GPU-direct is available for OpenMPI 1.8 (or later 
+versions), Mvapich2 1.9 (or later), and CrayMPI.
 
 :line
 

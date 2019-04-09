@@ -40,7 +40,7 @@ using namespace MathConst;
 #define MAXORDER   7
 
 enum{REVERSE_RHO, REVERSE_RHO_NONE};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
+enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM, FORWARD_NONE};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -69,8 +69,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
 
-  pppmflag = 1;
-  group_group_enable = 1;
+  pppmflag = 0;
+  group_group_enable = 0;
   triclinic = domain->triclinic;
 
   nfactors = 3;
@@ -89,6 +89,18 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
+  density_brick_types = NULL;
+  gradWgroup = NULL;
+  param = NULL;
+  density_fft_types = NULL;
+  uG = NULL;
+  temp = NULL;
+  grad_uG = NULL;
+  grad_uG_hat = NULL;
+  ktmp = NULL;
+  ktmp2 = NULL;
+  tmp = NULL;
+  groupbits = NULL;
   u_brick = NULL;
   v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
   greensfn = NULL;
@@ -202,7 +214,9 @@ void TILD::init()
   deallocate_groups();
   deallocate_peratom();
 
-  memory->create(param, group->ngroup, group->ngroup,"tild:param");
+  // memory->create(param, group->ngroup, group->ngroup,"tild:param");
+  setup_grid();
+
 
 }
 
@@ -345,6 +359,12 @@ void TILD::compute(int eflag, int vflag){
   cg->reverse_comm(this, REVERSE_RHO_NONE);
 
   brick2fft_none();
+
+  fieldforce_param();
+  
+  if (atom->natoms != natoms_original) {
+    natoms_original = atom->natoms;
+  }
   // convert atoms from box to lambda coords
 
   // if (eflag || vflag) ev_setup(eflag,vflag);
@@ -390,6 +410,7 @@ void TILD::compute(int eflag, int vflag){
 
   //   make_rho_g();
 
+  if (triclinic) domain->lamda2x(atom->nlocal);
   return;
 }
 
@@ -404,11 +425,19 @@ double TILD::memory_usage(){
 
 void TILD::allocate()
 {
+
+  int Dim = domain->dimension;
+  memory->create(param, group->ngroup, group->ngroup,"tild:param");
+  int (*procneigh)[2] = comm->procneigh;
+
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick");
   memory->create4d_offset(density_brick_types,group->ngroup,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick_types");
+  memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim,
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:gradWgroup");
 
   memory->create(density_fft,nfft_both,"pppm:density_fft");
   memory->create(greensfn,nfft_both,"pppm:greensfn");
@@ -416,8 +445,10 @@ void TILD::allocate()
   memory->create(work2,2*nfft_both,"pppm:work2");
   memory->create(vg,nfft_both,6,"pppm:vg");
   memory->create(uG,nfft,"pppm:uG");
+  memory->create(groupbits, group->ngroup, "tild:groupbits");
   memory->create(grad_uG,domain->dimension,2*nfft,"pppm:grad_uG");
   memory->create(grad_uG_hat,domain->dimension,2*nfft,"pppm:grad_uG_hat");
+  memory->create(density_fft_types, group->ngroup, nfft_both, "pppm/tild:density_fft_types");
 
   if (triclinic == 0) {
     memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
@@ -483,7 +514,6 @@ void TILD::allocate()
 
   // create ghost grid object for rho and electric field communication
 
-  int (*procneigh)[2] = comm->procneigh;
 
   if (differentiation_flag == 1)
     cg = new GridComm(lmp,world,group->ngroup,group->ngroup,
@@ -506,6 +536,12 @@ void TILD::allocate()
 void TILD::deallocate()
 {
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy(density_fft_types);
+
+  memory->destroy5d_offset(gradWgroup, domain->dimension,
+                          nzhi_out,nyhi_out,
+                          nxhi_out);
 
   if (differentiation_flag == 1) {
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
@@ -553,6 +589,95 @@ void TILD::deallocate()
   delete fft2;
   delete remap;
   delete cg;
+}
+
+/* ----------------------------------------------------------------------
+   set size of FFT grid (nx,ny,nz_pppm) and g_ewald
+   for Coulomb interactions
+------------------------------------------------------------------------- */
+
+void TILD::set_grid()
+{
+  double q2 = qsqsum * force->qqrd2e;
+
+  // use xprd,yprd,zprd even if triclinic so grid size is the same
+  // adjust z dimension for 2d slab PPPM
+  // 3d PPPM just uses zprd since slab_volfactor = 1.0
+
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double zprd_slab = zprd*slab_volfactor;
+
+  // make initial g_ewald estimate
+  // based on desired accuracy and real space cutoff
+  // fluid-occupied volume used to estimate real-space error
+  // zprd used rather than zprd_slab
+
+  double h, h_x,h_y,h_z;
+  bigint natoms = atom->natoms;
+
+  if (!gewaldflag) {
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+    if (g_ewald >= 1.0)
+      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
+    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+  }
+
+  // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
+  // nz_pppm uses extended zprd_slab instead of zprd
+  // reduce it until accuracy target is met
+
+  if (!gridflag) {
+    h = h_x = h_y = h_z = 4.0/g_ewald;
+    int count = 0;
+    while (1) {
+
+      // set grid dimension
+      nx_pppm = static_cast<int> (xprd/h_x);
+      ny_pppm = static_cast<int> (yprd/h_y);
+      nz_pppm = static_cast<int> (zprd_slab/h_z);
+
+      if (nx_pppm <= 1) nx_pppm = 2;
+      if (ny_pppm <= 1) ny_pppm = 2;
+      if (nz_pppm <= 1) nz_pppm = 2;
+
+      //set local grid dimension
+      int npey_fft,npez_fft;
+      if (nz_pppm >= nprocs) {
+        npey_fft = 1;
+        npez_fft = nprocs;
+      } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+
+      int me_y = me % npey_fft;
+      int me_z = me / npey_fft;
+
+      nxlo_fft = 0;
+      nxhi_fft = nx_pppm - 1;
+      nylo_fft = me_y*ny_pppm/npey_fft;
+      nyhi_fft = (me_y+1)*ny_pppm/npey_fft - 1;
+      nzlo_fft = me_z*nz_pppm/npez_fft;
+      nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
+
+      double qopt = compute_qopt();
+
+      double dfkspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
+
+      count++;
+
+      // break loop if the accuracy has been reached or too many loops have been performed
+      if (dfkspace <= accuracy) break;
+      if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction");
+      h *= 0.95;
+      h_x = h_y = h_z = h;
+    }
+  }
+
+  // boost grid size until it is factorable
+
+  while (!factorable(nx_pppm)) nx_pppm++;
+  while (!factorable(ny_pppm)) ny_pppm++;
+  while (!factorable(nz_pppm)) nz_pppm++;
 }
 
 
@@ -710,7 +835,7 @@ void TILD::set_grid_global()
   }
 
   if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-    error->all(FLERR,"PPPM grid is too large");
+    error->all(FLERR," grid is too large");
 }
 
 /* ----------------------------------------------------------------------
@@ -724,6 +849,9 @@ void TILD::set_grid_global()
 
 void TILD::allocate_peratom()
 {
+
+  int (*procneigh)[2] = comm->procneigh;
+
   peratom_allocate_flag = 1;
   int Dim = domain->dimension;
 
@@ -744,18 +872,15 @@ void TILD::allocate_peratom()
                           nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:v5_brick");
-  memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim,
-                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"tild:gradWgroup");
+  // memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim,
+  //                         nzlo_out,nzhi_out,nylo_out,nyhi_out,
+  //                         nxlo_out,nxhi_out,"tild:gradWgroup");
   // memory->create(gradWgroup, group->ngroup, Dim, , "tild:gradWgroup");
   memory->create(ktmp,2*nfft,"tild:ktmp");
   memory->create(ktmp2,2*nfft, "tild:ktmp2");
   memory->create(tmp, nfft, "tild:tmp");
-  memory->create(groupbits, group->ngroup, "tild:groupbits");
 
   // create ghost grid object for rho and electric field communication
-
-  int (*procneigh)[2] = comm->procneigh;
 
   if (differentiation_flag == 1)
     cg_peratom =
@@ -790,7 +915,13 @@ void TILD::deallocate_peratom()
   if (differentiation_flag != 1)
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
 
+  memory->destroy(ktmp);
+  memory->destroy(ktmp2);
+  memory->destroy(tmp);
+  memory->destroy(groupbits);
+
   delete cg_peratom;
+  cg_peratom = NULL;
 }
 
 // Need to create functionality that would loop over all places owned by 
@@ -811,11 +942,11 @@ void TILD::init_gauss(){
 
   // clear 3d density arrays
 
-  memset(&(density_A_brick[nzlo_out][nylo_out][nxlo_out]),0,
-         ngrid*sizeof(FFT_SCALAR));
+  // memset(&(density_A_brick[nzlo_out][nylo_out][nxlo_out]),0,
+        //  ngrid*sizeof(FFT_SCALAR));
 
-  memset(&(density_B_brick[nzlo_out][nylo_out][nxlo_out]),0,
-         ngrid*sizeof(FFT_SCALAR));
+  // memset(&(density_B_brick[nzlo_out][nylo_out][nxlo_out]),0,
+  //        ngrid*sizeof(FFT_SCALAR));
 
 
   // double pref = V / ( pow(2.0* sqrt(MY_PI * gauss_a2), Dim ));
@@ -1195,13 +1326,14 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
           }
 
           out[0][n++] = wk1[n+1] * k[0];
-          out[0][n++] = -wk1[n-1] * k[0];
+          out[0][n--] = -wk1[n-1] * k[0];
           out[1][n++] = wk1[n+1] * k[1];
-          out[1][n++] = -wk1[n-1] * k[1];
+          out[1][n--] = -wk1[n-1] * k[1];
           if (Dim == 3){
             out[2][n++] = wk1[n+1] * k[2];
-            out[2][n++] = -wk1[n-1] * k[2];
+            out[2][n--] = -wk1[n-1] * k[2];
           }
+          n +=2;
           
       }
     }
@@ -1263,7 +1395,8 @@ int TILD::modify_param(int narg, char** arg)
   int i;
 
     if (strcmp(arg[0], "tild/params") == 0) {
-
+      if (param == NULL) memory->create(param, group->ngroup, group->ngroup, 
+                                        "tild:param" );
   if (domain->box_exist == 0)
             error->all(FLERR, "TILD command before simulation box is defined");
         if (narg < 3)
@@ -1292,7 +1425,13 @@ int TILD::modify_param(int narg, char** arg)
 
     param[igroup1][igroup2] = param[igroup2][igroup1] = atof(arg[3]);
 }
-  } else 
+  } else if (strcmp(arg[0], "tild/gauss_a2") == 0){
+        if (narg < 2)
+            error->all(FLERR, "Illegal kspace_modify tild command");
+    a_squared = atof(arg[1]);
+
+  }
+      else
         error->all(FLERR, "Illegal kspace_modify tild command");
   return narg;
 }
@@ -1804,7 +1943,6 @@ void TILD::make_rho_none()
           for (k = 0; k < group->ngroup; k++)
             if (mask[i] & groupbits[k])
             density_brick_types[k][mz][my][mx] += w;
-            // density_brick_types[k][mz][my][mx] += w*B[nsplit*type + k];
         }
       }
     }

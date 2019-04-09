@@ -133,6 +133,7 @@ class TILD : public KSpace{
   double alpha;                // geometric factor
 
   void set_grid_global();
+  void set_grid();
 //   void set_grid_local();
   void adjust_gewald();
   double newton_raphson_f();

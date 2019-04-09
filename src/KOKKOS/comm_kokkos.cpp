@@ -194,74 +194,74 @@ void CommKokkos::forward_comm_device(int dummy)
                     k_firstrecv,k_pbc_flag,k_pbc,k_g2l);
   } else {
 
-  for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap] != me) {
-      if (comm_x_only) {
-        if (size_forward_recv[iswap]) {
-          buf = atomKK->k_x.view<DeviceType>().data() +
-            firstrecv[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
-          MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
-                    recvproc[iswap],0,world,&request);
+    for (int iswap = 0; iswap < nswap; iswap++) {
+      if (sendproc[iswap] != me) {
+        if (comm_x_only) {
+          if (size_forward_recv[iswap]) {
+            buf = atomKK->k_x.view<DeviceType>().data() +
+              firstrecv[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
+            MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
+                      recvproc[iswap],0,world,&request);
+          }
+          n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,
+                                     iswap,k_buf_send,pbc_flag[iswap],pbc[iswap]);
+          DeviceType::fence();
+          if (n) {
+            MPI_Send(k_buf_send.view<DeviceType>().data(),
+                     n,MPI_DOUBLE,sendproc[iswap],0,world);
+          }
+    
+          if (size_forward_recv[iswap]) {
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
+            atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::
+                             space,X_MASK);
+          }
+        } else if (ghost_velocity) {
+          if (size_forward_recv[iswap]) {
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
+                      size_forward_recv[iswap],MPI_DOUBLE,
+                      recvproc[iswap],0,world,&request);
+          }
+          n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
+                                         k_buf_send,pbc_flag[iswap],pbc[iswap]);
+          DeviceType::fence();
+          if (n) {
+            MPI_Send(k_buf_send.view<DeviceType>().data(),n,
+                     MPI_DOUBLE,sendproc[iswap],0,world);
+          }
+          if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+          avec->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
+          DeviceType::fence();
+        } else {
+          if (size_forward_recv[iswap])
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
+                      size_forward_recv[iswap],MPI_DOUBLE,
+                      recvproc[iswap],0,world,&request);
+          n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,iswap,
+                                     k_buf_send,pbc_flag[iswap],pbc[iswap]);
+          DeviceType::fence();
+          if (n)
+            MPI_Send(k_buf_send.view<DeviceType>().data(),n,
+                     MPI_DOUBLE,sendproc[iswap],0,world);
+          if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+          avec->unpack_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
+          DeviceType::fence();
         }
-        n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,
-                                   iswap,k_buf_send,pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
-        if (n) {
-          MPI_Send(k_buf_send.view<DeviceType>().data(),
-                   n,MPI_DOUBLE,sendproc[iswap],0,world);
-        }
-
-        if (size_forward_recv[iswap]) {
-          MPI_Wait(&request,MPI_STATUS_IGNORE);
-          atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::
-                           space,X_MASK);
-        }
-      } else if (ghost_velocity) {
-        if (size_forward_recv[iswap]) {
-          MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
-                    size_forward_recv[iswap],MPI_DOUBLE,
-                    recvproc[iswap],0,world,&request);
-        }
-        n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
-                                       k_buf_send,pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
-        if (n) {
-          MPI_Send(k_buf_send.view<DeviceType>().data(),n,
-                   MPI_DOUBLE,sendproc[iswap],0,world);
-        }
-        if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
-        avec->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
-        DeviceType::fence();
       } else {
-        if (size_forward_recv[iswap])
-          MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
-                    size_forward_recv[iswap],MPI_DOUBLE,
-                    recvproc[iswap],0,world,&request);
-        n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,iswap,
-                                   k_buf_send,pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
-        if (n)
-          MPI_Send(k_buf_send.view<DeviceType>().data(),n,
-                   MPI_DOUBLE,sendproc[iswap],0,world);
-        if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
-        avec->unpack_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
-        DeviceType::fence();
-      }
-    } else {
-      if (!ghost_velocity) {
-        if (sendnum[iswap])
-          n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
-                                   firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
-      } else {
-        n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
-                                       k_buf_send,pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
-        avec->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
-        DeviceType::fence();
+        if (!ghost_velocity) {
+          if (sendnum[iswap])
+            n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
+                                     firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
+          DeviceType::fence();
+        } else {
+          n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
+                                         k_buf_send,pbc_flag[iswap],pbc[iswap]);
+          DeviceType::fence();
+          avec->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+          DeviceType::fence();
+        }
       }
     }
-  }
   }
 }
 

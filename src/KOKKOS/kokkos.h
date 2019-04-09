@@ -89,8 +89,8 @@ U: Must use Kokkos half/thread or full neighbor list with threads or GPUs
 
 Using Kokkos half-neighbor lists with threading is not allowed.
 
-E: Must use KOKKOS package option 'neigh full' with 'neigh_thread on'
+E: Must use KOKKOS package option 'neigh full' with 'neigh/thread on'
 
-The 'neigh_thread on' option requires a full neighbor list
+The 'neigh/thread on' option requires a full neighbor list
 
 */

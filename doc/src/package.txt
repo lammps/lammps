@@ -450,10 +450,14 @@ qeq/reax/kk"_fix_qeq_reax.html. If not explicitly set, the value of
 If the {neigh/thread} keyword is set to {off}, then the KOKKOS package 
 threads only over atoms. However, for small systems, this may not expose 
 enough parallelism to keep a GPU busy. When this keyword is set to {on}, 
-the KOKKOS package threads over both atoms and neighbors of atoms. 
-Using {neigh/thread} {on} may be slower for large systems, so this this 
-option is turned on by default only when there are 16K atoms or less 
-owned by an MPI rank. 
+the KOKKOS package threads over both atoms and neighbors of atoms. When 
+using {neigh/thread} {on}, a full neighbor list must also be used. Using 
+{neigh/thread} {on} may be slower for large systems, so this this option 
+is turned on by default only when there are 16K atoms or less owned by 
+an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled 
+potentials support this keyword yet, and only thread over atoms. Many 
+simple pair-wise potentials such as Lennard-Jones do support threading 
+over both atoms and neighbors.
 
 The {newton} keyword sets the Newton flags for pairwise and bonded 
 interactions to {off} or {on}, the same as the "newton"_newton.html 

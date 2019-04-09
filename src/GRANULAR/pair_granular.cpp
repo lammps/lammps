@@ -589,7 +589,7 @@ void PairGranular::compute(int eflag, int vflag)
         tor2 = nz*fs1 - nx*fs3;
         tor3 = nx*fs2 - ny*fs1;
 
-	dist_to_contact = radi-0.5*delta;
+        dist_to_contact = radi-0.5*delta;
         torque[i][0] -= dist_to_contact*tor1;
         torque[i][1] -= dist_to_contact*tor2;
         torque[i][2] -= dist_to_contact*tor3;
@@ -619,7 +619,7 @@ void PairGranular::compute(int eflag, int vflag)
           f[j][1] -= fy;
           f[j][2] -= fz;
 
-	  dist_to_contact = radj-0.5*delta;
+          dist_to_contact = radj-0.5*delta;
           torque[j][0] -= dist_to_contact*tor1;
           torque[j][1] -= dist_to_contact*tor2;
           torque[j][2] -= dist_to_contact*tor3;

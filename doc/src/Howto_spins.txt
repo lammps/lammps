@@ -45,13 +45,13 @@ relaxation of the magnetic configuration toward an equilibrium state.
 
 The command "fix setforce/spin"_fix_setforce.html allows to set the 
 components of the magnetic precession vectors (while erasing and 
-replacing the previsouly computed magnetic precession vectors on 
+replacing the previously computed magnetic precession vectors on 
 the atom). 
 This command can be used to freeze the magnetic moment of certain 
 atoms in the simulation by zeroing their precession vector. 
 
 The command "fix nve/spin"_fix_nve_spin.html can be used to
-perform a simplectic integration of the combined dynamics of spins 
+perform a symplectic integration of the combined dynamics of spins 
 and atomic motions.
 
 The minimization style "min/spin"_min_spin.html can be applied

@@ -128,8 +128,6 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  //printf("test inside before setforce: %g %g %g \n",fmi[0],fmi[1],fmi[2]);
-
   // update region if necessary
 
   Region *region = NULL;
@@ -148,19 +146,18 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
   force_flag = 0;
-  
+ 
+  // constant force
+
   if (varflag == CONSTANT) {
     if (mask[i] & groupbit) {
-      //if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-      //if (region && region->match(x[i][0],x[i][1],x[i][2])){
+      if (region && !region->match(x[i][0],x[i][1],x[i][2])) return;
       foriginal[0] += fmi[0];
       foriginal[1] += fmi[1];
       foriginal[2] += fmi[2];
       if (xstyle) fmi[0] = xvalue;
       if (ystyle) fmi[1] = yvalue;
       if (zstyle) fmi[2] = zvalue;
-      //printf("test inside inter setforce: %g %g %g \n",fmi[0],fmi[1],fmi[2]);
-      //}
     }
 
   // variable force, wrap with clear/add
@@ -182,21 +179,18 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
     modify->addstep_compute(update->ntimestep + 1);
 
     if (mask[i] & groupbit) {
-      //if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-      if (region && region->match(x[i][0],x[i][1],x[i][2])) {
-        foriginal[0] += fmi[0];
-        foriginal[1] += fmi[1];
-        foriginal[2] += fmi[2];
-        if (xstyle == ATOM) fmi[0] = sforce[i][0];
-        else if (xstyle) fmi[0] = xvalue;
-        if (ystyle == ATOM) fmi[1] = sforce[i][1];
-        else if (ystyle) fmi[1] = yvalue;
-        if (zstyle == ATOM) fmi[2] = sforce[i][2];
-        else if (zstyle) fmi[2] = zvalue;
-      }
+      if (region && !region->match(x[i][0],x[i][1],x[i][2])) return;
+      foriginal[0] += fmi[0];
+      foriginal[1] += fmi[1];
+      foriginal[2] += fmi[2];
+      if (xstyle == ATOM) fmi[0] = sforce[i][0];
+      else if (xstyle) fmi[0] = xvalue;
+      if (ystyle == ATOM) fmi[1] = sforce[i][1];
+      else if (ystyle) fmi[1] = yvalue;
+      if (zstyle == ATOM) fmi[2] = sforce[i][2];
+      else if (zstyle) fmi[2] = zvalue;
     }
   }
-  //printf("test inside after setforce: %g %g %g \n",fmi[0],fmi[1],fmi[2]);
 }
 
 /* ---------------------------------------------------------------------- */

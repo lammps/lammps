@@ -475,8 +475,6 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
     locksetforcespin->single_setforce_spin(i,fmi);
   }
 
-  //printf("test after setforce: %g %g %g \n",fmi[0],fmi[1],fmi[2]);
-
   // replace the magnetic force fm[i] by its new value fmi
 
   fm[i][0] = fmi[0];

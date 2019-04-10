@@ -129,6 +129,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
+  memory->create(param,group->ngroup,group->ngroup,"pppm:param");
   memory->create(acons,8,7,"pppm:acons");
   acons[1][0] = 2.0 / 3.0;
   acons[2][0] = 1.0 / 50.0;
@@ -178,6 +179,7 @@ TILD::~TILD(){
 
   triclinic = domain->triclinic;
   pair_check();
+  memory->destroy(param);
 
 }
 
@@ -214,7 +216,6 @@ void TILD::init()
   deallocate_groups();
   deallocate_peratom();
 
-  // memory->create(param, group->ngroup, group->ngroup,"tild:param");
   setup_grid();
 
 
@@ -360,6 +361,8 @@ void TILD::compute(int eflag, int vflag){
 
   brick2fft_none();
 
+  accumulate_gradient();
+
   fieldforce_param();
   
   if (atom->natoms != natoms_original) {
@@ -427,7 +430,6 @@ void TILD::allocate()
 {
 
   int Dim = domain->dimension;
-  memory->create(param, group->ngroup, group->ngroup,"tild:param");
   int (*procneigh)[2] = comm->procneigh;
 
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -443,6 +445,9 @@ void TILD::allocate()
   memory->create(greensfn,nfft_both,"pppm:greensfn");
   memory->create(work1,2*nfft_both,"pppm:work1");
   memory->create(work2,2*nfft_both,"pppm:work2");
+  memory->create(ktmp,2*nfft_both,"tild:ktmp");
+  memory->create(ktmp2,2*nfft_both, "tild:ktmp2");
+  memory->create(tmp, nfft, "tild:tmp");
   memory->create(vg,nfft_both,6,"pppm:vg");
   memory->create(uG,nfft,"pppm:uG");
   memory->create(groupbits, group->ngroup, "tild:groupbits");
@@ -538,6 +543,9 @@ void TILD::deallocate()
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft_types);
+  memory->destroy(ktmp);
+  memory->destroy(ktmp2);
+  memory->destroy(tmp);
 
   memory->destroy5d_offset(gradWgroup, domain->dimension,
                           nzhi_out,nyhi_out,
@@ -876,9 +884,6 @@ void TILD::allocate_peratom()
   //                         nzlo_out,nzhi_out,nylo_out,nyhi_out,
   //                         nxlo_out,nxhi_out,"tild:gradWgroup");
   // memory->create(gradWgroup, group->ngroup, Dim, , "tild:gradWgroup");
-  memory->create(ktmp,2*nfft,"tild:ktmp");
-  memory->create(ktmp2,2*nfft, "tild:ktmp2");
-  memory->create(tmp, nfft, "tild:tmp");
 
   // create ghost grid object for rho and electric field communication
 
@@ -915,9 +920,6 @@ void TILD::deallocate_peratom()
   if (differentiation_flag != 1)
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
 
-  memory->destroy(ktmp);
-  memory->destroy(ktmp2);
-  memory->destroy(tmp);
   memory->destroy(groupbits);
 
   delete cg_peratom;
@@ -1257,7 +1259,7 @@ void TILD::field_gradient(FFT_SCALAR *in,
   get_k_alias(work1, out);
 
   for (i = 0; i < Dim; i++) {
-    fft1->compute(out[j], out[j], -1);
+    fft1->compute(out[i], out[i], -1);
   }
 }
 
@@ -1393,46 +1395,41 @@ void TILD::particle_map_c(double delx, double dely, double delz,
 int TILD::modify_param(int narg, char** arg)
 {
   int i;
+  int igroup1, igroup2;
+  if (strcmp(arg[0], "tild/params") == 0) {
+    if (domain->box_exist == 0)
+      error->all(FLERR, "TILD command before simulation box is defined");
+    if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
-    if (strcmp(arg[0], "tild/params") == 0) {
-      if (param == NULL) memory->create(param, group->ngroup, group->ngroup, 
-                                        "tild:param" );
-  if (domain->box_exist == 0)
-            error->all(FLERR, "TILD command before simulation box is defined");
-        if (narg < 3)
-            error->all(FLERR, "Illegal kspace_modify tild command");
+    if (strcmp(arg[1], "all") == 0) {
+      if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
-        if (strcmp(arg[1], "all") == 0) {
-            if (narg != 3)
-                error->all(FLERR, "Illegal kspace_modify tild command");
+      kappa = atof(arg[2]);
+      param[0][0] = atof(arg[2]);
+    } else {
+      if (narg != 4) error->all(FLERR, "Illegal kspace_modify tild command");
+      igroup1 = group->find(arg[1]);
+      igroup2 = group->find(arg[2]);
 
-    kappa = atof(arg[1]);
-            param[0][0] = atof(arg[1]);
-        } else {
-            if (narg != 4)
-                error->all(FLERR, "Illegal kspace_modify tild command");
-    int igroup1 = group->find(arg[1]);
-    int igroup2 = group->find(arg[2]);
-        
-            if (igroup1 == -1) {
-      error->all(FLERR, "group1 not found in kspace_modify tild command");
+      if (igroup1 == -1) {
+        error->all(FLERR, "group1 not found in kspace_modify tild command");
+      }
+      if (igroup2 == -1) {
+        error->all(FLERR, "group2 not found in kspace_modify tild command");
+      }
+      if (igroup1 == 0 || igroup2 == 0)
+        error->all(FLERR,
+                   "all group specified in 'group1 group2 param' format");
+
+      param[igroup1][igroup2] = param[igroup2][igroup1] = atof(arg[3]);
     }
-            if (igroup2 == -1) {
-      error->all(FLERR, "group2 not found in kspace_modify tild command");
-  }
-    if (igroup1 == 0 || igroup2 == 0)
-      error->all(FLERR, "all group specified in 'group1 group2 param' format");
-
-    param[igroup1][igroup2] = param[igroup2][igroup1] = atof(arg[3]);
-}
-  } else if (strcmp(arg[0], "tild/gauss_a2") == 0){
-        if (narg < 2)
-            error->all(FLERR, "Illegal kspace_modify tild command");
+  } else if (strcmp(arg[0], "tild/gauss_a2") == 0) {
+    if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
     a_squared = atof(arg[1]);
 
-  }
-      else
-        error->all(FLERR, "Illegal kspace_modify tild command");
+  } else
+    error->all(FLERR, "Illegal kspace_modify tild command");
+
   return narg;
 }
 
@@ -2194,7 +2191,7 @@ void TILD::accumulate_gradient() {
   bool do_fft = false;
   for (int i = 0; i < group->ngroup; i++) {
     for (int j = 0; j < group->ngroup; j++) {
-      if (fabs(param[i][j]) != 0.0f) {
+      if (fabs(param[i][j]) >= 1e-10) {
         do_fft = true;
         break;
       }
@@ -2220,17 +2217,22 @@ void TILD::accumulate_gradient() {
 
         n = 0;
         for (int k = 0; k < nfft; k++) {
-          tmp[n] = ktmp[n];
+          tmp[k] = ktmp[n];
           n +=2;
         }
 
-        for (int i2 = 0; i2 < group->ngroup; i++) {
-          if (fabs(param[i][i2]) != 0.0f) {
+        for (int i2 = 0; i2 < group->ngroup; i2++) {
+          if (fabs(param[i][i2]) >= 1e-10) {
+            // std::cout << i << ' ' << i2 << ' ' << param[i][i2] << std::endl;
             n = 0;
             for (int k = nzlo_in; k <= nzhi_in; k++)
-              for (int m = nylo_in; j <= nyhi_in; j++)
-                for (int o = nxlo_in; i <= nxhi_in; i++) {
+              for (int m = nylo_in; m <= nyhi_in; m++)
+                for (int o = nxlo_in; o <= nxhi_in; o++) {
+                  if (rho0 == 0 || rho0 != rho0) {
+                    std::cout << rho0 << std::endl;
+                    error->all(FLERR, "WEIRD DENSITY");}
                   gradWgroup[i][j][k][m][o] = tmp[n++] * param[i][i2] / rho0;
+                  std::cout << tmp[n -1] << "\t" << param[i][i2] << "\t" << rho0 << std::endl;
                 }
             // for (int j = 0; j < Dim; j++) {
             //   for (int k = 0; k < nfft; k++) {
@@ -2302,5 +2304,9 @@ void TILD::fieldforce_param(){
     f[i][0] += delvolinv*ekx;
     f[i][1] += delvolinv*eky;
     f[i][2] += delvolinv*ekz;
+
+    if (i == 44 || i == 55){
+      std::cout << f[i][0] << " " <<  f[i][1] <<" "<<  f[i][2] << std::endl;
+    }
   }
 }

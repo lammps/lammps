@@ -617,8 +617,9 @@ void CommKokkos::exchange_device()
 
           k_count.sync<LMPHostType>();
           if (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
-            k_exchange_sendlist.resize(k_count.h_view()*1.1);
-            k_exchange_copylist.resize(k_count.h_view()*1.1);
+            k_exchange_lists.resize(2,k_count.h_view()*1.1);
+            k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
+            k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
             k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
           }
         }

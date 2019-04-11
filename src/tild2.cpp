@@ -1257,7 +1257,7 @@ void TILD::field_gradient(FFT_SCALAR *in,
   int Dim = domain->dimension;
   double k2, kv[Dim];
   int n = 0;
-  for (i = 0; i < nfft; i++) {
+  for (i = 0; i < nfft_both; i++) {
     work1[n++] = in[i];
     work1[n++] = ZEROF;
   }
@@ -1334,13 +1334,13 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
                   k[2] = 2 * PI * double(z - nz_pppm) / zprd;
           }
 
-          out[0][n++] = wk1[n+1] * k[0];
-          out[0][n--] = -wk1[n-1] * k[0];
-          out[1][n++] = wk1[n+1] * k[1];
-          out[1][n--] = -wk1[n-1] * k[1];
+          out[0][n] = wk1[n+1] * k[0];
+          out[0][n+1] = -wk1[n-1] * k[0];
+          out[1][n] = wk1[n+1] * k[1];
+          out[1][n+1] = -wk1[n-1] * k[1];
           if (Dim == 3){
-            out[2][n++] = wk1[n+1] * k[2];
-            out[2][n--] = -wk1[n-1] * k[2];
+            out[2][n] = wk1[n+1] * k[2];
+            out[2][n+1] = -wk1[n-1] * k[2];
           }
           n +=2;
           
@@ -2206,24 +2206,24 @@ void TILD::accumulate_gradient() {
     if (do_fft) {
 
       n = 0;
-      for (int k = 0; k < nfft; k++) {
-        work1[n] = density_fft_types[i][n];
+      for (int k = 0; k < nfft_both; k++) {
+        work1[n++] = density_fft_types[i][k];
         work1[n++] = ZEROF;
       }
       fft1->compute(work1, ktmp, 1);
 
       for (int j = 0; j < Dim; j++) {
         n = 0;
-        for (int k = 0; k < nfft; k++) {
-          ktmp2[n++] = grad_uG_hat[j][k] * ktmp[k];
-          ktmp2[n++] = grad_uG_hat[j][k] * ktmp[k];
+        for (int k = 0; k < nfft_both; k++) {
+          ktmp2[n++] = grad_uG_hat[j][n] * ktmp[n];
+          ktmp2[n++] = grad_uG_hat[j][n] * ktmp[n];
         }
 
         fft1->compute(ktmp2, ktmp2, -1);
 
         n = 0;
-        for (int k = 0; k < nfft; k++) {
-          tmp[k] = ktmp[n];
+        for (int k = 0; k < nfft_both; k++) {
+          tmp[k] = ktmp2[n];
           n +=2;
         }
 

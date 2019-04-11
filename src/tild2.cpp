@@ -301,6 +301,7 @@ void TILD::setup_grid()
 
   allocate();
 
+    compute_rho_coeff(rho_coeff, drho_coeff, order);
     cg->ghost_notify();
     if (overlap_allowed == 0 && cg->ghost_overlap())
       error->all(FLERR,"PPPM grid stencil extends "
@@ -1913,7 +1914,6 @@ void TILD::make_rho_none()
   int type;
   double **x = atom->x;
   int *mask = atom->mask;
-  double *mass= atom->mass;
   int nlocal = atom->nlocal;
   for (k = 0; k < ngroups; k++) groupbits[k] = group->bitmask[k];
 
@@ -1927,7 +1927,7 @@ void TILD::make_rho_none()
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
-    z0 = delvolinv * mass[i];
+    z0 = delvolinv;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       y0 = z0*rho1d[2][n];
@@ -2304,9 +2304,66 @@ void TILD::fieldforce_param(){
     f[i][0] += delvolinv*ekx;
     f[i][1] += delvolinv*eky;
     f[i][2] += delvolinv*ekz;
+  }
+}
 
-    if (i == 44 || i == 55){
-      std::cout << f[i][0] << " " <<  f[i][1] <<" "<<  f[i][2] << std::endl;
+/* ----------------------------------------------------------------------
+   generate coeffients for the weight function of order n
+
+              (n-1)
+  Wn(x) =     Sum    wn(k,x) , Sum is over every other integer
+           k=-(n-1)
+  For k=-(n-1),-(n-1)+2, ....., (n-1)-2,n-1
+      k is odd integers if n is even and even integers if n is odd
+              ---
+             | n-1
+             | Sum a(l,j)*(x-k/2)**l   if abs(x-k/2) < 1/2
+  wn(k,x) = <  l=0
+             |
+             |  0                       otherwise
+              ---
+  a coeffients are packed into the array rho_coeff to eliminate zeros
+  rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k)
+------------------------------------------------------------------------- */
+void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
+                                 int ord)
+{
+  int j,k,l,m;
+  FFT_SCALAR s;
+
+  FFT_SCALAR **a;
+  memory->create2d_offset(a,ord,-ord,ord,"pppm/disp:a");
+
+  for (k = -ord; k <= ord; k++)
+    for (l = 0; l < ord; l++)
+      a[l][k] = 0.0;
+
+  a[0][0] = 1.0;
+  for (j = 1; j < ord; j++) {
+    for (k = -j; k <= j; k += 2) {
+      s = 0.0;
+      for (l = 0; l < j; l++) {
+        a[l+1][k] = (a[l][k+1]-a[l][k-1]) / (l+1);
+#ifdef FFT_SINGLE
+        s += powf(0.5,(float) l+1) *
+          (a[l][k-1] + powf(-1.0,(float) l) * a[l][k+1]) / (l+1);
+#else
+        s += pow(0.5,(double) l+1) *
+          (a[l][k-1] + pow(-1.0,(double) l) * a[l][k+1]) / (l+1);
+#endif
+      }
+      a[0][k] = s;
     }
   }
+
+  m = (1-ord)/2;
+  for (k = -(ord-1); k < ord; k += 2) {
+    for (l = 0; l < ord; l++)
+      coeff[l][m] = a[l][k];
+    for (l = 1; l < ord; l++)
+      dcoeff[l-1][m] = l*a[l][k];
+    m++;
+  }
+
+  memory->destroy2d_offset(a,-ord);
 }

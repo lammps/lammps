@@ -1004,14 +1004,20 @@ void TILD::init_gauss(){
   double zprd=domain->zprd;
   n = 0;
 
+  double vole;
+  output->thermo->evaluate_keyword("vol",&vole);
+  double pref = vole / ( pow( 2.0 * sqrt(PI * a_squared) , Dim ) ) ; 
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
-    zper = (m * (zprd - 0.5)) / npez_fft;
+    zper = m - nz_pppm*(2*m/nz_pppm);
+    
     for (l = nylo_fft; l <= nyhi_fft; l++) {
-      yper = (l * (yprd - 0.5)) / npey_fft;
+      yper = l - ny_pppm*(2*l/ny_pppm);
+
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
-        xper = (l * (xprd - 0.5)) / npey_fft;
+        xper = k - nx_pppm*(2*k/nx_pppm);
+
         mdr2=xper*xper + yper*yper + zper*zper;
-        uG[n++] = exp(-mdr2 * 0.25 / a_squared) ;
+        uG[n++] = exp(-mdr2 * 0.25 / a_squared)  * pref;
       }
     }
   }

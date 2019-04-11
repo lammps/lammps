@@ -898,19 +898,19 @@ void CommTiled::borders()
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-      if (sendself[iswap]) {
-        avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                              buf_send,pbc_flag[iswap][nsend],
-                              pbc[iswap][nsend]);
-        avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
-                                buf_send);
-      }
       if (recvother[iswap]) {
         MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         for (m = 0; m < nrecv; m++)
           avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
                                   &buf_recv[size_border*
                                             forward_recv_offset[iswap][m]]);
+      }
+      if (sendself[iswap]) {
+        avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                              buf_send,pbc_flag[iswap][nsend],
+                              pbc[iswap][nsend]);
+        avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                                buf_send);
       }
 
     } else {
@@ -927,18 +927,18 @@ void CommTiled::borders()
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-      if (sendself[iswap]) {
-        avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                          buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
-        avec->unpack_border(recvnum[iswap][nsend],firstrecv[iswap][nsend],
-                            buf_send);
-      }
       if (recvother[iswap]) {
         MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         for (m = 0; m < nrecv; m++)
           avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
                               &buf_recv[size_border*
                                         forward_recv_offset[iswap][m]]);
+      }
+      if (sendself[iswap]) {
+        avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                          buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+        avec->unpack_border(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                            buf_send);
       }
     }
 

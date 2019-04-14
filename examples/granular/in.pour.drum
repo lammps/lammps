@@ -1,0 +1,98 @@
+# pour two types of particles (cohesive and non-cohesive) into cylinder
+# 'turn' cylinder by changing direction of gravity, then rotate it.
+# This simulates a rotating drum powder characterization experiment.
+
+variable   	name string rotating_drum_two_types
+
+atom_style	sphere
+units		lj
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	boxx equal 30
+variable	boxy equal 30
+variable	boxz equal 50
+
+variable	drum_rad equal ${boxx}*0.5
+variable	drum_height equal 20
+
+variable	xc equal 0.5*${boxx}
+variable	yc equal 0.5*${boxx}
+variable	zc equal 0.5*${boxz}
+
+###############################################
+# Particle-related parameters
+###############################################
+variable	rlo equal 0.25
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dhi equal 2.0*${rhi}
+
+variable	cyl_rad_inner equal ${drum_rad}-1.1*${rhi}
+
+variable	dens equal 1.0
+
+variable skin equal 0.3*${rhi}
+
+#############
+
+region 		boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+create_box	2 boxreg
+change_box	all boundary p p f
+
+comm_modify 	vel yes
+
+variable	theta equal 0
+
+region		curved_wall cylinder z ${xc} ${yc} ${drum_rad} 0 ${drum_height} side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		bottom_wall plane ${xc} ${yc} 0 0 0 1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+
+region		insreg cylinder z ${xc} ${yc} ${cyl_rad_inner} ${drum_height} ${boxz}
+
+fix		1 all nve/sphere
+fix		grav all gravity 10 vector 0 0 -1
+fix		ins1 all pour 2000 1 1234 region insreg diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 2000 2 1234 region insreg diam range ${dlo} ${dhi} dens ${dens} ${dens}
+
+comm_modify	vel yes
+
+neighbor	${skin} bin
+neigh_modify	delay 0 every 1 check yes
+
+pair_style	granular 
+pair_coeff	1 * hertz/material 1e5 0.2 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji
+pair_coeff	2 2 jkr 1e5 0.1 0.3 50 tangential mindlin NULL 1.0 0.5 rolling sds 1e3 1e3 0.1 twisting marshall damping tsuji
+
+fix		3 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region curved_wall 
+fix		4 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region bottom_wall
+
+thermo_style	custom step cpu atoms ke v_theta
+thermo_modify	lost warn
+thermo		100
+
+timestep	0.001
+
+dump		1 all custom 100 ${name}.dump id type radius mass x y z 
+
+#For removal later
+compute	    	1 all property/atom radius
+variable    	zmax atom z+c_1>0.5*${drum_height}
+group		delgroup dynamic all var zmax every 10000
+
+run		10000
+
+#Remove any particles that are above z > 0.5*drum_height
+delete_atoms	group delgroup
+
+#Add top lid
+region		top_wall plane ${xc} ${yc} ${drum_height} 0 0 -1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+fix		5 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region top_wall
+
+# 'Turn' drum by switching the direction of gravity
+unfix	     	grav
+fix		grav all gravity 10 vector 0 -1 0
+
+variable 	theta equal 2*PI*elapsed/20000.0
+run		30000

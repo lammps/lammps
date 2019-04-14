@@ -1,0 +1,67 @@
+# pour two types of particles (cohesive and non-cohesive) on flat wall
+
+variable   	name string pour_two_types
+
+atom_style	sphere
+units		lj
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	boxx equal 20
+variable	boxy equal 20
+variable	boxz equal 30
+
+variable	xc1 equal 0.3*${boxx}
+variable	xc2 equal 0.7*${boxx}
+variable	yc equal 0.5*${boxy}
+
+###############################################
+# Particle-related parameters
+###############################################
+variable	rlo equal 0.25
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dhi equal 2.0*${rhi}
+
+variable	dens equal 1.0
+
+variable skin equal 0.3*${rhi}
+
+#############
+
+region 		boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+create_box	2 boxreg
+change_box	all boundary p p f
+
+comm_modify 	vel yes
+
+region		insreg1 cylinder z ${xc1} ${yc} 5 15 ${boxz}
+region		insreg2 cylinder z ${xc2} ${yc} 5 15 ${boxz}
+
+fix		1 all nve/sphere
+fix		grav all gravity 10.0 vector 0 0 -1
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range ${dlo} ${dhi} dens ${dens} ${dens}
+
+comm_modify	vel yes
+
+neighbor	${skin} bin
+neigh_modify	delay 0 every 1 check yes
+
+pair_style	granular 
+pair_coeff 	1 * jkr 1000.0 50.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
+pair_coeff 	2 2 hertz 200.0 20.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall 
+
+fix		3 all wall/gran granular hertz/material 1e5 1e3 0.3 tangential mindlin NULL 1.0 0.5 zplane 0 NULL 
+
+thermo_style	custom step cpu atoms ke
+thermo_modify	lost warn
+thermo		100
+
+timestep	0.001
+
+dump		1 all custom 100 ${name}.dump id type radius mass x y z 
+
+run		15000

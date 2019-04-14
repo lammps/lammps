@@ -24,22 +24,21 @@ cutoff = global cutoff (optional).  See discussion below. :ul
 [Examples:]
 
 pair_style granular
-pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 :pre
+pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity:pre
 
 pair_style granular
-pair_coeff * * hertz 1000.0 50.0 tangential mindlin NULL 1.0 0.4 :pre
+pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 :pre
 
 pair_style granular
-pair_coeff * * hertz/material 1e8 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji :pre
+pair_coeff * * hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji :pre
 
 pair_style granular
-pair_coeff 1 1 jkr 1000.0 50.0 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
-pair_coeff 2 2 hertz 200.0 20.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall :pre
+pair_coeff 1 * jkr 1000.0 500.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
+pair_coeff 2 2 hertz 200.0 100.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall :pre
 
 pair_style granular
-pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
-pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall
-pair_coeff 1 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall :pre
+pair_coeff 1 1 dmt 1000.0 50.0 0.3 0.0 tangential mindlin NULL 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
+pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall
 
 [Description:]
 
@@ -57,18 +56,18 @@ global, but can be set to different values for different combinations
 of particle types, as determined by the "pair_coeff"_pair_coeff.html
 command.  If the contact model choice is the same for two particle
 types, the mixing for the cross-coefficients can be carried out
-automatically. This is shown in the second example, where model
+automatically. This is shown in the last example, where model
 choices are the same for type 1 - type 1 as for type 2 - type2
 interactions, but coefficients are different. In this case, the
 coefficients for type 2 - type interactions can be determined from
 mixing rules discussed below.  For additional flexibility,
 coefficients as well as model forms can vary between particle types,
-as shown in the third example: type 1- type 1 interactions are based
-on a Hertzian normal contact model and 2-2 interactions are based on a
-DMT cohesive model (see below).  In that example, 1-1 and 2-2
-interactions have different model forms, in which case mixing of
+as shown in the fourth example: type 1- type 1 interactions are based
+on a Johnson-Kendall-Roberts normal contact model and 2-2 interactions 
+are based on a DMT cohesive model (see below).  In that example, 1-1 
+and 2-2 interactions have different model forms, in which case mixing of
 coefficients cannot be determined, so 1-2 interactions must be
-explicitly defined via the {pair_coeff 1 2} command, otherwise an
+explicitly defined via the {pair_coeff 1 *} command, otherwise an
 error would result.
 
 :line

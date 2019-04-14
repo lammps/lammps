@@ -31,9 +31,9 @@ region-ID = region whose boundary will act as wall :l,ule
 [Examples:]
 
 fix wall all wall/gran/region hooke/history 1000.0 200.0 200.0 100.0 0.5 1 region myCone 
-fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 region myBox
-fix 4 all wall/gran/region granular jkr 1000.0 50.0 tangential linear_history 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
-fix 5 all wall/gran/region granular dmt 1000.0 50.0 0.3 10.0 tangential linear_history 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall region myCone :pre
+fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
+fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
+fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone :pre
 
 [Description:]
 

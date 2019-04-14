@@ -416,7 +416,7 @@ void PairGranular::compute(int eflag, int vflag)
           }
           // rotate and update displacements.
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-          if (historyupdate) {
+          if (historyupdate){
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
             if (fabs(rsht) < EPSILON) rsht = 0;
             if (rsht > 0) {
@@ -735,24 +735,22 @@ void PairGranular::coeff(int narg, char **arg)
       normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
       iarg += 3;
     } else if (strcmp(arg[iarg], "hertz") == 0) {
-      int num_coeffs = 2;
-      if (iarg + num_coeffs >= narg)
+      if (iarg + 2 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = HERTZ;
       normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // kn
       normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      iarg += num_coeffs+1;
+      iarg += 3;
     } else if (strcmp(arg[iarg], "hertz/material") == 0) {
-      int num_coeffs = 3;
-      if (iarg + num_coeffs >= narg)
+      if (iarg + 3 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz/material option");
       normal_model_one = HERTZ_MATERIAL;
       normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
       normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
       normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
-      iarg += num_coeffs+1;
+      iarg += 4;
     } else if (strcmp(arg[iarg], "dmt") == 0) {
       if (iarg + 4 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "

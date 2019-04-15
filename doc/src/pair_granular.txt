@@ -24,7 +24,10 @@ cutoff = global cutoff (optional).  See discussion below. :ul
 [Examples:]
 
 pair_style granular
-pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity:pre
+pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping mass_velocity :pre
+
+pair_style granular
+pair_coeff * * hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity :pre
 
 pair_style granular
 pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 :pre
@@ -38,7 +41,7 @@ pair_coeff 2 2 hertz 200.0 100.0 tangential linear_history 300.0 1.0 0.1 rolling
 
 pair_style granular
 pair_coeff 1 1 dmt 1000.0 50.0 0.3 0.0 tangential mindlin NULL 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
-pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall
+pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall :pre
 
 [Description:]
 
@@ -59,10 +62,10 @@ types, the mixing for the cross-coefficients can be carried out
 automatically. This is shown in the last example, where model
 choices are the same for type 1 - type 1 as for type 2 - type2
 interactions, but coefficients are different. In this case, the
-coefficients for type 2 - type interactions can be determined from
+mixed coefficients for type 1 - type 2 interactions can be determined from
 mixing rules discussed below.  For additional flexibility,
 coefficients as well as model forms can vary between particle types,
-as shown in the fourth example: type 1- type 1 interactions are based
+as shown in the fourth example: type 1 - type 1 interactions are based
 on a Johnson-Kendall-Roberts normal contact model and 2-2 interactions 
 are based on a DMT cohesive model (see below).  In that example, 1-1 
 and 2-2 interactions have different model forms, in which case mixing of
@@ -188,6 +191,7 @@ other settings, potentially also the twisting damping).  The options
 for the damping model currently supported are:
 
 {velocity}
+{mass_velocity}
 {viscoelastic}
 {tsuji} :ol
 
@@ -198,11 +202,23 @@ For {damping velocity}, the normal damping is simply equal to the
 user-specified damping coefficient in the {normal} model:
 
 \begin\{equation\}
-\eta_n = \eta_\{n0\}\
+\eta_n = \eta_\{n0\}
 \end\{equation\}
 
-Here, \(\gamma_n\) is the damping coefficient specified for the normal
-contact model, in units of {mass}/{time},
+Here, \(\eta_\{n0\}\) is the damping coefficient specified for the normal
+contact model, in units of {mass}/{time}.
+
+For {damping mass_velocity}, the normal damping is given by:
+
+\begin\{equation\}
+\eta_n = \eta_\{n0\} m_\{eff\}
+\end\{equation\}
+
+Here, \(\eta_\{n0\}\) is the damping coefficient specified for the normal
+contact model, in units of {mass}/{time} and 
+\(m_\{eff\} = m_i m_j/(m_i + m_j)\) is the effective mass.
+Use {damping mass_velocity} to reproduce the damping behavior of 
+{pair gran/hooke/*}.
 
 The {damping viscoelastic} model is based on the viscoelastic
 treatment of "(Brilliantov et al)"_#Brill1996, where the normal
@@ -212,11 +228,10 @@ damping is given by:
 \eta_n = \eta_\{n0\}\ a m_\{eff\}
 \end\{equation\}
 
-Here, \(m_\{eff\} = m_i m_j/(m_i + m_j)\) is the effective mass, {a}
-is the contact radius, given by \(a =\sqrt\{R\delta\}\) for all models
-except {jkr}, for which it is given implicitly according to \(delta =
-a^2/R - 2\sqrt\{\pi \gamma a/E\}\).  In this case, \eta_\{n0\}\ is in
-units of 1/({time}*{distance}).
+Here, {a} is the contact radius, given by \(a =\sqrt\{R\delta\}\) 
+for all models except {jkr}, for which it is given implicitly according 
+to \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\).  For {damping viscoelastic}, 
+\(\eta_\{n0\}\) is in units of 1/({time}*{distance}).
 
 The {tsuji} model is based on the work of "(Tsuji et
 al)"_#Tsuji1992. Here, the damping coefficient specified as part of
@@ -563,6 +578,20 @@ Finally, the twisting torque on each particle is given by:
 
 :line
 
+The {granular} pair style can reproduce the behavior of the
+{pair gran/*} styles with the appropriate settings (some very
+minor differences can be expected due to corrections in
+displacement history frame-of-reference, and the application
+of the torque at the center of the contact rather than
+at each particle). The first example above 
+is equivalent to {pair gran/hooke 1000.0 NULL 50.0 50.0 0.4 1}.
+The second example is equivalent to 
+{pair gran/hooke/history 1000.0 500.0 50.0 50.0 0.4 1}.
+The third example is equivalent to 
+{pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1}.
+
+:line
+
 LAMMPS automatically sets pairwise cutoff values for {pair_style
 granular} based on particle radii (and in the case of {jkr} pull-off
 distances). In the vast majority of situations, this is adequate.
@@ -618,7 +647,7 @@ interactions is set to \(\mu_1\), and friction coefficient for type
 2-type 2 interactions is set to \(\mu_2\), the friction coefficient
 for type1-type2 interactions is computed as \(\sqrt\{\mu_1\mu_2\}\)
 (unless explicitly specified to a different value by a {pair_coeff 1 2
-...} command. The exception to this is elastic modulus, only
+...} command). The exception to this is elastic modulus, only
 applicable to {hertz/material}, {dmt} and {jkr} normal contact
 models. In that case, the effective elastic modulus is computed as:
 

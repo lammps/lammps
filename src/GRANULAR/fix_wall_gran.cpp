@@ -53,7 +53,7 @@ enum{NONE,CONSTANT,EQUAL};
 #define EPSILON 1e-10
 
 enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-enum {VELOCITY, VISCOELASTIC, TSUJI};
+enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
 enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
       TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
@@ -183,6 +183,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
                      "not enough parameters provided for damping model");
         if (strcmp(arg[iarg+1], "velocity") == 0) {
           damping_model = VELOCITY;
+          iarg += 1;
+        } else if (strcmp(arg[iarg+1], "mass_velocity") == 0) {
+          damping_model = MASS_VELOCITY;
           iarg += 1;
         } else if (strcmp(arg[iarg+1], "viscoelastic") == 0) {
           damping_model = VISCOELASTIC;
@@ -1157,6 +1160,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
 
   if (damping_model == VELOCITY) {
     damp_normal = 1;
+  }
+  else if (damping_model == MASS_VELOCITY){
+    damp_normal = meff;
   }
   else if (damping_model == VISCOELASTIC) {
     damp_normal = a*meff;

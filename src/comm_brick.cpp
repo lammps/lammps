@@ -1069,6 +1069,7 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
       MPI_Sendrecv(&nsend,1,MPI_INT,recvproc[iswap],0,
                    &nrecv,1,MPI_INT,sendproc[iswap],0,world,
                    MPI_STATUS_IGNORE);
+
       if (sendnum[iswap]) {
         if (nrecv > maxrecv) grow_recv(nrecv);
         MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,

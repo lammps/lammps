@@ -14,7 +14,11 @@
 
 // C style library interface to CSlib class
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

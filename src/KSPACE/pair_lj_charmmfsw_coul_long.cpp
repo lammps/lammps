@@ -77,27 +77,6 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
-
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(eps14);
-      memory->destroy(sigma14);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(lj14_1);
-      memory->destroy(lj14_2);
-      memory->destroy(lj14_3);
-      memory->destroy(lj14_4);
-    }
-    if (ftable) free_tables();
-  }
-
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
@@ -106,6 +85,27 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
                      " conversion constant");
     force->qqr2e = force->qqr2e_lammps_real;
   }
+
+  if (copymode) return;
+
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
+  }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,8 +121,7 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -452,8 +451,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
   double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

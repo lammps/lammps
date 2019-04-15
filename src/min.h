@@ -38,6 +38,7 @@ class Min : protected Pointers {
   int request(class Pair *, int, double);
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
+  virtual int modify_param(int, char **) {return 0;}
   double fnorm_sqr();
   double fnorm_inf();
 

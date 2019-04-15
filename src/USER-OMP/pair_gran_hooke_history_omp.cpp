@@ -41,9 +41,7 @@ PairGranHookeHistoryOMP::PairGranHookeHistoryOMP(LAMMPS *lmp) :
 
 void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int shearupdate = (update->setupflag) ? 0 : 1;
 

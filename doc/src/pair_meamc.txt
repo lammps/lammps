@@ -357,6 +357,13 @@ The {meam/c} style is provided in the USER-MEAMC package. It is
 only enabled if LAMMPS was built with that package.
 See the "Build package"_Build_package.html doc page for more info.
 
+The maximum number of elements, that can be read from the MEAM
+library file, is determined at compile time. The default is 5.
+If you need support for more elements, you have to change the
+define for the constant 'maxelt' at the beginning of the file
+src/USER-MEAMC/meam.h and update/recompile LAMMPS. There is no
+limit on the number of atoms types.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "pair_style eam"_pair_eam.html,

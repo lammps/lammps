@@ -88,6 +88,7 @@
 #include <cmath>
 #include <algorithm>
 #include <cstring>
+#include "ptm_polar.h"
 #include "ptm_quat.h"
 
 

@@ -62,8 +62,7 @@ PairLJCutTIP4PLongSoftOMP::~PairLJCutTIP4PLongSoftOMP()
 
 void PairLJCutTIP4PLongSoftOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;

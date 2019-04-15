@@ -101,10 +101,10 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,
+        error->all(FLERR,
                    "Variable name for copute dihedral/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute dihedral/local is invalid style");
+        error->all(FLERR,"Variable for compute dihedral/local is invalid style");
     }
 
     if (pstr) {
@@ -154,7 +154,7 @@ void ComputeDihedralLocal::init()
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,
+        error->all(FLERR,
                    "Variable name for compute dihedral/local does not exist");
     }
 
@@ -307,19 +307,19 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
       else ptr = alocal[m];
 
       if (nvar) {
-	ivar = 0;
-	if (pstr) input->variable->internal_set(pvar,phi);
+        ivar = 0;
+        if (pstr) input->variable->internal_set(pvar,phi);
       }
 
       for (n = 0; n < nvalues; n++) {
-	switch (bstyle[n]) {
-	case PHI:
-	  ptr[n] = 180.0*phi/MY_PI;
-	  break;
-	case VARIABLE:
-	  ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	  ivar++;
-	  break;
+        switch (bstyle[n]) {
+        case PHI:
+          ptr[n] = 180.0*phi/MY_PI;
+          break;
+        case VARIABLE:
+          ptr[n] = input->variable->compute_equal(vvar[ivar]);
+          ivar++;
+          break;
         }
       }
 

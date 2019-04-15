@@ -29,8 +29,9 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 
-int Reallocate_Output_Buffer( output_controls *out_control, int req_space,
-                              MPI_Comm comm )
+#include "error.h"
+
+int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_control, int req_space )
 {
   if (out_control->buffer_len > 0)
     free( out_control->buffer );
@@ -38,10 +39,9 @@ int Reallocate_Output_Buffer( output_controls *out_control, int req_space,
   out_control->buffer_len = (int)(req_space*SAFE_ZONE);
   out_control->buffer = (char*) malloc(out_control->buffer_len*sizeof(char));
   if (out_control->buffer == NULL) {
-    fprintf( stderr,
-             "insufficient memory for required buffer size %d. terminating!\n",
-             (int) (req_space*SAFE_ZONE) );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
+    char errmsg[256];
+    snprintf(errmsg, 256, "Insufficient memory for required buffer size %d", (int) (req_space*SAFE_ZONE));
+    error_ptr->one(FLERR,errmsg);
   }
 
   return SUCCESS;
@@ -58,7 +58,7 @@ void Write_Skip_Line( output_controls *out_control, mpi_datatypes * /*mpi_data*/
 
 
 int Write_Header( reax_system *system, control_params *control,
-                  output_controls *out_control, mpi_datatypes *mpi_data )
+                  output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
 {
   int  num_hdr_lines, my_hdr_lines, buffer_req;
   char ensembles[ens_N][25] =  { "NVE", "NVT", "fully flexible NPT",
@@ -83,7 +83,7 @@ int Write_Header( reax_system *system, control_params *control,
   my_hdr_lines = num_hdr_lines * ( system->my_rank == MASTER_NODE );
   buffer_req = my_hdr_lines * HEADER_LINE_LEN;
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req );
 
   /* only the master node writes into trajectory header */
   if (system->my_rank == MASTER_NODE) {
@@ -278,7 +278,7 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
   else buffer_req = system->n * INIT_DESC_LEN + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
@@ -357,7 +357,7 @@ int Init_Traj( reax_system *system, control_params *control,
 
 int Write_Frame_Header( reax_system *system, control_params *control,
                         simulation_data *data, output_controls *out_control,
-                        mpi_datatypes *mpi_data )
+                        mpi_datatypes * /*mpi_data*/ )
 {
   int me, num_frm_hdr_lines, my_frm_hdr_lines, buffer_req;
 
@@ -367,7 +367,7 @@ int Write_Frame_Header( reax_system *system, control_params *control,
   my_frm_hdr_lines = num_frm_hdr_lines * ( me == MASTER_NODE );
   buffer_req = my_frm_hdr_lines * HEADER_LINE_LEN;
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( control->error_ptr, out_control, buffer_req );
 
   /* only the master node writes into trajectory header */
   if (me == MASTER_NODE) {
@@ -500,7 +500,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
   else buffer_req = system->n * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   /* fill in buffer */
   out_control->line[0] = 0;
@@ -531,9 +531,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
                p_atom->f[0], p_atom->f[1], p_atom->f[2], p_atom->q );
       break;
     default:
-      fprintf( stderr,
-               "write_traj_atoms: unknown atom trajectroy format!\n");
-      MPI_Abort( mpi_data->world, UNKNOWN_OPTION );
+      system->error_ptr->one(FLERR,"Write_traj_atoms: unknown atom trajectory format");
     }
 
     strncpy( out_control->buffer + i*line_len, out_control->line, line_len+1 );
@@ -592,7 +590,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
   else buffer_req = my_bonds * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   /* fill in the buffer */
   out_control->line[0] = 0;
@@ -619,8 +617,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
                    bo_ij->bo_data.BO_pi, bo_ij->bo_data.BO_pi2 );
           break;
         default:
-          fprintf(stderr, "write_traj_bonds: FATAL! invalid bond_info option");
-          MPI_Abort( mpi_data->world, UNKNOWN_OPTION );
+          system->error_ptr->one(FLERR, "Write_traj_bonds: FATAL! invalid bond_info option");
         }
         strncpy( out_control->buffer + my_bonds*line_len,
                  out_control->line, line_len+1 );
@@ -693,7 +690,7 @@ int Write_Angles( reax_system *system, control_params *control,
   else buffer_req = my_angles * line_len + 1;
 
   if (buffer_req > out_control->buffer_len * DANGER_ZONE)
-    Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
+    Reallocate_Output_Buffer( system->error_ptr, out_control, buffer_req );
 
   /* fill in the buffer */
   my_angles = 0;

@@ -26,6 +26,11 @@
 /*_ssa.h
 /*_ssa.cpp
 
+/kim_query.cpp
+/kim_query.h
+/pair_kim.cpp
+/pair_kim.h
+
 /kokkos.cpp
 /kokkos.h
 /kokkos_type.h
@@ -818,8 +823,6 @@
 /pair_hbond_dreiding_morse.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
-/pair_kim.cpp
-/pair_kim.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp

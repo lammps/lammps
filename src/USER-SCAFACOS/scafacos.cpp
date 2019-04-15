@@ -197,12 +197,7 @@ void Scafacos::compute(int eflag, int vflag)
       fcs_set_redistribute((FCS)fcs,0);
   }
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else
-  {
-    eflag_atom = 0;
-    vflag_global = 0;
-  }
+  ev_init(eflag,vflag);
 
   // grow xpbc, epot, efield if necessary
 

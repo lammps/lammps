@@ -72,6 +72,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   single_extra = 0;
   svector = NULL;
 
+  setflag = NULL;
+  cutsq = NULL;
+
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   reinitflag = 1;
 
@@ -99,6 +102,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   num_tally_compute = 0;
   list_tally_compute = NULL;
+
+  nondefault_history_transfer = 0;
+  beyond_contact = 0;
 
   // KOKKOS per-fix data masks
 
@@ -688,8 +694,7 @@ double Pair::mix_distance(double sig1, double sig2)
 
 void Pair::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */

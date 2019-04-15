@@ -36,6 +36,10 @@
 #include "atom_kokkos.h"
 #include "kokkos.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;
@@ -147,8 +151,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   vflag = vflag_in;
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 

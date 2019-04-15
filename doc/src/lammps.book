@@ -167,6 +167,7 @@ if.html
 include.html
 info.html
 jump.html
+kim_query.html
 label.html
 lattice.html
 log.html
@@ -174,6 +175,7 @@ mass.html
 message.html
 min_modify.html
 min_style.html
+min_spin.html
 minimize.html
 molecule.html
 neb.html
@@ -263,6 +265,7 @@ fix_drude_transform.html
 fix_dt_reset.html
 fix_efield.html
 fix_ehex.html
+fix_electron_stopping.html
 fix_enforce2d.html
 fix_eos_cv.html
 fix_eos_table.html
@@ -578,6 +581,7 @@ pair_extep.html
 pair_gauss.html
 pair_gayberne.html
 pair_gran.html
+pair_granular.html
 pair_gromacs.html
 pair_gw.html
 pair_ilp_graphene_hbn.html

@@ -1,0 +1,60 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+compute pe/e3b command :h3
+
+[Syntax:]
+
+compute ID group-ID pe/e3b :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+pe/e3b = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all pe/e3b :pre
+
+[Description:]
+
+Define a computation that calculates the contribution of "pair_style e3b"_pair_e3b.html to the potential energy.
+The specified group must be "all".
+See the "compute pe/atom"_compute_pe_atom.html command if you want per-atom
+energies.
+These per-atom values could be summed for a group of atoms via the "compute reduce"_compute_reduce.html command.
+
+The "pair_style e3b"_pair_e3b.html potential is composed of 4 terms.
+This compute calculates the total e3b contribution to the energy as well as each of the four terms.
+The four terms are stored as a 4-element vector in the order pe_Ea, pe_Eb, pe_Ec, pe_E2.
+See "pair_style e3b"_pair_e3b.html for more details.
+
+:line
+
+[Output info:]
+
+This compute calculates a global scalar (the total e3b energy) and a global
+vector of length 4 (the four energy terms), which can be accessed by indices
+1-4.  These values can be used by any command that uses global scalar
+or vector values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
+options.
+
+The scalar and vector values calculated by this compute are
+"extensive" and in energy
+"units"_units.html.
+
+[Restrictions:]
+
+This compute must be used with "pair_style e3b"_pair_e3b.html.
+
+[Related commands:]
+
+"pair_style e3b"_pair_e3b.html,
+"compute pe"_compute_pe.html,
+"compute pe/atom"_compute_pe_atom.html
+
+[Default:] none

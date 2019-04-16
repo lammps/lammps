@@ -66,6 +66,7 @@ Computes :h1
    compute_pair_local
    compute_pe
    compute_pe_atom
+   compute_pe_e3b
    compute_plasticity_atom
    compute_pressure
    compute_pressure_cylinder

@@ -1,0 +1,10 @@
+The input script in.lammps simulates bulk water using the 2015 E3B potential.
+It can be modified to use the 2011 E3B potential by
+   1) using a tip4p molecule file instead of tip4p2005.mol
+   2) changing the qdist parameter for lj/cut/tip4p/long in the pair_style
+   hybrid/overlay command
+   3) using the 2011 "preset" command in the e3b pair_coeff command
+This script also demonstrates the use of compute pe/e3b to calculate the
+potential energy contribution of the e3b pair style. These potential energy
+contributions can be found in the output file e3b.txt. See the LAMMPS
+documentation for more details.

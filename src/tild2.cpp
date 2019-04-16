@@ -216,6 +216,8 @@ void TILD::init()
   deallocate_groups();
   deallocate_peratom();
 
+  set_grid();
+
   setup_grid();
 
 
@@ -363,6 +365,8 @@ void TILD::compute(int eflag, int vflag){
   brick2fft_none();
 
   accumulate_gradient();
+
+  cg->forward_comm(this, FORWARD_NONE);
 
   fieldforce_param();
   
@@ -1520,6 +1524,12 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
       buf[n++] = v4src[list[i]];
       buf[n++] = v5src[list[i]];
     }
+  } else if (flag == FORWARD_NONE){
+    for (int k = 0; k < group->ngroup; k++) {
+      FFT_SCALAR *src = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++)
+        buf[n++] = src[list[i]];
+    }
   }
 }
 
@@ -1576,6 +1586,12 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
       v3src[list[i]] = buf[n++];
       v4src[list[i]] = buf[n++];
       v5src[list[i]] = buf[n++];
+    }
+  } else if (flag == FORWARD_NONE){
+    for (int k = 0; k < group->ngroup; k++) {
+      FFT_SCALAR *dest = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++)
+        dest[list[i]] = buf[n++];
     }
   }
 }
@@ -2219,11 +2235,11 @@ void TILD::accumulate_gradient() {
           ktmp2[n++] = grad_uG_hat[j][n] * ktmp[n];
         }
 
-        fft1->compute(ktmp2, ktmp2, -1);
+        fft1->compute(ktmp2, ktmp, -1);
 
         n = 0;
         for (int k = 0; k < nfft_both; k++) {
-          tmp[k] = ktmp2[n];
+          tmp[k] = ktmp[n];
           n +=2;
         }
 

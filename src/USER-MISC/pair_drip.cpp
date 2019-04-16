@@ -510,9 +510,9 @@ void PairDRIP::compute(int eflag, int vflag)
 //        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
 //      }
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = x[j][0] - xtmp;
+      dely = x[j][1] - ytmp;
+      delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int iparam_ij = elem2param[itype][jtype];
       Param& p = params[iparam_ij];
@@ -527,14 +527,11 @@ void PairDRIP::compute(int eflag, int vflag)
         double phi_repul = calc_repulsive(evflag, i, j, p, rsq, rvec, nbi1, nbi2,
             nbi3, ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3);
 
-
         if (eflag) evdwl = HALF * (phi_repul + phi_attr);
 
         //if (evflag) ev_tally(i,j,nlocal,newton_pair, evdwl,0.0,fpair,delx,dely,delz);
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair, evdwl,0.0,0,0,0,0);
-
-
 
 
       }
@@ -564,7 +561,7 @@ double PairDRIP::calc_attractive(int const i, int const j, Param& p,
   double dr6 = -6 * r6 / r;
   double phi = -r6 * tp;
 
-  double fpair = HALF * (r6 * dtp + dr6 * tp);
+  double fpair = -HALF * (r6 * dtp + dr6 * tp);
   f[i][0] += rvec[0] * fpair / r;
   f[i][1] += rvec[1] * fpair / r;
   f[i][2] += rvec[2] * fpair / r;
@@ -647,24 +644,24 @@ double PairDRIP::calc_repulsive(int const evflag, int const i, int const j,
   for (int k = 0; k < DIM; k++) {
 
     // forces due to derivatives of tap and V1
-    double tmp = -HALF * (dtp * V1 + tp * dV1) * V2 * rvec[k] / r;
+    double tmp = HALF * (dtp * V1 + tp * dV1) * V2 * rvec[k] / r;
     f[i][k] += tmp;
     f[j][k] -= tmp;
 
     // the following incldue the transverse decay part tdij and the dihedral part gij
     // derivative of V2 contribute to atoms i, j
-    f[i][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
-    f[j][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
+    f[i][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
+    f[j][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
 
     // derivative of V2 contribute to neighs of atom i
-    f[nbi1][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
-    f[nbi2][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
-    f[nbi3][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
+    f[nbi1][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
+    f[nbi2][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
+    f[nbi3][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
 
     // derivative of V2 contribute to neighs of atom j
-    f[nbj1][k] += HALF * tp * V1 * dgij_drl1[k];
-    f[nbj2][k] += HALF * tp * V1 * dgij_drl2[k];
-    f[nbj3][k] += HALF * tp * V1 * dgij_drl3[k];
+    f[nbj1][k] -= HALF * tp * V1 * dgij_drl1[k];
+    f[nbj2][k] -= HALF * tp * V1 * dgij_drl2[k];
+    f[nbj3][k] -= HALF * tp * V1 * dgij_drl3[k];
   }
 
   return phi;
@@ -725,9 +722,9 @@ void PairDRIP::find_nearest3neigh()
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = x[j][0] - xtmp;
+      dely = x[j][1] - ytmp;
+      delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
 
       int iparam_ij = elem2param[itype][jtype];

@@ -26,6 +26,10 @@ PairStyle(drip,PairDRIP)
 
 namespace LAMMPS_NS {
 
+#define DIM 3
+typedef double V3[3];
+
+
 class PairDRIP : public Pair {
  public:
   PairDRIP(class LAMMPS *);
@@ -36,7 +40,6 @@ class PairDRIP : public Pair {
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
-  void calc_normal();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
 
@@ -47,9 +50,6 @@ class PairDRIP : public Pair {
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
   MyPage<int> *ipage;              // neighbor list pages
-  int *DRIP_numneigh;                // # of pair neighbors for each atom
-  int **DRIP_firstneigh;             // ptr to 1st neighbor of each atom
-  int tap_flag;			   // flag to turn on/off taper function
 
 
   struct Param {
@@ -58,70 +58,85 @@ class PairDRIP : public Pair {
     double rhocutsq, rcutsq;
     double delta2inv,z06;
   };
-  Param *params;       // parameter set for I-J interactions
-  char **elements;     // names of unique elements
-  int **elem2param;    // mapping from element pairs to parameters
-  int *map;            // mapping from atom types to elements
-  int nelements;       // # of unique elements
-  int nparams;         // # of stored parameter sets
-  int maxparam;        // max # of parameter sets
-  int nmax;            // max # of atoms
-
-  double cut_normal;
-  double **normal;
-  double ***dnormdri;
-  double ****dnormal;
+  Param *params;         // parameter set for I-J interactions
+  char **elements;       // names of unique elements
+  int **elem2param;      // mapping from element pairs to parameters
+  int *map;              // mapping from atom types to elements
+  int nelements;         // # of unique elements
+  int nparams;           // # of stored parameter sets
+  int maxparam;          // max # of parameter sets
+  int nmax;              // max # of atoms
+  int ** nearest3neigh;  // nearest 3 neighbors of atoms
 
   void read_file( char * );
   void allocate();
-  void DRIP_neigh();
+
+  // DRIP specific functions
+  double calc_attractive(int const i, int const j, Param& p,
+      double const rsq, double const * rvec);
+
+ double calc_repulsive(int const evflag, int const i, int const j,
+     Param& p, double const rsq, double const * rvec,
+     int const nbi1, int const nbi2, int const nbi3, double const * ni,
+     V3 const * dni_dri, V3 const * dni_drnb1, V3 const * dni_drnb2,
+     V3 const * dni_drnb3);
 
 
-  // PARAMS
-  int ** nearest3neigh;  // nearest 3 neighbors of atoms
+  void find_nearest3neigh();
+
+
+ void calc_normal(int const i, int& k1, int& k2, int& k3,
+     double * const normal, V3 *const dn_dri, V3 *const dn_drk1,
+     V3 *const dn_drk2, V3 *const dn_drk3);
 
 
 
+void get_drhosqij( double const* rij, double const* ni,
+    V3 const* dni_dri, V3 const* dni_drn1,
+    V3 const* dni_drn2, V3 const* dni_drn3,
+    double* const drhosq_dri, double* const drhosq_drj,
+    double* const drhosq_drn1, double* const drhosq_drn2,
+    double* const drhosq_drn3);
 
-  /* ----Calculate the long-range cutoff term */
-  inline double calc_Tap(double r_ij, double Rcut) {
-    double Tap,r;
-    double Tap_coeff[8] = {1.0,0.0,0.0,0.0,-35.0,84.0,-70.0,20.0};
 
-    r = r_ij/Rcut;
-    if(r >= 1.0) {Tap = 0.0;}
-    else{
-      Tap = Tap_coeff[7] * r + Tap_coeff[6];
-      Tap = Tap * r  + Tap_coeff[5];
-      Tap = Tap * r  + Tap_coeff[4];
-      Tap = Tap * r  + Tap_coeff[3];
-      Tap = Tap * r  + Tap_coeff[2];
-      Tap = Tap * r  + Tap_coeff[1];
-      Tap = Tap * r  + Tap_coeff[0];
-    }
+  double td(double C0, double C2, double C4, double delta,
+      double const* const rvec, double r,
+      const double* const n,
+      double& rho_sq, double& dtd);
 
-    return(Tap);
+  double dihedral(
+      const int i, const int j, Param& p, double const rhosq, double& d_drhosq,
+      double* const d_dri, double* const d_drj,
+      double* const d_drk1, double* const d_drk2, double* const d_drk3,
+      double* const d_drl1, double* const d_drl2, double* const d_drl3);
+
+  double deriv_cos_omega( double const* rk, double const* ri,
+      double const* rj, double const* rl, double* const dcos_drk,
+      double* const dcos_dri, double* const dcos_drj, double* const dcos_drl);
+
+  double tap(double r, double cutoff, double& dtap);
+
+  double tap_rho(double rhosq, double cut_rhosq, double& drhosq);
+
+void deriv_cross( double const* rk, double const* rl, double const* rm,
+    double* const cross, V3 *const dcross_drk,
+    V3 *const dcross_drl, V3 *const dcross_drm);
+
+
+
+  inline double dot(double const* x, double const* y) {
+    return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
   }
 
-  /* ----Calculate the derivatives of long-range cutoff term */
-  inline double calc_dTap(double r_ij, double Rcut) {
-    double dTap,r;
-    double Tap_coeff[8] = {1.0,0.0,0.0,0.0,-35.0,84.0,-70.0,20.0};
 
-    r = r_ij/Rcut;
-    if(r >= 1.0) {dTap = 0.0;}
-    else {
-      dTap = 7.0*Tap_coeff[7] * r + 6.0*Tap_coeff[6];
-      dTap = dTap * r  + 5.0*Tap_coeff[5];
-      dTap = dTap * r  + 4.0*Tap_coeff[4];
-      dTap = dTap * r  + 3.0*Tap_coeff[3];
-      dTap = dTap * r  + 2.0*Tap_coeff[2];
-      dTap = dTap * r  + Tap_coeff[1];
-      dTap = dTap/Rcut;
+  inline void mat_dot_vec(V3 const* X, double const* y, double* const z)
+  {
+    for (int k = 0; k < 3; k++) {
+      z[k] = X[k][0] * y[0] + X[k][1] * y[1] + X[k][2] * y[2];
     }
-
-    return(dTap);
   }
+
+
 };
 
 }

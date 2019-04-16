@@ -42,6 +42,8 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
+#define DIM 3
+#define HALF 0.5
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,6 +69,13 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
   normal = NULL;
   dnormal = NULL;
   dnormdri = NULL;
+
+
+
+
+  nearest3neigh = NULL;
+
+
 
   // set comm size needed by this Pair
   comm_forward = 39;
@@ -95,7 +104,669 @@ PairDRIP::~PairDRIP()
   memory->destroy(params);
   memory->destroy(elem2param);
   if (allocated) delete [] map;
+
+
+  memory->destroy(nearest3neigh);
+
 }
+
+
+/* ---------------------------------------------------------------------- */
+
+void PairDRIP::compute(int eflag, int vflag)
+{
+
+  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  tagint itag,jtag;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1,fpair2, r, rsq;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  int nbi1, nbi2, nbi3;
+  double ni[DIM];
+  double dni_dri[DIM][DIM], dni_drnb1[DIM][DIM];
+  double dni_drnb2[DIM][DIM], dni_drnb3[DIM][DIM];
+
+
+  evdwl = 0.0;
+  ev_init(eflag,vflag);
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *type = atom->type;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+
+
+
+
+  double prodnorm1,prodnorm2,fkcx,fkcy,fkcz;
+  double rhosq1,rhosq2,exp0,exp1,exp2,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
+  double frho1,frho2,sumC1,sumC2,sumC11,sumC22,sumCff,fsum,rdsq1,rdsq2;
+  int *DRIP_neighs_i,*DRIP_neighs_j;
+
+
+  double dprodnorm1[3] = {0.0, 0.0, 0.0};
+  double dprodnorm2[3] = {0.0, 0.0, 0.0};
+  double fp1[3] = {0.0, 0.0, 0.0};
+  double fp2[3] = {0.0, 0.0, 0.0};
+  double fprod1[3] = {0.0, 0.0, 0.0};
+  double fprod2[3] = {0.0, 0.0, 0.0};
+  double fk[3] = {0.0, 0.0, 0.0};
+  double fl[3] = {0.0, 0.0, 0.0};
+  double delkj[3] = {0.0, 0.0, 0.0};
+  double delli[3] = {0.0, 0.0, 0.0};
+
+
+
+
+  // find nearest 3 neighbors of each atom
+  nearest3neigh();
+
+  //TODO what does this comm do?
+  // communicate the normal vector and its derivatives
+  comm->forward_comm_pair(this);
+
+  // loop over neighbors of my atoms
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    itag = tag[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = map[type[i]];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+
+    // normal and its derivatives w.r.t. atom i and its 3 nearest neighs
+    calc_normal(i, nbi1, nbi2, nbi3, ni, dni_dri,dni_drnb1, dni_drnb2, dni_drnb3);
+
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = map[type[j]];
+      jtag = tag[j];
+
+//      // two-body interactions from full neighbor list, skip half of them
+//      if (itag > jtag) {
+//        if ((itag+jtag) % 2 == 0) continue;
+//      } else if (itag < jtag) {
+//        if ((itag+jtag) % 2 == 1) continue;
+//      } else {
+//        if (x[j][2] < ztmp) continue;
+//        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+//        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+//      }
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      int iparam_ij = elem2param[itype][jtype];
+      Param& p = params[iparam_ij];
+      double rcutsq = p.rcutsq;
+
+
+      // only include the interation between different layers
+      if (rsq>1e-20 && rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
+
+        double phi_attr = calc_attractive(vflag, i,j,p, delx, dely, delz, rsq);
+
+        double phi_repul = calc_repulsive(vflag);
+
+
+
+      }
+    }  //loop over jj
+  }  // loop over ii
+
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+double PairDRIP::calc_attractive(int const i, int const j, Param& p,
+    double const rsq, double const * rvec)
+{
+
+  double **f = atom->f;
+
+  double const z0 = p.z0;
+  double const A = p.A;
+  double const cutoff = p.rcut;
+  double const r = sqrt(rsq);
+
+  double roz0_sq = rsq / (z0 * z0);
+  double dtp;
+  double tp = tap(r, cutoff, dtp);
+  double r6 = A / (roz0_sq * roz0_sq * roz0_sq);
+  double dr6 = -6 * r6 / r;
+  double phi = -r6 * tp;
+
+  double fpair = HALF * (r6 * dtp + dr6 * tp);
+  f[i][0] += rvec[0] * fpair / r;
+  f[i][1] += rvec[1] * fpair / r;
+  f[i][2] += rvec[2] * fpair / r;
+  f[j][0] -= rvec[0] * fpair / r;
+  f[j][1] -= rvec[1] * fpair / r;
+  f[j][2] -= rvec[2] * fpair / r;
+
+  return phi;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
+    double const rsq, double const * rvec,
+    int const nbi1, int const nbi2, int const nbi3, double const * ni,
+    double const * dni_dr[DIM], double const * dni_drnb1[DIM],
+    double const * dni_drnb2[DIM], double const * dni_drnb3[DIM])
+{
+  double **f = atom->f;
+  double r = sqrt(rsq);
+
+  // params
+  double C0 = p.C0;
+  double C2 = p.C2;
+  double C4 = p.C4;
+  double C = p.C;
+  double delta = p.delta;
+  double lambda = p.lambda;
+  double z0 = p.z0;
+  double cutoff = p.rcut;
+
+  // nearest 3 neighbors of atom j
+  int nbj1 = nearest3neigh[j][0];
+  int nbj2 = nearest3neigh[j][1];
+  int nbj3 = nearest3neigh[j][2];
+
+  double[DIM] dgij_dri;
+  double[DIM] dgij_drj;
+  double[DIM] dgij_drk1;
+  double[DIM] dgij_drk2;
+  double[DIM] dgij_drk3;
+  double[DIM] dgij_drl1;
+  double[DIM] dgij_drl2;
+  double[DIM] dgij_drl3;
+  double[DIM] drhosqij_dri;
+  double[DIM] drhosqij_drj;
+  double[DIM] drhosqij_drnb1;
+  double[DIM] drhosqij_drnb2;
+  double[DIM] drhosqij_drnb3;
+
+
+  // derivative of rhosq w.r.t coordinates of atoms i, j, and the nearests 3
+  // neighs of i
+  get_drhosqij(rvec, ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3, drhosqij_dri,
+      drhosqij_drj, drhosqij_drnb1, drhosqij_drnb2, drhosqij_drnb3);
+
+  // transverse decay function f(rho) and its derivative w.r.t. rhosq
+  double rhosqij;
+  double dtdij;
+  double tdij = td(C0, C2, C4, delta, rvec, r, ni, rhosqij, dtdij);
+
+  // dihedral angle function and its derivateives
+  double dgij_drhosq;
+  double gij = dihedral(i, j, p, rhosqij, dgij_drhosq, dgij_dri, dgij_drj,
+      dgij_drk1, dgij_drk2, dgij_drk3, dgij_drl1, dgij_drl2, dgij_drl3);
+
+  double V2 = C + tdij + gij;
+
+  // tap part
+  double dtp;
+  double tp = tap(r, cutoff, dtp);
+
+  /* exponential part */
+  double V1 = exp(-lambda * (r - z0));
+  double dV1 = -V1 * lambda;
+
+  double phi = tp * V1 * V2;
+
+  for (int k = 0; k < DIM; k++) {
+
+    // forces due to derivatives of tap and V1
+    double tmp = -HALF * (dtp * V1 + tp * dV1) * V2 * rvec[k] / r;
+    f[i][k] += tmp;
+    f[j][k] -= tmp;
+
+    // the following incldue the transverse decay part tdij and the dihedral part gij
+    // derivative of V2 contribute to atoms i, j
+    f[i][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
+    f[j][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
+
+    // derivative of V2 contribute to neighs of atom i
+    f[nbi1][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
+    f[nbi2][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
+    f[nbi3][k] += HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
+
+    // derivative of V2 contribute to neighs of atom j
+    f[nbj1][k] += HALF * tp * V1 * dgij_drl1[k];
+    f[nbj2][k] += HALF * tp * V1 * dgij_drl2[k];
+    f[nbj3][k] += HALF * tp * V1 * dgij_drl3[k];
+  }
+
+  return phi;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+
+void PairDRIP::find_nearest_3_neigh()
+{
+
+  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *neighptr;
+
+  double **x = atom->x;
+  int *type = atom->type;
+
+
+  allnum = list->inum + list->gnum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  memory->destroy(nearest3neigh);
+  memory->create(nearest3neigh, allnum, 3, "DRIP:nearest3neigh");
+
+  // store all DRIP neighs of owned and ghost atoms
+  // scan full neighbor list of I
+
+  ipage->reset();
+
+  for (ii = 0; ii < allnum; ii++) {
+    i = ilist[ii];
+
+    n = 0;
+    neighptr = ipage->vget();
+
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = map[type[i]];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+
+    // init nb1 to be the 1st nearest neigh, nb3 the 3rd nearest
+    int nb1 = -1;
+    int nb2 = -1;
+    int nb3 = -1;
+    double nb1_rsq = 1.1e10;
+    double nb2_rsq = 2.0e10;
+    double nb3_rsq = 3.0e10;
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = map[type[j]];
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      int iparam_ij = elem2param[itype][jtype];
+      double rcutsq = params[iparam_ij].rcutsq;
+
+      if (rsq > 1e-20 && rsq < rcutsq && atom->molecule[i] == atom->molecule[j]) {
+
+        // find the 3 nearest neigh
+        if (rsq < nb1_rsq) {
+          nb3 = nb2;
+          nb2 = nb1;
+          nb1 = j;
+          nb3_rsq = nb2_rsq;
+          nb2_rsq = nb1_rsq;
+          nb1_rsq = rsq;
+        }
+        else if (rsq < nb2_rsq) {
+          nb3 = nb2;
+          nb2 = j;
+          nb3_rsq = nb2_rsq;
+          nb2_rsq = rsq;
+        }
+        else if (rsq < nb3_rsq) {
+          nb3 = j;
+          nb3_rsq = rsq;
+        }
+
+      }
+    }  // loop over jj
+
+    // store neighbors to be used later to compute normal
+    if (nb1_rsq >= 1.0e10 || nb2_rsq >= 1.0e10 || nb3_rsq >= 1.0e10) {
+      error->one(FLERR,"No enough neighbors to construct normal.");
+    } else{
+      nearest3neigh[i][0] = nb1;
+      nearest3neigh[i][1] = nb2;
+      nearest3neigh[i][2] = nb3;
+    }
+
+  } // loop over ii
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void PairDRIP::calc_normal(int const i, double ** const nearest3neigh,
+    int& k1, int& k2, int& k3, double * const normal,
+    double ** const dn_dri, double ** const dn_drk1,
+    double ** const dn_drk2, double ** const dn_drk3)
+{
+
+  k1 = nearest3neigh[i][0];
+  k2 = nearest3neigh[i][1];
+  k3 = nearest3neigh[i][2];
+
+  // normal does not depend on i, setting to zero
+  for (int j = 0; j < DIM; j++) {
+    for (int k = 0; k < DIM; k++) {
+      dn_dri[j][k] = 0.0;
+    }
+  }
+
+  // get normal and derives of normal w.r.t to its 3 nearest neighbors
+  double **x = atom->x;
+  deriv_cross(x[k1], x[k2], x[k3], normal, dn_drk1, dn_drk2, dn_drk3);
+}
+
+
+/* ---------------------------------------------------------------------- */
+void PairDRIP::get_drhosqij(
+    double const* const rij,
+    double const* const ni,
+    VectorOfSizeDIM const* const dni_dri,
+    VectorOfSizeDIM const* const dni_drn1,
+    VectorOfSizeDIM const* const dni_drn2,
+    VectorOfSizeDIM const* const dni_drn3,
+    double* const drhosq_dri,
+    double* const drhosq_drj,
+    double* const drhosq_drn1,
+    double* const drhosq_drn2,
+    double* const drhosq_drn3) const
+{
+  int k;
+  double ni_dot_rij = 0;
+  double dni_dri_dot_rij[DIM];
+  double dni_drn1_dot_rij[DIM];
+  double dni_drn2_dot_rij[DIM];
+  double dni_drn3_dot_rij[DIM];
+
+  ni_dot_rij = dot(ni, rij);
+  mat_dot_vec(dni_dri, rij, dni_dri_dot_rij);
+  mat_dot_vec(dni_drn1, rij, dni_drn1_dot_rij);
+  mat_dot_vec(dni_drn2, rij, dni_drn2_dot_rij);
+  mat_dot_vec(dni_drn3, rij, dni_drn3_dot_rij);
+
+  for (k = 0; k < DIM; k++) {
+    drhosq_dri[k] = -2 * rij[k] - 2 * ni_dot_rij * (-ni[k] + dni_dri_dot_rij[k]);
+    drhosq_drj[k] = 2 * rij[k] - 2 * ni_dot_rij * ni[k];
+    drhosq_drn1[k] = -2 * ni_dot_rij * dni_drn1_dot_rij[k];
+    drhosq_drn2[k] = -2 * ni_dot_rij * dni_drn2_dot_rij[k];
+    drhosq_drn3[k] = -2 * ni_dot_rij * dni_drn3_dot_rij[k];
+  }
+}
+
+
+/* ---------------------------------------------------------------------- */
+// Compute the normalized cross product of two vector rkl, rkm, and the
+// derivates w.r.t rk, rl, rm.
+// NOTE, the dcross_drk, dcross_drl, and dcross_drm is actually the transpose
+// of the actual one.
+
+void PairDRIP::deriv_cross( double const* rk, double const* rl, double const* rm,
+    double* const cross, double ** const dcross_drk,
+    double ** const dcross_drl, double ** const dcross_drm)
+{
+  double x[DIM];
+  double y[DIM];
+  double p[DIM];
+  double q;
+  double q_cubic;
+  double d_invq_d_x0;
+  double d_invq_d_x1;
+  double d_invq_d_x2;
+  double d_invq_d_y0;
+  double d_invq_d_y1;
+  double d_invq_d_y2;
+
+  int i, j;
+
+
+  // get x = rkl and y = rkm
+  for (i = 0; i < DIM; i++) {
+    x[i] = rl[i] - rk[i];
+    y[i] = rm[i] - rk[i];
+  }
+
+  // cross product
+  p[0] = x[1] * y[2] - x[2] * y[1];
+  p[1] = x[2] * y[0] - x[0] * y[2];
+  p[2] = x[0] * y[1] - x[1] * y[0];
+
+  q = sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+
+  // normalized cross
+  cross[0] = p[0] / q;
+  cross[1] = p[1] / q;
+  cross[2] = p[2] / q;
+
+  // compute derivatives
+  // derivative of inverse q (i.e. 1/q) w.r.t x and y
+  q_cubic = q * q * q;
+  d_invq_d_x0 = (+p[1] * y[2] - p[2] * y[1]) / q_cubic;
+  d_invq_d_x1 = (-p[0] * y[2] + p[2] * y[0]) / q_cubic;
+  d_invq_d_x2 = (p[0] * y[1] - p[1] * y[0]) / q_cubic;
+  d_invq_d_y0 = (-p[1] * x[2] + p[2] * x[1]) / q_cubic;
+  d_invq_d_y1 = (p[0] * x[2] - p[2] * x[0]) / q_cubic;
+  d_invq_d_y2 = (-p[0] * x[1] + p[1] * x[0]) / q_cubic;
+
+  // dcross/drl transposed
+  dcross_drl[0][0] = p[0] * d_invq_d_x0;
+  dcross_drl[0][1] = -y[2] / q + p[1] * d_invq_d_x0;
+  dcross_drl[0][2] = y[1] / q + p[2] * d_invq_d_x0;
+
+  dcross_drl[1][0] = y[2] / q + p[0] * d_invq_d_x1;
+  dcross_drl[1][1] = p[1] * d_invq_d_x1;
+  dcross_drl[1][2] = -y[0] / q + p[2] * d_invq_d_x1;
+
+  dcross_drl[2][0] = -y[1] / q + p[0] * d_invq_d_x2;
+  dcross_drl[2][1] = y[0] / q + p[1] * d_invq_d_x2;
+  dcross_drl[2][2] = p[2] * d_invq_d_x2;
+
+  // dcross/drm transposed
+  dcross_drm[0][0] = p[0] * d_invq_d_y0;
+  dcross_drm[0][1] = x[2] / q + p[1] * d_invq_d_y0;
+  dcross_drm[0][2] = -x[1] / q + p[2] * d_invq_d_y0;
+
+  dcross_drm[1][0] = -x[2] / q + p[0] * d_invq_d_y1;
+  dcross_drm[1][1] = p[1] * d_invq_d_y1;
+  dcross_drm[1][2] = x[0] / q + p[2] * d_invq_d_y1;
+
+  dcross_drm[2][0] = x[1] / q + p[0] * d_invq_d_y2;
+  dcross_drm[2][1] = -x[0] / q + p[1] * d_invq_d_y2;
+  dcross_drm[2][2] = p[2] * d_invq_d_y2;
+
+  // dcross/drk transposed
+  for (i = 0; i < DIM; i++) {
+    for (j = 0; j < DIM; j++) {
+      dcross_drk[i][j] = -(dcross_drl[i][j] + dcross_drm[i][j]);
+    }
+  }
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+
+// derivartive of transverse decay function f(rho) w.r.t rho
+double PairDRIP::td(double C0, double C2, double C4, double delta,
+    double const* const rvec, double r,
+    const double* const n,
+    double& rho_sq, double& dtd) const
+{
+  double n_dot_r = dot(n, rvec);
+
+  rho_sq = r * r - n_dot_r * n_dot_r;
+
+  if (rho_sq < 0) {   // in case n is [0, 0, 1] and rho_sq is negative due to numerical error
+    rho_sq = 0;
+  }
+
+  double del_sq = delta * delta;
+  double rod_sq = rho_sq / del_sq;
+  double td = exp(-rod_sq) * (C0 + rod_sq * (C2 + rod_sq * C4));
+  dtd = -td / del_sq + exp(-rod_sq) * (C2 + 2 * C4 * rod_sq) / del_sq;
+
+  return td;
+}
+
+
+/* ---------------------------------------------------------------------- */
+// derivartive of dihedral angle func gij w.r.t rho, and atom positions
+double PairDRIP::dihedral(
+    const int i, const int j, Param& p, double const rhosq, double& d_drhosq,
+    double* const d_dri, double* const d_drj,
+    double* const d_drk1, double* const d_drk2, double* const d_drk3,
+    double* const d_drl1, double* const d_drl2, double* const d_drl3)
+{
+  // get parameter
+  double B = p.B;
+  double eta = p.eta;
+  double cut_rhosq = p.rhocutsq;
+
+  // local vars
+  double cos_kl[3][3];          // cos_omega_k1ijl1, cos_omega_k1ijl2 ...
+  double d_dcos_kl[3][3];       // deriv of dihedral w.r.t to cos_omega_kijl
+  double dcos_kl[3][3][4][DIM]; // 4 indicates k, i, j, l, e.g. dcoskl[0][1][0] means
+                                // dcos_omega_k1ijl2 / drk
+
+
+  // if larger than cutoff of rho, return 0
+  if (rhosq >= cut_rhosq) {
+    d_drhosq = 0;
+    for (int dim = 0; dim < DIM; dim++) {
+      d_dri[dim] = 0;
+      d_drj[dim] = 0;
+      d_drk1[dim] = 0;
+      d_drk2[dim] = 0;
+      d_drk3[dim] = 0;
+      d_drl1[dim] = 0;
+      d_drl2[dim] = 0;
+      d_drl3[dim] = 0;
+    }
+    double dihe = 0.0;
+    return dihe;
+  }
+  // 3 neighs of atoms i and j
+  int k[3];
+  int l[3];
+  for (int m = 0; m < 3; m++) {
+    k[m] = nearest3neigh[i][m];
+    l[m] = nearest3neigh[j][m];
+  }
+
+  // cos_omega_kijl and the derivatives w.r.t coordinates
+  for (int m = 0; m < 3; m++) {
+    for (int n = 0; n < 3; n++) {
+      cos_kl[m][n] = deriv_cos_omega(
+          coordinates[k[m]], coordinates[i], coordinates[j], coordinates[l[n]],
+          dcos_kl[m][n][0], dcos_kl[m][n][1], dcos_kl[m][n][2], dcos_kl[m][n][3]);
+    }
+  }
+
+  double epart1 = exp(-eta * cos_kl[0][0] * cos_kl[0][1] * cos_kl[0][2]);
+  double epart2 = exp(-eta * cos_kl[1][0] * cos_kl[1][1] * cos_kl[1][2]);
+  double epart3 = exp(-eta * cos_kl[2][0] * cos_kl[2][1] * cos_kl[2][2]);
+  double D2 = epart1 + epart2 + epart3;
+
+  // cutoff function
+  double d_drhosq_tap;
+  double D0 = B * tap_rho(rhosq, cut_rhosq, d_drhosq_tap);
+
+  // dihedral energy
+  double dihe = D0 * D2;
+
+  // deriv of dihedral w.r.t rhosq
+  d_drhosq = B * d_drhosq_tap * D2;
+
+  // deriv of dihedral w.r.t cos_omega_kijl
+  d_dcos_kl[0][0] = -D0 * epart1 * eta * cos_kl[0][1] * cos_kl[0][2];
+  d_dcos_kl[0][1] = -D0 * epart1 * eta * cos_kl[0][0] * cos_kl[0][2];
+  d_dcos_kl[0][2] = -D0 * epart1 * eta * cos_kl[0][0] * cos_kl[0][1];
+  d_dcos_kl[1][0] = -D0 * epart2 * eta * cos_kl[1][1] * cos_kl[1][2];
+  d_dcos_kl[1][1] = -D0 * epart2 * eta * cos_kl[1][0] * cos_kl[1][2];
+  d_dcos_kl[1][2] = -D0 * epart2 * eta * cos_kl[1][0] * cos_kl[1][1];
+  d_dcos_kl[2][0] = -D0 * epart3 * eta * cos_kl[2][1] * cos_kl[2][2];
+  d_dcos_kl[2][1] = -D0 * epart3 * eta * cos_kl[2][0] * cos_kl[2][2];
+  d_dcos_kl[2][2] = -D0 * epart3 * eta * cos_kl[2][0] * cos_kl[2][1];
+
+  // initialization to be zero and later add values
+  for (int dim = 0; dim < DIM; dim++) {
+    d_drk1[dim] = 0.;
+    d_drk2[dim] = 0.;
+    d_drk3[dim] = 0.;
+    d_dri[dim] = 0.;
+    d_drj[dim] = 0.;
+    d_drl1[dim] = 0.;
+    d_drl2[dim] = 0.;
+    d_drl3[dim] = 0.;
+  }
+
+  for (int m = 0; m < 3; m++) {
+    for (int dim = 0; dim < 3; dim++) {
+      d_drk1[dim] += d_dcos_kl[0][m] * dcos_kl[0][m][0][dim];
+      d_drk2[dim] += d_dcos_kl[1][m] * dcos_kl[1][m][0][dim];
+      d_drk3[dim] += d_dcos_kl[2][m] * dcos_kl[2][m][0][dim];
+      d_drl1[dim] += d_dcos_kl[m][0] * dcos_kl[m][0][3][dim];
+      d_drl2[dim] += d_dcos_kl[m][1] * dcos_kl[m][1][3][dim];
+      d_drl3[dim] += d_dcos_kl[m][2] * dcos_kl[m][2][3][dim];
+    }
+    for (int n = 0; n < 3; n++) {
+      for (int dim = 0; dim < 3; dim++) {
+        d_dri[dim] += d_dcos_kl[m][n] * dcos_kl[m][n][1][dim];
+        d_drj[dim] += d_dcos_kl[m][n] * dcos_kl[m][n][2][dim];
+      }
+    }
+  }
+
+  return dihe;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ---------------------------------------------------------------------- */
 

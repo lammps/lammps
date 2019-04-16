@@ -77,6 +77,12 @@ class PairDRIP : public Pair {
   void DRIP_neigh();
 
 
+  // PARAMS
+  int ** nearest3neigh;  // nearest 3 neighbors of atoms
+
+
+
+
   /* ----Calculate the long-range cutoff term */
   inline double calc_Tap(double r_ij, double Rcut) {
     double Tap,r;

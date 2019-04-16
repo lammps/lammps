@@ -10,8 +10,8 @@
 
    See the README file in the top-level LAMMPS directory.
 
-   Adapted from USER-TALLY/compute_pe_tally.cpp by Steven E Strong
-   contact: stevene.strong at gmail dot com
+   contributing author: Steven E Strong
+   stevene.strong at gmail dot com
 ------------------------------------------------------------------------- */
 
 #include "compute_pe_e3b.h"

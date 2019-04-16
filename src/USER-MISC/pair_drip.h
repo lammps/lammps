@@ -41,6 +41,7 @@ class PairDRIP : public Pair {
   void unpack_forward_comm(int, int, double *);
 
  protected:
+  double cutmax;                   // max cutoff for all species
   int me;
   int maxlocal;                    // size of numneigh, firstneigh arrays
   int pgsize;                      // size of neighbor page
@@ -52,9 +53,10 @@ class PairDRIP : public Pair {
 
 
   struct Param {
-    double z0,C0,C2,C4,C,delta,lambda,A,S;
-    double delta2inv,z06,rcut;
     int ielement,jelement;
+    double C0,C2,C4,C,delta,lambda,A,z0,B,eta,rhocut,rcut;
+    double rhocutsq, rcutsq;
+    double delta2inv,z06;
   };
   Param *params;       // parameter set for I-J interactions
   char **elements;     // names of unique elements
@@ -65,11 +67,7 @@ class PairDRIP : public Pair {
   int maxparam;        // max # of parameter sets
   int nmax;            // max # of atoms
 
-  double cut_global;
   double cut_normal;
-  double **cut;
-  double **cutDRIPsq;
-  double **offset;
   double **normal;
   double ***dnormdri;
   double ****dnormal;

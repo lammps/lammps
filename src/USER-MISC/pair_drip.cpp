@@ -54,9 +54,9 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
-  cutDRIPsq = NULL;
   map = NULL;
 
+  cutmax = 0.0;
   nmax = 0;
   maxlocal = 0;
   DRIP_numneigh = NULL;
@@ -67,9 +67,6 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
   normal = NULL;
   dnormal = NULL;
   dnormdri = NULL;
-
-  // always compute energy offset
-  offset_flag = 1;
 
   // set comm size needed by this Pair
   comm_forward = 39;
@@ -90,8 +87,6 @@ PairDRIP::~PairDRIP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(cut);
-    memory->destroy(offset);
   }
 
   if (elements)
@@ -99,7 +94,6 @@ PairDRIP::~PairDRIP()
   delete [] elements;
   memory->destroy(params);
   memory->destroy(elem2param);
-  memory->destroy(cutDRIPsq);
   if (allocated) delete [] map;
 }
 
@@ -300,7 +294,7 @@ void PairDRIP::compute(int eflag, int vflag)
 
         if (eflag) {
           if (tap_flag) evdwl = Tap*Vkc;
-          else  evdwl = Vkc - offset[itype][jtype];
+          else  evdwl = Vkc;
         }
 
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,fkcx,fkcy,fkcz,delx,dely,delz);
@@ -641,44 +635,6 @@ void PairDRIP::calc_normal()
 
 }
 
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairDRIP::init_style()
-{
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style drip requires newton pair on");
-  if (!atom->molecule_flag)
-    error->all(FLERR,"Pair style drip requires atom attribute molecule");
-
-  // need a full neighbor list, including neighbors of ghosts
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
-
-  // local DRIP neighbor list
-  // create pages if first time or if neighbor pgsize/oneatom has changed
-
-  int create = 0;
-  if (ipage == NULL) create = 1;
-  if (pgsize != neighbor->pgsize) create = 1;
-  if (oneatom != neighbor->oneatom) create = 1;
-
-  if (create) {
-    delete [] ipage;
-    pgsize = neighbor->pgsize;
-    oneatom = neighbor->oneatom;
-
-    int nmypage= comm->nthreads;
-    ipage = new MyPage<int>[nmypage];
-    for (int i = 0; i < nmypage; i++)
-      ipage[i].init(oneatom,pgsize,PGDELTA);
-  }
-}
-
 
 /* ----------------------------------------------------------------------
  create neighbor list from main neighbor list for calculating the normals
@@ -735,7 +691,11 @@ void PairDRIP::DRIP_neigh()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq != 0 && rsq < cutDRIPsq[itype][jtype] && atom->molecule[i] == atom->molecule[j]) {
+
+      int iparam_ij = elem2param[itype][jtype];
+      double rcutsq = params[iparam_ij].rcutsq;
+
+      if (rsq != 0 && rsq < rcutsq && atom->molecule[i] == atom->molecule[j]) {
         neighptr[n++] = j;
       }
     }
@@ -749,6 +709,43 @@ void PairDRIP::DRIP_neigh()
   }
 }
 
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairDRIP::init_style()
+{
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style drip requires newton pair on");
+  if (!atom->molecule_flag)
+    error->all(FLERR,"Pair style drip requires atom attribute molecule");
+
+  // need a full neighbor list, including neighbors of ghosts
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->ghost = 1;
+
+  // local DRIP neighbor list
+  // create pages if first time or if neighbor pgsize/oneatom has changed
+
+  int create = 0;
+  if (ipage == NULL) create = 1;
+  if (pgsize != neighbor->pgsize) create = 1;
+  if (oneatom != neighbor->oneatom) create = 1;
+
+  if (create) {
+    delete [] ipage;
+    pgsize = neighbor->pgsize;
+    oneatom = neighbor->oneatom;
+
+    int nmypage= comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i = 0; i < nmypage; i++)
+      ipage[i].init(oneatom,pgsize,PGDELTA);
+  }
+}
 
 /* ----------------------------------------------------------------------
    allocate all arrays
@@ -759,14 +756,13 @@ void PairDRIP::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
+  // MOVE init of setflag ot other places; se pair_sw
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(offset,n+1,n+1,"pair:offset");
   map = new int[atom->ntypes+1];
 }
 
@@ -776,21 +772,9 @@ void PairDRIP::allocate()
 
 void PairDRIP::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
     error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
-
-  cut_global = force->numeric(FLERR,arg[0]);
-  if (narg == 2) tap_flag = force->numeric(FLERR,arg[1]);
-
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -841,12 +825,9 @@ void PairDRIP::coeff(int narg, char **arg)
 
   read_file(arg[2]);
 
-  double cut_one = cut_global;
-
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -864,14 +845,7 @@ double PairDRIP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  if (offset_flag && (cut[i][j] > 0.0)) {
-    int iparam_ij = elem2param[map[i]][map[j]];
-    Param& p = params[iparam_ij];
-    offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);
-  } else offset[i][j] = 0.0;
-  offset[j][i] = offset[i][j];
-
-  return cut[i][j];
+  return cutmax;
 }
 
 /* ----------------------------------------------------------------------
@@ -880,7 +854,7 @@ double PairDRIP::init_one(int i, int j)
 
 void PairDRIP::read_file(char *filename)
 {
-  int params_per_line = 12;
+  int params_per_line = 14;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
   params = NULL;
@@ -973,37 +947,33 @@ void PairDRIP::read_file(char *filename)
 
     params[nparams].ielement = ielement;
     params[nparams].jelement = jelement;
-    params[nparams].z0       = atof(words[2]);
-    params[nparams].C0       = atof(words[3]);
-    params[nparams].C2       = atof(words[4]);
-    params[nparams].C4       = atof(words[5]);
-    params[nparams].C        = atof(words[6]);
-    params[nparams].delta    = atof(words[7]);
-    params[nparams].lambda   = atof(words[8]);
-    params[nparams].A        = atof(words[9]);
-    // S provides a convenient scaling of all energies
-    params[nparams].S        = atof(words[10]);
-    params[nparams].rcut     = atof(words[11]);
+    params[nparams].C0       = atof(words[2]);
+    params[nparams].C2       = atof(words[3]);
+    params[nparams].C4       = atof(words[4]);
+    params[nparams].C        = atof(words[5]);
+    params[nparams].delta    = atof(words[6]);
+    params[nparams].lambda   = atof(words[7]);
+    params[nparams].A        = atof(words[8]);
+    params[nparams].z0       = atof(words[9]);
+    params[nparams].B        = atof(words[10]);
+    params[nparams].eta      = atof(words[11]);
+    params[nparams].rhocut   = atof(words[12]);
+    params[nparams].rcut     = atof(words[13]);
 
-    // energies in meV further scaled by S
-    double meV = 1.0e-3*params[nparams].S;
-    params[nparams].C *= meV;
-    params[nparams].A *= meV;
-    params[nparams].C0 *= meV;
-    params[nparams].C2 *= meV;
-    params[nparams].C4 *= meV;
+    // convenient precomputations
+    params[nparams].rhocutsq = params[nparams].rhocut * params[nparams].rhocut;
+    params[nparams].rcutsq   = params[nparams].rcut * params[nparams].rcut;
 
-    // precompute some quantities
-    params[nparams].delta2inv = pow(params[nparams].delta,-2);
-    params[nparams].z06 = pow(params[nparams].z0,6);
+    // set max cutoff
+    if(params[nparams].rcut > cutmax) cutmax = params[nparams].rcut;
+
 
     nparams++;
     //if(nparams >= pow(atom->ntypes,3)) break;
   }
+
   memory->destroy(elem2param);
-  memory->destroy(cutDRIPsq);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");
-  memory->create(cutDRIPsq,nelements,nelements,"pair:cutDRIPsq");
   for (i = 0; i < nelements; i++) {
     for (j = 0; j < nelements; j++) {
       n = -1;
@@ -1015,7 +985,6 @@ void PairDRIP::read_file(char *filename)
       }
       if (n < 0) error->all(FLERR,"Potential file is missing an entry");
       elem2param[i][j] = n;
-      cutDRIPsq[i][j] = params[n].rcut*params[n].rcut;
     }
   }
   delete [] words;

@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Wengen Ouyang (Tel Aviv University)
-   e-mail: w.g.ouyang at gmail dot com
-   based on previous versions by Jaap Kroes
+   Contributing author: Mingjian Wen (University of Minnesota)
+   e-mail: wenxx151@umn.edu
+   based on "pair_style kolmogorov/crespi/full" by Wengen Ouyang
 
-   This is a complete version of the potential described in
-   [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
+   This implements the DRIP model as described in
+   M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98,
+   235404 (2018).
 ------------------------------------------------------------------------- */
 
 #include <cmath>
@@ -47,18 +48,19 @@ using namespace LAMMPS_NS;
 PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
 {
   // initialize element to parameter maps
+  single_enable = 0;
   nelements = 0;
   elements = NULL;
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
-  cutKCsq = NULL;
+  cutDRIPsq = NULL;
   map = NULL;
 
   nmax = 0;
   maxlocal = 0;
-  KC_numneigh = NULL;
-  KC_firstneigh = NULL;
+  DRIP_numneigh = NULL;
+  DRIP_firstneigh = NULL;
   ipage = NULL;
   pgsize = oneatom = 0;
 
@@ -78,8 +80,8 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
 
 PairDRIP::~PairDRIP()
 {
-  memory->destroy(KC_numneigh);
-  memory->sfree(KC_firstneigh);
+  memory->destroy(DRIP_numneigh);
+  memory->sfree(DRIP_firstneigh);
   delete [] ipage;
   memory->destroy(normal);
   memory->destroy(dnormal);
@@ -97,7 +99,7 @@ PairDRIP::~PairDRIP()
   delete [] elements;
   memory->destroy(params);
   memory->destroy(elem2param);
-  memory->destroy(cutKCsq);
+  memory->destroy(cutDRIPsq);
   if (allocated) delete [] map;
 }
 
@@ -112,7 +114,7 @@ void PairDRIP::compute(int eflag, int vflag)
   double rsq,r,rhosq1,rhosq2,exp0,exp1,exp2,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
   double frho1,frho2,sumC1,sumC2,sumC11,sumC22,sumCff,fsum,rdsq1,rdsq2;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *KC_neighs_i,*KC_neighs_j;
+  int *DRIP_neighs_i,*DRIP_neighs_j;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
@@ -139,7 +141,7 @@ void PairDRIP::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   // Build full neighbor list
-  KC_neigh();
+  DRIP_neigh();
   // Calculate the normals
   calc_normal();
 
@@ -255,9 +257,9 @@ void PairDRIP::compute(int eflag, int vflag)
         f[j][2] -= fkcz + fprod2[2]*Tap;
 
 	// calculate the forces acted on the neighbors of atom i from atom j
-	KC_neighs_i = KC_firstneigh[i];
-  	for (kk = 0; kk < KC_numneigh[i]; kk++) {
-	  k = KC_neighs_i[kk];
+	DRIP_neighs_i = DRIP_firstneigh[i];
+  	for (kk = 0; kk < DRIP_numneigh[i]; kk++) {
+	  k = DRIP_neighs_i[kk];
           if (k == i) continue;
           // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
           dprodnorm1[0] = dnormal[0][0][kk][i]*delx + dnormal[1][0][kk][i]*dely + dnormal[2][0][kk][i]*delz;
@@ -276,9 +278,9 @@ void PairDRIP::compute(int eflag, int vflag)
 	}
 
 	// calculate the forces acted on the neighbors of atom j from atom i
-	KC_neighs_j = KC_firstneigh[j];
-  	for (ll = 0; ll < KC_numneigh[j]; ll++) {
-	  l = KC_neighs_j[ll];
+	DRIP_neighs_j = DRIP_firstneigh[j];
+  	for (ll = 0; ll < DRIP_numneigh[j]; ll++) {
+	  l = DRIP_neighs_j[ll];
           if (l == j) continue;
           // derivatives of the product of rji and nj respect to rl, l=0,1,2, where atom l is the neighbors of atom j
           dprodnorm2[0] = dnormal[0][0][ll][j]*delx + dnormal[1][0][ll][j]*dely + dnormal[2][0][ll][j]*delz;
@@ -367,8 +369,8 @@ void PairDRIP::calc_normal()
     }
 
     cont = 0;
-    jlist = KC_firstneigh[i];
-    jnum = KC_numneigh[i];
+    jlist = DRIP_firstneigh[i];
+    jnum = DRIP_numneigh[i];
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -488,7 +490,6 @@ void PairDRIP::calc_normal()
         }
       }
     }
-//##############################################################################################
 
     else if(cont == 3) {
       // for the atoms at the edge who has only two neighbor atoms
@@ -636,9 +637,8 @@ void PairDRIP::calc_normal()
     else {
       error->one(FLERR,"There are too many neighbors for calculating normals");
     }
-
-//##############################################################################################
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -659,7 +659,7 @@ void PairDRIP::init_style()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
 
-  // local KC neighbor list
+  // local DRIP neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
@@ -684,7 +684,7 @@ void PairDRIP::init_style()
  create neighbor list from main neighbor list for calculating the normals
 ------------------------------------------------------------------------- */
 
-void PairDRIP::KC_neigh()
+void PairDRIP::DRIP_neigh()
 {
   int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -696,10 +696,10 @@ void PairDRIP::KC_neigh()
 
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
-    memory->destroy(KC_numneigh);
-    memory->sfree(KC_firstneigh);
-    memory->create(KC_numneigh,maxlocal,"DRIP:numneigh");
-    KC_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
+    memory->destroy(DRIP_numneigh);
+    memory->sfree(DRIP_firstneigh);
+    memory->create(DRIP_numneigh,maxlocal,"DRIP:numneigh");
+    DRIP_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
                                              "DRIP:firstneigh");
   }
 
@@ -708,7 +708,7 @@ void PairDRIP::KC_neigh()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // store all KC neighs of owned and ghost atoms
+  // store all DRIP neighs of owned and ghost atoms
   // scan full neighbor list of I
 
   ipage->reset();
@@ -735,13 +735,13 @@ void PairDRIP::KC_neigh()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq != 0 && rsq < cutKCsq[itype][jtype] && atom->molecule[i] == atom->molecule[j]) {
+      if (rsq != 0 && rsq < cutDRIPsq[itype][jtype] && atom->molecule[i] == atom->molecule[j]) {
         neighptr[n++] = j;
       }
     }
 
-    KC_firstneigh[i] = neighptr;
-    KC_numneigh[i] = n;
+    DRIP_firstneigh[i] = neighptr;
+    DRIP_numneigh[i] = n;
     if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
     ipage->vgot(n);
     if (ipage->status())
@@ -875,7 +875,7 @@ double PairDRIP::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   read Kolmogorov-Crespi potential file
+   read DRIP file
 ------------------------------------------------------------------------- */
 
 void PairDRIP::read_file(char *filename)
@@ -893,7 +893,7 @@ void PairDRIP::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      snprintf(str,128,"Cannot open KC potential file %s",filename);
+      snprintf(str,128,"Cannot open DRIP potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -944,7 +944,7 @@ void PairDRIP::read_file(char *filename)
     }
 
     if (nwords != params_per_line)
-      error->all(FLERR,"Insufficient format in KC potential file");
+      error->all(FLERR,"Insufficient format in DRIP potential file");
 
     // words = ptrs to all words in line
 
@@ -1001,9 +1001,9 @@ void PairDRIP::read_file(char *filename)
     //if(nparams >= pow(atom->ntypes,3)) break;
   }
   memory->destroy(elem2param);
-  memory->destroy(cutKCsq);
+  memory->destroy(cutDRIPsq);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");
-  memory->create(cutKCsq,nelements,nelements,"pair:cutKCsq");
+  memory->create(cutDRIPsq,nelements,nelements,"pair:cutDRIPsq");
   for (i = 0; i < nelements; i++) {
     for (j = 0; j < nelements; j++) {
       n = -1;
@@ -1015,44 +1015,10 @@ void PairDRIP::read_file(char *filename)
       }
       if (n < 0) error->all(FLERR,"Potential file is missing an entry");
       elem2param[i][j] = n;
-      cutKCsq[i][j] = params[n].rcut*params[n].rcut;
+      cutDRIPsq[i][j] = params[n].rcut*params[n].rcut;
     }
   }
   delete [] words;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairDRIP::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
-                         double /*factor_coul*/, double factor_lj,
-                         double &fforce)
-{
-  double r,r2inv,r6inv,r8inv,forcelj,philj;
-  double Tap,dTap,Vkc,fpair;
-
-  int iparam_ij = elem2param[map[itype]][map[jtype]];
-  Param& p = params[iparam_ij];
-
-  r = sqrt(rsq);
-  // turn on/off taper function
-  if (tap_flag) {
-    Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-    dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
-  } else {Tap = 1.0; dTap = 0.0;}
-
-  r2inv = 1.0/rsq;
-  r6inv = r2inv*r2inv*r2inv;
-  r8inv = r2inv*r6inv;
-
-  Vkc = -p.A*p.z06*r6inv;
-  // derivatives
-  fpair = -6.0*p.A*p.z06*r8inv;
-  forcelj = fpair;
-  fforce = factor_lj*(forcelj*Tap - Vkc*dTap/r);
-
-  if (tap_flag) philj = Vkc*Tap;
-  else philj = Vkc - offset[itype][jtype];
-  return factor_lj*philj;
 }
 
 /* ---------------------------------------------------------------------- */

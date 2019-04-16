@@ -39,7 +39,6 @@ class PairDRIP : public Pair {
   void calc_normal();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
-  double single(int, int, int, int, double, double, double, double &);
 
  protected:
   int me;
@@ -47,8 +46,8 @@ class PairDRIP : public Pair {
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
   MyPage<int> *ipage;              // neighbor list pages
-  int *KC_numneigh;                // # of pair neighbors for each atom
-  int **KC_firstneigh;             // ptr to 1st neighbor of each atom
+  int *DRIP_numneigh;                // # of pair neighbors for each atom
+  int **DRIP_firstneigh;             // ptr to 1st neighbor of each atom
   int tap_flag;			   // flag to turn on/off taper function
 
 
@@ -69,7 +68,7 @@ class PairDRIP : public Pair {
   double cut_global;
   double cut_normal;
   double **cut;
-  double **cutKCsq;
+  double **cutDRIPsq;
   double **offset;
   double **normal;
   double ***dnormdri;
@@ -77,7 +76,7 @@ class PairDRIP : public Pair {
 
   void read_file( char * );
   void allocate();
-  void KC_neigh();
+  void DRIP_neigh();
 
 
   /* ----Calculate the long-range cutoff term */

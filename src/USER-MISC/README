@@ -29,6 +29,7 @@ bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
+compute pe/e3b, Steven Strong (U Chicago), stevene.strong at gmail dot com, 16 Apr 19
 compute entropy/atom, Pablo Piaggi (EPFL), pablo.piaggi at epfl.ch, 15 June 2018
 compute pressure/cylinder, Cody K. Addington (NCSU), , 2 Oct 2018
 compute stress/mop, Romain Vermorel (U Pau) & Laurent Joly (U Lyon), romain.vermorel at univ-pau.fr & ljoly.ulyon at gmail.com, 5 Sep 18
@@ -70,6 +71,7 @@ pair_style buck/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style coul/shield, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
+pair_style e3b, Steven Strong (U Chicago), stevene.strong at gmail dot com, 16 Apr 19
 pair_style edip, Luca Ferraro, luca.ferraro at caspur.it, 15 Sep 11
 pair_style extep, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Nov 17
 pair_style gauss/cut, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11

@@ -30,7 +30,7 @@ These per-atom values could be summed for a group of atoms via the "compute redu
 The "pair_style e3b"_pair_e3b.html potential is composed of 4 terms.
 This compute calculates the total e3b contribution to the energy as well as each of the four terms.
 The four terms are stored as a 4-element vector in the order pe_Ea, pe_Eb, pe_Ec, pe_E2.
-See "pair_style e3b"_pair_e3b.html for more details.
+See "pair_style e3b"_pair_e3b.html for more details, and an example script can be found in the examples/USER/e3b directory.
 
 :line
 

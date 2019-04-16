@@ -9,12 +9,12 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
    Written by Steven E Strong and Nicholas J Hestand
    Adapted from MANYBODY/pair_sw.cpp and an
    implementation of E3B in GROMACS by Craig Tainter (?)
+
+   contact: stevene.strong at gmail dot com
 ------------------------------------------------------------------------- */
 
 #include "pair_e3b.h"

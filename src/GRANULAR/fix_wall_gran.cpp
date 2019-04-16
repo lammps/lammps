@@ -1186,9 +1186,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vt3 = vr3 - vn3;
 
   // relative rotational velocity
-  wr1 = radius*omega[0] * rinv;
-  wr2 = radius*omega[1] * rinv;
-  wr3 = radius*omega[2] * rinv;
+  wr1 = radius*omega[0];
+  wr2 = radius*omega[1];
+  wr3 = radius*omega[2];
 
   // relative tangential velocities
   vtr1 = vt1 - (nz*wr2-ny*wr3);

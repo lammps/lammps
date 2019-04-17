@@ -84,6 +84,12 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (success!=0)
     return success;
 
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,false,_threads_per_atom);
+
+  if (success!=0)
+    return success;
+
   ucl_device=device->gpu;
   atom=&device->atom;
 

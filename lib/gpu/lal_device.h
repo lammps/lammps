@@ -91,6 +91,13 @@ class Device {
     * - -5 Double precision is not supported on card **/
   int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
 
+  /// Initialize neighbor list build -- callback function from pair
+  int init_nbor(Neighbor *nbor, const int nlocal,
+                  const int host_nlocal, const int nall,
+                  const int maxspecial, const int gpu_host,
+                  const int max_nbors, const double cell_size,
+                  const bool pre_cut, const int threads_per_atom);
+
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
                     const int first_gpu, const int last_gpu);

@@ -301,16 +301,6 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   if (!ans.init(ef_nlocal,charge,rot,*gpu))
     return -3;
 
-  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
-                  *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d,
-                  _block_cell_id, _block_nbor_build, threads_per_atom,
-                  _warp_size, _time_device, compile_string()))
-    return -3;
-  if (_cell_size<0.0)
-    nbor->cell_size(cell_size,cell_size);
-  else
-    nbor->cell_size(_cell_size,cell_size);
-
   _init_count++;
   return 0;
 }
@@ -335,6 +325,39 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
     return -3;
 
   _init_count++;
+  return 0;
+}
+
+template <class numtyp, class acctyp>
+int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
+                  const int host_nlocal, const int nall,
+                  const int maxspecial, const int gpu_host,
+                  const int max_nbors, const double cell_size,
+                  const bool pre_cut, const int threads_per_atom) {
+  int ef_nlocal=nlocal;
+  if (_particle_split<1.0 && _particle_split>0.0)
+    ef_nlocal=static_cast<int>(_particle_split*nlocal);
+ 
+  int gpu_nbor=0;
+  if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
+    gpu_nbor=1;
+  else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+    gpu_nbor=2;
+  #ifndef USE_CUDPP
+  if (gpu_nbor==1)
+    gpu_nbor=2;
+  #endif
+
+  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+                  *gpu,gpu_nbor,gpu_host,pre_cut,_block_cell_2d,
+                  _block_cell_id, _block_nbor_build, threads_per_atom,
+                  _warp_size, _time_device, compile_string()))
+    return -3;
+  if (_cell_size<0.0)
+    nbor->cell_size(cell_size,cell_size);
+  else
+    nbor->cell_size(_cell_size,cell_size);
+
   return 0;
 }
 

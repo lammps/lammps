@@ -11,6 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Mingjian Wen (University of Minnesota)
+   e-mail: wenxx151@umn.edu
+   based on "pair_style kolmogorov/crespi/full" by Wengen Ouyang
+
+   This implements the DRIP model as described in
+   M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98,
+   235404 (2018).
+------------------------------------------------------------------------- */
+
+
 #ifdef PAIR_CLASS
 
 PairStyle(drip,PairDRIP)
@@ -46,70 +57,67 @@ class PairDRIP : public Pair {
     int ielement,jelement;
     double C0,C2,C4,C,delta,lambda,A,z0,B,eta,rhocut,rcut;
     double rhocutsq, rcutsq;
-    double delta2inv,z06;
   };
   Param *params;         // parameter set for I-J interactions
+  int ** nearest3neigh;  // nearest 3 neighbors of atoms
   char **elements;       // names of unique elements
   int **elem2param;      // mapping from element pairs to parameters
   int *map;              // mapping from atom types to elements
   int nelements;         // # of unique elements
-  int nparams;           // # of stored parameter sets
-  int maxparam;          // max # of parameter sets
   double cutmax;         // max cutoff for all species
-  int ** nearest3neigh;  // nearest 3 neighbors of atoms
 
   void read_file(char * );
   void allocate();
 
   // DRIP specific functions
-  double calc_attractive(int const i, int const j, Param& p,
-      double const rsq, double const * rvec, double * const fi, double * const fj);
+  double calc_attractive(int const, int const, Param&, double const,
+    double const *, double * const, double * const);
 
- double calc_repulsive(int const i, int const j,
-     Param& p, double const rsq, double const * rvec,
-     double const * ni, V3 const * dni_dri,
-     V3 const * dni_drnb1, V3 const * dni_drnb2, V3 const * dni_drnb3,
-     double * const fi, double * const fj);
+ double calc_repulsive(int const , int const ,
+     Param& , double const , double const * ,
+     double const * , V3 const * ,
+     V3 const * , V3 const * , V3 const * ,
+     double * const , double * const );
 
 
   void find_nearest3neigh();
 
 
- void calc_normal(int const i, double * const normal,
-    V3 *const dn_dri, V3 *const dn_drk1, V3 *const dn_drk2, V3 *const dn_drk3);
+ void calc_normal(int const , double * const ,
+    V3 *const , V3 *const , V3 *const , V3 *const );
 
 
 
-void get_drhosqij( double const* rij, double const* ni,
-    V3 const* dni_dri, V3 const* dni_drn1,
-    V3 const* dni_drn2, V3 const* dni_drn3,
-    double* const drhosq_dri, double* const drhosq_drj,
-    double* const drhosq_drn1, double* const drhosq_drn2,
-    double* const drhosq_drn3);
+void get_drhosqij( double const* , double const* ,
+    V3 const* , V3 const* ,
+    V3 const* , V3 const* ,
+    double* const , double* const ,
+    double* const , double* const ,
+    double* const );
 
 
-  double td(double C0, double C2, double C4, double delta,
-      double const* const rvec, double r,
-      const double* const n,
-      double& rho_sq, double& dtd);
+  double td(double , double , double , double ,
+      double const* const , double ,
+      const double* const ,
+      double& , double& );
 
   double dihedral(
-      const int i, const int j, Param& p, double const rhosq, double& d_drhosq,
-      double* const d_dri, double* const d_drj,
-      double* const d_drk1, double* const d_drk2, double* const d_drk3,
-      double* const d_drl1, double* const d_drl2, double* const d_drl3);
+      const int , const int , Param& , double const , double& ,
+      double* const , double* const ,
+      double* const , double* const , double* const ,
+      double* const , double* const , double* const );
 
-  double deriv_cos_omega( double const* rk, double const* ri,
-      double const* rj, double const* rl, double* const dcos_drk,
-      double* const dcos_dri, double* const dcos_drj, double* const dcos_drl);
+  double deriv_cos_omega( double const* , double const* ,
+      double const* , double const* , double* const ,
+      double* const , double* const , double* const );
 
-  double tap(double r, double cutoff, double& dtap);
+  double tap(double , double , double& );
 
-  double tap_rho(double rhosq, double cut_rhosq, double& drhosq);
+  double tap_rho(double , double , double& );
 
-void deriv_cross( double const* rk, double const* rl, double const* rm,
-    double* const cross, V3 *const dcross_drk,
-    V3 *const dcross_drl, V3 *const dcross_drm);
+void deriv_cross( double const* , double const* , double const* ,
+    double* const , V3 *const ,
+    V3 *const , V3 *const );
 
   // inline functions
   inline double dot(double const* x, double const* y) {
@@ -122,7 +130,6 @@ void deriv_cross( double const* rk, double const* rl, double const* rm,
       z[k] = X[k][0] * y[0] + X[k][1] * y[1] + X[k][2] * y[2];
     }
   }
-
 
 };
 
@@ -152,8 +159,5 @@ E: No enough neighbors to construct normal
 
 Cannot find three neighbors within cutoff of the target atom.
 Check the configuration.
-
-
-
 
 */

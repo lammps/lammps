@@ -634,7 +634,7 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
     if (screen && times[6]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"    Device Time Info (average): ");
+      fprintf(screen,"    Device Time Info (average) for kspace: ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 

@@ -78,15 +78,12 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (_threads_per_atom*_threads_per_atom>device->warp_size())
     return -10;
 
-  int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,false,
-                           _threads_per_atom);
+  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 
   success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
                   max_nbors,cell_size,false,_threads_per_atom);
-
   if (success!=0)
     return success;
 

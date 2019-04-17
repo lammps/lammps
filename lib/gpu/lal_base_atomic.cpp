@@ -64,15 +64,12 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
   } else
     _nbor_data=&(nbor->dev_nbor);
 
-  int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,false,
-                           _threads_per_atom);
+  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 
   success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
                   max_nbors,cell_size,false,_threads_per_atom);
-
   if (success!=0)
     return success;
 

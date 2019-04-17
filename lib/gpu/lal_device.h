@@ -53,8 +53,38 @@ class Device {
                   const int t_per_atom, const double cell_size,
                   char *vendor_string, const int block_pair);
 
-  /// Initialize the device for Atom and Neighbor storage
-  /** \param rot True if quaternions need to be stored
+  /// Initialize the device for Atom storage
+  /** \param charge True if charges need to be stored 
+    * \param rot True if quaternions need to be stored
+    * \param nlocal Total number of local particles to allocate memory for
+    * \param host_nlocal Initial number of host particles to allocate memory for
+    * \param nall Total number of local+ghost particles
+    *
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(Answer<numtyp,acctyp> &a, const bool charge, const bool rot,
+           const int nlocal, const int nall, const int maxspecial,
+           const bool vel=false);
+
+  /// Initialize the device for Atom storage only
+  /** \param nlocal Total number of local particles to allocate memory for
+    * \param nall Total number of local+ghost particles
+    *
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
+
+  /// Initialize neighbor list storage and build
+  /** \param charge True if charges need to be stored
+    * \param rot True if quaternions need to be stored
     * \param nlocal Total number of local particles to allocate memory for
     * \param host_nlocal Initial number of host particles to allocate memory for
     * \param nall Total number of local+ghost particles
@@ -73,25 +103,6 @@ class Device {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(Answer<numtyp,acctyp> &a, const bool charge, const bool rot,
-           const int nlocal, const int host_nlocal, const int nall,
-           Neighbor *nbor, const int maxspecial, const int gpu_host,
-           const int max_nbors, const double cell_size, const bool pre_cut,
-           const int threads_per_atom, const bool vel=false);
-
-  /// Initialize the device for Atom storage only
-  /** \param nlocal Total number of local particles to allocate memory for
-    * \param nall Total number of local+ghost particles
-    *
-    * Returns:
-    * -  0 if successfull
-    * - -1 if fix gpu not found
-    * - -3 if there is an out of memory error
-    * - -4 if the GPU library was not compiled for GPU
-    * - -5 Double precision is not supported on card **/
-  int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
-
-  /// Initialize neighbor list build -- callback function from pair
   int init_nbor(Neighbor *nbor, const int nlocal,
                   const int host_nlocal, const int nall,
                   const int maxspecial, const int gpu_host,

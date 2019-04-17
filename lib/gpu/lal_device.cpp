@@ -246,11 +246,8 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
 template <class numtyp, class acctyp>
 int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                   const bool rot, const int nlocal,
-                  const int host_nlocal, const int nall,
-                  Neighbor *nbor, const int maxspecial,
-                  const int gpu_host, const int max_nbors,
-                  const double cell_size, const bool pre_cut,
-                  const int threads_per_atom, const bool vel) {
+                  const int nall, const int maxspecial,
+                  const bool vel) {
   if (!_device_init)
     return -1;
   if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)

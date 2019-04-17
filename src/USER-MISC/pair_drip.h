@@ -40,8 +40,8 @@ class PairDRIP : public Pair {
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+//  int pack_forward_comm(int, int *, double *, int, int *);
+//  void unpack_forward_comm(int, int, double *);
 
  protected:
   double cutmax;                   // max cutoff for all species
@@ -73,13 +73,13 @@ class PairDRIP : public Pair {
 
   // DRIP specific functions
   double calc_attractive(int const i, int const j, Param& p,
-      double const rsq, double const * rvec);
+      double const rsq, double const * rvec, double * const fi, double * const fj);
 
- double calc_repulsive(int const evflag, int const i, int const j,
+ double calc_repulsive(int const i, int const j,
      Param& p, double const rsq, double const * rvec,
      int const nbi1, int const nbi2, int const nbi3, double const * ni,
      V3 const * dni_dri, V3 const * dni_drnb1, V3 const * dni_drnb2,
-     V3 const * dni_drnb3);
+     V3 const * dni_drnb3, double * const fi, double * const fj);
 
 
   void find_nearest3neigh();

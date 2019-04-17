@@ -65,8 +65,11 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
 
   nearest3neigh = NULL;
 
+
+//no_virial_fdotr_compute = 1;
+
   // set comm size needed by this Pair
-  comm_forward = 39;
+  //comm_forward = 39;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,6 +111,7 @@ void PairDRIP::init_style()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
 
+  // TODO this can be deleted
   // local DRIP neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
@@ -373,70 +377,70 @@ void PairDRIP::read_file(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-int PairDRIP::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int * /*pbc*/)
-{
-  int i,j,m,l,ip,id;
-
-  m = 0;
-//  for (i = 0; i < n; i++) {
-//    j = list[i];
-//    buf[m++] = normal[j][0];
-//    buf[m++] = normal[j][1];
-//    buf[m++] = normal[j][2];
-//    buf[m++] = dnormdri[0][0][j];
-//    buf[m++] = dnormdri[0][1][j];
-//    buf[m++] = dnormdri[0][2][j];
-//    buf[m++] = dnormdri[1][0][j];
-//    buf[m++] = dnormdri[1][1][j];
-//    buf[m++] = dnormdri[1][2][j];
-//    buf[m++] = dnormdri[2][0][j];
-//    buf[m++] = dnormdri[2][1][j];
-//    buf[m++] = dnormdri[2][2][j];
-//    for (l = 0; l < 3; l++){
-//      for (id = 0; id < 3; id++){
-//        for (ip = 0; ip < 3; ip++){
-//	  buf[m++] = dnormal[id][ip][l][j];
-//        }
-//      }
-//    }
-//  }
-
-  return m;
-}
+//int PairDRIP::pack_forward_comm(int n, int *list, double *buf,
+//                               int /*pbc_flag*/, int * /*pbc*/)
+//{
+//  int i,j,m,l,ip,id;
+//
+//  m = 0;
+////  for (i = 0; i < n; i++) {
+////    j = list[i];
+////    buf[m++] = normal[j][0];
+////    buf[m++] = normal[j][1];
+////    buf[m++] = normal[j][2];
+////    buf[m++] = dnormdri[0][0][j];
+////    buf[m++] = dnormdri[0][1][j];
+////    buf[m++] = dnormdri[0][2][j];
+////    buf[m++] = dnormdri[1][0][j];
+////    buf[m++] = dnormdri[1][1][j];
+////    buf[m++] = dnormdri[1][2][j];
+////    buf[m++] = dnormdri[2][0][j];
+////    buf[m++] = dnormdri[2][1][j];
+////    buf[m++] = dnormdri[2][2][j];
+////    for (l = 0; l < 3; l++){
+////      for (id = 0; id < 3; id++){
+////        for (ip = 0; ip < 3; ip++){
+////	  buf[m++] = dnormal[id][ip][l][j];
+////        }
+////      }
+////    }
+////  }
+//
+//  return m;
+//}
 
 /* ---------------------------------------------------------------------- */
-
-void PairDRIP::unpack_forward_comm(int n, int first, double *buf)
-{
-  int i,m,last,l,ip,id;
-
-//  m = 0;
-//  last = first + n;
-//  for (i = first; i < last; i++) {
-//    normal[i][0] = buf[m++];
-//    normal[i][1] = buf[m++];
-//    normal[i][2] = buf[m++];
-//    dnormdri[0][0][i] = buf[m++];
-//    dnormdri[0][1][i] = buf[m++];
-//    dnormdri[0][2][i] = buf[m++];
-//    dnormdri[1][0][i] = buf[m++];
-//    dnormdri[1][1][i] = buf[m++];
-//    dnormdri[1][2][i] = buf[m++];
-//    dnormdri[2][0][i] = buf[m++];
-//    dnormdri[2][1][i] = buf[m++];
-//    dnormdri[2][2][i] = buf[m++];
-//    for (l = 0; l < 3; l++){
-//      for (id = 0; id < 3; id++){
-//        for (ip = 0; ip < 3; ip++){
-//	  dnormal[id][ip][l][i] = buf[m++];
-//        }
-//      }
-//    }
-//  }
 //
-}
-
+//void PairDRIP::unpack_forward_comm(int n, int first, double *buf)
+//{
+//  int i,m,last,l,ip,id;
+//
+////  m = 0;
+////  last = first + n;
+////  for (i = first; i < last; i++) {
+////    normal[i][0] = buf[m++];
+////    normal[i][1] = buf[m++];
+////    normal[i][2] = buf[m++];
+////    dnormdri[0][0][i] = buf[m++];
+////    dnormdri[0][1][i] = buf[m++];
+////    dnormdri[0][2][i] = buf[m++];
+////    dnormdri[1][0][i] = buf[m++];
+////    dnormdri[1][1][i] = buf[m++];
+////    dnormdri[1][2][i] = buf[m++];
+////    dnormdri[2][0][i] = buf[m++];
+////    dnormdri[2][1][i] = buf[m++];
+////    dnormdri[2][2][i] = buf[m++];
+////    for (l = 0; l < 3; l++){
+////      for (id = 0; id < 3; id++){
+////        for (ip = 0; ip < 3; ip++){
+////	  dnormal[id][ip][l][i] = buf[m++];
+////        }
+////      }
+////    }
+////  }
+////
+//}
+//
 
 /* ---------------------------------------------------------------------- */
 
@@ -457,6 +461,9 @@ void PairDRIP::compute(int eflag, int vflag)
   evdwl = 0.0;
   ev_init(eflag,vflag);
 
+  // TODO
+  //vflag_global = 1;
+
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
@@ -475,7 +482,7 @@ void PairDRIP::compute(int eflag, int vflag)
 
   //TODO what does this comm do?
   // communicate the normal vector and its derivatives
-  comm->forward_comm_pair(this);
+  // comm->forward_comm_pair(this);
 
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
@@ -492,6 +499,7 @@ void PairDRIP::compute(int eflag, int vflag)
     // normal and its derivatives w.r.t. atom i and its 3 nearest neighs
     calc_normal(i, nbi1, nbi2, nbi3, ni, dni_dri,dni_drnb1, dni_drnb2, dni_drnb3);
 
+    double fi[DIM] = {0., 0., 0.};
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -522,10 +530,13 @@ void PairDRIP::compute(int eflag, int vflag)
       // only include the interation between different layers
       if (rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
 
+        double fj[DIM] = {0., 0., 0.};
         double rvec[DIM] = {delx, dely, delz};
-        double phi_attr = calc_attractive(i,j,p, rsq, rvec);
-        double phi_repul = calc_repulsive(evflag, i, j, p, rsq, rvec, nbi1, nbi2,
-            nbi3, ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3);
+
+        double phi_attr = calc_attractive(i,j,p, rsq, rvec, fi, fj);
+
+        double phi_repul = calc_repulsive(i, j, p, rsq, rvec, nbi1, nbi2,
+            nbi3, ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3, fi, fj);
 
         if (eflag) evdwl = HALF * (phi_repul + phi_attr);
 
@@ -534,9 +545,74 @@ void PairDRIP::compute(int eflag, int vflag)
         if (evflag) ev_tally(i,j,nlocal,newton_pair, evdwl,0.0,0,0,0,0);
 
 
+//        ev_tally_xyz(int i, int j, int nlocal, int newton_pair,
+//                         double evdwl, double ecoul,
+//                         double fx, double fy, double fz,
+//                         double delx, double dely, double delz)
+
+
+// void ev_tally_xyz_full(int i, double evdwl, double ecoul,
+//                              double fx, double fy, double fz,
+//                              double delx, double dely, double delz)
+
+        f[j][0] += fj[0];
+        f[j][1] += fj[1];
+        f[j][2] += fj[2];
+
+        // *2 since v_tally has a 0.5 coeff
+        fj[0] *= 2; fj[1] *= 2; fj[2] *= 2;
+        if (vflag_atom) v_tally(j, fj, x[j]);
+
       }
     }  //loop over jj
+
+    f[i][0] += fi[0];
+    f[i][1] += fi[1];
+    f[i][2] += fi[2];
+
+    // *2 since v_tally has a 0.5 coeff
+    fi[0] *= 2; fi[1] *= 2; fi[2] *= 2;
+    if (vflag_atom) v_tally(i, fi, x[i]);
+
   }  // loop over ii
+
+
+if (vflag_fdotr)
+  virial_fdotr_compute();
+
+
+
+
+
+printf("@@@ evflags in compute\n");
+printf("@@@ eflag_either=%d\n", eflag_either);
+printf("@@@ eflag_global=%d\n", eflag_global);
+printf("@@@ eflag_atom=%d\n", eflag_atom);
+printf("@@@ vflag_either=%d\n", vflag_either);
+printf("@@@ vflag_global=%d\n", vflag_global);
+printf("@@@ vflag_atom=%d\n", vflag_atom);
+printf("@@@ vflag_fdotr=%d\n", vflag_fdotr);
+
+
+printf("@@@@@@@@@@@@@@@@@@@@@@@ virial\n");
+printf("%f, %f, %f, %f, %f, %f\n", virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
+printf("@@@@@@@@@@@@@@@@@@@@@@@ virial fdotr\n");
+virial[0]= virial[1]= virial[2]= virial[3]= virial[4]= virial[5]=0.;
+virial_fdotr_compute();
+printf("%f, %f, %f, %f, %f, %f\n", virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
+
+printf("@@@@@@@@@@@@@@@@@@@@@@@ virial from atom  virial\n");
+
+  int allnum = list->inum + list->gnum;
+  double v[6] = {0., 0., 0., 0., 0., 0.};
+  for (int kk=0; kk<allnum; kk++) {
+    for (int kkk=0; kkk<6; kkk++) {
+      v[kkk] += vatom[kk][kkk];
+    }
+  }
+printf("%f, %f, %f, %f, %f, %f\n", v[0], v[1], v[2], v[3], v[4], v[5]);
+printf("@@@@@@@@@@@@@@@@@@@@@@@ leave compute\n");
+
 
 }
 
@@ -544,11 +620,8 @@ void PairDRIP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 double PairDRIP::calc_attractive(int const i, int const j, Param& p,
-    double const rsq, double const * rvec)
+    double const rsq, double const * rvec, double * const fi, double * const fj)
 {
-
-  double **f = atom->f;
-
   double const z0 = p.z0;
   double const A = p.A;
   double const cutoff = p.rcut;
@@ -562,26 +635,26 @@ double PairDRIP::calc_attractive(int const i, int const j, Param& p,
   double phi = -r6 * tp;
 
   double fpair = -HALF * (r6 * dtp + dr6 * tp);
-  f[i][0] += rvec[0] * fpair / r;
-  f[i][1] += rvec[1] * fpair / r;
-  f[i][2] += rvec[2] * fpair / r;
-  f[j][0] -= rvec[0] * fpair / r;
-  f[j][1] -= rvec[1] * fpair / r;
-  f[j][2] -= rvec[2] * fpair / r;
+  fi[0] += rvec[0] * fpair / r;
+  fi[1] += rvec[1] * fpair / r;
+  fi[2] += rvec[2] * fpair / r;
+  fj[0] -= rvec[0] * fpair / r;
+  fj[1] -= rvec[1] * fpair / r;
+  fj[2] -= rvec[2] * fpair / r;
 
   return phi;
 }
 
 
 /* ---------------------------------------------------------------------- */
-double PairDRIP::calc_repulsive(int const evflag, int const i, int const j,
+double PairDRIP::calc_repulsive(int const i, int const j,
     Param& p, double const rsq, double const * rvec,
     int const nbi1, int const nbi2, int const nbi3, double const * ni,
     V3 const * dni_dri, V3 const * dni_drnb1, V3 const * dni_drnb2,
-    V3 const * dni_drnb3)
+    V3 const * dni_drnb3, double * const fi, double * const fj)
 {
   double **f = atom->f;
-  double r = sqrt(rsq);
+  double **x = atom->x;
 
   // params
   double C0 = p.C0;
@@ -598,6 +671,14 @@ double PairDRIP::calc_repulsive(int const evflag, int const i, int const j,
   int nbj2 = nearest3neigh[j][1];
   int nbj3 = nearest3neigh[j][2];
 
+  double r = sqrt(rsq);
+
+  double fnbi1[DIM];
+  double fnbi2[DIM];
+  double fnbi3[DIM];
+  double fnbj1[DIM];
+  double fnbj2[DIM];
+  double fnbj3[DIM];
   V3 dgij_dri;
   V3 dgij_drj;
   V3 dgij_drk1;
@@ -606,7 +687,6 @@ double PairDRIP::calc_repulsive(int const evflag, int const i, int const j,
   V3 dgij_drl1;
   V3 dgij_drl2;
   V3 dgij_drl3;
-
   V3 drhosqij_dri;
   V3 drhosqij_drj;
   V3 drhosqij_drnb1;
@@ -645,23 +725,51 @@ double PairDRIP::calc_repulsive(int const evflag, int const i, int const j,
 
     // forces due to derivatives of tap and V1
     double tmp = HALF * (dtp * V1 + tp * dV1) * V2 * rvec[k] / r;
-    f[i][k] += tmp;
-    f[j][k] -= tmp;
+    fi[k] += tmp;
+    fj[k] -= tmp;
 
     // the following incldue the transverse decay part tdij and the dihedral part gij
     // derivative of V2 contribute to atoms i, j
-    f[i][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
-    f[j][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
+    fi[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
+    fj[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
 
     // derivative of V2 contribute to neighs of atom i
-    f[nbi1][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
-    f[nbi2][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
-    f[nbi3][k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
+    fnbi1[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
+    fnbi2[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
+    fnbi3[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
 
     // derivative of V2 contribute to neighs of atom j
-    f[nbj1][k] -= HALF * tp * V1 * dgij_drl1[k];
-    f[nbj2][k] -= HALF * tp * V1 * dgij_drl2[k];
-    f[nbj3][k] -= HALF * tp * V1 * dgij_drl3[k];
+    fnbj1[k] =- HALF * tp * V1 * dgij_drl1[k];
+    fnbj2[k] =- HALF * tp * V1 * dgij_drl2[k];
+    fnbj3[k] =- HALF * tp * V1 * dgij_drl3[k];
+  }
+
+  for (int k = 0; k < DIM; k++) {
+    f[nbi1][k] += fnbi1[k];
+    f[nbi2][k] += fnbi2[k];
+    f[nbi3][k] += fnbi3[k];
+    f[nbj1][k] += fnbj1[k];
+    f[nbj2][k] += fnbj2[k];
+    f[nbj3][k] += fnbj3[k];
+  }
+
+  if (vflag_atom) {
+
+    // *2 since v_tally has a 0.5 coeff
+    for (int k = 0; k < DIM; k++) {
+      fnbi1[k]*=2;
+      fnbi2[k]*=2;
+      fnbi3[k]*=2;
+      fnbj1[k]*=2;
+      fnbj2[k]*=2;
+      fnbj3[k]*=2;
+    }
+    v_tally(nbi1, fnbi1, x[nbi1]);
+    v_tally(nbi2, fnbi2, x[nbi2]);
+    v_tally(nbi3, fnbi3, x[nbi3]);
+    v_tally(nbj1, fnbj1, x[nbj1]);
+    v_tally(nbj2, fnbj2, x[nbj2]);
+    v_tally(nbj3, fnbj3, x[nbj3]);
   }
 
   return phi;

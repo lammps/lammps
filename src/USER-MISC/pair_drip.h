@@ -40,18 +40,8 @@ class PairDRIP : public Pair {
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
-//  int pack_forward_comm(int, int *, double *, int, int *);
-//  void unpack_forward_comm(int, int, double *);
 
  protected:
-  double cutmax;                   // max cutoff for all species
-  int me;
-  int maxlocal;                    // size of numneigh, firstneigh arrays
-  int pgsize;                      // size of neighbor page
-  int oneatom;                     // max # of neighbors for one atom
-  MyPage<int> *ipage;              // neighbor list pages
-
-
   struct Param {
     int ielement,jelement;
     double C0,C2,C4,C,delta,lambda,A,z0,B,eta,rhocut,rcut;
@@ -65,10 +55,10 @@ class PairDRIP : public Pair {
   int nelements;         // # of unique elements
   int nparams;           // # of stored parameter sets
   int maxparam;          // max # of parameter sets
-  int nmax;              // max # of atoms
+  double cutmax;         // max cutoff for all species
   int ** nearest3neigh;  // nearest 3 neighbors of atoms
 
-  void read_file( char * );
+  void read_file(char * );
   void allocate();
 
   // DRIP specific functions
@@ -77,17 +67,16 @@ class PairDRIP : public Pair {
 
  double calc_repulsive(int const i, int const j,
      Param& p, double const rsq, double const * rvec,
-     int const nbi1, int const nbi2, int const nbi3, double const * ni,
-     V3 const * dni_dri, V3 const * dni_drnb1, V3 const * dni_drnb2,
-     V3 const * dni_drnb3, double * const fi, double * const fj);
+     double const * ni, V3 const * dni_dri,
+     V3 const * dni_drnb1, V3 const * dni_drnb2, V3 const * dni_drnb3,
+     double * const fi, double * const fj);
 
 
   void find_nearest3neigh();
 
 
- void calc_normal(int const i, int& k1, int& k2, int& k3,
-     double * const normal, V3 *const dn_dri, V3 *const dn_drk1,
-     V3 *const dn_drk2, V3 *const dn_drk3);
+ void calc_normal(int const i, double * const normal,
+    V3 *const dn_dri, V3 *const dn_drk1, V3 *const dn_drk2, V3 *const dn_drk3);
 
 
 
@@ -122,15 +111,13 @@ void deriv_cross( double const* rk, double const* rl, double const* rm,
     double* const cross, V3 *const dcross_drk,
     V3 *const dcross_drl, V3 *const dcross_drm);
 
-
-
+  // inline functions
   inline double dot(double const* x, double const* y) {
     return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
   }
 
 
-  inline void mat_dot_vec(V3 const* X, double const* y, double* const z)
-  {
+  inline void mat_dot_vec(V3 const* X, double const* y, double* const z) {
     for (int k = 0; k < 3; k++) {
       z[k] = X[k][0] * y[0] + X[k][1] * y[1] + X[k][2] * y[2];
     }
@@ -161,5 +148,12 @@ E: All pair coeffs are not set
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-*/
+E: No enough neighbors to construct normal
 
+Cannot find three neighbors within cutoff of the target atom.
+Check the configuration.
+
+
+
+
+*/

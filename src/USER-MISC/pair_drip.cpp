@@ -56,27 +56,21 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
   params = NULL;
   elem2param = NULL;
   map = NULL;
-
   cutmax = 0.0;
-  nmax = 0;
-  maxlocal = 0;
-  ipage = NULL;
-  pgsize = oneatom = 0;
+
+//j  nmax = 0;
+//j  maxlocal = 0;
+//j  ipage = NULL;
+//j  pgsize = oneatom = 0;
 
   nearest3neigh = NULL;
-
-
-//no_virial_fdotr_compute = 1;
-
-  // set comm size needed by this Pair
-  //comm_forward = 39;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairDRIP::~PairDRIP()
 {
-  delete [] ipage;
+//  delete [] ipage;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -110,26 +104,6 @@ void PairDRIP::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
-
-  // TODO this can be deleted
-  // local DRIP neighbor list
-  // create pages if first time or if neighbor pgsize/oneatom has changed
-
-  int create = 0;
-  if (ipage == NULL) create = 1;
-  if (pgsize != neighbor->pgsize) create = 1;
-  if (oneatom != neighbor->oneatom) create = 1;
-
-  if (create) {
-    delete [] ipage;
-    pgsize = neighbor->pgsize;
-    oneatom = neighbor->oneatom;
-
-    int nmypage= comm->nthreads;
-    ipage = new MyPage<int>[nmypage];
-    for (int i = 0; i < nmypage; i++)
-      ipage[i].init(oneatom,pgsize,PGDELTA);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -377,73 +351,6 @@ void PairDRIP::read_file(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-//int PairDRIP::pack_forward_comm(int n, int *list, double *buf,
-//                               int /*pbc_flag*/, int * /*pbc*/)
-//{
-//  int i,j,m,l,ip,id;
-//
-//  m = 0;
-////  for (i = 0; i < n; i++) {
-////    j = list[i];
-////    buf[m++] = normal[j][0];
-////    buf[m++] = normal[j][1];
-////    buf[m++] = normal[j][2];
-////    buf[m++] = dnormdri[0][0][j];
-////    buf[m++] = dnormdri[0][1][j];
-////    buf[m++] = dnormdri[0][2][j];
-////    buf[m++] = dnormdri[1][0][j];
-////    buf[m++] = dnormdri[1][1][j];
-////    buf[m++] = dnormdri[1][2][j];
-////    buf[m++] = dnormdri[2][0][j];
-////    buf[m++] = dnormdri[2][1][j];
-////    buf[m++] = dnormdri[2][2][j];
-////    for (l = 0; l < 3; l++){
-////      for (id = 0; id < 3; id++){
-////        for (ip = 0; ip < 3; ip++){
-////	  buf[m++] = dnormal[id][ip][l][j];
-////        }
-////      }
-////    }
-////  }
-//
-//  return m;
-//}
-
-/* ---------------------------------------------------------------------- */
-//
-//void PairDRIP::unpack_forward_comm(int n, int first, double *buf)
-//{
-//  int i,m,last,l,ip,id;
-//
-////  m = 0;
-////  last = first + n;
-////  for (i = first; i < last; i++) {
-////    normal[i][0] = buf[m++];
-////    normal[i][1] = buf[m++];
-////    normal[i][2] = buf[m++];
-////    dnormdri[0][0][i] = buf[m++];
-////    dnormdri[0][1][i] = buf[m++];
-////    dnormdri[0][2][i] = buf[m++];
-////    dnormdri[1][0][i] = buf[m++];
-////    dnormdri[1][1][i] = buf[m++];
-////    dnormdri[1][2][i] = buf[m++];
-////    dnormdri[2][0][i] = buf[m++];
-////    dnormdri[2][1][i] = buf[m++];
-////    dnormdri[2][2][i] = buf[m++];
-////    for (l = 0; l < 3; l++){
-////      for (id = 0; id < 3; id++){
-////        for (ip = 0; ip < 3; ip++){
-////	  dnormal[id][ip][l][i] = buf[m++];
-////        }
-////      }
-////    }
-////  }
-////
-//}
-//
-
-/* ---------------------------------------------------------------------- */
-
 void PairDRIP::compute(int eflag, int vflag)
 {
 
@@ -452,7 +359,6 @@ void PairDRIP::compute(int eflag, int vflag)
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1,fpair2, r, rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  int nbi1, nbi2, nbi3;
   double ni[DIM];
   double dni_dri[DIM][DIM], dni_drnb1[DIM][DIM];
   double dni_drnb2[DIM][DIM], dni_drnb3[DIM][DIM];
@@ -460,9 +366,6 @@ void PairDRIP::compute(int eflag, int vflag)
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
-
-  // TODO
-  //vflag_global = 1;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -476,13 +379,7 @@ void PairDRIP::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-
-  // find nearest 3 neighbors of each atom
   find_nearest3neigh();
-
-  //TODO what does this comm do?
-  // communicate the normal vector and its derivatives
-  // comm->forward_comm_pair(this);
 
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
@@ -497,7 +394,7 @@ void PairDRIP::compute(int eflag, int vflag)
 
 
     // normal and its derivatives w.r.t. atom i and its 3 nearest neighs
-    calc_normal(i, nbi1, nbi2, nbi3, ni, dni_dri,dni_drnb1, dni_drnb2, dni_drnb3);
+    calc_normal(i, ni, dni_dri,dni_drnb1, dni_drnb2, dni_drnb3);
 
     double fi[DIM] = {0., 0., 0.};
 
@@ -506,17 +403,6 @@ void PairDRIP::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtype = map[type[j]];
       jtag = tag[j];
-
-//      // two-body interactions from full neighbor list, skip half of them
-//      if (itag > jtag) {
-//        if ((itag+jtag) % 2 == 0) continue;
-//      } else if (itag < jtag) {
-//        if ((itag+jtag) % 2 == 1) continue;
-//      } else {
-//        if (x[j][2] < ztmp) continue;
-//        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-//        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
-//      }
 
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
@@ -535,25 +421,11 @@ void PairDRIP::compute(int eflag, int vflag)
 
         double phi_attr = calc_attractive(i,j,p, rsq, rvec, fi, fj);
 
-        double phi_repul = calc_repulsive(i, j, p, rsq, rvec, nbi1, nbi2,
-            nbi3, ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3, fi, fj);
+        double phi_repul = calc_repulsive(i, j, p, rsq, rvec,
+            ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3, fi, fj);
 
         if (eflag) evdwl = HALF * (phi_repul + phi_attr);
-
-        //if (evflag) ev_tally(i,j,nlocal,newton_pair, evdwl,0.0,fpair,delx,dely,delz);
-
         if (evflag) ev_tally(i,j,nlocal,newton_pair, evdwl,0.0,0,0,0,0);
-
-
-//        ev_tally_xyz(int i, int j, int nlocal, int newton_pair,
-//                         double evdwl, double ecoul,
-//                         double fx, double fy, double fz,
-//                         double delx, double dely, double delz)
-
-
-// void ev_tally_xyz_full(int i, double evdwl, double ecoul,
-//                              double fx, double fy, double fz,
-//                              double delx, double dely, double delz)
 
         f[j][0] += fj[0];
         f[j][1] += fj[1];
@@ -579,8 +451,6 @@ void PairDRIP::compute(int eflag, int vflag)
 
 if (vflag_fdotr)
   virial_fdotr_compute();
-
-
 
 
 
@@ -649,9 +519,9 @@ double PairDRIP::calc_attractive(int const i, int const j, Param& p,
 /* ---------------------------------------------------------------------- */
 double PairDRIP::calc_repulsive(int const i, int const j,
     Param& p, double const rsq, double const * rvec,
-    int const nbi1, int const nbi2, int const nbi3, double const * ni,
-    V3 const * dni_dri, V3 const * dni_drnb1, V3 const * dni_drnb2,
-    V3 const * dni_drnb3, double * const fi, double * const fj)
+    double const * ni, V3 const * dni_dri, V3 const * dni_drnb1,
+    V3 const * dni_drnb2, V3 const * dni_drnb3,
+    double * const fi, double * const fj)
 {
   double **f = atom->f;
   double **x = atom->x;
@@ -666,7 +536,10 @@ double PairDRIP::calc_repulsive(int const i, int const j,
   double z0 = p.z0;
   double cutoff = p.rcut;
 
-  // nearest 3 neighbors of atom j
+  // nearest 3 neighbors of atoms i and j
+  int nbi1 = nearest3neigh[i][0];
+  int nbi2 = nearest3neigh[i][1];
+  int nbi3 = nearest3neigh[i][2];
   int nbj1 = nearest3neigh[j][0];
   int nbj2 = nearest3neigh[j][1];
   int nbj3 = nearest3neigh[j][2];
@@ -733,12 +606,12 @@ double PairDRIP::calc_repulsive(int const i, int const j,
     fi[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
     fj[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
 
-    // derivative of V2 contribute to neighs of atom i
+    // derivative of V2 contribute to nearest 3 neighs of atom i
     fnbi1[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
     fnbi2[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
     fnbi3[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
 
-    // derivative of V2 contribute to neighs of atom j
+    // derivative of V2 contribute to nearest 3 neighs of atom j
     fnbj1[k] =- HALF * tp * V1 * dgij_drl1[k];
     fnbj2[k] =- HALF * tp * V1 * dgij_drl2[k];
     fnbj3[k] =- HALF * tp * V1 * dgij_drl3[k];
@@ -785,7 +658,7 @@ void PairDRIP::find_nearest3neigh()
   int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *neighptr;
+  //int *neighptr;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -799,17 +672,10 @@ void PairDRIP::find_nearest3neigh()
   memory->destroy(nearest3neigh);
   memory->create(nearest3neigh, allnum, 3, "DRIP:nearest3neigh");
 
-  // store all DRIP neighs of owned and ghost atoms
-  // scan full neighbor list of I
-
-  ipage->reset();
-
   for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
 
     n = 0;
-    neighptr = ipage->vget();
-
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -878,14 +744,13 @@ void PairDRIP::find_nearest3neigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairDRIP::calc_normal(int const i, int& k1, int& k2, int& k3,
-    double * const normal, V3 *const dn_dri, V3 *const dn_drk1,
-    V3 *const dn_drk2, V3 *const dn_drk3)
+void PairDRIP::calc_normal(int const i, double * const normal,
+  V3 *const dn_dri, V3 *const dn_drk1, V3 *const dn_drk2, V3 *const dn_drk3)
 {
 
-  k1 = nearest3neigh[i][0];
-  k2 = nearest3neigh[i][1];
-  k3 = nearest3neigh[i][2];
+  int k1 = nearest3neigh[i][0];
+  int k2 = nearest3neigh[i][1];
+  int k3 = nearest3neigh[i][2];
 
   // normal does not depend on i, setting to zero
   for (int j = 0; j < DIM; j++) {

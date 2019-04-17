@@ -24,7 +24,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(drip,PairDRIP)
+PairStyle(drip, PairDRIP)
 
 #else
 
@@ -38,11 +38,11 @@ PairStyle(drip,PairDRIP)
 namespace LAMMPS_NS {
 
 #define DIM 3
-typedef double V3[3];
+typedef double   V3[3];
 
 
 class PairDRIP : public Pair {
- public:
+public:
   PairDRIP(class LAMMPS *);
   virtual ~PairDRIP();
 
@@ -52,87 +52,73 @@ class PairDRIP : public Pair {
   double init_one(int, int);
   void init_style();
 
- protected:
-  struct Param {
-    int ielement,jelement;
-    double C0,C2,C4,C,delta,lambda,A,z0,B,eta,rhocut,rcut;
+protected:
+  struct Param
+  {
+    int    ielement, jelement;
+    double C0, C2, C4, C, delta, lambda, A, z0, B, eta, rhocut, rcut;
     double rhocutsq, rcutsq;
   };
   Param *params;         // parameter set for I-J interactions
-  int ** nearest3neigh;  // nearest 3 neighbors of atoms
+  int **nearest3neigh;   // nearest 3 neighbors of atoms
   char **elements;       // names of unique elements
   int **elem2param;      // mapping from element pairs to parameters
   int *map;              // mapping from atom types to elements
   int nelements;         // # of unique elements
   double cutmax;         // max cutoff for all species
 
-  void read_file(char * );
+  void read_file(char *);
   void allocate();
 
   // DRIP specific functions
   double calc_attractive(int const, int const, Param&, double const,
-    double const *, double * const, double * const);
+      double const *, double *const, double *const);
 
- double calc_repulsive(int const , int const ,
-     Param& , double const , double const * ,
-     double const * , V3 const * ,
-     V3 const * , V3 const * , V3 const * ,
-     double * const , double * const );
-
+  double calc_repulsive(int const, int const, Param&, double const,
+      double const *, double const *, V3 const *, V3 const *, V3 const *,
+      V3 const *, double *const, double *const);
 
   void find_nearest3neigh();
 
+  void calc_normal(int const, double *const, V3 *const, V3 *const, V3 *const,
+      V3 *const);
 
- void calc_normal(int const , double * const ,
-    V3 *const , V3 *const , V3 *const , V3 *const );
+  void get_drhosqij(double const *, double const *, V3 const *, V3 const *,
+      V3 const *, V3 const *, double *const, double *const, double *const,
+      double *const, double *const);
 
+  double td(double, double, double, double, double const *const, double,
+      const double *const, double&, double&);
 
+  double dihedral(const int, const int, Param&, double const, double&,
+      double *const, double *const, double *const, double *const, double *const,
+      double *const, double *const, double *const);
 
-void get_drhosqij( double const* , double const* ,
-    V3 const* , V3 const* ,
-    V3 const* , V3 const* ,
-    double* const , double* const ,
-    double* const , double* const ,
-    double* const );
+  double deriv_cos_omega(double const *, double const *, double const *,
+      double const *, double *const, double *const, double *const,
+      double *const);
 
+  double tap(double, double, double&);
 
-  double td(double , double , double , double ,
-      double const* const , double ,
-      const double* const ,
-      double& , double& );
+  double tap_rho(double, double, double&);
 
-  double dihedral(
-      const int , const int , Param& , double const , double& ,
-      double* const , double* const ,
-      double* const , double* const , double* const ,
-      double* const , double* const , double* const );
-
-  double deriv_cos_omega( double const* , double const* ,
-      double const* , double const* , double* const ,
-      double* const , double* const , double* const );
-
-  double tap(double , double , double& );
-
-  double tap_rho(double , double , double& );
-
-void deriv_cross( double const* , double const* , double const* ,
-    double* const , V3 *const ,
-    V3 *const , V3 *const );
+  void deriv_cross(double const *, double const *, double const *,
+      double *const, V3 *const, V3 *const, V3 *const);
 
   // inline functions
-  inline double dot(double const* x, double const* y) {
-    return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
+  inline double dot(double const *x, double const *y)
+  {
+    return x[0]*y[0]+x[1]*y[1]+x[2]*y[2];
   }
 
-
-  inline void mat_dot_vec(V3 const* X, double const* y, double* const z) {
+  inline void mat_dot_vec(V3 const *X, double const *y, double *const z)
+  {
     for (int k = 0; k < 3; k++) {
-      z[k] = X[k][0] * y[0] + X[k][1] * y[1] + X[k][2] * y[2];
+      z[k] = X[k][0]*y[0]+X[k][1]*y[1]+X[k][2]*y[2];
     }
   }
 
 };
-
 }
 
 #endif

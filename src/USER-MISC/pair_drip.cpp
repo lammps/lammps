@@ -438,12 +438,11 @@ if (vflag_fdotr)
 }
 
 /* ----------------------------------------------------------------------
-  Attractive part, i.e. the r^(-6) part
+   Attractive part, i.e. the r^(-6) part
 ------------------------------------------------------------------------- */
 
 double PairDRIP::calc_attractive(int const i, int const j, Param& p,
-    double const rsq, double const * rvec,
-    double * const fi, double * const fj)
+    double const rsq, double const *rvec, double *const fi, double *const fj)
 {
   double const z0 = p.z0;
   double const A = p.A;
@@ -458,6 +457,7 @@ double PairDRIP::calc_attractive(int const i, int const j, Param& p,
   double phi = -r6 * tp;
 
   double fpair = -HALF * (r6 * dtp + dr6 * tp);
+
   fi[0] += rvec[0] * fpair / r;
   fi[1] += rvec[1] * fpair / r;
   fi[2] += rvec[2] * fpair / r;
@@ -469,14 +469,13 @@ double PairDRIP::calc_attractive(int const i, int const j, Param& p,
 }
 
 /* ----------------------------------------------------------------------
-  Repulsive part that depends on transverse distance and dihedral angle
+   Repulsive part that depends on transverse distance and dihedral angle
 ------------------------------------------------------------------------- */
 
-double PairDRIP::calc_repulsive(int const i, int const j,
-    Param& p, double const rsq, double const * rvec,
-    double const * ni, V3 const * dni_dri, V3 const * dni_drnb1,
-    V3 const * dni_drnb2, V3 const * dni_drnb3,
-    double * const fi, double * const fj)
+double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
+    double const rsq, double const *rvec, double const *ni,
+    V3 const *dni_dri, V3 const *dni_drnb1, V3 const *dni_drnb2,
+    V3 const *dni_drnb3, double *const fi, double *const fj)
 {
   double **f = atom->f;
   double **x = atom->x;
@@ -548,7 +547,6 @@ double PairDRIP::calc_repulsive(int const i, int const j,
   double phi = tp * V1 * V2;
 
   for (int k = 0; k < DIM; k++) {
-
     // forces due to derivatives of tap and V1
     double tmp = HALF * (dtp * V1 + tp * dV1) * V2 * rvec[k] / r;
     fi[k] += tmp;
@@ -560,13 +558,13 @@ double PairDRIP::calc_repulsive(int const i, int const j,
     fi[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
     fj[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
     // derivative of V2 contribute to nearest 3 neighs of atom i
-    fnbi1[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
-    fnbi2[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
-    fnbi3[k] =- HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
+    fnbi1[k] = -HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
+    fnbi2[k] = -HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
+    fnbi3[k] = -HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
     // derivative of V2 contribute to nearest 3 neighs of atom j
-    fnbj1[k] =- HALF * tp * V1 * dgij_drl1[k];
-    fnbj2[k] =- HALF * tp * V1 * dgij_drl2[k];
-    fnbj3[k] =- HALF * tp * V1 * dgij_drl3[k];
+    fnbj1[k] = -HALF * tp * V1 * dgij_drl1[k];
+    fnbj2[k] = -HALF * tp * V1 * dgij_drl2[k];
+    fnbj3[k] = -HALF * tp * V1 * dgij_drl3[k];
   }
 
   for (int k = 0; k < DIM; k++) {
@@ -581,12 +579,12 @@ double PairDRIP::calc_repulsive(int const i, int const j,
   if (vflag_atom) {
     // multiply since v_tally has a 0.5 coeff
     for (int k = 0; k < DIM; k++) {
-      fnbi1[k]*=2;
-      fnbi2[k]*=2;
-      fnbi3[k]*=2;
-      fnbj1[k]*=2;
-      fnbj2[k]*=2;
-      fnbj3[k]*=2;
+      fnbi1[k] *= 2;
+      fnbi2[k] *= 2;
+      fnbi3[k] *= 2;
+      fnbj1[k] *= 2;
+      fnbj2[k] *= 2;
+      fnbj3[k] *= 2;
     }
     v_tally(nbi1, fnbi1, x[nbi1]);
     v_tally(nbi2, fnbi2, x[nbi2]);
@@ -599,14 +597,13 @@ double PairDRIP::calc_repulsive(int const i, int const j,
   return phi;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void PairDRIP::find_nearest3neigh()
 {
-  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, n, allnum, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -646,13 +643,12 @@ void PairDRIP::find_nearest3neigh()
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
       delz = x[j][2] - ztmp;
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
 
       int iparam_ij = elem2param[itype][jtype];
       double rcutsq = params[iparam_ij].rcutsq;
 
       if (rsq < rcutsq && atom->molecule[i] == atom->molecule[j]) {
-
         // find the 3 nearest neigh
         if (rsq < nb1_rsq) {
           nb3 = nb2;
@@ -678,20 +674,20 @@ void PairDRIP::find_nearest3neigh()
 
     // store neighbors to be used later to compute normal
     if (nb1_rsq >= 1.0e10 || nb2_rsq >= 1.0e10 || nb3_rsq >= 1.0e10) {
-      error->one(FLERR,"No enough neighbors to construct normal.");
-    } else{
+      error->one(FLERR, "No enough neighbors to construct normal.");
+    }
+    else{
       nearest3neigh[i][0] = nb1;
       nearest3neigh[i][1] = nb2;
       nearest3neigh[i][2] = nb3;
     }
-
   } // loop over ii
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairDRIP::calc_normal(int const i, double * const normal,
-  V3 *const dn_dri, V3 *const dn_drk1, V3 *const dn_drk2, V3 *const dn_drk3)
+void PairDRIP::calc_normal(int const i, double *const normal,
+    V3 *const dn_dri, V3 *const dn_drk1, V3 *const dn_drk2, V3 *const dn_drk3)
 {
   int k1 = nearest3neigh[i][0];
   int k2 = nearest3neigh[i][1];
@@ -711,12 +707,10 @@ void PairDRIP::calc_normal(int const i, double * const normal,
 
 /* ---------------------------------------------------------------------- */
 
-void PairDRIP::get_drhosqij(double const* rij, double const* ni,
-    V3 const* dni_dri, V3 const* dni_drn1,
-    V3 const* dni_drn2, V3 const* dni_drn3,
-    double* const drhosq_dri, double* const drhosq_drj,
-    double* const drhosq_drn1, double* const drhosq_drn2,
-    double* const drhosq_drn3)
+void PairDRIP::get_drhosqij(double const *rij, double const *ni,
+    V3 const *dni_dri, V3 const *dni_drn1, V3 const *dni_drn2, V3 const *dni_drn3,
+    double *const drhosq_dri, double *const drhosq_drj, double *const drhosq_drn1,
+    double *const drhosq_drn2, double *const drhosq_drn3)
 {
   int k;
   double ni_dot_rij = 0;
@@ -741,12 +735,11 @@ void PairDRIP::get_drhosqij(double const* rij, double const* ni,
 }
 
 /* ----------------------------------------------------------------------
-  derivartive of transverse decay function f(rho) w.r.t. rho
+   derivartive of transverse decay function f(rho) w.r.t. rho
 ------------------------------------------------------------------------- */
 
 double PairDRIP::td(double C0, double C2, double C4, double delta,
-    double const* const rvec, double r,
-    const double* const n,
+    double const *const rvec, double r, const double *const n,
     double& rho_sq, double& dtd)
 {
   double n_dot_r = dot(n, rvec);
@@ -767,14 +760,14 @@ double PairDRIP::td(double C0, double C2, double C4, double delta,
 }
 
 /* ----------------------------------------------------------------------
-  derivartive of dihedral angle func gij w.r.t rho, and atom positions
+   derivartive of dihedral angle func gij w.r.t rho, and atom positions
 ------------------------------------------------------------------------- */
 
-double PairDRIP::dihedral(
-    const int i, const int j, Param& p, double const rhosq, double& d_drhosq,
-    double* const d_dri, double* const d_drj,
-    double* const d_drk1, double* const d_drk2, double* const d_drk3,
-    double* const d_drl1, double* const d_drl2, double* const d_drl3)
+double PairDRIP::dihedral(const int i, const int j, Param& p,
+    double const rhosq, double& d_drhosq,
+    double *const d_dri, double *const d_drj,
+    double *const d_drk1, double *const d_drk2, double *const d_drk3,
+    double *const d_drl1, double *const d_drl2, double *const d_drl3)
 {
   double **x = atom->x;
 
@@ -817,7 +810,7 @@ double PairDRIP::dihedral(
   // cos_omega_kijl and the derivatives w.r.t coordinates
   for (int m = 0; m < 3; m++) {
     for (int n = 0; n < 3; n++) {
-      cos_kl[m][n] = deriv_cos_omega( x[k[m]], x[i], x[j], x[l[n]],
+      cos_kl[m][n] = deriv_cos_omega(x[k[m]], x[i], x[j], x[l[n]],
           dcos_kl[m][n][0], dcos_kl[m][n][1], dcos_kl[m][n][2], dcos_kl[m][n][3]);
     }
   }
@@ -881,12 +874,12 @@ double PairDRIP::dihedral(
 }
 
 /* ----------------------------------------------------------------------
-  compute cos(omega_kijl) and the derivateives
+   compute cos(omega_kijl) and the derivateives
 ------------------------------------------------------------------------- */
 
-double PairDRIP::deriv_cos_omega( double const* rk, double const* ri,
-    double const* rj, double const* rl, double* const dcos_drk,
-    double* const dcos_dri, double* const dcos_drj, double* const dcos_drl)
+double PairDRIP::deriv_cos_omega(double const *rk, double const *ri,
+    double const *rj, double const *rl, double *const dcos_drk,
+    double *const dcos_dri, double *const dcos_drj, double *const dcos_drl)
 {
   double ejik[DIM];
   double eijl[DIM];
@@ -990,17 +983,16 @@ double PairDRIP::tap_rho(double rhosq, double cut_rhosq, double& drhosq)
   return t;
 }
 
-
 /* ----------------------------------------------------------------------
-  Compute the normalized cross product of two vector rkl, rkm, and the
-  derivates w.r.t rk, rl, rm.
-  NOTE, the returned dcross_drk, dcross_drl, and dcross_drm are actually the
-  transpose.
+   Compute the normalized cross product of two vector rkl, rkm, and the
+   derivates w.r.t rk, rl, rm.
+   NOTE, the returned dcross_drk, dcross_drl, and dcross_drm are actually the
+   transpose.
 ------------------------------------------------------------------------- */
 
-void PairDRIP::deriv_cross( double const* rk, double const* rl, double const* rm,
-    double* const cross, V3 *const dcross_drk,
-    V3 *const dcross_drl, V3 *const dcross_drm)
+void PairDRIP::deriv_cross(double const *rk, double const *rl,
+    double const *rm, double *const cross,
+    V3 *const dcross_drk, V3 *const dcross_drl, V3 *const dcross_drm)
 {
   double x[DIM];
   double y[DIM];
@@ -1077,5 +1069,4 @@ void PairDRIP::deriv_cross( double const* rk, double const* rl, double const* rm
       dcross_drk[i][j] = -(dcross_drl[i][j] + dcross_drm[i][j]);
     }
   }
-
 }

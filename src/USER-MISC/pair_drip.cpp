@@ -49,6 +49,7 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
+  manybody_flag = 1;
 
   params = NULL;
   nearest3neigh = NULL;
@@ -106,14 +107,9 @@ void PairDRIP::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  // MOVE init of setflag ot other places; se pair_sw
   memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  map = new int[atom->ntypes+1];
+  map = new int[n+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -135,13 +131,14 @@ void PairDRIP::coeff(int narg, char **arg)
 {
   int i,j,n;
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  if (narg != 3 + atom->ntypes)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // insure I,J args are * *
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -174,13 +171,20 @@ void PairDRIP::coeff(int narg, char **arg)
 
   read_file(arg[2]);
 
+
+  // clear setflag since coeff() called once with I,J = * *
+  n = atom->ntypes;
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
   int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        count++;
+      }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -601,7 +605,7 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
 
 void PairDRIP::find_nearest3neigh()
 {
-  int i, j, ii, jj, n, allnum, jnum, itype, jtype;
+  int i, j, ii, jj, n, allnum, jnum, itype, jtype, size;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
@@ -614,11 +618,18 @@ void PairDRIP::find_nearest3neigh()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  size = allnum;
   memory->destroy(nearest3neigh);
-  memory->create(nearest3neigh, allnum, 3, "DRIP:nearest3neigh");
+  memory->create(nearest3neigh, size, 3, "pair:nearest3neigh");
 
   for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
+
+    // If "NULL" used in pair_coeff, i could be larger than allnum
+    if (i >= size) {
+      size = i+1;
+      memory->grow(nearest3neigh, size, 3, "pair:nearest3neigh");
+    }
 
     n = 0;
     xtmp = x[i][0];
@@ -682,6 +693,7 @@ void PairDRIP::find_nearest3neigh()
       nearest3neigh[i][2] = nb3;
     }
   } // loop over ii
+
 }
 
 /* ---------------------------------------------------------------------- */

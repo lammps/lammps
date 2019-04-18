@@ -528,8 +528,9 @@ void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
   }
   repeatFlag=true;
 
-  if (!isnan(ea) || !isnan(eb) || !isnan(ec) || !isnan(e2) || bondL!=0.0 ||
-      !isnan(k3) || !isnan(k2) || rs!=0.0 || rc3!=0.0 || rc2!=0.0 )
+  if (!std::isnan(ea) || !std::isnan(eb) || !std::isnan(ec) ||
+      !std::isnan(e2) || !std::isnan(k3) || !std::isnan(k2) ||
+      bondL!=0.0 || rs!=0.0 || rc3!=0.0 || rc2!=0.0 )
     error->all(FLERR,"Preset keyword will overwrite another keyword setting");
 
   double econv,lconv;
@@ -658,17 +659,17 @@ void PairE3B::checkInputs(const double &bondL) {
     error->all(FLERR,"Rc3 keyword missing");
   if (bondL==0.0)
     error->all(FLERR,"bondL keyword missing");
-  if (isnan(ea))
+  if (std::isnan(ea))
     error->all(FLERR,"Ea keyword missing");
-  if (isnan(eb))
+  if (std::isnan(eb))
     error->all(FLERR,"Eb keyword missing");
-  if (isnan(ec))
+  if (std::isnan(ec))
     error->all(FLERR,"Ec keyword missing");
-  if (isnan(k3))
+  if (std::isnan(k3))
     error->all(FLERR,"K3 keyword missing");
-  if (isnan(e2))
+  if (std::isnan(e2))
     error->all(FLERR,"E2 keyword missing");
-  if (isnan(k2))
+  if (std::isnan(k2))
     error->all(FLERR,"K2 keyword missing");
 
   //now test that values are within acceptable ranges

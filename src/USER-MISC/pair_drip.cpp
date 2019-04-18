@@ -14,11 +14,10 @@
 /* ----------------------------------------------------------------------
    Contributing author: Mingjian Wen (University of Minnesota)
    e-mail: wenxx151@umn.edu
-   based on "pair_style kolmogorov/crespi/full" by Wengen Ouyang
 
    This implements the DRIP model as described in
-   M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98,
-   235404 (2018).
+   M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor,
+   Phys. Rev. B, 98, 235404 (2018).
 ------------------------------------------------------------------------- */
 
 #include <cmath>

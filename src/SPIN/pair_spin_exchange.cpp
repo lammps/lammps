@@ -413,8 +413,6 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
   fmi[0] += Jex*spj[0];
   fmi[1] += Jex*spj[1];
   fmi[2] += Jex*spj[2];
-
-  //printf("test exchange: %g %g %g \n",Jex*spj[0],Jex*spj[1],Jex*spj[2]);
 }
 
 /* ----------------------------------------------------------------------

@@ -353,7 +353,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
       eij[1] = rij[1]*inorm;
       eij[2] = rij[2]*inorm;
 
-      itype = type[i];
+      //itype = type[i];
       jtype = type[j];
 
       r_s = rs[itype][jtype];

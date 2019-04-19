@@ -1,0 +1,30 @@
+# Define unit set and class of atomic model
+units metal
+atom_style molecular
+
+# BC
+boundary p p s
+
+# read config
+read_data      data.CH
+
+
+# potential
+pair_style hybrid/overlay drip rebo
+pair_coeff * * drip  C.drip     C NULL  # only applies to species 1, i.e. C
+pair_coeff * * rebo  CH.airebo  C H     # species 1 is C and species 2 is H
+
+
+compute        peratom all pe/atom
+
+# set what thermodynamic information to print to log
+thermo         10  # print every 1 timestep
+
+# set what information to write to dump file
+dump           id all custom 1 lammps.dump id type x y z fx fy fz c_peratom
+dump_modify    id every 10 format line "%d %d %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e"
+dump_modify    id sort id
+
+# minimize energy
+minimize  1.0e-15 1.0e-15 100 100
+

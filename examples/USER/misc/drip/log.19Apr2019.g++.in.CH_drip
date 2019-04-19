@@ -1,0 +1,109 @@
+LAMMPS (29 Mar 2019)
+# Define unit set and class of atomic model
+units metal
+atom_style molecular
+
+# BC
+boundary p p s
+
+# read config
+read_data      data.CH
+  triclinic box = (0 0 0) to (24.65 21.3475 30) with tilt (12.325 0 0)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  545 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.000135899 secs
+  read_data CPU = 0.00296116 secs
+
+
+# potential
+pair_style hybrid/overlay drip rebo
+pair_coeff * * drip  C.drip     C NULL  # only applies to species 1, i.e. C
+Reading potential file C.drip with DATE: 2019-04-19
+pair_coeff * * rebo  CH.airebo  C H     # species 1 is C and species 2 is H
+Reading potential file CH.airebo with DATE: 2011-10-25
+
+
+compute        peratom all pe/atom
+
+# set what thermodynamic information to print to log
+thermo         10  # print every 1 timestep
+
+# set what information to write to dump file
+dump           id all custom 1 lammps.dump id type x y z fx fy fz c_peratom
+dump_modify    id every 10 format line "%d %d %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e"
+dump_modify    id sort id
+
+# minimize energy
+minimize  1.0e-15 1.0e-15 100 100
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:168)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 4 1
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair drip, perpetual, skip from (2)
+      attributes: full, newton on, ghost
+      pair build: skip/ghost
+      stencil: none
+      bin: none
+  (2) pair rebo, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.71 | 11.71 | 11.71 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            0   -2883.1071            0   -2883.1071    366130.38    2779.5956 
+      10            0   -3229.1892            0   -3229.1892   -19780.166    2779.5956 
+      20            0   -3268.3574            0   -3268.3574   -15169.468    2779.5956 
+      30            0    -3270.013            0    -3270.013   -19827.419    2779.5956 
+      40            0   -3270.1341            0   -3270.1341   -20652.573    2779.5956 
+      50            0   -3270.2612            0   -3270.2612   -22644.203    2779.5956 
+      57            0   -3270.2821            0   -3270.2821    -23259.55    2779.5956 
+Loop time of 2.88099 on 1 procs for 57 steps with 545 atoms
+
+99.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max force evaluations
+  Energy initial, next-to-last, final = 
+        -2883.10712045     -3270.28053776     -3270.28206154
+  Force two-norm initial, final = 114.766 0.235923
+  Force max component initial, final = 12.0195 0.0426664
+  Final line search alpha, max atom move = 1 0.0426664
+  Iterations, force evaluations = 57 101
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.8692     | 2.8692     | 2.8692     |   0.0 | 99.59
+Bond    | 3.5524e-05 | 3.5524e-05 | 3.5524e-05 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0014327  | 0.0014327  | 0.0014327  |   0.0 |  0.05
+Output  | 0.0069089  | 0.0069089  | 0.0069089  |   0.0 |  0.24
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.003388   |            |       |  0.12
+
+Nlocal:    545 ave 545 max 545 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2346 ave 2346 max 2346 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  180462 ave 180462 max 180462 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 180462
+Ave neighs/atom = 331.123
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:02

@@ -37,7 +37,7 @@ fix biax_npt all npt/uef temp 400 400 100 erate -0.00001 0.000005 x 1 1 3000 :pr
 [Description:]
 
 This fix can be used to simulate non-equilibrium molecular dynamics
-(NEMD) under diagonal flow fields, including uniaxial and biaxial
+(NEMD) under diagonal flow fields, including uniaxial and bi-axial
 flow.  Simulations under continuous extensional flow may be carried
 out for an indefinite amount of time.  It is an implementation of the
 boundary conditions from "(Dobson)"_#Dobson, and also uses numerical

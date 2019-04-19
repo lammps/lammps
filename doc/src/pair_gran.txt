@@ -7,9 +7,10 @@
 :line
 
 pair_style gran/hooke command :h3
-pair_style gran/omp command :h3
+pair_style gran/hooke/omp command :h3
 pair_style gran/hooke/history command :h3
 pair_style gran/hooke/history/omp command :h3
+pair_style gran/hooke/history/kk command :h3
 pair_style gran/hertz/history command :h3
 pair_style gran/hertz/history/omp command :h3
 
@@ -241,7 +242,7 @@ require a per-particle radius is stored.  The {sphere} atom style does
 all of this.
 
 This pair style requires you to use the "comm_modify vel
-yes"_comm_modify.html command so that velocites are stored by ghost
+yes"_comm_modify.html command so that velocities are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the

@@ -72,7 +72,7 @@ class Force : protected Pointers {
   typedef Angle *(*AngleCreator)(LAMMPS *);
   typedef Dihedral *(*DihedralCreator)(LAMMPS *);
   typedef Improper *(*ImproperCreator)(LAMMPS *);
-  typedef KSpace *(*KSpaceCreator)(LAMMPS *,int,char**);
+  typedef KSpace *(*KSpaceCreator)(LAMMPS *);
 
   typedef std::map<std::string,PairCreator> PairCreatorMap;
   typedef std::map<std::string,BondCreator> BondCreatorMap;
@@ -123,8 +123,8 @@ class Force : protected Pointers {
   class Improper *new_improper(const char *, int, int &);
   class Improper *improper_match(const char *);
 
-  void create_kspace(int, char **, int);
-  class KSpace *new_kspace(int, char **, int, int &);
+  void create_kspace(const char *, int);
+  class KSpace *new_kspace(const char *, int, int &);
   class KSpace *kspace_match(const char *, int);
 
   void store_style(char *&, const char *, int);
@@ -148,7 +148,7 @@ class Force : protected Pointers {
   template <typename T> static Angle *angle_creator(LAMMPS *);
   template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
   template <typename T> static Improper *improper_creator(LAMMPS *);
-  template <typename T> static KSpace *kspace_creator(LAMMPS *, int, char **);
+  template <typename T> static KSpace *kspace_creator(LAMMPS *);
 };
 
 }

@@ -33,7 +33,7 @@ pair style is defined. Note that {i} and {j} must be equal, i.e., no
 {tlsph} cross interactions between different particle types are
 allowed.  In contrast to the usual {LAMMPS} {pair coeff} definitions,
 which are given solely a number of floats and integers, the {tlsph}
-{pair coeff} definition is organised using keywords. These keywords
+{pair coeff} definition is organized using keywords. These keywords
 mark the beginning of different sets of parameters for particle
 properties, material constitutive models, and damage models. The {pair
 coeff} line must be terminated with the {*END} keyword. The use the

@@ -64,7 +64,7 @@ client or server.
 "server mc"_server_mc.html = LAMMPS is a server for computing a Monte Carlo energy :ul
 
 The server doc files give details of the message protocols
-for data that is exchanged bewteen the client and server.
+for data that is exchanged between the client and server.
 
 These example directories illustrate how to use LAMMPS as either a
 client or server code:
@@ -75,19 +75,19 @@ examples/COUPLE/lammps_mc
 examples/COUPLE/lammps_vasp :ul
 
 The examples/message dir couples a client instance of LAMMPS to a
-server instance of LAMMPS.  
+server instance of LAMMPS.
 
 The lammps_mc dir shows how to couple LAMMPS as a server to a simple
 Monte Carlo client code as the driver.
 
 The lammps_vasp dir shows how to couple LAMMPS as a client code
 running MD timestepping to VASP acting as a server providing quantum
-DFT forces, thru a Python wrapper script on VASP.
+DFT forces, through a Python wrapper script on VASP.
 
 Here is how to launch a client and server code together for any of the
 4 modes of message exchange that the "message"_message.html command
 and the CSlib support.  Here LAMMPS is used as both the client and
-server code.  Another code could be subsitituted for either.
+server code.  Another code could be substituted for either.
 
 The examples below show launching both codes from the same window (or
 batch script), using the "&" character to launch the first code in the
@@ -106,13 +106,13 @@ together to exchange MPI messages between them.
 
 For message exchange in {file}, {zmq}, or {mpi/two} modes:
 
-% mpirun -np 1 lmp_mpi -log log.client < in.client & 
+% mpirun -np 1 lmp_mpi -log log.client < in.client &
 % mpirun -np 2 lmp_mpi -log log.server < in.server :pre
 
-% mpirun -np 4 lmp_mpi -log log.client < in.client & 
+% mpirun -np 4 lmp_mpi -log log.client < in.client &
 % mpirun -np 1 lmp_mpi -log log.server < in.server :pre
 
-% mpirun -np 2 lmp_mpi -log log.client < in.client & 
+% mpirun -np 2 lmp_mpi -log log.client < in.client &
 % mpirun -np 4 lmp_mpi -log log.server < in.server :pre
 
 For message exchange in {mpi/one} mode:

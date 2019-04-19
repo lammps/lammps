@@ -624,7 +624,6 @@ public:
   when_all( Future< A1 , A2 > const arg[] , int narg )
     {
       using future_type = Future< execution_space > ;
-      using task_base   = Kokkos::Impl::TaskBase< void , void , void > ;
 
       future_type f ;
 
@@ -692,7 +691,6 @@ public:
     {
       using input_type  = decltype( func(0) );
       using future_type = Future< execution_space > ;
-      using task_base   = Kokkos::Impl::TaskBase< void , void , void > ;
 
       static_assert( is_future< input_type >::value
                    , "Functor must return a Kokkos::Future" );

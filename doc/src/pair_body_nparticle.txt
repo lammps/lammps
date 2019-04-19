@@ -6,7 +6,7 @@
 
 :line
 
-pair_style body command :h3
+pair_style body/nparticle command :h3
 
 [Syntax:]
 

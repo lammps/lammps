@@ -64,7 +64,7 @@ multiple objects in one file.
 
 [Related commands:]
 
-"smd/triangle_mesh_vertices"_compute_smd_triangle_mesh_vertices.html,
+"smd/triangle_mesh_vertices"_compute_smd_triangle_vertices.html,
 "smd/move_tri_surf"_fix_smd_move_triangulated_surface.html,
 "smd/tri_surface"_pair_smd_triangulated_surface.html
 

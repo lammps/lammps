@@ -20,6 +20,8 @@ pair_style eam/alloy/omp command :h3
 pair_style eam/alloy/opt command :h3
 pair_style eam/cd command :h3
 pair_style eam/cd/omp command :h3
+pair_style eam/cd/old command :h3
+pair_style eam/cd/old/omp command :h3
 pair_style eam/fs command :h3
 pair_style eam/fs/gpu command :h3
 pair_style eam/fs/intel command :h3
@@ -31,7 +33,7 @@ pair_style eam/fs/opt command :h3
 
 pair_style style :pre
 
-style = {eam} or {eam/alloy} or {eam/cd} or {eam/fs} :ul
+style = {eam} or {eam/alloy} or {eam/cd} or {eam/cd/old} or {eam/fs} :ul
 
 [Examples:]
 
@@ -268,7 +270,8 @@ Style {eam/cd} is similar to the {eam/alloy} style, except that it
 computes alloy pairwise interactions using the concentration-dependent
 embedded-atom method (CD-EAM).  This model can reproduce the enthalpy
 of mixing of alloys over the full composition range, as described in
-"(Stukowski)"_#Stukowski.
+"(Stukowski)"_#Stukowski. Style {eam/cd/old} is an older, slightly
+different and slower two-site formulation of the model "(Caro)"_#Caro.
 
 The pair_coeff command is specified the same as for the {eam/alloy}
 style.  However the DYNAMO {setfl} file must has two
@@ -442,3 +445,6 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 :link(Stukowski)
 [(Stukowski)] Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
 Materials Science & Engineering, 7, 075005 (2009).
+
+:link(Caro)
+[(Caro)] A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)

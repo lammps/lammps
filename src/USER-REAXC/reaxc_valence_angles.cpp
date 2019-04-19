@@ -30,6 +30,8 @@
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
+#include "error.h"
+
 static double Dot( double* v1, double* v2, int k )
 {
   double ret = 0.0;
@@ -44,8 +46,8 @@ void Calculate_Theta( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_jk,
                       double *theta, double *cos_theta )
 {
   (*cos_theta) = Dot( dvec_ji, dvec_jk, 3 ) / ( d_ji * d_jk );
-  if( *cos_theta > 1. ) *cos_theta  = 1.0;
-  if( *cos_theta < -1. ) *cos_theta  = -1.0;
+  if (*cos_theta > 1.) *cos_theta  = 1.0;
+  if (*cos_theta < -1.) *cos_theta  = -1.0;
 
   (*theta) = acos( *cos_theta );
 }
@@ -140,11 +142,10 @@ void Valence_Angles( reax_system *system, control_params *control,
       prod_SBO *= exp( -temp );
     }
 
-    if( workspace->vlpex[j] >= 0 ){
+    if (workspace->vlpex[j] >= 0) {
       vlpadj = 0;
       dSBO2 = prod_SBO - 1;
-    }
-    else{
+    } else {
       vlpadj = workspace->nlp[j];
       dSBO2 = (prod_SBO - 1) * (1 - p_val8 * workspace->dDelta_lp[j]);
     }
@@ -152,13 +153,13 @@ void Valence_Angles( reax_system *system, control_params *control,
     SBO = SBOp + (1 - prod_SBO) * (-workspace->Delta_boc[j] - p_val8 * vlpadj);
     dSBO1 = -8 * prod_SBO * ( workspace->Delta_boc[j] + p_val8 * vlpadj );
 
-    if( SBO <= 0 )
+    if (SBO <= 0)
       SBO2 = 0, CSBO2 = 0;
-    else if( SBO > 0 && SBO <= 1 ) {
+    else if (SBO > 0 && SBO <= 1) {
         SBO2 = pow( SBO, p_val9 );
         CSBO2 = p_val9 * pow( SBO, p_val9 - 1 );
     }
-    else if( SBO > 1 && SBO < 2 ) {
+    else if (SBO > 1 && SBO < 2) {
       SBO2 = 2 - pow( 2-SBO, p_val9 );
       CSBO2 = p_val9 * pow( 2 - SBO, p_val9 - 1 );
     }
@@ -184,7 +185,7 @@ void Valence_Angles( reax_system *system, control_params *control,
           end_pk = End_Index( pk, thb_intrs );
 
           for( t = start_pk; t < end_pk; ++t )
-            if( thb_intrs->select.three_body_list[t].thb == i ) {
+            if (thb_intrs->select.three_body_list[t].thb == i) {
               p_ijk = &(thb_intrs->select.three_body_list[num_thb_intrs] );
               p_kji = &(thb_intrs->select.three_body_list[t]);
 
@@ -221,20 +222,20 @@ void Valence_Angles( reax_system *system, control_params *control,
           p_ijk->theta = theta;
 
           sin_theta = sin( theta );
-          if( sin_theta < 1.0e-5 )
+          if (sin_theta < 1.0e-5)
             sin_theta = 1.0e-5;
 
           ++num_thb_intrs;
 
 
-          if( (j < system->n) && (BOA_jk > 0.0) &&
+          if ((j < system->n) && (BOA_jk > 0.0) &&
               (bo_ij->BO > control->thb_cut) &&
               (bo_jk->BO > control->thb_cut) &&
               (bo_ij->BO * bo_jk->BO > control->thb_cutsq) ) {
             thbh = &( system->reax_param.thbp[ type_i ][ type_j ][ type_k ] );
 
             for( cnt = 0; cnt < thbh->cnt; ++cnt ) {
-              if( fabs(thbh->prm[cnt].p_val1) > 0.001 ) {
+              if (fabs(thbh->prm[cnt].p_val1) > 0.001) {
                 thbp = &( thbh->prm[cnt] );
 
                 /* ANGLE ENERGY */
@@ -264,7 +265,7 @@ void Valence_Angles( reax_system *system, control_params *control,
                 theta_0 = DEG2RAD( theta_0 );
 
                 expval2theta  = exp( -p_val2 * SQR(theta_0 - theta) );
-                if( p_val1 >= 0 )
+                if (p_val1 >= 0)
                   expval12theta = p_val1 * (1.0 - expval2theta);
                 else // To avoid linear Me-H-Me angles (6/6/06)
                   expval12theta = p_val1 * -expval2theta;
@@ -355,12 +356,11 @@ void Valence_Angles( reax_system *system, control_params *control,
                     bo_jt->Cdbopi2 += CEval5;
                 }
 
-                if( control->virial == 0 ) {
+                if (control->virial == 0) {
                   rvec_ScaledAdd( workspace->f[i], CEval8, p_ijk->dcos_di );
                   rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
                   rvec_ScaledAdd( workspace->f[k], CEval8, p_ijk->dcos_dk );
-                }
-                else {
+                } else {
                   rvec_Scale( force, CEval8, p_ijk->dcos_di );
                   rvec_Add( workspace->f[i], force );
                   rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
@@ -375,7 +375,7 @@ void Valence_Angles( reax_system *system, control_params *control,
                 }
 
                 /* tally into per-atom virials */
-                if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 
                   /* Acquire vectors */
                   rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
@@ -389,9 +389,9 @@ void Valence_Angles( reax_system *system, control_params *control,
 
                   eng_tmp = e_ang + e_pen + e_coa;
 
-                  if( system->pair_ptr->evflag)
+                  if (system->pair_ptr->evflag)
                           system->pair_ptr->ev_tally(j,j,system->N,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
-                  if( system->pair_ptr->vflag_atom)
+                  if (system->pair_ptr->vflag_atom)
                           system->pair_ptr->v_tally3(i,j,k,fi_tmp,fk_tmp,delij,delkj);
                 }
               }
@@ -404,12 +404,13 @@ void Valence_Angles( reax_system *system, control_params *control,
     }
   }
 
-  if( num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE ) {
+  if (num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE) {
     workspace->realloc.num_3body = num_thb_intrs;
-    if( num_thb_intrs > thb_intrs->num_intrs ) {
-      fprintf( stderr, "step%d-ran out of space on angle_list: top=%d, max=%d",
-               data->step, num_thb_intrs, thb_intrs->num_intrs );
-      MPI_Abort( MPI_COMM_WORLD, INSUFFICIENT_MEMORY );
+    if (num_thb_intrs > thb_intrs->num_intrs) {
+      char errmsg[128];
+      snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
+               data->step, num_thb_intrs, thb_intrs->num_intrs);
+      control->error_ptr->one(FLERR, errmsg);
     }
   }
 

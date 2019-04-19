@@ -567,6 +567,9 @@ void colvardeps::init_cv_requires() {
     // Most features are available, so we set them so
     // and list exceptions below
    }
+
+  feature_states[f_cv_fdiff_velocity].available =
+    cvm::main()->proxy->simulation_running();
 }
 
 

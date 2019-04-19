@@ -30,7 +30,7 @@ r0 of OH bond = 1.0
 theta of HOH angle = 109.47 :all(b),p
 
 Note that as originally proposed, the SPC model was run with a 9
-Angstrom cutoff for both LJ and Coulommbic terms.  It can also be used
+Angstrom cutoff for both LJ and Coulombic terms.  It can also be used
 with long-range Coulombics (Ewald or PPPM in LAMMPS), without changing
 any of the parameters above, though it becomes a different model in
 that mode of usage.

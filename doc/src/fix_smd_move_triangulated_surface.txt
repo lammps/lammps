@@ -73,7 +73,7 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"smd/triangle_mesh_vertices"_compute_smd_triangle_mesh_vertices.html,
+"smd/triangle_mesh_vertices"_compute_smd_triangle_vertices.html,
 "smd/wall_surface"_fix_smd_wall_surface.html
 
 [Default:] none

@@ -33,11 +33,11 @@ how much effort it will cause to integrate and test it, how much it
 requires changes to the core codebase, and of how much interest it is
 to the larger LAMMPS community.  Please see below for a checklist of
 typical requirements. Once you have prepared everything, see the
-"Howto github"_Howto_github.html doc page for instructions on how to
+"Using GitHub with LAMMPS Howto"_Howto_github.html doc page for instructions on how to
 submit your changes or new files through a GitHub pull request. If you
 prefer to submit patches or full files, you should first make certain,
 that your code works correctly with the latest patch-level version of
-LAMMPS and contains all bugfixes from it. Then create a gzipped tar
+LAMMPS and contains all bug fixes from it. Then create a gzipped tar
 file of all changed or added files or a corresponding patch file using
 'diff -u' or 'diff -c' and compress it with gzip. Please only use gzip
 compression, as this works well on all platforms.
@@ -108,9 +108,13 @@ your contribution(s) to be added to main LAMMPS code or one of its
 standard packages, it needs to be written in a style compatible with
 other LAMMPS source files. This means: 2-character indentation per
 level, [no tabs], no lines over 80 characters. I/O is done via
-the C-style stdio library, class header files should not import any
-system headers outside <stdio.h>, STL containers should be avoided
-in headers, and forward declarations used where possible or needed.
+the C-style stdio library (mixing of stdio and iostreams is generally
+discouraged), class header files should not import any system headers
+outside of <cstdio>, STL containers should be avoided in headers,
+system header from the C library should use the C++-style names
+(<cstdlib>, <cstdio>, or <cstring>) instead of the C-style names
+<stdlib.h>, <stdio.h>, or <string.h>), and forward declarations
+used where possible or needed to avoid including headers.
 All added code should be placed into the LAMMPS_NS namespace or a
 sub-namespace; global or static variables should be avoided, as they
 conflict with the modular nature of LAMMPS and the C++ class structure.

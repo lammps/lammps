@@ -82,8 +82,7 @@ void PairATM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -272,7 +271,7 @@ double PairATM::init_one(int i, int j)
 
   int ntypes = atom->ntypes;
   for (int k = j; k <= ntypes; k++)
-    nu[i][k][j] = nu[j][i][k] = nu[j][k][i] = nu[k][i][j] = nu[k][j][i] = 
+    nu[i][k][j] = nu[j][i][k] = nu[j][k][i] = nu[k][i][j] = nu[k][j][i] =
       nu[i][j][k];
 
   return cut_global;
@@ -290,8 +289,8 @@ void PairATM::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]) 
-        for (k = j; k <= atom->ntypes; k++) 
+      if (setflag[i][j])
+        for (k = j; k <= atom->ntypes; k++)
           fwrite(&nu[i][j][k],sizeof(double),1,fp);
     }
   }
@@ -361,12 +360,12 @@ void PairATM::interaction_ddd(double nu, double r6,
   rrk = rjk[0]*rik[0] + rjk[1]*rik[1] + rjk[2]*rik[2];
   rrr = 5.0*rri*rrj*rrk;
   for (int i = 0; i < 3; i++) {
-    fj[i] = rrj*(rrk - rri)*rik[i] - 
-      (rrk*rri - rjk2*rik2 + rrr/rij2) * rij[i] + 
+    fj[i] = rrj*(rrk - rri)*rik[i] -
+      (rrk*rri - rjk2*rik2 + rrr/rij2) * rij[i] +
       (rrk*rri - rik2*rij2 + rrr/rjk2) * rjk[i];
     fj[i] *= 3.0*r5inv;
-    fk[i] = rrk*(rri + rrj)*rij[i] + 
-      (rri*rrj + rik2*rij2 - rrr/rjk2) * rjk[i] + 
+    fk[i] = rrk*(rri + rrj)*rij[i] +
+      (rri*rrj + rik2*rij2 - rrr/rjk2) * rjk[i] +
       (rri*rrj + rij2*rjk2 - rrr/rik2) * rik[i];
     fk[i] *= 3.0*r5inv;
   }

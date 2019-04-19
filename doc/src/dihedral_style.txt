@@ -80,21 +80,35 @@ Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated "dihedral_coeff"_dihedral_coeff.html command.
 
-Note that there are also additional dihedral styles submitted by users
-which are included in the LAMMPS distribution.  The full list of all
-dihedral styles is on the "Commands bond"_Commands_bond.html#dihedral
-doc page.
+Click on the style to display the formula it computes, any additional
+arguments specified in the dihedral_style command, and coefficients
+specified by the associated "dihedral_coeff"_dihedral_coeff.html
+command.
 
-"dihedral_style none"_dihedral_none.html - turn off dihedral interactions
-"dihedral_style zero"_dihedral_zero.html - topology but no interactions
-"dihedral_style hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands
+dihedral"_Commands_bond.html#dihedral doc page are followed by one or
+more of (g,i,k,o,t) to indicate which accelerated styles exist.
 
-"dihedral_style charmm"_dihedral_charmm.html - CHARMM dihedral
-"dihedral_style class2"_dihedral_class2.html - COMPASS (class 2) dihedral
-"dihedral_style harmonic"_dihedral_harmonic.html - harmonic dihedral
-"dihedral_style helix"_dihedral_helix.html - helix dihedral
-"dihedral_style multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
-"dihedral_style opls"_dihedral_opls.html - OPLS dihedral :ul
+"none"_dihedral_none.html - turn off dihedral interactions
+"zero"_dihedral_zero.html - topology but no interactions
+"hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
+
+"charmm"_dihedral_charmm.html - CHARMM dihedral
+"charmmfsw"_dihedral_charmm.html - CHARMM dihedral with force switching
+"class2"_dihedral_class2.html - COMPASS (class 2) dihedral
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html - dihedral with exponential in spring constant
+"fourier"_dihedral_fourier.html - dihedral with multiple cosine terms
+"harmonic"_dihedral_harmonic.html - harmonic dihedral
+"helix"_dihedral_helix.html - helix dihedral
+"multi/harmonic"_dihedral_multi_harmonic.html - dihedral with 5 harmonic terms
+"nharmonic"_dihedral_nharmonic.html - same as multi-harmonic with N terms
+"opls"_dihedral_opls.html - OPLS dihedral
+"quadratic"_dihedral_quadratic.html - dihedral with quadratic term in angle
+"spherical"_dihedral_spherical.html - dihedral which includes angle terms to avoid singularities
+"table"_dihedral_table.html - tabulated dihedral
+"table/cut"_dihedral_table_cut.html - tabulated dihedral with analytic cutoff :ul
 
 :line
 

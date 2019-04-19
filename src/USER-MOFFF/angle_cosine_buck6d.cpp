@@ -69,8 +69,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
   double rcu,rqu,sme,smf;
 
   eangle = evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-3 virial contribution
 
@@ -353,7 +352,7 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
 void AngleCosineBuck6d::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++) {
-    fprintf(fp,"%d %g %d %d\n",i,k[i],multiplicity[i],th0[i]);
+    fprintf(fp,"%d %g %d %g\n",i,k[i],multiplicity[i],th0[i]);
   }
 }
 

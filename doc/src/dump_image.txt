@@ -384,12 +384,7 @@ change this via the "dump_modify"_dump_modify.html command.
 :line
 
 The {fix} keyword can be used with a "fix"_fix.html that produces
-objects to be drawn.  An example is the "fix
-surface/global"_fix_surface_global.html command which can draw lines
-or triangles for 2d/3d simulations.
-
-NOTE: Aug 2016 - The fix surface/global command is not yet added to
-LAMMPS.
+objects to be drawn.
 
 The {fflag1} and {fflag2} settings are numerical values which are
 passed to the fix to affect how the drawing of its objects is done.
@@ -546,10 +541,11 @@ a) Use the ImageMagick convert program. :ulb,l
 % convert *.jpg foo.gif
 % convert -loop 1 *.ppm foo.mpg :pre
 
-Animated GIF files from ImageMagick are unoptimized. You can use a
-program like gifsicle to optimize and massively shrink them.
-MPEG files created by ImageMagick are in MPEG-1 format with rather
-inefficient compression and low quality.
+Animated GIF files from ImageMagick are not optimized. You can use
+a program like gifsicle to optimize and thus massively shrink them.
+MPEG files created by ImageMagick are in MPEG-1 format with a rather
+inefficient compression and low quality compared to more modern
+compression styles like MPEG-4, H.264, VP8, VP9, H.265 and so on.
 
 b) Use QuickTime. :l
 
@@ -569,7 +565,7 @@ allows extremely flexible encoding and decoding of movies.
 cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
 cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi :pre
 
-Frontends for FFmpeg exist for multiple platforms. For more
+Front ends for FFmpeg exist for multiple platforms. For more
 information see the "FFmpeg homepage"_http://www.ffmpeg.org/
 
 :ule

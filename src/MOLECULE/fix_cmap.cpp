@@ -341,8 +341,7 @@ void FixCMAP::post_force(int vflag)
 
   ecmap = 0.0;
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (n = 0; n < ncrosstermlist; n++) {
     i1 = crosstermlist[n][0];
@@ -943,7 +942,7 @@ double FixCMAP::dihedral_angle_atan2(double fx, double fy, double fz,
 {
   // calculate the dihedral angle
 
-  double angle, arg1, arg2;
+  double angle = 0.0, arg1, arg2;
 
   arg1 = absg*(fx*bx+fy*by+fz*bz);
   arg2 = ax*bx+ay*by+az*bz;

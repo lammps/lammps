@@ -52,12 +52,61 @@ NPairIntel::~NPairIntel() {
 
 /* ---------------------------------------------------------------------- */
 
+void NPairIntel::copy_neighbor_info()
+{
+  NPair::copy_neighbor_info();
+  if (_fix->precision() == FixIntel::PREC_MODE_MIXED)
+    copy_cutsq_info(_fix->get_mixed_buffers());
+  else if (_fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+    copy_cutsq_info(_fix->get_double_buffers());
+  else
+    copy_cutsq_info(_fix->get_single_buffers());
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
+void NPairIntel::copy_cutsq_info(IntelBuffers<flt_t,acc_t> *buffers) {
+  int tp1 = atom->ntypes + 1;
+  int use_ghost_cut = 0;
+  if (cutneighghostsq)
+    use_ghost_cut = 1;
+  buffers->set_ntypes(tp1, use_ghost_cut);
+
+  flt_t **cutneighsqb = buffers->get_cutneighsq();
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = 1; j <= atom->ntypes; j++)
+      cutneighsqb[i][j] = cutneighsq[i][j];
+
+  flt_t **cutneighghostsqb;
+  if (use_ghost_cut) {
+    cutneighghostsqb = buffers->get_cutneighghostsq();
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = 1; j <= atom->ntypes; j++)
+        cutneighghostsqb[i][j] = cutneighghostsq[i][j];
+  }
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_cop < 0) return;
+  int tp1sq = tp1 * tp1;
+  flt_t * ocutneighsq = cutneighsqb[0];
+  #pragma offload_transfer target(mic:_cop) in(ocutneighsq: length(tp1sq))
+  if (use_ghost_cut) {
+    flt_t * ocutneighghostsq = cutneighghostsqb[0];
+    #pragma offload_transfer target(mic:_cop) \
+      in(ocutneighghostsq: length(tp1sq))
+  }
+  #endif
+}
+
+/* ---------------------------------------------------------------------- */
+
 template <class flt_t, class acc_t, int offload_noghost, int need_ic,
           int FULL, int TRI, int THREE>
-void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
+void NPairIntel::bin_newton(const int offload, NeighList *list,
                             IntelBuffers<flt_t,acc_t> *buffers,
                             const int astart, const int aend,
-                            const int /*offload_end*/) {
+                            const int offload_end) {
 
   if (aend-astart == 0) return;
 
@@ -67,11 +116,11 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
   #ifdef _LMP_INTEL_OFFLOAD
   if (offload_noghost && offload) nall_t = atom->nlocal;
   #endif
-  
+
   const int pack_width = _fix->nbor_pack_width();
 
   const ATOM_T * _noalias const x = buffers->get_x();
-  int * _noalias const firstneigh = buffers->firstneigh(list);
+  int * _noalias const intel_list = buffers->intel_list(list);
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
@@ -94,8 +143,10 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
   const tagint * _noalias const tag = atom->tag;
 
   int * _noalias const ilist = list->ilist;
-  int * _noalias numneigh = list->numneigh;
-  int * _noalias const cnumneigh = buffers->cnumneigh(list);
+  int ** _noalias const firstneigh = list->firstneigh;
+  int * _noalias const numneigh = list->numneigh;
+  int * _noalias const cnumneigh = buffers->cnumneigh();
+
   const int nstencil = this->nstencil;
   const int * _noalias const stencil = this->stencil;
   const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
@@ -153,7 +204,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
     }
   }
   const int special_bound = sb;
-  
+
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
   const int * _noalias const bins = this->bins;
@@ -168,6 +219,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
     in(binhead:length(mbins+1) alloc_if(0) free_if(0)) \
     in(cutneighsq:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
+    in(intel_list:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     out(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(ilist:length(0) alloc_if(0) free_if(0)) \
@@ -178,7 +230,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
     in(ncache_stride,maxnbors,nthreads,maxspecial,nstencil,e_nall,offload) \
     in(offload_end,separate_buffers,astart,aend,nlocal,molecular) \
     in(ntypes,xperiodic,yperiodic,zperiodic,xprd_half,yprd_half,zprd_half) \
-    in(pack_width,special_bound) \
+    in(pack_width,special_bound)                                        \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
     signal(tag)
@@ -212,7 +264,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
 
     #if defined(_OPENMP)
     #pragma omp parallel default(none) \
-      shared(numneigh, overflow, nstencilp, binstart, binend)
+      shared(overflow, nstencilp, binstart, binend)
     #endif
     {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -246,7 +298,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
       const int obound = maxnbors * 3;
       #endif
       int ct = (ifrom + tid * 2) * maxnbors;
-      int *neighptr = firstneigh + ct;
+      int *neighptr = intel_list + ct;
       int *neighptr2;
       if (THREE) neighptr2 = neighptr;
 
@@ -495,7 +547,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
               j = -j - 1;
             } else
               ofind_special(which, special, nspecial, i, tag[j]);
-            
+
             if (which) {
               j = j ^ (which << SBBITS);
               if (which < special_bound) addme = 0;
@@ -510,7 +562,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
           if (THREE) {
             alln = n2;
             n2 = pack_offset + maxnbors;
-            
+
             #if defined(LMP_SIMD_COMPILER)
             #pragma vector aligned
             #ifdef LMP_INTEL_NBOR_COMPAT
@@ -540,7 +592,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
             }
           }
         }
-        
+
         #ifndef _LMP_INTEL_OFFLOAD
         if (exclude) {
           neighptr2 = neighptr;
@@ -591,7 +643,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
             n += pack_width;
           }
           #endif
-          
+
           for (int u = pack_offset + maxnbors; u < n2; u++) {
             #ifdef LMP_INTEL_3BODY_FAST
             neighptr[n] = neighptr2[u];
@@ -605,12 +657,24 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
           if (n > maxnbors) *overflow = 1;
 
         ilist[i] = i;
-        cnumneigh[i] = ct;
+        firstneigh[i] = intel_list + ct;
         if (THREE) {
+          numneigh[i] = ns;
+          cnumneigh[i] = ct;
           #ifdef LMP_INTEL_3BODY_FAST
           cnumneigh[i] += lane;
+          #else
+          // Pad anyways just in case we have hybrid with 2-body and newton off
+          int pad_end = ns;
+          IP_PRE_neighbor_pad(pad_end, offload);
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma vector aligned
+          #pragma loop_count min=1, max=INTEL_COMPILE_WIDTH-1, \
+                  avg=INTEL_COMPILE_WIDTH/2
           #endif
-          numneigh[i] = ns;
+          for ( ; ns < pad_end; ns++)
+            neighptr[n++] = e_nall;
+          #endif
         } else {
           numneigh[i] = n;
           int pad_end = n;
@@ -631,7 +695,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
           if (lane == pack_width) {
             ct += max_chunk * pack_width;
             IP_PRE_edge_align(ct, sizeof(int));
-            neighptr = firstneigh + ct;
+            neighptr = intel_list + ct;
             neighptr2 = neighptr;
             max_chunk = 0;
             lane = 0;
@@ -647,7 +711,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
         {
           ct += n;
           //IP_PRE_edge_align(ct, sizeof(int));
-          neighptr = firstneigh + ct;
+          neighptr = intel_list + ct;
           if (THREE) neighptr2 = neighptr;
           if (ct + obound > list_size) {
             if (i < ito - 1) {
@@ -667,7 +731,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
       int ghost_offset = 0, nall_offset = e_nall;
       if (separate_buffers) {
         for (int i = ifrom; i < ito; ++i) {
-          int * _noalias jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh[i];
           int jnum = numneigh[i];
           if (!THREE) IP_PRE_neighbor_pad(jnum, offload);
           #if __INTEL_COMPILER+0 > 1499
@@ -712,7 +776,7 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
         }
 
         for (int i = ifrom; i < ito; ++i) {
-          int * _noalias jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh[i];
           int jnum = numneigh[i];
           if (!THREE) IP_PRE_neighbor_pad(jnum, offload);
           int jj = 0;
@@ -739,13 +803,12 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
   if (offload) {
     _fix->stop_watch(TIME_OFFLOAD_LATENCY);
     _fix->start_watch(TIME_HOST_NEIGHBOR);
+    firstneigh[0] = intel_list;
     for (int n = 0; n < aend; n++) {
       ilist[n] = n;
       numneigh[n] = 0;
     }
   } else {
-    for (int i = astart; i < aend; i++)
-      list->firstneigh[i] = firstneigh + cnumneigh[i];
     if (separate_buffers) {
       _fix->start_watch(TIME_PACK);
       _fix->set_neighbor_host_sizes();
@@ -756,11 +819,6 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
       _fix->stop_watch(TIME_PACK);
     }
   }
-  #else
-  #pragma vector aligned
-  #pragma simd
-  for (int i = astart; i < aend; i++)
-    list->firstneigh[i] = firstneigh + cnumneigh[i];
   #endif
 }
 

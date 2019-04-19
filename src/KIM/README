@@ -26,5 +26,4 @@ library you can test it using an input file from the examples dir:
 
 ./lmp_serial < lammps/examples/kim/in.kim.lj
 
-This pair_style was written by Valeriu Smirichinski and Ryan
-S. Elliott (U Minn).
+This pair_style was written by Ryan S. Elliott (U Minn).

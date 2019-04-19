@@ -38,9 +38,11 @@ Pair Styles :h1
    pair_eim
    pair_exp6_rx
    pair_extep
+   pair_fep_soft
    pair_gauss
    pair_gayberne
    pair_gran
+   pair_granular
    pair_gromacs
    pair_gw
    pair_hbond_dreiding
@@ -50,6 +52,7 @@ Pair Styles :h1
    pair_kolmogorov_crespi_full
    pair_kolmogorov_crespi_z
    pair_lcbop
+   pair_lebedeva_z
    pair_line_lj
    pair_list
    pair_lj
@@ -59,16 +62,17 @@ Pair Styles :h1
    pair_lj_long
    pair_lj_smooth
    pair_lj_smooth_linear
-   pair_lj_soft
+   pair_lj_switch3_coulgauss
    pair_lubricate
    pair_lubricateU
    pair_mdf
-   pair_meam
+   pair_meamc
    pair_meam_spline
    pair_meam_sw_spline
    pair_meso
    pair_mgpt
    pair_mie
+   pair_mm3_switch3_coulgauss
    pair_momb
    pair_morse
    pair_multi_lucy
@@ -82,10 +86,10 @@ Pair Styles :h1
    pair_polymorphic
    pair_python
    pair_quip
-   pair_reax
    pair_reaxc
    pair_resquared
    pair_sdk
+   pair_sdpd_taitwater_isothermal
    pair_smd_hertz
    pair_smd_tlsph
    pair_smd_triangulated_surface

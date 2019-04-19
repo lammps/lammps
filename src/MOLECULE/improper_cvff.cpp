@@ -61,8 +61,7 @@ void ImproperCvff::compute(int eflag, int vflag)
   double a33,a12,a13,a23,sx2,sy2,sz2;
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

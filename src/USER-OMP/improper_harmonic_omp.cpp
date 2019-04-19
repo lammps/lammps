@@ -43,10 +43,7 @@ ImproperHarmonicOMP::ImproperHarmonicOMP(class LAMMPS *lmp)
 
 void ImproperHarmonicOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

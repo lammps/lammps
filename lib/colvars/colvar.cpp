@@ -21,10 +21,14 @@
 
 
 colvar::colvar()
-  : prev_timestep(-1)
 {
-  // Initialize static array once and for all
   runave_os = NULL;
+
+  prev_timestep = -1;
+  after_restart = false;
+  kinetic_energy = 0.0;
+  potential_energy = 0.0;
+
   init_cv_requires();
 }
 
@@ -38,6 +42,7 @@ namespace {
   }
 }
 
+
 int colvar::init(std::string const &conf)
 {
   cvm::log("Initializing a new collective variable.\n");
@@ -48,7 +53,7 @@ int colvar::init(std::string const &conf)
   colvarmodule *cv = cvm::main();
 
   get_keyval(conf, "name", this->name,
-             (std::string("colvar")+cvm::to_str(cv->variables()->size()+1)));
+             (std::string("colvar")+cvm::to_str(cv->variables()->size())));
 
   if ((cvm::colvar_by_name(this->name) != NULL) &&
       (cvm::colvar_by_name(this->name) != this)) {
@@ -62,9 +67,6 @@ int colvar::init(std::string const &conf)
   // Could be a function defined in a different source file, for space?
 
   this->description = "colvar " + this->name;
-
-  kinetic_energy = 0.0;
-  potential_energy = 0.0;
 
   error_code |= init_components(conf);
   if (error_code != COLVARS_OK) {
@@ -260,7 +262,6 @@ int colvar::init(std::string const &conf)
   f_old.reset();
 
   x_restart.type(value());
-  after_restart = false;
 
   reset_bias_force();
 
@@ -282,8 +283,7 @@ int colvar::init(std::string const &conf)
   // Now that the children are defined we can solve dependencies
   enable(f_cv_active);
 
-  if (cvm::b_analysis)
-    parse_analysis(conf);
+  error_code |= parse_analysis(conf);
 
   if (cvm::debug())
     cvm::log("Done initializing collective variable \""+this->name+"\".\n");
@@ -426,8 +426,8 @@ int colvar::init_custom_function(std::string const &conf)
 
   if (x.size() != value_evaluators.size()) {
     cvm::error("Error: based on custom function type, expected "
-        + cvm::to_str(x.size()) + " scalar expressions, but "
-        + cvm::to_str(value_evaluators.size() + " were found.\n"));
+               + cvm::to_str(x.size()) + " scalar expressions, but "
+               + cvm::to_str(value_evaluators.size()) + " were found.\n");
     return INPUT_ERROR;
   }
 
@@ -455,36 +455,42 @@ int colvar::init_grid_parameters(std::string const &conf)
   }
 
   lower_boundary.type(value());
-
   upper_boundary.type(value());
-  upper_wall.type(value());
 
   if (is_enabled(f_cv_scalar)) {
 
     if (get_keyval(conf, "lowerBoundary", lower_boundary, lower_boundary)) {
       enable(f_cv_lower_boundary);
     }
-    std::string lw_conf, uw_conf;
-
-    if (get_keyval(conf, "lowerWallConstant", lower_wall_k, 0.0, parse_silent)) {
-      cvm::log("Warning: lowerWallConstant and lowerWall are deprecated, "
-               "please define a harmonicWalls bias instead.\n");
-      lower_wall.type(value());
-      get_keyval(conf, "lowerWall", lower_wall, lower_boundary);
-      lw_conf = std::string("\n\
-    lowerWallConstant "+cvm::to_str(lower_wall_k*width*width)+"\n\
-    lowerWalls "+cvm::to_str(lower_wall)+"\n");
-    }
 
     if (get_keyval(conf, "upperBoundary", upper_boundary, upper_boundary)) {
       enable(f_cv_upper_boundary);
     }
 
-    if (get_keyval(conf, "upperWallConstant", upper_wall_k, 0.0, parse_silent)) {
-      cvm::log("Warning: upperWallConstant and upperWall are deprecated, "
-               "please define a harmonicWalls bias instead.\n");
+    std::string lw_conf, uw_conf;
+    if (get_keyval(conf, "lowerWallConstant", lower_wall_k, 0.0,
+                   parse_silent)) {
+      cvm::log("Reading legacy options lowerWall and lowerWallConstant: "
+               "consider using a harmonicWalls restraint.\n");
+      lower_wall.type(value());
+      if (!get_keyval(conf, "lowerWall", lower_wall, lower_boundary)) {
+        cvm::log("Warning: lowerWall will need to be "
+                 "defined explicitly in the next release.\n");
+      }
+      lw_conf = std::string("\n\
+    lowerWallConstant "+cvm::to_str(lower_wall_k*width*width)+"\n\
+    lowerWalls "+cvm::to_str(lower_wall)+"\n");
+    }
+
+    if (get_keyval(conf, "upperWallConstant", upper_wall_k, 0.0,
+                   parse_silent)) {
+      cvm::log("Reading legacy options upperWall and upperWallConstant: "
+               "consider using a harmonicWalls restraint.\n");
       upper_wall.type(value());
-      get_keyval(conf, "upperWall", upper_wall, upper_boundary);
+      if (!get_keyval(conf, "upperWall", upper_wall, upper_boundary)) {
+        cvm::log("Warning: upperWall will need to be "
+                 "defined explicitly in the next release.\n");
+      }
       uw_conf = std::string("\n\
     upperWallConstant "+cvm::to_str(upper_wall_k*width*width)+"\n\
     upperWalls "+cvm::to_str(upper_wall)+"\n");
@@ -677,6 +683,7 @@ template<typename def_class_name> int colvar::init_components_type(std::string c
     if (cvcp != NULL) {
       cvcs.push_back(cvcp);
       cvcp->check_keywords(def_conf, def_config_key);
+      cvcp->config_key = def_config_key;
       if (cvm::get_error()) {
         cvm::error("Error: in setting up component \""+
                    std::string(def_config_key)+"\".\n", INPUT_ERROR);
@@ -874,19 +881,7 @@ int colvar::parse_analysis(std::string const &conf)
       cvm::error("Error: runAveStride must be commensurate with the restart frequency.\n", INPUT_ERROR);
     }
 
-    get_keyval(conf, "runAveOutputFile", runave_outfile,
-                std::string(cvm::output_prefix()+"."+
-                             this->name+".runave.traj"));
-
-    size_t const this_cv_width = x.output_width(cvm::cv_width);
-    cvm::proxy->backup_file(runave_outfile);
-    runave_os = cvm::proxy->output_stream(runave_outfile);
-    *runave_os << "# " << cvm::wrap_string("step", cvm::it_width-2)
-               << "  "
-               << cvm::wrap_string("running average", this_cv_width)
-               << " "
-               << cvm::wrap_string("running stddev", this_cv_width)
-               << "\n";
+    get_keyval(conf, "runAveOutputFile", runave_outfile, runave_outfile);
   }
 
   acf_length = 0;
@@ -895,7 +890,6 @@ int colvar::parse_analysis(std::string const &conf)
 
     enable(f_cv_corrfunc);
 
-    std::string acf_colvar_name;
     get_keyval(conf, "corrFuncWithColvar", acf_colvar_name, this->name);
     if (acf_colvar_name == this->name) {
       cvm::log("Calculating auto-correlation function.\n");
@@ -911,8 +905,12 @@ int colvar::parse_analysis(std::string const &conf)
     } else if (acf_type_str == to_lower_cppstr(std::string("velocity"))) {
       acf_type = acf_vel;
       enable(f_cv_fdiff_velocity);
-      if (acf_colvar_name.size())
-        (cvm::colvar_by_name(acf_colvar_name))->enable(f_cv_fdiff_velocity);
+      colvar *cv2 = cvm::colvar_by_name(acf_colvar_name);
+      if (cv2 == NULL) {
+        return cvm::error("Error: collective variable \""+acf_colvar_name+
+                          "\" is not defined at this time.\n", INPUT_ERROR);
+      }
+      cv2->enable(f_cv_fdiff_velocity);
     } else if (acf_type_str == to_lower_cppstr(std::string("coordinate_p2"))) {
       acf_type = acf_p2coor;
     } else {
@@ -930,9 +928,7 @@ int colvar::parse_analysis(std::string const &conf)
     }
 
     get_keyval(conf, "corrFuncNormalize", acf_normalize, true);
-    get_keyval(conf, "corrFuncOutputFile", acf_outfile,
-                std::string(cvm::output_prefix()+"."+this->name+
-                             ".corrfunc.dat"));
+    get_keyval(conf, "corrFuncOutputFile", acf_outfile, acf_outfile);
   }
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
@@ -1022,12 +1018,12 @@ int colvar::calc()
 
 int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
 {
-  colvarproxy *proxy = cvm::main()->proxy;
-
-  int error_code = COLVARS_OK;
   if (cvm::debug())
     cvm::log("Calculating colvar \""+this->name+"\", components "+
              cvm::to_str(first_cvc)+" through "+cvm::to_str(first_cvc+num_cvcs)+".\n");
+
+  colvarproxy *proxy = cvm::main()->proxy;
+  int error_code = COLVARS_OK;
 
   error_code |= check_cvc_range(first_cvc, num_cvcs);
   if (error_code != COLVARS_OK) {
@@ -1059,9 +1055,10 @@ int colvar::collect_cvc_data()
   if (cvm::debug())
     cvm::log("Calculating colvar \""+this->name+"\"'s properties.\n");
 
+  colvarproxy *proxy = cvm::main()->proxy;
   int error_code = COLVARS_OK;
 
-  if (cvm::step_relative() > 0) {
+  if ((cvm::step_relative() > 0) && (!proxy->total_forces_same_step())){
     // Total force depends on Jacobian derivative from previous timestep
     // collect_cvc_total_forces() uses the previous value of jd
     error_code |= collect_cvc_total_forces();
@@ -1069,6 +1066,10 @@ int colvar::collect_cvc_data()
   error_code |= collect_cvc_values();
   error_code |= collect_cvc_gradients();
   error_code |= collect_cvc_Jacobians();
+  if (proxy->total_forces_same_step()){
+    // Use Jacobian derivative from this timestep
+    error_code |= collect_cvc_total_forces();
+  }
   error_code |= calc_colvar_properties();
 
   if (cvm::debug())
@@ -1377,9 +1378,9 @@ int colvar::calc_colvar_properties()
 {
   if (is_enabled(f_cv_fdiff_velocity)) {
     // calculate the velocity by finite differences
-    if (cvm::step_relative() == 0)
+    if (cvm::step_relative() == 0) {
       x_old = x;
-    else {
+    } else {
       v_fdiff = fdiff_velocity(x_old, x);
       v_reported = v_fdiff;
     }
@@ -1392,6 +1393,13 @@ int colvar::calc_colvar_properties()
     if (cvm::step_relative() == 0 && !after_restart) {
       xr = x;
       vr.reset(); // (already 0; added for clarity)
+    }
+
+    // Special case of a repeated timestep (eg. multiple NAMD "run" statements)
+    // revert values of the extended coordinate and velocity prior to latest integration
+    if (cvm::step_relative() == prev_timestep) {
+      xr = prev_xr;
+      vr = prev_vr;
     }
 
     // report the restraint center as "value"
@@ -1450,7 +1458,6 @@ cvm::real colvar::update_forces_energy()
   // extended variable if there is one
 
   if (is_enabled(f_cv_extended_Lagrangian)) {
-
     if (cvm::debug()) {
       cvm::log("Updating extended-Lagrangian degree of freedom.\n");
     }
@@ -1468,7 +1475,6 @@ cvm::real colvar::update_forces_energy()
         return 0.;
       }
     }
-    prev_timestep = cvm::step_relative();
 
     // Integrate with slow timestep (if time_step_factor != 1)
     cvm::real dt = cvm::dt() * cvm::real(time_step_factor);
@@ -1502,6 +1508,11 @@ cvm::real colvar::update_forces_energy()
       ft_reported = f_ext;
     }
 
+    // backup in case we need to revert this integration timestep
+    // if the same MD timestep is re-run
+    prev_xr = xr;
+    prev_vr = vr;
+
     // leapfrog: starting from x_i, f_i, v_(i-1/2)
     vr  += (0.5 * dt) * f_ext / ext_mass;
     // Because of leapfrog, kinetic energy at time i is approximate
@@ -1524,8 +1535,18 @@ cvm::real colvar::update_forces_energy()
   // bypass the extended Lagrangian mass)
   f += fb_actual;
 
+  if (cvm::debug())
+    cvm::log("Done updating colvar \""+this->name+"\".\n");
+  return (potential_energy + kinetic_energy);
+}
+
+
+int colvar::end_of_step()
+{
+  if (cvm::debug())
+    cvm::log("End of step for colvar \""+this->name+"\".\n");
+
   if (is_enabled(f_cv_fdiff_velocity)) {
-    // set it for the next step
     x_old = x;
   }
 
@@ -1533,9 +1554,9 @@ cvm::real colvar::update_forces_energy()
     f_old = f;
   }
 
-  if (cvm::debug())
-    cvm::log("Done updating colvar \""+this->name+"\".\n");
-  return (potential_energy + kinetic_energy);
+  prev_timestep = cvm::step_relative();
+
+  return COLVARS_OK;
 }
 
 
@@ -1638,18 +1659,26 @@ int colvar::set_cvc_flags(std::vector<bool> const &flags)
 }
 
 
+void colvar::update_active_cvc_square_norm()
+{
+  active_cvc_square_norm = 0.0;
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    if (cvcs[i]->is_enabled()) {
+      active_cvc_square_norm += cvcs[i]->sup_coeff * cvcs[i]->sup_coeff;
+    }
+  }
+}
+
+
 int colvar::update_cvc_flags()
 {
   // Update the enabled/disabled status of cvcs if necessary
   if (cvc_flags.size()) {
     n_active_cvcs = 0;
-    active_cvc_square_norm = 0.;
-
     for (size_t i = 0; i < cvcs.size(); i++) {
       cvcs[i]->set_enabled(f_cvc_active, cvc_flags[i]);
       if (cvcs[i]->is_enabled()) {
         n_active_cvcs++;
-        active_cvc_square_norm += cvcs[i]->sup_coeff * cvcs[i]->sup_coeff;
       }
     }
     if (!n_active_cvcs) {
@@ -1657,9 +1686,46 @@ int colvar::update_cvc_flags()
       return COLVARS_ERROR;
     }
     cvc_flags.clear();
+
+    update_active_cvc_square_norm();
   }
 
   return COLVARS_OK;
+}
+
+
+int colvar::update_cvc_config(std::vector<std::string> const &confs)
+{
+  cvm::log("Updating configuration for colvar \""+name+"\"");
+
+  if (confs.size() != cvcs.size()) {
+    return cvm::error("Error: Wrong number of CVC config strings.  "
+                      "For those CVCs that are not being changed, try passing "
+                      "an empty string.", INPUT_ERROR);
+  }
+
+  int error_code = COLVARS_OK;
+  int num_changes = 0;
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    if (confs[i].size()) {
+      std::string conf(confs[i]);
+      cvm::increase_depth();
+      error_code |= cvcs[i]->colvar::cvc::init(conf);
+      error_code |= cvcs[i]->check_keywords(conf,
+                                            cvcs[i]->config_key.c_str());
+      cvm::decrease_depth();
+      num_changes++;
+    }
+  }
+
+  if (num_changes == 0) {
+    cvm::log("Warning: no changes were applied through modifycvcs; "
+             "please check that its argument is a list of strings.\n");
+  }
+
+  update_active_cvc_square_norm();
+
+  return error_code;
 }
 
 
@@ -1898,6 +1964,10 @@ std::ostream & colvar::write_restart(std::ostream &os) {
 
   os << "}\n\n";
 
+  if (runave_os) {
+    cvm::main()->proxy->flush_output_stream(runave_os);
+  }
+
   return os;
 }
 
@@ -2007,55 +2077,61 @@ std::ostream & colvar::write_traj(std::ostream &os)
   return os;
 }
 
+
 int colvar::write_output_files()
 {
-  if (cvm::b_analysis) {
+  int error_code = COLVARS_OK;
 
+  if (is_enabled(f_cv_corrfunc)) {
     if (acf.size()) {
-      cvm::log("Writing acf to file \""+acf_outfile+"\".\n");
-
+      if (acf_outfile.size() == 0) {
+        acf_outfile = std::string(cvm::output_prefix()+"."+this->name+
+                                  ".corrfunc.dat");
+      }
+      cvm::log("Writing correlation function to file \""+acf_outfile+"\".\n");
       cvm::backup_file(acf_outfile.c_str());
       std::ostream *acf_os = cvm::proxy->output_stream(acf_outfile);
       if (!acf_os) return cvm::get_error();
-      write_acf(*acf_os);
+      error_code |= write_acf(*acf_os);
       cvm::proxy->close_output_stream(acf_outfile);
     }
-
-    if (runave_os) {
-      cvm::proxy->close_output_stream(runave_outfile);
-      runave_os = NULL;
-    }
   }
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+
+  return error_code;
 }
 
 
 
 // ******************** ANALYSIS FUNCTIONS ********************
 
-void colvar::analyze()
+int colvar::analyze()
 {
+  int error_code = COLVARS_OK;
+
   if (is_enabled(f_cv_runave)) {
-    calc_runave();
+    error_code |= calc_runave();
   }
 
   if (is_enabled(f_cv_corrfunc)) {
-    calc_acf();
+    error_code |= calc_acf();
   }
+
+  return error_code;
 }
 
 
 inline void history_add_value(size_t const           &history_length,
-                               std::list<colvarvalue> &history,
-                               colvarvalue const      &new_value)
+                              std::list<colvarvalue> &history,
+                              colvarvalue const      &new_value)
 {
   history.push_front(new_value);
   if (history.size() > history_length)
     history.pop_back();
 }
 
+
 inline void history_incr(std::list< std::list<colvarvalue> >           &history,
-                          std::list< std::list<colvarvalue> >::iterator &history_p)
+                         std::list< std::list<colvarvalue> >::iterator &history_p)
 {
   if ((++history_p) == history.end())
     history_p = history.begin();
@@ -2065,18 +2141,21 @@ inline void history_incr(std::list< std::list<colvarvalue> >           &history,
 int colvar::calc_acf()
 {
   // using here an acf_stride-long list of vectors for either
-  // coordinates(acf_x_history) or velocities (acf_v_history); each vector can
+  // coordinates (acf_x_history) or velocities (acf_v_history); each vector can
   // contain up to acf_length values, which are contiguous in memory
   // representation but separated by acf_stride in the time series;
   // the pointer to each vector is changed at every step
+
+  colvar const *cfcv = cvm::colvar_by_name(acf_colvar_name);
+  if (cfcv == NULL) {
+    return cvm::error("Error: collective variable \""+acf_colvar_name+
+                      "\" is not defined at this time.\n", INPUT_ERROR);
+  }
 
   if (acf_x_history.empty() && acf_v_history.empty()) {
 
     // first-step operations
 
-    colvar *cfcv = (acf_colvar_name.size() ?
-                    cvm::colvar_by_name(acf_colvar_name) :
-                    this);
     if (colvarvalue::check_types(cfcv->value(), value())) {
       cvm::error("Error: correlation function between \""+cfcv->name+
                  "\" and \""+this->name+"\" cannot be calculated, "
@@ -2085,7 +2164,8 @@ int colvar::calc_acf()
     }
     acf_nframes = 0;
 
-    cvm::log("Colvar \""+this->name+"\": initializing ACF calculation.\n");
+    cvm::log("Colvar \""+this->name+"\": initializing correlation function "
+             "calculation.\n");
 
     if (acf.size() < acf_length+1)
       acf.resize(acf_length+1, 0.0);
@@ -2114,41 +2194,31 @@ int colvar::calc_acf()
       break;
     }
 
-  } else {
-
-    colvar *cfcv = (acf_colvar_name.size() ?
-                    cvm::colvar_by_name(acf_colvar_name) :
-                    this);
+  } else if (cvm::step_relative() > prev_timestep) {
 
     switch (acf_type) {
 
     case acf_vel:
 
-      if (is_enabled(f_cv_fdiff_velocity)) {
-        // calc() should do this already, but this only happens in a
-        // simulation; better do it again in case a trajectory is
-        // being read
-        v_reported = v_fdiff = fdiff_velocity(x_old, cfcv->value());
-      }
-
       calc_vel_acf((*acf_v_history_p), cfcv->velocity());
-      // store this value in the history
-      history_add_value(acf_length+acf_offset, *acf_v_history_p, cfcv->velocity());
-      // if stride is larger than one, cycle among different histories
+      history_add_value(acf_length+acf_offset, *acf_v_history_p,
+                        cfcv->velocity());
       history_incr(acf_v_history, acf_v_history_p);
       break;
 
     case acf_coor:
 
       calc_coor_acf((*acf_x_history_p), cfcv->value());
-      history_add_value(acf_length+acf_offset, *acf_x_history_p, cfcv->value());
+      history_add_value(acf_length+acf_offset, *acf_x_history_p,
+                        cfcv->value());
       history_incr(acf_x_history, acf_x_history_p);
       break;
 
     case acf_p2coor:
 
       calc_p2coor_acf((*acf_x_history_p), cfcv->value());
-      history_add_value(acf_length+acf_offset, *acf_x_history_p, cfcv->value());
+      history_add_value(acf_length+acf_offset, *acf_x_history_p,
+                        cfcv->value());
       history_incr(acf_x_history, acf_x_history_p);
       break;
 
@@ -2157,18 +2227,14 @@ int colvar::calc_acf()
     }
   }
 
-  if (is_enabled(f_cv_fdiff_velocity)) {
-    // set it for the next step
-    x_old = x;
-  }
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+  return COLVARS_OK;
 }
 
 
-int colvar::calc_vel_acf(std::list<colvarvalue> &v_list,
-                           colvarvalue const      &v)
+void colvar::calc_vel_acf(std::list<colvarvalue> &v_list,
+                          colvarvalue const      &v)
 {
-  // loop over stored velocities and add to the ACF, but only the
+  // loop over stored velocities and add to the ACF, but only if the
   // length is sufficient to hold an entire row of ACF values
   if (v_list.size() >= acf_length+acf_offset) {
     std::list<colvarvalue>::iterator  vs_i = v_list.begin();
@@ -2187,7 +2253,6 @@ int colvar::calc_vel_acf(std::list<colvarvalue> &v_list,
 
     acf_nframes++;
   }
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
 
 
@@ -2212,7 +2277,7 @@ void colvar::calc_coor_acf(std::list<colvarvalue> &x_list,
 
 
 void colvar::calc_p2coor_acf(std::list<colvarvalue> &x_list,
-                              colvarvalue const      &x)
+                             colvarvalue const      &x)
 {
   // same as above but with second order Legendre polynomial instead
   // of just the scalar product
@@ -2233,20 +2298,46 @@ void colvar::calc_p2coor_acf(std::list<colvarvalue> &x_list,
 }
 
 
-void colvar::write_acf(std::ostream &os)
+int colvar::write_acf(std::ostream &os)
 {
-  if (!acf_nframes)
-    cvm::log("Warning: ACF was not calculated (insufficient frames).\n");
+  if (!acf_nframes) {
+    return COLVARS_OK;
+  }
+
   os.setf(std::ios::scientific, std::ios::floatfield);
-  os << "# Autocorrelation function for collective variable \""
-     << this->name << "\"\n";
-  // one frame is used for normalization, the statistical sample is
-  // hence decreased
-  os << "# nframes = " << (acf_normalize ?
-                           acf_nframes - 1 :
-                           acf_nframes) << "\n";
+  os << "# ";
+  switch (acf_type) {
+  case acf_vel:
+    os << "Velocity";
+    break;
+  case acf_coor:
+    os << "Coordinate";
+    break;
+  case acf_p2coor:
+    os << "Coordinate (2nd Legendre poly)";
+    break;
+  }
+
+  if (acf_colvar_name == name) {
+    os << " autocorrelation function for variable \""
+       << this->name << "\"\n";
+  } else {
+    os << " correlation function between variables \"" //
+       << this->name << "\" and \"" << acf_colvar_name << "\"\n";
+  }
+
+  os << "# Number of samples = ";
+  if (acf_normalize) {
+    os << (acf_nframes-1) << " (one DoF is used for normalization)\n";
+  } else {
+    os << acf_nframes << "\n";
+  }
+
+  os << "# " << cvm::wrap_string("step", cvm::it_width-2) << " "
+     << cvm::wrap_string("corrfunc(step)", cvm::cv_width) << "\n";
 
   cvm::real const acf_norm = acf.front() / cvm::real(acf_nframes);
+
   std::vector<cvm::real>::iterator acf_i;
   size_t it = acf_offset;
   for (acf_i = acf.begin(); acf_i != acf.end(); ++acf_i) {
@@ -2257,11 +2348,15 @@ void colvar::write_acf(std::ostream &os)
             (*acf_i)/(acf_norm * cvm::real(acf_nframes)) :
             (*acf_i)/(cvm::real(acf_nframes)) ) << "\n";
   }
+
+  return os.good() ? COLVARS_OK : FILE_ERROR;
 }
 
 
-void colvar::calc_runave()
+int colvar::calc_runave()
 {
+  int error_code = COLVARS_OK;
+
   if (x_history.empty()) {
 
     runave.type(value().type());
@@ -2280,9 +2375,28 @@ void colvar::calc_runave()
 
   } else {
 
-    if ( (cvm::step_relative() % runave_stride) == 0) {
+    if ( (cvm::step_relative() % runave_stride) == 0 &&
+         (cvm::step_relative() > prev_timestep) ) {
 
       if ((*x_history_p).size() >= runave_length-1) {
+
+        if (runave_os == NULL) {
+          if (runave_outfile.size() == 0) {
+            runave_outfile = std::string(cvm::output_prefix()+"."+
+                                         this->name+".runave.traj");
+          }
+
+          size_t const this_cv_width = x.output_width(cvm::cv_width);
+          cvm::proxy->backup_file(runave_outfile);
+          runave_os = cvm::proxy->output_stream(runave_outfile);
+          runave_os->setf(std::ios::scientific, std::ios::floatfield);
+          *runave_os << "# " << cvm::wrap_string("step", cvm::it_width-2)
+                     << "   "
+                     << cvm::wrap_string("running average", this_cv_width)
+                     << " "
+                     << cvm::wrap_string("running stddev", this_cv_width)
+                     << "\n";
+        }
 
         runave = x;
         std::list<colvarvalue>::iterator xs_i;
@@ -2302,7 +2416,7 @@ void colvar::calc_runave()
         runave_variance *= 1.0 / cvm::real(runave_length-1);
 
         *runave_os << std::setw(cvm::it_width) << cvm::step_relative()
-                   << "  "
+                   << "   "
                    << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
                    << runave << " "
                    << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
@@ -2313,6 +2427,7 @@ void colvar::calc_runave()
     }
   }
 
+  return error_code;
 }
 
 // Static members

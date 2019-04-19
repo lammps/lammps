@@ -50,7 +50,6 @@ namespace LAMMPS_NS {
     double **coord,**coordp;
     double **values_local,**values_global;
 
-    int ndim;
     double dt,nktv2p,ftm2v;
     double area;
     class NeighList *list;
@@ -71,43 +70,43 @@ namespace LAMMPS_NS {
    command-line option when running LAMMPS to see the offending line.
 
    E: Compute stress/mop/profile incompatible with simulation dimension
- 
+
    Compute stress/mop/profile only works with 3D simulations.
- 
+
    E: Compute stress/mop/profile incompatible with triclinic simulation box
- 
+
    Self-explanatory.
- 
+
    E: Compute stress/mop/profile requires a fixed simulation box
- 
+
    Compute stress/mop/profile is not compatible with any change of volume or shape
    or boundary conditions of the simulation box.
- 
+
    E: No pair style is defined for compute stress/mop/profile
- 
+
    Self-explanatory. Compute stress/mop/profile requires the definition of a pair style.
- 
+
    E: Pair style does not support compute stress/mop/profile
- 
+
    The pair style does not have a single() function, so it can
    not be invoked by compute stress/mop/profile.
- 
+
    E: Origin of bins for compute stress/mop/profile is out of bounds
- 
+
    Self-explanatory.
- 
+
    W: compute stress/mop/profile does not account for bond potentials
- 
+
    W: compute stress/mop/profile does not account for angle potentials
- 
+
    W: compute stress/mop/profile does not account for dihedral potentials
- 
+
    W: compute stress/mop/profile does not account for improper potentials
- 
+
    W: compute stress/mop/profile does not account for kspace contributions
- 
+
    Compute stress/mop/profile only accounts for pairwise additive interactions for
    the computation of local stress tensor components.
- 
+
 */
 

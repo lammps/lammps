@@ -8,7 +8,10 @@
 
 pair_style lj/expand command :h3
 pair_style lj/expand/gpu command :h3
+pair_style lj/expand/kk command :h3
 pair_style lj/expand/omp command :h3
+pair_style lj/expand/coul/long command :h3
+pair_style lj/expand/coul/long/gpu command :h3
 
 [Syntax:]
 
@@ -22,6 +25,11 @@ pair_style lj/expand 2.5
 pair_coeff * * 1.0 1.0 0.5
 pair_coeff 1 1 1.0 1.0 -0.2 2.0 :pre
 
+pair_style lj/expand/coul/long 2.5
+pair_style lj/expand/coul/long 2.5 4.0
+pair_coeff * * 1.0 1.0 0.5
+pair_coeff 1 1 1.0 1.0 -0.2 3.0 :pre
+
 [Description:]
 
 Style {lj/expand} computes a LJ interaction with a distance shifted by
@@ -34,11 +42,12 @@ formula:
 Rc is the cutoff which does not include the delta distance.  I.e. the
 actual force cutoff is the sum of cutoff + delta.
 
-The following coefficients must be defined for each pair of atoms
-types via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands, or by mixing as described below:
+For all of the {lj/expand} pair styles, the following coefficients must
+be defined for each pair of atoms types via the
+"pair_coeff"_pair_coeff.html command as in the examples above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands, or by mixing as
+described below:
 
 epsilon (energy units)
 sigma (distance units)
@@ -47,6 +56,11 @@ cutoff (distance units) :ul
 
 The delta values can be positive or negative.  The last coefficient is
 optional.  If not specified, the global LJ cutoff is used.
+
+For {lj/expand/coul/long} only the LJ cutoff can be specified since a
+Coulombic cutoff cannot be specified for an individual I,J type pair.
+All type pairs use the same global Coulombic cutoff specified in the
+pair_style command.
 
 :line
 

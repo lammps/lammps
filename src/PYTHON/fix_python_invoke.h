@@ -13,8 +13,8 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(python,FixPythonInvoke)
 FixStyle(python/invoke,FixPythonInvoke)
+FixStyle(python,FixPythonInvoke)
 
 #else
 

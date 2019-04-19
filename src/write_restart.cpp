@@ -63,7 +63,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
      COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
      EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM};
+     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
 
 /* ---------------------------------------------------------------------- */
 
@@ -533,7 +533,7 @@ void WriteRestart::header()
   write_int(EXTRA_ANGLE_PER_ATOM,atom->extra_angle_per_atom);
   write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
-  write_int(EXTRA_SPECIAL_PER_ATOM,force->special_extra);
+  write_int(ATOM_MAXSPECIAL,atom->maxspecial);
 
   // -1 flag signals end of header
 

@@ -58,7 +58,7 @@ keyword = {collective} or {compute} or {cutoff/adjust} or {diff} or {disp/auto} 
 [Examples:]
 
 kspace_modify mesh 24 24 30 order 6
-kspace_modify slab 3.0 
+kspace_modify slab 3.0
 kspace_modify scafacos tolerance energy :pre
 
 [Description:]
@@ -317,19 +317,19 @@ The {tolerance} option affects how the {accuracy} specified with the
 "kspace_style"_kspace_style.html command is interpreted by ScaFaCoS.
 The following values may be used:
 
-energy = absolute accuracy in total Coulomic energy
-energy_rel = relative accuracy in total Coulomic energy
-potential = absolute accuracy in total Coulomic potential
-potential_rel = relative accuracy in total Coulomic potential
+energy = absolute accuracy in total Coulombic energy
+energy_rel = relative accuracy in total Coulombic energy
+potential = absolute accuracy in total Coulombic potential
+potential_rel = relative accuracy in total Coulombic potential
 field = absolute accuracy in electric field
 field_rel = relative accuracy in electric field :ul
 
 The values with suffix _rel indicate the tolerance is a relative
 tolerance; the other values impose an absolute tolerance on the given
-quantity. Absoulte tolerance in this case means, that for a given
+quantity. Absolute tolerance in this case means, that for a given
 quantity q and a given absolute tolerance of t_a the result should
-be between q-t_a and q+t_a. For a relative tolerance t_r the relative 
-error should not be greater than t_r, i.e. abs(1 - (result/q)) < t_r. 
+be between q-t_a and q+t_a. For a relative tolerance t_r the relative
+error should not be greater than t_r, i.e. abs(1 - (result/q)) < t_r.
 As a consequence of this, the tolerance type should be checked, when
 performing computations with a high absolute field / energy. E.g.
 if the total energy in the system is 1000000.0 an absolute tolerance
@@ -338,12 +338,12 @@ of 1e-3 would mean that the result has to be between 999999.999 and
 1e-9.
 
 The energy and energy_rel values, set a tolerance based on the total
-Coulomic energy of the system.  The potential and potential_rel set a
-tolerance based on the per-atom Coulomic energy.  The field and
+Coulombic energy of the system.  The potential and potential_rel set a
+tolerance based on the per-atom Coulombic energy.  The field and
 field_rel tolerance types set a tolerance based on the electric field
 values computed by ScaFaCoS.  Since per-atom forces are derived from
 the per-atom electric field, this effectively sets a tolerance on the
-forces, simimlar to other LAMMPS KSpace styles, as explained on the
+forces, similar to other LAMMPS KSpace styles, as explained on the
 "kspace_style"_kspace_style.html doc page.
 
 Note that not all ScaFaCoS solvers support all tolerance types.
@@ -363,7 +363,7 @@ The {fmm_tuning} option is only relevant when using the FMM method.
 It activates (value=1) or deactivates (value=0) an internal tuning
 mechanism for the FMM solver.  The tuning operation runs sequentially
 and can be very time-consuming.  Usually it is not needed for systems
-with a homogenous charge distribution. The default for this option is
+with a homogeneous charge distribution. The default for this option is
 therefore {0}. The FMM internal tuning is performed once, when the
 solver is set up.
 

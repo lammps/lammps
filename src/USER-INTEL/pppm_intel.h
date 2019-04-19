@@ -34,7 +34,7 @@ namespace LAMMPS_NS {
 
 class PPPMIntel : public PPPM {
  public:
-  PPPMIntel(class LAMMPS *, int, char **);
+  PPPMIntel(class LAMMPS *);
   virtual ~PPPMIntel();
   virtual void init();
   virtual void compute(int, int);

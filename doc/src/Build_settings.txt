@@ -22,7 +22,7 @@ explain how to do this for building both with CMake and make.
 "Error handling exceptions"_#exceptions when using LAMMPS as a library :all(b)
 
 :line
- 
+
 FFT library :h4,link(fft)
 
 When the KSPACE package is included in a LAMMPS build, the
@@ -57,10 +57,10 @@ FFT_INC = -DFFT_SINGLE        # do not specify for double precision
 FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY :pre
                               # default is FFT_PACK_ARRAY if not specified
 
-FFT_INC =    	-I/usr/local/include
+FFT_INC =       -I/usr/local/include
 FFT_PATH =      -L/usr/local/lib
-FFT_LIB =	-lfftw3             # FFTW3 double precision
-FFT_LIB =	-lfftw3 -lfftw3f    # FFTW3 single precision
+FFT_LIB =       -lfftw3             # FFTW3 double precision
+FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
 FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  # MKL with Intel compiler
 FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core     # MKL with GNU compier :pre
 
@@ -73,7 +73,7 @@ FFT_LIB with the appropriate FFT libraries to include in the link.
 The "KISS FFT library"_http://kissfft.sf.net is included in the LAMMPS
 distribution.  It is portable across all platforms.  Depending on the
 size of the FFTs and the number of processors used, the other
-libraries listed here can be faster.  
+libraries listed here can be faster.
 
 However, note that long-range Coulombics are only a portion of the
 per-timestep CPU cost, FFTs are only a portion of long-range
@@ -92,7 +92,7 @@ Building FFTW for your box should be as simple as ./configure; make;
 make install.  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
 the "--prefix" option of configure.  Type "./configure --help" to see
-various options. 
+various options.
 
 The Intel MKL math library is part of the Intel compiler suite.  It
 can be used with the Intel or GNU compiler (see FFT_LIB setting above).
@@ -139,16 +139,16 @@ adequate.
 [Makefile.machine setting]:
 
 LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :pre
-                               # default is LAMMMPS_SMALLBIG if not specified
+                               # default is LAMMPS_SMALLBIG if not specified
 [CMake and make info]:
 
 The default "smallbig" setting allows for simulations with:
- 
+
 total atom count = 2^63 atoms (about 9e18)
 total timesteps = 2^63 (about 9e18)
 atom IDs = 2^31 (about 2 billion)
 image flags = roll over at 512 :ul
-  
+
 The "bigbig" setting increases the latter two limits.  It allows for:
 
 total atom count = 2^63 atoms (about 9e18)
@@ -179,8 +179,11 @@ e.g. from 511 to -512, which can cause diagnostics like the
 mean-squared displacement, as calculated by the "compute
 msd"_compute_msd.html command, to be faulty.
 
-Note that the USER-ATC package is not currently compatible with the
-"bigbig" setting.
+Note that the USER-ATC package and the USER-INTEL package are currently
+not compatible with the "bigbig" setting. Also, there are limitations
+when using the library interface. Some functions with known issues
+have been replaced by dummy calls printing a corresponding error rather
+than crashing randomly or corrupting data.
 
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake
@@ -209,12 +212,12 @@ Usually these settings are all that is needed.  If CMake cannot find
 the graphics header, library, executable files, you can set these
 variables:
 
--D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file 
--D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file 
--D PNG_INCLUDE_DIR=path     # path to png.h header file 
--D PNG_LIBRARIES=path       # path to libpng.a (.so) file 
--D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file 
--D ZLIB_LIBRARIES=path      # path to libz.a (.so) file 
+-D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+-D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file
+-D PNG_INCLUDE_DIR=path     # path to png.h header file
+-D PNG_LIBRARIES=path       # path to libpng.a (.so) file
+-D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+-D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
 -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable :pre
 
 [Makefile.machine settings]:

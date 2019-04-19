@@ -44,8 +44,7 @@ PairLJLongCoulLongOpt::PairLJLongCoulLongOpt(LAMMPS *lmp) : PairLJLongCoulLong(l
 void PairLJLongCoulLongOpt::compute(int eflag, int vflag)
 {
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
   int order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
 
   if (order6) {
@@ -290,8 +289,7 @@ void PairLJLongCoulLongOpt::compute(int eflag, int vflag)
 void PairLJLongCoulLongOpt::compute_outer(int eflag, int vflag)
 {
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
   int order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
 
   if (order6) {

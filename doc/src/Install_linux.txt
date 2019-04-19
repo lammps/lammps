@@ -9,36 +9,13 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Download an executable for Linux :h3
 
-Binaries are available for many different versions of Linux:
+Binaries are available for different versions of Linux:
 
-"Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE"_#rpm
 "Pre-built Ubuntu Linux executables"_#ubuntu
-"Pre-built Gentoo Linux executable"_#gentoo :all(b)
-
-:line
-
-Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE :h4,link(rpm)
-
-Pre-built LAMMPS executables for various Linux distributions
-can be downloaded as binary RPM files from this site:
-
-"http://rpm.lammps.org"_http://rpm.lammps.org
-
-There are multiple package variants supporting serial, parallel and
-Python wrapper versions.  The LAMMPS binaries contain all optional
-packages included in the source distribution except: GPU, KIM, REAX,
-and USER-INTEL.
-
-Installation instructions for the various versions are here:
-
-"http://rpm.lammps.org/install.html"_http://rpm.lammps.org/install.html
-
-The instructions show how to enable the repository in the respective
-system's package management system.  Installing and updating are then
-straightforward and automatic.  
-
-Thanks to Axel Kohlmeyer (Temple U, akohlmey at gmail.com) for setting
-up this RPM capability.
+"Pre-built Fedora Linux executables"_#fedora
+"Pre-built EPEL Linux executables (RHEL, CentOS)"_#epel
+"Pre-built OpenSuse Linux executables"_#opensuse
+"Gentoo Linux executable"_#gentoo :all(b)
 
 :line
 
@@ -60,10 +37,10 @@ To install LAMMPS do the following once:
 
 sudo apt-get install lammps-daily :pre
 
-This downloads an executable named "lammps-daily" to your box, which
+This downloads an executable named "lmp_daily" to your box, which
 can then be used in the usual way to run input scripts:
 
-lammps-daily < in.lj :pre
+lmp_daily -in in.lj :pre
 
 To update LAMMPS to the most current version, do the following:
 
@@ -99,7 +76,81 @@ Ubuntu package capability.
 
 :line
 
-Pre-built Gentoo Linux executable :h4,link(gentoo)
+Pre-built Fedora Linux executables :h4,link(fedora)
+
+Pre-built LAMMPS packages for stable releases are available
+in the Fedora Linux distribution as of version 28. The packages
+can be installed via the dnf package manager. There are 3 basic
+varieties (lammps = no MPI, lammps-mpich = MPICH MPI library,
+lammps-openmpi = OpenMPI MPI library) and for each support for
+linking to the C library interface (lammps-devel, lammps-mpich-devel,
+lammps-openmpi-devel), the header for compiling programs using
+the C library interface (lammps-headers), and the LAMMPS python
+module for Python 3. All packages can be installed at the same
+time and the name of the LAMMPS executable is {lmp} and {lmp_openmpi}
+or {lmp_mpich} respectively.  By default, {lmp} will refer to the
+serial executable, unless one of the MPI environment modules is loaded
+("module load mpi/mpich-x86_64" or "module load mpi/openmpi-x86_64").
+Then the corresponding parallel LAMMPS executable can be used.
+The same mechanism applies when loading the LAMMPS python module.
+
+To install LAMMPS with OpenMPI and run an input in.lj with 2 CPUs do:
+
+dnf install lammps-openmpi
+module load mpi/openmpi-x86_64
+mpirun -np 2 lmp -in in.lj :pre
+
+The "dnf install" command is needed only once. In case of a new LAMMPS
+stable release, "dnf update" will automatically update to the newer
+version as soon at the RPM files are built and uploaded to the download
+mirrors. The "module load" command is needed once per (shell) session
+or shell terminal instance, unless it is automatically loaded from the
+shell profile.
+
+Please use "lmp -help" to see which compilation options, packages,
+and styles are included in the binary.
+
+Thanks to Christoph Junghans (LANL) for making LAMMPS available in Fedora.
+
+:line
+
+Pre-built EPEL Linux executable :h4,link(epel)
+
+Pre-built LAMMPS packages for stable releases are available
+in the "Extra Packages for Enterprise Linux (EPEL) repository"_https://fedoraproject.org/wiki/EPEL
+for use with Red Hat Enterprise Linux (RHEL) or CentOS version 7.x
+and compatible Linux distributions. Names of packages, executable,
+and content are the same as described above for Fedora Linux.
+But RHEL/CentOS 7.x uses the "yum" package manager instead of "dnf"
+in Fedora 28.
+
+Please use "lmp -help" to see which compilation options, packages,
+and styles are included in the binary.
+
+Thanks to Christoph Junghans (LANL) for making LAMMPS available in EPEL.
+
+:line
+
+Pre-built OpenSuse Linux executable :h4,link(opensuse)
+
+A pre-built LAMMPS package for stable releases is available
+in OpenSuse as of Leap 15.0. You can install the package with:
+
+zypper install lammps :pre
+
+This includes support for OpenMPI. The name of the LAMMPS executable
+is {lmp}. Thus to run an input in parallel on 2 CPUs you would do:
+
+mpirun -np 2 lmp -in in.lj :pre
+
+Please use "lmp -help" to see which compilation options, packages,
+and styles are included in the binary.
+
+Thanks to Christoph Junghans (LANL) for making LAMMPS available in OpenSuse.
+
+:line
+
+Gentoo Linux executable :h4,link(gentoo)
 
 LAMMPS is part of Gentoo's main package tree and can be installed by
 typing:

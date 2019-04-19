@@ -115,6 +115,7 @@ int FixPrecessionSpin::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= MIN_POST_FORCE;
   mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
@@ -169,8 +170,16 @@ void FixPrecessionSpin::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::post_force(int /*vflag*/)
+void FixPrecessionSpin::min_setup(int vflag)
 {
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::post_force(int /* vflag */)
+{
+
   // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {
@@ -179,16 +188,19 @@ void FixPrecessionSpin::post_force(int /*vflag*/)
     set_magneticprecession();                   // update mag. field if time-dep.
   }
 
+  double epreci;
   double *emag = atom->emag;
   double **fm = atom->fm;
   double **sp = atom->sp;
   double spi[3], fmi[3];
+  double eprci;
   const int nlocal = atom->nlocal;
 
   eflag = 0;
   eprec = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
+    epreci = 0.0;
     spi[0] = sp[i][0];
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
@@ -196,15 +208,16 @@ void FixPrecessionSpin::post_force(int /*vflag*/)
 
     if (zeeman_flag) {          // compute Zeeman interaction
       compute_zeeman(i,fmi);
-      eprec -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      epreci -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
     }
 
     if (aniso_flag) {           // compute magnetic anisotropy
       compute_anisotropy(spi,fmi);
-      eprec -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      epreci -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
     }
 
-    emag[i] += hbar * eprec;
+    eprec += epreci;
+    emag[i] += hbar * epreci;
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
@@ -230,9 +243,9 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
   double **sp = atom->sp;
-  fmi[0] -= sp[i][3]*hx;
-  fmi[1] -= sp[i][3]*hy;
-  fmi[2] -= sp[i][3]*hz;
+  fmi[0] += sp[i][3]*hx;
+  fmi[1] += sp[i][3]*hy;
+  fmi[2] += sp[i][3]*hz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,4 +294,11 @@ double FixPrecessionSpin::compute_scalar()
     eflag = 1;
   }
   return eprec_all;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::min_post_force(int vflag)
+{
+  post_force(vflag);
 }

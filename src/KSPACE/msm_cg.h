@@ -26,8 +26,9 @@ namespace LAMMPS_NS {
 
 class MSMCG : public MSM {
  public:
-  MSMCG(class LAMMPS *, int, char **);
+  MSMCG(class LAMMPS *);
   virtual ~MSMCG();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
   virtual double memory_usage();
 

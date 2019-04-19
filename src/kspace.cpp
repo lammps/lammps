@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-KSpace::KSpace(LAMMPS *lmp, int /*narg*/, char **/*arg*/) : Pointers(lmp)
+KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
 {
   order_allocated = 0;
   energy = 0.0;
@@ -168,9 +168,7 @@ void KSpace::triclinic_check()
 
 void KSpace::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ----------------------------------------------------------------------

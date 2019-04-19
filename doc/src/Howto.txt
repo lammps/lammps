@@ -45,7 +45,7 @@ General howto :h3
 <!-- RST
 
 .. toctree::
-   :name: general
+   :name: general_howto
    :maxdepth: 1
 
    Howto_restart
@@ -148,7 +148,7 @@ END_RST -->
 
 <!-- HTML_ONLY -->
 
-"CHARMM, AMBER, and DREIDING force fields"_Howto_bioFF.html
+"CHARMM, AMBER, COMPASS, and DREIDING force fields"_Howto_bioFF.html
 "TIP3P water model"_Howto_tip3p.html
 "TIP4P water model"_Howto_tip4p.html
 "SPC water model"_Howto_spc.html :all(b)

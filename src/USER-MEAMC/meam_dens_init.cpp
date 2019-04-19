@@ -101,7 +101,7 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
   double xjtmp, yjtmp, zjtmp, delxik, delyik, delzik, rik2 /*,rik*/;
   double xktmp, yktmp, zktmp, delxjk, delyjk, delzjk, rjk2 /*,rjk*/;
   double xik, xjk, sij, fcij, sfcij, dfcij, sikj, dfikj, cikj;
-  double Cmin, Cmax, delc, /*ebound,*/ rbound, a, coef1, coef2;
+  double Cmin, Cmax, delc, /*ebound,*/ a, coef1, coef2;
   double dCikj;
   double rnorm, fc, dfc, drinv;
 
@@ -129,6 +129,7 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
     rij2 = delxij * delxij + delyij * delyij + delzij * delzij;
     rij = sqrt(rij2);
 
+    const double rbound = this->ebound_meam[elti][eltj] * rij2;
     if (rij > this->rc_meam) {
       fcij = 0.0;
       dfcij = 0.0;
@@ -138,7 +139,6 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
       sij = 1.0;
 
       //     if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
-      const double rbound = this->ebound_meam[elti][eltj] * rij2;
       for (kn = 0; kn < numneigh_full; kn++) {
         k = firstneigh_full[kn];
         eltk = fmap[type[k]];
@@ -193,7 +193,6 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
     if (iszero(sfcij) || iszero(sfcij - 1.0))
       goto LABEL_100;
 
-    rbound = this->ebound_meam[elti][eltj] * rij2;
     for (kn = 0; kn < numneigh_full; kn++) {
       k = firstneigh_full[kn];
       if (k == j) continue;

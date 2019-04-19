@@ -130,7 +130,7 @@ E: Cannot use fix ttm with 2d simulation
 
 This is a current restriction of this fix due to the grid it creates.
 
-E: Cannot use nonperiodic boundares with fix ttm
+E: Cannot use non-periodic boundares with fix ttm
 
 This fix requires a fully periodic simulation box.
 

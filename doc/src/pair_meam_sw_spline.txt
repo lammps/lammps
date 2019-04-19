@@ -6,8 +6,7 @@
 
 :line
 
-pair_style meam/sw/spline :h3
-pair_style meam/sw/spline/omp :h3
+pair_style meam/sw/spline command :h3
 
 [Syntax:]
 
@@ -117,7 +116,7 @@ info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style meam"_pair_meam.html,
+"pair_coeff"_pair_coeff.html, "pair_style meam/c"_pair_meamc.html,
 "pair_style meam/spline"_pair_meam_spline.html
 
 [Default:] none

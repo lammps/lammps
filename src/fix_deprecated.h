@@ -15,6 +15,7 @@
 
 // list all deprecated and removed fix styles here
 
+FixStyle(DEPRECATED,FixDeprecated)
 FixStyle(ave/spatial,FixDeprecated)
 FixStyle(ave/spatial/sphere,FixDeprecated)
 

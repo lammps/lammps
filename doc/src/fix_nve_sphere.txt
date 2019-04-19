@@ -8,6 +8,7 @@
 
 fix nve/sphere command :h3
 fix nve/sphere/omp command :h3
+fix nve/sphere/kk command :h3
 
 [Syntax:]
 

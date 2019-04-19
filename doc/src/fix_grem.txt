@@ -53,7 +53,7 @@ particles as usual. Either constant volume or constant pressure
 algorithms can be used.
 
 The fix enforces a generalized ensemble in a single replica
-only. Typically, this ideaology is combined with replica exchange with
+only. Typically, this ideology is combined with replica exchange with
 replicas differing by {lambda} only for simplicity, but this is not
 required. A multi-replica simulation can be run within the LAMMPS
 environment using the "temper/grem"_temper_grem.html command. This

@@ -39,7 +39,7 @@ enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,VARIABLE};
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vstr(NULL), vvar(NULL), dstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(NULL), vvar(NULL), dstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 
@@ -55,7 +55,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   bstyle = new int[nvalues];
   vstr = new char*[nvalues];
   vvar = new int[nvalues];
-  
+
   nvalues = 0;
   nvar = 0;
 
@@ -82,7 +82,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
   setflag = 0;
   dstr = NULL;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
       setflag = 1;
@@ -105,9 +105,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for copute bond/local does not exist");
+        error->all(FLERR,"Variable name for copute bond/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute bond/local is invalid style");
+        error->all(FLERR,"Variable for compute bond/local is invalid style");
     }
 
     if (dstr) {
@@ -117,10 +117,10 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       if (!input->variable->internalstyle(dvar))
         error->all(FLERR,"Variable for compute bond/local is invalid style");
     }
-  } else if (setflag) 
+  } else if (setflag)
     error->all(FLERR,"Compute bond/local set with no variable");
 
-  
+
   // set singleflag if need to call bond->single()
   // set velflag if compute any quantities based on velocities
 
@@ -168,7 +168,7 @@ void ComputeBondLocal::init()
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for compute bond/local does not exist");
+        error->all(FLERR,"Variable name for compute bond/local does not exist");
     }
 
     if (dstr) {
@@ -377,10 +377,10 @@ int ComputeBondLocal::compute_bonds(int flag)
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];
 
-	if (nvar) {
-	  ivar = 0;
-	  if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
-	}
+        if (nvar) {
+          ivar = 0;
+          if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
+        }
 
         for (n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
@@ -408,10 +408,10 @@ int ComputeBondLocal::compute_bonds(int flag)
           case VELVIB:
             ptr[n] = vvib;
             break;
-	  case VARIABLE:
-	    ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	    ivar++;
-	    break;
+          case VARIABLE:
+            ptr[n] = input->variable->compute_equal(vvar[ivar]);
+            ivar++;
+            break;
           }
         }
       }

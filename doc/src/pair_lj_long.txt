@@ -11,6 +11,7 @@ pair_style lj/long/coul/long/intel command :h3
 pair_style lj/long/coul/long/omp command :h3
 pair_style lj/long/coul/long/opt command :h3
 pair_style lj/long/tip4p/long command :h3
+pair_style lj/long/tip4p/long/omp command :h3
 
 [Syntax:]
 
@@ -96,7 +97,7 @@ neighbor list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for
 the offset distance of the fictitious charges on O atoms in water
 molecules.  Thus it is typically best in an efficiency sense to use a
-LJ cutoff >= Coulomb cutoff + 2*qdist, to shrink the size of the
+LJ cutoff >= Coulombic cutoff + 2*qdist, to shrink the size of the
 neighbor list.  This leads to slightly larger cost for the long-range
 calculation, so you can test the trade-off for your model.
 
@@ -150,6 +151,14 @@ For {lj/long/tip4p/long} only the LJ cutoff can be specified
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.
+
+:line
+
+A version of these styles with a soft core, {lj/cut/soft}, suitable for use in
+free energy calculations, is part of the USER-FEP package and is documented with
+the "pair_fep_soft"_pair_fep_soft.html styles. The version with soft core is
+only available if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 :line
 
@@ -210,8 +219,7 @@ different levels of the rRESPA hierarchy.  See the
 
 These styles are part of the KSPACE package.  They are only enabled if
 LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.  Note that the
-KSPACE package is installed by default.
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

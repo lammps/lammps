@@ -215,8 +215,8 @@ void PairSpinNeel::init_style()
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+  if ((ifix == modify->nfix) && (comm->me == 0))
+    error->warning(FLERR,"Using pair/spin style without nve/spin");
 
   // get the lattice_flag from nve/spin
 
@@ -412,94 +412,120 @@ void PairSpinNeel::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 {
-  int i,j,jnum,itype,jtype;
+  int *type = atom->type;
+  double **x = atom->x;
+  double **sp = atom->sp;
   double local_cut2,rsq, inorm;
   double r_s,r_l,d_r,r1,r2,r_ij;
   double pi,sm;
   double xi[3],rij[3],eij[3];
   double spi[3],spj[3],fmij[3];
 
-  double **x = atom->x;
-  double **sp = atom->sp;
-  int *type = atom->type;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
-
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // check if interaction applies to type of ii
 
-  spi[0] = sp[i][0];
-  spi[1] = sp[i][1];
-  spi[2] = sp[i][2];
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
+  }
 
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
+  // if interaction applies to type of ii,
+  // locflag = 1 and compute pair interaction
 
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-  pi = MY_PI;
+  if (locflag == 1) {
 
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = inorm*rij[0];
-    eij[1] = inorm*rij[1];
-    eij[2] = inorm*rij[2];
+    spi[0] = sp[ii][0];
+    spi[1] = sp[ii][1];
+    spi[2] = sp[ii][2];
     
-    fmij[0] = fmij[1] = fmij[2] = 0.0;
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+    eij[0] = eij[1] = eij[2] = 0.0;
 
-    r_s = rs[itype][jtype];
-    r_l = rl[itype][jtype];
-    d_r = dr[itype][jtype];
+    pi = MY_PI;
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
 
-    local_cut2 = (r_l + d_r) * (r_l + d_r);
-    
-    // define smoothing factor
-    // compute neel interaction
+    for (int jj = 0; jj < jnum; jj++) {
 
-    if (rsq <= local_cut2) {
-      r_ij = sqrt(rsq);
-      r1 = fabs(r_s - r_ij);
-      r2 = fabs(r_l - r_ij);
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
 
-      // to be corrected (error in sw func)
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
 
-      sm = 0.0;
-      if (r1 <= d_r) {
-        sm = (1.0 - sin(pi*(r_s-r_ij)/(2.0*d_r))) / 2.0;
-      } else if (r_ij > (r_s+d_r) && r_ij < (r_l-d_r)) {
-        sm = 1.0;
-      } else if (r2 <= d_r) {
-        sm = (1.0 - sin(pi*(r_ij-r_l)/(2.0*d_r))) / 2.0;
-      } else sm = 0.0;
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = inorm*rij[0];
+      eij[1] = inorm*rij[1];
+      eij[2] = inorm*rij[2];
+      
+      fmij[0] = fmij[1] = fmij[2] = 0.0;
 
-      compute_neel(i,j,r_ij,eij,fmij,spi,spj);
+      r_s = rs[itype][jtype];
+      r_l = rl[itype][jtype];
+      d_r = dr[itype][jtype];
+
+      local_cut2 = (r_l + d_r) * (r_l + d_r);
+      
+      // define smoothing factor
+      // compute neel interaction
+
+      if (rsq <= local_cut2) {
+        r_ij = sqrt(rsq);
+        r1 = fabs(r_s - r_ij);
+        r2 = fabs(r_l - r_ij);
+
+        // to be corrected (error in sw func)
+
+        sm = 0.0;
+        if (r1 <= d_r) {
+          sm = (1.0 - sin(pi*(r_s-r_ij)/(2.0*d_r))) / 2.0;
+        } else if (r_ij > (r_s+d_r) && r_ij < (r_l-d_r)) {
+          sm = 1.0;
+        } else if (r2 <= d_r) {
+          sm = (1.0 - sin(pi*(r_ij-r_l)/(2.0*d_r))) / 2.0;
+        } else sm = 0.0;
+
+        compute_neel(i,j,r_ij,eij,fmij,spi,spj);
+      }
+      fmi[0] += sm * fmij[0]; 
+      fmi[1] += sm * fmij[1]; 
+      fmi[2] += sm * fmij[2]; 
     }
-    
-    fmi[0] += sm * fmij[0]; 
-    fmi[1] += sm * fmij[1]; 
-    fmi[2] += sm * fmij[2]; 
   }
 }
 

@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -25,6 +25,7 @@ additional letters in parenthesis: g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "ackland/atom"_compute_ackland_atom.html,
+"adf"_compute_adf.html,
 "aggregate/atom"_compute_cluster_atom.html,
 "angle"_compute_angle.html,
 "angle/local"_compute_angle_local.html,
@@ -92,10 +93,12 @@ KOKKOS, o = USER-OMP, t = OPT.
 "pe/tally"_compute_tally.html,
 "plasticity/atom"_compute_plasticity_atom.html,
 "pressure"_compute_pressure.html,
+"pressure/cylinder"_compute_pressure_cylinder.html,
 "pressure/uef"_compute_pressure_uef.html,
 "property/atom"_compute_property_atom.html,
 "property/chunk"_compute_property_chunk.html,
 "property/local"_compute_property_local.html,
+"ptm/atom"_compute_ptm_atom.html,
 "rdf"_compute_rdf.html,
 "reduce"_compute_reduce.html,
 "reduce/chunk"_compute_reduce_chunk.html,
@@ -117,7 +120,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "smd/tlsph/strain"_compute_smd_tlsph_strain.html,
 "smd/tlsph/strain/rate"_compute_smd_tlsph_strain_rate.html,
 "smd/tlsph/stress"_compute_smd_tlsph_stress.html,
-"smd/triangle/mesh/vertices"_compute_smd_triangle_mesh_vertices.html,
+"smd/triangle/vertices"_compute_smd_triangle_vertices.html,
 "smd/ulsph/num/neighs"_compute_smd_ulsph_num_neighs.html,
 "smd/ulsph/strain"_compute_smd_ulsph_strain.html,
 "smd/ulsph/strain/rate"_compute_smd_ulsph_strain_rate.html,
@@ -128,6 +131,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "snav/atom"_compute_sna_atom.html,
 "spin"_compute_spin.html,
 "stress/atom"_compute_stress_atom.html,
+"stress/mop"_compute_stress_mop.html,
+"stress/mop/profile"_compute_stress_mop.html,
 "stress/tally"_compute_tally.html,
 "tdpd/cc/atom"_compute_tdpd_cc_atom.html,
 "temp (k)"_compute_temp.html,
@@ -135,6 +140,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "temp/body"_compute_temp_body.html,
 "temp/chunk"_compute_temp_chunk.html,
 "temp/com"_compute_temp_com.html,
+"temp/cs"_compute_temp_cs.html,
 "temp/deform"_compute_temp_deform.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/drude"_compute_temp_drude.html,

@@ -165,8 +165,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   vflag = vflag_in;
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -186,7 +185,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
 
   k_cutsq.template sync<DeviceType>();
@@ -564,7 +563,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
         a_f(j,2) -= delz*fpair;
       }
 
-      if (rmass) {
+      if (rmass.data()) {
         mass_i = rmass[i];
         mass_j = rmass[j];
       } else {
@@ -795,7 +794,7 @@ int PairDPDfdtEnergyKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairDPDfdtEnergyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairDPDfdtEnergyKokkos<LMPHostType>;
 #endif
 }

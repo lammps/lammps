@@ -29,7 +29,7 @@ keyword = {set} :l
 [Examples:]
 
 compute 1 all angle/local theta
-compute 1 all angle/local eng theta 
+compute 1 all angle/local eng theta
 compute 1 all angle/local theta v_cos set theta t :pre
 
 [Description:]

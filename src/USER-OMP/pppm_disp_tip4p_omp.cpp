@@ -43,8 +43,8 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDispTIP4POMP::PPPMDispTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
-  PPPMDispTIP4P(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
+PPPMDispTIP4POMP::PPPMDispTIP4POMP(LAMMPS *lmp) :
+  PPPMDispTIP4P(lmp), ThrOMP(lmp, THR_KSPACE)
 {
   triclinic_support = 0;
   tip4pflag = 1;

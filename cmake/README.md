@@ -24,7 +24,7 @@ tasks, act as a reference and provide examples of typical use cases.
       * [Build directory vs. Source Directory](#build-directory-vs-source-directory)
    * [Defining and using presets](#defining-and-using-presets)
    * [Reference](#reference)
-      * [Common CMAKE Configuration Options](#common-cmake-configuration-options)
+      * [Common CMake Configuration Options](#common-cmake-configuration-options)
       * [LAMMPS Configuration Options](#lammps-configuration-options)
       * [Parallelization and Accelerator Packages](#parallelization-and-accelerator-packages)
       * [Default Packages](#default-packages)
@@ -155,11 +155,13 @@ make
 
 The CMake build exposes a lot of different options. In the old build system
 some of the package selections were possible by using special make target like
-`make yes-std` or `make no-lib`. Achieving the same result with cmake requires
+`make yes-std` or `make no-lib`. Achieving a similar result with cmake requires
 specifying all options manually. This can quickly become a very long command
 line that is hard to handle.  While these could be stored in a simple script
 file, there is another way of defining "presets" to compile LAMMPS in a certain
-way.
+way. Since the cmake build process - contrary to the conventional build system -
+includes the compilation of the bundled libraries into the standard build process,
+the grouping of those presets is somewhat different.
 
 A preset is a regular CMake script file that can use constructs such as
 variables, lists and for-loops to manipulate configuration options and create
@@ -171,15 +173,15 @@ Such a file can then be passed to cmake via the `-C` flag. Several examples of
 presets can be found in the `cmake/presets` folder.
 
 ```bash
-# build LAMMPS with all "standard" packages which don't use libraries and enable GPU package
+# build LAMMPS with all packages enabled which don't use external libraries and enable GPU package
 mkdir build
 cd build
-cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
+cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GPU=on ../cmake
 ```
 
 # Reference
 
-## Common CMAKE Configuration Options
+## Common CMake Configuration Options
 
 
 <table>
@@ -195,6 +197,7 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   <td><code>CMAKE_INSTALL_PREFIX</code></td>
   <td>Install location where LAMMPS files will be copied to. In the Unix/Linux case with Makefiles this controls what `make install` will do.</td>
   <td>
+   Default setting is <code>$HOME/.local</code>.
   </td>
 </tr>
 <tr>
@@ -204,6 +207,16 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   <dl>
   <dt><code>Release</code> (default)</dt>
   <dt><code>Debug</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code><CMAKE_VERBOSE_MAKEFILE/code></td>
+  <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achived by adding `VERBOSE=1` to the `make` call.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
   </dl>
   </td>
 </tr>
@@ -1418,6 +1431,17 @@ TODO
   </dl>
   </td>
 </tr>
+<tr>
+  <td><code>INTEL_LRT_MODE</code></td>
+  <td>How to support Long-range thread mode in Verlet integration</td>
+  <td>
+  <dl>
+    <dt><code>threads</code> (default, if pthreads available)</dt>
+    <dt><code>none</code> (default, if pthreads not available)</dt>
+    <dt><code>c++11</code></dt>
+  </dl>
+  </td>
+</tr>
 </tbody>
 </table>
 
@@ -1491,6 +1515,21 @@ target API.
     <dt><code>off</code></dt>
   </dl>
   </td>
+</tr>
+<tr>
+  <td><code>CUDA_MPS_SUPPORT</code> (CUDA only)</td>
+  <td>Enable tweaks for running with Nvidia CUDA Multi-process services daemon</td>
+  <td>
+  <dl>
+    <dt><code>on</code></dt>
+    <dt><code>off</code> (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>BIN2C</code> (CUDA only)</td>
+  <td>Path to bin2c executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1647,9 +1686,8 @@ requires `gzip` to be in your `PATH`
 </tr>
 <tr>
   <td><code>GZIP_EXECUTABLE</code></td>
-  <td></td>
-  <td>
-  </td>
+  <td>Path to gzip executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1679,9 +1717,8 @@ requires `ffmpeg` to be in your `PATH`
 </tr>
 <tr>
   <td><code>FFMPEG_EXECUTABLE</code></td>
-  <td></td>
-  <td>
-  </td>
+  <td>Path to ffmpeg executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1723,6 +1760,13 @@ cache by setting the `CMAKE_C_COMPILER`, `CMAKE_CXX_COMPILER`,
   <td>C++ compiler which should be used by CMake</td>
   <td>
   value of `FC` environment variable at first `cmake` run
+  </td>
+</tr>
+<tr>
+  <td><code>CXX_COMPILER_LAUNCHER</code></td>
+  <td>CMake will run this tool and pass the compiler and its arguments to the tool. Some example tools are distcc and ccache.</td>
+  <td>
+  (empty)
   </td>
 </tr>
 </tbody>

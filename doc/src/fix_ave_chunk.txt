@@ -240,7 +240,7 @@ shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  This is because
 those degrees of freedom (e.g. a constrained bond) could apply to sets
 of atoms that are both included and excluded from a specific chunk,
 and hence the concept is somewhat ill-defined.  In some cases, you can
-use the {adof} and {cdof} keywords to adjust the calculated degress of
+use the {adof} and {cdof} keywords to adjust the calculated degrees of
 freedom appropriately, as explained below.
 
 Also note that a bias can be subtracted from atom velocities before

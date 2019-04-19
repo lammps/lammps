@@ -38,6 +38,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -107,8 +108,7 @@ PairAIREBO::~PairAIREBO()
 
 void PairAIREBO::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();
@@ -2116,7 +2116,7 @@ but of the vector r_ij.
 
 */
 
-double PairAIREBO::bondorderLJ(int i, int j, double /*rij_mod*/[3], double rijmag_mod,
+double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rijmag_mod,
                                double VA, double rij[3], double rijmag,
                                double **f, int vflag_atom)
 {
@@ -3368,8 +3368,12 @@ void PairAIREBO::read_file(char *filename)
 
   // read file on proc 0
 
+  int cerror = 0;
+  int numpar = 0;
+  FILE *fp = NULL;
+
   if (me == 0) {
-    FILE *fp = force->open_potential(filename);
+    fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
       if (morseflag)
@@ -3382,296 +3386,402 @@ void PairAIREBO::read_file(char *filename)
     // skip initial comment lines
 
     while (1) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
 
     // read parameters
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmin_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmin_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmin_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmax_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmax_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmax_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmaxp_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmaxp_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmaxp_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&smin);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Nmin);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Nmax);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&NCmin);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&NCmax);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Q_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Q_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Q_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&alpha_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&alpha_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&alpha_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&A_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&A_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&A_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CC1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CC2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CC3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_HH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_HH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_HH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CC1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CC2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CC3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_HH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_HH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_HH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rho_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rho_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rho_HH);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmin_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmin_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmin_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmax_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmax_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmax_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmaxp_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmaxp_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcmaxp_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&smin)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Nmin)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Nmax)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&NCmin)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&NCmax)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Q_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Q_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Q_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&alpha_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&alpha_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&alpha_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&A_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&A_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&A_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_CC1)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_CC2)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_CC3)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_CH1)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_CH2)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_CH3)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_HH1)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_HH2)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&BIJc_HH3)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_CC1)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_CC2)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_CC3)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_CH1)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_CH2)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_CH3)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_HH1)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_HH2)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&Beta_HH3)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rho_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rho_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rho_HH)) ++cerror;
 
     // LJ parameters
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmin_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmin_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmin_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmax_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmax_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmax_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmin_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmin_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmin_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmax_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmax_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmax_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilon_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilon_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilon_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&sigma_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&sigma_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&sigma_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilonT_CCCC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilonT_CCCH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilonT_HCCH);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcLJmin_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcLJmin_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcLJmin_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcLJmax_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcLJmax_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&rcLJmax_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&bLJmin_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&bLJmin_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&bLJmin_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&bLJmax_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&bLJmax_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&bLJmax_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&epsilon_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&epsilon_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&epsilon_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&sigma_CC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&sigma_CH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&sigma_HH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&epsilonT_CCCC)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&epsilonT_CCCH)) ++cerror;
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%lg",&epsilonT_HCCH)) ++cerror;
 
     if (morseflag) {
       // lines for reading in MORSE parameters from CH.airebo_m file
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&epsilonM_CC);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&epsilonM_CH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&epsilonM_HH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&alphaM_CC);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&alphaM_CH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&alphaM_HH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&reqM_CC);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&reqM_CH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&reqM_HH);
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&epsilonM_CC)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&epsilonM_CH)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&epsilonM_HH)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&alphaM_CC)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&alphaM_CH)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&alphaM_HH)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&reqM_CC)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&reqM_CH)) ++cerror;
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&reqM_HH)) ++cerror;
     }
+    
+  }
+  
+  // check for errors parsing global parameters
 
+  MPI_Bcast(&cerror,1,MPI_INT,0,world);
+  if (cerror > 0) {
+    char msg[128];
+    snprintf(msg,128,"Could not parse %d of %d parameters from file %s",
+             cerror,numpar,filename);
+    error->all(FLERR,msg);
+  }
 
+  cerror = numpar = 0;
+
+  if (me == 0) {
+    
     // gC spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     // number-1 = # of domains for the spline
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit; i++) {
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&gCdom[i]);
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&gCdom[i])) ++cerror;
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     for (i = 0; i < limit-1; i++) {
       for (j = 0; j < 6; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&gC1[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&gC1[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     for (i = 0; i < limit-1; i++) {
       for (j = 0; j < 6; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&gC2[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&gC2[i][j])) ++cerror;
       }
     }
 
     // gH spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit; i++) {
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&gHdom[i]);
+      ++numpar;
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      if (1 != sscanf(s,"%lg",&gHdom[i])) ++cerror;
     }
 
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < limit-1; i++) {
       for (j = 0; j < 6; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&gH[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&gH[i][j])) ++cerror;
       }
     }
 
     // pCC spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit/2; i++) {
       for (j = 0; j < limit/2; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&pCCdom[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&pCCdom[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < (int) pCCdom[0][1]; i++) {
       for (j = 0; j < (int) pCCdom[1][1]; j++) {
         for (k = 0; k < 16; k++) {
-          fgets(s,MAXLINE,fp);
-          sscanf(s,"%lg",&pCC[i][j][k]);
+          ++numpar;
+          utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+          if (1 != sscanf(s,"%lg",&pCC[i][j][k])) ++cerror;
         }
       }
     }
 
     // pCH spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit/2; i++) {
       for (j = 0; j < limit/2; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&pCHdom[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&pCHdom[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < (int) pCHdom[0][1]; i++) {
       for (j = 0; j < (int) pCHdom[1][1]; j++) {
         for (k = 0; k < 16; k++) {
-          fgets(s,MAXLINE,fp);
-          sscanf(s,"%lg",&pCH[i][j][k]);
+          ++numpar;
+          utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+          if (1 != sscanf(s,"%lg",&pCH[i][j][k])) ++cerror;
         }
       }
     }
 
     // piCC cpline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit/2; i++) {
       for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&piCCdom[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&piCCdom[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < (int) piCCdom[0][1]; i++) {
       for (j = 0; j < (int) piCCdom[1][1]; j++) {
         for (k = 0; k < (int) piCCdom[2][1]; k++) {
           for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&piCC[i][j][k][l]);
+            ++numpar;
+            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+            if (1 != sscanf(s,"%lg",&piCC[i][j][k][l])) ++cerror;
           }
         }
       }
@@ -3679,27 +3789,30 @@ void PairAIREBO::read_file(char *filename)
 
     // piCH spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit/2; i++) {
       for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&piCHdom[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&piCHdom[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < (int) piCHdom[0][1]; i++) {
       for (j = 0; j < (int) piCHdom[1][1]; j++) {
         for (k = 0; k < (int) piCHdom[2][1]; k++) {
           for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&piCH[i][j][k][l]);
+            ++numpar;
+            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+            if (1 != sscanf(s,"%lg",&piCH[i][j][k][l])) ++cerror;
           }
         }
       }
@@ -3707,27 +3820,30 @@ void PairAIREBO::read_file(char *filename)
 
     // piHH spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit/2; i++) {
       for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&piHHdom[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&piHHdom[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < (int) piHHdom[0][1]; i++) {
       for (j = 0; j < (int) piHHdom[1][1]; j++) {
         for (k = 0; k < (int) piHHdom[2][1]; k++) {
           for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&piHH[i][j][k][l]);
+            ++numpar;
+            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+            if (1 != sscanf(s,"%lg",&piHH[i][j][k][l])) ++cerror;
           }
         }
       }
@@ -3735,33 +3851,46 @@ void PairAIREBO::read_file(char *filename)
 
     // Tij spline
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+    ++numpar;
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    if (1 != sscanf(s,"%d",&limit)) ++cerror;
 
     for (i = 0; i < limit/2; i++) {
       for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&Tijdom[i][j]);
+        ++numpar;
+        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+        if (1 != sscanf(s,"%lg",&Tijdom[i][j])) ++cerror;
       }
     }
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     for (i = 0; i < (int) Tijdom[0][1]; i++) {
       for (j = 0; j < (int) Tijdom[1][1]; j++) {
         for (k = 0; k < (int) Tijdom[2][1]; k++) {
           for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&Tijc[i][j][k][l]);
+            ++numpar;
+            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+            if (1 != sscanf(s,"%lg",&Tijc[i][j][k][l])) ++cerror;
           }
         }
       }
     }
 
     fclose(fp);
+  }
+  
+  // check for errors parsing spline data
+
+  MPI_Bcast(&cerror,1,MPI_INT,0,world);
+  if (cerror > 0) {
+    char msg[128];
+    snprintf(msg,128,"Could not parse %d of %d spline data from file %s",
+             cerror,numpar,filename);
+    error->all(FLERR,msg);
   }
 
   // store read-in values in arrays

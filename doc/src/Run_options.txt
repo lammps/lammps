@@ -24,8 +24,9 @@ letter abbreviation can be used:
 "-p or -partition"_#partition
 "-pl or -plog"_#plog
 "-ps or -pscreen"_#pscreen
-"-r or -restart"_#restart
 "-ro or -reorder"_#reorder
+"-r2data or -restart2data"_#restart2data
+"-r2dump or -restart2dump"_#restart2dump
 "-sc or -screen"_#screen
 "-sf or -suffix"_#suffix
 "-v or -var"_#var :ul
@@ -78,7 +79,7 @@ stdin.
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
 in "Speed kokkos"_Speed_kokkos.html, this switch must be set to enable
-running with the KOKKOS-enabled styles the package provides.  If the
+running with KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
 the GPU or USER-OMP packages, for testing or benchmarking purposes.
@@ -280,34 +281,6 @@ specified by the -screen command-line option.
 
 :line
 
-[-restart restartfile {remap} datafile keyword value ...] :link(restart)
-
-Convert the restart file into a data file and immediately exit.  This
-is the same operation as if the following 2-line input script were
-run:
-
-read_restart restartfile {remap}
-write_data datafile keyword value ... :pre
-
-Note that the specified restartfile and datafile can have wild-card
-characters ("*",%") as described by the
-"read_restart"_read_restart.html and "write_data"_write_data.html
-commands.  But a filename such as file.* will need to be enclosed in
-quotes to avoid shell expansion of the "*" character.
-
-Note that following restartfile, the optional flag {remap} can be
-used.  This has the same effect as adding it to the
-"read_restart"_read_restart.html command, as explained on its doc
-page.  This is only useful if the reading of the restart file triggers
-an error that atoms have been lost.  In that case, use of the remap
-flag should allow the data file to still be produced.
-
-Also note that following datafile, the same optional keyword/value
-pairs can be listed as used by the "write_data"_write_data.html
-command.
-
-:line
-
 [-reorder] :link(reorder)
 
 This option has 2 forms:
@@ -381,6 +354,80 @@ the LAMMPS simulation domain.
 
 :line
 
+[-restart2data restartfile \[remap\] datafile keyword value ...]
+:link(restart2data)
+
+Convert the restart file into a data file and immediately exit.  This
+is the same operation as if the following 2-line input script were
+run:
+
+read_restart restartfile \[remap\]
+write_data datafile keyword value ... :pre
+
+The specified restartfile and/or datafile name may contain the wild-card
+character "*".  The restartfile name may also contain the wild-card
+character "%".  The meaning of these characters is explained on the
+"read_restart"_read_restart.html and "write_data"_write_data.html doc
+pages.  The use of "%" means that a parallel restart file can be read.
+Note that a filename such as file.* may need to be enclosed in quotes or
+the "*" character prefixed with a backslash ("\") to avoid shell
+expansion of the "*" character.
+
+Following restartfile argument, the optional word "remap" may be used.
+This has the same effect like adding it to a
+"read_restart"_read_restart.html command, and operates as explained on
+its doc page.  This is useful if reading the restart file triggers an
+error that atoms have been lost.  In that case, use of the remap flag
+should allow the data file to still be produced.
+
+The syntax following restartfile (or remap), namely
+
+datafile keyword value ... :pre
+
+is identical to the arguments of the "write_data"_write_data.html
+command.  See its doc page for details.  This includes its
+optional keyword/value settings.
+
+:line
+
+[-restart2dump restartfile \[remap\] group-ID dumpstyle dumpfile arg1 arg2 ...] :link(restart2dump)
+
+Convert the restart file into a dump file and immediately exit.  This
+is the same operation as if the following 2-line input script were
+run:
+
+read_restart restartfile \[remap\]
+write_dump group-ID dumpstyle dumpfile arg1 arg2 ... :pre
+
+Note that the specified restartfile and dumpfile names may contain
+wild-card characters ("*","%") as explained on the
+"read_restart"_read_restart.html and "write_dump"_write_dump.html doc
+pages.  The use of "%" means that a parallel restart file and/or
+parallel dump file can be read and/or written.  Note that a filename
+such as file.* may need to be enclosed in quotes or the "*" character
+prefixed with a backslash ("\") to avoid shell expansion of the "*"
+character.
+
+Note that following the restartfile argument, the optional word "remap"
+can be used.  This has the effect as adding it to the
+"read_restart"_read_restart.html command, as explained on its doc page.
+This is useful if reading the restart file triggers an error that atoms
+have been lost.  In that case, use of the remap flag should allow the
+dump file to still be produced.
+
+The syntax following restartfile (or remap), namely
+
+group-ID dumpstyle dumpfile arg1 arg2 ... :pre
+
+is identical to the arguments of the "write_dump"_write_dump.html
+command.  See its doc page for details.  This includes what per-atom
+fields are written to the dump file and optional dump_modify settings,
+including ones that affect how parallel dump files are written, e.g.
+the {nfile} and {fileper} keywords.  See the
+"dump_modify"_dump_modify.html doc page for details.
+
+:line
+
 [-screen file] :link(screen)
 
 Specify a file for LAMMPS to write its screen information to.  In
@@ -401,7 +448,7 @@ partition screen files file.N.
 [-suffix style args] :link(suffix)
 
 Use variants of various styles if they exist.  The specified style can
-be {cuda}, {gpu}, {intel}, {kk}, {omp}, {opt}, or {hybrid}.  These
+be {gpu}, {intel}, {kk}, {omp}, {opt}, or {hybrid}.  These
 refer to optional packages that LAMMPS can be built with, as described
 in "Accelerate performance"_Speed.html.  The "gpu" style corresponds to the
 GPU package, the "intel" style to the USER-INTEL package, the "kk"
@@ -480,7 +527,7 @@ option is equivalent to putting the line "variable name index value1
 value2 ..."  at the beginning of the input script.  Defining an index
 variable as a command-line argument overrides any setting for the same
 index variable in the input script, since index variables cannot be
-re-defined.  
+re-defined.
 
 See the "variable"_variable.html command for more info on defining
 index and other kinds of variables and the "Commands

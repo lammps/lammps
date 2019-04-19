@@ -28,7 +28,7 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define LJ_T typename IntelBuffers<flt_t,flt_t>::vec4_t
+#define LJ_T typename IntelBuffers<flt_t,flt_t>::vec2_t
 #define TABLE_T typename ForceConst<flt_t>::table_t
 
 /* ---------------------------------------------------------------------- */
@@ -70,9 +70,9 @@ void PairLJCharmmCoulLongIntel::compute(int eflag, int vflag,
                                         IntelBuffers<flt_t,acc_t> *buffers,
                                         const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -142,8 +142,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
 
   const flt_t * _noalias const special_coul = fc.special_coul;
   const flt_t * _noalias const special_lj = fc.special_lj;
@@ -207,7 +206,6 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(cutsq,lj:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
     in(q:length(q_size) alloc_if(0) free_if(0)) \
@@ -232,8 +230,10 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
                               f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EFLAG) oevdwl = oecoul = (acc_t)0;
-    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (EFLAG || vflag)
+      oevdwl = oecoul = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (NEWTON_PAIR == 0 && inum != nlocal)
+      memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -268,8 +268,8 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         const flt_t * _noalias const cutsqi = cutsq + ptr_off;
         const LJ_T * _noalias const lji = lj + ptr_off;
 
-        const int   * _noalias const jlist = firstneigh + cnumneigh[ii];
-        int jnum = numneigh[ii];
+        const int   * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
         IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
@@ -376,8 +376,14 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
           if (rsq < cut_ljsq) {
           #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
-            forcelj = r6inv * (lji[jtype].x * r6inv - lji[jtype].y);
-            if (EFLAG) evdwl = r6inv*(lji[jtype].z * r6inv - lji[jtype].w);
+            flt_t eps4 = lji[jtype].x;
+            flt_t sigp6 = lji[jtype].y;
+            flt_t lj4 = eps4 * sigp6;
+            flt_t lj3 = lj4 * sigp6;
+            flt_t lj2 = (flt_t)6.0 * lj4;
+            flt_t lj1 = (flt_t)12.0 * lj3;
+            forcelj = r6inv * (lj1 * r6inv - lj2);
+            if (EFLAG) evdwl = r6inv*(lj3 * r6inv - lj4);
 
             #ifdef INTEL_VMASK
             if (rsq > cut_lj_innersq) {
@@ -397,8 +403,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
                 }
                 #endif
               } else {
-                const flt_t philj = r6inv * (lji[jtype].z*r6inv -
-                    lji[jtype].w);
+                const flt_t philj = r6inv * (lj3 * r6inv - lj4);
                 #ifndef INTEL_VMASK
                 if (rsq > cut_lj_innersq)
                 #endif
@@ -463,16 +468,10 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
 
-    if (EFLAG) {
+    if (EFLAG || vflag) {
       if (NEWTON_PAIR == 0) {
         oevdwl *= (acc_t)0.5;
         oecoul *= (acc_t)0.5;
-      }
-      ev_global[0] = oevdwl;
-      ev_global[1] = oecoul;
-    }
-    if (vflag) {
-      if (NEWTON_PAIR == 0) {
         ov0 *= (acc_t)0.5;
         ov1 *= (acc_t)0.5;
         ov2 *= (acc_t)0.5;
@@ -480,6 +479,8 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         ov4 *= (acc_t)0.5;
         ov5 *= (acc_t)0.5;
       }
+      ev_global[0] = oevdwl;
+      ev_global[1] = oecoul;
       ev_global[2] = ov0;
       ev_global[3] = ov1;
       ev_global[4] = ov2;
@@ -552,22 +553,19 @@ void PairLJCharmmCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
     for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
 
   fc.set_ntypes(tp1, ntable, memory, _cop);
-  buffers->set_ntypes(tp1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
 
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
   if (cut_lj > cut_coul)
     error->all(FLERR,
          "Intel varient of lj/charmm/coul/long expects lj cutoff<=coulombic");
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+      double cut;
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
         cut = init_one(i, j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
-      }
+      else
+        cut = 0.0;
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
 
@@ -591,10 +589,13 @@ void PairLJCharmmCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
 
   for (int i = 1; i < tp1; i++) {
     for (int j = 1; j < tp1; j++) {
-      fc.lj[i][j].x = lj1[i][j];
-      fc.lj[i][j].y = lj2[i][j];
-      fc.lj[i][j].z = lj3[i][j];
-      fc.lj[i][j].w = lj4[i][j];
+      if (i <= j) {
+        fc.lj[i][j].x = epsilon[i][j] * 4.0;
+        fc.lj[i][j].y = pow(sigma[i][j],6.0);
+      } else {
+        fc.lj[i][j].x = epsilon[j][i] * 4.0;
+        fc.lj[i][j].y = pow(sigma[j][i],6.0);
+      }
       fc.cutsq[i][j] = cutsq[i][j];
     }
   }
@@ -623,14 +624,12 @@ void PairLJCharmmCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
   flt_t * detable = fc.detable;
   flt_t * ctable = fc.ctable;
   flt_t * dctable = fc.dctable;
-  flt_t * ocutneighsq = cutneighsq[0];
   int tp1sq = tp1 * tp1;
   #pragma offload_transfer target(mic:_cop) \
     in(special_lj, special_coul: length(4) alloc_if(0) free_if(0)) \
     in(cutsq,lj: length(tp1sq) alloc_if(0) free_if(0)) \
     in(table: length(ntable) alloc_if(0) free_if(0)) \
-    in(etable,detable,ctable,dctable: length(ntable) alloc_if(0) free_if(0)) \
-    in(ocutneighsq: length(tp1sq) alloc_if(0) free_if(0))
+    in(etable,detable,ctable,dctable: length(ntable) alloc_if(0) free_if(0))
   #endif
 }
 
@@ -647,7 +646,7 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * ospecial_lj = special_lj;
       flt_t * ospecial_coul = special_coul;
       flt_t * ocutsq = cutsq[0];
-      typename IntelBuffers<flt_t,flt_t>::vec4_t * olj = lj[0];
+      typename IntelBuffers<flt_t,flt_t>::vec2_t * olj = lj[0];
       table_t * otable = table;
       flt_t * oetable = etable;
       flt_t * odetable = detable;
@@ -687,7 +686,7 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * ospecial_lj = special_lj;
       flt_t * ospecial_coul = special_coul;
       flt_t * ocutsq = cutsq[0];
-      typename IntelBuffers<flt_t,flt_t>::vec4_t * olj = lj[0];
+      typename IntelBuffers<flt_t,flt_t>::vec2_t * olj = lj[0];
       table_t * otable = table;
       flt_t * oetable = etable;
       flt_t * odetable = detable;

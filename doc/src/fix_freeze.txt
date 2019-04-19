@@ -7,6 +7,7 @@
 :line
 
 fix freeze command :h3
+fix freeze/kk command :h3
 
 [Syntax:]
 

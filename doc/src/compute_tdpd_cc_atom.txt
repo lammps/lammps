@@ -13,7 +13,7 @@ compute tdpd/cc/atom command :h3
 compute ID group-ID tdpd/cc/atom index :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-tdpd/cc/atom = style name of this compute command 
+tdpd/cc/atom = style name of this compute command
 index = index of chemical species (1 to Nspecies) :ul
 
 [Examples:]
@@ -37,7 +37,7 @@ any command that uses per-atom values from a compute as input. See the
 "Howto output"_Howto_output.html doc page for an overview of LAMMPS
 output options.
 
-The per-atom vector values will be in the units of chemical species 
+The per-atom vector values will be in the units of chemical species
 per unit mass.
 
 [Restrictions:]

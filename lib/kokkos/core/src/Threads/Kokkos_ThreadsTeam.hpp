@@ -175,6 +175,27 @@ public:
 #endif
   }
 
+  template<class Closure, class ValueType>
+  KOKKOS_INLINE_FUNCTION
+  void team_broadcast(Closure const & f, ValueType& value, const int& thread_id) const
+  {
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    { }
+#else
+    // Make sure there is enough scratch space:
+    typedef typename if_c< sizeof(ValueType) < TEAM_REDUCE_SIZE
+                         , ValueType , void >::type type ;
+    f( value );
+    if ( m_team_base ) {
+      type * const local_value = ((type*) m_team_base[0]->scratch_memory());
+      if(team_rank() == thread_id) *local_value = value;
+      memory_fence();
+      team_barrier();
+      value = *local_value;
+    }
+#endif
+  }
+  
   template< typename Type >
   KOKKOS_INLINE_FUNCTION
   typename std::enable_if< !Kokkos::is_reducer< Type >::value , Type>::type
@@ -626,39 +647,77 @@ public:
 
   //----------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   template< class FunctorType >
   inline static
   int team_size_max( const FunctorType & ) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      int pool_size = traits::execution_space::thread_pool_size(1);
-#else
-      int pool_size = traits::execution_space::impl_thread_pool_size(1);
-#endif
-      int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
-      return pool_size<max_host_team_size?pool_size:max_host_team_size;
-    }
-
+    int pool_size = traits::execution_space::thread_pool_size(1);
+    int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
+    return pool_size<max_host_team_size?pool_size:max_host_team_size;
+  }
 
   template< class FunctorType >
-  static int team_size_recommended( const FunctorType & )
-    {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      return traits::execution_space::thread_pool_size(2);
-#else
-      return traits::execution_space::impl_thread_pool_size(2);
-#endif
-    }
-
+  inline static
+  int team_size_recommended( const FunctorType & )
+  {
+    return traits::execution_space::thread_pool_size(2);
+  }
 
   template< class FunctorType >
   inline static
   int team_size_recommended( const FunctorType &, const int& )
-    {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      return traits::execution_space::thread_pool_size(2);
-#else
-      return traits::execution_space::impl_thread_pool_size(2);
+  {
+    return traits::execution_space::thread_pool_size(2);
+  }
 #endif
+
+  template<class FunctorType>
+  int team_size_max( const FunctorType&, const ParallelForTag& ) const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    int pool_size = traits::execution_space::thread_pool_size(1);
+#else
+    int pool_size = traits::execution_space::impl_thread_pool_size(1);
+#endif
+    int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
+    return pool_size<max_host_team_size?pool_size:max_host_team_size;
+  }
+  template<class FunctorType>
+  int team_size_max( const FunctorType&, const ParallelReduceTag& ) const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    int pool_size = traits::execution_space::thread_pool_size(1);
+#else
+    int pool_size = traits::execution_space::impl_thread_pool_size(1);
+#endif
+    int max_host_team_size =  Impl::HostThreadTeamData::max_team_members;
+    return pool_size<max_host_team_size?pool_size:max_host_team_size;
+  }
+  template<class FunctorType>
+  int team_size_recommended( const FunctorType&, const ParallelForTag& ) const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    return traits::execution_space::thread_pool_size(2);
+#else
+    return traits::execution_space::impl_thread_pool_size(2);
+#endif
+  }
+  template<class FunctorType>
+  int team_size_recommended( const FunctorType&, const ParallelReduceTag& ) const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    return traits::execution_space::thread_pool_size(2);
+#else
+    return traits::execution_space::impl_thread_pool_size(2);
+#endif
+  }
+
+
+  inline static
+  int vector_length_max()
+    { return 1024; } // Use arbitrary large number, is meant as a vectorizable length
+
+  inline static
+  int scratch_size_max(int level)
+    { return (level==0?
+        1024*32: // Roughly L1 size
+        20*1024*1024); // Limit to keep compatibility with CUDA
     }
 
   //----------------------------------------

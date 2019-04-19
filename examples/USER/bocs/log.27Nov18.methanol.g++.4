@@ -1,0 +1,142 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+units		real
+dimension	3
+boundary	p p p
+atom_style      atomic
+
+newton		on
+timestep	1.0
+
+read_data	methanol.data
+  orthogonal box = (0 0 0) to (40.4635 40.4635 40.4635)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  968 atoms
+
+velocity	all create 300.0 16802 dist gaussian
+
+pair_style	table spline 15000
+
+pair_coeff	1 1 lammps_nb_MET-MET.table nb_METMET 12.0
+WARNING: 78 of 2500 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:481)
+
+neigh_modify	delay 0 every 1 check yes one 10000
+neighbor	12.0 bin
+
+thermo		500
+thermo_style	custom step temp pe etotal press vol
+
+variable STEP equal step
+variable TEMP equal temp
+## volume from cubic angstroms to cubic nm
+variable VOL equal vol/1000.0
+## pressure from atm to bar
+variable PRESS equal press*1.01325
+variable PXX equal pxx*1.01325
+variable PYY equal pyy*1.01325
+variable PZZ equal pzz*1.01325
+variable PXY equal pxy*1.01325
+variable PXZ equal pxz*1.01325
+variable PYZ equal pyz*1.01325
+## energy from kcal/mol to kJ/mol
+variable KE equal ke*4.184
+variable PE equal pe*4.184
+variable UVDW equal evdwl*4.184
+
+
+#####     SPECIAL COMMANDS FOR FIX_BOCS     #####
+#       ID group-ID style_name thermostat T_init T_end T_couple barostat P_start P_end  P_couple pmatch_basis avg_vol     N_sites N_coeffs coeff1      coeff2
+fix 	1  all      bocs       temp       300.0  300.0 100.0    cgiso    0.986   0.986  1000.0   analytic     66476.015   968     2        245030.10   8962.20
+
+# Report the modified pressure
+thermo_modify 	press 1_press
+
+
+
+## Uncomment to save some data from simulation to files
+#fix             print_temp all print 500 "${STEP} ${TEMP}" file temp.dat screen no
+#fix             print_vol all print 500 "${STEP} ${VOL}" file vol.dat screen no
+#fix             print_press all print 500 "${STEP} ${PRESS}" file press.dat screen no
+#fix             print_ke all print 500 "${STEP} ${KE}" file kinetic_E.dat screen no
+#fix             print_pe all print 500 "${STEP} ${PE}" file potential_E.dat screen no
+#fix             print_ve all print 500 "${STEP} ${UVDW}" file vdw_E.dat screen no
+#fix             print_press_tens all print 500 "${STEP} ${PXX} ${PYY} ${PZZ} ${PXY} ${PXZ} ${PYZ}" file press_tens.dat screen no
+#fix		print_PV_eos all print 500 "${VOL} ${PRESS}" file pv_eos.dat screen no
+
+## Prints a configuration to dump.txt every 500 steps
+#dump		1 all custom 500 dump.txt id type x y z fx fy fz
+
+# Write restart files to continue simulations
+#restart 10000 state1.restart state2.restart
+
+## Run for this many steps
+run_style       verlet
+run 10000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 24
+  ghost atom cutoff = 24
+  binsize = 12, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.37 | 3.37 | 3.371 Mbytes
+Step Temp PotEng TotEng Press Volume 
+       0          300    1061.5961    1926.3291      107.006    66250.679 
+     500    314.70267    1036.3305    1943.4431    205.83301     65603.85 
+    1000    304.99804      1034.15    1913.2896   -79.521176     66268.87 
+    1500     305.2621     996.9303     1876.831    -97.93992    67090.442 
+    2000    311.29317    1083.9171    1981.2021    119.28085    65589.674 
+    2500    305.51905      1051.59    1932.2314   -34.076657    66487.327 
+    3000    291.76224     1053.524    1894.5121    45.522919    65879.535 
+    3500    297.65792    1017.1041    1875.0862   -79.411904    67185.183 
+    4000    285.99141     1042.379     1866.733    88.735986    66356.756 
+    4500    295.34218    1071.2977    1922.6048   -17.479073    65381.597 
+    5000       292.47    1012.3769     1855.405   -255.07433    67527.215 
+    5500    294.04431    1080.4547    1928.0208     192.6588    65811.742 
+    6000    300.45893    986.16669    1852.2225    -167.3405    67858.175 
+    6500    305.59738    1022.5276    1903.3947   -116.41298    66612.704 
+    7000    312.11968    1032.7392    1932.4065    152.17956    66016.299 
+    7500    306.80585    1032.1157    1916.4662     51.07705    66875.727 
+    8000    292.30957    1048.9003    1891.4661    61.280503    65894.103 
+    8500    297.79592    1013.4061     1871.786   -133.01136    66842.574 
+    9000    290.36753    1043.7732    1880.7412    65.208248     66010.86 
+    9500    288.92211    1077.8835    1910.6851    46.291982    65674.639 
+   10000    311.51608    1015.3567    1913.2842   -146.49492    66882.692 
+Loop time of 13.9823 on 4 procs for 10000 steps with 968 atoms
+
+Performance: 61.792 ns/day, 0.388 hours/ns, 715.190 timesteps/s
+98.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 10.131     | 11.235     | 12.333     |  23.2 | 80.35
+Neigh   | 0.044854   | 0.046303   | 0.047541   |   0.5 |  0.33
+Comm    | 1.1939     | 2.2964     | 3.4087     |  51.7 | 16.42
+Output  | 0.0004735  | 0.0032033  | 0.01137    |   8.3 |  0.02
+Modify  | 0.30542    | 0.31846    | 0.32508    |   1.4 |  2.28
+Other   |            | 0.08323    |            |       |  0.60
+
+Nlocal:    242 ave 248 max 232 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Nghost:    5845.75 ave 5877 max 5808 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+Neighs:    104313 ave 113860 max 95507 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 417252
+Ave neighs/atom = 431.045
+Neighbor list builds = 13
+Dangerous builds = 0
+
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:14

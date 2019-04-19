@@ -6,6 +6,7 @@ Computes :h1
    :maxdepth: 1
 
    compute_ackland_atom
+   compute_adf
    compute_angle
    compute_angle_local
    compute_angmom_chunk
@@ -67,10 +68,12 @@ Computes :h1
    compute_pe_atom
    compute_plasticity_atom
    compute_pressure
+   compute_pressure_cylinder
    compute_pressure_uef
    compute_property_atom
    compute_property_chunk
    compute_property_local
+   compute_ptm_atom
    compute_rdf
    compute_reduce
    compute_reduce_chunk
@@ -91,7 +94,7 @@ Computes :h1
    compute_smd_tlsph_strain
    compute_smd_tlsph_strain_rate
    compute_smd_tlsph_stress
-   compute_smd_triangle_mesh_vertices
+   compute_smd_triangle_vertices
    compute_smd_ulsph_num_neighs
    compute_smd_ulsph_strain
    compute_smd_ulsph_strain_rate

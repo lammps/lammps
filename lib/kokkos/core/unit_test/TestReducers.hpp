@@ -477,7 +477,7 @@ struct TestReducers {
     int reference_loc = -1;
 
     for ( int i = 0; i < N; i++ ) {
-      h_values( i ) = (Scalar) ( rand() % 100000 );
+      h_values( i ) = (Scalar) ( rand() % 100000 + 2 );
 
       if ( h_values( i ) < reference_min ) {
         reference_min = h_values( i );
@@ -485,7 +485,7 @@ struct TestReducers {
       }
       else if ( h_values( i ) == reference_min ) {
         // Make min unique.
-        h_values( i ) += std::numeric_limits< Scalar >::epsilon();
+        h_values( i ) += Scalar(1);
       }
     }
     Kokkos::deep_copy( values, h_values );
@@ -537,7 +537,7 @@ struct TestReducers {
     int reference_loc = -1;
 
     for ( int i = 0; i < N; i++ ) {
-      h_values( i ) = (Scalar) ( rand() % 100000 );
+      h_values( i ) = (Scalar) ( rand() % 100000 + 2 );
 
       if ( h_values( i ) > reference_max ) {
         reference_max = h_values( i );
@@ -545,7 +545,7 @@ struct TestReducers {
       }
       else if ( h_values( i ) == reference_max ) {
         // Make max unique.
-        h_values( i ) -= std::numeric_limits< Scalar >::epsilon();
+        h_values( i ) -= Scalar(1);
       }
     }
     Kokkos::deep_copy( values, h_values );
@@ -599,7 +599,7 @@ struct TestReducers {
      int reference_maxloc = -1;
 
      for ( int i = 0; i < N; i++ ) {
-       h_values( i ) = (Scalar) ( rand() % 100000 );
+       h_values( i ) = (Scalar) ( rand() % 100000 + 2);
      }
 
      for ( int i = 0; i < N; i++ ) {
@@ -609,7 +609,7 @@ struct TestReducers {
        }
        else if ( h_values( i ) == reference_max ) {
          // Make max unique.
-         h_values( i ) -= std::numeric_limits< Scalar >::epsilon();
+         h_values( i ) -= Scalar(1);
        }
      }
 
@@ -620,7 +620,7 @@ struct TestReducers {
        }
        else if ( h_values( i ) == reference_min ) {
          // Make min unique.
-         h_values( i ) += std::numeric_limits< Scalar >::epsilon();
+         h_values( i ) += Scalar(1);
        }
      }
 

@@ -97,6 +97,13 @@ struct LAMMPS_NS::PairAIREBOIntelParam {
 
 namespace {
 
+struct NeighListLMPAIREBO {
+  int * num; /* num_all */
+  int * num_half; /* num_all */
+  int * offset; /* num_all */
+  int ** entries; /* num_all * num_neighs_per_atom */
+};
+
 struct NeighListAIREBO {
   int * num; /* num_all */
   int * num_half; /* num_all */
@@ -125,7 +132,7 @@ struct KernelArgsAIREBOT {
   int neigh_from_atom, neigh_to_atom;
   int rebuild_flag;
   flt_t skin;
-  struct NeighListAIREBO neigh_lmp;
+  struct NeighListLMPAIREBO neigh_lmp;
   struct NeighListAIREBO neigh_rebo;
   PairAIREBOIntelParam<flt_t,acc_t> params;
   struct AtomAIREBOT<flt_t> * x; /* num_all */
@@ -175,6 +182,11 @@ void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
   neighbor->requests[neighbor->nrequest-1]->intel = 1;
+
+  const int nrequest = neighbor->nrequest;
+  for (int i = 0; i < nrequest; ++i)
+    if (neighbor->requests[i]->skip)
+      error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -280,8 +292,10 @@ template<class flt_t, class acc_t>
 void PairAIREBOIntel::compute(
     int eflag, int vflag, IntelBuffers<flt_t,acc_t> * buffers
 ) {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
+
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   const int inum = list->inum;
@@ -399,8 +413,7 @@ void PairAIREBOIntel::eval(
   ATOM_T * _noalias const x = buffers->get_x(offload);
   const int * _noalias const numneighhalf = buffers->get_atombin();
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
   tagint * const tag = atom->tag;
 
   const int ntypes = atom->ntypes + 1;
@@ -441,7 +454,6 @@ void PairAIREBOIntel::eval(
 
   #pragma offload target(mic:_cop) if(offload) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
@@ -472,10 +484,8 @@ void PairAIREBOIntel::eval(
                               f_stride, x, 0/*q*/);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EVFLAG) {
-      oevdwl = oecoul = (acc_t)0;
-      if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    }
+    if (EVFLAG)
+      oevdwl = oecoul = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -508,8 +518,7 @@ void PairAIREBOIntel::eval(
       args.skin = skin;
       args.neigh_lmp.num = const_cast<int*>(numneigh);
       args.neigh_lmp.num_half = const_cast<int*>(numneighhalf);
-      args.neigh_lmp.offset = const_cast<int*>(cnumneigh);
-      args.neigh_lmp.entries = const_cast<int*>(firstneigh);
+      args.neigh_lmp.entries = const_cast<int**>(firstneigh);
       args.neigh_rebo.num = REBO_numneigh;
       args.neigh_rebo.num_half = REBO_num_skin;
       args.neigh_rebo.offset = REBO_cnumneigh;
@@ -543,18 +552,14 @@ void PairAIREBOIntel::eval(
     IP_PRE_fdotr_reduce(1, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
     if (EVFLAG) {
-      if (EFLAG) {
-        ev_global[0] = oevdwl;
-        ev_global[1] = oecoul;
-      }
-      if (vflag) {
-        ev_global[2] = ov0;
-        ev_global[3] = ov1;
-        ev_global[4] = ov2;
-        ev_global[5] = ov3;
-        ev_global[6] = ov4;
-        ev_global[7] = ov5;
-      }
+      ev_global[0] = oevdwl;
+      ev_global[1] = oecoul;
+      ev_global[2] = ov0;
+      ev_global[3] = ov1;
+      ev_global[4] = ov2;
+      ev_global[5] = ov3;
+      ev_global[6] = ov4;
+      ev_global[7] = ov5;
     }
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
@@ -578,28 +583,20 @@ template<class flt_t, class acc_t>
 void PairAIREBOIntel::pack_force_const(IntelBuffers<flt_t,acc_t> * buffers) {
   int tp1 = atom->ntypes + 1;
 
-  buffers->set_ntypes(tp1,1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
-  flt_t **cutneighghostsq = buffers->get_cutneighghostsq();
-
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+      double cut;
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
         cut = init_one(i, j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
-        cut = cutghost[i][j] + neighbor->skin;
-        cutneighghostsq[i][j] = cutneighghostsq[j][i] = cut*cut;
-      }
+      else
+        cut = 0.0;
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (_cop < 0) return;
-  flt_t * ocutneighsq = cutneighsq[0];
   size_t VL = 512 / 8 / sizeof(flt_t);
   int ntypes = tp1;
   int tp1sq = tp1 * tp1;
@@ -607,7 +604,6 @@ void PairAIREBOIntel::pack_force_const(IntelBuffers<flt_t,acc_t> * buffers) {
   // it might not be freed if this method is called more than once
   int * map = this->map;
   #pragma offload_transfer target(mic:_cop) \
-    in(ocutneighsq: length(tp1sq) alloc_if(0) free_if(0)) \
     in(map: length(tp1) alloc_if(1) free_if(0))
   #endif
 
@@ -1580,7 +1576,7 @@ void ref_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     ka->nC[i] = 0;
     ka->nH[i] = 0;
     for (int j = 0; j < ka->neigh_lmp.num[i]; j++) {
-      int ji = ka->neigh_lmp.entries[ka->neigh_lmp.offset[i] + j];
+      int ji = ka->neigh_lmp.entries[i][j];
       flt_t delx = ka->x[i].x - ka->x[ji].x;
       flt_t dely = ka->x[i].y - ka->x[ji].y;
       flt_t delz = ka->x[i].z - ka->x[ji].z;
@@ -2168,7 +2164,7 @@ void ref_lennard_jones_single_atom(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
                                    int morseflag) {
   AtomAIREBOT<flt_t> * x = ka->x;
   int jj;
-  int * neighs = ka->neigh_lmp.entries + ka->neigh_lmp.offset[i];
+  int * neighs = ka->neigh_lmp.entries[i];
   int jnum = ka->neigh_lmp.num_half[i];
   for (jj = 0; jj < jnum; jj++) {
     int j = neighs[jj];
@@ -2332,7 +2328,7 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     int jnum = ka->rebuild_flag ? ka->neigh_lmp.num[i] :
       ka->neigh_rebo.num_half[i];
     int * neighs = ka->rebuild_flag ?
-      &ka->neigh_lmp.entries[ka->neigh_lmp.offset[i]] :
+      ka->neigh_lmp.entries[i] :
       &ka->neigh_rebo.entries[ka->neigh_rebo.offset[i]+jnum];
     int * skin_target = &ka->neigh_rebo.entries[offset+ka->num_neighs_per_atom];
     int n = 0;
@@ -4554,7 +4550,7 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     fvec p_lj40 = fvec::set1(ka->params.lj4[itype][0]);
     fvec p_lj41 = fvec::set1(ka->params.lj4[itype][1]);
 
-    int * neighs = ka->neigh_lmp.entries + ka->neigh_lmp.offset[i];
+    int * neighs = ka->neigh_lmp.entries[i];
     int jnum = ka->neigh_lmp.num_half[i];
 
     bool tap_success = aut_airebo_lj_test_all_paths(ka, i, &test_path_result);

@@ -32,6 +32,7 @@ Commands :h1
    dimension
    displace_atoms
    dump
+   dump_adios
    dump_cfg_uef
    dump_h5md
    dump_image
@@ -39,17 +40,20 @@ Commands :h1
    dump_molfile
    dump_netcdf
    dump_vtk
+   dynamical_matrix
    echo
    fix
    fix_modify
    group
    group2ndx
+   hyper
    if
    improper_coeff
    improper_style
    include
    info
    jump
+   kim_query
    kspace_modify
    kspace_style
    label
@@ -58,6 +62,7 @@ Commands :h1
    mass
    message
    min_modify
+   min_spin
    min_style
    minimize
    molecule

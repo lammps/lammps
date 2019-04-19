@@ -6,7 +6,7 @@
 
 :line
 
-fix poems :h3
+fix poems command :h3
 
 Syntax:
 
@@ -106,7 +106,7 @@ off, and there is only a single fix poems defined.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {bodyforces} option is supported by
 this fix style to set whether per-body forces and torques are computed

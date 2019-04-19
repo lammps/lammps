@@ -137,7 +137,7 @@ compute micelle all chunk/atom c_spread compress yes :pre
 Further analysis on a per-micelle basis can now be performed using any
 of the per-chunk computes listed on the "Howto chunk"_Howto_chunk.html
 doc page.  E.g. count the number of atoms in each micelle, calculate
-its center or mass, shape (moments of intertia), radius of gyration,
+its center or mass, shape (moments of inertia), radius of gyration,
 etc.
 
 compute prop all property/chunk micelle count

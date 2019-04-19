@@ -281,7 +281,7 @@ ComputeSAED::~ComputeSAED()
 {
   memory->destroy(vector);
   memory->destroy(store_tmp);
-  delete ztype;
+  delete[] ztype;
 }
 
 /* ---------------------------------------------------------------------- */

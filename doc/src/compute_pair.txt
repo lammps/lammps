@@ -10,18 +10,21 @@ compute pair command :h3
 
 [Syntax:]
 
-compute ID group-ID pair pstyle evalue :pre
+compute ID group-ID pair pstyle \[nstyle\] \[evalue\]  :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-pair = style name of this compute command
-pstyle = style name of a pair style that calculates additional values
-evalue = {epair} or {evdwl} or {ecoul} or blank (optional setting) :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+pair = style name of this compute command :l
+pstyle = style name of a pair style that calculates additional values :l
+nsub = {n}-instance of a sub-style, if a pair style is used multiple times in a hybrid style :l
+{evalue} = {epair} or {evdwl} or {ecoul} or blank (optional) :l
+:ule
 
 [Examples:]
 
 compute 1 all pair gauss
 compute 1 all pair lj/cut/coul/cut ecoul
-compute 1 all pair reax :pre
+compute 1 all pair tersoff 2 epair
+compute 1 all pair reax/c :pre
 
 [Description:]
 
@@ -33,15 +36,19 @@ NOTE: The group specified for this command is [ignored].
 
 The specified {pstyle} must be a pair style used in your simulation
 either by itself or as a sub-style in a "pair_style hybrid or
-hybrid/overlay"_pair_hybrid.html command.
+hybrid/overlay"_pair_hybrid.html command. If the sub-style is
+used more than once, an additional number {nsub} has to be specified
+in order to choose which instance of the sub-style will be used by
+the compute. Not specifying the number in this case will cause the
+compute to fail.
 
-The {evalue} setting is optional; it may be left off the command.  All
+The {evalue} setting is optional.  All
 pair styles tally a potential energy {epair} which may be broken into
 two parts: {evdwl} and {ecoul} such that {epair} = {evdwl} + {ecoul}.
 If the pair style calculates Coulombic interactions, their energy will
 be tallied in {ecoul}.  Everything else (whether it is a Lennard-Jones
 style van der Waals interaction or not) is tallied in {evdwl}.  If
-{evalue} is specified as {epair} or left out, then {epair} is stored
+{evalue} is blank or specified as {epair}, then {epair} is stored
 as a global scalar by this compute.  This is useful when using
 "pair_style hybrid"_pair_hybrid.html if you want to know the portion
 of the total energy contributed by one sub-style.  If {evalue} is
@@ -53,8 +60,8 @@ corrections, even if they are enabled via the
 "pair_modify"_pair_modify.html command.
 
 Some pair styles tally additional quantities, e.g. a breakdown of
-potential energy into a dozen or so components is tallied by the
-"pair_style reax"_pair_reax.html command.  These values (1 or more)
+potential energy into 14 components is tallied by the "pair_style
+reax/c"_pair_reaxc.html command.  These values (1 or more)
 are stored as a global vector by this compute.  See the doc page for
 "individual pair styles"_pair_style.html for info on these values.
 
@@ -82,4 +89,4 @@ the doc page for the pair style for details.
 
 [Default:]
 
-The default for {evalue} is {epair}.
+The keyword defaults are {evalue} = {epair}, nsub = 0.

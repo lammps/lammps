@@ -45,8 +45,8 @@ high symmetry around each site leads to stable trajectories of the
 core-shell pairs. However, bonded atoms in molecules can be so close
 that a core would interact too strongly or even capture the Drude
 particle of a neighbor. The Drude dipole model is relatively more
-complex in order to remediate this and other issues. Specifically, the
-Drude model includes specific thermostating of the core-Drude pairs
+complex in order to remedy this and other issues. Specifically, the
+Drude model includes specific thermostatting of the core-Drude pairs
 and short-range damping of the induced dipoles.
 
 The three polarization methods can be implemented through a
@@ -77,5 +77,5 @@ motion of the Drude particles with respect to their cores is kept
 approaching the self-consistent regime.  In both models the
 temperature is regulated using the velocities of the center of mass of
 core+shell (or Drude) pairs, but in the Drude model the actual
-relative core-Drude particle motion is thermostated separately as
+relative core-Drude particle motion is thermostatted separately as
 well.

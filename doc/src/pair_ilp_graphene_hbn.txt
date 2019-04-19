@@ -10,10 +10,10 @@ pair_style ilp/graphene/hbn command :h3
 
 [Syntax:]
 
-pair_style hybrid/overlay ilp/graphene/hbn cutoff tap_flag :pre
+pair_style \[hybrid/overlay ...\] ilp/graphene/hbn cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function 
+tap_flag = 0/1 to turn off/on the taper function
 
 [Examples:]
 
@@ -25,14 +25,15 @@ pair_coeff  * * rebo                 CH.airebo   NULL NULL C
 pair_coeff  * * tersoff              BNC.tersoff B    N    NULL
 pair_coeff  * * ilp/graphene/hbn     BNCH.ILP    B    N    C
 pair_coeff  1 1 coul/shield 0.70
-pair_coeff  1 2 coul/shield 0.69498201415576216335
+pair_coeff  1 2 coul/shield 0.695
 pair_coeff  2 2 coul/shield 0.69 :pre
 
 [Description:]
 
 The {ilp/graphene/hbn} style computes the registry-dependent interlayer
-potential (ILP) potential as described in "(Leven)"_#Leven and
-"(Maaravi)"_#Maaravi2. The normals are calculated in the way as described
+potential (ILP) potential as described in "(Leven1)"_#Leven1,
+"(Leven2)"_#Leven2 and "(Maaravi)"_#Maaravi2.
+The normals are calculated in the way as described
 in "(Kolmogorov)"_#Kolmogorov2.
 
 :c,image(Eqs/pair_ilp_graphene_hbn.jpg)
@@ -40,16 +41,22 @@ in "(Kolmogorov)"_#Kolmogorov2.
 Where Tap(r_ij) is the taper function which provides a continuous
 cutoff (up to third derivative) for interatomic separations larger than
 r_c "(Maaravi)"_#Maaravi2. The definitions of each parameter in the above
-equation can be found in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2.
+equation can be found in "(Leven1)"_#Leven1 and "(Maaravi)"_#Maaravi2.
+
 
 It is important to include all the pairs to build the neighbor list for
 calculating the normals.
 
-NOTE: This potential is intended for interactions between two different
-layers of graphene or hexagonal boron nitride. Therefore, to avoid
-interaction within the same layers, each layer should have a separate
-molecule id and is recommended to use "full" atom style in the data
-file.
+NOTE: This potential (ILP) is intended for interlayer interactions between two
+different layers of graphene, hexagonal boron nitride (h-BN) and their hetero-junction.
+To perform a realistic simulation, this potential must be used in combination with
+intra-layer potential, such as "AIREBO"_pair_airebo.html or "Tersoff"_pair_tersoff.html potential.
+To keep the intra-layer properties unaffected, the interlayer interaction
+within the same layers should be avoided. Hence, each atom has to have a layer
+identifier such that atoms residing on the same layer interact via the
+appropriate intra-layer potential and atoms residing on different layers
+interact via the ILP. Here, the molecule id is chosen as the layer identifier,
+thus a data file with the "full" atom style is required to use this potential.
 
 The parameter file (e.g. BNCH.ILP), is intended for use with {metal}
 "units"_units.html, with energies in meV. Two additional parameters,
@@ -60,14 +67,20 @@ list for calculating the normals for each atom pair.
 NOTE: The parameters presented in the parameter file (e.g. BNCH.ILP),
 are fitted with taper function by setting the cutoff equal to 16.0
 Angstrom.  Using different cutoff or taper function should be careful.
+The parameters for atoms pairs between Boron and Nitrogen are fitted with
+a screened Coulomb interaction "coul/shield"_pair_coul_shield.html. Therefore,
+to simulated the properties of h-BN correctly, this potential must be used in
+combination with the pair style "coul/shield"_pair_coul_shield.html.
 
-NOTE: Two new sets of parameters of ILP for two-dimensional hexagonal Materials
-are presented in "(Ouyang)"_#Ouyang1. These parameters provide a good description
-in both short- and long-range interaction regime, while the old ILP parameters
-published in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2 are only suitable for
-long-range interaction regime. This feature is essential for simulations in
-high-pressure regime (i.e., the interlayer distance smaller than the equilibrium distance).
-The benchmark tests and comparison of these parameters can be found in "(Ouyang)"_#Ouyang1.
+NOTE: Two new sets of parameters of ILP for two-dimensional hexagonal
+Materials are presented in "(Ouyang)"_#Ouyang.  These parameters provide
+a good description in both short- and long-range interaction regimes.
+While the old ILP parameters published in "(Leven2)"_#Leven2 and
+"(Maaravi)"_#Maaravi2 are only suitable for long-range interaction
+regime. This feature is essential for simulations in high pressure
+regime (i.e., the interlayer distance is smaller than the equilibrium
+distance).  The benchmark tests and comparison of these parameters can
+be found in "(Ouyang)"_#Ouyang.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
@@ -106,20 +119,24 @@ units, if your simulation does not use {metal} units.
 "pair_style hybrid/overlay"_pair_hybrid.html,
 "pair_style pair_kolmogorov_crespi_z"_pair_kolmogorov_crespi_z.html,
 "pair_style pair_kolmogorov_crespi_full"_pair_kolmogorov_crespi_full.html,
+"pair_style pair_lebedeva_z"_pair_lebedeva_z.html,
 "pair_style pair_coul_shield"_pair_coul_shield.html.
 
 [Default:] tap_flag = 1
 
 :line
 
-:link(Leven)
-[(Leven)] I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016)
+:link(Leven1)
+[(Leven1)] I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
+
+:link(Leven2)
+[(Leven2)] I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 :link(Maaravi2)
 [(Maaravi)] T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
 
 :link(Kolmogorov2)
-[(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
+[(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).
 
-:link(Ouyang1)
-[(Ouyang)] W. Ouyang, D. Mandelli,  M. Urbakh, O. Hod, arXiv:1806.09555 (2018).
+:link(Ouyang)
+[(Ouyang)] W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).

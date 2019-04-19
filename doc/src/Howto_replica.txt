@@ -9,7 +9,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Multi-replica simulations :h3
 
-Several commands in LAMMPS run mutli-replica simulations, meaning
+Several commands in LAMMPS run multi-replica simulations, meaning
 that multiple instances (replicas) of your simulation are run
 simultaneously, with small amounts of data exchanged between replicas
 periodically.

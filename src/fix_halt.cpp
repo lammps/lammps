@@ -119,6 +119,7 @@ int FixHalt::setmask()
   int mask = 0;
   mask |= END_OF_STEP;
   mask |= POST_RUN;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -138,7 +139,17 @@ void FixHalt::init()
   // settings used by TLIMIT
 
   nextstep = (update->ntimestep/nevery)*nevery + nevery;
+  thisstep = -1;
   tratio = 0.5;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixHalt::min_post_force(int /* vflag */)
+{
+  if (update->ntimestep == thisstep) return;
+  if ((update->ntimestep % nevery) == 0) end_of_step();
+  thisstep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

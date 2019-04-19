@@ -36,7 +36,7 @@ pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43 :pre
 [Description:]
 
 The peridynamic pair styles implement material models that can be used
-at the mescscopic and macroscopic scales.  See "this
+at the mesoscopic and macroscopic scales.  See "this
 document"_PDF/PDLammps_overview.pdf for an overview of LAMMPS commands
 for Peridynamics modeling.
 
@@ -63,7 +63,7 @@ R. Rahman and J. T. Foster at University of Texas at San Antonio.  The
 original VES formulation is described in "(Mitchell2011)" and the
 original EPS formulation is in "(Mitchell2011a)".  Additional PDF docs
 that describe the VES and EPS implementations are include in the
-LAMMPS distro in "doc/PDF/PDLammps_VES.pdf"_PDF/PDLammps_VES.pdf and
+LAMMPS distribution in "doc/PDF/PDLammps_VES.pdf"_PDF/PDLammps_VES.pdf and
 "doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf.  For questions
 regarding the VES and EPS models in LAMMPS you can contact R. Rahman
 (rezwanur.rahman at utsa.edu).

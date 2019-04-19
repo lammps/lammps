@@ -65,6 +65,11 @@ class LAMMPS {
 
   static const char * installed_packages[];
 
+  static const bool has_git_info;
+  static const char git_commit[];
+  static const char git_branch[];
+  static const char git_descriptor[];
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();
@@ -170,7 +175,7 @@ The size of the MPI datatype does not match the size of a bigint.
 
 E: Small to big integers are not sized correctly
 
-This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
+This error occurs when the sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 

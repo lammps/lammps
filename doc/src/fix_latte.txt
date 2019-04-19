@@ -58,7 +58,7 @@ LATTE is a code for performing self-consistent charge transfer
 tight-binding (SC-TB) calculations of total energies and the forces
 acting on atoms in molecules and solids. This tight-binding method is
 becoming more and more popular and widely used in chemistry,
-biochemistry, material science, etc.  
+biochemistry, material science, etc.
 
 The SC-TB formalism is derived from an expansion of the Kohn-Sham
 density functional to second order in charge fluctuations about a
@@ -66,7 +66,7 @@ reference charge of overlapping atom-centered densities and bond
 integrals are parameterized using a Slater-Koster tight-binding
 approach. This procedure, which usually is referred to as the DFTB
 method has been described in detail by ("Elstner"_#Elstner) and
-("Finnis"_#Finnis2) and coworkers. 
+("Finnis"_#Finnis2) and coworkers.
 
 The work of the LATTE developers follows that of Elstner closely with
 respect to the physical model.  However, the development of LATTE is

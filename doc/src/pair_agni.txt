@@ -19,7 +19,7 @@ pair_coeff      * * Al.agni Al
 
 [Description:]
 
-Style {agni} style computes the manybody vectorial force components for
+Style {agni} style computes the many-body vectorial force components for
 an atom as
 
 :c,image(Eqs/pair_agni.jpg)

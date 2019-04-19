@@ -81,13 +81,22 @@ int main(int narg, char* args[]) {
   Kokkos::initialize(narg,args);
 
   // Launch 12 teams of the maximum number of threads per team
-  const team_policy policy( 12 , team_policy::team_size_max( hello_world() ) );
-  
-  int sum = 0;
-  Kokkos::parallel_reduce( policy , hello_world() , sum );
+  const int team_size_max = team_policy(1,1).team_size_max(hello_world(), Kokkos::ParallelReduceTag());
+  const team_policy policy_a( 12 , team_size_max );
 
-  // The result will be 12*team_policy::team_size_max( hello_world())
-  printf("Result %i\n",sum);
+  int sum = 0;
+  Kokkos::parallel_reduce( policy_a , hello_world() , sum );
+
+  // The result will be 12*team_size_max
+  printf("Result A: %i == %i\n",sum, team_size_max*12);
+
+  // In practice it is often better to let Kokkos decide on the team_size
+  const team_policy policy_b( 12 , Kokkos::AUTO );
+
+  Kokkos::parallel_reduce( policy_b , hello_world() , sum );
+  // The result will be 12*policy_b.team_size_recommended( hello_world(),  Kokkos::ParallelReduceTag())
+  const int team_size_recommended = policy_b.team_size_recommended( hello_world(),  Kokkos::ParallelReduceTag());
+  printf("Result B: %i %i\n",sum, team_size_recommended*12);
 
   Kokkos::finalize();
 }

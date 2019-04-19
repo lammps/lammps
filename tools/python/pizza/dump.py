@@ -472,7 +472,7 @@ class dump:
       yprdinv = 1.0 / (snap.yhi - snap.ylo)
       zprdinv = 1.0 / (snap.zhi - snap.zlo)
       atoms = snap.atoms
-      if atoms != None:
+      if type(atoms) != types.NoneType:
         atoms[:,x] = (atoms[:,x] - snap.xlo) * xprdinv
         atoms[:,y] = (atoms[:,y] - snap.ylo) * yprdinv
         atoms[:,z] = (atoms[:,z] - snap.zlo) * zprdinv
@@ -502,7 +502,7 @@ class dump:
       h4inv = (h3*h5 - h1*h4) / (h0*h1*h2)
       h5inv = xy / (h0*h1)
       atoms = snap.atoms
-      if atoms != None:
+      if type(atoms) != types.NoneType:
         atoms[:,x] = (atoms[:,x] - snap.xlo)*h0inv + \
             (atoms[:,y] - snap.ylo)*h5inv + \
             (atoms[:,z] - snap.zlo)*h4inv
@@ -536,7 +536,7 @@ class dump:
       yprd = snap.yhi - snap.ylo
       zprd = snap.zhi - snap.zlo
       atoms = snap.atoms
-      if atoms != None:
+      if type(atoms) != types.NoneType:
         atoms[:,x] = snap.xlo + atoms[:,x]*xprd
         atoms[:,y] = snap.ylo + atoms[:,y]*yprd
         atoms[:,z] = snap.zlo + atoms[:,z]*zprd
@@ -560,7 +560,7 @@ class dump:
       h4 = xz
       h5 = xy
       atoms = snap.atoms
-      if atoms != None:
+      if type(atoms) != types.NoneType:
         atoms[:,x] = snap.xlo + atoms[:,x]*h0 + atoms[:,y]*h5 + atoms[:,z]*h4
         atoms[:,y] = snap.ylo + atoms[:,y]*h1 + atoms[:,z]*h3
         atoms[:,z] = snap.zlo + atoms[:,z]*h2

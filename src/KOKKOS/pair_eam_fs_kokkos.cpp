@@ -74,8 +74,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -164,6 +163,9 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMFSKernelA<HALFTHREAD,0> >(0,inum),*this);
       }
     }
+
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_rho, dup_rho);
 
     // communicate and sum densities (on the host)
 
@@ -1205,7 +1207,7 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
 }

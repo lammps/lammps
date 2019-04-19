@@ -87,8 +87,7 @@ void PairLJCutCoulMSM::compute(int eflag, int vflag)
   }
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -252,8 +251,7 @@ void PairLJCutCoulMSM::compute_outer(int eflag, int vflag)
      "for rRESPA with kspace_style MSM");
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

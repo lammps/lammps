@@ -32,7 +32,7 @@ END_RST -->
 
 "Common problems"_Errors_common.html
 "Reporting bugs"_Errors_bugs.html
-"Error messages"_Errors_messages.html 
+"Error messages"_Errors_messages.html
 "Warning messages"_Errors_warnings.html :all(b)
 
 <!-- END_HTML_ONLY -->

@@ -26,7 +26,7 @@
 #include "error.h"
 #include "memory_kokkos.h"
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 // for detecting GPU-direct support:
 // the function  int have_gpu_direct()
@@ -55,7 +55,7 @@ GPU_DIRECT_UNKNOWN
 GPU_DIRECT_UNKNOWN
 #endif
 
-#endif // KOKKOS_HAVE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 
 using namespace LAMMPS_NS;
 
@@ -92,7 +92,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
       error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
@@ -142,7 +142,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpu);
   }
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   if (ngpu <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
 
@@ -164,6 +164,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       ; // should never get here
     }
   }
+#endif
+
+#ifndef KOKKOS_ENABLE_SERIAL
+  if (num_threads == 1)
+    error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
+                         "(i.e. Makefile.kokkos_mpi_only) gives better performance "
+                         "than the OpenMP backend");
 #endif
 
   Kokkos::InitArguments args;

@@ -65,8 +65,7 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -352,9 +351,9 @@ void PairLJ_AB_MDF::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJ_AB_MDF::single(int i, int j, int itype, int jtype,
+double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
-                             double factor_coul, double factor_lj,
+                             double /*factor_coul*/, double factor_lj,
                              double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;
@@ -389,7 +388,7 @@ double PairLJ_AB_MDF::single(int i, int j, int itype, int jtype,
 void *PairLJ_AB_MDF::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"aparm") == 0) return (void *) aparm;
-  if (strcmp(str,"bparm") == 0) return (void *) bparm;
+  if (strcmp(str,"a") == 0) return (void *) aparm;
+  if (strcmp(str,"b") == 0) return (void *) bparm;
   return NULL;
 }

@@ -38,7 +38,7 @@ overview of LAMMPS output options.
 
 The per-particle vector has 7 entries. The first three entries
 correspond to the lengths of the ellipsoid's axes and have units of
-length.  These axis valus are computed as the contact radius times the
+length.  These axis values are computed as the contact radius times the
 xx, yy, or zz components of the Green-Lagrange strain tensor
 associated with the particle.  The next 4 values are quaternions
 (order: q, x, y, z) which describe the spatial rotation of the
@@ -47,8 +47,8 @@ particle relative to its initial state.
 [Restrictions:]
 
 This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 This quantity will be computed only for particles which interact with
 the Total-Lagrangian SPH pair style.

@@ -28,6 +28,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -132,8 +133,7 @@ void PairADP::compute(int eflag, int vflag)
   double sumlamxx,sumlamyy,sumlamzz,sumlamyz,sumlamxz,sumlamxy;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // grow local arrays if necessary
   // need to be atom->nmax in length
@@ -424,7 +424,7 @@ void PairADP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairADP::settings(int narg, char **arg)
+void PairADP::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -521,7 +521,7 @@ void PairADP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairADP::init_one(int i, int j)
+double PairADP::init_one(int /*i*/, int /*j*/)
 {
   // single global cutoff = max of cut from all files read in
   // for funcfl could be multiple files
@@ -551,7 +551,7 @@ void PairADP::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open ADP potential file %s",filename);
+      snprintf(str,128,"Cannot open ADP potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -561,10 +561,10 @@ void PairADP::read_file(char *filename)
 
   int n;
   if (me == 0) {
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -589,7 +589,7 @@ void PairADP::read_file(char *filename)
   delete [] words;
 
   if (me == 0) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -613,32 +613,32 @@ void PairADP::read_file(char *filename)
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {
-      fgets(line,MAXLINE,fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
       sscanf(line,"%d %lg",&tmp,&file->mass[i]);
     }
     MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);
 
-    if (me == 0) grab(fp,file->nrho,&file->frho[i][1]);
+    if (me == 0) grab(fp,filename,file->nrho,&file->frho[i][1]);
     MPI_Bcast(&file->frho[i][1],file->nrho,MPI_DOUBLE,0,world);
-    if (me == 0) grab(fp,file->nr,&file->rhor[i][1]);
+    if (me == 0) grab(fp,filename,file->nr,&file->rhor[i][1]);
     MPI_Bcast(&file->rhor[i][1],file->nr,MPI_DOUBLE,0,world);
   }
 
   for (i = 0; i < file->nelements; i++)
     for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,file->nr,&file->z2r[i][j][1]);
+      if (me == 0) grab(fp,filename,file->nr,&file->z2r[i][j][1]);
       MPI_Bcast(&file->z2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
     }
 
   for (i = 0; i < file->nelements; i++)
     for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,file->nr,&file->u2r[i][j][1]);
+      if (me == 0) grab(fp,filename,file->nr,&file->u2r[i][j][1]);
       MPI_Bcast(&file->u2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
     }
 
   for (i = 0; i < file->nelements; i++)
     for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,file->nr,&file->w2r[i][j][1]);
+      if (me == 0) grab(fp,filename,file->nr,&file->w2r[i][j][1]);
       MPI_Bcast(&file->w2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
     }
 
@@ -918,14 +918,14 @@ void PairADP::interpolate(int n, double delta, double *f, double **spline)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void PairADP::grab(FILE *fp, int n, double *list)
+void PairADP::grab(FILE *fp, char *filename, int n, double *list)
 {
   char *ptr;
   char line[MAXLINE];
 
   int i = 0;
   while (i < n) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
     while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
@@ -935,7 +935,7 @@ void PairADP::grab(FILE *fp, int n, double *list)
 /* ---------------------------------------------------------------------- */
 
 int PairADP::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

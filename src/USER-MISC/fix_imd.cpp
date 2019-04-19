@@ -811,7 +811,7 @@ void FixIMD::ioworker()
 /* ---------------------------------------------------------------------- */
 /* Main IMD protocol handler:
  * Send coodinates, energies, and add IMD forces to atoms. */
-void FixIMD::post_force(int vflag)
+void FixIMD::post_force(int /*vflag*/)
 {
   /* check for reconnect */
   if (imd_inactive) {
@@ -1153,7 +1153,7 @@ void FixIMD::post_force(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void FixIMD::post_force_respa(int vflag, int ilevel, int iloop)
+void FixIMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process IMD on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);

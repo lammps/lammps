@@ -82,12 +82,12 @@ coordinates:
 
 where the first term is the sum of all non-bonded "pairwise
 interactions"_pair_style.html including "long-range Coulombic
-interactions"_kspace_style.html, the 2nd thru 5th terms are
+interactions"_kspace_style.html, the 2nd through 5th terms are
 "bond"_bond_style.html, "angle"_angle_style.html,
 "dihedral"_dihedral_style.html, and "improper"_improper_style.html
 interactions respectively, and the last term is energy due to
 "fixes"_fix.html which can act as constraints or apply force to atoms,
-such as thru interaction with a wall.  See the discussion below about
+such as through interaction with a wall.  See the discussion below about
 how fix commands affect minimization.
 
 The starting point for the minimization is the current configuration
@@ -102,6 +102,13 @@ the 2-norm (length) of the global force vector is less than the {ftol}
 the line search fails because the step distance backtracks to 0.0
 the number of outer iterations or timesteps exceeds {maxiter}
 the number of total force evaluations exceeds {maxeval} :ul
+
+NOTE: the "minimization style"_min_style.html {spin} replaces
+the force tolerance {ftol} by a torque tolerance.
+The minimization procedure stops if the 2-norm (length) of the 
+global torque vector (defined as the cross product between the 
+spins and their precession vectors omega) is less than {ftol}, 
+or if any of the other criteria are met.
 
 NOTE: You can also use the "fix halt"_fix_halt.html command to specify
 a general criterion for exiting a minimization, that is a calculation
@@ -190,7 +197,7 @@ it when running dynamics).  If you do not do this, the total energy of
 the system will have discontinuities when the relative distance
 between any pair of atoms changes from cutoff+epsilon to
 cutoff-epsilon and the minimizer may behave poorly.  Some of the
-manybody potentials use splines and other internal cutoffs that
+many-body potentials use splines and other internal cutoffs that
 inherently have this problem.  The "long-range Coulombic
 styles"_kspace_style.html (PPPM, Ewald) are approximate to within the
 user-specified tolerance, which means their energy and forces may not
@@ -216,10 +223,10 @@ The "fix box/relax"_fix_box_relax.html command can be used to apply an
 external pressure to the simulation box and allow it to shrink/expand
 during the minimization.
 
-Only a few other fixes (typically those that apply force constraints)
-are invoked during minimization.  See the doc pages for individual
-"fix"_fix.html commands to see which ones are relevant.  Current
-examples of fixes that can be used include:
+Only a few other fixes (typically those that add forces) are invoked
+during minimization.  See the doc pages for individual "fix"_fix.html
+commands to see which ones are relevant.  Current examples of fixes
+that can be used include:
 
 "fix addforce"_fix_addforce.html
 "fix addtorque"_fix_addtorque.html
@@ -241,6 +248,11 @@ total potential energy of the system (the quantity being minimized),
 you MUST enable the "fix_modify"_fix_modify.html {energy} option for
 that fix.  The doc pages for individual "fix"_fix.html commands
 specify if this should be done.
+
+NOTE: The minimizers in LAMMPS do not allow for bonds (or angles, etc)
+to be held fixed while atom coordinates are being relaxed, e.g. via
+"fix shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  See more
+info in the Restrictions section below.
 
 :line
 

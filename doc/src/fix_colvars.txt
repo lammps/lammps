@@ -81,7 +81,7 @@ the image flags to reconstruct the absolute atom positions.
 Setting this to {no} will use the current local coordinates that are
 wrapped back into the simulation cell at each re-neighboring instead.
 
-The {tstat} keyword can be either NULL or the label of a thermostating
+The {tstat} keyword can be either NULL or the label of a thermostatting
 fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.
@@ -106,8 +106,8 @@ fix is "extensive".
 [Restrictions:]
 
 This fix is part of the USER-COLVARS package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module
@@ -116,7 +116,8 @@ not a limitation of functionality.
 
 [Related commands:]
 
-"fix smd"_fix_smd.html
+"fix smd"_fix_smd.html, "fix spring"_fix_spring.html,
+"fix plumed"_fix_plumed.html
 
 [Default:]
 
@@ -126,4 +127,4 @@ and tstat = NULL.
 :line
 
 :link(Fiorin)
-[(Fiorin)] Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
+[(Fiorin)] Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594

@@ -78,8 +78,7 @@ void PairZBL::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -267,8 +266,8 @@ double PairZBL::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-double PairZBL::single(int i, int j, int itype, int jtype, double rsq,
-                         double dummy1, double dummy2,
+double PairZBL::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*dummy1*/, double /*dummy2*/,
                          double &fforce)
 {
   double phi,r,t,eswitch,fswitch;

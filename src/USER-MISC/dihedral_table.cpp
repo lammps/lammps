@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "dihedral_table.h"
+#include "utils.h"
 
 #include "math_const.h"
 #include "math_extra.h"
@@ -51,7 +52,7 @@ using namespace MathExtra;
 // ------------------------------------------------------------------------
 
 // -------------------------------------------------------------------
-// ---------    The function was stolen verbatim from the    ---------
+// ---------    The function was taken verbatim from the    ---------
 // ---------    GNU Scientific Library (GSL, version 1.15)   ---------
 // -------------------------------------------------------------------
 
@@ -548,8 +549,7 @@ void DihedralTable::compute(int eflag, int vflag)
 
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
 
   for (n = 0; n < ndihedrallist; n++) {
@@ -1090,18 +1090,18 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     for (int i = 0; i < tb->ninput; i++)
-      fgets(line,MAXLINE,fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->phifile,tb->ninput,"dihedral:phifile");
   memory->create(tb->efile,tb->ninput,"dihedral:efile");
@@ -1111,9 +1111,8 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 
   int itmp;
   for (int i = 0; i < tb->ninput; i++) {
-    // Read the next line.  Make sure the file is long enough.
-    if (! fgets(line,MAXLINE,fp))
-      error->one(FLERR, "Dihedral table does not contain enough entries.");
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+
     // Skip blank lines and delete text following a '#' character
     char *pe = strchr(line, '#');
     if (pe != NULL) *pe = '\0'; //terminate string at '#' character
@@ -1123,15 +1122,10 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
     if (*pc != '\0') { //If line is not a blank line
       stringstream line_ss(line);
       if (tb->f_unspecified) {
-        //sscanf(line,"%d %lg %lg",
-        //       &itmp,&tb->phifile[i],&tb->efile[i]);
         line_ss >> itmp;
         line_ss >> tb->phifile[i];
         line_ss >> tb->efile[i];
-      }
-      else {
-        //sscanf(line,"%d %lg %lg %lg",
-        //       &itmp,&tb->phifile[i],&tb->efile[i],&tb->ffile[i]);
+      } else {
         line_ss >> itmp;
         line_ss >> tb->phifile[i];
         line_ss >> tb->efile[i];
@@ -1145,8 +1139,7 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
           err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
         error->one(FLERR, err_msg.str().c_str());
       }
-    }
-    else //if it is a blank line, then skip it.
+    } else //if it is a blank line, then skip it.
       i--;
   } //for (int i = 0; (i < tb->ninput) && fp; i++) {
 

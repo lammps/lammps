@@ -55,7 +55,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 //           The call to Comm::copy_arrays() then converts the shallow copy
 //           into a deep copy of the class with the new layout.
 
-CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
   style = 1;
   layout = oldcomm->layout;
@@ -438,7 +438,7 @@ void CommTiled::setup()
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm(int dummy)
+void CommTiled::forward_comm(int /*dummy*/)
 {
   int i,irecv,n,nsend,nrecv;
   AtomVec *avec = atom->avec;
@@ -512,7 +512,7 @@ void CommTiled::forward_comm(int dummy)
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
       }
       if (sendother[iswap]) {
-        for (i = 0; i < nsendproc[iswap]; i++) {
+        for (i = 0; i < nsend; i++) {
           n = avec->pack_comm(sendnum[iswap][i],sendlist[iswap][i],
                               buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
@@ -1164,7 +1164,7 @@ void CommTiled::reverse_comm_fix(Fix *fix, int size)
    NOTE: how to setup one big buf recv with correct offsets ??
 ------------------------------------------------------------------------- */
 
-void CommTiled::reverse_comm_fix_variable(Fix *fix)
+void CommTiled::reverse_comm_fix_variable(Fix * /*fix*/)
 {
   error->all(FLERR,"Reverse comm fix variable not yet supported by CommTiled");
 }
@@ -1428,7 +1428,7 @@ void CommTiled::forward_comm_array(int nsize, double **array)
    NOTE: this method is currently not used
 ------------------------------------------------------------------------- */
 
-int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
+int CommTiled::exchange_variable(int n, double * /*inbuf*/, double *& /*outbuf*/)
 {
   int nrecv = n;
   return nrecv;
@@ -1509,7 +1509,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
    no need to split lo/hi box as recurse b/c OK if box extends outside RCB box
 ------------------------------------------------------------------------- */
 
-void CommTiled::box_drop_tiled(int idim, double *lo, double *hi, int &indexme)
+void CommTiled::box_drop_tiled(int /*idim*/, double *lo, double *hi, int &indexme)
 {
   box_drop_tiled_recurse(lo,hi,0,nprocs-1,indexme);
 }
@@ -1601,7 +1601,7 @@ void CommTiled::box_other_brick(int idim, int idir,
    return other box owned by proc as lo/hi corner pts
 ------------------------------------------------------------------------- */
 
-void CommTiled::box_other_tiled(int idim, int idir,
+void CommTiled::box_other_tiled(int /*idim*/, int /*idir*/,
                                 int proc, double *lo, double *hi)
 {
   double (*split)[2] = rcbinfo[proc].mysplit;

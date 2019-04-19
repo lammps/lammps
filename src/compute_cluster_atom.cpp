@@ -89,7 +89,7 @@ void ComputeClusterAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeClusterAtom::init_list(int id, NeighList *ptr)
+void ComputeClusterAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -209,7 +209,7 @@ void ComputeClusterAtom::compute_peratom()
 /* ---------------------------------------------------------------------- */
 
 int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf,
-                                          int pbc_flag, int *pbc)
+                                          int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

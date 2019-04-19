@@ -208,7 +208,7 @@ void AtomVecSMD::copy(int i, int j, int delflag) {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSMD::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int AtomVecSMD::pack_comm(int /*n*/, int * /*list*/, double * /*buf*/, int /*pbc_flag*/, int * /*pbc*/) {
         error->one(FLERR, "atom vec tlsph can only be used with ghost velocities turned on");
         return -1;
 }
@@ -333,7 +333,7 @@ int AtomVecSMD::pack_comm_hybrid(int n, int *list, double *buf) {
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecSMD::unpack_comm(int n, int first, double *buf) {
+void AtomVecSMD::unpack_comm(int /*n*/, int /*first*/, double * /*buf*/) {
         error->one(FLERR, "atom vec tlsph can only be used with ghost velocities turned on");
 }
 
@@ -441,7 +441,7 @@ int AtomVecSMD::unpack_reverse_hybrid(int n, int *list, double *buf) {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSMD::pack_border(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int AtomVecSMD::pack_border(int /*n*/, int * /*list*/, double * /*buf*/, int /*pbc_flag*/, int * /*pbc*/) {
         error->one(FLERR, "atom vec tlsph can only be used with ghost velocities turned on");
         return -1;
 }
@@ -633,7 +633,7 @@ int AtomVecSMD::pack_border_hybrid(int n, int *list, double *buf) {
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecSMD::unpack_border(int n, int first, double *buf) {
+void AtomVecSMD::unpack_border(int /*n*/, int /*first*/, double * /*buf*/) {
         error->one(FLERR, "atom vec tlsph can only be used with ghost velocities turned on");
 }
 
@@ -1098,7 +1098,7 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
  initialize other atom quantities for this sub-style
  ------------------------------------------------------------------------- */
 
-int AtomVecSMD::data_atom_hybrid(int nlocal, char **values) {
+int AtomVecSMD::data_atom_hybrid(int /*nlocal*/, char **/*values*/) {
         error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
         return -1;
 }
@@ -1120,7 +1120,7 @@ void AtomVecSMD::data_vel(int m, char **values) {
  unpack hybrid quantities from one line in Velocities section of data file
  ------------------------------------------------------------------------- */
 
-int AtomVecSMD::data_vel_hybrid(int m, char **values) {
+int AtomVecSMD::data_vel_hybrid(int /*m*/, char **/*values*/) {
         error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
         return 0;
 }
@@ -1158,7 +1158,7 @@ void AtomVecSMD::pack_data(double **buf) {
  pack hybrid atom info for data file
  ------------------------------------------------------------------------- */
 
-int AtomVecSMD::pack_data_hybrid(int i, double *buf) {
+int AtomVecSMD::pack_data_hybrid(int /*i*/, double * /*buf*/) {
         error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
         return -1;
 }
@@ -1180,7 +1180,7 @@ void AtomVecSMD::write_data(FILE *fp, int n, double **buf) {
  write hybrid atom info to data file
  ------------------------------------------------------------------------- */
 
-int AtomVecSMD::write_data_hybrid(FILE *fp, double *buf) {
+int AtomVecSMD::write_data_hybrid(FILE * /*fp*/, double * /*buf*/) {
         error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
         return -1;
 }
@@ -1203,7 +1203,7 @@ void AtomVecSMD::pack_vel(double **buf) {
  pack hybrid velocity info for data file
  ------------------------------------------------------------------------- */
 
-int AtomVecSMD::pack_vel_hybrid(int i, double *buf) {
+int AtomVecSMD::pack_vel_hybrid(int /*i*/, double * /*buf*/) {
         error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
         return 0;
 }
@@ -1222,7 +1222,7 @@ void AtomVecSMD::write_vel(FILE *fp, int n, double **buf) {
  write hybrid velocity info to data file
  ------------------------------------------------------------------------- */
 
-int AtomVecSMD::write_vel_hybrid(FILE *fp, double *buf) {
+int AtomVecSMD::write_vel_hybrid(FILE * /*fp*/, double * /*buf*/) {
         error->one(FLERR, "hybrid atom style functionality not yet implemented for atom style smd");
         return 3;
 }

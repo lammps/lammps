@@ -62,8 +62,8 @@ respa"_run_style.html command.  It does not support the {inner},
 [Restrictions:]
 
 This pair style is part of the USER-SPH package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

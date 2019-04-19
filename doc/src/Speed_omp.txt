@@ -10,41 +10,31 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 USER-OMP package :h3
 
 The USER-OMP package was developed by Axel Kohlmeyer at Temple
-University.  It provides multi-threaded versions of most pair styles,
-nearly all bonded styles (bond, angle, dihedral, improper), several
-Kspace styles, and a few fix styles.  The package currently uses the
-OpenMP interface for multi-threading.
-
-Here is a quick overview of how to use the USER-OMP package, assuming
-one or more 16-core nodes.  More details follow.
-
-use -fopenmp with CCFLAGS and LINKFLAGS in Makefile.machine
-make yes-user-omp
-make mpi                                   # build with USER-OMP package, if settings added to Makefile.mpi
-make omp                                   # or Makefile.omp already has settings :pre
-
-lmp_mpi -sf omp -pk omp 16 < in.script                         # 1 MPI task, 16 threads
-mpirun -np 4 lmp_mpi -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
-mpirun -np 32 -ppn 4 lmp_mpi -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task :pre
+University.  It provides optimized and multi-threaded versions
+of many pair styles, nearly all bonded styles (bond, angle, dihedral,
+improper), several Kspace styles, and a few fix styles.  It uses
+the OpenMP interface for multi-threading, but can also be compiled
+without OpenMP support, providing optimized serial styles in that case.
 
 [Required hardware/software:]
 
-Your compiler must support the OpenMP interface.  You should have one
-or more multi-core CPUs so that multiple threads can be launched by
-each MPI task running on a CPU.
+To enable multi-threading, your compiler must support the OpenMP interface.
+You should have one or more multi-core CPUs, as multiple threads can only be
+launched by each MPI task on the local node (using shared memory).
 
 [Building LAMMPS with the USER-OMP package:]
 
-The lines above illustrate how to include/build with the USER-OMP
-package in two steps, using the "make" command.  Or how to do it with
-one command as described on the "Packages
-details"_Packages_details.html#USER-OMP doc page.
-
-Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
-include "-fopenmp".  Likewise, if you use an Intel compiler, the
-CCFLAGS setting must include "-restrict".
+See the "Build extras"_Build_extras.html#user-omp doc page for
+instructions.
 
 [Run with the USER-OMP package from the command line:]
+
+These examples assume one or more 16-core nodes.
+
+env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script           # 1 MPI task, 16 threads according to OMP_NUM_THREADS
+lmp_mpi -sf omp -in in.script                                  # 1 MPI task, no threads, optimized kernels
+mpirun -np 4 lmp_omp -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
+mpirun -np 32 -ppn 4 lmp_omp -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task :pre
 
 The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI
@@ -57,19 +47,18 @@ threads/task should not exceed the physical number of cores (on a
 node), otherwise performance will suffer.
 
 As in the lines above, use the "-sf omp" "command-line
-switch"_Section_start.html#start_6, which will automatically append
-"omp" to styles that support it.  The "-sf omp" switch also issues a
-default "package omp 0"_package.html command, which will set the
-number of threads per MPI task via the OMP_NUM_THREADS environment
-variable.
+switch"_Run_options.html, which will automatically append "omp" to
+styles that support it.  The "-sf omp" switch also issues a default
+"package omp 0"_package.html command, which will set the number of
+threads per MPI task via the OMP_NUM_THREADS environment variable.
 
 You can also use the "-pk omp Nt" "command-line
-switch"_Section_start.html#start_6, to explicitly set Nt = # of OpenMP
-threads per MPI task to use, as well as additional options.  Its
-syntax is the same as the "package omp"_package.html command whose doc
-page gives details, including the default values used if it is not
-specified.  It also gives more details on how to set the number of
-threads via the OMP_NUM_THREADS environment variable.
+switch"_Run_options.html, to explicitly set Nt = # of OpenMP threads
+per MPI task to use, as well as additional options.  Its syntax is the
+same as the "package omp"_package.html command whose doc page gives
+details, including the default values used if it is not specified.  It
+also gives more details on how to set the number of threads via the
+OMP_NUM_THREADS environment variable.
 
 [Or run with the USER-OMP package by editing an input script:]
 
@@ -142,7 +131,7 @@ effect worsens when using an increasing number of nodes. :l
 The system has a spatially inhomogeneous particle density which does
 not map well to the "domain decomposition scheme"_processors.html or
 "load-balancing"_balance.html options that LAMMPS provides.  This is
-because multi-threading achives parallelism over the number of
+because multi-threading achieves parallelism over the number of
 particles, not via their distribution in space. :l
 
 A machine is being used in "capability mode", i.e. near the point
@@ -154,7 +143,7 @@ the performance-limiting factor.  Using multi-threading allows less
 MPI tasks to be invoked and can speed-up the long-range solver, while
 increasing overall performance by parallelizing the pairwise and
 bonded calculations via OpenMP.  Likewise additional speedup can be
-sometimes be achived by increasing the length of the Coulombic cutoff
+sometimes be achieved by increasing the length of the Coulombic cutoff
 and thus reducing the work done by the long-range solver.  Using the
 "run_style verlet/split"_run_style.html command, which is compatible
 with the USER-OMP package, is an alternative way to reduce the number

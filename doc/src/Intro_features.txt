@@ -20,7 +20,7 @@ classes of functionality:
 "Integrators"_#integrate
 "Diagnostics"_#diag
 "Output"_#output
-"Multi-replica models"_#replica
+"Multi-replica models"_#replica1
 "Pre- and post-processing"_#prepost
 "Specialized features (beyond MD itself)"_#special :ul
 
@@ -40,7 +40,7 @@ General features :h4,link(general)
   syntax for defining and using variables and formulas
   syntax for looping over runs and breaking out of loops
   run one or multiple simulations simultaneously (in parallel) from one script
-  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+  build as library, invoke LAMMPS through library interface or provided Python wrapper
   couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both :ul
 
 Particle and model types :h4,link(particle)
@@ -68,7 +68,7 @@ commands)
   pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, \
     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
-  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
+  many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
     REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
   long-range interactions for charge, point-dipoles, and LJ dispersion: \
@@ -110,11 +110,11 @@ Atom creation :h4,link(create)
   displace atoms :ul
 
 Ensembles, constraints, and boundary conditions :h4,link(ensemble)
-("fix"_fix.html command) 
+("fix"_fix.html command)
 
   2d or 3d systems
   orthogonal or non-orthogonal (triclinic symmetry) simulation domains
-  constant NVE, NVT, NPT, NPH, Parinello/Rahman integrators
+  constant NVE, NVT, NPT, NPH, Parrinello/Rahman integrators
   thermostatting options for groups and geometric regions of atoms
   pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
   simulation box deformation (tensile and shear)
@@ -128,7 +128,7 @@ Ensembles, constraints, and boundary conditions :h4,link(ensemble)
   variety of additional boundary conditions and constraints :ul
 
 Integrators :h4,link(integrate)
-("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands) 
+("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands)
 
   velocity-Verlet integrator
   Brownian dynamics
@@ -142,7 +142,7 @@ Diagnostics :h4,link(diag)
   see various flavors of the "fix"_fix.html and "compute"_compute.html commands :ul
 
 Output :h4,link(output)
-("dump"_dump.html, "restart"_restart.html commands) 
+("dump"_dump.html, "restart"_restart.html commands)
 
   log file of thermodynamic info
   text dump files of atom coords, velocities, other per-atom quantities
@@ -154,7 +154,7 @@ Output :h4,link(output)
   time averaging of system-wide quantities
   atom snapshots in native, XYZ, XTC, DCD, CFG formats :ul
 
-Multi-replica models :h4,link(replica)
+Multi-replica models :h4,link(replica1)
 
 "nudged elastic band"_neb.html
 "parallel replica dynamics"_prd.html

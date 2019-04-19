@@ -33,6 +33,7 @@
 #include "memory.h"
 #include "error.h"
 
+#define LMP_NEED_SDK_FIND_LJ_TYPE 1
 #include "lj_sdk_common.h"
 
 using namespace LAMMPS_NS;
@@ -77,9 +78,7 @@ PairLJSDK::~PairLJSDK()
 
 void PairLJSDK::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {

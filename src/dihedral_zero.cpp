@@ -44,8 +44,7 @@ DihedralZero::~DihedralZero()
 
 void DihedralZero::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,13 +98,13 @@ void DihedralZero::coeff(int narg, char **arg)
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void DihedralZero::write_restart(FILE *fp) {}
+void DihedralZero::write_restart(FILE * /*fp*/) {}
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-void DihedralZero::read_restart(FILE *fp)
+void DihedralZero::read_restart(FILE * /*fp*/)
 {
   allocate();
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
@@ -119,4 +118,3 @@ void DihedralZero::write_data(FILE *fp) {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fprintf(fp,"%d\n",i);
 }
-

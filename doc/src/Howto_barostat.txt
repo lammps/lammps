@@ -19,7 +19,7 @@ barostat attempts to equilibrate the system to the requested T and/or
 P.
 
 Barostatting in LAMMPS is performed by "fixes"_fix.html.  Two
-barosttating methods are currently available: Nose-Hoover (npt and
+barostatting methods are currently available: Nose-Hoover (npt and
 nph) and Berendsen:
 
 "fix npt"_fix_nh.html
@@ -64,11 +64,11 @@ Thermodynamic output, which can be setup via the
 "thermo_style"_thermo_style.html command, often includes pressure
 values.  As explained on the doc page for the
 "thermo_style"_thermo_style.html command, the default pressure is
-setup by the thermo command itself.  It is NOT the presure associated
+setup by the thermo command itself.  It is NOT the pressure associated
 with any barostatting fix you have defined or with any compute you
-have defined that calculates a presure.  The doc pages for the
+have defined that calculates a pressure.  The doc pages for the
 barostatting fixes explain the ID of the pressure compute they create.
-Thus if you want to view these pressurse, you need to specify them
+Thus if you want to view these pressures, you need to specify them
 explicitly via the "thermo_style custom"_thermo_style.html command.
 Or you can use the "thermo_modify"_thermo_modify.html command to
 re-define what pressure compute is used for default thermodynamic

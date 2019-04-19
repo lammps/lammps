@@ -57,7 +57,7 @@ int FixDPDenergy::setmask()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixDPDenergy::initial_integrate(int vflag)
+void FixDPDenergy::initial_integrate(int /*vflag*/)
 {
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

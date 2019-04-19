@@ -52,8 +52,7 @@ void BondHarmonic::compute(int eflag, int vflag)
   double rsq,r,dr,rk;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -190,7 +189,7 @@ void BondHarmonic::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonic::single(int type, double rsq, int i, int j,
+double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double r = sqrt(rsq);
@@ -207,8 +206,8 @@ double BondHarmonic::single(int type, double rsq, int i, int j,
 void *BondHarmonic::extract( char *str, int &dim )
 {
   dim = 1;
-  if( strcmp(str,"kappa")==0) return (void*) k;
-  if( strcmp(str,"r0")==0) return (void*) r0;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
   return NULL;
 }
 

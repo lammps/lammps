@@ -40,7 +40,9 @@ struct POEMSNode {
 class SystemProcessor{
 private:
 	Tree nodes;
-//	List<POEMSNode> forDeletion;
+	static void POEMSNodeDelete_cb(void *node) {
+		delete (POEMSNode *) node;
+	}
 	List<POEMSChain> headsOfSystems;
 	List<List<int> > ringsInSystem;
 	POEMSNode * findSingleLink(TreeNode * aNode);
@@ -65,6 +67,8 @@ public:
 };
 
 SystemProcessor::SystemProcessor(void){
+  // register callback for deleting auxiliary data from tree nodes.
+  nodes.SetDeleteAuxData(&POEMSNodeDelete_cb);
 }
 
 void SystemProcessor::processArray(int** links, int numLinks)

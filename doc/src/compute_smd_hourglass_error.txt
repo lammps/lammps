@@ -29,7 +29,7 @@ within the neighborhood of the central node and the deformation
 gradient, the approximated relative separation will coincide with the
 actual relative separation of the particles i and j in the deformed
 configuration.  This compute is only really useful for debugging the
-hourglass control mechanim which is part of the Total-Lagrangian SPH
+hourglass control mechanism which is part of the Total-Lagrangian SPH
 pair style.
 
 See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to use Smooth
@@ -48,8 +48,8 @@ The per-particle vector values will are dimensionless. See
 [Restrictions:]
 
 This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This quantity will be computed only for particles which interact with
 tlsph pair style.

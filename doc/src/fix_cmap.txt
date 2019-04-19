@@ -24,12 +24,12 @@ fix_modify     myCMAP energy yes :pre
 
 [Description:]
 
-This command enables CMAP crossterms to be added to simulations which
+This command enables CMAP cross-terms to be added to simulations which
 use the CHARMM force field.  These are relevant for any CHARMM model
 of a peptide or protein sequences that is 3 or more amino-acid
 residues long; see "(Buck)"_#Buck and "(Brooks)"_#Brooks2 for details,
 including the analytic energy expressions for CMAP interactions.  The
-CMAP crossterms add additional potential energy contributions to pairs
+CMAP cross-terms add additional potential energy contributions to pairs
 of overlapping phi-psi dihedrals of amino-acids, which are important
 to properly represent their conformational behavior.
 
@@ -49,7 +49,7 @@ in its header section:
 
 N crossterms :pre
 
-where N is the number of CMAP crossterms.  It should also have a section
+where N is the number of CMAP cross-terms.  It should also have a section
 in the body of the data file like this with N lines:
 
 CMAP :pre
@@ -69,7 +69,7 @@ sections match those specified in the read_data command following the
 data file name; see the "read_data"_read_data.html doc page for
 more details.
 
-A data file containing CMAP crossterms can be generated from a PDB
+A data file containing CMAP cross-terms can be generated from a PDB
 file using the charmm2lammps.pl script in the tools/ch2lmp directory
 of the LAMMPS distribution.  The script must be invoked with the
 optional "-cmap" flag to do this; see the tools/ch2lmp/README file for
@@ -87,7 +87,7 @@ the note below about how to include the CMAP energy when performing an
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-This fix writes the list of CMAP crossterms to "binary restart
+This fix writes the list of CMAP cross-terms to "binary restart
 files"_restart.html.  See the "read_restart"_read_restart.html command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
@@ -125,8 +125,8 @@ To function as expected this fix command must be issued {before} a
 "read_restart"_read_restart.html command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
-package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 [Related commands:]
 

@@ -440,7 +440,7 @@ void FixSRD::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixSRD::setup(int vflag)
+void FixSRD::setup(int /*vflag*/)
 {
   setup_bounds();
 
@@ -703,7 +703,7 @@ void FixSRD::pre_neighbor()
    when collision occurs, change x,v of SRD, force,torque of BIG particle
 ------------------------------------------------------------------------- */
 
-void FixSRD::post_force(int vflag)
+void FixSRD::post_force(int /*vflag*/)
 {
   int i,m,ix,iy,iz;
 
@@ -1348,7 +1348,7 @@ void FixSRD::collisions_single()
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
                 if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
                 error->warning(FLERR,str);
-              } else{
+              } else {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
@@ -1507,7 +1507,7 @@ void FixSRD::collisions_multi()
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
                 if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
                 error->warning(FLERR,str);
-              } else{
+              } else {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
@@ -2168,8 +2168,8 @@ void FixSRD::collision_ellipsoid_inexact(double *xs, double *xb,
    norm = surface normal of collision pt at time of collision
 ------------------------------------------------------------------------- */
 
-double FixSRD::collision_line_exact(double *xs, double *xb,
-                                    double *vs, double *vb, Big *big,
+double FixSRD::collision_line_exact(double * /*xs*/, double * /*xb*/,
+                                    double * /*vs*/, double * /*vb*/, Big * /*big*/,
                                     double dt_step,
                                     double *xscoll, double *xbcoll,
                                     double *norm)
@@ -2197,8 +2197,8 @@ double FixSRD::collision_line_exact(double *xs, double *xb,
    norm = surface normal of collision pt at time of collision
 ------------------------------------------------------------------------- */
 
-double FixSRD::collision_tri_exact(double *xs, double *xb,
-                                   double *vs, double *vb, Big *big,
+double FixSRD::collision_tri_exact(double * /*xs*/, double * /*xb*/,
+                                   double * /*vs*/, double * /*vb*/, Big * /*big*/,
                                    double dt_step,
                                    double *xscoll, double *xbcoll,
                                    double *norm)

@@ -65,22 +65,34 @@ Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated "bond_coeff"_bond_coeff.html command.
 
-Note that there are also additional bond styles submitted by users
-which are included in the LAMMPS distribution.  The full list of all
-bond styles is on the "Commands bond"_Commands_bond.html doc page.
+Click on the style to display the formula it computes, any additional
+arguments specified in the bond_style command, and coefficients
+specified by the associated "bond_coeff"_bond_coeff.html command.
 
-"bond_style none"_bond_none.html - turn off bonded interactions
-"bond_style zero"_bond_zero.html - topology but no interactions
-"bond_style hybrid"_bond_hybrid.html - define multiple styles of bond interactions :ul
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands bond"_Commands_bond.html
+doc page are followed by one or more of (g,i,k,o,t) to indicate which
+accelerated styles exist.
 
-"bond_style class2"_bond_class2.html - COMPASS (class 2) bond
-"bond_style fene"_bond_fene.html - FENE (finite-extensible non-linear elastic) bond
-"bond_style fene/expand"_bond_fene_expand.html - FENE bonds with variable size particles
-"bond_style harmonic"_bond_harmonic.html - harmonic bond
-"bond_style morse"_bond_morse.html - Morse bond
-"bond_style nonlinear"_bond_nonlinear.html - nonlinear bond
-"bond_style quartic"_bond_quartic.html - breakable quartic bond
-"bond_style table"_bond_table.html - tabulated by bond length :ul
+"none"_bond_none.html - turn off bonded interactions
+"zero"_bond_zero.html - topology but no interactions
+"hybrid"_bond_hybrid.html - define multiple styles of bond interactions :ul
+
+"class2"_bond_class2.html - COMPASS (class 2) bond
+"fene"_bond_fene.html - FENE (finite-extensible non-linear elastic) bond
+"fene/expand"_bond_fene_expand.html - FENE bonds with variable size particles
+"gromos"_bond_gromos.html - GROMOS force field bond
+"harmonic"_bond_harmonic.html - harmonic bond
+"harmonic/shift"_bond_harmonic_shift.html - shifted harmonic bond
+"harmonic/shift/cut"_bond_harmonic_shift_cut.html - shifted harmonic bond with a cutoff
+"mm3"_bond_mm3.html - MM3 anharmonic bond
+"morse"_bond_morse.html - Morse bond
+"nonlinear"_bond_nonlinear.html - nonlinear bond
+"oxdna/fene"_bond_oxdna.html - modified FENE bond suitable for DNA modeling
+"oxdna2/fene"_bond_oxdna.html - same as oxdna but used with different pair styles
+"quartic"_bond_quartic.html - breakable quartic bond
+"table"_bond_table.html - tabulated by bond length :ul
 
 :line
 
@@ -90,10 +102,9 @@ Bond styles can only be set for atom styles that allow bonds to be
 defined.
 
 Most bond styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
-The doc pages for individual bond potentials tell if it is part of a
-package.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  The doc pages for
+individual bond potentials tell if it is part of a package.
 
 [Related commands:]
 

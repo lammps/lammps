@@ -93,9 +93,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // neighbor list info
 
@@ -195,7 +193,7 @@ void PairMEAMC::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMC::settings(int narg, char **arg)
+void PairMEAMC::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -206,7 +204,7 @@ void PairMEAMC::settings(int narg, char **arg)
 
 void PairMEAMC::coeff(int narg, char **arg)
 {
-  int i,j,m,n;
+  int m,n;
 
   if (!allocated) allocate();
 
@@ -222,16 +220,19 @@ void PairMEAMC::coeff(int narg, char **arg)
   // elements = list of unique element names
 
   if (nelements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
+    for (int i = 0; i < nelements; i++) delete [] elements[i];
     delete [] elements;
     delete [] mass;
   }
   nelements = narg - 4 - atom->ntypes;
   if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (nelements > maxelt)
+    error->all(FLERR,"Too many elements extracted from MEAM library. "
+                      "Increase 'maxelt' in meam.h and recompile.");
   elements = new char*[nelements];
   mass = new double[nelements];
 
-  for (i = 0; i < nelements; i++) {
+  for (int i = 0; i < nelements; i++) {
     n = strlen(arg[i+3]) + 1;
     elements[i] = new char[n];
     strcpy(elements[i],arg[i+3]);
@@ -247,8 +248,9 @@ void PairMEAMC::coeff(int narg, char **arg)
   // read args that map atom types to MEAM elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
 
-  for (i = 4 + nelements; i < narg; i++) {
+  for (int i = 4 + nelements; i < narg; i++) {
     m = i - (4+nelements) + 1;
+    int j;
     for (j = 0; j < nelements; j++)
       if (strcmp(arg[i],elements[j]) == 0) break;
     if (j < nelements) map[m] = j;
@@ -312,7 +314,7 @@ void PairMEAMC::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMEAMC::init_one(int i, int j)
+double PairMEAMC::init_one(int /*i*/, int /*j*/)
 {
   return cutmax;
 }
@@ -328,7 +330,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     fp = force->open_potential(globalfile);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open MEAM potential file %s",globalfile);
+      snprintf(str,128,"Cannot open MEAM potential file %s",globalfile);
       error->one(FLERR,str);
     }
   }
@@ -509,7 +511,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     fp = force->open_potential(userfile);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open MEAM potential file %s",userfile);
+      snprintf(str,128,"Cannot open MEAM potential file %s",userfile);
       error->one(FLERR,str);
     }
   }
@@ -558,8 +560,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       if (strcmp(params[0],keywords[which]) == 0) break;
     if (which == nkeywords) {
       char str[128];
-      sprintf(str,"Keyword %s in MEAM parameter file not recognized",
-              params[0]);
+      snprintf(str,128,"Keyword %s in MEAM parameter file not recognized",
+               params[0]);
       error->all(FLERR,str);
     }
     nindex = nparams - 2;
@@ -598,7 +600,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMC::pack_forward_comm(int n, int *list, double *buf,
-                                int pbc_flag, int *pbc)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
 

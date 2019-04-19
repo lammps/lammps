@@ -13,6 +13,8 @@ pair_style lj/sdk/omp command :h3
 pair_style lj/sdk/coul/long command :h3
 pair_style lj/sdk/coul/long/gpu command :h3
 pair_style lj/sdk/coul/long/omp command :h3
+pair_style lj/sdk/coul/msm command :h3
+pair_style lj/sdk/coul/msm/omp command :h3
 
 [Syntax:]
 
@@ -35,6 +37,10 @@ pair_style lj/sdk/coul/long 10.0
 pair_style lj/sdk/coul/long 10.0 12.0
 pair_coeff 1 1 lj9_6 100.0 3.5 12.0 :pre
 
+pair_style lj/sdk/coul/msm 10.0
+pair_style lj/sdk/coul/msm 10.0 12.0
+pair_coeff 1 1 lj9_6 100.0 3.5 12.0 :pre
+
 [Description:]
 
 The {lj/sdk} styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
@@ -42,7 +48,7 @@ given by
 
 :c,image(Eqs/pair_cmm.jpg)
 
-as required for the SDK Coarse-grained MD parametrization discussed in
+as required for the SDK Coarse-grained MD parameterization discussed in
 "(Shinoda)"_#Shinoda3 and "(DeVane)"_#DeVane.  Rc is the cutoff.
 
 Style {lj/sdk/coul/long} computes the adds Coulombic interactions
@@ -75,10 +81,10 @@ and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.
 
-For {lj/sdk/coul/long} only the LJ cutoff can be specified since a
-Coulombic cutoff cannot be specified for an individual I,J type pair.
-All type pairs use the same global Coulombic cutoff specified in the
-pair_style command.
+For {lj/sdk/coul/long} and {lj/sdk/coul/msm} only the LJ cutoff can be
+specified since a Coulombic cutoff cannot be specified for an
+individual I,J type pair.  All type pairs use the same global
+Coulombic cutoff specified in the pair_style command.
 
 :line
 
@@ -91,13 +97,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP, and OPT packages respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -133,11 +139,11 @@ respa"_run_style.html command.
 
 [Restrictions:]
 
-All of the lj/sdk pair styles are part of the USER-CGSDK package.
-The {lj/sdk/coul/long} style also requires the KSPACE package to be
-built (which is enabled by default).  They are only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+All of the lj/sdk pair styles are part of the USER-CGSDK package.  The
+{lj/sdk/coul/long} style also requires the KSPACE package to be built
+(which is enabled by default).  They are only enabled if LAMMPS was
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 [Related commands:]
 

@@ -81,8 +81,7 @@ void PairEffCut::compute(int eflag, int vflag)
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (i=0; i<4; i++) pvector[i] = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -1009,7 +1008,7 @@ void PairEffCut::read_restart_settings(FILE *fp)
    these arrays are stored locally by pair style
 ------------------------------------------------------------------------- */
 
-void PairEffCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
+void PairEffCut::min_xf_pointers(int /*ignore*/, double **xextra, double **fextra)
 {
   // grow arrays if necessary
   // need to be atom->nmax in length
@@ -1031,7 +1030,7 @@ void PairEffCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
    calculate and store in min_eradius and min_erforce
 ------------------------------------------------------------------------- */
 
-void PairEffCut::min_xf_get(int ignore)
+void PairEffCut::min_xf_get(int /*ignore*/)
 {
   double *eradius = atom->eradius;
   double *erforce = atom->erforce;
@@ -1050,7 +1049,7 @@ void PairEffCut::min_xf_get(int ignore)
    propagate the change back to eradius
 ------------------------------------------------------------------------- */
 
-void PairEffCut::min_x_set(int ignore)
+void PairEffCut::min_x_set(int /*ignore*/)
 {
   double *eradius = atom->eradius;
   int *spin = atom->spin;

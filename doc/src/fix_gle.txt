@@ -104,7 +104,7 @@ sense, a restarted simulation should produce the same behavior.
 Note however that you should use a different seed each time you
 restart, otherwise the same sequence of random numbers will be used
 each time, which might lead to stochastic synchronization and
-subtle artefacts in the sampling.
+subtle artifacts in the sampling.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -132,9 +132,9 @@ In order to perform constant-pressure simulations please use
 "fix npt"_fix_nh.html, to avoid duplicate integration of the
 equations of motion.
 
-This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

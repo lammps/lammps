@@ -53,8 +53,7 @@ void BondMorse::compute(int eflag, int vflag)
   double rsq,r,dr,ralpha;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -196,7 +195,7 @@ void BondMorse::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondMorse::single(int type, double rsq, int i, int j,
+double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/,
                          double &fforce)
 {
   double r = sqrt(rsq);

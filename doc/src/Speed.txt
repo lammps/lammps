@@ -19,7 +19,7 @@ using code options that implement alternate algorithms that can
 speed-up a simulation.  The second is to use one of the several
 accelerator packages provided with LAMMPS that contain code optimized
 for certain kinds of hardware, including multi-core CPUs, GPUs, and
-Intel Xeon Phi coprocessors.
+Intel Xeon Phi co-processors.
 
 The "Benchmark page"_http://lammps.sandia.gov/bench.html of the LAMMPS
 web site gives performance results for the various accelerator
@@ -31,16 +31,11 @@ hardware platforms.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Speed_bench
    Speed_measure
-
-.. toctree::
-
    Speed_tips
-
-.. toctree::
-
    Speed_packages
    Speed_compare
 
@@ -49,10 +44,8 @@ END_RST -->
 <!-- HTML_ONLY -->
 
 "Benchmarks"_Speed_bench.html
-"Measuring performance"_Speed_measure.html :all(b)
-
-"General tips"_Speed_tips.html :all(b)
-
+"Measuring performance"_Speed_measure.html
+"General tips"_Speed_tips.html
 "Accelerator packages"_Speed_packages.html
 "GPU package"_Speed_gpu.html
 "USER-INTEL package"_Speed_intel.html

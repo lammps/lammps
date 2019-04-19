@@ -47,7 +47,7 @@ function(set_kokkos_cxx_compiler)
                     OUTPUT_VARIABLE INTERNAL_CXX_COMPILER_VERSION
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+$"
+    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+$"
            INTERNAL_CXX_COMPILER_VERSION ${INTERNAL_CXX_COMPILER_VERSION})
   endif()
 

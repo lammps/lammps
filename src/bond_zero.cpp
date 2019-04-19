@@ -45,8 +45,7 @@ BondZero::~BondZero()
 
 void BondZero::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,8 +148,8 @@ void BondZero::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondZero::single(int type, double rsq, int i, int j,
-                        double &fforce)
+double BondZero::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
+                        double & /*fforce*/)
 {
   return 0.0;
 }

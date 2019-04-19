@@ -476,7 +476,7 @@ void FixAdapt::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAdapt::setup_pre_force(int vflag)
+void FixAdapt::setup_pre_force(int /*vflag*/)
 {
   change_settings();
 }
@@ -491,7 +491,7 @@ void FixAdapt::setup_pre_force_respa(int vflag, int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAdapt::pre_force(int vflag)
+void FixAdapt::pre_force(int /*vflag*/)
 {
   if (nevery == 0) return;
   if (update->ntimestep % nevery) return;

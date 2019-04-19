@@ -72,10 +72,12 @@ void Error::universe_all(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
-  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSException(msg);
 #else
   MPI_Finalize();
@@ -97,10 +99,12 @@ void Error::universe_one(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
-  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSAbortException(msg, universe->uworld);
 #else
   MPI_Abort(universe->uworld,1);
@@ -148,10 +152,12 @@ void Error::all(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
-  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
 
   if (universe->nworlds > 1) {
     throw LAMMPSAbortException(msg, universe->uworld);
@@ -198,10 +204,12 @@ void Error::one(const char *file, int line, const char *str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  update->whichflag = 0;
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
 
   char msg[100];
-  sprintf(msg, "ERROR on proc %d: %s (%s:%d)\n", me, str, file, line);
+  snprintf(msg, 100, "ERROR on proc %d: %s (%s:%d)\n", me, str, truncpath(file), line);
   throw LAMMPSAbortException(msg, world);
 #else
   MPI_Abort(world,1);

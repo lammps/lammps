@@ -26,7 +26,7 @@ style = {delete} or {block} or {cone} or {cylinder} or {plane} or {prism} or {sp
     dim = {x} or {y} or {z} = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
-      radius can be a variable (see below)
+      c1,c2, and radius can be a variable (see below)
     lo,hi = bounds of cylinder in dim (distance units)
   {plane} args = px py pz nx ny nz
     px,py,pz = point on the plane (distance units)
@@ -39,7 +39,7 @@ style = {delete} or {block} or {cone} or {cylinder} or {plane} or {prism} or {sp
   {sphere} args = x y z radius
     x,y,z = center of sphere (distance units)
     radius = radius of sphere (distance units)
-      radius can be a variable (see below)
+      x,y,z, and radius can be a variable (see below)
   {union} args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together
@@ -179,12 +179,17 @@ The {radius} value for style {sphere} and {cylinder} can be specified
 as an equal-style "variable"_variable.html.  If the value is a
 variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
-its value used to determine the radius of the region.
+its value used to determine the radius of the region. For style {sphere}
+also the x-, y-, and z- coordinate of the center of the sphere and for
+style {cylinder} the two center positions c1 and c2 for the location of
+the cylinder axes can be a variable with the same kind of effect and
+requirements than for the radius.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include "thermo_style"_thermo_style.html command
 keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent radius.
+time.  Thus it is easy to specify a time-dependent radius or have
+a time dependent position of the sphere or cylinder region.
 
 See the "Howto tricilinc"_Howto_triclinic.html doc page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
@@ -293,7 +298,7 @@ variable dysame equal 5*sin(2*PI*elaplong*dt/100)
 region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL :pre
 
 The {rotate} keyword rotates the region around a rotation axis {R} =
-(Rx,Ry,Rz) that goes thru a point {P} = (Px,Py,Pz).  The rotation
+(Rx,Ry,Rz) that goes through a point {P} = (Px,Py,Pz).  The rotation
 angle is calculated, presumably as a function of time, by a variable
 specified as v_theta, where theta is the variable name.  The variable
 should generate its result in radians.  The direction of rotation for
@@ -370,13 +375,13 @@ by Kokkos or no acceleration will occur. Currently, only {block} style
 regions are supported by Kokkos.
 
 These accelerated styles are part of the Kokkos package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+only enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.

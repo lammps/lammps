@@ -14,7 +14,7 @@ fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 dt/reset = style name of this fix command
-N = recompute dt every N timesteps
+N = re-compute dt every N timesteps
 Tmin = minimum dt allowed which can be NULL (time units)
 Tmax = maximum dt allowed which can be NULL (time units)
 Xmax = maximum distance for an atom to move in one timestep (distance units)
@@ -55,7 +55,7 @@ current velocity and force.  Since performing this calculation exactly
 would require the solution to a quartic equation, a cheaper estimate
 is generated.  The estimate is conservative in that the atom's
 displacement is guaranteed not to exceed {Xmax}, though it may be
-smaller. 
+smaller.
 
 In addition if the {emax} keyword is used, the specified {Emax} value
 is enforced as a limit on how much an atom's kinetic energy can

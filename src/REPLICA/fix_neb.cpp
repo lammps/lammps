@@ -270,7 +270,7 @@ void FixNEB::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNEB::min_post_force(int vflag)
+void FixNEB::min_post_force(int /*vflag*/)
 {
   double vprev,vnext;
   double delxp,delyp,delzp,delxn,delyn,delzn;
@@ -302,7 +302,7 @@ void FixNEB::min_post_force(int vflag)
       int procFirst;
       procFirst=universe->root_proc[0];
       MPI_Bcast(&vIni,1,MPI_DOUBLE,procFirst,uworld);
-    }else {
+    } else {
       if (me == 0)
         MPI_Bcast(&vIni,1,MPI_DOUBLE,0,rootworld);
 

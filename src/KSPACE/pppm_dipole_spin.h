@@ -26,7 +26,8 @@ namespace LAMMPS_NS {
 
 class PPPMDipoleSpin : public PPPMDipole {
  public:
-  PPPMDipoleSpin(class LAMMPS *, int, char **);
+  //PPPMDipoleSpin(class LAMMPS *, int, char **);
+  PPPMDipoleSpin(class LAMMPS *);
   virtual ~PPPMDipoleSpin();
   void init();
   void compute(int, int);

@@ -14,7 +14,7 @@ compute ID group-ID chunk/atom style args keyword values ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 chunk/atom = style name of this compute command :l
-style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or {compute/fix/variable}
+style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule} or c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name
   {bin/1d} args = dim origin delta
     dim = {x} or {y} or {z}
     origin = {lower} or {center} or {upper} or coordinate value (distance units)
@@ -40,7 +40,7 @@ style = {bin/1d} or {bin/2d} or {bin/3d} or {bin/sphere} or {type} or {molecule}
     ncbin = # of concentric circle bins between rmin and rmax
   {type} args = none
   {molecule} args = none
-  {compute/fix/variable} = c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name with no args
+  c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name args = none
     c_ID = per-atom vector calculated by a compute with ID
     c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
     f_ID = per-atom vector calculated by a fix with ID
@@ -85,7 +85,8 @@ compute 1 all chunk/atom bin/1d z lower 0.02 units reduced
 compute 1 all chunk/atom bin/2d z lower 1.0 y 0.0 2.5
 compute 1 all chunk/atom molecule region sphere nchunk once ids once compress yes
 compute 1 all chunk/atom bin/sphere 5 5 5 2.0 5.0 5 discard yes
-compute 1 all chunk/atom bin/cylinder z lower 2 10 10 2.0 5.0 3 discard yes :pre
+compute 1 all chunk/atom bin/cylinder z lower 2 10 10 2.0 5.0 3 discard yes
+compute 1 all chunk/atom c_cluster :pre
 
 [Description:]
 
@@ -134,7 +135,6 @@ timesteps it specifies, while it accumulates per-chunk averages.
 
 The details are described below.
 
-:line
 :line
 
 The different chunk styles operate as follows.  For each style, how it
@@ -210,7 +210,7 @@ between {crmin} and {crmax}.  For example, if {crmin} = 1.0 and
 {crmax} = 10.0 and {ncbin} = 9, then the first bin spans 1.0 < r <
 2.0, and the last bin spans 9.0 < r 10.0.  The geometry of the bins in
 the radial dimensions is the same whether the simulation box is
-orthogonal or triclinic; i.e. the concetric circles are not tilted or
+orthogonal or triclinic; i.e. the concentric circles are not tilted or
 scaled differently in the two different dimensions to transform them
 into ellipses.
 
@@ -295,7 +295,6 @@ this is a very general means of generating per-atom quantities to
 treat as a chunk ID.
 
 :line
-:line
 
 Normally, {Nchunk} = the number of chunks, is re-calculated every time
 this fix is invoked, though the value may or may not change.  As
@@ -322,7 +321,6 @@ the same compute chunk/atom compute.  However, the time windows they
 induce for holding {Nchunk} constant must be identical, else an error
 will be generated.
 
-:line
 :line
 
 The various optional keywords operate as follows.  Note that some of
@@ -389,8 +387,8 @@ described below, which resets {Nchunk}.  The {limit} keyword is then
 applied to the new {Nchunk} value, exactly as described in the
 preceding paragraph.  Note that in this case, all atoms will end up
 with chunk IDs <= {Nc}, but their original values (e.g. molecule ID or
-compute/fix/variable value) may have been > {Nc}, because of the
-compression operation.
+compute/fix/variable) may have been > {Nc}, because of the compression
+operation.
 
 If {compress yes} is set, and the {compress} keyword comes after the
 {limit} keyword, then the {limit} value of {Nc} is applied first to

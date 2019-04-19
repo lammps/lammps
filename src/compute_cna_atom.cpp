@@ -100,7 +100,7 @@ void ComputeCNAAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeCNAAtom::init_list(int id, NeighList *ptr)
+void ComputeCNAAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

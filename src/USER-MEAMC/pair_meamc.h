@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(meam/c,PairMEAMC)
+PairStyle(meam,PairMEAMC)
 
 #else
 

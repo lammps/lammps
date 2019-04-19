@@ -98,8 +98,7 @@ void PairPeriVES::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;
@@ -411,7 +410,7 @@ void PairPeriVES::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPeriVES::settings(int narg, char **arg)
+void PairPeriVES::settings(int narg, char **/*arg*/)
 {
   if (narg) error->all(FLERR,"Illegal pair_style command");
 }
@@ -697,7 +696,7 @@ void PairPeriVES::compute_dilatation()
 ---------------------------------------------------------------------- */
 
 int PairPeriVES::pack_forward_comm(int n, int *list, double *buf,
-                                   int pbc_flag, int *pbc)
+                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

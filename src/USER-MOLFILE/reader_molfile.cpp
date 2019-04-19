@@ -113,12 +113,12 @@ void ReaderMolfile::open_file(const char *file)
   rv = mf->open(file,&natoms);
 
   if (rv != MFI::E_NONE) {
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,1024,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 
   if (natoms < 1) {
-    sprintf(str,"No atoms in file %s",file);
+    snprintf(str,1024,"No atoms in file %s",file);
     error->one(FLERR,str);
   }
 
@@ -197,7 +197,7 @@ void ReaderMolfile::skip()
 
 bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
                                   int fieldinfo, int nfield,
-                                  int *fieldtype, char **fieldlabel,
+                                  int *fieldtype, char ** /* fieldlabel */,
                                   int scaleflag, int wrapflag, int &fieldflag,
                                   int &xflag, int &yflag, int &zflag)
 {

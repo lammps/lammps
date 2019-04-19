@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/stagger} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/kk} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/stagger} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/kk} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} or {scafacos} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -22,7 +22,7 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
   {pppm} value = accuracy
     accuracy = desired relative error in forces
-  {pppm/cg} value = accuracy (smallq)
+  {pppm/cg} values = accuracy (smallq)
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
   {pppm/disp} value = accuracy
@@ -56,7 +56,10 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
   {msm/cg/omp} value = accuracy (smallq)
     accuracy = desired relative error in forces
-    smallq = cutoff for charges to be considered (optional) (charge units) :pre
+    smallq = cutoff for charges to be considered (optional) (charge units)
+  {scafacos} values = method accuracy
+    method = fmm or p2nfft or p3m or ewald or direct
+    accuracy = desired relative error in forces :pre
 :ule
 
 [Examples:]
@@ -64,6 +67,7 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
 kspace_style pppm 1.0e-4
 kspace_style pppm/cg 1.0e-5 1.0e-6
 kspace style msm 1.0e-4
+kspace style scafacos fmm 1.0e-4
 kspace_style none :pre
 
 [Description:]
@@ -180,16 +184,16 @@ lo-level Makefile.  This setting also changes some of the PPPM
 operations (e.g. mapping charge to mesh and interpolating electric
 fields to particles) to be performed in single precision.  This option
 can speed-up long-range calculations, particularly in parallel or on
-GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
-section"_Section_start.html#start_2_4 of the manual. MSM does not
-currently support the -DFFT_SINGLE compiler switch.
+GPUs.  The use of the -DFFT_SINGLE flag is discussed on the "Build
+settings"_Build_settings.html doc page. MSM does not currently support
+the -DFFT_SINGLE compiler switch.
 
 :line
 
 The {msm} style invokes a multi-level summation method MSM solver,
 "(Hardy)"_#Hardy2006 or "(Hardy2)"_#Hardy2009, which maps atom charge
 to a 3d mesh, and uses a multi-level hierarchy of coarser and coarser
-meshes on which direct coulomb solves are done.  This method does not
+meshes on which direct Coulomb solvers are done.  This method does not
 use FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
 core counts. MSM can also be used for non-periodic boundary conditions
@@ -197,7 +201,7 @@ and for mixed periodic and non-periodic boundaries.
 
 MSM is most competitive versus Ewald and PPPM when only relatively
 low accuracy forces, about 1e-4 relative error or less accurate,
-are needed. Note that use of a larger coulomb cutoff (i.e. 15
+are needed. Note that use of a larger Coulombic cutoff (i.e. 15
 angstroms instead of 10 angstroms) provides better MSM accuracy for
 both the real space and grid computed forces.
 
@@ -208,6 +212,63 @@ command provides a less expensive way to compute the scalar pressure
 to run an isotropic barostat. If the full pressure tensor is needed,
 then calculating the pressure at every timestep or using a fixed
 pressure simulation with MSM will cause the code to run slower.
+
+:line
+
+The {scafacos} style is a wrapper on the "ScaFaCoS Coulomb solver
+library"_http://www.scafacos.de which provides a variety of solver
+methods which can be used with LAMMPS.  The paper by "(Who)"_#Who2012
+gives an overview of ScaFaCoS.
+
+ScaFaCoS was developed by a consortium of German research facilities
+with a BMBF (German Ministry of Science and Education) funded project
+in 2009-2012. Participants of the consortium were the Universities of
+Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
+
+The library is available for download at "http://scafacos.de" or can
+be cloned from the git-repository
+"git://github.com/scafacos/scafacos.git".
+
+In order to use this KSpace style, you must download and build the
+ScaFaCoS library, then build LAMMPS with the USER-SCAFACOS package
+installed package which links LAMMPS to the ScaFaCoS library.
+See details on "this page"_Section_packages.html#USER-SCAFACOS.
+
+NOTE: Unlike other KSpace solvers in LAMMPS, ScaFaCoS computes all
+Coulombic interactions, both short- and long-range.  Thus you should
+NOT use a Coulombic pair style when using kspace_style scafacos.  This
+also means the total Coulombic energy (short- and long-range) will be
+tallied for "thermodynamic output"_thermo_style.html command as part
+of the {elong} keyword; the {ecoul} keyword will be zero.
+
+NOTE: See the current restriction below about use of ScaFaCoS in
+LAMMPS with molecular charged systems or the TIP4P water model.
+
+The specified {method} determines which ScaFaCoS algorithm is used.
+These are the ScaFaCoS methods currently available from LAMMPS:
+
+{fmm} = Fast Multi-Pole method
+{p2nfft} = FFT-based Coulomb solver
+{ewald} = Ewald summation
+{direct} = direct O(N^2) summation
+{p3m} = PPPM :ul
+
+We plan to support additional ScaFaCoS solvers from LAMMPS in the
+future.  For an overview of the included solvers, refer to
+"(Sutmann)"_#Sutmann2013
+
+The specified {accuracy} is similar to the accuracy setting for other
+LAMMPS KSpace styles, but is passed to ScaFaCoS, which can interpret
+it in different ways for different methods it supports.  Within the
+ScaFaCoS library the {accuracy} is treated as a tolerance level
+(either absolute or relative) for the chosen quantity, where the
+quantity can be either the Columic field values, the per-atom Columic
+energy or the total Columic energy.  To select from these options, see
+the "kspace_modify scafacos accuracy"_kspace_modify.html doc page.
+
+The "kspace_modify scafacos"_kspace_modify.html command also explains
+other ScaFaCoS options currently exposed to LAMMPS.
 
 :line
 
@@ -286,10 +347,10 @@ The {pppm/kk} style also performs charge assignment and force
 interpolation calculations on the GPU while the FFTs themselves are
 calculated on the CPU in non-threaded mode.
 
-These accelerated styles are part of the GPU, USER-INTEL,
-KOKKOS, USER-OMP, and OPT packages respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP, and OPT packages respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -308,9 +369,8 @@ triclinic simulation cells may not yet be supported by suffix versions
 of these styles.
 
 All of the kspace styles are part of the KSPACE package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  Note that
-the KSPACE package is installed by default.
+only enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using
@@ -321,12 +381,26 @@ dimensions.  The only exception is if the slab option is set with
 "kspace_modify"_kspace_modify.html, in which case the xy dimensions
 must be periodic and the z dimension must be non-periodic.
 
+The scafacos KSpace style will only be enabled if LAMMPS is built with
+the USER-SCAFACOS package.  See the "Build package"_Build_package.html
+doc page for more info.
+
+The use of ScaFaCos in LAMMPS does not yet support molecular charged
+systems where the short-range Coulombic interactions between atoms in
+the same bond/angle/dihedral are weighted by the
+"special_bonds"_special_bonds.html command.  Likewise it does not
+support the "TIP4P water style" where a fictitious charge site is
+introduced in each water molecule.
+Finally, the methods {p3m} and {ewald} do not support computing the
+virial, so this contribution is not included.
+
 [Related commands:]
 
 "kspace_modify"_kspace_modify.html, "pair_style
 lj/cut/coul/long"_pair_lj.html, "pair_style
 lj/charmm/coul/long"_pair_charmm.html, "pair_style
-lj/long/coul/long"_pair_lj_long.html, "pair_style buck/coul/long"_pair_buck.html
+lj/long/coul/long"_pair_lj_long.html, "pair_style
+buck/coul/long"_pair_buck.html
 
 [Default:]
 
@@ -384,5 +458,12 @@ Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
 
 :link(Hardy2009)
-[(Hardy2)] Hardy, Stone, Schulten, Parallel Computing 35 (2009)
-164-177.
+[(Hardy2)] Hardy, Stone, Schulten, Parallel Computing, 35, 164-177
+(2009).
+
+:link(Sutmann2013)
+[(Sutmann)] Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
+
+:link(Who2012)
+[(Who)] Who, Author2, Author3, J of Long Range Solvers, 35, 164-177
+(2012).

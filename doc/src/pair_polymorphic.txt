@@ -95,7 +95,7 @@ N element names = mapping of Tersoff elements to atom types :ul
 
 See the pair_coeff doc page for alternate ways to specify the path for
 the potential file.  Several files for polymorphic potentials are
-included in the potentials dir of the LAMMPS distro.  They have a
+included in the potentials dir of the LAMMPS distribution.  They have a
 "poly" suffix.
 
 As an example, imagine the SiC_tersoff.polymorphic file has tabulated
@@ -191,8 +191,8 @@ input script. If using read_data, atomic masses must be defined in the
 atomic structure data file.
 
 This pair style is part of the MANYBODY package. It is only enabled if
-LAMMPS was built with that package. See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 This pair potential requires the "newtion"_newton.html setting to be
 "on" for pair interactions.

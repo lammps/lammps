@@ -148,7 +148,7 @@ void FixSpringSelf::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSpringSelf::post_force(int vflag)
+void FixSpringSelf::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -181,7 +181,7 @@ void FixSpringSelf::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
+void FixSpringSelf::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -227,7 +227,7 @@ void FixSpringSelf::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixSpringSelf::copy_arrays(int i, int j, int delflag)
+void FixSpringSelf::copy_arrays(int i, int j, int /*delflag*/)
 {
   xoriginal[j][0] = xoriginal[i][0];
   xoriginal[j][1] = xoriginal[i][1];
@@ -303,7 +303,7 @@ int FixSpringSelf::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixSpringSelf::size_restart(int nlocal)
+int FixSpringSelf::size_restart(int /*nlocal*/)
 {
   return 4;
 }

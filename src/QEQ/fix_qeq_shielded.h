@@ -32,6 +32,7 @@ class FixQEqShielded : public FixQEq {
   void pre_force(int);
 
  private:
+  void extract_reax();
   void init_shielding();
   void init_matvec();
   void compute_H();

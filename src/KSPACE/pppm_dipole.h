@@ -26,7 +26,8 @@ namespace LAMMPS_NS {
 
 class PPPMDipole : public PPPM {
  public:
-  PPPMDipole(class LAMMPS *, int, char **);
+  //PPPMDipole(class LAMMPS *, int, char **);
+  PPPMDipole(class LAMMPS *);
   virtual ~PPPMDipole();
   void init();
   void setup();

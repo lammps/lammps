@@ -44,8 +44,10 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp, int narg, char **arg) : 
-  EwaldDipole(lmp, narg, arg)
+//EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp, int narg, char **arg) : 
+//  EwaldDipole(lmp, narg, arg)
+EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp) : 
+  EwaldDipole(lmp)
 {
   dipoleflag = 0;
   spinflag = 1;

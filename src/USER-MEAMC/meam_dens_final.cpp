@@ -5,7 +5,7 @@ using namespace LAMMPS_NS;
 
 void
 MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
-                      double* eatom, int ntype, int* type, int* fmap, int& errorflag)
+                      double* eatom, int /*ntype*/, int* type, int* fmap, int& errorflag)
 {
   int i, elti;
   int m;

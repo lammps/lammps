@@ -72,10 +72,7 @@ void PairSPHRhoSum::compute(int eflag, int vflag) {
   // neighbor list variables
   int inum, *ilist, *numneigh, **firstneigh;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double *rho = atom->rho;
@@ -228,7 +225,7 @@ void PairSPHRhoSum::allocate() {
 void PairSPHRhoSum::settings(int narg, char **arg) {
   if (narg != 1)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/rhosum");
+        "Illegal number of arguments for pair_style sph/rhosum");
   nstep = force->inumeric(FLERR,arg[0]);
 }
 
@@ -278,8 +275,8 @@ double PairSPHRhoSum::init_one(int i, int j) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairSPHRhoSum::single(int i, int j, int itype, int jtype, double rsq,
-    double factor_coul, double factor_lj, double &fforce) {
+double PairSPHRhoSum::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
+    double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
   fforce = 0.0;
 
   return 0.0;
@@ -288,7 +285,7 @@ double PairSPHRhoSum::single(int i, int j, int itype, int jtype, double rsq,
 /* ---------------------------------------------------------------------- */
 
 int PairSPHRhoSum::pack_forward_comm(int n, int *list, double *buf,
-                                     int pbc_flag, int *pbc) {
+                                     int /*pbc_flag*/, int * /*pbc*/) {
   int i, j, m;
   double *rho = atom->rho;
 

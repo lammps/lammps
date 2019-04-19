@@ -63,7 +63,7 @@ electrostatics, or that contain parameters that depend on box size:
 all of these options will be initialized based on the cell size in the
 LAMMPS-side initial configuration and kept constant during the run.
 This is required to e.g. obtain reproducible and conserved forces.
-If the cell varies too wildly, it may be advisable to reinitialize
+If the cell varies too wildly, it may be advisable to re-initialize
 these interactions at each call. This behavior can be requested by
 setting the {reset} switch.
 
@@ -81,9 +81,9 @@ define an external potential acting on the atoms that are moved by
 i-PI.
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  Because of
-the use of UNIX domain sockets, this fix will only work in a UNIX
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  Because of the
+use of UNIX domain sockets, this fix will only work in a UNIX
 environment.
 
 [Related commands:]

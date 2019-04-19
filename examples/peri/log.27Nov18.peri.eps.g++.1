@@ -1,0 +1,116 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# small Peridynamic cylinder hit by projectile
+
+units           si
+boundary        s s s
+atom_style      peri
+atom_modify     map array
+neighbor        0.0010 bin
+
+# small target
+
+lattice         sc 0.0005
+Lattice spacing in x,y,z = 0.0005 0.0005 0.0005
+region          target cylinder y 0.0 0.0 0.0050 -0.0050 0.0 units box
+create_box      1 target
+Created orthogonal box = (-0.005 -0.005 -0.005) to (0.005 0 0.005)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 region target
+Created 3487 atoms
+  Time spent = 0.00100374 secs
+
+pair_style      peri/eps
+pair_coeff      * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 10.0e8
+set             group all density 2200
+  3487 settings made for density
+set             group all volume 1.25e-10
+  3487 settings made for volume
+velocity        all set 0.0 0.0 0.0 sum no units box
+fix             1 all nve
+
+# spherical indenter to shatter target
+
+variable        y0 equal 0.00155
+variable        vy equal -100
+variable        y equal "v_y0 + step*dt*v_vy"
+
+fix             2 all indent 1e17 sphere 0.0000 v_y 0.0000 0.0015 units box
+
+compute         1 all damage/atom
+timestep        1.0e-7
+thermo          100
+
+#dump            1 all custom 100 dump.peri id type x y z c_1
+
+#dump           2 all image 50 image.*.jpg type type #               axes yes 0.8 0.02 view 80 -30 adiam 0.0006
+#dump_modify    2 pad 4
+
+#dump           3 all movie 50 movie.mpg type type #               axes yes 0.8 0.02 view 80 -30 adiam 0.0006
+#dump_modify    3 pad 4
+
+run             1000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.0025001
+  ghost atom cutoff = 0.0025001
+  binsize = 0.00125005, bins = 9 5 9
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair peri/eps, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix PERI_NEIGH, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Peridynamic bonds:
+  total # of bonds = 335966
+  bonds/atom = 96.3482
+Per MPI rank memory allocation (min/avg/max) = 50.29 | 50.29 | 50.29 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            0            0            0            0            0 5.0030006e-07 
+     100 9.7403734e+24    248692.93            0    951891.49 9.3703576e+11 5.0030006e-07 
+     200 1.220493e+27    1011231.9            0     89123756 1.0636834e+14 5.5224782e-07 
+     300 2.7274231e+27    4549425.2            0 2.0145358e+08 1.7250255e+14 7.6097098e-07 
+     400 3.3665092e+27     13347641            0 2.5639011e+08 1.5828139e+14 1.0236725e-06 
+     500 3.8995641e+27     14196430            0 2.9572238e+08 1.5145191e+14 1.2392314e-06 
+     600 4.6668832e+27     23135807            0 3.6005775e+08 1.478168e+14 1.5195473e-06 
+     700 1.1847301e+28      8126622            0 8.6343315e+08 2.9204301e+14 1.9524671e-06 
+     800 1.2328889e+28    4646514.3            0 8.9472087e+08 2.2467312e+14 2.6410944e-06 
+     900 1.2277283e+28    2668877.7            0 8.8901759e+08 1.671177e+14 3.5358262e-06 
+    1000 1.2260912e+28    1587002.9            0 8.8675386e+08  1.29707e+14 4.5495712e-06 
+Loop time of 34.8143 on 1 procs for 1000 steps with 3487 atoms
+
+96.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 34.045     | 34.045     | 34.045     |   0.0 | 97.79
+Neigh   | 0.63254    | 0.63254    | 0.63254    |   0.0 |  1.82
+Comm    | 0.0025852  | 0.0025852  | 0.0025852  |   0.0 |  0.01
+Output  | 0.00035906 | 0.00035906 | 0.00035906 |   0.0 |  0.00
+Modify  | 0.11784    | 0.11784    | 0.11784    |   0.0 |  0.34
+Other   |            | 0.01593    |            |       |  0.05
+
+Nlocal:    3487 ave 3487 max 3487 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    546591 ave 546591 max 546591 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.20908e+06 ave 1.20908e+06 max 1.20908e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1209076
+Ave neighs/atom = 346.738
+Neighbor list builds = 45
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:34

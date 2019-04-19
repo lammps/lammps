@@ -363,7 +363,7 @@ int count_dihedrals()
               if (i != k) {
                 for (ll=0; ll < atoms[k].no_connect; ll++) {
                   l = atoms[k].conn_no[ll];
-                  if (l != j) n++;
+                  if ((l != j) && (i != l)) n++;
                 }
               }
             }
@@ -391,7 +391,7 @@ void build_dihedrals_list()
               if (i != k) {
                 for (ll=0; ll < atoms[k].no_connect; ll++) {
                   l = atoms[k].conn_no[ll];
-                  if (l != j) {
+                  if ((l != j) && (i != l)) {
                     dihedrals[n  ].type = 0;
                     dihedrals[n  ].members[0] = i;
                     dihedrals[n  ].members[1] = j;

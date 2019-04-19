@@ -14,7 +14,7 @@ replicate nx ny nz {keyword} :pre
 
 nx,ny,nz = replication factors in each dimension :ulb
 optional {keyword} = {bbox} :l
-  {bbox} = only check atoms in replicas that overlap with a processor's subdomain :ule
+  {bbox} = only check atoms in replicas that overlap with a processor's sub-domain :ule
 
 [Examples:]
 
@@ -46,7 +46,7 @@ image flags that differ by 1.  This will allow the bond to be
 unwrapped appropriately.
 
 The optional keyword {bbox} uses a bounding box to only check atoms
-in replicas that overlap with a processor's subdomain when assigning
+in replicas that overlap with a processor's sub-domain when assigning
 atoms to processors, and thus can result in substantial speedups for
 calculations using a large number of processors. It does require
 temporarily using more memory.

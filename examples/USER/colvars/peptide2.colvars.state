@@ -1,17 +1,18 @@
 configuration {
   step          100
   dt 2.000000e+00
+  version 2018-11-16
 }
 
 colvar {
   name one
-  x  1.00387424212228e+01
+  x  1.00387423506482e+01
 }
 
-harmonic {
+restraint {
   configuration {
+    step 100
     name h_pot
-    stage 4044288781530052640
   }
 }
 

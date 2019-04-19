@@ -200,7 +200,7 @@ used with non-orthogonal basis vectors to define a lattice that will
 tile a triclinic simulation box via the
 "create_atoms"_create_atoms.html command.
 
-A second use is to run Parinello-Rahman dynamics via the "fix
+A second use is to run Parrinello-Rahman dynamics via the "fix
 npt"_fix_nh.html command, which will adjust the xy, xz, yz tilt
 factors to compensate for off-diagonal components of the pressure
 tensor.  The analog for an "energy minimization"_minimize.html is

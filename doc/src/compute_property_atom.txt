@@ -19,7 +19,7 @@ input = one or more atom attributes :l
                         x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
                         vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz, mu,
-			sp, spx, spy, spz, fmx, fmy, fmz,
+                        sp, spx, spy, spz, fmx, fmy, fmz,
                         radius, diameter, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz,
                         shapex,shapey, shapez,
@@ -86,7 +86,7 @@ input = one or more atom attributes :l
 
 compute 1 all property/atom xs vx fx mux
 compute 2 all property/atom type
-compute 1 all property/atom ix iy iz 
+compute 1 all property/atom ix iy iz
 compute 3 all property/atom sp spx spy spz :pre
 
 [Description:]
@@ -158,8 +158,8 @@ corresponding attribute is in, e.g. velocity units for vx, charge
 units for q, etc.
 
 For the spin quantities, sp is in the units of the Bohr magneton, spx,
-spy, and spz are adimentional quantities, and fmx, fmy and fmz are 
-given in rad.THz. 
+spy, and spz are unitless quantities, and fmx, fmy and fmz are given
+in rad/THz.
 
 [Restrictions:] none
 

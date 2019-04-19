@@ -91,8 +91,7 @@ PairTDPD::~PairTDPD()
 void PairTDPD::compute(int eflag, int vflag)
 {
   double evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -161,7 +160,7 @@ void PairTDPD::compute(int eflag, int vflag)
         f[i][2] += delz*fpair;
 
         // chemical concentration transport
-        if( r < cutcc[itype][jtype]) {
+        if (r < cutcc[itype][jtype]) {
           for(int k=0; k<cc_species; k++) {
             double wcr = 1.0 - r/cutcc[itype][jtype];
             wcr = MAX(0,wcr);
@@ -465,8 +464,8 @@ void PairTDPD::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairTDPD::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+double PairTDPD::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wc,phi;
 

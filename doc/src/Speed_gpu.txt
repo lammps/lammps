@@ -9,17 +9,17 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 GPU package :h3
 
-The GPU package was developed by Mike Brown at ORNL and his
-collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
-versions of many pair styles, including the 3-body Stillinger-Weber
-pair style, and for "kspace_style pppm"_kspace_style.html for
-long-range Coulombics.  It has the following general features:
+The GPU package was developed by Mike Brown while at SNL and ORNL
+and his collaborators, particularly Trung Nguyen (now at Northwestern).
+It provides GPU versions of many pair styles and for parts of the
+"kspace_style pppm"_kspace_style.html for long-range Coulombics.
+It has the following general features:
 
 It is designed to exploit common GPU hardware configurations where one
 or more GPUs are coupled to many cores of one or more multi-core CPUs,
 e.g. within a node of a parallel machine. :ulb,l
 
-Atom-based data (e.g. coordinates, forces) moves back-and-forth
+Atom-based data (e.g. coordinates, forces) are moved back-and-forth
 between the CPU(s) and GPU every timestep. :l
 
 Neighbor lists can be built on the CPU or on the GPU :l
@@ -28,8 +28,8 @@ The charge assignment and force interpolation portions of PPPM can be
 run on the GPU.  The FFT portion, which requires MPI communication
 between processors, runs on the CPU. :l
 
-Asynchronous force computations can be performed simultaneously on the
-CPU(s) and GPU. :l
+Force computations of different style (pair vs. bond/angle/dihedral/improper)
+can be performed concurrently on the GPU and CPU(s), respectively. :l
 
 It allows for GPU computations to be performed in single or double
 precision, or in mixed-mode precision, where pairwise forces are
@@ -39,93 +39,37 @@ force vectors. :l
 LAMMPS-specific code is in the GPU package.  It makes calls to a
 generic GPU library in the lib/gpu directory.  This library provides
 NVIDIA support as well as more general OpenCL support, so that the
-same functionality can eventually be supported on a variety of GPU
-hardware. :l
+same functionality is supported on a variety of hardware. :l
 :ule
-
-Here is a quick overview of how to enable and use the GPU package:
-
-build the library in lib/gpu for your GPU hardware with the desired precision settings
-install the GPU package and build LAMMPS as usual
-use the mpirun command to set the number of MPI tasks/node which determines the number of MPI tasks/GPU
-specify the # of GPUs per node
-use GPU styles in your input script :ul
-
-The latter two steps can be done using the "-pk gpu" and "-sf gpu"
-"command-line switches"_Section_start.html#start_6 respectively.  Or
-the effect of the "-pk" or "-sf" switches can be duplicated by adding
-the "package gpu"_package.html or "suffix gpu"_suffix.html commands
-respectively to your input script.
 
 [Required hardware/software:]
 
-To use this package, you currently need to have an NVIDIA GPU and
-install the NVIDIA CUDA software on your system:
+To compile and use this package in CUDA mode, you currently need
+to have an NVIDIA GPU and install the corresponding NVIDIA CUDA
+toolkit software on your system (this is primarily tested on Linux
+and completely unsupported on Windows):
 
-Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/0/information
-Go to http://www.nvidia.com/object/cuda_get.html
-Install a driver and toolkit appropriate for your system (SDK is not necessary)
-Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to list supported devices and properties :ul
+Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/*/information :ulb,l
+Go to http://www.nvidia.com/object/cuda_get.html :l
+Install a driver and toolkit appropriate for your system (SDK is not necessary) :l
+Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
+list supported devices and properties :ule,l
+
+To compile and use this package in OpenCL mode, you currently need
+to have the OpenCL headers and the (vendor neutral) OpenCL library installed.
+In OpenCL mode, the acceleration depends on having an "OpenCL Installable Client
+Driver (ICD)"_https://www.khronos.org/news/permalink/opencl-installable-client-driver-icd-loader
+installed. There can be multiple of them for the same or different hardware
+(GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
+as 'platforms'.  The GPU library will select the [first] suitable platform,
+but this can be overridden using the device option of the "package"_package.html
+command. run lammps/lib/gpu/ocl_get_devices to get a list of available
+platforms and devices with a suitable ICD available.
 
 [Building LAMMPS with the GPU package:]
 
-This requires two steps (a,b): build the GPU library, then build
-LAMMPS with the GPU package.  You can do both these steps in one line
-as described on the "Packages details"_Packages_details.html#GPU doc
-page.
-
-Or you can follow these two (a,b) steps:
-
-(a) Build the GPU library
-
-The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
-lib/gpu) appropriate for your system.  You should pay special
-attention to 3 settings in this makefile.
-
-CUDA_HOME = needs to be where NVIDIA CUDA software is installed on your system
-CUDA_ARCH = needs to be appropriate to your GPUs
-CUDA_PREC = precision (double, mixed, single) you desire :ul
-
-See lib/gpu/Makefile.linux.double for examples of the ARCH settings
-for different GPU choices, e.g. Fermi vs Kepler.  It also lists the
-possible precision settings:
-
-CUDA_PREC = -D_SINGLE_SINGLE  # single precision for all calculations
-CUDA_PREC = -D_DOUBLE_DOUBLE  # double precision for all calculations
-CUDA_PREC = -D_SINGLE_DOUBLE  # accumulation of forces, etc, in double :pre
-
-The last setting is the mixed mode referred to above.  Note that your
-GPU must support double precision to use either the 2nd or 3rd of
-these settings.
-
-To build the library, type:
-
-make -f Makefile.machine :pre
-
-If successful, it will produce the files libgpu.a and Makefile.lammps.
-
-The latter file has 3 settings that need to be appropriate for the
-paths and settings for the CUDA system software on your machine.
-Makefile.lammps is a copy of the file specified by the EXTRAMAKE
-setting in Makefile.machine.  You can change EXTRAMAKE or create your
-own Makefile.lammps.machine if needed.
-
-Note that to change the precision of the GPU library, you need to
-re-build the entire library.  Do a "clean" first, e.g. "make -f
-Makefile.linux clean", followed by the make command above.
-
-(b) Build LAMMPS with the GPU package
-
-cd lammps/src
-make yes-gpu
-make machine :pre
-
-No additional compile/link flags are needed in Makefile.machine.
-
-Note that if you change the GPU library precision (discussed above)
-and rebuild the GPU library, then you also need to re-install the GPU
-package and re-build LAMMPS, so that all affected files are
-re-compiled and linked to the new GPU library.
+See the "Build extras"_Build_extras.html#gpu doc page for
+instructions.
 
 [Run with the GPU package from the command line:]
 
@@ -143,10 +87,10 @@ automatically if you create more MPI tasks/node than there are
 GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
 shared by 4 MPI tasks.
 
-Use the "-sf gpu" "command-line switch"_Section_start.html#start_6,
-which will automatically append "gpu" to styles that support it.  Use
-the "-pk gpu Ng" "command-line switch"_Section_start.html#start_6 to
-set Ng = # of GPUs/node to use.
+Use the "-sf gpu" "command-line switch"_Run_options.html, which will
+automatically append "gpu" to styles that support it.  Use the "-pk
+gpu Ng" "command-line switch"_Run_options.html to set Ng = # of
+GPUs/node to use.
 
 lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
 mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script           # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
@@ -180,14 +124,17 @@ pair_style lj/cut/gpu 2.5 :pre
 
 You must also use the "package gpu"_package.html command to enable the
 GPU package, unless the "-sf gpu" or "-pk gpu" "command-line
-switches"_Section_start.html#start_6 were used.  It specifies the
-number of GPUs/node to use, as well as other options.
+switches"_Run_options.html were used.  It specifies the number of
+GPUs/node to use, as well as other options.
 
 [Speed-ups to expect:]
 
 The performance of a GPU versus a multi-core CPU is a function of your
 hardware, which pair style is used, the number of atoms/GPU, and the
-precision used on the GPU (double, single, mixed).
+precision used on the GPU (double, single, mixed). Using the GPU package
+in OpenCL mode on CPUs (which uses vectorization and multithreading) is
+usually resulting in inferior performance compared to using LAMMPS' native
+threading and vectorization support in the USER-OMP and USER-INTEL packages.
 
 See the "Benchmark page"_http://lammps.sandia.gov/bench.html of the
 LAMMPS web site for performance of the GPU package on various
@@ -213,7 +160,7 @@ The "package gpu"_package.html command has several options for tuning
 performance.  Neighbor lists can be built on the GPU or CPU.  Force
 calculations can be dynamically balanced across the CPU cores and
 GPUs.  GPU-specific settings can be made which can be optimized
-for different hardware.  See the "packakge"_package.html command
+for different hardware.  See the "package"_package.html command
 doc page for details. :l
 
 As described by the "package gpu"_package.html command, GPU

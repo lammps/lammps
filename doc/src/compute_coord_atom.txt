@@ -67,7 +67,7 @@ identify crystal-like atoms in a system, as discussed in "ten
 Wolde"_#tenWolde1.
 
 The ID of the previously specified "compute
-orientorder/atom"_compute_orientorder/atom command is specified as
+orientorder/atom"_compute_orientorder_atom.html command is specified as
 {orientorderID}.  The compute must invoke its {components} option to
 calculate components of the {Ybar_lm} vector for each atoms, as
 described in its documentation.  Note that orientorder/atom compute

@@ -40,7 +40,7 @@ args = arguments specific to the style :l
       {blocksize} value = size
         size = thread block size for pair force computation
   {intel} args = NPhi keyword value ...
-    Nphi = # of coprocessors per node
+    Nphi = # of co-processors per node
     zero or more keyword/value pairs may be appended
     keywords = {mode} or {omp} or {lrt} or {balance} or {ghost} or {tpc} or {tptask} or {no_affinity}
       {mode} value = {single} or {mixed} or {double}
@@ -53,14 +53,14 @@ args = arguments specific to the style :l
         yes = use additional thread dedicated for some PPPM calculations
         no = do not dedicate an extra thread for some PPPM calculations
       {balance} value = split
-        split = fraction of work to offload to coprocessor, -1 for dynamic
+        split = fraction of work to offload to co-processor, -1 for dynamic
       {ghost} value = {yes} or {no}
         yes = include ghost atoms for offload
         no = do not include ghost atoms for offload
       {tpc} value = Ntpc
-        Ntpc = max number of coprocessor threads per coprocessor core (default = 4)
+        Ntpc = max number of co-processor threads per co-processor core (default = 4)
       {tptask} value = Ntptask
-        Ntptask = max number of coprocessor threads per MPI task (default = 240)
+        Ntptask = max number of co-processor threads per MPI task (default = 240)
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
@@ -124,8 +124,8 @@ their initialization, before a simulation is defined.
 
 This command can also be specified from the command-line when
 launching LAMMPS, using the "-pk" "command-line
-switch"_Section_start.html#start_6.  The syntax is exactly the same as
-when used in an input script.
+switch"_Run_options.html.  The syntax is exactly the same as when used
+in an input script.
 
 Note that all of the accelerator packages require the package command
 to be specified (except the OPT package), if the package is to be used
@@ -135,22 +135,21 @@ a default version of the command is typically invoked by other
 accelerator settings.
 
 The KOKKOS package requires a "-k on" "command-line
-switch"_Section_start.html#start_6 respectively, which invokes a
-"package kokkos" command with default settings.
+switch"_Run_options.html respectively, which invokes a "package
+kokkos" command with default settings.
 
 For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
-intel" or "-sf omp" "command-line switch"_Section_start.html#start_6
-is used to auto-append accelerator suffixes to various styles in the
-input script, then those switches also invoke a "package gpu",
-"package intel", or "package omp" command with default settings.
+intel" or "-sf omp" "command-line switch"_Run_options.html is used to
+auto-append accelerator suffixes to various styles in the input
+script, then those switches also invoke a "package gpu", "package
+intel", or "package omp" command with default settings.
 
 NOTE: A package command for a particular style can be invoked multiple
-times when a simulation is setup, e.g. by the "-c on", "-k on", "-sf",
-and "-pk" "command-line switches"_Section_start.html#start_6, and by
-using this command in an input script.  Each time it is used all of
-the style options are set, either to default values or to specified
-settings.  I.e. settings from previous invocations do not persist
-across multiple invocations.
+times when a simulation is setup, e.g. by the "-c on, -k on, -sf, and
+-pk command-line switches"_Run_options.html, and by using this command
+in an input script.  Each time it is used all of the style options are
+set, either to default values or to specified settings.  I.e. settings
+from previous invocations do not persist across multiple invocations.
 
 See the "Speed packages"_Speed_packages.html doc page for more details
 about using the various accelerator packages for speeding up LAMMPS
@@ -290,7 +289,7 @@ MAX_BIO_SHARED_TYPES :ul
 The {blocksize} keyword allows you to tweak the number of threads used
 per thread block. This number should be a multiple of 32 (for GPUs)
 and its maximum depends on the specific GPU hardware. Typical choices
-are 64, 128, or 256. A larger blocksize increases occupancy of
+are 64, 128, or 256. A larger block size increases occupancy of
 individual GPU cores, but reduces the total number of thread blocks,
 thus may lead to load imbalance.
 
@@ -299,13 +298,13 @@ thus may lead to load imbalance.
 The {intel} style invokes settings associated with the use of the
 USER-INTEL package.  All of its settings, except the {omp} and {mode}
 keywords, are ignored if LAMMPS was not built with Xeon Phi
-coprocessor support.  All of its settings, including the {omp} and
-{mode} keyword are applicable if LAMMPS was built with coprocessor
+co-processor support.  All of its settings, including the {omp} and
+{mode} keyword are applicable if LAMMPS was built with co-processor
 support.
 
-The {Nphi} argument sets the number of coprocessors per node.
+The {Nphi} argument sets the number of co-processors per node.
 This can be set to any value, including 0, if LAMMPS was not
-built with coprocessor support.
+built with co-processor support.
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
@@ -313,14 +312,14 @@ default value as listed below.
 The {omp} keyword determines the number of OpenMP threads allocated
 for each MPI task when any portion of the interactions computed by a
 USER-INTEL pair style are run on the CPU.  This can be the case even
-if LAMMPS was built with coprocessor support; see the {balance}
+if LAMMPS was built with co-processor support; see the {balance}
 keyword discussion below.  If you are running with less MPI tasks/node
 than there are CPUs, it can be advantageous to use OpenMP threading on
 the CPUs.
 
-NOTE: The {omp} keyword has nothing to do with coprocessor threads on
+NOTE: The {omp} keyword has nothing to do with co-processor threads on
 the Xeon Phi; see the {tpc} and {tptask} keywords below for a
-discussion of coprocessor threads.
+discussion of co-processor threads.
 
 The {Nthread} value for the {omp} keyword sets the number of OpenMP
 threads allocated for each MPI task.  Setting {Nthread} = 0 (the
@@ -341,13 +340,13 @@ value via their package commands, but there is only a single global
 {Nthreads} value used by OpenMP.  Thus if both package commands are
 invoked, you should insure the two values are consistent.  If they are
 not, the last one invoked will take precedence, for both packages.
-Also note that if the "-sf hybrid intel omp" "command-line
-switch"_"_Section_start.html#start_6 is used, it invokes a "package
-intel" command, followed by a "package omp" command, both with a
-setting of {Nthreads} = 0.
+Also note that if the "-sf hybrid intel omp command-line
+switch"_Run_options.html is used, it invokes a "package intel"
+command, followed by a "package omp" command, both with a setting of
+{Nthreads} = 0.
 
 The {mode} keyword determines the precision mode to use for
-computing pair style forces, either on the CPU or on the coprocessor,
+computing pair style forces, either on the CPU or on the co-processor,
 when using a USER-INTEL supported "pair style"_pair_style.html.  It
 can take a value of {single}, {mixed} which is the default, or
 {double}.  {Single} means single precision is used for the entire
@@ -364,7 +363,7 @@ specified with the OMP_NUM_THREADS environment variable or the {omp}
 keyword). The extra thread is dedicated for performing part of the
 "PPPM solver"_kspace_style.html computations and communications. This
 can improve parallel performance on processors supporting
-Simultaneous Multithreading (SMT) such as Hyperthreading on Intel
+Simultaneous Multithreading (SMT) such as Hyper-Threading (HT) on Intel
 processors. In this mode, one additional thread is generated per MPI
 process. LAMMPS will generate a warning in the case that more threads
 are used than available in SMT hardware on a node. If the PPPM solver
@@ -372,13 +371,13 @@ from the USER-INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the "run_style"_run_style.html with the {verlet/lrt/intel} style that
 is identical to the default {verlet} style aside from supporting the
-LRT feature. This feature requires setting the preprocessor flag
+LRT feature. This feature requires setting the pre-processor flag
 -DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
 The {balance} keyword sets the fraction of "pair
-style"_pair_style.html work offloaded to the coprocessor for split
+style"_pair_style.html work offloaded to the co-processor for split
 values between 0.0 and 1.0 inclusive.  While this fraction of work is
-running on the coprocessor, other calculations will run on the host,
+running on the co-processor, other calculations will run on the host,
 including neighbor and pair calculations that are not offloaded, as
 well as angle, bond, dihedral, kspace, and some MPI communications.
 If {split} is set to -1, the fraction of work is dynamically adjusted
@@ -389,18 +388,18 @@ The {ghost} keyword determines whether or not ghost atoms, i.e. atoms
 at the boundaries of processor sub-domains, are offloaded for neighbor
 and force calculations.  When the value = "no", ghost atoms are not
 offloaded.  This option can reduce the amount of data transfer with
-the coprocessor and can also overlap MPI communication of forces with
-computation on the coprocessor when the "newton pair"_newton.html
+the co-processor and can also overlap MPI communication of forces with
+computation on the co-processor when the "newton pair"_newton.html
 setting is "on".  When the value = "yes", ghost atoms are offloaded.
 In some cases this can provide better performance, especially if the
 {balance} fraction is high.
 
-The {tpc} keyword sets the max # of coprocessor threads {Ntpc} that
-will run on each core of the coprocessor.  The default value = 4,
+The {tpc} keyword sets the max # of co-processor threads {Ntpc} that
+will run on each core of the co-processor.  The default value = 4,
 which is the number of hardware threads per core supported by the
 current generation Xeon Phi chips.
 
-The {tptask} keyword sets the max # of coprocessor threads (Ntptask}
+The {tptask} keyword sets the max # of co-processor threads (Ntptask}
 assigned to each MPI task.  The default value = 240, which is the
 total # of threads an entire current generation Xeon Phi chip can run
 (240 = 60 cores * 4 threads/core).  This means each MPI task assigned
@@ -416,7 +415,7 @@ most problems, regardless of how many MPI tasks you assign to a Phi.
 
 The {no_affinity} keyword will turn off automatic setting of core
 affinity for MPI tasks and OpenMP threads on the host when using
-offload to a coprocessor. Affinity settings are used when possible
+offload to a co-processor. Affinity settings are used when possible
 to prevent MPI tasks and OpenMP threads from being on separate NUMA
 domains and to prevent offload threads from interfering with other
 processes/threads used for LAMMPS.
@@ -489,7 +488,7 @@ packing/unpacking operation.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used.  The {no} value is useful for verifying that the
-Kokkos-based {host} and {device} values are working correctly. 
+Kokkos-based {host} and {device} values are working correctly.
 It may also be the fastest choice when using Kokkos styles in
 MPI-only mode (i.e. with a thread count of 1).
 
@@ -583,60 +582,58 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The gpu style of this command can only be invoked if LAMMPS was built
-with the GPU package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with the GPU package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 The intel style of this command can only be invoked if LAMMPS was
-built with the USER-INTEL package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with the USER-INTEL package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The kk style of this command can only be invoked if LAMMPS was built
-with the KOKKOS package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with the KOKKOS package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with the USER-OMP package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 [Related commands:]
 
-"suffix"_suffix.html, "-pk" "command-line
-setting"_Section_start.html#start_6
+"suffix"_suffix.html, "-pk command-line switch"_Run_options.html
 
 [Default:]
 
 For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
 to Ngpu-1, tpa = 1, and device = not used.  These settings are made
-automatically if the "-sf gpu" "command-line
-switch"_Section_start.html#start_6 is used.  If it is not used, you
-must invoke the package gpu command in your input script or via the
-"-pk gpu" "command-line switch"_Section_start.html#start_6.
+automatically if the "-sf gpu" "command-line switch"_Run_options.html
+is used.  If it is not used, you must invoke the package gpu command
+in your input script or via the "-pk gpu" "command-line
+switch"_Run_options.html.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
 tptask = 240.  The default ghost option is determined by the pair
 style being used.  This value is output to the screen in the offload
 report at the end of each run.  Note that all of these settings,
-except "omp" and "mode", are ignored if LAMMPS was not built with
-Xeon Phi coprocessor support.  These settings are made automatically
-if the "-sf intel" "command-line switch"_Section_start.html#start_6
-is used.  If it is not used, you must invoke the package intel
-command in your input script or or via the "-pk intel" "command-line
-switch"_Section_start.html#start_6.
+except "omp" and "mode", are ignored if LAMMPS was not built with Xeon
+Phi co-processor support.  These settings are made automatically if the
+"-sf intel" "command-line switch"_Run_options.html is used.  If it is
+not used, you must invoke the package intel command in your input
+script or or via the "-pk intel" "command-line
+switch"_Run_options.html.
 
 For the KOKKOS package, the option defaults neigh = full, neigh/qeq =
 full, newton = off, binsize = 0.0, and comm = device, gpu/direct = on.
 When LAMMPS can safely detect, that GPU-direct is not available, the
 default value of gpu/direct becomes "off".
 These settings are made automatically by the required "-k on"
-"command-line switch"_Section_start.html#start_6. You can change them by
-using the package kokkos command in your input script or via the "-pk
-kokkos" "command-line switch"_Section_start.html#start_6.
+"command-line switch"_Run_options.html. You can change them by
+using the package kokkos command in your input script or via the
+"-pk kokkos command-line switch"_Run_options.html.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
-the "-sf omp" "command-line switch"_Section_start.html#start_6 is
-used.  If it is not used, you must invoke the package omp command in
-your input script or via the "-pk omp" "command-line
-switch"_Section_start.html#start_6.
+the "-sf omp" "command-line switch"_Run_options.html is used.  If it
+is not used, you must invoke the package omp command in your input
+script or via the "-pk omp" "command-line switch"_Run_options.html.

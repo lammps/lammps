@@ -24,7 +24,9 @@ using namespace LAMMPS_NS;
 template <class flt_t, class acc_t>
 IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
     lmp(lmp_in), _x(0), _q(0), _quat(0), _f(0), _off_threads(0),
-    _buf_size(0), _buf_local_size(0) {
+    _buf_size(0), _buf_local_size(0), _n_list_ptrs(1), _max_list_ptrs(4) {
+  _neigh_list_ptrs = new IntelNeighListPtrs[_max_list_ptrs];
+  _neigh_list_ptrs[0].cnumneigh = 0;
   _list_alloc_atoms = 0;
   _ntypes = 0;
   _off_map_listlocal = 0;
@@ -55,6 +57,7 @@ IntelBuffers<flt_t, acc_t>::~IntelBuffers()
   free_all_nbor_buffers();
   free_ccache();
   set_ntypes(0);
+  delete []_neigh_list_ptrs;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,11 +189,9 @@ void IntelBuffers<flt_t, acc_t>::free_nmax()
     const int * tag = _off_map_tag;
     const int * special = _off_map_special;
     const int * nspecial = _off_map_nspecial;
-    if (tag != 0 && special != 0 && nspecial !=0) {
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(tag:alloc_if(0) free_if(1)) \
-        nocopy(special,nspecial:alloc_if(0) free_if(1))
-    }
+    #pragma offload_transfer target(mic:_cop) \
+      nocopy(tag:alloc_if(0) free_if(1)) \
+      nocopy(special,nspecial:alloc_if(0) free_if(1))
     _off_map_nmax = 0;
     _host_nmax = 0;
   }
@@ -243,19 +244,28 @@ template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::free_list_local()
 {
   if (_off_map_listlocal > 0) {
-    int * cnumneigh = _cnumneigh;
+    if (_neigh_list_ptrs[0].cnumneigh) {
+      int * cnumneigh = _neigh_list_ptrs[0].cnumneigh;
+      _neigh_list_ptrs[0].cnumneigh = 0;
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (_off_map_ilist != NULL) {
+        #pragma offload_transfer target(mic:_cop) \
+          nocopy(cnumneigh:alloc_if(0) free_if(1))
+      }
+      #endif
+      lmp->memory->destroy(cnumneigh);
+    }
+
     #ifdef _LMP_INTEL_OFFLOAD
     if (_off_map_ilist != NULL) {
       const int * ilist = _off_map_ilist;
       const int * numneigh = _off_map_numneigh;
+      const int ** firstneigh = (const int **)_off_map_firstneigh;
       _off_map_ilist = NULL;
-      if (numneigh != 0 && ilist != 0) {
-        #pragma offload_transfer target(mic:_cop) \
-          nocopy(ilist,numneigh,cnumneigh:alloc_if(0) free_if(1))
-      }
+      #pragma offload_transfer target(mic:_cop) \
+        nocopy(ilist,firstneigh,numneigh:alloc_if(0) free_if(1))
     }
     #endif
-    lmp->memory->destroy(cnumneigh);
     _off_map_listlocal = 0;
   }
 }
@@ -263,26 +273,88 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
+void IntelBuffers<flt_t, acc_t>::free_list_ptrs()
+{
+  for (int list_num = 1; list_num < _n_list_ptrs; list_num++) {
+    if (_neigh_list_ptrs[list_num].size) {
+      lmp->memory->destroy(_neigh_list_ptrs[list_num].cnumneigh);
+      lmp->memory->destroy(_neigh_list_ptrs[list_num].numneighhalf);
+    }
+    _neigh_list_ptrs[list_num].size = 0;
+    _neigh_list_ptrs[list_num].list_ptr = 0;
+  }
+  _n_list_ptrs = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
+void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list,
+                                            int *&numneighhalf,
+                                            int *&cnumneigh)
+{
+  const int size = list->get_maxlocal();
+  int list_num;
+  for (list_num = 0; list_num < _n_list_ptrs; list_num++)
+    if (_neigh_list_ptrs[list_num].list_ptr == (void*)list) break;
+  if (list_num == _n_list_ptrs) {
+    if (_n_list_ptrs == _max_list_ptrs) {
+      _max_list_ptrs *= 2;
+      IntelNeighListPtrs *new_list = new IntelNeighListPtrs[_max_list_ptrs];
+      for (int i = 0; i < _n_list_ptrs; i++) new_list[i] = _neigh_list_ptrs[i];
+      delete []_neigh_list_ptrs;
+      _neigh_list_ptrs = new_list;
+    }
+    _neigh_list_ptrs[list_num].list_ptr = (void *)list;
+    _neigh_list_ptrs[list_num].size = 0;
+    _n_list_ptrs++;
+  }
+  if (size > _neigh_list_ptrs[list_num].size) {
+    if (_neigh_list_ptrs[list_num].size) {
+      lmp->memory->destroy(_neigh_list_ptrs[list_num].cnumneigh);
+      lmp->memory->destroy(_neigh_list_ptrs[list_num].numneighhalf);
+    }
+    lmp->memory->create(_neigh_list_ptrs[list_num].cnumneigh, size,
+                        "_cnumneigh");
+    lmp->memory->create(_neigh_list_ptrs[list_num].numneighhalf, size,
+                        "_cnumneigh");
+    _neigh_list_ptrs[list_num].size = size;
+  }
+  numneighhalf = _neigh_list_ptrs[list_num].numneighhalf;
+  cnumneigh = _neigh_list_ptrs[list_num].cnumneigh;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow_list_local(NeighList *list,
+                                                  const int three_body,
                                                   const int offload_end)
 {
   free_list_local();
   int size = list->get_maxlocal();
-  lmp->memory->create(_cnumneigh, size, "_cnumneigh");
   _off_map_listlocal = size;
+  if (three_body)
+    lmp->memory->create(_neigh_list_ptrs[0].cnumneigh, size, "_cnumneigh");
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (offload_end > 0) {
+    int tb_size = size;
+    if (three_body == 0) {
+      lmp->memory->create(_neigh_list_ptrs[0].cnumneigh, 16, "_cnumneigh");
+      tb_size = 16;
+    }
+    int ** firstneigh = list->firstneigh;
     int * numneigh = list->numneigh;
     int * ilist = list->ilist;
-    int * cnumneigh = _cnumneigh;
-    if (cnumneigh != 0) {
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(ilist:length(size) alloc_if(1) free_if(0)) \
-        nocopy(numneigh:length(size) alloc_if(1) free_if(0)) \
-        nocopy(cnumneigh:length(size) alloc_if(1) free_if(0))
-    }
+    int * cnumneigh = _neigh_list_ptrs[0].cnumneigh;
+    #pragma offload_transfer target(mic:_cop) \
+      nocopy(ilist:length(size) alloc_if(1) free_if(0)) \
+      nocopy(firstneigh:length(size) alloc_if(1) free_if(0)) \
+      nocopy(numneigh:length(size) alloc_if(1) free_if(0)) \
+      nocopy(cnumneigh:length(tb_size) alloc_if(1) free_if(0))
     _off_map_ilist = ilist;
+    _off_map_firstneigh = firstneigh;
     _off_map_numneigh = numneigh;
   }
   #endif
@@ -310,7 +382,7 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list,
+void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList * /*list*/,
                                                  const int nlocal,
                                                  const int nthreads,
                                                  const int offload_end,
@@ -576,12 +648,12 @@ void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes,
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * cutneighsqo = _cutneighsq[0];
-      if (_off_threads > 0 && cutneighsqo != 0) {
+      if (_off_threads > 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cutneighsqo:alloc_if(0) free_if(1))
       }
       flt_t * cutneighghostsqo;
-      if (_cutneighghostsq && _off_threads > 0 && cutneighghostsqo != 0) {
+      if (_cutneighghostsq && _off_threads > 0) {
         cutneighghostsqo = _cutneighghostsq[0];
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cutneighghostsqo:alloc_if(0) free_if(1))
@@ -636,6 +708,8 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
 
   tmem += (_list_alloc_atoms + _off_threads) * get_max_nbors() * sizeof(int);
   tmem += _ntypes * _ntypes * sizeof(int);
+
+  tmem += _buf_local_size + (_n_list_ptrs - 1) * _buf_local_size * 2;
 
   return tmem;
 }

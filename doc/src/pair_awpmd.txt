@@ -58,7 +58,7 @@ keyword is used, then an unrestricted Hartree-Fock trial wave function
 is used.
 
 The {free}, {pbc}, and {fix} keywords specify a width constraint on
-the electron wavepackets.  If the {free} keyword is specified, then there is no
+the electron wave packets.  If the {free} keyword is specified, then there is no
 constraint.  If the {pbc} keyword is used and {Plen} is specified as
 -1, then the maximum width is half the shortest box length.  If {Plen}
 is a positive value, then the value is the maximum width.  If the
@@ -68,7 +68,7 @@ positive value, then the constant width for all electrons is set to
 {Flen}.
 
 The {harm} keyword allow oscillations in the width of the
-electron wavepackets.  More details are needed.
+electron wave packets.  More details are needed.
 
 The {ermscale} keyword specifies a unitless scaling factor
 between the electron masses and the width variable mass.  More
@@ -119,5 +119,5 @@ This pair style can only be used via the {pair} keyword of the
 [Default:]
 
 These are the defaults for the pair_style keywords: {hartree} for the
-initial wavefunction, {free} for the wavepacket width.
+initial wave function, {free} for the wave packet width.
 

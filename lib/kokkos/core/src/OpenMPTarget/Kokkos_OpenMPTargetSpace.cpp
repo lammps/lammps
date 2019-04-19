@@ -160,7 +160,8 @@ SharedAllocationRecord( const Kokkos::Experimental::OpenMPTargetSpace & arg_spac
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
-  
+  // Set last element zero, in case c_str is too long
+  header.m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0; 
   //TODO DeepCopy
   // DeepCopy
 

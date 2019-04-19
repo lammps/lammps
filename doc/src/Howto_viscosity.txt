@@ -37,6 +37,11 @@ used to shear the fluid in between them, again with some kind of
 thermostat that modifies only the thermal (non-shearing) components of
 velocity to prevent the fluid from heating up.
 
+NOTE: A recent (2017) book by "(Daivis and Todd)"_#Daivis-viscosity
+discusses use of the SLLOD method and non-equilibrium MD (NEMD)
+thermostatting generally, for both simple and complex fluids,
+e.g. molecular systems.  The latter can be tricky to do correctly.
+
 In both cases, the velocity profile setup in the fluid by this
 procedure can be monitored by the "fix ave/chunk"_fix_ave_chunk.html
 command, which determines grad(Vstream) in the equation above.
@@ -131,3 +136,9 @@ mean-square-displacement formulation for self-diffusivity. The
 time-integrated momentum fluxes play the role of Cartesian
 coordinates, whose mean-square displacement increases linearly
 with time at sufficiently long times.
+
+:line
+
+:link(Daivis-viscosity)
+[(Daivis and Todd)] Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
+Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

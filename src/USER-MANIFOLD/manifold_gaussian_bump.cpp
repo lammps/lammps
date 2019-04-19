@@ -25,7 +25,6 @@ public:
 
   cubic_hermite( double x0, double x1, double y0, double y1,
                  double yp0, double yp1, LAMMPS_NS::Error *err ) :
-    x0(x0), x1(x1), y0(y0), y1(y1), yp0(yp0), yp1(yp1),
     a(  2*x0 + 2 - 2*x1 ),
     b( -3*x0 - 3 + 3*x1 ),
     c( 1.0 ),
@@ -34,6 +33,7 @@ public:
     u( -3*y0 + 3*y1 - 2*yp0 - yp1  ),
     v(  yp0  ),
     w(  y0 ),
+    x0(x0), x1(x1), y0(y0), y1(y1), yp0(yp0), yp1(yp1),
     err(err)
   {
     test();
@@ -42,15 +42,15 @@ public:
 
   void test()
   {
-    if( fabs( x(0) - x0 ) > 1e-8 ) err->one(FLERR, "x0 wrong");
-    if( fabs( x(1) - x1 ) > 1e-8 ) err->one(FLERR, "x1 wrong");
-    if( fabs( y(0) - y0 ) > 1e-8 ) err->one(FLERR, "y0 wrong");
-    if( fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
+    if (fabs( x(0) - x0 ) > 1e-8 ) err->one(FLERR, "x0 wrong");
+    if (fabs( x(1) - x1 ) > 1e-8 ) err->one(FLERR, "x1 wrong");
+    if (fabs( y(0) - y0 ) > 1e-8 ) err->one(FLERR, "y0 wrong");
+    if (fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
   }
 
   double get_t_from_x( double xx ) const
   {
-    if( xx < x0 || xx > x1 ){
+    if (xx < x0 || xx > x1) {
       char msg[2048];
       sprintf(msg, "x ( %g ) out of bounds [%g, %g]", xx, x0, x1 );
       err->one(FLERR, msg);
@@ -72,7 +72,7 @@ public:
       ff  = x(t) - xx;
       ffp = xp(t);
       double res = ff;
-      if( fabs( res ) < tol ){
+      if (fabs( res ) < tol) {
         return t;
       }
     }
@@ -133,14 +133,14 @@ public:
 
 // Manifold itself:
 manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
-                                               int narg, char **arg)
+                                               int /*narg*/, char **/*arg*/)
         : manifold(lmp), lut_z(NULL), lut_zp(NULL) {}
 
 
 manifold_gaussian_bump::~manifold_gaussian_bump()
 {
-  if( lut_z  ) delete lut_z;
-  if( lut_zp ) delete lut_zp;
+  if (lut_z ) delete lut_z;
+  if (lut_zp) delete lut_zp;
 }
 
 
@@ -157,13 +157,13 @@ double manifold_gaussian_bump::g( const double *x )
   xf[2] = 0.0;
 
   double x2 = dot(xf,xf);
-  if( x2 < rc12 ){
+  if (x2 < rc12) {
     return x[2] - gaussian_bump_x2( x2 );
-  }else if( x2 < rc22 ){
+  } else if (x2 < rc22) {
     double rr = sqrt( x2 );
     double z_taper_func = lut_get_z( rr );
     return x[2] - z_taper_func;
-  }else{
+  } else {
     return x[2];
   }
 }
@@ -178,12 +178,12 @@ void   manifold_gaussian_bump::n( const double *x, double *nn )
 
   double x2 = dot(xf,xf);
 
-  if( x2 < rc12 ){
+  if (x2 < rc12) {
     double factor = gaussian_bump_x2(x2);
     factor /= (ll*ll);
     nn[0] = factor * x[0];
     nn[1] = factor * x[1];
-  }else if( x2 < rc22 ){
+  } else if (x2 < rc22) {
     double rr = sqrt( x2 );
     double zp_taper_func = lut_get_zp( rr );
 
@@ -193,7 +193,7 @@ void   manifold_gaussian_bump::n( const double *x, double *nn )
     nn[0] = der_part * x[0];
     nn[1] = der_part * x[1];
 
-  }else{
+  } else {
     nn[0] = nn[1] = 0.0;
   }
 }
@@ -207,14 +207,14 @@ double manifold_gaussian_bump::g_and_n( const double *x, double *nn )
   nn[2] = 1.0;
 
   double x2 = dot(xf,xf);
-  if( x2 < rc12 ){
+  if (x2 < rc12) {
     double gb = gaussian_bump_x2(x2);
     double factor = gb / (ll*ll);
     nn[0] = factor * x[0];
     nn[1] = factor * x[1];
 
     return x[2] - gb;
-  }else if( x2 < rc22 ){
+  } else if (x2 < rc22) {
     double z_taper_func, zp_taper_func;
     double rr = sqrt( x2 );
     lut_get_z_and_zp( rr, z_taper_func, zp_taper_func );
@@ -226,7 +226,7 @@ double manifold_gaussian_bump::g_and_n( const double *x, double *nn )
     nn[1] = der_part * x[1];
 
     return x[2] - z_taper_func;
-  }else{
+  } else {
     nn[0] = nn[1] = 0.0;
     return x[2];
   }
@@ -349,7 +349,7 @@ void manifold_gaussian_bump::lut_get_z_and_zp( double rr, double &zz,
 void manifold_gaussian_bump::test_lut()
 {
   double x[3], nn[3];
-  if( comm->me != 0 ) return;
+  if (comm->me != 0) return;
 
   FILE *fp = fopen( "test_lut_gaussian.dat", "w" );
   double dx = 0.1;
@@ -360,11 +360,11 @@ void manifold_gaussian_bump::test_lut()
     double gg = g( x );
     n( x, nn );
     double taper_z;
-    if( xx <= rc1 ){
+    if (xx <= rc1) {
             taper_z = gaussian_bump(xx);
-    }else if( xx < rc2 ){
+    } else if (xx < rc2) {
             taper_z = lut_get_z( xx );
-    }else{
+    } else {
             taper_z = 0.0;
     }
     fprintf( fp, "%g %g %g %g %g %g %g\n", xx, gaussian_bump(xx), taper_z,

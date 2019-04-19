@@ -117,8 +117,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
   double emb;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -450,7 +449,7 @@ void PairPolymorphic::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPolymorphic::settings(int narg, char **arg)
+void PairPolymorphic::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -573,7 +572,7 @@ void PairPolymorphic::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open polymorphic potential file %s",file);
+      snprintf(str,128,"Cannot open polymorphic potential file %s",file);
       error->one(FLERR,str);
     }
     // move past comments to first data line

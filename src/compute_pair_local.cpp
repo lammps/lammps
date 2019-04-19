@@ -43,9 +43,6 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   local_flag = 1;
   nvalues = narg - 3;
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
-
   pstyle = new int[nvalues];
   pindex = new int[nvalues];
 
@@ -96,6 +93,9 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nvalues; i++)
     if (pstyle[i] != DIST) singleflag = 1;
 
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
+
   nmax = 0;
   vlocal = NULL;
   alocal = NULL;
@@ -139,7 +139,7 @@ void ComputePairLocal::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePairLocal::init_list(int id, NeighList *ptr)
+void ComputePairLocal::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

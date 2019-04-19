@@ -41,11 +41,12 @@ namespace LAMMPS_NS {
 
 class PPPMDisp : public KSpace {
  public:
-  PPPMDisp(class LAMMPS *, int, char **);
+  PPPMDisp(class LAMMPS *);
   virtual ~PPPMDisp();
   virtual void init();
   virtual void setup();
   void setup_grid();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);
@@ -389,7 +390,7 @@ E: PPPMDisp can only currently be used with comm_style brick
 
 This is a current restriction in LAMMPS.
 
-E: Cannot use nonperiodic boundaries with PPPMDisp
+E: Cannot use non-periodic boundaries with PPPMDisp
 
 For kspace style pppm/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d
@@ -488,7 +489,7 @@ Self-explanatory.
 
 E: KSpace accuracy too large to estimate G vector
 
-Reduce the accuracy request or specify gwald explicitly
+Reduce the accuracy request or specify gewald explicitly
 via the kspace_modify command.
 
 E: Could not compute grid size for Coulomb interaction

@@ -14,7 +14,7 @@ Accelerated versions of various "pair_style"_pair_style.html,
 been added to LAMMPS, which will typically run faster than the
 standard non-accelerated versions.  Some require appropriate hardware
 to be present on your system, e.g. GPUs or Intel Xeon Phi
-coprocessors.
+co-processors.
 
 All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give on the "Packages"_Packages.html doc
@@ -72,7 +72,7 @@ Lennard-Jones "pair_style lj/cut"_pair_lj.html:
 "pair_style lj/cut/opt"_pair_lj.html :ul
 
 To see what accelerate styles are currently available for a particular
-style, find the style name in the "Commands_all"_Commands_all.html
+style, find the style name in the "Commands_all"_lc
 style pages (fix,compute,pair,etc) and see what suffixes are listed
 (g,i,k,o,t) with it.  The doc pages for individual commands
 (e.g. "pair lj/cut"_pair_lj.html or "fix nve"_fix_nve.html) also list
@@ -93,11 +93,11 @@ re-build LAMMPS |
   make machine |
 prepare and test a regular LAMMPS simulation |
   lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script |
-enable specific accelerator support via '-k on' "command-line switch"_Section_start.html#start_6, |
+enable specific accelerator support via '-k on' "command-line switch"_Run_options.html, |
   only needed for KOKKOS package |
-set any needed options for the package via "-pk" "command-line switch"_Section_start.html#start_6 or "package"_package.html command, |
+set any needed options for the package via "-pk" "command-line switch"_Run_options.html or "package"_package.html command, |
   only if defaults need to be changed |
-use accelerated styles in your input via "-sf" "command-line switch"_Section_start.html#start_6 or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
+use accelerated styles in your input via "-sf" "command-line switch"_Run_options.html or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
 :tb(c=2,s=|)
 
 Note that the first 4 steps can be done as a single command with
@@ -161,7 +161,7 @@ package. These styles support vectorized single and mixed precision
 calculations, in addition to full double precision.  In extreme cases,
 this can provide speedups over 3.5x on CPUs.  The package also
 supports acceleration in "offload" mode to Intel(R) Xeon Phi(TM)
-coprocessors.  This can result in additional speedup over 2x depending
+co-processors.  This can result in additional speedup over 2x depending
 on the hardware configuration. :l
 
 Styles with a "kk" suffix are part of the KOKKOS package, and can be

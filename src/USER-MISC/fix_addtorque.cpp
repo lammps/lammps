@@ -164,7 +164,7 @@ void FixAddTorque::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddTorque::post_force(int vflag)
+void FixAddTorque::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -252,7 +252,7 @@ void FixAddTorque::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddTorque::post_force_respa(int vflag, int ilevel, int iloop)
+void FixAddTorque::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

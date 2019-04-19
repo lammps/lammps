@@ -38,7 +38,7 @@ Four quantities are calculated by this compute for each chunk.  The
 first 3 quantities are the squared dx,dy,dz displacements of the
 center-of-mass.  The 4th component is the total squared displacement,
 i.e. (dx*dx + dy*dy + dz*dz) of the center-of-mass.  These
-calculations include all effects due to atoms passing thru periodic
+calculations include all effects due to atoms passing through periodic
 boundaries.
 
 Note that only atoms in the specified group contribute to the
@@ -90,12 +90,12 @@ This is so that the fix this compute creates to store per-chunk
 quantities will also have the same ID, and thus be initialized
 correctly with chunk reference positions from the restart file.
 
-The simplest way to output the results of the compute com/msd
+The simplest way to output the results of the compute msd/chunk
 calculation to a file is to use the "fix ave/time"_fix_ave_time.html
 command, for example:
 
 compute cc1 all chunk/atom molecule
-compute myChunk all com/msd cc1
+compute myChunk all msd/chunk cc1
 fix 1 all ave/time 100 1 100 c_myChunk\[*\] file tmp.out mode vector :pre
 
 [Output info:]

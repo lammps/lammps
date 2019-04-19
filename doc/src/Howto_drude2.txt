@@ -82,7 +82,7 @@ decouple the degrees of freedom associated with the Drude oscillators
 from those of the normal atoms. Thermalizing the Drude dipoles at
 temperatures comparable to the rest of the simulation leads to several
 problems (kinetic energy transfer, very short timestep, etc.), which
-can be remediate by the "cold Drude" technique ("Lamoureux and
+can be remedied by the "cold Drude" technique ("Lamoureux and
 Roux"_#Lamoureux2).
 
 Two closely related models are used to represent polarization through
@@ -213,7 +213,7 @@ of mass of the DC-DP pairs, with relaxation time 100 and with random
 seed 12345.  This fix applies also a Langevin thermostat at temperature
 1. to the relative motion of the DPs around their DCs, with relaxation
 time 20 and random seed 13977.  Only the DCs and non-polarizable
-atoms need to be in this fix's group.  LAMMPS will thermostate the DPs
+atoms need to be in this fix's group.  LAMMPS will thermostat the DPs
 together with their DC.  For this, ghost atoms need to know their
 velocities. Thus you need to add the following command:
 
@@ -360,7 +360,7 @@ fix NPH all nph iso 1. 1. 500 :pre
 It is also possible to use a Nose-Hoover instead of a Langevin
 thermostat.  This requires to use "{fix
 drude/transform}"_fix_drude_transform.html just before and after the
-time intergation fixes.  The {fix drude/transform/direct} converts the
+time integration fixes.  The {fix drude/transform/direct} converts the
 atomic masses, positions, velocities and forces into a reduced
 representation, where the DCs transform into the centers of mass of
 the DC-DP pairs and the DPs transform into their relative position
@@ -396,7 +396,7 @@ global pressure and thus a global temperature whatever the fix group.
 We do want the pressure to correspond to the whole system, but we want
 the temperature to correspond to the fix group only.  We must then use
 the {fix_modify} command for this.  In the end, the block of
-instructions for thermostating and barostating will look like
+instructions for thermostatting and barostatting will look like
 
 compute TATOMS ATOMS temp
 fix DIRECT all drude/transform/direct

@@ -35,7 +35,7 @@ enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  npartner(NULL), partner(NULL), valuepartner(NULL), pair(NULL),
+  pair(NULL), npartner(NULL), partner(NULL), valuepartner(NULL),
   ipage_atom(NULL), dpage_atom(NULL), ipage_neigh(NULL), dpage_neigh(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix NEIGH_HISTORY command");
@@ -95,6 +95,8 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
 FixNeighHistory::~FixNeighHistory()
 {
+  if (copymode) return;
+
   // unregister this fix so atom class doesn't invoke it any more
 
   atom->delete_callback(id,0);
@@ -406,7 +408,9 @@ void FixNeighHistory::pre_exchange_newton()
         m = npartner[j]++;
         partner[j][m] = tag[i];
         jvalues = &valuepartner[j][dnum*m];
-        for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+        if (pair->nondefault_history_transfer) 
+          pair->transfer_history(onevalues,jvalues);
+        else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
       }
     }
   }
@@ -518,7 +522,9 @@ void FixNeighHistory::pre_exchange_no_newton()
           m = npartner[j]++;
           partner[j][m] = tag[i];
           jvalues = &valuepartner[j][dnum*m];
-          for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+          if (pair->nondefault_history_transfer) 
+            pair->transfer_history(onevalues, jvalues);
+          else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
         }
       }
     }
@@ -602,7 +608,7 @@ void FixNeighHistory::post_neighbor()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      rflag = sbmask(j);
+      rflag = sbmask(j) | pair->beyond_contact;
       j &= NEIGHMASK;
       jlist[jj] = j;
 
@@ -686,7 +692,7 @@ void FixNeighHistory::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixNeighHistory::copy_arrays(int i, int j, int delflag)
+void FixNeighHistory::copy_arrays(int i, int j, int /*delflag*/)
 {
   // just copy pointers for partner and valuepartner
   // b/c can't overwrite chunk allocation inside ipage_atom,dpage_atom

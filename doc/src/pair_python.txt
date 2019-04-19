@@ -29,7 +29,7 @@ The {python} pair style provides a way to define pairwise additive
 potential functions as python script code that is loaded into LAMMPS
 from a python file which must contain specific python class definitions.
 This allows to rapidly evaluate different potential functions without
-having to modify and recompile LAMMPS. Due to python being an
+having to modify and re-compile LAMMPS. Due to python being an
 interpreted language, however, the performance of this pair style is
 going to be significantly slower (often between 20x and 100x) than
 corresponding compiled code. This penalty can be significantly reduced
@@ -98,7 +98,7 @@ verify, that the potential definition in the python class and in the
 LAMMPS input match.
 
 Here is an example for a single type Lennard-Jones potential class
-{LJCutMelt} in reducted units, which defines an atom type {lj} for
+{LJCutMelt} in reduced units, which defines an atom type {lj} for
 which the parameters epsilon and sigma are both 1.0:
 
 class LJCutMelt(LAMMPSPairPotential):
@@ -204,8 +204,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

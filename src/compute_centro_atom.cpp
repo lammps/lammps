@@ -110,7 +110,7 @@ void ComputeCentroAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeCentroAtom::init_list(int id, NeighList *ptr)
+void ComputeCentroAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

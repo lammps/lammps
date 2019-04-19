@@ -26,6 +26,7 @@ Fixes :h1
    fix_bond_swap
    fix_bond_react
    fix_box_relax
+   fix_client_md
    fix_cmap
    fix_colvars
    fix_controller
@@ -39,12 +40,14 @@ Fixes :h1
    fix_dt_reset
    fix_efield
    fix_ehex
+   fix_electron_stopping
    fix_enforce2d
    fix_eos_cv
    fix_eos_table
    fix_eos_table_rx
    fix_evaporate
    fix_external
+   fix_ffl
    fix_filter_corotate
    fix_flow_gauss
    fix_freeze
@@ -55,6 +58,8 @@ Fixes :h1
    fix_grem
    fix_halt
    fix_heat
+   fix_hyper_global
+   fix_hyper_local
    fix_imd
    fix_indent
    fix_ipi
@@ -71,6 +76,7 @@ Fixes :h1
    fix_lineforce
    fix_manifoldforce
    fix_meso
+   fix_meso_move
    fix_meso_stationary
    fix_momentum
    fix_move
@@ -91,6 +97,7 @@ Fixes :h1
    fix_nve
    fix_nve_asphere
    fix_nve_asphere_noforce
+   fix_nve_awpmd
    fix_nve_body
    fix_nve_dot
    fix_nve_dotc_langevin
@@ -114,6 +121,7 @@ Fixes :h1
    fix_phonon
    fix_pimd
    fix_planeforce
+   fix_plumed
    fix_poems
    fix_pour
    fix_precession_spin
@@ -128,12 +136,13 @@ Fixes :h1
    fix_qeq_reax
    fix_qmmm
    fix_qtb
-   fix_reax_bonds
+   fix_reaxc_bonds
    fix_reaxc_species
    fix_recenter
    fix_restrain
    fix_rhok
    fix_rigid
+   fix_rigid_meso
    fix_rx
    fix_saed_vtk
    fix_setforce
@@ -153,7 +162,6 @@ Fixes :h1
    fix_srd
    fix_store_force
    fix_store_state
-   fix_surface_global
    fix_temp_berendsen
    fix_temp_csvr
    fix_temp_rescale

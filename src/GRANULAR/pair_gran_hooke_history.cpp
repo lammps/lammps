@@ -44,6 +44,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   history = 1;
+  size_history = 3;
   fix_history = NULL;
 
   single_extra = 10;
@@ -57,12 +58,18 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // set comm size needed by this Pair if used with fix rigid
 
   comm_forward = 1;
+
+  // keep default behavior of history[i][j] = -history[j][i]
+
+  nondefault_history_transfer = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeHistory::~PairGranHookeHistory()
 {
+  if (copymode) return;
+
   delete [] svector;
   if (fix_history) modify->delete_fix("NEIGH_HISTORY");
 
@@ -96,8 +103,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
@@ -412,7 +418,7 @@ void PairGranHookeHistory::init_style()
 
   if (history && fix_history == NULL) {
     char dnumstr[16];
-    sprintf(dnumstr,"%d",3);
+    sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
     fixarg[0] = (char *) "NEIGH_HISTORY";
     fixarg[1] = (char *) "all";
@@ -587,9 +593,9 @@ void PairGranHookeHistory::reset_dt()
 
 /* ---------------------------------------------------------------------- */
 
-double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
+double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
                                     double rsq,
-                                    double factor_coul, double factor_lj,
+                                    double /*factor_coul*/, double /*factor_lj*/,
                                     double &fforce)
 {
   double radi,radj,radsum;
@@ -746,7 +752,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
-                                            int pbc_flag, int *pbc)
+                                            int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -80,8 +80,7 @@ jump in.polymer :pre
 All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
-the "-partition" command-line switch as described in "this
-section"_Section_start.html#start_6 of the manual.
+the "-partition command-line switch"_Run_options.html.
 
 In the last 2 examples, if LAMMPS were run on 3 partitions, the same
 scripts could be used if the "index" and "loop" variables were

@@ -102,8 +102,7 @@ PairLJSDKCoulLongGPU::~PairLJSDKCoulLongGPU()
 
 void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;

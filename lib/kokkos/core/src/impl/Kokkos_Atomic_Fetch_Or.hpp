@@ -149,6 +149,15 @@ T atomic_fetch_or( volatile T * const dest_v , const T val )
 #endif
 //----------------------------------------------------------------------------
 
+// dummy for non-CUDA Kokkos headers being processed by NVCC
+#if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
+template< typename T >
+__inline__ __device__
+T atomic_fetch_or(volatile T* const, Kokkos::Impl::identity_t<T>) {
+  return T();
+}
+#endif
+
 // Simpler version of atomic_fetch_or without the fetch
 template <typename T>
 KOKKOS_INLINE_FUNCTION

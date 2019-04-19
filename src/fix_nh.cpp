@@ -742,7 +742,7 @@ void FixNH::init()
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixNH::setup(int vflag)
+void FixNH::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -827,7 +827,7 @@ void FixNH::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixNH::initial_integrate(int vflag)
+void FixNH::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -904,9 +904,16 @@ void FixNH::final_integrate()
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
 
+  // need to recompute pressure to account for change in KE
+  // t_current is up-to-date, but compute_temperature is not
+  // compute appropriately coupled elements of mvv_current
+
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -922,7 +929,7 @@ void FixNH::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -991,7 +998,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::final_integrate_respa(int ilevel, int iloop)
+void FixNH::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1871,7 +1878,8 @@ void FixNH::nhc_press_integrate()
       }
   }
 
-  lkt_press = pdof * kt;
+  if (pstyle == ISO) lkt_press = kt;
+  else lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

@@ -29,10 +29,11 @@ namespace LAMMPS_NS {
 
 class MSM : public KSpace {
  public:
-  MSM(class LAMMPS *, int, char **);
+  MSM(class LAMMPS *);
   virtual ~MSM();
   void init();
   void setup();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
 
  protected:

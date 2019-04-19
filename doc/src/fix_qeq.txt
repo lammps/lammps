@@ -22,7 +22,7 @@ Nevery = perform charge equilibration every this many steps :l
 cutoff = global cutoff for charge-charge interactions (distance unit) :l
 tolerance = precision to which charges will be equilibrated :l
 maxiter = maximum iterations to perform charge equilibration :l
-qfile = a filename with QEq parameters :l
+qfile = a filename with QEq parameters or {coul/streitz} or {reax/c} :l
 
 zero or more keyword/value pairs may be appended :l
 keyword = {alpha} or {qdamp} or {qstep} :l
@@ -122,7 +122,9 @@ field"_#vanDuin paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
 as "fix qeq/reax"_fix_qeq_reax.html, and can be used with "pair_style
 reax/c"_pair_reaxc.html.  Only the {chi}, {eta}, and {gamma}
-parameters from the {qfile} file are used.  This style solves partial
+parameters from the {qfile} file are used. When using the string
+{reax/c} as filename, these parameters are extracted directly from
+an active {reax/c} pair style.  This style solves partial
 charges on atoms via the matrix inversion method.  A tolerance of
 1.0e-6 is usually a good number.
 
@@ -132,7 +134,9 @@ that the interaction between a pair of charged particles is the
 product of two Slater 1{s} orbitals.  The expression for the Slater
 1{s} orbital is given under equation (6) of the
 "Streitz-Mintmire"_#Streitz1 paper.  Only the {chi}, {eta}, {zeta}, and
-{qcore} parameters from the {qfile} file are used.  This style solves
+{qcore} parameters from the {qfile} file are used. When using the string
+{coul/streitz} as filename, these parameters are extracted directly from
+an active {coul/streitz} pair style.  This style solves
 partial charges on atoms via the matrix inversion method.  A tolerance
 of 1.0e-6 is usually a good number.  Keyword {alpha} can be used to
 change the Slater type orbital exponent.
@@ -187,8 +191,8 @@ Thexe fixes are invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 These fixes are part of the QEQ package.  They are only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

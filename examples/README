@@ -59,6 +59,7 @@ sub-directories:
 
 accelerate: use of all the various accelerator packages
 airebo:   polyethylene with AIREBO potential
+atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
@@ -77,11 +78,13 @@ friction: frictional contact of spherical asperities between 2d surfaces
 gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
+hyper:    global and local hyperdynamics of diffusion on Pt surface
 indent:	  spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
 latte:    use of LATTE density-functional tight-binding quantum code
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
+message:  client/server coupling of 2 codes
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:	  energy minimization of 2d LJ melt
 mscg:     parameterize a multi-scale coarse-graining (MSCG) model

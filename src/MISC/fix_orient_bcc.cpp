@@ -230,7 +230,7 @@ void FixOrientBCC::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientBCC::init_list(int id, NeighList *ptr)
+void FixOrientBCC::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -250,7 +250,7 @@ void FixOrientBCC::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientBCC::post_force(int vflag)
+void FixOrientBCC::post_force(int /*vflag*/)
 {
   int i,j,k,ii,jj,inum,jnum,m,n,nn,nsort;
   tagint id_self;
@@ -471,7 +471,7 @@ void FixOrientBCC::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientBCC::post_force_respa(int vflag, int ilevel, int iloop)
+void FixOrientBCC::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -488,7 +488,7 @@ double FixOrientBCC::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 int FixOrientBCC::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,num;
   tagint id;

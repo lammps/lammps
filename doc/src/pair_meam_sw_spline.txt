@@ -6,8 +6,7 @@
 
 :line
 
-pair_style meam/sw/spline :h3
-pair_style meam/sw/spline/omp :h3
+pair_style meam/sw/spline command :h3
 
 [Syntax:]
 
@@ -111,12 +110,13 @@ support the {inner}, {middle}, {outer} keywords.
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
-This pair style is only enabled if LAMMPS was built with the USER-MISC package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+This pair style is only enabled if LAMMPS was built with the USER-MISC
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style meam"_pair_meam.html,
+"pair_coeff"_pair_coeff.html, "pair_style meam/c"_pair_meamc.html,
 "pair_style meam/spline"_pair_meam_spline.html
 
 [Default:] none

@@ -96,8 +96,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;
@@ -434,7 +433,7 @@ void PairPeriEPS::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPeriEPS::settings(int narg, char **arg)
+void PairPeriEPS::settings(int narg, char **/*arg*/)
 {
   if (narg) error->all(FLERR,"Illegal pair_style command");
 }
@@ -799,7 +798,7 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
 ---------------------------------------------------------------------- */
 
 int PairPeriEPS::pack_forward_comm(int n, int *list, double *buf,
-                                   int pbc_flag, int *pbc)
+                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -308,7 +308,7 @@ void PairTlsph::PreCompute() {
                          */
 
                         if ((detF[i] < DETF_MIN) || (detF[i] > DETF_MAX) || (numNeighsRefConfig[i] == 0)) {
-                                printf("deleting particle [%d] because det(F)=%f is outside stable range %f -- %f \n", tag[i],
+                                printf("deleting particle [" TAGINT_FORMAT "] because det(F)=%f is outside stable range %f -- %f \n", tag[i],
                                                 Fincr[i].determinant(),
                                                 DETF_MIN, DETF_MAX);
                                 printf("nn = %d, damage=%f\n", numNeighsRefConfig[i], damage[i]);
@@ -448,10 +448,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         Matrix3d eye;
         eye.setIdentity();
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         /*
          * iterate over pairs of particles i, j and assign forces using PK1 stress tensor
@@ -1684,8 +1681,8 @@ void PairTlsph::coeff(int narg, char **arg) {
                 } // end energy release rate failure criterion
 
                 else {
-                        sprintf(str, "unknown *KEYWORD: %s", arg[ioffset]);
-                        error->all(FLERR, str);
+                  snprintf(str,128,"unknown *KEYWORD: %s", arg[ioffset]);
+                  error->all(FLERR, str);
                 }
 
         }
@@ -1802,7 +1799,7 @@ double PairTlsph::memory_usage() {
  extract method to provide access to this class' data structures
  ------------------------------------------------------------------------- */
 
-void *PairTlsph::extract(const char *str, int &i) {
+void *PairTlsph::extract(const char *str, int &/*i*/) {
 //printf("in PairTlsph::extract\n");
         if (strcmp(str, "smd/tlsph/Fincr_ptr") == 0) {
                 return (void *) Fincr;
@@ -1839,7 +1836,7 @@ void *PairTlsph::extract(const char *str, int &i) {
 
 /* ---------------------------------------------------------------------- */
 
-int PairTlsph::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int PairTlsph::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/) {
         int i, j, m;
         tagint *mol = atom->molecule;
         double *damage = atom->damage;
@@ -1928,7 +1925,7 @@ void PairTlsph::unpack_forward_comm(int n, int first, double *buf) {
  ------------------------------------------------------------------------- */
 
 void PairTlsph::effective_longitudinal_modulus(const int itype, const double dt, const double d_iso, const double p_rate,
-                const Matrix3d d_dev, const Matrix3d sigma_dev_rate, const double damage, double &K_eff, double &mu_eff, double &M_eff) {
+                const Matrix3d d_dev, const Matrix3d sigma_dev_rate, const double /*damage*/, double &K_eff, double &mu_eff, double &M_eff) {
         double M0; // initial longitudinal modulus
         double shear_rate_sq;
 
@@ -2094,7 +2091,7 @@ void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_d
 /* ----------------------------------------------------------------------
  Compute damage. Called from AssembleStress().
  ------------------------------------------------------------------------- */
-void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d stress, Matrix3d &stress_damaged) {
+void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d stress, Matrix3d &/*stress_damaged*/) {
         double *eff_plastic_strain = atom->eff_plastic_strain;
         double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
         double *radius = atom->radius;

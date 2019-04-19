@@ -27,8 +27,6 @@ keyword = {temp} or {tchain} or {every}
     N = length of thermostat chain (1 = single thermostat)
   {every} value = N
     N = print info about iteration every N steps. N = 0 means no output :pre
-
-
 :ule
 
 [Examples:]
@@ -59,20 +57,18 @@ minimization"_minimize.html.
 
 :line
 
-
 [Restrictions:]
 
-This fix is part of the USER-MANIFOLD package. It is only enabled if LAMMPS
-was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+This fix is part of the USER-MANIFOLD package. It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 :line
 
-
 [Related commands:]
 
-"fix nve/manifold/rattle"_fix_nvt_manifold_rattle.html, "fix manifoldforce"_fix_manifoldforce.html
-[Default:] every = 0
+"fix nve/manifold/rattle"_fix_nvt_manifold_rattle.html, "fix
+manifoldforce"_fix_manifoldforce.html [Default:] every = 0
 
 :line
 

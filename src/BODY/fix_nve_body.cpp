@@ -54,7 +54,7 @@ void FixNVEBody::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEBody::initial_integrate(int vflag)
+void FixNVEBody::initial_integrate(int /*vflag*/)
 {
   double dtfm;
   double omega[3];

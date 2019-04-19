@@ -308,7 +308,7 @@ void ComputePropertyLocal::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyLocal::init_list(int id, NeighList *ptr)
+void ComputePropertyLocal::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

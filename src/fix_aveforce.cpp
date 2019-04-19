@@ -194,7 +194,7 @@ void FixAveForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveForce::post_force(int vflag)
+void FixAveForce::post_force(int /*vflag*/)
 {
   // update region if necessary
 
@@ -259,7 +259,7 @@ void FixAveForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixAveForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // ave + extra force on selected RESPA level
   // just ave on all other levels

@@ -99,6 +99,8 @@ class Pair : protected Pointers {
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
+  int beyond_contact, nondefault_history_transfer;   // for granular styles
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -181,6 +183,7 @@ class Pair : protected Pointers {
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
+  virtual void transfer_history(double *, double*) {}
 
   // management of callbacks to be run from ev_tally()
 
@@ -203,10 +206,15 @@ class Pair : protected Pointers {
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
 
+
  public:
   // custom data type for accessing Coulomb tables
 
   typedef union {int i; float f;} union_int_float_t;
+
+  // Accessor for the user-intel package to determine virial calc for hybrid
+
+  inline int fdotr_is_set() const { return vflag_fdotr; }
 
  protected:
   int vflag_fdotr;
@@ -215,6 +223,10 @@ class Pair : protected Pointers {
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else ev_unset();
+  }
   virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
   void ev_tally_full(int, double, double, double, double, double, double);
@@ -269,7 +281,7 @@ E: Cannot use pair tail corrections with 2d simulations
 
 The correction factors are only currently defined for 3d systems.
 
-W: Using pair tail corrections with nonperiodic system
+W: Using pair tail corrections with non-periodic system
 
 This is probably a bogus thing to do, since tail corrections are
 computed by integrating the density of a periodic system out to

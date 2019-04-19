@@ -63,7 +63,8 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDipole::PPPMDipole(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg),
+//PPPMDipole::PPPMDipole(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg),
+PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
   densityx_brick_dipole(NULL), densityy_brick_dipole(NULL), 
   densityz_brick_dipole(NULL), ux_brick_dipole(NULL), 
   uy_brick_dipole(NULL), uz_brick_dipole(NULL), vdxx_brick_dipole(NULL), 

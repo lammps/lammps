@@ -729,6 +729,7 @@ public:
   static void run_tests() {
     run_test_resize_realloc();
     run_test_mirror();
+    run_test_mirror_and_copy();
     run_test_scalar();
     run_test();
     run_test_const();
@@ -882,6 +883,69 @@ public:
 
       ASSERT_EQ(a_h.rank(),a_h2.rank());
       ASSERT_EQ(a_h.rank(),a_d.rank());
+    }
+  }
+
+  static void run_test_mirror_and_copy()
+  {
+    // LayoutLeft
+    {
+      Kokkos::DynRankView< double, Kokkos::LayoutLeft, Kokkos::HostSpace > a_org( "A", 10 );
+      a_org(5) = 42.0;
+      Kokkos::DynRankView< double, Kokkos::LayoutLeft, Kokkos::HostSpace > a_h = a_org;
+      auto a_h2 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_h );
+      auto a_d = Kokkos::create_mirror_view_and_copy( DeviceType(), a_h );
+      auto a_h3 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_d );
+
+      int equal_ptr_h_h2 = a_h.data()  == a_h2.data() ? 1 : 0;
+      int equal_ptr_h_d  = a_h.data()  ==  a_d.data() ? 1 : 0;
+      int equal_ptr_h2_d = a_h2.data() ==  a_d.data() ? 1 : 0;
+      int equal_ptr_h3_d = a_h3.data() ==  a_d.data() ? 1 : 0;
+
+      int is_same_memspace = std::is_same< Kokkos::HostSpace, typename DeviceType::memory_space >::value ? 1 : 0;
+      ASSERT_EQ( equal_ptr_h_h2, 1 );
+      ASSERT_EQ( equal_ptr_h_d, is_same_memspace );
+      ASSERT_EQ( equal_ptr_h2_d, is_same_memspace );
+      ASSERT_EQ( equal_ptr_h3_d, is_same_memspace );
+
+      ASSERT_EQ( a_h.extent(0), a_h3.extent(0) );
+      ASSERT_EQ( a_h.extent(0), a_h2.extent(0) );
+      ASSERT_EQ( a_h.extent(0), a_d .extent(0) );
+      ASSERT_EQ( a_h.extent(0), a_h3.extent(0) );
+      ASSERT_EQ( a_h.rank(), a_org.rank() );
+      ASSERT_EQ( a_h.rank(), a_h2.rank() );
+      ASSERT_EQ( a_h.rank(), a_h3.rank() );
+      ASSERT_EQ( a_h.rank(), a_d.rank() );
+      ASSERT_EQ( a_org(5), a_h3(5) );
+    }
+    // LayoutRight
+    {
+      Kokkos::DynRankView< double, Kokkos::LayoutRight, Kokkos::HostSpace > a_org( "A", 10 );
+      a_org(5) = 42.0;
+      Kokkos::DynRankView< double, Kokkos::LayoutRight, Kokkos::HostSpace > a_h = a_org;
+      auto a_h2 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_h );
+      auto a_d = Kokkos::create_mirror_view_and_copy( DeviceType(), a_h );
+      auto a_h3 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_d );
+
+      int equal_ptr_h_h2 = a_h.data()  == a_h2.data() ? 1 : 0;
+      int equal_ptr_h_d  = a_h.data()  ==  a_d.data() ? 1 : 0;
+      int equal_ptr_h2_d = a_h2.data() ==  a_d.data() ? 1 : 0;
+      int equal_ptr_h3_d = a_h3.data() ==  a_d.data() ? 1 : 0;
+
+      int is_same_memspace = std::is_same< Kokkos::HostSpace, typename DeviceType::memory_space >::value ? 1 : 0;
+      ASSERT_EQ( equal_ptr_h_h2, 1 );
+      ASSERT_EQ( equal_ptr_h_d, is_same_memspace );
+      ASSERT_EQ( equal_ptr_h2_d, is_same_memspace );
+      ASSERT_EQ( equal_ptr_h3_d, is_same_memspace );
+
+      ASSERT_EQ( a_h.extent(0), a_h3.extent(0) );
+      ASSERT_EQ( a_h.extent(0), a_h2.extent(0) );
+      ASSERT_EQ( a_h.extent(0), a_d .extent(0) );
+      ASSERT_EQ( a_h.rank(), a_org.rank() );
+      ASSERT_EQ( a_h.rank(), a_h2.rank() );
+      ASSERT_EQ( a_h.rank(), a_h3.rank() );
+      ASSERT_EQ( a_h.rank(), a_d.rank() );
+      ASSERT_EQ( a_org(5), a_h3(5) );
     }
   }
 

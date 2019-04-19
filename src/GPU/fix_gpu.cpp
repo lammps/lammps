@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "citeme.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -221,12 +222,11 @@ void FixGPU::init()
   // hybrid cannot be used with force/neigh option
 
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
-    if (force->pair_match("hybrid",1) != NULL ||
-        force->pair_match("hybrid/overlay",1) != NULL)
+    if (force->pair_match("^hybrid",0) != NULL)
       error->all(FLERR,"Cannot use pair hybrid with GPU neighbor list builds");
+
   if (_particle_split < 0)
-    if (force->pair_match("hybrid",1) != NULL ||
-        force->pair_match("hybrid/overlay",1) != NULL)
+    if (force->pair_match("^hybrid",0) != NULL)
       error->all(FLERR,"GPU split param must be positive "
                  "for hybrid pair styles");
 
@@ -243,21 +243,16 @@ void FixGPU::init()
 
   // make sure fdotr virial is not accumulated multiple times
 
-  if (force->pair_match("hybrid",1) != NULL) {
+  if (force->pair_match("^hybrid",0) != NULL) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i],"/gpu")==NULL)
-        force->pair->no_virial_fdotr_compute = 1;
-  } else if (force->pair_match("hybrid/overlay",1) != NULL) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i],"/gpu")==NULL)
+      if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
   }
 
   // rRESPA support
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     _nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -288,7 +283,7 @@ void FixGPU::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGPU::post_force(int vflag)
+void FixGPU::post_force(int /* vflag */)
 {
   if (!force->pair) return;
 
@@ -320,7 +315,7 @@ void FixGPU::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGPU::post_force_respa(int vflag, int ilevel, int iloop)
+void FixGPU::post_force_respa(int vflag, int /* ilevel */, int /* iloop */)
 {
   post_force(vflag);
 }

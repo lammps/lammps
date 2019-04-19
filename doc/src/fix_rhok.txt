@@ -11,7 +11,7 @@ fix rhok command :h3
 fix ID group-ID rhok nx ny nz K a :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-nx, ny, nz = k-vektor of collective density field
+nx, ny, nz = k-vector of collective density field
 K = spring constant of bias potential
 a = anchor point of bias potential :ul
 
@@ -40,8 +40,8 @@ An example of using the interface pinning method is located in the
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

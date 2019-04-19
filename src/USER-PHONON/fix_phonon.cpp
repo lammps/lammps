@@ -299,7 +299,7 @@ void FixPhonon::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPhonon::setup(int flag)
+void FixPhonon::setup(int /*flag*/)
 {
   // initialize accumulating variables
   for (int i = 0; i < sysdim; ++i) TempSum[i] = 0.;

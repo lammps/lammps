@@ -6,7 +6,7 @@ using namespace LAMMPS_NS;
 using namespace user_manifold;
 
 
-manifold_torus::manifold_torus( LAMMPS *lmp, int argc, char **argv ) : manifold(lmp)
+manifold_torus::manifold_torus( LAMMPS *lmp, int /*argc*/, char **/*argv*/ ) : manifold(lmp)
 {}
 
 
@@ -14,7 +14,7 @@ double manifold_torus::g( const double *x )
 {
   double R = params[0];
   double r = params[1];
-  if( R < r ){
+  if (R < r) {
     error->all(FLERR,"Large radius < small radius!");
   }
 
@@ -27,7 +27,7 @@ void   manifold_torus::n( const double *x, double *n )
 {
   double R = params[0];
   double r = params[1];
-  if( R < r ){
+  if (R < r) {
     error->all(FLERR,"Large radius < small radius!");
   }
 

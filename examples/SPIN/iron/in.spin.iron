@@ -39,7 +39,7 @@ timestep	0.0001
 
 # compute and output options
 
-compute 	out_mag    all compute/spin
+compute 	out_mag    all spin
 compute 	out_pe     all pe
 compute 	out_ke     all ke
 compute 	out_temp   all temp

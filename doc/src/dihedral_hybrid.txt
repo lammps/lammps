@@ -77,8 +77,8 @@ for specific dihedral types.
 [Restrictions:]
 
 This dihedral style can only be used if LAMMPS was built with the
-MOLECULE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+MOLECULE package.  See the "Build package"_Build_package.html doc page
+for more info.
 
 Unlike other dihedral styles, the hybrid dihedral style does not store
 dihedral coefficient info for individual sub-styles in a "binary

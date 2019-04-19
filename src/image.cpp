@@ -1017,6 +1017,8 @@ void Image::write_JPG(FILE *fp)
 
   jpeg_finish_compress(&cinfo);
   jpeg_destroy_compress(&cinfo);
+#else
+  LMP_UNUSED_PARAM(fp);
 #endif
 }
 
@@ -1074,6 +1076,8 @@ void Image::write_PNG(FILE *fp)
 
   png_destroy_write_struct(&png_ptr, &info_ptr);
   delete[] row_pointers;
+#else
+  LMP_UNUSED_PARAM(fp);
 #endif
 }
 

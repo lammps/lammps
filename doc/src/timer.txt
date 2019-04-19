@@ -19,7 +19,7 @@ timer args :pre
   {full} = like {normal} but also include CPU and thread utilization
   {sync} = explicitly synchronize MPI tasks between sections
   {nosync} = do not synchronize MPI tasks between sections (default)
-  {timeout} elapse = set walltime limit to {elapse}
+  {timeout} elapse = set wall time limit to {elapse}
   {every} Ncheck = perform timeout check every {Ncheck} steps :pre
 
 [Examples:]
@@ -39,8 +39,8 @@ During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
 information for determining performance and load imbalance problems.
 This can be done at different levels of detail and accuracy.  For more
-information about the timing output, see this "discussion of screen
-output in Section 2.7"_Section_start.html#start_7.
+information about the timing output, see the "Run
+output"_Run_output.html doc page.
 
 The {off} setting will turn all time measurements off. The {loop}
 setting will only measure the total time for a run and not collect any
@@ -57,13 +57,13 @@ though it can also slow down the simulation by prohibiting overlapping
 independent computations on different MPI ranks  Using the {nosync}
 setting (which is the default) turns this synchronization off.
 
-With the {timeout} keyword a walltime limit can be imposed, that
+With the {timeout} keyword a wall time limit can be imposed, that
 affects the "run"_run.html and "minimize"_minimize.html commands.
 This can be convenient when calculations have to comply with execution
 time limits, e.g. when running under a batch system when you want to
 maximize the utilization of the batch time slot, especially for runs
 where the time per timestep varies much and thus it becomes difficult
-to predict how many steps a simulation can perform for a given walltime
+to predict how many steps a simulation can perform for a given wall time
 limit. This also applies for difficult to converge minimizations.
 The timeout {elapse} value should be somewhat smaller than the maximum
 wall time requested from the batch system, as there is usually

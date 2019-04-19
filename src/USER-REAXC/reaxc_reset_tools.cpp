@@ -30,17 +30,20 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
+#include "error.h"
+
+
 void Reset_Atoms( reax_system* system, control_params *control )
 {
   int i;
   reax_atom *atom;
 
   system->numH = 0;
-  if( control->hbond_cut > 0 )
+  if (control->hbond_cut > 0)
     for( i = 0; i < system->n; ++i ) {
       atom = &(system->my_atoms[i]);
       if (atom->type < 0) continue;
-      if( system->reax_param.sbp[ atom->type ].p_hbond == 1 )
+      if (system->reax_param.sbp[ atom->type ].p_hbond == 1)
         atom->Hindex = system->numH++;
       else atom->Hindex = -1;
     }
@@ -87,7 +90,7 @@ void Reset_Pressures( simulation_data *data )
 }
 
 
-void Reset_Simulation_Data( simulation_data* data, int virial )
+void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
 {
   Reset_Energies( &data->my_en );
   Reset_Energies( &data->sys_en );
@@ -120,14 +123,13 @@ void Reset_Workspace( reax_system *system, storage *workspace )
 
 
 void Reset_Neighbor_Lists( reax_system *system, control_params *control,
-                           storage *workspace, reax_list **lists,
-                           MPI_Comm comm )
+                           storage *workspace, reax_list **lists )
 {
   int i, total_bonds, Hindex, total_hbonds;
   reax_list *bonds, *hbonds;
 
   /* bonds list */
-  if( system->N > 0 ){
+  if (system->N > 0) {
     bonds = (*lists) + BONDS;
     total_bonds = 0;
 
@@ -139,25 +141,25 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
 
     /* is reallocation needed? */
-    if( total_bonds >= bonds->num_intrs * DANGER_ZONE ) {
+    if (total_bonds >= bonds->num_intrs * DANGER_ZONE) {
       workspace->realloc.bonds = 1;
-      if( total_bonds >= bonds->num_intrs ) {
-        fprintf(stderr,
-                "p%d: not enough space for bonds! total=%d allocated=%d\n",
-                system->my_rank, total_bonds, bonds->num_intrs );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+      if (total_bonds >= bonds->num_intrs) {
+        char errmsg[256];
+        snprintf(errmsg, 256, "Not enough space for bonds! total=%d allocated=%d\n",
+                total_bonds, bonds->num_intrs);
+        control->error_ptr->one(FLERR, errmsg);
       }
     }
   }
 
-  if( control->hbond_cut > 0 && system->numH > 0 ) {
+  if (control->hbond_cut > 0 && system->numH > 0) {
     hbonds = (*lists) + HBONDS;
     total_hbonds = 0;
 
     /* reset start-end indexes */
     for( i = 0; i < system->n; ++i ) {
       Hindex = system->my_atoms[i].Hindex;
-      if( Hindex > -1 ) {
+      if (Hindex > -1) {
         Set_Start_Index( Hindex, total_hbonds, hbonds );
         Set_End_Index( Hindex, total_hbonds, hbonds );
         total_hbonds += system->my_atoms[i].num_hbonds;
@@ -165,13 +167,13 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
 
     /* is reallocation needed? */
-    if( total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/ ) {
+    if (total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/) {
       workspace->realloc.hbonds = 1;
-      if( total_hbonds >= hbonds->num_intrs ) {
-        fprintf(stderr,
-                "p%d: not enough space for hbonds! total=%d allocated=%d\n",
-                system->my_rank, total_hbonds, hbonds->num_intrs );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+      if (total_hbonds >= hbonds->num_intrs) {
+        char errmsg[256];
+        snprintf(errmsg, 256, "Not enough space for hbonds! total=%d allocated=%d\n",
+                total_hbonds, hbonds->num_intrs);
+        control->error_ptr->one(FLERR, errmsg);
       }
     }
   }
@@ -179,7 +181,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
 
 
 void Reset( reax_system *system, control_params *control, simulation_data *data,
-            storage *workspace, reax_list **lists, MPI_Comm comm )
+            storage *workspace, reax_list **lists )
 {
   Reset_Atoms( system, control );
 
@@ -187,6 +189,6 @@ void Reset( reax_system *system, control_params *control, simulation_data *data,
 
   Reset_Workspace( system, workspace );
 
-  Reset_Neighbor_Lists( system, control, workspace, lists, comm );
+  Reset_Neighbor_Lists( system, control, workspace, lists );
 
 }

@@ -255,7 +255,7 @@ temperature compute you are using.
 
 This fix writes the state of the deposition to "binary restart
 files"_restart.html.  This includes information about how many
-particles have been depositied, the random number generator seed, the
+particles have been deposited, the random number generator seed, the
 next timestep for deposition, etc.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
@@ -271,8 +271,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The specified insertion region cannot be a "dynamic" region, as
 defined by the "region"_region.html command.

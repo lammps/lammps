@@ -123,8 +123,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Swaps conserve both momentum and kinetic energy, even if the masses of
 the swapped atoms are not equal.  Thus you should not need to

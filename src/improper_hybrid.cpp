@@ -104,8 +104,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
   // set neighbor->improperlist to sub-style improperlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nimproperlist = nimproperlist[m];

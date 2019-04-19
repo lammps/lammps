@@ -207,12 +207,11 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         p_basis_type = 2;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      }  else
-      {
-         char * errmsg = (char *) calloc(150,sizeof(char));
-         sprintf(errmsg,"CG basis type %s is not recognized\nSupported "
-             "basis types: analytic linear_spline cubic_spline",arg[iarg]);
-         error->all(FLERR,errmsg);
+      }  else {
+        char errmsg[256];
+        snprintf(errmsg,256,"CG basis type %s is not recognized\nSupported "
+                 "basis types: analytic linear_spline cubic_spline",arg[iarg]);
+        error->all(FLERR,errmsg);
       } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
@@ -243,9 +242,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else {
-      char * errmsg = (char *) calloc(80,sizeof(char));
-      sprintf(errmsg,"Illegal fix bocs command: unrecognized keyword %s"
-                                                             ,arg[iarg]);
+      char errmsg[128];
+      snprintf(errmsg,128,"Illegal fix bocs command: unrecognized keyword %s"
+               ,arg[iarg]);
       error->all(FLERR,errmsg);
     }
   }
@@ -625,11 +624,9 @@ void FixBocs::init()
 // NJD MRD 2 functions
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
-  char separator = ',';
   FILE *fpi;
   int N_columns = 2, n_entries = 0, i;
   float f1, f2;
-  double n1, n2;
   int test_sscanf;
   double **data = (double **) calloc(N_columns,sizeof(double *));
   char * line = (char *) calloc(200,sizeof(char));
@@ -643,20 +640,16 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     {
       data[i] = (double *) calloc(n_entries,sizeof(double));
     }
-  }
-  else
-  {
-    char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);
+  } else {
+    char errmsg[128];
+    snprintf(errmsg,128,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
 
   n_entries = 0;
   fpi = fopen(filename,"r");
-  if (fpi)
-  {
-    while( fgets(line,199,fpi))
-    {
+  if (fpi) {
+    while( fgets(line,199,fpi)) {
       ++n_entries;
       test_sscanf = sscanf(line," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
@@ -670,11 +663,9 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
                  "line %d of file %s\n\tline: %s",n_entries,filename,line);
       }
     }
-  }
-  else
-  {
-    char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);
+  } else {
+    char errmsg[128];
+    snprintf(errmsg,128,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
   fclose(fpi);
@@ -706,6 +697,11 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
                                     "of %d in read_F_table",p_basis_type);
     error->all(FLERR,errmsg);
   }
+  // cleanup
+  for (i = 0; i < N_columns; ++i) {
+    free(data[i]);
+  }
+  free(data);
   return n_entries;
 }
 
@@ -790,7 +786,7 @@ void FixBocs::build_cubic_splines( double **data )
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixBocs::setup(int vflag)
+void FixBocs::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -875,7 +871,7 @@ void FixBocs::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixBocs::initial_integrate(int vflag)
+void FixBocs::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -970,7 +966,7 @@ void FixBocs::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBocs::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixBocs::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1039,7 +1035,7 @@ void FixBocs::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBocs::final_integrate_respa(int ilevel, int iloop)
+void FixBocs::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 

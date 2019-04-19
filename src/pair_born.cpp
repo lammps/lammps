@@ -71,8 +71,7 @@ void PairBorn::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -407,8 +406,8 @@ void PairBorn::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBorn::single(int i, int j, int itype, int jtype,
-                        double rsq, double factor_coul, double factor_lj,
+double PairBorn::single(int /*i*/, int /*j*/, int itype, int jtype,
+                        double rsq, double /*factor_coul*/, double factor_lj,
                         double &fforce)
 {
   double r2inv,r6inv,r,rexp,forceborn,phiborn;

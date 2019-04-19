@@ -22,9 +22,6 @@ FixStyle(rigid/small,FixRigidSmall)
 
 #include "fix.h"
 
-// replace this later
-#include <map>
-
 namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
@@ -180,12 +177,20 @@ class FixRigidSmall : public Fix {
 
   // class data used by ring communication callbacks
 
-  std::map<tagint,int> *hash;
-  double **bbox;
-  double **ctr;
-  tagint *idclose;
-  double *rsqclose;
   double rsqfar;
+
+  struct InRvous {
+    int me,ilocal;
+    tagint atomID,bodyID;
+    double x[3];
+  };
+
+  struct OutRvous {
+    int ilocal;
+    tagint atomID;
+  };
+
+  // local methods
 
   void image_shift();
   void set_xv();
@@ -199,11 +204,9 @@ class FixRigidSmall : public Fix {
   void grow_body();
   void reset_atom2body();
 
-  // callback functions for ring communication
+  // callback function for rendezvous communication
 
-  static void ring_bbox(int, char *, void *);
-  static void ring_nearest(int, char *, void *);
-  static void ring_farthest(int, char *, void *);
+  static int rendezvous_body(int, char *, int &, int *&, char *&, void *);
 
   // debug
 

@@ -68,7 +68,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  int iarg;
+  int iarg = 0;
 
   if (strcmp(arg[3],"linear") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix move command");
@@ -453,7 +453,7 @@ void FixMove::init()
    set x,v of particles
 ------------------------------------------------------------------------- */
 
-void FixMove::initial_integrate(int vflag)
+void FixMove::initial_integrate(int /*vflag*/)
 {
   int flag;
   double ddotr,dx,dy,dz;
@@ -945,7 +945,7 @@ void FixMove::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixMove::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // outermost level - update v and x
   // all other levels - nothing
@@ -955,7 +955,7 @@ void FixMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMove::final_integrate_respa(int ilevel, int iloop)
+void FixMove::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) final_integrate();
 }
@@ -1019,7 +1019,7 @@ void FixMove::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixMove::copy_arrays(int i, int j, int delflag)
+void FixMove::copy_arrays(int i, int j, int /*delflag*/)
 {
   xoriginal[j][0] = xoriginal[i][0];
   xoriginal[j][1] = xoriginal[i][1];
@@ -1238,7 +1238,7 @@ int FixMove::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixMove::size_restart(int nlocal)
+int FixMove::size_restart(int /*nlocal*/)
 {
   return nrestart;
 }

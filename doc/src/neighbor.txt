@@ -65,8 +65,8 @@ stored in the list.
 
 When a run is finished, counts of the number of neighbors stored in
 the pairwise list and the number of times neighbor lists were built
-are printed to the screen and log file.  See "this
-section"_Section_start.html#start_7 for details.
+are printed to the screen and log file.  See the "Run
+output"_Run_output.html doc page for details.
 
 [Restrictions:] none
 

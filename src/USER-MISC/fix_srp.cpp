@@ -145,7 +145,7 @@ void FixSRP::init()
    insert bond particles
 ------------------------------------------------------------------------- */
 
-void FixSRP::setup_pre_force(int zz)
+void FixSRP::setup_pre_force(int /*zz*/)
 {
   double **x = atom->x;
   double **xold;
@@ -394,7 +394,7 @@ void FixSRP::grow_arrays(int nmax)
    called when move to new proc
 ------------------------------------------------------------------------- */
 
-void FixSRP::copy_arrays(int i, int j, int delflag)
+void FixSRP::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < 2; m++)
     array[j][m] = array[i][m];
@@ -589,7 +589,7 @@ int FixSRP::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixSRP::size_restart(int nlocal)
+int FixSRP::size_restart(int /*nlocal*/)
 {
   return 3;
 }
@@ -632,7 +632,7 @@ void FixSRP::restart(char *buf)
    pair srp sets the bond type in this fix
 ------------------------------------------------------------------------- */
 
-int FixSRP::modify_param(int narg, char **arg)
+int FixSRP::modify_param(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"btype") == 0) {
     btype = atoi(arg[1]);

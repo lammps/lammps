@@ -136,8 +136,8 @@ read_restart system_$\{ibead\}.restart2 :pre
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 A PIMD simulation can be initialized with a single data file read via
 the "read_data"_read_data.html command.  However, this means all

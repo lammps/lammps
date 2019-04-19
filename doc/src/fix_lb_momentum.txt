@@ -61,8 +61,8 @@ Can only be used if a lattice-Boltzmann fluid has been created via the
 command.
 
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

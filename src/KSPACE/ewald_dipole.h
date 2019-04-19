@@ -26,7 +26,8 @@ namespace LAMMPS_NS {
 
 class EwaldDipole : public Ewald {
  public:
-  EwaldDipole(class LAMMPS *, int, char **);
+  //EwaldDipole(class LAMMPS *, int, char **);
+  EwaldDipole(class LAMMPS *);
   virtual ~EwaldDipole();
   void init();
   void setup();

@@ -52,10 +52,7 @@ void PairSPHHeatConduction::compute(int eflag, int vflag) {
   double imass, jmass, h, ih, ihsq;
   double rsq, wfd, D, deltaE;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double *e = atom->e;
@@ -155,10 +152,10 @@ void PairSPHHeatConduction::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHHeatConduction::settings(int narg, char **arg) {
+void PairSPHHeatConduction::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/heatconduction");
+        "Illegal number of arguments for pair_style sph/heatconduction");
 }
 
 /* ----------------------------------------------------------------------
@@ -211,8 +208,8 @@ double PairSPHHeatConduction::init_one(int i, int j) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairSPHHeatConduction::single(int i, int j, int itype, int jtype,
-    double rsq, double factor_coul, double factor_lj, double &fforce) {
+double PairSPHHeatConduction::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
+    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
   fforce = 0.0;
 
   return 0.0;

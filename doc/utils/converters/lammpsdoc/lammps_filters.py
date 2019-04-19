@@ -64,7 +64,7 @@ def filter_file_header_until_first_horizontal_line(content):
 
     common_links = "\n.. _lws: http://lammps.sandia.gov\n" \
                    ".. _ld: Manual.html\n" \
-                   ".. _lc: Section_commands.html#comm\n"
+                   ".. _lc: Commands_all.html\n"
 
     if first_hr >= 0:
         return content[first_hr+len(hr):].lstrip() + common_links

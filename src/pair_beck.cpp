@@ -63,8 +63,7 @@ void PairBeck::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -327,9 +326,9 @@ void PairBeck::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBeck::single(int i, int j, int itype, int jtype,
+double PairBeck::single(int /*i*/, int /*j*/, int itype, int jtype,
                                   double rsq,
-                                  double factor_coul, double factor_lj,
+                                  double /*factor_coul*/, double factor_lj,
                                   double &fforce)
 {
   double phi_beck,r,rinv;

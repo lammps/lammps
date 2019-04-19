@@ -28,7 +28,7 @@ The results enable efficient identification and characterization of
 twins and grains in hexagonal close-packed structures.
 
 The output of the compute is thus the 3 components of a unit vector
-associdate with each atom.  The components are set to 0.0 for
+associated with each atom.  The components are set to 0.0 for
 atoms not in the group.
 
 Details of the calculation are given in "(Barrett)"_#Barrett.
@@ -55,8 +55,8 @@ components of a unit vector.
 [Restrictions:]
 
 This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The output of this compute will be meaningless unless the atoms are on
 (or near) hcp lattice sites, since the calculation assumes a

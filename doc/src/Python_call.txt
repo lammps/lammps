@@ -1,5 +1,5 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -59,9 +59,9 @@ and callbacks to LAMMPS.
 The "fix python/invoke"_fix_python_invoke.html command can execute
 Python code at selected timesteps during a simulation run.
 
-The "pair_style python"_pair_python command allows you to define
+The "pair_style python"_pair_python.html command allows you to define
 pairwise potentials as python code which encodes a single pairwise
-interaction.  This is useful for rapid-developement and debugging of a
+interaction.  This is useful for rapid development and debugging of a
 new potential.
 
 To use any of these commands, you only need to build LAMMPS with the
@@ -79,7 +79,7 @@ of Python and your machine to successfully build LAMMPS.  See the
 lib/python/README file for more info.
 
 If you want to write Python code with callbacks to LAMMPS, then you
-must also follow the steps overviewed in the "Python
+must also follow the steps summarized in the "Python
 run"_Python_run.html doc page.  I.e. you must build LAMMPS as a shared
 library and insure that Python can find the python/lammps.py file and
 the shared library.

@@ -109,7 +109,7 @@ void FixLbViscous::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLbViscous::post_force(int vflag)
+void FixLbViscous::post_force(int /*vflag*/)
 {
   // apply drag force to atoms in group
   // direction is opposed to velocity vector
@@ -132,7 +132,7 @@ void FixLbViscous::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLbViscous::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLbViscous::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

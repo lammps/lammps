@@ -80,7 +80,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   if (nthreads < 1)
     error->all(FLERR,"Illegal number of OpenMP threads requested");
 
+#if defined(_OPENMP)
   int reset_thr = 0;
+#endif
   if (nthreads != comm->nthreads) {
 #if defined(_OPENMP)
     reset_thr = 1;
@@ -318,8 +320,11 @@ void FixOMP::set_neighbor_omp()
   const int neigh_omp = _neighbor ? 1 : 0;
   const int nrequest = neighbor->nrequest;
 
+  // flag *all* neighbor list requests as USER-OMP threaded,
+  // but skip lists already flagged as USER-INTEL threaded
   for (int i = 0; i < nrequest; ++i)
-    neighbor->requests[i]->omp = neigh_omp;
+    if (! neighbor->requests[i]->intel)
+      neighbor->requests[i]->omp = neigh_omp;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -24,7 +24,7 @@ keyword = {temp} or {cgiso} or {analytic} or {linear_spline} or {cubic_spline}
 [Examples:]
 
 fix 1 all bocs temp 300.0 300.0 100.0 cgiso 0.986 0.986 1000.0 analytic 66476.015 968 2 245030.10 8962.20 :pre
- 
+
 fix 1 all bocs temp 300.0 300.0 100.0 cgiso 0.986 0.986 1000.0 cubic_spline input_Fv.dat :pre
 
 thermo_modify press 1_press :pre
@@ -32,66 +32,66 @@ thermo_modify press 1_press :pre
 
 [Description:]
 
-These commands incorporate a pressure correction as described by 
+These commands incorporate a pressure correction as described by
 Dunn and Noid in "(Dunn1)"_#bocs-Dunn1 to the standard MTTK
 barostat by Martyna et. al. in "(Martyna)"_#bocs-Martyna .
 The first half of the command mimics a standard fix npt command:
 
 fix 1 all bocs temp Tstart Tstop Tcoupl cgiso Pstart Pstop Pdamp :pre
 
-The two differences are replacing {npt} with {bocs}, and replacing 
+The two differences are replacing {npt} with {bocs}, and replacing
 {iso}/{aniso}/{etc} with {cgiso}.
-The rest of the command details what form you would like to use for 
-the pressure correction equation. The choices are: {analytic}, {linear_spline}, 
-or {cubic_spline}. 
+The rest of the command details what form you would like to use for
+the pressure correction equation. The choices are: {analytic}, {linear_spline},
+or {cubic_spline}.
 
-With either spline method, the only argument that needs to follow it 
-is the name of a file that contains the desired pressure correction 
+With either spline method, the only argument that needs to follow it
+is the name of a file that contains the desired pressure correction
 as a function of volume. The file should be formatted so each line has:
 
 Volume_i, PressureCorrection_i :pre
 
-Note both the COMMA and the SPACE separating the volume's 
-value and its corresponding pressure correction. The volumes in the file 
-should be uniformly spaced. Both the volumes and the pressure corrections 
-should be provided in the proper units, e.g. if you are using {units real}, 
-the volumes should all be in cubic angstroms, and the pressure corrections 
-should all be in atomspheres. Furthermore, the table should start/end at a 
-volume considerably smaller/larger than you expect your system to sample 
-during the simulation. If the system ever reaches a volume outside of the 
+Note both the COMMA and the SPACE separating the volume's
+value and its corresponding pressure correction. The volumes in the file
+should be uniformly spaced. Both the volumes and the pressure corrections
+should be provided in the proper units, e.g. if you are using {units real},
+the volumes should all be in cubic angstroms, and the pressure corrections
+should all be in atmospheres. Furthermore, the table should start/end at a
+volume considerably smaller/larger than you expect your system to sample
+during the simulation. If the system ever reaches a volume outside of the
 range provided, the simulation will stop.
 
 With the {analytic} option, the arguments are as follows:
 
 ... analytic V_avg N_particles N_coeff Coeff_1 Coeff_2 ... Coeff_N :pre
 
-Note that {V_avg} and {Coeff_i} should all be in the proper units, e.g. if you 
-are using {units real}, {V_avg} should be in cubic angstroms, and the 
+Note that {V_avg} and {Coeff_i} should all be in the proper units, e.g. if you
+are using {units real}, {V_avg} should be in cubic angstroms, and the
 coefficients should all be in atmospheres * cubic angstroms.
 
 [Restrictions:]
 
 As this is computing a (modified) pressure, group-ID should be {all}.
 
-The pressure correction has only been tested for use with an isotropic 
-pressure coupling in 3 dimensions.   
+The pressure correction has only been tested for use with an isotropic
+pressure coupling in 3 dimensions.
 
 By default, LAMMPS will still report the normal value for the pressure
 if the pressure is printed via a {thermo} command, or if the pressures
 are written to a file every so often. In order to have LAMMPS report the
-modified pressure, you must include the {thermo_modify} command given in 
-the examples. For the last argument in the command, you should put 
+modified pressure, you must include the {thermo_modify} command given in
+the examples. For the last argument in the command, you should put
 XXXX_press, where XXXX is the ID given to the fix bocs command (in the
 example, the ID of the fix bocs command is 1 ).
 
 This fix is part of the USER-BOCS package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related:]
 
-For more details about the pressure correction and the entire BOCS software 
-package, visit the "BOCS package on github"_bocsgithub and read the release 
+For more details about the pressure correction and the entire BOCS software
+package, visit the "BOCS package on GitHub"_bocsgithub and read the release
 paper by Dunn et. al. "(Dunn2)"_#bocs-Dunn2 .
 
 

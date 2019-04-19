@@ -591,9 +591,9 @@ void FixRigidNH::initial_integrate(int vflag)
 
 void FixRigidNH::final_integrate()
 {
-  int i,ibody;
+  int ibody;
   double tmp,scale_t[3],scale_r;
-  double dtfm,xy,xz,yz;
+  double dtfm;
   double mbody[3],tbody[3],fquat[4];
 
   double dtf2 = dtf * 2.0;

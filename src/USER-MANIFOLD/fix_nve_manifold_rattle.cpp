@@ -84,8 +84,8 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
                                             int error_on_unknown_keyword )
   : Fix(lmp,narg,arg)
 {
-  if( lmp->citeme) lmp->citeme->add(cite_fix_nve_manifold_rattle);
-  if( narg < 6 ) error->all(FLERR, "Illegal fix nve/manifold/rattle command");
+  if (lmp->citeme) lmp->citeme->add(cite_fix_nve_manifold_rattle);
+  if (narg < 6 ) error->all(FLERR, "Illegal fix nve/manifold/rattle command");
 
   // Set all bits/settings:
   time_integrate = 1;
@@ -101,7 +101,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   max_iter  = force->numeric( FLERR, arg[4] );
 
   ptr_m = create_manifold(arg[5], lmp, narg, arg);
-  if( !ptr_m ){
+  if (!ptr_m) {
     error->all(FLERR,"Error creating manifold pointer");
   }
 
@@ -111,12 +111,12 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   tstyle = new int[nvars];
   is_var = new int[nvars];
 
-  if( !tstrs || !tvars || !tstyle || !is_var ){
+  if (!tstrs || !tvars || !tstyle || !is_var) {
     error->all(FLERR, "Error creating manifold arg arrays");
   }
 
   // Check if you have enough args:
-  if( 6 + nvars > narg ){
+  if (6 + nvars > narg) {
     char msg[2048];
     sprintf(msg, "Not enough args for manifold %s, %d expected but got %d\n",
             ptr_m->id(), nvars, narg - 6);
@@ -125,22 +125,22 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   // Loop over manifold args:
   for( int i = 0; i < nvars; ++i ){
     int len = 0, offset = 0;
-    if( was_var( arg[i+6] ) ){
+    if (was_var( arg[i+6] )) {
       len = strlen(arg[i+6]) - 1; // -1 because -2 for v_, +1 for \0.
       is_var[i] = 1;
       offset = 2;
-    }else{
+    } else {
       force->numeric(FLERR,arg[i+6]); // Check if legal number.
       len = strlen( arg[i+6] ) + 1; // +1 for \0.
       is_var[i] = 0;
     }
     tstrs[i] = new char[len];
-    if( tstrs[i] == NULL ) error->all(FLERR,"Error allocating space for args.");
+    if (tstrs[i] == NULL ) error->all(FLERR,"Error allocating space for args.");
     strcpy( tstrs[i], arg[i+6] + offset );
   }
 
   ptr_m->params = new double[nvars];
-  if( !ptr_m->params ) error->all(FLERR,"Failed to allocate params!");
+  if (!ptr_m->params ) error->all(FLERR,"Failed to allocate params!");
   for( int i = 0; i < nvars; ++i ){
     // If param i was variable type, it will be set later...
     ptr_m->params[i] = is_var[i] ? 0.0 : force->numeric( FLERR, arg[i+6] );
@@ -151,19 +151,19 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   // Loop over rest of args:
   int argi = 6 + nvars;
   while( argi < narg ){
-    if( strcmp(arg[argi], "every") == 0 ){
+    if (strcmp(arg[argi], "every") == 0) {
       nevery = force->inumeric(FLERR,arg[argi+1]);
       next_output = update->ntimestep + nevery;
-      if( comm->me == 0 ){
+      if (comm->me == 0) {
         fprintf(screen,"Outputing every %d steps, next is %d\n",
                         nevery, next_output);
       }
       argi += 2;
-    }else if( error_on_unknown_keyword ){
+    } else if (error_on_unknown_keyword) {
       char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);
-    }else{
+    } else {
       argi += 1;
     }
   }
@@ -175,16 +175,16 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
    ---------------------------------------------------------------------------*/
 FixNVEManifoldRattle::~FixNVEManifoldRattle()
 {
-  if( tstrs ){
+  if (tstrs) {
     for( int i = 0; i < nvars; ++i ){
       delete [] tstrs[i];
     }
     delete [] tstrs;
   }
 
-  if( tvars  ) delete [] tvars;
-  if( tstyle ) delete [] tstyle;
-  if( is_var ) delete [] is_var;
+  if (tvars ) delete [] tvars;
+  if (tstyle) delete [] tstyle;
+  if (is_var) delete [] is_var;
 }
 
 
@@ -204,7 +204,7 @@ void FixNVEManifoldRattle::reset_dt()
 void FixNVEManifoldRattle::print_stats( const char *header )
 {
   double n = stats.natoms;
-  if( n > 0 ){
+  if (n > 0) {
     stats.x_iters_per_atom += stats.x_iters / n;
     stats.v_iters_per_atom += stats.v_iters / n;
   }
@@ -223,7 +223,7 @@ void FixNVEManifoldRattle::print_stats( const char *header )
   stats.v_iters_per_atom = stats.v_iters = 0;
 
 
-  if( me == 0 ){
+  if (me == 0) {
     double inv_tdiff = 1.0/( static_cast<double>(ntimestep) - stats.last_out );
     stats.last_out = ntimestep;
 
@@ -245,9 +245,9 @@ void FixNVEManifoldRattle::print_stats( const char *header )
    ---------------------------------------------------------------------------*/
 int FixNVEManifoldRattle::was_var( const char *str )
 {
-  if( strlen(str) > 2 ){
+  if (strlen(str) > 2) {
     return (str[0] == 'v') && (str[1] == '_');
-  }else{
+  } else {
     return 0;
   }
 }
@@ -261,7 +261,7 @@ int FixNVEManifoldRattle::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  if( nevery > 0 ) mask |= END_OF_STEP;
+  if (nevery > 0) mask |= END_OF_STEP;
 
   return mask;
 }
@@ -284,18 +284,18 @@ void FixNVEManifoldRattle::update_var_params()
   double *ptr_params = ptr_m->params;
 
   for( int i = 0; i < nvars; ++i ){
-    if( is_var[i] ){
+    if (is_var[i]) {
       tvars[i] = input->variable->find(tstrs[i]);
-      if( tvars[i] < 0 ){
+      if (tvars[i] < 0) {
         error->all(FLERR,
                    "Variable name for fix nve/manifold/rattle does not exist");
       }
-      if( input->variable->equalstyle(tvars[i]) ){
+      if (input->variable->equalstyle(tvars[i])) {
         tstyle[i] = EQUAL;
         double new_val = input->variable->compute_equal(tvars[i]);
 
         ptr_params[i] = new_val;
-      }else{
+      } else {
         error->all(FLERR,
                    "Variable for fix nve/manifold/rattle is invalid style");
       }
@@ -307,7 +307,7 @@ void FixNVEManifoldRattle::update_var_params()
 
 /* -----------------------------------------------------------------------------
    ---------------------------------------------------------------------------*/
-int FixNVEManifoldRattle::dof(int igroup)
+int FixNVEManifoldRattle::dof(int /*igroup*/)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -322,7 +322,7 @@ int FixNVEManifoldRattle::dof(int igroup)
   // Make sure that, if there is just no or one atom, no dofs are subtracted,
   // since for the first atom already 3 dofs are subtracted because of the
   // centre of mass corrections:
-  if( dofs <= 1 ) dofs = 0;
+  if (dofs <= 1) dofs = 0;
   stats.dofs_removed = dofs;
 
   return dofs;
@@ -348,7 +348,7 @@ double FixNVEManifoldRattle::memory_usage()
 
 /* -----------------------------------------------------------------------------
    ---------------------------------------------------------------------------*/
-void FixNVEManifoldRattle::initial_integrate(int vflag)
+void FixNVEManifoldRattle::initial_integrate(int /*vflag*/)
 {
   update_var_params();
   nve_x_rattle(igroup, groupbit);
@@ -369,7 +369,7 @@ void FixNVEManifoldRattle::final_integrate()
 void FixNVEManifoldRattle::end_of_step()
 {
   if (nevery && (update->ntimestep == next_output)){
-    if( comm->me == 0 ){
+    if (comm->me == 0) {
       print_stats( "nve/manifold/rattle" );
       next_output += nevery;
     }
@@ -415,7 +415,7 @@ void FixNVEManifoldRattle::nve_x_rattle(int igroup, int groupbit)
     }
   }
 
-  if( nevery > 0 ){
+  if (nevery > 0) {
     // Count ALL atoms this fix works on:
     MPI_Allreduce(&natoms,&stats.natoms,1,MPI_INT,MPI_SUM,world);
   }
@@ -549,7 +549,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
     res = infnorm<4>(R);
     ++iters;
 
-    if( (res < tolerance) || (iters >= max_iter) ) break;
+    if ((res < tolerance) || (iters >= max_iter)) break;
 
     // Update nn and g.
     gg = ptr_m->g(x);
@@ -557,9 +557,10 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
     // gg = ptr_m->g(x);
   }
 
-  if( iters >= max_iter && res > tolerance ){
+  if (iters >= max_iter && res > tolerance) {
     char msg[2048];
-    sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+    sprintf(msg,"Failed to constrain atom " TAGINT_FORMAT
+            " (x = (%f, %f, %f)! res = %e, iters = %d\n",
             tagi, x[0], x[1], x[2], res, iters);
     error->one(FLERR,msg);
   }
@@ -650,9 +651,10 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
     ++iters;
   }while( (res > tolerance) && (iters < max_iter) );
 
-  if( iters >= max_iter && res >= tolerance ){
+  if (iters >= max_iter && res >= tolerance) {
           char msg[2048];
-          sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+          sprintf(msg,"Failed to constrain atom " TAGINT_FORMAT
+                  " (x = (%f, %f, %f)! res = %e, iters = %d\n",
                   tagi, x[0], x[1], x[2], res, iters);
           error->all(FLERR,msg);
   }

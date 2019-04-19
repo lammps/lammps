@@ -29,7 +29,7 @@ angular momenta are used to update their positions and orientation.
 
 This is useful as an implicit time integrator for Fast Lubrication
 Dynamics, since the velocity and angular momentum are updated by the
-"pair_style lubricuteU"_pair_lubricateU.txt command.
+"pair_style lubricuteU"_pair_lubricateU.html command.
 
 :line
 
@@ -46,8 +46,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
 quaternion as defined by the "atom_style ellipsoid"_atom_style.html

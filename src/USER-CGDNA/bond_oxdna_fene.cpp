@@ -56,7 +56,7 @@ BondOxdnaFene::~BondOxdnaFene()
     compute vector COM-sugar-phosphate backbone interaction site in oxDNA
 ------------------------------------------------------------------------- */
 void BondOxdnaFene::compute_interaction_sites(double e1[3],
-  double e2[3], double r[3])
+  double /*e2*/[3], double r[3])
 {
   double d_cs=-0.4;
 
@@ -96,8 +96,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // loop over FENE bonds
 
@@ -316,7 +315,7 @@ void BondOxdnaFene::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondOxdnaFene::single(int type, double rsq, int i, int j,
+double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double r = sqrt(rsq);

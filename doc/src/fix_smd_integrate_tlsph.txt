@@ -27,22 +27,26 @@ fix 1 all smd/integrate_tlsph limit_velocity 1000 :pre
 
 [Description:]
 
-The fix performs explicit time integration for particles which interact according with the Total-Lagrangian SPH pair style.
+The fix performs explicit time integration for particles which
+interact according with the Total-Lagrangian SPH pair style.
 
-See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth Mach Dynamics in LAMMPS.
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth Mach
+Dynamics in LAMMPS.
 
-The {limit_velocity} keyword will control the velocity, scaling the norm of
-the velocity vector to max_vel in case it exceeds this velocity limit.
+The {limit_velocity} keyword will control the velocity, scaling the
+norm of the velocity vector to max_vel in case it exceeds this
+velocity limit.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.
+Currently, no part of USER-SMD supports restarting nor
+minimization. This fix has no outputs.
 
 [Restrictions:]
 
 This fix is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

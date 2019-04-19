@@ -1,4 +1,4 @@
-"Previous Section"_Run.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Run_head.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Packages.html :c
 
@@ -16,6 +16,7 @@ commands in it are used to define a LAMMPS simulation.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Commands_input
    Commands_parse
@@ -23,6 +24,7 @@ commands in it are used to define a LAMMPS simulation.
    Commands_category
 
 .. toctree::
+   :maxdepth: 1
 
    Commands_all
    Commands_fix
@@ -40,10 +42,10 @@ END_RST -->
 "Input script structure"_Commands_structure.html
 "Commands by category"_Commands_category.html :all(b)
 
-"All commands"_Commands_all.html 
-"Fix commands"_Commands_fix.html 
-"Compute commands"_Commands_compute.html 
-"Pair commands"_Commands_pair.html 
+"General commands"_Commands_all.html
+"Fix commands"_Commands_fix.html
+"Compute commands"_Commands_compute.html
+"Pair commands"_Commands_pair.html
 "Bond, angle, dihedral, improper commands"_Commands_bond.html
 "KSpace solvers"_Commands_kspace.html  :all(b)
 

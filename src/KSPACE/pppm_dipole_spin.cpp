@@ -63,8 +63,10 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp, int narg, char **arg) : 
-  PPPMDipole(lmp, narg, arg)
+//PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp, int narg, char **arg) : 
+//  PPPMDipole(lmp, narg, arg)
+PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) : 
+  PPPMDipole(lmp)
 {
   dipoleflag = 0;
   spinflag = 1;

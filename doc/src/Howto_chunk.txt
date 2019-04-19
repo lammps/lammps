@@ -22,8 +22,8 @@ commands, to calculate various properties of a system:
 "fix ave/chunk"_fix_ave_chunk.html
 any of the "compute */chunk"_compute.html commands :ul
 
-Here, each of the 3 kinds of chunk-related commands is briefly
-overviewed.  Then some examples are given of how to compute different
+Here a brief overview for each of the 4 kinds of chunk-related commands
+is provided.  Then some examples are given of how to compute different
 properties with chunk commands.
 
 Compute chunk/atom command: :h4
@@ -83,8 +83,9 @@ chunk.
 
 Compute */chunk commands: :h4
 
-Currently the following computes operate on chunks of atoms to produce
-per-chunk values.
+The following computes operate on chunks of atoms to produce per-chunk
+values.  Any compute whose style name ends in "/chunk" is in this
+category:
 
 "compute com/chunk"_compute_com_chunk.html
 "compute gyration/chunk"_compute_gyration_chunk.html
@@ -111,8 +112,8 @@ of a center of mass, which requires summing mass*position over the
 atoms and then dividing by summed mass.
 
 All of these computes produce a global vector or global array as
-output, wih one or more values per chunk.  They can be used
-in various ways:
+output, wih one or more values per chunk.  The output can be used in
+various ways:
 
 As input to the "fix ave/time"_fix_ave_time.html command, which can
 write the values to a file and optionally time average them. :ulb,l
@@ -122,9 +123,27 @@ histogram values across chunks.  E.g. a histogram of cluster sizes or
 molecule diffusion rates. :l
 
 As input to special functions of "equal-style
-variables"_variable.html, like sum() and max().  E.g. to find the
-largest cluster or fastest diffusing molecule. :l
-:ule
+variables"_variable.html, like sum() and max() and ave().  E.g. to
+find the largest cluster or fastest diffusing molecule or average
+radius-of-gyration of a set of molecules (chunks). :l,ule
+
+Other chunk commands: :h4
+
+"compute chunk/spread/atom"_compute_chunk_spread_atom.html
+"compute reduce/chunk"_compute_reduce_chunk.html :ul
+
+The "compute chunk/spread/atom"_compute_chunk_spread_atom.html command
+spreads per-chunk values to each atom in the chunk, producing per-atom
+values as its output.  This can be useful for outputting per-chunk
+values to a per-atom "dump file"_dump.html.  Or for using an atom's
+associated chunk value in an "atom-style variable"_variable.html.
+
+The "compute reduce/chunk"_compute_reduce_chunk.html command reduces a
+peratom value across the atoms in each chunk to produce a value per
+chunk.  When used with the "compute
+chunk/spread/atom"_compute_chunk_spread_atom.html command it can
+create peratom values that induce a new set of chunks with a second
+"compute chunk/atom"_compute_chunk_atom.html command.
 
 Example calculations with chunks :h4
 
@@ -164,3 +183,13 @@ compute cluster all cluster/atom 1.0
 compute cc1 all chunk/atom c_cluster compress yes
 compute size all property/chunk cc1 count
 fix 1 all ave/histo 100 1 100 0 20 20 c_size mode vector ave running beyond ignore file tmp.histo :pre
+
+(6) An example of using a per-chunk value to apply per-atom forces to
+compress individual polymer chains (molecules) in a mixture, is
+explained on the "compute
+chunk/spread/atom"_compute_chunk_spread_atom.html command doc page.
+
+(7) An example of using one set of per-chunk values for molecule
+chunks, to create a 2nd set of micelle-scale chunks (clustered
+molecules, due to hydrophobicity), is explained on the "compute
+chunk/reduce"_compute_reduce_chunk.html command doc page.

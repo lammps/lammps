@@ -61,8 +61,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
   tagint *klist;
 
   evdwl = ehbond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -371,7 +370,7 @@ void PairHbondDreidingMorse::init_style()
 
 double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
                                      double rsq,
-                                     double factor_coul, double factor_lj,
+                                     double /*factor_coul*/, double /*factor_lj*/,
                                      double &fforce)
 {
   int k,kk,ktype,knum,m;

@@ -424,7 +424,7 @@ void FixQBMSST::init()
 /* ----------------------------------------------------------------------
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
-void FixQBMSST::setup(int vflag)
+void FixQBMSST::setup(int /*vflag*/)
 {
   lagrangian_position = 0.0;
 
@@ -507,7 +507,7 @@ void FixQBMSST::setup(int vflag)
 /* ----------------------------------------------------------------------
    1st half of Verlet update
 ------------------------------------------------------------------------- */
-void FixQBMSST::initial_integrate(int vflag)
+void FixQBMSST::initial_integrate(int /*vflag*/)
 {
   int sd;
   sd = direction;
@@ -1157,7 +1157,7 @@ void FixQBMSST::grow_arrays(int nmax)
 /* ----------------------------------------------------------------------
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
-void FixQBMSST::copy_arrays(int i, int j, int delflag)
+void FixQBMSST::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < 2*N_f; m++) {
     random_array_0[j][m] = random_array_0[i][m];

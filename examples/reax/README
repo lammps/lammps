@@ -1,12 +1,8 @@
 This directory contains input files for two short ReaxFF simulations
 (RDX and TATB crystals) using the ReaxFF parameterization developed
 for nitramines. The parameter file ffield.reax is the same as that in
-subdirectory RDX (see below). Input files for both pair_style reax and
-pair_style reax/c are provided.
-
-In addition, each subdirectory contains validated parameter files for
-a particular published version of ReaxFF. In all cases, the examples
-use pair_style reax/c.
+subdirectory RDX (see below).  In addition, each subdirectory contains
+validated parameter files for a particular published version of ReaxFF.
 
 Disclaimer: Using these force fields for systems they have not been
 explicitly trained against may produce unrealistic results.  Please

@@ -239,7 +239,7 @@ void FixQTB::setup(int vflag)
 /* ----------------------------------------------------------------------
    post_force
 ------------------------------------------------------------------------- */
-void FixQTB::post_force(int vflag)
+void FixQTB::post_force(int /*vflag*/)
 {
   double gamma1,gamma3;
 
@@ -334,7 +334,7 @@ void FixQTB::post_force(int vflag)
 /* ----------------------------------------------------------------------
    post_force_respa
 ------------------------------------------------------------------------- */
-void FixQTB::post_force_respa(int vflag, int ilevel, int iloop)
+void FixQTB::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
@@ -392,7 +392,7 @@ void FixQTB::grow_arrays(int nmax)
 /* ----------------------------------------------------------------------
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
-void FixQTB::copy_arrays(int i, int j, int delflag)
+void FixQTB::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < 2*N_f; m++) {
     random_array_0[j][m] = random_array_0[i][m];

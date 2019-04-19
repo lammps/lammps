@@ -132,7 +132,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  double *rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
   typename AT::t_efloat_1d dpdTheta;
   typename AT::t_efloat_1d d_duCond,d_duMech;
   HAT::t_efloat_1d h_duCond,h_duMech;

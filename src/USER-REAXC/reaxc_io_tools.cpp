@@ -38,25 +38,24 @@ int Init_Output_Files( reax_system *system, control_params *control,
                        output_controls *out_control, mpi_datatypes *mpi_data,
                        char *msg )
 {
-  char temp[MAX_STR];
+  char temp[MAX_STR+8];
   int ret;
 
-  if( out_control->write_steps > 0 ){
+  if (out_control->write_steps > 0) {
     ret = Init_Traj( system, control, out_control, mpi_data, msg );
-    if( ret == FAILURE )
+    if (ret == FAILURE)
       return ret;
   }
 
-  if( system->my_rank == MASTER_NODE ) {
+  if (system->my_rank == MASTER_NODE) {
     /* These files are written only by the master node */
-    if( out_control->energy_update_freq > 0 ) {
+    if (out_control->energy_update_freq > 0) {
 
       /* init potentials file */
       sprintf( temp, "%s.pot", control->sim_name );
-      if( (out_control->pot = fopen( temp, "w" )) != NULL ) {
+      if ((out_control->pot = fopen( temp, "w" )) != NULL) {
         fflush( out_control->pot );
-      }
-      else {
+      } else {
         strcpy( msg, "init_out_controls: .pot file could not be opened\n" );
         return FAILURE;
       }
@@ -69,13 +68,12 @@ int Init_Output_Files( reax_system *system, control_params *control,
         control->ensemble == iNPT ||
         control->ensemble == sNPT ) {
       sprintf( temp, "%s.prs", control->sim_name );
-      if( (out_control->prs = fopen( temp, "w" )) != NULL ) {
+      if ((out_control->prs = fopen( temp, "w" )) != NULL) {
         fprintf(out_control->prs,"%8s%13s%13s%13s%13s%13s%13s%13s\n",
                 "step", "Pint/norm[x]", "Pint/norm[y]", "Pint/norm[z]",
                 "Pext/Ptot[x]", "Pext/Ptot[y]", "Pext/Ptot[z]", "Pkin/V" );
         fflush( out_control->prs );
-      }
-      else {
+      } else {
         strcpy(msg,"init_out_controls: .prs file couldn't be opened\n");
         return FAILURE;
       }
@@ -88,19 +86,21 @@ int Init_Output_Files( reax_system *system, control_params *control,
 
 /************************ close output files ************************/
 int Close_Output_Files( reax_system *system, control_params *control,
-                        output_controls *out_control, mpi_datatypes *mpi_data )
+                        output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
 {
-  if( out_control->write_steps > 0 )
+  if (out_control->write_steps > 0)
     End_Traj( system->my_rank, out_control );
 
-  if( system->my_rank == MASTER_NODE ) {
-    if( out_control->energy_update_freq > 0 ) {
+  if (system->my_rank == MASTER_NODE) {
+    if (out_control->pot) {
       fclose( out_control->pot );
+      out_control->pot = NULL;
     }
 
-    if( control->ensemble == NPT || control->ensemble == iNPT ||
-        control->ensemble == sNPT )
-      fclose( out_control->prs );
+    if (out_control->prs) {
+      fclose(out_control->prs);
+      out_control->prs = NULL;
+    }
   }
 
   return SUCCESS;
@@ -124,7 +124,7 @@ void Output_Results( reax_system *system, control_params *control,
         out_control->energy_update_freq > 0 &&
         data->step % out_control->energy_update_freq == 0 ) {
 
-      if( control->virial ){
+      if (control->virial && out_control->prs) {
         fprintf( out_control->prs,
                  "%8d%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
                  data->step,

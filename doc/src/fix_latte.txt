@@ -44,7 +44,7 @@ Once LAMMPS is built with the LATTE package, you can run the example
 input scripts for molecular dynamics or energy minimization that are
 found in examples/latte.
 
-A step-by-step tutorial can be follwed at: "LAMMPS-LATTE
+A step-by-step tutorial can be followed at: "LAMMPS-LATTE
 tutorial"_https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS
 
 The {peID} argument is not yet supported by fix latte, so it must be
@@ -58,7 +58,7 @@ LATTE is a code for performing self-consistent charge transfer
 tight-binding (SC-TB) calculations of total energies and the forces
 acting on atoms in molecules and solids. This tight-binding method is
 becoming more and more popular and widely used in chemistry,
-biochemistry, material science, etc.  
+biochemistry, material science, etc.
 
 The SC-TB formalism is derived from an expansion of the Kohn-Sham
 density functional to second order in charge fluctuations about a
@@ -66,7 +66,7 @@ reference charge of overlapping atom-centered densities and bond
 integrals are parameterized using a Slater-Koster tight-binding
 approach. This procedure, which usually is referred to as the DFTB
 method has been described in detail by ("Elstner"_#Elstner) and
-("Finnis"_#Finnis2) and coworkers. 
+("Finnis"_#Finnis2) and coworkers.
 
 The work of the LATTE developers follows that of Elstner closely with
 respect to the physical model.  However, the development of LATTE is
@@ -136,11 +136,11 @@ quantity being minimized), you MUST enable the
 [Restrictions:]
 
 This fix is part of the LATTE package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
-You must use metal units, as set by the "units"_units command to use
-this fix.
+You must use metal units, as set by the "units"_units.html command to
+use this fix.
 
 LATTE does not currently compute per-atom energy or per-atom virial
 contributions.  So they will not show up as part of the calculations
@@ -154,8 +154,8 @@ doing 99% or more of the work to compute quantum-accurate forces.
 NOTE: NEB calculations can be done using this fix using multiple
 replicas and running LAMMPS in parallel.  However, each replica must
 be run on a single MPI task.  For details, see the "neb"_neb.html
-command and -partition command-line explained in "Section
-2.6"_Section_start.html#start_6 of the manual.
+command doc page and the "-partition command-line
+switch"_Run_options.html
 
 [Related commands:] none
 

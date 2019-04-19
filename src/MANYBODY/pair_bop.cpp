@@ -297,8 +297,7 @@ void PairBOP::compute(int eflag, int vflag)
   ilist = list->ilist;
   firstneigh = list->firstneigh;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // BOP Neighbor lists must be updated every timestep
   maxnall=nall;
@@ -4976,7 +4975,7 @@ void PairBOP::read_table(char *filename)
     FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s",filename);
+      snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     fgets(s,MAXLINE,fp);  // skip first comment line
@@ -4988,7 +4987,7 @@ void PairBOP::read_table(char *filename)
       fgets(s,MAXLINE,fp);
       nws=0;
       ws=1;
-      for(j=0;j<strlen(s);j++) {
+      for(j=0;j<(int)strlen(s);j++) {
         if(ws==1) {
           if(isspace(s[j])) {
             ws=1;
@@ -5015,7 +5014,7 @@ void PairBOP::read_table(char *filename)
     nws=0;
     ws=1;
     fgets(s,MAXLINE,fp);
-    for(j=0;j<strlen(s);j++) {
+    for(j=0;j<(int)strlen(s);j++) {
       if(ws==1) {
         if(isspace(s[j])) {
           ws=1;
@@ -5079,7 +5078,7 @@ void PairBOP::read_table(char *filename)
     FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s",filename);
+      snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     fgets(s,MAXLINE,fp);  // skip first comment line

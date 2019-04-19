@@ -65,7 +65,7 @@ PairDSMC::~PairDSMC()
 
 /* ---------------------------------------------------------------------- */
 
-void PairDSMC::compute(int eflag, int vflag)
+void PairDSMC::compute(int /*eflag*/, int /*vflag*/)
 {
   double **x = atom->x;
   double *mass = atom->mass;
@@ -405,7 +405,7 @@ void PairDSMC::read_restart_settings(FILE *fp)
   the next nrezero timesteps
 -------------------------------------------------------------------------*/
 
-void PairDSMC::recompute_V_sigma_max(int icell)
+void PairDSMC::recompute_V_sigma_max(int /*icell*/)
 {
   int i,j,k;
   double Vsigma_max = 0;
@@ -459,7 +459,7 @@ double PairDSMC::V_sigma(int i, int j)
   generate new velocities for collided particles
 -------------------------------------------------------------------------*/
 
-void PairDSMC::scatter_random(int i, int j, int icell)
+void PairDSMC::scatter_random(int i, int j, int /*icell*/)
 {
   double mag_delv,cos_phi,cos_squared,r,theta;
   double delv[3],vcm[3];

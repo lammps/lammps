@@ -114,8 +114,7 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
   int a,b,ia,ib,anum,bnum,atype,btype;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;
@@ -264,7 +263,7 @@ void PairOxdna2Dh::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdna2Dh::settings(int narg, char **arg)
+void PairOxdna2Dh::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

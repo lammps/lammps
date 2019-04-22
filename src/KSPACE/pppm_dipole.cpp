@@ -551,7 +551,7 @@ void PPPMDipole::compute(int eflag, int vflag)
     }
 
     if (vflag_atom) {
-      for (i = 0; i < ntotal; i++)
+      for (i = 0; i < nlocal; i++)
         for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
     }
   }

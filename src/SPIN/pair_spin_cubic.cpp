@@ -486,6 +486,22 @@ void PairSpinCubic::compute_single_pair(int ii, double fmi[3])
       }
     }
     
+    // normalizing the three aniso axes
+
+    double inorm1,inorm2,inorm3;
+    inorm1 = 1.0/(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
+    ea1[0] *= inorm1;
+    ea1[1] *= inorm1;
+    ea1[2] *= inorm1;
+    inorm2 = 1.0/(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
+    ea2[0] *= inorm2;
+    ea2[1] *= inorm2;
+    ea2[2] *= inorm2;
+    inorm3 = 1.0/(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
+    ea3[0] *= inorm3;
+    ea3[1] *= inorm3;
+    ea3[2] *= inorm3;
+    
     compute_cubic(ii,fmi,spi,ea1,ea2,ea3);
     
   }

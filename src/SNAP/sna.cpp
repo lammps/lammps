@@ -523,6 +523,124 @@ void SNA::compute_zi_omp(int sub_threads)
 }
 
 /* ----------------------------------------------------------------------
+   compute Yi by summing over products of beta and Zi
+------------------------------------------------------------------------- */
+
+void SNA::compute_yi(double* beta)
+{
+  int j;
+  int idxz_count;
+  double **jjjzarray_r, **jjjzarray_i;
+
+  for(int j = 0; j <= twojmax; j++) {
+    for(int mb = 0; 2*mb <= j; mb++)
+      for(int ma = 0; ma <= j; ma++) {
+        yarray_r[j][ma][mb] = 0.0;
+        yarray_i[j][ma][mb] = 0.0;
+      } // end loop over ma, mb
+  } // end loop over j
+
+  for(int JJ = 0; JJ < idxj_max; JJ++) {
+    const int j1 = idxj[JJ].j1;
+    const int j2 = idxj[JJ].j2;
+    const int j3 = idxj[JJ].j;
+
+    j = j3;
+    jjjzarray_r = zarray_r[j1][j2][j3];
+    jjjzarray_i = zarray_i[j1][j2][j3];
+    for(int mb = 0; 2*mb <= j; mb++)
+      for(int ma = 0; ma <= j; ma++) {
+        yarray_r[j][ma][mb] += beta[JJ]*jjjzarray_r[ma][mb];
+        yarray_i[j][ma][mb] += beta[JJ]*jjjzarray_i[ma][mb];
+      } // end loop over ma, mb
+
+    j = j1;
+    jjjzarray_r = zarray_r[j3][j2][j1];
+    jjjzarray_i = zarray_i[j3][j2][j1];
+    double j1fac = (j3+1)/(j+1.0);
+    for(int mb = 0; 2*mb <= j; mb++)
+      for(int ma = 0; ma <= j; ma++) {
+        yarray_r[j][ma][mb] += beta[JJ]*jjjzarray_r[ma][mb]*j1fac;
+        yarray_i[j][ma][mb] += beta[JJ]*jjjzarray_i[ma][mb]*j1fac;
+      } // end loop over ma, mb
+
+    j = j2;
+    jjjzarray_r = zarray_r[j3][j1][j2];
+    jjjzarray_i = zarray_i[j3][j1][j2];
+    double j2fac = (j3+1)/(j+1.0);
+    for(int mb = 0; 2*mb <= j; mb++)
+      for(int ma = 0; ma <= j; ma++) {
+        yarray_r[j][ma][mb] += beta[JJ]*jjjzarray_r[ma][mb]*j2fac;
+        yarray_i[j][ma][mb] += beta[JJ]*jjjzarray_i[ma][mb]*j2fac;
+      } // end loop over ma, mb
+
+  } // end loop over jjb
+
+}
+
+/* ----------------------------------------------------------------------
+   compute dEidRj
+------------------------------------------------------------------------- */
+
+void SNA::compute_deidrj(double* dedr)
+{
+
+  for(int k = 0; k < 3; k++)
+    dedr[k] = 0.0;
+
+  for(int j = 0; j <= twojmax; j++) {
+
+    for(int mb = 0; 2*mb < j; mb++)
+      for(int ma = 0; ma <= j; ma++) {
+
+        double* dudr_r = duarray_r[j][ma][mb];
+        double* dudr_i = duarray_i[j][ma][mb];
+        double jjjmambyarray_r = yarray_r[j][ma][mb];
+        double jjjmambyarray_i = yarray_i[j][ma][mb];
+        for(int k = 0; k < 3; k++)
+          dedr[k] +=
+            dudr_r[k] * jjjmambyarray_r +
+            dudr_i[k] * jjjmambyarray_i;
+
+      } //end loop over ma mb
+
+    // For j even, handle middle column
+
+    if (j%2 == 0) {
+
+      int mb = j/2;
+      for(int ma = 0; ma < mb; ma++) {
+        double* dudr_r = duarray_r[j][ma][mb];
+        double* dudr_i = duarray_i[j][ma][mb];
+        double jjjmambyarray_r = yarray_r[j][ma][mb];
+        double jjjmambyarray_i = yarray_i[j][ma][mb];
+        for(int k = 0; k < 3; k++)
+          dedr[k] +=
+            dudr_r[k] * jjjmambyarray_r +
+            dudr_i[k] * jjjmambyarray_i;
+
+      }
+
+      int ma = mb;
+      double* dudr_r = duarray_r[j][ma][mb];
+      double* dudr_i = duarray_i[j][ma][mb];
+      double jjjmambyarray_r = yarray_r[j][ma][mb];
+      double jjjmambyarray_i = yarray_i[j][ma][mb];
+      for(int k = 0; k < 3; k++)
+        dedr[k] += 
+          (dudr_r[k] * jjjmambyarray_r +
+           dudr_i[k] * jjjmambyarray_i)*0.5;
+        
+    } // end if jeven
+
+  } // End loop over j
+
+  for(int k = 0; k < 3; k++)
+    dedr[k] *= 2.0;
+
+}
+
+/* ----------------------------------------------------------------------
    compute Bi by summing conj(Ui)*Zi
 ------------------------------------------------------------------------- */
 
@@ -1535,6 +1653,10 @@ void SNA::create_twojmax_arrays()
                    "sna:uarraytot");
     memory->create(zarray_i, jdim, jdim, jdim, jdim, jdim,
                    "sna:zarray");
+  memory->create(yarray_r, jdim, jdim, jdim,
+                 "sna:yarray");
+  memory->create(yarray_i, jdim, jdim, jdim,
+                 "sna:yarray");
   }
 
 }
@@ -1563,6 +1685,8 @@ void SNA::destroy_twojmax_arrays()
     memory->destroy(zarray_r);
     memory->destroy(uarraytot_i);
     memory->destroy(zarray_i);
+    memory->destroy(yarray_r);
+    memory->destroy(yarray_i);
   }
 }
 

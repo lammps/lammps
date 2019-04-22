@@ -158,9 +158,12 @@ PairSNAP::~PairSNAP()
 
 void PairSNAP::compute(int eflag, int vflag)
 {
-  if (use_optimized)
-    compute_optimized(eflag, vflag);
-  else
+//   if (use_optimized)
+//     compute_optimized(eflag, vflag);
+//   else
+
+// hard-code compute_regular()
+ 
     compute_regular(eflag, vflag);
 }
 
@@ -248,51 +251,58 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
     double* coeffi = coeffelem[ielem];
 
+    // omit beta0 from beta vector
+
+    double* beta = coeffi+1; 
+    snaptr->compute_yi(beta);
+
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
                              snaptr->wj[jj],snaptr->rcutij[jj]);
 
-      snaptr->compute_dbidrj();
-      snaptr->copy_dbi2dbvec();
+//       snaptr->compute_dbidrj();
+//       snaptr->copy_dbi2dbvec();
 
-      fij[0] = 0.0;
-      fij[1] = 0.0;
-      fij[2] = 0.0;
+//       fij[0] = 0.0;
+//       fij[1] = 0.0;
+//       fij[2] = 0.0;
 
-      // linear contributions
+//       // linear contributions
 
-      for (int k = 1; k <= ncoeff; k++) {
-        double bgb = coeffi[k];
-        fij[0] += bgb*snaptr->dbvec[k-1][0];
-        fij[1] += bgb*snaptr->dbvec[k-1][1];
-        fij[2] += bgb*snaptr->dbvec[k-1][2];
-      }
+//       for (int k = 1; k <= ncoeff; k++) {
+//         double bgb = coeffi[k];
+//         fij[0] += bgb*snaptr->dbvec[k-1][0];
+//         fij[1] += bgb*snaptr->dbvec[k-1][1];
+//         fij[2] += bgb*snaptr->dbvec[k-1][2];
+//       }
 
-      // quadratic contributions
+//       // quadratic contributions
 
-      if (quadraticflag) {
-        int k = ncoeff+1;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bveci = snaptr->bvec[icoeff];
-          double fack = coeffi[k]*bveci;
-          double* dbveci = snaptr->dbvec[icoeff];
-          fij[0] += fack*dbveci[0];
-          fij[1] += fack*dbveci[1];
-          fij[2] += fack*dbveci[2];
-          k++;
-          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-            double facki = coeffi[k]*bveci;
-            double fackj = coeffi[k]*snaptr->bvec[jcoeff];
-            double* dbvecj = snaptr->dbvec[jcoeff];
+//       if (quadraticflag) {
+//         int k = ncoeff+1;
+//         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+//           double bveci = snaptr->bvec[icoeff];
+//           double fack = coeffi[k]*bveci;
+//           double* dbveci = snaptr->dbvec[icoeff];
+//           fij[0] += fack*dbveci[0];
+//           fij[1] += fack*dbveci[1];
+//           fij[2] += fack*dbveci[2];
+//           k++;
+//           for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+//             double facki = coeffi[k]*bveci;
+//             double fackj = coeffi[k]*snaptr->bvec[jcoeff];
+//             double* dbvecj = snaptr->dbvec[jcoeff];
 
-            fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
-            fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
-            fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
-            k++;
-          }
-        }
-      }
+//             fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
+//             fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
+//             fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
+//             k++;
+//           }
+//         }
+//       }
+
+      snaptr->compute_deidrj(fij);
 
       f[i][0] += fij[0];
       f[i][1] += fij[1];

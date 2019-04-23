@@ -41,7 +41,7 @@ class PairSpinCubic : public PairSpin {
   void compute_cubic_mech(int, double *, double *, double *, double *, double *, double *);
   double compute_cubic_energy(int, double *, double *, double *, double *);
 
-  void set_axis(int, double *, double *, double *, double *);
+  void set_axis(int, double *, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);

@@ -264,89 +264,95 @@ void PairSpinCubic::compute(int eflag, int vflag)
     ea2[0] = ea2[1] = ea2[2] = 0.0;
     ea3[0] = ea3[1] = ea3[2] = 0.0;
 
+    evdwl = 0.0;
+
+
+    set_axis(i,ea1,ea2,ea3);
+
+
     // first loop over neighbors j 
     // finding the anisotropy axes
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = type[j];
+    //for (jj = 0; jj < jnum; jj++) {
+    //  j = jlist[jj];
+    //  j &= NEIGHMASK;
+    //  jtype = type[j];
 
-      rij[0] = x[j][0] - xi[0];
-      rij[1] = x[j][1] - xi[1];
-      rij[2] = x[j][2] - xi[2];
-      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-      inorm = 1.0/sqrt(rsq);
-      eij[0] = rij[0]*inorm;
-      eij[1] = rij[1]*inorm;
-      eij[2] = rij[2]*inorm;
-      //delx = xi[0] - x[j][0];
-      //dely = xi[1] - x[j][1];
-      //delz = xi[2] - x[j][2];
+    //  rij[0] = x[j][0] - xi[0];
+    //  rij[1] = x[j][1] - xi[1];
+    //  rij[2] = x[j][2] - xi[2];
+    //  rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    //  inorm = 1.0/sqrt(rsq);
+    //  eij[0] = rij[0]*inorm;
+    //  eij[1] = rij[1]*inorm;
+    //  eij[2] = rij[2]*inorm;
+    //  //delx = xi[0] - x[j][0];
+    //  //dely = xi[1] - x[j][1];
+    //  //delz = xi[2] - x[j][2];
 
-      local_cut2 = cut_spin_cubic[itype][jtype]*cut_spin_cubic[itype][jtype];
+    //  local_cut2 = cut_spin_cubic[itype][jtype]*cut_spin_cubic[itype][jtype];
 
-      // finding anisotropy axes
+    //  // finding anisotropy axes
 
-      //delx2 = delx*delx;
-      //dely2 = dely*dely;
-      //delz2 = delz*delz;
-      delx2 = eij[0]*eij[0];
-      dely2 = eij[1]*eij[1];
-      delz2 = eij[2]*eij[2];
+    //  //delx2 = delx*delx;
+    //  //dely2 = dely*dely;
+    //  //delz2 = delz*delz;
+    //  delx2 = rij[0]*rij[0];
+    //  dely2 = rij[1]*rij[1];
+    //  delz2 = rij[2]*rij[2];
 
-      if (delx2 > dx2 && delx2 <= local_cut2) {
-	ea1[0] += eij[0];
-	ea1[1] += eij[1];
-	ea1[2] += eij[2];
-      } 
+    //  if (delx2 > dx2 && delx2 <= local_cut2) {
+    //    ea1[0] += eij[0];
+    //    ea1[1] += eij[1];
+    //    ea1[2] += eij[2];
+    //  } 
 
-      if (dely2 > dx2 && dely2 <= local_cut2) {
-	ea2[0] += eij[0];
-	ea2[1] += eij[1];
-	ea2[2] += eij[2];
-      }
+    //  if (dely2 > dx2 && dely2 <= local_cut2) {
+    //    ea2[0] += eij[0];
+    //    ea2[1] += eij[1];
+    //    ea2[2] += eij[2];
+    //  }
 
-      if (delz2 > dx2 && delz2 <= local_cut2) {
-	ea3[0] += eij[0];
-	ea3[1] += eij[1];
-	ea3[2] += eij[2];
-      }
-    }
+    //  if (delz2 > dx2 && delz2 <= local_cut2) {
+    //    ea3[0] += eij[0];
+    //    ea3[1] += eij[1];
+    //    ea3[2] += eij[2];
+    //  }
+    //}
 
-    // normalizing the three aniso axes
+    //// normalizing the three aniso axes
 
-    double inorm1,inorm2,inorm3;
-    inorm1 = 1.0/(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
-    ea1[0] *= inorm1;
-    ea1[1] *= inorm1;
-    ea1[2] *= inorm1;
-    inorm2 = 1.0/(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
-    ea2[0] *= inorm2;
-    ea2[1] *= inorm2;
-    ea2[2] *= inorm2;
-    inorm3 = 1.0/(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
-    ea3[0] *= inorm3;
-    ea3[1] *= inorm3;
-    ea3[2] *= inorm3;
+    //double inorm1,inorm2,inorm3;
+    //inorm1 = 1.0/(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
+    //ea1[0] *= inorm1;
+    //ea1[1] *= inorm1;
+    //ea1[2] *= inorm1;
+    //inorm2 = 1.0/(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
+    //ea2[0] *= inorm2;
+    //ea2[1] *= inorm2;
+    //ea2[2] *= inorm2;
+    //inorm3 = 1.0/(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
+    //ea3[0] *= inorm3;
+    //ea3[1] *= inorm3;
+    //ea3[2] *= inorm3;
 
     compute_cubic(i,fmi,spi,ea1,ea2,ea3);
     if (lattice_flag) {
       compute_cubic_mech(i,eij,fi,spi,ea1,ea2,ea3);
     }
 
-    //f[i][0] += fi[0];
-    //f[i][1] += fi[1];
-    //f[i][2] += fi[2];
-    //fm[i][0] += fmi[0];
-    //fm[i][1] += fmi[1];
-    //fm[i][2] += fmi[2];
+    f[i][0] += fi[0];
+    f[i][1] += fi[1];
+    f[i][2] += fi[2];
+    fm[i][0] += fmi[0];
+    fm[i][1] += fmi[1];
+    fm[i][2] += fmi[2];
 
-    //if (newton_pair || j < nlocal) {
-    //  f[j][0] -= fi[0];
-    //  f[j][1] -= fi[1];
-    //  f[j][2] -= fi[2];
-    //}
+    if (newton_pair || j < nlocal) {
+      f[j][0] -= fi[0];
+      f[j][1] -= fi[1];
+      f[j][2] -= fi[2];
+    }
 
     if (eflag) {
       //evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
@@ -377,7 +383,6 @@ void PairSpinCubic::compute_single_pair(int ii, double fmi[3])
   double xi[3];
   double eij[3],rij[3];
   double inorm;
-  //double delx,dely,delz;
 
   double delx2,dely2,delz2;
   double ea1[3], ea2[3], ea3[3];
@@ -426,81 +431,79 @@ void PairSpinCubic::compute_single_pair(int ii, double fmi[3])
     spi[1] = sp[ii][1];
     spi[2] = sp[ii][2];
     
-    xi[0] = x[ii][0];
-    xi[1] = x[ii][1];
-    xi[2] = x[ii][2];
-    eij[0] = eij[1] = eij[2] = 0.0;
+    //xi[0] = x[ii][0];
+    //xi[1] = x[ii][1];
+    //xi[2] = x[ii][2];
+    //eij[0] = eij[1] = eij[2] = 0.0;
 
-    jlist = firstneigh[ii];
-    jnum = numneigh[ii];
+    //jlist = firstneigh[ii];
+    //jnum = numneigh[ii];
 
-    for (int jj = 0; jj < jnum; jj++) {
+    set_axis(ii,ea1,ea2,ea3);
 
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = type[j];
-      local_cut2 = cut_spin_cubic[itype][jtype]*cut_spin_cubic[itype][jtype];
+    //for (int jj = 0; jj < jnum; jj++) {
 
-      spj[0] = sp[j][0];
-      spj[1] = sp[j][1];
-      spj[2] = sp[j][2];
+    //  j = jlist[jj];
+    //  j &= NEIGHMASK;
+    //  jtype = type[j];
+    //  local_cut2 = cut_spin_cubic[itype][jtype]*cut_spin_cubic[itype][jtype];
 
-      rij[0] = x[j][0] - xi[0];
-      rij[1] = x[j][1] - xi[1];
-      rij[2] = x[j][2] - xi[2];
-      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-      inorm = 1.0/sqrt(rsq);
-      eij[0] = inorm*rij[0];
-      eij[1] = inorm*rij[1];
-      eij[2] = inorm*rij[2];
-      //delx = xi[0] - x[j][0];
-      //dely = xi[1] - x[j][1];
-      //delz = xi[2] - x[j][2];
-      //rsq = delx*delx + dely*dely + delz*delz;
+    //  spj[0] = sp[j][0];
+    //  spj[1] = sp[j][1];
+    //  spj[2] = sp[j][2];
 
-      // finding anisotropy axes
+    //  rij[0] = x[j][0] - xi[0];
+    //  rij[1] = x[j][1] - xi[1];
+    //  rij[2] = x[j][2] - xi[2];
+    //  rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    //  inorm = 1.0/sqrt(rsq);
+    //  eij[0] = inorm*rij[0];
+    //  eij[1] = inorm*rij[1];
+    //  eij[2] = inorm*rij[2];
 
-      //delx2 = delx*delx;
-      //dely2 = dely*dely;
-      //delz2 = delz*delz;
-      delx2 = eij[0]*eij[0];
-      dely2 = eij[1]*eij[1];
-      delz2 = eij[2]*eij[2];
+    //  // finding anisotropy axes
 
-      if (delx2 > dx2 && delx2 <= local_cut2) {
-	ea1[0] += eij[0];
-	ea1[1] += eij[1];
-	ea1[2] += eij[2];
-      } 
+    //  //delx2 = delx*delx;
+    //  //dely2 = dely*dely;
+    //  //delz2 = delz*delz;
+    //  delx2 = rij[0]*rij[0];
+    //  dely2 = rij[1]*rij[1];
+    //  delz2 = rij[2]*rij[2];
 
-      if (dely2 > dx2 && dely2 <= local_cut2) {
-	ea2[0] += eij[0];
-	ea2[1] += eij[1];
-	ea2[2] += eij[2];
-      }
+    //  if (delx2 > dx2 && delx2 <= local_cut2) {
+    //    ea1[0] += eij[0];
+    //    ea1[1] += eij[1];
+    //    ea1[2] += eij[2];
+    //  } 
 
-      if (delz2 > dx2 && delz2 <= local_cut2) {
-	ea3[0] += eij[0];
-	ea3[1] += eij[1];
-	ea3[2] += eij[2];
-      }
-    }
-    
-    // normalizing the three aniso axes
+    //  if (dely2 > dx2 && dely2 <= local_cut2) {
+    //    ea2[0] += eij[0];
+    //    ea2[1] += eij[1];
+    //    ea2[2] += eij[2];
+    //  }
 
-    double inorm1,inorm2,inorm3;
-    inorm1 = 1.0/(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
-    ea1[0] *= inorm1;
-    ea1[1] *= inorm1;
-    ea1[2] *= inorm1;
-    inorm2 = 1.0/(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
-    ea2[0] *= inorm2;
-    ea2[1] *= inorm2;
-    ea2[2] *= inorm2;
-    inorm3 = 1.0/(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
-    ea3[0] *= inorm3;
-    ea3[1] *= inorm3;
-    ea3[2] *= inorm3;
+    //  if (delz2 > dx2 && delz2 <= local_cut2) {
+    //    ea3[0] += eij[0];
+    //    ea3[1] += eij[1];
+    //    ea3[2] += eij[2];
+    //  }
+    //}
+    //
+    //// normalizing the three aniso axes
+
+    //double inorm1,inorm2,inorm3;
+    //inorm1 = 1.0/(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
+    //ea1[0] *= inorm1;
+    //ea1[1] *= inorm1;
+    //ea1[2] *= inorm1;
+    //inorm2 = 1.0/(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
+    //ea2[0] *= inorm2;
+    //ea2[1] *= inorm2;
+    //ea2[2] *= inorm2;
+    //inorm3 = 1.0/(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
+    //ea3[0] *= inorm3;
+    //ea3[1] *= inorm3;
+    //ea3[2] *= inorm3;
     
     compute_cubic(ii,fmi,spi,ea1,ea2,ea3);
     
@@ -641,6 +644,107 @@ void PairSpinCubic::compute_cubic_mech(int i, double eij[3], double fi[3],
   //fi[0] -= Jex_mech*eij[0];
   //fi[1] -= Jex_mech*eij[1];
   //fi[2] -= Jex_mech*eij[2];
+}
+
+/* ----------------------------------------------------------------------
+   set three cubic axis
+------------------------------------------------------------------------- */
+
+void PairSpinCubic::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3])
+{
+  int *type = atom->type;
+  double **x = atom->x;
+  double **sp = atom->sp;
+  double local_cut2;
+  double xi[3];
+  double eij[3],rij[3];
+  double inorm,rsq;
+
+  double delx2,dely2,delz2;
+  double spj[3];
+
+  int j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
+
+
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // check if interaction applies to type of ii
+
+  itype = type[ii];
+  ntypes = atom->ntypes;
+
+  jlist = firstneigh[ii];
+  jnum = numneigh[ii];
+  
+  for (int jj = 0; jj < jnum; jj++) {
+
+    j = jlist[jj];
+    j &= NEIGHMASK;
+    jtype = type[j];
+    local_cut2 = cut_spin_cubic[itype][jtype]*cut_spin_cubic[itype][jtype];
+
+    spj[0] = sp[j][0];
+    spj[1] = sp[j][1];
+    spj[2] = sp[j][2];
+
+    rij[0] = x[j][0] - xi[0];
+    rij[1] = x[j][1] - xi[1];
+    rij[2] = x[j][2] - xi[2];
+    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    inorm = 1.0/sqrt(rsq);
+    eij[0] = inorm*rij[0];
+    eij[1] = inorm*rij[1];
+    eij[2] = inorm*rij[2];
+
+    // finding anisotropy axes
+
+    //delx2 = delx*delx;
+    //dely2 = dely*dely;
+    //delz2 = delz*delz;
+    delx2 = rij[0]*rij[0];
+    dely2 = rij[1]*rij[1];
+    delz2 = rij[2]*rij[2];
+  
+    // define dx as an entry param
+    double dx2 = 0.2;
+
+    if (delx2 > dx2 && delx2 <= local_cut2) {
+      ea1[0] += eij[0];
+      ea1[1] += eij[1];
+      ea1[2] += eij[2];
+    } 
+
+    if (dely2 > dx2 && dely2 <= local_cut2) {
+      ea2[0] += eij[0];
+      ea2[1] += eij[1];
+      ea2[2] += eij[2];
+    }
+
+    if (delz2 > dx2 && delz2 <= local_cut2) {
+      ea3[0] += eij[0];
+      ea3[1] += eij[1];
+      ea3[2] += eij[2];
+    }
+  }
+  
+  // normalizing the three aniso axes
+
+  double inorm1,inorm2,inorm3;
+  inorm1 = 1.0/(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
+  ea1[0] *= inorm1;
+  ea1[1] *= inorm1;
+  ea1[2] *= inorm1;
+  inorm2 = 1.0/(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
+  ea2[0] *= inorm2;
+  ea2[1] *= inorm2;
+  ea2[2] *= inorm2;
+  inorm3 = 1.0/(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
+  ea3[0] *= inorm3;
+  ea3[1] *= inorm3;
+  ea3[2] *= inorm3;
 }
 
 /* ----------------------------------------------------------------------

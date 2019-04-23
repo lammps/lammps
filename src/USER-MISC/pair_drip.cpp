@@ -197,6 +197,14 @@ double PairDRIP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
+  int itype = map[i];
+  int jtype = map[j];
+  int iparam_ij = elem2param[itype][jtype];
+  Param& p = params[iparam_ij];
+
+  // max cutoff is the main cutoff plus the normal cutoff such that
+  double cutmax = p.rcut + p.ncut;
+
   return cutmax;
 }
 
@@ -206,7 +214,7 @@ double PairDRIP::init_one(int i, int j)
 
 void PairDRIP::read_file(char *filename)
 {
-  int params_per_line = 14;
+  int params_per_line = 15;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
   int nparams = 0;
@@ -311,13 +319,12 @@ void PairDRIP::read_file(char *filename)
     params[nparams].eta      = atof(words[11]);
     params[nparams].rhocut   = atof(words[12]);
     params[nparams].rcut     = atof(words[13]);
+    params[nparams].ncut     = atof(words[14]);
 
     // convenient precomputations
     params[nparams].rhocutsq = params[nparams].rhocut * params[nparams].rhocut;
     params[nparams].rcutsq   = params[nparams].rcut * params[nparams].rcut;
-
-    // set max cutoff
-    if(params[nparams].rcut > cutmax) cutmax = params[nparams].rcut;
+    params[nparams].ncutsq   = params[nparams].ncut * params[nparams].ncut;
 
     nparams++;
   }
@@ -371,6 +378,9 @@ void PairDRIP::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    if (nearest3neigh[i][0] == -1) {
+      continue;
+    }
     itag = tag[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -387,6 +397,9 @@ void PairDRIP::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+      if (nearest3neigh[j][0] == -1) {
+        continue;
+      }
       jtype = map[type[j]];
       jtag = tag[j];
 
@@ -604,7 +617,7 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
 
 void PairDRIP::find_nearest3neigh()
 {
-  int i, j, ii, jj, n, allnum, jnum, itype, jtype, size;
+  int i, j, ii, jj, n, allnum, inum, jnum, itype, jtype, size;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
@@ -613,6 +626,7 @@ void PairDRIP::find_nearest3neigh()
 
 
   allnum = list->inum + list->gnum;
+  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -647,6 +661,7 @@ void PairDRIP::find_nearest3neigh()
     double nb3_rsq = 3.0e10;
 
     for (jj = 0; jj < jnum; jj++) {
+
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
@@ -656,9 +671,9 @@ void PairDRIP::find_nearest3neigh()
       rsq = delx * delx + dely * dely + delz * delz;
 
       int iparam_ij = elem2param[itype][jtype];
-      double rcutsq = params[iparam_ij].rcutsq;
+      double ncutsq = params[iparam_ij].ncutsq;
 
-      if (rsq < rcutsq && atom->molecule[i] == atom->molecule[j]) {
+      if (rsq < ncutsq && atom->molecule[i] == atom->molecule[j]) {
         // find the 3 nearest neigh
         if (rsq < nb1_rsq) {
           nb3 = nb2;
@@ -683,8 +698,19 @@ void PairDRIP::find_nearest3neigh()
     }  // loop over jj
 
     // store neighbors to be used later to compute normal
-    if (nb1_rsq >= 1.0e10 || nb2_rsq >= 1.0e10 || nb3_rsq >= 1.0e10) {
-      error->one(FLERR, "No enough neighbors to construct normal.");
+    if (nb3_rsq >= 1.0e10) {
+      if (i<inum) {
+        error->one(FLERR, "No enough neighbors to construct normal.");
+      } else {
+        // This only happens for ghost atoms that are near the boundary of the
+        // domain (i.e. r > r_cut + n_cut). These ghost atoms will not be
+        // the i j atoms in the compute function, but only neighbors of j atoms.
+        // It is allowed not to have three neighbors for these atoms, since
+        // their normals are not needed.
+        nearest3neigh[i][0] = -1;
+        nearest3neigh[i][1] = -1;
+        nearest3neigh[i][2] = -1;
+      }
     }
     else{
       nearest3neigh[i][0] = nb1;

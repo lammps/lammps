@@ -55,8 +55,8 @@ protected:
   struct Param
   {
     int    ielement, jelement;
-    double C0, C2, C4, C, delta, lambda, A, z0, B, eta, rhocut, rcut;
-    double rhocutsq, rcutsq;
+    double C0, C2, C4, C, delta, lambda, A, z0, B, eta, rhocut, rcut, ncut;
+    double rhocutsq, rcutsq, ncutsq;
   };
   Param *params;         // parameter set for I-J interactions
   int **nearest3neigh;   // nearest 3 neighbors of atoms

@@ -75,9 +75,9 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   nfactors = 3;
   factors = new int[nfactors];
-  factors[0] = 2;
-  factors[1] = 3;
-  factors[2] = 5;
+  factors[0] = 3;
+  factors[1] = 5;
+  factors[2] = 7;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -456,7 +456,7 @@ void TILD::allocate()
   memory->create(vg,nfft_both,6,"pppm:vg");
   memory->create(uG,nfft,"pppm:uG");
   memory->create(groupbits, group->ngroup, "tild:groupbits");
-  memory->create(grad_uG,domain->dimension,2*nfft,"pppm:grad_uG");
+  memory->create(grad_uG,domain->dimension,nfft,"pppm:grad_uG");
   memory->create(grad_uG_hat,domain->dimension,2*nfft,"pppm:grad_uG_hat");
   memory->create(density_fft_types, group->ngroup, nfft_both, "pppm/tild:density_fft_types");
 
@@ -1008,7 +1008,7 @@ void TILD::init_gauss(){
   double zprd=domain->zprd;
   n = 0;
 
-  double vole;
+  double vole; // Note: the factor of V comes from the FFT
   output->thermo->evaluate_keyword("vol",&vole);
   double pref = vole / ( pow( 2.0 * sqrt(PI * a_squared) , Dim ) ) ; 
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
@@ -1030,8 +1030,17 @@ void TILD::init_gauss(){
   field_gradient(uG, grad_uG, 0);
 
   // Do the FFT of the Gaussian function
-  for (int i = 0; i < Dim; i++)
-  fft1->compute(grad_uG[i], grad_uG_hat[i], 1);
+  for (int i = 0; i < Dim; i++){
+    m=0;
+    for (int j = 0; j < n; j++) {
+      ktmp[m++] = grad_uG[i][m];
+      // std::cout<<grad_uG[i][m-1] << std::endl;;
+      ktmp[m++] = 0.0;
+    }
+
+    fft1->compute(ktmp, grad_uG_hat[i], 1);
+    
+  }
 
 }
 
@@ -1317,14 +1326,14 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
 
           if (nx_pppm % 2 == 0 && x == nx_pppm / 2)
               k[0] = 0.0;
-          else if (double(x) < double(nx_pppm) / 2.)
+          else if (double(x) < double(nx_pppm) / 2.0)
               k[0] = 2 * PI * double(x) / xprd;
           else
-              k[0] = 2 * PI * double(y - nx_pppm) / xprd;
+              k[0] = 2 * PI * double(x - nx_pppm) / xprd;
 
           if (ny_pppm % 2 == 0 && y == ny_pppm / 2)
               k[1] = 0.0;
-          else if (double(y) < double(ny_pppm) / 2.)
+          else if (double(y) < double(ny_pppm) / 2.0)
               k[1] = 2 * PI * double(y) / yprd;
           else
               k[1] = 2 * PI * double(y - ny_pppm) / yprd;
@@ -1332,19 +1341,26 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
           if (Dim == 3) {
               if (nz_pppm % 2 == 0 && z == nz_pppm / 2)
                   k[2] = 0.0;
-              else if (double(z) < double(nz_pppm) / 2.)
+              else if (double(z) < double(nz_pppm) / 2.0)
                   k[2] = 2 * PI * double(z) / zprd;
               else
                   k[2] = 2 * PI * double(z - nz_pppm) / zprd;
           }
 
-          out[0][n] = wk1[n+1] * k[0];
-          out[0][n+1] = -wk1[n-1] * k[0];
-          out[1][n] = wk1[n+1] * k[1];
-          out[1][n+1] = -wk1[n-1] * k[1];
+          for (int i = 0; i < Dim; i++) {
+            if (k[i] == 0.0) {
+              for (int j = 0; j < Dim; j++) k[j] = 0.0;
+              break;
+            }
+          }
+
+          out[0][n] =  -wk1[n+1] * k[0];
+          out[0][n+1] = wk1[n] * k[0];
+          out[1][n] =  -wk1[n+1] * k[1];
+          out[1][n+1] = wk1[n] * k[1];
           if (Dim == 3){
-            out[2][n] = wk1[n+1] * k[2];
-            out[2][n+1] = -wk1[n-1] * k[2];
+            out[2][n] =  -wk1[n+1] * k[2];
+            out[2][n+1] = wk1[n] * k[2];
           }
           n +=2;
           

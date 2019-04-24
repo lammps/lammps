@@ -39,11 +39,18 @@ class FixPrecessionSpin : public Fix {
   void min_post_force(int);
   double compute_scalar();
 
-  int zeeman_flag, aniso_flag;
+  int zeeman_flag, aniso_flag, cubic_flag;
   void compute_single_precession(int, double *, double *);
   void compute_zeeman(int, double *);
   void compute_anisotropy(double *, double *);
 
+  // cubic aniso calculations
+
+  void compute_cubic(double *, double *, double *, double *, double *);
+  //void compute_cubic_mech(int, double *, double *, double *, double *, double *, double *);
+  double compute_cubic_energy(double *, double *, double *, double *);
+  void set_axis(int, double *, double *, double *);
+ 
  protected:
   int style; 			// style of the magnetic precession
 
@@ -70,6 +77,10 @@ class FixPrecessionSpin : public Fix {
   double Ka;
   double nax, nay, naz;
   double Kax, Kay, Kaz; 	// temp. force variables
+
+  // cubic anisotropy intensity
+
+  double k1c,k2c;
 
   void set_magneticprecession();
 

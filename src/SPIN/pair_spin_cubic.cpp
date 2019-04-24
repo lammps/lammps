@@ -202,8 +202,9 @@ void *PairSpinCubic::extract(const char *str, int &dim)
   return NULL;
 }
 
-/* ---------------------------------------------------------------------- */
-// compute cubic aniso
+/* ----------------------------------------------------------------------
+   compute cubic anisotropy
+------------------------------------------------------------------------- */
 
 // Warning: procedure does not work if not cubic crystal
 // and if orient command was used (has to be in canonical 
@@ -382,13 +383,9 @@ void PairSpinCubic::compute_cubic(int i, double fmi[3], double spi[3], double ea
   int *type = atom->type;
   int itype, jtype;
   double ke1,ke2;
-  double skx,sky,skz;
-  double skx2,sky2,skz2;
- 
-  double four1,four2,four3;
-  double fourx,foury,fourz;
-  double six1,six2,six3;
-  double sixx,sixy,sixz;
+  double skx,sky,skz,skx2,sky2,skz2;
+  double four1,four2,four3,fourx,foury,fourz;
+  double six1,six2,six3,sixx,sixy,sixz;
 
   // not dealing with different types for now 
   
@@ -423,19 +420,9 @@ void PairSpinCubic::compute_cubic(int i, double fmi[3], double spi[3], double ea
   sixy = ke2*(ea1[1]*six1 + ea2[1]*six2 + ea3[1]*six3);
   sixz = ke2*(ea1[2]*six1 + ea2[2]*six2 + ea3[2]*six3);
 
-
-  //ra = rsq/J3[itype][jtype]/J3[itype][jtype];
-  //Jex = 4.0*J1_mag[itype][jtype]*ra;
-  //Jex *= (1.0-J2[itype][jtype]*ra);
-  //Jex *= exp(-ra);
-
-  //fmi[0] += Jex*spj[0];
-  //fmi[1] += Jex*spj[1];
-  //fmi[2] += Jex*spj[2];
-  
-  fmi[0] += fourx + sixx;
-  fmi[1] += foury + sixy;
-  fmi[2] += fourz + sixz;
+  fmi[0] += (fourx + sixx);
+  fmi[1] += (foury + sixy);
+  fmi[2] += (fourz + sixz);
 }
 
 /* ----------------------------------------------------------------------
@@ -451,7 +438,6 @@ double PairSpinCubic::compute_cubic_energy(int i, double spi[3], double ea1[3], 
 
   // not dealing with different types for now
 
-  energy = 0.0;
   itype = type[i];
   //jtype = type[j];
   jtype = type[i];
@@ -494,19 +480,9 @@ void PairSpinCubic::compute_cubic_mech(int i, double eij[3], double fi[3],
   ke1 = K1_mech[itype][jtype];
   ke2 = K2_mech[itype][jtype];
 
-  //Jex = J1_mech[itype][jtype];
-  //iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
-
-  //ra = rsq*iJ3;
-  //rr = sqrt(rsq)*iJ3;
-
-  //Jex_mech = 1.0-ra-J2[itype][jtype]*ra*(2.0-ra);
-  //Jex_mech *= 8.0*Jex*rr*exp(-ra);
-  //Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
-
-  //fi[0] -= Jex_mech*eij[0];
-  //fi[1] -= Jex_mech*eij[1];
-  //fi[2] -= Jex_mech*eij[2];
+  fi[0] -= 0.0;
+  fi[1] -= 0.0;
+  fi[2] -= 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -515,21 +491,18 @@ void PairSpinCubic::compute_cubic_mech(int i, double eij[3], double fi[3],
 
 void PairSpinCubic::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3])
 {
+  int j,jnum,itype,jtype; 
+  int *jlist,*numneigh,**firstneigh;;
+  double rsq,rij[3],xi[3];
+  double delx2,dely2,delz2;
+  
   int *type = atom->type;
   double **x = atom->x;
-  //double **sp = atom->sp;
-  double local_cut2;
-  double xi[3];
-  double eij[3],rij[3];
-  double inorm,rsq;
-
-  double delx2,dely2,delz2;
-  //double spj[3];
-
-  int j,jnum,itype,jtype,ntypes;
-  int k,locflag;
-  int *jlist,*numneigh,**firstneigh;
-
+  xi[0] = x[ii][0];
+  xi[1] = x[ii][1];
+  xi[2] = x[ii][2];
+  jlist = firstneigh[ii];
+  jnum = numneigh[ii];
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -537,41 +510,26 @@ void PairSpinCubic::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3]
   xi[1] = x[ii][1];
   xi[2] = x[ii][2];
 
-  // check if interaction applies to type of ii
-
   itype = type[ii];
-  ntypes = atom->ntypes;
-
   jlist = firstneigh[ii];
   jnum = numneigh[ii];
+    
+  // cutoffs to be defined as inputs
+    
+  double cut_short = 0.2;
+  double cut_long = 2.2;
+  double cut_short2 = cut_short*cut_short;
+  double cut_long2 = cut_long*cut_long;
  
-  printf("test ea1 before loop: %g %g %g\n",ea1[0],ea1[1],ea1[2]);
-
   for (int jj = 0; jj < jnum; jj++) {
-
     j = jlist[jj];
     j &= NEIGHMASK;
     jtype = type[j];
-    local_cut2 = cut_spin_cubic[itype][jtype]*cut_spin_cubic[itype][jtype];
-
-    //spj[0] = sp[j][0];
-    //spj[1] = sp[j][1];
-    //spj[2] = sp[j][2];
-
-    printf("test in loop0.1 %g %g %g \n",xi[0],xi[1],xi[2]);
-    printf("test in loop0.2 %g %g %g \n",x[j][0],x[j][1],x[j][2]);
     
     rij[0] = x[j][0] - xi[0];
     rij[1] = x[j][1] - xi[1];
     rij[2] = x[j][2] - xi[2];
-    
-    printf("test in loop1 %g %g %g \n",rij[0],rij[1],rij[2]);
-    
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = inorm*rij[0];
-    eij[1] = inorm*rij[1];
-    eij[2] = inorm*rij[2];
 
     // finding anisotropy axes
 
@@ -579,53 +537,43 @@ void PairSpinCubic::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3]
     dely2 = rij[1]*rij[1];
     delz2 = rij[2]*rij[2];
   
-    // define dx as an entry param
-    double dx2 = 0.2;
-
-    printf("test in loop2 %g %g %g \n",delx2,dely2,delz2);
-
-    if (delx2 > dx2 && delx2 <= local_cut2) {
-      if (eij[0] >= 0.0) {
-	ea1[0] += eij[0];
-	ea1[1] += eij[1];
-	ea1[2] += eij[2];
-      } else if (eij[0] < 0.0) {
-	ea1[0] -= eij[0];
-	ea1[1] += eij[1];
-	ea1[2] += eij[2];
-      } else printf("### eij[0] %g \n",eij[0]); 
-      //} else error->all(FLERR,"Incorrect cubic aniso axis"); 
+    if (delx2 > cut_short2 && delx2 <= cut_long2) {
+      if (rij[0] >= 0.0) {
+	ea1[0] += rij[0];
+	ea1[1] += rij[1];
+	ea1[2] += rij[2];
+      } else if (rij[0] < 0.0) {
+	ea1[0] -= rij[0];
+	ea1[1] += rij[1];
+	ea1[2] += rij[2];
+      } else error->all(FLERR,"Incorrect cubic aniso x axis"); 
     } 
-
-    if (dely2 > dx2 && dely2 <= local_cut2) {
-      if (eij[1] >= 0.0) {
-	ea1[0] += eij[0];
-	ea1[1] += eij[1];
-	ea1[2] += eij[2];
-      } else if (eij[1] < 0.0) {
-	ea1[0] += eij[0];
-	ea1[1] -= eij[1];
-	ea1[2] += eij[2];
-      } else printf("### eij[1] %g \n",eij[1]); 
-      //} else error->all(FLERR,"Incorrect cubic aniso axis"); 
+    
+    if (dely2 > cut_short2 && dely2 <= cut_long2) {
+      if (rij[1] >= 0.0) {
+	ea1[0] += rij[0];
+	ea1[1] += rij[1];
+	ea1[2] += rij[2];
+      } else if (rij[1] < 0.0) {
+	ea1[0] += rij[0];
+	ea1[1] -= rij[1];
+	ea1[2] += rij[2];
+      } else error->all(FLERR,"Incorrect cubic aniso y axis"); 
     }
 
-    if (delz2 > dx2 && delz2 <= local_cut2) {
-      if (eij[2] >= 0.0) {
-	ea1[0] += eij[0];
-	ea1[1] += eij[1];
-	ea1[2] += eij[2];
-      } else if (eij[2] < 0.0) {
-	ea1[0] += eij[0];
-	ea1[1] += eij[1];
-	ea1[2] -= eij[2];
-      } else printf("### eij[2] %g \n",eij[2]); 
-      //} else error->all(FLERR,"Incorrect cubic aniso axis"); 
+    if (delz2 > cut_short2 && delz2 <= cut_long2) {
+      if (rij[2] >= 0.0) {
+	ea1[0] += rij[0];
+	ea1[1] += rij[1];
+	ea1[2] += rij[2];
+      } else if (rij[2] < 0.0) {
+	ea1[0] += rij[0];
+	ea1[1] += rij[1];
+	ea1[2] -= rij[2];
+      } else error->all(FLERR,"Incorrect cubic aniso z axis"); 
     }
   }
-  
-  printf("test ea1 after loop: %g %g %g\n",ea1[0],ea1[1],ea1[2]);
-  
+
   // normalizing the three aniso axes
 
   double inorm1,inorm2,inorm3;

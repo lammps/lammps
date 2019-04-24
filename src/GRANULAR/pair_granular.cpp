@@ -1728,7 +1728,7 @@ double PairGranular::pulloff_distance(double radi, double radj,
   if (Reff <= 0) return 0;
   coh = normal_coeffs[itype][jtype][3];
   E = normal_coeffs[itype][jtype][0]*THREEQUARTERS;
-  a = cbrt(9*MY_PI*coh*Reff/(4*E));
+  a = cbrt(9*MY_PI*coh*Reff*Reff/(4*E));
   return a*a/Reff - 2*sqrt(MY_PI*coh*a/E);
 }
 

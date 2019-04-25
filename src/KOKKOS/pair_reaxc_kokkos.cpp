@@ -143,7 +143,7 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
-  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  if (fix_reax) modify->delete_fix(fix_id.c_str()); // not needed in the Kokkos version
   fix_reax = NULL;
 
   // irequest = neigh request made by parent class
@@ -340,6 +340,7 @@ void PairReaxCKokkos<DeviceType>::init_md()
 {
   // init_taper()
   F_FLOAT d1, d7, swa, swa2, swa3, swb, swb2, swb3;
+  LR_lookup_table ** & LR = system->LR;
 
   swa = control->nonb_low;
   swb = control->nonb_cut;
@@ -437,6 +438,7 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
   double dr;
   double *h, *fh, *fvdw, *fele, *fCEvd, *fCEclmb;
   double v0_vdw, v0_ele, vlast_vdw, vlast_ele;
+  LR_lookup_table ** & LR = system->LR;
 
   /* initializations */
   v0_vdw = 0;
@@ -541,6 +543,7 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 {
   int i, j;
   int ntypes;
+  LR_lookup_table ** & LR = system->LR;
 
   ntypes = atom->ntypes;
 

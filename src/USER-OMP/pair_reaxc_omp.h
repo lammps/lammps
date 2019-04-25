@@ -76,6 +76,7 @@ class PairReaxCOMP : public PairReaxC, public ThrOMP {
   }
 
  protected:
+  std::string fix_id;
   virtual void setup();
   virtual void write_reax_atoms();
   virtual int estimate_reax_lists();

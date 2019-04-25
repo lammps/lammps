@@ -20,6 +20,8 @@
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include <sstream>
+
 #include "pair_reaxc.h"
 #include "atom.h"
 #include "update.h"
@@ -73,6 +75,10 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   ghostneigh = 1;
+
+  std::stringstream ss;
+  ss << "REAXC_" << std::dec << Pair::instance_me;
+  fix_id = ss.str();
 
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
@@ -135,7 +141,7 @@ PairReaxC::~PairReaxC()
 {
   if (copymode) return;
 
-  if (fix_reax) modify->delete_fix("REAXC");
+  if (fix_reax) modify->delete_fix(fix_id.c_str());
 
   if (setup_flag) {
     Close_Output_Files( system, control, out_control, mpi_data );
@@ -412,7 +418,7 @@ void PairReaxC::init_style( )
 
   if (fix_reax == NULL) {
     char **fixarg = new char*[3];
-    fixarg[0] = (char *) "REAXC";
+    fixarg[0] = (char *) fix_id.c_str();
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "REAXC";
     modify->add_fix(3,fixarg);

@@ -33,6 +33,8 @@
    High Performance Computing Applications, to appear.
  ------------------------------------------------------------------------- */
 
+#include <sstream>
+
 #include "pair_reaxc_omp.h"
 #include "atom.h"
 #include "update.h"
@@ -96,6 +98,10 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
   system->omp_active = 1;
 
   num_nbrs_offset = NULL;
+
+  std::stringstream ss;
+  ss << "REAXC_COMP_" << std::dec << Pair::instance_me;
+  fix_id = ss.str();
 
 #ifdef OMP_TIMING
   for (int i=0;i<LASTTIMINGINDEX;i++) {
@@ -373,7 +379,7 @@ void PairReaxCOMP::init_style( )
 
   if (fix_reax == NULL) {
     char **fixarg = new char*[3];
-    fixarg[0] = (char *) "REAXC";
+    fixarg[0] = (char *) fix_id.c_str();
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "REAXC";
     modify->add_fix(3,fixarg);
@@ -643,4 +649,3 @@ void PairReaxCOMP::FindBond()
     }
   }
 }
-

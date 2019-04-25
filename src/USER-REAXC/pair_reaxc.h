@@ -60,7 +60,7 @@ class PairReaxC : public Pair {
   bigint ngroup;
 
  protected:
-  std::string fix_id;
+  char fix_id[128];
   double cutmax;
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

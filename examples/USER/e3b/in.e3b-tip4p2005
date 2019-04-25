@@ -2,7 +2,6 @@
 #to simulate bulk E3B3 water model
 
 #####################################################################
-clear
 
 variable	samp_rate 	equal 10
 variable	thermo_rate 	equal 10
@@ -27,19 +26,10 @@ boundary 	p p p
 
 #############################################################################
 #setup box
-
-lattice	  	sc ${Wlat}
-region		simbox block -$L $L -$L $L -$L $L units lattice
+read_data       e3b_box.data
 
 #############################################################################
 #set up potential
-
-create_box	2 simbox bond/types 1 angle/types 1 extra/bond/per/atom 2 &
-		extra/special/per/atom 2 extra/angle/per/atom 1
-
-molecule 	h2o tip4p2005.mol
-mass            1 15.9994 #oxygen
-mass            2 1.008   #hydrogen
 
 pair_style 	hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.1546 8.5
 pair_modify 	table 0 table/disp 0 shift yes
@@ -53,9 +43,9 @@ pair_coeff 	* * lj/cut/tip4p/long 0.0 0.0
 pair_coeff	1 1 lj/cut/tip4p/long 0.1852 3.1589
 pair_coeff	* * e3b preset 2015
 
-#intramolecular bond/angle coeffs very stiff for minimization
-bond_coeff	1 100000 0.9572
-angle_coeff	1 100000 104.52
+#potential coeffs aren't too important since will be rigid anyways
+bond_coeff	1 554.13 0.9572
+angle_coeff	1 45.769 104.52
 
 #############################################################################
 #setup for run
@@ -69,25 +59,15 @@ neighbor	2.0 bin
 neigh_modify	every 1 delay 3 check yes
 
 #############################################################################
-#make atoms and rough minimze
-create_atoms	0 box mol h2o 15856
 
 #dump positions only in first batch run
-dump 		7 all custom ${samp_rate} dump.lammpstrj id x y z
-dump_modify	7 sort id
-
-min_style 	cg
-minimize	1.0e-4 1.0e-4 10000 100000
-
-#potential coeffs aren't too important since will be rigid anyways
-bond_coeff	1 554.13 0.9572
-angle_coeff	1 45.769 104.52
-
+#dump 		7 all custom ${samp_rate} dump.lammpstrj id x y z
+#dump_modify	7 sort id
 
 #############################################################################
 #initialize velocity and rigid constraint
 
-fix 		rigid all shake 1.0e-8 100 0 b 1 a 1 t 1 2 mol h2o
+fix 		rigid all shake 1.0e-8 100 0 b 1 a 1 t 1 2
 velocity 	all create ${myT} 15856 dist gaussian rot yes mom yes
 
 #scale velocity
@@ -107,9 +87,9 @@ run 		${equil}
 #############################################################################
 #run at NVT
 
-dump 		1 all custom ${samp_rate} dump.lammpstrj id x y z type
-dump_modify	1 sort id
+#dump 		1 all custom ${samp_rate} dump.lammpstrj id x y z type
+#dump_modify	1 sort id
 
 run 		${run}
 
-write_restart 	lammps.restart
+# write_restart 	lammps.restart

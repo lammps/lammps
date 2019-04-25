@@ -17,6 +17,7 @@ periodically.
 These are the relevant commands:
 
 "neb"_neb.html for nudged elastic band calculations
+"neb_spin"_neb_spin.html for magnetic nudged elastic band calculations
 "prd"_prd.html for parallel replica dynamics
 "tad"_tad.html for temperature accelerated dynamics
 "temper"_temper.html for parallel tempering

@@ -345,7 +345,7 @@ calculation fails to converge properly to the MEP, and you wish to
 restart the calculation from an intermediate point with altered
 parameters.
 
-A c file script in provided in the examples/SPIN/gneb/interpolate
+A c file script in provided in the tool/spin/interpolate_gneb
 directory, that interpolates the MEP given the information provided 
 by the verbose output option (as detailed in Appendix D of
 "(BessarabA)"_#BessarabA). 

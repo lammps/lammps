@@ -30,7 +30,7 @@ class NEB_spin : protected Pointers {
   NEB_spin(class LAMMPS *);
   NEB_spin(class LAMMPS *, double, double, int, int, int, double *, double *);
   ~NEB_spin();
-  void command(int, char **);  // process neb command
+  void command(int, char **);  // process neb/spin command
   void run();                  // run NEB_spin
 
   double ebf,ebr;              // forward and reverse energy barriers
@@ -104,15 +104,15 @@ E: Too many timesteps
 
 The cumulative timesteps must fit in a 64-bit integer.
 
-E: Unexpected end of neb file
+E: Unexpected end of neb/spin file
 
 A read operation from the file failed.
 
-E: Incorrect atom format in neb file
+E: Incorrect atom format in neb/spin file
 
 The number of fields per line is not what expected.
 
-E: Invalid atom IDs in neb file
+E: Invalid atom IDs in neb/spin file
 
 An ID in the file was not found in the system.
 

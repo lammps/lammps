@@ -309,6 +309,8 @@
 /compute_meso_t_atom.h
 /compute_msd_nongauss.cpp
 /compute_msd_nongauss.h
+/compute_pe_e3b.cpp
+/compute_pe_e3b.h
 /compute_pe_tally.cpp
 /compute_pe_tally.h
 /compute_plasticity_atom.cpp
@@ -782,6 +784,8 @@
 /pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
+/pair_e3b.cpp
+/pair_e3b.h
 /pair_eam.cpp
 /pair_eam.h
 /pair_eam_alloy.cpp

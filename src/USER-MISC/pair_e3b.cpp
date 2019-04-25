@@ -48,7 +48,6 @@ PairE3B::PairE3B(LAMMPS *lmp) : Pair(lmp),pairPerAtom(10)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
-  manybody_flag = 1;
 
   allocatedE3B = false;
   pairO  = NULL;

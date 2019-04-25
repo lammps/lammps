@@ -213,64 +213,40 @@ void *PairSpinCubic::extract(const char *str, int &dim)
 
 void PairSpinCubic::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double evdwl, ecoul;
-  double xi[3], eij[3], rij[3];
-  double spi[3], spj[3];
-  double fi[3], fmi[3];
-  double delx,dely,delz;
-  double delx2,dely2,delz2;
+  int i,ii,inum;
+  double evdwl;
+  double fi[3],fmi[3],spi[3];
   double ea1[3], ea2[3], ea3[3];
-  double local_cut2;
-  double rsq, inorm;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *ilist;
 
-  evdwl = ecoul = 0.0;
-  ev_init(eflag,vflag);
+  //evdwl = ecoul = 0.0;
+  //ev_init(eflag,vflag);
 
-  double **x = atom->x;
-  double **f = atom->f;
-  double *emag = atom->emag;
-  double **fm = atom->fm;
-  double **sp = atom->sp;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
+  double **f = atom->f;
+  double **fm = atom->fm;
+  double *emag = atom->emag;
 
   inum = list->inum;
   ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  // define dx as an entry param
-  double dx2 = 0.2;
 
   // computation of the cubic interaction
   // loop over atoms and their neighbors
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itype = type[i];
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    xi[0] = x[i][0];
-    xi[1] = x[i][1];
-    xi[2] = x[i][2];
-    spi[0] = sp[i][0];
-    spi[1] = sp[i][1];
-    spi[2] = sp[i][2];
 
     evdwl = 0.0;
+    fi[0] = fi[1] = fi[2] = 0.0;
+    fmi[0] = fmi[1] = fmi[2] = 0.0;
     ea1[0] = ea1[1] = ea1[2] = 0.0;
     ea2[0] = ea2[1] = ea2[2] = 0.0;
     ea3[0] = ea3[1] = ea3[2] = 0.0;
-    rij[0] = rij[1] = rij[2] = 0.0;
   
     set_axis(i,ea1,ea2,ea3);
     compute_cubic(i,fmi,spi,ea1,ea2,ea3);
     if (lattice_flag) {
-      compute_cubic_mech(i,eij,fi,spi,ea1,ea2,ea3);
+      //compute_cubic_mech(i,eij,fi,spi,ea1,ea2,ea3);
     }
 
     f[i][0] += fi[0];
@@ -280,19 +256,19 @@ void PairSpinCubic::compute(int eflag, int vflag)
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
 
-    if (newton_pair || j < nlocal) {
-      f[j][0] -= fi[0];
-      f[j][1] -= fi[1];
-      f[j][2] -= fi[2];
-    }
+    //if (newton_pair || j < nlocal) {
+    //  f[j][0] -= fi[0];
+    //  f[j][1] -= fi[1];
+    //  f[j][2] -= fi[2];
+    //}
 
     if (eflag) {
-      //evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
       evdwl -= compute_cubic_energy(i,spi,ea1,ea2,ea3);
       evdwl *= hbar;
       emag[i] += evdwl;
     } else evdwl = 0.0;
 
+    // replace by ev_tally_full
     //if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
     //    evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
   }

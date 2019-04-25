@@ -67,7 +67,7 @@ Commands :h1
    minimize
    molecule
    neb
-   neb/spin
+   neb_spin
    neigh_modify
    neighbor
    newton

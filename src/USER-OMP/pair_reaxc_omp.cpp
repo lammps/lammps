@@ -97,8 +97,6 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
 
   num_nbrs_offset = NULL;
 
-  sprintf(fix_id, "REAXC_OMP_%d", Pair::instance_me);
-
 #ifdef OMP_TIMING
   for (int i=0;i<LASTTIMINGINDEX;i++) {
     ompTimingData[i] = 0;

@@ -74,7 +74,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   ghostneigh = 1;
 
-  sprintf(fix_id, "REAXC_%d", Pair::instance_me);
+  fix_id = new char[24];
+  snprintf(fix_id,24,"REAXC_%d",instance_me);
 
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
@@ -138,6 +139,7 @@ PairReaxC::~PairReaxC()
   if (copymode) return;
 
   if (fix_reax) modify->delete_fix(fix_id);
+  delete[] fix_id;
 
   if (setup_flag) {
     Close_Output_Files( system, control, out_control, mpi_data );

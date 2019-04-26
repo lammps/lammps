@@ -31,9 +31,10 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_precession_spin.h"
 #include "fix_nve_spin.h"
+#include "fix_precession_spin.h"
 #include "fix_langevin_spin.h"
+#include "fix_setforce_spin.h"
 #include "force.h"
 #include "math_vector.h"
 #include "math_extra.h"
@@ -88,7 +89,6 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   npairs = 0;
   npairspin = 0;
 
-
   // checking if map array or hash is defined
 
   if (atom->map_style == 0)
@@ -132,6 +132,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   precession_spin_flag = 0;
   maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
+  setforce_spin_flag = 0;
 
 }
 
@@ -238,6 +239,15 @@ void FixNVESpin::init()
    if (locklangevinspin->temp_flag == 1) temp_flag = 1;
   }
 
+  // ptrs FixSetForceSpin classes
+
+  for (iforce = 0; iforce < modify->nfix; iforce++) {
+    if (strstr(modify->fix[iforce]->style,"setforce/spin")) {
+      setforce_spin_flag = 1;
+      locksetforcespin = (FixSetForceSpin *) modify->fix[iforce];
+    }
+  }
+  
   // setting the sector variables/lists
 
   nsectors = 0;
@@ -250,13 +260,10 @@ void FixNVESpin::init()
   // init. size of stacking lists (sectoring)
 
   nlocal_max = atom->nlocal;
-  stack_head = memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
-  stack_foot = memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
-  backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
-  forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
-  if (nlocal_max == 0)
-    error->all(FLERR,"Incorrect value of nlocal_max");
-
+  memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
+  memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
+  memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+  memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -405,8 +412,8 @@ void FixNVESpin::pre_neighbor()
 
   if (nlocal_max < nlocal) {                    // grow linked lists if necessary
     nlocal_max = nlocal;
-    backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
-    forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
+    memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+    memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
   }
 
   for (int j = 0; j < nsectors; j++) {
@@ -476,6 +483,12 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
     if (temp_flag) {                    // spin temperature
       locklangevinspin->add_temperature(fmi);
     }
+  }
+
+  // update setforce of magnetic interactions
+
+  if (setforce_spin_flag) {
+    locksetforcespin->single_setforce_spin(i,fmi);
   }
 
   // replace the magnetic force fm[i] by its new value fmi
@@ -585,21 +598,21 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   energy = (sp[i][0]*fm[i][0])+(sp[i][1]*fm[i][1])+(sp[i][2]*fm[i][2]);
   dts2 = dts*dts;
 
-  cp[0] = fm[i][1]*sp[i][2]-fm[i][2]*sp[i][1];
-  cp[1] = fm[i][2]*sp[i][0]-fm[i][0]*sp[i][2];
-  cp[2] = fm[i][0]*sp[i][1]-fm[i][1]*sp[i][0];
+  cp[0] = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+  cp[1] = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+  cp[2] = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
 
-  g[0] = sp[i][0]+cp[0]*dts;
-  g[1] = sp[i][1]+cp[1]*dts;
-  g[2] = sp[i][2]+cp[2]*dts;
+  g[0] = sp[i][0] + cp[0]*dts;
+  g[1] = sp[i][1] + cp[1]*dts;
+  g[2] = sp[i][2] + cp[2]*dts;
 
-  g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
-  g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
-  g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
+  g[0] += (fm[i][0]*energy - 0.5*sp[i][0]*fm2)*0.5*dts2;
+  g[1] += (fm[i][1]*energy - 0.5*sp[i][1]*fm2)*0.5*dts2;
+  g[2] += (fm[i][2]*energy - 0.5*sp[i][2]*fm2)*0.5*dts2;
 
-  g[0] /= (1+0.25*fm2*dts2);
-  g[1] /= (1+0.25*fm2*dts2);
-  g[2] /= (1+0.25*fm2*dts2);
+  g[0] /= (1.0 + 0.25*fm2*dts2);
+  g[1] /= (1.0 + 0.25*fm2*dts2);
+  g[2] /= (1.0 + 0.25*fm2*dts2);
 
   sp[i][0] = g[0];
   sp[i][1] = g[1];
@@ -607,11 +620,11 @@ void FixNVESpin::AdvanceSingleSpin(int i)
 
   // renormalization (check if necessary)
 
-  msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-  scale = 1.0/sqrt(msq);
-  sp[i][0] *= scale;
-  sp[i][1] *= scale;
-  sp[i][2] *= scale;
+  //msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+  //scale = 1.0/sqrt(msq);
+  //sp[i][0] *= scale;
+  //sp[i][1] *= scale;
+  //sp[i][2] *= scale;
 
   // comm. sp[i] to atoms with same tag (for serial algo)
 

@@ -49,7 +49,7 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
-FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
+FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL),
   xnext(NULL), fnext(NULL), spprev(NULL), spnext(NULL), fmnext(NULL), springF(NULL),
   tangent(NULL), xsend(NULL), xrecv(NULL), fsend(NULL), frecv(NULL), spsend(NULL),
@@ -144,7 +144,7 @@ FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixNEB_spin::~FixNEB_spin()
+FixNEBSpin::~FixNEBSpin()
 {
   modify->delete_compute(id_pe);
   delete [] id_pe;
@@ -192,7 +192,7 @@ FixNEB_spin::~FixNEB_spin()
 
 /* ---------------------------------------------------------------------- */
 
-int FixNEB_spin::setmask()
+int FixNEBSpin::setmask()
 {
   int mask = 0;
   mask |= MIN_POST_FORCE;
@@ -201,7 +201,7 @@ int FixNEB_spin::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNEB_spin::init()
+void FixNEBSpin::init()
 {
   int icompute = modify->find_compute(id_pe);
   if (icompute < 0)
@@ -251,7 +251,7 @@ void FixNEB_spin::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNEB_spin::min_setup(int vflag)
+void FixNEBSpin::min_setup(int vflag)
 {
   min_post_force(vflag);
 
@@ -262,7 +262,7 @@ void FixNEB_spin::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNEB_spin::min_post_force(int /*vflag*/)
+void FixNEBSpin::min_post_force(int /*vflag*/)
 {
   double vprev,vnext;
   double delspxp,delspyp,delspzp;
@@ -289,15 +289,15 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   }
 
   if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0))
-    error->all(FLERR,"NEB_spin Free End option not yet active");
+    error->all(FLERR,"NEBSpin Free End option not yet active");
 
   if (ireplica == 0) vIni=veng;
 
   if (FreeEndFinalWithRespToEIni)
-    error->all(FLERR,"NEB_spin Free End option not yet active");
+    error->all(FLERR,"NEBSpin Free End option not yet active");
 
   if (FreeEndIni && ireplica == 0 && (update->ntimestep == 0))
-    error->all(FLERR,"NEB_spin Free End option not yet active");
+    error->all(FLERR,"NEBSpin Free End option not yet active");
 
 
   // communicate atoms to/from adjacent replicas to fill xprev,xnext
@@ -505,7 +505,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
         // no Perpendicular nudging force option active yet
 
         if (kspringPerp != 0.0)
-          error->all(FLERR,"NEB_spin Perpendicular spring force not yet active");
+          error->all(FLERR,"NEBSpin Perpendicular spring force not yet active");
 
       }
   }
@@ -569,16 +569,16 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   // no Free End options active yet
 
   if (FreeEndIni && ireplica == 0)
-    error->all(FLERR,"NEB_spin Free End option not yet active");
+    error->all(FLERR,"NEBSpin Free End option not yet active");
   if (FreeEndFinal && ireplica == nreplica -1)
-    error->all(FLERR,"NEB_spin Free End option not yet active");
+    error->all(FLERR,"NEBSpin Free End option not yet active");
   if (FreeEndFinalWithRespToEIni&&ireplica == nreplica -1)
-    error->all(FLERR,"NEB_spin Free End option not yet active");
+    error->all(FLERR,"NEBSpin Free End option not yet active");
 
-  // no NEB_spin long range option
+  // no NEBSpin long range option
 
   if (NEBLongRange)
-    error->all(FLERR,"NEB_spin long range option not yet active");
+    error->all(FLERR,"NEBSpin long range option not yet active");
 
   // exit calc. if first or last replica (no gneb force)
 
@@ -604,7 +604,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   if (ireplica == rclimber) prefactor = -2.0*dot;        // for climbing replica
   else {
     if (NEBLongRange) {
-      error->all(FLERR,"Long Range NEB_spin climber option not yet active");
+      error->all(FLERR,"Long Range NEBSpin climber option not yet active");
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);
     }
@@ -645,7 +645,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
    geodesic distance calculation (Vincenty's formula)
 ------------------------------------------------------------------------- */
 
-double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
+double FixNEBSpin::geodesic_distance(double spi[3], double spj[3])
 {
   double dist;
   double crossx,crossy,crossz;
@@ -676,7 +676,7 @@ double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
    replicas 0 and N-1 send but do not receive any atoms
 ------------------------------------------------------------------------- */
 
-void FixNEB_spin::inter_replica_comm()
+void FixNEBSpin::inter_replica_comm()
 {
   int i,m;
   MPI_Request request;
@@ -956,7 +956,7 @@ void FixNEB_spin::inter_replica_comm()
    reallocate communication arrays if necessary
 ------------------------------------------------------------------------- */
 
-void FixNEB_spin::reallocate()
+void FixNEBSpin::reallocate()
 {
   maxlocal = atom->nmax;
 

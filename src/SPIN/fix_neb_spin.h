@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(neb/spin,FixNEB_spin)
+FixStyle(neb/spin,FixNEBSpin)
 
 #else
 
@@ -24,13 +24,13 @@ FixStyle(neb/spin,FixNEB_spin)
 
 namespace LAMMPS_NS {
 
-class FixNEB_spin : public Fix {
+class FixNEBSpin : public Fix {
  public:
   double veng,plen,nlen,dotpath,dottangrad,gradlen,dotgrad;
   int rclimber;
 
-  FixNEB_spin(class LAMMPS *, int, char **);
-  ~FixNEB_spin();
+  FixNEBSpin(class LAMMPS *, int, char **);
+  ~FixNEBSpin();
   int setmask();
   void init();
   void min_setup(int);

@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(neb/spin,NEB_spin)
+CommandStyle(neb/spin,NEBSpin)
 
 #else
 
@@ -25,13 +25,13 @@ CommandStyle(neb/spin,NEB_spin)
 
 namespace LAMMPS_NS {
 
-class NEB_spin : protected Pointers {
+class NEBSpin : protected Pointers {
  public:
-  NEB_spin(class LAMMPS *);
-  NEB_spin(class LAMMPS *, double, double, int, int, int, double *, double *);
-  ~NEB_spin();
+  NEBSpin(class LAMMPS *);
+  NEBSpin(class LAMMPS *, double, double, int, int, int, double *, double *);
+  ~NEBSpin();
   void command(int, char **);  // process neb/spin command
-  void run();                  // run NEB_spin
+  void run();                  // run NEBSpin
 
   double ebf,ebr;              // forward and reverse energy barriers
 
@@ -49,7 +49,7 @@ class NEB_spin : protected Pointers {
   int nevery;                  // output interval
   char *infile;                // name of file containing final state
 
-  class FixNEB_spin *fneb;
+  class FixNEBSpin *fneb;
   int numall;                  // per-replica dimension of array all
   double **all;                // PE,plen,nlen,gradvnorm from each replica
   double *rdist;               // normalize reaction distance, 0 to 1
@@ -69,7 +69,7 @@ class NEB_spin : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: NEB_spin command before simulation box is defined
+E: NEBSpin command before simulation box is defined
 
 Self-explanatory.
 
@@ -79,26 +79,26 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot use NEB_spin with a single replica
+E: Cannot use NEBSpin with a single replica
 
 Self-explanatory.
 
-E: Cannot use NEB_spin unless atom map exists
+E: Cannot use NEBSpin unless atom map exists
 
 Use the atom_modify command to create an atom map.
 
-E: NEB_spin requires use of fix neb
+E: NEBSpin requires use of fix neb
 
 Self-explanatory.
 
-E: NEB_spin requires damped dynamics minimizer
+E: NEBSpin requires damped dynamics minimizer
 
 Use a different minimization style.
 
-E: Too many timesteps for NEB_spin
+E: Too many timesteps for NEBSpin
 
 You must use a number of timesteps that fit in a 32-bit integer
-for NEB_spin.
+for NEBSpin.
 
 E: Too many timesteps
 
@@ -127,12 +127,12 @@ The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
 
-U: Can only use NEB_spin with 1-processor replicas
+U: Can only use NEBSpin with 1-processor replicas
 
-This is current restriction for NEB_spin as implemented in LAMMPS.
+This is current restriction for NEBSpin as implemented in LAMMPS.
 
-U: Cannot use NEB_spin with atom_modify sort enabled
+U: Cannot use NEBSpin with atom_modify sort enabled
 
-This is current restriction for NEB_spin implemented in LAMMPS.
+This is current restriction for NEBSpin implemented in LAMMPS.
 
 */

@@ -76,15 +76,15 @@ static const char cite_neb_spin[] =
 
 /* ---------------------------------------------------------------------- */
 
-NEB_spin::NEB_spin(LAMMPS *lmp) : Pointers(lmp) {
+NEBSpin::NEBSpin(LAMMPS *lmp) : Pointers(lmp) {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
 }
 
 /* ----------------------------------------------------------------------
-   internal NEB_spin constructor, called from TAD
+   internal NEBSpin constructor, called from TAD
 ------------------------------------------------------------------------- */
 
-NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
+NEBSpin::NEBSpin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
   : Pointers(lmp)
 {
@@ -155,7 +155,7 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
 
 /* ---------------------------------------------------------------------- */
 
-NEB_spin::~NEB_spin()
+NEBSpin::~NEBSpin()
 {
   MPI_Comm_free(&roots);
   memory->destroy(all);
@@ -163,15 +163,15 @@ NEB_spin::~NEB_spin()
 }
 
 /* ----------------------------------------------------------------------
-   perform NEB_spin on multiple replicas
+   perform NEBSpin on multiple replicas
 ------------------------------------------------------------------------- */
 
-void NEB_spin::command(int narg, char **arg)
+void NEBSpin::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"NEB_spin command before simulation box is defined");
+    error->all(FLERR,"NEBSpin command before simulation box is defined");
 
-  if (narg < 6) error->universe_all(FLERR,"Illegal NEB_spin command");
+  if (narg < 6) error->universe_all(FLERR,"Illegal NEBSpin command");
 
   etol = force->numeric(FLERR,arg[0]);
   ttol = force->numeric(FLERR,arg[1]);
@@ -181,11 +181,11 @@ void NEB_spin::command(int narg, char **arg)
 
   // error checks
 
-  if (etol < 0.0) error->all(FLERR,"Illegal NEB_spin command");
-  if (ttol < 0.0) error->all(FLERR,"Illegal NEB_spin command");
-  if (nevery <= 0) error->universe_all(FLERR,"Illegal NEB_spin command");
+  if (etol < 0.0) error->all(FLERR,"Illegal NEBSpin command");
+  if (ttol < 0.0) error->all(FLERR,"Illegal NEBSpin command");
+  if (nevery <= 0) error->universe_all(FLERR,"Illegal NEBSpin command");
   if (n1steps % nevery || n2steps % nevery)
-    error->universe_all(FLERR,"Illegal NEB_spin command");
+    error->universe_all(FLERR,"Illegal NEBSpin command");
 
   // replica info
 
@@ -204,23 +204,23 @@ void NEB_spin::command(int narg, char **arg)
 
   // error checks
 
-  if (nreplica == 1) error->all(FLERR,"Cannot use NEB_spin with a single replica");
+  if (nreplica == 1) error->all(FLERR,"Cannot use NEBSpin with a single replica");
   if (atom->map_style == 0)
-    error->all(FLERR,"Cannot use NEB_spin unless atom map exists");
+    error->all(FLERR,"Cannot use NEBSpin unless atom map exists");
 
   // process file-style setting to setup initial configs for all replicas
 
   if (strcmp(arg[5],"final") == 0) {
-    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB_spin command");
+    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEBSpin command");
     infile = arg[6];
     readfile(infile,0);
   } else if (strcmp(arg[5],"each") == 0) {
-    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB_spin command");
+    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEBSpin command");
     infile = arg[6];
     readfile(infile,1);
   } else if (strcmp(arg[5],"none") == 0) {
-    if (narg != 6 && narg !=7) error->universe_all(FLERR,"Illegal NEB_spin command");
-  } else error->universe_all(FLERR,"Illegal NEB_spin command");
+    if (narg != 6 && narg !=7) error->universe_all(FLERR,"Illegal NEBSpin command");
+  } else error->universe_all(FLERR,"Illegal NEBSpin command");
 
   verbose=false;
   if (strcmp(arg[narg-1],"verbose") == 0) verbose=true;
@@ -229,10 +229,10 @@ void NEB_spin::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   run NEB_spin on multiple replicas
+   run NEBSpin on multiple replicas
 ------------------------------------------------------------------------- */
 
-void NEB_spin::run()
+void NEBSpin::run()
 {
   // create MPI communicator for root proc from each world
 
@@ -246,9 +246,9 @@ void NEB_spin::run()
   int ineb;
   for (ineb = 0; ineb < modify->nfix; ineb++)
     if (strcmp(modify->fix[ineb]->style,"neb/spin") == 0) break;
-  if (ineb == modify->nfix) error->all(FLERR,"NEB_spin requires use of fix neb/spin");
+  if (ineb == modify->nfix) error->all(FLERR,"NEBSpin requires use of fix neb/spin");
 
-  fneb = (FixNEB_spin *) modify->fix[ineb];
+  fneb = (FixNEBSpin *) modify->fix[ineb];
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -266,24 +266,24 @@ void NEB_spin::run()
   // check if correct minimizer is setup
 
   if (update->minimize->searchflag)
-    error->all(FLERR,"NEB_spin requires damped dynamics minimizer");
+    error->all(FLERR,"NEBSpin requires damped dynamics minimizer");
   if (strcmp(update->minimize_style,"spin") != 0)
-    error->all(FLERR,"NEB_spin requires spin minimizer");
+    error->all(FLERR,"NEBSpin requires spin minimizer");
 
-  // setup regular NEB_spin minimization
+  // setup regular NEBSpin minimization
 
   FILE *uscreen = universe->uscreen;
   FILE *ulogfile = universe->ulogfile;
 
   if (me_universe == 0 && uscreen)
-    fprintf(uscreen,"Setting up regular NEB_spin ...\n");
+    fprintf(uscreen,"Setting up regular NEBSpin ...\n");
 
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + n1steps;
   update->nsteps = n1steps;
   update->max_eval = n1steps;
   if (update->laststep < 0)
-    error->all(FLERR,"Too many timesteps for NEB_spin");
+    error->all(FLERR,"Too many timesteps for NEBSpin");
 
   update->minimize->setup();
 
@@ -316,8 +316,8 @@ void NEB_spin::run()
   }
   print_status();
 
-  // perform regular NEB_spin for n1steps or until replicas converge
-  // retrieve PE values from fix NEB_spin and print every nevery iterations
+  // perform regular NEBSpin for n1steps or until replicas converge
+  // retrieve PE values from fix NEBSpin and print every nevery iterations
   // break out of while loop early if converged
   // damped dynamic min styles insure all replicas converge together
 
@@ -337,7 +337,7 @@ void NEB_spin::run()
   Finish finish(lmp);
   finish.end(1);
 
-  // switch fix NEB_spin to climbing mode
+  // switch fix NEBSpin to climbing mode
   // top = replica that becomes hill climber
 
   double vmax = all[0][0];
@@ -348,7 +348,7 @@ void NEB_spin::run()
       top = m;
     }
 
-  // setup climbing NEB_spin minimization
+  // setup climbing NEBSpin minimization
   // must reinitialize minimizer so it re-creates its fix MINIMIZE
 
   if (me_universe == 0 && uscreen)
@@ -402,8 +402,8 @@ void NEB_spin::run()
   }
   print_status();
 
-  // perform climbing NEB_spin for n2steps or until replicas converge
-  // retrieve PE values from fix NEB_spin and print every nevery iterations
+  // perform climbing NEBSpin for n2steps or until replicas converge
+  // retrieve PE values from fix NEBSpin and print every nevery iterations
   // break induced if converged
   // damped dynamic min styles insure all replicas converge together
 
@@ -443,7 +443,7 @@ void NEB_spin::run()
    initial replica does nothing
 ------------------------------------------------------------------------- */
 
-void NEB_spin::readfile(char *file, int flag)
+void NEBSpin::readfile(char *file, int flag)
 {
   int i,j,m,nchunk,eofflag,nlines;
   tagint tag;
@@ -453,7 +453,7 @@ void NEB_spin::readfile(char *file, int flag)
   double musp,spx,spy,spz;
 
   if (me_universe == 0 && screen)
-    fprintf(screen,"Reading NEB_spin coordinate file(s) ...\n");
+    fprintf(screen,"Reading NEBSpin coordinate file(s) ...\n");
 
   // flag = 0, universe root reads header of file, bcast to universe
   // flag = 1, each replica's root reads header of file, bcast to world
@@ -645,7 +645,7 @@ void NEB_spin::readfile(char *file, int flag)
    interpolates between initial (spi) and final (stored in sploc)
 ------------------------------------------------------------------------- */
 
-int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
+int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
 {
 
   // no interpolation for initial and final replica
@@ -757,11 +757,11 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 }
 
 /* ----------------------------------------------------------------------
-   universe proc 0 opens NEB_spin data file
+   universe proc 0 opens NEBSpin data file
    test if gzipped
 ------------------------------------------------------------------------- */
 
-void NEB_spin::open(char *file)
+void NEBSpin::open(char *file)
 {
   compressed = 0;
   char *suffix = file + strlen(file) - 3;
@@ -791,11 +791,11 @@ void NEB_spin::open(char *file)
 }
 
 /* ----------------------------------------------------------------------
-   query fix NEB_spin for info on each replica
-   universe proc 0 prints current NEB_spin status
+   query fix NEBSpin for info on each replica
+   universe proc 0 prints current NEBSpin status
 ------------------------------------------------------------------------- */
 
-void NEB_spin::print_status()
+void NEBSpin::print_status()
 {
   int nlocal = atom->nlocal;
   double tx,ty,tz;

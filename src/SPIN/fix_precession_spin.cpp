@@ -100,7 +100,16 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
       cubic_flag = 1;
       k1c = force->numeric(FLERR,arg[iarg+1]);
       k2c = force->numeric(FLERR,arg[iarg+2]);
-      iarg += 3;
+      nc1x = force->numeric(FLERR,arg[iarg+3]);
+      nc1y = force->numeric(FLERR,arg[iarg+4]);
+      nc1z = force->numeric(FLERR,arg[iarg+5]);
+      nc2x = force->numeric(FLERR,arg[iarg+6]);
+      nc2y = force->numeric(FLERR,arg[iarg+7]);
+      nc2z = force->numeric(FLERR,arg[iarg+8]);
+      nc3x = force->numeric(FLERR,arg[iarg+9]);
+      nc3y = force->numeric(FLERR,arg[iarg+10]);
+      nc3z = force->numeric(FLERR,arg[iarg+11]);
+      iarg += 12;
     } else error->all(FLERR,"Illegal precession/spin command");
   }
 
@@ -236,7 +245,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
         ea1[0] = ea1[1] = ea1[2] = 0.0;
         ea2[0] = ea2[1] = ea2[2] = 0.0;
         ea3[0] = ea3[1] = ea3[2] = 0.0;
-	set_axis(i,ea1,ea2,ea3);
+	//set_axis(i,ea1,ea2,ea3);
 	compute_cubic(spi,fmi,ea1,ea2,ea3);
 	epreci -= compute_cubic_energy(spi,ea1,ea2,ea3);
       }
@@ -265,7 +274,7 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
     double ea1[3] = {0.0,0.0,0.0}; 
     double ea2[3] = {0.0,0.0,0.0}; 
     double ea3[3] = {0.0,0.0,0.0}; 
-    set_axis(i,ea1,ea2,ea3);
+    //set_axis(i,ea1,ea2,ea3);
     compute_cubic(spi,fmi,ea1,ea2,ea3);
   }
 }
@@ -303,14 +312,14 @@ void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 void FixPrecessionSpin::set_magneticprecession()
 {
   if (zeeman_flag) {
-          hx = H_field*nhx;
-          hy = H_field*nhy;
-          hz = H_field*nhz;
+    hx = H_field*nhx;
+    hy = H_field*nhy;
+    hz = H_field*nhz;
   }
   if (aniso_flag) {
-          Kax = 2.0*Ka*nax;
-          Kay = 2.0*Ka*nay;
-          Kaz = 2.0*Ka*naz;
+    Kax = 2.0*Ka*nax;
+    Kay = 2.0*Ka*nay;
+    Kaz = 2.0*Ka*naz;
   }
 }
 
@@ -318,98 +327,98 @@ void FixPrecessionSpin::set_magneticprecession()
    set three cubic axis
 ------------------------------------------------------------------------- */
 
-void FixPrecessionSpin::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3])
-{
-  int j,jnum; 
-  int *jlist,*numneigh,**firstneigh;;
-  double rsq,rij[3],xi[3];
-  double delx2,dely2,delz2;
-  
-  double **x = atom->x;
-  xi[0] = x[ii][0];
-  xi[1] = x[ii][1];
-  xi[2] = x[ii][2];
-  jlist = firstneigh[ii];
-  jnum = numneigh[ii];
-
-
-  // incorrect because no neighbor list in a fix
-
-  for (int jj = 0; jj < jnum; jj++) {
-    j = jlist[jj];
-    j &= NEIGHMASK;
-
-    // cutoffs to be defined as inputs
-    
-    double cut_short = 0.2;
-    double cut_long = 2.2;
-    double cut_short2 = cut_short*cut_short;
-    double cut_long2 = cut_long*cut_long;
-
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-
-    // finding anisotropy axes
-
-    delx2 = rij[0]*rij[0];
-    dely2 = rij[1]*rij[1];
-    delz2 = rij[2]*rij[2];
-
-    if (delx2 > cut_short2 && delx2 <= cut_long2) {
-      if (rij[0] >= 0.0) {
-	ea1[0] += rij[0];
-	ea1[1] += rij[1];
-	ea1[2] += rij[2];
-      } else if (rij[0] < 0.0) {
-	ea1[0] -= rij[0];
-	ea1[1] += rij[1];
-	ea1[2] += rij[2];
-      } else error->all(FLERR,"Incorrect cubic aniso x axis"); 
-    } 
-    
-    if (dely2 > cut_short2 && dely2 <= cut_long2) {
-      if (rij[1] >= 0.0) {
-	ea1[0] += rij[0];
-	ea1[1] += rij[1];
-	ea1[2] += rij[2];
-      } else if (rij[1] < 0.0) {
-	ea1[0] += rij[0];
-	ea1[1] -= rij[1];
-	ea1[2] += rij[2];
-      } else error->all(FLERR,"Incorrect cubic aniso y axis"); 
-    }
-
-    if (delz2 > cut_short2 && delz2 <= cut_long2) {
-      if (rij[2] >= 0.0) {
-	ea1[0] += rij[0];
-	ea1[1] += rij[1];
-	ea1[2] += rij[2];
-      } else if (rij[2] < 0.0) {
-	ea1[0] += rij[0];
-	ea1[1] += rij[1];
-	ea1[2] -= rij[2];
-      } else error->all(FLERR,"Incorrect cubic aniso z axis"); 
-    }
-  }
-  
-  // normalizing the three aniso axes
-
-  double inorm1,inorm2,inorm3;
-  inorm1 = 1.0/sqrt(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
-  ea1[0] *= inorm1;
-  ea1[1] *= inorm1;
-  ea1[2] *= inorm1;
-  inorm2 = 1.0/sqrt(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
-  ea2[0] *= inorm2;
-  ea2[1] *= inorm2;
-  ea2[2] *= inorm2;
-  inorm3 = 1.0/sqrt(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
-  ea3[0] *= inorm3;
-  ea3[1] *= inorm3;
-  ea3[2] *= inorm3;
-}
+//void FixPrecessionSpin::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3])
+//{
+//  int j,jnum; 
+//  int *jlist,*numneigh,**firstneigh;;
+//  double rsq,rij[3],xi[3];
+//  double delx2,dely2,delz2;
+//  
+//  double **x = atom->x;
+//  xi[0] = x[ii][0];
+//  xi[1] = x[ii][1];
+//  xi[2] = x[ii][2];
+//  jlist = firstneigh[ii];
+//  jnum = numneigh[ii];
+//
+//
+//  // incorrect because no neighbor list in a fix
+//
+//  for (int jj = 0; jj < jnum; jj++) {
+//    j = jlist[jj];
+//    j &= NEIGHMASK;
+//
+//    // cutoffs to be defined as inputs
+//    
+//    double cut_short = 0.2;
+//    double cut_long = 2.2;
+//    double cut_short2 = cut_short*cut_short;
+//    double cut_long2 = cut_long*cut_long;
+//
+//    rij[0] = x[j][0] - xi[0];
+//    rij[1] = x[j][1] - xi[1];
+//    rij[2] = x[j][2] - xi[2];
+//    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+//
+//    // finding anisotropy axes
+//
+//    delx2 = rij[0]*rij[0];
+//    dely2 = rij[1]*rij[1];
+//    delz2 = rij[2]*rij[2];
+//
+//    if (delx2 > cut_short2 && delx2 <= cut_long2) {
+//      if (rij[0] >= 0.0) {
+//	ea1[0] += rij[0];
+//	ea1[1] += rij[1];
+//	ea1[2] += rij[2];
+//      } else if (rij[0] < 0.0) {
+//	ea1[0] -= rij[0];
+//	ea1[1] += rij[1];
+//	ea1[2] += rij[2];
+//      } else error->all(FLERR,"Incorrect cubic aniso x axis"); 
+//    } 
+//    
+//    if (dely2 > cut_short2 && dely2 <= cut_long2) {
+//      if (rij[1] >= 0.0) {
+//	ea1[0] += rij[0];
+//	ea1[1] += rij[1];
+//	ea1[2] += rij[2];
+//      } else if (rij[1] < 0.0) {
+//	ea1[0] += rij[0];
+//	ea1[1] -= rij[1];
+//	ea1[2] += rij[2];
+//      } else error->all(FLERR,"Incorrect cubic aniso y axis"); 
+//    }
+//
+//    if (delz2 > cut_short2 && delz2 <= cut_long2) {
+//      if (rij[2] >= 0.0) {
+//	ea1[0] += rij[0];
+//	ea1[1] += rij[1];
+//	ea1[2] += rij[2];
+//      } else if (rij[2] < 0.0) {
+//	ea1[0] += rij[0];
+//	ea1[1] += rij[1];
+//	ea1[2] -= rij[2];
+//      } else error->all(FLERR,"Incorrect cubic aniso z axis"); 
+//    }
+//  }
+//  
+//  // normalizing the three aniso axes
+//
+//  double inorm1,inorm2,inorm3;
+//  inorm1 = 1.0/sqrt(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
+//  ea1[0] *= inorm1;
+//  ea1[1] *= inorm1;
+////  ea1[2] *= inorm1;
+//  inorm2 = 1.0/sqrt(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
+//  ea2[0] *= inorm2;
+//  ea2[1] *= inorm2;
+//  ea2[2] *= inorm2;
+//  inorm3 = 1.0/sqrt(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
+//  ea3[0] *= inorm3;
+//  ea3[1] *= inorm3;
+//  ea3[2] *= inorm3;
+//}
 
 /* ----------------------------------------------------------------------
    compute cubic aniso energy of spin i
@@ -420,9 +429,12 @@ double FixPrecessionSpin::compute_cubic_energy(double spi[3], double ea1[3], dou
   double energy = 0.0;
   double skx,sky,skz;
 
-  skx = spi[0]*ea1[0]+spi[1]*ea1[1]+spi[2]*ea1[2];
-  sky = spi[0]*ea2[0]+spi[1]*ea2[1]+spi[2]*ea2[2];
-  skz = spi[0]*ea3[0]+spi[1]*ea3[1]+spi[2]*ea3[2];
+  //skx = spi[0]*ea1[0]+spi[1]*ea1[1]+spi[2]*ea1[2];
+  //sky = spi[0]*ea2[0]+spi[1]*ea2[1]+spi[2]*ea2[2];
+  //skz = spi[0]*ea3[0]+spi[1]*ea3[1]+spi[2]*ea3[2];
+  skx = spi[0]*nc1x+spi[1]*nc1y+spi[2]*nc1z;
+  sky = spi[0]*nc2x+spi[1]*nc2y+spi[2]*nc2z;
+  skz = spi[0]*nc3x+spi[1]*nc3y+spi[2]*nc3z;
 
   energy = k1c*(skx*skx*sky*sky + sky*sky*skz*skz + skx*skx*skz*skz);
   energy += k2c*skx*skx*sky*sky*skz*skz;

@@ -15,9 +15,9 @@
    Contributing authors: Julien Tranchida (SNL)
 
    Please cite the related publication:
-   Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015). 
-   Method for finding mechanism and activation energy of magnetic transitions, 
-   applied to skyrmion and antivortex annihilation. 
+   Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015).
+   Method for finding mechanism and activation energy of magnetic transitions,
+   applied to skyrmion and antivortex annihilation.
    Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
@@ -124,7 +124,7 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
     spfinal[2] = buf_final[ii+2];
 
     // interpolate intermediate spin states
- 
+
     if (fraction == 0.0) {
       sp[i][0] = spinit[0];
       sp[i][1] = spinit[1];
@@ -147,7 +147,7 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   // warning message if one or more couples (spi,spf) were aligned
   // this breaks Rodrigues' formula, and an arbitrary rotation
   // vector has to be chosen
-  
+
   if ((rot_flag > 0) && (comm->me == 0))
     error->warning(FLERR,"arbitrary initial rotation of one or more spin(s)");
 
@@ -195,7 +195,7 @@ void NEB_spin::command(int narg, char **arg)
   uworld = universe->uworld;
   MPI_Comm_rank(world,&me);
 
-  // check metal units and spin atom/style 
+  // check metal units and spin atom/style
 
   if (!atom->sp_flag)
     error->all(FLERR,"neb/spin requires atom/spin style");
@@ -242,7 +242,7 @@ void NEB_spin::run()
   MPI_Comm_split(uworld,color,0,&roots);
 
   // search for neb_spin fix, allocate it
-  
+
   int ineb;
   for (ineb = 0; ineb < modify->nfix; ineb++)
     if (strcmp(modify->fix[ineb]->style,"neb/spin") == 0) break;
@@ -264,17 +264,17 @@ void NEB_spin::run()
   lmp->init();
 
   // check if correct minimizer is setup
-  
+
   if (update->minimize->searchflag)
     error->all(FLERR,"NEB_spin requires damped dynamics minimizer");
   if (strcmp(update->minimize_style,"spin") != 0)
     error->all(FLERR,"NEB_spin requires spin minimizer");
 
   // setup regular NEB_spin minimization
-  
+
   FILE *uscreen = universe->uscreen;
   FILE *ulogfile = universe->ulogfile;
-  
+
   if (me_universe == 0 && uscreen)
     fprintf(uscreen,"Setting up regular NEB_spin ...\n");
 
@@ -284,9 +284,9 @@ void NEB_spin::run()
   update->max_eval = n1steps;
   if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps for NEB_spin");
-  
+
   update->minimize->setup();
-  
+
   if (me_universe == 0) {
     if (uscreen) {
       if (verbose) {
@@ -329,7 +329,7 @@ void NEB_spin::run()
     print_status();
     if (update->minimize->stop_condition) break;
   }
-  
+
   timer->barrier_stop();
 
   update->minimize->cleanup();
@@ -558,14 +558,14 @@ void NEB_spin::readfile(char *file, int flag)
         spz = atof(values[7]);
 
         if (flag == 0) {
-          
+
 	  spinit[0] = sp[m][0];
 	  spinit[1] = sp[m][1];
 	  spinit[2] = sp[m][2];
 	  spfinal[0] = spx;
 	  spfinal[1] = spy;
 	  spfinal[2] = spz;
- 
+
 	  // interpolate intermediate spin states
 
 	  sp[m][3] = musp;
@@ -590,8 +590,8 @@ void NEB_spin::readfile(char *file, int flag)
           x[m][1] = yy;
           x[m][2] = zz;
 	  sp[m][0] = spx;
-	  sp[m][1] = spy; 
-	  sp[m][2] = spz; 
+	  sp[m][1] = spy;
+	  sp[m][2] = spz;
         }
       }
 
@@ -604,7 +604,7 @@ void NEB_spin::readfile(char *file, int flag)
   // warning message if one or more couples (spi,spf) were aligned
   // this breaks Rodrigues' formula, and an arbitrary rotation
   // vector has to be chosen
-  
+
   if ((rot_flag > 0) && (comm->me == 0))
     error->warning(FLERR,"arbitrary initial rotation of one or more spin(s)");
 
@@ -642,12 +642,12 @@ void NEB_spin::readfile(char *file, int flag)
 
 /* ----------------------------------------------------------------------
    initial configuration of intermediate spins using Rodrigues' formula
-   interpolates between initial (spi) and final (stored in sploc) 
+   interpolates between initial (spi) and final (stored in sploc)
 ------------------------------------------------------------------------- */
 
 int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 {
-  
+
   // no interpolation for initial and final replica
 
   if (fraction == 0.0 || fraction == 1.0) return 0;
@@ -667,7 +667,7 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   spfx = sploc[0];
   spfy = sploc[1];
   spfz = sploc[2];
-  
+
   kx = spiy*spfz - spiz*spfy;
   ky = spiz*spfx - spix*spfz;
   kz = spix*spfy - spiy*spfx;
@@ -682,7 +682,7 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
     if (sidotsf > 0.0) { 	// spins aligned and in same direction
       return 0;
     } else if (sidotsf < 0.0) {	// spins aligned and in opposite directions
-      
+
       // defining a rotation axis
       // first guess, k = spi x [100]
       // second guess, k = spi x [010]
@@ -725,13 +725,13 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 
   // apply Rodrigues' formula
 
-  spkx = spix*cos(omega); 
-  spky = spiy*cos(omega); 
-  spkz = spiz*cos(omega); 
+  spkx = spix*cos(omega);
+  spky = spiy*cos(omega);
+  spkz = spiz*cos(omega);
 
-  spkx += kcrossx*sin(omega); 
-  spky += kcrossy*sin(omega); 
-  spkz += kcrossz*sin(omega); 
+  spkx += kcrossx*sin(omega);
+  spky += kcrossy*sin(omega);
+  spkz += kcrossz*sin(omega);
 
   spkx += kx*kdots*(1.0-cos(omega));
   spky += ky*kdots*(1.0-cos(omega));
@@ -746,7 +746,7 @@ int NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
   spkx *= isnorm;
   spky *= isnorm;
   spkz *= isnorm;
- 
+
   // returns rotated spin
 
   sploc[0] = spkx;
@@ -804,7 +804,7 @@ void NEB_spin::print_status()
   double **fm = atom->fm;
 
   // calc. magnetic torques
-  
+
   tnorm2 = local_norm_inf = temp_inf = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
@@ -818,7 +818,7 @@ void NEB_spin::print_status()
 
   double fmaxreplica;
   MPI_Allreduce(&tnorm2,&fmaxreplica,1,MPI_DOUBLE,MPI_MAX,roots);
-  
+
   double fnorminf = 0.0;
   MPI_Allreduce(&local_norm_inf,&fnorminf,1,MPI_DOUBLE,MPI_MAX,world);
   double fmaxatom;

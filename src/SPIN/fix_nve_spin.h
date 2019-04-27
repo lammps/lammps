@@ -27,7 +27,7 @@ FixStyle(nve/spin,FixNVESpin)
 namespace LAMMPS_NS {
 
 class FixNVESpin : public Fix {
-friend class PairSpin;	
+friend class PairSpin;
  public:
   FixNVESpin(class LAMMPS *, int, char **);
   virtual ~FixNVESpin();

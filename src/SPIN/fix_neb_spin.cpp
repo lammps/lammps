@@ -15,9 +15,9 @@
    Contributing authors: Julien Tranchida (SNL)
 
    Please cite the related publication:
-   Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015). 
-   Method for finding mechanism and activation energy of magnetic transitions, 
-   applied to skyrmion and antivortex annihilation. 
+   Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015).
+   Method for finding mechanism and activation energy of magnetic transitions,
+   applied to skyrmion and antivortex annihilation.
    Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
@@ -50,12 +50,12 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 /* ---------------------------------------------------------------------- */
 
 FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL), 
-  xnext(NULL), fnext(NULL), spprev(NULL), spnext(NULL), fmnext(NULL), springF(NULL), 
-  tangent(NULL), xsend(NULL), xrecv(NULL), fsend(NULL), frecv(NULL), spsend(NULL), 
-  sprecv(NULL), fmsend(NULL), fmrecv(NULL), tagsend(NULL), tagrecv(NULL), 
-  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL), spsendall(NULL), 
-  sprecvall(NULL), fmsendall(NULL), fmrecvall(NULL), tagsendall(NULL), tagrecvall(NULL), 
+  Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL),
+  xnext(NULL), fnext(NULL), spprev(NULL), spnext(NULL), fmnext(NULL), springF(NULL),
+  tangent(NULL), xsend(NULL), xrecv(NULL), fsend(NULL), frecv(NULL), spsend(NULL),
+  sprecv(NULL), fmsend(NULL), fmrecv(NULL), tagsend(NULL), tagrecv(NULL),
+  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL), spsendall(NULL),
+  sprecvall(NULL), fmsendall(NULL), fmrecvall(NULL), tagsendall(NULL), tagrecvall(NULL),
   counts(NULL), displacements(NULL)
 {
 
@@ -68,15 +68,15 @@ FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
 
   NEBLongRange = false; // see if needed (comb. with pppm/spin?)
   StandardNEB = true;   // only option for now
-  PerpSpring = FreeEndIni = FreeEndFinal = false; 
+  PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
   kspringPerp = 0.0;
   kspringIni = 1.0;
   kspringFinal = 1.0;
-  SpinLattice = false;	// no spin-lattice neb for now
+  SpinLattice = false;  // no spin-lattice neb for now
 
   // no available fix neb/spin options for now
-  
+
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"parallel") == 0) {
@@ -91,7 +91,7 @@ FixNEB_spin::FixNEB_spin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix neb command");
   }
-  
+
   // nreplica = number of partitions
   // ireplica = which world I am in universe
   // nprocs_universe = # of procs in all replicase
@@ -288,12 +288,12 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
     MPI_Bcast(&vnext,1,MPI_DOUBLE,0,world);
   }
 
-  if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0)) 
+  if (FreeEndFinal && ireplica == nreplica-1 && (update->ntimestep == 0))
     error->all(FLERR,"NEB_spin Free End option not yet active");
 
   if (ireplica == 0) vIni=veng;
 
-  if (FreeEndFinalWithRespToEIni) 
+  if (FreeEndFinalWithRespToEIni)
     error->all(FLERR,"NEB_spin Free End option not yet active");
 
   if (FreeEndIni && ireplica == 0 && (update->ntimestep == 0))
@@ -328,124 +328,124 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   // computation of the tangent vector
 
-  if (ireplica == nreplica-1) {		// final replica
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	
-	// tangent vector
-	
-	delspxp = sp[i][0] - spprev[i][0];
-	delspyp = sp[i][1] - spprev[i][1];
-	delspzp = sp[i][2] - spprev[i][2];
-        
-	// project delp vector on tangent space
-	
-	delpdots = delspxp*sp[i][0]+delspyp*sp[i][1]+delspzp*sp[i][2];
-	delspxp -= delpdots*sp[i][0];
-	delspyp -= delpdots*sp[i][1];
-	delspzp -= delpdots*sp[i][2];
-        
-	// calc. geodesic length
-	
-	spi[0] = sp[i][0];
-	spi[1] = sp[i][1];
-	spi[2] = sp[i][2];
-	spj[0] = spprev[i][0];
-	spj[1] = spprev[i][1];
-	spj[2] = spprev[i][2];
-	templen = geodesic_distance(spi,spj);
-	plen += templen*templen;
-	dottangrad += delspxp*fm[i][0]+ delspyp*fm[i][1]+delspzp*fm[i][2];
-        gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
-	
-	// no free end option for now 
-        
-	if (FreeEndFinal||FreeEndFinalWithRespToEIni) 
-	  error->all(FLERR,"Free End option not yet active");
-      
-      }
-  } else if (ireplica == 0) {		// initial replica
+  if (ireplica == nreplica-1) {        // final replica
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
-	// tangent vector
-	
-	delspxn = spnext[i][0]- sp[i][0];
-	delspyn = spnext[i][1]- sp[i][1];
-	delspzn = spnext[i][2]- sp[i][2];
+        // tangent vector
+
+        delspxp = sp[i][0] - spprev[i][0];
+        delspyp = sp[i][1] - spprev[i][1];
+        delspzp = sp[i][2] - spprev[i][2];
+
+        // project delp vector on tangent space
+
+        delpdots = delspxp*sp[i][0]+delspyp*sp[i][1]+delspzp*sp[i][2];
+        delspxp -= delpdots*sp[i][0];
+        delspyp -= delpdots*sp[i][1];
+        delspzp -= delpdots*sp[i][2];
+
+        // calc. geodesic length
+
+        spi[0] = sp[i][0];
+        spi[1] = sp[i][1];
+        spi[2] = sp[i][2];
+        spj[0] = spprev[i][0];
+        spj[1] = spprev[i][1];
+        spj[2] = spprev[i][2];
+        templen = geodesic_distance(spi,spj);
+        plen += templen*templen;
+        dottangrad += delspxp*fm[i][0]+ delspyp*fm[i][1]+delspzp*fm[i][2];
+        gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
+
+        // no free end option for now
+
+        if (FreeEndFinal||FreeEndFinalWithRespToEIni)
+          error->all(FLERR,"Free End option not yet active");
+
+      }
+  } else if (ireplica == 0) {        // initial replica
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+
+        // tangent vector
+
+        delspxn = spnext[i][0]- sp[i][0];
+        delspyn = spnext[i][1]- sp[i][1];
+        delspzn = spnext[i][2]- sp[i][2];
 
         // project deln vector on tangent space
-	
-	delndots = delspxn*sp[i][0]+delspyn*sp[i][1]+delspzn*sp[i][2];
-	delspxn -= delndots*sp[i][0];
-	delspyn -= delndots*sp[i][1];
-	delspzn -= delndots*sp[i][2];
-	
-	// calc. geodesic length
-	
-	spi[0]=sp[i][0];
-	spi[1]=sp[i][1];
-	spi[2]=sp[i][2];
-	spj[0]=spnext[i][0];
-	spj[1]=spnext[i][1];
-	spj[2]=spnext[i][2];
-	templen = geodesic_distance(spi,spj);
-	nlen += templen*templen;
-	dottangrad += delspxn*fm[i][0] + delspyn*fm[i][1] + delspzn*fm[i][2];
+
+        delndots = delspxn*sp[i][0]+delspyn*sp[i][1]+delspzn*sp[i][2];
+        delspxn -= delndots*sp[i][0];
+        delspyn -= delndots*sp[i][1];
+        delspzn -= delndots*sp[i][2];
+
+        // calc. geodesic length
+
+        spi[0]=sp[i][0];
+        spi[1]=sp[i][1];
+        spi[2]=sp[i][2];
+        spj[0]=spnext[i][0];
+        spj[1]=spnext[i][1];
+        spj[2]=spnext[i][2];
+        templen = geodesic_distance(spi,spj);
+        nlen += templen*templen;
+        dottangrad += delspxn*fm[i][0] + delspyn*fm[i][1] + delspzn*fm[i][2];
         gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
-	
-	// no free end option for now 
-        
-        if (FreeEndIni) 
-	  error->all(FLERR,"Free End option not yet active");
+
+        // no free end option for now
+
+        if (FreeEndIni)
+          error->all(FLERR,"Free End option not yet active");
 
       }
-  } else {			// intermediate replica
+  } else {                        // intermediate replica
 
     double vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
     double vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        
-	// calc. delp vector
 
-	delspxp = sp[i][0] - spprev[i][0];
+        // calc. delp vector
+
+        delspxp = sp[i][0] - spprev[i][0];
         delspyp = sp[i][1] - spprev[i][1];
         delspzp = sp[i][2] - spprev[i][2];
-        
-	// project delp vector on tangent space
 
-	delndots = delspxp*sp[i][0]+delspyp*sp[i][1]+delspzp*sp[i][2];
-	delspxp -= delpdots*sp[i][0];
-	delspyp -= delpdots*sp[i][1];
-	delspzp -= delpdots*sp[i][2];
+        // project delp vector on tangent space
 
-	// calc. prev. geodesic length
+        delndots = delspxp*sp[i][0]+delspyp*sp[i][1]+delspzp*sp[i][2];
+        delspxp -= delpdots*sp[i][0];
+        delspyp -= delpdots*sp[i][1];
+        delspzp -= delpdots*sp[i][2];
 
-	spi[0]=sp[i][0];
-	spi[1]=sp[i][1];
-	spi[2]=sp[i][2];
-	spj[0]=spprev[i][0];
-	spj[1]=spprev[i][1];
-	spj[2]=spprev[i][2];
-	templen = geodesic_distance(spi, spj);
-	plen += templen*templen;
+        // calc. prev. geodesic length
 
-	// calc. deln vector
+        spi[0]=sp[i][0];
+        spi[1]=sp[i][1];
+        spi[2]=sp[i][2];
+        spj[0]=spprev[i][0];
+        spj[1]=spprev[i][1];
+        spj[2]=spprev[i][2];
+        templen = geodesic_distance(spi, spj);
+        plen += templen*templen;
 
-	delspxn = spnext[i][0] - sp[i][0];
+        // calc. deln vector
+
+        delspxn = spnext[i][0] - sp[i][0];
         delspyn = spnext[i][1] - sp[i][1];
         delspzn = spnext[i][2] - sp[i][2];
-        
-	// project deln vector on tangent space
 
-	delndots = delspxn*sp[i][0]+delspyn*sp[i][1]+delspzn*sp[i][2];
-	delspxn -= delndots*sp[i][0];
-	delspyn -= delndots*sp[i][1];
-	delspzn -= delndots*sp[i][2];
+        // project deln vector on tangent space
 
-	// evaluate best path tangent
+        delndots = delspxn*sp[i][0]+delspyn*sp[i][1]+delspzn*sp[i][2];
+        delspxn -= delndots*sp[i][0];
+        delspyn -= delndots*sp[i][1];
+        delspzn -= delndots*sp[i][2];
+
+        // evaluate best path tangent
 
         if (vnext > veng && veng > vprev) {
           tangent[i][0] = delspxn;
@@ -472,40 +472,40 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
         }
 
         // project tangent vector on tangent space
-	
-	double sdottan;
-	sdottan = sp[i][0]*tangent[i][0] + sp[i][1]*tangent[i][1] +
-	  sp[i][2]*tangent[i][2];
-	tangent[i][0] -= sdottan*sp[i][0];
-	tangent[i][1] -= sdottan*sp[i][1];
-	tangent[i][2] -= sdottan*sp[i][2];
-	
-	// calc. next geodesic length
-	
-	spi[0]=sp[i][0];
-	spi[1]=sp[i][1];
-	spi[2]=sp[i][2];
-	spj[0]=spnext[i][0];
-	spj[1]=spnext[i][1];
-	spj[2]=spnext[i][2];
-	templen = geodesic_distance(spi, spj);
-	nlen += templen*templen;
-    
-        tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] + 
-	  tangent[i][2]*tangent[i][2];
+
+        double sdottan;
+        sdottan = sp[i][0]*tangent[i][0] + sp[i][1]*tangent[i][1] +
+          sp[i][2]*tangent[i][2];
+        tangent[i][0] -= sdottan*sp[i][0];
+        tangent[i][1] -= sdottan*sp[i][1];
+        tangent[i][2] -= sdottan*sp[i][2];
+
+        // calc. next geodesic length
+
+        spi[0]=sp[i][0];
+        spi[1]=sp[i][1];
+        spi[2]=sp[i][2];
+        spj[0]=spnext[i][0];
+        spj[1]=spnext[i][1];
+        spj[2]=spnext[i][2];
+        templen = geodesic_distance(spi, spj);
+        nlen += templen*templen;
+
+        tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] +
+          tangent[i][2]*tangent[i][2];
         gradlen += fm[i][0]*fm[i][0] + fm[i][1]*fm[i][1] + fm[i][2]*fm[i][2];
         dotpath += delspxp*delspxn + delspyp*delspyn + delspzp*delspzn;
-        dottangrad += tangent[i][0]*fm[i][0] + tangent[i][1]*fm[i][1] + 
-	  tangent[i][2]*fm[i][2];
+        dottangrad += tangent[i][0]*fm[i][0] + tangent[i][1]*fm[i][1] +
+          tangent[i][2]*fm[i][2];
         gradnextlen += fnext[i][0]*fnext[i][0] + fnext[i][1]*fnext[i][1] +
-	  fnext[i][2]*fnext[i][2];
+          fnext[i][2]*fnext[i][2];
         dotgrad += fm[i][0]*fnext[i][0] + fm[i][1]*fnext[i][1] +
           fm[i][2]*fnext[i][2];
 
         // no Perpendicular nudging force option active yet
-        
-	if (kspringPerp != 0.0) 
-	  error->all(FLERR,"NEB_spin Perpendicular spring force not yet active");
+
+        if (kspringPerp != 0.0)
+          error->all(FLERR,"NEB_spin Perpendicular spring force not yet active");
 
       }
   }
@@ -531,7 +531,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   dottangrad = bufout[6];
   dotgrad = bufout[7];
 
-  // check projection of tangent vector on tangent space 
+  // check projection of tangent vector on tangent space
   // and normalize it
 
   double buftan[3];
@@ -539,7 +539,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       tandots = tangent[i][0]*sp[i][0]+tangent[i][1]*sp[i][1]+
-	tangent[i][2]*sp[i][2];
+        tangent[i][2]*sp[i][2];
       buftan[0] = tangent[i][0]-tandots*sp[i][0];
       buftan[1] = tangent[i][1]-tandots*sp[i][1];
       buftan[2] = tangent[i][2]-tandots*sp[i][2];
@@ -548,7 +548,7 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
       tangent[i][2] = buftan[2];
 
       if (tlen > 0.0) {
-	double tleninv = 1.0/tlen;
+        double tleninv = 1.0/tlen;
         tangent[i][0] *= tleninv;
         tangent[i][1] *= tleninv;
         tangent[i][2] *= tleninv;
@@ -567,17 +567,17 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
     dotgrad = dotgrad /(gradlen*gradnextlen);
 
   // no Free End options active yet
-  
-  if (FreeEndIni && ireplica == 0) 
+
+  if (FreeEndIni && ireplica == 0)
     error->all(FLERR,"NEB_spin Free End option not yet active");
-  if (FreeEndFinal && ireplica == nreplica -1) 
+  if (FreeEndFinal && ireplica == nreplica -1)
     error->all(FLERR,"NEB_spin Free End option not yet active");
-  if (FreeEndFinalWithRespToEIni&&ireplica == nreplica -1) 
+  if (FreeEndFinalWithRespToEIni&&ireplica == nreplica -1)
     error->all(FLERR,"NEB_spin Free End option not yet active");
 
-  // no NEB_spin long range option 
-  
-  if (NEBLongRange) 
+  // no NEB_spin long range option
+
+  if (NEBLongRange)
     error->all(FLERR,"NEB_spin long range option not yet active");
 
   // exit calc. if first or last replica (no gneb force)
@@ -586,14 +586,14 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
 
   dotpath = dotpath/(plen*nlen);
 
-  for (int i = 0; i < nlocal; i++) 
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       dot += fm[i][0]*tangent[i][0] + fm[i][1]*tangent[i][1] +
         fm[i][2]*tangent[i][2];
     }
 
   // gather all dot for this replica
-  
+
   double dotall;
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dot=dotall;
@@ -601,9 +601,9 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
   // for intermediate replica
   // calc. GNEB force prefactor
 
-  if (ireplica == rclimber) prefactor = -2.0*dot;	// for climbing replica
+  if (ireplica == rclimber) prefactor = -2.0*dot;        // for climbing replica
   else {
-    if (NEBLongRange) {	
+    if (NEBLongRange) {
       error->all(FLERR,"Long Range NEB_spin climber option not yet active");
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);
@@ -626,14 +626,14 @@ void FixNEB_spin::min_post_force(int /*vflag*/)
       fm[i][1] += prefactor*tangent[i][1];
       fm[i][2] += prefactor*tangent[i][2];
     }
-  
+
   // project GNEB force on tangent space
 
   double fdots;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       fdots = fm[i][0]*sp[i][0] + fm[i][1]*sp[i][1] +
-	fm[i][2]*sp[i][2];
+        fm[i][2]*sp[i][2];
       fm[i][0] -= fdots*sp[i][0];
       fm[i][1] -= fdots*sp[i][1];
       fm[i][2] -= fdots*sp[i][2];
@@ -656,15 +656,15 @@ double FixNEB_spin::geodesic_distance(double spi[3], double spj[3])
   crossy = spi[2]*spj[0]-spi[0]*spj[2];
   crossz = spi[0]*spj[1]-spi[1]*spj[0];
   normcross = sqrt(crossx*crossx + crossy*crossy + crossz*crossz);
-  
+
   dotx = spi[0]*spj[0];
   doty = spi[1]*spj[1];
   dotz = spi[2]*spj[2];
   dots = dotx+doty+dotz;
 
-  if (normcross == 0.0 && dots == 0.0) 
+  if (normcross == 0.0 && dots == 0.0)
     error->all(FLERR,"Incorrect calc. of geodesic_distance in Fix NEB/spin");
-  
+
   dist = atan2(normcross,dots);
 
   return dist;

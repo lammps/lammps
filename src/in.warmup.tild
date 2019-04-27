@@ -3,25 +3,22 @@
 units		lj
 atom_style	bond
 processors      * 1 1
-read_data 	input-diblock.conf
+read_data 	input-diblock.conf 
 
-lattice		fcc 0.8442
-region		box block 0 10 0 10 0 10
+
 # create_box	3 box
 # create_atoms	1 box
 
-region		long block 3 6 0 10 0 10
-set             region long type 2
 #set type 1:2    charge 0.0
 
 velocity	all create 1.0 87287
 
 bond_style harmonic
-special_bonds lj 0.0 1.0 1.0
-bond_coeff * 1000 1
+# special_bonds lj 0.0 1.0 1.0
+bond_coeff * 1.5 0
 
-pair_style soft 1.0
-pair_coeff * * 10.0
+pair_style soft 2
+pair_coeff * * 0.0
 
 # pair_style	gauss 4
 # pair_coeff	* * 1.5 0.25
@@ -35,18 +32,18 @@ pair_coeff * * 10.0
 # kspace_style    pppm 1.0e-10
 # kspace_modify   gewald/disp 0.000000001
 
-neighbor	0.3 bin
+neighbor	1.0 bin
 neigh_modify	every 2 delay 4 check yes
 
-group		fast type 1
-group		slow type 2
+# group		fast type 1
+# group		slow type 2
 # kspace_modify 	tild/params fast slow 3
 # kspace_modify 	tild/params all 20
 # fix		0 all balance 20 1.0 shift x 5 1.0 &
 #                 weight group 2 fast 1.0 slow 2.0 weight time 0.66
 
 # fix		1 all nvt 0.5
-fix 		1 all nvt temp 0.5 0.5 $(100.0*dt)
+fix 		1 all nvt temp 1.0 1.0 $(100.0*dt)
 # jim 		halpert
 # compute		test fast group/group slow kspace yes 
 
@@ -59,9 +56,10 @@ fix 		1 all nvt temp 0.5 0.5 $(100.0*dt)
 #dump		3 all movie 25 movie.mpg type type &
 #		axes yes 0.8 0.02 view 60 -30
 #dump_modify	3 pad 3
-dump trj all custom 010 test.lammpstrj id type mol x y z
+# timestep 0.001
+dump trj all custom 0100 test.lammpstrj id type mol x y z
 
-thermo		10
+thermo		100
 run		5000
 
 write_data intermediate.conf nocoeff

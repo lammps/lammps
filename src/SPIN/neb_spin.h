@@ -28,7 +28,6 @@ namespace LAMMPS_NS {
 class NEBSpin : protected Pointers {
  public:
   NEBSpin(class LAMMPS *);
-  NEBSpin(class LAMMPS *, double, double, int, int, int, double *, double *);
   ~NEBSpin();
   void command(int, char **);  // process neb/spin command
   void run();                  // run NEBSpin

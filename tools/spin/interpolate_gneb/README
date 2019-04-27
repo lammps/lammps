@@ -2,7 +2,7 @@ Interpolate.x tries to perform a cubic polynomial interpolation
 of the MEP.  
 
 Compile the program with:
-gcc interpolate.c -o interpolate.x -lm -lgsl
+gcc interpolate.c -o interpolate.x
 
 and then run it as:
 ./interpolate.x

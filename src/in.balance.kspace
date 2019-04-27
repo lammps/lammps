@@ -1,62 +1,50 @@
-# 3d Lennard-Jones melt
+# 4d Lennard-Jones melt
 
 units		lj
 atom_style	bond
 processors      * 1 1
-read_data 	intermediate.conf
+boundary 	p p p
+read_data 	intermediate.conf 
 
-lattice		fcc 0.8442
-region		box block 0 10 0 10 0 10
 # create_box	3 box
 # create_atoms	1 box
 
-region		long block 3 6 0 10 0 10
-set             region long type 2
 #set type 1:2    charge 0.0
 
 velocity	all create 1.0 87287
 
-# pair_style	gauss 24
+pair_style	soft 3
+pair_coeff	* * 0
 # pair_coeff	* * 1.0 1.0 2.5
 # pair_coeff      * 2 1.0 1.0 5.0
 
 bond_style harmonic
-special_bonds lj 0.0 1.0 1.0 
+# special_bonds lj 0.0 1.0 1.0 
 bond_coeff * 1.5 0
-
-
-kspace_style    tild 1.0e-4
-kspace_modify   tild/gauss_a2 1.0
-
-# kspace_style    pppm/tild 1.0e-10
-kspace_modify 	mesh 100 100 100
-# kspace_style    pppm 1.0e-10
-# kspace_modify   gewald/disp 0.000000001
-
-# neighbor	0.3 bin
-# neigh_modify	every 2 delay 4 check yes
+# comm_modify mode multi cutoff/multi 1 10.0
 
 group		fast type 1
 group		slow type 2
+
+kspace_style    tild 1.0e-4
+kspace_modify   tild/gauss_a2 1
+
+# kspace_style    pppm/tild 1.0e-10
+kspace_modify 	mesh 21 21 21 
+# kspace_style    pppm 1.0e-10
+# kspace_modify   gewald/disp 0.000000001
+
+neighbor	1.0 bin
+neigh_modify	every 2 delay 4 check yes
+
 kspace_modify 	tild/params fast slow 30
-kspace_modify 	tild/params all 200
+kspace_modify 	tild/params all 10
 # fix		0 all balance 20 1.0 shift x 5 1.0 &
 #                 weight group 2 fast 1.0 slow 2.0 weight time 0.66
 
 # fix		1 all nve
-fix             1 all nvt temp 0.5 0.5 $(100.0*dt)
-# compute		test fast group/group slow kspace yes 
+fix             1 all nvt temp 1.0 1.0 $(100.0*dt)
+dump trj all custom 050 final.lammpstrj id type mol x y z
 
-#dump		id all atom 50 dump.melt
-
-#dump		2 all image 25 image.*.jpg type type &
-#		axes yes 0.8 0.02 view 60 -30
-#dump_modify	2 pad 3
-
-#dump		3 all movie 25 movie.mpg type type &
-#		axes yes 0.8 0.02 view 60 -30
-#dump_modify	3 pad 3
-dump trj all custom 100 final.lammpstrj id type mol x y z
-
-thermo		100
-run		50000
+thermo		050
+run		8000

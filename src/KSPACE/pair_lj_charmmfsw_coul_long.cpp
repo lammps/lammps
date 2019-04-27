@@ -501,6 +501,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
 
       if (rsq < cut_bothsq) {
         r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
@@ -541,7 +542,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq && rsq > cut_in_off_sq) {
-          r6inv = r2inv*r2inv*r2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
@@ -582,7 +582,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq) {
-            r6inv = r2inv*r2inv*r2inv;
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               rinv = 1.0/r;
@@ -620,7 +619,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           } else forcecoul = 0.0;
 
           if (rsq <= cut_in_off_sq) {
-            r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

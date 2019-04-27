@@ -1032,7 +1032,7 @@ void TILD::init_gauss(){
   // Do the FFT of the Gaussian function
   for (int i = 0; i < Dim; i++){
     m=0;
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < nfft; j++) {
       ktmp[m++] = grad_uG[i][m];
       // std::cout<<grad_uG[i][m-1] << std::endl;;
       ktmp[m++] = 0.0;
@@ -1269,18 +1269,54 @@ void TILD::field_gradient(FFT_SCALAR *in,
   int i,j; 
   int Dim = domain->dimension;
   double k2, kv[Dim];
-  int n = 0;
+  int n = 0;    
+  // memset(&(work1[2*nfft_both-1]),0,2*nfft_both*sizeof(FFT_SCALAR));
   for (i = 0; i < nfft_both; i++) {
+    work1[n++] = ZEROF;
+    work1[n++] = ZEROF;
+  }
+  n=0;
+  for (i = 0; i < nfft; i++) {
     work1[n++] = in[i];
     work1[n++] = ZEROF;
   }
-  fft1->compute(work1, work1, 1);
+  // fft1->compute(work1, work2, 1);
+  // fft1->compute(work2, work2, -1);
+  n=0;
+  // for (i = 0; i < nfft; i++) {
+  //   std::cout << work1[n] << '\t'  << work2[n]/nfft  << '\t' << work2[n]/work1[n] << std::endl;
+  //   n+=2; 
+  // }
+  FFT_SCALAR ** work3;
+  memory->create(work3,domain->dimension, 2*nfft, "tild:work3");
 
-  get_k_alias(work1, out);
-
-  for (i = 0; i < Dim; i++) {
-    fft1->compute(out[i], out[i], -1);
+  n=0;
+  for (i = 0; i < nfft; i++) {
+    work1[n++] = in[i]/nfft;
+    work1[n++] = ZEROF;
   }
+  get_k_alias(work1, work3);
+
+  //   for (j = 0; j < nfft; j++) {
+  // for (i = 0; i < Dim; i++) {
+  //     std::cout << work3[i][j] << '\t';
+  //   }
+  //   std::cout << std::endl;
+  // }
+  for (i = 0; i < Dim; i++) {
+    fft1->compute(work3[i], work3[i], -1);
+    n=0;
+    for (j = 0; j < nfft; j++) {
+      out[i][j] = work3[i][n];
+      n+=2;
+    }
+  }
+  n=0;
+//  for (i = 0; i < nfft_both; i++) {
+//     std::cout<< out[0][i] << '\t' << out[1][i] << '\t' << out[2][i] << '\t' << std::endl; ;
+//  }
+  
+  memory->destroy(work3);
 }
 
 int TILD::factorable(int n)
@@ -1402,8 +1438,11 @@ void TILD::particle_map(double delx, double dely, double delz,
 
     if (nx+nlow < nxlo || nx+nup > nxhi ||
         ny+nlow < nylo || ny+nup > nyhi ||
-        nz+nlow < nzlo || nz+nup > nzhi)
+        nz+nlow < nzlo || nz+nup > nzhi){
       flag = 1;
+      std::cout << i << "\t" << x[i][0] << "\t" << x[i][1] << "\t" << x[i][2] << "\n"; 
+      
+      }
   }
 
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
@@ -2246,16 +2285,16 @@ void TILD::accumulate_gradient() {
 
       for (int j = 0; j < Dim; j++) {
         n = 0;
-        for (int k = 0; k < nfft_both; k++) {
-          ktmp2[n++] = grad_uG_hat[j][n] * ktmp[n];
-          ktmp2[n++] = grad_uG_hat[j][n] * ktmp[n];
+        for (int k = 0; k < 2*nfft; k++) {
+          ktmp2[k] = grad_uG_hat[j][k] * ktmp[k];
         }
 
         fft1->compute(ktmp2, ktmp, -1);
 
         n = 0;
-        for (int k = 0; k < nfft_both; k++) {
-          tmp[k] = ktmp[n];
+        for (int k = 0; k < nfft; k++) {
+          tmp[k] = ktmp[n]/nfft/nfft;
+          // std::cout<<tmp[k] << "\t" << ktmp[n] << std::endl;
           n +=2;
         }
 

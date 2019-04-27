@@ -584,8 +584,8 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           if (rsq < cut_ljsq) {
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
-              rinv = 1.0/r;
-              r3inv = rinv*rinv*rinv;
+              rinv = sqrt(r2inv);
+              r3inv = r2inv*rinv;
               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *

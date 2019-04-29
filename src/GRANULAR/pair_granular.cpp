@@ -418,7 +418,7 @@ void PairGranular::compute(int eflag, int vflag)
           }
           // rotate and update displacements.
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-          if (historyupdate){
+          if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
             if (fabs(rsht) < EPSILON) rsht = 0;
             if (rsht > 0) {
@@ -958,7 +958,7 @@ void PairGranular::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-	 init specific to this pair style
+  init specific to this pair style
 ------------------------------------------------------------------------- */
 
 void PairGranular::init_style()

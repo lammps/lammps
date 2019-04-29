@@ -1161,7 +1161,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   if (damping_model == VELOCITY) {
     damp_normal = 1;
   }
-  else if (damping_model == MASS_VELOCITY){
+  else if (damping_model == MASS_VELOCITY) {
     damp_normal = meff;
   }
   else if (damping_model == VISCOELASTIC) {

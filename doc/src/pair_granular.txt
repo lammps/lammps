@@ -66,8 +66,8 @@ mixed coefficients for type 1 - type 2 interactions can be determined from
 mixing rules discussed below.  For additional flexibility,
 coefficients as well as model forms can vary between particle types,
 as shown in the fourth example: type 1 - type 1 interactions are based
-on a Johnson-Kendall-Roberts normal contact model and 2-2 interactions 
-are based on a DMT cohesive model (see below).  In that example, 1-1 
+on a Johnson-Kendall-Roberts normal contact model and 2-2 interactions
+are based on a DMT cohesive model (see below).  In that example, 1-1
 and 2-2 interactions have different model forms, in which case mixing of
 coefficients cannot be determined, so 1-2 interactions must be
 explicitly defined via the {pair_coeff 1 *} command, otherwise an
@@ -215,9 +215,9 @@ For {damping mass_velocity}, the normal damping is given by:
 \end\{equation\}
 
 Here, \(\eta_\{n0\}\) is the damping coefficient specified for the normal
-contact model, in units of {mass}/{time} and 
+contact model, in units of {mass}/{time} and
 \(m_\{eff\} = m_i m_j/(m_i + m_j)\) is the effective mass.
-Use {damping mass_velocity} to reproduce the damping behavior of 
+Use {damping mass_velocity} to reproduce the damping behavior of
 {pair gran/hooke/*}.
 
 The {damping viscoelastic} model is based on the viscoelastic
@@ -228,9 +228,9 @@ damping is given by:
 \eta_n = \eta_\{n0\}\ a m_\{eff\}
 \end\{equation\}
 
-Here, {a} is the contact radius, given by \(a =\sqrt\{R\delta\}\) 
-for all models except {jkr}, for which it is given implicitly according 
-to \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\).  For {damping viscoelastic}, 
+Here, {a} is the contact radius, given by \(a =\sqrt\{R\delta\}\)
+for all models except {jkr}, for which it is given implicitly according
+to \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\).  For {damping viscoelastic},
 \(\eta_\{n0\}\) is in units of 1/({time}*{distance}).
 
 The {tsuji} model is based on the work of "(Tsuji et
@@ -583,11 +583,11 @@ The {granular} pair style can reproduce the behavior of the
 minor differences can be expected due to corrections in
 displacement history frame-of-reference, and the application
 of the torque at the center of the contact rather than
-at each particle). The first example above 
+at each particle). The first example above
 is equivalent to {pair gran/hooke 1000.0 NULL 50.0 50.0 0.4 1}.
-The second example is equivalent to 
+The second example is equivalent to
 {pair gran/hooke/history 1000.0 500.0 50.0 50.0 0.4 1}.
-The third example is equivalent to 
+The third example is equivalent to
 {pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1}.
 
 :line
@@ -734,7 +734,7 @@ For the {pair_coeff} settings: {damping viscoelastic}, {rolling none},
 J. M., & Poschel, T. (1996).  Model for collisions in granular
 gases. Physical review E, 53(5), 5382.
 
-:link(Tsuji1992) 
+:link(Tsuji1992)
 [(Tsuji et al, 1992)] Tsuji, Y., Tanaka, T., & Ishida,
 T. (1992). Lagrangian numerical simulation of plug flow of
 cohesionless particles in a horizontal pipe. Powder technology, 71(3),

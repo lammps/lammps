@@ -618,10 +618,12 @@ int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
 	kx = 0.0;
 	ky = spiz;
 	kz = -spiy;
+	knormsq = ky*ky + kz*kz;
       } else if (spix*spix + spiz*spiz != 0.0) { // spin not along [010]
 	kx = -spiz;
 	ky = 0.0;
 	kz = spix;
+	knormsq = kx*kx + kz*kz;
       } else error->all(FLERR,"Incorrect initial rotation operation");
       rot_flag = 1;
     }

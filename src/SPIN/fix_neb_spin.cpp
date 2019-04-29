@@ -708,27 +708,33 @@ void FixNEBSpin::inter_replica_comm()
   // direct comm of x -> xprev and x -> xnext
 
   if (cmode == SINGLE_PROC_DIRECT) {
-    if (ireplica > 0)
+    if (ireplica > 0) {
       MPI_Irecv(xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);
       MPI_Irecv(spprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);
-    if (ireplica < nreplica-1)
+    }
+    if (ireplica < nreplica-1) {
       MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld);
       MPI_Send(sp[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld);
+    }
     if (ireplica > 0) MPI_Wait(&request,MPI_STATUS_IGNORE);
-    if (ireplica < nreplica-1)
+    if (ireplica < nreplica-1) {
       MPI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
       MPI_Irecv(spnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
-    if (ireplica > 0)
+    }
+    if (ireplica > 0) {
       MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
       MPI_Send(sp[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
+    }
     if (ireplica < nreplica-1) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-    if (ireplica < nreplica-1)
+    if (ireplica < nreplica-1) {
       MPI_Irecv(fnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
       MPI_Irecv(fmnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
-    if (ireplica > 0)
+    }
+    if (ireplica > 0) {
       MPI_Send(f[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
       MPI_Send(fm[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
+    }
     if (ireplica < nreplica-1) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
     return;

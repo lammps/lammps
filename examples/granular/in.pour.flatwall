@@ -30,7 +30,7 @@ variable	dens equal 1.0
 variable skin equal 0.3*${rhi}
 
 #############
-
+processors	* * 1
 region 		boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
 create_box	2 boxreg
 change_box	all boundary p p f
@@ -62,6 +62,6 @@ thermo		100
 
 timestep	0.001
 
-dump		1 all custom 100 ${name}.dump id type radius mass x y z 
+#dump		1 all custom 100 ${name}.dump id type radius mass x y z 
 
-run		15000
+run		5000

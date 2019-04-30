@@ -1370,7 +1370,15 @@ if(PKG_GPU)
       set(OCL_COMMON_HEADERS ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_preprocessor.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_aux_fun1.h)
 
       file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu)
-      list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
+      list(REMOVE_ITEM GPU_LIB_CU
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_re_squared.cu
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_re_squared_lj.cu
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu
+        ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu
+      )
 
       foreach(GPU_KERNEL ${GPU_LIB_CU})
           get_filename_component(basename ${GPU_KERNEL} NAME_WE)
@@ -1381,7 +1389,21 @@ if(PKG_GPU)
 
       GenerateOpenCLHeader(gayberne ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu)
       GenerateOpenCLHeader(gayberne_lj ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
-      list(APPEND GPU_LIB_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h)
+      GenerateOpenCLHeader(re_squared ${CMAKE_CURRENT_BINARY_DIR}/gpu/re_squared_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_re_squared.cu)
+      GenerateOpenCLHeader(re_squared_lj ${CMAKE_CURRENT_BINARY_DIR}/gpu/re_squared_lj_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_ellipsoid_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_re_squared_lj.cu)
+      GenerateOpenCLHeader(tersoff ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu)
+      GenerateOpenCLHeader(tersoff_zbl ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu)
+      GenerateOpenCLHeader(tersoff_mod ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu)
+
+      list(APPEND GPU_LIB_SOURCES
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_lj_cl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/re_squared_cl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/re_squared_lj_cl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h
+      )
 
       add_library(gpu STATIC ${GPU_LIB_SOURCES})
       target_link_libraries(gpu ${OpenCL_LIBRARIES})

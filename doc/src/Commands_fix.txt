@@ -107,6 +107,7 @@ OPT.
 "mvv/edpd"_fix_mvv_dpd.html,
 "mvv/tdpd"_fix_mvv_dpd.html,
 "neb"_fix_neb.html,
+"neb_spin"_fix_neb_spin.html,
 "nph (ko)"_fix_nh.html,
 "nph/asphere (o)"_fix_nph_asphere.html,
 "nph/body"_fix_nph_body.html,

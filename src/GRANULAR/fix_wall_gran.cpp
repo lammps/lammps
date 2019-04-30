@@ -53,7 +53,7 @@ enum{NONE,CONSTANT,EQUAL};
 #define EPSILON 1e-10
 
 enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-enum {VELOCITY, VISCOELASTIC, TSUJI};
+enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
 enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
       TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
@@ -122,6 +122,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
     damping_model = VISCOELASTIC;
     roll_model = twist_model = NONE;
+    tangential_history = roll_history = twist_history = 0;
     while (iarg < narg) {
       if (strcmp(arg[iarg], "hooke") == 0) {
         if (iarg + 2 >= narg)
@@ -183,6 +184,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         if (strcmp(arg[iarg+1], "velocity") == 0) {
           damping_model = VELOCITY;
           iarg += 1;
+        } else if (strcmp(arg[iarg+1], "mass_velocity") == 0) {
+          damping_model = MASS_VELOCITY;
+          iarg += 1;
         } else if (strcmp(arg[iarg+1], "viscoelastic") == 0) {
           damping_model = VISCOELASTIC;
           iarg += 1;
@@ -226,7 +230,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
                          "stiffness requires a normal contact model "
                          "that specifies material properties");
             }
-            tangential_coeffs[0] = 4*(2-poiss)*(1+poiss)/Emod;
+            tangential_coeffs[0] = Emod/4*(2-poiss)*(1+poiss);
           } else {
             tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
           }
@@ -1061,7 +1065,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
                            double *contact)
 {
   double fx,fy,fz,nx,ny,nz;
-  double radsum,r,rinv;
+  double r,rinv;
   double Reff, delta, dR, dR2;
 
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -1095,11 +1099,8 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   double shrmag,rsht;
 
   r = sqrt(rsq);
-  radsum = rwall + radius;
-
   E = normal_coeffs[0];
 
-  radsum = radius + rwall;
   if (rwall == 0) Reff = radius;
   else Reff = radius*rwall/(radius+rwall);
 
@@ -1122,7 +1123,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vn2 = ny*vnnr;
   vn3 = nz*vnnr;
 
-  delta = radsum - r;
+  delta = radius - r;
   dR = delta*Reff;
   if (normal_model == JKR) {
     history[0] = 1.0;
@@ -1160,6 +1161,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   if (damping_model == VELOCITY) {
     damp_normal = 1;
   }
+  else if (damping_model == MASS_VELOCITY) {
+    damp_normal = meff;
+  }
   else if (damping_model == VISCOELASTIC) {
     damp_normal = a*meff;
   }
@@ -1182,9 +1186,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vt3 = vr3 - vn3;
 
   // relative rotational velocity
-  wr1 = radius*omega[0] * rinv;
-  wr2 = radius*omega[1] * rinv;
-  wr3 = radius*omega[2] * rinv;
+  wr1 = radius*omega[0];
+  wr2 = radius*omega[1];
+  wr3 = radius*omega[2];
 
   // relative tangential velocities
   vtr1 = vt1 - (nz*wr2-ny*wr3);

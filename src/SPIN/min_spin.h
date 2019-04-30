@@ -40,7 +40,7 @@ class MinSpin : public Min {
  private:
 
   // global and spin timesteps
-  
+
   double dt;
   double dts;
 

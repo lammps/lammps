@@ -7,8 +7,6 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-#include <cmath>
-
 #include "colvarmodule.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
@@ -101,6 +99,12 @@ colvar::coordnum::coordnum(std::string const &conf)
 
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
+
+  if (group1 == NULL || group2 == NULL) {
+    cvm::error("Error: failed to initialize atom groups.\n",
+                INPUT_ERROR);
+    return;
+  }
 
   if (int atom_number = cvm::atom_group::overlap(*group1, *group2)) {
     cvm::error("Error: group1 and group2 share a common atom (number: " +
@@ -408,12 +412,6 @@ colvar::h_bond::h_bond()
 }
 
 
-colvar::h_bond::~h_bond()
-{
-  delete atom_groups[0];
-}
-
-
 void colvar::h_bond::calc_value()
 {
   int const flags = coordnum::ef_null;
@@ -655,8 +653,6 @@ colvar::groupcoordnum::groupcoordnum()
 
 void colvar::groupcoordnum::calc_value()
 {
-  cvm::rvector const r0_vec(0.0); // TODO enable the flag?
-
   // create fake atoms to hold the com coordinates
   cvm::atom group1_com_atom;
   cvm::atom group2_com_atom;
@@ -680,8 +676,6 @@ void colvar::groupcoordnum::calc_value()
 
 void colvar::groupcoordnum::calc_gradients()
 {
-  cvm::rvector const r0_vec(0.0); // TODO enable the flag?
-
   cvm::atom group1_com_atom;
   cvm::atom group2_com_atom;
   group1_com_atom.pos = group1->center_of_mass();

@@ -49,7 +49,7 @@ class FixPrecessionSpin : public Fix {
   void compute_cubic(double *, double *, double *, double *, double *);
   //void compute_cubic_mech(int, double *, double *, double *, double *, double *, double *);
   double compute_cubic_energy(double *, double *, double *, double *);
-  void set_axis(int, double *, double *, double *);
+  //void set_axis(int, double *, double *, double *);
  
  protected:
   int style; 			// style of the magnetic precession
@@ -81,6 +81,9 @@ class FixPrecessionSpin : public Fix {
   // cubic anisotropy intensity
 
   double k1c,k2c;
+  double nc1x,nc1y,nc1z;
+  double nc2x,nc2y,nc2z;
+  double nc3x,nc3y,nc3z;
 
   void set_magneticprecession();
 

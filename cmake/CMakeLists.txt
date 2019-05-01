@@ -1220,8 +1220,7 @@ if(PKG_USER-INTEL)
                          ${USER-INTEL_SOURCES_DIR}/fix_nh_intel.cpp
                          ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
                          ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
-                         ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
-                         ${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
+                         ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp)
 
   set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
 
@@ -1230,9 +1229,12 @@ if(PKG_USER-INTEL)
   RegisterNBinStyle(${USER-INTEL_SOURCES_DIR}/nbin_intel.h)
   RegisterNPairStyle(${USER-INTEL_SOURCES_DIR}/npair_intel.h)
   RegisterFixStyle(${USER-INTEL_SOURCES_DIR}/fix_intel.h)
-  RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
 
   get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
+  if(PKG_KSPACE)
+    list(APPEND USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
+    RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
+  endif()
 
   list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
   include_directories(${USER-INTEL_SOURCES_DIR})

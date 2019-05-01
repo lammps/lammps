@@ -1027,20 +1027,20 @@ void TILD::init_gauss(){
   }
 
   // Do the field gradient of the uG
-  field_gradient(uG, grad_uG, 0);
+  field_gradient(uG, grad_uG_hat, 0);
 
-  // Do the FFT of the Gaussian function
-  for (int i = 0; i < Dim; i++){
-    m=0;
-    for (int j = 0; j < nfft; j++) {
-      ktmp[m++] = grad_uG[i][m];
-      // std::cout<<grad_uG[i][m-1] << std::endl;;
-      ktmp[m++] = 0.0;
-    }
+  // // Do the FFT of the Gaussian function
+  // for (int i = 0; i < Dim; i++){
+  //   m=0;
+  //   for (int j = 0; j < nfft; j++) {
+  //     ktmp[m++] = grad_uG[i][m];
+  //     // std::cout<<grad_uG[i][m-1] << std::endl;;
+  //     ktmp[m++] = 0.0;
+  //   }
 
-    fft1->compute(ktmp, grad_uG_hat[i], 1);
+  //   fft1->compute(ktmp, grad_uG_hat[i], 1);
     
-  }
+  // }
 
 }
 
@@ -1287,15 +1287,19 @@ void TILD::field_gradient(FFT_SCALAR *in,
   //   std::cout << work1[n] << '\t'  << work2[n]/nfft  << '\t' << work2[n]/work1[n] << std::endl;
   //   n+=2; 
   // }
-  FFT_SCALAR ** work3;
-  memory->create(work3,domain->dimension, 2*nfft, "tild:work3");
+  // FFT_SCALAR ** work3;
+  // memory->create(work3,domain->dimension, 2*nfft, "tild:work3");
 
-  n=0;
-  for (i = 0; i < nfft; i++) {
-    work1[n++] = in[i]/nfft;
-    work1[n++] = ZEROF;
+  // n=0;
+  // for (i = 0; i < nfft; i++) {
+  //   work1[n++] = in[i]/ngrid;
+  //   work1[n++] = ZEROF;
+  // }
+  fft1->compute(work1, work1, 1);
+  for (j = 0; j < 2*nfft; j++) {
+    work1[j] = work1[j]/ngrid;
   }
-  get_k_alias(work1, work3);
+  get_k_alias(work1, out);
 
   //   for (j = 0; j < nfft; j++) {
   // for (i = 0; i < Dim; i++) {
@@ -1303,20 +1307,21 @@ void TILD::field_gradient(FFT_SCALAR *in,
   //   }
   //   std::cout << std::endl;
   // }
-  for (i = 0; i < Dim; i++) {
-    fft1->compute(work3[i], work3[i], -1);
-    n=0;
-    for (j = 0; j < nfft; j++) {
-      out[i][j] = work3[i][n];
-      n+=2;
-    }
-  }
-  n=0;
-//  for (i = 0; i < nfft_both; i++) {
-//     std::cout<< out[0][i] << '\t' << out[1][i] << '\t' << out[2][i] << '\t' << std::endl; ;
+  // for (i = 0; i < Dim; i++) {
+  // n=0;
+    // fft1->compute(work1, work3[i], -1);
+    // n=0;
+    // for (j = 0; j < nfft; j++) {
+    //   out[i][j] = work3[i][n];
+    //   n+=2;
+    // }
+  // }
+//   n=0;
+// //  for (i = 0; i < nfft_both; i++) {
+    // std::cout<< out[0][i] << '\t' << out[1][i] << '\t' << out[2][i] << '\t' << std::endl; ;
 //  }
   
-  memory->destroy(work3);
+  // memory->destroy(work3);
 }
 
 int TILD::factorable(int n)
@@ -2277,7 +2282,7 @@ void TILD::accumulate_gradient() {
     if (do_fft) {
 
       n = 0;
-      for (int k = 0; k < nfft_both; k++) {
+      for (int k = 0; k < nfft; k++) {
         work1[n++] = density_fft_types[i][k];
         work1[n++] = ZEROF;
       }
@@ -2286,14 +2291,14 @@ void TILD::accumulate_gradient() {
       for (int j = 0; j < Dim; j++) {
         n = 0;
         for (int k = 0; k < 2*nfft; k++) {
-          ktmp2[k] = grad_uG_hat[j][k] * ktmp[k];
+          ktmp2[k] = grad_uG_hat[j][k] * ktmp[k]/ngrid;
         }
 
         fft1->compute(ktmp2, ktmp, -1);
 
         n = 0;
         for (int k = 0; k < nfft; k++) {
-          tmp[k] = ktmp[n]/nfft/nfft;
+          tmp[k] = ktmp[n];
           // std::cout<<tmp[k] << "\t" << ktmp[n] << std::endl;
           n +=2;
         }

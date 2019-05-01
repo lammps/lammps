@@ -46,10 +46,8 @@ class FixPrecessionSpin : public Fix {
 
   // cubic aniso calculations
 
-  void compute_cubic(double *, double *, double *, double *, double *);
-  //void compute_cubic_mech(int, double *, double *, double *, double *, double *, double *);
-  double compute_cubic_energy(double *, double *, double *, double *);
-  //void set_axis(int, double *, double *, double *);
+  void compute_cubic(double *, double *);
+  double compute_cubic_energy(double *);
  
  protected:
   int style; 			// style of the magnetic precession

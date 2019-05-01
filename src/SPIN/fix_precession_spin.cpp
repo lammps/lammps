@@ -242,16 +242,13 @@ void FixPrecessionSpin::post_force(int /* vflag */)
       }
 
       if (cubic_flag) {
-        ea1[0] = ea1[1] = ea1[2] = 0.0;
-        ea2[0] = ea2[1] = ea2[2] = 0.0;
-        ea3[0] = ea3[1] = ea3[2] = 0.0;
-	//set_axis(i,ea1,ea2,ea3);
-	compute_cubic(spi,fmi,ea1,ea2,ea3);
-	epreci -= compute_cubic_energy(spi,ea1,ea2,ea3);
+	//epreci -= compute_cubic_energy(spi,ea1,ea2,ea3);
+	compute_cubic(spi,fmi);
+	epreci -= compute_cubic_energy(spi);
       }
 
       eprec += epreci;
-      emag[i] += hbar * epreci;
+      //emag[i] += hbar * epreci;
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
@@ -271,11 +268,7 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
     compute_anisotropy(spi,fmi);
   }
   if (cubic_flag) {
-    double ea1[3] = {0.0,0.0,0.0}; 
-    double ea2[3] = {0.0,0.0,0.0}; 
-    double ea3[3] = {0.0,0.0,0.0}; 
-    //set_axis(i,ea1,ea2,ea3);
-    compute_cubic(spi,fmi,ea1,ea2,ea3);
+    compute_cubic(spi,fmi);
   }
 }
 
@@ -424,14 +417,11 @@ void FixPrecessionSpin::set_magneticprecession()
    compute cubic aniso energy of spin i
 ------------------------------------------------------------------------- */
 
-double FixPrecessionSpin::compute_cubic_energy(double spi[3], double ea1[3], double ea2[3], double ea3[3])
+double FixPrecessionSpin::compute_cubic_energy(double spi[3])
 {
   double energy = 0.0;
   double skx,sky,skz;
 
-  //skx = spi[0]*ea1[0]+spi[1]*ea1[1]+spi[2]*ea1[2];
-  //sky = spi[0]*ea2[0]+spi[1]*ea2[1]+spi[2]*ea2[2];
-  //skz = spi[0]*ea3[0]+spi[1]*ea3[1]+spi[2]*ea3[2];
   skx = spi[0]*nc1x+spi[1]*nc1y+spi[2]*nc1z;
   sky = spi[0]*nc2x+spi[1]*nc2y+spi[2]*nc2z;
   skz = spi[0]*nc3x+spi[1]*nc3y+spi[2]*nc3z;
@@ -446,15 +436,15 @@ double FixPrecessionSpin::compute_cubic_energy(double spi[3], double ea1[3], dou
    compute cubic anisotropy interaction for spin i
 ------------------------------------------------------------------------- */
 
-void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3], double ea1[3], double ea2[3], double ea3[3])
+void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3])
 {
   double skx,sky,skz,skx2,sky2,skz2;
   double four1,four2,four3,fourx,foury,fourz;
   double six1,six2,six3,sixx,sixy,sixz;
 
-  skx = spi[0]*ea1[0]+spi[1]*ea1[1]+spi[2]*ea1[2];
-  sky = spi[0]*ea2[0]+spi[1]*ea2[1]+spi[2]*ea2[2];
-  skz = spi[0]*ea3[0]+spi[1]*ea3[1]+spi[2]*ea3[2];
+  skx = spi[0]*nc1x+spi[1]*nc1y+spi[2]*nc1z;
+  sky = spi[0]*nc2x+spi[1]*nc2y+spi[2]*nc2z;
+  skz = spi[0]*nc3x+spi[1]*nc3y+spi[2]*nc3z;
 
   skx2 = skx*skx;
   sky2 = sky*sky;
@@ -464,17 +454,17 @@ void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3], double ea1[3
   four2 = 2.0*sky*(skx2+skz2);
   four3 = 2.0*skz*(skx2+skz2);
 
-  fourx = k1c*(ea1[0]*four1 + ea2[0]*four2 + ea3[0]*four3);
-  foury = k1c*(ea1[1]*four1 + ea2[1]*four2 + ea3[1]*four3);
-  fourz = k1c*(ea1[2]*four1 + ea2[2]*four2 + ea3[2]*four3);
+  fourx = k1c*(nc1x*four1 + nc2x*four2 + nc3x*four3);
+  foury = k1c*(nc1y*four1 + nc2y*four2 + nc3y*four3);
+  fourz = k1c*(nc1z*four1 + nc2z*four2 + nc3z*four3);
 
   six1 = 2.0*skx*sky2*skz2;
   six2 = 2.0*sky*skx2*skz2;
   six3 = 2.0*skz*skx2*sky2;
   
-  sixx = k2c*(ea1[0]*six1 + ea2[0]*six2 + ea3[0]*six3);
-  sixy = k2c*(ea1[1]*six1 + ea2[1]*six2 + ea3[1]*six3);
-  sixz = k2c*(ea1[2]*six1 + ea2[2]*six2 + ea3[2]*six3);
+  sixx = k2c*(nc1x*six1 + nc2x*six2 + nc3x*six3);
+  sixy = k2c*(nc1y*six1 + nc2y*six2 + nc3y*six3);
+  sixz = k2c*(nc1z*six1 + nc2z*six2 + nc3z*six3);
   
   fmi[0] += fourx + sixx;
   fmi[1] += foury + sixy;

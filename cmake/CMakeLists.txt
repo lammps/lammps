@@ -738,8 +738,10 @@ if(PKG_KIM)
     enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-2.0.2.txz
-      URL_MD5 537d9c0abd30f85b875ebb584f9143fa
+      GIT_REPOSITORY https://github.com/openkim/kim-api.git
+      GIT_TAG SimulatorModels
+      #URL https://s3.openkim.org/kim-api/kim-api-2.0.2.txz
+      #URL_MD5 537d9c0abd30f85b875ebb584f9143fa
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

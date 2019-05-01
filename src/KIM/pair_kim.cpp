@@ -87,6 +87,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    chargeUnit(KIM_CHARGE_UNIT_unused),
    temperatureUnit(KIM_TEMPERATURE_UNIT_unused),
    timeUnit(KIM_TIME_UNIT_unused),
+   simulatorModel(NULL),
    pkim(NULL),
    pargs(NULL),
    kim_model_support_for_energy(KIM_SUPPORT_STATUS_notSupported),
@@ -396,8 +397,10 @@ void PairKIM::coeff(int narg, char **arg)
 
    // Assume all species arguments are valid
    // errors will be detected by below
+   std::string atom_type_sym_list;
    lmps_num_unique_elements = 0;
    for (i = 2; i < narg; i++) {
+     atom_type_sym_list += std::string(" ") + arg[i];
      for (j = 0; j < lmps_num_unique_elements; j++)
        if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
      lmps_map_species_to_unique[i-1] = j;
@@ -422,6 +425,15 @@ void PairKIM::coeff(int narg, char **arg)
 
    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
+   if (simulatorModel)
+   {
+     simulatorModel->AddTemplateMap("atom-type-sym-list", atom_type_sym_list);
+     simulatorModel->CloseTemplateMap();
+
+     error->all(FLERR,(simulatorModel->ToString()).c_str());
+   }
+   else
+   {
    // setup mapping between LAMMPS unique elements and KIM species codes
    if (kim_particle_codes_ok)
    {
@@ -448,6 +460,7 @@ void PairKIM::coeff(int narg, char **arg)
             << lmps_unique_elements[i];
         error->all(FLERR, msg.str().c_str());
       }
+   }
    }
 
    return;
@@ -770,7 +783,13 @@ void PairKIM::kim_init()
        &requestedUnitsAccepted,
        &pkim);
    if (kimerror)
-     error->all(FLERR,"KIM ModelCreate failed");
+   {
+     kimerror = KIM::SimulatorModel::Create(kim_modelname,&simulatorModel);
+     if (kimerror)
+       error->all(FLERR,"KIM ModelCreate failed");
+     else
+       return;
+   }
    else {
      if (!requestedUnitsAccepted) {
        error->all(FLERR,"KIM Model did not accept the requested unit system");

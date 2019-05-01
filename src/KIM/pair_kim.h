@@ -68,6 +68,7 @@ class KIM_API_model;
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
+#include "KIM_SimulatorModel.hpp"
 #include <sstream>
 
 
@@ -121,6 +122,7 @@ namespace LAMMPS_NS {
       KIM_TemperatureUnit temperatureUnit;
       KIM_TimeUnit timeUnit;
 
+      KIM::SimulatorModel * simulatorModel;
       KIM_Model * pkim;
       KIM_ComputeArguments * pargs;
 

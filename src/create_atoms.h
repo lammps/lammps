@@ -34,6 +34,11 @@ class CreateAtoms : protected Pointers {
   int *basistype;
   double xone[3],quatone[4];
   int remapflag;
+  int rotateflag;
+
+  int maxtries;
+  int excludeflag;
+  double exclude_cutoff;
 
   int varflag,vvar,xvar,yvar,zvar;
   char *vstr,*xstr,*ystr,*zstr;
@@ -41,6 +46,7 @@ class CreateAtoms : protected Pointers {
 
   class Molecule *onemol;
   class RanMars *ranmol;
+  double **temp_mol_coords;
 
   int triclinic;
   double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
@@ -48,7 +54,9 @@ class CreateAtoms : protected Pointers {
   void add_single();
   void add_random();
   void add_lattice();
-  void add_molecule(double *, double * = NULL);
+
+  void gen_mol_coords(double *, double * = NULL);
+  void create_mol();
   int vartest(double *);        // evaluate a variable with new atom position
 };
 

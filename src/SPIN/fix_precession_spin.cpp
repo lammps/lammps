@@ -74,6 +74,9 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   nax = nay = naz = 0.0;
   Kax = Kay = Kaz = 0.0;
   k1c = k2c = 0.0;
+  nc1x = nc1y = nc1z = 0.0;
+  nc2x = nc2y = nc2z = 0.0;
+  nc3x = nc3y = nc3z = 0.0;
 
   zeeman_flag = aniso_flag = cubic_flag = 0;
 
@@ -113,6 +116,44 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
     } else error->all(FLERR,"Illegal precession/spin command");
   }
 
+  // normalize vectors
+
+  double inorm;
+  if (zeeman_flag) {
+    inorm = 1.0/sqrt(nhx*nhx + nhy*nhy + nhz*nhz);
+    nhx *= inorm;
+    nhy *= inorm;
+    nhz *= inorm;
+  }
+
+  if (aniso_flag) {
+    inorm = 1.0/sqrt(nax*nax + nay*nay + naz*naz);
+    nax *= inorm;
+    nay *= inorm;
+    naz *= inorm;
+  }
+  
+  if (cubic_flag) {
+    inorm = 1.0/sqrt(nc1x*nc1x + nc1y*nc1y + nc1z*nc1z);
+    nc1x *= inorm;
+    nc1y *= inorm;
+    nc1z *= inorm;
+    inorm = 1.0/sqrt(nc2x*nc2x + nc2y*nc2y + nc2z*nc2z);
+    nc2x *= inorm;
+    nc2y *= inorm;
+    nc2z *= inorm;
+    inorm = 1.0/sqrt(nc3x*nc3x + nc3y*nc3y + nc3z*nc3z);
+    nc3x *= inorm;
+    nc3y *= inorm;
+    nc3z *= inorm;
+  }
+
+  printf("test aniso: \n");
+  printf("k1c=%g k2c=%g \n",k1c,k2c);
+  printf("nc1: %g %g %g \n",nc1x,nc1y,nc1z);
+  printf("nc2: %g %g %g \n",nc2x,nc2y,nc2z);
+  printf("nc3: %g %g %g \n",nc3x,nc3y,nc3z);
+
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
 
@@ -148,10 +189,12 @@ void FixPrecessionSpin::init()
   const double mub = 5.78901e-5;                // in eV/T
   const double gyro = mub/hbar;                 // in rad.THz/T
 
-  H_field *= gyro;                              // in rad.THz
-  Ka /= hbar;                                   // in rad.THz
-  k1c /= hbar;
-  k2c /= hbar;
+  // convert field quantities to rad.THz
+
+  H_field *= gyro;
+  Kah = Ka/hbar;
+  k1ch = k1c/hbar;
+  k2ch = k2c/hbar;
 
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -205,7 +248,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     modify->addstep_compute(update->ntimestep + 1);
-    set_magneticprecession();                   // update mag. field if time-dep.
+    set_magneticprecession();		// update mag. field if time-dep.
   }
 
   int *mask = atom->mask;
@@ -213,16 +256,10 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   double **fm = atom->fm;
   double **sp = atom->sp;
   const int nlocal = atom->nlocal;
-
   double spi[3], fmi[3], epreci;
-  double ea1[3],ea2[3],ea3[3];
+  
   eflag = 0;
   eprec = 0.0;
-
-  //NeighList *list = pair->list;
-  //int inum = list->inum;
-  //printf("tets: %d %d \n",inum,nlocal);
-
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       epreci = 0.0;
@@ -233,45 +270,39 @@ void FixPrecessionSpin::post_force(int /* vflag */)
 
       if (zeeman_flag) {          // compute Zeeman interaction
         compute_zeeman(i,fmi);
-        epreci -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        epreci -= hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
       }
 
       if (aniso_flag) {           // compute magnetic anisotropy
         compute_anisotropy(spi,fmi);
-        epreci -= 0.5*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        epreci -= compute_anisotropy_energy(spi);
       }
 
-      if (cubic_flag) {
-	//epreci -= compute_cubic_energy(spi,ea1,ea2,ea3);
+      if (cubic_flag) {		// compute cubic anisotropy
 	compute_cubic(spi,fmi);
 	epreci -= compute_cubic_energy(spi);
       }
 
       eprec += epreci;
-      //emag[i] += hbar * epreci;
+      emag[i] += epreci;
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
     }
   }
-  eprec *= hbar;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double fmi[3])
 {
-  if (zeeman_flag) {
-    compute_zeeman(i,fmi);
-  }
-  if (aniso_flag) {
-    compute_anisotropy(spi,fmi);
-  }
-  if (cubic_flag) {
-    compute_cubic(spi,fmi);
+  int *mask = atom->mask;
+  if (mask[i] & groupbit) {
+    if (zeeman_flag) compute_zeeman(i,fmi);
+    if (aniso_flag) compute_anisotropy(spi,fmi);
+    if (cubic_flag) compute_cubic(spi,fmi);
   }
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -295,6 +326,16 @@ void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
+double FixPrecessionSpin::compute_anisotropy_energy(double spi[3])
+{
+  double energy = 0.0;
+  double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
+  energy = Ka*scalar*scalar;
+  return energy; 
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
@@ -310,108 +351,11 @@ void FixPrecessionSpin::set_magneticprecession()
     hz = H_field*nhz;
   }
   if (aniso_flag) {
-    Kax = 2.0*Ka*nax;
-    Kay = 2.0*Ka*nay;
-    Kaz = 2.0*Ka*naz;
+    Kax = 2.0*Kah*nax;
+    Kay = 2.0*Kah*nay;
+    Kaz = 2.0*Kah*naz;
   }
 }
-
-/* ----------------------------------------------------------------------
-   set three cubic axis
-------------------------------------------------------------------------- */
-
-//void FixPrecessionSpin::set_axis(int ii, double ea1[3], double ea2[3], double ea3[3])
-//{
-//  int j,jnum; 
-//  int *jlist,*numneigh,**firstneigh;;
-//  double rsq,rij[3],xi[3];
-//  double delx2,dely2,delz2;
-//  
-//  double **x = atom->x;
-//  xi[0] = x[ii][0];
-//  xi[1] = x[ii][1];
-//  xi[2] = x[ii][2];
-//  jlist = firstneigh[ii];
-//  jnum = numneigh[ii];
-//
-//
-//  // incorrect because no neighbor list in a fix
-//
-//  for (int jj = 0; jj < jnum; jj++) {
-//    j = jlist[jj];
-//    j &= NEIGHMASK;
-//
-//    // cutoffs to be defined as inputs
-//    
-//    double cut_short = 0.2;
-//    double cut_long = 2.2;
-//    double cut_short2 = cut_short*cut_short;
-//    double cut_long2 = cut_long*cut_long;
-//
-//    rij[0] = x[j][0] - xi[0];
-//    rij[1] = x[j][1] - xi[1];
-//    rij[2] = x[j][2] - xi[2];
-//    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-//
-//    // finding anisotropy axes
-//
-//    delx2 = rij[0]*rij[0];
-//    dely2 = rij[1]*rij[1];
-//    delz2 = rij[2]*rij[2];
-//
-//    if (delx2 > cut_short2 && delx2 <= cut_long2) {
-//      if (rij[0] >= 0.0) {
-//	ea1[0] += rij[0];
-//	ea1[1] += rij[1];
-//	ea1[2] += rij[2];
-//      } else if (rij[0] < 0.0) {
-//	ea1[0] -= rij[0];
-//	ea1[1] += rij[1];
-//	ea1[2] += rij[2];
-//      } else error->all(FLERR,"Incorrect cubic aniso x axis"); 
-//    } 
-//    
-//    if (dely2 > cut_short2 && dely2 <= cut_long2) {
-//      if (rij[1] >= 0.0) {
-//	ea1[0] += rij[0];
-//	ea1[1] += rij[1];
-//	ea1[2] += rij[2];
-//      } else if (rij[1] < 0.0) {
-//	ea1[0] += rij[0];
-//	ea1[1] -= rij[1];
-//	ea1[2] += rij[2];
-//      } else error->all(FLERR,"Incorrect cubic aniso y axis"); 
-//    }
-//
-//    if (delz2 > cut_short2 && delz2 <= cut_long2) {
-//      if (rij[2] >= 0.0) {
-//	ea1[0] += rij[0];
-//	ea1[1] += rij[1];
-//	ea1[2] += rij[2];
-//      } else if (rij[2] < 0.0) {
-//	ea1[0] += rij[0];
-//	ea1[1] += rij[1];
-//	ea1[2] -= rij[2];
-//      } else error->all(FLERR,"Incorrect cubic aniso z axis"); 
-//    }
-//  }
-//  
-//  // normalizing the three aniso axes
-//
-//  double inorm1,inorm2,inorm3;
-//  inorm1 = 1.0/sqrt(ea1[0]*ea1[0]+ea1[1]*ea1[1]+ea1[2]*ea1[2]);
-//  ea1[0] *= inorm1;
-//  ea1[1] *= inorm1;
-////  ea1[2] *= inorm1;
-//  inorm2 = 1.0/sqrt(ea2[0]*ea2[0]+ea2[1]*ea2[1]+ea2[2]*ea2[2]);
-//  ea2[0] *= inorm2;
-//  ea2[1] *= inorm2;
-//  ea2[2] *= inorm2;
-//  inorm3 = 1.0/sqrt(ea3[0]*ea3[0]+ea3[1]*ea3[1]+ea3[2]*ea3[2]);
-//  ea3[0] *= inorm3;
-//  ea3[1] *= inorm3;
-//  ea3[2] *= inorm3;
-//}
 
 /* ----------------------------------------------------------------------
    compute cubic aniso energy of spin i
@@ -452,19 +396,19 @@ void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3])
 
   four1 = 2.0*skx*(sky2+skz2);
   four2 = 2.0*sky*(skx2+skz2);
-  four3 = 2.0*skz*(skx2+skz2);
+  four3 = 2.0*skz*(skx2+sky2);
 
-  fourx = k1c*(nc1x*four1 + nc2x*four2 + nc3x*four3);
-  foury = k1c*(nc1y*four1 + nc2y*four2 + nc3y*four3);
-  fourz = k1c*(nc1z*four1 + nc2z*four2 + nc3z*four3);
+  fourx = k1ch*(nc1x*four1 + nc2x*four2 + nc3x*four3);
+  foury = k1ch*(nc1y*four1 + nc2y*four2 + nc3y*four3);
+  fourz = k1ch*(nc1z*four1 + nc2z*four2 + nc3z*four3);
 
   six1 = 2.0*skx*sky2*skz2;
   six2 = 2.0*sky*skx2*skz2;
   six3 = 2.0*skz*skx2*sky2;
   
-  sixx = k2c*(nc1x*six1 + nc2x*six2 + nc3x*six3);
-  sixy = k2c*(nc1y*six1 + nc2y*six2 + nc3y*six3);
-  sixz = k2c*(nc1z*six1 + nc2z*six2 + nc3z*six3);
+  sixx = k2ch*(nc1x*six1 + nc2x*six2 + nc3x*six3);
+  sixy = k2ch*(nc1y*six1 + nc2y*six2 + nc3y*six3);
+  sixz = k2ch*(nc1z*six1 + nc2z*six2 + nc3z*six3);
   
   fmi[0] += fourx + sixx;
   fmi[1] += foury + sixy;

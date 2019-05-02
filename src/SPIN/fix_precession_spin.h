@@ -42,7 +42,11 @@ class FixPrecessionSpin : public Fix {
   int zeeman_flag, aniso_flag, cubic_flag;
   void compute_single_precession(int, double *, double *);
   void compute_zeeman(int, double *);
+  
+  // uniaxial aniso calculations
+
   void compute_anisotropy(double *, double *);
+  double compute_anisotropy_energy(double *);
 
   // cubic aniso calculations
 
@@ -72,13 +76,15 @@ class FixPrecessionSpin : public Fix {
 
   // magnetic anisotropy intensity and direction
 
-  double Ka;
+  double Ka;			// aniso const. in eV
+  double Kah;			// aniso const. in rad.THz
   double nax, nay, naz;
   double Kax, Kay, Kaz; 	// temp. force variables
 
   // cubic anisotropy intensity
 
-  double k1c,k2c;
+  double k1c,k2c;		// cubic const. in eV
+  double k1ch,k2ch;		// cubic const. in rad.THz
   double nc1x,nc1y,nc1z;
   double nc2x,nc2y,nc2z;
   double nc3x,nc3y,nc3z;

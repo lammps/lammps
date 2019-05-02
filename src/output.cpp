@@ -675,8 +675,10 @@ void Output::set_thermo(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal thermo command");
 
+  delete [] var_thermo;
+  var_thermo = NULL;
+
   if (strstr(arg[0],"v_") == arg[0]) {
-    delete [] var_thermo;
     int n = strlen(&arg[0][2]) + 1;
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);

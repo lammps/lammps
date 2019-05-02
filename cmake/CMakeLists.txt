@@ -734,16 +734,23 @@ if(PKG_KIM)
   option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" ${DOWNLOAD_KIM_DEFAULT})
   if(DOWNLOAD_KIM)
     message(STATUS "KIM-API download requested - we will build our own")
-    enable_language(C)
-    enable_language(Fortran)
+    if("$ENV{CC}" STREQUAL "")
+      set(c_compiler "")
+    else()
+      set(c_compiler "-DCMAKE_C_COMPILER=$ENV{CC}")
+    endif()
+    if("$ENV{FC}" STREQUAL "")
+      set(f_compiler "")
+    else()
+      set(f_compiler "-DCMAKE_Fortran_COMPILER=$ENV{FC}")
+    endif()
     include(ExternalProject)
     ExternalProject_Add(kim_build
       URL https://s3.openkim.org/kim-api/kim-api-2.0.2.txz
       URL_MD5 537d9c0abd30f85b875ebb584f9143fa
       BINARY_DIR build
-      CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+      CMAKE_ARGS ${c_compiler} ${f_compiler}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                 -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
                  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       )

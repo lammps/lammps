@@ -1029,18 +1029,6 @@ void TILD::init_gauss(){
   // Do the field gradient of the uG
   field_gradient(uG, grad_uG_hat, 0);
 
-  // // Do the FFT of the Gaussian function
-  // for (int i = 0; i < Dim; i++){
-  //   m=0;
-  //   for (int j = 0; j < nfft; j++) {
-  //     ktmp[m++] = grad_uG[i][m];
-  //     // std::cout<<grad_uG[i][m-1] << std::endl;;
-  //     ktmp[m++] = 0.0;
-  //   }
-
-  //   fft1->compute(ktmp, grad_uG_hat[i], 1);
-    
-  // }
 
 }
 
@@ -1267,11 +1255,12 @@ void TILD::field_gradient(FFT_SCALAR *in,
                           FFT_SCALAR **out, int flag)
 {
   int i,j; 
+  double scale_inv = 1.0/ nx_pppm/ ny_pppm/ nz_pppm;
   int Dim = domain->dimension;
   double k2, kv[Dim];
   int n = 0;    
   // memset(&(work1[2*nfft_both-1]),0,2*nfft_both*sizeof(FFT_SCALAR));
-  for (i = 0; i < nfft_both; i++) {
+  for (i = 0; i < nfft; i++) {
     work1[n++] = ZEROF;
     work1[n++] = ZEROF;
   }
@@ -1280,8 +1269,6 @@ void TILD::field_gradient(FFT_SCALAR *in,
     work1[n++] = in[i];
     work1[n++] = ZEROF;
   }
-  // fft1->compute(work1, work2, 1);
-  // fft1->compute(work2, work2, -1);
   n=0;
   // for (i = 0; i < nfft; i++) {
   //   std::cout << work1[n] << '\t'  << work2[n]/nfft  << '\t' << work2[n]/work1[n] << std::endl;
@@ -1297,7 +1284,7 @@ void TILD::field_gradient(FFT_SCALAR *in,
   // }
   fft1->compute(work1, work1, 1);
   for (j = 0; j < 2*nfft; j++) {
-    work1[j] = work1[j]/ngrid;
+    work1[j] = work1[j]*scale_inv;
   }
   get_k_alias(work1, out);
 
@@ -1343,14 +1330,10 @@ int TILD::factorable(int n)
 
 void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
   int Dim = domain->dimension; 
-  int k[Dim];
+  double k[Dim];
   int x, y, z;
   int n=0;
   double *prd;
-
-  // volume-dependent factors
-  // adjust z dimension for 2d slab PPPM
-  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
 
   if (triclinic == 0) prd = domain->prd;
   else prd = domain->prd_lamda;
@@ -1362,48 +1345,38 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
   // id2 = unstack_stack( id ) ;
   // unstack(id2, n);
   for (z = nzlo_fft; z <= nzhi_fft; z++) {
+    if (nz_pppm % 2 == 0 && z == nz_pppm / 2)
+      k[2] = 0.0;
+    else if (double(z) < double(nz_pppm) / 2.0)
+      k[2] = 2 * PI * double(z) / zprd;
+    else
+      k[2] = 2 * PI * double(z - nz_pppm) / zprd;
+
     for (y = nylo_fft; y <= nyhi_fft; y++) {
+      if (ny_pppm % 2 == 0 && y == ny_pppm / 2)
+        k[1] = 0.0;
+      else if (double(y) < double(ny_pppm) / 2.0)
+        k[1] = 2 * PI * double(y) / yprd;
+      else
+        k[1] = 2 * PI * double(y - ny_pppm) / yprd;
+
       for (x = nxlo_fft; x <= nxhi_fft; x++) {
+        if (nx_pppm % 2 == 0 && x == nx_pppm / 2)
+          k[0] = 0.0;
+        else if (double(x) < double(nx_pppm) / 2.0)
+          k[0] = 2 * PI * double(x) / xprd;
+        else
+          k[0] = 2 * PI * double(x - nx_pppm) / xprd;
 
-          if (nx_pppm % 2 == 0 && x == nx_pppm / 2)
-              k[0] = 0.0;
-          else if (double(x) < double(nx_pppm) / 2.0)
-              k[0] = 2 * PI * double(x) / xprd;
-          else
-              k[0] = 2 * PI * double(x - nx_pppm) / xprd;
 
-          if (ny_pppm % 2 == 0 && y == ny_pppm / 2)
-              k[1] = 0.0;
-          else if (double(y) < double(ny_pppm) / 2.0)
-              k[1] = 2 * PI * double(y) / yprd;
-          else
-              k[1] = 2 * PI * double(y - ny_pppm) / yprd;
 
-          if (Dim == 3) {
-              if (nz_pppm % 2 == 0 && z == nz_pppm / 2)
-                  k[2] = 0.0;
-              else if (double(z) < double(nz_pppm) / 2.0)
-                  k[2] = 2 * PI * double(z) / zprd;
-              else
-                  k[2] = 2 * PI * double(z - nz_pppm) / zprd;
-          }
-
-          for (int i = 0; i < Dim; i++) {
-            if (k[i] == 0.0) {
-              for (int j = 0; j < Dim; j++) k[j] = 0.0;
-              break;
-            }
-          }
-
-          out[0][n] =  -wk1[n+1] * k[0];
-          out[0][n+1] = wk1[n] * k[0];
-          out[1][n] =  -wk1[n+1] * k[1];
-          out[1][n+1] = wk1[n] * k[1];
-          if (Dim == 3){
-            out[2][n] =  -wk1[n+1] * k[2];
-            out[2][n+1] = wk1[n] * k[2];
-          }
-          n +=2;
+        out[0][n] = -wk1[n + 1] * k[0];
+        out[0][n + 1] = wk1[n] * k[0];
+        out[1][n] = -wk1[n + 1] * k[1];
+        out[1][n + 1] = wk1[n] * k[1];
+        out[2][n] = -wk1[n + 1] * k[2];
+        out[2][n + 1] = wk1[n] * k[2];
+        n += 2;
           
       }
     }
@@ -1530,9 +1503,6 @@ void TILD::brick2fft(int nxlo_i, int nylo_i, int nzlo_i,
   rmp->perform(dfft,dfft,work);
 }
 
-/* ----------------------------------------------------------------------
-   pack own values to buf to send to another proc
-------------------------------------------------------------------------- */
 void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
@@ -1593,9 +1563,6 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   }
 }
 
-/* ----------------------------------------------------------------------
-   unpack another proc's own values from buf and set own ghost values
-------------------------------------------------------------------------- */
 void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
@@ -1656,9 +1623,6 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   }
 }
 
-/* ----------------------------------------------------------------------
-   pack ghost values into buf to send to another proc
-------------------------------------------------------------------------- */
 void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
   if (flag == REVERSE_RHO_NONE) {
     for (int k = 0; k < group->ngroup; k++) {
@@ -1669,9 +1633,6 @@ void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
   }
 }
 
-/* ----------------------------------------------------------------------
-   unpack another proc's ghost values from buf and add to own values
-------------------------------------------------------------------------- */
 void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   if (flag == REVERSE_RHO_NONE) {
@@ -1968,12 +1929,6 @@ void TILD::brick2fft()
 }
 
 
-/* ----------------------------------------------------------------------
-   create discretized "density" on section of global grid due to my particles
-   density(x,y,z) = dispersion "density" at grid points of my 3d brick
-   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid --- case when mixing rules don't apply
-------------------------------------------------------------------------- */
 void TILD::make_rho_none()
 {
   int k,l,m,n,nx,ny,nz,mx,my,mz;
@@ -2027,12 +1982,6 @@ void TILD::make_rho_none()
     }
   }
 }
-
-/* ----------------------------------------------------------------------
-   ghost-swap to accumulate full density in brick decomposition
-   remap density from 3d brick decomposition to FFTdecomposition
-   for dispersion with special case
-------------------------------------------------------------------------- */
 
 void TILD::brick2fft_none()
 {
@@ -2269,6 +2218,7 @@ void TILD::accumulate_gradient() {
   int Dim = domain->dimension;
   double rho0;
   int n = 0;
+  double scale_inv = 1.0/( nx_pppm * ny_pppm *  nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
   bool do_fft = false;
   for (int i = 0; i < group->ngroup; i++) {
@@ -2282,16 +2232,26 @@ void TILD::accumulate_gradient() {
     if (do_fft) {
 
       n = 0;
+      
+      // Preparing the density for convolution
       for (int k = 0; k < nfft; k++) {
         work1[n++] = density_fft_types[i][k];
         work1[n++] = ZEROF;
       }
-      fft1->compute(work1, ktmp, 1);
 
+      // FFT the density to k-space
+      fft1->compute(work1, work2, 1);
+
+      for (int k =0 ; k <2*nfft; k++)
+        work2[k] *= scale_inv;
+
+      // Convolve the grad wth density
       for (int j = 0; j < Dim; j++) {
         n = 0;
-        for (int k = 0; k < 2*nfft; k++) {
-          ktmp2[k] = grad_uG_hat[j][k] * ktmp[k]/ngrid;
+        for (int k = 0; k < nfft; k++) {
+          ktmp2[n] = (grad_uG_hat[j][n] * work2[n] - grad_uG_hat[j][n+1] * work2[n+1] );
+          ktmp2[n+1] = (grad_uG_hat[j][n+1] * work2[n] + grad_uG_hat[j][n] * work2[n+1] );
+          n+=2;
         }
 
         fft1->compute(ktmp2, ktmp, -1);
@@ -2303,6 +2263,7 @@ void TILD::accumulate_gradient() {
           n +=2;
         }
 
+        // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
           if (fabs(param[i][i2]) >= 1e-10) {
             // std::cout << i << ' ' << i2 << ' ' << param[i][i2] << std::endl;
@@ -2314,14 +2275,8 @@ void TILD::accumulate_gradient() {
                     std::cout << rho0 << std::endl;
                     error->all(FLERR, "WEIRD DENSITY");}
                   gradWgroup[i][j][k][m][o] = tmp[n++] * param[i][i2] / rho0;
-                  std::cout << tmp[n -1] << "\t" << param[i][i2] << "\t" << rho0 << std::endl;
+                  // std::cout << tmp[n -1] << "\t" << param[i][i2] << "\t" << rho0 << "random text" <<std::endl; 
                 }
-            // for (int j = 0; j < Dim; j++) {
-            //   for (int k = 0; k < nfft; k++) {
-            //     gradWgroup[i][j][k] += tmp[k] * param[i][i2] / rho0;
-            //     i=0;
-            //   }
-            // }
           }
         }
       }
@@ -2349,6 +2304,8 @@ void TILD::fieldforce_param(){
   for (int k = 0; k < ngroups; k++) groupbits[k] = group->bitmask[k];
 
   int nlocal = atom->nlocal;
+
+  // Convert field to force per particle
 
   for (i = 0; i < nlocal; i++) {
     nx = part2grid[i][0];

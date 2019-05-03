@@ -25,7 +25,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "error.h"
 #include "domain.h"
@@ -147,12 +146,6 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
     nc3y *= inorm;
     nc3z *= inorm;
   }
-
-  printf("test aniso: \n");
-  printf("k1c=%g k2c=%g \n",k1c,k2c);
-  printf("nc1: %g %g %g \n",nc1x,nc1y,nc1z);
-  printf("nc2: %g %g %g \n",nc2x,nc2y,nc2z);
-  printf("nc3: %g %g %g \n",nc3x,nc3y,nc3z);
 
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;

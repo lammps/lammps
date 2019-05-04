@@ -63,6 +63,7 @@ as contained in the file name.
 "SRD"_#PKG-SRD,
 "VORONOI"_#PKG-VORONOI :tb(c=6,ea=c)
 
+"USER-ADIOS"_#PKG-USER-ADIOS,
 "USER-ATC"_#PKG-USER-ATC,
 "USER-AWPMD"_#PKG-USER-AWPMD,
 "USER-BOCS"_#PKG-USER-BOCS,
@@ -100,7 +101,8 @@ as contained in the file name.
 "USER-SPH"_#PKG-USER-SPH,
 "USER-TALLY"_#PKG-USER-TALLY,
 "USER-UEF"_#PKG-USER-UEF,
-"USER-VTK"_#PKG-USER-VTK :tb(c=6,ea=c)
+"USER-VTK"_#PKG-USER-VTK,
+"USER-YAFF"_#PKG-USER-YAFF, :tb(c=6,ea=c)
 
 :line
 
@@ -339,18 +341,19 @@ KIM package :link(PKG-KIM),h4
 A "pair_style kim"_pair_kim.html command which is a wrapper on the
 Knowledge Base for Interatomic Models (KIM) repository of interatomic
 potentials, enabling any of them to be used in LAMMPS simulations.
+Also a "kim_query"_kim_query.html command, which allows to query
+the OpenKIM database for stored properties.
 
 To use this package you must have the KIM library available on your
 system.
 
 Information about the KIM project can be found at its website:
 https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
-Elliott (U Minnesota) and James Sethna (Cornell U).
+Elliott (U Minnesota).
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
 API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style in collaboration with Valeriu Smirichinski (U
-Minnesota).
+developed the pair style.
 
 [Install:]
 
@@ -915,6 +918,7 @@ src/SPIN: filenames -> commands
 "fix nve/spin"_fix_nve_spin.html
 "fix precession/spin"_fix_precession_spin.html
 "compute spin"_compute_spin.html
+"neb/spin"_neb_spin.html
 examples/SPIN :ul
 
 :line
@@ -971,6 +975,31 @@ src/VORONOI/README
 lib/voronoi/README
 "compute voronoi/atom"_compute_voronoi_atom.html
 examples/voronoi :ul
+
+:line
+
+USER-ADIOS package :link(PKG-USER-ADIOS),h4
+
+[Contents:]
+
+ADIOS is a high-performance I/O library. This package implements the 
+dump "atom/adios" and dump "custom/adios" commands to write data using
+the ADIOS library. 
+
+[Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-adios on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-ADIOS: filenames -> commands
+src/USER-ADIOS/README
+examples/USER/adios
+https://github.com/ornladios/ADIOS2 :ul
 
 :line
 
@@ -1305,7 +1334,7 @@ src/USER-FEP: filenames -> commands
 src/USER-FEP/README
 "fix adapt/fep"_fix_adapt_fep.html
 "compute fep"_compute_fep.html
-"pair_style */soft"_pair_lj_soft.html
+"pair_style */soft"_pair_fep_soft.html
 examples/USER/fep
 tools/fep/README
 tools/fep :ul
@@ -1699,14 +1728,19 @@ USER-PHONON package :link(PKG-USER-PHONON),h4
 A "fix phonon"_fix_phonon.html command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
+And a "dynamical_matrix" command to compute the dynamical matrix
+from finite differences.
 
-[Author:] Ling-Ti Kong (Shanghai Jiao Tong University).
+[Authors:] Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
+and Charlie Sievers (UC Davis) for "dynamical_matrix"
+
 
 [Supporting info:]
 
 src/USER-PHONON: filenames -> commands
 src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
+"dynamical_matrix"_dynamical_matrix.html
 examples/USER/phonon :ul
 
 :line
@@ -2067,3 +2101,37 @@ lib/vtk/README
 "dump vtk"_dump_vtk.html :ul
 
 
+:line
+
+USER-YAFF package :link(PKG-USER-YAFF),h4
+
+[Contents:]
+
+Some potentials that are also implemented in the Yet Another Force Field ("YAFF"_yaff) code.
+The expressions and their use are discussed in the following papers
+
+Vanduyfhuys et al., J. Comput. Chem., 36 (13), 1015-1027 (2015) "link"_vanduyfhuys2015
+Vanduyfhuys et al., J. Comput. Chem., 39 (16), 999-1011 (2018) "link"_vanduyfhuys2018 :ul
+
+which discuss the "QuickFF"_quickff methodology.
+
+
+:link(vanduyfhuys2015,http://dx.doi.org/10.1002/jcc.23877)
+:link(vanduyfhuys2018,http://dx.doi.org/10.1002/jcc.25173)
+:link(quickff,http://molmod.github.io/QuickFF)
+:link(yaff,https://github.com/molmod/yaff)
+
+
+[Author:] Steven Vandenbrande.
+
+[Supporting info:]
+
+src/USER-YAFF/README
+"angle_style cross"_angle_cross.html
+"angle_style mm3"_angle_mm3.html
+"bond_style mm3"_bond_mm3.html
+"improper_style distharm"_improper_distharm.html
+"improper_style sqdistharm"_improper_sqdistharm.html
+"pair_style mm3/switch3/coulgauss/long"_pair_mm3_switch3_coulgauss.html
+"pair_style lj/switch3/coulgauss/long"_pair_lj_switch3_coulgauss.html
+examples/USER/yaff :ul

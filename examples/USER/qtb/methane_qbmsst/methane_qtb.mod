@@ -38,8 +38,9 @@ mass			2  1.007970
 
 ## This part defines the reax pair potential in methane, force field coefficients are specified in "ffield.reax"
 #Pair Potentials
-pair_style		reax 10.0 1 1 1.0e-6
-pair_coeff		* * ffield.reax 1 2
+pair_style		reax/c NULL
+pair_coeff		* * ffield.reax C H
+fix                     0 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
 
 #Neighbor Style
 neighbor		2.5 bin

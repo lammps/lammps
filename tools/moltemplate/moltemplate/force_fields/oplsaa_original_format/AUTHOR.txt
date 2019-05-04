@@ -1,7 +1,0 @@
-
-OPLSAA force-field conversion tools provided by 
-Jason Lambert and Andrew Jewett.
-
-LOPLSAA force-field conversion provided by Sebastian Echeverri.
-
-

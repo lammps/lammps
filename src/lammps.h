@@ -65,6 +65,11 @@ class LAMMPS {
 
   static const char * installed_packages[];
 
+  static const bool has_git_info;
+  static const char git_commit[];
+  static const char git_branch[];
+  static const char git_descriptor[];
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();

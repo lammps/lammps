@@ -36,10 +36,12 @@ react = mandatory argument indicating new reaction specification :l
   template-ID(post-reacted) = ID of a molecule template containing post-reaction topology :l
   map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates :l
   zero or more individual keyword/value pairs may be appended to each react argument :l
-  individual_keyword = {prob} or {stabilize_steps} or {update_edges} :l
+  individual_keyword = {prob} or {max_rxn} or {stabilize_steps} or {update_edges} :l
     {prob} values = fraction seed
       fraction = initiate reaction with this probability if otherwise eligible
       seed = random number seed (positive integer)
+    {max_rxn} value = N
+      N = maximum number of reactions allowed to occur
     {stabilize_steps} value = timesteps
       timesteps = number of timesteps to apply the internally-created "nve/limit"_fix_nve_limit.html fix to reacting atoms
     {update_edges} value = {none} or {charges} or {custom}
@@ -142,20 +144,20 @@ modified to match the post-reaction template.
 
 A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms I,J within the specified react-group-ID of type
-itype and jtype must separated by a distance between {Rmin} and
+itype and jtype must be separated by a distance between {Rmin} and
 {Rmax}. It is possible that multiple bonding atom pairs are
-identified: if the bonding atoms in the pre-reacted template are not
-1-2, 1-3, or 1-4 neighbors, the closest bonding atom partner is set as
-its bonding partner; otherwise, the farthest potential partner is
-chosen. Then, if both an atom I and atom J have each other as their
-nearest bonding partners, these two atoms are identified as the
-bonding atom pair of the reaction site. Once this unique bonding atom
-pair is identified for each reaction, there could two or more
-reactions that involve a given atom on the same timestep. If this is
-the case, only one such reaction is permitted to occur. This reaction
-is chosen randomly from all potential reactions. This capability
-allows e.g. for different reaction pathways to proceed from identical
-reaction sites with user-specified probabilities.
+identified: if the bonding atoms in the pre-reacted template are  1-2
+neighbors, i.e. directly bonded, the farthest bonding atom partner is
+set as its bonding partner; otherwise, the closest potential partner
+is chosen. Then, if both an atom I and atom J have each other as their
+bonding partners, these two atoms are identified as the bonding atom
+pair of the reaction site. Once this unique bonding atom pair is
+identified for each reaction, there could two or more reactions that
+involve a given atom on the same timestep. If this is the case, only
+one such reaction is permitted to occur. This reaction is chosen
+randomly from all potential reactions. This capability allows e.g. for
+different reaction pathways to proceed from identical reaction sites
+with user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -211,9 +213,10 @@ mandatory keyword is 'equivalences' and the optional keywords are
 N {equivalences} = # of atoms N in the reaction molecule templates
 N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template
 N {deleteIDs} = # of atoms N that are specified for deletion
-N {customIDs} = # of atoms N that are specified for a custom update :pre
+N {customIDs} = # of atoms N that are specified for a custom update
+N {constraints} = # of specified reaction constraints N :pre
 
-The body of the map file contains two mandatory sections and three
+The body of the map file contains two mandatory sections and four
 optional sections. The first mandatory section begins with the keyword
 'BondingIDs' and lists the atom IDs of the bonding atom pair in the
 pre-reacted molecule template. The second mandatory section begins
@@ -230,7 +233,10 @@ Edges' and allows for forcing the update of a specific atom's atomic
 charge. The first column is the ID of an atom near the edge of the
 pre-reacted molecule template, and the value of the second column is
 either 'none' or 'charges.' Further details are provided in the
-discussion of the 'update_edges' keyword.
+discussion of the 'update_edges' keyword. The fourth optional section
+begins with the keyword 'Constraints' and lists additional criteria
+that must be satisfied in order for the reaction to occur. Currently,
+there is one type of constraint available, as discussed below.
 
 A sample map file is given below:
 
@@ -263,6 +269,18 @@ Equivalences :pre
 
 :line
 
+Any number of additional constraints may be specified in the
+Constraints section of the map file. Currently there is one type of
+additional constraint, of type 'distance', whose syntax is as follows:
+
+distance {ID1} {ID2} {rmin} {rmax} :pre
+
+where 'distance' is the required keyword, {ID1} and {ID2} are
+pre-reaction atom IDs, and these two atoms must be separated by a
+distance between {rmin} and {rmax} for the reaction to occur. This
+constraint can be used to enforce a certain orientation between
+reacting molecules.
+
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the
 post-reacted molecule template. All force fields with fixed bonds,
@@ -285,7 +303,8 @@ The {prob} keyword can affect whether an eligible reaction actually
 occurs. The fraction setting must be a value between 0.0 and 1.0. A
 uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
-fraction.
+fraction. Up to N reactions are permitted to occur, as optionally
+specified by the {max_rxn} keyword.
 
 The {stabilize_steps} keyword allows for the specification of how many
 timesteps a reaction site is stabilized before being returned to the
@@ -365,6 +384,10 @@ These is 1 quantity for each react argument:
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
+
+When fix bond/react is 'unfixed,' all internally-created groups are
+deleted. Therefore, fix bond/react can only be unfixed after unfixing
+all other fixes that use any group created by fix bond/react.
 
 [Restrictions:]
 

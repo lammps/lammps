@@ -75,8 +75,7 @@ void PairQUIP::compute(int eflag, int vflag)
 
   double *quip_local_e, *quip_force, *quip_local_virial, *quip_virial, quip_energy, *lattice;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -252,7 +251,7 @@ void PairQUIP::coeff(int narg, char **arg)
       }
    }
 
-   if( narg != (4+n) ) {
+   if (narg != (4+n)) {
       char str[1024];
       sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
       error->all(FLERR,str);
@@ -271,7 +270,7 @@ void PairQUIP::coeff(int narg, char **arg)
 
    for (int i = 4; i < narg; i++) {
 
-      if( 0 == sscanf(arg[i],"%d",&map[i-4])) {
+      if (0 == sscanf(arg[i],"%d",&map[i-4])) {
          char str[1024];
          sprintf(str,"Incorrect atomic number %s at position %d",arg[i],i);
          error->all(FLERR,str);

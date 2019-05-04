@@ -964,6 +964,21 @@ void Set::set(int keyword)
     count++;
   }
 
+  // update bonus data numbers
+  if (keyword == SHAPE) {
+    bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,
+                  MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (keyword == LENGTH) {
+    bigint nlocal_bonus = avec_line->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->nlines,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (keyword == TRI) {
+    bigint nlocal_bonus = avec_tri->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->ntris,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
   // clear up per-atom memory if allocated
 
   memory->destroy(vec1);

@@ -39,23 +39,23 @@ PairLJClass2CoulCut::PairLJClass2CoulCut(LAMMPS *lmp) : Pair(lmp)
 
 PairLJClass2CoulCut::~PairLJClass2CoulCut()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(cut_coul);
-      memory->destroy(cut_coulsq);
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
 }
 
@@ -70,8 +70,7 @@ void PairLJClass2CoulCut::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -217,7 +216,9 @@ void PairLJClass2CoulCut::settings(int narg, char **arg)
 
 void PairLJClass2CoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 6)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

@@ -81,8 +81,7 @@ void PairEffCut::compute(int eflag, int vflag)
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (i=0; i<4; i++) pvector[i] = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

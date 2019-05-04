@@ -36,9 +36,7 @@ PairTersoffMODOMP::PairTersoffMODOMP(LAMMPS *lmp) :
 
 void PairTersoffMODOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

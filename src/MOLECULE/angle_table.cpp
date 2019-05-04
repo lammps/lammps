@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -71,8 +72,7 @@ void AngleTable::compute(int eflag, int vflag)
   double theta,u,mdu; //mdu: minus du, -du/dx=f
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -381,17 +381,18 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
     if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    for (int i = 0; i < tb->ninput; i++)
+      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->afile,tb->ninput,"angle:afile");
   memory->create(tb->efile,tb->ninput,"angle:efile");
@@ -399,15 +400,24 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
 
   // read a,e,f table values from file
 
-  int itmp;
-  fgets(line,MAXLINE,fp);
+  int cerror = 0;
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",
-      &itmp,&tb->afile[i],&tb->efile[i],&tb->ffile[i]);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    if (3 != sscanf(line,"%*d %lg %lg %lg",
+                    &tb->afile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
   }
 
   fclose(fp);
+
+  // warn if data was read incompletely, e.g. columns were missing
+
+  if (cerror) {
+    char str[128];
+    sprintf(str,"%d of %d lines in table were incomplete or could not be"
+            " parsed completely",cerror,tb->ninput);
+    error->warning(FLERR,str);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -490,7 +500,7 @@ void AngleTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
   tb->fpflag = 0;
-  tb->theta0 = 180.0;
+  tb->theta0 = MY_PI;
 
   char *word = strtok(line," \t\n\r\f");
   while (word) {
@@ -507,7 +517,7 @@ void AngleTable::param_extract(Table *tb, char *line)
       tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
     } else if (strcmp(word,"EQ") == 0) {
       word = strtok(NULL," \t\n\r\f");
-      tb->theta0 = atof(word);
+      tb->theta0 = atof(word)/180.0*MY_PI;
     } else {
       error->one(FLERR,"Invalid keyword in angle table parameters");
     }

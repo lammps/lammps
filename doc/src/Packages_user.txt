@@ -38,6 +38,7 @@ int = internal library: provided with LAMMPS, but you may need to build it
 ext = external library: you will need to download and install it on your machine :ul
 
 Package, Description, Doc page, Example, Library
+"USER-ADIOS"_Packages_details.html#PKG-USER-ADIOS, dump output via ADIOS, "dump adios"_dump_adios.html, USER/adios, ext
 "USER-ATC"_Packages_details.html#PKG-USER-ATC, Atom-to-Continuum coupling, "fix atc"_fix_atc.html, USER/atc, int
 "USER-AWPMD"_Packages_details.html#PKG-USER-AWPMD, wave packet MD, "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, int
 "USER-BOCS"_Packages_details.html#PKG-USER-BOCS, BOCS bottom up coarse graining, "fix bocs"_fix_bocs.html, USER/bocs, no
@@ -75,7 +76,8 @@ Package, Description, Doc page, Example, Library
 "USER-SPH"_Packages_details.html#PKG-USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, no
 "USER-TALLY"_Packages_details.html#PKG-USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, no
 "USER-UEF"_Packages_details.html#PKG-USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, no
-"USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext :tb(ea=c,ca1=l)
+"USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext
+"USER-YAFF"_Packages_details.html#PKG-USER-YAFF, additional styles implemented in YAFF, "angle_style cross"_angle_cross.html, USER/yaff, no :tb(ea=c,ca1=l)
 
 :link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 :link(PLUMED,http://www.plumed.org)

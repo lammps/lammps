@@ -90,9 +90,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
 
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-    eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
+  ev_init(eflag,vflag);
 
   // invoke allocate_peratom() if needed for first time
 

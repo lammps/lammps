@@ -808,7 +808,7 @@ double FixShardlowKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class FixShardlowKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixShardlowKokkos<LMPHostType>;
 #endif
 }

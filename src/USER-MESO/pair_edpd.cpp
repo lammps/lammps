@@ -99,8 +99,7 @@ PairEDPD::~PairEDPD()
 void PairEDPD::compute(int eflag, int vflag)
 {
   double evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -191,7 +190,7 @@ void PairEDPD::compute(int eflag, int vflag)
 
         // heat transfer
         double dQc,dQd,dQr;
-        if( r < cutT[itype][jtype]) {
+        if (r < cutT[itype][jtype]) {
           double wrT = 1.0 - r/cutT[itype][jtype];
           wrT = MAX(0.0,MIN(1.0,wrT));
           wrT = pow(wrT, 0.5*powerT[itype][jtype]);

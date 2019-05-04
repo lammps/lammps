@@ -35,7 +35,7 @@ CUDA_PRECISION = -D_SINGLE_DOUBLE
 
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64 -L../../src/STUBS -lmpi_stubs
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math $(LMP_INC)
+CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC)
 
 CUDR_CPP = g++ -DMPI_GERYON -DUCL_NO_EXIT -fPIC -I../../src/STUBS
 CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias

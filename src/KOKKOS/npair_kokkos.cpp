@@ -187,7 +187,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 
     Kokkos::deep_copy(data.resize, data.h_resize);
     Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
     #define BINS_PER_BLOCK 2
     const int factor = atoms_per_bin<64?2:1;
     Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,atoms_per_bin*factor);
@@ -202,7 +202,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       if (newton_pair) {
 	if (SIZE) {
 	  NPairKokkosBuildFunctorSize<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 	  if (ExecutionSpaceFromDevice<DeviceType>::space == Device)
 	    Kokkos::parallel_for(config, f);
 	  else
@@ -212,7 +212,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
 	} else {
 	  NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 	  if (ExecutionSpaceFromDevice<DeviceType>::space == Device)
 	    Kokkos::parallel_for(config, f);
 	  else
@@ -224,7 +224,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       } else {
 	if (SIZE) {
 	  NPairKokkosBuildFunctorSize<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 	  if (ExecutionSpaceFromDevice<DeviceType>::space == Device)
 	    Kokkos::parallel_for(config, f);
 	  else
@@ -234,7 +234,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
 	} else {
 	  NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 	  if (ExecutionSpaceFromDevice<DeviceType>::space == Device)
 	    Kokkos::parallel_for(config, f);
 	  else
@@ -383,7 +383,7 @@ void NeighborKokkosExecute<DeviceType>::
         if (which == 0){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
           else n++;
-        }else if (minimum_image_check(delx,dely,delz)){
+        } else if (minimum_image_check(delx,dely,delz)){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
           else n++;
         }
@@ -440,7 +440,7 @@ void NeighborKokkosExecute<DeviceType>::
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
-            }else if (minimum_image_check(delx,dely,delz)){
+            } else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }
@@ -470,7 +470,7 @@ void NeighborKokkosExecute<DeviceType>::
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 extern __shared__ X_FLOAT sharedmem[];
 
 /* ---------------------------------------------------------------------- */
@@ -567,7 +567,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
           if (which == 0){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
             else n++;
-          }else if (minimum_image_check(delx,dely,delz)){
+          } else if (minimum_image_check(delx,dely,delz)){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
             else n++;
           }
@@ -645,7 +645,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
-            }else if (minimum_image_check(delx,dely,delz)){
+            } else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }
@@ -738,7 +738,7 @@ void NeighborKokkosExecute<DeviceType>::
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
-            }else if (minimum_image_check(delx,dely,delz)){
+            } else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }
@@ -910,7 +910,7 @@ void NeighborKokkosExecute<DeviceType>::
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 __device__ inline
 void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
@@ -1093,7 +1093,7 @@ template class NPairKokkos<LMPDeviceType,1,1,0,0>;
 template class NPairKokkos<LMPDeviceType,1,0,1,0>;
 template class NPairKokkos<LMPDeviceType,1,0,0,1>;
 template class NPairKokkos<LMPDeviceType,1,0,1,1>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairKokkos<LMPHostType,0,0,0,0>;
 template class NPairKokkos<LMPHostType,0,1,0,0>;
 template class NPairKokkos<LMPHostType,1,0,0,0>;

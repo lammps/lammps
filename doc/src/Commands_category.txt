@@ -116,6 +116,7 @@ Actions:
 
 "minimize"_minimize.html,
 "neb"_neb.html,
+"neb_spin"_neb_spin.html,
 "prd"_prd.html,
 "rerun"_rerun.html,
 "run"_run.html,

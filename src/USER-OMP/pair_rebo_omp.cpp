@@ -26,7 +26,7 @@ PairREBOOMP::PairREBOOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {
    global settings
 ------------------------------------------------------------------------- */
 
-void PairREBOOMP::settings(int narg, char **arg)
+void PairREBOOMP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

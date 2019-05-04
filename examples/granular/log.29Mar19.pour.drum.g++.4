@@ -1,0 +1,271 @@
+LAMMPS (29 Mar 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+# pour two types of particles (cohesive and non-cohesive) into cylinder
+# 'turn' cylinder by changing direction of gravity, then rotate it.
+# This simulates a rotating drum powder characterization experiment.
+
+variable	name string rotating_drum_two_types
+
+atom_style	sphere
+units		lj
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	boxx equal 30
+variable	boxy equal 30
+variable	boxz equal 50
+
+variable	drum_rad equal ${boxx}*0.5
+variable	drum_rad equal 30*0.5
+variable	drum_height equal 20
+
+variable	xc equal 0.5*${boxx}
+variable	xc equal 0.5*30
+variable	yc equal 0.5*${boxx}
+variable	yc equal 0.5*30
+variable	zc equal 0.5*${boxz}
+variable	zc equal 0.5*50
+
+###############################################
+# Particle-related parameters
+###############################################
+variable	rlo equal 0.25
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dlo equal 2.0*0.25
+variable	dhi equal 2.0*${rhi}
+variable	dhi equal 2.0*0.5
+
+variable	cyl_rad_inner equal ${drum_rad}-1.1*${rhi}
+variable	cyl_rad_inner equal 15-1.1*${rhi}
+variable	cyl_rad_inner equal 15-1.1*0.5
+
+variable	dens equal 1.0
+
+variable skin equal 0.4*${rhi}
+variable skin equal 0.4*0.5
+
+#############
+processors * * 1
+region		boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+region		boxreg block 0 30 0 ${boxy} 0 ${boxz}
+region		boxreg block 0 30 0 30 0 ${boxz}
+region		boxreg block 0 30 0 30 0 50
+create_box	2 boxreg
+Created orthogonal box = (0 0 0) to (30 30 50)
+  2 by 2 by 1 MPI processor grid
+change_box	all boundary p p f
+comm_modify	vel yes
+
+variable	theta equal 0
+
+region		curved_wall cylinder z ${xc} ${yc} ${drum_rad} 0 ${drum_height} side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		curved_wall cylinder z 15 ${yc} ${drum_rad} 0 ${drum_height} side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		curved_wall cylinder z 15 15 ${drum_rad} 0 ${drum_height} side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		curved_wall cylinder z 15 15 15 0 ${drum_height} side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		curved_wall cylinder z 15 15 15 0 20 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		curved_wall cylinder z 15 15 15 0 20 side in rotate v_theta 15 ${yc} 0 0 0 1
+region		curved_wall cylinder z 15 15 15 0 20 side in rotate v_theta 15 15 0 0 0 1
+region		bottom_wall plane ${xc} ${yc} 0 0 0 1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		bottom_wall plane 15 ${yc} 0 0 0 1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		bottom_wall plane 15 15 0 0 0 1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		bottom_wall plane 15 15 0 0 0 1 side in rotate v_theta 15 ${yc} 0 0 0 1
+region		bottom_wall plane 15 15 0 0 0 1 side in rotate v_theta 15 15 0 0 0 1
+
+region		insreg cylinder z ${xc} ${yc} ${cyl_rad_inner} ${drum_height} ${boxz}
+region		insreg cylinder z 15 ${yc} ${cyl_rad_inner} ${drum_height} ${boxz}
+region		insreg cylinder z 15 15 ${cyl_rad_inner} ${drum_height} ${boxz}
+region		insreg cylinder z 15 15 14.45 ${drum_height} ${boxz}
+region		insreg cylinder z 15 15 14.45 20 ${boxz}
+region		insreg cylinder z 15 15 14.45 20 50
+
+fix		0 all balance 100 1.0 shift xy 5 1.1
+fix		1 all nve/sphere
+fix		grav all gravity 10 vector 0 0 -1
+fix		ins1 all pour 2000 1 1234 region insreg diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins1 all pour 2000 1 1234 region insreg diam range 0.5 ${dhi} dens ${dens} ${dens}
+fix		ins1 all pour 2000 1 1234 region insreg diam range 0.5 1 dens ${dens} ${dens}
+fix		ins1 all pour 2000 1 1234 region insreg diam range 0.5 1 dens 1 ${dens}
+fix		ins1 all pour 2000 1 1234 region insreg diam range 0.5 1 dens 1 1
+Particle insertion: 9396 every 490 steps, 2000 by step 1
+fix		ins2 all pour 2000 2 1234 region insreg diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 2000 2 1234 region insreg diam range 0.5 ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 2000 2 1234 region insreg diam range 0.5 1 dens ${dens} ${dens}
+fix		ins2 all pour 2000 2 1234 region insreg diam range 0.5 1 dens 1 ${dens}
+fix		ins2 all pour 2000 2 1234 region insreg diam range 0.5 1 dens 1 1
+Particle insertion: 9396 every 490 steps, 2000 by step 1
+
+comm_modify	vel yes
+
+neighbor	${skin} bin
+neighbor	0.2 bin
+neigh_modify	delay 0 every 1 check yes
+
+pair_style	granular
+pair_coeff	1 * hertz/material 1e5 0.2 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji
+pair_coeff	2 2 jkr 1e5 0.1 0.3 50 tangential mindlin NULL 1.0 0.5 rolling sds 1e3 1e3 0.1 twisting marshall damping tsuji
+
+fix		3 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region curved_wall
+fix		4 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region bottom_wall
+
+thermo_style	custom step atoms ke v_theta
+thermo_modify	lost warn
+thermo		100
+
+timestep	0.001
+
+dump		1 all custom 100 ${name}.dump id type radius mass x y z
+dump		1 all custom 100 rotating_drum_two_types.dump id type radius mass x y z
+
+#For removal later
+compute		1 all property/atom radius
+variable	zmax atom z+c_1>0.5*${drum_height}
+variable	zmax atom z+c_1>0.5*20
+group		delgroup dynamic all var zmax every 10000
+dynamic group delgroup defined
+
+run		2000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.2
+  ghost atom cutoff = 1.2
+  binsize = 0.6, bins = 50 50 84
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton on, size, history
+      pair build: half/size/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.25 | 12.25 | 12.25 Mbytes
+Step Atoms KinEng v_theta 
+       0        0           -0            0 
+     100     4000           -0            0 
+     200     4000           -0            0 
+     300     4000           -0            0 
+     400     4000           -0            0 
+     500     4000           -0            0 
+     600     4000           -0            0 
+     700     4000           -0            0 
+     800     4000           -0            0 
+     900     4000           -0            0 
+    1000     4000           -0            0 
+    1100     4000           -0            0 
+    1200     4000           -0            0 
+    1300     4000           -0            0 
+    1400     4000           -0            0 
+    1500     4000           -0            0 
+    1600     4000           -0            0 
+    1700     4000           -0            0 
+    1800     4000           -0            0 
+    1900     4000           -0            0 
+    2000     4000           -0            0 
+Loop time of 2.0709 on 4 procs for 2000 steps with 4000 atoms
+
+Performance: 83442.024 tau/day, 965.764 timesteps/s
+97.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.24679    | 0.26336    | 0.28853    |   3.0 | 12.72
+Neigh   | 0.52279    | 0.5332     | 0.53858    |   0.9 | 25.75
+Comm    | 0.17418    | 0.20253    | 0.23266    |   4.7 |  9.78
+Output  | 0.092897   | 0.093531   | 0.09515    |   0.3 |  4.52
+Modify  | 0.88151    | 0.89571    | 0.90582    |   0.9 | 43.25
+Other   |            | 0.08257    |            |       |  3.99
+
+Nlocal:    1000 ave 1001 max 999 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    267.75 ave 276 max 262 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Neighs:    2031.5 ave 2091 max 1958 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+
+Total # of neighbors = 8126
+Ave neighs/atom = 2.0315
+Neighbor list builds = 1004
+Dangerous builds = 3
+
+#Remove any particles that are above z > 0.5*drum_height
+delete_atoms	group delgroup
+Deleted 0 atoms, new total = 4000
+
+#Add top lid
+region		top_wall plane ${xc} ${yc} ${drum_height} 0 0 -1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		top_wall plane 15 ${yc} ${drum_height} 0 0 -1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		top_wall plane 15 15 ${drum_height} 0 0 -1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		top_wall plane 15 15 20 0 0 -1 side in rotate v_theta ${xc} ${yc} 0 0 0 1
+region		top_wall plane 15 15 20 0 0 -1 side in rotate v_theta 15 ${yc} 0 0 0 1
+region		top_wall plane 15 15 20 0 0 -1 side in rotate v_theta 15 15 0 0 0 1
+fix		5 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region top_wall
+
+# 'Turn' drum by switching the direction of gravity
+unfix		grav
+fix		grav all gravity 10 vector 0 -1 0
+
+variable	theta equal 2*PI*elapsed/20000.0
+run		3000
+Per MPI rank memory allocation (min/avg/max) = 21.6 | 22.6 | 23.82 Mbytes
+Step Atoms KinEng v_theta 
+    2000     4000    64.255821            0 
+    2100     4000    106.47082  0.031415927 
+    2200     4000    121.52634  0.062831853 
+    2300     4000    87.748818   0.09424778 
+    2400     4000    82.712784   0.12566371 
+    2500     4000    90.618713   0.15707963 
+    2600     4000    30.096031   0.18849556 
+    2700     4000    4.0838611   0.21991149 
+    2800     4000    3.7485959   0.25132741 
+    2900     4000    4.2159774   0.28274334 
+    3000     4000    4.8730048   0.31415927 
+    3100     4000    5.6109465   0.34557519 
+    3200     4000    6.4290528   0.37699112 
+    3300     4000    7.2699677   0.40840704 
+    3400     4000    8.0895944   0.43982297 
+    3500     4000    8.7222781    0.4712389 
+    3600     4000     9.133205   0.50265482 
+    3700     4000    9.3404584   0.53407075 
+    3800     4000    9.3359844   0.56548668 
+    3900     4000    9.0916854    0.5969026 
+    4000     4000    8.5596424   0.62831853 
+    4100     4000    7.9734883   0.65973446 
+    4200     4000    7.2154383   0.69115038 
+    4300     4000    6.7039232   0.72256631 
+    4400     4000    6.1542738   0.75398224 
+    4500     4000    5.4049454   0.78539816 
+    4600     4000    4.4603192   0.81681409 
+    4700     4000    3.6197985   0.84823002 
+    4800     4000    2.9895571   0.87964594 
+    4900     4000    2.5314553   0.91106187 
+    5000     4000    2.2645533    0.9424778 
+Loop time of 6.64209 on 4 procs for 3000 steps with 4000 atoms
+
+Performance: 39023.861 tau/day, 451.665 timesteps/s
+96.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.8376     | 2.126      | 2.3131     |  12.6 | 32.01
+Neigh   | 0.97762    | 1.0518     | 1.1337     |   5.4 | 15.84
+Comm    | 0.53699    | 0.84265    | 1.2325     |  27.6 | 12.69
+Output  | 0.13922    | 0.14159    | 0.14388    |   0.4 |  2.13
+Modify  | 1.8815     | 2.1026     | 2.3368     |  11.2 | 31.66
+Other   |            | 0.3774     |            |       |  5.68
+
+Nlocal:    1000 ave 1256 max 744 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    579.5 ave 789 max 498 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+Neighs:    3696.25 ave 4853 max 2590 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 14785
+Ave neighs/atom = 3.69625
+Neighbor list builds = 1230
+Dangerous builds = 676
+Total wall time: 0:00:08

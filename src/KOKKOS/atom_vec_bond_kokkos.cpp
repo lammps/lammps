@@ -43,6 +43,8 @@ AtomVecBondKokkos::AtomVecBondKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   size_data_vel = 4;
   xcol_data = 4;
 
+  atom->molecule_flag = 1;
+
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
   commKK = (CommKokkos *) comm;

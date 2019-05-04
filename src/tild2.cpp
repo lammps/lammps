@@ -947,18 +947,6 @@ void TILD::init_gauss(){
   double mdr2;
   double V = domain->xprd * domain->yprd * domain->zprd ;
 
-  // clear 3d density arrays
-
-  // memset(&(density_A_brick[nzlo_out][nylo_out][nxlo_out]),0,
-        //  ngrid*sizeof(FFT_SCALAR));
-
-  // memset(&(density_B_brick[nzlo_out][nylo_out][nxlo_out]),0,
-  //        ngrid*sizeof(FFT_SCALAR));
-
-
-  // double pref = V / ( pow(2.0* sqrt(MY_PI * gauss_a2), Dim ));
-
-
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
   // proc owns entire x-dimension, clumps of columns in y,z dimensions
@@ -1033,224 +1021,6 @@ void TILD::init_gauss(){
 }
 
 
-
-void TILD::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
-{
-  if (slabflag && triclinic)
-    error->all(FLERR,"Cannot (yet) use K-space slab "
-               "correction with compute group/group for triclinic systems");
-
-  if (differentiation_flag)
-    error->all(FLERR,"Cannot (yet) use kspace_modify "
-               "diff ad with compute group/group");
-
-  if (!group_allocate_flag) allocate_groups();
-
-  // convert atoms from box to lamda coords
-
-  if (triclinic == 0) boxlo = domain->boxlo;
-  else {
-    boxlo = domain->boxlo_lamda;
-    domain->x2lamda(atom->nlocal);
-  }
-
-  e2group = 0.0; //energy
-  f2group[0] = 0.0; //force in x-direction
-  f2group[1] = 0.0; //force in y-direction
-  f2group[2] = 0.0; //force in z-direction
-
-  // map my particle charge onto my local 3d density grid
-
-  // make_rho_groups(groupbit_A,groupbit_B,AA_flag);
-  
-  // all procs communicate density values from their ghost cells
-  //   to fully sum contribution in their 3d bricks
-  // remap from 3d decomposition to FFT decomposition
-
-  // temporarily store and switch pointers so we can
-  //  use brick2fft() for groups A and B (without
-  //  writing an additional function)
-
-  FFT_SCALAR ***density_brick_real = density_brick;
-  FFT_SCALAR *density_fft_real = density_fft;
-
-  // group A
-
-  density_brick = density_A_brick;
-  density_fft = density_A_fft;
-
-  cg->reverse_comm(this,REVERSE_RHO);
-  brick2fft();
-
-  // group B
-
-  density_brick = density_B_brick;
-  density_fft = density_B_fft;
-
-  cg->reverse_comm(this,REVERSE_RHO);
-  brick2fft();
-
-  // switch back pointers
-
-  density_brick = density_brick_real;
-  density_fft = density_fft_real;
-
-  // compute potential gradient on my FFT grid and
-  //   portion of group-group energy/force on this proc's FFT grid
-
-  // poisson_groups(AA_flag);
-
-  const double qscale = qqrd2e * scale;
-
-  // total group A <--> group B energy
-  // self and boundary correction terms are in compute_group_group.cpp
-
-  double e2group_all;
-  MPI_Allreduce(&e2group,&e2group_all,1,MPI_DOUBLE,MPI_SUM,world);
-  e2group = e2group_all;
-
-  e2group *= qscale*0.5*volume;
-
-  // total group A <--> group B force
-
-  double f2group_all[3];
-  MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
-
-  f2group[0] = qscale*volume*f2group_all[0];
-  f2group[1] = qscale*volume*f2group_all[1];
-  if (slabflag != 2) f2group[2] = qscale*volume*f2group_all[2];
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
-
-  // if (slabflag == 1)
-  //   slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
-
-  return;
-}
-
-void TILD::field_groups(int AA_flag){
-  int i,j,k,n;
-
-  // reuse memory (already declared)
-
-  FFT_SCALAR *work_A = work1;
-  FFT_SCALAR *work_B = work2;
-
-  // transform charge density (r -> k)
-
-  // group A
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work_A[n++] = density_A_fft[i];
-    work_A[n++] = ZEROF;
-  }
-
-  fft1->compute(work_A,work_A,1);
-
-  // group B
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work_B[n++] = density_B_fft[i];
-    work_B[n++] = ZEROF;
-  }
-
-  fft1->compute(work_B,work_B,1);
-
-  // group-group energy and force contribution,
-  //  keep everything in reciprocal space so
-  //  no inverse FFTs needed
-
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
-  double s2 = scaleinv*scaleinv;
-
-  // energy
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    e2group += s2 * greensfn[i] *
-      (work_A[n]*work_B[n] + work_A[n+1]*work_B[n+1]);
-    n += 2;
-  }
-
-  if (AA_flag) return;
-
-
-  // multiply by Green's function and s2
-  //  (only for work_A so it is not squared below)
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work_A[n++] *= s2 * greensfn[i];
-    work_A[n++] *= s2 * greensfn[i];
-  }
-
-  // triclinic system
-
-  if (triclinic) {
-    error->all(FLERR,"TILD doesn't support triclinic yet.");
-    return;
-  }
-
-  double partial_group;
-
-
-  fft1->compute(work_A, work_A,1);
-
-
-  /************************************************************************
-   * OLD RIGGLEMAN CODE
-  ///////////////////////////////////////////////
-  // Reset the particle forces and grid grad w //
-  ///////////////////////////////////////////////
-  //Set forces for local particles to 0
-  for ( i=0 ; i<ns_loc ; i++ ) {
-    id = my_inds[i] ;
-    for ( j=0 ; j<Dim ; j++ )
-      f[id][j] = 0.0 ;
-  }
-  //Set forces for ghost particles associated with current proc to 0
-  for ( i=0 ; i<total_ghost ; i++ ) {
-    id = ghost_inds[i] ;
-    for ( j=0 ; j<Dim ; j++ )
-      f[id][j] = 0.0 ;
-  }
- 
-  //Sets gradients to 0 
-  for ( i=0 ; i<ML ; i++ )
-    for ( j=0 ; j<Dim ; j++ ) 
-      gradwA[j][i] = gradwB[j][i] = gradwC[j][i] = gradwC[j][i] = gradwLC[j][i] = 0.0 ;
-
-
-
-  //////////////////////////////////////////////////
-  // Accumulate the monomer-monomer contributions //
-  //////////////////////////////////////////////////
-  
-  // A acting on B, C //
-  fftw_fwd( rho[0] , ktmp ) ;
-
-  for ( j=0 ; j<Dim ; j++ ) {
-    for ( i=0 ; i<ML ; i++ ) ktmp2[i] = grad_uG_hat[j][i] * ktmp[i] ;
-
-    fftw_back( ktmp2 , tmp ) ;
-
-    for ( i=0 ; i<ML ; i++ ) {
-      if ( chiAB != 0.0 )
-        gradwB[j][i] += tmp[i] * chiAB / rho0 ;
-      if ( chiAC != 0.0 )
-        gradwC[j][i] += tmp[i] * chiAC / rho0 ;
-    }
-  }
-  ***************************************************************************/
-
-  
-
-}
-
 void TILD::field_gradient(FFT_SCALAR *in, 
                           FFT_SCALAR **out, int flag)
 {
@@ -1270,45 +1040,12 @@ void TILD::field_gradient(FFT_SCALAR *in,
     work1[n++] = ZEROF;
   }
   n=0;
-  // for (i = 0; i < nfft; i++) {
-  //   std::cout << work1[n] << '\t'  << work2[n]/nfft  << '\t' << work2[n]/work1[n] << std::endl;
-  //   n+=2; 
-  // }
-  // FFT_SCALAR ** work3;
-  // memory->create(work3,domain->dimension, 2*nfft, "tild:work3");
-
-  // n=0;
-  // for (i = 0; i < nfft; i++) {
-  //   work1[n++] = in[i]/ngrid;
-  //   work1[n++] = ZEROF;
-  // }
   fft1->compute(work1, work1, 1);
   for (j = 0; j < 2*nfft; j++) {
     work1[j] = work1[j]*scale_inv;
   }
   get_k_alias(work1, out);
 
-  //   for (j = 0; j < nfft; j++) {
-  // for (i = 0; i < Dim; i++) {
-  //     std::cout << work3[i][j] << '\t';
-  //   }
-  //   std::cout << std::endl;
-  // }
-  // for (i = 0; i < Dim; i++) {
-  // n=0;
-    // fft1->compute(work1, work3[i], -1);
-    // n=0;
-    // for (j = 0; j < nfft; j++) {
-    //   out[i][j] = work3[i][n];
-    //   n+=2;
-    // }
-  // }
-//   n=0;
-// //  for (i = 0; i < nfft_both; i++) {
-    // std::cout<< out[0][i] << '\t' << out[1][i] << '\t' << out[2][i] << '\t' << std::endl; ;
-//  }
-  
-  // memory->destroy(work3);
 }
 
 int TILD::factorable(int n)
@@ -2266,7 +2003,6 @@ void TILD::accumulate_gradient() {
         // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
           if (fabs(param[i][i2]) >= 1e-10) {
-            // std::cout << i << ' ' << i2 << ' ' << param[i][i2] << std::endl;
             n = 0;
             for (int k = nzlo_in; k <= nzhi_in; k++)
               for (int m = nylo_in; m <= nyhi_in; m++)

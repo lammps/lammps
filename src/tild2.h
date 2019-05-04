@@ -40,7 +40,6 @@ class TILD : public KSpace{
   // virtual int timing_1d(int, double &);
   // virtual int timing_3d(int, double &);
 
-  void compute_group_group(int, int, int);
   void field_groups(int);
   void field_gradient(FFT_SCALAR*, FFT_SCALAR**, int);
   // void get_k_alias(int, double *);

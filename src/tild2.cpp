@@ -442,7 +442,7 @@ void TILD::allocate()
   memory->create4d_offset(density_brick_types,group->ngroup,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick_types");
-  memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim,
+memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim-1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWgroup");
 
@@ -552,9 +552,9 @@ void TILD::deallocate()
   memory->destroy(ktmp2);
   memory->destroy(tmp);
 
-  memory->destroy5d_offset(gradWgroup, domain->dimension,
-                          nzhi_out,nyhi_out,
-                          nxhi_out);
+  memory->destroy5d_offset(gradWgroup, 0,
+                          nzlo_out,nylo_out,
+                          nxlo_out);
 
   if (differentiation_flag == 1) {
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);

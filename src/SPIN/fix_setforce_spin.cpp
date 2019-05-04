@@ -126,7 +126,6 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
 {
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
   // update region if necessary
 

@@ -41,8 +41,6 @@ void PairREBO::settings(int narg, char **/*arg*/)
 void PairREBO::spline_init() {
   PairAIREBO::spline_init();
 
-  int i,j,k;
-
   PCCf[0][2] = 0.007860700254745;
   PCCf[0][3] = 0.016125364564267;
   PCCf[1][1] = 0.003026697473481;

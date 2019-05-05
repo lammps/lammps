@@ -22,7 +22,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairREBOIntel::PairREBOIntel(LAMMPS *lmp) : PairAIREBOIntel(lmp) {}
+PairREBOIntel::PairREBOIntel(LAMMPS *lmp) : PairAIREBOIntel(lmp) {
+  variant = REBO_2;
+}
 
 /* ----------------------------------------------------------------------
    global settings

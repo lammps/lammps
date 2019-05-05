@@ -34,7 +34,7 @@ pair_coeff * * rebo  CH.airebo  C H :pre
 Style {drip} computes the interlayer interactions of layered materials using
 the dihedral-angle-corrected registry-dependent (DRIP) potential as described
 in "(Wen)"_#Wen2018, which is based on the "(Kolmogorov)"_#Kolmogorov2005
-potential and provides an improvded prediction for forces.
+potential and provides an improved prediction for forces.
 The total potential energy of a system is
 
 :c,image(Eqs/pair_drip.jpg)
@@ -117,7 +117,7 @@ pair interactions.
 
 The {C.drip} parameter file provided with LAMMPS (see the "potentials"
 directory) is parameterized for metal "units"_units.html. You can use the DRIP
-potential with any LAMMPS units, but you would need to create your own cutstom
+potential with any LAMMPS units, but you would need to create your own custom
 parameter file with coefficients listed in the appropriate units, if your
 simulation doesn't use "metal" units.
 

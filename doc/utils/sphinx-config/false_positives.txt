@@ -1156,6 +1156,7 @@ Interparticle
 interstitials
 Intr
 intra
+intralayer
 intramolecular
 ints
 inv
@@ -1272,6 +1273,7 @@ Katsnelson
 Katsura
 Kaufmann
 Kawata
+Kaxiras
 Kayser
 kb
 kB

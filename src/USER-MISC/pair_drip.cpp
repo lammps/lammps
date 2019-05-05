@@ -568,15 +568,15 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
     fi[k] += tmp;
     fj[k] -= tmp;
 
-    // contributions from the transverse decay part tdij and the dihedral part gij
+    // contributions from transverse decay part tdij and the dihedral part gij
 
     // derivative of V2 contribute to atoms i, j
-    fi[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_dri[k] + dgij_dri[k]);
-    fj[k] -= HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drj[k] + dgij_drj[k]);
+    fi[k] -= HALF*tp*V1*((dtdij+dgij_drhosq)*drhosqij_dri[k]+dgij_dri[k]);
+    fj[k] -= HALF*tp*V1*((dtdij+dgij_drhosq)*drhosqij_drj[k]+dgij_drj[k]);
     // derivative of V2 contribute to nearest 3 neighs of atom i
-    fnbi1[k] = -HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb1[k] + dgij_drk1[k]);
-    fnbi2[k] = -HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb2[k] + dgij_drk2[k]);
-    fnbi3[k] = -HALF * tp * V1 * ((dtdij + dgij_drhosq) * drhosqij_drnb3[k] + dgij_drk3[k]);
+    fnbi1[k] = -HALF*tp*V1*((dtdij+dgij_drhosq)*drhosqij_drnb1[k]+dgij_drk1[k]);
+    fnbi2[k] = -HALF*tp*V1*((dtdij+dgij_drhosq)*drhosqij_drnb2[k]+dgij_drk2[k]);
+    fnbi3[k] = -HALF*tp*V1*((dtdij+dgij_drhosq)*drhosqij_drnb3[k]+dgij_drk3[k]);
     // derivative of V2 contribute to nearest 3 neighs of atom j
     fnbj1[k] = -HALF * tp * V1 * dgij_drl1[k];
     fnbj2[k] = -HALF * tp * V1 * dgij_drl2[k];
@@ -746,9 +746,10 @@ void PairDRIP::calc_normal(int const i, double *const normal,
 /* ---------------------------------------------------------------------- */
 
 void PairDRIP::get_drhosqij(double const *rij, double const *ni,
-    V3 const *dni_dri, V3 const *dni_drn1, V3 const *dni_drn2, V3 const *dni_drn3,
-    double *const drhosq_dri, double *const drhosq_drj, double *const drhosq_drn1,
-    double *const drhosq_drn2, double *const drhosq_drn3)
+    V3 const *dni_dri, V3 const *dni_drn1, V3 const *dni_drn2,
+    V3 const *dni_drn3, double *const drhosq_dri, double *const drhosq_drj,
+    double *const drhosq_drn1, double *const drhosq_drn2,
+    double *const drhosq_drn3)
 {
   int k;
   double ni_dot_rij = 0;
@@ -764,7 +765,7 @@ void PairDRIP::get_drhosqij(double const *rij, double const *ni,
   mat_dot_vec(dni_drn3, rij, dni_drn3_dot_rij);
 
   for (k = 0; k < DIM; k++) {
-    drhosq_dri[k] = -2 * rij[k] - 2 * ni_dot_rij * (-ni[k] + dni_dri_dot_rij[k]);
+    drhosq_dri[k] = -2*rij[k] - 2 * ni_dot_rij * (-ni[k] + dni_dri_dot_rij[k]);
     drhosq_drj[k] = 2 * rij[k] - 2 * ni_dot_rij * ni[k];
     drhosq_drn1[k] = -2 * ni_dot_rij * dni_drn1_dot_rij[k];
     drhosq_drn2[k] = -2 * ni_dot_rij * dni_drn2_dot_rij[k];
@@ -817,8 +818,8 @@ double PairDRIP::dihedral(const int i, const int j, Param& p,
   // local vars
   double cos_kl[3][3];          // cos_omega_k1ijl1, cos_omega_k1ijl2 ...
   double d_dcos_kl[3][3];       // deriv of dihedral w.r.t to cos_omega_kijl
-  double dcos_kl[3][3][4][DIM]; // 4 indicates k, i, j, l, e.g. dcoskl[0][1][0] means
-                                // dcos_omega_k1ijl2 / drk
+  double dcos_kl[3][3][4][DIM]; // 4 indicates k, i, j, l. e.g. dcoskl[0][1][0]
+                                // means dcos_omega_k1ijl2 / drk
 
 
   // if larger than cutoff of rho, return 0
@@ -849,7 +850,8 @@ double PairDRIP::dihedral(const int i, const int j, Param& p,
   for (int m = 0; m < 3; m++) {
     for (int n = 0; n < 3; n++) {
       cos_kl[m][n] = deriv_cos_omega(x[k[m]], x[i], x[j], x[l[n]],
-          dcos_kl[m][n][0], dcos_kl[m][n][1], dcos_kl[m][n][2], dcos_kl[m][n][3]);
+          dcos_kl[m][n][0], dcos_kl[m][n][1],
+          dcos_kl[m][n][2], dcos_kl[m][n][3]);
     }
   }
 
@@ -995,7 +997,7 @@ double PairDRIP::tap(double r, double cutoff, double& dtap)
   else {
     double roc = (r - r_min) / (cutoff - r_min);
     double roc_sq = roc * roc;
-    t = roc_sq * roc_sq * (-35.0 + 84.0 * roc + roc_sq * (-70.0 + 20.0 * roc)) + 1;
+    t = roc_sq*roc_sq*(-35.0 + 84.0 * roc + roc_sq * (-70.0 + 20.0 * roc)) + 1;
     dtap = roc_sq * roc / (cutoff - r_min)
            * (-140.0 + 420.0 * roc + roc_sq * (-420.0 + 140.0 * roc));
   }
@@ -1013,10 +1015,10 @@ double PairDRIP::tap_rho(double rhosq, double cut_rhosq, double& drhosq)
 
   roc_sq = rhosq / cut_rhosq;
   roc = sqrt(roc_sq);
-  t = roc_sq * roc_sq * (-35.0 + 84.0 * roc + roc_sq * (-70.0 + 20.0 * roc)) + 1;
+  t = roc_sq*roc_sq*(-35.0 + 84.0 * roc + roc_sq * (-70.0 + 20.0 * roc)) + 1;
 
   // Note this dtap/drho_sq not dtap/drho
-  drhosq = roc_sq / cut_rhosq * (-70.0 + 210.0 * roc + roc_sq * (-210.0 + 70.0 * roc));
+  drhosq = roc_sq/cut_rhosq*(-70.0 + 210.0*roc + roc_sq*(-210.0 + 70.0*roc));
 
   return t;
 }
@@ -1024,7 +1026,7 @@ double PairDRIP::tap_rho(double rhosq, double cut_rhosq, double& drhosq)
 /* ----------------------------------------------------------------------
    Compute the normalized cross product of two vector rkl, rkm, and the
    derivates w.r.t rk, rl, rm.
-   NOTE, the returned dcross_drk, dcross_drl, and dcross_drm are actually the
+   Note, the returned dcross_drk, dcross_drl, and dcross_drm are actually the
    transpose.
 ------------------------------------------------------------------------- */
 

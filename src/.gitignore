@@ -782,6 +782,8 @@
 /pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
+/pair_drip.cpp
+/pair_drip.h
 /pair_eam.cpp
 /pair_eam.h
 /pair_eam_alloy.cpp

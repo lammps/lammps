@@ -70,8 +70,8 @@ protected:
   void allocate();
 
   // DRIP specific functions
-  double calc_attractive(int const, int const, Param&, double const,
-      double const *, double *const, double *const);
+  double calc_attractive(Param&, double const, double const *,
+                         double *const, double *const);
 
   double calc_repulsive(int const, int const, Param&, double const,
       double const *, double const *, V3 const *, V3 const *, V3 const *,
@@ -105,12 +105,12 @@ protected:
       double *const, V3 *const, V3 *const, V3 *const);
 
   // inline functions
-  inline double dot(double const *x, double const *y)
+  inline double dot(double const *x, double const *y) const
   {
     return x[0]*y[0]+x[1]*y[1]+x[2]*y[2];
   }
 
-  inline void mat_dot_vec(V3 const *X, double const *y, double *const z)
+  inline void mat_dot_vec(V3 const *X, double const *y, double *const z) const
   {
     for (int k = 0; k < 3; k++) {
       z[k] = X[k][0]*y[0]+X[k][1]*y[1]+X[k][2]*y[2];

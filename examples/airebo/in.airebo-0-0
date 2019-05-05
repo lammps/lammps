@@ -11,7 +11,7 @@ neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
 
 pair_style	    airebo 3.0 0 0
-pair_coeff	    * * ../../potentials/CH.airebo C H
+pair_coeff	    * * CH.airebo C H
 
 velocity	    all create 300.0 761341
 

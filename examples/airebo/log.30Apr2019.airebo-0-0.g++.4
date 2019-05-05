@@ -1,4 +1,5 @@
-LAMMPS (12 Dec 2018)
+LAMMPS (30 Apr 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # AIREBO polyethelene benchmark
 
@@ -10,19 +11,20 @@ read_data	    data.airebo
   1 by 1 by 4 MPI processor grid
   reading atoms ...
   60 atoms
+  read_data CPU = 0.000363827 secs
 
 replicate	    17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
   2 by 2 by 1 MPI processor grid
   32640 atoms
-  Time spent = 0.000664234 secs
+  replicate CPU = 0.00244427 secs
 
 neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
 
 pair_style	    airebo 3.0 0 0
-pair_coeff	    * * ../../potentials/CH.airebo C H
-Reading potential file ../../potentials/CH.airebo with DATE: 2011-10-25
+pair_coeff	    * * CH.airebo C H
+Reading potential file CH.airebo with DATE: 2011-10-25
 
 velocity	    all create 300.0 761341
 
@@ -56,20 +58,20 @@ Step Temp E_pair E_mol TotEng Press
       80    202.34667   -138029.28            0   -137175.59   -7623.6634 
       90    194.92367   -137997.12            0   -137174.75   -32277.173 
      100     185.2078   -137954.64            0   -137173.26   -6888.5104 
-Loop time of 1.44469 on 4 procs for 100 steps with 32640 atoms
+Loop time of 6.71962 on 4 procs for 100 steps with 32640 atoms
 
-Performance: 2.990 ns/day, 8.026 hours/ns, 69.219 timesteps/s
-99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 0.643 ns/day, 37.331 hours/ns, 14.882 timesteps/s
+96.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.92215    | 0.93812    | 0.95363    |   1.6 | 64.94
-Neigh   | 0.45592    | 0.45842    | 0.46002    |   0.2 | 31.73
-Comm    | 0.016539   | 0.03352    | 0.050276   |   8.6 |  2.32
-Output  | 0.00043154 | 0.00059217 | 0.001025   |   0.0 |  0.04
-Modify  | 0.0087888  | 0.0090455  | 0.0095809  |   0.3 |  0.63
-Other   |            | 0.004989   |            |       |  0.35
+Pair    | 4.4598     | 4.6375     | 4.7708     |   5.5 | 69.01
+Neigh   | 1.5903     | 1.6452     | 1.7207     |   3.8 | 24.48
+Comm    | 0.16708    | 0.37041    | 0.56709    |  25.1 |  5.51
+Output  | 0.001061   | 0.0059808  | 0.0090635  |   4.3 |  0.09
+Modify  | 0.030086   | 0.03154    | 0.032522   |   0.5 |  0.47
+Other   |            | 0.02897    |            |       |  0.43
 
 Nlocal:    8160 ave 8163 max 8157 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -84,4 +86,4 @@ Total # of neighbors = 4902134
 Ave neighs/atom = 150.188
 Neighbor list builds = 9
 Dangerous builds = 0
-Total wall time: 0:00:01
+Total wall time: 0:00:07

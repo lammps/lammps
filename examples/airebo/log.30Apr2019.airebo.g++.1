@@ -1,4 +1,5 @@
-LAMMPS (12 Dec 2018)
+LAMMPS (30 Apr 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # AIREBO polyethelene benchmark
 
@@ -10,12 +11,13 @@ read_data           data.airebo
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   60 atoms
+  read_data CPU = 0.000217438 secs
 
 replicate           17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
   1 by 1 by 1 MPI processor grid
   32640 atoms
-  Time spent = 0.0013268 secs
+  replicate CPU = 0.00204968 secs
 
 neighbor            0.5 bin
 neigh_modify        delay 5 every 1
@@ -56,20 +58,20 @@ Step Temp E_pair E_mol TotEng Press
       80    157.16184   -138695.77            0   -138032.72    19824.698 
       90    196.15907   -138860.65            0   -138033.07   -7950.8463 
      100    178.31875   -138784.89            0   -138032.57    30997.671 
-Loop time of 57.482 on 1 procs for 100 steps with 32640 atoms
+Loop time of 98.1502 on 1 procs for 100 steps with 32640 atoms
 
-Performance: 0.075 ns/day, 319.344 hours/ns, 1.740 timesteps/s
-99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.044 ns/day, 545.279 hours/ns, 1.019 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 52.796     | 52.796     | 52.796     |   0.0 | 91.85
-Neigh   | 4.6286     | 4.6286     | 4.6286     |   0.0 |  8.05
-Comm    | 0.024035   | 0.024035   | 0.024035   |   0.0 |  0.04
-Output  | 0.00098443 | 0.00098443 | 0.00098443 |   0.0 |  0.00
-Modify  | 0.021958   | 0.021958   | 0.021958   |   0.0 |  0.04
-Other   |            | 0.01014    |            |       |  0.02
+Pair    | 90.237     | 90.237     | 90.237     |   0.0 | 91.94
+Neigh   | 7.796      | 7.796      | 7.796      |   0.0 |  7.94
+Comm    | 0.048884   | 0.048884   | 0.048884   |   0.0 |  0.05
+Output  | 0.0016053  | 0.0016053  | 0.0016053  |   0.0 |  0.00
+Modify  | 0.045511   | 0.045511   | 0.045511   |   0.0 |  0.05
+Other   |            | 0.0217     |            |       |  0.02
 
 Nlocal:    32640 ave 32640 max 32640 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -84,4 +86,4 @@ Total # of neighbors = 22217840
 Ave neighs/atom = 680.694
 Neighbor list builds = 8
 Dangerous builds = 0
-Total wall time: 0:00:58
+Total wall time: 0:01:39

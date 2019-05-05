@@ -116,7 +116,7 @@ various dihedral angle preferences in hydrocarbon configurations.
 Only a single pair_coeff command is used with the {airebo}, {airebo}
 or {rebo} style which specifies an AIREBO, REBO, or AIREBO-M potential
 file with parameters for C and H.  Note that as of LAMMPS version
-15 November 2018 the {rebo} style in LAMMPS uses its own potential
+15 May 2019 the {rebo} style in LAMMPS uses its own potential
 file (CH.rebo).  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:

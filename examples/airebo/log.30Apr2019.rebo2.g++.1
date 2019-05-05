@@ -1,28 +1,30 @@
-LAMMPS (12 Dec 2018)
+LAMMPS (30 Apr 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
-# AIREBO polyethelene benchmark
+# REBO polyethelene benchmark
 
 units		    metal
 atom_style	    atomic
 
 read_data	    data.airebo
   orthogonal box = (-2.1 -2.1 0) to (2.1 2.1 25.579)
-  1 by 1 by 4 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   60 atoms
+  read_data CPU = 0.000190735 secs
 
 replicate	    17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
-  2 by 2 by 1 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   32640 atoms
-  Time spent = 0.000644684 secs
+  replicate CPU = 0.00197148 secs
 
 neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
 
 pair_style	    rebo
-pair_coeff	    * * ../../potentials/CH.rebo C H
-Reading potential file ../../potentials/CH.rebo with DATE: 2018-7-3
+pair_coeff	    * * CH.rebo C H
+Reading potential file CH.rebo with DATE: 2018-7-3
 
 velocity	    all create 300.0 761341
 
@@ -43,7 +45,7 @@ Neighbor list info ...
       pair build: full/bin/ghost
       stencil: full/ghost/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 11.75 | 11.94 | 12.13 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 34.21 | 34.21 | 34.21 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          300   -138442.83            0   -137177.16    2463.0748 
       10    179.37985   -137931.27            0   -137174.48    15655.936 
@@ -56,32 +58,32 @@ Step Temp E_pair E_mol TotEng Press
       80    202.37482   -138029.39            0   -137175.59   -7622.7319 
       90    194.90628   -137997.05            0   -137174.75   -32267.471 
      100    185.17818   -137954.51            0   -137173.26   -6901.7499 
-Loop time of 1.4517 on 4 procs for 100 steps with 32640 atoms
+Loop time of 9.44819 on 1 procs for 100 steps with 32640 atoms
 
-Performance: 2.976 ns/day, 8.065 hours/ns, 68.885 timesteps/s
-99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 0.457 ns/day, 52.490 hours/ns, 10.584 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.92079    | 0.93883    | 0.95524    |   1.6 | 64.67
-Neigh   | 0.45826    | 0.46013    | 0.46316    |   0.3 | 31.70
-Comm    | 0.02183    | 0.038046   | 0.052974   |   7.5 |  2.62
-Output  | 0.00044131 | 0.00057179 | 0.00093198 |   0.0 |  0.04
-Modify  | 0.0088243  | 0.0089917  | 0.0092998  |   0.2 |  0.62
-Other   |            | 0.005127   |            |       |  0.35
+Pair    | 7.037      | 7.037      | 7.037      |   0.0 | 74.48
+Neigh   | 2.3182     | 2.3182     | 2.3182     |   0.0 | 24.54
+Comm    | 0.029898   | 0.029898   | 0.029898   |   0.0 |  0.32
+Output  | 0.0014331  | 0.0014331  | 0.0014331  |   0.0 |  0.02
+Modify  | 0.043851   | 0.043851   | 0.043851   |   0.0 |  0.46
+Other   |            | 0.01774    |            |       |  0.19
 
-Nlocal:    8160 ave 8163 max 8157 min
-Histogram: 1 1 0 0 0 0 0 0 1 1
-Nghost:    11605.8 ave 11615 max 11593 min
-Histogram: 1 0 0 0 0 0 2 0 0 1
+Nlocal:    32640 ave 32640 max 32640 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    26460 ave 26460 max 26460 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:    0 ave 0 max 0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-FullNghs:  1.22553e+06 ave 1.22735e+06 max 1.22455e+06 min
-Histogram: 2 0 0 1 0 0 0 0 0 1
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  4.90213e+06 ave 4.90213e+06 max 4.90213e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 4902134
 Ave neighs/atom = 150.188
 Neighbor list builds = 9
 Dangerous builds = 0
-Total wall time: 0:00:01
+Total wall time: 0:00:09

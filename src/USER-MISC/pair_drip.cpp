@@ -700,7 +700,8 @@ void PairDRIP::find_nearest3neigh()
     // store neighbors to be used later to compute normal
     if (nb3_rsq >= 1.0e10) {
       if (i<inum) {
-        error->one(FLERR, "No enough neighbors to construct normal.");
+        error->one(FLERR, "No enough neighbors to construct normal. Check the "
+        "configuration to see whether atoms fly away.");
       } else {
         // This only happens for ghost atoms that are near the boundary of the
         // domain (i.e. r > r_cut + n_cut). These ghost atoms will not be

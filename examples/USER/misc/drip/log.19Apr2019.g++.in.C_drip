@@ -16,8 +16,8 @@ read_data      data.C
   0 = max # of 1-3 neighbors
   0 = max # of 1-4 neighbors
   1 = max # of special neighbors
-  special bonds CPU = 0.000100136 secs
-  read_data CPU = 0.00110912 secs
+  special bonds CPU = 0.000164032 secs
+  read_data CPU = 0.00137401 secs
 
 
 # potential
@@ -43,9 +43,9 @@ WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimizat
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 14
-  ghost atom cutoff = 14
-  binsize = 7, bins = 6 4 1
+  master list distance cutoff = 17.7
+  ghost atom cutoff = 17.7
+  binsize = 8.85, bins = 5 3 1
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
   (1) pair drip, perpetual
       attributes: full, newton on, ghost
@@ -57,7 +57,7 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 11.4 | 11.4 | 11.4 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 12.21 | 12.21 | 12.21 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
        0            0   -2941.0549            0   -2941.0549   -52204.715    2052.0534 
       10            0   -2966.9787            0   -2966.9787    -29717.01    2052.0534 
@@ -66,9 +66,9 @@ Step Temp E_pair E_mol TotEng Press Volume
       40            0   -2967.0888            0   -2967.0888   -29997.486    2052.0534 
       50            0   -2967.0896            0   -2967.0896   -30072.387    2052.0534 
       51            0   -2967.0896            0   -2967.0896   -30076.548    2052.0534 
-Loop time of 2.8619 on 1 procs for 51 steps with 400 atoms
+Loop time of 2.89944 on 1 procs for 51 steps with 400 atoms
 
-98.9% CPU use with 1 MPI tasks x no OpenMP threads
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -82,25 +82,25 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.8529     | 2.8529     | 2.8529     |   0.0 | 99.69
-Bond    | 3.314e-05  | 3.314e-05  | 3.314e-05  |   0.0 |  0.00
+Pair    | 2.8899     | 2.8899     | 2.8899     |   0.0 | 99.67
+Bond    | 3.171e-05  | 3.171e-05  | 3.171e-05  |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0010927  | 0.0010927  | 0.0010927  |   0.0 |  0.04
-Output  | 0.0053217  | 0.0053217  | 0.0053217  |   0.0 |  0.19
+Comm    | 0.001483   | 0.001483   | 0.001483   |   0.0 |  0.05
+Output  | 0.0055339  | 0.0055339  | 0.0055339  |   0.0 |  0.19
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.002526   |            |       |  0.09
+Other   |            | 0.002449   |            |       |  0.08
 
 Nlocal:    400 ave 400 max 400 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    1716 ave 1716 max 1716 min
+Nghost:    2357 ave 2357 max 2357 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:    0 ave 0 max 0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  180462 ave 180462 max 180462 min
+FullNghs:  294122 ave 294122 max 294122 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 180462
-Ave neighs/atom = 451.155
+Total # of neighbors = 294122
+Ave neighs/atom = 735.305
 Ave special neighs/atom = 0
 Neighbor list builds = 0
 Dangerous builds = 0

@@ -33,8 +33,8 @@ pair_coeff * * rebo  CH.airebo  C H :pre
 
 Style {drip} computes the interlayer interactions of layered materials using
 the dihedral-angle-corrected registry-dependent (DRIP) potential as described
-in "(Wen)"_#Wen1, which is based on the "(Kolmogorov)"_#Kolmogorov1 potential
-and provides an improvded prediction for forces.
+in "(Wen)"_#Wen2018, which is based on the "(Kolmogorov)"_#Kolmogorov2005
+potential and provides an improvded prediction for forces.
 The total potential energy of a system is
 
 :c,image(Eqs/pair_drip.jpg)
@@ -88,9 +88,10 @@ pair_style hybrid/overlay drip rebo
 pair_coeff * * drip  C.drip     C NULL
 pair_coeff * * rebo  CH.airebo  C H :pre
 
-NOTE: The parameter file developed in "(Wen)"_#Wen1 is provided with LAMMPS (see
-the "potentials" directory).
-
+NOTE: The potential parameters developed in "(Wen)"_#Wen2018 are provided with
+LAMMPS (see the "potentials" directory). Besides those in "Wen"_#Wen2018, an
+additional parameter "normal_cutoff", specific to the LAMMPS implementation, is
+used to find the three nearest neighbors of an atom to construct the normal.
 
 
 :line
@@ -131,9 +132,10 @@ simulation doesn't use "metal" units.
 
 :line
 
-:link(Wen1)
-[(Wen)] M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98, 235404 (2018)
+:link(Wen2018)
+[(Wen)] M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B,
+98, 235404 (2018)
 
-:link(Kolmogorov1)
+:link(Kolmogorov2005)
 [(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 

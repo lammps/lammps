@@ -6,10 +6,14 @@
 # Cite as M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98, 235404 (2018).
 
 
-#        C0           C2          C4          C         delta     lambda     A         z0       B        eta   rho_cut r_cut
-C  C  1.1598e-02  1.2981e-02  3.2515e-02  7.8151e-03  8.3679e-01  2.7158  2.2216e-02  3.34  7.6799e-03  1.1432  1.562  12.0
+#        C0           C2          C4          C         delta     lambda     A        z0       B         eta  rho_cut r_cut normal_cut
+C  C  1.1598e-02  1.2981e-02  3.2515e-02  7.8151e-03  8.3679e-01  2.7158  2.2216e-02  3.34  7.6799e-03  1.1432  1.562  12.0  3.7
 
 
 # C0, C2, C4, C, A, and B in [eV]
-# delta, z0, eta, rho_cut, and r_cut in [Angstrom]
+# delta, z0, eta, rho_cut, r_cut, and normal_cut in [Angstrom]
 # lambda in [1/Angstrom]
+#
+# "normal_cut" is a parameter not present in the Wen paper, but specific to the
+# LAMMPS implementation, which is used to find the 3 nearest neighbors of an
+# atom to construct the normal.

@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Mingjian Wen (University of Minnesota)
-   e-mail: wenxx151@umn.edu
+   e-mail: wenxx151@umn.edu, wenxx151@gmail.com
 
    This implements the DRIP model as described in
    M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor,
@@ -115,7 +115,7 @@ void PairDRIP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairDRIP::settings(int narg, char **arg)
+void PairDRIP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
@@ -351,9 +351,8 @@ void PairDRIP::read_file(char *filename)
 
 void PairDRIP::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
-  tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,r,rsq;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double ni[DIM];
@@ -365,7 +364,6 @@ void PairDRIP::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -381,7 +379,6 @@ void PairDRIP::compute(int eflag, int vflag)
     if (nearest3neigh[i][0] == -1) {
       continue;
     }
-    itag = tag[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -401,7 +398,6 @@ void PairDRIP::compute(int eflag, int vflag)
         continue;
       }
       jtype = map[type[j]];
-      jtag = tag[j];
 
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
@@ -417,7 +413,7 @@ void PairDRIP::compute(int eflag, int vflag)
         double fj[DIM] = {0., 0., 0.};
         double rvec[DIM] = {delx, dely, delz};
 
-        double phi_attr = calc_attractive(i,j,p, rsq, rvec, fi, fj);
+        double phi_attr = calc_attractive(p, rsq, rvec, fi, fj);
 
         double phi_repul = calc_repulsive(i, j, p, rsq, rvec,
             ni, dni_dri, dni_drnb1, dni_drnb2, dni_drnb3, fi, fj);
@@ -457,8 +453,8 @@ if (vflag_fdotr)
    Attractive part, i.e. the r^(-6) part
 ------------------------------------------------------------------------- */
 
-double PairDRIP::calc_attractive(int const i, int const j, Param& p,
-    double const rsq, double const *rvec, double *const fi, double *const fj)
+double PairDRIP::calc_attractive(Param& p, double const rsq, double const *rvec,
+                                 double *const fi, double *const fj)
 {
   double const z0 = p.z0;
   double const A = p.A;
@@ -617,7 +613,7 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
 
 void PairDRIP::find_nearest3neigh()
 {
-  int i, j, ii, jj, n, allnum, inum, jnum, itype, jtype, size;
+  int i, j, ii, jj, allnum, inum, jnum, itype, jtype, size;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
@@ -644,7 +640,6 @@ void PairDRIP::find_nearest3neigh()
       memory->grow(nearest3neigh, size, 3, "pair:nearest3neigh");
     }
 
-    n = 0;
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];

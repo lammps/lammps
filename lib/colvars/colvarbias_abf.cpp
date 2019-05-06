@@ -191,10 +191,10 @@ int colvarbias_abf::init(std::string const &conf)
       // Projected ABF
       get_keyval(conf, "pABFintegrateFreq", pabf_freq, 0);
       // Parameters for integrating initial (and final) gradient data
-      get_keyval(conf, "integrateInitSteps", integrate_initial_steps, 1e4);
+      get_keyval(conf, "integrateInitMaxIterations", integrate_initial_iterations, 1e4);
       get_keyval(conf, "integrateInitTol", integrate_initial_tol, 1e-6);
       // for updating the integrated PMF on the fly
-      get_keyval(conf, "integrateSteps", integrate_steps, 100);
+      get_keyval(conf, "integrateMaxIterations", integrate_iterations, 100);
       get_keyval(conf, "integrateTol", integrate_tol, 1e-4);
     }
   } else {
@@ -366,10 +366,10 @@ int colvarbias_abf::update()
     if ( b_integrate ) {
       if ( pabf_freq && cvm::step_relative() % pabf_freq == 0 ) {
         cvm::real err;
-        int iter = pmf->integrate(integrate_steps, integrate_tol, err);
-        if ( iter == integrate_steps ) {
+        int iter = pmf->integrate(integrate_iterations, integrate_tol, err);
+        if ( iter == integrate_iterations ) {
           cvm::log("Warning: PMF integration did not converge to " + cvm::to_str(integrate_tol)
-            + " in " + cvm::to_str(integrate_steps)
+            + " in " + cvm::to_str(integrate_iterations)
             + " steps. Residual error: " +  cvm::to_str(err));
         }
         pmf->set_zero_minimum(); // TODO: do this only when necessary
@@ -597,7 +597,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
   if (b_integrate) {
     // Do numerical integration (to high precision) and output a PMF
     cvm::real err;
-    pmf->integrate(integrate_initial_steps, integrate_initial_tol, err);
+    pmf->integrate(integrate_initial_iterations, integrate_initial_tol, err);
     pmf->set_zero_minimum();
 
     std::string  pmf_out_name = prefix + ".pmf";
@@ -661,7 +661,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
       // Do numerical integration (to high precision) and output a PMF
       cvm::real err;
       czar_pmf->set_div();
-      czar_pmf->integrate(integrate_initial_steps, integrate_initial_tol, err);
+      czar_pmf->integrate(integrate_initial_iterations, integrate_initial_tol, err);
       czar_pmf->set_zero_minimum();
 
       std::string  czar_pmf_out_name = prefix + ".czar.pmf";

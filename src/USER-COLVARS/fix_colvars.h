@@ -50,6 +50,7 @@ class FixColvars : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
+  virtual int modify_param(int, char **);
   virtual void min_setup(int vflag) {setup(vflag);};
   virtual void min_post_force(int);
   virtual void post_force(int);

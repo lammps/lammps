@@ -132,7 +132,7 @@ protected:
 
   /// \brief Number of steps required to reach the target force constant
   /// or restraint centers
-  long target_nsteps;
+  cvm::step_number target_nsteps;
 
   /// \brief Accumulated work (computed when outputAccumulatedWork == true)
   cvm::real acc_work;
@@ -328,8 +328,7 @@ public:
 
   virtual int update();
 
-  virtual std::istream & read_restart(std::istream &is);
-  virtual std::ostream & write_restart(std::ostream &os);
+  virtual int write_output_files();
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
 

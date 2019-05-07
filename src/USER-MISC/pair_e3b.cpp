@@ -85,7 +85,6 @@ PairE3B::~PairE3B()
 void PairE3B::compute(int eflag, int vflag)
 {
   int i,j,k,h,ii,jj,hh,kk,inum,jnum,otherO;
-  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,rsq,tmpexp;
   double fxtmp,fytmp,fztmp,fix,fiy,fiz;
   double delxh,delyh,delzh,rsqh,tmpr;
@@ -122,7 +121,6 @@ void PairE3B::compute(int eflag, int vflag)
     if (type[i]!=typeO)
       continue;
 
-    itag = tag[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -139,7 +137,6 @@ void PairE3B::compute(int eflag, int vflag)
       if (type[j]!=typeO)
         continue;
 
-      jtag = tag[j];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -480,9 +477,7 @@ void PairE3B::init_style()
     error->all(FLERR,"Pair style E3B requires newton pair on");
 
   // need a half neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  //don't need this, half is default
-  //neighbor->requests[irequest]->half = 0;
+  neighbor->request(this,instance_me);
 
   if (!force->pair_match("tip4p",false,0))
     if (comm->me==0) error->warning(FLERR,"E3B pair_style is designed for use with hybrid/overlay tip4p style");

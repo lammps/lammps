@@ -33,7 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

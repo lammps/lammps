@@ -357,6 +357,16 @@ void PairE3B::allocateE3B()
   memory->create(fpair3,pairmax,NUMO,NUMH    ,"pair:fpair3");
   memory->create(del3  ,pairmax,NUMO,NUMH,DIM,"pair:del3");
 
+  //set del3 to zero to silence valgrind memcheck errors
+  //don't need to do this in every call to compute() because we set
+  //exps and fpair3 to zero, and all uses of del3 are multiplied by one of those
+  int ii,jj,kk,ll;
+  for (ii=0; ii<pairmax; ii++)
+    for (jj=0; jj<NUMO; jj++)
+      for (kk=0; kk<NUMH; kk++)
+	for (ll=0; ll<DIM; ll++)
+	  del3[ii][jj][kk][ll] = 0.0;
+
   natoms=atom->natoms;
   maxID=find_maxID();
   if (!natoms)

@@ -86,8 +86,8 @@ This estimate defaults to 10 and can be changed using the {neigh} keyword, which
 If the neigh setting is too small, the simulation will fail with the error "neigh is too small".
 If the neigh setting is too large, the pair style will use more memory than necessary.
 
-This pair style makes 4 different contributions to the potential energy from the E2, Ea, Eb, and Ec terms above.
-The value of each of these terms can be computed using "compute pe/e3b"_compute_pe_e3b.html.
+This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the "compute pair"_compute_pair.html command as a vector of values of length 4.
+The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
 
 See the examples/USER/e3b directory for a complete example script.
 
@@ -124,7 +124,7 @@ The {preset} keyword currently only works with real, metal, si, and cgs "units"_
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "compute pe/e3b"_compute_pe_e3b.html
+"pair_coeff"_pair_coeff.html, "compute pair"_compute_pair.html
 
 [Default:]
 

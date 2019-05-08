@@ -74,9 +74,9 @@ velocity 	all create ${myT} 15856 dist gaussian rot yes mom yes
 run		0
 velocity	all scale ${myT}
 
-compute    	e3b all pe/e3b
+compute    	e3b all pair e3b
 fix		e3b all ave/time 1 1 ${thermo_rate} c_e3b c_e3b[*] &
-		file e3b.txt title2 "step pe_e3b pe_ea pe_eb pe_ec pe_e2"
+		file e3b.txt title2 "step pe_e3b pe_e2 pe_ea pe_eb pe_ec"
 
 #############################################################################
 #equilibrate bulk water at NVT

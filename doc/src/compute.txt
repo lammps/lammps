@@ -240,7 +240,6 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pe/mol/tally"_compute_tally.html -
 "pe/tally"_compute_tally.html -
-"pe/e3b"_compute_pe_e3b.html - potential energy from pair_style e3b
 "plasticity/atom"_compute_plasticity_atom.html - Peridynamic plasticity for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "pressure/cylinder"_compute_pressure_cylinder.html -

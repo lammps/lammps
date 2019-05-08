@@ -48,6 +48,8 @@ PairE3B::PairE3B(LAMMPS *lmp) : Pair(lmp),pairPerAtom(10)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  nextra=4;       //store and tally pot energy terms eA, eB, eC, and e2
+  pvector = new double[nextra];
 
   allocatedE3B = false;
   pairO  = NULL;
@@ -78,6 +80,8 @@ PairE3B::~PairE3B()
     memory->destroy(fpair3);
     memory->destroy(sumExp);
   }
+
+  delete[] pvector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,7 +103,7 @@ void PairE3B::compute(int eflag, int vflag)
   memset(sumExp,0.0,nbytes);
 
   evdwl = 0.0;
-  etot[0]=etot[1]=etot[2]=etot[3]=0.0;
+  pvector[0]=pvector[1]=pvector[2]=pvector[3]=0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -161,7 +165,7 @@ void PairE3B::compute(int eflag, int vflag)
 
 	if (evflag) {
 	  ev_tally(i,j,nlocal,newton_pair,tmpexp,0.0,fpair,delx,dely,delz);
-	  etot[3] += tmpexp;
+	  pvector[0] += tmpexp;
 	}
       } //end if rsq<rc2sq
 
@@ -282,7 +286,7 @@ void PairE3B::compute(int eflag, int vflag)
 	  evdwl = partA*exps[ii][kk][hh]*0.5; //mult by exp on this H
 	  ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
 		   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
-	  etot[0] += evdwl;
+	  pvector[1] += evdwl;
 	}
 
 	//type B
@@ -302,7 +306,7 @@ void PairE3B::compute(int eflag, int vflag)
 	  evdwl = partB*exps[ii][kk][hh]*0.5; //mult by exp on this H
 	  ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
 		   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
-	  etot[1] += evdwl;
+	  pvector[2] += evdwl;
 	}
 
 	//type C
@@ -322,7 +326,7 @@ void PairE3B::compute(int eflag, int vflag)
 	  evdwl = partC*exps[ii][kk][hh]*0.5; //mult by exp on this H
 	  ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
 		   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
-	  etot[2] += evdwl;
+	  pvector[3] += evdwl;
 	}
       } //end for hh in NUMH
     } //end for kk in NUMO

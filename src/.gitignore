@@ -309,8 +309,6 @@
 /compute_meso_t_atom.h
 /compute_msd_nongauss.cpp
 /compute_msd_nongauss.h
-/compute_pe_e3b.cpp
-/compute_pe_e3b.h
 /compute_pe_tally.cpp
 /compute_pe_tally.h
 /compute_plasticity_atom.cpp
@@ -794,6 +792,10 @@
 /pair_eam_cd.h
 /pair_eam_fs.cpp
 /pair_eam_fs.h
+/fix_electron_stopping.cpp
+/fix_electron_stopping.h
+/pair_lebedeva_z.cpp
+/pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
 /pair_lj_expand_coul_long.h
 /pair_edip.cpp
@@ -1242,4 +1244,3 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
-

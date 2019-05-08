@@ -91,7 +91,6 @@ KOKKOS, o = USER-OMP, t = OPT.
 "pe/atom"_compute_pe_atom.html,
 "pe/mol/tally"_compute_tally.html,
 "pe/tally"_compute_tally.html,
-"pe/e3b"_compute_pe_e3b.html,
 "plasticity/atom"_compute_plasticity_atom.html,
 "pressure"_compute_pressure.html,
 "pressure/cylinder"_compute_pressure_cylinder.html,

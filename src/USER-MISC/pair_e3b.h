@@ -21,7 +21,6 @@ PairStyle(e3b,PairE3B)
 #define LMP_PAIR_E3B_H
 
 #include "pair.h"
-#include "compute_pe_e3b.h"
 
 namespace LAMMPS_NS {
 
@@ -34,9 +33,6 @@ class PairE3B : public Pair {
   virtual void coeff(int, char **);
   virtual double init_one(int, int);
   virtual void init_style();
-
-  //allow compute pe/e3b to access etot vector
-  friend void ComputePEE3B::compute_vector();
 
 protected:
   //potential parameters
@@ -56,8 +52,6 @@ protected:
   int maxID;  //size of global sumExp array
   size_t nbytes;     //size of sumExp array in bytes
   int natoms;        //to make sure number of atoms is constant
-
-  double etot[4]; //etotA,etotB,etotC,etot2
 
   virtual void allocate();
   void allocateE3B();

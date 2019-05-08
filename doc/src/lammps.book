@@ -475,7 +475,6 @@ compute_pair.html
 compute_pair_local.html
 compute_pe.html
 compute_pe_atom.html
-compute_pe_e3b.html
 compute_plasticity_atom.html
 compute_pressure.html
 compute_pressure_cylinder.html

@@ -26,11 +26,9 @@ coefficients in a way, that it can be read by LAMMPS with the
 option of "write_data"_write_data.html this can be used to move
 the Coeffs sections from a data file into a separate file.
 
-NOTE: The write_coeff command is not yet fully implemented in two
-respects.  First, some pair styles do not yet write their coefficient
-information into the coeff file.  This means you will need to specify
-that information in your input script that reads the data file, via
-the "pair_coeff"_pair_coeff.html command.
+NOTE: The write_coeff command is not yet fully implemented as
+some pair styles do not output their coefficient information.
+This means you will need to add/copy this information manually.
 
 :line
 

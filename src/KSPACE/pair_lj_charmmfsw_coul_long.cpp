@@ -501,6 +501,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
 
       if (rsq < cut_bothsq) {
         r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
@@ -541,7 +542,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq && rsq > cut_in_off_sq) {
-          r6inv = r2inv*r2inv*r2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
@@ -582,11 +582,10 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq) {
-            r6inv = r2inv*r2inv*r2inv;
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
-              rinv = 1.0/r;
-              r3inv = rinv*rinv*rinv;
+              rinv = sqrt(r2inv);
+              r3inv = r2inv*rinv;
               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
@@ -620,7 +619,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           } else forcecoul = 0.0;
 
           if (rsq <= cut_in_off_sq) {
-            r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

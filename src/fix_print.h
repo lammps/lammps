@@ -29,6 +29,7 @@ class FixPrint : public Fix {
  public:
   FixPrint(class LAMMPS *, int, char **);
   ~FixPrint();
+  void init();
   int setmask();
   void end_of_step();
 
@@ -37,6 +38,9 @@ class FixPrint : public Fix {
   FILE *fp;
   char *string,*copy,*work;
   int maxcopy,maxwork;
+  char *var_print;
+  int ivar_print;
+  bigint next_print;
 };
 
 }

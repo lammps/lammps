@@ -103,6 +103,11 @@ class colvarproxy_lammps : public colvarproxy {
   // Write files expected from Colvars (called by post_run())
   void write_output_files();
 
+  // read additional config from file
+  void add_config_file(char const *config_filename);
+
+  // read additional config from string
+  void add_config_string(const std::string &config);
 
   // implementation of pure methods from base class
  public:

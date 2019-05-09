@@ -109,7 +109,7 @@ cvm::real colvar_grid_scalar::entropy() const
 {
   cvm::real sum = 0.0;
   for (size_t i = 0; i < nt; i++) {
-    sum += -1.0 * data[i] * std::log(data[i]);
+    sum += -1.0 * data[i] * cvm::logn(data[i]);
   }
   cvm::real bin_volume = 1.0;
   for (size_t id = 0; id < widths.size(); id++) {

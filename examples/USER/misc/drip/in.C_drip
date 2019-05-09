@@ -12,7 +12,7 @@ read_data      data.C
 # potential
 pair_style hybrid/overlay drip rebo
 pair_coeff * * drip  C.drip     C
-pair_coeff * * rebo  CH.airebo  C
+pair_coeff * * rebo  CH.rebo  C
 
 compute        peratom all pe/atom
 

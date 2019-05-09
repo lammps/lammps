@@ -675,8 +675,13 @@ void Output::set_thermo(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal thermo command");
 
+  // always reset var_thermo, so it is possible to switch back from
+  // variable spaced thermo outputs to constant spaced ones.
+
+  delete [] var_thermo;
+  var_thermo = NULL;
+
   if (strstr(arg[0],"v_") == arg[0]) {
-    delete [] var_thermo;
     int n = strlen(&arg[0][2]) + 1;
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);

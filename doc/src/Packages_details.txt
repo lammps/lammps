@@ -918,6 +918,7 @@ src/SPIN: filenames -> commands
 "fix nve/spin"_fix_nve_spin.html
 "fix precession/spin"_fix_precession_spin.html
 "compute spin"_compute_spin.html
+"neb/spin"_neb_spin.html
 examples/SPIN :ul
 
 :line

@@ -471,6 +471,9 @@ void Neighbor::init()
     error->warning(FLERR,"Neighbor exclusions used with KSpace solver "
                    "may give inconsistent Coulombic energies");
 
+  if (lmp->kokkos)
+    set_binsize_kokkos();
+
   // ------------------------------------------------------------------
   // create pairwise lists
   // one-time call to init_styles() to scan style files and setup

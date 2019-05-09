@@ -1,0 +1,134 @@
+LAMMPS (29 Mar 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+# pour two types of particles (cohesive and non-cohesive) on flat wall
+
+variable   	name string pour_two_types
+
+atom_style	sphere
+units		lj
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	boxx equal 20
+variable	boxy equal 20
+variable	boxz equal 30
+
+variable	xc1 equal 0.3*${boxx}
+variable	xc1 equal 0.3*20
+variable	xc2 equal 0.7*${boxx}
+variable	xc2 equal 0.7*20
+variable	yc equal 0.5*${boxy}
+variable	yc equal 0.5*20
+
+###############################################
+# Particle-related parameters
+###############################################
+variable	rlo equal 0.25
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dlo equal 2.0*0.25
+variable	dhi equal 2.0*${rhi}
+variable	dhi equal 2.0*0.5
+
+variable	dens equal 1.0
+
+variable skin equal 0.3*${rhi}
+variable skin equal 0.3*0.5
+
+#############
+processors	* * 1
+region 		boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+region 		boxreg block 0 20 0 ${boxy} 0 ${boxz}
+region 		boxreg block 0 20 0 20 0 ${boxz}
+region 		boxreg block 0 20 0 20 0 30
+create_box	2 boxreg
+Created orthogonal box = (0 0 0) to (20 20 30)
+  1 by 1 by 1 MPI processor grid
+change_box	all boundary p p f
+
+comm_modify 	vel yes
+
+region		insreg1 cylinder z ${xc1} ${yc} 5 15 ${boxz}
+region		insreg1 cylinder z 6 ${yc} 5 15 ${boxz}
+region		insreg1 cylinder z 6 10 5 15 ${boxz}
+region		insreg1 cylinder z 6 10 5 15 30
+region		insreg2 cylinder z ${xc2} ${yc} 5 15 ${boxz}
+region		insreg2 cylinder z 14 ${yc} 5 15 ${boxz}
+region		insreg2 cylinder z 14 10 5 15 ${boxz}
+region		insreg2 cylinder z 14 10 5 15 30
+
+fix		1 all nve/sphere
+fix		grav all gravity 10.0 vector 0 0 -1
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 ${dhi} dens ${dens} ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens ${dens} ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens 1 ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens 1 1
+Particle insertion: 562 every 346 steps, 1500 by step 693
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens 1 ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens 1 1
+Particle insertion: 562 every 346 steps, 1500 by step 693
+
+comm_modify	vel yes
+
+neighbor	${skin} bin
+neighbor	0.15 bin
+neigh_modify	delay 0 every 1 check yes
+
+pair_style	granular
+pair_coeff 	1 * jkr 1000.0 50.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
+pair_coeff 	2 2 hertz 200.0 20.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall
+
+fix		3 all wall/gran granular hertz/material 1e5 1e3 0.3 tangential mindlin NULL 1.0 0.5 zplane 0 NULL
+
+thermo_style	custom step cpu atoms ke
+thermo_modify	lost warn
+thermo		100
+
+timestep	0.001
+
+#dump		1 all custom 100 ${name}.dump id type radius mass x y z
+
+run		5000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.15
+  ghost atom cutoff = 1.15
+  binsize = 0.575, bins = 35 35 53
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton on, size, history
+      pair build: half/size/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.22 | 12.22 | 12.22 Mbytes
+Step CPU Atoms KinEng 
+       0            0        0           -0 
+     100    3.8153191      855           -0 
+     200     4.195287      855           -0 
+     300    4.5890362      855           -0 
+     400    10.636087     1500           -0 
+     500    11.306909     1500           -0 
+     600    11.968198     1500           -0 
+     700    22.631892     2288           -0 
+     800    23.711387     2288           -0 
+     900    24.754344     2288           -0 
+    1000    25.811778     2288           -0 
+    1100    35.368869     2845           -0 
+    1200    37.149843     2845           -0 
+    1300    39.026458     2845           -0 
+    1400    41.757583     3000           -0 
+    1500    45.155503     3000           -0 
+    1600    48.570241     3000           -0 
+    1700    52.839322     3000           -0 
+    1800    59.772697     3000           -0 
+    1900    69.493305     3000           -0 
+    2000    114.61886     3000           -0 
+    2100    152.89232     3000           -0 

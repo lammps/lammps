@@ -1,8 +1,8 @@
-# DATE: 2011-10-25 CONTRIBUTOR: Ase Henry, ase@gatech.edu CITATION: Stuart, Tutein and Harrison, J Chem Phys, 112, 6472-6486 (2000)
-# AIREBO Brenner/Stuart potential
-# Cite as S. J. Stuart, A. B. Tutein, J. A. Harrison, 
-# "A reactive potential for hydrocarbons with intermolecular interactions", 
-# J. Chem. Phys. 112 (2000) 6472-6486.
+# DATE: 2018-7-3 CONTRIBUTOR: Cyril Falvo, cyril.falvo@u-psud.fr 
+# REBO2 Brenner potential modified from CH.airebo
+# Cite as  D. W. Brenner, O. A. Shenderova, J. A. Harrison, S. J. Stuart, B. Ni, and S. B. Sinnott,
+# "A second- generation reactive empirical bond order (rebo) potential energy expression for hydrocarbons.",
+# J. Phys. Cond. Mat., 14:783, 2002.
 
 1.7	     rcmin_CC 
 1.3	     rcmin_CH 
@@ -18,31 +18,31 @@
 3.0	     Nmax 
 3.2	     NCmin 
 3.7	     NCmax 
-0.3134602960832605     Q_CC 
-0.3407757282257080     Q_CH 
-0.370     Q_HH 
-4.746539060659529    alpha_CC 
-4.102549828548784    alpha_CH 
-3.536                alpha_HH 
-10953.54416216992    A_CC 
-149.940987228812    A_CH 
-31.6731    A_HH 
-12388.79197798375    BIJc_CC1 
-17.56740646508968    BIJc_CC2 
-30.71493208065162    BIJc_CC3 
-32.35518665873256    BIJc_CH1 
+0.3134602960833     Q_CC 
+0.340775728     Q_CH 
+0.370471487045     Q_HH 
+4.7465390606595    alpha_CC 
+4.10254983    alpha_CH 
+3.536298648          alpha_HH 
+10953.544162170    A_CC 
+149.94098723     A_CH 
+32.817355747         A_HH 
+12388.79197798    BIJc_CC1 
+17.56740646509    BIJc_CC2 
+30.71493208065    BIJc_CC3 
+32.3551866587    BIJc_CH1 
 0.0	     BIJc_CH2 
 0.0	     BIJc_CH3 
-28.2297      BIJc_HH1 
+29.632593    BIJc_HH1 
 0.0	     BIJc_HH2 
 0.0	     BIJc_HH3 
-4.720452312717397    Beta_CC1 
-1.433213249951261    Beta_CC2 
-1.382691250599169    Beta_CC3 
+4.7204523127    Beta_CC1 
+1.4332132499    Beta_CC2 
+1.3826912506    Beta_CC3 
 1.434458059249837    Beta_CH1 
 0.0	     Beta_CH2 
 0.0	     Beta_CH3 
-1.708        Beta_HH1 
+1.71589217   Beta_HH1 
 1.0 	     Beta_HH2 
 1.0	     Beta_HH3 
 0.0	     rho_CC 

@@ -12,7 +12,7 @@ read_data      data.CH
 # potential
 pair_style hybrid/overlay drip rebo
 pair_coeff * * drip  C.drip     C NULL  # only applies to species 1, i.e. C
-pair_coeff * * rebo  CH.airebo  C H     # species 1 is C and species 2 is H
+pair_coeff * * rebo  CH.rebo  C H     # species 1 is C and species 2 is H
 
 
 compute        peratom all pe/atom

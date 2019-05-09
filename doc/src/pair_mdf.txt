@@ -30,16 +30,16 @@ args = list of arguments for a particular style :l
 [Examples:]
 
 pair_style lj/mdf 2.5 3.0
-pair_coeff * * 1 1
-pair_coeff 1 1 1 1.1 2.8 3.0 3.2 :pre
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.1 2.8 3.0 3.2 :pre
 
 pair_style buck 2.5 3.0
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff * * 100.0 1.5 200.0 3.0 3.5 :pre
 
 pair_style lennard/mdf 2.5 3.0
-pair_coeff * * 1 1
-pair_coeff 1 1 1 1.1 2.8 3.0 3.2 :pre
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1021760.3664 2120.317338 3.0 3.2 :pre
 
 [Description:]
 
@@ -69,11 +69,12 @@ standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 :c,image(Eqs/pair_mdf-4.jpg)
 
-The following coefficients must be defined for each pair of atoms
-types via the pair_coeff command as in the examples above, or in the
-data file or restart files read by the "read_data"_read_data.html or
-"read_restart commands"_read_restart.html, or by mixing as described
-below:
+Either the first two or all of the following coefficients must be
+defined for each pair of atoms types via the pair_coeff command as
+in the examples above, or in the data file read by the
+"read_data"_read_data.html. The two cutoffs default to the global
+values and epsilon and sigma can also be determined by mixing as
+described below:
 
 epsilon (energy units)
 sigma (distance units)
@@ -83,7 +84,9 @@ r_{cut} (distance units) :ul
 :line
 
 For the {buck/mdf} pair_style, the potential energy, {E(r)}, is the
-standard Buckingham potential:
+standard Buckingham potential with three required coefficients.
+The two cutoffs can be omitted and default to the corresponding
+global values:
 
 :c,image(Eqs/pair_mdf-5.jpg)
 
@@ -91,19 +94,20 @@ A (energy units)
 \rho (distance units)
 C (energy-distance^6 units)
 r_m (distance units)
-r_{cut}$ (distance units) :ul
+r_{cut} (distance units) :ul
 
 :line
 
 For the {lennard/mdf} pair_style, the potential energy, {E(r)}, is the
-standard 12-6 Lennard-Jones written in the $A/B$ form:
+standard 12-6 Lennard-Jones written in the A/B form:
 
 :c,image(Eqs/pair_mdf-6.jpg)
 
 The following coefficients must be defined for each pair of atoms
 types via the pair_coeff command as in the examples above, or in the
-data file or restart files read by the read_data or read_restart
-commands, or by mixing as described below:
+data file read by the read_data commands, or by mixing as described below.
+The two cutoffs default to their global values and must be either both
+given or both left out:
 
 A (energy-distance^12 units)
 B (energy-distance^6 units)
@@ -115,33 +119,23 @@ r_{cut} (distance units) :ul
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-and cutoff distance for all of the lj/cut pair styles can be mixed.
+and cutoff distances for the lj/mdf pair style can be mixed.
 The default mix value is {geometric}.  See the "pair_modify" command
-for details.
+for details. The other two pair styles buck/mdf and lennard/mdf do not
+support mixing, so all I,J pairs of coefficients must be specified
+explicitly.
 
-All of the {lj/cut} pair styles support the
-"pair_modify"_pair_modify.html shift option for the energy of the
-Lennard-Jones portion of the pair interaction.
+None of the lj/mdf, buck/mdf, or lennard/mdf pair styles supports
+the "pair_modify"_pair_modify.html shift option or long-range
+tail corrections to pressure and energy.
 
-The {lj/cut/coul/long} and {lj/cut/tip4p/long} pair styles support the
-"pair_modify"_pair_modify.html table option since they can tabulate
-the short-range portion of the long-range Coulombic interaction.
+These styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
 
-All of the {lj/cut} pair styles support the
-"pair_modify"_pair_modify.html tail option for adding a long-range
-tail correction to the energy and pressure for the Lennard-Jones
-portion of the pair interaction.
-
-All of the {lj/cut} pair styles write their information to "binary
-restart files"_restart.html, so pair_style and pair_coeff commands do
-not need to be specified in an input script that reads a restart file.
-
-The {lj/cut} and {lj/cut/coul/long} pair styles support the use of the
-{inner}, {middle}, and {outer} keywords of the "run_style
-respa"_run_style.html command, meaning the pairwise forces can be
-partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the {pair} keyword of run_style respa.
-See the "run_style"_run_style.html command for details.
+These styles can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  They do not support the {inner},
+{middle}, {outer} keywords.
 
 :line
 

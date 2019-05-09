@@ -573,7 +573,7 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   int *sametag = atom->sametag;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double msq,scale,fm2,energy,dts2;
+  double fm2,energy,dts2;
   double cp[3],g[3];
 
   cp[0] = cp[1] = cp[2] = 0.0;

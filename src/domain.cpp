@@ -57,6 +57,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
   box_change = 0;
+  deform_flag = deform_vremap = deform_groupbit = 0;
 
   dimension = 3;
   nonperiodic = 0;

@@ -15,6 +15,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -37,16 +38,16 @@ PairMesoCNT::~PairMesoCNT()
 {
   if (allocated) {
     memory->destroy(gamma_data);
-    memory->destroy(u_inf_data);
-    memory->destroy(delh_u_semi);
+    memory->destroy(uinf_data);
+    memory->destroy(delh_usemi);
     memory->destroy(delzeta_phi);
 
-    memory->destroy(u_semi_data);
+    memory->destroy(usemi_data);
     memory->destroy(phi_data);
     memory->destroy(gamma_coeff);
-    memory->destroy(u_inf_coeff);
+    memory->destroy(uinf_coeff);
     
-    memory->destroy(u_semi_coeff);
+    memory->destroy(usemi_coeff);
     memory->destroy(phi_coeff);
   }
 }
@@ -71,16 +72,16 @@ void PairMesoCNT::allocate()
   allocated = 1;
   
   memory->create(gamma_data,gamma_points,"pair:gamma_data");
-  memory->create(u_inf_data,pot_points,"pair:u_inf_data");
-  memory->create(delh_u_semi,pot_points,"pair:delh_u_semi");
+  memory->create(uinf_data,pot_points,"pair:uinf_data");
+  memory->create(delh_usemi,pot_points,"pair:delh_usemi");
   memory->create(delzeta_phi,pot_points,"pair:delzeta_phi");
   
-  memory->create(u_semi_data,pot_points,pot_points,"pair:u_semi_data");
+  memory->create(usemi_data,pot_points,pot_points,"pair:usemi_data");
   memory->create(phi_data,pot_points,pot_points,"pair:phi_data");
   memory->create(gamma_coeff,gamma_points-1,4,"pair:gamma_coeff");
-  memory->create(u_inf_coeff,pot_points-1,4,"pair:u_inf_coeff");
+  memory->create(uinf_coeff,pot_points-1,4,"pair:uinf_coeff");
   
-  memory->create(u_semi_coeff,pot_points,pot_points-1,4,"pair:u_semi_coeff");
+  memory->create(usemi_coeff,pot_points,pot_points-1,4,"pair:usemi_coeff");
   memory->create(phi_coeff,pot_points,pot_points-1,4,"pair:phi_coeff");
 }
 
@@ -110,8 +111,8 @@ void PairMesoCNT::coeff(int narg, char **arg)
   n_sigma = force->numeric(FLERR,arg[4]);
 
   gamma_file = arg[5];
-  u_inf_file = arg[6];
-  u_semi_file = arg[7];
+  uinf_file = arg[6];
+  usemi_file = arg[7];
   phi_file = arg[8];
 
   //Parse and bcast data
@@ -119,19 +120,136 @@ void PairMesoCNT::coeff(int narg, char **arg)
   MPI_Comm_rank(world,&me);
   if (me == 0) { 
     read_file(gamma_file,gamma_data,&del_gamma,gamma_points);
-    read_file(u_inf_file,u_inf_data,&del_u_inf,pot_points);
-    read_file(u_semi_file,u_semi_data,delh_u_semi,&delxi_u_semi,pot_points);
-    read_file(phi_file,phi_data,delzeta_phi,delh_phi,pot_points);
+    read_file(uinf_file,uinf_data,&del_uinf,pot_points);
+    read_file(usemi_file,usemi_data,delh_usemi,&delxi_usemi,pot_points);
+    read_file(phi_file,phi_data,delzeta_phi,&delh_phi,pot_points);
   }
   
   MPI_Bcast(gamma_data,gamma_points,MPI_DOUBLE,0,world);
-  MPI_Bcast(u_inf_data,pot_points,MPI_DOUBLE,0,world); 
-  MPI_Bcast(delh_u_semi,pot_points,MPI_DOUBLE,0,world);
+  MPI_Bcast(uinf_data,pot_points,MPI_DOUBLE,0,world); 
+  MPI_Bcast(delh_usemi,pot_points,MPI_DOUBLE,0,world);
   MPI_Bcast(delzeta_phi,pot_points,MPI_DOUBLE,0,world);
   for(int i = 0; i < pot_points; i++){
-    MPI_Bcast(u_semi_data[i],pot_points,MPI_DOUBLE,0,world);
+    MPI_Bcast(usemi_data[i],pot_points,MPI_DOUBLE,0,world);
     MPI_Bcast(phi_data[i],pot_points,MPI_DOUBLE,0,world);
   }
+
+  spline_coeff(gamma_data,gamma_coeff,gamma_points);
+  spline_coeff(uinf_data,uinf_coeff,pot_points);
+  spline_coeff(usemi_data,usemi_coeff,pot_points);
+  spline_coeff(phi_data,phi_coeff,pot_points);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairMesoCNT::spline(double x, double xstart, double dx, 
+		double **coeff, int coeff_size)
+{
+  int i = floor((x - xstart)/dx); 
+  if(i < 0){
+    i = 0;
+    // warn if argument below spline range
+    char str[128];
+    sprintf(str,"Argument below spline interval",cerror,ninput);
+    error->warning(FLERR,str);
+  }
+  else if(i > coeff_size-1){ 
+    i = coeff_size-1;
+    // warn if argument above spline range
+    char str[128];
+    sprintf(str,"Argument above spline interval",cerror,ninput);
+    error->warning(FLERR,str);
+  }
+  
+  double xlo = xstart + i*dx;
+  double xbar = (x - xlo)/dx;
+
+  return coeff[i][0] + xbar*(coeff[i][1] 
+		  + xbar*(coeff[i][2] + xbar*coeff[i][3]));
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairMesoCNT::dspline(double x, double xstart, double dx, 
+		double **coeff, int coeff_size)
+{
+  int i = floor((x - xstart)/dx); 
+  if(i < 0){
+    i = 0;
+    // warn if argument below spline range
+    char str[128];
+    sprintf(str,"Argument below spline interval",cerror,ninput);
+    error->warning(FLERR,str);
+  }
+  else if(i > coeff_size-1){ 
+    i = coeff_size-1;
+    // warn if argument above spline range
+    char str[128];
+    sprintf(str,"Argument above spline interval",cerror,ninput);
+    error->warning(FLERR,str);
+  }
+ 
+  double xlo = xstart + i*dx;
+  double xbar = (x - xlo)/dx;
+
+  return coeff[i][1] + xbar*(2*coeff[i][2] + 3*xbar*coeff[i][3]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairMesoCNT::spline_coeff(double *data, double **coeff, int data_size)
+{
+  for(int i = 0; i < data_size-1; i++){
+    if(i == 0){
+      coeff[i][0] = data[i];
+      coeff[i][1] = data[i+1] - data[i];
+      coeff[i][3] = 0.5*(data[i+2] - 2*data[i+1] + data[i]);
+      coeff[i][2] = -coeff[i][3];
+    }
+    else if(i == data_size-2){
+      coeff[i][0] = data[i];
+      coeff[i][1] = 0.5*(data[i+1] - data[i-1]);
+      coeff[i][3] = 0.5*(-data[i+1] + 2*data[i] - data[i-1]);
+      coeff[i][2] = -2*coeff[i][3];
+    }
+    else{
+      coeff[i][0] = data[i];
+      coeff[i][1] = 0.5*(data[i+1] - data[i-1]);
+      coeff[i][2] = 0.5*(-data[i+2] + 4*data[i+1] - 5*data[i] + 2*data[i-1]);
+      coeff[i][3] = 0.5*(data[i+2] - 3*data[i+1] + 3*data[i] - data[i-1]);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairMesoCNT::spline_coeff(double **data, double ***coeff, int data_size)
+{
+  for(int i = 0; i < data_size; i++){
+    for(int j = 0; j < data_size-1; j++){
+      if(i == 0){
+        coeff[i][j][0] = data[j][i];
+        coeff[i][j][1] = data[j+1][i] - data[j][i];
+        coeff[i][j][3] = 0.5*(data[j+2][i] - 2*data[j+1][i] + data[j][i]);
+        coeff[i][j][2] = -coeff[i][j][3];
+      }
+      else if(i == data_size-2){
+        coeff[i][j][0] = data[j][i];
+        coeff[i][j][1] = 0.5*(data[j+1][i] - data[j-1][i]);
+        coeff[i][j][3] = 0.5*(-data[j+1][i] + 2*data[j][i] - data[j-1][i]);
+        coeff[i][j][2] = -2*coeff[i][j][3];
+      }
+      else{
+        coeff[i][j][0] = data[j][i];
+        coeff[i][j][1] = 0.5*(data[j+1][i] - data[j-1][i]);
+        coeff[i][j][2] = 0.5*(-data[j+2][i] + 4*data[j+1][i] 
+			- 5*data[j][i] + 2*data[j-1][i]);
+        coeff[i][j][3] = 0.5*(data[j+2][i] - 3*data[j+1][i] 
+			+ 3*data[j][i] - data[j-1][i]);
+      }
+    }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -254,3 +372,7 @@ void PairMesoCNT::read_file(char *file, double **data,
   }
 
 }
+
+/* ---------------------------------------------------------------------- */
+
+

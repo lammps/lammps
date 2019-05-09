@@ -33,36 +33,29 @@ class PairMesoCNT : public Pair {
  protected:
   int n, gamma_points, pot_points;
   double sigma, epsilon, n_sigma, radius;
-  double del_gamma, del_u_inf, delxi_u_semi, delh_phi;
-  double *delh_u_semi, *delzeta_phi;
-  double *gamma_data, *u_inf_data;
-  double **u_semi_data, **phi_data;
-  double **gamma_coeff, **u_inf_coeff;
-  double ***u_semi_coeff, ***phi_coeff;
-  char *gamma_file, *u_inf_file, *u_semi_file, *phi_file;
+  double start_gamma, start_uinf, startxi_usemi, starth_phi;
+  double del_gamma, del_uinf, delxi_usemi, delh_phi;
+  double *delh_usemi, *delzeta_phi;
+  double *gamma_data, *uinf_data;
+  double **usemi_data, **phi_data;
+  double **gamma_coeff, **uinf_coeff;
+  double ***usemi_coeff, ***phi_coeff;
+  char *gamma_file, *uinf_file, *usemi_file, *phi_file;
   
   void allocate();
   
-  double eval_gamma(double);
-  double eval_u_inf(double);
-  double eval_u_semi(double, double);
-  double eval_u_semi(double, double);
-  double d_gamma(double);
-  double d_u_inf(double);
-  double dh_u_semi(double, double);
-  double dxi_u_semi(double, double);
-  double dh_u_semi(double, double);
-  double dzeta_u_semi(double, double);
+  double spline(double, double, double, double **, int);
+  double spline(double, double, double *, double, double *, double ***, int);
+  double dspline(double, double, double, double **, int);
+  double dxspline(double, double, double *, double, double *, double ***, int);
+  double dyspline(double, double, double *, double, double *, double ***, int);
 
-  int heaviside(double);
-  int sgn(double);
-
-  double distance(double, double, double, double, double, double, double);
-  double cutoff(double, double, double);
-
-  void read_file(char *, double *);
-  void read_file(char *, double **);
-}
+  void spline_coeff(double *, double **, int);
+  void spline_coeff(double **, double ***, int);
+  
+  void read_file(char *, double *, double *, int);
+  void read_file(char *, double **, double *, double *, int);
+};
 
 }
 #endif

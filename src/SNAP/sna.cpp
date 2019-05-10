@@ -1653,10 +1653,10 @@ void SNA::create_twojmax_arrays()
                    "sna:uarraytot");
     memory->create(zarray_i, jdim, jdim, jdim, jdim, jdim,
                    "sna:zarray");
-  memory->create(yarray_r, jdim, jdim, jdim,
-                 "sna:yarray");
-  memory->create(yarray_i, jdim, jdim, jdim,
-                 "sna:yarray");
+    memory->create(yarray_r, jdim, jdim, jdim,
+                   "sna:yarray");
+    memory->create(yarray_i, jdim, jdim, jdim,
+                   "sna:yarray");
   }
 
 }

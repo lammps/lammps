@@ -116,6 +116,7 @@ PairSNAP::~PairSNAP()
     memory->destroy(radelem);
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
+    memory->destroy(beta);
   }
 
   // Need to set this because restart not handled by PairHybrid
@@ -246,36 +247,21 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     }
 
     // for neighbors of I within cutoff:
-    // compute dUi/drj and dBi/drj
-    // Fij = dEi/dRj = -dEi/dRi => add to Fi, subtract from Fj
+    // compute Fij = dEi/dRj = -dEi/dRi 
+    // add to Fi, subtract from Fj
 
-    double* coeffi = coeffelem[ielem];
+    // compute dE_i/dB_i = beta_i
 
-    // omit beta0 from beta vector
+    compute_betai(ielem);
 
-    double* beta = coeffi+1; 
+    // compute beta_i*Z_i = Y_i
+
     snaptr->compute_yi(beta);
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
                              snaptr->wj[jj],snaptr->rcutij[jj]);
-
-//       snaptr->compute_dbidrj();
-//       snaptr->copy_dbi2dbvec();
-
-//       fij[0] = 0.0;
-//       fij[1] = 0.0;
-//       fij[2] = 0.0;
-
-//       // linear contributions
-
-//       for (int k = 1; k <= ncoeff; k++) {
-//         double bgb = coeffi[k];
-//         fij[0] += bgb*snaptr->dbvec[k-1][0];
-//         fij[1] += bgb*snaptr->dbvec[k-1][1];
-//         fij[2] += bgb*snaptr->dbvec[k-1][2];
-//       }
 
 //       // quadratic contributions
 
@@ -326,6 +312,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
+      double* coeffi = coeffelem[ielem];
       evdwl = coeffi[0];
       if (!quadraticflag) {
         snaptr->compute_bi();
@@ -1307,6 +1294,18 @@ void PairSNAP::build_per_atom_arrays()
 }
 
 /* ----------------------------------------------------------------------
+   compute beta_i 
+------------------------------------------------------------------------- */
+
+void PairSNAP::compute_betai(int ielem)
+{
+  double* coeffi = coeffelem[ielem];
+
+  for (int k = 1; k <= ncoeff; k++)
+    beta[k-1] = coeffi[k];
+}
+
+/* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
 
@@ -1434,6 +1433,7 @@ void PairSNAP::coeff(int narg, char **arg)
     memory->destroy(radelem);
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
+    memory->destroy(beta);
   }
 
   char* type1 = arg[0];
@@ -1631,6 +1631,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
+  memory->create(beta,ncoeffall,"pair:beta");
 
   // Loop over nelements blocks in the SNAP coefficient file
 

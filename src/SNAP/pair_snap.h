@@ -55,6 +55,8 @@ protected:
   void set_sna_to_shared(int snaid,int i);
   void build_per_atom_arrays();
 
+  void compute_betai(int);
+
   int schedule_user;
   double schedule_time_guided;
   double schedule_time_dynamic;
@@ -99,6 +101,7 @@ protected:
   double *radelem;              // element radii
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
+  double* beta;                 // beta for current atom
   int *map;                     // mapping from atom types to elements
   int twojmax, diagonalstyle, switchflag, bzeroflag;
   double rfac0, rmin0, wj1, wj2;

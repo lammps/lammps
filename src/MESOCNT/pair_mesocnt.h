@@ -18,8 +18,8 @@ class PairMesoCNT : public Pair {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  //void init_style();
-  //double init_one(int, int);
+  void init_style();
+  double init_one(int, int);
  
  protected:
   int n, gamma_points, pot_points;
@@ -51,11 +51,13 @@ class PairMesoCNT : public Pair {
   void read_file(char *, double *, double *, int);
   void read_file(char *, double **, double *, double *, int);
 
-  double uinf(double, double, double, double);
-  double usemi(double, double, double, double, double);
+  double uinf(double *);
+  double usemi(double *);
+  void finf(double *, double **);
+  void fsemi(double *, double **);
 
   void geom(const double *, const double *, const double *, const double *,
-		  double *);
+		  double *, double **);
 };
 
 }

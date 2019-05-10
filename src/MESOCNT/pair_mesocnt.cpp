@@ -561,16 +561,21 @@ void PairMesoCNT::read_file(char *file, double **data,
 
 /* ---------------------------------------------------------------------- */
 
-double PairMesoCNT::uinf(double h, double alpha, double xi1, double xi2)
+double PairMesoCNT::uinf(double *param)
 {
-  double salpha = sin(alpha);
-  double salphasq = salpha*salpha;
-  if(salphasq < 1.0e-6){
+  double h = param[0];
+  double alpha = param[1];
+  double xi1 = param[2];
+  double xi2 = param[3];
+
+  double sin_alpha = sin(alpha);
+  double sin_alphasq = sin_alpha*sin_alpha;
+  if(sin_alphasq < 1.0e-6){
     return (xi2 - xi1) * spline(h,start_uinf,del_uinf,uinf_coeff,pot_points);
   }
   else{
-    double omega = 1.0 / (1.0 - comega*salphasq);
-    double a = omega * salpha;
+    double omega = 1.0 / (1.0 - comega*sin_alphasq);
+    double a = omega * sin_alpha;
     double zeta1 = xi1 * a;
     double zeta2 = xi2 * a;
 
@@ -587,7 +592,7 @@ double PairMesoCNT::uinf(double h, double alpha, double xi1, double xi2)
 
     double gamma_orth = spline(h,start_gamma,del_gamma,
 		    gamma_coeff,gamma_points);
-    double gamma = 1.0 + (gamma_orth - 1.0)*salphasq;
+    double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
 
     return gamma * (phi2 - phi1) / a;
   }
@@ -595,14 +600,19 @@ double PairMesoCNT::uinf(double h, double alpha, double xi1, double xi2)
 
 /* ---------------------------------------------------------------------- */
 
-double PairMesoCNT::usemi(double h, double alpha, 
-		double xi1, double xi2, double etaend)
+double PairMesoCNT::usemi(double *param)
 {
-  double salpha = sin(alpha);
-  double salphasq = salpha*salpha;
-  double calpha = cos(alpha);
-  double omega = 1.0 / (1.0 - comega*salphasq);
-  double theta = 1.0 - ctheta*salphasq; 
+  double h = param[0];
+  double alpha = param[1];
+  double xi1 = param[2];
+  double xi2 = param[3];
+  double etaend = param[4];
+
+  double sin_alpha = sin(alpha);
+  double sin_alphasq = sin_alpha*sin_alpha;
+  double cos_alpha = cos(alpha);
+  double omega = 1.0 / (1.0 - comega*sin_alphasq);
+  double theta = 1.0 - ctheta*sin_alphasq; 
 
   int points = 100;
   double delxi = (xi2 - xi1) / (points -1);
@@ -612,46 +622,120 @@ double PairMesoCNT::usemi(double h, double alpha,
 
   // first and last term in sum
     
-  g = xi1 * omega * salpha;
+  g = xi1 * omega * sin_alpha;
   hbar = sqrt(h*h + g*g);
-  etabar = xi1 * calpha - theta*etaend;
+  etabar = xi1 * cos_alpha - theta*etaend;
   sum += spline(hbar,etabar,starth_usemi,startxi_usemi,
 		  delh_usemi,delxi_usemi,usemi_coeff,pot_points);
-  g = xi2 * omega * salpha;
+  g = xi2 * omega * sin_alpha;
   hbar = sqrt(h*h + g*g);
-  etabar = xi2 * calpha - theta*etaend;
+  etabar = xi2 * cos_alpha - theta*etaend;
   sum += spline(hbar,etabar,starth_usemi,startxi_usemi,
 		  delh_usemi,delxi_usemi,usemi_coeff,pot_points);
   sum *= 0.5;
 
+  // remaining sum
+
   for(int i = 1; i < points-1; i++){
     double xibar = xi1 + i*delxi;
-    g * xibar * omega * salpha;
+    g * xibar * omega * sin_alpha;
     hbar = sqrt(h*h + g*g);
-    etabar = xibar*calpha - theta*etaend;
+    etabar = xibar*cos_alpha - theta*etaend;
     sum += spline(hbar,etabar,starth_usemi,startxi_usemi,
 		  delh_usemi,delxi_usemi,usemi_coeff,pot_points);
   }
 
   double gamma_orth = spline(h,start_gamma,del_gamma,
 		    gamma_coeff,gamma_points);
-  double gamma = 1.0 + (gamma_orth - 1.0)*salphasq;
+  double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
 
   return delxi * gamma * sum;
 }
 
 /* ---------------------------------------------------------------------- */
 
+void PairMesoCNT::finf(double *param, double **f)
+{
+  double h = param[0];
+  double alpha = param[1];
+  double xi1 = param[2];
+  double xi2 = param[3];
+
+  double sin_alpha = sin(alpha);
+  double sin_alphasq = sin_alpha*sin_alpha;
+  double sin_alpharec = 1.0 / sin_alpha;
+  double sin_alpharecsq = sin_alpharec * sin_alpharec;
+  double cos_alpha = cos(alpha);
+  double cot_alpha = cos_alpha * sin_alpharec;
+
+  double omega = 1.0 / (1.0 - comega*sin_alphasq);
+  double domega = 2 * comega * sin_alpha * cos_alpha * omega * omega;
+  double a1 = omega * sin_alpha;
+  double a1rec = 1.0 / a1;
+
+  double gamma_orth = spline(h,start_gamma,del_gamma,
+		    gamma_coeff,gamma_points);
+  double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
+  double gammarec = 1.0 / gamma;
+  double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
+  double dh_gamma = dspline(h,start_gamma,del_gamma,
+		    gamma_coeff,gamma_points) * sin_alphasq;
+
+
+  double zeta1 = xi1 * a1;
+  double zeta2 = xi2 * a1;
+  double phi1 = spline(zeta1,h,startzeta_phi,starth_phi,
+		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+  double phi2 = spline(zeta2,h,startzeta_phi,starth_phi,
+		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+  double dzeta_phi1 = dxspline(zeta1,h,startzeta_phi,starth_phi,
+		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+  double dzeta_phi2 = dxspline(zeta2,h,startzeta_phi,starth_phi,
+		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+  double diff_dzeta_phi = dzeta_phi2 - dzeta_phi1;
+  double dh_phi1 = dyspline(zeta1,h,startzeta_phi,starth_phi,
+		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+  double dh_phi2 = dyspline(zeta2,h,startzeta_phi,starth_phi,
+		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+
+  double a2 = gamma * a1rec;
+  double u = a2 * (phi2 - phi1);
+  double a3 = u * gammarec;
+  
+  double dh_u = dh_gamma * a3 + a2 * (dh_phi2 - dh_phi1);
+  double dalpha_u = dalpha_gamma * a3
+	  + a2 * (domega*sin_alpha + omega*cos_alpha)
+	  * (gamma*(xi2*dzeta_phi2 - xi1*dzeta_phi1) - u);
+
+  double lrec = 1.0 / (xi2 - xi1);
+  double cx = h * gamma * sin_alpharecsq * diff_dzeta_phi;
+  double cy = gamma * cot_alpha * diff_dzeta_phi;
+
+  f[0][0] = lrec * (xi2*dh_u - cx);
+  f[1][0] = lrec * (-xi1*dh_u + cx);
+  f[0][1] = lrec * (dalpha_u - xi2*cy);
+  f[1][1] = lrec * (-dalpha_u + xi2*cy);
+  f[0][2] = gamma * dzeta_phi1;
+  f[1][2] = -gamma * dzeta_phi2;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void PairMesoCNT::geom(const double *r1, const double *r2, 
-		const double *p1, const double *p2, double *param)
+		const double *p1, const double *p2, 
+		double *param, double **basis)
 {
   using namespace MathExtra;
   double r[3], p[3], delr[3], l[3], m[3], rbar[3], pbar[3], delrbar[3];
   double psil[3], psim[3], dell_psim[3], delpsil_m[3];
   double delr1[3], delr2[3], delp1[3], delp2[3];
-  double ex[3], ey[3];
+  double *ex, *ey, *ez;
   double psi, frac, taur, taup;
   double h, alpha, xi1, xi2, eta1, eta2;
+
+  ex = basis[0];
+  ey = basis[1];
+  ez = basis[2];
 
   add3(r1,r2,r);
   scale3(0.5,r);
@@ -685,8 +769,9 @@ void PairMesoCNT::geom(const double *r1, const double *r2,
   h = len3(delrbar);
   
   copy3(delrbar,ex);
+  copy3(l,ez);
   scale3(1/h,ex);
-  cross3(l,ex,ey);
+  cross3(ez,ex,ey);
 
   if(dot3(m,ey) < 0) alpha = acos(psi);
   else alpha = MY_2PI - acos(psi);

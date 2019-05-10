@@ -256,7 +256,7 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
 
 	// calculate the forces acted on the neighbors of atom i from atom j
 	KC_neighs_i = KC_firstneigh[i];
-  	for (kk = 0; kk < KC_numneigh[i]; kk++) {
+	for (kk = 0; kk < KC_numneigh[i]; kk++) {
 	  k = KC_neighs_i[kk];
           if (k == i) continue;
           // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
@@ -277,7 +277,7 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
 
 	// calculate the forces acted on the neighbors of atom j from atom i
 	KC_neighs_j = KC_firstneigh[j];
-  	for (ll = 0; ll < KC_numneigh[j]; ll++) {
+	for (ll = 0; ll < KC_numneigh[j]; ll++) {
 	  l = KC_neighs_j[ll];
           if (l == j) continue;
           // derivatives of the product of rji and nj respect to rl, l=0,1,2, where atom l is the neighbors of atom j
@@ -805,9 +805,10 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  // insure I,J args are * *
+
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -841,16 +842,23 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
 
   read_file(arg[2]);
 
-  double cut_one = cut_global;
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        cut[i][j] = cut_global;
+        count++;
+      }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }

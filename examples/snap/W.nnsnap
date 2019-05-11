@@ -1,0 +1,16 @@
+# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
+#
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 74
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay &
+zbl ${zblcutinner} ${zblcutouter} &
+snap
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff * * snap W_2940_2017_2.snapcoeff W_2940_2017_2.snapparam W
+
+#Nomenclature on the snap files are Element_DakotaID_Year_Month

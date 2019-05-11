@@ -86,7 +86,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   i_uarraytot_r = NULL;
   i_uarraytot_i = NULL;
   i_zarray_r = NULL;
-  i_zarray_i =NULL;
+  i_zarray_i = NULL;
 
   use_shared_arrays = 0;
 
@@ -101,6 +101,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
 
   sna = NULL;
 
+  beta_max = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,6 +190,15 @@ void PairSNAP::compute_regular(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   class SNA* snaptr = sna[0];
 
+  if (beta_max < list->inum) {
+    memory->grow(beta,list->inum,ncoeff,"PairSNAP:beta");
+    beta_max = list->inum;
+  }
+
+  // compute dE_i/dB_i = beta_i for all i in list
+
+  compute_beta();
+
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
@@ -250,13 +260,9 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     // compute Fij = dEi/dRj = -dEi/dRi 
     // add to Fi, subtract from Fj
 
-    // compute dE_i/dB_i = beta_i
-
-    compute_betai(ielem);
-
     // compute beta_i*Z_i = Y_i
 
-    snaptr->compute_yi(beta);
+    snaptr->compute_yi(beta[ii]);
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
@@ -1294,15 +1300,23 @@ void PairSNAP::build_per_atom_arrays()
 }
 
 /* ----------------------------------------------------------------------
-   compute beta_i 
+   compute beta
 ------------------------------------------------------------------------- */
 
-void PairSNAP::compute_betai(int ielem)
+void PairSNAP::compute_beta()
 {
-  double* coeffi = coeffelem[ielem];
+  int i;
+  int *type = atom->type;
 
-  for (int k = 1; k <= ncoeff; k++)
-    beta[k-1] = coeffi[k];
+  for (int ii = 0; ii < list->inum; ii++) {
+    i = list->ilist[ii];
+    const int itype = type[i];
+    const int ielem = map[itype];
+    double* coeffi = coeffelem[ielem];
+
+    for (int k = 1; k <= ncoeff; k++)
+      beta[ii][k-1] = coeffi[k];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1631,7 +1645,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
-  memory->create(beta,ncoeffall,"pair:beta");
 
   // Loop over nelements blocks in the SNAP coefficient file
 

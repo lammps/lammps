@@ -19,8 +19,8 @@ pair_coeff * * none
 pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C :pre
 
 pair_style hybrid/overlay rebo lebedeva/z 14.0
-pair_coeff * * rebo                 CH.airebo  C C
-pair_coeff 1 2 lebedeva/z  CC.Lebedeva      C C :pre
+pair_coeff * * rebo        CH.rebo       C C
+pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C :pre
 
 [Description:]
 

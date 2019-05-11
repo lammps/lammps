@@ -21,7 +21,7 @@ pair_style hybrid/overlay ilp/graphene/hbn 16.0 1
 pair_coeff * * ilp/graphene/hbn  BNCH.ILP B N C :pre
 
 pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
-pair_coeff  * * rebo                 CH.airebo   NULL NULL C
+pair_coeff  * * rebo                 CH.rebo     NULL NULL C
 pair_coeff  * * tersoff              BNC.tersoff B    N    NULL
 pair_coeff  * * ilp/graphene/hbn     BNCH.ILP    B    N    C
 pair_coeff  1 1 coul/shield 0.70

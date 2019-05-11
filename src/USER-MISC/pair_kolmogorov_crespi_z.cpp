@@ -260,7 +260,6 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
     }
   }
 
-
   read_file(arg[2]);
 
   // clear setflag since coeff() called once with I,J = * *

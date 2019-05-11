@@ -48,16 +48,17 @@ class PairMesoCNT : public Pair {
   void spline_coeff(double *, double **, int);
   void spline_coeff(double **, double ***, int);
   
-  void read_file(char *, double *, double *, int);
-  void read_file(char *, double **, double *, double *, int);
+  void read_file(char *, double *, double *, double *, int);
+  void read_file(char *, double **, double *, double *, 
+		  double *, double *, int);
 
   double uinf(double *);
   double usemi(double *);
   void finf(double *, double **);
   void fsemi(double *, double **);
 
-  void geom(const double *, const double *, const double *, const double *,
-		  double *, double **);
+  void geom(const double *, const double *, const double *, 
+		  const double *, double *, double **);
 };
 
 }

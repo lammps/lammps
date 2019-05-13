@@ -6,7 +6,7 @@
 
 :line
 
-neb command :h3
+neb/spin command :h3
 
 [Syntax:]
 

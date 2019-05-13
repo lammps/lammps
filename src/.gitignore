@@ -156,6 +156,8 @@
 /fix_nve_spin.h
 /fix_precession_spin.cpp
 /fix_precession_spin.h
+/fix_setforce_spin.cpp
+/fix_setforce_spin.h
 /min_spin.cpp
 /min_spin.h
 /neb_spin.cpp

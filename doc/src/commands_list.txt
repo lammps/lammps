@@ -62,12 +62,12 @@ Commands :h1
    mass
    message
    min_modify
-   min_spin
+   min/spin
    min_style
    minimize
    molecule
    neb
-   neb_spin
+   neb/spin
    neigh_modify
    neighbor
    newton

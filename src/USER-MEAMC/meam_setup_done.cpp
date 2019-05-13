@@ -697,7 +697,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
       get_sijk(C, a, a, b, &s112);
       get_sijk(C, b, b, a, &s221);
       S11 = s111 * s111 * s112 * s112;
-      S22 = pow(s221, 4);
+      S22 = s221 * s221 * s221 * s221;
       *rho01 = *rho01 + 6 * S11 * rhoa01nn;
       *rho02 = *rho02 + 6 * S22 * rhoa02nn;
 

@@ -112,7 +112,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
       }
 
       Fl = embedding(this->A_meam[elti], this->Ec_meam[elti][elti], rhob, frhop[i]);
-      
+
       if (eflag_either != 0) {
         if (eflag_global != 0) {
           *eng_vdwl = *eng_vdwl + Fl;

@@ -127,23 +127,80 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
     delyij = yjtmp - yitmp;
     delzij = zjtmp - zitmp;
     rij2 = delxij * delxij + delyij * delyij + delzij * delzij;
-    rij = sqrt(rij2);
+
+    if (rij2 > this->cutforcesq) {
+      dscrfcn[jn] = 0.0;
+      scrfcn[jn] = 0.0;
+      fcpair[jn] = 0.0;
+      continue;
+    }
 
     const double rbound = this->ebound_meam[elti][eltj] * rij2;
-    if (rij > this->rc_meam) {
-      fcij = 0.0;
-      dfcij = 0.0;
-      sij = 0.0;
-    } else {
-      rnorm = (this->rc_meam - rij) * drinv;
-      sij = 1.0;
+    rij = sqrt(rij2);
+    rnorm = (this->cutforce - rij) * drinv;
+    sij = 1.0;
 
-      //     if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
+    //     if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
+    for (kn = 0; kn < numneigh_full; kn++) {
+      k = firstneigh_full[kn];
+      if (k == j) continue;
+      eltk = fmap[type[k]];
+      if (eltk < 0) continue;
+
+      xktmp = x[k][0];
+      yktmp = x[k][1];
+      zktmp = x[k][2];
+
+      delxjk = xktmp - xjtmp;
+      delyjk = yktmp - yjtmp;
+      delzjk = zktmp - zjtmp;
+      rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
+      if (rjk2 > rbound) continue;
+
+      delxik = xktmp - xitmp;
+      delyik = yktmp - yitmp;
+      delzik = zktmp - zitmp;
+      rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
+      if (rik2 > rbound) continue;
+
+      xik = rik2 / rij2;
+      xjk = rjk2 / rij2;
+      a = 1 - (xik - xjk) * (xik - xjk);
+      //     if a < 0, then ellipse equation doesn't describe this case and
+      //     atom k can't possibly screen i-j
+      if (a <= 0.0) continue;
+
+      cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
+      Cmax = this->Cmax_meam[elti][eltj][eltk];
+      Cmin = this->Cmin_meam[elti][eltj][eltk];
+      if (cikj >= Cmax) continue;
+      //     note that cikj may be slightly negative (within numerical
+      //     tolerance) if atoms are colinear, so don't reject that case here
+      //     (other negative cikj cases were handled by the test on "a" above)
+      else if (cikj <= Cmin) {
+        sij = 0.0;
+        break;
+      } else {
+        delc = Cmax - Cmin;
+        cikj = (cikj - Cmin) / delc;
+        sikj = fcut(cikj);
+      }
+      sij *= sikj;
+    }
+
+    fc = dfcut(rnorm, dfc);
+    fcij = fc;
+    dfcij = dfc * drinv;
+
+    //     Now compute derivatives
+    dscrfcn[jn] = 0.0;
+    sfcij = sij * fcij;
+    if (!iszero(sfcij) && !iszero(sfcij - 1.0)) {
       for (kn = 0; kn < numneigh_full; kn++) {
         k = firstneigh_full[kn];
+        if (k == j) continue;
         eltk = fmap[type[k]];
         if (eltk < 0) continue;
-        if (k == j) continue;
 
         delxjk = x[k][0] - xjtmp;
         delyjk = x[k][1] - yjtmp;
@@ -167,86 +224,29 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
         cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
         Cmax = this->Cmax_meam[elti][eltj][eltk];
         Cmin = this->Cmin_meam[elti][eltj][eltk];
-        if (cikj >= Cmax) continue;
-        //     note that cikj may be slightly negative (within numerical
-        //     tolerance) if atoms are colinear, so don't reject that case here
-        //     (other negative cikj cases were handled by the test on "a" above)
-        else if (cikj <= Cmin) {
-          sij = 0.0;
-          break;
+        if (cikj >= Cmax) {
+          continue;
+          //     Note that cikj may be slightly negative (within numerical
+          //     tolerance) if atoms are colinear, so don't reject that case
+          //     here
+          //     (other negative cikj cases were handled by the test on "a"
+          //     above)
+          //     Note that we never have 0<cikj<Cmin here, else sij=0
+          //     (rejected above)
         } else {
           delc = Cmax - Cmin;
           cikj = (cikj - Cmin) / delc;
-          sikj = fcut(cikj);
+          sikj = dfcut(cikj, dfikj);
+          coef1 = dfikj / (delc * sikj);
+          dCikj = dCfunc(rij2, rik2, rjk2);
+          dscrfcn[jn] = dscrfcn[jn] + coef1 * dCikj;
         }
-        sij *= sikj;
       }
-
-      fc = dfcut(rnorm, dfc);
-      fcij = fc;
-      dfcij = dfc * drinv;
+      coef1 = sfcij;
+      coef2 = sij * dfcij / rij;
+      dscrfcn[jn] = dscrfcn[jn] * coef1 - coef2;
     }
 
-    //     Now compute derivatives
-    dscrfcn[jn] = 0.0;
-    sfcij = sij * fcij;
-    if (iszero(sfcij) || iszero(sfcij - 1.0))
-      goto LABEL_100;
-
-    for (kn = 0; kn < numneigh_full; kn++) {
-      k = firstneigh_full[kn];
-      if (k == j) continue;
-      eltk = fmap[type[k]];
-      if (eltk < 0) continue;
-
-      xktmp = x[k][0];
-      yktmp = x[k][1];
-      zktmp = x[k][2];
-      delxjk = xktmp - xjtmp;
-      delyjk = yktmp - yjtmp;
-      delzjk = zktmp - zjtmp;
-      rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
-      if (rjk2 > rbound) continue;
-
-      delxik = xktmp - xitmp;
-      delyik = yktmp - yitmp;
-      delzik = zktmp - zitmp;
-      rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
-      if (rik2 > rbound) continue;
-
-      xik = rik2 / rij2;
-      xjk = rjk2 / rij2;
-      a = 1 - (xik - xjk) * (xik - xjk);
-      //     if a < 0, then ellipse equation doesn't describe this case and
-      //     atom k can't possibly screen i-j
-      if (a <= 0.0) continue;
-
-      cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-      Cmax = this->Cmax_meam[elti][eltj][eltk];
-      Cmin = this->Cmin_meam[elti][eltj][eltk];
-      if (cikj >= Cmax) {
-        continue;
-        //     Note that cikj may be slightly negative (within numerical
-        //     tolerance) if atoms are colinear, so don't reject that case
-        //     here
-        //     (other negative cikj cases were handled by the test on "a"
-        //     above)
-        //     Note that we never have 0<cikj<Cmin here, else sij=0
-        //     (rejected above)
-      } else {
-        delc = Cmax - Cmin;
-        cikj = (cikj - Cmin) / delc;
-        sikj = dfcut(cikj, dfikj);
-        coef1 = dfikj / (delc * sikj);
-        dCikj = dCfunc(rij2, rik2, rjk2);
-        dscrfcn[jn] = dscrfcn[jn] + coef1 * dCikj;
-      }
-    }
-    coef1 = sfcij;
-    coef2 = sij * dfcij / rij;
-    dscrfcn[jn] = dscrfcn[jn] * coef1 - coef2;
-
-    LABEL_100:
     scrfcn[jn] = sij;
     fcpair[jn] = fcij;
   }

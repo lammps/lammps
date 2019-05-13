@@ -57,8 +57,10 @@ alchemical
 AlCu
 Alderton
 Alejandre
+Aleksei
 alessandro
 Alessandro
+ali
 aliceblue
 Allinger
 allocaters
@@ -87,6 +89,7 @@ anharmonic
 anharmonicity
 aniso
 anisotropic
+anisotropies
 anisotropy
 ansi
 antiquewhite
@@ -1193,6 +1196,7 @@ Itsets
 itype
 itypeN
 iva
+Ivanov
 Ivector
 Iw
 ixcm
@@ -1249,6 +1253,7 @@ jpg
 JPG
 jpl
 Jth
+jtranch
 jtype
 jtypeN
 Juelich
@@ -2499,6 +2504,7 @@ sizex
 sj
 sjplimp
 sjtu
+Skomski
 skyblue
 Skylake
 slateblue

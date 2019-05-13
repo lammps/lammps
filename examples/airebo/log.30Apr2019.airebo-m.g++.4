@@ -1,36 +1,38 @@
-LAMMPS (27 Nov 2018)
+LAMMPS (30 Apr 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # AIREBO polyethelene benchmark
 
-units		    metal
-atom_style	    atomic
+units               metal
+atom_style          atomic
 
-read_data	    data.airebo
+read_data           data.airebo
   orthogonal box = (-2.1 -2.1 0) to (2.1 2.1 25.579)
   1 by 1 by 4 MPI processor grid
   reading atoms ...
   60 atoms
+  read_data CPU = 0.000880957 secs
 
-replicate	    17 16 2
+replicate           17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
   2 by 2 by 1 MPI processor grid
   32640 atoms
-  Time spent = 0.000637531 secs
+  replicate CPU = 0.00271702 secs
 
-neighbor	    0.5 bin
-neigh_modify	    delay 5 every 1
+neighbor            0.5 bin
+neigh_modify        delay 5 every 1
 
-pair_style	    airebo/morse 3.0 1 1
-pair_coeff	    * * ../../potentials/CH.airebo-m C H
-Reading potential file ../../potentials/CH.airebo-m with DATE: 2016-03-15
+pair_style          airebo/morse 3.0 1 1
+pair_coeff          * * CH.airebo-m C H
+Reading potential file CH.airebo-m with DATE: 2016-03-15
 
-velocity	    all create 300.0 761341
+velocity            all create 300.0 761341
 
-fix		    1 all nve
-timestep	    0.0005
+fix                 1 all nve
+timestep            0.0005
 
-thermo		    10
-run		    100
+thermo              10
+run                 100
 Neighbor list info ...
   update every 1 steps, delay 5 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -45,7 +47,7 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 29.37 | 29.75 | 30.13 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0          300   -139283.82            0   -138018.14    152.25271 
+       0          300   -139283.82            0   -138018.14    152.25266 
       10    166.76148   -138718.75            0   -138015.19    17412.343 
       20     207.7293   -138891.79            0    -138015.4   -19395.339 
       30    138.54469   -138596.42            0   -138011.92   -11909.248 
@@ -55,21 +57,21 @@ Step Temp E_pair E_mol TotEng Press
       70    185.72779   -138799.18            0   -138015.61   -10803.744 
       80    164.28396    -138709.5            0    -138016.4   -1524.7353 
       90    180.26403   -138776.42            0    -138015.9   -27143.467 
-     100    164.05694   -138706.58            0   -138014.44    5157.5516 
-Loop time of 18.1922 on 4 procs for 100 steps with 32640 atoms
+     100    164.05694   -138706.58            0   -138014.44    5157.5517 
+Loop time of 68.9923 on 4 procs for 100 steps with 32640 atoms
 
-Performance: 0.237 ns/day, 101.068 hours/ns, 5.497 timesteps/s
-98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 0.063 ns/day, 383.290 hours/ns, 1.449 timesteps/s
+96.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 15.968     | 16.084     | 16.308     |   3.4 | 88.41
-Neigh   | 1.6017     | 1.6334     | 1.7006     |   3.1 |  8.98
-Comm    | 0.1603     | 0.45122    | 0.59951    |  26.0 |  2.48
-Output  | 0.00042605 | 0.00073195 | 0.0016003  |   0.0 |  0.00
-Modify  | 0.0092106  | 0.010544   | 0.014411   |   2.2 |  0.06
-Other   |            | 0.01193    |            |       |  0.07
+Pair    | 60.09      | 60.276     | 60.515     |   2.1 | 87.37
+Neigh   | 6.7521     | 6.8996     | 7.0678     |   4.3 | 10.00
+Comm    | 1.5441     | 1.7514     | 2.0838     |  16.9 |  2.54
+Output  | 0.0010803  | 0.001972   | 0.0043106  |   3.0 |  0.00
+Modify  | 0.031365   | 0.032539   | 0.034404   |   0.7 |  0.05
+Other   |            | 0.03104    |            |       |  0.04
 
 Nlocal:    8160 ave 8167 max 8153 min
 Histogram: 1 0 1 0 0 0 0 1 0 1
@@ -84,4 +86,4 @@ Total # of neighbors = 22210922
 Ave neighs/atom = 680.482
 Neighbor list builds = 8
 Dangerous builds = 0
-Total wall time: 0:00:18
+Total wall time: 0:01:10

@@ -31,7 +31,7 @@ fix 1 all precession/spin zeeman 0.1 0.0 0.0 1.0 anisotropy 0.001 0.0 0.0 1.0 :p
 
 [Description:]
 
-Impose a force torque to each magnetic spin in the group.
+This fix applies a precession torque to each magnetic spin in the group.
 
 Style {zeeman} is used for the simulation of the interaction
 between the magnetic spins in the defined group and an external

@@ -148,6 +148,7 @@ accelerated styles exist.
 "dpd/tstat"_pair_dpd.html - pair-wise DPD thermostatting
 "dsmc"_pair_dsmc.html - Direct Simulation Monte Carlo (DSMC)
 "e3b"_pair_e3b.html - Explicit-three body (E3B) water model
+"drip"_pair_drip.html - Dihedral-angle-corrected registry-dependent interlayer potential (DRIP)
 "eam"_pair_eam.html - embedded atom method (EAM)
 "eam/alloy"_pair_eam.html - alloy EAM
 "eam/cd"_pair_eam.html - concentration-dependent EAM
@@ -175,7 +176,7 @@ accelerated styles exist.
 "kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html - Kolmogorov-Crespi (KC) potential with no simplifications
 "kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html - Kolmogorov-Crespi (KC) potential with normals along z-axis
 "lcbop"_pair_lcbop.html - long-range bond-order potential (LCBOP)
-"lebedeva/z"_pair_lebedeva_z.html - Lebedeva inter-layer potential for graphene with normals along z-axis
+"lebedeva/z"_pair_lebedeva_z.html - Lebedeva interlayer potential for graphene with normals along z-axis
 "lennard/mdf"_pair_mdf.html - LJ potential in A/B form with a taper function
 "line/lj"_pair_line_lj.html - LJ potential between line segments
 "list"_pair_list.html - potential between pairs of atoms explicitly listed in an input file

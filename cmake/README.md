@@ -211,7 +211,7 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
   </td>
 </tr>
 <tr>
-  <td><code><CMAKE_VERBOSE_MAKEFILE/code></td>
+  <td><code>CMAKE_VERBOSE_MAKEFILE</code></td>
   <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achived by adding `VERBOSE=1` to the `make` call.</td>
   <td>
   <dl>

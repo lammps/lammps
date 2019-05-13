@@ -179,6 +179,7 @@ min_spin.html
 minimize.html
 molecule.html
 neb.html
+neb_spin.html
 neigh_modify.html
 neighbor.html
 newton.html
@@ -309,6 +310,7 @@ fix_mscg.html
 fix_msst.html
 fix_mvv_dpd.html
 fix_neb.html
+fix_neb_spin.html
 fix_nh.html
 fix_nh_eff.html
 fix_nph_asphere.html
@@ -573,6 +575,7 @@ pair_dpd.html
 pair_dpd_fdt.html
 pair_dsmc.html
 pair_e3b.html
+pair_drip.html
 pair_eam.html
 pair_edip.html
 pair_eff.html

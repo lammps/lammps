@@ -316,7 +316,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   usemi_file = arg[8];
   phi_file = arg[9];
 
-  radius = 1.421*3*n / MY_2PI;
+  radius = 1.421*3*n / MY_2PI / force->angstrom;
   radiussq = radius * radius;
   rc = 3 * sigma;
   comega = 0.275*(1.0 - 1.0/(1.0 + 0.59*radius));
@@ -328,6 +328,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   if (me == 0) { 
     read_file(gamma_file,gamma_data,&start_gamma,&del_gamma,gamma_points);
     read_file(uinf_file,uinf_data,&start_uinf,&del_uinf,pot_points);
+    printf("1D files read\n");
     read_file(usemi_file,usemi_data,starth_usemi,&startxi_usemi,
 		    delh_usemi,&delxi_usemi,pot_points);
     read_file(phi_file,phi_data,startzeta_phi,&starth_phi,
@@ -664,11 +665,13 @@ void PairMesoCNT::read_file(char *file, double *data,
   int serror = 0;
   double x,xtemp;
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for(int i = 0; i < ninput; i++){
     if(i > 0) xtemp = x;
-    if(NULL == fgets(line,MAXLINE,fp))
-      error->one(FLERR,"Premature end of file in pair table");
+    if(NULL == fgets(line,MAXLINE,fp)){
+      std::string str("Premature end of file in pair table ");
+      str += file;
+      error->one(FLERR,str.c_str());
+    }
     if(2 != sscanf(line,"%lg %lg",&x, &data[i])) ++cerror; 
     if(i == 0) *startx = x;
     if(i > 0){
@@ -721,13 +724,15 @@ void PairMesoCNT::read_file(char *file, double **data,
   int syerror = 0;
   double x,y,xtemp,ytemp;
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for(int i = 0; i < ninput; i++){ 
     if(i > 0) ytemp = y;
     for(int j = 0; j < ninput; j++){
       if(j > 0) xtemp = x;
-      if(NULL == fgets(line,MAXLINE,fp))
-        error->one(FLERR,"Premature end of file in pair table");
+      if(NULL == fgets(line,MAXLINE,fp)){
+	std::string str("Premature end of file in pair table ");
+	str += file;
+        error->one(FLERR,str.c_str());
+      }
       if(3 != sscanf(line,"%lg %lg %lg",&x,&y,&data[j][i])) ++cerror; 
       if(j == 0) startx[i] = x;
       if(j > 0){

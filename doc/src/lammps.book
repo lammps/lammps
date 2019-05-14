@@ -574,6 +574,8 @@ pair_dipole.html
 pair_dpd.html
 pair_dpd_fdt.html
 pair_dsmc.html
+pair_e3b.html
+pair_drip.html
 pair_eam.html
 pair_edip.html
 pair_eff.html

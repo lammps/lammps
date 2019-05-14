@@ -22,7 +22,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairREBOIntel::PairREBOIntel(LAMMPS *lmp) : PairAIREBOIntel(lmp) {}
+PairREBOIntel::PairREBOIntel(LAMMPS *lmp) : PairAIREBOIntel(lmp) {
+  variant = REBO_2;
+}
 
 /* ----------------------------------------------------------------------
    global settings
@@ -34,9 +36,4 @@ void PairREBOIntel::settings(int narg, char ** /* arg */)
 
   cutlj = 0.0;
   ljflag = torflag = 0;
-  //
-  // this one parameter for C-C interactions is different in REBO vs AIREBO
-  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-
-  PCCf_2_0 = 0.0;
 }

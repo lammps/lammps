@@ -504,7 +504,10 @@ if(PKG_LATTE)
       URL https://github.com/lanl/LATTE/archive/v1.2.1.tar.gz
       URL_MD5 85ac414fdada2d04619c8f936344df14
       SOURCE_SUBDIR cmake
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC} -DBLAS_LIBRARIES=${BLAS_LIBRARIES} -DLAPACK_LIBRARIES=${LAPACK_LIBRARIES}
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
+      -DBLAS_LIBRARIES=${BLAS_LIBRARIES} -DLAPACK_LIBRARIES=${LAPACK_LIBRARIES}
+      -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} -DCMAKE_Fortran_FLAGS=${CMAKE_Fortran_FLAGS}
+      -DCMAKE_Fortran_FLAGS_${BTYPE}=${CMAKE_Fortran_FLAGS_${BTYPE}} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     )
     ExternalProject_get_property(latte_build INSTALL_DIR)
     set(LATTE_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/liblatte.a)
@@ -1124,9 +1127,6 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
-  if(LAMMPS_SIZES STREQUAL BIGBIG)
-    message(FATAL_ERROR "The USER-INTEL Package is not compatible with -DLAMMPS_BIGBIG")
-  endif()
   add_definitions(-DLMP_USER_INTEL)
 
   set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
@@ -1220,8 +1220,7 @@ if(PKG_USER-INTEL)
                          ${USER-INTEL_SOURCES_DIR}/fix_nh_intel.cpp
                          ${USER-INTEL_SOURCES_DIR}/intel_buffers.cpp
                          ${USER-INTEL_SOURCES_DIR}/nbin_intel.cpp
-                         ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp
-                         ${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
+                         ${USER-INTEL_SOURCES_DIR}/npair_intel.cpp)
 
   set_property(GLOBAL PROPERTY "USER-INTEL_SOURCES" "${USER-INTEL_SOURCES}")
 
@@ -1230,9 +1229,12 @@ if(PKG_USER-INTEL)
   RegisterNBinStyle(${USER-INTEL_SOURCES_DIR}/nbin_intel.h)
   RegisterNPairStyle(${USER-INTEL_SOURCES_DIR}/npair_intel.h)
   RegisterFixStyle(${USER-INTEL_SOURCES_DIR}/fix_intel.h)
-  RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
 
   get_property(USER-INTEL_SOURCES GLOBAL PROPERTY USER-INTEL_SOURCES)
+  if(PKG_KSPACE)
+    list(APPEND USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
+    RegisterIntegrateStyle(${USER-INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
+  endif()
 
   list(APPEND LIB_SOURCES ${USER-INTEL_SOURCES})
   include_directories(${USER-INTEL_SOURCES_DIR})

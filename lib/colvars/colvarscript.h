@@ -191,8 +191,9 @@ inline static colvarbias *colvarbias_obj(void *pobj)
 
 #ifdef COLVARSCRIPT_CPP
 #define CVSCRIPT_COMM_FN(COMM,N_ARGS_MIN,N_ARGS_MAX,ARGS,FN_BODY)       \
-  int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                             \
-                                int objc, unsigned char *const objv[])  \
+  extern "C" int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                  \
+                                           int objc,                    \
+                                           unsigned char *const objv[]) \
   {                                                                     \
     colvarscript *script = colvarscript_obj();                          \
     script->clear_results();                                            \

@@ -14,7 +14,7 @@ fix ID group-ID print N string keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 print = style name of this fix command :l
-N = print every N steps :l
+N = print every N steps; N can be a variable (see below) :l
 string = text string to print with optional variable names :l
 zero or more keyword/value pairs may be appended :l
 keyword = {file} or {append} or {screen} or {title} :l
@@ -39,6 +39,21 @@ it should be enclosed in double quotes if it is more than one word.
 If it contains variables it must be enclosed in double quotes to
 insure they are not evaluated when the input script line is read, but
 will instead be evaluated each time the string is printed.
+
+Instead of a numeric value, N can be specified as an "equal-style
+variable"_variable.html, which should be specified as v_name, where
+name is the variable name.  In this case, the variable is evaluated at
+the beginning of a run to determine the [next] timestep at which the
+string will be written out.  On that timestep, the variable will be
+evaluated again to determine the next timestep, etc.
+Thus the variable should return timestep values.  See the stagger()
+and logfreq() and stride() math functions for "equal-style
+variables"_variable.html, as examples of useful functions to use in
+this context. For example, the following commands will print output at
+timesteps 10,20,30,100,200,300,1000,2000,etc:
+
+variable        s equal logfreq(10,3,10)
+fix extra all print v_s "Coords of marker atom = $x $y $z" :pre
 
 The specified group-ID is ignored by this fix.
 

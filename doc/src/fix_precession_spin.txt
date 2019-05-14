@@ -57,7 +57,7 @@ If K>0, an easy axis is defined, and if K<0, an easy plane is defined.
 Style {cubic} is used to simulate a cubic anisotropy, with three
 possible easy axis for the magnetic spins in the defined group: 
 
-:c,image(Eqs/force_spin_cubic.jpg)
+:c,image(Eqs/fix_spin_cubic.jpg)
 
 with K1 and K2c (in eV) the intensity coefficients and 
 n1, n2 and n3 defining the three anisotropic directions

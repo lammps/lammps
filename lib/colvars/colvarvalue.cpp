@@ -144,10 +144,10 @@ void colvarvalue::apply_constraints()
   case colvarvalue::type_quaternionderiv:
     break;
   case colvarvalue::type_unit3vector:
-    rvector_value /= std::sqrt(rvector_value.norm2());
+    rvector_value /= cvm::sqrt(rvector_value.norm2());
     break;
   case colvarvalue::type_quaternion:
-    quaternion_value /= std::sqrt(quaternion_value.norm2());
+    quaternion_value /= cvm::sqrt(quaternion_value.norm2());
     break;
   case colvarvalue::type_vector:
     if (elem_types.size() > 0) {
@@ -579,7 +579,7 @@ colvarvalue colvarvalue::dist2_grad(colvarvalue const &x2) const
       cvm::rvector const &v1 = this->rvector_value;
       cvm::rvector const &v2 = x2.rvector_value;
       cvm::real const cos_t = v1 * v2;
-      cvm::real const sin_t = std::sqrt(1.0 - cos_t*cos_t);
+      cvm::real const sin_t = cvm::sqrt(1.0 - cos_t*cos_t);
       return colvarvalue( 2.0 * sin_t *
                           cvm::rvector((-1.0) * sin_t * v2.x +
                                        cos_t/sin_t * (v1.x - cos_t*v2.x),
@@ -630,7 +630,7 @@ colvarvalue const colvarvalue::interpolate(colvarvalue const &x1,
     break;
   case colvarvalue::type_unit3vector:
   case colvarvalue::type_quaternion:
-    if (interp.norm()/std::sqrt(d2) < 1.0e-6) {
+    if (interp.norm()/cvm::sqrt(d2) < 1.0e-6) {
       cvm::error("Error: interpolation between "+cvm::to_str(x1)+" and "+
                  cvm::to_str(x2)+" with lambda = "+cvm::to_str(lambda)+
                  " is undefined: result = "+cvm::to_str(interp)+"\n",

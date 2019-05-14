@@ -30,6 +30,7 @@
 #include "style_nstencil.h"
 #include "style_npair.h"
 #include "style_ntopo.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -357,6 +358,14 @@ void NeighborKokkos::modify_mol_group_grow_kokkos(){
 void NeighborKokkos::modify_mol_intra_grow_kokkos(){
   memoryKK->grow_kokkos(k_ex_mol_intra,ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
   k_ex_mol_intra.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+void NeighborKokkos::set_binsize_kokkos() {
+  if (!binsizeflag && lmp->kokkos->ngpu > 0) {
+    binsize_user = cutneighmax;
+    binsizeflag = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

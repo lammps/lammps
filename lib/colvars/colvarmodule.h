@@ -10,6 +10,8 @@
 #ifndef COLVARMODULE_H
 #define COLVARMODULE_H
 
+#include <cmath>
+
 #include "colvars_version.h"
 
 #ifndef COLVARS_DEBUG
@@ -55,6 +57,7 @@ class colvar;
 class colvarbias;
 class colvarproxy;
 class colvarscript;
+class colvarvalue;
 
 
 /// \brief Collective variables module (main class)
@@ -88,10 +91,16 @@ public:
   // TODO colvarscript should be unaware of colvarmodule's internals
   friend class colvarscript;
 
+  /// Use a 64-bit integer to store the step number
+  typedef long long step_number;
+
   /// Defining an abstract real number allows to switch precision
   typedef  double    real;
 
-  /// Override std::pow with a product for n integer
+
+  // Math functions
+
+  /// Override the STL pow() with a product for n integer
   static inline real integer_power(real const &x, int const n)
   {
     // Original code: math_special.h in LAMMPS
@@ -105,14 +114,78 @@ public:
     return (n > 0) ? yy : 1.0/yy;
   }
 
-  /// Residue identifier
-  typedef  int       residue_id;
+  /// Reimplemented to work around MS compiler issues
+  static inline real pow(real const &x, real const &y)
+  {
+    return ::pow(static_cast<double>(x), static_cast<double>(y));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real floor(real const &x)
+  {
+    return ::floor(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real fabs(real const &x)
+  {
+    return ::fabs(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real sqrt(real const &x)
+  {
+    return ::sqrt(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real sin(real const &x)
+  {
+    return ::sin(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real cos(real const &x)
+  {
+    return ::cos(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real acos(real const &x)
+  {
+    return ::acos(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real atan2(real const &x, real const &y)
+  {
+    return ::atan2(static_cast<double>(x), static_cast<double>(y));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real exp(real const &x)
+  {
+    return ::exp(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues.  Note: log() is
+  /// currently defined as the text logging function, but this can be changed
+  /// at a later time
+  static inline real logn(real const &x)
+  {
+    return ::log(static_cast<double>(x));
+  }
+
 
   class rvector;
   template <class T> class vector1d;
   template <class T> class matrix2d;
   class quaternion;
   class rotation;
+
+
+  /// Residue identifier
+  typedef int residue_id;
 
   /// \brief Atom position (different type name from rvector, to make
   /// possible future PBC-transparent implementations)
@@ -150,19 +223,19 @@ public:
 
 
   /// Current step number
-  static long it;
+  static step_number it;
   /// Starting step number for this run
-  static long it_restart;
+  static step_number it_restart;
 
   /// Return the current step number from the beginning of this run
-  static inline long step_relative()
+  static inline step_number step_relative()
   {
     return it - it_restart;
   }
 
   /// Return the current step number from the beginning of the whole
   /// calculation
-  static inline long step_absolute()
+  static inline step_number step_absolute()
   {
     return it;
   }
@@ -203,9 +276,10 @@ private:
   std::vector<atom_group *> named_atom_groups;
 public:
   /// Register a named atom group into named_atom_groups
-  inline void register_named_atom_group(atom_group * ag) {
-    named_atom_groups.push_back(ag);
-  }
+  void register_named_atom_group(atom_group *ag);
+
+  /// Remove a named atom group from named_atom_groups
+  void unregister_named_atom_group(atom_group *ag);
 
   /// Array of collective variables
   std::vector<colvar *> *variables();
@@ -254,8 +328,7 @@ public:
   /// \brief How many objects are configured yet?
   size_t size() const;
 
-  /// \brief Constructor \param config_name Configuration file name
-  /// \param restart_name (optional) Restart file name
+  /// \brief Constructor
   colvarmodule(colvarproxy *proxy);
 
   /// Destructor
@@ -265,6 +338,7 @@ public:
   int reset();
 
   /// Open a config file, load its contents, and pass it to config_string()
+  /// \param config_file_name Configuration file name
   int read_config_file(char const *config_file_name);
 
   /// \brief Parse a config string assuming it is a complete configuration
@@ -431,26 +505,92 @@ public:
                 long        traj_read_begin,
                 long        traj_read_end);
 
-  /// Quick conversion of an object to a string
-  template<typename T> static std::string to_str(T const &x,
-                                                  size_t const &width = 0,
-                                                  size_t const &prec = 0);
-  /// Quick conversion of a vector of objects to a string
-  template<typename T> static std::string to_str(std::vector<T> const &x,
-                                                  size_t const &width = 0,
-                                                  size_t const &prec = 0);
+  /// Convert to string for output purposes
+  static std::string to_str(char const *s);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::string const &s);
+
+  /// Convert to string for output purposes
+  static std::string to_str(bool x);
+
+  /// Convert to string for output purposes
+  static std::string to_str(int const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(size_t const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(long int const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(step_number const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(real const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(rvector const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(quaternion const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(colvarvalue const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(vector1d<real> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(matrix2d<real> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<int> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<size_t> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<long int> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<real> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<rvector> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<quaternion> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<colvarvalue> const &x,
+                            size_t width = 0, size_t prec = 0);
+
+  /// Convert to string for output purposes
+  static std::string to_str(std::vector<std::string> const &x,
+                            size_t width = 0, size_t prec = 0);
+
 
   /// Reduce the number of characters in a string
-  static inline std::string wrap_string(std::string const &s,
-                                         size_t const &nchars)
-  {
-    if (!s.size())
-      return std::string(nchars, ' ');
-    else
-      return ( (s.size() <= size_t(nchars)) ?
-               (s+std::string(nchars-s.size(), ' ')) :
-               (std::string(s, 0, nchars)) );
-  }
+  static std::string wrap_string(std::string const &s,
+                                 size_t nchars);
 
   /// Number of characters to represent a time step
   static size_t const it_width;
@@ -485,13 +625,59 @@ public:
   static void request_total_force();
 
   /// Print a message to the main log
-  static void log(std::string const &message);
+  /// \param message Message to print
+  /// \param min_log_level Only print if cvm::log_level() >= min_log_level
+  static void log(std::string const &message, int min_log_level = 10);
 
   /// Print a message to the main log and exit with error code
   static int fatal_error(std::string const &message);
 
   /// Print a message to the main log and set global error code
   static int error(std::string const &message, int code = COLVARS_ERROR);
+
+private:
+
+  /// Level of logging requested by the user
+  static int log_level_;
+
+public:
+
+  /// Level of logging requested by the user
+  static inline int log_level()
+  {
+    return log_level_;
+  }
+
+  /// Level at which initialization messages are logged
+  static inline int log_init_messages()
+  {
+    return 1;
+  }
+
+  /// Level at which a keyword's user-provided value is logged
+  static inline int log_user_params()
+  {
+    return 2;
+  }
+
+  /// Level at which a keyword's default value is logged
+  static inline int log_default_params()
+  {
+    return 3;
+  }
+
+  /// Level at which output-file operations are logged
+  static inline int log_output_files()
+  {
+    return 4;
+  }
+
+  /// Level at which input-file operations (configuration, state) are logged
+  static inline int log_input_files()
+  {
+    return 5;
+  }
+
 
   // Replica exchange commands.
   static bool replica_enabled();
@@ -628,43 +814,6 @@ typedef colvarmodule cvm;
 
 std::ostream & operator << (std::ostream &os, cvm::rvector const &v);
 std::istream & operator >> (std::istream &is, cvm::rvector &v);
-
-
-template<typename T> std::string cvm::to_str(T const &x,
-                                             size_t const &width,
-                                             size_t const &prec) {
-  std::ostringstream os;
-  if (width) os.width(width);
-  if (prec) {
-    os.setf(std::ios::scientific, std::ios::floatfield);
-    os.precision(prec);
-  }
-  os << x;
-  return os.str();
-}
-
-
-template<typename T> std::string cvm::to_str(std::vector<T> const &x,
-                                             size_t const &width,
-                                             size_t const &prec) {
-  if (!x.size()) return std::string("");
-  std::ostringstream os;
-  if (prec) {
-    os.setf(std::ios::scientific, std::ios::floatfield);
-  }
-  os << "{ ";
-  if (width) os.width(width);
-  if (prec) os.precision(prec);
-  os << x[0];
-  for (size_t i = 1; i < x.size(); i++) {
-    os << ", ";
-    if (width) os.width(width);
-    if (prec) os.precision(prec);
-    os << x[i];
-  }
-  os << " }";
-  return os.str();
-}
 
 
 #endif

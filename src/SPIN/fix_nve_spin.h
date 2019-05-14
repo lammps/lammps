@@ -27,7 +27,7 @@ FixStyle(nve/spin,FixNVESpin)
 namespace LAMMPS_NS {
 
 class FixNVESpin : public Fix {
-friend class PairSpin;	
+friend class PairSpin;
  public:
   FixNVESpin(class LAMMPS *, int, char **);
   virtual ~FixNVESpin();
@@ -61,11 +61,13 @@ friend class PairSpin;
   int precession_spin_flag;		// magnetic precession flags
   int maglangevin_flag;			// magnetic langevin flags
   int tdamp_flag, temp_flag;
+  int setforce_spin_flag;
 
   // pointers to magnetic fixes
 
   class FixPrecessionSpin *lockprecessionspin;
   class FixLangevinSpin *locklangevinspin;
+  class FixSetForceSpin *locksetforcespin;
 
   // pointers to magnetic pair styles
 

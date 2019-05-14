@@ -44,7 +44,6 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-//EwaldDipole::EwaldDipole(LAMMPS *lmp, int narg, char **arg) : Ewald(lmp, narg, arg),
 EwaldDipole::EwaldDipole(LAMMPS *lmp) : Ewald(lmp),
   tk(NULL), vc(NULL)
 {

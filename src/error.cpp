@@ -212,6 +212,8 @@ void Error::one(const char *file, int line, const char *str)
   snprintf(msg, 100, "ERROR on proc %d: %s (%s:%d)\n", me, str, truncpath(file), line);
   throw LAMMPSAbortException(msg, world);
 #else
+  if (screen) fflush(screen);
+  if (logfile) fflush(logfile);
   MPI_Abort(world,1);
 #endif
 }

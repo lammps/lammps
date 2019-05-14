@@ -29,7 +29,6 @@
 #include "reaxc_nonbonded.h"
 #include "reaxc_tool_box.h"
 
-LR_lookup_table **LR;
 
 void Tridiagonal_Solve( const double *a, const double *b,
                         double *c, double *d, double *x, unsigned int n){
@@ -157,6 +156,7 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
   double dr;
   double *h, *fh, *fvdw, *fele, *fCEvd, *fCEclmb;
   double v0_vdw, v0_ele, vlast_vdw, vlast_ele;
+  LR_lookup_table ** & LR = system->LR;
 
   /* initializations */
   v0_vdw = 0;
@@ -273,6 +273,7 @@ void Deallocate_Lookup_Tables( reax_system *system )
 {
   int i, j;
   int ntypes;
+  LR_lookup_table ** & LR = system->LR;
 
   ntypes = system->reax_param.num_atom_types;
 

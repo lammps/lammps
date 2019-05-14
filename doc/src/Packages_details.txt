@@ -905,7 +905,7 @@ SPIN package :link(PKG-SPIN),h4
 Model atomic magnetic spins classically, coupled to atoms moving in
 the usual manner via MD.  Various pair, fix, and compute styles.
 
-[Author:] Julian Tranchida (Sandia).
+[Author:] Julien Tranchida (Sandia).
 
 [Supporting info:]
 
@@ -918,6 +918,7 @@ src/SPIN: filenames -> commands
 "fix nve/spin"_fix_nve_spin.html
 "fix precession/spin"_fix_precession_spin.html
 "compute spin"_compute_spin.html
+"neb/spin"_neb_spin.html
 examples/SPIN :ul
 
 :line

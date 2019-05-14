@@ -182,16 +182,28 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // default settings for package kokkos command
 
-  neighflag = FULL;
-  neighflag_qeq = FULL;
-  neighflag_qeq_set = 0;
-  exchange_comm_classic = 0;
-  forward_comm_classic = 0;
-  reverse_comm_classic = 0;
-  exchange_comm_on_host = 0;
-  forward_comm_on_host = 0;
-  reverse_comm_on_host = 0;
+  binsize = 0.0;
   gpu_direct_flag = 1;
+  if (ngpu > 0) {
+    neighflag = FULL;
+    neighflag_qeq = FULL;
+    neighflag_qeq_set = 0;
+    newtonflag = 0;
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  } else {
+    if (num_threads > 1) {
+      neighflag = HALFTHREAD;
+      neighflag_qeq = HALFTHREAD;
+    } else {
+      neighflag = HALF;
+      neighflag_qeq = HALF;
+    }
+    neighflag_qeq_set = 0;
+    newtonflag = 1;
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  }
 
 #if KOKKOS_USE_CUDA
   // only if we can safely detect, that GPU-direct is not available, change default
@@ -218,17 +230,6 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
-  // defaults
-
-  neighflag = FULL;
-  neighflag_qeq = FULL;
-  neighflag_qeq_set = 0;
-  int newtonflag = 0;
-  double binsize = 0.0;
-  exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-  exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
-  gpu_direct_flag = 1;
-
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {

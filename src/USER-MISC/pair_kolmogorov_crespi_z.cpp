@@ -259,17 +259,18 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
     }
   }
 
-
   read_file(arg[2]);
 
-  double cut_one = cut_global;
+  // set setflag only for i,j pairs where both are mapped to elements
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
+      if ((map[i] >=0) && (map[j] >= 0)) {
+        cut[i][j] = cut_global;
+        setflag[i][j] = 1;
+        count++;
+      }
     }
   }
 
@@ -284,6 +285,8 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 double PairKolmogorovCrespiZ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (!offset_flag)
+    error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];

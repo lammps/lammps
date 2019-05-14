@@ -949,6 +949,10 @@ bigint AtomVecSpin::memory_usage()
   return bytes;
 }
 
+/* ----------------------------------------------------------------------
+   clear all forces (mech and mag)
+------------------------------------------------------------------------- */
+
 void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
 {
   memset(&atom->f[0][0],0,3*nbytes);

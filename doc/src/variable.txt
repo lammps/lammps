@@ -293,7 +293,7 @@ list of runs (e.g. 1000) without having to list N strings in the input
 script.
 
 For the {string} style, a single string is assigned to the variable.
-Two differences between this this and using the {index} style exist:
+Two differences between this style and using the {index} style exist:
 a variable with {string} style can be redefined, e.g. by another command later
 in the input script, or if the script is read again in a loop. The other
 difference is that {string} performs variable substitution even if the
@@ -359,7 +359,7 @@ per-atom values is read, a non-blank line is searched for in the file.
 A comment character "#" can be used anywhere on a line; text starting
 with the comment character is stripped.  Blank lines are skipped.  The
 first "word" of a non-blank line, delimited by white-space, is read as
-the count N of per-atom lines to immediately follow.  N can be be the
+the count N of per-atom lines to immediately follow.  N can be the
 total number of atoms in the system, or only a subset.  The next N
 lines have the following format
 
@@ -931,7 +931,7 @@ with ID = 243.  Or they can take a variable name, specified as v_name,
 where name is the name of the variable, like x\[v_myIndex\].  The
 variable can be of any style except {vector} or {atom} or {atomfile}
 variables.  The variable is evaluated and the result is expected to be
-numeric and is cast to an integer (i.e. 3.4 becomes 3), to use an an
+numeric and is cast to an integer (i.e. 3.4 becomes 3), to use an
 index, which must be a value from 1 to N.  Note that a "formula"
 cannot be used as the argument between the brackets, e.g. x\[243+10\]
 or x\[v_myIndex+1\] are not allowed.  To do this a single variable can

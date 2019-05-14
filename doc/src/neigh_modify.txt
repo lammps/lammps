@@ -187,9 +187,9 @@ used in neighbor list construction to sort and find neighboring atoms.
 By default, for "neighbor style bin"_neighbor.html, LAMMPS uses bins
 that are 1/2 the size of the maximum pair cutoff.  For "neighbor style
 multi"_neighbor.html, the bins are 1/2 the size of the minimum pair
-cutoff.  Typically these are good values values for minimizing the
-time for neighbor list construction.  This setting overrides the
-default.  If you make it too big, there is little overhead due to
+cutoff.  Typically these are good values for minimizing thetime for
+neighbor list construction.  This setting overrides the default.
+If you make it too big, there is little overhead due to
 looping over bins, but more atoms are checked.  If you make it too
 small, the optimal number of atoms is checked, but bin overhead goes
 up.  If you set the binsize to 0.0, LAMMPS will use the default

@@ -157,7 +157,7 @@ is issued.
 The {bias} keyword with a {yes} setting is used by {create} and
 {scale}, but only if the {temp} keyword is also used to specify a
 "compute"_compute.html that calculates temperature in a desired way.
-If the temperature compute also calculates a velocity bias, the the
+If the temperature compute also calculates a velocity bias, the
 bias is subtracted from atom velocities before the {create} and
 {scale} operations are performed.  After the operations, the bias is
 added back to the atom velocities.  See the "Howto

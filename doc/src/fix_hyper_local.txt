@@ -301,7 +301,7 @@ No information about this fix is written to "binary restart
 files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
-fix to add the energy of the bias potential to the the system's
+fix to add the energy of the bias potential to the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
 This fix computes a global scalar and global vector of length 21,

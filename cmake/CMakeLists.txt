@@ -1124,9 +1124,6 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
-  if(LAMMPS_SIZES STREQUAL BIGBIG)
-    message(FATAL_ERROR "The USER-INTEL Package is not compatible with -DLAMMPS_BIGBIG")
-  endif()
   add_definitions(-DLMP_USER_INTEL)
 
   set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")

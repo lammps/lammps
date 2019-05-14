@@ -93,7 +93,7 @@ monitor thread utilization and load balance is provided. A new {Thread
 timings} section is also added, which lists the time spent in reducing
 the per-thread data elements to the storage for non-threaded
 computation. These thread timings are measured for the first MPI rank
-only and and thus, because the breakdown for MPI tasks can change from
+only and thus, because the breakdown for MPI tasks can change from
 MPI rank to MPI rank, this breakdown can be very different for
 individual ranks. Here is an example output for this section:
 

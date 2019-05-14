@@ -310,7 +310,7 @@ NOTE: Atom and molecule IDs are stored internally as 4-byte or 8-byte
 signed integers, depending on how LAMMPS was compiled.  When
 specifying the {format int} option you can use a "%d"-style format
 identifier in the format string and LAMMPS will convert this to the
-corresponding 8-byte form it it is needed when outputting those
+corresponding 8-byte form if it is needed when outputting those
 values.  However, when specifying the {line} option or {format M
 string} option for those values, you should specify a format string
 appropriate for an 8-byte signed integer, e.g. one with "%ld", if

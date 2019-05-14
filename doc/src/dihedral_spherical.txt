@@ -47,7 +47,7 @@ division by sin(74.4)*sin(48.1) (the minima positions for theta1 and theta2).
 
 The following coefficients must be defined for each dihedral type via the
 "dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
-the Dihedral Coeffs section of a data file file read by the
+the Dihedral Coeffs section of a data file read by the
 "read_data"_read_data.html command:
 
 n (integer >= 1)

@@ -1,7 +1,9 @@
-LAMMPS (11 May 2018)
+LAMMPS (30 Apr 2019)
+  using 1 OpenMP thread(s) per MPI task
 # fcc nickel in a 3d periodic box
 
 clear
+  using 1 OpenMP thread(s) per MPI task
 units 		metal
 atom_style 	spin
 
@@ -19,7 +21,7 @@ Created orthogonal box = (0 0 0) to (17.62 17.62 17.62)
   1 by 1 by 1 MPI processor grid
 create_atoms 	1 box
 Created 500 atoms
-  Time spent = 0.000804186 secs
+  create_atoms CPU = 0.000835896 secs
 
 # setting mass, mag. moments, and interactions for cobalt
 
@@ -45,7 +47,7 @@ timestep	0.0001
 
 # compute and output options
 
-compute 	out_mag    all compute/spin
+compute 	out_mag    all spin
 compute 	out_pe     all pe
 compute 	out_ke     all ke
 compute 	out_temp   all temp
@@ -122,20 +124,20 @@ Step Time v_magnorm v_emag Temp v_tmag TotEng
     1900         0.19  0.028733796   -28.785208    228.39889     316.9972   -2218.1018 
     1950        0.195  0.028733826     -28.9724    228.84666     309.8027   -2218.1018 
     2000          0.2   0.02873386   -29.175039      228.918    297.88519   -2218.1018 
-Loop time of 10.033 on 1 procs for 2000 steps with 500 atoms
+Loop time of 15.9256 on 1 procs for 2000 steps with 500 atoms
 
-Performance: 1.722 ns/day, 13.935 hours/ns, 199.342 timesteps/s
-99.4% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.085 ns/day, 22.119 hours/ns, 125.584 timesteps/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.909      | 3.909      | 3.909      |   0.0 | 38.96
-Neigh   | 0.031031   | 0.031031   | 0.031031   |   0.0 |  0.31
-Comm    | 0.046559   | 0.046559   | 0.046559   |   0.0 |  0.46
-Output  | 2.4087     | 2.4087     | 2.4087     |   0.0 | 24.01
-Modify  | 3.625      | 3.625      | 3.625      |   0.0 | 36.13
-Other   |            | 0.01268    |            |       |  0.13
+Pair    | 5.8677     | 5.8677     | 5.8677     |   0.0 | 36.84
+Neigh   | 0.051965   | 0.051965   | 0.051965   |   0.0 |  0.33
+Comm    | 0.088829   | 0.088829   | 0.088829   |   0.0 |  0.56
+Output  | 4.7019     | 4.7019     | 4.7019     |   0.0 | 29.52
+Modify  | 5.199      | 5.199      | 5.199      |   0.0 | 32.65
+Other   |            | 0.01632    |            |       |  0.10
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -154,4 +156,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:10
+Total wall time: 0:00:16

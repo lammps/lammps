@@ -14,6 +14,11 @@
    contact: stevene.strong at gmail dot com
 ------------------------------------------------------------------------- */
 
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
 #include "pair_e3b.h"
 
 #include "atom.h"
@@ -27,11 +32,6 @@
 #include "update.h"
 #include "domain.h"
 #include "citeme.h"
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 //these are defined here to avoid confusing hardcoded indicies, but
 //they do not allow flexibility. If they are changed the code will break
@@ -149,92 +149,92 @@ void PairE3B::compute(int eflag, int vflag)
       //two body interaction
       //not shifted b/c k2=4.87/A, so at cutoff (5.2A) e^(-kr) = 1e-11
       if (rsq < rc2sq) {
-	tmpr    = sqrt(rsq);
-	tmpexp  = e2 * exp(-k2*tmpr);
-	fpair   = k2 * tmpexp / tmpr;
+        tmpr    = sqrt(rsq);
+        tmpexp  = e2 * exp(-k2*tmpr);
+        fpair   = k2 * tmpexp / tmpr;
 
-	fxtmp    = delx*fpair;
-	fytmp    = dely*fpair;
-	fztmp    = delz*fpair;
-	fix     += fxtmp;
-	fiy     += fytmp;
-	fiz     += fztmp;
-	f[j][0] -= fxtmp;
-	f[j][1] -= fytmp;
-	f[j][2] -= fztmp;
+        fxtmp    = delx*fpair;
+        fytmp    = dely*fpair;
+        fztmp    = delz*fpair;
+        fix     += fxtmp;
+        fiy     += fytmp;
+        fiz     += fztmp;
+        f[j][0] -= fxtmp;
+        f[j][1] -= fytmp;
+        f[j][2] -= fztmp;
 
-	if (evflag) {
-	  ev_tally(i,j,nlocal,newton_pair,tmpexp,0.0,fpair,delx,dely,delz);
-	  pvector[0] += tmpexp;
-	}
+        if (evflag) {
+          ev_tally(i,j,nlocal,newton_pair,tmpexp,0.0,fpair,delx,dely,delz);
+          pvector[0] += tmpexp;
+        }
       } //end if rsq<rc2sq
 
       //accumulate info about each OH pair for later 3body stuff
       //test OO distance with augmented cutoff to account for dangling Hs
       if (rsq < rc3deltaSq) {
-	//pairO and pairH are set here even if no Hs are within the cutoff
-	//in that case, npair is not incremented and they will be overwritten
-	pairO[npair][0] = i;
-	pairO[npair][1] = j;
-	addedH = false;
+        //pairO and pairH are set here even if no Hs are within the cutoff
+        //in that case, npair is not incremented and they will be overwritten
+        pairO[npair][0] = i;
+        pairO[npair][1] = j;
+        addedH = false;
 
-	for (kk=0; kk<NUMO; kk++) {
-	  k  = pairO[npair][kk];
-	  otherO = pairO[npair][(kk+1)%2];
-	  for (hh=0; hh<NUMH; hh++) {
-	    h=atom->map(tag[otherO]+hh+1);
-	    //if hydrogen atom is missing, bond potential or shake will
-	    //catch this, so don't need to check here
-	    //if (h<0)
-	    //  error->one(FLERR,"hydrogen atom missing");
-	    h = domain->closest_image(otherO,h);
-	    pairH[npair][kk][hh] = h;
+        for (kk=0; kk<NUMO; kk++) {
+          k  = pairO[npair][kk];
+          otherO = pairO[npair][(kk+1)%2];
+          for (hh=0; hh<NUMH; hh++) {
+            h=atom->map(tag[otherO]+hh+1);
+            //if hydrogen atom is missing, bond potential or shake will
+            //catch this, so don't need to check here
+            //if (h<0)
+            //  error->one(FLERR,"hydrogen atom missing");
+            h = domain->closest_image(otherO,h);
+            pairH[npair][kk][hh] = h;
 
-	    delxh = x[k][0] - x[h][0];
-	    delyh = x[k][1] - x[h][1];
-	    delzh = x[k][2] - x[h][2];
-	    rsqh = delxh*delxh + delyh*delyh + delzh*delzh;
+            delxh = x[k][0] - x[h][0];
+            delyh = x[k][1] - x[h][1];
+            delzh = x[k][2] - x[h][2];
+            rsqh = delxh*delxh + delyh*delyh + delzh*delzh;
 
-	    if (rsqh < rc3sq) {
+            if (rsqh < rc3sq) {
 
-	      tmpr         = sqrt(rsqh);
-	      tmpexp       = exp(-k3*tmpr);
-	      if (tmpr > rs) {
-		scFact1    = rc3-tmpr;
-		scFact2    = sc_num + 2*tmpr;
-		scEng      = scFact1*scFact1*scFact2*sc_denom;
-		scDer      = k3*scEng - 6*scFact1*(rs-tmpr)*sc_denom;
-	      } else  {
-		scDer = k3;
-		scEng = 1.0;
-	      }
+              tmpr         = sqrt(rsqh);
+              tmpexp       = exp(-k3*tmpr);
+              if (tmpr > rs) {
+                scFact1    = rc3-tmpr;
+                scFact2    = sc_num + 2*tmpr;
+                scEng      = scFact1*scFact1*scFact2*sc_denom;
+                scDer      = k3*scEng - 6*scFact1*(rs-tmpr)*sc_denom;
+              } else  {
+                scDer = k3;
+                scEng = 1.0;
+              }
 
-	      //need to keep fpair3 separate from del3 for virial
-	      fpair3[npair][kk][hh]  = scDer*tmpexp/tmpr;
-	      tmpexp                *= scEng;
-	      exps[npair][kk][hh]    = tmpexp;
-	      del3[npair][kk][hh][0] = delxh;
-	      del3[npair][kk][hh][1] = delyh;
-	      del3[npair][kk][hh][2] = delzh;
+              //need to keep fpair3 separate from del3 for virial
+              fpair3[npair][kk][hh]  = scDer*tmpexp/tmpr;
+              tmpexp                *= scEng;
+              exps[npair][kk][hh]    = tmpexp;
+              del3[npair][kk][hh][0] = delxh;
+              del3[npair][kk][hh][1] = delyh;
+              del3[npair][kk][hh][2] = delzh;
 
-	      //accumulate global vector of sum(e^kr)
-	      //tags start at 1, so subtract one to index sumExp
-	      sumExp[tag[k]-1] += tmpexp;
-	      sumExp[tag[h]-1] += tmpexp;
+              //accumulate global vector of sum(e^kr)
+              //tags start at 1, so subtract one to index sumExp
+              sumExp[tag[k]-1] += tmpexp;
+              sumExp[tag[h]-1] += tmpexp;
 
-	      addedH = true;
-	    } else {
-	      exps  [npair][kk][hh] = 0.0;
-	      fpair3[npair][kk][hh] = 0.0;
-	    } //if < rc3sq
-	  } //end loop through 2 Hs
-	} //end for kk in NUMO
-	//if added a pair, check if array is too small and grow
-	if (addedH) {
-	  npair++;
-	  if (npair >= pairmax)
-	    error->one(FLERR,"neigh is too small");
-	}
+              addedH = true;
+            } else {
+              exps  [npair][kk][hh] = 0.0;
+              fpair3[npair][kk][hh] = 0.0;
+            } //if < rc3sq
+          } //end loop through 2 Hs
+        } //end for kk in NUMO
+        //if added a pair, check if array is too small and grow
+        if (addedH) {
+          npair++;
+          if (npair >= pairmax)
+            error->one(FLERR,"neigh is too small");
+        }
       } //end if < rc3deltaSq
     } //end for jj neigh
 
@@ -257,77 +257,77 @@ void PairE3B::compute(int eflag, int vflag)
       i      = pairO[ii][kk];
       otherO = (kk+1)%2;
       partB = eb*(  sumExp[tag[pairO[ii][otherO]   ]-1]
-		    + sumExp[tag[pairH[ii][otherO][0]]-1]
-		    + sumExp[tag[pairH[ii][otherO][1]]-1]
-		    - 2*(exps[ii][otherO][0] + exps[ii][otherO][1]));
+                    + sumExp[tag[pairH[ii][otherO][0]]-1]
+                    + sumExp[tag[pairH[ii][otherO][1]]-1]
+                    - 2*(exps[ii][otherO][0] + exps[ii][otherO][1]));
       partC = ec*(sumExp[tag[i]-1] - exps[ii][kk][0] - exps[ii][kk][1]);
 
       for (hh=0; hh<NUMH; hh++) {
-	j  = pairH[ii][kk][hh];
+        j  = pairH[ii][kk][hh];
 
-	//type A
-	otherH = (hh+1)%2;
-	j2 = pairH[ii][kk][otherH];
+        //type A
+        otherH = (hh+1)%2;
+        j2 = pairH[ii][kk][otherH];
 
-	partA = ea*(sumExp[tag[j2]-1] - exps[ii][kk][otherH]); //not full energy yet
-	fpair = partA*fpair3[ii][kk][hh];
-	fxtmp = fpair*del3[ii][kk][hh][0];
-	fytmp = fpair*del3[ii][kk][hh][1];
-	fztmp = fpair*del3[ii][kk][hh][2];
+        partA = ea*(sumExp[tag[j2]-1] - exps[ii][kk][otherH]); //not full energy yet
+        fpair = partA*fpair3[ii][kk][hh];
+        fxtmp = fpair*del3[ii][kk][hh][0];
+        fytmp = fpair*del3[ii][kk][hh][1];
+        fztmp = fpair*del3[ii][kk][hh][2];
 
-	f[i][0] += fxtmp;
-	f[i][1] += fytmp;
-	f[i][2] += fztmp;
-	f[j][0] -= fxtmp;
-	f[j][1] -= fytmp;
-	f[j][2] -= fztmp;
+        f[i][0] += fxtmp;
+        f[i][1] += fytmp;
+        f[i][2] += fztmp;
+        f[j][0] -= fxtmp;
+        f[j][1] -= fytmp;
+        f[j][2] -= fztmp;
 
-	if (evflag) {
-	  evdwl = partA*exps[ii][kk][hh]*0.5; //mult by exp on this H
-	  ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
-		   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
-	  pvector[1] += evdwl;
-	}
+        if (evflag) {
+          evdwl = partA*exps[ii][kk][hh]*0.5; //mult by exp on this H
+          ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
+                   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
+          pvector[1] += evdwl;
+        }
 
-	//type B
-	fpair = partB*fpair3[ii][kk][hh];
-	fxtmp = fpair*del3[ii][kk][hh][0];
-	fytmp = fpair*del3[ii][kk][hh][1];
-	fztmp = fpair*del3[ii][kk][hh][2];
+        //type B
+        fpair = partB*fpair3[ii][kk][hh];
+        fxtmp = fpair*del3[ii][kk][hh][0];
+        fytmp = fpair*del3[ii][kk][hh][1];
+        fztmp = fpair*del3[ii][kk][hh][2];
 
-	f[i][0] += fxtmp;
-	f[i][1] += fytmp;
-	f[i][2] += fztmp;
-	f[j][0] -= fxtmp;
-	f[j][1] -= fytmp;
-	f[j][2] -= fztmp;
+        f[i][0] += fxtmp;
+        f[i][1] += fytmp;
+        f[i][2] += fztmp;
+        f[j][0] -= fxtmp;
+        f[j][1] -= fytmp;
+        f[j][2] -= fztmp;
 
-	if (evflag) {
-	  evdwl = partB*exps[ii][kk][hh]*0.5; //mult by exp on this H
-	  ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
-		   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
-	  pvector[2] += evdwl;
-	}
+        if (evflag) {
+          evdwl = partB*exps[ii][kk][hh]*0.5; //mult by exp on this H
+          ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
+                   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
+          pvector[2] += evdwl;
+        }
 
-	//type C
-	fpair = partC*fpair3[ii][kk][hh];
-	fxtmp = fpair*del3[ii][kk][hh][0];
-	fytmp = fpair*del3[ii][kk][hh][1];
-	fztmp = fpair*del3[ii][kk][hh][2];
+        //type C
+        fpair = partC*fpair3[ii][kk][hh];
+        fxtmp = fpair*del3[ii][kk][hh][0];
+        fytmp = fpair*del3[ii][kk][hh][1];
+        fztmp = fpair*del3[ii][kk][hh][2];
 
-	f[i][0] += fxtmp;
-	f[i][1] += fytmp;
-	f[i][2] += fztmp;
-	f[j][0] -= fxtmp;
-	f[j][1] -= fytmp;
-	f[j][2] -= fztmp;
+        f[i][0] += fxtmp;
+        f[i][1] += fytmp;
+        f[i][2] += fztmp;
+        f[j][0] -= fxtmp;
+        f[j][1] -= fytmp;
+        f[j][2] -= fztmp;
 
-	if (evflag) {
-	  evdwl = partC*exps[ii][kk][hh]*0.5; //mult by exp on this H
-	  ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
-		   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
-	  pvector[3] += evdwl;
-	}
+        if (evflag) {
+          evdwl = partC*exps[ii][kk][hh]*0.5; //mult by exp on this H
+          ev_tally(i,j,nlocal,newton_pair,evdwl, 0.0,fpair,
+                   del3[ii][kk][hh][0],del3[ii][kk][hh][1],del3[ii][kk][hh][2]);
+          pvector[3] += evdwl;
+        }
       } //end for hh in NUMH
     } //end for kk in NUMO
   } //end for ii in npairs
@@ -365,8 +365,8 @@ void PairE3B::allocateE3B()
   for (ii=0; ii<pairmax; ii++)
     for (jj=0; jj<NUMO; jj++)
       for (kk=0; kk<NUMH; kk++)
-	for (ll=0; ll<DIM; ll++)
-	  del3[ii][jj][kk][ll] = 0.0;
+        for (ll=0; ll<DIM; ll++)
+          del3[ii][jj][kk][ll] = 0.0;
 
   natoms=atom->natoms;
   maxID=find_maxID();
@@ -532,7 +532,7 @@ static const char cite_E3B3[] =
 void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
   if (repeatFlag) {
     error->all(FLERR,
-	       "Cannot request two different sets of preset parameters");
+               "Cannot request two different sets of preset parameters");
   }
   repeatFlag=true;
 
@@ -557,8 +557,8 @@ void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
   } else {
     char str[256];
     snprintf(str,256,
-	     "Pre-defined E3B parameters have not been set for %s units.",
-	     update->unit_style);
+             "Pre-defined E3B parameters have not been set for %s units.",
+             update->unit_style);
       error->all(FLERR,str);
   }
 

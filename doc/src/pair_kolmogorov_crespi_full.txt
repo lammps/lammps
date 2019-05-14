@@ -22,7 +22,7 @@ pair_coeff * * none
 pair_coeff * * kolmogorov/crespi/full  CH.KC   C C :pre
 
 pair_style hybrid/overlay rebo kolmogorov/crespi/full 16.0 1
-pair_coeff * * rebo                    CH.airebo    C H
+pair_coeff * * rebo                    CH.rebo      C H
 pair_coeff * * kolmogorov/crespi/full  CH_taper.KC  C H :pre
 
 [Description:]

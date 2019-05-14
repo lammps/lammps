@@ -806,6 +806,8 @@
 /pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
+/pair_e3b.cpp
+/pair_e3b.h
 /pair_drip.cpp
 /pair_drip.h
 /pair_eam.cpp
@@ -816,6 +818,10 @@
 /pair_eam_cd.h
 /pair_eam_fs.cpp
 /pair_eam_fs.h
+/fix_electron_stopping.cpp
+/fix_electron_stopping.h
+/pair_lebedeva_z.cpp
+/pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
 /pair_lj_expand_coul_long.h
 /pair_edip.cpp
@@ -1276,4 +1282,3 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
-

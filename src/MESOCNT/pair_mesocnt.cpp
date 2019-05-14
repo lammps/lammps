@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include "pair_mesocnt.h"
 #include "atom.h"
 #include "comm.h"
@@ -41,6 +42,8 @@ PairMesoCNT::~PairMesoCNT()
   if (allocated) {
     memory->destroy(gamma_data);
     memory->destroy(uinf_data);
+    memory->destroy(starth_usemi);
+    memory->destroy(startzeta_phi);
     memory->destroy(delh_usemi);
     memory->destroy(delzeta_phi);
 
@@ -273,16 +276,18 @@ void PairMesoCNT::allocate()
   
   memory->create(gamma_data,gamma_points,"pair:gamma_data");
   memory->create(uinf_data,pot_points,"pair:uinf_data");
+  memory->create(starth_usemi,pot_points,"pair:starth_usemi");
+  memory->create(startzeta_phi,pot_points,"pair:startzeta_phi");
   memory->create(delh_usemi,pot_points,"pair:delh_usemi");
   memory->create(delzeta_phi,pot_points,"pair:delzeta_phi");
   
   memory->create(usemi_data,pot_points,pot_points,"pair:usemi_data");
   memory->create(phi_data,pot_points,pot_points,"pair:phi_data");
-  memory->create(gamma_coeff,gamma_points-1,4,"pair:gamma_coeff");
-  memory->create(uinf_coeff,pot_points-1,4,"pair:uinf_coeff");
+  memory->create(gamma_coeff,gamma_points,4,"pair:gamma_coeff");
+  memory->create(uinf_coeff,pot_points,4,"pair:uinf_coeff");
   
-  memory->create(usemi_coeff,pot_points,pot_points-1,4,"pair:usemi_coeff");
-  memory->create(phi_coeff,pot_points,pot_points-1,4,"pair:phi_coeff");
+  memory->create(usemi_coeff,pot_points,pot_points,4,"pair:usemi_coeff");
+  memory->create(phi_coeff,pot_points,pot_points,4,"pair:phi_coeff");
 }
 
 /* ----------------------------------------------------------------------
@@ -316,11 +321,17 @@ void PairMesoCNT::coeff(int narg, char **arg)
   usemi_file = arg[8];
   phi_file = arg[9];
 
-  radius = 1.421*3*n / MY_2PI / force->angstrom;
+  angstrom = force->angstrom;
+  angstromrec = 1 / angstrom;
+  qelectron = force->qelectron;
+  qelectronrec = 1 / qelectron;
+  forceunit = qelectron * angstromrec;
+
+  radius = 1.421*3*n / MY_2PI * angstrom;
   radiussq = radius * radius;
   rc = 3 * sigma;
-  comega = 0.275*(1.0 - 1.0/(1.0 + 0.59*radius));
-  ctheta = 0.35 + 0.0226*(radius - 6.785);
+  comega = 0.275*(1.0 - 1.0/(1.0 + 0.59*radius/angstrom));
+  ctheta = 0.35 + 0.0226*(radius/angstrom - 6.785);
 
   //Parse and bcast data
   int me;
@@ -333,6 +344,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
 		    delh_usemi,&delxi_usemi,pot_points);
     read_file(phi_file,phi_data,startzeta_phi,&starth_phi,
 		    delzeta_phi,&delh_phi,pot_points);
+    printf("2D files read\n");
   }
   
   MPI_Bcast(gamma_data,gamma_points,MPI_DOUBLE,0,world);
@@ -346,10 +358,29 @@ void PairMesoCNT::coeff(int narg, char **arg)
     MPI_Bcast(phi_data[i],pot_points,MPI_DOUBLE,0,world);
   }
 
+  if(me == 0) printf("Arrays broadcast\n");
+
   spline_coeff(gamma_data,gamma_coeff,gamma_points);
   spline_coeff(uinf_data,uinf_coeff,pot_points);
+  if(me == 0) printf("1D splines generated\n");
   spline_coeff(usemi_data,usemi_coeff,pot_points);
   spline_coeff(phi_data,phi_coeff,pot_points);
+  if(me == 0) printf("2D splines generated\n");
+
+  if(me == 0){
+  std::ofstream outFile;
+  outFile.open("test.dat");
+  for(int i = 0; i < 2001; i++){
+    for(int j = 0; j < 2001; j++){
+      double x = startzeta_phi[i] + j*delzeta_phi[i];
+      double y = starth_phi + i*delh_phi;
+      double test = spline(x,y,startzeta_phi,starth_phi,delzeta_phi,delh_phi,phi_coeff,pot_points);
+      outFile << x << " " << y << " " << test << std::endl;
+    }
+  }
+  outFile.close();
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -619,13 +650,13 @@ void PairMesoCNT::spline_coeff(double **data, double ***coeff, int data_size)
 {
   for(int i = 0; i < data_size; i++){
     for(int j = 0; j < data_size-1; j++){
-      if(i == 0){
+      if(j == 0){
         coeff[i][j][0] = data[j][i];
         coeff[i][j][1] = data[j+1][i] - data[j][i];
         coeff[i][j][3] = 0.5*(data[j+2][i] - 2*data[j+1][i] + data[j][i]);
         coeff[i][j][2] = -coeff[i][j][3];
       }
-      else if(i == data_size-2){
+      else if(j == data_size-2){
         coeff[i][j][0] = data[j][i];
         coeff[i][j][1] = 0.5*(data[j+1][i] - data[j-1][i]);
         coeff[i][j][3] = 0.5*(-data[j+1][i] + 2*data[j][i] - data[j-1][i]);
@@ -676,7 +707,7 @@ void PairMesoCNT::read_file(char *file, double *data,
     if(i == 0) *startx = x;
     if(i > 0){
       if(i == 1) *dx = x - xtemp;
-      if(*dx != x - xtemp) ++serror;
+      if((*dx -  x + xtemp) / *dx > SMALL) ++serror;
     }
   }
 
@@ -737,13 +768,13 @@ void PairMesoCNT::read_file(char *file, double **data,
       if(j == 0) startx[i] = x;
       if(j > 0){
         if(j == 1) dx[i] = x - xtemp;
-        if(dx[i] != x - xtemp) ++sxerror;
+        if((dx[i] - x + xtemp)/dx[i] > SMALL) ++sxerror;
       }
     }
     if(i == 0) *starty = y;
     if(i > 0){
       if(i == 1) *dy = y - ytemp;
-      if(*dy != y - ytemp) ++syerror;
+      if((*dy - y + ytemp)/ *dy > SMALL) ++syerror;
     }
   }
 
@@ -778,10 +809,10 @@ void PairMesoCNT::read_file(char *file, double **data,
 
 double PairMesoCNT::uinf(double *param)
 {
-  double h = param[0];
+  double h = param[0] * angstromrec;
   double alpha = param[1];
-  double xi1 = param[2];
-  double xi2 = param[3];
+  double xi1 = param[2] * angstromrec;
+  double xi2 = param[3] * angstromrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
@@ -809,7 +840,7 @@ double PairMesoCNT::uinf(double *param)
 		    gamma_coeff,gamma_points);
     double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
 
-    return gamma * (phi2 - phi1) / a;
+    return gamma * (phi2 - phi1) * qelectron / a;
   }
 }
 
@@ -817,11 +848,11 @@ double PairMesoCNT::uinf(double *param)
 
 double PairMesoCNT::usemi(double *param)
 {
-  double h = param[0];
+  double h = param[0] * angstromrec;
   double alpha = param[1];
-  double xi1 = param[2];
-  double xi2 = param[3];
-  double etaend = param[4];
+  double xi1 = param[2] * angstromrec;
+  double xi2 = param[3] * angstromrec;
+  double etaend = param[4] * angstromrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
@@ -854,17 +885,17 @@ double PairMesoCNT::usemi(double *param)
 		    gamma_coeff,gamma_points);
   double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
 
-  return delxi * gamma * sum;
+  return delxi * gamma * sum * qelectron;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairMesoCNT::finf(double *param, double **f)
 {
-  double h = param[0];
+  double h = param[0] * angstromrec;
   double alpha = param[1];
-  double xi1 = param[2];
-  double xi2 = param[3];
+  double xi1 = param[2] * angstromrec;
+  double xi2 = param[3] * angstromrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
@@ -927,12 +958,12 @@ void PairMesoCNT::finf(double *param, double **f)
     double cx = h * gamma * sin_alpharecsq * diff_dzeta_phi;
     double cy = gamma * cot_alpha * diff_dzeta_phi;
 
-    f[0][0] = lrec * (xi2*dh_u - cx);
-    f[1][0] = lrec * (-xi1*dh_u + cx);
-    f[0][1] = lrec * (dalpha_u - xi2*cy);
-    f[1][1] = lrec * (-dalpha_u + xi2*cy);
-    f[0][2] = gamma * dzeta_phi1;
-    f[1][2] = -gamma * dzeta_phi2;
+    f[0][0] = lrec * (xi2*dh_u - cx) * forceunit;
+    f[1][0] = lrec * (-xi1*dh_u + cx) * forceunit;
+    f[0][1] = lrec * (dalpha_u - xi2*cy) * forceunit;
+    f[1][1] = lrec * (-dalpha_u + xi2*cy) * forceunit;
+    f[0][2] = gamma * dzeta_phi1 * forceunit;
+    f[1][2] = -gamma * dzeta_phi2 * forceunit;
   }
 }
 
@@ -940,11 +971,11 @@ void PairMesoCNT::finf(double *param, double **f)
 
 void PairMesoCNT::fsemi(double *param, double **f)
 {
-  double h = param[0];
+  double h = param[0] * angstrom;
   double alpha = param[1];
-  double xi1 = param[2];
-  double xi2 = param[3];
-  double etaend = param[4];
+  double xi1 = param[2] * angstrom;
+  double xi2 = param[3] * angstrom;
+  double etaend = param[4] * angstrom;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
@@ -1027,12 +1058,12 @@ void PairMesoCNT::fsemi(double *param, double **f)
   double cz2 = a1sq*jh2 + cos_alpha*jxi1;
 
   double lrec = 1.0 / (xi2 - xi1);
-  f[0][0] = lrec * (xi2*dh_ubar - cx);
-  f[1][0] = lrec * (cx - xi1*dh_ubar);
-  f[0][1] = lrec * (dalpha_ubar - xi2*cy);
-  f[1][1] = lrec * (xi1*cy - dalpha_ubar);
-  f[0][2] = lrec * (cz2 + ubar - xi2*cz1);
-  f[1][2] = lrec * (xi1*cz1 - cz2 - ubar);
+  f[0][0] = lrec * (xi2*dh_ubar - cx) * forceunit;
+  f[1][0] = lrec * (cx - xi1*dh_ubar) * forceunit;
+  f[0][1] = lrec * (dalpha_ubar - xi2*cy) * forceunit;
+  f[1][1] = lrec * (xi1*cy - dalpha_ubar) * forceunit;
+  f[0][2] = lrec * (cz2 + ubar - xi2*cz1) * forceunit;
+  f[1][2] = lrec * (xi1*cz1 - cz2 - ubar) * forceunit;
 }
 
 /* ---------------------------------------------------------------------- */

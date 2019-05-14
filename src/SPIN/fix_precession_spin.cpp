@@ -245,10 +245,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   }
 
   int *mask = atom->mask;
-<<<<<<< HEAD
   double *emag = atom->emag;
-=======
->>>>>>> 98702cc0b9fde12add58cd054b32b261c670aadd
   double **fm = atom->fm;
   double **sp = atom->sp;
   const int nlocal = atom->nlocal;
@@ -280,10 +277,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
       }
 
       eprec += epreci;
-<<<<<<< HEAD
       emag[i] += epreci;
-=======
->>>>>>> 98702cc0b9fde12add58cd054b32b261c670aadd
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];

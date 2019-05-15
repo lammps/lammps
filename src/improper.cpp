@@ -101,7 +101,7 @@ void Improper::ev_setup(int eflag, int vflag, int alloc)
     maxvatom = atom->nmax;
     if (alloc) {
       memory->destroy(vatom);
-      memory->create(vatom,comm->nthreads*maxvatom,6,"improper:vatom");
+      memory->create(vatom,comm->nthreads*maxvatom,9,"improper:vatom");
     }
   }
 
@@ -258,6 +258,6 @@ void Improper::ev_tally(int i1, int i2, int i3, int i4,
 double Improper::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += comm->nthreads*maxvatom*9 * sizeof(double);
   return bytes;
 }

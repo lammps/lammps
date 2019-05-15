@@ -103,7 +103,7 @@ void Angle::ev_setup(int eflag, int vflag, int alloc)
     maxvatom = atom->nmax;
     if (alloc) {
       memory->destroy(vatom);
-      memory->create(vatom,comm->nthreads*maxvatom,6,"angle:vatom");
+      memory->create(vatom,comm->nthreads*maxvatom,9,"angle:vatom");
     }
   }
 
@@ -238,6 +238,6 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
 double Angle::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += comm->nthreads*maxvatom*9 * sizeof(double);
   return bytes;
 }

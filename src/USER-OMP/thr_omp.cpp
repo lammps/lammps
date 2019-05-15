@@ -106,7 +106,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (vflag & 4) {
       thr->vatom_angle = vatom + tid*nall;
       if (nall > 0)
-        memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_angle[0][0]),0,nall*9*sizeof(double));
     }
   }
 
@@ -119,7 +119,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (vflag & 4) {
       thr->vatom_dihed = vatom + tid*nall;
       if (nall > 0)
-        memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_dihed[0][0]),0,nall*9*sizeof(double));
     }
   }
 
@@ -132,7 +132,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (vflag & 4) {
       thr->vatom_imprp = vatom + tid*nall;
       if (nall > 0)
-        memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_imprp[0][0]),0,nall*9*sizeof(double));
     }
   }
 
@@ -276,7 +276,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-        data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -307,7 +307,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-        data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -346,7 +346,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-        data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 9, tid);
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -377,7 +377,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-        data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -449,6 +449,19 @@ static void v_tally(double * const vout, const double * const vin)
   vout[3] += vin[3];
   vout[4] += vin[4];
   vout[5] += vin[5];
+}
+
+static void v_tally9(double * const vout, const double * const vin)
+{
+  vout[0] += vin[0];
+  vout[1] += vin[1];
+  vout[2] += vin[2];
+  vout[3] += vin[3];
+  vout[4] += vin[4];
+  vout[5] += vin[5];
+  vout[6] += vin[6];
+  vout[7] += vin[7];
+  vout[8] += vin[8];
 }
 
 static void v_tally(double * const vout, const double scale, const double * const vin)

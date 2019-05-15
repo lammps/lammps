@@ -40,6 +40,9 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
 PairMesoCNT::~PairMesoCNT()
 {
   if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
     memory->destroy(gamma_data);
     memory->destroy(uinf_data);
     memory->destroy(starth_usemi);
@@ -79,7 +82,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int *mol = atom->molecule;
   int nbondlist = neighbor->nbondlist;
   int nlocal = atom->nlocal;
-  
+ 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -87,8 +90,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
-  memory->create(q1,3,"pair:q1");
-  memory->create(q2,3,"pair:q2");
   memory->create(param,6,"pair:param");
   memory->create(flocal,2,3,"pair:flocal");
   memory->create(basis,3,3,"pair:basis");
@@ -106,6 +107,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
     j2list = firstneigh[i2];
     j1num = numneigh[i1];
     j2num = numneigh[i2];
+
+    if(j1num + j2num == 0) continue;
     
     memory->create(redlist,j1num+j2num,"pair:redlist");
     numred = 0;
@@ -123,7 +126,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       }
       redlist[numred++] = j2list[jj2];
     }
-    
+
     // insertion sort according to atom-id
     
     for(int mm = 1; mm < numred; mm++){
@@ -144,7 +147,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     int cid = 0;
     int cnum = 0;
     memory->create(chain,numred,numred,"pair:chain");
-    memory->create(nchain,numred,"pair:numred");
+    memory->create(nchain,numred,"pair:nchain");
     for(jj = 0; jj < numred-1; jj++){
       int j = redlist[jj];
       chain[cid][cnum++] = j;
@@ -244,11 +247,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
   memory->destroy(p1);
   memory->destroy(p2);
-  memory->destroy(q1);
-  memory->destroy(q2);
   memory->destroy(param);
   memory->destroy(flocal);
   memory->destroy(basis);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,7 +265,7 @@ void PairMesoCNT::init_style()
 
 double PairMesoCNT::init_one(int i, int j)
 {
-  return 0;
+  return cutoff;
 }
 
 /* ----------------------------------------------------------------------
@@ -273,7 +275,15 @@ double PairMesoCNT::init_one(int i, int j)
 void PairMesoCNT::allocate()
 {
   allocated = 1;
-  
+  int n = atom->ntypes;
+
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+ 
   memory->create(gamma_data,gamma_points,"pair:gamma_data");
   memory->create(uinf_data,pot_points,"pair:uinf_data");
   memory->create(starth_usemi,pot_points,"pair:starth_usemi");
@@ -339,12 +349,10 @@ void PairMesoCNT::coeff(int narg, char **arg)
   if (me == 0) { 
     read_file(gamma_file,gamma_data,&start_gamma,&del_gamma,gamma_points);
     read_file(uinf_file,uinf_data,&start_uinf,&del_uinf,pot_points);
-    printf("1D files read\n");
     read_file(usemi_file,usemi_data,starth_usemi,&startxi_usemi,
 		    delh_usemi,&delxi_usemi,pot_points);
     read_file(phi_file,phi_data,startzeta_phi,&starth_phi,
 		    delzeta_phi,&delh_phi,pot_points);
-    printf("2D files read\n");
   }
   
   MPI_Bcast(gamma_data,gamma_points,MPI_DOUBLE,0,world);
@@ -358,29 +366,22 @@ void PairMesoCNT::coeff(int narg, char **arg)
     MPI_Bcast(phi_data[i],pot_points,MPI_DOUBLE,0,world);
   }
 
-  if(me == 0) printf("Arrays broadcast\n");
-
   spline_coeff(gamma_data,gamma_coeff,gamma_points);
   spline_coeff(uinf_data,uinf_coeff,pot_points);
-  if(me == 0) printf("1D splines generated\n");
   spline_coeff(usemi_data,usemi_coeff,pot_points);
   spline_coeff(phi_data,phi_coeff,pot_points);
-  if(me == 0) printf("2D splines generated\n");
 
-  if(me == 0){
-  std::ofstream outFile;
-  outFile.open("test.dat");
-  for(int i = 0; i < 1001; i++){
-    for(int j = 0; j < 1001; j++){
-      double x = starth_usemi[i] + j*delh_usemi[i];
-      double y = startxi_usemi + i*delxi_usemi;
-      double test = spline(x,y,starth_usemi,startxi_usemi,delh_usemi,delxi_usemi,usemi_coeff,pot_points);
-      outFile << x << " " << y << " " << test << std::endl;
+  int n = atom->ntypes;
+
+  cutoff = rc + 2*radius;
+  double cutoffsq = cutoff * cutoff;
+
+  for (int i = 1; i <= n; i++){
+    for (int j = i; j <= n; j++){
+      setflag[i][j] = 1;
+      cutsq[i][j] = cutoffsq;
     }
   }
-  outFile.close();
-  }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -393,8 +394,8 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
     if(i < -1){
       // warn if argument below spline range
       char str[128];
-      sprintf(str,"Argument below spline interval; x: %f; x0: %f", x, xstart);
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument below spline interval; x: %f; x0: %f", x, xstart);
+      //error->warning(FLERR,str);
     }
     i = 0;
   }
@@ -402,8 +403,8 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
     if(i > coeff_size){
       // warn if argument above spline range
       char str[128];
-      sprintf(str,"Argument above spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument above spline interval");
+      //error->warning(FLERR,str);
     }
     i = coeff_size - 1;
   }
@@ -425,8 +426,8 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
     if(i < -1){
       // warn if argument below spline range
       char str[128];
-      sprintf(str,"Argument below spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument below spline interval");
+      //error->warning(FLERR,str);
     }
     i = 0;
   }
@@ -434,8 +435,8 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
     if(i > coeff_size-1){
       // warn if argument above spline range
       char str[128];
-      sprintf(str,"Argument above spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument above spline interval");
+      //error->warning(FLERR,str);
     }
     i = coeff_size - 2;
   } 
@@ -466,8 +467,6 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
     a1 = 0.5*(p2 - p0);
     a3 = 0.5*(p2 - 2*p1 + p0);
     a2 = -2*a3;
-    printf("p: %f %f %f \n",p0,p1,p2);
-    printf("x0: %f dx: %f \n",xstart[i+1],dx[i+1]);
   }
   else{
     p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
@@ -491,8 +490,8 @@ double PairMesoCNT::dspline(double x, double xstart, double dx,
     if(i < -1){
       // warn if argument below spline range
       char str[128];
-      sprintf(str,"Argument below spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument below spline interval");
+      //error->warning(FLERR,str);
     }
     i = 0;
   }
@@ -500,8 +499,8 @@ double PairMesoCNT::dspline(double x, double xstart, double dx,
     if(i > coeff_size){
       // warn if argument above spline range
       char str[128];
-      sprintf(str,"Argument above spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument above spline interval");
+      //error->warning(FLERR,str);
     }
     i = coeff_size - 1;
   }  
@@ -522,8 +521,8 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
     if(i < -1){
       // warn if argument below spline range
       char str[128];
-      sprintf(str,"Argument below spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument below spline interval");
+      //error->warning(FLERR,str);
     }
     i = 0;
   }
@@ -531,8 +530,8 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
     if(i > coeff_size-1){
       // warn if argument above spline range
       char str[128];
-      sprintf(str,"Argument above spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument above spline interval");
+      //error->warning(FLERR,str);
     }
     i = coeff_size - 2;
   } 
@@ -586,8 +585,8 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
     if(i < -1){
       // warn if argument below spline range
       char str[128];
-      sprintf(str,"Argument below spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument below spline interval");
+      //error->warning(FLERR,str);
     }
     i = 0;
   }
@@ -595,8 +594,8 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
     if(i > coeff_size-1){
       // warn if argument above spline range
       char str[128];
-      sprintf(str,"Argument above spline interval");
-      error->warning(FLERR,str);
+      //sprintf(str,"Argument above spline interval");
+      //error->warning(FLERR,str);
     }
     i = coeff_size - 2;
   } 

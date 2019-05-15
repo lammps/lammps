@@ -187,23 +187,31 @@ void ComputeStressAtom::compute_peratom()
 
   if (angleflag && force->angle) {
     double **vatom = force->angle->vatom;
-    for (i = 0; i < nbond; i++)
-      for (j = 0; j < 6; j++)
+    for (i = 0; i < nbond; i++) {
+      for (j = 0; j < 3; j++)
         stress[i][j] += vatom[i][j];
+      for (j = 3; j < 6; j++)
+        stress[i][j] += 0.5*(vatom[i][j]+vatom[i][j+3]);
+    }
   }
 
   if (dihedralflag && force->dihedral) {
     double **vatom = force->dihedral->vatom;
-    for (i = 0; i < nbond; i++)
-      for (j = 0; j < 6; j++)
+    for (i = 0; i < nbond; i++) {
+      for (j = 0; j < 3; j++)
         stress[i][j] += vatom[i][j];
+      for (j = 3; j < 6; j++)
+        stress[i][j] += 0.5*(vatom[i][j]+vatom[i][j+3]);
+    }
   }
 
   if (improperflag && force->improper) {
     double **vatom = force->improper->vatom;
     for (i = 0; i < nbond; i++)
-      for (j = 0; j < 6; j++)
+      for (j = 0; j < 3; j++)
         stress[i][j] += vatom[i][j];
+      for (j = 3; j < 6; j++)
+        stress[i][j] += 0.5*(vatom[i][j]+vatom[i][j+3]);
   }
 
   if (kspaceflag && force->kspace) {

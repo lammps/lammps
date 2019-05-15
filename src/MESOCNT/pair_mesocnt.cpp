@@ -370,11 +370,11 @@ void PairMesoCNT::coeff(int narg, char **arg)
   if(me == 0){
   std::ofstream outFile;
   outFile.open("test.dat");
-  for(int i = 0; i < 2001; i++){
-    for(int j = 0; j < 2001; j++){
-      double x = startzeta_phi[i] + j*delzeta_phi[i];
-      double y = starth_phi + i*delh_phi;
-      double test = spline(x,y,startzeta_phi,starth_phi,delzeta_phi,delh_phi,phi_coeff,pot_points);
+  for(int i = 0; i < 1001; i++){
+    for(int j = 0; j < 1001; j++){
+      double x = starth_usemi[i] + j*delh_usemi[i];
+      double y = startxi_usemi + i*delxi_usemi;
+      double test = spline(x,y,starth_usemi,startxi_usemi,delh_usemi,delxi_usemi,usemi_coeff,pot_points);
       outFile << x << " " << y << " " << test << std::endl;
     }
   }
@@ -390,18 +390,22 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
 {
   int i = floor((x - xstart)/dx); 
   if(i < 0){
+    if(i < -1){
+      // warn if argument below spline range
+      char str[128];
+      sprintf(str,"Argument below spline interval; x: %f; x0: %f", x, xstart);
+      error->warning(FLERR,str);
+    }
     i = 0;
-    // warn if argument below spline range
-    char str[128];
-    sprintf(str,"Argument below spline interval");
-    error->warning(FLERR,str);
   }
   else if(i > coeff_size-1){ 
-    i = coeff_size-1;
-    // warn if argument above spline range
-    char str[128];
-    sprintf(str,"Argument above spline interval");
-    error->warning(FLERR,str);
+    if(i > coeff_size){
+      // warn if argument above spline range
+      char str[128];
+      sprintf(str,"Argument above spline interval");
+      error->warning(FLERR,str);
+    }
+    i = coeff_size - 1;
   }
   
   double xlo = xstart + i*dx;
@@ -418,19 +422,23 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
 {
   int i = floor((y - ystart)/dy);
   if(i < 0){
+    if(i < -1){
+      // warn if argument below spline range
+      char str[128];
+      sprintf(str,"Argument below spline interval");
+      error->warning(FLERR,str);
+    }
     i = 0;
-    // warn if argument below spline range
-    char str[128];
-    sprintf(str,"Argument below spline interval");
-    error->warning(FLERR,str);
   }
-  else if(i > coeff_size-1){ 
-    i = coeff_size-1;
-    // warn if argument above spline range
-    char str[128];
-    sprintf(str,"Argument above spline interval");
-    error->warning(FLERR,str);
-  }
+  else if(i > coeff_size-2){ 
+    if(i > coeff_size-1){
+      // warn if argument above spline range
+      char str[128];
+      sprintf(str,"Argument above spline interval");
+      error->warning(FLERR,str);
+    }
+    i = coeff_size - 2;
+  } 
   
   double ylo = ystart + i*dy;
   double ybar = (y - ylo)/dy;
@@ -440,13 +448,13 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
   double a0, a1, a2, a3;
   double p0, p1, p2, p3;
   
-  p1 = spline(x,xstart[0],dx[0],coeff[0],coeff_size);
-  p2 = spline(x,xstart[1],dx[1],coeff[1],coeff_size);
+  p1 = spline(x,xstart[i],dx[i],coeff[i],coeff_size);
+  p2 = spline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
   
   a0 = p1;
 
   if(i == 0){
-    p3 = spline(x,xstart[2],dx[2],coeff[2],coeff_size);
+    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
     a1 = p2 - p1;
     a3 = 0.5*(p3 - 2*p2 + p1);
@@ -458,10 +466,12 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
     a1 = 0.5*(p2 - p0);
     a3 = 0.5*(p2 - 2*p1 + p0);
     a2 = -2*a3;
+    printf("p: %f %f %f \n",p0,p1,p2);
+    printf("x0: %f dx: %f \n",xstart[i+1],dx[i+1]);
   }
   else{
     p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    p3 = spline(x,xstart[2],dx[2],coeff[2],coeff_size);
+    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
     a1 = 0.5*(p2 - p0);
     a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);
@@ -478,19 +488,23 @@ double PairMesoCNT::dspline(double x, double xstart, double dx,
 {
   int i = floor((x - xstart)/dx); 
   if(i < 0){
+    if(i < -1){
+      // warn if argument below spline range
+      char str[128];
+      sprintf(str,"Argument below spline interval");
+      error->warning(FLERR,str);
+    }
     i = 0;
-    // warn if argument below spline range
-    char str[128];
-    sprintf(str,"Argument below spline interval");
-    error->warning(FLERR,str);
   }
   else if(i > coeff_size-1){ 
-    i = coeff_size-1;
-    // warn if argument above spline range
-    char str[128];
-    sprintf(str,"Argument above spline interval");
-    error->warning(FLERR,str);
-  }
+    if(i > coeff_size){
+      // warn if argument above spline range
+      char str[128];
+      sprintf(str,"Argument above spline interval");
+      error->warning(FLERR,str);
+    }
+    i = coeff_size - 1;
+  }  
  
   double xlo = xstart + i*dx;
   double xbar = (x - xlo)/dx;
@@ -505,19 +519,23 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
 {
   int i = floor((y - ystart)/dy);
   if(i < 0){
+    if(i < -1){
+      // warn if argument below spline range
+      char str[128];
+      sprintf(str,"Argument below spline interval");
+      error->warning(FLERR,str);
+    }
     i = 0;
-    // warn if argument below spline range
-    char str[128];
-    sprintf(str,"Argument below spline interval");
-    error->warning(FLERR,str);
   }
-  else if(i > coeff_size-1){ 
-    i = coeff_size-1;
-    // warn if argument above spline range
-    char str[128];
-    sprintf(str,"Argument above spline interval");
-    error->warning(FLERR,str);
-  }
+  else if(i > coeff_size-2){ 
+    if(i > coeff_size-1){
+      // warn if argument above spline range
+      char str[128];
+      sprintf(str,"Argument above spline interval");
+      error->warning(FLERR,str);
+    }
+    i = coeff_size - 2;
+  } 
   
   double ylo = ystart + i*dy;
   double ybar = (y - ylo)/dy;
@@ -527,13 +545,13 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
   double a0, a1, a2, a3;
   double p0, p1, p2, p3;
   
-  p1 = dspline(x,xstart[0],dx[0],coeff[0],coeff_size);
-  p2 = dspline(x,xstart[1],dx[1],coeff[1],coeff_size);
+  p1 = dspline(x,xstart[i],dx[i],coeff[i],coeff_size);
+  p2 = dspline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
   
   a0 = p1;
 
   if(i == 0){
-    p3 = dspline(x,xstart[2],dx[2],coeff[2],coeff_size);
+    p3 = dspline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
     a1 = p2 - p1;
     a3 = 0.5*(p3 - 2*p2 + p1);
@@ -548,7 +566,7 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
   }
   else{
     p0 = dspline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    p3 = dspline(x,xstart[2],dx[2],coeff[2],coeff_size);
+    p3 = dspline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
     a1 = 0.5*(p2 - p0);
     a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);
@@ -565,20 +583,24 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
 {
   int i = floor((y - ystart)/dy);
   if(i < 0){
+    if(i < -1){
+      // warn if argument below spline range
+      char str[128];
+      sprintf(str,"Argument below spline interval");
+      error->warning(FLERR,str);
+    }
     i = 0;
-    // warn if argument below spline range
-    char str[128];
-    sprintf(str,"Argument below spline interval");
-    error->warning(FLERR,str);
   }
-  else if(i > coeff_size-1){ 
-    i = coeff_size-1;
-    // warn if argument above spline range
-    char str[128];
-    sprintf(str,"Argument above spline interval");
-    error->warning(FLERR,str);
-  }
-  
+  else if(i > coeff_size-2){ 
+    if(i > coeff_size-1){
+      // warn if argument above spline range
+      char str[128];
+      sprintf(str,"Argument above spline interval");
+      error->warning(FLERR,str);
+    }
+    i = coeff_size - 2;
+  } 
+ 
   double ylo = ystart + i*dy;
   double ybar = (y - ylo)/dy;
 
@@ -587,13 +609,13 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
   double a0, a1, a2, a3;
   double p0, p1, p2, p3;
   
-  p1 = spline(x,xstart[0],dx[0],coeff[0],coeff_size);
-  p2 = spline(x,xstart[1],dx[1],coeff[1],coeff_size);
+  p1 = spline(x,xstart[i],dx[i],coeff[i],coeff_size);
+  p2 = spline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
   
   a0 = p1;
 
   if(i == 0){
-    p3 = spline(x,xstart[2],dx[2],coeff[2],coeff_size);
+    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
     a1 = p2 - p1;
     a3 = 0.5*(p3 - 2*p2 + p1);
@@ -608,7 +630,7 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
   }
   else{
     p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    p3 = spline(x,xstart[2],dx[2],coeff[2],coeff_size);
+    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
     a1 = 0.5*(p2 - p0);
     a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);

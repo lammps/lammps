@@ -184,12 +184,19 @@ void PairMesoCNT::compute(int eflag, int vflag)
     double w,sumwreq,sumw;
     
     for(int i = 0; i < cid; i++){
+      if(nchain[i] < 2) continue;
+
       zero3(p1);
       zero3(p2);
       sumw = 0;
       for(int j = 0; j < nchain[i]-1; j++){
 	q1 = x[chain[i][j]];
 	q2 = x[chain[i][j+1]];
+        printf("Vectors q:\n");
+        printf("%e %e %e\n",q1[0],q1[1],q1[2]);
+        printf("%e %e %e\n",q2[0],q2[1],q2[2]);
+        fflush(stdout);
+
         w = weight(r1,r2,q1,q2);
 	sumw += w;
 	for(int ax = 0; ax < 3; ax++){
@@ -197,9 +204,16 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	  p2[ax] += w * q2[ax];
 	}
       }
+      
+      if(sumw == 0) continue;
       sumwreq = 1 / sumw;
       scale3(sumwreq,p1);
       scale3(sumwreq,p2);
+
+      printf("Vectors p:\n");
+      printf("%e %e %e\n",p1[0],p1[1],p1[2]);
+      printf("%e %e %e\n",p2[0],p2[1],p2[2]);
+      fflush(stdout);
 
       if(end[i] == 1){
         geom(r1,r2,p1,p2,param,basis);
@@ -237,6 +251,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
       f[i2][2] += flocal[1][0]*basis[2][0]
 	      + flocal[1][1]*basis[2][1]
 	      + flocal[1][2]*basis[2][2];
+
+      printf("Forces:\n");
+      printf("%e %e %e\n",f[i1][0],f[i1][1],f[i1][2]);
+      printf("%e %e %e\n",f[i2][0],f[i2][1],f[i2][2]);
+      fflush(stdout);
     }
 
     memory->destroy(redlist);
@@ -394,7 +413,7 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
     if(i < -1){
       // warn if argument below spline range
       char str[128];
-      //sprintf(str,"Argument below spline interval; x: %f; x0: %f", x, xstart);
+      //sprintf(str,"Argument below spline interval; x: %e; x0: %e", x, xstart);
       //error->warning(FLERR,str);
     }
     i = 0;

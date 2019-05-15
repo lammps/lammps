@@ -1320,6 +1320,28 @@ void PairSNAP::compute_beta()
 }
 
 /* ----------------------------------------------------------------------
+   compute bispectrum
+------------------------------------------------------------------------- */
+
+void PairSNAP::compute_bispectrum()
+{
+  int i;
+  int *type = atom->type;
+
+  for (int ii = 0; ii < list->inum; ii++) {
+    i = list->ilist[ii];
+    const int itype = type[i];
+    const int ielem = map[itype];
+    double* coeffi = coeffelem[ielem];
+    snaptr->compute_bi();
+    snaptr->copy_bi2bvec();
+
+    for (int k = 0; k < ncoeff; k++)
+      bispectrum[ii][k] = snaptr->bvec[k];
+  }
+}
+
+/* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
 

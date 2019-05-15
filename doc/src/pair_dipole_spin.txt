@@ -12,6 +12,7 @@ pair_style spin/dipole/long/qsymp command :h3
 
 [Syntax:]
 
+pair_style spin/dipole/cut cutoff
 pair_style lj/cut/dipole/cut cutoff (cutoff2)
 pair_style lj/sf/dipole/sf cutoff (cutoff2)
 pair_style lj/cut/dipole/long cutoff (cutoff2)

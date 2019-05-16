@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "pair_spin_dipolar_long_qsymp.h"
+#include "pair_spin_dipole_long_qsymp.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -50,7 +50,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipolarLongQsymp::PairSpinDipolarLongQsymp(LAMMPS *lmp) : PairSpin(lmp),
+PairSpinDipoleLongQsymp::PairSpinDipoleLongQsymp(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
   single_enable = 0;
@@ -75,7 +75,7 @@ lockfixnvespin(NULL)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairSpinDipolarLongQsymp::~PairSpinDipolarLongQsymp()
+PairSpinDipoleLongQsymp::~PairSpinDipoleLongQsymp()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -88,7 +88,7 @@ PairSpinDipolarLongQsymp::~PairSpinDipolarLongQsymp()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::settings(int narg, char **arg)
+void PairSpinDipoleLongQsymp::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
@@ -117,7 +117,7 @@ void PairSpinDipolarLongQsymp::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::coeff(int narg, char **arg)
+void PairSpinDipoleLongQsymp::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
   
@@ -150,7 +150,7 @@ void PairSpinDipolarLongQsymp::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::init_style()
+void PairSpinDipoleLongQsymp::init_style()
 {
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
@@ -193,7 +193,7 @@ void PairSpinDipolarLongQsymp::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairSpinDipolarLongQsymp::init_one(int i, int j)
+double PairSpinDipoleLongQsymp::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   
@@ -206,7 +206,7 @@ double PairSpinDipolarLongQsymp::init_one(int i, int j)
    extract the larger cutoff if "cut" or "cut_coul"
 ------------------------------------------------------------------------- */
 
-void *PairSpinDipolarLongQsymp::extract(const char *str, int &dim)
+void *PairSpinDipoleLongQsymp::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut") == 0) {
     dim = 0;
@@ -229,7 +229,7 @@ void *PairSpinDipolarLongQsymp::extract(const char *str, int &dim)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::compute(int eflag, int vflag)
+void PairSpinDipoleLongQsymp::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double r,rinv,r2inv,rsq;
@@ -390,7 +390,7 @@ void PairSpinDipolarLongQsymp::compute(int eflag, int vflag)
    removing erf(r)/r (for r in [0,rc]) from the kspace force
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::compute_single_pair(int ii, double fmi[3])
+void PairSpinDipoleLongQsymp::compute_single_pair(int ii, double fmi[3])
 {
   int i,j,jj,jnum,itype,jtype;  
   double rinv,r2inv,r3inv,rsq;
@@ -470,7 +470,7 @@ void PairSpinDipolarLongQsymp::compute_single_pair(int ii, double fmi[3])
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::compute_long(int i, int j, double rij[3], 
+void PairSpinDipoleLongQsymp::compute_long(int i, int j, double rij[3], 
     double bij[4], double fmi[3], double spi[4], double spj[4])
 {
   double sjdotr;
@@ -492,7 +492,7 @@ void PairSpinDipolarLongQsymp::compute_long(int i, int j, double rij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::compute_long_mech(int i, int j, double rij[3],
+void PairSpinDipoleLongQsymp::compute_long_mech(int i, int j, double rij[3],
     double bij[4], double fi[3], double spi[3], double spj[3])
 {
   double sdots,sidotr,sjdotr,b2,b3;
@@ -522,7 +522,7 @@ void PairSpinDipolarLongQsymp::compute_long_mech(int i, int j, double rij[3],
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::allocate()
+void PairSpinDipoleLongQsymp::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -540,7 +540,7 @@ void PairSpinDipolarLongQsymp::allocate()
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::write_restart(FILE *fp)
+void PairSpinDipoleLongQsymp::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -559,7 +559,7 @@ void PairSpinDipolarLongQsymp::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::read_restart(FILE *fp)
+void PairSpinDipoleLongQsymp::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -585,7 +585,7 @@ void PairSpinDipolarLongQsymp::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::write_restart_settings(FILE *fp)
+void PairSpinDipoleLongQsymp::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_spin_long_global,sizeof(double),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
@@ -595,7 +595,7 @@ void PairSpinDipolarLongQsymp::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLongQsymp::read_restart_settings(FILE *fp)
+void PairSpinDipoleLongQsymp::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_spin_long_global,sizeof(double),1,fp);

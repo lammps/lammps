@@ -25,8 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "pair_spin_dipolar_cut.h"
+#include "pair_spin_dipole_cut.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -34,7 +33,6 @@
 #include "neigh_request.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -45,17 +43,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
-
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipolarCut::PairSpinDipolarCut(LAMMPS *lmp) : PairSpin(lmp),
+PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
   single_enable = 0;
@@ -77,7 +67,7 @@ lockfixnvespin(NULL)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairSpinDipolarCut::~PairSpinDipolarCut()
+PairSpinDipoleCut::~PairSpinDipoleCut()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -90,7 +80,7 @@ PairSpinDipolarCut::~PairSpinDipolarCut()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::settings(int narg, char **arg)
+void PairSpinDipoleCut::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
@@ -122,22 +112,18 @@ void PairSpinDipolarCut::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::coeff(int narg, char **arg)
+void PairSpinDipoleCut::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
   
-  // check if args correct
-
-  if (strcmp(arg[2],"long") != 0)
-    error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg < 1 || narg > 4)
+  if (narg < 1 || narg > 3)
     error->all(FLERR,"Incorrect args in pair_style command");
   
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  double spin_long_cut_one = force->numeric(FLERR,arg[3]);
+  double spin_long_cut_one = force->numeric(FLERR,arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -155,7 +141,7 @@ void PairSpinDipolarCut::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::init_style()
+void PairSpinDipoleCut::init_style()
 {
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
@@ -191,7 +177,7 @@ void PairSpinDipolarCut::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairSpinDipolarCut::init_one(int i, int j)
+double PairSpinDipoleCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   
@@ -204,7 +190,7 @@ double PairSpinDipolarCut::init_one(int i, int j)
    extract the larger cutoff if "cut" or "cut_coul"
 ------------------------------------------------------------------------- */
 
-void *PairSpinDipolarCut::extract(const char *str, int &dim)
+void *PairSpinDipoleCut::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut") == 0) {
     dim = 0;
@@ -227,7 +213,7 @@ void *PairSpinDipolarCut::extract(const char *str, int &dim)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::compute(int eflag, int vflag)
+void PairSpinDipoleCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double rinv,r2inv,r3inv,rsq;
@@ -338,7 +324,7 @@ void PairSpinDipolarCut::compute(int eflag, int vflag)
    removing erf(r)/r (for r in [0,rc]) from the kspace force
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::compute_single_pair(int ii, double fmi[3])
+void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
 {
   int i,j,jj,jnum,itype,jtype;  
   double rsq,rinv,r2inv,r3inv;
@@ -406,7 +392,7 @@ void PairSpinDipolarCut::compute_single_pair(int ii, double fmi[3])
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::compute_dipolar(int i, int j, double eij[3], 
+void PairSpinDipoleCut::compute_dipolar(int i, int j, double eij[3], 
     double fmi[3], double spi[4], double spj[4], double r3inv)
 {
   double sjdotr;
@@ -426,7 +412,7 @@ void PairSpinDipolarCut::compute_dipolar(int i, int j, double eij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::compute_dipolar_mech(int i, int j, double eij[3],
+void PairSpinDipoleCut::compute_dipolar_mech(int i, int j, double eij[3],
     double fi[3], double spi[3], double spj[3], double r2inv)
 {
   double sisj,sieij,sjeij;
@@ -449,7 +435,7 @@ void PairSpinDipolarCut::compute_dipolar_mech(int i, int j, double eij[3],
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::allocate()
+void PairSpinDipoleCut::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -467,7 +453,7 @@ void PairSpinDipolarCut::allocate()
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::write_restart(FILE *fp)
+void PairSpinDipoleCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -486,7 +472,7 @@ void PairSpinDipolarCut::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::read_restart(FILE *fp)
+void PairSpinDipoleCut::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -512,7 +498,7 @@ void PairSpinDipolarCut::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::write_restart_settings(FILE *fp)
+void PairSpinDipoleCut::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_spin_long_global,sizeof(double),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
@@ -522,7 +508,7 @@ void PairSpinDipolarCut::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::read_restart_settings(FILE *fp)
+void PairSpinDipoleCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_spin_long_global,sizeof(double),1,fp);

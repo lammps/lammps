@@ -15,8 +15,9 @@ compute ID group-ID coord/atom cstyle args ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 coord/atom = style name of this compute command :l
 cstyle = {cutoff} or {orientorder} :l
-  {cutoff} args = cutoff typeN
+  {cutoff} args = cutoff \[group group2-ID\] typeN
     cutoff = distance within which to count coordination neighbors (distance units)
+    group {group2-ID} = select group-ID to restrict which atoms to cound for coordination number (optional)
     typeN = atom type for Nth coordination count (see asterisk form below)
   {orientorder} args = orientorderID threshold
     orientorderID = ID of an orientorder/atom compute
@@ -28,6 +29,7 @@ cstyle = {cutoff} or {orientorder} :l
 compute 1 all coord/atom cutoff 2.0
 compute 1 all coord/atom cutoff 6.0 1 2
 compute 1 all coord/atom cutoff 6.0 2*4 5*8 *
+compute 1 solute coord/atom cutoff 2.0 group solvent
 compute 1 all coord/atom orientorder 2 0.5 :pre
 
 [Description:]
@@ -38,9 +40,14 @@ meaning of the resulting value depend on the {cstyle} keyword used.
 
 The {cutoff} cstyle calculates one or more traditional coordination
 numbers for each atom.  A coordination number is defined as the number
-of neighbor atoms with specified atom type(s) that are within the
-specified cutoff distance from the central atom.  Atoms not in the
-specified group are included in the coordination number tally.
+of neighbor atoms with specified atom type(s), and optionally within
+the specified group, that are within the specified cutoff distance from
+the central atom. The compute group selects only the central atoms; all
+neighboring atoms, unless selected by type, type range, or group option,
+are included in the coordinations number tally.
+
+The optional {group} keyword allows to specify from which group atoms
+contribute to the coordination number. Default setting is group 'all'. 
 
 The {typeN} keywords allow specification of which atom types
 contribute to each coordination number.  One coordination number is
@@ -122,7 +129,9 @@ explained above.
 "compute cluster/atom"_compute_cluster_atom.html
 "compute orientorder/atom"_compute_orientorder_atom.html
 
-[Default:] none
+[Default:]
+
+group = all
 
 :line
 

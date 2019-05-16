@@ -45,6 +45,9 @@ class ComputeCoordAtom : public Compute {
   double *cvec;
   double **carray;
 
+  char *group2;
+  int jgroup,jgroupbit;
+
   class ComputeOrientOrderAtom *c_orientorder;
   char *id_orientorder;
   double threshold;

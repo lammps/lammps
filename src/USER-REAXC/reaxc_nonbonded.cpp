@@ -220,6 +220,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
   LR_lookup_table *t;
+  LR_lookup_table ** & LR = system->LR;
 
   natoms = system->n;
   far_nbrs = (*lists) + FAR_NBRS;

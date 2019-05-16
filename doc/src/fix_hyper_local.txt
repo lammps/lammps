@@ -301,7 +301,7 @@ No information about this fix is written to "binary restart
 files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
-fix to add the energy of the bias potential to the the system's
+fix to add the energy of the bias potential to the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
 This fix computes a global scalar and global vector of length 21,
@@ -322,13 +322,13 @@ vector stores the following quantities:
 9 = fraction of biased bonds with negative strain during this run
 10 = average bias coeff for all bonds during this run (unitless)
 11 = min bias coeff for any bond during this run (unitless)
-12 = max bias coeff for any bond during this run (unitless)
+12 = max bias coeff for any bond during this run (unitless) :ul
 
 13 = max drift distance of any bond atom during this run (distance units)
 14 = max distance from proc subbox of any ghost atom with maxstrain < qfactor during this run (distance units)
 15 = max distance outside my box of any ghost atom with any maxstrain during this run (distance units)
 16 = count of ghost atoms that could not be found on reneighbor steps during this run
-17 = count of bias overlaps (< Dcut) found during this run
+17 = count of bias overlaps (< Dcut) found during this run :ul
 
 18 = cumulative hyper time since fix created (time units)
 19 = cumulative count of event timesteps since fix created

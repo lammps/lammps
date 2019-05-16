@@ -395,6 +395,8 @@ typedef struct
   double ghost_cutoff;
 } boundary_cutoff;
 
+
+struct _LR_lookup_table;  // forward declaration
 struct _reax_system
 {
   reax_interaction reax_param;
@@ -417,6 +419,8 @@ struct _reax_system
   int my_bonds;
   int mincap;
   double safezone, saferzone;
+
+  _LR_lookup_table **LR;
 
   int omp_active;
 };
@@ -883,7 +887,7 @@ struct cubic_spline_coef
 
 
 
-typedef struct
+typedef struct _LR_lookup_table
 {
   double xmin, xmax;
   int n;
@@ -897,7 +901,6 @@ typedef struct
   cubic_spline_coef *vdW, *CEvd;
   cubic_spline_coef *ele, *CEclmb;
 } LR_lookup_table;
-extern LR_lookup_table **LR;
 
 /* function pointer defs */
 typedef void (*evolve_function)(reax_system*, control_params*,

@@ -10,7 +10,6 @@
 #ifndef COLVARTYPES_H
 #define COLVARTYPES_H
 
-#include <cmath>
 #include <vector>
 
 #include "colvarmodule.h"
@@ -220,7 +219,7 @@ public:
 
   inline cvm::real norm() const
   {
-    return std::sqrt(this->norm2());
+    return cvm::sqrt(this->norm2());
   }
 
   inline cvm::real sum() const
@@ -801,7 +800,7 @@ public:
 
   inline cvm::real norm() const
   {
-    return std::sqrt(this->norm2());
+    return cvm::sqrt(this->norm2());
   }
 
   inline cvm::rvector unit() const
@@ -1008,17 +1007,17 @@ public:
                                     cvm::real theta_in,
                                     cvm::real psi_in)
   {
-    q0 = ( (std::cos(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::cos(psi_in/2.0)) +
-           (std::sin(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
+    q0 = ( (cvm::cos(phi_in/2.0)) * (cvm::cos(theta_in/2.0)) * (cvm::cos(psi_in/2.0)) +
+           (cvm::sin(phi_in/2.0)) * (cvm::sin(theta_in/2.0)) * (cvm::sin(psi_in/2.0)) );
 
-    q1 = ( (std::sin(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::cos(psi_in/2.0)) -
-           (std::cos(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
+    q1 = ( (cvm::sin(phi_in/2.0)) * (cvm::cos(theta_in/2.0)) * (cvm::cos(psi_in/2.0)) -
+           (cvm::cos(phi_in/2.0)) * (cvm::sin(theta_in/2.0)) * (cvm::sin(psi_in/2.0)) );
 
-    q2 = ( (std::cos(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::cos(psi_in/2.0)) +
-           (std::sin(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
+    q2 = ( (cvm::cos(phi_in/2.0)) * (cvm::sin(theta_in/2.0)) * (cvm::cos(psi_in/2.0)) +
+           (cvm::sin(phi_in/2.0)) * (cvm::cos(theta_in/2.0)) * (cvm::sin(psi_in/2.0)) );
 
-    q3 = ( (std::cos(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::sin(psi_in/2.0)) -
-           (std::sin(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::cos(psi_in/2.0)) );
+    q3 = ( (cvm::cos(phi_in/2.0)) * (cvm::cos(theta_in/2.0)) * (cvm::sin(psi_in/2.0)) -
+           (cvm::sin(phi_in/2.0)) * (cvm::sin(theta_in/2.0)) * (cvm::cos(psi_in/2.0)) );
   }
 
   /// \brief Default constructor
@@ -1115,7 +1114,7 @@ public:
   /// Norm of the quaternion
   inline cvm::real norm() const
   {
-    return std::sqrt(this->norm2());
+    return cvm::sqrt(this->norm2());
   }
 
   /// Return the conjugate quaternion
@@ -1177,7 +1176,7 @@ public:
   }
 
   /// \brief Provides the quaternion product.  \b NOTE: for the inner
-  /// product use: \code h.inner (q); \endcode
+  /// product use: `h.inner (q);`
   friend inline cvm::quaternion operator * (cvm::quaternion const &h,
                                             cvm::quaternion const &q)
   {
@@ -1263,7 +1262,7 @@ public:
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
 
-    cvm::real const omega = std::acos( (cos_omega > 1.0) ? 1.0 :
+    cvm::real const omega = cvm::acos( (cos_omega > 1.0) ? 1.0 :
                                        ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
 
     // get the minimum distance: x and -x are the same quaternion
@@ -1278,11 +1277,11 @@ public:
   inline cvm::quaternion dist2_grad(cvm::quaternion const &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 + this->q2*Q2.q2 + this->q3*Q2.q3;
-    cvm::real const omega = std::acos( (cos_omega > 1.0) ? 1.0 :
+    cvm::real const omega = cvm::acos( (cos_omega > 1.0) ? 1.0 :
                                        ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
-    cvm::real const sin_omega = std::sin(omega);
+    cvm::real const sin_omega = cvm::sin(omega);
 
-    if (std::fabs(sin_omega) < 1.0E-14) {
+    if (cvm::fabs(sin_omega) < 1.0E-14) {
       // return a null 4d vector
       return cvm::quaternion(0.0, 0.0, 0.0, 0.0);
     }
@@ -1338,14 +1337,16 @@ public:
   /// \brief Perform gradient tests
   bool b_debug_gradients;
 
-  /// \brief Positions to superimpose: the rotation should brings pos1
-  /// into pos2
-  std::vector<cvm::atom_pos> pos1, pos2;
-
+  /// Correlation matrix C (3, 3)
   cvm::rmatrix C;
 
+  /// Overlap matrix S (4, 4)
   cvm::matrix2d<cvm::real> S;
+
+  /// Eigenvalues of S
   cvm::vector1d<cvm::real> S_eigval;
+
+  /// Eigenvectors of S
   cvm::matrix2d<cvm::real> S_eigvec;
 
   /// Used for debugging gradients
@@ -1404,8 +1405,8 @@ public:
     : b_debug_gradients(false)
   {
     cvm::rvector const axis_n = axis.unit();
-    cvm::real const sina = std::sin(angle/2.0);
-    q = cvm::quaternion(std::cos(angle/2.0),
+    cvm::real const sina = cvm::sin(angle/2.0);
+    q = cvm::quaternion(cvm::cos(angle/2.0),
                         sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
   }
 
@@ -1437,7 +1438,7 @@ public:
   inline cvm::real spin_angle(cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
-    cvm::real alpha = (180.0/PI) * 2.0 * std::atan2(axis * q_vec, q.q0);
+    cvm::real alpha = (180.0/PI) * 2.0 * cvm::atan2(axis * q_vec, q.q0);
     while (alpha >  180.0) alpha -= 360;
     while (alpha < -180.0) alpha += 360;
     return alpha;
@@ -1473,9 +1474,9 @@ public:
   {
     cvm::rvector const q_vec = q.get_vector();
     cvm::real const alpha =
-      (180.0/PI) * 2.0 * std::atan2(axis * q_vec, q.q0);
+      (180.0/PI) * 2.0 * cvm::atan2(axis * q_vec, q.q0);
 
-    cvm::real const cos_spin_2 = std::cos(alpha * (PI/180.0) * 0.5);
+    cvm::real const cos_spin_2 = cvm::cos(alpha * (PI/180.0) * 0.5);
     cvm::real const cos_theta_2 = ( (cos_spin_2 != 0.0) ?
                                     (q.q0 / cos_spin_2) :
                                     (0.0) );
@@ -1489,7 +1490,7 @@ public:
     cvm::rvector const q_vec = q.get_vector();
     cvm::real const iprod = axis * q_vec;
 
-    cvm::real const cos_spin_2 = std::cos(std::atan2(iprod, q.q0));
+    cvm::real const cos_spin_2 = cvm::cos(cvm::atan2(iprod, q.q0));
 
     if (q.q0 != 0.0)  {
 
@@ -1529,15 +1530,17 @@ protected:
   /// eigenvalue crossing)
   cvm::quaternion q_old;
 
-  /// Build the overlap matrix S (used by calc_optimal_rotation())
-  void build_matrix(std::vector<cvm::atom_pos> const &pos1,
-                    std::vector<cvm::atom_pos> const &pos2,
-                    cvm::matrix2d<cvm::real>         &S);
+  /// Build the correlation matrix C (used by calc_optimal_rotation())
+  void build_correlation_matrix(std::vector<cvm::atom_pos> const &pos1,
+                                std::vector<cvm::atom_pos> const &pos2);
 
-  /// Diagonalize the overlap matrix S (used by calc_optimal_rotation())
-  void diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
-                          cvm::vector1d<cvm::real> &S_eigval,
-                          cvm::matrix2d<cvm::real> &S_eigvec);
+  /// Compute the overlap matrix S (used by calc_optimal_rotation())
+  void compute_overlap_matrix();
+
+  /// Diagonalize a given matrix m (used by calc_optimal_rotation())
+  static void diagonalize_matrix(cvm::matrix2d<cvm::real> &m,
+                                 cvm::vector1d<cvm::real> &eigval,
+                                 cvm::matrix2d<cvm::real> &eigvec);
 };
 
 

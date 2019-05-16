@@ -63,7 +63,7 @@ equally spaced in R^2 space from cutinner^2 to cutoff^2.  For the
 two-body term in the above equation, a linear interpolation for each
 pairwise distance between adjacent points in the table.  In practice
 the tabulated version can run 3-5x faster than the analytic version
-with with moderate to little loss of accuracy for Ntable values
+with moderate to little loss of accuracy for Ntable values
 between 10000 and 1000000. It is not recommended to use less than
 5000 tabulation points.
 

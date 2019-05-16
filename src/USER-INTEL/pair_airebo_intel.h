@@ -27,7 +27,6 @@ PairStyle(airebo/intel,PairAIREBOIntel)
 #include "pair.h"
 #include "fix_intel.h"
 #include "pair_airebo.h"
-//#include "airebo_common.h"
 
 namespace LAMMPS_NS {
 

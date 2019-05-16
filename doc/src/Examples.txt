@@ -11,7 +11,7 @@ Section"_Tools.html :c
 Example scripts :h3
 
 The LAMMPS distribution includes an examples sub-directory with many
-sample problems.  Many are 2d models that run quickly are are
+sample problems.  Many are 2d models that run quickly and are
 straightforward to visualize, requiring at most a couple of minutes to
 run on a desktop machine.  Each problem has an input script (in.*) and
 produces a log file (log.*) when it runs.  Some use a data file

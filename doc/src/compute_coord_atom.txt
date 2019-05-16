@@ -44,7 +44,7 @@ of neighbor atoms with specified atom type(s), and optionally within
 the specified group, that are within the specified cutoff distance from
 the central atom. The compute group selects only the central atoms; all
 neighboring atoms, unless selected by type, type range, or group option,
-are included in the coordinations number tally.
+are included in the coordination number tally.
 
 The optional {group} keyword allows to specify from which group atoms
 contribute to the coordination number. Default setting is group 'all'. 

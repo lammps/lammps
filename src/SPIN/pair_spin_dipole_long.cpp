@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "pair_spin_dipolar_long.h"
+#include "pair_spin_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -50,7 +50,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipolarLong::PairSpinDipolarLong(LAMMPS *lmp) : PairSpin(lmp),
+PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
   single_enable = 0;
@@ -74,7 +74,7 @@ lockfixnvespin(NULL)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairSpinDipolarLong::~PairSpinDipolarLong()
+PairSpinDipoleLong::~PairSpinDipoleLong()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -87,7 +87,7 @@ PairSpinDipolarLong::~PairSpinDipolarLong()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::settings(int narg, char **arg)
+void PairSpinDipoleLong::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
@@ -116,7 +116,7 @@ void PairSpinDipolarLong::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::coeff(int narg, char **arg)
+void PairSpinDipoleLong::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
   
@@ -149,7 +149,7 @@ void PairSpinDipolarLong::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::init_style()
+void PairSpinDipoleLong::init_style()
 {
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
@@ -196,7 +196,7 @@ void PairSpinDipolarLong::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairSpinDipolarLong::init_one(int i, int j)
+double PairSpinDipoleLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   
@@ -209,7 +209,7 @@ double PairSpinDipolarLong::init_one(int i, int j)
    extract the larger cutoff if "cut" or "cut_coul"
 ------------------------------------------------------------------------- */
 
-void *PairSpinDipolarLong::extract(const char *str, int &dim)
+void *PairSpinDipoleLong::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut") == 0) {
     dim = 0;
@@ -232,7 +232,7 @@ void *PairSpinDipolarLong::extract(const char *str, int &dim)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::compute(int eflag, int vflag)
+void PairSpinDipoleLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double r,rinv,r2inv,rsq;
@@ -366,7 +366,7 @@ void PairSpinDipolarLong::compute(int eflag, int vflag)
    update the pair interaction fmi acting on the spin ii
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::compute_single_pair(int ii, double fmi[3])
+void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 {
   int i,j,jj,jnum,itype,jtype;  
   double r,rinv,r2inv,rsq;
@@ -463,7 +463,7 @@ void PairSpinDipolarLong::compute_single_pair(int ii, double fmi[3])
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::compute_long(int i, int j, double eij[3], 
+void PairSpinDipoleLong::compute_long(int i, int j, double eij[3], 
     double bij[4], double fmi[3], double spi[4], double spj[4])
 {
   double sjeij,pre;
@@ -486,7 +486,7 @@ void PairSpinDipolarLong::compute_long(int i, int j, double eij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::compute_long_mech(int i, int j, double eij[3],
+void PairSpinDipoleLong::compute_long_mech(int i, int j, double eij[3],
     double bij[4], double fi[3], double spi[3], double spj[3])
 {
   double sisj,sieij,sjeij,b2,b3;
@@ -514,7 +514,7 @@ void PairSpinDipolarLong::compute_long_mech(int i, int j, double eij[3],
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::allocate()
+void PairSpinDipoleLong::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -532,7 +532,7 @@ void PairSpinDipolarLong::allocate()
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::write_restart(FILE *fp)
+void PairSpinDipoleLong::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -551,7 +551,7 @@ void PairSpinDipolarLong::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::read_restart(FILE *fp)
+void PairSpinDipoleLong::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -577,7 +577,7 @@ void PairSpinDipolarLong::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::write_restart_settings(FILE *fp)
+void PairSpinDipoleLong::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_spin_long_global,sizeof(double),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
@@ -587,7 +587,7 @@ void PairSpinDipolarLong::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::read_restart_settings(FILE *fp)
+void PairSpinDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_spin_long_global,sizeof(double),1,fp);

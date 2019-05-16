@@ -12,49 +12,36 @@ pair_style spin/dipole/long/qsymp command :h3
 
 [Syntax:]
 
-pair_style spin/dipole/cut cutoff
-pair_style lj/cut/dipole/cut cutoff (cutoff2)
-pair_style lj/sf/dipole/sf cutoff (cutoff2)
-pair_style lj/cut/dipole/long cutoff (cutoff2)
-pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2) :pre
+pair_style spin/dipole/cut cutoff 
+pair_style spin/dipole/long cutoff
+pair_style spin/dipole/long/qsymp cutoff :pre
 
-cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units) :ulb,l
-cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units) :l
-flag_lj = {long} or {cut} or {off} :l
-  {long} = use long-range damping on dispersion 1/r^6 term
-  {cut} = use a cutoff on dispersion 1/r^6 term
-  {off} = omit disperion 1/r^6 term entirely :pre
-flag_coul = {long} or {off} :l
-  {long} = use long-range damping on Coulombic 1/r and point-dipole terms
-  {off} = omit Coulombic and point-dipole terms entirely :pre
+cutoff = global cutoff for Magnetic dipole energy and forces
+(optional) (distance units) :ulb,l
 :ule
 
 [Examples:]
 
-pair_style lj/cut/dipole/cut 10.0
-pair_coeff * * 1.0 1.0
-pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
+pair_style spin/dipole/cut 10.0
+pair_coeff * * 10.0 
+pair_coeff 2 3 8.0 :pre
 
-pair_style lj/sf/dipole/sf 9.0
+pair_style spin/dipole/long 9.0
 pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
-pair_style lj/cut/dipole/long 10.0
-pair_coeff * * 1.0 1.0
-pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
-
-pair_style lj/long/dipole/long long long 3.5 10.0
+pair_style spin/dipole/long/qsymp 10.0
 pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 [Description:]
 
-Style {lj/cut/dipole/cut} computes interactions between pairs of particles
-that each have a charge and/or a point dipole moment.  In addition to
-the usual Lennard-Jones interaction between the particles (Elj) the
-charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)
-interactions are computed by these formulas for the energy (E), force
+Style {spin/dipole/cut} computes a short-range dipole-dipole
+interactions between pairs of magnetic particles that each 
+have a magnetic spin. 
+The magnetic dipole-dipole interactions are computed by the
+following formulas for the energy (E), force
 (F), and torque (T) between particles I and J.
 
 :c,image(Eqs/pair_dipole.jpg)

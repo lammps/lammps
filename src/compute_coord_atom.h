@@ -97,8 +97,4 @@ E: Compute coord/atom cutoff is longer than pairwise cutoff
 Cannot compute coordination at distances longer than the pair cutoff,
 since those atoms are not in the neighbor list.
 
-W: More than one compute coord/atom
-
-It is not efficient to use compute coord/atom more than once.
-
 */

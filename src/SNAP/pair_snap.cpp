@@ -102,6 +102,8 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   sna = NULL;
 
   beta_max = 0;
+  beta = NULL;
+  bispectrum = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

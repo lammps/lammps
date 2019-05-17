@@ -56,6 +56,7 @@ protected:
   void build_per_atom_arrays();
 
   void compute_beta();
+  void compute_bispectrum();
 
   int schedule_user;
   double schedule_time_guided;
@@ -102,6 +103,7 @@ protected:
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
   double** beta;                // betas for all atoms in list
+  double** bispectrum;          // bispectrum components for all atoms in list
   int *map;                     // mapping from atom types to elements
   int twojmax, diagonalstyle, switchflag, bzeroflag;
   double rfac0, rmin0, wj1, wj2;

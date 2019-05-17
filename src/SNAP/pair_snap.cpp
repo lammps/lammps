@@ -192,11 +192,13 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
   if (beta_max < list->inum) {
     memory->grow(beta,list->inum,ncoeff,"PairSNAP:beta");
+    memory->grow(bispectrum,list->inum,ncoeff,"PairSNAP:bispectrum");
     beta_max = list->inum;
   }
 
   // compute dE_i/dB_i = beta_i for all i in list
 
+  compute_bispectrum();
   compute_beta();
 
   numneigh = list->numneigh;
@@ -251,10 +253,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
     snaptr->compute_ui(ninside);
     snaptr->compute_zi();
-    if (quadraticflag) {
-      snaptr->compute_bi();
-      snaptr->copy_bi2bvec();
-    }
 
     // for neighbors of I within cutoff:
     // compute Fij = dEi/dRj = -dEi/dRi 
@@ -268,31 +266,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
                              snaptr->wj[jj],snaptr->rcutij[jj]);
-
-//       // quadratic contributions
-
-//       if (quadraticflag) {
-//         int k = ncoeff+1;
-//         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-//           double bveci = snaptr->bvec[icoeff];
-//           double fack = coeffi[k]*bveci;
-//           double* dbveci = snaptr->dbvec[icoeff];
-//           fij[0] += fack*dbveci[0];
-//           fij[1] += fack*dbveci[1];
-//           fij[2] += fack*dbveci[2];
-//           k++;
-//           for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-//             double facki = coeffi[k]*bveci;
-//             double fackj = coeffi[k]*snaptr->bvec[jcoeff];
-//             double* dbvecj = snaptr->dbvec[jcoeff];
-
-//             fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
-//             fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
-//             fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
-//             k++;
-//           }
-//         }
-//       }
 
       snaptr->compute_deidrj(fij);
 
@@ -320,10 +293,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
       double* coeffi = coeffelem[ielem];
       evdwl = coeffi[0];
-      if (!quadraticflag) {
-        snaptr->compute_bi();
-        snaptr->copy_bi2bvec();
-      }
 
       // E = beta.B + 0.5*B^t.alpha.B
       // coeff[k] = beta[k-1] or
@@ -332,404 +301,15 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
       // linear contributions
 
-      for (int k = 1; k <= ncoeff; k++)
-        evdwl += coeffi[k]*snaptr->bvec[k-1];
+      for (int k = 0; k < ncoeff; k++)
+        evdwl += beta[ii][k]*bispectrum[ii][k];
 
-      // quadratic contributions
-
-      if (quadraticflag) {
-        int k = ncoeff+1;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bveci = snaptr->bvec[icoeff];
-          evdwl += 0.5*coeffi[k++]*bveci*bveci;
-          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-            evdwl += coeffi[k++]*bveci*snaptr->bvec[jcoeff];
-          }
-        }
-      }
       ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
     }
 
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-}
-
-
-/* ----------------------------------------------------------------------
-   This version is optimized for threading, micro-load balancing
-   ---------------------------------------------------------------------- */
-
-void PairSNAP::compute_optimized(int eflag, int vflag)
-{
-  // if reneighboring took place do load_balance if requested
-  if (do_load_balance > 0 &&
-      (neighbor->ncalls != ncalls_neigh)) {
-    ghostinum = 0;
-    // reset local ghost neighbor lists
-    ncalls_neigh = neighbor->ncalls;
-    if (ilistmask_max < list->inum) {
-      memory->grow(ilistmask,list->inum,"PairSnap::ilistmask");
-      ilistmask_max = list->inum;
-    }
-    for (int i = 0; i < list->inum; i++)
-      ilistmask[i] = 1;
-
-    //multiple passes for loadbalancing
-    for (int i = 0; i < do_load_balance; i++)
-      load_balance();
-  }
-
-  int numpairs = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    if ((do_load_balance <= 0) || ilistmask[ii]) {
-      int i = list->ilist[ii];
-      int jnum = list->numneigh[i];
-      numpairs += jnum;
-    }
-  }
-
-  if (do_load_balance)
-    for (int ii = 0; ii < ghostinum; ii++) {
-      int i = ghostilist[ii];
-      int jnum = ghostnumneigh[i];
-      numpairs += jnum;
-    }
-
-  // optimized schedule setting
-
-  int time_dynamic = 0;
-  int time_guided = 0;
-
-  if (schedule_user == 0) schedule_user = 4;
-
-  switch (schedule_user) {
-  case 1:
-    omp_set_schedule(omp_sched_static,1);
-    break;
-  case 2:
-    omp_set_schedule(omp_sched_dynamic,1);
-    break;
-  case 3:
-    omp_set_schedule(omp_sched_guided,2);
-    break;
-  case 4:
-    omp_set_schedule(omp_sched_auto,0);
-    break;
-  case 5:
-    if (numpairs < 8*nthreads) omp_set_schedule(omp_sched_dynamic,1);
-    else if (schedule_time_guided < 0.0) {
-      omp_set_schedule(omp_sched_guided,2);
-      if (!eflag && !vflag) time_guided = 1;
-    } else if (schedule_time_dynamic<0.0) {
-      omp_set_schedule(omp_sched_dynamic,1);
-      if (!eflag && !vflag) time_dynamic = 1;
-    } else if (schedule_time_guided<schedule_time_dynamic)
-      omp_set_schedule(omp_sched_guided,2);
-    else
-      omp_set_schedule(omp_sched_dynamic,1);
-    break;
-  }
-
-  if (use_shared_arrays)
-    build_per_atom_arrays();
-
-#if defined(_OPENMP)
-#pragma omp parallel shared(eflag,vflag,time_dynamic,time_guided) firstprivate(numpairs) default(none)
-#endif
-  {
-    // begin of pragma omp parallel
-
-    int tid = omp_get_thread_num();
-    int** pairs_tid_unique = NULL;
-
-    int** pairs;
-    if (use_shared_arrays) pairs = i_pairs;
-    else {
-      memory->create(pairs_tid_unique,numpairs,4,"numpairs");
-      pairs = pairs_tid_unique;
-    }
-
-    if (!use_shared_arrays) {
-      numpairs = 0;
-      for (int ii = 0; ii < list->inum; ii++) {
-        if ((do_load_balance <= 0) || ilistmask[ii]) {
-          int i = list->ilist[ii];
-          int jnum = list->numneigh[i];
-          for (int jj = 0; jj<jnum; jj++) {
-            pairs[numpairs][0] = i;
-            pairs[numpairs][1] = jj;
-            pairs[numpairs][2] = -1;
-            numpairs++;
-          }
-        }
-      }
-
-      for (int ii = 0; ii < ghostinum; ii++) {
-        int i = ghostilist[ii];
-        int jnum = ghostnumneigh[i];
-        for (int jj = 0; jj<jnum; jj++) {
-          pairs[numpairs][0] = i;
-          pairs[numpairs][1] = jj;
-          pairs[numpairs][2] = -1;
-          numpairs++;
-        }
-      }
-    }
-
-    int ielem;
-    int jj,k,jnum,jtype,ninside;
-    double delx,dely,delz,evdwl,rsq;
-    double fij[3];
-    int *jlist,*numneigh,**firstneigh;
-    evdwl = 0.0;
-
-#if defined(_OPENMP)
-#pragma omp master
-#endif
-    {
-      ev_init(eflag,vflag);
-    }
-
-#if defined(_OPENMP)
-#pragma omp barrier
-    { ; }
-#endif
-
-    double **x = atom->x;
-    double **f = atom->f;
-    int *type = atom->type;
-    int nlocal = atom->nlocal;
-    int newton_pair = force->newton_pair;
-
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
-
-#ifdef TIMING_INFO
-    // only update micro timers after setup
-    static int count=0;
-    if (count<2) {
-      sna[tid]->timers[0] = 0;
-      sna[tid]->timers[1] = 0;
-      sna[tid]->timers[2] = 0;
-      sna[tid]->timers[3] = 0;
-      sna[tid]->timers[4] = 0;
-    }
-    count++;
-#endif
-
-    // did thread start working on interactions of new atom
-    int iold = -1;
-
-    double starttime, endtime;
-    if (time_dynamic || time_guided)
-      starttime = MPI_Wtime();
-
-#if defined(_OPENMP)
-#pragma omp for schedule(runtime)
-#endif
-    for (int iijj = 0; iijj < numpairs; iijj++) {
-      int i = 0;
-      if (use_shared_arrays) {
-        i = i_pairs[iijj][0];
-        if (iold != i) {
-          set_sna_to_shared(tid,i_pairs[iijj][3]);
-          ielem = map[type[i]];
-        }
-        iold = i;
-      } else {
-        i = pairs[iijj][0];
-        if (iold != i) {
-          iold = i;
-          const double xtmp = x[i][0];
-          const double ytmp = x[i][1];
-          const double ztmp = x[i][2];
-          const int itype = type[i];
-          ielem = map[itype];
-          const double radi = radelem[ielem];
-
-          if (i < nlocal) {
-            jlist = firstneigh[i];
-            jnum = numneigh[i];
-          } else {
-            jlist = ghostneighs+ghostfirstneigh[i];
-            jnum = ghostnumneigh[i];
-          }
-
-          // insure rij, inside, wj, and rcutij are of size jnum
-
-          sna[tid]->grow_rij(jnum);
-
-          // rij[][3] = displacements between atom I and those neighbors
-          // inside = indices of neighbors of I within cutoff
-          // wj = weights of neighbors of I within cutoff
-          // rcutij = cutoffs of neighbors of I within cutoff
-          // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
-
-          ninside = 0;
-          for (jj = 0; jj < jnum; jj++) {
-            int j = jlist[jj];
-            j &= NEIGHMASK;
-            delx = x[j][0] - xtmp; //unitialised
-            dely = x[j][1] - ytmp;
-            delz = x[j][2] - ztmp;
-            rsq = delx*delx + dely*dely + delz*delz;
-            jtype = type[j];
-            int jelem = map[jtype];
-
-            if (rsq < cutsq[itype][jtype]&&rsq>1e-20) { //unitialised
-              sna[tid]->rij[ninside][0] = delx;
-              sna[tid]->rij[ninside][1] = dely;
-              sna[tid]->rij[ninside][2] = delz;
-              sna[tid]->inside[ninside] = j;
-              sna[tid]->wj[ninside] = wjelem[jelem];
-              sna[tid]->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-              ninside++;
-
-              // update index list with inside index
-              pairs[iijj + (jj - pairs[iijj][1])][2] =
-                ninside-1; //unitialised
-            }
-          }
-
-          // compute Ui and Zi for atom I
-
-          sna[tid]->compute_ui(ninside); //unitialised
-          sna[tid]->compute_zi();
-        }
-      }
-      if (quadraticflag) {
-        sna[tid]->compute_bi();
-        sna[tid]->copy_bi2bvec();
-      }
-
-      // for neighbors of I within cutoff:
-      // compute dUi/drj and dBi/drj
-      // Fij = dEi/dRj = -dEi/dRi => add to Fi, subtract from Fj
-
-      // entry into loop if inside index is set
-
-      double* coeffi = coeffelem[ielem];
-
-      if (pairs[iijj][2] >= 0) {
-        jj = pairs[iijj][2];
-        int j = sna[tid]->inside[jj];
-        sna[tid]->compute_duidrj(sna[tid]->rij[jj],
-                                 sna[tid]->wj[jj],sna[tid]->rcutij[jj]);
-
-        sna[tid]->compute_dbidrj();
-        sna[tid]->copy_dbi2dbvec();
-
-        fij[0] = 0.0;
-        fij[1] = 0.0;
-        fij[2] = 0.0;
-
-        // linear contributions
-
-        for (k = 1; k <= ncoeff; k++) {
-          double bgb = coeffi[k];
-          fij[0] += bgb*sna[tid]->dbvec[k-1][0];
-          fij[1] += bgb*sna[tid]->dbvec[k-1][1];
-          fij[2] += bgb*sna[tid]->dbvec[k-1][2];
-        }
-
-      // quadratic contributions
-
-      if (quadraticflag) {
-        int k = ncoeff+1;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bveci = sna[tid]->bvec[icoeff];
-          double fack = coeffi[k]*bveci;
-          double* dbveci = sna[tid]->dbvec[icoeff];
-          fij[0] += fack*sna[tid]->dbvec[icoeff][0];
-          fij[1] += fack*sna[tid]->dbvec[icoeff][1];
-          fij[2] += fack*sna[tid]->dbvec[icoeff][2];
-          k++;
-          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-            double facki = coeffi[k]*bveci;
-            double fackj = coeffi[k]*sna[tid]->bvec[jcoeff];
-            double* dbvecj = sna[tid]->dbvec[jcoeff];
-            fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
-            fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
-            fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
-            k++;
-          }
-        }
-      }
-
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-        {
-          f[i][0] += fij[0];
-          f[i][1] += fij[1];
-          f[i][2] += fij[2];
-          f[j][0] -= fij[0];
-          f[j][1] -= fij[1];
-          f[j][2] -= fij[2];
-
-          // tally per-atom virial contribution
-
-          if (vflag)
-            ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
-                         fij[0],fij[1],fij[2],
-                         -sna[tid]->rij[jj][0],-sna[tid]->rij[jj][1],
-                         -sna[tid]->rij[jj][2]);
-        }
-      }
-
-      // evdwl = energy of atom I, sum over coeffs_k * Bi_k
-      // only call this for first pair of each atom i
-      // if atom has no pairs, eatom=0, which is wrong
-
-      if (eflag&&pairs[iijj][1] == 0) {
-        evdwl = coeffi[0];
-
-        if (!quadraticflag) {
-          sna[tid]->compute_bi();
-          sna[tid]->copy_bi2bvec();
-        }
-
-        // E = beta.B + 0.5*B^t.alpha.B
-        // coeff[k] = beta[k-1] or
-        // coeff[k] = alpha_ii or
-        // coeff[k] = alpha_ij = alpha_ji, j != i
-
-        // linear contributions
-
-        for (int k = 1; k <= ncoeff; k++)
-          evdwl += coeffi[k]*sna[tid]->bvec[k-1];
-
-        // quadratic contributions
-
-        if (quadraticflag) {
-          int k = ncoeff+1;
-          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-            double bveci = sna[tid]->bvec[icoeff];
-            evdwl += 0.5*coeffi[k++]*bveci*bveci;
-            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-              evdwl += coeffi[k++]*bveci*sna[tid]->bvec[jcoeff];
-            }
-          }
-        }
-
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-        ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
-      }
-
-    }
-    if (time_dynamic || time_guided)
-      endtime = MPI_Wtime();
-    if (time_dynamic) schedule_time_dynamic = endtime - starttime;
-    if (time_guided) schedule_time_guided = endtime - starttime;
-    if (!use_shared_arrays) memory->destroy(pairs);
-
-  }// end of pragma omp parallel
-
-  if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 inline int PairSNAP::equal(double* x,double* y)
@@ -1325,14 +905,61 @@ void PairSNAP::compute_beta()
 
 void PairSNAP::compute_bispectrum()
 {
-  int i;
+  int i,j,jnum,ninside;
+  double delx,dely,delz,rsq;
+  int *jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
   int *type = atom->type;
+  class SNA* snaptr = sna[0];
 
   for (int ii = 0; ii < list->inum; ii++) {
     i = list->ilist[ii];
+
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
     const int itype = type[i];
     const int ielem = map[itype];
-    double* coeffi = coeffelem[ielem];
+    const double radi = radelem[ielem];
+
+    jlist = list->firstneigh[i];
+    jnum = list->numneigh[i];
+
+    // insure rij, inside, wj, and rcutij are of size jnum
+
+    snaptr->grow_rij(jnum);
+
+    // rij[][3] = displacements between atom I and those neighbors
+    // inside = indices of neighbors of I within cutoff
+    // wj = weights for neighbors of I within cutoff
+    // rcutij = cutoffs for neighbors of I within cutoff
+    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
+
+    ninside = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      delx = x[j][0] - xtmp;
+      dely = x[j][1] - ytmp;
+      delz = x[j][2] - ztmp;
+      rsq = delx*delx + dely*dely + delz*delz;
+      int jtype = type[j];
+      int jelem = map[jtype];
+
+      if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+        snaptr->rij[ninside][0] = delx;
+        snaptr->rij[ninside][1] = dely;
+        snaptr->rij[ninside][2] = delz;
+        snaptr->inside[ninside] = j;
+        snaptr->wj[ninside] = wjelem[jelem];
+        snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        ninside++;
+      }
+    }
+
+    snaptr->compute_ui(ninside);
+    snaptr->compute_zi();
     snaptr->compute_bi();
     snaptr->copy_bi2bvec();
 
@@ -1470,6 +1097,7 @@ void PairSNAP::coeff(int narg, char **arg)
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
     memory->destroy(beta);
+    memory->destroy(bispectrum);
   }
 
   char* type1 = arg[0];

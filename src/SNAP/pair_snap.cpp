@@ -119,8 +119,9 @@ PairSNAP::~PairSNAP()
     memory->destroy(radelem);
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
-    memory->destroy(beta);
   }
+  memory->destroy(beta);
+  memory->destroy(bispectrum);
 
   // Need to set this because restart not handled by PairHybrid
 
@@ -1098,9 +1099,9 @@ void PairSNAP::coeff(int narg, char **arg)
     memory->destroy(radelem);
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
-    memory->destroy(beta);
-    memory->destroy(bispectrum);
   }
+  memory->destroy(beta);
+  memory->destroy(bispectrum);
 
   char* type1 = arg[0];
   char* type2 = arg[1];

@@ -94,7 +94,6 @@ void EwaldDipole::init()
     error->all(FLERR,"Cannot use EwaldDipole with 2d simulation");
 
   if (!atom->mu) error->all(FLERR,"Kspace style requires atom attribute mu");
-//if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (dipoleflag && strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");

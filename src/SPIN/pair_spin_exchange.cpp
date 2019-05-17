@@ -75,7 +75,7 @@ PairSpinExchange::~PairSpinExchange()
 
 void PairSpinExchange::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2)
+  if (narg < 1 || narg > 7) 
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
 
   if (strcmp(update->unit_style,"metal") != 0)

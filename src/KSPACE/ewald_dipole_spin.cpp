@@ -51,8 +51,6 @@ EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp) :
   spinflag = 1;
   
   hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
-  //mub = 5.78901e-5;                     	// in eV/T
-  //mu_0 = 1.2566370614e-6;               	// in T.m/A
   mub = 9.274e-4;                     		// in A.Ang^2
   mu_0 = 785.15;               			// in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV.Ang^3
@@ -437,7 +435,6 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
 
       // compute field for torque calculation
 
-      //partial2 = exprl*sfacrl_all[k] + expim*sfacim_all[k];
       partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
       tk[i][0] += partial2*eg[k][0];
       tk[i][1] += partial2*eg[k][1];
@@ -456,12 +453,10 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
       // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
-        //partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
         if (eflag_atom) eatom[i] += mudotk*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
 	    vatom[i][j] += (ug[k]*mudotk*vg[k][j]*partial_peratom - vcik[j]);
-	    //vatom[i][j] += ug[k] * (vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }

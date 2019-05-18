@@ -30,7 +30,6 @@ This is the list of packages that may require additional steps.
 "KIM"_#kim,
 "KOKKOS"_#kokkos,
 "LATTE"_#latte,
-"MEAM"_#meam,
 "MESSAGE"_#message,
 "MSCG"_#mscg,
 "OPT"_#opt,
@@ -348,49 +347,6 @@ Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 dir.  When LAMMPS itself is built it will use these links.  You should
 also check that the Makefile.lammps file you create is appropriate for
 the compiler you use on your system to build LATTE.
-
-:line
-
-MEAM package :h4,link(meam)
-
-NOTE: the use of the MEAM package is discouraged, as it has been
-superseded by the USER-MEAMC package, which is a direct translation of
-the Fortran code in the MEAM library to C++. The code in USER-MEAMC
-should be functionally equivalent to the MEAM package, fully supports
-use of "pair_style hybrid"_pair_hybrid.html (the MEAM package does
-not), and has optimizations that make it significantly faster than the
-MEAM package.
-
-[CMake build]:
-
-No additional settings are needed besides "-D PKG_MEAM=yes".
-
-[Traditional make]:
-
-Before building LAMMPS, you must build the MEAM library in lib/meam.
-You can build the MEAM library manually if you prefer; follow the
-instructions in lib/meam/README.  You can also do it in one step from
-the lammps/src dir, using a command like these, which simply invoke
-the lib/meam/Install.py script with the specified args:
-
-make lib-meam                  # print help message
-make lib-meam args="-m mpi"    # build with default Fortran compiler compatible with your MPI library
-make lib-meam args="-m serial" # build with compiler compatible with "make serial" (GNU Fortran)
-make lib-meam args="-m ifort"  # build with Intel Fortran compiler using Makefile.ifort :pre
-
-NOTE: You should test building the MEAM library with both the Intel
-and GNU compilers to see if a simulation runs faster with one versus
-the other on your system.
-
-The build should produce two files: lib/meam/libmeam.a and
-lib/meam/Makefile.lammps.  The latter is copied from an existing
-Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
-Fortran (MEAM library).  Typically the two compilers used for LAMMPS
-and the MEAM library need to be consistent (e.g. both Intel or both
-GNU compilers).  If necessary, you can edit/create a new
-lib/meam/Makefile.machine file for your system, which should define an
-EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
-file.
 
 :line
 

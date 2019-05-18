@@ -2146,10 +2146,6 @@ Self-explanatory. :dd
 
 This is a current restriction in LAMMPS. :dd
 
-{Cannot use pair hybrid with GPU neighbor list builds} :dt
-
-Neighbor list builds must be done on the CPU for this pair style. :dd
-
 {Cannot use pair tail corrections with 2d simulations} :dt
 
 The correction factors are only currently defined for 3d systems. :dd
@@ -5466,10 +5462,6 @@ Self-explanatory. :dd
 
 For this pair style, you cannot run part of the force calculation on
 the host.  See the package command. :dd
-
-{GPU split param must be positive for hybrid pair styles} :dt
-
-See the package gpu command. :dd
 
 {GPUs are requested but Kokkos has not been compiled for CUDA} :dt
 

@@ -173,12 +173,10 @@ computation will be built.  If {neigh} is {yes}, which is the default,
 neighbor list building is performed on the GPU.  If {neigh} is {no},
 neighbor list building is performed on the CPU.  GPU neighbor list
 building currently cannot be used with a triclinic box.  GPU neighbor
-list calculation currently cannot be used with
-"hybrid"_pair_hybrid.html pair styles.  GPU neighbor lists are not
-compatible with commands that are not GPU-enabled.  When a non-GPU
-enabled command requires a neighbor list, it will also be built on the
-CPU.  In these cases, it will typically be more efficient to only use
-CPU neighbor list builds.
+lists are not compatible with commands that are not GPU-enabled.  When
+a non-GPU enabled command requires a neighbor list, it will also be
+built on the CPU.  In these cases, it will typically be more efficient
+to only use CPU neighbor list builds.
 
 The {newton} keyword sets the Newton flags for pairwise (not bonded)
 interactions to {off} or {on}, the same as the "newton"_newton.html

@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Ryan S. Elliott (UMinn)
+                         Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -61,6 +62,7 @@
 #include "pair_kim.h"
 #include "atom.h"
 #include "comm.h"
+#include "universe.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -131,6 +133,14 @@ PairKIM::~PairKIM()
 {
   // clean up kim_modelname
   if (kim_modelname != 0) delete [] kim_modelname;
+
+  if (simulatorModel) {
+    KIM::SimulatorModel::Destroy(&simulatorModel);
+
+    // clean up KIM interface (if necessary)
+    kim_free();
+    return;
+  }
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -330,9 +340,40 @@ void PairKIM::settings(int narg, char **arg)
   // initialize KIM Model
   kim_init();
 
-  // initialize LAMMPS Simulator model
+  // Set up and initialize LAMMPS Simulator model
+
   if (simulatorModel) {
-    printf("LAMMPS simulator model: %s\n",kim_modelname);
+    const std::string *sim_name, *sim_version;
+    simulatorModel->GetSimulatorName(&sim_name);
+    simulatorModel->GetSimulatorVersion(&sim_version);
+
+    if (comm->me == 0) {
+      std::string mesg("Using KIM Simulator Model : ");
+      mesg += kim_modelname;
+      mesg += "\n";
+      mesg += "For Simulator             : ";
+      mesg += *sim_name + " " + *sim_version + "\n";
+      mesg += "Running on                : LAMMPS ";
+      mesg += universe->version;
+      mesg += "\n";
+
+      if (screen) fputs(mesg.c_str(),screen);
+      if (logfile) fputs(mesg.c_str(),logfile);
+    }
+
+    if (*sim_name != "LAMMPS")
+      error->all(FLERR,"Incompatible KIM Simulator Model");
+
+    int sim_fields, sim_lines;
+    const std::string *sim_field, *sim_value;
+    simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
+    printf("sim_fields=%d\n",sim_fields);
+    for (int i=0; i < sim_fields; ++i) {
+      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+      printf("i=%d: %s (%d)\n",i,sim_field->c_str(),sim_lines);
+//      for (int j=0; j < 
+//      simulatorModel->GetSimulatorFieldLine(i,
+    }
   }
 }
 

@@ -66,6 +66,8 @@ class AtomVecHybrid : public AtomVec {
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
   bigint memory_usage();
+  virtual int check_distance_function(double deltasq); //calls the specific neighbor rebuild diagnostics of each substyle
+  virtual void set_hold_properties(); //sets holds for specific atom properties needed for neighbor rebuild diagnostics for each substyle
 
  private:
   tagint *tag;

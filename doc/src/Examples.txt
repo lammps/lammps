@@ -52,13 +52,14 @@ Lowercase directories :h4
 
 accelerate: run with various acceleration options (OpenMP, GPU, Phi)
 airebo:   polyethylene with AIREBO potential
+atm:      Axilrod-Teller-Muto potential example
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:     models using the COMB potential
-coreshell: core/shell model using CORESHELL package
 controller: use of fix controller as a thermostat
+coreshell: core/shell model using CORESHELL package
 crack:    crack propagation in a 2d solid
 deposit:  deposit atoms and molecules on a surface
 dipole:   point dipolar particles, 2d system
@@ -70,10 +71,13 @@ friction: frictional contact of spherical asperities between 2d surfaces
 gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
+hyper:    global and local hyperdynamics of diffusion on Pt surface
 indent:   spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
+latte:    examples for using fix latte for DFTB via the LATTE library
 meam:     MEAM test for SiC and shear (same as shear examples)
 melt:     rapid melt of 3d LJ system
+message:  demos for LAMMPS client/server coupling with the MESSAGE package
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:      energy minimization of 2d LJ melt
 mscg:     parameterize a multi-scale coarse-graining (MSCG) model
@@ -88,6 +92,7 @@ pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   using embedded Python in a LAMMPS input script
 qeq:      use of the QEQ package for charge equilibration
+rdf-adf:  computing radial and angle distribution functions for water
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
@@ -95,6 +100,7 @@ snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 streitz:  use of Streitz/Mintmire potential with charge equilibration
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+threebody: regression test input for a variety of manybody potentials
 vashishta: use of the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command :tb(s=:)
 
@@ -131,8 +137,10 @@ COUPLE: examples of how to use LAMMPS as a library
 DIFFUSE: compute diffusion coefficients via several methods
 ELASTIC: compute elastic constants at zero temperature
 ELASTIC_T: compute elastic constants at finite temperature
+HEAT: compute thermal conductivity for LJ and water via fix ehex
 KAPPA: compute thermal conductivity via several methods
 MC: using LAMMPS in a Monte Carlo mode to relax the energy of a system
+SPIN: examples for features of the SPIN package
 USER: examples for USER packages and USER-contributed commands
 VISCOSITY: compute viscosity via several methods :tb(s=:)
 

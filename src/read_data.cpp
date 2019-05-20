@@ -1768,7 +1768,8 @@ void ReadData::paircoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,1,2,toffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
+    if (narg == 0)
+      error->all(FLERR,"Unexpected empty line in PairCoeffs section");
     force->pair->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1794,7 +1795,8 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf,'\n');
       *next = '\0';
       parse_coeffs(buf,NULL,0,2,toffset);
-      if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
+      if (narg == 0)
+        error->all(FLERR,"Unexpected empty line in PairCoeffs section");
       force->pair->coeff(narg,arg);
       buf = next + 1;
     }
@@ -1818,7 +1820,8 @@ void ReadData::bondcoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,0,1,boffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of BondCoeffs section");
+    if (narg == 0)
+      error->all(FLERR,"Unexpected empty line in BondCoeffs section");
     force->bond->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1844,7 +1847,7 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,NULL,0,1,aoffset);
     else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of AngleCoeffs section");
+    if (narg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
     force->angle->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1873,7 +1876,8 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 3) parse_coeffs(buf,"at",0,1,doffset);
     else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset);
     else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of DihedralCoeffs section");
+    if (narg == 0)
+      error->all(FLERR,"Unexpected empty line in DihedralCoeffs section");
     force->dihedral->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1898,7 +1902,7 @@ void ReadData::impropercoeffs(int which)
     *next = '\0';
     if (which == 0) parse_coeffs(buf,NULL,0,1,ioffset);
     else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of ImproperCoeffs section");
+    if (narg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
     force->improper->coeff(narg,arg);
     buf = next + 1;
   }
@@ -2092,6 +2096,10 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
     word = strtok(NULL," \t\n\r\f");
   }
 
+  // to avoid segfaults on empty lines
+
+  if (narg == 0) return;
+  
   if (noffset) {
     int value = force->inumeric(FLERR,arg[0]);
     sprintf(argoffset1,"%d",value+offset);

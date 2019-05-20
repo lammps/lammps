@@ -371,9 +371,25 @@ void PairKIM::settings(int narg, char **arg)
     for (int i=0; i < sim_fields; ++i) {
       simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
       printf("i=%d: %s (%d)\n",i,sim_field->c_str(),sim_lines);
-//      for (int j=0; j < 
-//      simulatorModel->GetSimulatorFieldLine(i,
     }
+    // hard code result for now:
+
+    int dummy;
+    const char *simulator_style = (const char*)"tersoff/mod";
+    simulator_class = force->new_pair(simulator_style,1,dummy);
+    if (simulator_class) {
+      if (comm->me == 0) {
+        std::string mesg("Created simulator pair style: ");
+        mesg += simulator_style;
+        mesg += "\n";
+
+        if (screen) fputs(mesg.c_str(),screen);
+        if (logfile) fputs(mesg.c_str(),logfile);
+      }
+    } else {
+      error->all(FLERR,"Failure to create simulator model pair style");
+    }
+    simulator_class->settings(0,NULL);
   }
 }
 

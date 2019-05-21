@@ -622,7 +622,7 @@ except "omp" and "mode", are ignored if LAMMPS was not built with Xeon
 Phi co-processor support.  These settings are made automatically if the
 "-sf intel" "command-line switch"_Run_options.html is used.  If it is
 not used, you must invoke the package intel command in your input
-script or or via the "-pk intel" "command-line
+script or via the "-pk intel" "command-line
 switch"_Run_options.html.
 
 For the KOKKOS package, the option defaults for GPUs are neigh = full, 

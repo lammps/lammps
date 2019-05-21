@@ -480,7 +480,7 @@ information on those settings.
 If you use Python code which calls back to LAMMPS, via the SELF input
 argument explained above, there is an extra step required when
 building LAMMPS.  LAMMPS must also be built as a shared library and
-your Python function must be able to to load the Python module in
+your Python function must be able to load the Python module in
 python/lammps.py that wraps the LAMMPS library interface.  These are
 the same steps required to use Python by itself to wrap LAMMPS.
 Details on these steps are explained on the "Python"_Python_head.html

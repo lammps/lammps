@@ -47,6 +47,7 @@ using namespace LAMMPS_NS;
 PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
+  one_coeff = 1;
 
   // initialize element to parameter maps
   nelements = 0;

@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
-   			Julien Tranchida (SNL)
+   Contributing authors: Stan Moore (SNL), Julien Tranchida (SNL)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -440,6 +439,10 @@ void PPPMDipole::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
+
+  if (vflag_atom)
+    error->all(FLERR,"Cannot (yet) compute per-atom virial "
+                       "with kspace style pppm/dipole"
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

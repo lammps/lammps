@@ -160,6 +160,10 @@ E: PPPM grid stencil extends beyond nearest neighbor processor
 
 This is not allowed if the kspace_modify overlap setting is no.
 
+E: Cannot (yet) compute per-atom virial with kspace style pppm/dipole
+
+This feature is not yet supported.
+
 E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.

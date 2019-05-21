@@ -93,7 +93,6 @@ void VerletKokkos::setup(int flag)
   }
 
   update->setupflag = 1;
-  lmp->kokkos->auto_sync = 0;
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -189,7 +188,6 @@ void VerletKokkos::setup(int flag)
 
   modify->setup(vflag);
   output->setup(flag);
-  lmp->kokkos->auto_sync = 1;
   update->setupflag = 0;
 }
 
@@ -202,7 +200,6 @@ void VerletKokkos::setup(int flag)
 void VerletKokkos::setup_minimal(int flag)
 {
   update->setupflag = 1;
-  lmp->kokkos->auto_sync = 0;
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -294,7 +291,6 @@ void VerletKokkos::setup_minimal(int flag)
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
-  lmp->kokkos->auto_sync = 1;
   update->setupflag = 0;
 }
 

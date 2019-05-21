@@ -66,8 +66,6 @@ namespace LAMMPS_NS {
      */
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
-
-    int kim_simulator_json_parse(int argc, char **argv);
   }
 }
 

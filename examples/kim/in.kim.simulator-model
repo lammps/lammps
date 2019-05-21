@@ -20,16 +20,16 @@ newton          off
 
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}
-create_box	1 box
+create_box	2 box
 create_atoms	1 box
 
 #pair_style	lj/cut 8.1500
 #pair_coeff	1 1 0.0104 3.4000
 
 pair_style      kim ex_sim_model_Si_mod_tersoff
-pair_coeff      * * Ar
+pair_coeff      * * Si Si
 
-mass		1 39.95
+mass		* 39.95
 velocity	all create 200.0 232345 loop geom
 
 neighbor	0.3 bin

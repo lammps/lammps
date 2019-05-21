@@ -58,7 +58,7 @@ lockfixnvespin(NULL)
   mub = 9.274e-4;                               // in A.Ang^2
   mu_0 = 785.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
-  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
+  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
   mub2mu0hbinv = mub2mu0 / hbar;		// in rad.THz
 
 }
@@ -115,8 +115,8 @@ void PairSpinDipoleCut::settings(int narg, char **arg)
 void PairSpinDipoleCut::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-  
-  if (narg < 1 || narg > 3)
+ 
+  if (narg != 3) 
     error->all(FLERR,"Incorrect args in pair_style command");
   
   int ilo,ihi,jlo,jhi;
@@ -216,24 +216,21 @@ void *PairSpinDipoleCut::extract(const char *str, int &dim)
 void PairSpinDipoleCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
-  double rinv,r2inv,r3inv,rsq;
-  double evdwl,ecoul;
-  double xi[3],rij[3],eij[3];
-  double spi[4],spj[4],fi[3],fmi[3];
-  double local_cut2;
   int *ilist,*jlist,*numneigh,**firstneigh;  
+  double rinv,r2inv,r3inv,rsq,local_cut2,evdwl,ecoul;
+  double xi[3],rij[3],eij[3],spi[4],spj[4],fi[3],fmi[3];
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
+  int *type = atom->type;  
+  int nlocal = atom->nlocal;  
+  int newton_pair = force->newton_pair;
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
   double **sp = atom->sp;	
-  int *type = atom->type;  
-  int nlocal = atom->nlocal;  
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -320,70 +317,90 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    update the pair interaction fmi acting on the spin ii
-   adding 1/r (for r in [0,rc]) contribution to the pair
-   removing erf(r)/r (for r in [0,rc]) from the kspace force
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
 {
-  int i,j,jj,jnum,itype,jtype;  
-  double rsq,rinv,r2inv,r3inv;
-  double xi[3],rij[3],eij[3];
-  double spi[4],spj[4];
-  double local_cut2;
+  int j,jnum,itype,jtype,ntypes; 
   int *ilist,*jlist,*numneigh,**firstneigh;  
+  double rsq,rinv,r2inv,r3inv,local_cut2;
+  double xi[3],rij[3],eij[3],spi[4],spj[4];
 
+  int k,locflag;
+  int *type = atom->type;  
   double **x = atom->x;
   double **sp = atom->sp;	
-  int *type = atom->type;  
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // computation of the exchange interaction
-  // loop over neighbors of atom i
-    
-  i = ilist[ii];
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-  spi[0] = sp[i][0]; 
-  spi[1] = sp[i][1]; 
-  spi[2] = sp[i][2];
-  spi[3] = sp[i][3];
-  jlist = firstneigh[i];
-  jnum = numneigh[i]; 
-  itype = type[i];
+  // check if interaction applies to type of ii
   
-  for (jj = 0; jj < jnum; jj++) {
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
+  }
 
-    spj[0] = sp[j][0]; 
-    spj[1] = sp[j][1]; 
-    spj[2] = sp[j][2]; 
-    spj[3] = sp[j][3]; 
 
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    rinv = 1.0/sqrt(rsq);
-    eij[0] = rij[0]*rinv;
-    eij[1] = rij[1]*rinv;
-    eij[2] = rij[2]*rinv;
+  // if interaction applies to type ii,
+  // locflag = 1 and compute pair interaction
+ 
+  if (locflag == 1) {
 
-    local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+    spi[0] = sp[ii][0]; 
+    spi[1] = sp[ii][1]; 
+    spi[2] = sp[ii][2];
+    spi[3] = sp[ii][3];
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii]; 
+    
+    for (int jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
 
-    if (rsq < local_cut2) {
-      r2inv = 1.0/rsq;
-      r3inv = r2inv*rinv;
-      
-      // compute dipolar interaction
-      
-      compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
+      spj[0] = sp[j][0]; 
+      spj[1] = sp[j][1]; 
+      spj[2] = sp[j][2]; 
+      spj[3] = sp[j][3]; 
+
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      rinv = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*rinv;
+      eij[1] = rij[1]*rinv;
+      eij[2] = rij[2]*rinv;
+
+      local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
+
+      if (rsq < local_cut2) {
+        r2inv = 1.0/rsq;
+        r3inv = r2inv*rinv;
+        
+        // compute dipolar interaction
+        
+        compute_dipolar(ii,j,eij,fmi,spi,spj,r3inv);
+      }
     }
   }
 }
@@ -424,11 +441,11 @@ void PairSpinDipoleCut::compute_dipolar_mech(int i, int j, double eij[3],
   sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
   
   bij = sisj - 5.0*sieij*sjeij;
-  pre = mub2mu0*gigjri4;
+  pre = 3.0*mub2mu0*gigjri4;
 
-  fi[0] += pre * (eij[0] * bij + (sjeij*spi[0] + sieij*spj[0]));
-  fi[1] += pre * (eij[1] * bij + (sjeij*spi[1] + sieij*spj[1]));
-  fi[2] += pre * (eij[2] * bij + (sjeij*spi[2] + sieij*spj[2]));
+  fi[0] -= pre * (eij[0] * bij + (sjeij*spi[0] + sieij*spj[0]));
+  fi[1] -= pre * (eij[1] * bij + (sjeij*spi[1] + sieij*spj[1]));
+  fi[2] -= pre * (eij[2] * bij + (sjeij*spi[2] + sieij*spj[2]));
 }
 
 /* ----------------------------------------------------------------------

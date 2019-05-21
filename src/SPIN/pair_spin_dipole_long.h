@@ -89,7 +89,7 @@ E: Pair dipole/long requires atom attributes q, mu, torque
 
 The atom style defined does not have these attributes.
 
-E: Cannot (yet) use 'electron' units with dipoles
+E: Can only use 'metal' units with spins
 
 This feature is not yet supported.
 

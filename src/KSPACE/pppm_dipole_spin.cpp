@@ -70,8 +70,6 @@ PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) :
   spinflag = 1;
   
   hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
-  //mub = 5.78901e-5;                     	// in eV/T
-  //mu_0 = 1.2566370614e-6;               	// in T.m/A
   mub = 9.274e-4;                     		// in A.Ang^2
   mu_0 = 785.15;               			// in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV.Ang^3
@@ -157,7 +155,7 @@ void PPPMDipoleSpin::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  // probably not the correct extract here
+  // check the correct extract here
   if (p_cutoff == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;

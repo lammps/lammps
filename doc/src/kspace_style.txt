@@ -20,6 +20,10 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
   {ewald/omp} value = accuracy
     accuracy = desired relative error in forces
+  {ewald/dipole} value = accuracy
+    accuracy = desired relative error in forces
+  {ewald/dipole/spin} value = accuracy
+    accuracy = desired relative error in forces
   {pppm} value = accuracy
     accuracy = desired relative error in forces
   {pppm/cg} values = accuracy (smallq)
@@ -46,6 +50,10 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
   {pppm/tip4p/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/stagger} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/dipole} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/dipole/spin} value = accuracy
     accuracy = desired relative error in forces
   {msm} value = accuracy
     accuracy = desired relative error in forces
@@ -105,9 +113,13 @@ The {ewald/disp} style adds a long-range dispersion sum option for
 but in a more efficient manner than the {ewald} style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
-The {ewald/disp} style can also be used with point-dipoles
-"(Toukmaji)"_#Toukmaji and is currently the only kspace solver in
-LAMMPS with this capability.
+
+The {ewald/dipole} style adds long-range standard Ewald summations 
+for dipole-dipole interactions.
+
+The {ewald/dipole/spin} style adds long-range standard Ewald 
+summations for magnetic dipole-dipole interactions between
+magnetic spins.
 
 :line
 
@@ -127,6 +139,12 @@ Similarly the {msm/cg} style implements the same optimization for {msm}.
 The optional {smallq} argument defines the cutoff for the absolute
 charge value which determines whether a particle is considered charged
 or not.  Its default value is 1.0e-5.
+
+The {pppm/dipole} style invokes a particle-particle particle-mesh solver 
+for dipole-dipole interactions. 
+
+The {pppm/dipole/spin} style invokes a particle-particle particle-mesh solver 
+for magnetic dipole-dipole interactions between magnetic spins. 
 
 The {pppm/tip4p} style is identical to the {pppm} style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.

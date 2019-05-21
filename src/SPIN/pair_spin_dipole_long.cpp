@@ -60,8 +60,6 @@ lockfixnvespin(NULL)
   lattice_flag = 0;
 
   hbar = force->hplanck/MY_2PI;			// eV/(rad.THz)
-  //mub = 5.78901e-5;                		// in eV/T
-  //mu_0 = 1.2566370614e-6;			// in T.m/A
   mub = 9.274e-4;                               // in A.Ang^2
   mu_0 = 785.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
@@ -120,18 +118,14 @@ void PairSpinDipoleLong::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
   
-  // check if args correct
-
-  if (strcmp(arg[2],"long") != 0)
-    error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg < 1 || narg > 4)
+  if (narg != 3)
     error->all(FLERR,"Incorrect args in pair_style command");
   
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  double spin_long_cut_one = force->numeric(FLERR,arg[3]);
+  double spin_long_cut_one = force->numeric(FLERR,arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -181,15 +175,10 @@ void PairSpinDipoleLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  //if (force->kspace == NULL)
-  //  error->all(FLERR,"Pair style requires a KSpace style");
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
 
-  //g_ewald = force->kspace->g_ewald;
-
-  // test case 
-  g_ewald = 0.1;
-
-
+  g_ewald = force->kspace->g_ewald;
 }
 
 /* ----------------------------------------------------------------------
@@ -312,7 +301,6 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
       if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
-        //rinv = sqrt(r2inv);
 
         r = sqrt(rsq);
         grij = g_ewald * r;
@@ -327,8 +315,6 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
 	compute_long(i,j,eij,bij,fmi,spi,spj);
 	compute_long_mech(i,j,eij,bij,fmi,spi,spj);
-	//compute_long(i,j,rij,bij,fmi,spi,spj);
-	//compute_long_mech(i,j,rij,bij,fmi,spi,spj);
       }
 
       // force accumulation
@@ -368,95 +354,117 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
 void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 {
-  int i,j,jj,jnum,itype,jtype;  
-  double r,rinv,r2inv,rsq;
-  double grij,expm2,t,erfc;
-  double bij[4];
-  double xi[3],rij[3],eij[3];
-  double spi[4],spj[4];
-  double local_cut2;
-  double pre1,pre2,pre3;
+  //int i,j,jj,jnum,itype,jtype;  
+  int j,jj,jnum,itype,jtype,ntypes; 
+  int k,locflag;
   int *ilist,*jlist,*numneigh,**firstneigh;  
+  double r,rinv,r2inv,rsq,grij,expm2,t,erfc;
+  double local_cut2,pre1,pre2,pre3;
+  double bij[4],xi[3],rij[3],eij[3],spi[4],spj[4];
 
+  int *type = atom->type;  
   double **x = atom->x;
   double **sp = atom->sp;	
   double **fm_long = atom->fm_long;
-  int *type = atom->type;  
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  
+  // check if interaction applies to type of ii
 
-  pre1 = 2.0 * g_ewald / MY_PIS;
-  pre2 = 4.0 * pow(g_ewald,3.0) / MY_PIS;
-  pre3 = 8.0 * pow(g_ewald,5.0) / MY_PIS;
-
-  // computation of the exchange interaction
-  // loop over neighbors of atom i
-    
-  i = ilist[ii];
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-  spi[0] = sp[i][0]; 
-  spi[1] = sp[i][1]; 
-  spi[2] = sp[i][2];
-  spi[3] = sp[i][3];
-  jlist = firstneigh[i];
-  jnum = numneigh[i]; 
-  itype = type[i];
-
-  for (jj = 0; jj < jnum; jj++) {
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-
-    spj[0] = sp[j][0]; 
-    spj[1] = sp[j][1]; 
-    spj[2] = sp[j][2]; 
-    spj[3] = sp[j][3]; 
-
-    fmi[0] = fmi[1] = fmi[2] = 0.0;
-    bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
-   
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    rinv = 1.0/sqrt(rsq);
-    eij[0] = rij[0]*rinv;
-    eij[1] = rij[1]*rinv;
-    eij[2] = rij[2]*rinv;
-
-    local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
-
-    if (rsq < local_cut2) {
-      r2inv = 1.0/rsq;
-      //rinv = sqrt(r2inv);
-
-      r = sqrt(rsq);
-      grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-
-      bij[0] = erfc * rinv;
-      bij[1] = (bij[0] + pre1*expm2) * r2inv;
-      bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
-      bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
-
-      compute_long(i,j,eij,bij,fmi,spi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
-  // adding the kspace components to fm
+  // if interaction applies to type ii,
+  // locflag = 1 and compute pair interaction
 
-  //printf("test fm before: %g, %g, %g \n",fmi[0],fmi[1],fmi[2]);  
-  //printf("test fm_long: %g, %g, %g \n",fm_long[i][0],fm_long[i][1],fm_long[i][2]);  
-  fmi[0] += fm_long[i][0];
-  fmi[1] += fm_long[i][1];
-  fmi[2] += fm_long[i][2];
-  //printf("test fm after: %g, %g, %g \n",fmi[0],fmi[1],fmi[2]);
+  if (locflag == 1) {
+
+    pre1 = 2.0 * g_ewald / MY_PIS;
+    pre2 = 4.0 * pow(g_ewald,3.0) / MY_PIS;
+    pre3 = 8.0 * pow(g_ewald,5.0) / MY_PIS;
+
+    // computation of the exchange interaction
+    // loop over neighbors of atom i
+      
+    //i = ilist[ii];
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+    spi[0] = sp[ii][0]; 
+    spi[1] = sp[ii][1]; 
+    spi[2] = sp[ii][2];
+    spi[3] = sp[ii][3];
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii]; 
+    //itype = type[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+
+      spj[0] = sp[j][0]; 
+      spj[1] = sp[j][1]; 
+      spj[2] = sp[j][2]; 
+      spj[3] = sp[j][3]; 
+
+      fmi[0] = fmi[1] = fmi[2] = 0.0;
+      bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
+     
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      rinv = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*rinv;
+      eij[1] = rij[1]*rinv;
+      eij[2] = rij[2]*rinv;
+
+      local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
+
+      if (rsq < local_cut2) {
+        r2inv = 1.0/rsq;
+
+        r = sqrt(rsq);
+        grij = g_ewald * r;
+        expm2 = exp(-grij*grij);
+        t = 1.0 / (1.0 + EWALD_P*grij);
+        erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+
+        bij[0] = erfc * rinv;
+        bij[1] = (bij[0] + pre1*expm2) * r2inv;
+        bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
+        bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
+
+        compute_long(ii,j,eij,bij,fmi,spi,spj);
+      }
+    }
+
+    // adding the kspace components to fm
+    
+    fmi[0] += fm_long[ii][0];
+    fmi[1] += fm_long[ii][1];
+    fmi[2] += fm_long[ii][2];
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -21,11 +21,16 @@ mass		1 55.845
 set 		group all spin 2.2 -1.0 0.0 0.0
 velocity 	all create 100 4928459 rot yes dist gaussian
 
-pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
+pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5 spin/dipole/long 8.0
 pair_coeff 	* * eam/alloy Fe_Mishin2006.eam.alloy Fe
 pair_coeff 	* * spin/exchange exchange 3.4 0.02726 0.2171 1.841
+pair_coeff	* * spin/dipole/long 8.0
+
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
+
+kspace_style 	pppm/dipole/spin 1.0e-4
+kspace_modify 	compute yes
 
 fix 		1 all precession/spin cubic 0.001 0.0005 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
 fix_modify 	1 energy yes

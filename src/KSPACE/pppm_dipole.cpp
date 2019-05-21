@@ -442,7 +442,7 @@ void PPPMDipole::compute(int eflag, int vflag)
 
   if (vflag_atom)
     error->all(FLERR,"Cannot (yet) compute per-atom virial "
-                       "with kspace style pppm/dipole"
+                       "with kspace style pppm/dipole");
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

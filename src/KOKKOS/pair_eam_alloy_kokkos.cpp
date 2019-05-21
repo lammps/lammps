@@ -569,13 +569,13 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelA<NEIGHFLAG
                   d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
       if (NEWTON_PAIR || j < nlocal) {
         const int d_type2rhor_ij = d_type2rhor(itype,jtype);
-        rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
+       a_rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
                     d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
       }
     }
 
   }
-  rho[i] += rhotmp;
+  a_rho[i] += rhotmp;
 }
 
 /* ---------------------------------------------------------------------- */

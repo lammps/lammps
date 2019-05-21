@@ -64,6 +64,7 @@
 #include "comm.h"
 #include "universe.h"
 #include "force.h"
+#include "input.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -71,6 +72,7 @@
 #include "memory.h"
 #include "domain.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -136,6 +138,7 @@ PairKIM::~PairKIM()
 
   if (simulatorModel) {
     KIM::SimulatorModel::Destroy(&simulatorModel);
+    delete simulator_class;
 
     // clean up KIM interface (if necessary)
     kim_free();
@@ -446,6 +449,8 @@ void PairKIM::coeff(int narg, char **arg)
     char *strbuf = new char[len];
     char *strword;
 
+    // validate species selection
+
     int sim_num_species;
     const std::string *sim_species;
     simulatorModel->GetNumberOfSupportedSpecies(&sim_num_species);
@@ -454,7 +459,7 @@ void PairKIM::coeff(int narg, char **arg)
       strcpy(strbuf,atom_type_sym_list.c_str());
       strword = strtok(strbuf," \t");
       while (strword) {
-        if (strcmp(sim_species->c_str(),strword) != 0)
+        if ((strcmp(strword,"NULL") != 0) && (strcmp(sim_species->c_str(),strword) != 0))
           error->all(FLERR,"Species not supported by KIM Simulator Model");
         strword = strtok(NULL," \t");
       }
@@ -463,33 +468,102 @@ void PairKIM::coeff(int narg, char **arg)
     int sim_fields, sim_lines;
     const std::string *sim_field, *sim_value;
     simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
-    if (comm->me==0) printf("sim_fields=%d\n",sim_fields);
     for (int i=0; i < sim_fields; ++i) {
       simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-      if (comm->me==0) printf("field[%d]=%s\n",i,sim_field->c_str());
+      if (*sim_field == "units") {
+        simulatorModel->GetSimulatorFieldLine(i,0,&sim_value);
+        if (*sim_value != update->unit_style)
+          error->all(FLERR,"Incompatible units for KIM Simulator Model");
+        break;
+      }
+    }
+
+    for (int i=0; i < sim_fields; ++i) {
+      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+      if (*sim_field == "model-init") {
+        for (int j=0; j < sim_lines; ++j) {
+          simulatorModel->GetSimulatorFieldLine(i,j,&sim_value);
+          input->one(sim_value->c_str());
+        }
+        break;
+      }
+    }
+
+    int sim_model_idx=-1;
+    for (int i=0; i < sim_fields; ++i) {
+      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+      if (*sim_field == "model-defn") {
+        sim_model_idx = i;
+        break;
+      }
+    }
+
+    if (sim_model_idx < 0)
+      error->all(FLERR,"KIM Simulator Model has no Model definition");
+    else {
       for (int j=0; j < sim_lines; ++j) {
-        simulatorModel->GetSimulatorFieldLine(i,j,&sim_value);
-        if (comm->me==0) printf("line %d: %s\n",j,sim_value->c_str());
+        simulatorModel->GetSimulatorFieldLine(sim_model_idx,j,&sim_value);
+        if (utils::strmatch(*sim_value,"^pair_style")) {
+          char *ptr,*sim_style;
+          char *style_args[64];
+          int style_narg = 0;
+          int len = strlen(sim_value->c_str())+1;
+          char *stylecmd = new char[len];
+          strcpy(stylecmd,sim_value->c_str());
+
+          // ignore first word (pair_style)
+          strtok(stylecmd," \t");
+          ptr = sim_style = strtok(NULL," \t");
+          while (ptr && (style_narg < 63)) {
+            ptr = strtok(NULL," \t");
+            if (!ptr) break;
+            style_args[style_narg] = ptr;
+            ++style_narg;
+          }
+
+          int dummy;
+          delete simulator_class;
+          simulator_class = force->new_pair(sim_style,1,dummy);
+          if (simulator_class) {
+            if (comm->me == 0) {
+              std::string mesg("Created KIM Simulator Model pair style: ");
+              mesg += sim_style;
+              mesg += "\n";
+
+              if (screen) fputs(mesg.c_str(),screen);
+              if (logfile) fputs(mesg.c_str(),logfile);
+            }
+          } else {
+            error->all(FLERR,"Failure to create simulator model pair style");
+          }
+          simulator_class->settings(style_narg,style_args);
+          delete[] stylecmd;
+        }
+      }
+      for (int j=0; j < sim_lines; ++j) {
+        simulatorModel->GetSimulatorFieldLine(sim_model_idx,j,&sim_value);
+        if (utils::strmatch(*sim_value,"^pair_coeff")) {
+          char *ptr;
+          char *coeff_args[64];
+          int coeff_narg = 0;
+          int len = strlen(sim_value->c_str())+1;
+          char *coeffcmd = new char[len];
+          strcpy(coeffcmd,sim_value->c_str());
+
+          // ignore first word (pair_coeff)
+          strtok(coeffcmd," \t");
+          ptr = strtok(NULL," \t");
+          while (ptr && (coeff_narg < 63)) {
+            coeff_args[coeff_narg] = ptr;
+            ++coeff_narg;
+            ptr = strtok(NULL," \t");
+          }
+
+          simulator_class->coeff(coeff_narg,coeff_args);
+          delete[] coeffcmd;
+        }
       }
     }
-    // hard code result for now:
-
-    int dummy;
-    const char *simulator_style = (const char*)"tersoff/mod";
-    simulator_class = force->new_pair(simulator_style,1,dummy);
-    if (simulator_class) {
-      if (comm->me == 0) {
-        std::string mesg("Created simulator pair style: ");
-        mesg += simulator_style;
-        mesg += "\n";
-
-        if (screen) fputs(mesg.c_str(),screen);
-        if (logfile) fputs(mesg.c_str(),logfile);
-      }
-    } else {
-      error->all(FLERR,"Failure to create simulator model pair style");
-    }
-    simulator_class->settings(0,NULL);
     error->all(FLERR,(simulatorModel->ToString()).c_str());
   } else {
     // setup mapping between LAMMPS unique elements and KIM species codes

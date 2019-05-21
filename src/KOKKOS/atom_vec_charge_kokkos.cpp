@@ -65,8 +65,8 @@ void AtomVecChargeKokkos::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
-  sync(Device,ALL_MASK);
-  modified(Device,ALL_MASK);
+  atomKK->sync(Device,ALL_MASK);
+  atomKK->modified(Device,ALL_MASK);
 
   memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
   memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
@@ -80,7 +80,7 @@ void AtomVecChargeKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
 
   grow_reset();
-  sync(Host,ALL_MASK);
+  atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -495,7 +495,7 @@ void AtomVecChargeKokkos::unpack_border_kokkos(const int &n, const int &first,
       f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_q,first);
     Kokkos::parallel_for(n,f);
   }
-  modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -511,7 +511,7 @@ void AtomVecChargeKokkos::unpack_border(int n, int first, double *buf)
     if (i == nmax) {
       grow(0);
     }
-    modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
+    atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -537,7 +537,7 @@ void AtomVecChargeKokkos::unpack_border_vel(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     if (i == nmax) grow(0);
-    modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
+    atomKK->modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -798,7 +798,7 @@ int AtomVecChargeKokkos::unpack_exchange(double *buf)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;
@@ -851,7 +851,7 @@ int AtomVecChargeKokkos::size_restart()
 
 int AtomVecChargeKokkos::pack_restart(int i, double *buf)
 {
-  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;
@@ -889,7 +889,7 @@ int AtomVecChargeKokkos::unpack_restart(double *buf)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
 
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;

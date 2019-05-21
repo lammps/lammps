@@ -66,8 +66,8 @@ void AtomVecAngleKokkos::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
-  sync(Device,ALL_MASK);
-  modified(Device,ALL_MASK);
+  atomKK->sync(Device,ALL_MASK);
+  atomKK->modified(Device,ALL_MASK);
 
   memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
   memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
@@ -99,7 +99,7 @@ void AtomVecAngleKokkos::grow(int n)
                       "atom:angle_atom3");
 
   grow_reset();
-  sync(Host,ALL_MASK);
+  atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -283,7 +283,7 @@ int AtomVecAngleKokkos::pack_comm_kokkos(const int &n,
   // Choose correct forward PackComm kernel
 
   if(commKK->forward_comm_on_host) {
-    sync(Host,X_MASK);
+    atomKK->sync(Host,X_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
         struct AtomVecAngleKokkos_PackComm<LMPHostType,1,1> f(atomKK->k_x,buf,list,iswap,
@@ -310,7 +310,7 @@ int AtomVecAngleKokkos::pack_comm_kokkos(const int &n,
       }
     }
   } else {
-    sync(Device,X_MASK);
+    atomKK->sync(Device,X_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
         struct AtomVecAngleKokkos_PackComm<LMPDeviceType,1,1> f(atomKK->k_x,buf,list,iswap,
@@ -398,8 +398,8 @@ int AtomVecAngleKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &li
                                        const int nfirst, const int &pbc_flag,
                                        const int* const pbc) {
   if(commKK->forward_comm_on_host) {
-    sync(Host,X_MASK);
-    modified(Host,X_MASK);
+    atomKK->sync(Host,X_MASK);
+    atomKK->modified(Host,X_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
       struct AtomVecAngleKokkos_PackCommSelf<LMPHostType,1,1>
@@ -430,8 +430,8 @@ int AtomVecAngleKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &li
       }
     }
   } else {
-    sync(Device,X_MASK);
-    modified(Device,X_MASK);
+    atomKK->sync(Device,X_MASK);
+    atomKK->modified(Device,X_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
       struct AtomVecAngleKokkos_PackCommSelf<LMPDeviceType,1,1>
@@ -494,13 +494,13 @@ struct AtomVecAngleKokkos_UnpackComm {
 void AtomVecAngleKokkos::unpack_comm_kokkos(const int &n, const int &first,
     const DAT::tdual_xfloat_2d &buf ) {
   if(commKK->forward_comm_on_host) {
-    sync(Host,X_MASK);
-    modified(Host,X_MASK);
+    atomKK->sync(Host,X_MASK);
+    atomKK->modified(Host,X_MASK);
     struct AtomVecAngleKokkos_UnpackComm<LMPHostType> f(atomKK->k_x,buf,first);
     Kokkos::parallel_for(n,f);
   } else {
-    sync(Device,X_MASK);
-    modified(Device,X_MASK);
+    atomKK->sync(Device,X_MASK);
+    atomKK->modified(Device,X_MASK);
     struct AtomVecAngleKokkos_UnpackComm<LMPDeviceType> f(atomKK->k_x,buf,first);
     Kokkos::parallel_for(n,f);
   }
@@ -643,7 +643,7 @@ void AtomVecAngleKokkos::unpack_comm_vel(int n, int first, double *buf)
 int AtomVecAngleKokkos::pack_reverse(int n, int first, double *buf)
 {
   if(n > 0)
-    sync(Host,F_MASK);
+    atomKK->sync(Host,F_MASK);
 
   int m = 0;
   const int last = first + n;
@@ -660,7 +660,7 @@ int AtomVecAngleKokkos::pack_reverse(int n, int first, double *buf)
 void AtomVecAngleKokkos::unpack_reverse(int n, int *list, double *buf)
 {
   if(n > 0)
-    modified(Host,F_MASK);
+    atomKK->modified(Host,F_MASK);
 
   int m = 0;
   for (int i = 0; i < n; i++) {
@@ -961,9 +961,9 @@ struct AtomVecAngleKokkos_UnpackBorder {
 void AtomVecAngleKokkos::unpack_border_kokkos(const int &n, const int &first,
                                              const DAT::tdual_xfloat_2d &buf,
                                              ExecutionSpace space) {
-  modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
   while (first+n >= nmax) grow(0);
-  modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
   if(space==Host) {
     struct AtomVecAngleKokkos_UnpackBorder<LMPHostType>
       f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_molecule,first);
@@ -985,7 +985,7 @@ void AtomVecAngleKokkos::unpack_border(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     if (i == nmax) grow(0);
-    modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
+    atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1011,7 +1011,7 @@ void AtomVecAngleKokkos::unpack_border_vel(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     if (i == nmax) grow(0);
-    modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
+    atomKK->modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1413,7 +1413,7 @@ int AtomVecAngleKokkos::unpack_exchange(double *buf)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | MOLECULE_MASK | BOND_MASK |
            ANGLE_MASK | SPECIAL_MASK);
 
@@ -1488,7 +1488,7 @@ int AtomVecAngleKokkos::size_restart()
 
 int AtomVecAngleKokkos::pack_restart(int i, double *buf)
 {
-  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK | MOLECULE_MASK | BOND_MASK |
             ANGLE_MASK | SPECIAL_MASK);
 
@@ -1542,7 +1542,7 @@ int AtomVecAngleKokkos::unpack_restart(double *buf)
     if (atom->nextra_store)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                 MASK_MASK | IMAGE_MASK | MOLECULE_MASK | BOND_MASK |
                 ANGLE_MASK | SPECIAL_MASK);
 

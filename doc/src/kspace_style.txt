@@ -113,9 +113,11 @@ The {ewald/disp} style adds a long-range dispersion sum option for
 but in a more efficient manner than the {ewald} style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
+The {ewald/disp} style can also be used with point-dipoles, see
+"(Toukmaji)"_#Toukmaji.
 
 The {ewald/dipole} style adds long-range standard Ewald summations 
-for dipole-dipole interactions.
+for dipole-dipole interactions, see "(Toukmaji)"_#Toukmaji.
 
 The {ewald/dipole/spin} style adds long-range standard Ewald 
 summations for magnetic dipole-dipole interactions between
@@ -141,7 +143,7 @@ charge value which determines whether a particle is considered charged
 or not.  Its default value is 1.0e-5.
 
 The {pppm/dipole} style invokes a particle-particle particle-mesh solver 
-for dipole-dipole interactions. 
+for dipole-dipole interactions, following the method of "(Cerda)"_#Cerda2008.
 
 The {pppm/dipole/spin} style invokes a particle-particle particle-mesh solver 
 for magnetic dipole-dipole interactions between magnetic spins. 
@@ -335,7 +337,10 @@ using ideas from chapter 3 of "(Hardy)"_#Hardy2006, with equation 3.197
 of particular note. When using {msm} with non-periodic boundary
 conditions, it is expected that the error estimation will be too
 pessimistic. RMS force errors for dipoles when using {ewald/disp}
-are estimated using equations 33 and 46 of "(Wang)"_#Wang.
+or {ewald/dipole} are estimated using equations 33 and 46 of
+"(Wang)"_#Wang. The RMS force errors for {pppm/dipole} are estimated
+using the equations in "(Cerda)"_#Cerda2008.
+
 
 See the "kspace_modify"_kspace_modify.html command for additional
 options of the K-space solvers that can be set, including a {force}
@@ -481,6 +486,9 @@ Illinois at Urbana-Champaign, (2006).
 
 :link(Sutmann2013)
 [(Sutmann)] Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
+
+:link(Cerda2008)
+[(Cerda)] Cerda, Ballenegger, Lenz, Holm, J Chem Phys 129, 234104 (2008)
 
 :link(Who2012)
 [(Who)] Who, Author2, Author3, J of Long Range Solvers, 35, 164-177

@@ -24,8 +24,7 @@ set 		group all spin 2.2 0.0 0.0 1.0
 velocity 	all create 100 4928459 rot yes dist gaussian
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
-#pair_coeff 	* * eam/alloy Fe_Mishin2006.eam.alloy Fe
-pair_coeff 	* * eam/alloy ../examples/SPIN/iron/Fe_Mishin2006.eam.alloy Fe
+pair_coeff 	* * eam/alloy Fe_Mishin2006.eam.alloy Fe
 pair_coeff 	* * spin/exchange exchange 3.4 0.02726 0.2171 1.841
 
 neighbor 	0.1 bin
@@ -55,4 +54,4 @@ thermo          50
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 		100 all custom 1 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		50
+run 		50000

@@ -121,6 +121,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   eff_plastic_strain_rate = NULL;
   damage = NULL;
 
+  // USER-PAFI
+
+  path = NULL;
+  norm = NULL;
+  dnorm = NULL;
+
   // molecular info
 
   bond_per_atom =  extra_bond_per_atom = 0;
@@ -165,6 +171,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   sphere_flag = peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
 
+
   molecule_flag = 0;
   q_flag = mu_flag = 0;
   omega_flag = torque_flag = angmom_flag = 0;
@@ -192,6 +199,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   eff_plastic_strain_flag = 0;
   eff_plastic_strain_rate_flag = 0;
   damage_flag = 0;
+
+  // USER-PAFI
+
+  pafi_flag = 0;
 
   // Peridynamic scale factor
 
@@ -348,6 +359,12 @@ Atom::~Atom()
   memory->destroy(improper_atom3);
   memory->destroy(improper_atom4);
 
+  // USER-PAFI
+
+  memory->destroy(path);
+  memory->destroy(norm);
+  memory->destroy(dnorm);
+
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
@@ -423,7 +440,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   // customize by adding new flag
 
   sphere_flag = peri_flag = electron_flag = 0;
-  wavepacket_flag = sph_flag = 0;
+  wavepacket_flag = sph_flag = pafi_flag = 0;
 
   molecule_flag = 0;
   q_flag = mu_flag = 0;
@@ -2279,6 +2296,11 @@ void *Atom::extract(char *name)
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
+
+  // USER-PAFI
+  if (strcmp(name,"norm") == 0) return (void *) norm;
+  if (strcmp(name,"dnorm") == 0) return (void *) dnorm;
+  if (strcmp(name,"path") == 0) return (void *) path;
 
   return NULL;
 }

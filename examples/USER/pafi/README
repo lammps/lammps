@@ -1,0 +1,25 @@
+Run an example constrained sample for USER-PAFI calculation
+
+Author:
+Thomas Swinburne, CNRS / CINaM, Marseille
+swinburne@cinam.univ-mrs.fr
+tomswinburne.github.io
+
+
+PAFI performs constrained force averages on hyperplanes to a reference pathway in order to compute unbiased free energy barriers
+
+
+Paper:
+T. D. Swinburne and M. C. Marinica
+Unsupervised calculation of free energy barriers in large crystalline systems
+Physical Review Letters 276, 1 2018
+
+
+Also see https://github.com/tomswinburne/pafi/ for PAFI++ code which uses the USER-PAFI package when loading LAMMPS as a C++ library
+
+To run example:
+
+mpirun -np NUMPROCS lmp_machine < in.lammps
+
+where NUMPROCS = # of procs and lmp_machine = e.g. lmp_mpi
+

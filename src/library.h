@@ -56,6 +56,8 @@ void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
+void lammps_gather_peratom_fix(void *, char *, int, void *);
+
 int lammps_config_has_package(char * package_name);
 int lammps_config_package_count();
 int lammps_config_package_name(int index, char * buffer, int max_size);

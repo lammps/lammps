@@ -1483,6 +1483,191 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
 }
 #endif
 
+
+
+/* ----------------------------------------------------------------------
+  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
+   gather the named per atom fix and return it in user-allocated data
+   (extract_fix was found to give errors when running lammps in parallel)
+   data will be ordered by atom ID
+     requirement for consecutive atom IDs (1 to N)
+   id = fix ID
+   count: number of entries per atom
+   Fills 1d data, which must be pre-allocated to length of count * Natoms, where Natoms is as queried by get_natoms()
+   method:
+     alloc and zero count*Natom length vector
+     loop over nlocal to fill vector with my values
+     Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
+
+#if defined(LAMMPS_BIGBIG)
+void lammps_gather_peratom_fix(void *ptr, char * /*id */, int /*count*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
+}
+#else
+void lammps_gather_peratom_fix(void *ptr, char *id, int count, void *data)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    int i,j,offset;
+
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) {
+      lmp->error->warning(FLERR,"lammps_gather_pertatom_fix: unknown fix id");
+      return;
+    }
+
+    Fix *fix = lmp->modify->fix[ifix];
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // error if tags are not defined or not consecutive
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
+      flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_gather_peratom_fix");
+      return;
+    }
+
+    // copy = Natom length vector of per-atom values
+    // use atom ID to insert each atom's values into copy
+    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+    double *vector = NULL;
+    double **array = NULL;
+    if (count == 1) vector = (double *) fix->vector_atom; //vptr;
+    else array = (double **) fix->array_atom; //vptr;
+
+    double *copy;
+    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+    for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+
+    tagint *tag = lmp->atom->tag;
+    int nlocal = lmp->atom->nlocal;
+
+    if (count == 1) {
+      for (i = 0; i < nlocal; i++)
+        copy[tag[i]-1] = vector[i];
+    } else {
+      for (i = 0; i < nlocal; i++) {
+        offset = count*(tag[i]-1);
+        for (j = 0; j < count; j++)
+          copy[offset++] = array[i][j];
+      }
+    }
+    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
+    lmp->memory->destroy(copy);
+  }
+  END_CAPTURE
+}
+#endif
+
+/* ----------------------------------------------------------------------
+  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
+   gather the named per atom fix for a subset of atoms and return
+   it in user-allocated data
+   (extract_fix was found to give errors when running lammps in parallel)
+   data will be ordered by atom ID
+     requirement for consecutive atom IDs (1 to N)
+   id = fix ID
+   count: number of entries per atom
+   ndata = # of atoms to return data for (could be all atoms)
+   ids = list of ndata atom IDs to return data for
+   Fills 1d data, which must be pre-allocated to length of count * ndata, where Natoms is as queried by get_natoms()
+   method:
+     alloc and zero count*Natom length vector
+     loop over Nlocal to fill vector with my values
+     Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
+#if defined(LAMMPS_BIGBIG)
+void lammps_gather_peratom_fix_subset(void *ptr, char * /*id */, int /*count*/,
+                                int /*ndata*/, int * /*ids*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix_subset() not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
+}
+#else
+void lammps_gather_peratom_fix_subset(void *ptr, char *id, int count,
+                                      int ndata, int *ids, void *data)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    int i,j,m,offset;
+    tagint aid;
+
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) {
+      lmp->error->warning(FLERR,"lammps_gather_pertatom_fix: unknown fix id");
+      return;
+    }
+
+    Fix *fix = lmp->modify->fix[ifix];
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // error if tags are not defined or not consecutive
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
+      flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_gather_peratom_fix");
+      return;
+    }
+
+    // copy = Natom length vector of per-atom values
+    // use atom ID to insert each atom's values into copy
+    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+    double *vector = NULL;
+    double **array = NULL;
+    if (count == 1) vector = (double *) fix->vector_atom; //vptr;
+    else array = (double **) fix->array_atom; //vptr;
+
+    double *copy;
+    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+    for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+
+    tagint *tag = lmp->atom->tag;
+    int nlocal = lmp->atom->nlocal;
+
+    if (count == 1) {
+      for (i = 0; i < ndata; i++) {
+        aid = ids[i];
+        if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal)
+          copy[i] = vector[m];
+      }
+    } else {
+      for (i = 0; i < ndata; i++) {
+        aid = ids[i];
+        if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal) {
+          offset = count*i;
+          for (j = 0; j < count; j++)
+            copy[offset++] = array[m][j];
+        }
+      }
+    }
+    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
+    lmp->memory->destroy(copy);
+  }
+  END_CAPTURE
+}
+#endif
+
 /* ----------------------------------------------------------------------
    create N atoms and assign them to procs based on coords
    id = atom IDs (optional, NULL will generate 1 to N)

@@ -19,7 +19,7 @@ Also see https://github.com/tomswinburne/pafi/ for PAFI++ code which uses the US
 
 To run example:
 
-mpirun -np NUMPROCS lmp_machine < in.lammps
+mpirun -np NUMPROCS lmp_machine < pafi.lammps
 
 where NUMPROCS = # of procs and lmp_machine = e.g. lmp_mpi
 

@@ -917,7 +917,7 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecSpin::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3],buf[4]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3]);
   return 4;
 }
 

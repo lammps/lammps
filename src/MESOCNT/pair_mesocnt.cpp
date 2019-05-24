@@ -57,6 +57,12 @@ PairMesoCNT::~PairMesoCNT()
     
     memory->destroy(usemi_coeff);
     memory->destroy(phi_coeff);
+  
+    memory->destroy(p1);
+    memory->destroy(p2);
+    memory->destroy(param);
+    memory->destroy(flocal);
+    memory->destroy(basis);
   }
 }
 
@@ -64,9 +70,14 @@ PairMesoCNT::~PairMesoCNT()
 
 void PairMesoCNT::compute(int eflag, int vflag)
 {
+  /*
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  */
+
   int inum,i1,i2,jj,jj1,jj2,j1num,j2num,numred,inflag,n;
   double evdwl;
-  double *r1,*r2,*p1,*p2,*q1,*q2,*param,**flocal,**basis;
+  double *r1,*r2,*q1,*q2;
 
   int *ilist,*j1list,*j2list,*numneigh,**firstneigh;
   int *redlist,*nchain,*end;
@@ -88,19 +99,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  memory->create(p1,3,"pair:p1");
-  memory->create(p2,3,"pair:p2");
-  memory->create(param,6,"pair:param");
-  memory->create(flocal,2,3,"pair:flocal");
-  memory->create(basis,3,3,"pair:basis");
-
   for(n = 0; n < nbondlist; n++){
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     
     r1 = x[i1];
     r2 = x[i2];
-
+    
     // reduce neighbors to common list
     
     j1list = firstneigh[i1];
@@ -192,10 +197,18 @@ void PairMesoCNT::compute(int eflag, int vflag)
       for(int j = 0; j < nchain[i]-1; j++){
 	q1 = x[chain[i][j]];
 	q2 = x[chain[i][j+1]];
-        printf("Vectors q:\n");
+        
+        /*
+	if(rank == 1){
+        printf("Vectors r:\n");
+        printf("%e %e %e\n",r1[0],r1[1],r1[2]);
+        printf("%e %e %e\n",r2[0],r2[1],r2[2]);
+	printf("Vectors q:\n");
         printf("%e %e %e\n",q1[0],q1[1],q1[2]);
         printf("%e %e %e\n",q2[0],q2[1],q2[2]);
         fflush(stdout);
+	}
+	*/
 
         w = weight(r1,r2,q1,q2);
 	sumw += w;
@@ -210,21 +223,30 @@ void PairMesoCNT::compute(int eflag, int vflag)
       scale3(sumwreq,p1);
       scale3(sumwreq,p2);
 
+      /*
+      if(rank == 1){
+      printf("Weight sum:\n");
+      printf("%e\n",sumw);
       printf("Vectors p:\n");
       printf("%e %e %e\n",p1[0],p1[1],p1[2]);
       printf("%e %e %e\n",p2[0],p2[1],p2[2]);
       fflush(stdout);
+      }
+      */
 
       if(end[i] == 1){
         geom(r1,r2,p1,p2,param,basis);
+	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
       else if(end[i] == 2){
 	geom(r1,r2,p2,p1,param,basis);
+	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
       else{
         geom(r1,r2,p2,p1,param,basis);
+	if(param[0] > cutoff) continue;
 	finf(param,flocal);
       }
 
@@ -233,43 +255,61 @@ void PairMesoCNT::compute(int eflag, int vflag)
         else evdwl = usemi(param);
       }
 
-      f[i1][0] += flocal[0][0]*basis[0][0] 
-	      + flocal[0][1]*basis[0][1] 
-	      + flocal[0][2]*basis[0][2];
-      f[i1][1] += flocal[0][0]*basis[1][0]
+      double f1x,f1y,f1z,f2x,f2y,f2z;
+
+      f1x = flocal[0][0]*basis[0][0] 
+	      + flocal[0][1]*basis[1][0] 
+	      + flocal[0][2]*basis[2][0];
+      f1y = flocal[0][0]*basis[0][1]
 	      + flocal[0][1]*basis[1][1]
-	      + flocal[0][2]*basis[1][2];
-      f[i1][2] += flocal[0][0]*basis[2][0]
-	      + flocal[0][1]*basis[2][1]
+	      + flocal[0][2]*basis[2][1];
+      f1z = flocal[0][0]*basis[0][2]
+	      + flocal[0][1]*basis[1][2]
 	      + flocal[0][2]*basis[2][2];
-      f[i2][0] += flocal[1][0]*basis[0][0] 
-	      + flocal[1][1]*basis[0][1] 
-	      + flocal[1][2]*basis[0][2];
-      f[i2][1] += flocal[1][0]*basis[1][0]
+      f2x = flocal[1][0]*basis[0][0] 
+	      + flocal[1][1]*basis[1][0] 
+	      + flocal[1][2]*basis[2][0];
+      f2y = flocal[1][0]*basis[0][1]
 	      + flocal[1][1]*basis[1][1]
-	      + flocal[1][2]*basis[1][2];
-      f[i2][2] += flocal[1][0]*basis[2][0]
-	      + flocal[1][1]*basis[2][1]
+	      + flocal[1][2]*basis[2][1];
+      f2z = flocal[1][0]*basis[0][2]
+	      + flocal[1][1]*basis[1][2]
 	      + flocal[1][2]*basis[2][2];
 
+      f[i1][0] = flocal[0][0]*basis[0][0] 
+	      + flocal[0][1]*basis[1][0] 
+	      + flocal[0][2]*basis[2][0];
+      f[i1][1] = flocal[0][0]*basis[0][1]
+	      + flocal[0][1]*basis[1][1]
+	      + flocal[0][2]*basis[2][1];
+      f[i1][2] = flocal[0][0]*basis[0][2]
+	      + flocal[0][1]*basis[1][2]
+	      + flocal[0][2]*basis[2][2];
+      f[i2][0] = flocal[1][0]*basis[0][0] 
+	      + flocal[1][1]*basis[1][0] 
+	      + flocal[1][2]*basis[2][0];
+      f[i2][1] = flocal[1][0]*basis[0][1]
+	      + flocal[1][1]*basis[1][1]
+	      + flocal[1][2]*basis[2][1];
+      f[i2][2] = flocal[1][0]*basis[0][2]
+	      + flocal[1][1]*basis[1][2]
+	      + flocal[1][2]*basis[2][2];
+    
+      /* 
       printf("Forces:\n");
-      printf("%e %e %e\n",f[i1][0],f[i1][1],f[i1][2]);
-      printf("%e %e %e\n",f[i2][0],f[i2][1],f[i2][2]);
+      printf("%e %e %e\n",f1x,f1y,f1z);
+      printf("%e %e %e\n",f2x,f2y,f2z);
+      printf("Parameters:\n");
+      printf("%e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
       fflush(stdout);
+      */
     }
 
     memory->destroy(redlist);
     memory->destroy(chain);
     memory->destroy(nchain);
     memory->destroy(end);
-  }
-
-  memory->destroy(p1);
-  memory->destroy(p2);
-  memory->destroy(param);
-  memory->destroy(flocal);
-  memory->destroy(basis);
-
+  } 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -317,6 +357,12 @@ void PairMesoCNT::allocate()
   
   memory->create(usemi_coeff,pot_points,pot_points,4,"pair:usemi_coeff");
   memory->create(phi_coeff,pot_points,pot_points,4,"pair:phi_coeff");
+
+  memory->create(p1,3,"pair:p1");
+  memory->create(p2,3,"pair:p2");
+  memory->create(param,6,"pair:param");
+  memory->create(flocal,2,3,"pair:flocal");
+  memory->create(basis,3,3,"pair:basis");
 }
 
 /* ----------------------------------------------------------------------
@@ -374,6 +420,15 @@ void PairMesoCNT::coeff(int narg, char **arg)
 		    delzeta_phi,&delh_phi,pot_points);
   }
   
+  MPI_Bcast(&start_gamma,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&del_gamma,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&start_uinf,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&del_uinf,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&startxi_usemi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delxi_usemi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&starth_phi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&delh_phi,1,MPI_DOUBLE,0,world);
+
   MPI_Bcast(gamma_data,gamma_points,MPI_DOUBLE,0,world);
   MPI_Bcast(uinf_data,pot_points,MPI_DOUBLE,0,world);
   MPI_Bcast(starth_usemi,pot_points,MPI_DOUBLE,0,world);
@@ -401,6 +456,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
       cutsq[i][j] = cutoffsq;
     }
   }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -942,11 +998,12 @@ void PairMesoCNT::finf(double *param, double **f)
   
   if(sin_alphasq < SMALL){
     f[0][0] = -0.5*(xi2 - xi1)*dspline(h,start_uinf,del_uinf,
-	uinf_coeff,pot_points);
+	uinf_coeff,pot_points) * forceunit;
     f[1][0] = f[0][0];
     f[0][1] = 0;
     f[1][1] = 0;
-    f[0][2] = spline(h,start_uinf,del_uinf,uinf_coeff,pot_points);
+    f[0][2] = spline(h,start_uinf,del_uinf,uinf_coeff,pot_points)
+	    * forceunit;
     f[1][2] = -f[0][2];
   }
   else{
@@ -956,10 +1013,10 @@ void PairMesoCNT::finf(double *param, double **f)
     double cot_alpha = cos_alpha * sin_alpharec;
 
     double omega = 1.0 / (1.0 - comega*sin_alphasq);
-    double domega = 2 * comega * sin_alpha * cos_alpha * omega * omega;
     double a1 = omega * sin_alpha;
     double a1rec = 1.0 / a1;
-
+    double domega = 2 * comega * cos_alpha * a1 * omega;
+    
     double gamma_orth = spline(h,start_gamma,del_gamma,
 		    gamma_coeff,gamma_points);
     double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
@@ -971,27 +1028,49 @@ void PairMesoCNT::finf(double *param, double **f)
 
     double zeta1 = xi1 * a1;
     double zeta2 = xi2 * a1;
-    double phi1 = spline(zeta1,h,startzeta_phi,starth_phi,
-		    delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double phi2 = spline(zeta2,h,startzeta_phi,starth_phi,
-		    delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double dzeta_phi1 = dxspline(zeta1,h,startzeta_phi,starth_phi,
-		    delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double dzeta_phi2 = dxspline(zeta2,h,startzeta_phi,starth_phi,
-		    delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double diff_dzeta_phi = dzeta_phi2 - dzeta_phi1;
-    double dh_phi1 = dyspline(zeta1,h,startzeta_phi,starth_phi,
-		    delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double dh_phi2 = dyspline(zeta2,h,startzeta_phi,starth_phi,
-		    delzeta_phi,delh_phi,phi_coeff,pot_points);
+    double phi1,phi2,dzeta_phi1,dzeta_phi2,dh_phi1,dh_phi2;
+    if(zeta1 < 0){
+      phi1 = -spline(-zeta1,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dzeta_phi1 = -dxspline(-zeta1,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dh_phi1 = -dyspline(-zeta1,h,startzeta_phi,starth_phi,
+  	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+    }
+    else{ 
+      phi1 = spline(zeta1,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dzeta_phi1 = dxspline(zeta1,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dh_phi1 = dyspline(zeta1,h,startzeta_phi,starth_phi,
+  	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+    }
+    if(zeta2 < 0){
+      phi2 = -spline(-zeta2,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dzeta_phi2 = -dxspline(-zeta2,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dh_phi2 = -dyspline(-zeta2,h,startzeta_phi,starth_phi,
+  	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+    }
+    else{ 
+      phi2 = spline(zeta2,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dzeta_phi2 = dxspline(zeta2,h,startzeta_phi,starth_phi,
+	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+      dh_phi2 = dyspline(zeta2,h,startzeta_phi,starth_phi,
+  	    delzeta_phi,delh_phi,phi_coeff,pot_points);
+    }
 
+    double diff_dzeta_phi = dzeta_phi2 - dzeta_phi1;
+    
     double a2 = gamma * a1rec;
     double u = a2 * (phi2 - phi1);
     double a3 = u * gammarec;
   
     double dh_u = dh_gamma * a3 + a2 * (dh_phi2 - dh_phi1);
     double dalpha_u = dalpha_gamma * a3
-	  + a2 * (domega*sin_alpha + omega*cos_alpha)
+	  + a1rec * (domega*sin_alpha + omega*cos_alpha)
 	  * (gamma*(xi2*dzeta_phi2 - xi1*dzeta_phi1) - u);
 
     double lrec = 1.0 / (xi2 - xi1);
@@ -1001,7 +1080,7 @@ void PairMesoCNT::finf(double *param, double **f)
     f[0][0] = lrec * (xi2*dh_u - cx) * forceunit;
     f[1][0] = lrec * (-xi1*dh_u + cx) * forceunit;
     f[0][1] = lrec * (dalpha_u - xi2*cy) * forceunit;
-    f[1][1] = lrec * (-dalpha_u + xi2*cy) * forceunit;
+    f[1][1] = lrec * (-dalpha_u + xi1*cy) * forceunit;
     f[0][2] = gamma * dzeta_phi1 * forceunit;
     f[1][2] = -gamma * dzeta_phi2 * forceunit;
   }
@@ -1011,11 +1090,11 @@ void PairMesoCNT::finf(double *param, double **f)
 
 void PairMesoCNT::fsemi(double *param, double **f)
 {
-  double h = param[0] * angstrom;
+  double h = param[0] * angstromrec;
   double alpha = param[1];
-  double xi1 = param[2] * angstrom;
-  double xi2 = param[3] * angstrom;
-  double etaend = param[4] * angstrom;
+  double xi1 = param[2] * angstromrec;
+  double xi2 = param[3] * angstromrec;
+  double etaend = param[4] * angstromrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
@@ -1187,7 +1266,7 @@ double PairMesoCNT::weight(const double *r1, const double *r2,
 		const double *p1, const double *p2)
 {
   using namespace MathExtra;
-  double r[3], p[3], delr[3], delp[3], delrp[3];
+  double r[3], p[3];
   double rho, rhoc, rhomin;
   
   add3(r1,r2,r);

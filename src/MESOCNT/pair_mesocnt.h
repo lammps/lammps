@@ -31,8 +31,10 @@ class PairMesoCNT : public Pair {
   double *starth_usemi, *startzeta_phi;
   double *delh_usemi, *delzeta_phi;
   double *gamma_data, *uinf_data;
+  double *p1, *p2, *param;
   double **usemi_data, **phi_data;
   double **gamma_coeff, **uinf_coeff;
+  double **flocal,**basis;
   double ***usemi_coeff, ***phi_coeff;
   char *gamma_file, *uinf_file, *usemi_file, *phi_file;
   

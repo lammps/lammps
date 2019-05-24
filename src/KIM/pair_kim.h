@@ -69,7 +69,6 @@ class KIM_API_model;
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
-#include "KIM_SimulatorModel.hpp"
 
 namespace LAMMPS_NS {
 
@@ -121,7 +120,6 @@ class PairKIM : public Pair {
   KIM_TemperatureUnit temperatureUnit;
   KIM_TimeUnit timeUnit;
 
-  KIM::SimulatorModel * simulatorModel;
   KIM_Model * pkim;
   KIM_ComputeArguments * pargs;
 
@@ -151,12 +149,6 @@ class PairKIM : public Pair {
   int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
                                   // is in molecular mode
   int** lmps_stripped_neigh_ptr;  // pointer into lists
-
-  // LAMMPS Simulator model support
-  Pair *simulator_class;
-  char *simulator_style;
-  virtual void simulator_init();
-  virtual void simulator_free();
 
   // KIM specific helper functions
   virtual void set_contributing();
@@ -191,7 +183,10 @@ The KIM model was unable, for some reason, to complete the computation.
 
 E: 'KIMvirial' or 'LAMMPSvirial' not supported with kim-api.
 
-"KIMvirial or "LAMMPSvirial" found on the pair_style line.  These keys are not supported kim-api. (The virial computation is always performed by LAMMPS.) Please remove these keys, make sure the KIM model you are using supports kim-api, and rerun.
+"KIMvirial or "LAMMPSvirial" found on the pair_style line.  These keys
+are not supported kim-api.  (The virial computation is always performed
+by LAMMPS.) Please remove these keys, make sure the KIM model you are
+using supports kim-api, and rerun.
 
 E: Illegal pair_style command
 

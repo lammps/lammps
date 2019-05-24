@@ -92,7 +92,6 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   chargeUnit(KIM_CHARGE_UNIT_unused),
   temperatureUnit(KIM_TEMPERATURE_UNIT_unused),
   timeUnit(KIM_TIME_UNIT_unused),
-  simulatorModel(NULL),
   pkim(NULL),
   pargs(NULL),
   kim_model_support_for_energy(KIM_SUPPORT_STATUS_notSupported),
@@ -110,9 +109,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   kim_particleSpecies(NULL),
   kim_particleContributing(NULL),
   lmps_stripped_neigh_list(NULL),
-  lmps_stripped_neigh_ptr(NULL),
-  simulator_class(NULL),
-  simulator_style(NULL)
+  lmps_stripped_neigh_ptr(NULL)
 {
   // Initialize Pair data members to appropriate values
   single_enable = 0;  // We do not provide the Single() function
@@ -135,15 +132,6 @@ PairKIM::~PairKIM()
 {
   // clean up kim_modelname
   if (kim_modelname != 0) delete [] kim_modelname;
-
-  if (simulatorModel) {
-    KIM::SimulatorModel::Destroy(&simulatorModel);
-    delete simulator_class;
-
-    // clean up KIM interface (if necessary)
-    kim_free();
-    return;
-  }
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -342,33 +330,6 @@ void PairKIM::settings(int narg, char **arg)
 
   // initialize KIM Model
   kim_init();
-
-  // Set up and initialize LAMMPS Simulator model
-
-  if (simulatorModel) {
-    const std::string *sim_name, *sim_version;
-    std::string atom_type_sym_list;
-
-    simulatorModel->GetSimulatorName(&sim_name);
-    simulatorModel->GetSimulatorVersion(&sim_version);
-
-    if (comm->me == 0) {
-      std::string mesg("Using KIM Simulator Model : ");
-      mesg += kim_modelname;
-      mesg += "\n";
-      mesg += "For Simulator             : ";
-      mesg += *sim_name + " " + *sim_version + "\n";
-      mesg += "Running on                : LAMMPS ";
-      mesg += universe->version;
-      mesg += "\n";
-
-      if (screen) fputs(mesg.c_str(),screen);
-      if (logfile) fputs(mesg.c_str(),logfile);
-    }
-
-    if (*sim_name != "LAMMPS")
-      error->all(FLERR,"Incompatible KIM Simulator Model");
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -441,154 +402,29 @@ void PairKIM::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  if (simulatorModel) {
-    simulatorModel->AddTemplateMap("atom-type-sym-list",atom_type_sym_list);
-    simulatorModel->CloseTemplateMap();
+  // setup mapping between LAMMPS unique elements and KIM species codes
+  if (kim_particle_codes_ok) {
+    delete [] kim_particle_codes;
+    kim_particle_codes = NULL;
+    kim_particle_codes_ok = false;
+  }
+  kim_particle_codes = new int[lmps_num_unique_elements];
+  kim_particle_codes_ok = true;
 
-    int len = strlen(atom_type_sym_list.c_str())+1;
-    char *strbuf = new char[len];
-    char *strword;
-
-    // validate species selection
-
-    int sim_num_species;
-    const std::string *sim_species;
-    simulatorModel->GetNumberOfSupportedSpecies(&sim_num_species);
-    for (int i=0; i < sim_num_species; ++i) {
-      simulatorModel->GetSupportedSpecies(i, &sim_species);
-      strcpy(strbuf,atom_type_sym_list.c_str());
-      strword = strtok(strbuf," \t");
-      while (strword) {
-        if ((strcmp(strword,"NULL") != 0) && (strcmp(sim_species->c_str(),strword) != 0))
-          error->all(FLERR,"Species not supported by KIM Simulator Model");
-        strword = strtok(NULL," \t");
-      }
-    }
-
-    int sim_fields, sim_lines;
-    const std::string *sim_field, *sim_value;
-    simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
-    for (int i=0; i < sim_fields; ++i) {
-      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-      if (*sim_field == "units") {
-        simulatorModel->GetSimulatorFieldLine(i,0,&sim_value);
-        if (*sim_value != update->unit_style)
-          error->all(FLERR,"Incompatible units for KIM Simulator Model");
-        break;
-      }
-    }
-
-    for (int i=0; i < sim_fields; ++i) {
-      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-      if (*sim_field == "model-init") {
-        for (int j=0; j < sim_lines; ++j) {
-          simulatorModel->GetSimulatorFieldLine(i,j,&sim_value);
-          input->one(sim_value->c_str());
-        }
-        break;
-      }
-    }
-
-    int sim_model_idx=-1;
-    for (int i=0; i < sim_fields; ++i) {
-      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-      if (*sim_field == "model-defn") {
-        sim_model_idx = i;
-        break;
-      }
-    }
-
-    if (sim_model_idx < 0)
-      error->all(FLERR,"KIM Simulator Model has no Model definition");
-    else {
-      for (int j=0; j < sim_lines; ++j) {
-        simulatorModel->GetSimulatorFieldLine(sim_model_idx,j,&sim_value);
-        if (utils::strmatch(*sim_value,"^pair_style")) {
-          char *ptr,*sim_style;
-          char *style_args[64];
-          int style_narg = 0;
-          int len = strlen(sim_value->c_str())+1;
-          char *stylecmd = new char[len];
-          strcpy(stylecmd,sim_value->c_str());
-
-          // ignore first word (pair_style)
-          strtok(stylecmd," \t");
-          ptr = sim_style = strtok(NULL," \t");
-          while (ptr && (style_narg < 63)) {
-            ptr = strtok(NULL," \t");
-            if (!ptr) break;
-            style_args[style_narg] = ptr;
-            ++style_narg;
-          }
-
-          int dummy;
-          delete simulator_class;
-          simulator_class = force->new_pair(sim_style,1,dummy);
-          if (simulator_class) {
-            if (comm->me == 0) {
-              std::string mesg("Created KIM Simulator Model pair style: ");
-              mesg += sim_style;
-              mesg += "\n";
-
-              if (screen) fputs(mesg.c_str(),screen);
-              if (logfile) fputs(mesg.c_str(),logfile);
-            }
-          } else {
-            error->all(FLERR,"Failure to create simulator model pair style");
-          }
-          simulator_class->settings(style_narg,style_args);
-          delete[] stylecmd;
-        }
-      }
-      for (int j=0; j < sim_lines; ++j) {
-        simulatorModel->GetSimulatorFieldLine(sim_model_idx,j,&sim_value);
-        if (utils::strmatch(*sim_value,"^pair_coeff")) {
-          char *ptr;
-          char *coeff_args[64];
-          int coeff_narg = 0;
-          int len = strlen(sim_value->c_str())+1;
-          char *coeffcmd = new char[len];
-          strcpy(coeffcmd,sim_value->c_str());
-
-          // ignore first word (pair_coeff)
-          strtok(coeffcmd," \t");
-          ptr = strtok(NULL," \t");
-          while (ptr && (coeff_narg < 63)) {
-            coeff_args[coeff_narg] = ptr;
-            ++coeff_narg;
-            ptr = strtok(NULL," \t");
-          }
-
-          simulator_class->coeff(coeff_narg,coeff_args);
-          delete[] coeffcmd;
-        }
-      }
-    }
-    error->all(FLERR,(simulatorModel->ToString()).c_str());
-  } else {
-    // setup mapping between LAMMPS unique elements and KIM species codes
-    if (kim_particle_codes_ok) {
-      delete [] kim_particle_codes;
-      kim_particle_codes = NULL;
-      kim_particle_codes_ok = false;
-    }
-    kim_particle_codes = new int[lmps_num_unique_elements];
-    kim_particle_codes_ok = true;
-    for(int i = 0; i < lmps_num_unique_elements; i++) {
-      int supported;
-      int code;
-      KIM_Model_GetSpeciesSupportAndCode(
-          pkim,
-          KIM_SpeciesName_FromString(lmps_unique_elements[i]),
-          &supported,
-          &code);
-      if (supported) {
-        kim_particle_codes[i] = code;
-      } else {
-        std::string msg("create_kim_particle_codes: symbol not found: ");
-        msg += lmps_unique_elements[i];
-        error->all(FLERR, msg.c_str());
-      }
+  for(int i = 0; i < lmps_num_unique_elements; i++) {
+    int supported;
+    int code;
+    KIM_Model_GetSpeciesSupportAndCode(
+      pkim,
+      KIM_SpeciesName_FromString(lmps_unique_elements[i]),
+      &supported,
+      &code);
+    if (supported) {
+      kim_particle_codes[i] = code;
+    } else {
+      std::string msg("create_kim_particle_codes: symbol not found: ");
+      msg += lmps_unique_elements[i];
+      error->all(FLERR, msg.c_str());
     }
   }
 }
@@ -800,32 +636,6 @@ double PairKIM::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   simulator model support functions
-------------------------------------------------------------------------- */
-
-void PairKIM::simulator_init()
-{
-  int dummy;
-  // do not try with suffixes for now.
-  simulator_class = force->new_pair("lj/cut",1,dummy);
-  force->store_style(simulator_style,"lj/cut",1);
-  printf("Simulator model init: %s -> %s\n", kim_modelname, simulator_style);
-  char **args = new char*[1];
-  args[0] = (char *)"8.1500";
-  simulator_class->settings(1,args);
-  delete[] args;
-}
-
-void PairKIM::simulator_free()
-{
-  printf("Simulator model free: %s -> %s\n", kim_modelname, simulator_style);
-  delete[] simulator_style;
-  simulator_style = NULL;
-  delete simulator_class;
-  simulator_class = NULL;
-}
-
-/* ----------------------------------------------------------------------
    KIM-specific interface
 ------------------------------------------------------------------------- */
 
@@ -902,26 +712,21 @@ void PairKIM::kim_init()
     kim_modelname,
     &requestedUnitsAccepted,
     &pkim);
+  if (kimerror) error->all(FLERR,"KIM ModelCreate failed");
+  else if (!requestedUnitsAccepted)
+    error->all(FLERR,"KIM Model did not accept the requested unit system");
+
+  // check that the model does not require unknown capabilities
+  kimerror = check_for_routine_compatibility();
+  if (kimerror)
+    error->all(FLERR,
+               "KIM Model requires unknown Routines.  Unable to proceed.");
+
+  kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
   if (kimerror) {
-    kimerror = KIM::SimulatorModel::Create(kim_modelname,&simulatorModel);
-    if (kimerror) error->all(FLERR,"KIM ModelCreate failed");
-    else return;
-  } else {
-    if (!requestedUnitsAccepted)
-      error->all(FLERR,"KIM Model did not accept the requested unit system");
-
-    // check that the model does not require unknown capabilities
-    kimerror = check_for_routine_compatibility();
-    if (kimerror)
-      error->all(FLERR,
-                 "KIM Model requires unknown Routines.  Unable to proceed.");
-
-    kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
-    if (kimerror) {
-      KIM_Model_Destroy(&pkim);
-      error->all(FLERR,"KIM ComputeArgumentsCreate failed");
-    } else kim_init_ok = true;
-  }
+    KIM_Model_Destroy(&pkim);
+    error->all(FLERR,"KIM ComputeArgumentsCreate failed");
+  } else kim_init_ok = true;
 
   // determine KIM Model capabilities (used in this function below)
   set_kim_model_has_flags();

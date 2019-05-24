@@ -5112,6 +5112,7 @@ int VarReader::read_scalar(char *str)
 {
   int n;
   char *ptr;
+  char *r_token;
 
   // read one string from file
 
@@ -5122,7 +5123,8 @@ int VarReader::read_scalar(char *str)
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
       if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
-      if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
+      r_token = str;
+      if (strtok_r(r_token," \t\n\r\f",&r_token) == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;
     }
@@ -5146,6 +5148,7 @@ int VarReader::read_peratom()
   tagint tag;
   char *ptr,*next;
   double value;
+  char *r_token;
 
   // set all per-atom values to 0.0
   // values that appear in file will overwrite this
@@ -5165,7 +5168,8 @@ int VarReader::read_peratom()
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
       if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
-      if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
+      r_token = str;
+      if (strtok_r(r_token," \t\n\r\f",&r_token) == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;
     }

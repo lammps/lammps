@@ -546,6 +546,7 @@ void PairADP::read_file(char *filename)
   int me = comm->me;
   FILE *fp;
   char line[MAXLINE];
+  char *r_token;
 
   if (me == 0) {
     fp = force->open_potential(filename);
@@ -576,9 +577,10 @@ void PairADP::read_file(char *filename)
     error->all(FLERR,"Incorrect element names in ADP potential file");
 
   char **words = new char*[file->nelements+1];
+  r_token = line;
   nwords = 0;
-  strtok(line," \t\n\r\f");
-  while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+  strtok_r(r_token," \t\n\r\f",&r_token);
+  while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
   file->elements = new char*[file->nelements];
   for (int i = 0; i < file->nelements; i++) {
@@ -922,13 +924,15 @@ void PairADP::grab(FILE *fp, char *filename, int n, double *list)
 {
   char *ptr;
   char line[MAXLINE];
+  char *r_token;
 
   int i = 0;
   while (i < n) {
     utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    ptr = strtok(line," \t\n\r\f");
+    r_token = line;
+    ptr = strtok_r(r_token," \t\n\r\f",&r_token);
     list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
+    while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) list[i++] = atof(ptr);
   }
 }
 

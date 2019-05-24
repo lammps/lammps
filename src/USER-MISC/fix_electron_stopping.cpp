@@ -239,6 +239,7 @@ double FixElectronStopping::compute_scalar()
 void FixElectronStopping::read_table(const char *file)
 {
   char line[MAXLINE];
+  char *r_token;
 
   FILE *fp = force->open_potential(file);
   if (fp == NULL) {
@@ -254,7 +255,8 @@ void FixElectronStopping::read_table(const char *file)
     if (fgets(line, MAXLINE, fp) == NULL) break; // end of file
     if (line[0] == '#') continue; // comment
 
-    char *pch = strtok(line, " \t\n\r");
+    r_token = line;
+    char *pch = strtok_r(r_token, " \t\n\r", &r_token);
     if (pch == NULL) continue; // blank line
 
     if (l >= maxlines) grow_table();
@@ -262,7 +264,7 @@ void FixElectronStopping::read_table(const char *file)
     int i = 0;
     for ( ; i < ncol && pch != NULL; i++) {
       elstop_ranges[i][l] = force->numeric(FLERR, pch);
-      pch = strtok(NULL, " \t\n\r");
+      pch = strtok_r(NULL, " \t\n\r", &r_token);
     }
 
     if (i != ncol || pch != NULL) // too short or too long

@@ -440,6 +440,7 @@ void PairMEAMSpline::read_file(const char* filename)
     // Skip first line of file. It's a comment.
     char line[MAXLINE];
     char *ptr;
+    char *r_token;
     utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
 
     // Second line holds potential type ("meam/spline")
@@ -447,12 +448,13 @@ void PairMEAMSpline::read_file(const char* filename)
 
     bool isNewFormat = false;
     utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    ptr = strtok(line, " \t\n\r\f");
+    r_token = line;
+    ptr = strtok_r(r_token, " \t\n\r\f",&r_token);
 
     if (strcmp(ptr, "meam/spline") == 0) {
       isNewFormat = true;
       // parse the rest of the line!
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok_r(NULL," \t\n\r\f",&r_token);
       if (ptr == NULL)
         error->one(FLERR,"Need to include number of atomic species on"
                    " meam/spline line in multi-element potential file");
@@ -462,7 +464,7 @@ void PairMEAMSpline::read_file(const char* filename)
                    " meam/spline line in potential file");
       elements = new char*[nelements];
       for (int i=0; i<nelements; ++i) {
-        ptr = strtok(NULL," \t\n\r\f");
+        ptr = strtok_r(NULL," \t\n\r\f",&r_token);
         if (ptr == NULL)
           error->one(FLERR, "Not enough atomic species in meam/spline"
                      " line of multi-element potential file");
@@ -637,6 +639,7 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
                                            bool isNewFormat)
 {
   char line[MAXLINE];
+  char *r_token;
 
   // If new format, read the spline format.  Should always be "spline3eq" for now.
   if (isNewFormat)
@@ -650,8 +653,9 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
 
   // Parse first derivatives at beginning and end of spline.
   utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
-  double d0 = atof(strtok(line, " \t\n\r\f"));
-  double dN = atof(strtok(NULL, " \t\n\r\f"));
+  r_token = line;
+  double d0 = atof(strtok_r(r_token, " \t\n\r\f",&r_token));
+  double dN = atof(strtok_r(NULL, " \t\n\r\f",&r_token));
   init(n, d0, dN);
 
   // Skip line in old format

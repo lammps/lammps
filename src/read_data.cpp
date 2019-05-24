@@ -2131,10 +2131,12 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
                             int dupflag, int noffset, int offset)
 {
   char *ptr;
+  char *r_token;
   if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
+  r_token = line;
   narg = 0;
-  char *word = strtok(line," \t\n\r\f");
+  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (narg == maxarg) {
       maxarg += DELTA;
@@ -2145,7 +2147,7 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
     arg[narg++] = word;
     if (addstr && narg == 2 && islower(word[0])) arg[narg++] = (char *) addstr;
     if (dupflag && narg == 1) arg[narg++] = word;
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok_r(NULL," \t\n\r\f",&r_token);
   }
 
   // to avoid segfaults on empty lines

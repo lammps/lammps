@@ -374,6 +374,7 @@ void NEBSpin::readfile(char *file, int flag)
   char line[MAXLINE];
   double xx,yy,zz;
   double musp,spx,spy,spz;
+  char *r_token;
 
   if (me_universe == 0 && screen)
     fprintf(screen,"Reading NEBSpin coordinate file(s) ...\n");
@@ -453,9 +454,10 @@ void NEBSpin::readfile(char *file, int flag)
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
 
-      values[0] = strtok(buf," \t\n\r\f");
+      r_token = buf;
+      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
 
       // adjust spin coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas

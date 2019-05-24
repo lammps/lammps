@@ -233,6 +233,7 @@ void DumpCustomMPIIO::init_style()
   char *str;
   if (format_line_user) str = format_line_user;
   else str = format_default;
+  char *r_token;
 
   int n = strlen(str) + 1;
   format = new char[n];
@@ -245,8 +246,9 @@ void DumpCustomMPIIO::init_style()
 
   char *ptr;
   for (int i = 0; i < size_one; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(NULL," \0");
+    r_token = format;
+    if (i == 0) ptr = strtok_r(r_token," \0",&r_token);
+    else ptr = strtok_r(NULL," \0",&r_token);
     if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
 

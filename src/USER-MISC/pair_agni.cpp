@@ -369,6 +369,7 @@ void PairAGNI::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
   char **words = new char*[MAXWORD+1];
+  char *r_token;
 
   while (1) {
     n = 0;
@@ -395,9 +396,10 @@ void PairAGNI::read_file(char *file)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
     --nwords;
 
     if ((nwords == 2) && (strcmp(words[0],"generation") == 0)) {

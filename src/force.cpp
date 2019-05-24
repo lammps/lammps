@@ -1120,14 +1120,16 @@ const char *Force::potential_name(const char *path)
 void Force::potential_date(FILE *fp, const char *name)
 {
   char line[MAXLINE];
+  char *r_token;
   char *ptr = fgets(line,MAXLINE,fp);
   if (ptr == NULL) return;
 
+  r_token = line;
   char *word;
-  word = strtok(line," \t\n\r\f");
+  word = strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (strcmp(word,"DATE:") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       if (word == NULL) return;
       if (screen)
         fprintf(screen,"Reading potential file %s with DATE: %s\n",name,word);
@@ -1135,7 +1137,7 @@ void Force::potential_date(FILE *fp, const char *name)
         fprintf(logfile,"Reading potential file %s with DATE: %s\n",name,word);
       return;
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok_r(NULL," \t\n\r\f",&r_token);
   }
 }
 

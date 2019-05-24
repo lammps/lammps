@@ -368,6 +368,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
   char **words = new char*[params_per_line+1];
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   int nset = 0;
   while (1) {
@@ -414,9 +415,10 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // words = ptrs to all words in line
     // strip single and double quotes from words
 
+    r_token = line;
     nwords = 0;
-    words[nwords++] = strtok(line,"' \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL,"' \t\n\r\f"))) continue;
+    words[nwords++] = strtok_r(r_token,"' \t\n\r\f",&r_token);
+    while ((words[nwords++] = strtok_r(NULL,"' \t\n\r\f",&r_token))) continue;
 
     // skip if element name isn't in element list
 
@@ -550,10 +552,11 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nparams = 0;
-    params[nparams++] = strtok(line,"=(), '\t\n\r\f");
+    params[nparams++] = strtok_r(r_token,"=(), '\t\n\r\f",&r_token);
     while (nparams < maxparams &&
-           (params[nparams++] = strtok(NULL,"=(), '\t\n\r\f")))
+           (params[nparams++] = strtok_r(NULL,"=(), '\t\n\r\f",&r_token)))
       continue;
     nparams--;
 

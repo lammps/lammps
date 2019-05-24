@@ -309,6 +309,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
   double emin = BIGNUM;
+  char *r_token;
 
   // open file
 
@@ -326,7 +327,8 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
+    r_token = line;
+    char *word = strtok_r(r_token," \t\n\r",&r_token);
     if (strcmp(word,keyword) == 0) break;            // matching keyword
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
@@ -484,28 +486,30 @@ void BondTable::compute_table(Table *tb)
 
 void BondTable::param_extract(Table *tb, char *line)
 {
+  char *r_token;
   tb->ninput = 0;
   tb->fpflag = 0;
   tb->r0 = 0.0;
+  r_token = line;
 
-  char *word = strtok(line," \t\n\r\f");
+  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->ninput = atoi(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fphi = atof(word);
     } else if (strcmp(word,"EQ") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->r0 = atof(word);
     } else {
       error->one(FLERR,"Invalid keyword in bond table parameters");
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok_r(NULL," \t\n\r\f",&r_token);
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Bond table parameters did not set N");

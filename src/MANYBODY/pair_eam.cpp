@@ -788,13 +788,15 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 {
   char *ptr;
   char line[MAXLINE];
+  char *r_token;
 
   int i = 0;
   while (i < n) {
     utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
-    ptr = strtok(line," \t\n\r\f");
+    r_token = line;
+    ptr = strtok_r(r_token," \t\n\r\f",&r_token);
     list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
+    while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) list[i++] = atof(ptr);
   }
 }
 

@@ -379,6 +379,7 @@ void NEB::readfile(char *file, int flag)
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
   double xx,yy,zz,delx,dely,delz;
+  char *r_token;
 
   if (me_universe == 0 && screen)
     fprintf(screen,"Reading NEB coordinate file(s) ...\n");
@@ -458,10 +459,11 @@ void NEB::readfile(char *file, int flag)
 
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      r_token = buf;
 
-      values[0] = strtok(buf," \t\n\r\f");
+      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
 
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas

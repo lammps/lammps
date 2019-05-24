@@ -31,16 +31,18 @@ using namespace LAMMPS_NS;
 
 static char *find_section(FILE *fp, const char *name)
 {
+  char *r_token;
   char linebuf[BUFLEN];
   char *n,*p,*t,*r;
 
   while ((p = fgets(linebuf,BUFLEN,fp))) {
-    t = strtok(p," \t\n\r\f");
+    r_token = p;
+    t = strtok_r(r_token," \t\n\r\f",&r_token);
     if ((t != NULL) && *t == '[') {
-      t = strtok(NULL," \t\n\r\f");
+      t = strtok_r(NULL," \t\n\r\f",&r_token);
       if (t != NULL) {
         n = t;
-        t = strtok(NULL," \t\n\r\f");
+        t = strtok_r(NULL," \t\n\r\f",&r_token);
         if ((t != NULL) && *t == ']') {
           if ((name == NULL) || strcmp(name,n) == 0) {
             int l = strlen(n);
@@ -57,6 +59,7 @@ static char *find_section(FILE *fp, const char *name)
 
 static tagint *read_section(FILE *fp, bigint &num)
 {
+  char *r_token;
   char linebuf[BUFLEN];
   char *p,*t;
   tagint *tagbuf;
@@ -67,7 +70,8 @@ static tagint *read_section(FILE *fp, bigint &num)
   tagbuf = (tagint *)malloc(sizeof(tagint)*nmax);
 
   while ((p = fgets(linebuf,BUFLEN,fp))) {
-    t = strtok(p," \t\n\r\f");
+    r_token = p;
+    t = strtok_r(r_token," \t\n\r\f",&r_token);
     while (t != NULL) {
       // start of a new section. we are done here.
       if (*t == '[') return tagbuf;
@@ -77,7 +81,7 @@ static tagint *read_section(FILE *fp, bigint &num)
         nmax += DELTA;
         tagbuf = (tagint *)realloc(tagbuf,sizeof(tagint)*nmax);
       }
-      t = strtok(NULL," \t\n\r\f");
+      t = strtok_r(NULL," \t\n\r\f",&r_token);
     }
   }
   return tagbuf;

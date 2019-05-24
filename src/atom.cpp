@@ -777,7 +777,7 @@ void Atom::bonus_check()
 
 /* ----------------------------------------------------------------------
    count and return words in a single line
-   make copy of line before using strtok so as not to change line
+   make copy of line before using strtok_r so as not to change line
    trim anything from '#' onward
 ------------------------------------------------------------------------- */
 
@@ -785,18 +785,20 @@ int Atom::count_words(const char *line)
 {
   int n = strlen(line) + 1;
   char *copy;
+  char *r_token;
   memory->create(copy,n,"atom:copy");
   strcpy(copy,line);
 
   char *ptr;
   if ((ptr = strchr(copy,'#'))) *ptr = '\0';
+  r_token = copy;
 
-  if (strtok(copy," \t\n\r\f") == NULL) {
+  if (strtok_r(r_token," \t\n\r\f",&r_token) == NULL) {
     memory->destroy(copy);
     return 0;
   }
   n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
+  while (strtok_r(NULL," \t\n\r\f",&r_token)) n++;
 
   memory->destroy(copy);
   return n;
@@ -804,7 +806,7 @@ int Atom::count_words(const char *line)
 
 /* ----------------------------------------------------------------------
    count and return words in a single line using provided copy buf
-   make copy of line before using strtok so as not to change line
+   make copy of line before using strtok_r so as not to change line
    trim anything from '#' onward
 ------------------------------------------------------------------------- */
 
@@ -812,15 +814,17 @@ int Atom::count_words(const char *line, char *copy)
 {
   strcpy(copy,line);
 
+  char *r_token;
   char *ptr;
   if ((ptr = strchr(copy,'#'))) *ptr = '\0';
+  r_token = copy;
 
-  if (strtok(copy," \t\n\r\f") == NULL) {
+  if (strtok_r(r_token," \t\n\r\f",&r_token) == NULL) {
     memory->destroy(copy);
     return 0;
   }
   int n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
+  while (strtok_r(NULL," \t\n\r\f",&r_token)) n++;
 
   return n;
 }
@@ -880,6 +884,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double xdata[3],lamda[3];
   double *coord;
   char *next;
+  char *r_token;
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -961,12 +966,13 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    r_token = buf;
 
-    values[0] = strtok(buf," \t\n\r\f");
+    values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
     if (values[0] == NULL)
       error->all(FLERR,"Incorrect atom format in data file");
     for (m = 1; m < nwords; m++) {
-      values[m] = strtok(NULL," \t\n\r\f");
+      values[m] = strtok_r(NULL," \t\n\r\f",&r_token);
       if (values[m] == NULL)
         error->all(FLERR,"Incorrect atom format in data file");
     }
@@ -1023,6 +1029,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   int j,m;
   tagint tagdata;
   char *next;
+  char *r_token;
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -1040,10 +1047,11 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    r_token = buf;
 
-    values[0] = strtok(buf," \t\n\r\f");
+    values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
     for (j = 1; j < nwords; j++)
-      values[j] = strtok(NULL," \t\n\r\f");
+      values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1375,6 +1383,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
   int j,m,tagdata;
   char *next;
+  char *r_token;
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -1392,10 +1401,11 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    r_token = buf;
 
-    values[0] = strtok(buf," \t\n\r\f");
+    values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
     for (j = 1; j < nwords; j++)
-      values[j] = strtok(NULL," \t\n\r\f");
+      values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1423,6 +1433,7 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
                        tagint id_offset)
 {
   int j,m,nvalues,tagdata,ninteger,ndouble;
+  char *r_token;
 
   int maxint = 0;
   int maxdouble = 0;
@@ -1434,14 +1445,15 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
-    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
+    r_token = buf;
+    if (i == 0) tagdata = ATOTAGINT(strtok_r(r_token," \t\n\r\f",&r_token)) + id_offset;
+    else tagdata = ATOTAGINT(strtok_r(NULL," \t\n\r\f",&r_token)) + id_offset;
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
 
-    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    ninteger = force->inumeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
+    ndouble = force->inumeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1456,16 +1468,16 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
       }
 
       for (j = 0; j < ninteger; j++)
-        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = force->inumeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
       for (j = 0; j < ndouble; j++)
-        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+        dvalues[j] = force->numeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
-        strtok(NULL," \t\n\r\f");
+        strtok_r(NULL," \t\n\r\f",&r_token);
     }
   }
 

@@ -2391,6 +2391,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
+  char *r_token;
 
   // create local hash with key/value pairs
   // key = mol ID of bodies my atoms own
@@ -2451,10 +2452,11 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      r_token = buf;
 
-      values[0] = strtok(buf," \t\n\r\f");
+      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
 
       id = ATOTAGINT(values[0]);
       if (id <= 0 || id > maxmol)

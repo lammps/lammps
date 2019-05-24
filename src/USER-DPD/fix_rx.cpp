@@ -283,6 +283,7 @@ void FixRX::post_constructor()
   char line[MAXLINE],*ptr;
   int eof = 0;
   char * word;
+  char *r_token;
 
   while (1) {
     if (comm->me == 0) {
@@ -305,10 +306,11 @@ void FixRX::post_constructor()
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    word = strtok(line," \t\n\r\f");
+    word = strtok_r(r_token," \t\n\r\f",&r_token);
     while (word != NULL){
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok_r(NULL, " \t\n\r\f",&r_token);
       match=false;
       for(int jj=0;jj<nUniqueSpecies;jj++){
         if(strcmp(word,tmpspecies[jj])==0){
@@ -324,9 +326,9 @@ void FixRX::post_constructor()
         tmpmaxstrlen = MAX(tmpmaxstrlen,strlen(word));
         nUniqueSpecies++;
       }
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok_r(NULL, " \t\n\r\f",&r_token);
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0) break;
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok_r(NULL, " \t\n\r\f",&r_token);
     }
   }
   atom->nspecies_dpd = nUniqueSpecies;
@@ -871,6 +873,7 @@ void FixRX::read_file(char *file)
   int n,nwords,ispecies;
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   while (1) {
     if (comm->me == 0) {
@@ -947,11 +950,12 @@ void FixRX::read_file(char *file)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    word = strtok(line," \t\n\r\f");
+    word = strtok_r(r_token," \t\n\r\f",&r_token);
     while (word != NULL){
       tmpStoich = atof(word);
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok_r(NULL, " \t\n\r\f",&r_token);
       for (ispecies = 0; ispecies < nspecies; ispecies++){
         if (strcmp(word,&atom->dname[ispecies][0]) == 0){
           stoich[nreactions][ispecies] += sign*tmpStoich;
@@ -968,22 +972,22 @@ void FixRX::read_file(char *file)
         }
         error->all(FLERR,"Illegal fix rx command");
       }
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok_r(NULL, " \t\n\r\f",&r_token);
       if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
       if(strcmp(word,"=") == 0) sign = 1.0;
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
         if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
         Arr[nreactions] = atof(word);
-        word = strtok(NULL, " \t\n\r\f");
+        word = strtok_r(NULL, " \t\n\r\f",&r_token);
         if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
         nArr[nreactions]  = atof(word);
-        word = strtok(NULL, " \t\n\r\f");
+        word = strtok_r(NULL, " \t\n\r\f",&r_token);
         if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
         Ea[nreactions]  = atof(word);
         sign = -1.0;
         break;
       }
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok_r(NULL, " \t\n\r\f",&r_token);
     }
     nreactions++;
   }

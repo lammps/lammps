@@ -165,6 +165,7 @@ void KimInteractions::do_setup(int narg, char **arg)
       int len = strlen(atom_type_sym_list.c_str())+1;
       char *strbuf = new char[len];
       char *strword;
+      char *r_token;
 
       // validate species selection
 
@@ -174,7 +175,8 @@ void KimInteractions::do_setup(int narg, char **arg)
       KIM_SimulatorModel_GetNumberOfSupportedSpecies(
           simulatorModel,&sim_num_species);
       strcpy(strbuf,atom_type_sym_list.c_str());
-      strword = strtok(strbuf," \t");
+      r_token = strbuf;
+      strword = strtok_r(r_token," \t",&r_token);
       while (strword) {
         species_is_supported = false;
         if (strcmp(strword,"NULL") == 0) continue;
@@ -189,7 +191,7 @@ void KimInteractions::do_setup(int narg, char **arg)
           msg += "' is not supported by this KIM Simulator Model";
           error->all(FLERR,msg.c_str());
         }
-        strword = strtok(NULL," \t");
+        strword = strtok_r(NULL," \t",&r_token);
       }
       delete[] strbuf;
     }

@@ -119,6 +119,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
                                  int scaleflag, int wrapflag, int &fieldflag,
                                  int &xflag, int &yflag, int &zflag)
 {
+  char *r_token;
   bigint natoms;
   int rv;
 
@@ -159,14 +160,15 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
   char *labelline = &line[strlen("ITEM: ATOMS ")];
 
   nwords = atom->count_words(labelline);
+  r_token = labelline;
   char **labels = new char*[nwords];
-  labels[0] = strtok(labelline," \t\n\r\f");
+  labels[0] = strtok_r(r_token," \t\n\r\f",&r_token);
   if (labels[0] == NULL) {
     delete[] labels;
     return 1;
   }
   for (int m = 1; m < nwords; m++) {
-    labels[m] = strtok(NULL," \t\n\r\f");
+    labels[m] = strtok_r(NULL," \t\n\r\f",&r_token);
     if (labels[m] == NULL) {
       delete[] labels;
       return 1;
@@ -318,16 +320,18 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 {
   int i,m;
   char *eof;
+  char *r_token;
 
   for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 
     // tokenize the line
+    r_token = line;
 
-    words[0] = strtok(line," \t\n\r\f");
+    words[0] = strtok_r(r_token," \t\n\r\f",&r_token);
     for (m = 1; m < nwords; m++)
-      words[m] = strtok(NULL," \t\n\r\f");
+      words[m] = strtok_r(NULL," \t\n\r\f",&r_token);
 
     // convert selected fields to floats
 

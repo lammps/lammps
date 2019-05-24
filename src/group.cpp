@@ -92,6 +92,7 @@ Group::~Group()
 void Group::assign(int narg, char **arg)
 {
   int i;
+  char *r_token;
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Group command before simulation box is defined");
@@ -313,11 +314,12 @@ void Group::assign(int narg, char **arg)
       for (int iarg = 2; iarg < narg; iarg++) {
         delta = 1;
         if (strchr(arg[iarg],':')) {
-          ptr = strtok(arg[iarg],":");
+          r_token = arg[iarg];
+          ptr = strtok_r(r_token,":",&r_token);
           start = force->tnumeric(FLERR,ptr);
-          ptr = strtok(NULL,":");
+          ptr = strtok_r(NULL,":",&r_token);
           stop = force->tnumeric(FLERR,ptr);
-          ptr = strtok(NULL,":");
+          ptr = strtok_r(NULL,":",&r_token);
           if (ptr) delta = force->tnumeric(FLERR,ptr);
         } else {
           start = stop = force->tnumeric(FLERR,arg[iarg]);

@@ -498,6 +498,7 @@ void PairEAMCD::read_h_coeff(char *filename)
 
     FILE *fptr;
     char line[MAXLINE];
+    char *r_token;
     char nextline[MAXLINE];
     fptr = force->open_potential(filename);
     if (fptr == NULL) {
@@ -512,12 +513,13 @@ void PairEAMCD::read_h_coeff(char *filename)
     while(fgets(nextline, MAXLINE, fptr) != NULL) {
       strcpy(line, nextline);
     }
-    char* ptr = strtok(line, " \t\n\r\f");
+    r_token = line;
+    char* ptr = strtok_r(r_token, " \t\n\r\f",&r_token);
     int degree = atoi(ptr);
     nhcoeff = degree+1;
     hcoeff = new double[nhcoeff];
     int i = 0;
-    while((ptr = strtok(NULL," \t\n\r\f")) != NULL && i < nhcoeff) {
+    while((ptr = strtok_r(NULL," \t\n\r\f",&r_token)) != NULL && i < nhcoeff) {
       hcoeff[i++] = atof(ptr);
     }
     if (i != nhcoeff || nhcoeff < 1)

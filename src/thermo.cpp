@@ -205,6 +205,7 @@ Thermo::~Thermo()
 void Thermo::init()
 {
   int i,n;
+  char *r_token;
 
   // set normvalue to default setting unless user has specified it
 
@@ -237,8 +238,9 @@ void Thermo::init()
     if (lineflag == MULTILINE && i % 3 == 0) strcat(format[i],"\n");
 
     if (format_line) {
-      if (i == 0) format_line_ptr = strtok(format_line," \0");
-      else format_line_ptr = strtok(NULL," \0");
+      r_token = format_line;
+      if (i == 0) format_line_ptr = strtok_r(r_token," \0",&r_token);
+      else format_line_ptr = strtok_r(NULL," \0",&r_token);
     }
 
     if (format_column_user[i]) ptr = format_column_user[i];
@@ -718,10 +720,12 @@ void Thermo::deallocate()
 void Thermo::parse_fields(char *str)
 {
   nfield = 0;
+  char *r_token;
 
   // customize a new keyword by adding to if statement
+  r_token = str;
 
-  char *word = strtok(str," \0");
+  char *word = strtok_r(r_token," \0",&r_token);
   while (word) {
 
     if (strcmp(word,"step") == 0) {
@@ -994,7 +998,7 @@ void Thermo::parse_fields(char *str)
 
     } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
-    word = strtok(NULL," \0");
+    word = strtok_r(NULL," \0",&r_token);
   }
 }
 

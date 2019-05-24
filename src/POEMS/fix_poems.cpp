@@ -960,18 +960,20 @@ void FixPOEMS::readfile(char *file)
   char *ptr;
   int nlocal = atom->nlocal;
   int i,id,nlen;
+  char *r_token;
 
   while (1) {
     if (me == 0) nlen = readline(fp,&line,&maxline);
     MPI_Bcast(&nlen,1,MPI_INT,0,world);
     if (nlen == 0) break;
     MPI_Bcast(line,nlen,MPI_CHAR,0,world);
+    r_token = line;
 
-    ptr = strtok(line," ,\t\n\0");
+    ptr = strtok_r(r_token," ,\t\n\0",&r_token);
     if (ptr == NULL || ptr[0] == '#') continue;
-    ptr = strtok(NULL," ,\t\n\0");
+    ptr = strtok_r(NULL," ,\t\n\0",&r_token);
 
-    while ((ptr = strtok(NULL," ,\t\n\0"))) {
+    while ((ptr = strtok_r(NULL," ,\t\n\0",&r_token))) {
       id = atoi(ptr);
       i = atom->map(id);
       if (i < 0 || i >= nlocal) continue;

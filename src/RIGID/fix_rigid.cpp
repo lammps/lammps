@@ -2237,6 +2237,7 @@ void FixRigid::readfile(int which, double *vec,
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
+  char *r_token;
 
   if (me == 0) {
     fp = fopen(inpfile,"r");
@@ -2286,10 +2287,11 @@ void FixRigid::readfile(int which, double *vec,
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      r_token = buf;
 
-      values[0] = strtok(buf," \t\n\r\f");
+      values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
 
       id = atoi(values[0]);
       if (rstyle == MOLECULE) {

@@ -602,6 +602,7 @@ void PairExTeP::read_file(char *file)
   int n,nwords,ielement,jelement,kelement;
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   while (1) {
     if (comm->me == 0) {
@@ -646,9 +647,10 @@ void PairExTeP::read_file(char *file)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -749,10 +751,11 @@ void PairExTeP::read_file(char *file)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
+    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
     while ((nwords < params_per_line)
-           && (words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+           && (words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     // skip line if it is a leftover from the previous section,
     // which can be identified by having 3 elements (instead of 2)

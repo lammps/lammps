@@ -3087,11 +3087,13 @@ void FixBondReact::skip_lines(int n, char *line)
 int FixBondReact::parse(char *line, char **words, int max)
 {
   char *ptr;
+  char *r_token;
 
+  r_token = line;
   int nwords = 0;
-  words[nwords++] = strtok(line," \t\n\r\f");
+  words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
 
-  while ((ptr = strtok(NULL," \t\n\r\f"))) {
+  while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) {
     if (nwords < max) words[nwords] = ptr;
     nwords++;
   }

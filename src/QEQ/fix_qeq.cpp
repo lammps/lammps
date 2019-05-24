@@ -719,6 +719,7 @@ void FixQEq::read_file(char *file)
 
   int n,nwords,eof,nlo,nhi;
   char line[MAXLINE],*ptr;
+  char *r_token;
 
   eof = 0;
 
@@ -747,10 +748,11 @@ void FixQEq::read_file(char *file)
       error->all(FLERR,"Invalid fix qeq parameter file");
 
     // words = ptrs to first 6 words in line
+    r_token = line;
 
-    for (n=0, words[n] = strtok(line," \t\n\r\f");
+    for (n=0, words[n] = strtok_r(r_token," \t\n\r\f",&r_token);
          n < 6;
-         words[++n] = strtok(NULL," \t\n\r\f"));
+         words[++n] = strtok_r(NULL," \t\n\r\f",&r_token));
 
     force->bounds(FLERR,words[0],ntypes,nlo,nhi);
     for (n=nlo; n <=nhi; ++n) {

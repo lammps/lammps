@@ -194,17 +194,19 @@ int FixSMDWallSurface::count_words(const char *line) {
         char *copy;
         memory->create(copy, n, "atom:copy");
         strcpy(copy, line);
+        char *r_token;
 
         char *ptr;
         if ((ptr = strchr(copy, '#')))
                 *ptr = '\0';
+        r_token = copy;
 
-        if (strtok(copy, " \t\n\r\f") == NULL) {
+        if (strtok_r(r_token, " \t\n\r\f",&r_token) == NULL) {
                 memory->destroy(copy);
                 return 0;
         }
         n = 1;
-        while (strtok(NULL, " \t\n\r\f"))
+        while (strtok_r(NULL, " \t\n\r\f",&r_token))
                 n++;
 
         memory->destroy(copy);
@@ -259,6 +261,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
   char *retpointer;
   char **values;
   int nwords;
+  char *r_token;
 
   // read STL solid name
   retpointer = fgets(line, sizeof(line), fp);
@@ -271,12 +274,13 @@ void FixSMDWallSurface::read_triangles(int pass) {
     error->one(FLERR,"first line of file is incorrect");
   }
 
+//      r_token = line;
 //      values = new char*[nwords];
-//      values[0] = strtok(line, " \t\n\r\f");
+//      values[0] = strtok_r(r_token, " \t\n\r\f",&r_token);
 //      if (values[0] == NULL)
 //              error->all(FLERR, "Incorrect atom format in data file");
 //      for (m = 1; m < nwords; m++) {
-//              values[m] = strtok(NULL, " \t\n\r\f");
+//              values[m] = strtok_r(NULL, " \t\n\r\f",&r_token);
 //              if (values[m] == NULL)
 //                      error->all(FLERR, "Incorrect atom format in data file");
 //      }
@@ -301,11 +305,12 @@ void FixSMDWallSurface::read_triangles(int pass) {
     }
 
     values = new char*[nwords];
-    values[0] = strtok(line, " \t\n\r\f");
+    r_token = line;
+    values[0] = strtok_r(r_token, " \t\n\r\f", &r_token);
     if (values[0] == NULL)
       error->all(FLERR, "Incorrect atom format in data file");
     for (m = 1; m < nwords; m++) {
-      values[m] = strtok(NULL, " \t\n\r\f");
+      values[m] = strtok_r(NULL, " \t\n\r\f", &r_token);
       if (values[m] == NULL)
         error->all(FLERR, "Incorrect atom format in data file");
     }
@@ -340,11 +345,12 @@ void FixSMDWallSurface::read_triangles(int pass) {
       }
 
       values = new char*[nwords];
-      values[0] = strtok(line, " \t\n\r\f");
+      r_token = line;
+      values[0] = strtok_r(r_token, " \t\n\r\f", &r_token);
       if (values[0] == NULL)
         error->all(FLERR,"Incorrect vertex line");
       for (m = 1; m < nwords; m++) {
-        values[m] = strtok(NULL, " \t\n\r\f");
+        values[m] = strtok_r(NULL, " \t\n\r\f", &r_token);
         if (values[m] == NULL)
           error->all(FLERR, "Incorrect vertex line");
       }

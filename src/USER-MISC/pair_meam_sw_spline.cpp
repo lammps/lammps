@@ -599,6 +599,7 @@ double PairMEAMSWSpline::memory_usage()
 void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
 {
         char line[MAXLINE];
+        char *r_token;
 
         // Parse number of spline knots.
         utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
@@ -608,8 +609,9 @@ void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
 
         // Parse first derivatives at beginning and end of spline.
         utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
-        double d0 = atof(strtok(line, " \t\n\r\f"));
-        double dN = atof(strtok(NULL, " \t\n\r\f"));
+        r_token = line;
+        double d0 = atof(strtok_r(r_token, " \t\n\r\f",&r_token));
+        double dN = atof(strtok_r(NULL, " \t\n\r\f",&r_token));
         init(n, d0, dN);
 
         // Skip line.

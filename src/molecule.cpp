@@ -1329,6 +1329,7 @@ void Molecule::shaketype_read(char *line)
 void Molecule::body(int flag, int pflag, char *line)
 {
   int i,ncount;
+  char *r_token;
 
   int nparam = nibody;
   if (pflag) nparam = ndbody;
@@ -1345,15 +1346,17 @@ void Molecule::body(int flag, int pflag, char *line)
 
     if (flag) {
       if (pflag == 0) {
-        ibodyparams[nword++] = force->inumeric(FLERR,strtok(line," \t\n\r\f"));
+        r_token = line;
+        ibodyparams[nword++] = force->inumeric(FLERR,strtok_r(r_token," \t\n\r\f",&r_token));
         for (i = 1; i < ncount; i++)
           ibodyparams[nword++] =
-            force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+            force->inumeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
       } else {
-        dbodyparams[nword++] = force->numeric(FLERR,strtok(line," \t\n\r\f"));
+        r_token = line;
+        dbodyparams[nword++] = force->numeric(FLERR,strtok_r(r_token," \t\n\r\f",&r_token));
         for (i = 1; i < ncount; i++)
           dbodyparams[nword++] =
-            force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+            force->numeric(FLERR,strtok_r(NULL," \t\n\r\f",&r_token));
       }
     } else nword += ncount;
   }
@@ -1719,11 +1722,13 @@ void Molecule::skip_lines(int n, char *line)
 int Molecule::parse(char *line, char **words, int max)
 {
   char *ptr;
+  char *r_token;
+  r_token = line;
 
   int nwords = 0;
-  words[nwords++] = strtok(line," \t\n\r\f");
+  words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
 
-  while ((ptr = strtok(NULL," \t\n\r\f"))) {
+  while ((ptr = strtok_r(NULL," \t\n\r\f",&r_token))) {
     if (nwords < max) words[nwords] = ptr;
     nwords++;
   }

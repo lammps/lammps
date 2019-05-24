@@ -357,6 +357,7 @@ double PairTable::init_one(int i, int j)
 void PairTable::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
+  char *r_token;
 
   // open file
 
@@ -374,8 +375,9 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    r_token = line;
+    char *word = strtok_r(r_token," \t\n\r",&r_token);
+    if (strcmp(word,keyword) == 0) break;           // matching keyword
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
@@ -569,35 +571,37 @@ void PairTable::spline_table(Table *tb)
 
 void PairTable::param_extract(Table *tb, char *line)
 {
+  char *r_token;
   tb->ninput = 0;
   tb->rflag = NONE;
   tb->fpflag = 0;
+  r_token = line;
 
-  char *word = strtok(line," \t\n\r\f");
+  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->ninput = atoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0 ||
                strcmp(word,"BITMAP") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
       else if (strcmp(word,"BITMAP") == 0) tb->rflag = BMP;
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->rlo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->rhi = atof(word);
     } else if (strcmp(word,"FPRIME") == 0) {
       tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fphi = atof(word);
     } else {
       printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok_r(NULL," \t\n\r\f",&r_token);
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");

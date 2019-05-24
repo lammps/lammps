@@ -507,6 +507,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   int n;
   int nwords = 0;
@@ -535,10 +536,11 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   // strip single and double quotes from words
 
   char* words[MAXWORD];
+  r_token = line;
   int iword = 0;
-  words[iword] = strtok(line,"' \t\n\r\f");
+  words[iword] = strtok_r(r_token,"' \t\n\r\f",&r_token);
   iword = 1;
-  words[iword] = strtok(NULL,"' \t\n\r\f");
+  words[iword] = strtok_r(NULL,"' \t\n\r\f",&r_token);
 
   nelements = atoi(words[0]);
   ncoeffall = atoi(words[1]);
@@ -571,12 +573,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     if (nwords != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
+    r_token = line;
     iword = 0;
-    words[iword] = strtok(line,"' \t\n\r\f");
+    words[iword] = strtok_r(r_token,"' \t\n\r\f",&r_token);
     iword = 1;
-    words[iword] = strtok(NULL,"' \t\n\r\f");
+    words[iword] = strtok_r(NULL,"' \t\n\r\f",&r_token);
     iword = 2;
-    words[iword] = strtok(NULL,"' \t\n\r\f");
+    words[iword] = strtok_r(NULL,"' \t\n\r\f",&r_token);
 
     char* elemtmp = words[0];
     int n = strlen(elemtmp) + 1;
@@ -613,8 +616,9 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (nwords != 1)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
+      r_token = line;
       iword = 0;
-      words[iword] = strtok(line,"' \t\n\r\f");
+      words[iword] = strtok_r(r_token,"' \t\n\r\f",&r_token);
 
       coeffelem[ielem][icoeff] = atof(words[0]);
 
@@ -673,9 +677,10 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
+    r_token = line;
 
-    char* keywd = strtok(line,"' \t\n\r\f");
-    char* keyval = strtok(NULL,"' \t\n\r\f");
+    char* keywd = strtok_r(r_token,"' \t\n\r\f",&r_token);
+    char* keyval = strtok_r(NULL,"' \t\n\r\f",&r_token);
 
     if (comm->me == 0) {
       if (screen) fprintf(screen,"SNAP keyword %s %s \n",keywd,keyval);

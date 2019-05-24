@@ -382,6 +382,7 @@ void AngleTable::free_table(Table *tb)
 void AngleTable::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
+  char *r_token;
 
   // open file
 
@@ -399,8 +400,9 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;            // matching keyword
+    r_token = line;
+    char *word = strtok_r(r_token," \t\n\r",&r_token);
+    if (strcmp(word,keyword) == 0) break;           // matching keyword
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
     param_extract(tb,line);
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
@@ -517,30 +519,32 @@ void AngleTable::compute_table(Table *tb)
 
 void AngleTable::param_extract(Table *tb, char *line)
 {
+  char *r_token;
   tb->ninput = 0;
   tb->fpflag = 0;
   tb->theta0 = MY_PI;
+  r_token = line;
 
-  char *word = strtok(line," \t\n\r\f");
+  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->ninput = atoi(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->fphi = atof(word);
       tb->fplo *= (180.0/MY_PI)*(180.0/MY_PI);
       tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
     } else if (strcmp(word,"EQ") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->theta0 = atof(word)/180.0*MY_PI;
     } else {
       error->one(FLERR,"Invalid keyword in angle table parameters");
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok_r(NULL," \t\n\r\f",&r_token);
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Angle table parameters did not set N");

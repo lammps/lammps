@@ -122,6 +122,7 @@ void PairEAMAlloy::read_file(char *filename)
   int me = comm->me;
   FILE *fptr;
   char line[MAXLINE];
+  char *r_token;
 
   if (me == 0) {
     fptr = force->open_potential(filename);
@@ -152,9 +153,10 @@ void PairEAMAlloy::read_file(char *filename)
     error->all(FLERR,"Incorrect element names in EAM potential file");
 
   char **words = new char*[file->nelements+1];
+  r_token = line;
   nwords = 0;
-  strtok(line," \t\n\r\f");
-  while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+  strtok_r(r_token," \t\n\r\f",&r_token);
+  while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
   file->elements = new char*[file->nelements];
   for (int i = 0; i < file->nelements; i++) {

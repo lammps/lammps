@@ -236,6 +236,7 @@ void PairDRIP::read_file(char *filename)
   int i,j,n,m,nwords,ielement,jelement;
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   while (1) {
     if (comm->me == 0) {
@@ -281,8 +282,9 @@ void PairDRIP::read_file(char *filename)
     // words = ptrs to all words in line
 
     nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    r_token = line;
+    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     // ielement,jelement = 1st args
     // if these 2 args are in element list, then parse this line

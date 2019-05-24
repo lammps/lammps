@@ -1142,6 +1142,7 @@ void Input::next_command()
 void Input::partition()
 {
   if (narg < 3) error->all(FLERR,"Illegal partition command");
+  char *r_token;
 
   int yesflag = 0;
   if (strcmp(arg[0],"yes") == 0) yesflag = 1;
@@ -1151,13 +1152,14 @@ void Input::partition()
   int ilo,ihi;
   force->bounds(FLERR,arg[1],universe->nworlds,ilo,ihi);
 
-  // copy original line to copy, since will use strtok() on it
+  // copy original line to copy, since will use strtok_r() on it
   // ptr = start of 4th word
 
   strcpy(copy,line);
-  char *ptr = strtok(copy," \t\n\r\f");
-  ptr = strtok(NULL," \t\n\r\f");
-  ptr = strtok(NULL," \t\n\r\f");
+  r_token = copy;
+  char *ptr = strtok_r(r_token," \t\n\r\f",&r_token);
+  ptr = strtok_r(NULL," \t\n\r\f",&r_token);
+  ptr = strtok_r(NULL," \t\n\r\f",&r_token);
   ptr += strlen(ptr) + 1;
   ptr += strspn(ptr," \t\n\r\f");
 

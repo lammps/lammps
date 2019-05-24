@@ -233,6 +233,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   // read each line of the file, skipping blank lines or leading '#'
 
   char line[MAXLINE],*ptr;
+  char *r_token;
   int n,nwords,ndone=0,eof=0;
   while (1) {
     if (comm->me == 0) {
@@ -253,11 +254,12 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
+    r_token = line;
 
-    ptr = strtok(line," \t\n\r\f");
+    ptr = strtok_r(r_token," \t\n\r\f",&r_token);
     do {
       A[ndone] = atof(ptr);
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok_r(NULL," \t\n\r\f",&r_token);
       ndone++;
     } while ((ptr != NULL) && (ndone < ns1sq));
   }
@@ -325,11 +327,12 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
       nwords = atom->count_words(line);
       if (nwords == 0) continue;
+      r_token = line;
 
-      ptr = strtok(line," \t\n\r\f");
+      ptr = strtok_r(r_token," \t\n\r\f",&r_token);
       do {
         C[ndone] = cfac*atof(ptr);
-        ptr = strtok(NULL," \t\n\r\f");
+        ptr = strtok_r(NULL," \t\n\r\f",&r_token);
         ndone++;
       } while ((ptr != NULL) && (ndone < ns1sq));
     }

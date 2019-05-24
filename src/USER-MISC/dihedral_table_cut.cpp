@@ -1075,6 +1075,7 @@ static const int MAXLINE=2048;
 void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
+  char *r_token;
 
   // open file
 
@@ -1094,7 +1095,8 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
     }
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
+    r_token = line;
+    char *word = strtok_r(r_token," \t\n\r",&r_token);
     if (strcmp(word,keyword) == 0) break;           // matching keyword
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,line);
@@ -1336,15 +1338,17 @@ void DihedralTableCut::compute_table(Table *tb)
 
 void DihedralTableCut::param_extract(Table *tb, char *line)
 {
+  char *r_token;
   //tb->theta0 = 180.0; <- equilibrium angles not supported
   tb->ninput = 0;
   tb->f_unspecified = false; //default
   tb->use_degrees   = true;  //default
+  r_token = line;
 
-  char *word = strtok(line," \t\n\r\f");
+  char *word = strtok_r(r_token," \t\n\r\f",&r_token);
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       tb->ninput = atoi(word);
     }
     else if (strcmp(word,"NOF") == 0) {
@@ -1357,20 +1361,20 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
       tb->use_degrees = false;
     }
     else if (strcmp(word,"CHECKU") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       memory->sfree(checkU_fname);
       memory->create(checkU_fname,strlen(word)+1,"dihedral_table:checkU");
       strcpy(checkU_fname, word);
     }
     else if (strcmp(word,"CHECKF") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok_r(NULL," \t\n\r\f",&r_token);
       memory->sfree(checkF_fname);
       memory->create(checkF_fname,strlen(word)+1,"dihedral_table:checkF");
       strcpy(checkF_fname, word);
     }
     // COMMENTING OUT:  equilibrium angles are not supported
     //else if (strcmp(word,"EQ") == 0) {
-    //  word = strtok(NULL," \t\n\r\f");
+    //  word = strtok_r(NULL," \t\n\r\f",&r_token);
     //  tb->theta0 = atof(word);
     //}
     else {
@@ -1378,7 +1382,7 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
       err_msg += string(" (") + string(word) + string(")");
       error->one(FLERR,err_msg.c_str());
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok_r(NULL," \t\n\r\f",&r_token);
   }
 
   if (tb->ninput == 0)

@@ -101,13 +101,15 @@ using namespace LAMMPS_NS;
 
 void concatenate_lines(char *ptr)
 {
+  char *r_token;
   int nend = strlen(ptr);
   int n = nend-1;
   while (n && isspace(ptr[n])) n--;
   while (ptr[n] == '&') {
     ptr[nend] = ' ';
+    r_token = ptr;
     ptr[n] = ' ';
-    strtok(ptr,"\n");
+    strtok_r(r_token,"\n",&r_token);
     nend = strlen(ptr);
     n = nend-1;
     while (n && isspace(ptr[n])) n--;
@@ -280,7 +282,7 @@ void lammps_commands_string(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  // make copy of str so can strtok() it
+  // make copy of str so can strtok_r() it
 
   int n = strlen(str) + 1;
   char *copy = new char[n];

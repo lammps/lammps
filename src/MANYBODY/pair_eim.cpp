@@ -887,14 +887,16 @@ void PairEIM::interpolate(int n, double delta, double *f,
 int PairEIM::grabglobal(FILE *fptr)
 {
   char line[MAXLINE];
+  char *r_token;
 
   char *pch = NULL, *data = NULL;
   while (pch == NULL) {
     if (fgets(line,MAXLINE,fptr) == NULL) break;
     pch = strstr(line,"global");
     if (pch != NULL) {
-      data = strtok (line," \t\n\r\f");
-      data = strtok (NULL,"?");
+      r_token = line;
+      data = strtok_r (r_token," \t\n\r\f",&r_token);
+      data = strtok_r (NULL,"?",&r_token);
       sscanf(data,"%lg %lg %lg",&setfl->division,&setfl->rbig,&setfl->rsmall);
     }
   }
@@ -910,18 +912,20 @@ int PairEIM::grabglobal(FILE *fptr)
 int PairEIM::grabsingle(FILE *fptr, int i)
 {
   char line[MAXLINE];
+  char *r_token;
 
   rewind(fptr);
 
   char *pch1 = NULL, *pch2 = NULL, *data = NULL;
   while (pch1 == NULL || pch2 == NULL) {
     if (fgets(line,MAXLINE,fptr) == NULL) break;
-    pch1 = strtok (line," \t\n\r\f");
+    r_token = line;
+    pch1 = strtok_r (r_token," \t\n\r\f",&r_token);
     pch1 = strstr(pch1,"element:");
     if (pch1 != NULL) {
-      pch2 = strtok(NULL, " \t\n\r\f");
+      pch2 = strtok_r(NULL, " \t\n\r\f",&r_token);
       if (pch2 != NULL) {
-        data = strtok (NULL, "?");
+        data = strtok_r (NULL, "?",&r_token);
         if (strcmp(pch2,elements[i]) == 0) {
           sscanf(data,"%d %lg %lg %lg %lg %lg %lg",&setfl->ielement[i],
             &setfl->mass[i],&setfl->negativity[i],&setfl->ra[i],
@@ -942,6 +946,7 @@ int PairEIM::grabsingle(FILE *fptr, int i)
 int PairEIM::grabpair(FILE *fptr, int i, int j)
 {
   char line[MAXLINE];
+  char *r_token;
 
   rewind(fptr);
 
@@ -953,12 +958,13 @@ int PairEIM::grabpair(FILE *fptr, int i, int j)
   char *pch1 = NULL, *pch2 = NULL, *pch3 = NULL, *data = NULL;
   while (pch1 == NULL || pch2 == NULL || pch3 == NULL) {
     if (fgets(line,MAXLINE,fptr) == NULL) break;
-    pch1 = strtok (line," \t\n\r\f");
+    r_token = line;
+    pch1 = strtok_r (r_token," \t\n\r\f",&r_token);
     pch1 = strstr(pch1,"pair:");
     if (pch1 != NULL) {
-      pch2 = strtok (NULL, " \t\n\r\f");
-      if (pch2 != NULL) pch3 = strtok (NULL, " \t\n\r\f");
-      if (pch3 != NULL) data = strtok (NULL, "?");
+      pch2 = strtok_r (r_token, " \t\n\r\f",&r_token);
+      if (pch2 != NULL) pch3 = strtok_r (NULL, " \t\n\r\f",&r_token);
+      if (pch3 != NULL) data = strtok_r (NULL, "?",&r_token);
       if ((pch2 != NULL) && (pch3 != NULL)) {
         if ((strcmp(pch2,elements[i]) == 0 &&
           strcmp(pch3,elements[j]) == 0) ||

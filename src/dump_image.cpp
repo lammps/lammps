@@ -1240,6 +1240,7 @@ void DumpImage::unpack_forward_comm(int n, int first, double *buf)
 
 int DumpImage::modify_param(int narg, char **arg)
 {
+  char *r_token;
   int n = DumpCustom::modify_param(narg,arg);
   if (n) return n;
 
@@ -1258,9 +1259,10 @@ int DumpImage::modify_param(int narg, char **arg)
       ncount++;
     }
     char **ptrs = new char*[ncount+1];
+    r_token = arg[2];
     ncount = 0;
-    ptrs[ncount++] = strtok(arg[2],"/");
-    while ((ptrs[ncount++] = strtok(NULL,"/")));
+    ptrs[ncount++] = strtok_r(r_token,"/",&r_token);
+    while ((ptrs[ncount++] = strtok_r(NULL,"/",&r_token)));
     ncount--;
 
     // assign each of ncount colors in round-robin fashion to types
@@ -1321,9 +1323,10 @@ int DumpImage::modify_param(int narg, char **arg)
       ncount++;
     }
     char **ptrs = new char*[ncount+1];
+    r_token = arg[2];
     ncount = 0;
-    ptrs[ncount++] = strtok(arg[2],"/");
-    while ((ptrs[ncount++] = strtok(NULL,"/")));
+    ptrs[ncount++] = strtok_r(r_token,"/",&r_token);
+    while ((ptrs[ncount++] = strtok_r(NULL,"/",&r_token)));
     ncount--;
 
     // assign each of ncount colors in round-robin fashion to types

@@ -562,6 +562,7 @@ void FixPhonon::readmap()
 
   // read from map file for others
   char line[MAXLINE];
+  char *r_token;
   FILE *fp = fopen(mapfile, "r");
   if (fp == NULL){
     sprintf(line,"Cannot open input map file %s", mapfile);
@@ -570,10 +571,11 @@ void FixPhonon::readmap()
 
   if (fgets(line,MAXLINE,fp) == NULL)
     error->all(FLERR,"Error while reading header of mapping file!");
-  nx     = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
-  ny     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-  nz     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-  nucell = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
+  r_token = line;
+  nx     = force->inumeric(FLERR, strtok_r(r_token, " \n\t\r\f",&r_token));
+  ny     = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+  nz     = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+  nucell = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
   ntotal = nx*ny*nz;
   if (ntotal*nucell != ngroup)
     error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
@@ -586,11 +588,12 @@ void FixPhonon::readmap()
   // the remaining lines carry the mapping info
   for (int i = 0; i < ngroup; ++i){
     if (fgets(line,MAXLINE,fp) == NULL) {info = 1; break;}
-    ix   = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
-    iy   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-    iz   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-    iu   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-    itag = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
+    r_token = line;
+    ix   = force->inumeric(FLERR, strtok_r(r_token, " \n\t\r\f",&r_token));
+    iy   = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+    iz   = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+    iu   = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
+    itag = force->inumeric(FLERR, strtok_r(NULL, " \n\t\r\f",&r_token));
 
     // check if index is in correct range
     if (ix < 0 || ix >= nx || iy < 0 || iy >= ny ||

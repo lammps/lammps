@@ -59,10 +59,12 @@ int Tokenize( char* s, char*** tok )
   const char *sep = (const char *)"\t \n\r\f!=";
   char *word;
   int count=0;
+  char *r_token;
 
   strncpy( test, s, MAX_LINE-1);
 
-  for( word = strtok(test, sep); word; word = strtok(NULL, sep) ) {
+  r_token = test;
+  for( word = strtok_r(r_token, sep,&r_token); word; word = strtok_r(NULL, sep,&r_token) ) {
     strncpy( (*tok)[count], word, MAX_LINE );
     count++;
   }

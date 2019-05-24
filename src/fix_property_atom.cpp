@@ -207,6 +207,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
   int j,m;
   tagint itag;
   char *next;
+  char *r_token;
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -236,8 +237,9 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    r_token = buf;
 
-    values[0] = strtok(buf," \t\n\r\f");
+    values[0] = strtok_r(r_token," \t\n\r\f",&r_token);
     if (values[0] == NULL) {
       char str[128];
       snprintf(str,128,"Too few lines in %s section of data file",keyword);
@@ -245,7 +247,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     }
     int format_ok = 1;
     for (j = 1; j < nwords; j++) {
-      values[j] = strtok(NULL," \t\n\r\f");
+      values[j] = strtok_r(NULL," \t\n\r\f",&r_token);
       if (values[j] == NULL) format_ok = 0;
     }
     if (!format_ok) {

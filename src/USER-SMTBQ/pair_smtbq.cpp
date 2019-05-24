@@ -3563,11 +3563,13 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
   char *mot;
   int count=0;
   mot = NULL;
+  char *r_token;
 
 
   strncpy( test, s, MAXLINE-1 );
+  r_token = test;
 
-  for( mot = strtok(test, sep); mot; mot = strtok(NULL, sep) ) {
+  for( mot = strtok_r(r_token, sep,&r_token); mot; mot = strtok_r(NULL, sep,&r_token) ) {
     strncpy( (*tok)[count], mot, MAXLINE );
     count++;
   }

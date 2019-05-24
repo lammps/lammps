@@ -739,6 +739,7 @@ void PairExp6rx::read_file(char *file)
   int n,nwords,ispecies;
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   while (1) {
     if (comm->me == 0) {
@@ -783,9 +784,10 @@ void PairExp6rx::read_file(char *file)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
       if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
@@ -848,6 +850,7 @@ void PairExp6rx::read_file2(char *file)
   int n,nwords;
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char *r_token;
 
   while (1) {
     if (comm->me == 0) {
@@ -892,9 +895,10 @@ void PairExp6rx::read_file2(char *file)
 
     // words = ptrs to all words in line
 
+    r_token = line;
     nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    words[nwords++] = strtok_r(r_token," \t\n\r\f",&r_token);
+    while ((words[nwords++] = strtok_r(NULL," \t\n\r\f",&r_token))) continue;
 
     if (strcmp(words[0],"alpha") == 0){
       for (int ii=1; ii<params_per_line; ii++)

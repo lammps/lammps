@@ -54,6 +54,7 @@ Commands :h1
    info
    jump
    kim_query
+   kim_style
    kspace_modify
    kspace_style
    label

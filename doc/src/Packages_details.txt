@@ -342,7 +342,10 @@ A "pair_style kim"_pair_kim.html command which is a wrapper on the
 Knowledge Base for Interatomic Models (KIM) repository of interatomic
 potentials, enabling any of them to be used in LAMMPS simulations.
 Also a "kim_query"_kim_query.html command, which allows to query
-the OpenKIM database for stored properties.
+the OpenKIM database for stored properties, and a
+"kim_style"_kim_style.html command, which serves as a front end to
+generating LAMMPS input on-the-fly for KIM simulator models and native
+KIM models.
 
 To use this package you must have the KIM library available on your
 system.
@@ -352,8 +355,10 @@ https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
 Elliott (U Minnesota).
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
-API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style.
+API which the "pair_style kim"_pair_kim.html command uses.  He developed
+the pair style.  Axel Kohlmeyer (Temple U) contributed the
+"kim_query"_kim_query.html and "kim_style"_kim_style.html commands in
+close collaboration with Ryan.
 
 [Install:]
 

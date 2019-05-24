@@ -43,4 +43,5 @@ See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"pair_style kim"_pair_kim.html, "variable"_variable.html
+"pair_style kim"_pair_kim.html, "kim_style"_kim_style.html,
+"variable"_variable.html

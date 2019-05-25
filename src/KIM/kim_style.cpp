@@ -240,17 +240,27 @@ void KimStyle::do_defn(int narg, char **arg)
       }
     }
     delete[] strbuf;
-    
+
+    // check if units are unchanged, and if kim_style init was required
+
     int sim_fields, sim_lines;
     const std::string *sim_field, *sim_value;
     simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
     for (int i=0; i < sim_fields; ++i) {
       simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+
       if (*sim_field == "units") {
         simulatorModel->GetSimulatorFieldLine(i,0,&sim_value);
         if (*sim_value != update->unit_style)
           error->all(FLERR,"Incompatible units for KIM Simulator Model");
-        break;
+      }
+
+      if ((ifix < 0) && ( *sim_field == "model-init")) {
+        for (int j=0; j < sim_lines; ++j) {
+          simulatorModel->GetSimulatorFieldLine(i,j,&sim_value);
+          if (*sim_value != "")
+            error->all(FLERR,"Must use 'kim_style init' with this model");
+        }
       }
     }
 

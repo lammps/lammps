@@ -279,6 +279,7 @@ void KimStyle::do_defn(int narg, char **arg)
     if (sim_model_idx < 0)
       error->all(FLERR,"KIM Simulator Model has no Model definition");
 
+    simulatorModel->ClearTemplateMap();
   } else {
     
     // not a simulator model. issue pair_style and pair_coeff commands.

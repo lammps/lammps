@@ -113,17 +113,19 @@ void KimStyle::do_init(char *model)
 
   FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
   fix_store->setptr("model_name", (void *) model);
-  
+
   int kimerror;
   KIM::SimulatorModel * simulatorModel;
   kimerror = KIM::SimulatorModel::Create(model,&simulatorModel);
 
   // not a Kim Simulator Model; nothing else to do here.
+
   if (kimerror) return;
 
   fix_store->setptr("simulator_model", (void *) simulatorModel);
 
   // need to call this to have access to (some) simulator model init data.
+
   simulatorModel->CloseTemplateMap();
 
   int sim_fields, sim_lines;
@@ -131,6 +133,7 @@ void KimStyle::do_init(char *model)
   simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
 
   // set units
+
   for (int i=0; i < sim_fields; ++i) {
     simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
     if (*sim_field == "units") {
@@ -143,6 +146,7 @@ void KimStyle::do_init(char *model)
   }
 
   // init model
+
   for (int i=0; i < sim_fields; ++i) {
     simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
     if (*sim_field == "model-init") {
@@ -155,6 +159,7 @@ void KimStyle::do_init(char *model)
   }
 
   // reset template map.
+
   simulatorModel->ClearTemplateMap();
 }
 
@@ -281,7 +286,7 @@ void KimStyle::do_defn(int narg, char **arg)
 
     simulatorModel->ClearTemplateMap();
   } else {
-    
+
     // not a simulator model. issue pair_style and pair_coeff commands.
     // NOTE: all references to arg must appear before calls to input->one()
     // as that will reset the argument vector.

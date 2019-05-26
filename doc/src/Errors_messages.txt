@@ -9990,25 +9990,25 @@ quote. :dd
 
 Self-explanatory. :dd
 
-{Unexpected end of AngleCoeffs section} :dt
+{Unexpected empty line in AngleCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of BondCoeffs section} :dt
+{Unexpected empty line in BondCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of DihedralCoeffs section} :dt
+{Unexpected empty line in DihedralCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of ImproperCoeffs section} :dt
+{Unexpected empty line in ImproperCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of PairCoeffs section} :dt
+{Unexpected empty line in PairCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
 {Unexpected end of custom file} :dt
 

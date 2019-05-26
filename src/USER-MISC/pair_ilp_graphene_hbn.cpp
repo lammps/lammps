@@ -47,6 +47,7 @@ using namespace LAMMPS_NS;
 PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
+  one_coeff = 1;
 
   // initialize element to parameter maps
   nelements = 0;
@@ -71,7 +72,7 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
   // always compute energy offset
   offset_flag = 1;
 
-  // set comm size needed by this Pair
+  // set comm size needed by this pair style
   comm_forward = 39;
   tap_flag = 1;
 }
@@ -801,9 +802,10 @@ void PairILPGrapheneHBN::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  // insure I,J args are * *
+
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -837,16 +839,23 @@ void PairILPGrapheneHBN::coeff(int narg, char **arg)
 
   read_file(arg[2]);
 
-  double cut_one = cut_global;
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        cut[i][j] = cut_global;
+        count++;
+      }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -859,6 +868,8 @@ void PairILPGrapheneHBN::coeff(int narg, char **arg)
 double PairILPGrapheneHBN::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (!offset_flag)
+    error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag  && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];

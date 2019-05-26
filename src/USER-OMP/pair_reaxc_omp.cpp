@@ -373,7 +373,7 @@ void PairReaxCOMP::init_style( )
 
   if (fix_reax == NULL) {
     char **fixarg = new char*[3];
-    fixarg[0] = (char *) "REAXC";
+    fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "REAXC";
     modify->add_fix(3,fixarg);
@@ -643,4 +643,3 @@ void PairReaxCOMP::FindBond()
     }
   }
 }
-

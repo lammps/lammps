@@ -225,8 +225,8 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
 
         // increment energy and virial
 
-          if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                  evdwl,0.0,fpair,delr[0],delr[1],delr[2]);
+        if (evflag) ev_tally(a,b,nlocal,newton_pair,
+                evdwl,0.0,fpair,delr[0],delr[1],delr[2]);
       }
 
     }

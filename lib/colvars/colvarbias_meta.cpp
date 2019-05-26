@@ -11,7 +11,6 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
 #include <algorithm>
 
 // used to set the absolute path of a replica file
@@ -39,6 +38,8 @@ colvarbias_meta::colvarbias_meta(char const *key)
   new_hills_begin = hills.end();
   hills_traj_os = NULL;
   replica_hills_os = NULL;
+
+  ebmeta_equil_steps = 0L;
 }
 
 
@@ -61,7 +62,7 @@ int colvarbias_meta::init(std::string const &conf)
     enable(f_cvb_history_dependent);
   }
 
-  get_keyval(conf, "hillWidth", hill_width, std::sqrt(2.0 * PI) / 2.0);
+  get_keyval(conf, "hillWidth", hill_width, cvm::sqrt(2.0 * PI) / 2.0);
   cvm::log("Half-widths of the Gaussian hills (sigma's):\n");
   for (size_t i = 0; i < num_variables(); i++) {
     cvm::log(variables(i)->name+std::string(": ")+
@@ -201,6 +202,7 @@ int colvarbias_meta::init_ebmeta_params(std::string const &conf)
     }
     target_dist = new colvar_grid_scalar();
     target_dist->init_from_colvars(colvars);
+    std::string target_dist_file;
     get_keyval(conf, "targetdistfile", target_dist_file);
     std::ifstream targetdiststream(target_dist_file.c_str());
     target_dist->read_multicol(targetdiststream);
@@ -221,9 +223,9 @@ int colvarbias_meta::init_ebmeta_params(std::string const &conf)
     }
     // normalize target distribution and multiply by effective volume = exp(differential entropy)
     target_dist->multiply_constant(1.0/target_dist->integral());
-    cvm::real volume = std::exp(target_dist->entropy());
+    cvm::real volume = cvm::exp(target_dist->entropy());
     target_dist->multiply_constant(volume);
-    get_keyval(conf, "ebMetaEquilSteps", ebmeta_equil_steps, 0);
+    get_keyval(conf, "ebMetaEquilSteps", ebmeta_equil_steps, ebmeta_equil_steps);
   }
 
   return COLVARS_OK;
@@ -291,7 +293,7 @@ colvarbias_meta::create_hill(colvarbias_meta::hill const &h)
     // need to be computed analytically when the colvar returns
     // off-grid
     cvm::real const min_dist = hills_energy->bin_distance_from_boundaries(h.centers, true);
-    if (min_dist < (3.0 * std::floor(hill_width)) + 1.0) {
+    if (min_dist < (3.0 * cvm::floor(hill_width)) + 1.0) {
       hills_off_grid.push_back(h);
     }
   }
@@ -387,7 +389,7 @@ int colvarbias_meta::update_grid_params()
       // first of all, expand the grids, if specified
       bool changed_grids = false;
       int const min_buffer =
-        (3 * (size_t) std::floor(hill_width)) + 1;
+        (3 * (size_t) cvm::floor(hill_width)) + 1;
 
       std::vector<int>         new_sizes(hills_energy->sizes());
       std::vector<colvarvalue> new_lower_boundaries(hills_energy->lower_boundaries);
@@ -492,9 +494,9 @@ int colvarbias_meta::update_bias()
 
     if (ebmeta) {
       hills_scale *= 1.0/target_dist->value(target_dist->get_colvars_index());
-      if(cvm::step_absolute() <= long(ebmeta_equil_steps)) {
+      if(cvm::step_absolute() <= ebmeta_equil_steps) {
         cvm::real const hills_lambda =
-          (cvm::real(long(ebmeta_equil_steps) - cvm::step_absolute())) /
+          (cvm::real(ebmeta_equil_steps - cvm::step_absolute())) /
           (cvm::real(ebmeta_equil_steps));
         hills_scale = hills_lambda + (1-hills_lambda)*hills_scale;
       }
@@ -508,7 +510,7 @@ int colvarbias_meta::update_bias()
       } else {
         calc_hills(new_hills_begin, hills.end(), hills_energy_sum_here);
       }
-      hills_scale *= std::exp(-1.0*hills_energy_sum_here/(bias_temperature*cvm::boltzmann()));
+      hills_scale *= cvm::exp(-1.0*hills_energy_sum_here/(bias_temperature*cvm::boltzmann()));
     }
 
     switch (comm) {
@@ -710,7 +712,7 @@ void colvarbias_meta::calc_hills(colvarbias_meta::hill_iter      h_first,
       // set it to zero if the exponent is more negative than log(1.0E-05)
       h->value(0.0);
     } else {
-      h->value(std::exp(-0.5*cv_sqdev));
+      h->value(cvm::exp(-0.5*cv_sqdev));
     }
     energy += h->energy();
   }
@@ -904,7 +906,7 @@ void colvarbias_meta::recount_hills_off_grid(colvarbias_meta::hill_iter  h_first
 
   for (hill_iter h = h_first; h != h_last; h++) {
     cvm::real const min_dist = hills_energy->bin_distance_from_boundaries(h->centers, true);
-    if (min_dist < (3.0 * std::floor(hill_width)) + 1.0) {
+    if (min_dist < (3.0 * cvm::floor(hill_width)) + 1.0) {
       hills_off_grid.push_back(*h);
     }
   }
@@ -1427,8 +1429,8 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
     return is;
   }
 
-  size_t h_it;
-  get_keyval(data, "step", h_it, 0, parse_silent);
+  cvm::step_number h_it;
+  get_keyval(data, "step", h_it, 0L, parse_silent);
   if (h_it <= state_file_step) {
     if (cvm::debug())
       cvm::log("Skipping a hill older than the state file for metadynamics bias \""+
@@ -1457,7 +1459,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
 
   std::vector<cvm::real> h_widths(num_variables());
   get_keyval(data, "widths", h_widths,
-             std::vector<cvm::real>(num_variables(), (std::sqrt(2.0 * PI) / 2.0)),
+             std::vector<cvm::real>(num_variables(), (cvm::sqrt(2.0 * PI) / 2.0)),
              parse_silent);
 
   std::string h_replica = "";
@@ -1482,7 +1484,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
     // be computed analytically
     cvm::real const min_dist =
       hills_energy->bin_distance_from_boundaries((hills.back()).centers, true);
-    if (min_dist < (3.0 * std::floor(hill_width)) + 1.0) {
+    if (min_dist < (3.0 * cvm::floor(hill_width)) + 1.0) {
       hills_off_grid.push_back(hills.back());
     }
   }

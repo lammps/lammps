@@ -84,6 +84,7 @@ Fixes :h1
    fix_msst
    fix_mvv_dpd
    fix_neb
+   fix_neb_spin
    fix_nh
    fix_nh_eff
    fix_nh_uef

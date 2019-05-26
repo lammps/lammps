@@ -19,8 +19,8 @@
 #include "colvargrid.h"
 
 /// Metadynamics bias (implementation of \link colvarbias \endlink)
-class colvarbias_meta 
-  : public virtual colvarbias, 
+class colvarbias_meta
+  : public virtual colvarbias,
     public virtual colvarbias_ti
 {
 
@@ -174,12 +174,14 @@ protected:
   /// \brief Biasing temperature in well-tempered metadynamics
   cvm::real  bias_temperature;
 
-  // EBmeta parameters
+  /// Ensemble-biased metadynamics (EBmeta) flag
   bool       ebmeta;
+
+  /// Target distribution for EBmeta
   colvar_grid_scalar* target_dist;
-  std::string target_dist_file;
-  cvm::real target_dist_volume;
-  size_t ebmeta_equil_steps;
+
+  /// Number of equilibration steps for EBmeta
+  cvm::step_number ebmeta_equil_steps;
 
 
   /// \brief Try to read the restart information by allocating new
@@ -285,7 +287,7 @@ public:
   friend class colvarbias_meta;
 
   /// Time step at which this hill was added
-  size_t      it;
+  cvm::step_number it;
 
   /// Identity of the replica who added this hill (only in multiple replica simulations)
   std::string replica;
@@ -296,9 +298,9 @@ public:
   /// replica (optional) Identity of the replica which creates the
   /// hill
   inline hill(cvm::real             const &W_in,
-               std::vector<colvar *>       &cv,
-               cvm::real             const &hill_width,
-               std::string           const &replica_in = "")
+              std::vector<colvar *>       &cv,
+              cvm::real             const &hill_width,
+              std::string           const &replica_in = "")
     : sW(1.0),
       W(W_in),
       centers(cv.size()),
@@ -325,11 +327,11 @@ public:
   /// weight Weight of the hill \param centers Center of the hill
   /// \param widths Width of the hill around centers \param replica
   /// (optional) Identity of the replica which creates the hill
-  inline hill(size_t                    const &it_in,
-               cvm::real                 const &W_in,
-               std::vector<colvarvalue>  const &centers_in,
-               std::vector<cvm::real>    const &widths_in,
-               std::string               const &replica_in = "")
+  inline hill(cvm::step_number          const &it_in,
+              cvm::real                 const &W_in,
+              std::vector<colvarvalue>  const &centers_in,
+              std::vector<cvm::real>    const &widths_in,
+              std::string               const &replica_in = "")
     : sW(1.0),
       W(W_in),
       centers(centers_in),

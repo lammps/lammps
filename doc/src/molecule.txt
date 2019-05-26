@@ -396,7 +396,7 @@ If flag = 0, no a,b,c,d values are listed on the line, just the
 If flag = 1, a,b,c are listed, where a = ID of central atom in the
 angle, and b,c the other two atoms in the angle.
 
-If flag = 2, a,b are listed, where a = ID of atom in bond with the the
+If flag = 2, a,b are listed, where a = ID of atom in bond with the
 lowest ID, and b = ID of atom in bond with the highest ID.
 
 If flag = 3, a,b,c are listed, where a = ID of central atom,

@@ -8,6 +8,7 @@
 
 fix setforce command :h3
 fix setforce/kk command :h3
+fix setforce/spin command :h3
 
 [Syntax:]
 
@@ -27,6 +28,7 @@ keyword = {region}  :l
 
 fix freeze indenter setforce 0.0 0.0 0.0
 fix 2 edge setforce NULL 0.0 0.0
+fix 1 edge setforce/spin 0.0 0.0 0.0
 fix 2 edge setforce NULL 0.0 v_oscillate :pre
 
 [Description:]
@@ -62,6 +64,19 @@ field with optional time-dependence as well.
 If the {region} keyword is used, the atom must also be in the
 specified geometric "region"_region.html in order to have force added
 to it.
+
+:line
+
+Style {spin} suffix sets the components of the magnetic precession 
+vectors instead of the mechanical forces. This also erases all 
+previously computed magnetic precession vectors on the atom, though 
+additional magnetic fixes could add new forces.
+
+This command can be used to freeze the magnetic moment of certain 
+atoms in the simulation by zeroing their precession vector. 
+
+All options defined above remain valid, they just apply to the magnetic 
+precession vectors instead of the forces.
 
 :line
 
@@ -117,7 +132,10 @@ forces to any value besides zero when performing a minimization.  Use
 the "fix addforce"_fix_addforce.html command if you want to apply a
 non-zero force to atoms during a minimization.
 
-[Restrictions:] none
+[Restrictions:] 
+
+The fix {setforce/spin} only makes sense when LAMMPS was built with the
+SPIN package.
 
 [Related commands:]
 

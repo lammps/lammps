@@ -52,7 +52,6 @@ PairBuckMDF::~PairBuckMDF()
     memory->destroy(rhoinv);
     memory->destroy(buck1);
     memory->destroy(buck2);
-    memory->destroy(offset);
   }
 }
 
@@ -177,7 +176,6 @@ void PairBuckMDF::allocate()
   memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
   memory->create(buck1,n+1,n+1,"pair:buck1");
   memory->create(buck2,n+1,n+1,"pair:buck2");
-  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -207,7 +205,8 @@ void PairBuckMDF::settings(int narg, char **arg)
 
 void PairBuckMDF::coeff(int narg, char **arg)
 {
-  if (narg != 5 && narg != 7) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 5 && narg != 7)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -258,11 +257,6 @@ double PairBuckMDF::init_one(int i, int j)
   buck1[i][j] = a[i][j]/rho[i][j];
   buck2[i][j] = 6.0*c[i][j];
 
-  if (offset_flag && (cut[i][j] > 0.0)) {
-    double rexp = exp(-cut[i][j]/rho[i][j]);
-    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0);
-  } else offset[i][j] = 0.0;
-
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
@@ -272,36 +266,6 @@ double PairBuckMDF::init_one(int i, int j)
   rhoinv[j][i] = rhoinv[i][j];
   buck1[j][i] = buck1[i][j];
   buck2[j][i] = buck2[i][j];
-  offset[j][i] = offset[i][j];
-
-  // compute I,J contribution to long-range tail correction
-  // count total # of atoms of type I and J via Allreduce
-
-  if (tail_flag) {
-    int *type = atom->type;
-    int nlocal = atom->nlocal;
-
-    double count[2],all[2];
-    count[0] = count[1] = 0.0;
-    for (int k = 0; k < nlocal; k++) {
-      if (type[k] == i) count[0] += 1.0;
-      if (type[k] == j) count[1] += 1.0;
-    }
-    MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-
-    double rho1 = rho[i][j];
-    double rho2 = rho1*rho1;
-    double rho3 = rho2*rho1;
-    double rc = cut[i][j];
-    double rc2 = rc*rc;
-    double rc3 = rc2*rc;
-    etail_ij = 2.0*MY_PI*all[0]*all[1]*
-      (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) -
-       c[i][j]/(3.0*rc3));
-    ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1]*
-      (-a[i][j]*exp(-rc/rho1)*
-       (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 2.0*c[i][j]/rc3);
-  }
 
   return cut[i][j];
 }

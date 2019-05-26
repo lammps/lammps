@@ -137,6 +137,10 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
   if (cmd == "update") {
     error_code |= proxy->update_input();
+    if (error_code) {
+      result += "Error updating the Colvars module.\n";
+      return error_code;
+    }
     error_code |= colvars->calc();
     error_code |= proxy->update_output();
     if (error_code) {
@@ -273,6 +277,10 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
 int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[]) {
 
+  if (objc < 3) {
+    result = "Missing arguments";
+    return COLVARSCRIPT_ERROR;
+  }
   std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "value") {
@@ -320,6 +328,47 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
 
   if (subcmd == "getconfig") {
     result = cv->get_config();
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "getatomgroups") {
+    std::vector<std::vector<int> > lists = cv->get_atom_lists();
+    std::vector<std::vector<int> >::iterator li = lists.begin();
+
+    for ( ; li != lists.end(); ++li) {
+      result += "{";
+      std::vector<int>::iterator lj = (*li).begin();
+      for ( ; lj != (*li).end(); ++lj) {
+        result += cvm::to_str(*lj);
+        result += " ";
+      }
+      result += "} ";
+    }
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "getatomids") {
+    std::vector<int>::iterator li = cv->atom_ids.begin();
+
+    for ( ; li != cv->atom_ids.end(); ++li) {
+      result += cvm::to_str(*li);
+      result += " ";
+    }
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "getgradients") {
+    std::vector<cvm::rvector>::iterator li = cv->atomic_gradients.begin();
+
+    for ( ; li != cv->atomic_gradients.end(); ++li) {
+      result += "{";
+      int j;
+      for (j = 0; j < 3; ++j) {
+        result += cvm::to_str((*li)[j]);
+        result += " ";
+      }
+      result += "} ";
+    }
     return COLVARS_OK;
   }
 
@@ -410,6 +459,10 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
 
 int colvarscript::proc_bias(colvarbias *b, int objc, unsigned char *const objv[]) {
 
+  if (objc < 3) {
+    result = "Missing arguments";
+    return COLVARSCRIPT_ERROR;
+  }
   std::string const subcmd(obj_to_str(objv[2]));
 
   if (subcmd == "energy") {

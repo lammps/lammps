@@ -17,13 +17,13 @@ wall/gran = style name of this fix command :l
 fstyle = style of force interactions between particles and wall :l
   possible choices: hooke, hooke/history, hertz/history, granular :pre
 fstyle_params = parameters associated with force interaction style :l
-  For {hooke}, {hooke/history}, and {hertz/history}, {fstyle_params} are: 
-	Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below) 
-	Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below) 
-	gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) 
-	gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)  
-	xmu = static yield criterion (unitless value between 0.0 and 1.0e4) 
-	dampflag = 0 or 1 if tangential damping force is excluded or included :pre
+  For {hooke}, {hooke/history}, and {hertz/history}, {fstyle_params} are:
+        Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
+        Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
+        gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
+        gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
+        xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
+        dampflag = 0 or 1 if tangential damping force is excluded or included :pre
   For {granular}, {fstyle_params} are set using the same syntax as for the {pair_coeff} command of "pair_style granular"_pair_granular.html :pre
 wallstyle = {xplane} or {yplane} or {zplane} or {zcylinder} :l
 args = list of arguments for a particular style :l
@@ -46,10 +46,10 @@ keyword = {wiggle} or {shear} :l
 
 fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
 fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
-fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0 
-fix 3 all wall/gran granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 zplane 0.0 NULL
-fix 4 all wall/gran granular jkr 1000.0 50.0 0.3 5.0 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall zcylinder 15.0 wiggle z 3.0 2.0
-fix 5 all wall/gran granular dmt 1000.0 50.0 0.3 10.0 tangential mindlin 800.0 0.5 0.1 roll sds 500.0 200.0 0.1 twisting marshall zplane 0.0 NULL :pre
+fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
+fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
+fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
+fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone :pre
 
 [Description:]
 

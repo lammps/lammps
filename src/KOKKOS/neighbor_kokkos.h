@@ -87,6 +87,7 @@ class NeighborKokkos : public Neighbor {
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();
   void modify_mol_intra_grow_kokkos();
+  void set_binsize_kokkos();
 };
 
 }

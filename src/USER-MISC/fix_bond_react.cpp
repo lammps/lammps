@@ -2322,6 +2322,8 @@ void FixBondReact::update_everything()
                   nspecial[atom->map(update_mega_glove[jj+1][i])][1]++;
                   nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
                 }
+                if (nspecial[atom->map(update_mega_glove[jj+1][i])][2] > atom->maxspecial)
+                  error->one(FLERR,"Bond/react special bond generation overflow");
                 for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n > insert_num; n--) {
                   special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n-1];
                 }
@@ -2383,6 +2385,8 @@ void FixBondReact::update_everything()
                 bond_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->bond_type[j][p];
                 bond_atom[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->bond_atom[j][p]-1][1][rxnID]][i];
                 num_bond[atom->map(update_mega_glove[jj+1][i])]++;
+                if (num_bond[atom->map(update_mega_glove[jj+1][i])] > atom->bond_per_atom)
+                  error->one(FLERR,"Bond/react bonds/atom exceed system bonds/atom");
                 delta_bonds++;
               }
             }
@@ -2457,6 +2461,8 @@ void FixBondReact::update_everything()
                   angle_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom2[j][p]-1][1][rxnID]][i];
                   angle_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom3[j][p]-1][1][rxnID]][i];
                   num_angle[atom->map(update_mega_glove[jj+1][i])]++;
+                  if (num_angle[atom->map(update_mega_glove[jj+1][i])] > atom->angle_per_atom)
+                    error->one(FLERR,"Bond/react angles/atom exceed system angles/atom");
                   delta_angle++;
                 }
               }
@@ -2538,6 +2544,8 @@ void FixBondReact::update_everything()
                   dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom3[j][p]-1][1][rxnID]][i];
                   dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom4[j][p]-1][1][rxnID]][i];
                   num_dihedral[atom->map(update_mega_glove[jj+1][i])]++;
+                  if (num_dihedral[atom->map(update_mega_glove[jj+1][i])] > atom->dihedral_per_atom)
+                    error->one(FLERR,"Bond/react dihedrals/atom exceed system dihedrals/atom");
                   delta_dihed++;
                 }
               }
@@ -2619,6 +2627,8 @@ void FixBondReact::update_everything()
                   improper_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom3[j][p]-1][1][rxnID]][i];
                   improper_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom4[j][p]-1][1][rxnID]][i];
                   num_improper[atom->map(update_mega_glove[jj+1][i])]++;
+                  if (num_improper[atom->map(update_mega_glove[jj+1][i])] > atom->improper_per_atom)
+                    error->one(FLERR,"Bond/react impropers/atom exceed system impropers/atom");
                   delta_imprp++;
                 }
               }

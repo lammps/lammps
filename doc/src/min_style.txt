@@ -64,9 +64,7 @@ a minimization.
 
 Style {adaptglok} is a re-implementation of the style {fire} with
 additional optimizations of the method described
-in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
-timestep, a backstep when downhill and different time integration
-schemes.
+in "(Bitzek)"_#Bitzek.
 
 Style {spin} is a damped spin dynamics with an adaptive 
 timestep.

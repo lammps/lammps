@@ -35,7 +35,7 @@ keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshri
   {tmin} arg = coef
     coef = factor defining the minimum timestep
   {delaystep} arg = delay
-    delay = number of steps for dynamics temporization
+    delay = number of steps for dynamics delay
   {dtgrow} arg = grow
     grow = factor increasing the timestep
   {dtshrink} arg = shrink
@@ -125,7 +125,7 @@ Note that in this case the system will NOT be relaxed. This could
 happen when the system comes to be stuck in a local basin of the phase space. 
 {vdfmax} is the maximum number of consecutive iterations with P(t) < 0. 
 For debugging purposes, it is possible to switch off the inertia correction 
-({halfstepback} = {no}) and the initial temporization ({initialdelay} = {no}).
+({halfstepback} = {no}) and the initial delay ({initialdelay} = {no}).
 
 The style {adaptglok} performing a damped dynamics, it is not possible to use
 "fix box/relax"_fix_box_relax.html to relax the simulation box.

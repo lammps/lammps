@@ -9,7 +9,7 @@
 min_modify command :h3
 
 [Syntax:]
-s
+
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
@@ -22,8 +22,12 @@ keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
     damping = fictitious Gilbert damping for spin minimization (adim)
   {discrete_factor} value = factor
     factor = discretization factor for adaptive spin timestep (adim) :pre
-    these keywords apply only to the {adaptglok} "min_style"_min_style.html :l
-keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} or {alpha0} or {alphashrink} or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} or {ptol} or {halfstepback} or {initialdelay} or {vdfmax} :l
+:ule
+
+these keywords apply only to the "min_style"_min_style.html {adaptglok} :ulb,l
+keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} 
+          or {alpha0} or {alphashrink} or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} 
+          or {ptol} or {halfstepback} or {initialdelay} or {vdfmax}
   {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
     eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme
   {tmax} arg = coef
@@ -115,7 +119,7 @@ the timestep can be reached during the relaxation is 10 fs (with the default
 Note that even with the default parameters being chosen to be reliable in most
 cases, adjusting "timestep"_timestep.html, {tmax} and {tmin} should be consider
 to optimize the minimization, in particular for large/complex system.
-An additionnal stopping criteria {vdfmax} is added in order to avoid unnecessary looping
+An additional stopping criteria {vdfmax} is added in order to avoid unnecessary looping
 when it is reasonable to think the system will not be relaxed further.
 Note that in this case the system will NOT be relaxed. This could
 happen when the system comes to be stuck in a local basin of the phase space. 
@@ -128,7 +132,7 @@ The style {adaptglok} performing a damped dynamics, it is not possible to use
 Thus {adaptglok} implements a rudimentary box relaxation procedure that can be
 controlled by the keywords {relaxbox}, {relaxbox_mod}, {relaxbox_rate} 
 and {ptol}.
-The argument {relaxbox} controle in which directions the pressure is relaxed.
+The argument {relaxbox} control in which directions the pressure is relaxed.
 Note that the corresponding directions have to be periodic.
 Note also that {relaxbox_mod} doesn't requires the exact value for the bulk modulus,
 but rather the order of magnitude (in pressure "units"_units.html).
@@ -137,7 +141,7 @@ control how fast the relaxation of the box is performed: lower values will slow
 down the box relaxation but improve the stability of the procedure.
 
 NOTE: the option {relaxbox} is currently experimental and often 
-requires to tune the communication cutoff for gost atoms with the command 
+requires to tune the communication cutoff for ghost atoms with the command 
 "comm_modify cutoff"_comm_modify.html. The value will depend on the expected
 box variation and the number of cpu. A value from 2 to 3 times the current cutoff
 (largest pair cutoff + neighbor skin) is often enough.

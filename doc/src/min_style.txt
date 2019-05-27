@@ -63,7 +63,7 @@ of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
 Style {adaptglok} is a re-implementation of the style {fire} with
-additionnal optimizations of the method described
+additional optimizations of the method described
 in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
 timestep, a backstep when downhill and different time integration
 schemes.

@@ -51,11 +51,10 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg),
+PPPMStagger::PPPMStagger(LAMMPS *lmp) :
+  PPPM(lmp),
   gf_b2(NULL)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/stagger command");
   stagger_flag = 1;
   group_group_enable = 0;
 
@@ -125,9 +124,7 @@ void PPPMStagger::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

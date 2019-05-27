@@ -33,7 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,8 +67,7 @@ void PairLJMDF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -82,7 +83,7 @@ void PairLJMDF::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
-  
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -109,7 +110,7 @@ void PairLJMDF::compute(int eflag, int vflag)
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 
         if (rsq > cut_inner_sq[itype][jtype]) {
-          philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);  
+          philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 
           rr = sqrt(rsq);
           dp = (cut[itype][jtype] - cut_inner[itype][jtype]);
@@ -350,11 +351,34 @@ void PairLJMDF::read_restart_settings(FILE *fp)
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLJMDF::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJMDF::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",
+              i,j,epsilon[i][j],sigma[i][j],
+              cut_inner[i][j],cut[i][j]);
+}
+
 /* ---------------------------------------------------------------------- */
 
-double PairLJMDF::single(int i, int j, int itype, int jtype,
+double PairLJMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
-                             double factor_coul, double factor_lj,
+                             double /*factor_coul*/, double factor_lj,
                              double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;

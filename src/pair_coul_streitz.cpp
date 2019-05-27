@@ -258,7 +258,7 @@ void PairCoulStreitz::read_file(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open coul/streitz potential file %s",file);
+      snprintf(str,128,"Cannot open coul/streitz potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -412,8 +412,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
   ci_jfi = ci_fifj = dci_jfi = dci_fifj = 0.0;
   forcecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   inum = list->inum;
   ilist = list->ilist;

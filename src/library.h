@@ -17,6 +17,7 @@
 */
 
 #include <mpi.h>
+#include <inttypes.h>  /* for int64_t */
 
 /* ifdefs allow this file to be included in a C program */
 

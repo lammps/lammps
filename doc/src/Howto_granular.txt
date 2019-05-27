@@ -53,5 +53,5 @@ computations between frozen atoms by using this command:
 NOTE: By default, for 2d systems, granular particles are still modeled
 as 3d spheres, not 2d discs (circles), meaning their moment of inertia
 will be the same as in 3d.  If you wish to model granular particles in
-2d as 2d discs, see the note on this topic on the "Howto 2d"_Howto_2d
+2d as 2d discs, see the note on this topic on the "Howto 2d"_Howto_2d.html
 doc page, where 2d simulations are discussed.

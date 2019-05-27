@@ -132,7 +132,7 @@ x1 y1 z1
 xN yN zN :pre
 
 where M = 6 + 3*N, and N is the number of sub-particles in the body
-particle.  
+particle.
 
 The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
@@ -315,7 +315,7 @@ x1 y1 z1
 ...
 xN yN zN
 0 1
-1 2 
+1 2
 2 3
 ...
 0 1 2 -1
@@ -337,7 +337,7 @@ the sphere that surrounds each vertex. The diameter value can be
 different for each body particle. These floating-point values can be
 listed on as many lines as you wish; see the
 "read_data"_read_data.html command for more details.  Because the
-maxmimum vertices per face is hard-coded to be 4
+maximum number of vertices per face is hard-coded to be 4
 (i.e. quadrilaterals), faces with more than 4 vertices need to be
 split into triangles or quadrilaterals.  For triangular faces, the
 last vertex index should be set to -1.

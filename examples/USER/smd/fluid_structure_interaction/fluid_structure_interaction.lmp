@@ -129,7 +129,7 @@ compute         contact_radius all smd/contact/radius
 compute         S solids smd/tlsph/stress
 compute         nn water smd/ulsph/num/neighs
 compute         epl solids smd/plastic/strain
-compute         vol all smd/volume
+compute         vol all smd/vol
 compute         rho all smd/rho
 
 dump            dump_id all custom 100 dump.LAMMPS id type x y &

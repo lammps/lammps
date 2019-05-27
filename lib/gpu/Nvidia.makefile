@@ -880,7 +880,7 @@ $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o: $(ALL_H) lal_born_coul_wolf_cs.h lal_bor
 	$(CUDR) -o $@ -c lal_born_coul_wolf_cs_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
-	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
+	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda
 
 $(GPU_LIB): $(OBJS) $(CUDPP)
 	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)

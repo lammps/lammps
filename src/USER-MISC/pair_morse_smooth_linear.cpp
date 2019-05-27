@@ -30,7 +30,6 @@ using namespace LAMMPS_NS;
 PairMorseSmoothLinear::PairMorseSmoothLinear(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,8 +60,7 @@ void PairMorseSmoothLinear::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -117,7 +115,7 @@ void PairMorseSmoothLinear::compute(int eflag, int vflag)
 
         if (eflag) {
           evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-            offset[itype][jtype];
+                  offset[itype][jtype];
           evdwl -= ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
           evdwl *= factor_lj;
         }
@@ -203,6 +201,14 @@ void PairMorseSmoothLinear::coeff(int narg, char **arg)
       alpha[i][j] = alpha_one;
       r0[i][j] = r0_one;
       cut[i][j] = cut_one;
+
+      morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
+
+      double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
+
+      offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
+      der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
+
       setflag[i][j] = 1;
       count++;
     }
@@ -222,17 +228,13 @@ double PairMorseSmoothLinear::init_one(int i, int j)
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
 
-  double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-
-  offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
-  der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
-
   d0[j][i] = d0[i][j];
   alpha[j][i] = alpha[i][j];
   r0[j][i] = r0[i][j];
   morse1[j][i] = morse1[i][j];
   der_at_cutoff[j][i] = der_at_cutoff[i][j];
   offset[j][i] = offset[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }
@@ -337,8 +339,8 @@ void PairMorseSmoothLinear::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairMorseSmoothLinear::single(int i, int j, int itype, int jtype, double rsq,
-                                     double factor_coul, double factor_lj,
+double PairMorseSmoothLinear::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                                     double /*factor_coul*/, double factor_lj,
                                      double &fforce)
 {
   double r,dr,dexp,phi;

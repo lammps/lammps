@@ -1,5 +1,5 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -15,7 +15,7 @@ things that are possible when Python wraps LAMMPS.  If you create your
 own scripts, send them to us and we can include them in the LAMMPS
 distribution.
 
-trivial.py, read/run a LAMMPS input script thru Python,
+trivial.py, read/run a LAMMPS input script through Python,
 demo.py, invoke various LAMMPS library interface routines,
 simple.py, run in parallel, similar to examples/COUPLE/simple/simple.cpp,
 split.py, same as simple.py but running in parallel on a subset of procs,
@@ -46,7 +46,7 @@ http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html :pre
 :link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
 :link(atomeye3,http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html)
 
-The latter link is to AtomEye 3 which has the scriping
+The latter link is to AtomEye 3 which has the scripting
 capability needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the

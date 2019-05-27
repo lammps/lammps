@@ -121,7 +121,7 @@ void ComputeCNPAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeCNPAtom::init_list(int id, NeighList *ptr)
+void ComputeCNPAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

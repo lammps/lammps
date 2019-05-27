@@ -45,7 +45,7 @@ enum{ASCEND,DESCEND};
 
 /* ---------------------------------------------------------------------- */
 
-Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -423,7 +423,12 @@ void Dump::write()
     atom->x = xpbc;
     atom->v = vpbc;
     atom->image = imagepbc;
+
+    // for triclinic, PBC is applied in lamda coordinates
+
+    if (domain->triclinic) domain->x2lamda(nlocal);
     domain->pbc();
+    if (domain->triclinic) domain->lamda2x(nlocal);
   }
 
   // pack my data into buf

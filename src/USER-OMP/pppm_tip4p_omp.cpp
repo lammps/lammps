@@ -44,8 +44,8 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
-  PPPMTIP4P(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
+PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp) :
+  PPPMTIP4P(lmp), ThrOMP(lmp, THR_KSPACE)
 {
   triclinic_support = 1;
   suffix_flag |= Suffix::OMP;

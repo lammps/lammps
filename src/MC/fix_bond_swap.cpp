@@ -182,7 +182,7 @@ void FixBondSwap::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondSwap::init_list(int id, NeighList *ptr)
+void FixBondSwap::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

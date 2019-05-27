@@ -446,7 +446,7 @@ void FixStoreState::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreState::setup(int vflag)
+void FixStoreState::setup(int /*vflag*/)
 {
   // if first invocation, store current values for compute, fix, variable
 
@@ -580,7 +580,7 @@ void FixStoreState::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStoreState::copy_arrays(int i, int j, int delflag)
+void FixStoreState::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nvalues; m++) values[j][m] = values[i][m];
 }
@@ -646,7 +646,7 @@ int FixStoreState::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixStoreState::size_restart(int nlocal)
+int FixStoreState::size_restart(int /*nlocal*/)
 {
   return nvalues+1;
 }

@@ -269,7 +269,7 @@ void FixIPI::init()
   neighbor->every = 1;
 }
 
-void FixIPI::initial_integrate(int vflag)
+void FixIPI::initial_integrate(int /*vflag*/)
 {
   /* This is called at the beginning of the integration loop,
    * and will be used to read positions from the socket. Then,

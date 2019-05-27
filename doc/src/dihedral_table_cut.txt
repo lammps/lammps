@@ -59,7 +59,7 @@ cutoff angle2
 filename
 keyword :ul
 
-The cutoff dihedral style uses a tabulated dihedral interaction with a 
+The cutoff dihedral style uses a tabulated dihedral interaction with a
 cutoff function:
 
 :c,image(Eqs/dihedral_table_cut.jpg)
@@ -174,7 +174,7 @@ radians instead of degrees.  (Note: This changes the way the forces
 are scaled in the 4th column of the data file.)
 
 The optional "CHECKU" keyword is followed by a filename.  This allows
-the user to save all of the the {Ntable} different entries in the
+the user to save all of the {Ntable} different entries in the
 interpolated energy table to a file to make sure that the interpolated
 function agrees with the user's expectations.  (Note: You can
 temporarily increase the {Ntable} parameter to a high value for this
@@ -192,8 +192,8 @@ that matches the specified keyword.
 [Restrictions:]
 
 This dihedral style can only be used if LAMMPS was built with the
-USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info on packages.
+USER-MISC package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

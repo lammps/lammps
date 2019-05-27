@@ -92,7 +92,7 @@ class KSpace : protected Pointers {
 
   double splittol;                // tolerance for when to truncate splitting
 
-  KSpace(class LAMMPS *, int, char **);
+  KSpace(class LAMMPS *);
   virtual ~KSpace();
   void triclinic_check();
   void modify_params(int, char **);
@@ -112,6 +112,7 @@ class KSpace : protected Pointers {
 
   // general child-class methods
 
+  virtual void settings(int, char **) {};
   virtual void init() = 0;
   virtual void setup() = 0;
   virtual void setup_grid() {};
@@ -126,11 +127,13 @@ class KSpace : protected Pointers {
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}
+
+  virtual int modify_param(int, char **) {return 0;}
   virtual double memory_usage() {return 0.0;}
 
 /* ----------------------------------------------------------------------
    compute gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164177
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
   double gamma(const double &rho) const
@@ -191,6 +194,10 @@ class KSpace : protected Pointers {
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
   void pair_check();
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void ev_setup(int, int, int alloc = 1);
   double estimate_table_accuracy(double, double);
 };

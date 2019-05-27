@@ -13,17 +13,17 @@ pair_style kolmogorov/crespi/full command :h3
 pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function 
+tap_flag = 0/1 to turn off/on the taper function
 
 [Examples:]
 
 pair_style hybrid/overlay kolmogorov/crespi/full 20.0 0
 pair_coeff * * none
-pair_coeff * * kolmogorov/crespi/full  CC.KC   C C :pre
+pair_coeff * * kolmogorov/crespi/full  CH.KC   C C :pre
 
-pair_style hybrid/overlay rebo kolmogorov/crespi/full 16.0
-pair_coeff * * rebo                    CH.airebo  C C
-pair_coeff * * kolmogorov/crespi/full  CC.KC      C C :pre
+pair_style hybrid/overlay rebo kolmogorov/crespi/full 16.0 1
+pair_coeff * * rebo                    CH.rebo      C H
+pair_coeff * * kolmogorov/crespi/full  CH_taper.KC  C H :pre
 
 [Description:]
 
@@ -38,27 +38,38 @@ forces and to include all the pairs to build the neighbor list for
 calculating the normals.  Energies are shifted so that they go
 continuously to zero at the cutoff assuming that the exponential part of
 {Vij} (first term) decays sufficiently fast.  This shift is achieved by
-the last term in the equation for {Vij} above.
+the last term in the equation for {Vij} above. This is essential only
+when the tapper function is turned off. The formula of taper function
+can be found in pair style "ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
 
-NOTE: This potential is intended for interactions between two different
-graphene layers. Therefore, to avoid interaction within the same layers,
-each layer should have a separate molecule id and is recommended to use
-"full" atom style in the data file.
+NOTE: This potential (ILP) is intended for interlayer interactions between two
+different layers of graphene. To perform a realistic simulation, this potential 
+must be used in combination with intralayer potential, such as 
+"AIREBO"_pair_airebo.html or "Tersoff"_pair_tersoff.html potential.
+To keep the intralayer properties unaffected, the interlayer interaction
+within the same layers should be avoided. Hence, each atom has to have a layer
+identifier such that atoms residing on the same layer interact via the
+appropriate intralayer potential and atoms residing on different layers
+interact via the ILP. Here, the molecule id is chosen as the layer identifier,
+thus a data file with the "full" atom style is required to use this potential.
 
-The parameter file (e.g. CC.KC), is intended for use with {metal}
+The parameter file (e.g. CH.KC), is intended for use with {metal}
 "units"_units.html, with energies in meV. Two additional parameters, {S},
 and {rcut} are included in the parameter file. {S} is designed to
 facilitate scaling of energies. {rcut} is designed to build the neighbor
 list for calculating the normals for each atom pair.
 
-NOTE: A new set of parameters of KC potential for hydrocarbons (CH.KC)
-is presented in "(Ouyang)"_#Ouyang2. The parameters in CH.KC provides
-a good description in both short- and long-range interaction regime,
-while the original parameters (CC.KC) published in "(Kolmogorov)"_#Kolmogorov1
-are only suitable for long-range interaction regime. 
-This feature is essential for simulations in high-pressure regime
-(i.e., the interlayer distance smaller than the equilibrium distance).
-The benchmark tests and comparison of these parameters can be found in "(Ouyang)"_#Ouyang2.
+NOTE: Two new sets of parameters of KC potential for hydrocarbons, CH.KC
+(without the taper function) and CH_taper.KC (with the taper function)
+are presented in "(Ouyang)"_#Ouyang1.  The energy for the KC potential
+with the taper function goes continuously to zero at the cutoff.  The
+parameters in both CH.KC and CH_taper.KC provide a good description in
+both short- and long-range interaction regimes. While the original
+parameters (CC.KC) published in "(Kolmogorov)"_#Kolmogorov1 are only
+suitable for long-range interaction regime.  This feature is essential
+for simulations in high pressure regime (i.e., the interlayer distance
+is smaller than the equilibrium distance).  The benchmark tests and
+comparison of these parameters can be found in "(Ouyang)"_#Ouyang1.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
@@ -78,13 +89,13 @@ that reads a restart file.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This pair potential requires the newton setting to be {on} for pair
 interactions.
 
-The CC.KC potential file provided with LAMMPS (see the potentials
+The CH.KC potential file provided with LAMMPS (see the potentials
 folder) are parameterized for metal units.  You can use this potential
 with any LAMMPS units, but you would need to create your own custom
 CC.KC potential file with all coefficients converted to the appropriate
@@ -95,6 +106,8 @@ units.
 "pair_coeff"_pair_coeff.html,
 "pair_none"_pair_none.html,
 "pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style drip"_pair_drip.html,
+"pair_style pair_lebedeva_z"_pair_lebedeva_z.html,
 "pair_style kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "pair_style ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
 
@@ -105,5 +118,5 @@ units.
 :link(Kolmogorov1)
 [(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
-:link(Ouyang2)
-[(Ouyang)] W. Ouyang, D. Mandelli,  M. Urbakh, O. Hod, arXiv:1806.09555 (2018).
+:link(Ouyang1)
+[(Ouyang)] W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).

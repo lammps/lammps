@@ -471,6 +471,9 @@ void Neighbor::init()
     error->warning(FLERR,"Neighbor exclusions used with KSpace solver "
                    "may give inconsistent Coulombic energies");
 
+  if (lmp->kokkos)
+    set_binsize_kokkos();
+
   // ------------------------------------------------------------------
   // create pairwise lists
   // one-time call to init_styles() to scan style files and setup
@@ -1408,7 +1411,6 @@ void Neighbor::init_topology()
 void Neighbor::print_pairwise_info()
 {
   int i,m;
-  char str[128];
   NeighRequest *rq;
   FILE *out;
 
@@ -1457,18 +1459,17 @@ void Neighbor::print_pairwise_info()
         rq = requests[i];
         if (rq->pair) {
           char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-          sprintf(str,"  (%d) pair %s",i+1,pname);
+          fprintf(out,"  (%d) pair %s",i+1,pname);
         } else if (rq->fix) {
-          sprintf(str,"  (%d) fix %s",i+1,((Fix *) rq->requestor)->style);
+          fprintf(out,"  (%d) fix %s",i+1,((Fix *) rq->requestor)->style);
         } else if (rq->compute) {
-          sprintf(str,"  (%d) compute %s",i+1,
+          fprintf(out,"  (%d) compute %s",i+1,
                   ((Compute *) rq->requestor)->style);
         } else if (rq->command) {
-          sprintf(str,"  (%d) command %s",i+1,rq->command_style);
+          fprintf(out,"  (%d) command %s",i+1,rq->command_style);
         } else if (rq->neigh) {
-          sprintf(str,"  (%d) neighbor class addition",i+1);
+          fprintf(out,"  (%d) neighbor class addition",i+1);
         }
-        fprintf(out,"%s",str);
 
         if (rq->occasional) fprintf(out,", occasional");
         else fprintf(out,", perpetual");
@@ -2193,7 +2194,7 @@ void Neighbor::set(int narg, char **arg)
    ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
-void Neighbor::reset_timestep(bigint ntimestep)
+void Neighbor::reset_timestep(bigint /*ntimestep*/)
 {
   for (int i = 0; i < nbin; i++)
     neigh_bin[i]->last_bin = -1;

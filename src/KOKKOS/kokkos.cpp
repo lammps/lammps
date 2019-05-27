@@ -26,7 +26,7 @@
 #include "error.h"
 #include "memory_kokkos.h"
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 // for detecting GPU-direct support:
 // the function  int have_gpu_direct()
@@ -55,7 +55,7 @@ GPU_DIRECT_UNKNOWN
 GPU_DIRECT_UNKNOWN
 #endif
 
-#endif // KOKKOS_HAVE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 
 using namespace LAMMPS_NS;
 
@@ -92,7 +92,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
       error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
@@ -142,7 +142,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpu);
   }
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   if (ngpu <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
 
@@ -166,6 +166,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   }
 #endif
 
+#ifndef KOKKOS_ENABLE_SERIAL
+  if (num_threads == 1)
+    error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
+                         "(i.e. Makefile.kokkos_mpi_only) gives better performance "
+                         "than the OpenMP backend");
+#endif
+
   Kokkos::InitArguments args;
   args.num_threads = num_threads;
   args.num_numa = numa;
@@ -175,16 +182,28 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // default settings for package kokkos command
 
-  neighflag = FULL;
-  neighflag_qeq = FULL;
-  neighflag_qeq_set = 0;
-  exchange_comm_classic = 0;
-  forward_comm_classic = 0;
-  reverse_comm_classic = 0;
-  exchange_comm_on_host = 0;
-  forward_comm_on_host = 0;
-  reverse_comm_on_host = 0;
+  binsize = 0.0;
   gpu_direct_flag = 1;
+  if (ngpu > 0) {
+    neighflag = FULL;
+    neighflag_qeq = FULL;
+    neighflag_qeq_set = 0;
+    newtonflag = 0;
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  } else {
+    if (num_threads > 1) {
+      neighflag = HALFTHREAD;
+      neighflag_qeq = HALFTHREAD;
+    } else {
+      neighflag = HALF;
+      neighflag_qeq = HALF;
+    }
+    neighflag_qeq_set = 0;
+    newtonflag = 1;
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  }
 
 #if KOKKOS_USE_CUDA
   // only if we can safely detect, that GPU-direct is not available, change default
@@ -211,17 +230,6 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
-  // defaults
-
-  neighflag = FULL;
-  neighflag_qeq = FULL;
-  neighflag_qeq_set = 0;
-  int newtonflag = 0;
-  double binsize = 0.0;
-  exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-  exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
-  gpu_direct_flag = 1;
-
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {

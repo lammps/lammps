@@ -82,11 +82,11 @@ first term in the equation for J above.
 
 The heat flux can be output every so many timesteps (e.g. via the
 "thermo_style custom"_thermo_style.html command).  Then as a
-post-processing operation, an autocorrelation can be performed, its
+post-processing operation, an auto-correlation can be performed, its
 integral estimated, and the Green-Kubo formula above evaluated.
 
 The "fix ave/correlate"_fix_ave_correlate.html command can calculate
-the autocorrelation.  The trap() function in the
+the auto-correlation.  The trap() function in the
 "variable"_variable.html command can calculate the integral.
 
 An example LAMMPS input script for solid Ar is appended below.  The

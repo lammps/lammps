@@ -102,7 +102,7 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
     else hi = force->numeric(FLERR,arg[iarg+2]);
     iarg += 3;
-  } 
+  }
 
   // check for trailing keyword/values
 
@@ -211,10 +211,10 @@ void FixWallBodyPolyhedron::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallBodyPolyhedron::post_force(int vflag)
+void FixWallBodyPolyhedron::post_force(int /*vflag*/)
 {
-  double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,rradi,wall_pos;
-  int i,ni,npi,ifirst,nei,iefirst,nfi,iffirst,side;
+  double vwall[3],dx,dy,dz,del1,del2,rsq,wall_pos;
+  int i,ni,npi,ifirst,nei,iefirst,side;
   double facc[3];
 
   // set position of wall to initial settings and velocity to 0.0
@@ -274,7 +274,7 @@ void FixWallBodyPolyhedron::post_force(int vflag)
   }
 
   ndiscrete = nedge = nface = 0;
-  for (i = 0; i < nlocal; i++) 
+  for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = facnum[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -320,23 +320,16 @@ void FixWallBodyPolyhedron::post_force(int vflag)
           wall_pos = whi;
           side = ZHI;
         }
-      } 
+      }
 
       rsq = dx*dx + dy*dy + dz*dz;
       if (rsq > radius[i]*radius[i]) continue;
-
-      double r = sqrt(rsq);
-      double rsqinv = 1.0 / rsq;
 
       if (dnum[i] == 0) body2space(i);
       npi = dnum[i];
       ifirst = dfirst[i];
       nei = ednum[i];
       iefirst = edfirst[i];
-      nfi = facnum[i];
-      iffirst = facfirst[i];
-      eradi = enclosing_radius[i];
-      rradi = rounded_radius[i];
 
       if (npi == 1) {
         sphere_against_wall(i, wall_pos, side, vwall, x, v, f, angmom, torque);
@@ -359,14 +352,13 @@ void FixWallBodyPolyhedron::post_force(int vflag)
         edge[iefirst+ni][5] = 0;
       }
 
-      int interact, num_contacts, done;
-      double delta_a, delta_ua, j_a;
+      int num_contacts;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
       facc[0] = facc[1] = facc[2] = 0;
-      interact = edge_against_wall(i, wall_pos, side, vwall, x, f, torque,
-                                   contact_list, num_contacts, facc);
+      edge_against_wall(i, wall_pos, side, vwall, x, f, torque,
+                        contact_list, num_contacts, facc);
 
     } // group bit
   }
@@ -485,7 +477,7 @@ void FixWallBodyPolyhedron::body2space(int i)
 ---------------------------------------------------------------------- */
 
 int FixWallBodyPolyhedron::sphere_against_wall(int i, double wall_pos,
-     int side, double* vwall, double** x, double** v, double** f,
+     int /*side*/, double* vwall, double** x, double** v, double** f,
      double** angmom, double** torque)
 {
   int mode;
@@ -506,7 +498,7 @@ int FixWallBodyPolyhedron::sphere_against_wall(int i, double wall_pos,
     hi[0] = x[i][0];
     hi[1] = x[i][1];
     hi[2] = wall_pos;
-  } 
+  }
 
   distance(hi, x[i], d);
 
@@ -540,17 +532,16 @@ int FixWallBodyPolyhedron::sphere_against_wall(int i, double wall_pos,
    Output:
      contact_list = list of contacts between i and the wall
      num_contacts = number of contacts between i's vertices and the wall
-   Return: 
+   Return:
      number of contacts of the edge to the wall (0, 1 or 2)
 ---------------------------------------------------------------------- */
 
 int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos,
-     int side, double* vwall, double** x, double** f, double** torque,
-     Contact* contact_list, int &num_contacts, double* facc)
+     int side, double* vwall, double** x, double** /*f*/, double** /*torque*/,
+     Contact* /*contact_list*/, int &/*num_contacts*/, double* /*facc*/)
 {
-  int ni, nei, mode, contact;
+  int ni, nei, contact;
   double rradi;
-  int nlocal = atom->nlocal;
 
   nei = ednum[i];
   rradi = rounded_radius[i];
@@ -560,8 +551,7 @@ int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos,
   // loop through body i's edges
 
   for (ni = 0; ni < nei; ni++)
-    mode = compute_distance_to_wall(i, ni, x[i], rradi, wall_pos, side, vwall,
-                                    contact);
+    compute_distance_to_wall(i, ni, x[i], rradi, wall_pos, side, vwall, contact);
 
   return contact;
 }
@@ -583,8 +573,8 @@ int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos,
 ------------------------------------------------------------------------- */
 
 int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index,
-                        double *xmi, double rounded_radius_i, double wall_pos, 
-                        int side, double* vwall, int &contact)
+                        double *xmi, double rounded_radius_i, double wall_pos,
+                        int /*side*/, double* vwall, int &contact)
 {
   int mode,ifirst,iefirst,npi1,npi2;
   double d1,d2,xpi1[3],xpi2[3],hi[3];
@@ -628,7 +618,7 @@ int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index,
     hi[0] = xpi1[0];
     hi[1] = xpi1[1];
     hi[2] = wall_pos;
-  } 
+  }
 
   distance(hi, xpi1, d1);
 
@@ -663,7 +653,7 @@ int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index,
     hi[0] = xpi2[0];
     hi[1] = xpi2[1];
     hi[2] = wall_pos;
-  } 
+  }
 
   distance(hi, xpi2, d2);
 
@@ -698,14 +688,14 @@ int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index,
 ------------------------------------------------------------------------- */
 
 void FixWallBodyPolyhedron::contact_forces(int ibody,
-  double j_a, double *xi, double *xj, double delx, double dely, double delz,
+  double j_a, double *xi, double * /*xj*/, double delx, double dely, double delz,
   double fx, double fy, double fz, double** x, double** v, double** angmom,
   double** f, double** torque, double* vwall)
 {
-  int ibonus,jbonus;
+  int ibonus;
   double fxt,fyt,fzt,rsq,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double fn[3],ft[3],vi[3],vj[3];
+  double fn[3],ft[3],vi[3];
   double *quat, *inertia;
   AtomVecBody::Bonus *bonus;
 
@@ -787,7 +777,7 @@ void FixWallBodyPolyhedron::contact_forces(Contact& contact, double j_a,
                       double** x, double** v, double** angmom, double** f,
                       double** torque, double* vwall, double* facc)
 {
-  int ibody,ibonus,ifirst, jefirst, ni;
+  int ibody,ibonus,ifirst,ni;
   double fx,fy,fz,delx,dely,delz,rsq,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double fn[3],ft[3],vi[3];
@@ -795,7 +785,7 @@ void FixWallBodyPolyhedron::contact_forces(Contact& contact, double j_a,
   AtomVecBody::Bonus *bonus;
 
   ibody = contact.ibody;
-  
+
   // compute the velocity of the vertex in the space-fixed frame
 
   ibonus = atom->body[ibody];

@@ -101,7 +101,7 @@ NOTE: Breaking a bond typically alters the energy of a system.  You
 should be careful not to choose bond breaking criteria that induce a
 dramatic change in energy.  For example, if you define a very stiff
 harmonic bond and break it when 2 atoms are separated by a distance
-far from the equilibribum bond length, then the 2 atoms will be
+far from the equilibrium bond length, then the 2 atoms will be
 dramatically released when the bond is broken.  More generally, you
 may need to thermostat your system to compensate for energy changes
 resulting from broken bonds (and angles, dihedrals, impropers).
@@ -131,14 +131,14 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 [Related commands:]
 
 "fix bond/create"_fix_bond_create.html, "fix
-bond/swap"_fix_bond_swap.html, "dump local"_dump.html,
-"special_bonds"_special_bonds.html
+bond/react"_fix_bond_react.html, "fix bond/swap"_fix_bond_swap.html,
+"dump local"_dump.html, "special_bonds"_special_bonds.html
 
 [Default:]
 

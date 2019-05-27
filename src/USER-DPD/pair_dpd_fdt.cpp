@@ -76,8 +76,7 @@ void PairDPDfdt::compute(int eflag, int vflag)
   double gamma_ij;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -433,8 +432,8 @@ void PairDPDfdt::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDfdt::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+double PairDPDfdt::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wr,wd,phi;
 

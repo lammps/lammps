@@ -214,7 +214,7 @@ void FixPIMD::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::initial_integrate(int vflag)
+void FixPIMD::initial_integrate(int /*vflag*/)
 {
   nhc_update_v();
   nhc_update_x();
@@ -229,7 +229,7 @@ void FixPIMD::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::post_force(int flag)
+void FixPIMD::post_force(int /*flag*/)
 {
   for(int i=0; i<atom->nlocal; i++) for(int j=0; j<3; j++) atom->f[i][j] /= np;
 
@@ -637,14 +637,14 @@ void FixPIMD::comm_exec(double **ptr)
     if(nsend > max_nsend)
     {
       max_nsend = nsend+200;
-      tag_send = (int*) memory->srealloc(tag_send, sizeof(int)*max_nsend, "FixPIMD:tag_send");
+      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD:tag_send");
       buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixPIMD:x_send");
     }
 
     // send tags
 
-    MPI_Sendrecv( atom->tag, nlocal, MPI_INT, plan_send[iplan], 0,
-                  tag_send,  nsend,  MPI_INT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
+    MPI_Sendrecv( atom->tag, nlocal, MPI_LMP_TAGINT, plan_send[iplan], 0,
+                  tag_send,  nsend,  MPI_LMP_TAGINT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
 
     // wrap positions
 
@@ -661,7 +661,7 @@ void FixPIMD::comm_exec(double **ptr)
 
         sprintf(error_line, "Atom " TAGINT_FORMAT " is missing at world [%d] "
                 "rank [%d] required by  rank [%d] (" TAGINT_FORMAT ", "
-                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n",tag_send[i],
+                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n", tag_send[i],
                 universe->iworld, comm->me, plan_recv[iplan],
                 atom->tag[0], atom->tag[1], atom->tag[2]);
 
@@ -686,7 +686,7 @@ void FixPIMD::comm_exec(double **ptr)
 /* ---------------------------------------------------------------------- */
 
 int FixPIMD::pack_forward_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+                             int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 
@@ -744,7 +744,7 @@ void FixPIMD::grow_arrays(int nmax)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::copy_arrays(int i, int j, int delflag)
+void FixPIMD::copy_arrays(int i, int j, int /*delflag*/)
 {
   int i_pos = i*3;
   int j_pos = j*3;
@@ -832,7 +832,7 @@ int FixPIMD::maxsize_restart()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::size_restart(int nlocal)
+int FixPIMD::size_restart(int /*nlocal*/)
 {
   return size_peratom_cols+1;
 }

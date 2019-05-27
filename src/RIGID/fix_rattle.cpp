@@ -185,7 +185,7 @@ void FixRattle::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRattle::post_force_respa(int vflag, int ilevel, int iloop)
+void FixRattle::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // remember vflag for the coordinate correction in this->final_integrate
 
@@ -625,7 +625,7 @@ void FixRattle::update_v_half_nocons()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRattle::update_v_half_nocons_respa(int ilevel)
+void FixRattle::update_v_half_nocons_respa(int /*ilevel*/)
 {
   // carry out unconstrained velocity update
 

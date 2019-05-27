@@ -258,14 +258,14 @@ void FixBondCreate::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::init_list(int id, NeighList *ptr)
+void FixBondCreate::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::setup(int vflag)
+void FixBondCreate::setup(int /*vflag*/)
 {
   int i,j,m;
 
@@ -1206,7 +1206,7 @@ int FixBondCreate::dedup(int nstart, int nstop, tagint *copy)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::post_integrate_respa(int ilevel, int iloop)
+void FixBondCreate::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -1214,7 +1214,7 @@ void FixBondCreate::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondCreate::pack_forward_comm(int n, int *list, double *buf,
-                                     int pbc_flag, int *pbc)
+                                     int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
 
@@ -1347,7 +1347,7 @@ void FixBondCreate::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::copy_arrays(int i, int j, int delflag)
+void FixBondCreate::copy_arrays(int i, int j, int /*delflag*/)
 {
   bondcount[j] = bondcount[i];
 }

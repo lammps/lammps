@@ -113,12 +113,11 @@ state of the system, e.g. via a "write_dump"_write_dump.html or
 "write_restart"_write_restart.html command.
 
 If its value is {continue}, the behavior is the same as for {soft},
-except subsequent subsequent "run"_run.html or
-"minimize"_minimize.html commands are executed.  This allows your
-script to remedy the condition that triggered the halt, if necessary.
-Note that you may wish use the "unfix"_unfix.html command on the fix
-halt ID, so that the same condition is not immediately triggered in a
-subsequent run.
+except subsequent "run"_run.html or "minimize"_minimize.html commands
+are executed.  This allows your script to remedy the condition that
+triggered the halt, if necessary.  Note that you may wish use the
+"unfix"_unfix.html command on the fix halt ID, so that the same
+condition is not immediately triggered in a subsequent run.
 
 The optional {message} keyword determines whether a message is printed
 to the screen and logfile when the halt condition is triggered.  If
@@ -135,8 +134,7 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output commands"_Howto_output.html.
 No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+the "run"_run.html command.
 
 [Restrictions:] none
 

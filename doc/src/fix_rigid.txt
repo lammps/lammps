@@ -244,10 +244,10 @@ includes atoms you want to be part of rigid bodies.
 Bodystyle {custom} is similar to bodystyle {molecule} except that it
 is more flexible in using other per-atom properties to define the sets
 of atoms that form rigid bodies.  An integer vector defined by the
-"fix property/atom"_fix_property_atom.txt command can be used.  Or an
+"fix property/atom"_fix_property_atom.html command can be used.  Or an
 "atom-style or atomfile-style variable"_variable.html can be used; the
 floating-point value produced by the variable is rounded to an
-integer.  As with bondstyle {molecule}, each set of atoms in the fix
+integer.  As with bodystyle {molecule}, each set of atoms in the fix
 groups with the same integer value is treated as a different rigid
 body.  Since fix property/atom vectors and atom-style variables
 produce values for all atoms, you should be careful to use a fix group
@@ -442,11 +442,11 @@ couple none :pre
 The keyword/value option pairs are used in the following ways.
 
 The {reinit} keyword determines, whether the rigid body properties
-are reinitialized between run commands. With the option {yes} (the
+are re-initialized between run commands. With the option {yes} (the
 default) this is done, with the option {no} this is not done. Turning
-off the reinitialization can be helpful to protect rigid bodies against
+off the re-initialization can be helpful to protect rigid bodies against
 unphysical manipulations between runs or when properties cannot be
-easily recomputed (e.g. when read from a file). When using the {infile}
+easily re-computed (e.g. when read from a file). When using the {infile}
 keyword, the {reinit} option is automatically set to {no}.
 
 The {langevin} and {temp} and {tparam} keywords perform thermostatting
@@ -696,13 +696,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -806,8 +806,8 @@ of the "run"_run.html command.  These fixes are not invoked during
 [Restrictions:]
 
 These fixes are all part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Assigning a temperature via the "velocity create"_velocity.html
 command to a system with "rigid bodies"_fix_rigid.html may not have

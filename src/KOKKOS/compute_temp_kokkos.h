@@ -84,7 +84,7 @@ class ComputeTempKokkos : public ComputeTemp {
 
  protected:
   typename ArrayTypes<DeviceType>::t_v_array_randomread v;
-  double *rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread mask;

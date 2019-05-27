@@ -37,7 +37,7 @@ fix biax_npt all npt/uef temp 400 400 100 erate -0.00001 0.000005 x 1 1 3000 :pr
 [Description:]
 
 This fix can be used to simulate non-equilibrium molecular dynamics
-(NEMD) under diagonal flow fields, including uniaxial and biaxial
+(NEMD) under diagonal flow fields, including uniaxial and bi-axial
 flow.  Simulations under continuous extensional flow may be carried
 out for an indefinite amount of time.  It is an implementation of the
 boundary conditions from "(Dobson)"_#Dobson, and also uses numerical
@@ -174,7 +174,7 @@ This fix can be used with the "fix_modify"_fix_modify.html {temp} and
 {press} options. The temperature and pressure computes used must be of
 type {temp/uef} and {pressure/uef}.
 
-This fix computes the same global scalar and vecor quantities as "fix
+This fix computes the same global scalar and vector quantities as "fix
 npt"_fix_nh.html.
 
 The fix is not invoked during "energy minimization"_minimize.html.
@@ -182,8 +182,8 @@ The fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-UEF package. It is only enabled if LAMMPS
-was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 Due to requirements of the boundary conditions, when the {strain}
 keyword is set to zero (or unset), the initial simulation box must be

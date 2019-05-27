@@ -24,10 +24,14 @@ fix constrain all manifoldforce sphere 5.0
 
 [Description:]
 
-This fix subtracts each time step from the force the component along the normal of the specified "manifold"_manifolds.html.
-This can be used in combination with "minimize"_minimize.html to remove overlap between particles while
-keeping them (roughly) constrained to the given manifold, e.g. to set up a run with "fix nve/manifold/rattle"_fix_nve_manifold_rattle.html.
-I have found that only {hftn} and {quickmin} with a very small time step perform adequately though.
+This fix subtracts each time step from the force the component along
+the normal of the specified "manifold"_Howto_manifold.html.  This can be
+used in combination with "minimize"_minimize.html to remove overlap
+between particles while keeping them (roughly) constrained to the
+given manifold, e.g. to set up a run with "fix
+nve/manifold/rattle"_fix_nve_manifold_rattle.html.  I have found that
+only {hftn} and {quickmin} with a very small time step perform
+adequately though.
 
 :line
 
@@ -45,17 +49,18 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the USER-MANIFOLD package. It is only enabled if LAMMPS
-was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+This fix is part of the USER-MANIFOLD package. It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
-Only use this with {min_style hftn} or {min_style quickmin}. If not, the constraints
-will not be satisfied very well at all. A warning is generated if the {min_style} is
-incompatible but no error.
+Only use this with {min_style hftn} or {min_style quickmin}. If not,
+the constraints will not be satisfied very well at all. A warning is
+generated if the {min_style} is incompatible but no error.
 
 :line
 
 [Related commands:]
 
-"fix nve/manifold/rattle"_fix_nve_manifold_rattle.html, "fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html
+"fix nve/manifold/rattle"_fix_nve_manifold_rattle.html, "fix
+nvt/manifold/rattle"_fix_nvt_manifold_rattle.html
 

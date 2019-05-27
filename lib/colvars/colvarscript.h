@@ -71,8 +71,10 @@ public:
     cv_help,
     cv_version,
     cv_config,
+    cv_getconfig,
     cv_configfile,
     cv_reset,
+    cv_resetindexgroups,
     cv_delete,
     cv_list,
     cv_list_biases,
@@ -189,8 +191,9 @@ inline static colvarbias *colvarbias_obj(void *pobj)
 
 #ifdef COLVARSCRIPT_CPP
 #define CVSCRIPT_COMM_FN(COMM,N_ARGS_MIN,N_ARGS_MAX,ARGS,FN_BODY)       \
-  int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                             \
-                                int objc, unsigned char *const objv[])  \
+  extern "C" int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                  \
+                                           int objc,                    \
+                                           unsigned char *const objv[]) \
   {                                                                     \
     colvarscript *script = colvarscript_obj();                          \
     script->clear_results();                                            \
@@ -252,6 +255,23 @@ extern "C" {
            }
            script->set_str_result("Error parsing configuration string");
            return COLVARSCRIPT_ERROR;
+           )
+
+  CVSCRIPT(cv_getconfig,
+           "Get the module's configuration string read so far",
+           0, 0,
+           { },
+           script->set_str_result(cvm::main()->get_config());
+           return COLVARS_OK;
+           )
+
+  CVSCRIPT(cv_resetindexgroups,
+           "Clear the index groups loaded so far, allowing to replace them",
+           0, 0,
+           { },
+           cvm::main()->index_group_names.clear();
+           cvm::main()->index_groups.clear();
+           return COLVARS_OK;
            )
 
   CVSCRIPT(cv_addenergy,

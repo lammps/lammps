@@ -231,7 +231,7 @@ void FixSMDSetVel::min_setup(int vflag) {
 /* ---------------------------------------------------------------------- */
 
 //void FixSMDSetVel::initial_integrate(int vflag) {
-void FixSMDSetVel::post_force(int vflag) {
+void FixSMDSetVel::post_force(int /*vflag*/) {
         double **x = atom->x;
         double **f = atom->f;
         double **v = atom->v;

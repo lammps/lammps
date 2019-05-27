@@ -35,13 +35,13 @@ temperature.
 
 The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy values at each of {N} internal
-temperatures, and vice-versa.  During a simulation, these tables are
+temperatures, and vice versa.  During a simulation, these tables are
 used to interpolate internal energy or temperature values as needed.
 The interpolation is done with the {linear} style.
 
 For the {linear} style, the internal temperature is used to find 2
 surrounding table values from which an internal energy is computed by
-linear interpolation, and vice-versa.
+linear interpolation, and vice versa.
 
 The filename specifies a file containing tabulated internal
 temperature and internal energy values.  The keyword specifies a
@@ -99,8 +99,8 @@ one that matches the specified keyword.
 [Restrictions:]
 
 This command is part of the USER-DPD package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This command also requires use of the "atom_style dpd"_atom_style.html
 command.

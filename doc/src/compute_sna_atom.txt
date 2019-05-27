@@ -24,7 +24,7 @@ twojmax = band limit for bispectrum components (non-negative integer) :l
 R_1, R_2,... = list of cutoff radii, one for each type (distance units) :l
 w_1, w_2,... = list of neighbor weights, one for each type  :l
 zero or more keyword/value pairs may be appended :l
-keyword = {diagonal} or {rmin0} or {switchflag} or {bzeroflag} or {quadraticflag}:l
+keyword = {diagonal} or {rmin0} or {switchflag} or {bzeroflag} or {quadraticflag} :l
   {diagonal} value = {0} or {1} or {2} or {3}
      {0} = all j1, j2, j <= twojmax, j2 <= j1
      {1} = subset satisfying j1 == j2
@@ -161,7 +161,7 @@ function.
 
 The keyword {bzeroflag} determines whether or not {B0}, the bispectrum
 components of an atom with no neighbors, are subtracted from
-the calculated bispectrum components. This optional keyword 
+the calculated bispectrum components. This optional keyword
 normally only affects compute {sna/atom}. However, when
 {quadraticflag} is on, it also affects {snad/atom} and {snav/atom}.
 
@@ -250,8 +250,8 @@ page for an overview of LAMMPS output options.
 [Restrictions:]
 
 These computes are part of the SNAP package.  They are only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

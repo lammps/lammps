@@ -81,7 +81,7 @@ the image flags to reconstruct the absolute atom positions.
 Setting this to {no} will use the current local coordinates that are
 wrapped back into the simulation cell at each re-neighboring instead.
 
-The {tstat} keyword can be either NULL or the label of a thermostating
+The {tstat} keyword can be either NULL or the label of a thermostatting
 fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.
@@ -98,6 +98,16 @@ fix to add the energy change from the biasing force added by the fix
 to the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
+The {fix_modify configfile <config file>} option allows to add settings
+from an additional config file to the colvars module. This option can
+only be used, after the system has been initialized with a "run"_run.html
+command.
+
+The {fix_modify config <quoted string>} option allows to add settings
+from inline strings. Those have to fit on a single line when enclosed
+in a pair of double quotes ("), or can span multiple lines when bracketed
+by a pair of triple double quotes (""", like python embedded documentation).
+
 This fix computes a global scalar which can be accessed by various
 "output commands"_Howto_output.html.  The scalar is the cumulative
 energy change due to this fix.  The scalar value calculated by this
@@ -106,8 +116,8 @@ fix is "extensive".
 [Restrictions:]
 
 This fix is part of the USER-COLVARS package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module
@@ -116,7 +126,8 @@ not a limitation of functionality.
 
 [Related commands:]
 
-"fix smd"_fix_smd.html
+"fix smd"_fix_smd.html, "fix spring"_fix_spring.html,
+"fix plumed"_fix_plumed.html
 
 [Default:]
 
@@ -126,4 +137,4 @@ and tstat = NULL.
 :line
 
 :link(Fiorin)
-[(Fiorin)] Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
+[(Fiorin)] Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594

@@ -232,7 +232,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     fgle = force->open_potential(fname);
     if (fgle == NULL) {
       char str[128];
-      sprintf(str,"Cannot open A-matrix file %s",fname);
+      snprintf(str,128,"Cannot open A-matrix file %s",fname);
       error->one(FLERR,str);
     }
     if (screen) fprintf(screen,"Reading A-matrix from %s\n", fname);
@@ -302,7 +302,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
       fgle = force->open_potential(fname);
       if (fgle == NULL) {
         char str[128];
-        sprintf(str,"Cannot open C-matrix file %s",fname);
+        snprintf(str,128,"Cannot open C-matrix file %s",fname);
         error->one(FLERR,str);
       }
       if (screen)
@@ -582,7 +582,7 @@ void FixGLE::gle_integrate()
   energy += deltae*0.5*force->mvv2e;
 }
 
-void FixGLE::initial_integrate(int vflag)
+void FixGLE::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 
@@ -685,7 +685,7 @@ void FixGLE::final_integrate()
 }
 /* ---------------------------------------------------------------------- */
 
-void FixGLE::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixGLE::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -699,7 +699,7 @@ void FixGLE::initial_integrate_respa(int vflag, int ilevel, int iloop)
   else { final_integrate();}
 }
 
-void FixGLE::final_integrate_respa(int ilevel, int iloop)
+void FixGLE::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -793,7 +793,7 @@ void FixGLE::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixGLE::copy_arrays(int i, int j, int delflag)
+void FixGLE::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int k = 0; k < 3*ns; k++) gle_s[j][k] = gle_s[i][k];
 }
@@ -868,7 +868,7 @@ void FixGLE::unpack_restart(int nlocal, int nth)
    fixes on a given processor.
 ------------------------------------------------------------------------- */
 
-int FixGLE::size_restart(int nlocal)
+int FixGLE::size_restart(int /*nlocal*/)
 {
   return 3*ns+1;
 }

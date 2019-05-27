@@ -126,7 +126,7 @@ void PairEAMAlloyIntel::read_file(char *filename)
     fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EAM potential file %s",filename);
+      snprintf(str,128,"Cannot open EAM potential file %s",filename);
       error->one(FLERR,str);
     }
   }

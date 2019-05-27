@@ -18,7 +18,7 @@ t_event = timestep interval between event checks :l
 T_lo = temperature at which event times are desired :l
 T_hi = temperature at which MD simulation is performed :l
 delta = desired confidence level for stopping criterion :l
-tmax = reciprocal of lowest expected preexponential factor (time units) :l
+tmax = reciprocal of lowest expected pre-exponential factor (time units) :l
 compute-ID = ID of the compute used for event detection :l
 zero or more keyword/value pairs may be appended :l
 keyword = {min} or {neb} or {min_style} or {neb_style} or {neb_log} :l
@@ -62,7 +62,7 @@ results at a specified lower temperature.  A good overview of
 accelerated dynamics methods for such systems is given in "this review
 paper"_#Voter2002 from the same group. In general, these methods assume
 that the long-time dynamics is dominated by infrequent events i.e. the
-system is is confined to low energy basins for long periods,
+system is confined to low energy basins for long periods,
 punctuated by brief, randomly-occurring transitions to adjacent
 basins.  TAD is suitable for infrequent-event systems, where in
 addition, the transition kinetics are well-approximated by harmonic
@@ -271,8 +271,8 @@ are always monotonically increasing.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 {N} setting must be integer multiple of {t_event}.
 

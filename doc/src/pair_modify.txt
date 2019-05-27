@@ -183,7 +183,7 @@ an approximation. :l
 The tail corrections are computed at the beginning of each simulation
 run.  If the number of atoms changes during the run, e.g. due to atoms
 leaving the simulation domain, or use of the "fix gcmc"_fix_gcmc.html
-command, then the corrections are not updates to relect the changed
+command, then the corrections are not updated to reflect the changed
 atom count.  If this is a large effect in your simulation, you should
 break the long run into several short runs, so that the correction
 factors are re-computed multiple times.

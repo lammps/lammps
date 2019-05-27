@@ -68,7 +68,7 @@ void FixNVEEff::init()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVEEff::initial_integrate(int vflag)
+void FixNVEEff::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 
@@ -145,7 +145,7 @@ void FixNVEEff::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEEff::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVEEff::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -159,7 +159,7 @@ void FixNVEEff::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEEff::final_integrate_respa(int ilevel, int iloop)
+void FixNVEEff::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

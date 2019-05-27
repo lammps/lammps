@@ -234,7 +234,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   int in_klo, int in_khi,
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
   int out_klo, int out_khi,
-  int nqty, int permute, int memory, int precision, int usecollective)
+  int nqty, int permute, int memory, int /*precision*/, int usecollective)
 
 {
 

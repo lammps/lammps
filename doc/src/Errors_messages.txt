@@ -279,12 +279,6 @@ multibody joint).  The bodies you have defined exceed this limit. :dd
 This is an internal LAMMPS error.  Please report it to the
 developers. :dd
 
-{Atom sorting has bin size = 0.0} :dt
-
-The neighbor cutoff is being used as the bin size, but it is zero.
-Thus you must explicitly list a bin size in the atom_modify sort
-command or turn off sorting. :dd
-
 {Atom style hybrid cannot have hybrid as an argument} :dt
 
 Self-explanatory. :dd
@@ -421,9 +415,9 @@ This is an internal error.  It should normally not occur. :dd
 
 This is an internal error.  It should normally not occur. :dd
 
-{Bad real space Coulomb cutoff in fix tune/kspace} :dt
+{Bad real space Coulombic cutoff in fix tune/kspace} :dt
 
-Fix tune/kspace tried to find the optimal real space Coulomb cutoff using
+Fix tune/kspace tried to find the optimal real space Coulombic cutoff using
 the Newton-Rhaphson method, but found a non-positive or NaN cutoff :dd
 
 {Balance command before simulation box is defined} :dt
@@ -460,7 +454,7 @@ compute. :dd
 
 {Big particle in fix srd cannot be point particle} :dt
 
-Big particles must be extended spheriods or ellipsoids. :dd
+Big particles must be extended spheroids or ellipsoids. :dd
 
 {Bigint setting in lmptype.h is invalid} :dt
 
@@ -743,7 +737,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)} :dt
+{Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and re-compile)} :dt
 
 Single precision cannot be used with MSM. :dd
 
@@ -780,7 +774,7 @@ Cannot use tilt factors unless the simulation box is non-orthogonal. :dd
 
 Self-explanatory. :dd
 
-{Cannot change box z boundary to nonperiodic for a 2d simulation} :dt
+{Cannot change box z boundary to non-periodic for a 2d simulation} :dt
 
 Self-explanatory. :dd
 
@@ -1092,11 +1086,6 @@ correct. :dd
 The specified file cannot be opened.  Check that the path and name are
 correct. :dd
 
-{Cannot open fix ave/spatial file %s} :dt
-
-The specified file cannot be opened.  Check that the path and name are
-correct. :dd
-
 {Cannot open fix ave/time file %s} :dt
 
 The specified file cannot be opened.  Check that the path and name are
@@ -1293,7 +1282,7 @@ are defined. :dd
 You cannot reset the timestep when a fix that keeps track of elapsed
 time is in place. :dd
 
-{Cannot run 2d simulation with nonperiodic Z dimension} :dt
+{Cannot run 2d simulation with non-periodic Z dimension} :dt
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation. :dd
@@ -1676,10 +1665,6 @@ Using this fix requires the ability to lookup an atom index, which is
 provided by an atom map.  An atom map does not exist (by default) for
 non-molecular problems.  Using the atom_modify map command will force
 an atom map to be created. :dd
-
-{Cannot use fix ave/spatial z for 2 dimensional model} :dt
-
-Self-explanatory. :dd
 
 {Cannot use fix bond/break with non-molecular systems} :dt
 
@@ -2125,29 +2110,29 @@ Self-explanatory. :dd
 Fix setforce cannot be used in this manner.  Use fix addforce
 instead. :dd
 
-{Cannot use nonperiodic boundares with fix ttm} :dt
+{Cannot use non-periodic boundares with fix ttm} :dt
 
 This fix requires a fully periodic simulation box. :dd
 
-{Cannot use nonperiodic boundaries with Ewald} :dt
+{Cannot use non-periodic boundaries with Ewald} :dt
 
 For kspace style ewald, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
-{Cannot use nonperiodic boundaries with EwaldDisp} :dt
+{Cannot use non-periodic boundaries with EwaldDisp} :dt
 
 For kspace style ewald/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d
 slab with a non-periodic z dimension. :dd
 
-{Cannot use nonperiodic boundaries with PPPM} :dt
+{Cannot use non-periodic boundaries with PPPM} :dt
 
 For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
-{Cannot use nonperiodic boundaries with PPPMDisp} :dt
+{Cannot use non-periodic boundaries with PPPMDisp} :dt
 
 For kspace style pppm/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d
@@ -2422,10 +2407,6 @@ Self-explanatory. :dd
 Self-explanatory. :dd
 
 {Compute ID for fix ave/histo does not exist} :dt
-
-Self-explanatory. :dd
-
-{Compute ID for fix ave/spatial does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -3364,21 +3345,21 @@ probably due to errors in the Python code. :dd
 The default minimum order is 2.  This can be reset by the
 kspace_modify minorder command. :dd
 
-{Coulomb cut not supported in pair_style buck/long/coul/coul} :dt
+{Coulombic cutoff not supported in pair_style buck/long/coul/coul} :dt
 
 Must use long-range Coulombic interactions. :dd
 
-{Coulomb cut not supported in pair_style lj/long/coul/long} :dt
+{Coulombic cutoff not supported in pair_style lj/long/coul/long} :dt
 
 Must use long-range Coulombic interactions. :dd
 
-{Coulomb cut not supported in pair_style lj/long/tip4p/long} :dt
+{Coulombic cutoff not supported in pair_style lj/long/tip4p/long} :dt
 
 Must use long-range Coulombic interactions. :dd
 
-{Coulomb cutoffs of pair hybrid sub-styles do not match} :dt
+{Coulombic cutoffs of pair hybrid sub-styles do not match} :dt
 
-If using a Kspace solver, all Coulomb cutoffs of long pair styles must
+If using a Kspace solver, all Coulombic cutoffs of long pair styles must
 be the same. :dd
 
 {Coulombic cut not supported in pair_style lj/long/dipole/long} :dt
@@ -4074,10 +4055,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Fix ID for fix ave/spatial does not exist} :dt
-
-Self-explanatory. :dd
-
 {Fix ID for fix ave/time does not exist} :dt
 
 Self-explanatory. :dd
@@ -4378,51 +4355,6 @@ same style. :dd
 {Fix ave/histo/weight value and weight vector lengths do not match} :dt
 
 Self-explanatory. :dd
-
-{Fix ave/spatial compute does not calculate a per-atom array} :dt
-
-Self-explanatory. :dd
-
-{Fix ave/spatial compute does not calculate a per-atom vector} :dt
-
-A compute used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial compute does not calculate per-atom values} :dt
-
-A compute used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial compute vector is accessed out-of-range} :dt
-
-The index for the vector is out of bounds. :dd
-
-{Fix ave/spatial fix does not calculate a per-atom array} :dt
-
-Self-explanatory. :dd
-
-{Fix ave/spatial fix does not calculate a per-atom vector} :dt
-
-A fix used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial fix does not calculate per-atom values} :dt
-
-A fix used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial fix vector is accessed out-of-range} :dt
-
-The index for the vector is out of bounds. :dd
-
-{Fix ave/spatial for triclinic boxes requires units reduced} :dt
-
-Self-explanatory. :dd
-
-{Fix ave/spatial settings invalid with changing box size} :dt
-
-If the box size changes, only the units reduced option can be
-used. :dd
-
-{Fix ave/spatial variable is not atom-style variable} :dt
-
-A variable used by fix ave/spatial must generate per-atom values. :dd
 
 {Fix ave/time cannot set output array intensive/extensive from these inputs} :dt
 
@@ -5078,7 +5010,7 @@ Self-explanatory. :dd
 
 Occurs when number of neighbor atoms for an atom increased too much
 during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile. :dd
+re-compile. :dd
 
 {Fix qeq/point requires atom attribute q} :dt
 
@@ -5092,7 +5024,7 @@ Self-explanatory. :dd
 
 Occurs when number of neighbor atoms for an atom increased too much
 during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile. :dd
+re-compile. :dd
 
 {Fix qeq/shielded requires atom attribute q} :dt
 
@@ -5110,7 +5042,7 @@ Self-explanatory. :dd
 
 Occurs when number of neighbor atoms for an atom increased too much
 during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile. :dd
+re-compile. :dd
 
 {Fix qeq/slater requires atom attribute q} :dt
 
@@ -5541,7 +5473,7 @@ See the package gpu command. :dd
 
 {GPUs are requested but Kokkos has not been compiled for CUDA} :dt
 
-Recompile Kokkos with CUDA support to use GPUs. :dd
+Re-compile Kokkos with CUDA support to use GPUs. :dd
 
 {Ghost velocity forward comm not yet implemented with Kokkos} :dt
 
@@ -6000,9 +5932,9 @@ map command will force an atom map to be created. :dd
 
 Self-explanatory. :dd
 
-{Input line quote not followed by whitespace} :dt
+{Input line quote not followed by white-space} :dt
 
-An end quote must be followed by whitespace. :dd
+An end quote must be followed by white-space. :dd
 
 {Insertion region extends outside simulation box} :dt
 
@@ -6985,7 +6917,7 @@ types. :dd
 
 {Invalid use of library file() function} :dt
 
-This function is called thru the library interface.  This
+This function is called through the library interface.  This
 error should not occur.  Contact the developers if it does. :dd
 
 {Invalid value in set command} :dt
@@ -7056,12 +6988,6 @@ The atom style defined does not have this attribute. :dd
 
 The atom style defined does not have these attributes. :dd
 
-{KIM neighbor iterator exceeded range} :dt
-
-This should not happen.  It likely indicates a bug
-in the KIM implementation of the interatomic potential
-where it is requesting neighbors incorrectly. :dd
-
 {KOKKOS package does not yet support comm_style tiled} :dt
 
 Self-explanatory. :dd
@@ -7076,7 +7002,7 @@ The kspace accuracy designated in the input must be greater than zero. :dd
 
 {KSpace accuracy too large to estimate G vector} :dt
 
-Reduce the accuracy request or specify gwald explicitly
+Reduce the accuracy request or specify gewald explicitly
 via the kspace_modify command. :dd
 
 {KSpace accuracy too low} :dt
@@ -7911,8 +7837,8 @@ Atom IDs must be positive integers. :dd
 {One or more atom IDs is too big} :dt
 
 The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-setting in your Makefile.  See Section_start 2.2 of the manual for
-more details. :dd
+setting in your LAMMPS build.  See the "Build
+settings"_Build_settings.html doc page for more info. :dd
 
 {One or more atom IDs is zero} :dt
 
@@ -8076,7 +8002,7 @@ Self-explanatory. :dd
 
 {Package command after simulation box is defined} :dt
 
-The package command cannot be used afer a read_data, read_restart, or
+The package command cannot be used after a read_data, read_restart, or
 create_box command. :dd
 
 {Package gpu command without GPU package installed} :dt
@@ -9260,7 +9186,7 @@ creates one large file for all processors. :dd
 {Restart file byte ordering is not recognized} :dt
 
 The file does not appear to be a LAMMPS restart file since it doesn't
-contain a recognized byte-orderomg flag at the beginning. :dd
+contain a recognized byte-ordering flag at the beginning. :dd
 
 {Restart file byte ordering is swapped} :dt
 
@@ -9472,7 +9398,7 @@ You may also want to boost the page size. :dd
 
 {Small to big integers are not sized correctly} :dt
 
-This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
+This error occurs when the sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs. :dd
 
@@ -10064,25 +9990,25 @@ quote. :dd
 
 Self-explanatory. :dd
 
-{Unexpected end of AngleCoeffs section} :dt
+{Unexpected empty line in AngleCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of BondCoeffs section} :dt
+{Unexpected empty line in BondCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of DihedralCoeffs section} :dt
+{Unexpected empty line in DihedralCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of ImproperCoeffs section} :dt
+{Unexpected empty line in ImproperCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of PairCoeffs section} :dt
+{Unexpected empty line in PairCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
 {Unexpected end of custom file} :dt
 
@@ -10252,10 +10178,6 @@ valid. :dd
 {Unrecognized pair style in compute pair command} :dt
 
 Self-explanatory. :dd
-
-{Unrecognized virial argument in pair_style command} :dt
-
-Only two options are supported: LAMMPSvirial and KIMvirial :dd
 
 {Unsupported mixing rule in kspace_style ewald/disp} :dt
 

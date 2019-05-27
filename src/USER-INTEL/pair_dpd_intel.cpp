@@ -82,9 +82,9 @@ void PairDPDIntel::compute(int eflag, int vflag,
                            IntelBuffers<flt_t,acc_t> *buffers,
                            const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -173,8 +173,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
   const FC_PACKED1_T * _noalias const param = fc.param[0];
   const flt_t * _noalias const special_lj = fc.special_lj;
   int * _noalias const rngi_thread = fc.rngi;
@@ -204,8 +203,10 @@ void PairDPDIntel::eval(const int offload, const int vflag,
                               f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EFLAG) oevdwl = (acc_t)0;
-    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (EFLAG || vflag)
+      oevdwl = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (NEWTON_PAIR == 0 && inum != nlocal)
+      memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -233,10 +234,10 @@ void PairDPDIntel::eval(const int offload, const int vflag,
 
       flt_t icut, a0, gamma, sigma;
       if (ONETYPE) {
-        icut = param[3].icut;
-        a0 = param[3].a0;
-        gamma = param[3].gamma;
-        sigma = param[3].sigma;
+        icut = param[_onetype].icut;
+        a0 = param[_onetype].a0;
+        gamma = param[_onetype].gamma;
+        sigma = param[_onetype].sigma;
       }
       for (int ii = iifrom; ii < iito; ii += iip) {
         const int i = ilist[ii];
@@ -248,8 +249,8 @@ void PairDPDIntel::eval(const int offload, const int vflag,
           parami = param + ptr_off;
         }
 
-        const int * _noalias const jlist = firstneigh + cnumneigh[ii];
-        int jnum = numneigh[ii];
+        const int * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
         IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
@@ -379,13 +380,9 @@ void PairDPDIntel::eval(const int offload, const int vflag,
     IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
 
-    if (EFLAG) {
-      if (NEWTON_PAIR == 0) oevdwl *= (acc_t)0.5;
-      ev_global[0] = oevdwl;
-      ev_global[1] = (acc_t)0.0;
-    }
-    if (vflag) {
+    if (EFLAG || vflag) {
       if (NEWTON_PAIR == 0) {
+        oevdwl *= (acc_t)0.5;
         ov0 *= (acc_t)0.5;
         ov1 *= (acc_t)0.5;
         ov2 *= (acc_t)0.5;
@@ -393,6 +390,8 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         ov4 *= (acc_t)0.5;
         ov5 *= (acc_t)0.5;
       }
+      ev_global[0] = oevdwl;
+      ev_global[1] = (acc_t)0.0;
       ev_global[2] = ov0;
       ev_global[3] = ov1;
       ev_global[4] = ov2;
@@ -503,31 +502,25 @@ void PairDPDIntel::pack_force_const(ForceConst<flt_t> &fc,
                                     IntelBuffers<flt_t,acc_t> *buffers)
 {
   _onetype = 0;
-  if (atom->ntypes == 1 && !atom->molecular) _onetype = 1;
 
   int tp1 = atom->ntypes + 1;
   fc.set_ntypes(tp1,comm->nthreads,buffers->get_max_nbors(),memory,_cop);
-  buffers->set_ntypes(tp1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
 
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
+  int mytypes = 0;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-        cut = init_one(i,j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
-        double icut = 1.0 / cut;
-        fc.param[i][j].icut = fc.param[j][i].icut = icut;
-      } else {
-        cut = init_one(i,j);
-        double icut = 1.0 / cut;
-        fc.param[i][j].icut = fc.param[j][i].icut = icut;
+        mytypes++;
+        _onetype = i * tp1 + j;
       }
+      double cut = init_one(i,j);
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
+      double icut = 1.0 / cut;
+      fc.param[i][j].icut = fc.param[j][i].icut = icut;
     }
   }
+  if (mytypes > 1 || atom->molecular) _onetype = 0;
 
   for (int i = 0; i < 4; i++) {
     fc.special_lj[i] = force->special_lj[i];

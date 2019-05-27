@@ -386,10 +386,7 @@ void PairULSPH::compute(int eflag, int vflag) {
         int k;
         SelfAdjointEigenSolver < Matrix3d > es;
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         if (atom->nmax > nmax) {
 //printf("... allocating in compute with nmax = %d\n", atom->nmax);
@@ -1331,8 +1328,8 @@ void PairULSPH::coeff(int narg, char **arg) {
                         } // end *ARTIFICIAL_STRESS
 
                         else {
-                                sprintf(str, "unknown *KEYWORD: %s", arg[ioffset]);
-                                error->all(FLERR, str);
+                          snprintf(str,128, "unknown *KEYWORD: %s", arg[ioffset]);
+                          error->all(FLERR, str);
                         }
 
                 }
@@ -1487,7 +1484,7 @@ double PairULSPH::memory_usage() {
 
 /* ---------------------------------------------------------------------- */
 
-int PairULSPH::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int PairULSPH::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/) {
         double *vfrac = atom->vfrac;
         double *eff_plastic_strain = atom->eff_plastic_strain;
         int i, j, m;
@@ -1562,7 +1559,7 @@ void PairULSPH::unpack_forward_comm(int n, int first, double *buf) {
  * EXTRACT
  */
 
-void *PairULSPH::extract(const char *str, int &i) {
+void *PairULSPH::extract(const char *str, int &/*i*/) {
 //printf("in extract\n");
         if (strcmp(str, "smd/ulsph/smoothVel_ptr") == 0) {
                 return (void *) smoothVel;

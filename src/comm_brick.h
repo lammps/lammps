@@ -46,6 +46,7 @@ class CommBrick : public Comm {
 
   void forward_comm_array(int, double **);         // forward comm of array
   int exchange_variable(int, double *, double *&);  // exchange on neigh stencil
+  void *extract(const char *,int &);
   virtual bigint memory_usage();
 
  protected:
@@ -67,6 +68,7 @@ class CommBrick : public Comm {
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
+  int *localsendlist;               // indexed list of local sendlist atoms
   int *maxsendlist;                 // max size of send list for each swap
 
   double *buf_send;                 // send buffer for all comm

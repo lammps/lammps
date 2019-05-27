@@ -17,6 +17,7 @@ src/GPU/*             @ndtrung81
 src/KOKKOS/*          @stanmoore1
 src/KIM/*             @ellio167
 src/LATTE/*           @cnegre
+src/MESSAGE/*         @sjplimp
 src/SPIN/*            @julient31
 src/USER-CGDNA/*      @ohenrich
 src/USER-CGSDK/*      @akohlmey
@@ -28,20 +29,88 @@ src/USER-MEAMC/*      @martok
 src/USER-MOFFF/*      @hheenen
 src/USER-MOLFILE/*    @akohlmey
 src/USER-NETCDF/*     @pastewka
+src/USER-PLUMED/*     @gtribello
 src/USER-PHONON/*     @lingtikong
+src/USER-PTM/*        @pmla
 src/USER-OMP/*        @akohlmey
 src/USER-QMMM/*       @akohlmey
 src/USER-REAXC/*      @hasanmetin
+src/USER-SCAFACOS/*   @rhalver
 src/USER-TALLY/*      @akohlmey
 src/USER-UEF/*        @danicholson
 src/USER-VTK/*        @rbberger
+
 
 # individual files in packages
 src/GPU/pair_vashishta_gpu.*        @andeplane
 src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
 src/MANYBODY/pair_vashishta_table.* @andeplane
+src/MANYBODY/pair_atm.*             @sergeylishchuk
 src/USER-MISC/fix_bond_react.*      @jrgissing
 src/USER-MISC/*_grem.*              @dstelter92
+src/USER-MISC/compute_stress_mop*.* @RomainVermorel
+
+# core LAMMPS classes
+src/lammps.*              @sjplimp
+src/pointers.h            @sjplimp
+src/atom.*                @sjplimp
+src/atom_vec.*            @sjplimp
+src/angle.*               @sjplimp
+src/bond.*                @sjplimp
+src/comm*.*               @sjplimp
+src/compute.*             @sjplimp
+src/dihedral.*            @sjplimp
+src/domain.*              @sjplimp
+src/dump*.*               @sjplimp
+src/error.*               @sjplimp
+src/finish.*              @sjplimp
+src/fix.*                 @sjplimp
+src/force.*               @sjplimp
+src/group.*               @sjplimp
+src/improper.*            @sjplimp
+src/kspace.*              @sjplimp
+src/lmptyp.h              @sjplimp
+src/library.*             @sjplimp
+src/main.cpp              @sjplimp
+src/memory.*              @sjplimp
+src/modify.*              @sjplimp
+src/molecule.*            @sjplimp
+src/my_page.h             @sjplimp
+src/my_pool_chunk.h       @sjplimp
+src/npair*.*              @sjplimp
+src/ntopo*.*              @sjplimp
+src/nstencil*.*           @sjplimp
+src/neighbor.*            @sjplimp
+src/nbin*.*               @sjplimp
+src/neigh_*.*             @sjplimp
+src/output.*              @sjplimp
+src/pair.*                @sjplimp
+src/rcb.*                 @sjplimp
+src/random_*.*            @sjplimp
+src/region*.*             @sjplimp
+src/rcb.*                 @sjplimp
+src/read*.*               @sjplimp
+src/rerun.*               @sjplimp
+src/run.*                 @sjplimp
+src/respa.*               @sjplimp
+src/set.*                 @sjplimp
+src/special.*             @sjplimp
+src/suffix.h              @sjplimp
+src/thermo.*              @sjplimp
+src/universe.*            @sjplimp
+src/update.*              @sjplimp
+src/variable.*            @sjplimp
+src/verlet.*              @sjplimp
+src/velocity.*            @sjplimp
+src/write_data.*          @sjplimp
+src/write_restart.*       @sjplimp
+
+# overrides for specific files
+src/dump_movie.*          @akohlmey
+src/exceptions.h          @rbberger
+src/fix_nh.*              @athomps
+src/info.*                @akohlmey @rbberger
+src/timer.*               @akohlmey
 
 # tools
 tools/msi2lmp/*       @akohlmey
@@ -57,3 +126,6 @@ python/*              @rbberger
 doc/utils/*/*         @rbberger
 doc/Makefile          @rbberger
 doc/README            @rbberger
+
+# for releases
+src/version.h         @sjplimp

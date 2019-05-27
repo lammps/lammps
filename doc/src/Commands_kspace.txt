@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -33,4 +33,5 @@ OPT.
 "pppm/disp (i)"_kspace_style.html,
 "pppm/disp/tip4p"_kspace_style.html,
 "pppm/stagger"_kspace_style.html,
-"pppm/tip4p (o)"_kspace_style.html :tb(c=4,ea=c)
+"pppm/tip4p (o)"_kspace_style.html,
+"scafacos"_kspace_style.html :tb(c=4,ea=c)

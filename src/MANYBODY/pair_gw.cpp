@@ -87,8 +87,7 @@ void PairGW::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -257,7 +256,7 @@ void PairGW::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairGW::settings(int narg, char **arg)
+void PairGW::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -381,7 +380,7 @@ void PairGW::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open GW potential file %s",file);
+      snprintf(str,128,"Cannot open GW potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -521,7 +520,7 @@ void PairGW::setup_params()
         for (m = 0; m < nparams; m++) {
           if (i == params[m].ielement && j == params[m].jelement &&
               k == params[m].kelement) {
-            if (n >= 0) 
+            if (n >= 0)
               error->all(FLERR,"Potential file has duplicate entry");
             n = m;
           }

@@ -19,8 +19,6 @@ pair_style coul/dsf/gpu command :h3
 pair_style coul/dsf/kk command :h3
 pair_style coul/dsf/omp command :h3
 pair_style coul/long command :h3
-pair_style coul/long/cs command :h3
-pair_style coul/long/cs/gpu command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
 pair_style coul/long/kk command :h3
@@ -30,7 +28,6 @@ pair_style coul/streitz command :h3
 pair_style coul/wolf command :h3
 pair_style coul/wolf/kk command :h3
 pair_style coul/wolf/omp command :h3
-pair_style coul/wolf/cs command :h3
 pair_style tip4p/cut command :h3
 pair_style tip4p/long command :h3
 pair_style tip4p/cut/omp command :h3
@@ -42,10 +39,8 @@ pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
-pair_style coul/long/cs cutoff
 pair_style coul/long/gpu cutoff
 pair_style coul/wolf alpha cutoff
-pair_style coul/wolf/cs alpha cutoff
 pair_style coul/streitz cutoff keyword alpha
 pair_style tip4p/cut otype htype btype atype qdist cutoff
 pair_style tip4p/long otype htype btype atype qdist cutoff :pre
@@ -68,14 +63,12 @@ pair_style coul/dsf 0.05 10.0
 pair_coeff * * :pre
 
 pair_style coul/long 10.0
-pair_style coul/long/cs 10.0
 pair_coeff * * :pre
 
 pair_style coul/msm 10.0
 pair_coeff * * :pre
 
 pair_style coul/wolf 0.2 9.0
-pair_style coul/wolf/cs 0.2 9.0
 pair_coeff * * :pre
 
 pair_style coul/streitz 12.0 ewald
@@ -204,13 +197,7 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
-Style {coul/long/cs} is identical to {coul/long} except that a term is
-added for the "core/shell model"_Howto_coreshell.html to allow charges
-on core and shell particles to be separated by r = 0.0.  The same
-correction is introduced for the {coul/wolf/cs} style which is
-identical to {coul/wolf}.
-
-Styles {tip4p/cut} and {tip4p/long} implement the coulomb part of
+Styles {tip4p/cut} and {tip4p/long} implement the Coulomb part of
 the TIP4P water model of "(Jorgensen)"_#Jorgensen3, which introduces
 a massless site located a short distance away from the oxygen atom
 along the bisector of the HOH angle.  The atomic types of the oxygen and
@@ -232,7 +219,7 @@ Note that the neighbor list cutoff for Coulomb interactions is
 effectively extended by a distance 2*qdist when using the TIP4P pair
 style, to account for the offset distance of the fictitious charges on
 O atoms in water molecules.  Thus it is typically best in an
-efficiency sense to use a LJ cutoff >= Coulomb cutoff + 2*qdist, to
+efficiency sense to use a LJ cutoff >= Coulombic cutoff + 2*qdist, to
 shrink the size of the neighbor list.  This leads to slightly larger
 cost for the long-range calculation, so you can test the trade-off for
 your model.
@@ -274,13 +261,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -317,9 +304,9 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 The {coul/long}, {coul/msm} and {tip4p/long} styles are part of the
-KSPACE package.  The {coul/long/cs} style is part of the CORESHELL
-package.  They are only enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+KSPACE package.  They are only enabled if LAMMPS was built with that
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 [Related commands:]
 

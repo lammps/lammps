@@ -84,10 +84,7 @@ void PairMDPDRhoSum::compute(int eflag, int vflag) {
   // neighbor list variables
   int inum, *ilist, *numneigh, **firstneigh;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double *rho = atom->rho;
@@ -186,7 +183,7 @@ void PairMDPDRhoSum::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairMDPDRhoSum::settings(int narg, char **arg) {
+void PairMDPDRhoSum::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,"Illegal number of setting arguments for pair_style mdpd/rhosum");
 }
@@ -236,8 +233,8 @@ double PairMDPDRhoSum::init_one(int i, int j) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairMDPDRhoSum::single(int i, int j, int itype, int jtype, double rsq,
-    double factor_coul, double factor_lj, double &fforce) {
+double PairMDPDRhoSum::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
+    double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
   fforce = 0.0;
 
   return 0.0;
@@ -246,7 +243,7 @@ double PairMDPDRhoSum::single(int i, int j, int itype, int jtype, double rsq,
 /* ---------------------------------------------------------------------- */
 
 int PairMDPDRhoSum::pack_forward_comm(int n, int *list, double *buf,
-                                     int pbc_flag, int *pbc) {
+                                     int /*pbc_flag*/, int * /*pbc*/) {
   int i, j, m;
   double *rho = atom->rho;
 

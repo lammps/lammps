@@ -60,7 +60,7 @@ If you want to do more exact restarts, using binary files, see the
 "restart"_restart.html, "write_restart"_write_restart.html, and
 "read_restart"_read_restart.html commands.  You can also convert
 binary restart files to text data files, after a simulation has run,
-using the "-r command-line switch"_Section_start.html#start_6.
+using the "-r command-line switch"_Run_options.html.
 
 NOTE: Only limited information about a simulation is stored in a data
 file.  For example, no information about atom "groups"_group.html and
@@ -87,7 +87,7 @@ are read in separately anyway, e.g. from an include file.
 The {nofix} keyword requests that no extra sections read by fixes
 should be written to the data file (see the {fix} option of the
 "read_data"_read_data.html command for details). For example, this
-option excludes sections for user-created per-atom properties 
+option excludes sections for user-created per-atom properties
 from "fix property/atom"_fix_property_atom.html.
 
 The {pair} keyword lets you specify in what format the pair
@@ -106,7 +106,7 @@ written for all I,J pairs where I <= J.  These coefficients will
 include any specific settings made in the input script up to that
 point.  The presence of these I != J coefficients in the data file
 will effectively turn off the default mixing rule for the pair style.
-Again, the coefficient values in the data file can can be overridden
+Again, the coefficient values in the data file can be overridden
 in the input script after reading the data file, by specifying
 additional "pair_coeff"_pair_coeff.html commands for any desired I,J
 pairs.

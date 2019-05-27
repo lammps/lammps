@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(compute/spin,ComputeSpin)
+ComputeStyle(spin,ComputeSpin)
 
 #else
 
@@ -33,7 +33,6 @@ class ComputeSpin : public Compute {
 
  private:
   double kb,hbar;
-  int usecenter;
 
   void allocate();
 };

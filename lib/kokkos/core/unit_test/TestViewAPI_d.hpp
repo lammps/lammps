@@ -45,7 +45,6 @@
 
 namespace Test {
 
-#if !defined(KOKKOS_ENABLE_ROCM)
 TEST_F( TEST_CATEGORY, view_api_d )
 {
   TestViewAPI< double, TEST_EXECSPACE >::run_test_const();
@@ -54,6 +53,5 @@ TEST_F( TEST_CATEGORY, view_api_d )
   TestViewAPI< double, TEST_EXECSPACE >::run_test_vector();
   TestViewAPI< double, TEST_EXECSPACE >::run_test_view_operator_c();
 }
-#endif
 
 }

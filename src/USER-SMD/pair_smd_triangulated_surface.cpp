@@ -96,10 +96,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
         Vector2d w2d, rhs;
 
         evdwl = 0.0;
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         tagint *mol = atom->molecule;
         double **f = atom->f;
@@ -834,7 +831,7 @@ double PairTriSurf::clamp(const double a, const double min, const double max) {
         }
 }
 
-void *PairTriSurf::extract(const char *str, int &i) {
+void *PairTriSurf::extract(const char *str, int &/*i*/) {
         //printf("in PairTriSurf::extract\n");
         if (strcmp(str, "smd/tri_surface/stable_time_increment_ptr") == 0) {
                 return (void *) &stable_time_increment;

@@ -16,9 +16,11 @@ atoms and pass those forces to LAMMPS.  Or a continuum finite element
 nodal points, compute a FE solution, and return interpolated forces on
 MD atoms.
 
-LAMMPS can be coupled to other codes in at least 3 ways.  Each has
+LAMMPS can be coupled to other codes in at least 4 ways.  Each has
 advantages and disadvantages, which you'll have to think about in the
 context of your application.
+
+:line
 
 (1) Define a new "fix"_fix.html command that calls the other code.  In
 this scenario, LAMMPS is the driver code.  During its timestepping,
@@ -31,6 +33,8 @@ poems"_fix_poems.html command for more details.  See the
 LAMMPS.
 
 :link(poems,http://www.rpi.edu/~anderk5/lab)
+
+:line
 
 (2) Define a new LAMMPS command that calls the other code.  This is
 conceptually similar to method (1), but in this case LAMMPS and the
@@ -46,11 +50,13 @@ In this scenario, the other code can be called as a library, as in
 (1), or it could be a stand-alone code, invoked by a system() call
 made by the command (assuming your parallel machine allows one or more
 processors to start up another program).  In the latter case the
-stand-alone code could communicate with LAMMPS thru files that the
+stand-alone code could communicate with LAMMPS through files that the
 command writes and reads.
 
 See the "Modify command"_Modify_command.html doc page for info on how
 to add a new command to LAMMPS.
+
+:line
 
 (3) Use LAMMPS as a library called by another code.  In this case the
 other code is the driver and calls LAMMPS as needed.  Or a wrapper
@@ -77,17 +83,16 @@ strain induced across grain boundaries :l
 :link(quest,http://dft.sandia.gov/Quest)
 :link(spparks,http://www.sandia.gov/~sjplimp/spparks.html)
 
-"This section"_Section_start.html#start_5 of the documentation
-describes how to build LAMMPS as a library.  Once this is done, you
-can interface with LAMMPS either via C++, C, Fortran, or Python (or
-any other language that supports a vanilla C-like interface).  For
-example, from C++ you could create one (or more) "instances" of
-LAMMPS, pass it an input script to process, or execute individual
-commands, all by invoking the correct class methods in LAMMPS.  From C
-or Fortran you can make function calls to do the same things.  See the
-"Python"_Python.html doc pages for a description of the Python wrapper
-provided with LAMMPS that operates through the LAMMPS library
-interface.
+The "Build basics"_Build_basics.html doc page describes how to build
+LAMMPS as a library.  Once this is done, you can interface with LAMMPS
+either via C++, C, Fortran, or Python (or any other language that
+supports a vanilla C-like interface).  For example, from C++ you could
+create one (or more) "instances" of LAMMPS, pass it an input script to
+process, or execute individual commands, all by invoking the correct
+class methods in LAMMPS.  From C or Fortran you can make function
+calls to do the same things.  See the "Python"_Python_head.html doc
+pages for a description of the Python wrapper provided with LAMMPS
+that operates through the LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See the "Howto library"_Howto_library.html doc page for a
@@ -103,3 +108,9 @@ on all the processors.  Or it might allocate half the processors to
 LAMMPS and half to the other code and run both codes simultaneously
 before syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
+
+:line
+
+(4) Couple LAMMPS with another code in a client/server mode.  This is
+described on the "Howto client/server"_Howto_client_server.html doc
+page.

@@ -91,8 +91,7 @@ void PairLJCutTIP4PCut::compute(int eflag, int vflag)
   double *x1,*x2,*xH1,*xH2;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred

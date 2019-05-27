@@ -54,8 +54,7 @@ void BondFENE::compute(int eflag, int vflag)
   double rsq,r0sq,rlogarg,sr2,sr6;
 
   ebond = sr6 = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -242,7 +241,7 @@ void BondFENE::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondFENE::single(int type, double rsq, int i, int j,
+double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double r0sq = r0[type] * r0[type];

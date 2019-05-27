@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Long-raage dispersion settings :h3
+Long-range dispersion settings :h3
 
 The PPPM method computes interactions by splitting the pair potential
 into two parts, one of which is computed in a normal pairwise fashion,
@@ -74,7 +74,7 @@ command.
 A reasonable approach that combines the upsides of both methods is to
 make the first run using the {kspace_modify force/disp/real} and
 {kspace_modify force/disp/kspace} commands, write down the PPPM
-parameters from the outut, and specify these parameters using the
+parameters from the output, and specify these parameters using the
 second approach in subsequent runs (which have the same composition,
 force field, and approximately the same volume).
 

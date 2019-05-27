@@ -126,10 +126,19 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
+  int need_dup;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_rho;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_rho;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
   DAT::tdual_ffloat_1d k_rho;
   DAT::tdual_ffloat_1d k_fp;
   typename AT::t_ffloat_1d d_rho;
-  typename AT::t_ffloat_1d v_rho;
   typename AT::t_ffloat_1d d_fp;
   HAT::t_ffloat_1d h_rho;
   HAT::t_ffloat_1d h_fp;

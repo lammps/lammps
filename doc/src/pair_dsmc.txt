@@ -16,7 +16,7 @@ max_cell_size = global maximum cell size for DSMC interactions (distance units)
 seed = random # seed (positive integer)
 weighting = macroparticle weighting
 Tref = reference temperature (temperature units)
-Nrecompute = recompute v*sigma_max every this many timesteps (timesteps)
+Nrecompute = re-compute v*sigma_max every this many timesteps (timesteps)
 Nsample = sample this many times in recomputing v*sigma_max :ul
 
 [Examples:]
@@ -130,8 +130,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This style is part of the MC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

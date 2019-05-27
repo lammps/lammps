@@ -35,7 +35,7 @@ keyword = {parallel} or {perp} or {end} :l
 fix 1 active neb 10.0
 fix 2 all neb 1.0 perp 1.0 end last
 fix 2 all neb 1.0 perp 1.0 end first 1.0 end last 1.0
-fix 1 all neb 1.0 nudge ideal end last/efirst 1 :pre
+fix 1 all neb 1.0 parallel ideal end last/efirst 1 :pre
 
 [Description:]
 
@@ -97,7 +97,7 @@ Note that in this case the specified {Kspring} is in force/distance
 units.
 
 With a value of {ideal}, the spring force is computed as suggested in
-"(WeinenE)"_#WeinenE :
+"(WeinanE)"_#WeinanE :
 
 Fnudge_parallel = -{Kspring} * (RD-RDideal) / (2 * meanDist) :pre
 
@@ -168,7 +168,7 @@ The difference between these two {estyle} options is as follows.  When
 {estyle} is specified as {last/efirst}, no change is made to the
 inter-replica force applied to the intermediate replicas (neither
 first or last).  If the initial path is too far from the MEP, an
-intermediate repilica may relax "faster" and reach a lower energy than
+intermediate replica may relax "faster" and reach a lower energy than
 the last replica.  In this case the intermediate replica will be
 relaxing toward its own local minima.  This behavior can be prevented
 by specifying {estyle} as {last/efirst/middle} which will alter the
@@ -203,8 +203,8 @@ as invoked by the "minimize"_minimize.html command via the
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 
@@ -212,7 +212,7 @@ for more info on packages.
 
 [Default:]
 
-The option defaults are nudge = neigh, perp = 0.0, ends is not
+The option defaults are parallel = neigh, perp = 0.0, ends is not
 specified (no inter-replica force on the end replicas).
 
 :line
@@ -224,8 +224,8 @@ specified (no inter-replica force on the end replicas).
 [(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
-:link(WeinenE)
-[(WeinenE)] E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).
+:link(WeinanE)
+[(WeinanE)] E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).
 
 :link(Jonsson)
 [(Jonsson)] Jonsson, Mills and Jacobsen, in Classical and Quantum

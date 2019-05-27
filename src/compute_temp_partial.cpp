@@ -90,7 +90,7 @@ void ComputeTempPartial::dof_compute()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeTempPartial::dof_remove(int i)
+int ComputeTempPartial::dof_remove(int /*i*/)
 {
   int nper = xflag+yflag+zflag;
   return (domain->dimension - nper);
@@ -169,7 +169,7 @@ void ComputeTempPartial::compute_vector()
    remove velocity bias from atom I to leave thermal velocity
 ------------------------------------------------------------------------- */
 
-void ComputeTempPartial::remove_bias(int i, double *v)
+void ComputeTempPartial::remove_bias(int /*i*/, double *v)
 {
   if (!xflag) {
     vbias[0] = v[0];
@@ -189,7 +189,7 @@ void ComputeTempPartial::remove_bias(int i, double *v)
    remove velocity bias from atom I to leave thermal velocity
 ------------------------------------------------------------------------- */
 
-void ComputeTempPartial::remove_bias_thr(int i, double *v, double *b)
+void ComputeTempPartial::remove_bias_thr(int /*i*/, double *v, double *b)
 {
   if (!xflag) {
     b[0] = v[0];
@@ -275,7 +275,7 @@ void ComputeTempPartial::reapply_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempPartial::restore_bias(int i, double *v)
+void ComputeTempPartial::restore_bias(int /*i*/, double *v)
 {
   if (!xflag) v[0] += vbias[0];
   if (!yflag) v[1] += vbias[1];
@@ -287,7 +287,7 @@ void ComputeTempPartial::restore_bias(int i, double *v)
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeTempPartial::restore_bias_thr(int i, double *v, double *b)
+void ComputeTempPartial::restore_bias_thr(int /*i*/, double *v, double *b)
 {
   if (!xflag) v[0] += b[0];
   if (!yflag) v[1] += b[1];

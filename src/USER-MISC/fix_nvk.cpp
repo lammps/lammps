@@ -94,7 +94,7 @@ void FixNVK::init()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVK::initial_integrate(int vflag)
+void FixNVK::initial_integrate(int /*vflag*/)
 {
   double sm;
   double a,b,sqtb,s,sdot;
@@ -190,7 +190,7 @@ void FixNVK::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVK::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVK::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel];
@@ -204,7 +204,7 @@ void FixNVK::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVK::final_integrate_respa(int ilevel, int iloop)
+void FixNVK::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel];
   final_integrate();

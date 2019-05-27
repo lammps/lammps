@@ -8,12 +8,15 @@
 
 pair_style lj/charmm/coul/charmm command :h3
 pair_style lj/charmm/coul/charmm/intel command :h3
+pair_style lj/charmm/coul/charmm/kk command :h3
 pair_style lj/charmm/coul/charmm/omp command :h3
 pair_style lj/charmm/coul/charmm/implicit command :h3
+pair_style lj/charmm/coul/charmm/implicit/kk command :h3
 pair_style lj/charmm/coul/charmm/implicit/omp command :h3
 pair_style lj/charmm/coul/long command :h3
 pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/intel command :h3
+pair_style lj/charmm/coul/long/kk command :h3
 pair_style lj/charmm/coul/long/opt command :h3
 pair_style lj/charmm/coul/long/omp command :h3
 pair_style lj/charmm/coul/msm command :h3
@@ -128,7 +131,7 @@ same for both formulas or different depending on whether 2 or 4
 arguments are used in the pair_style command.  For the
 {lj/charmmfsw/coul/charmmfsh} style, the LJ term requires both an
 inner and outer cutoff, while the Coulombic term requires only one
-cutoff.  If the Coulomb cutoff is not specified (2 instead of 3
+cutoff.  If the Coulombic cutoff is not specified (2 instead of 3
 arguments), the LJ outer cutoff is used for the Coulombic cutoff.  In
 all cases where an inner and outer cutoff are specified, the inner
 cutoff distance must be less than the outer cutoff.  It is typical to
@@ -190,13 +193,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -245,9 +248,8 @@ details.
 All the styles with {coul/charmm} or {coul/charmmfsh} styles are part
 of the MOLECULE package.  All the styles with {coul/long} style are
 part of the KSPACE package.  They are only enabled if LAMMPS was built
-with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  Note that
-the MOLECULE and KSPACE packages are installed by default.
+with those packages.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

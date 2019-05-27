@@ -43,14 +43,11 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
   kenergy(NULL), kvirial(NULL), energy_self_peratom(NULL), virial_self_peratom(NULL),
   ekr_local(NULL), hvec(NULL), kvec(NULL), B(NULL), cek_local(NULL), cek_global(NULL)
 {
-  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
-
   ewaldflag = dispersionflag = dipoleflag = 1;
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
   kenergy = kvirial = NULL;
@@ -67,6 +64,13 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   b2 = 0;
   M2 = 0;
 }
+
+void EwaldDisp::settings(int narg, char **arg)
+{
+  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -96,7 +100,7 @@ void EwaldDisp::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDisp with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with EwaldDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -684,8 +688,7 @@ void EwaldDisp::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
       allocate_peratom();

@@ -76,7 +76,7 @@ void FixMvvTDPD::init()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixMvvTDPD::initial_integrate(int vflag)
+void FixMvvTDPD::initial_integrate(int /*vflag*/)
 {
   double dtfm;
   // update v and x and cc of atoms in group

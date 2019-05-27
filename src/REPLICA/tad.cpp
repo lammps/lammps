@@ -712,10 +712,7 @@ void TAD::perform_neb(int ievent)
   args[0] = (char *) "neb";
   args[1] = (char *) "all";
   args[2] = (char *) "neb";
-  char str[128];
-  args[3] = str;
-  double kspring = 1.0;
-  sprintf(args[3],"%f",kspring);
+  args[3] = (char *) "1.0";
   modify->add_fix(narg2,args);
   fix_neb = (Fix *) modify->fix[modify->nfix-1];
   delete [] args;

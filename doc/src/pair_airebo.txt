@@ -36,7 +36,7 @@ pair_style airebo/morse 3.0
 pair_coeff * * ../potentials/CH.airebo-m H C :pre
 
 pair_style rebo
-pair_coeff * * ../potentials/CH.airebo H C :pre
+pair_coeff * * ../potentials/CH.rebo H C :pre
 
 [Description:]
 
@@ -57,7 +57,8 @@ The {rebo} pair style computes the Reactive Empirical Bond Order (REBO)
 Potential of "(Brenner)"_#Brenner. Note that this is the so-called
 2nd generation REBO from 2002, not the original REBO from 1990.
 As discussed below, 2nd generation REBO is closely related to the
-initial AIREBO; it is just a subset of the potential energy terms.
+initial AIREBO; it is just a subset of the potential energy terms
+with a few slightly different parameters
 
 The AIREBO potential consists of three terms:
 
@@ -103,7 +104,7 @@ would be 10.2 Angstroms.
 
 By default, the longer-ranged interaction is smoothly switched off
 between 2.16 and 3.0 sigma. By specifying {cutoff_min} in addition
-to {cutoff}, the switching can be configured to take place between 
+to {cutoff}, the switching can be configured to take place between
 {cutoff_min} and {cutoff}. {cutoff_min} can only be specified if all
 optional arguments are given.
 
@@ -113,12 +114,12 @@ various dihedral angle preferences in hydrocarbon configurations.
 :line
 
 Only a single pair_coeff command is used with the {airebo}, {airebo}
-or {rebo} style which specifies an AIREBO or AIREBO-M potential file
-with parameters for C and H.  Note that the {rebo} style in LAMMPS
-uses the same AIREBO-formatted potential file.  These are mapped to
-LAMMPS atom types by specifying N additional arguments after the
-filename in the pair_coeff command, where N is the number of LAMMPS
-atom types:
+or {rebo} style which specifies an AIREBO, REBO, or AIREBO-M potential
+file with parameters for C and H.  Note that as of LAMMPS version
+15 May 2019 the {rebo} style in LAMMPS uses its own potential
+file (CH.rebo).  These are mapped to LAMMPS atom types by specifying
+N additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
 
 filename
 N element names = mapping of AIREBO elements to atom types :ul
@@ -182,13 +183,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -212,8 +213,8 @@ These pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 These pair potentials require the "newton"_newton.html setting to be
 "on" for pair interactions.

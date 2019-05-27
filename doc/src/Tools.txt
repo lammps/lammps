@@ -43,39 +43,54 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
 own sub-directories with their own Makefiles and/or README files.
 
-"amber2lmp"_#amber
-"binary2txt"_#binary
-"ch2lmp"_#charmm
-"chain"_#chain
-"colvars"_#colvars
-"createatoms"_#createatoms
-"doxygen"_#doxygen
-"drude"_#drude
-"eam database"_#eamdb
-"eam generate"_#eamgn
-"eff"_#eff
-"emacs"_#emacs
-"fep"_#fep
-"i-pi"_#ipi
-"ipp"_#ipp
-"kate"_#kate
-"lmp2arc"_#arc
-"lmp2cfg"_#cfg
-"matlab"_#matlab
-"micelle2d"_#micelle
-"moltemplate"_#moltemplate
-"msi2lmp"_#msi
-"phonon"_#phonon
-"polybond"_#polybond
-"pymol_asphere"_#pymol
-"python"_#pythontools
-"reax"_#reax_tool
-"smd"_#smd
-"vim"_#vim
-"xmgrace"_#xmgrace :ul
+:line
+
+Pre-processing tools :h3
+
+"amber2lmp"_#amber,
+"ch2lmp"_#charmm,
+"chain"_#chain,
+"createatoms"_#createatoms,
+"drude"_#drude,
+"eam database"_#eamdb,
+"eam generate"_#eamgn,
+"eff"_#eff,
+"ipp"_#ipp,
+"micelle2d"_#micelle,
+"moltemplate"_#moltemplate,
+"msi2lmp"_#msi,
+"polybond"_#polybond :tb(c=6,ea=c,a=l)
+
+Post-processing tools :h3
+
+"amber2lmp"_#amber,
+"binary2txt"_#binary,
+"ch2lmp"_#charmm,
+"colvars"_#colvars,
+"eff"_#eff,
+"fep"_#fep,
+"lmp2arc"_#arc,
+"lmp2cfg"_#cfg,
+"matlab"_#matlab,
+"phonon"_#phonon,
+"pymol_asphere"_#pymol,
+"python"_#pythontools,
+"reax"_#reax_tool,
+"smd"_#smd,
+"spin"_#spin,
+"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
+
+Miscellaneous tools :h3
+
+"doxygen"_#doxygen,
+"emacs"_#emacs,
+"i-pi"_#ipi,
+"kate"_#kate,
+"vim"_#vim :tb(c=5,ea=c,a=l)
 
 :line
-:line
+
+Tool descriptions :h3
 
 amber2lmp tool :h4,link(amber)
 
@@ -149,7 +164,7 @@ for the "chain benchmark"_Speed_bench.html.
 
 colvars tools :h4,link(colvars)
 
-The colvars directory contains a collection of tools for postprocessing
+The colvars directory contains a collection of tools for post-processing
 data produced by the colvars collective variable library.
 To compile the tools, edit the makefile for your system and run "make".
 
@@ -249,7 +264,7 @@ These tools were provided by Andres Jaramillo-Botero at CalTech
 
 emacs tool :h4,link(emacs)
 
-The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs 
+The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs
 that enables a lammps-mode for editing input scripts when using GNU Emacs,
 with various highlighting options set up.
 
@@ -377,30 +392,31 @@ definition file.  This tool was used to create the system for the
 
 moltemplate tool :h4,link(moltemplate)
 
-The moltemplate sub-directory contains a Python-based tool for
-building molecular systems based on a text-file description, and
-creating LAMMPS data files that encode their molecular topology as
-lists of bonds, angles, dihedrals, etc.  See the README.TXT file for
-more information.
+The moltemplate sub-directory contains instructions for installing
+moltemplate, a Python-based tool for building molecular systems based
+on a text-file description, and creating LAMMPS data files that encode
+their molecular topology as lists of bonds, angles, dihedrals, etc.
+See the README.txt file for more information.
 
 This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
 supports it.  It has its own WWW page at
 "http://moltemplate.org"_http://moltemplate.org.
+The latest sources can be found "on its GitHub page"_https://github.com/jewettaij/moltemplate/releases
 
 :line
 
 msi2lmp tool :h4,link(msi)
 
 The msi2lmp sub-directory contains a tool for creating LAMMPS template
-input and data files from BIOVIA's Materias Studio files (formerly Accelrys'
-Insight MD code, formerly MSI/Biosym and its Discover MD code).
+input and data files from BIOVIA's Materias Studio files (formerly
+Accelrys' Insight MD code, formerly MSI/Biosym and its Discover MD code).
 
 This tool was written by John Carpenter (Cray), Michael Peachey
 (Cray), and Steve Lustig (Dupont). Several people contributed changes
 to remove bugs and adapt its output to changes in LAMMPS.
 
 This tool has several known limitations and is no longer under active
-development, so there are no changes except for the occasional bugfix.
+development, so there are no changes except for the occasional bug fix.
 
 See the README file in the tools/msi2lmp folder for more information.
 
@@ -471,9 +487,9 @@ README for more info on Pizza.py and how to use these scripts.
 
 reax tool :h4,link(reax_tool)
 
-The reax sub-directory contains stand-alond codes that can
-post-process the output of the "fix reax/bonds"_fix_reax_bonds.html
-command from a LAMMPS simulation using "ReaxFF"_pair_reax.html.  See
+The reax sub-directory contains stand-alone codes that can
+post-process the output of the "fix reax/c/bonds"_fix_reaxc_bonds.html
+command from a LAMMPS simulation using "ReaxFF"_pair_reaxc.html.  See
 the README.txt file for more info.
 
 These tools were written by Aidan Thompson at Sandia.
@@ -493,6 +509,20 @@ See the header of dump2vtk.cpp for more details.
 This tool was written by the USER-SMD package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
+
+:line
+
+spin tool :h4,link(spin)
+
+The spin sub-directory contains a C file interpolate.c which can
+be compiled and used to perform a cubic polynomial interpolation of 
+the MEP following a GNEB calculation.
+
+See the README file in tools/spin/interpolate_gneb for more details.
+
+This tool was written by the SPIN package author, Julien
+Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei 
+Ivanov, at University of Iceland (ali5 at hi.is).
 
 :line
 

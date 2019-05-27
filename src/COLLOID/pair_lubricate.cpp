@@ -88,8 +88,7 @@ void PairLubricate::compute(int eflag, int vflag)
 
   double vxmu2f = force->vxmu2f;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -749,7 +748,7 @@ void PairLubricate::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 int PairLubricate::pack_forward_comm(int n, int *list, double *buf,
-                                     int pbc_flag, int *pbc)
+                                     int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 
@@ -797,7 +796,7 @@ void PairLubricate::unpack_forward_comm(int n, int first, double *buf)
    if type pair setting, return -2 if no type pairs are set
 ------------------------------------------------------------------------- */
 
-int PairLubricate::pre_adapt(char *name, int ilo, int ihi, int jlo, int jhi)
+int PairLubricate::pre_adapt(char *name, int /*ilo*/, int /*ihi*/, int /*jlo*/, int /*jhi*/)
 {
   if (strcmp(name,"mu") == 0) return 0;
   return -1;
@@ -809,7 +808,7 @@ int PairLubricate::pre_adapt(char *name, int ilo, int ihi, int jlo, int jhi)
    if type pair setting, set I-J and J-I coeffs
 ------------------------------------------------------------------------- */
 
-void PairLubricate::adapt(int which, int ilo, int ihi, int jlo, int jhi,
+void PairLubricate::adapt(int /*which*/, int /*ilo*/, int /*ihi*/, int /*jlo*/, int /*jhi*/,
                           double value)
 {
   mu = value;

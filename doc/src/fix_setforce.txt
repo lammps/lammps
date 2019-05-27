@@ -8,6 +8,7 @@
 
 fix setforce command :h3
 fix setforce/kk command :h3
+fix setforce/spin command :h3
 
 [Syntax:]
 
@@ -27,6 +28,7 @@ keyword = {region}  :l
 
 fix freeze indenter setforce 0.0 0.0 0.0
 fix 2 edge setforce NULL 0.0 0.0
+fix 1 edge setforce/spin 0.0 0.0 0.0
 fix 2 edge setforce NULL 0.0 v_oscillate :pre
 
 [Description:]
@@ -65,6 +67,19 @@ to it.
 
 :line
 
+Style {spin} suffix sets the components of the magnetic precession 
+vectors instead of the mechanical forces. This also erases all 
+previously computed magnetic precession vectors on the atom, though 
+additional magnetic fixes could add new forces.
+
+This command can be used to freeze the magnetic moment of certain 
+atoms in the simulation by zeroing their precession vector. 
+
+All options defined above remain valid, they just apply to the magnetic 
+precession vectors instead of the forces.
+
+:line
+
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
@@ -77,13 +92,13 @@ region must be used. See the region "region"_region.html command for
 more information.
 
 These accelerated styles are part of the r Kokkos package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+only enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -117,7 +132,10 @@ forces to any value besides zero when performing a minimization.  Use
 the "fix addforce"_fix_addforce.html command if you want to apply a
 non-zero force to atoms during a minimization.
 
-[Restrictions:] none
+[Restrictions:] 
+
+The fix {setforce/spin} only makes sense when LAMMPS was built with the
+SPIN package.
 
 [Related commands:]
 

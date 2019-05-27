@@ -57,6 +57,17 @@ library is then loaded by the Python interface. In this example we enable the
 MOLECULE package and compile LAMMPS with C++ exceptions, PNG, JPEG and FFMPEG
 output support enabled.
 
+Step 1a: For the CMake based build system, the steps are:
+
+mkdir $LAMMPS_DIR/build-shared
+cd  $LAMMPS_DIR/build-shared :pre
+
+# MPI, PNG, Jpeg, FFMPEG are auto-detected
+cmake ../cmake -DPKG_MOLECULE=yes -DLAMMPS_EXCEPTIONS=yes -DBUILD_LIB=yes -DBUILD_SHARED_LIBS=yes
+make :pre
+
+Step 1b: For the legacy, make based build system, the steps are:
+
 cd $LAMMPS_DIR/src :pre
 
 # add packages if necessary
@@ -68,12 +79,11 @@ make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG -DLAMMPS
 Step 2: Installing the LAMMPS Python package :h6
 
 PyLammps is part of the lammps Python package. To install it simply install
-that package into your current Python installation.
+that package into your current Python installation with:
 
-cd $LAMMPS_DIR/python
-python install.py :pre
+make install-python :pre
 
-NOTE: Recompiling the shared library requires reinstalling the Python package
+NOTE: Recompiling the shared library requires re-installing the Python package
 
 
 Installation inside of a virtualenv :h5
@@ -94,14 +104,21 @@ apt-get install python-virtualenv :pre
 
 Creating a virtualenv with lammps installed :h6
 
-# create virtualenv name 'testing' :pre
+# create virtualenv named 'testing'
+virtualenv $HOME/python/testing :pre
 
 # activate 'testing' environment
-source testing/bin/activate :pre
+source $HOME/python/testing/bin/activate :pre
+
+Now configure and compile the LAMMPS shared library as outlined above.
+When using CMake and the shared library has already been build, you
+need to re-run CMake to update the location of the python executable
+to the location in the virtual environment with:
+
+cmake . -DPYTHON_EXECUTABLE=$(which python) :pre
 
 # install LAMMPS package in virtualenv
-(testing) cd $LAMMPS_DIR/python
-(testing) python install.py :pre
+(testing) make install-python :pre
 
 # install other useful packages
 (testing) pip install matplotlib jupyter mpi4py :pre
@@ -141,16 +158,16 @@ Python code if {L} was a lammps instance:
 L.command("region box block 0 10 0 5 -0.5 0.5") :pre
 
 With the PyLammps interface, any command can be split up into arbitrary parts
-separated by whitespace, passed as individual arguments to a region method.
+separated by white-space, passed as individual arguments to a region method.
 
 L.region("box block", 0, 10, 0, 5, -0.5, 0.5) :pre
 
 Note that each parameter is set as Python literal floating-point number. In the
 PyLammps interface, each command takes an arbitrary parameter list and transparently
-merges it to a single command string, separating individual parameters by whitespace.
+merges it to a single command string, separating individual parameters by white-space.
 
 The benefit of this approach is avoiding redundant command calls and easier
-parameterization. In the original interface parametrization needed to be done
+parameterization. In the original interface parameterization needed to be done
 manually by creating formatted strings.
 
 L.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi)) :pre
@@ -328,7 +345,7 @@ jupyter notebook :pre
 IPyLammps Examples :h4
 
 Examples of IPython notebooks can be found in the python/examples/pylammps
-subdirectory. To open these notebooks launch {jupyter notebook} inside this
+sub-directory. To open these notebooks launch {jupyter notebook} inside this
 directory and navigate to one of them. If you compiled and installed
 a LAMMPS shared library with exceptions, PNG, JPEG and FFMPEG support
 you should be able to rerun all of these notebooks.

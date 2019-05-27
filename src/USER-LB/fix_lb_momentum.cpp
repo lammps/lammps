@@ -201,7 +201,7 @@ void FixLbMomentum::end_of_step()
                             ucmx*u_lb[i][j][k][1]*ucmz-ucmx*ucmy*u_lb[i][j][k][2]+
                             ucmx*ucmy*ucmz);
             etacov[14]=0.0;
-          }else{
+          } else {
             etacov[0] = 0.0;
             etacov[1] = rho*ucmx;
             etacov[2] = rho*ucmy;
@@ -263,7 +263,7 @@ void FixLbMomentum::end_of_step()
                                       ucmx*u_old[1]*ucmz-ucmx*ucmy*u_old[2]+
                                       ucmx*ucmy*ucmz);
               etacov[14]=0.0;
-            }else{
+            } else {
               etacov[0] = 0.0;
               etacov[1] = density_old*ucmx;
               etacov[2] = density_old*ucmy;

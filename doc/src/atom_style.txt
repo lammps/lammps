@@ -39,7 +39,7 @@ atom_style body nparticle 2 10
 atom_style hybrid charge bond
 atom_style hybrid charge body nparticle 2 5
 atom_style spin
-atom_style template myMols 
+atom_style template myMols
 atom_style tdpd 2 :pre
 
 [Description:]
@@ -87,7 +87,7 @@ quantities.
 {line} | end points, angular velocity | rigid bodies |
 {meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
-{peri} | mass, volume | mesocopic Peridynamic models |
+{peri} | mass, volume | mesoscopic Peridynamic models |
 {smd} | volume, kernel diameter, contact radius, mass | solid and fluid SPH particles |
 {sphere} | diameter, mass, angular velocity | granular models |
 {spin} | magnetic moment | system with magnetic particles |
@@ -272,13 +272,13 @@ USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
 styles.
 
 The accelerated styles are part of the KOKKOS package.  They are only
-enabled if LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -289,8 +289,8 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 Many of the styles listed above are only enabled if LAMMPS was built
-with a specific package, as listed below.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with a specific package, as listed below.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The {angle}, {bond}, {full}, {molecular}, and {template} styles are
 part of the MOLECULE package.
@@ -309,9 +309,9 @@ force fields"_pair_eff.html.
 The {dpd} style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
-The {edpd}, {mdpd}, and {tdpd} styles are part of the USER-MESO package 
-for energy-conserving dissipative particle dynamics (eDPD), many-body 
-dissipative particle dynamics (mDPD), and transport dissipative particle 
+The {edpd}, {mdpd}, and {tdpd} styles are part of the USER-MESO package
+for energy-conserving dissipative particle dynamics (eDPD), many-body
+dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
 The {meso} style is part of the USER-SPH package for smoothed particle

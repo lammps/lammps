@@ -43,10 +43,10 @@ stress tensor, i.e., the von Mises equivalent stress.
 [Restrictions:]
 
 This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info. This compute
-can only be used for particles which interact with the updated
-Lagrangian SPH pair style.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info. This compute can
+only be used for particles which interact with the updated Lagrangian
+SPH pair style.
 
 [Related commands:]
 

@@ -55,15 +55,15 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulLong::~PairCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(scale);
-    }
-    if (ftable) free_tables();
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(scale);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,8 +79,7 @@ void PairCoulLong::compute(int eflag, int vflag)
   double rsq;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -338,9 +337,9 @@ void PairCoulLong::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCoulLong::single(int i, int j, int itype, int jtype,
+double PairCoulLong::single(int i, int j, int /*itype*/, int /*jtype*/,
                             double rsq,
-                            double factor_coul, double factor_lj,
+                            double factor_coul, double /*factor_lj*/,
                             double &fforce)
 {
   double r2inv,r,grij,expm2,t,erfc,prefactor;

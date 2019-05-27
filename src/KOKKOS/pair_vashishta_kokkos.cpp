@@ -79,8 +79,7 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -947,7 +946,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
 
 namespace LAMMPS_NS {
 template class PairVashishtaKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairVashishtaKokkos<LMPHostType>;
 #endif
 }

@@ -84,7 +84,7 @@ the molecule IDs for your polymer chains in a certain way, typically
 in the data file, read by the "read_data"_read_data.html command.
 Consider a system of 6-mer chains.  You have 2 choices.  If the
 molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then
-swaps will conserve chain length.  For a particular momoner there will
+swaps will conserve chain length.  For a particular monomer there will
 be only one other monomer on another chain which is a potential swap
 partner.  If the molecule IDs for monomers on each chain are set to
 1,2,3,3,2,1 then swaps will conserve chain length but swaps will be
@@ -165,8 +165,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The settings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or

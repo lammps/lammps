@@ -245,13 +245,13 @@ many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
 Keyword {spin} uses the specified g value to set the magnitude of the
-magnetic spin vectors, and the x,y,z values as components of a vector 
-to set as the orientation of the magnetic spin vectors of the selected 
-atoms.  
+magnetic spin vectors, and the x,y,z values as components of a vector
+to set as the orientation of the magnetic spin vectors of the selected
+atoms.
 
 Keyword {spin/random} randomizes the orientation of the magnetic spin
-vectors for the selected atoms and sets the magnitude of each to the 
-specified {Dlen} value.  
+vectors for the selected atoms and sets the magnitude of each to the
+specified {Dlen} value.
 
 Keyword {quat} uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The

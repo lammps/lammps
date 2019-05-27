@@ -32,7 +32,7 @@
 
 void Atom_Energy( reax_system *system, control_params *control,
                   simulation_data *data, storage *workspace, reax_list **lists,
-                  output_controls *out_control )
+                  output_controls * /*out_control*/ )
 {
   int i, j, pj, type_i, type_j;
   double Delta_lpcorr, dfvl;
@@ -91,23 +91,23 @@ void Atom_Energy( reax_system *system, control_params *control,
       workspace->CdDelta[i] += CElp;  // lp - 1st term
 
     /* tally into per-atom energy */
-    if( system->pair_ptr->evflag)
+    if (system->pair_ptr->evflag)
       system->pair_ptr->ev_tally(i,i,system->n,1,e_lp,0.0,0.0,0.0,0.0,0.0);
 
     /* correction for C2 */
-    if( p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C") )
+    if (p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C"))
       for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
 
-        if( !strcmp( system->reax_param.sbp[type_j].name, "C" ) ) {
+        if (!strcmp( system->reax_param.sbp[type_j].name, "C" )) {
           twbp = &( system->reax_param.tbp[type_i][type_j]);
           bo_ij = &( bonds->select.bond_list[pj].bo_data );
           Di = workspace->Delta[i];
           vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
 
-          if( vov3 > 3. ) {
+          if (vov3 > 3.) {
             data->my_en.e_lp += e_lph = p_lp3 * SQR(vov3-3.0);
 
             deahu2dbo = 2.*p_lp3*(vov3 - 3.);
@@ -117,7 +117,7 @@ void Atom_Energy( reax_system *system, control_params *control,
             workspace->CdDelta[i] += deahu2dsbo;
 
             /* tally into per-atom energy */
-            if( system->pair_ptr->evflag)
+            if (system->pair_ptr->evflag)
               system->pair_ptr->ev_tally(i,j,system->n,1,e_lph,0.0,0.0,0.0,0.0,0.0);
 
           }
@@ -132,7 +132,7 @@ void Atom_Energy( reax_system *system, control_params *control,
     sbp_i = &(system->reax_param.sbp[ type_i ]);
 
     /* over-coordination energy */
-    if( sbp_i->mass > 21.0 )
+    if (sbp_i->mass > 21.0)
       dfvl = 0.0;
     else dfvl = 1.0; // only for 1st-row elements
 
@@ -201,7 +201,7 @@ void Atom_Energy( reax_system *system, control_params *control,
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
 
     /* tally into per-atom energy */
-    if( system->pair_ptr->evflag) {
+    if (system->pair_ptr->evflag) {
       eng_tmp = e_ov;
       if (numbonds > 0 || control->enobondsflag)
         eng_tmp += e_un;

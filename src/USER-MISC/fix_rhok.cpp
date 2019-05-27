@@ -52,7 +52,7 @@ FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   if (lmp->citeme) lmp->citeme->add(cite_fix_rhok);
 
   // Check arguments
-  if( inArgc != 8 )
+  if (inArgc != 8)
     error->all(FLERR,"Illegal fix rhoKUmbrella command" );
 
   // Set up fix flags
@@ -104,7 +104,7 @@ void
 FixRhok::init()
 {
   // RESPA boilerplate
-  if( strcmp( update->integrate_style, "respa" ) == 0 )
+  if (strcmp( update->integrate_style, "respa" ) == 0)
     mNLevelsRESPA = ((Respa *) update->integrate)->nlevels;
 
   // Count the number of affected particles
@@ -112,7 +112,7 @@ FixRhok::init()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if (mask[i] & groupbit) {          // ...only those affected by this fix
       nThisLocal++;
     }
   }
@@ -125,7 +125,7 @@ FixRhok::init()
 void
 FixRhok::setup( int inVFlag )
 {
-  if( strcmp( update->integrate_style, "verlet" ) == 0 )
+  if (strcmp( update->integrate_style, "verlet" ) == 0)
     post_force( inVFlag );
   else
     {
@@ -144,7 +144,7 @@ FixRhok::min_setup( int inVFlag )
 
 // Modify the forces calculated in the main force loop of ordinary MD
 void
-FixRhok::post_force( int inVFlag )
+FixRhok::post_force( int /*inVFlag*/ )
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -157,7 +157,7 @@ FixRhok::post_force( int inVFlag )
   mRhoKLocal[1] = 0.0;
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if (mask[i] & groupbit) {          // ...only those affected by this fix
 
       // rho_k = sum_i exp( - i k.r_i )
       mRhoKLocal[0] += cos( mK[0]*x[i][0] + mK[1]*x[i][1] + mK[2]*x[i][2] );
@@ -180,7 +180,7 @@ FixRhok::post_force( int inVFlag )
                       + mRhoKGlobal[1]*mRhoKGlobal[1] );
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if (mask[i] & groupbit) {          // ...only those affected by this fix
 
       // Calculate forces
       // U = kappa/2 ( |rho_k| - rho_k^0 )^2
@@ -206,9 +206,9 @@ FixRhok::post_force( int inVFlag )
 
 // Forces in RESPA loop
 void
-FixRhok::post_force_respa( int inVFlag, int inILevel, int inILoop )
+FixRhok::post_force_respa( int inVFlag, int inILevel, int /*inILoop*/ )
 {
-  if( inILevel == mNLevelsRESPA - 1 )
+  if (inILevel == mNLevelsRESPA - 1)
     post_force( inVFlag );
 }
 
@@ -233,7 +233,7 @@ FixRhok::compute_scalar()
 double
 FixRhok::compute_vector( int inI )
 {
-  if( inI == 0 )
+  if (inI == 0)
     return mRhoKGlobal[0];   // Real part
   else if( inI == 1 )
     return mRhoKGlobal[1];   // Imagniary part

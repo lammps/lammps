@@ -121,8 +121,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 
   evdwlOld = 0.0;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -730,7 +729,7 @@ void PairExp6rx::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open exp6/rx potential file %s",file);
+      snprintf(str,128,"Cannot open exp6/rx potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -841,7 +840,7 @@ void PairExp6rx::read_file2(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open polynomial file %s",file);
+      snprintf(str,128,"Cannot open polynomial file %s",file);
       error->one(FLERR,str);
     }
   }

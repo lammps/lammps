@@ -7,29 +7,31 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-CHARMM, AMBER, and DREIDING force fields :h3
+CHARMM, AMBER, COMPASS, and DREIDING force fields :h3
 
 A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
 formulas implemented in LAMMPS that correspond to formulas commonly
-used in the CHARMM, AMBER, and DREIDING force fields.  Setting
-coefficients is done in the input data file via the
-"read_data"_read_data.html command or in the input script with
+used in the CHARMM, AMBER, COMPASS, and DREIDING force fields.  Setting
+coefficients is done either from special sections in an input data file
+via the "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See the "Tools"_Tools.html doc page for
-additional tools that can use CHARMM or AMBER to assign force field
-coefficients and convert their output into LAMMPS input.
+"bond_coeff"_bond_coeff.html and so on.  See the "Tools"_Tools.html doc
+page for additional tools that can use CHARMM, AMBER, or Materials
+Studio generated files to assign force field coefficients and convert
+their output into LAMMPS input.
 
 See "(MacKerell)"_#howto-MacKerell for a description of the CHARMM force
-field.  See "(Cornell)"_#howto-Cornell for a description of the AMBER force
-field.
+field.  See "(Cornell)"_#howto-Cornell for a description of the AMBER
+force field.  See "(Sun)"_#howto-Sun for a description of the COMPASS
+force field.
 
 :link(charmm,http://www.scripps.edu/brooks)
 :link(amber,http://amber.scripps.edu)
 
-These style choices compute force field formulas that are consistent
-with common options in CHARMM or AMBER.  See each command's
-documentation for the formula it computes.
+The interaction styles listed below compute force field formulas that
+are consistent with common options in CHARMM or AMBER.  See each
+command's documentation for the formula it computes.
 
 "bond_style"_bond_harmonic.html harmonic
 "angle_style"_angle_charmm.html charmm
@@ -44,28 +46,54 @@ documentation for the formula it computes.
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
 
-NOTE: For CHARMM, newer {charmmfsw} or {charmmfsh} styles were
-released in March 2017.  We recommend they be used instead of the
-older {charmm} styles.  See discussion of the differences on the "pair
-charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html
-doc pages.
+NOTE: For CHARMM, newer {charmmfsw} or {charmmfsh} styles were released
+in March 2017.  We recommend they be used instead of the older {charmm}
+styles.  See discussion of the differences on the "pair
+charmm"_pair_charmm.html and "dihedral charmm"_dihedral_charmm.html doc
+pages.
+
+COMPASS is a general force field for atomistic simulation of common
+organic molecules, inorganic small molecules, and polymers which was
+developed using ab initio and empirical parameterization techniques.
+See the "Tools"_Tools.html doc page for the msi2lmp tool for creating
+LAMMPS template input and data files from BIOVIA's Materials Studio
+files.  Please note that the msi2lmp tool is very old and largely
+unmaintained, so it does not support all features of Materials Studio
+provided force field files, especially additions during the last decade.
+You should watch the output carefully and compare results, where
+possible.  See "(Sun)"_#howto-Sun for a description of the COMPASS force
+field.
+
+These interaction styles listed below compute force field formulas that
+are consistent with the COMPASS force field.  See each command's
+documentation for the formula it computes.
+
+"bond_style"_bond_class2.html class2
+"angle_style"_angle_class2.html class2
+"dihedral_style"_dihedral_class2.html class2
+"improper_style"_improper_class2.html class2 :ul
+
+"pair_style"_pair_class2.html lj/class2
+"pair_style"_pair_class2.html lj/class2/coul/cut
+"pair_style"_pair_class2.html lj/class2/coul/long :ul
+
+"special_bonds"_special_bonds.html lj/coul 0 0 1 :ul
 
 DREIDING is a generic force field developed by the "Goddard
 group"_http://www.wag.caltech.edu at Caltech and is useful for
-predicting structures and dynamics of organic, biological and
-main-group inorganic molecules. The philosophy in DREIDING is to use
-general force constants and geometry parameters based on simple
-hybridization considerations, rather than individual force constants
-and geometric parameters that depend on the particular combinations of
-atoms involved in the bond, angle, or torsion terms. DREIDING has an
-"explicit hydrogen bond term"_pair_hbond_dreiding.html to describe
-interactions involving a hydrogen atom on very electronegative atoms
-(N, O, F).
+predicting structures and dynamics of organic, biological and main-group
+inorganic molecules. The philosophy in DREIDING is to use general force
+constants and geometry parameters based on simple hybridization
+considerations, rather than individual force constants and geometric
+parameters that depend on the particular combinations of atoms involved
+in the bond, angle, or torsion terms. DREIDING has an "explicit hydrogen
+bond term"_pair_hbond_dreiding.html to describe interactions involving a
+hydrogen atom on very electronegative atoms (N, O, F).
 
 See "(Mayo)"_#howto-Mayo for a description of the DREIDING force field
 
-These style choices compute force field formulas that are consistent
-with the DREIDING force field.  See each command's
+The interaction styles listed below compute force field formulas that
+are consistent with the DREIDING force field.  See each command's
 documentation for the formula it computes.
 
 "bond_style"_bond_harmonic.html harmonic
@@ -95,6 +123,13 @@ documentation for the formula it computes.
 :link(howto-MacKerell)
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+
+:link(howto-Cornell)
+[(Cornell)] Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
+
+:link(howto-Sun)
+[(Sun)] Sun, J. Phys. Chem. B, 102, 7338-7364 (1998).
 
 :link(howto-Mayo)
 [(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909

@@ -24,6 +24,11 @@ by subtracting out the streaming velocity of the shearing atoms.  The
 velocity profile or other properties of the fluid can be monitored via
 the "fix ave/chunk"_fix_ave_chunk.html command.
 
+NOTE: A recent (2017) book by "(Daivis and Todd)"_#Daivis-nemd
+discusses use of the SLLOD method and non-equilibrium MD (NEMD)
+thermostatting generally, for both simple and complex fluids,
+e.g. molecular systems.  The latter can be tricky to do correctly.
+
 As discussed in the previous section on non-orthogonal simulation
 boxes, the amount of tilt or skew that can be applied is limited by
 LAMMPS for computational efficiency to be 1/2 of the parallel box
@@ -46,3 +51,9 @@ An alternative method for calculating viscosities is provided via the
 NEMD simulations can also be used to measure transport properties of a fluid
 through a pore or channel. Simulations of steady-state flow can be performed
 using the "fix flow/gauss"_fix_flow_gauss.html command.
+
+:line
+
+:link(Daivis-nemd)
+[(Daivis and Todd)] Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
+Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

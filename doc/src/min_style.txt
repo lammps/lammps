@@ -11,11 +11,12 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {adaptglok} :ul
+style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {spin} or {adaptglok} :ul
 
 [Examples:]
 
 min_style cg
+min_style spin
 min_style fire :pre
 
 [Description:]
@@ -66,6 +67,10 @@ additionnal optimizations of the method described
 in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
 timestep, a backstep when downhill and different time integration
 schemes.
+
+Style {spin} is a damped spin dynamics with an adaptive 
+timestep.
+See the "min/spin"_min_spin.html doc page for more information.
 
 Either the {quickmin}, {fire} and {adaptglok} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.

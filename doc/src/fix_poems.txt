@@ -6,7 +6,7 @@
 
 :line
 
-fix poems :h3
+fix poems command :h3
 
 Syntax:
 
@@ -106,7 +106,7 @@ off, and there is only a single fix poems defined.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {bodyforces} option is supported by
 this fix style to set whether per-body forces and torques are computed
@@ -123,8 +123,8 @@ minimization"_minimize.html.
 
 This fix is part of the POEMS package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
-built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built and linked with LAMMPS.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

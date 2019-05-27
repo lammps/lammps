@@ -90,8 +90,7 @@ void ImproperClass2::compute(int eflag, int vflag)
   double fabcd[4][3];
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (i = 0; i < 3; i++)
     for (j = 0; j < 4; j++)
@@ -633,7 +632,7 @@ void ImproperClass2::read_restart(FILE *fp)
    angle-angle interactions within improper
 ------------------------------------------------------------------------- */
 
-void ImproperClass2::angleangle(int eflag, int vflag)
+void ImproperClass2::angleangle(int eflag, int /*vflag*/)
 {
   int i1,i2,i3,i4,i,j,k,n,type;
   double eimproper;

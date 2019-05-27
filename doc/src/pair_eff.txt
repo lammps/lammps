@@ -48,21 +48,21 @@ structure methods to describe atomic structure, bonding, and chemistry
 in materials, and of plasma methods to describe nonequilibrium
 dynamics of large systems with a large number of highly excited
 electrons.  Yet, eFF relies on a simplification of the electronic
-wavefunction in which electrons are described as floating Gaussian
+wave function in which electrons are described as floating Gaussian
 wave packets whose position and size respond to the various dynamic
 forces between interacting classical nuclear particles and spherical
-Gaussian electron wavepackets.  The wavefunction is taken to be a
+Gaussian electron wave packets.  The wave function is taken to be a
 Hartree product of the wave packets.  To compensate for the lack of
-explicit antisymmetry in the resulting wavefunction, a spin-dependent
+explicit antisymmetry in the resulting wave function, a spin-dependent
 Pauli potential is included in the Hamiltonian.  Substituting this
-wavefunction into the time-dependent Schrodinger equation produces
+wave function into the time-dependent Schrodinger equation produces
 equations of motion that correspond - to second order - to classical
 Hamiltonian relations between electron position and size, and their
-conjugate momenta.  The N-electron wavefunction is described as a
+conjugate momenta.  The N-electron wave function is described as a
 product of one-electron Gaussian functions, whose size is a dynamical
 variable and whose position is not constrained to a nuclear
 center. This form allows for straightforward propagation of the
-wavefunction, with time, using a simple formulation from which the
+wave function, with time, using a simple formulation from which the
 equations of motion are then integrated with conventional MD
 algorithms. In addition to this spin-dependent Pauli repulsion
 potential term between Gaussians, eFF includes the electron kinetic
@@ -229,7 +229,7 @@ system.  The charge for a pseudo-core atom should be given by the
 number of outer shell electrons.
 
 In general, eFF excels at computing the properties of materials in
-extreme conditions and tracing the system dynamics over multi-picosend
+extreme conditions and tracing the system dynamics over multi-picosecond
 timescales; this is particularly relevant where electron excitations
 can change significantly the nature of bonding in the system. It can
 capture with surprising accuracy the behavior of such systems because
@@ -280,8 +280,8 @@ These pair styles can only be used via the {pair} keyword of the
 
 These pair styles will only be enabled if LAMMPS is built with the
 USER-EFF package.  It will only be enabled if LAMMPS was built with
-that package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 These pair styles require that particles store electron attributes
 such as radius, radial velocity, and radial force, as defined by the
@@ -289,7 +289,7 @@ such as radius, radial velocity, and radial force, as defined by the
 this.
 
 Thes pair styles require you to use the "comm_modify vel
-yes"_comm_modify.html command so that velocites are stored by ghost
+yes"_comm_modify.html command so that velocities are stored by ghost
 atoms.
 
 [Related commands:]

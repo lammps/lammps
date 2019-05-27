@@ -26,7 +26,7 @@ keyword = {pos} or {vel} or {ramp} or {units}  :l
     target = target velocity for region immediately ahead of the piston
     damp = damping parameter (time units)
     seed = random number seed for langevin kicks
-    extent = extent of thermostated region (distance units)
+    extent = extent of thermostatted region (distance units)
   {units} value = {lattice} or {box}
     {lattice} = the wall position is defined in lattice units
     {box} = the wall position is defined in simulation box units :pre
@@ -69,7 +69,7 @@ the {ramp} keyword is omitted then the wall/piston moves at a constant
 velocity defined by {vel}.
 
 The {temp} keyword will cause the region immediately in front of the
-wall/piston to be thermostated with a Langevin thermostat.  This
+wall/piston to be thermostatted with a Langevin thermostat.  This
 region moves with the piston.  The damping and kicking are measured in
 the reference frame of the piston.  So, a temperature of zero would
 mean all particles were moving at exactly the speed of the
@@ -99,8 +99,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 The face that has the wall/piston must be boundary type 's'
 (shrink-wrapped). The opposing face can be

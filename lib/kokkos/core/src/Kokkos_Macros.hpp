@@ -153,7 +153,7 @@
     #else
       #define KOKKOS_LAMBDA [=]__host__ __device__
 
-      #if defined( KOKKOS_ENABLE_CXX1Z )
+      #if defined( KOKKOS_ENABLE_CXX17 ) || defined( KOKKOS_ENABLE_CXX20 )
         #define KOKKOS_CLASS_LAMBDA        [=,*this] __host__ __device__
       #endif
     #endif
@@ -169,6 +169,10 @@
     // CUDA 9 introduced an incorrect warning,
     // see https://github.com/kokkos/kokkos/issues/1470
     #define KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  #endif
+
+  #if ( 10000 > CUDA_VERSION )
+    #define KOKKOS_ENABLE_PRE_CUDA_10_DEPRECATION_API
   #endif
 #endif // #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
 
@@ -213,7 +217,7 @@
   #define KOKKOS_LAMBDA [=]
 #endif
 
-#if defined( KOKKOS_ENABLE_CXX1Z ) && !defined( KOKKOS_CLASS_LAMBDA )
+#if (defined( KOKKOS_ENABLE_CXX17 ) || defined( KOKKOS_ENABLE_CXX20) )&& !defined( KOKKOS_CLASS_LAMBDA )
   #define KOKKOS_CLASS_LAMBDA [=,*this]
 #endif
 
@@ -521,6 +525,9 @@
 #if defined ( KOKKOS_ENABLE_CUDA )
   #if ( 9000 <= CUDA_VERSION )
   #define KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND
+  #if ( __CUDA_ARCH__ )
+    #define KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+  #endif
   #endif
 #endif
 

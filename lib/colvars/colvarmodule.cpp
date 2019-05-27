@@ -28,6 +28,8 @@
 colvarmodule::colvarmodule(colvarproxy *proxy_in)
 {
   depth_s = 0;
+  log_level_ = 10;
+
   cv_traj_os = NULL;
 
   if (proxy == NULL) {
@@ -61,8 +63,6 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
 
   use_scripted_forces = false;
   scripting_after_biases = false;
-
-  b_analysis = false;
 
   colvarmodule::debug_gradients_step_size = 1.0e-07;
 
@@ -139,7 +139,7 @@ int colvarmodule::read_config_file(char const  *config_filename)
   // read the config file into a string
   std::string conf = "";
   std::string line;
-  while (colvarparse::getline_nocomments(config_s, line)) {
+  while (parse->read_config_line(config_s, line)) {
     // Delete lines that contain only white space after removing comments
     if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
       conf.append(line+"\n");
@@ -154,16 +154,17 @@ int colvarmodule::read_config_string(std::string const &config_str)
 {
   cvm::log(cvm::line_marker);
   cvm::log("Reading new configuration:\n");
-  std::istringstream config_s(config_str);
+  std::istringstream new_config_s(config_str);
 
   // strip the comments away
   std::string conf = "";
   std::string line;
-  while (colvarparse::getline_nocomments(config_s, line)) {
+  while (parse->read_config_line(new_config_s, line)) {
     // Delete lines that contain only white space after removing comments
     if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
       conf.append(line+"\n");
   }
+
   return parse_config(conf);
 }
 
@@ -190,6 +191,12 @@ std::istream & colvarmodule::getline(std::istream &is, std::string &line)
 int colvarmodule::parse_config(std::string &conf)
 {
   extra_conf.clear();
+
+  // Check that the input has matching braces
+  if (colvarparse::check_braces(conf, 0) != COLVARS_OK) {
+    return cvm::error("Error: unmatched curly braces in configuration.\n",
+                      INPUT_ERROR);
+  }
 
   // Parse global options
   if (catch_input_errors(parse_global_params(conf))) {
@@ -235,6 +242,12 @@ int colvarmodule::parse_config(std::string &conf)
 }
 
 
+std::string const & colvarmodule::get_config() const
+{
+  return parse->get_config();
+}
+
+
 int colvarmodule::append_new_config(std::string const &new_conf)
 {
   extra_conf += new_conf;
@@ -244,11 +257,18 @@ int colvarmodule::append_new_config(std::string const &new_conf)
 
 int colvarmodule::parse_global_params(std::string const &conf)
 {
-  colvarmodule *cvm = cvm::main();
+  // TODO document and then echo this keyword
+  parse->get_keyval(conf, "logLevel", log_level_, log_level_,
+                    colvarparse::parse_silent);
 
-  std::string index_file_name;
-  if (parse->get_keyval(conf, "indexFile", index_file_name)) {
-    cvm->read_index_file(index_file_name.c_str());
+  {
+    std::string index_file_name;
+    size_t pos = 0;
+    while (parse->key_lookup(conf, "indexFile", &index_file_name, &pos)) {
+      cvm::log("# indexFile = \""+index_file_name+"\"\n");
+      read_index_file(index_file_name.c_str());
+      index_file_name.clear();
+    }
   }
 
   if (parse->get_keyval(conf, "smp", proxy->b_smp_active, proxy->b_smp_active)) {
@@ -257,7 +277,12 @@ int colvarmodule::parse_global_params(std::string const &conf)
     }
   }
 
-  parse->get_keyval(conf, "analysis", b_analysis, b_analysis);
+  bool b_analysis = true;
+  if (parse->get_keyval(conf, "analysis", b_analysis, true,
+                        colvarparse::parse_silent)) {
+    cvm::log("Warning: keyword \"analysis\" is deprecated: it is now set "
+             "to true; individual analyses are performed only if requested.");
+  }
 
   parse->get_keyval(conf, "debugGradientsStepSize", debug_gradients_step_size,
                     debug_gradients_step_size,
@@ -560,6 +585,24 @@ cvm::atom_group *colvarmodule::atom_group_by_name(std::string const &name)
 }
 
 
+void colvarmodule::register_named_atom_group(atom_group *ag) {
+  named_atom_groups.push_back(ag);
+}
+
+
+void colvarmodule::unregister_named_atom_group(cvm::atom_group *ag)
+{
+  for (std::vector<cvm::atom_group *>::iterator agi = named_atom_groups.begin();
+       agi != named_atom_groups.end();
+       agi++) {
+    if (*agi == ag) {
+      named_atom_groups.erase(agi);
+      break;
+    }
+  }
+}
+
+
 int colvarmodule::change_configuration(std::string const &bias_name,
                                        std::string const &conf)
 {
@@ -698,9 +741,7 @@ int colvarmodule::calc()
   error_code |= calc_biases();
   error_code |= update_colvar_forces();
 
-  if (cvm::b_analysis) {
-    error_code |= analyze();
-  }
+  error_code |= analyze();
 
   // write trajectory files, if needed
   if (cv_traj_freq && cv_traj_name.size()) {
@@ -718,6 +759,8 @@ int colvarmodule::calc()
     }
     write_output_files();
   }
+
+  error_code |= end_of_step();
 
   return error_code;
 }
@@ -1014,9 +1057,6 @@ int colvarmodule::analyze()
     cvm::log("colvarmodule::analyze(), step = "+cvm::to_str(it)+".\n");
   }
 
-  if (cvm::step_relative() == 0)
-    cvm::log("Performing analysis.\n");
-
   // perform colvar-specific analysis
   for (std::vector<colvar *>::iterator cvi = variables_active()->begin();
        cvi != variables_active()->end();
@@ -1039,10 +1079,36 @@ int colvarmodule::analyze()
 }
 
 
+int colvarmodule::end_of_step()
+{
+  if (cvm::debug()) {
+    cvm::log("colvarmodule::end_of_step(), step = "+cvm::to_str(it)+".\n");
+  }
+
+  for (std::vector<colvar *>::iterator cvi = variables_active()->begin();
+       cvi != variables_active()->end();
+       cvi++) {
+    cvm::increase_depth();
+    (*cvi)->end_of_step();
+    cvm::decrease_depth();
+  }
+
+  // perform bias-specific analysis
+  for (std::vector<colvarbias *>::iterator bi = biases.begin();
+       bi != biases.end();
+       bi++) {
+    cvm::increase_depth();
+    (*bi)->end_of_step();
+    cvm::decrease_depth();
+  }
+
+  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+}
+
+
 int colvarmodule::setup()
 {
   if (this->size() == 0) return cvm::get_error();
-  // loop over all components of all colvars to reset masses of all groups
   for (std::vector<colvar *>::iterator cvi = variables()->begin();
        cvi != variables()->end();  cvi++) {
     (*cvi)->setup();
@@ -1073,9 +1139,9 @@ colvarmodule::~colvarmodule()
 
 int colvarmodule::reset()
 {
-  parse->init();
-
   cvm::log("Resetting the Collective Variables module.\n");
+
+  parse->init();
 
   // Iterate backwards because we are deleting the elements as we go
   for (std::vector<colvarbias *>::reverse_iterator bi = biases.rbegin();
@@ -1201,13 +1267,13 @@ std::istream & colvarmodule::read_restart(std::istream &is)
     std::string restart_conf;
     if (is >> colvarparse::read_block("configuration", restart_conf)) {
       parse->get_keyval(restart_conf, "step",
-                        it_restart, (size_t) 0,
-                        colvarparse::parse_silent);
+                        it_restart, static_cast<step_number>(0),
+                        colvarparse::parse_restart);
         it = it_restart;
       std::string restart_version;
       parse->get_keyval(restart_conf, "version",
                         restart_version, std::string(""),
-                        colvarparse::parse_silent);
+                        colvarparse::parse_restart);
       if (restart_version.size() && (restart_version != std::string(COLVARS_VERSION))) {
         cvm::log("This state file was generated with version "+restart_version+"\n");
       }
@@ -1553,14 +1619,16 @@ std::ostream & colvarmodule::write_traj(std::ostream &os)
 }
 
 
-void cvm::log(std::string const &message)
+void cvm::log(std::string const &message, int min_log_level)
 {
+  if (cvm::log_level() < min_log_level) return;
   // allow logging when the module is not fully initialized
   size_t const d = (cvm::main() != NULL) ? depth() : 0;
-  if (d > 0)
+  if (d > 0) {
     proxy->log((std::string(2*d, ' '))+message);
-  else
+  } else {
     proxy->log(message);
+  }
 }
 
 
@@ -1868,17 +1936,192 @@ int cvm::replica_comm_send(char* msg_data, int msg_len, int dest_rep)
 
 
 
+template<typename T> std::string _to_str(T const &x,
+                                         size_t width, size_t prec)
+{
+  std::ostringstream os;
+  if (width) os.width(width);
+  if (prec) {
+    os.setf(std::ios::scientific, std::ios::floatfield);
+    os.precision(prec);
+  }
+  os << x;
+  return os.str();
+}
+
+
+template<typename T> std::string _to_str_vector(std::vector<T> const &x,
+                                                size_t width, size_t prec)
+{
+  if (!x.size()) return std::string("");
+  std::ostringstream os;
+  if (prec) {
+    os.setf(std::ios::scientific, std::ios::floatfield);
+  }
+  os << "{ ";
+  if (width) os.width(width);
+  if (prec) os.precision(prec);
+  os << x[0];
+  for (size_t i = 1; i < x.size(); i++) {
+    os << ", ";
+    if (width) os.width(width);
+    if (prec) os.precision(prec);
+    os << x[i];
+  }
+  os << " }";
+  return os.str();
+}
+
+
+
+std::string colvarmodule::to_str(std::string const &x)
+{
+  return std::string("\"")+x+std::string("\"");
+}
+
+std::string colvarmodule::to_str(char const *x)
+{
+  return std::string("\"")+std::string(x)+std::string("\"");
+}
+
+std::string colvarmodule::to_str(bool x)
+{
+  return (x ? "on" : "off");
+}
+
+std::string colvarmodule::to_str(int const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<int>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(size_t const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<size_t>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(long int const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<long int>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(step_number const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<step_number>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(cvm::real const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<cvm::real>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(cvm::rvector const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<cvm::rvector>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(cvm::quaternion const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<cvm::quaternion>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(colvarvalue const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str<colvarvalue>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(cvm::vector1d<cvm::real> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str< cvm::vector1d<cvm::real> >(x, width, prec);
+}
+
+std::string colvarmodule::to_str(cvm::matrix2d<cvm::real> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str< cvm::matrix2d<cvm::real> >(x, width, prec);
+}
+
+
+std::string colvarmodule::to_str(std::vector<int> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<int>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<size_t> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<size_t>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<long int> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<long int>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<cvm::real> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<cvm::real>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<cvm::rvector> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<cvm::rvector>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<cvm::quaternion> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<cvm::quaternion>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<colvarvalue> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<colvarvalue>(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<std::string> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector<std::string>(x, width, prec);
+}
+
+
+std::string cvm::wrap_string(std::string const &s, size_t nchars)
+{
+  if (!s.size()) {
+    return std::string(nchars, ' ');
+  } else {
+    return ( (s.size() <= nchars) ?
+             (s+std::string(nchars-s.size(), ' ')) :
+             (std::string(s, 0, nchars)) );
+  }
+}
+
+
 // shared pointer to the proxy object
 colvarproxy *colvarmodule::proxy = NULL;
 
 // static runtime data
 cvm::real colvarmodule::debug_gradients_step_size = 1.0e-07;
 int       colvarmodule::errorCode = 0;
-long      colvarmodule::it = 0;
-long      colvarmodule::it_restart = 0;
+int       colvarmodule::log_level_ = 10;
+cvm::step_number colvarmodule::it = 0;
+cvm::step_number colvarmodule::it_restart = 0;
 size_t    colvarmodule::restart_out_freq = 0;
 size_t    colvarmodule::cv_traj_freq = 0;
-bool      colvarmodule::b_analysis = false;
 bool      colvarmodule::use_scripted_forces = false;
 bool      colvarmodule::scripting_after_biases = true;
 

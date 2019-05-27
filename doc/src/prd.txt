@@ -48,11 +48,12 @@ replicas of a system.  One or more replicas can be used.  The total
 number of steps {N} to run can be interpreted in one of two ways; see
 discussion of the {time} keyword below.
 
-PRD is described in "this paper"_#Voter1998 by Art Voter.  It is a method
-for performing accelerated dynamics that is suitable for
-infrequent-event systems that obey first-order kinetics.  A good
-overview of accelerated dynamics methods for such systems in given in
-"this review paper"_#Voter2002prd from the same group.  To quote from the
+PRD is described in "(Voter1998)"_#Voter1998 by Art Voter.  Similar to
+global or local hyperdynamics (HD), PRD is a method for performing
+accelerated dynamics that is suitable for infrequent-event systems
+that obey first-order kinetics.  A good overview of accelerated
+dynamics methods for such systems in given in this review paper
+"(Voter2002)"_#Voter2002prd from Art's group.  To quote from the
 paper: "The dynamical evolution is characterized by vibrational
 excursions within a potential basin, punctuated by occasional
 transitions between basins."  The transition probability is
@@ -61,16 +62,27 @@ Running multiple replicas gives an effective enhancement in the
 timescale spanned by the multiple simulations, while waiting for an
 event to occur.
 
-Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
-Note that if you have MPI installed, you can run a multi-replica
-simulation with more replicas (partitions) than you have physical
-processors, e.g you can run a 10-replica simulation on one or two
-processors.  However for PRD, this makes little sense, since running a
-replica on virtual instead of physical processors,offers no effective
-parallel speed-up in searching for infrequent events.  See the "Howto
-replica"_Howto_replica.html doc page for further discussion.
+Both PRD and HD produce a time-accurate trajectory that effectively
+extends the timescale over which a system can be simulated, but they
+do it differently.  PRD creates Nr replicas of the system and runs
+dynamics on each independently with a normal unbiased potential until
+an event occurs in one of the replicas.  The time between events is
+reduced by a factor of Nr replicas.  HD uses a single replica of the
+system and accelerates time by biasing the interaction potential in a
+manner such that each timestep is effectively longer.  For both
+methods, per CPU second, more physical time elapses and more events
+occur.  See the "hyper"_hyper.html doc page for more info about HD.
+
+In PRD, each replica runs on a partition of one or more processors.
+Processor partitions are defined at run-time using the "-partition
+command-line switch"_Run_options.html.  Note that if you have MPI
+installed, you can run a multi-replica simulation with more replicas
+(partitions) than you have physical processors, e.g you can run a
+10-replica simulation on one or two processors.  However for PRD, this
+makes little sense, since running a replica on virtual instead of
+physical processors,offers no effective parallel speed-up in searching
+for infrequent events.  See the "Howto replica"_Howto_replica.html doc
+page for further discussion.
 
 When a PRD simulation is performed, it is assumed that each replica is
 running the same model, though LAMMPS does not check for this.
@@ -78,8 +90,8 @@ I.e. the simulation domain, the number of atoms, the interaction
 potentials, etc should be the same for every replica.
 
 A PRD run has several stages, which are repeated each time an "event"
-occurs in one of the replicas, as defined below.  The logic for a PRD
-run is as follows:
+occurs in one of the replicas, as explained below.  The logic for a
+PRD run is as follows:
 
 while (time remains):
   dephase for n_dephase*t_dephase steps
@@ -129,7 +141,8 @@ Minimization parameters may be set via the
 PRD command.  The latter are the settings that would be used with the
 "minimize"_minimize.html command.  Note that typically, you do not
 need to perform a highly-converged minimization to detect a transition
-event.
+event, though you may need to in order to prevent a set of atoms in
+the system from relaxing to a saddle point.
 
 The event check is performed by a compute with the specified
 {compute-ID}.  Currently there is only one compute that works with the
@@ -285,8 +298,8 @@ value for the first event in the new run will be slightly off.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 The {N} and {t_correlate} settings must be integer multiples of
 {t_event}.
@@ -307,7 +320,7 @@ deposit"_fix_deposit.html.
 "min_modify"_min_modify.html, "min_style"_min_style.html,
 "run_style"_run_style.html, "minimize"_minimize.html,
 "velocity"_velocity.html, "temper"_temper.html, "neb"_neb.html,
-"tad"_tad.html
+"tad"_tad.html, "hyper"_hyper.html
 
 [Default:]
 

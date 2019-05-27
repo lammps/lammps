@@ -17,7 +17,7 @@ group-ID = ID of the group of atoms to be imaged :l
 h5md = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
 N = dump every this many timesteps :l
 file.h5 = name of file to write to :l
-args = list of data elements to dump, with their dump "subintervals"
+args = list of data elements to dump, with their dump "sub-intervals"
   position options
   image
   velocity options
@@ -50,7 +50,7 @@ dump h5md1 all h5md 100 dump_h5md.h5 velocity author "John Doe" :pre
 [Description:]
 
 Dump a snapshot of atom coordinates every N timesteps in the
-"HDF5"_HDF5_ws based "H5MD"_h5md file format "(de Buyl)"_#h5md_cpc.
+"HDF5"_HDF5-ws based "H5MD"_h5md file format "(de Buyl)"_#h5md_cpc.
 HDF5 files are binary, portable and self-describing.  This dump style
 will write only one file, on the root node.
 
@@ -63,7 +63,7 @@ another particle group must specify {create_group yes}.
 :link(h5md,http://nongnu.org/h5md/)
 
 Each data element is written every N*N_element steps. For {image}, no
-subinterval is needed as it must be present at the same interval as
+sub-interval is needed as it must be present at the same interval as
 {position}.  {image} must be given after {position} in any case.  The
 box information (edges in each dimension) is stored at the same
 interval than the {position} element, if present. Else it is stored
@@ -76,7 +76,7 @@ written to a dump file may be slightly outside the simulation box.
 [Use from write_dump:]
 
 It is possible to use this dump style with the
-"write_dump"_write_dump.html command.  In this case, the subintervals
+"write_dump"_write_dump.html command.  In this case, the sub-intervals
 must not be set at all.  The write_dump command can be used either to
 create a new file or to add current data to an existing dump file by
 using the {file_from} keyword.
@@ -98,15 +98,15 @@ note above).  Only orthogonal domains are currently supported. This is
 a limitation of the present dump h5md command and not of H5MD itself.
 
 The {h5md} dump style is part of the USER-H5MD package. It is only
-enabled if LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info. It also
-requires (i) building the ch5md library provided with LAMMPS (See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.) and
-(ii) having the "HDF5"_HDF5_ws library installed (C bindings are
-sufficient) on your system.  The library ch5md is compiled with the
-h5cc wrapper provided by the HDF5 library.
+enabled if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info. It also requires
+(i) building the ch5md library provided with LAMMPS (See the "Build
+package"_Build_package.html doc page for more info.) and (ii) having
+the "HDF5"_HDF5-ws library installed (C bindings are sufficient) on
+your system.  The library ch5md is compiled with the h5cc wrapper
+provided by the HDF5 library.
 
-:link(HDF5_ws,http://www.hdfgroup.org/HDF5/)
+:link(HDF5-ws,http://www.hdfgroup.org/HDF5/)
 
 :line
 

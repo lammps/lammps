@@ -28,6 +28,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -165,7 +166,40 @@ void Modify::init()
 
   restart_deallocate(1);
 
+  // init each compute
+  // set invoked_scalar,vector,etc to -1 to force new run to re-compute them
+  // add initial timestep to all computes that store invocation times
+  //   since any of them may be invoked by initial thermo
+  // do not clear out invocation times stored within a compute,
+  //   b/c some may be holdovers from previous run, like for ave fixes
+
+  for (i = 0; i < ncompute; i++) {
+    compute[i]->init();
+    compute[i]->invoked_scalar = -1;
+    compute[i]->invoked_vector = -1;
+    compute[i]->invoked_array = -1;
+    compute[i]->invoked_peratom = -1;
+    compute[i]->invoked_local = -1;
+  }
+  addstep_compute_all(update->ntimestep);
+
+  // init each fix
+  // should not need to come before compute init
+  //   used to b/c temperature computes called fix->dof() in their init,
+  //   and fix rigid required its own init before its dof() could be called,
+  //   but computes now do their DOF in setup()
+
+  for (i = 0; i < nfix; i++) fix[i]->init();
+
+  // set global flag if any fix has its restart_pbc flag set
+
+  restart_pbc_any = 0;
+  for (i = 0; i < nfix; i++)
+    if (fix[i]->restart_pbc) restart_pbc_any = 1;
+
   // create lists of fixes to call at each stage of run
+  // needs to happen after init() of computes
+  //   b/c a compute::init() can delete a fix, e.g. compute chunk/atom
 
   list_init(INITIAL_INTEGRATE,n_initial_integrate,list_initial_integrate);
   list_init(POST_INTEGRATE,n_post_integrate,list_post_integrate);
@@ -199,47 +233,17 @@ void Modify::init()
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
-  // init each fix
-  // not sure if now needs to come before compute init
-  // used to b/c temperature computes called fix->dof() in their init,
-  // and fix rigid required its own init before its dof() could be called,
-  // but computes now do their DOF in setup()
-
-  for (i = 0; i < nfix; i++) fix[i]->init();
-
-  // set global flag if any fix has its restart_pbc flag set
-
-  restart_pbc_any = 0;
-  for (i = 0; i < nfix; i++)
-    if (fix[i]->restart_pbc) restart_pbc_any = 1;
-
   // create list of computes that store invocation times
 
   list_init_compute();
-
-  // init each compute
-  // set invoked_scalar,vector,etc to -1 to force new run to re-compute them
-  // add initial timestep to all computes that store invocation times
-  //   since any of them may be invoked by initial thermo
-  // do not clear out invocation times stored within a compute,
-  //   b/c some may be holdovers from previous run, like for ave fixes
-
-  for (i = 0; i < ncompute; i++) {
-    compute[i]->init();
-    compute[i]->invoked_scalar = -1;
-    compute[i]->invoked_vector = -1;
-    compute[i]->invoked_array = -1;
-    compute[i]->invoked_peratom = -1;
-    compute[i]->invoked_local = -1;
-  }
-  addstep_compute_all(update->ntimestep);
 
   // error if any fix or compute is using a dynamic group when not allowed
 
   for (i = 0; i < nfix; i++)
     if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup]) {
       char str[128];
-      sprintf(str,"Fix %s does not allow use of dynamic group",fix[i]->id);
+      snprintf(str,128,
+               "Fix %s does not allow use of dynamic group",fix[i]->id);
       error->all(FLERR,str);
     }
 
@@ -247,7 +251,8 @@ void Modify::init()
     if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup]) {
       char str[128];
-      sprintf(str,"Compute %s does not allow use of dynamic group",fix[i]->id);
+      snprintf(str,128,"Compute %s does not allow use of dynamic group",
+               fix[i]->id);
       error->all(FLERR,str);
     }
 
@@ -784,16 +789,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   but can't think of better way
   // too late if instantiate fix, then check flag set in fix constructor,
   //   since some fixes access domain settings in their constructor
-  // MUST change NEXCEPT above when add new fix to this list
+  // NULL must be last entry in this list
 
-  const char *exceptions[NEXCEPT] =
-    {"GPU","OMP","INTEL","property/atom","cmap","cmap3","rx"};
+  const char *exceptions[] =
+    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+     "deprecated", NULL};
 
   if (domain->box_exist == 0) {
     int m;
-    for (m = 0; m < NEXCEPT; m++)
+    for (m = 0; exceptions[m] != NULL; m++)
       if (strcmp(arg[2],exceptions[m]) == 0) break;
-    if (m == NEXCEPT)
+    if (exceptions[m] == NULL)
       error->all(FLERR,"Fix command before simulation box is defined");
   }
 
@@ -889,7 +895,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (fix[ifix] == NULL) {
     char str[128];
-    sprintf(str,"Unknown fix style %s",arg[2]);
+    snprintf(str,128,"Unknown fix style %s",arg[2]);
     error->all(FLERR,str);
   }
 
@@ -1053,7 +1059,7 @@ int Modify::check_rigid_group_overlap(int groupbit)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
@@ -1191,7 +1197,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (compute[ncompute] == NULL) {
     char str[128];
-    sprintf(str,"Unknown compute style %s",arg[2]);
+    snprintf(str,128,"Unknown compute style %s",arg[2]);
     error->all(FLERR,str);
   }
 

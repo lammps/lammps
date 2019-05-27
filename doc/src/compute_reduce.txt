@@ -61,7 +61,7 @@ or {max} options find the minimum or maximum value across all vector
 values.  The {ave} setting adds the vector values into a global total,
 then divides by the number of values in the vector.  The {sumsq}
 option sums the square of the values in the vector into a global
-total.  The {avesq} setting does the same as {sumsq}, then divdes the
+total.  The {avesq} setting does the same as {sumsq}, then divides the
 sum of squares by the number of values.  The last two options can be
 useful for calculating the variance of some quantity, e.g. variance =
 sumsq - ave^2.
@@ -97,9 +97,9 @@ equivalent, since the "compute stress/atom"_compute_stress_atom.html
 command creates a per-atom array with 6 columns:
 
 compute myPress all stress/atom NULL
-compute 2 all reduce min myPress\[*\]
-compute 2 all reduce min myPress\[1\] myPress\[2\] myPress\[3\] &
-                         myPress\[4\] myPress\[5\] myPress\[6\] :pre
+compute 2 all reduce min c_myPress\[*\]
+compute 2 all reduce min c_myPress\[1\] c_myPress\[2\] c_myPress\[3\] &
+                         c_myPress\[4\] c_myPress\[5\] c_myPress\[6\] :pre
 
 :line
 

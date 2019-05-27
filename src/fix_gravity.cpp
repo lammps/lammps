@@ -141,6 +141,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
 FixGravity::~FixGravity()
 {
+  if (copymode) return;
+
   delete [] mstr;
   delete [] vstr;
   delete [] pstr;
@@ -247,7 +249,7 @@ void FixGravity::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGravity::post_force(int vflag)
+void FixGravity::post_force(int /*vflag*/)
 {
   // update gravity due to variables
 
@@ -300,7 +302,7 @@ void FixGravity::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGravity::post_force_respa(int vflag, int ilevel, int iloop)
+void FixGravity::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

@@ -41,8 +41,9 @@ PairLJGromacs::PairLJGromacs(LAMMPS *lmp) : Pair(lmp)
 
 PairLJGromacs::~PairLJGromacs()
 {
-  if (!copymode) {
-   if (allocated) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -60,7 +61,6 @@ PairLJGromacs::~PairLJGromacs()
     memory->destroy(ljsw3);
     memory->destroy(ljsw4);
     memory->destroy(ljsw5);
-   }
   }
 }
 
@@ -75,8 +75,7 @@ void PairLJGromacs::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -414,9 +413,9 @@ void PairLJGromacs::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJGromacs::single(int i, int j, int itype, int jtype,
+double PairLJGromacs::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
-                             double factor_coul, double factor_lj,
+                             double /*factor_coul*/, double factor_lj,
                              double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;

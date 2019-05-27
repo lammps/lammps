@@ -13,13 +13,16 @@ s
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-these keywords apply to various min styles :l
-keyword = {dmax} or {line} :l
-  {dmax} arg = max
+keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
+  {dmax} value = max
     max = maximum distance for line search to move (distance units)
-  {line} arg = {backtrack} or {quadratic} or {forcezero}
-    backtrack,quadratic,forcezero = style of linesearch to use :pre
-these keywords apply only to the {adaptglok} "min_style"_min_style.html :l
+  {line} value = {backtrack} or {quadratic} or {forcezero}
+    backtrack,quadratic,forcezero = style of linesearch to use 
+  {alpha_damp} value = damping
+    damping = fictitious Gilbert damping for spin minimization (adim)
+  {discrete_factor} value = factor
+    factor = discretization factor for adaptive spin timestep (adim) :pre
+    these keywords apply only to the {adaptglok} "min_style"_min_style.html :l
 keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} or {alpha0} or {alphashrink} or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} or {ptol} or {halfstepback} or {initialdelay} or {vdfmax} :l
   {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
     eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme
@@ -138,6 +141,17 @@ requires to tune the communication cutoff for gost atoms with the command
 "comm_modify cutoff"_comm_modify.html. The value will depend on the expected
 box variation and the number of cpu. A value from 2 to 3 times the current cutoff
 (largest pair cutoff + neighbor skin) is often enough.
+
+Keywords {alpha_damp} and {discrete_factor} only make sense when
+a "min_spin"_min_spin.html command is declared. 
+Keyword {alpha_damp} defines an analog of a magnetic Gilbert
+damping. It defines a relaxation rate toward an equilibrium for
+a given magnetic system. 
+Keyword {discrete_factor} defines a discretization factor for the
+adaptive timestep used in the {spin} minimization. 
+See "min_spin"_min_spin.html for more information about those
+quantities. 
+Default values are {alpha_damp} = 1.0 and {discrete_factor} = 10.0.
 
 [Restrictions:] none
 

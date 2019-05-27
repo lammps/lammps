@@ -145,14 +145,14 @@ void FixShardlow::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixShardlow::init_list(int id, NeighList *ptr)
+void FixShardlow::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShardlow::setup(int vflag)
+void FixShardlow::setup(int /*vflag*/)
 {
   bool fixShardlow = false;
 
@@ -527,7 +527,7 @@ while (ct-- > 0) {
   rand_state[id] = RNGstate;
 }
 
-void FixShardlow::initial_integrate(int vflag)
+void FixShardlow::initial_integrate(int /*vflag*/)
 {
   int ii;
 
@@ -646,7 +646,7 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
 
 /* ---------------------------------------------------------------------- */
 
-int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   double **v  = atom->v;

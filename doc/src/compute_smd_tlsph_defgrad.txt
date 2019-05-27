@@ -30,7 +30,7 @@ Mach Dynamics in LAMMPS.
 
 [Output info:]
 
-This compute outputss a per-particle vector of vectors (tensors),
+This compute outputs a per-particle vector of vectors (tensors),
 which can be accessed by any command that uses per-particle values
 from a compute as input. See the "Howto output"_Howto_output.html doc
 page for an overview of LAMMPS output options.
@@ -44,10 +44,10 @@ entry is the determinant of the deformation gradient.
 [Restrictions:]
 
 This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info. TThis
-compute can only be used for particles which interact via the total
-Lagrangian SPH pair style.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info. TThis compute can
+only be used for particles which interact via the total Lagrangian SPH
+pair style.
 
 [Related commands:]
 

@@ -82,6 +82,9 @@ AtomVecBody::~AtomVecBody()
 
 void AtomVecBody::process_args(int narg, char **arg)
 {
+  // suppress unused parameter warning dependent on style_body.h
+  (void)(arg);
+
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
   if (0) bptr = NULL;
@@ -1283,7 +1286,7 @@ void AtomVecBody::data_atom(double *coord, imageint imagetmp, char **values)
   body[nlocal] = atoi(values[2]);
   if (body[nlocal] == 0) body[nlocal] = -1;
   else if (body[nlocal] == 1) body[nlocal] = 0;
-  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid bodyflag in Atoms section of data file");
 
   rmass[nlocal] = atof(values[3]);
   if (rmass[nlocal] <= 0.0)

@@ -59,19 +59,32 @@ Click on the style to display the formula it computes and coefficients
 specified by the associated "improper_coeff"_improper_coeff.html
 command.
 
-Note that there are also additional improper styles submitted by users
-which are included in the LAMMPS distribution.  The full list of all
-improper styles is on the "Commands bond"_Commands_bond.html#improper
-doc page.
+Click on the style to display the formula it computes, any additional
+arguments specified in the improper_style command, and coefficients
+specified by the associated "improper_coeff"_improper_coeff.html
+command.
 
-"improper_style none"_improper_none.html - turn off improper interactions
-"improper_style zero"_improper_zero.html - topology but no interactions
-"improper_style hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands
+improper"_Commands_bond.html#improper doc page are followed by one or
+more of (g,i,k,o,t) to indicate which accelerated styles exist.
 
-"improper_style class2"_improper_class2.html - COMPASS (class 2) improper
-"improper_style cvff"_improper_cvff.html - CVFF improper
-"improper_style harmonic"_improper_harmonic.html - harmonic improper
-"improper_style umbrella"_improper_umbrella.html - DREIDING improper :ul
+"none"_improper_none.html - turn off improper interactions
+"zero"_improper_zero.html - topology but no interactions
+"hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
+
+"class2"_improper_class2.html - COMPASS (class 2) improper
+"cossq"_improper_cossq.html - improper with a cosine squared term
+"cvff"_improper_cvff.html - CVFF improper
+"distance"_improper_distance.html - improper based on distance between atom planes
+"distharm"_improper_distharm.html - improper that is harmonic in the out-of-plane distance
+"fourier"_improper_fourier.html - improper with multiple cosine terms
+"harmonic"_improper_harmonic.html - harmonic improper
+"inversion/harmonic"_improper_inversion_harmonic.html - harmonic improper with Wilson-Decius out-of-plane definition
+"ring"_improper_ring.html - improper which prevents planar conformations
+"umbrella"_improper_umbrella.html - DREIDING improper :ul
+"sqdistharm"_improper_sqdistharm.html - improper that is harmonic in the square of the out-of-plane distance
 
 :line
 
@@ -81,10 +94,9 @@ Improper styles can only be set for atom_style choices that allow
 impropers to be defined.
 
 Most improper styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
-The doc pages for individual improper potentials tell if it is part of
-a package.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  The doc pages for
+individual improper potentials tell if it is part of a package.
 
 [Related commands:]
 

@@ -188,10 +188,10 @@ void FixRestrain::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRestrain::post_force(int vflag)
+void FixRestrain::post_force(int /*vflag*/)
 {
   energy = 0.0;
-  
+
   ebond = 0.0;
   eangle = 0.0;
   edihed = 0.0;
@@ -204,7 +204,7 @@ void FixRestrain::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRestrain::post_force_respa(int vflag, int ilevel, int iloop)
+void FixRestrain::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -658,7 +658,7 @@ double FixRestrain::compute_vector(int n)
   } else if (n == 1) {
     MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
     return eangle_all;
-  } else if (n == 2) { 
+  } else if (n == 2) {
     MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
     return edihed_all;
   } else {

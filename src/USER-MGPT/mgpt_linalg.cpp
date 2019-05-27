@@ -81,8 +81,8 @@
 #define const
 #endif
 static void transprod_generic(const double * restrict A,
-			      const double * restrict B,
-			      double * restrict C) {
+                              const double * restrict B,
+                              double * restrict C) {
   const int lda = 8,n = mgpt_linalg::matrix_size;
   int i,j,k;
   double s;
@@ -90,15 +90,15 @@ static void transprod_generic(const double * restrict A,
     for(j = 0; j<n; j++) {
       s = 0.0;
       for(k = 1; k<=n; k++)
-	s = s + A[i*lda+k]*B[j*lda+k];
+        s = s + A[i*lda+k]*B[j*lda+k];
       C[i*lda+(j+1)] = s;
     }
 }
 
 static void transtrace3_generic(const double * restrict A,
-				const double * restrict B0,double * restrict tout0,
-				const double * restrict B1,double * restrict tout1,
-				const double * restrict B2,double * restrict tout2) {
+                                const double * restrict B0,double * restrict tout0,
+                                const double * restrict B1,double * restrict tout1,
+                                const double * restrict B2,double * restrict tout2) {
   const int lda = 8,n = mgpt_linalg::matrix_size;
   double t0 = 0.0,t1 = 0.0,t2 = 0.0;
   int i,j;
@@ -116,16 +116,16 @@ static void transtrace3_generic(const double * restrict A,
   *tout2 = t2;
 }
 
-static void transprod_error(const double * restrict A,
-			    const double * restrict B,
-			    double * restrict C) {
+static void transprod_error(const double * restrict /*A*/,
+                            const double * restrict /*B*/,
+                            double * restrict /*C*/) {
   printf("Linear algebra subroutines not initialized (transprod).\n");
   exit(1);
 }
-static void transtrace3_error(const double * restrict A,
-			      const double * restrict B0,double * restrict tout0,
-			      const double * restrict B1,double * restrict tout1,
-			      const double * restrict B2,double * restrict tout2) {
+static void transtrace3_error(const double * restrict /*A*/,
+                              const double * restrict /*B0*/,double * restrict /*tout0*/,
+                              const double * restrict /*B1*/,double * restrict /*tout1*/,
+                              const double * restrict /*B2*/,double * restrict /*tout2*/) {
   printf("Linear algebra subroutines not initialized (transtrace3).\n");
   exit(1);
 }

@@ -79,10 +79,10 @@ in solvent) without using the {shift} keyword to adjust the positions
 of all atoms in the system, then the results can be unpredictable.
 For example, if the molecule is pushed consistently in one direction
 by a flowing solvent, its velocity will increase.  But its coordinates
-will be recentered, meaning it is moved back towards the force.  Thus
+will be re-centered, meaning it is moved back towards the force.  Thus
 over time, the velocity and effective temperature of the molecule
 could become very large, though it won't actually be moving due to the
-recentering.  If you are thermostatting the entire system, then the
+re-centering.  If you are thermostatting the entire system, then the
 solvent would be cooled to compensate.  A better solution for this
 simulation scenario is to use the "fix spring"_fix_spring.html command
 to tether the molecule in place.

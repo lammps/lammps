@@ -19,7 +19,7 @@ pair_coeff * * ffield.smtbq.Al2O3 O Al :pre
 
 [Description:]
 
-This pair stylecomputes a variable charge SMTB-Q (Second-Moment
+This pair style computes a variable charge SMTB-Q (Second-Moment
 tight-Binding QEq) potential as described in "SMTB-Q_1"_#SMTB-Q_1 and
 "SMTB-Q_2"_#SMTB-Q_2. Briefly, the energy of metallic-oxygen systems
 is given by three contributions:
@@ -28,7 +28,7 @@ is given by three contributions:
 
 where {E<sub>tot</sub>} is the total potential energy of the system,
 {E<sub>ES</sub>} is the electrostatic part of the total energy,
-{E<sub>OO</sub>} is the interaction between oxygens and
+{E<sub>OO</sub>} is the interaction between oxygen atoms and
 {E<sub>MO</sub>} is a short-range interaction between metal and oxygen
 atoms. This interactions depend on interatomic distance
 {r<sub>ij</sub>} and/or the charge {Q<sub>i</sub>} of atoms
@@ -107,7 +107,7 @@ Thus parameter &#956, indicated above, is given by : &#956 = (&#8730n
 
 The potential offers the possibility to consider the polarizability of
 the electron clouds of oxygen by changing the slater radius of the
-charge density around the oxygens through the parameters {rBB, rB and
+charge density around the oxygen atoms through the parameters {rBB, rB and
 rS} in the ffield.SMTBQ.Syst. This change in radius is performed
 according to the method developed by E. Maras
 "SMTB-Q_2"_#SMTB-Q_2. This method needs to determine the number of
@@ -142,7 +142,7 @@ For the anion (oxygen) :
 
 Name of element (char) and stoichiometry in oxide
 Formal charge and mass of element
-Principal quantic number of outer orbital ({n}), electronegativity ({&#967<sup>0</sup><sub>i</simulationub>}) and hardness ({J<sup>0</sup><sub>i</sub>})
+Principal quantum number of outer orbital ({n}), electronegativity ({&#967<sup>0</sup><sub>i</simulationub>}) and hardness ({J<sup>0</sup><sub>i</sub>})
  Ionic radius parameters  : max coordination number ({coordBB} = 6 by default), bulk coordination number {(coordB)}, surface coordination number  {(coordS)} and {rBB, rB and rS}  the slater radius for each coordination number. (<b>note : If you don't want to change the slater radius, use three identical radius values</b>)
 Number of orbital shared by the element in the oxide ({d<sub>i</sub>})
 Divided line :ul
@@ -219,8 +219,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restriction:]
 
 This pair style is part of the USER-SMTBQ package and is only enabled
-if LAMMPS is built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS is built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This potential requires using atom type 1 for oxygen and atom type
 higher than 1 for metal atoms.

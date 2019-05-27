@@ -69,7 +69,7 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
     flt_t cut_lj_innersq;
     table_t *table;
     flt_t *etable, *detable, *ctable, *dctable;
-    typename IntelBuffers<flt_t,flt_t>::vec4_t **lj;
+    typename IntelBuffers<flt_t,flt_t>::vec2_t **lj;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
     ~ForceConst() { set_ntypes(0,0,NULL,_cop); }

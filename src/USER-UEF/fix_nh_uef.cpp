@@ -348,7 +348,7 @@ void FixNHUef::final_integrate()
  * at outer level: call this->final_integrate()
  * at other levels: rotate -> 2nd verlet step -> rotate back
  * ---------------------------------------------------------------------- */
-void FixNHUef::final_integrate_respa(int ilevel, int iloop)
+void FixNHUef::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;

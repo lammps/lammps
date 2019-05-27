@@ -62,14 +62,14 @@ void FixNVEKokkos<DeviceType>::initial_integrate(int vflag)
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
-  if (rmass) {
+  if (rmass.data()) {
     FixNVEKokkosInitialIntegrateFunctor<DeviceType,1> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   } else {
@@ -118,14 +118,14 @@ void FixNVEKokkos<DeviceType>::final_integrate()
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
-  if (rmass) {
+  if (rmass.data()) {
     FixNVEKokkosFinalIntegrateFunctor<DeviceType,1> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   } else {
@@ -172,7 +172,7 @@ void FixNVEKokkos<DeviceType>::cleanup_copy()
 
 namespace LAMMPS_NS {
 template class FixNVEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNVEKokkos<LMPHostType>;
 #endif
 }

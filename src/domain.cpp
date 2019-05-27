@@ -57,6 +57,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
   box_change = 0;
+  deform_flag = deform_vremap = deform_groupbit = 0;
 
   dimension = 3;
   nonperiodic = 0;
@@ -763,9 +764,9 @@ void Domain::image_check()
         continue;
       }
 
-      delx = unwrap[i][0] - unwrap[k][0];
-      dely = unwrap[i][1] - unwrap[k][1];
-      delz = unwrap[i][2] - unwrap[k][2];
+      delx = fabs(unwrap[i][0] - unwrap[k][0]);
+      dely = fabs(unwrap[i][1] - unwrap[k][1]);
+      delz = fabs(unwrap[i][2] - unwrap[k][2]);
 
       if (xperiodic && delx > xprd_half) flag = 1;
       if (yperiodic && dely > yprd_half) flag = 1;
@@ -1176,12 +1177,12 @@ int Domain::closest_image(int i, int j)
    if J is not a valid index like -1, just return it
 ------------------------------------------------------------------------- */
 
-int Domain::closest_image(double *pos, int j)
+int Domain::closest_image(const double * const pos, int j)
 {
   if (j < 0) return j;
 
-  int *sametag = atom->sametag;
-  double **x = atom->x;
+  const int * const sametag = atom->sametag;
+  const double * const * const x = atom->x;
 
   int closest = j;
   double delx = pos[0] - x[j][0];
@@ -1208,13 +1209,10 @@ int Domain::closest_image(double *pos, int j)
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
-   not currently used (Jan 2017):
-     used to be called by pair TIP4P styles but no longer,
-       due to use of other closest_image() method
+   called by ServerMD class and LammpsInterface in lib/atc.
 ------------------------------------------------------------------------- */
 
-void Domain::closest_image(const double * const xi, const double * const xj,
-                           double * const xjimage)
+void Domain::closest_image(const double * const xi, const double * const xj, double * const xjimage)
 {
   double dx = xj[0] - xi[0];
   double dy = xj[1] - xi[1];
@@ -1618,7 +1616,7 @@ void Domain::image_flip(int m, int n, int p)
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
 
-int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
+int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 {
   double lamda[3];
   double *coord,*blo,*bhi,*slo,*shi;
@@ -1626,8 +1624,14 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
   if (image) remap(x,*image);
   else remap(x);
 
+  // if triclinic, convert to lamda coords (0-1)
+  // for periodic dims, resulting coord must satisfy 0.0 <= coord < 1.0
+
   if (triclinic) {
     x2lamda(x,lamda);
+    if (xperiodic && (lamda[0] < 0.0 || lamda[0] >= 1.0)) lamda[0] = 0.0;
+    if (yperiodic && (lamda[1] < 0.0 || lamda[1] >= 1.0)) lamda[1] = 0.0;
+    if (zperiodic && (lamda[2] < 0.0 || lamda[2] >= 1.0)) lamda[2] = 0.0;
     coord = lamda;
   } else coord = x;
 

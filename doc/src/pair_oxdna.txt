@@ -25,10 +25,10 @@ args = list of arguments for these particular styles :ul
 
   {oxdna/stk} args = seq T 6.0 0.4 0.9 0.32 0.6 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
     seq = seqav (for average sequence stacking strength) or seqdep (for sequence-dependent stacking strength)
-    T = temperature (oxDNA units, 0.1 = 300 K) 
+    T = temperature (oxDNA units, 0.1 = 300 K)
   {oxdna/hbond} args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
     seq = seqav (for average sequence base-pairing strength) or seqdep (for sequence-dependent base-pairing strength)
-    eps = 1.077 (between base pairs A-T and C-G) or 0 (all other pairs) :pre 
+    eps = 1.077 (between base pairs A-T and C-G) or 0 (all other pairs) :pre
 
 [Examples:]
 
@@ -61,7 +61,7 @@ for a detailed description of the oxDNA force field.
 NOTE: These pair styles have to be used together with the related oxDNA bond style
 {oxdna/fene} for the connectivity of the phosphate backbone (see also documentation of
 "bond_style oxdna/fene"_bond_oxdna.html). Most of the coefficients
-in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
+in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
 Exceptions are the first and second coefficient after {oxdna/stk} (seq=seqdep and T=0.1 in the above example)
 and the first coefficient after {oxdna/hbond} (seq=seqdep in the above example).
 When using a Langevin thermostat, e.g. through "fix langevin"_fix_langevin.html
@@ -72,8 +72,8 @@ Example input and data files for DNA duplexes can be found in examples/USER/cgdn
 A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
 
-Please cite "(Henrich)"_#Henrich1 and the relevant oxDNA articles in any publication that uses this implementation. 
-The article contains more information on the model, the structure of the input file, the setup tool 
+Please cite "(Henrich)"_#Henrich1 and the relevant oxDNA articles in any publication that uses this implementation.
+The article contains more information on the model, the structure of the input file, the setup tool
 and the performance of the LAMMPS-implementation of oxDNA.
 The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
@@ -82,8 +82,8 @@ The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
+"Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

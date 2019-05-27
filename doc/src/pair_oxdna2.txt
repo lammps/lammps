@@ -67,9 +67,9 @@ and  "(Ouldridge)"_#Ouldridge2 for a detailed description of the oxDNA2 force fi
 NOTE: These pair styles have to be used together with the related oxDNA2 bond style
 {oxdna2/fene} for the connectivity of the phosphate backbone (see also documentation of
 "bond_style oxdna2/fene"_bond_oxdna.html). Most of the coefficients
-in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
+in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
 Exceptions are the first and the second coefficient after {oxdna2/stk} (seq=seqdep and T=0.1 in the above example),
-the first coefficient after {oxdna/hbond} (seq=seqdep in the above example) and the three coefficients 
+the first coefficient after {oxdna/hbond} (seq=seqdep in the above example) and the three coefficients
 after {oxdna2/dh} (T=0.1, rhos=1.0, qeff=0.815 in the above example). When using a Langevin thermostat
 e.g. through "fix langevin"_fix_langevin.html or "fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
 the temperature coefficients have to be matched to the one used in the fix.
@@ -78,8 +78,8 @@ Example input and data files for DNA duplexes can be found in examples/USER/cgdn
 A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
 
-Please cite "(Henrich)"_#Henrich and the relevant oxDNA articles in any publication that uses this implementation. 
-The article contains more information on the model, the structure of the input file, the setup tool 
+Please cite "(Henrich)"_#Henrich and the relevant oxDNA articles in any publication that uses this implementation.
+The article contains more information on the model, the structure of the input file, the setup tool
 and the performance of the LAMMPS-implementation of oxDNA.
 The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
@@ -88,8 +88,8 @@ The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
+"Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

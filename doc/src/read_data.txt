@@ -63,8 +63,8 @@ simulation.  The file can be ASCII text or a gzipped text file
 atom coordinates; see the "read_restart"_read_restart.html and
 "create_atoms"_create_atoms.html commands for alternative methods.
 Also see the explanation of the "-restart command-line
-switch"_Section_start.html#start_6 which can convert a restart file to
-a data file.
+switch"_Run_options.html which can convert a restart file to a data
+file.
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the {add}, {offset}, and
@@ -124,14 +124,14 @@ bond atoms or bad dynamics.
 The three choices for the {add} argument affect how the atom IDs and
 molecule IDs of atoms in the data file are treated.  If {append} is
 specified, atoms in the data file are added to the current system,
-with their atom IDs reset so that an atomID = M in the data file
-becomes atomID = N+M, where N is the largest atom ID in the current
+with their atom IDs reset so that an atom-ID = M in the data file
+becomes atom-ID = N+M, where N is the largest atom ID in the current
 system.  This rule is applied to all occurrences of atom IDs in the
 data file, e.g. in the Velocity or Bonds section. This is also done
 for molecule IDs, if the atom style does support molecule IDs or
 they are enabled via fix property/atom. If {IDoffset} is specified,
 then {IDoffset} is a numeric value is given, e.g. 1000, so that an
-atomID = M in the data file becomes atomID = 1000+M. For systems
+atom-ID = M in the data file becomes atom-ID = 1000+M. For systems
 with enabled molecule IDs, another numerical argument {MOLoffset}
 is required representing the equivalent offset for molecule IDs.
 If {merge} is specified, the data file atoms
@@ -139,7 +139,7 @@ are added to the current system without changing their IDs.  They are
 assumed to merge (without duplication) with the currently defined
 atoms.  It is up to you to insure there are no multiply defined atom
 IDs, as LAMMPS only performs an incomplete check that this is the case
-by insuring the resulting max atomID >= the number of atoms. For
+by insuring the resulting max atom-ID >= the number of atoms. For
 molecule IDs, there is no check done at all.
 
 The {offset} and {shift} keywords can only be used if the {add}
@@ -220,7 +220,7 @@ A data file has a header and a body.  The header appears first.  The
 first line of the header is always skipped; it typically contains a
 description of the file.  Then lines are read one at a time.  Lines
 can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only whitespace after comment is deleted), it is
+line is blank (only white-space after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
 value(s) is read from the line.  If it doesn't contain a header
 keyword, the line begins the body of the file.
@@ -249,7 +249,7 @@ standard header settings, such as the number of atoms.
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
 and section keywords (e.g. atoms, xlo xhi, Masses, Bond Coeffs) must
-be capitalized as shown and can't have extra white space between their
+be capitalized as shown and can't have extra white-space between their
 words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
 the 2 words in "Bond Coeffs", is not valid.
 
@@ -553,7 +553,7 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 dpd: atom-ID atom-type theta x y z
-edpd: atom-ID atom-type edpd_temp edpd_cv x y z 
+edpd: atom-ID atom-type edpd_temp edpd_cv x y z
 mdpd: atom-ID atom-type rho x y z
 tdpd: atom-ID atom-type x y z cc1 cc2 ... ccNspecies
 electron: atom-ID atom-type q spin eradius x y z
@@ -577,7 +577,7 @@ atom-type = type of atom (1-Ntype)
 bodyflag = 1 for body particles, 0 for point particles
 cc = chemical concentration for tDPD particles for each species (mole/volume units)
 contact-radius = ??? (distance units)
-cs_re,cs_im = real/imaginary parts of wavepacket coefficients
+cs_re,cs_im = real/imaginary parts of wave packet coefficients
 cv = heat capacity (need units) for SPH particles
 density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 diameter = diameter of spherical atom (distance units)
@@ -586,7 +586,7 @@ edpd_temp = temperature for eDPD particles (temperature units)
 edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 eradius = electron radius (or fixed-core radius)
-etag = integer ID of electron that each wavepacket belongs to
+etag = integer ID of electron that each wave packet belongs to
 kernel-radius = ??? (distance units)
 lineflag = 1 for line segment particles, 0 for point or spherical particles
 mass = mass of particle (mass units)
@@ -620,7 +620,7 @@ to 0.
 
 The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
-to.  It can be 0 if it is an unbonded atom or if you don't care to
+to.  It can be 0 if it is a non-bonded atom or if you don't care to
 keep track of molecule assignments.
 
 The diameter specifies the size of a finite-size spherical particle.
@@ -682,7 +682,7 @@ were used in the input script, each atom line would have these fields:
 atom-ID atom-type x y z q diameter density :pre
 
 Note that if a non-standard value is defined by multiple sub-styles,
-it must appear mutliple times in the atom line.  E.g. the atom line
+it must appear multiple times in the atom line.  E.g. the atom line
 for atom_style hybrid dipole full would list "q" twice:
 
 atom-ID atom-type x y z q mux muy myz molecule-ID q :pre
@@ -701,7 +701,7 @@ of 0 means the atom is still inside the box when unwrapped.  A value
 of 2 means add 2 box lengths to get the unwrapped coordinate.  A value
 of -1 means subtract 1 box length to get the unwrapped coordinate.
 LAMMPS updates these flags as atoms cross periodic boundaries during
-the simulation.  The "dump"_dump.html command can output atom atom
+the simulation.  The "dump"_dump.html command can output atom
 coordinates in wrapped or unwrapped form, as well as the 3 image
 flags.
 
@@ -1153,8 +1153,8 @@ Translational velocities can also be set by the
 [Restrictions:]
 
 To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 [Related commands:]
 

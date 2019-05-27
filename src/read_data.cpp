@@ -120,6 +120,9 @@ void ReadData::command(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
+  MPI_Barrier(world);
+  double time1 = MPI_Wtime();
+
   // optional args
 
   addflag = NONE;
@@ -396,7 +399,8 @@ void ReadData::command(int narg, char **arg)
 
   // values in this data file
 
-  natoms = ntypes = 0;
+  natoms = 0;
+  ntypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
 
@@ -706,7 +710,7 @@ void ReadData::command(int narg, char **arg)
 
       } else {
         char str[128];
-        sprintf(str,"Unknown identifier in data file: %s",keyword);
+        snprintf(str,128,"Unknown identifier in data file: %s",keyword);
         error->all(FLERR,str);
       }
 
@@ -872,9 +876,9 @@ void ReadData::command(int narg, char **arg)
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    comm->init();
-    comm->exchange();
-    if (atom->map_style) atom->map_set();
+    Irregular *irregular = new Irregular(lmp);
+    irregular->migrate_atoms(1);
+    delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
     bigint natoms;
@@ -904,6 +908,18 @@ void ReadData::command(int narg, char **arg)
     force->improper = saved_improper;
 
     force->kspace = saved_kspace;
+  }
+
+  // total time
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  read_data CPU = %g secs\n",time2-time1);
+    if (logfile)
+      fprintf(logfile,"  read_data CPU = %g secs\n",time2-time1);
   }
 }
 
@@ -993,18 +1009,29 @@ void ReadData::header(int firstpass)
       if (!avec_ellipsoid)
         error->all(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);
+      if (addflag == NONE) atom->nellipsoids = nellipsoids;
+      else if (firstpass) atom->nellipsoids += nellipsoids;
+
     } else if (strstr(line,"lines")) {
       if (!avec_line)
         error->all(FLERR,"No lines allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nlines);
+      if (addflag == NONE) atom->nlines = nlines;
+      else if (firstpass) atom->nlines += nlines;
+
     } else if (strstr(line,"triangles")) {
       if (!avec_tri)
         error->all(FLERR,"No triangles allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&ntris);
+      if (addflag == NONE) atom->ntris = ntris;
+      else if (firstpass) atom->ntris += ntris;
+
     } else if (strstr(line,"bodies")) {
       if (!avec_body)
         error->all(FLERR,"No bodies allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nbodies);
+      if (addflag == NONE) atom->nbodies = nbodies;
+      else if (firstpass) atom->nbodies += nbodies;
 
     } else if (strstr(line,"bonds")) {
       sscanf(line,BIGINT_FORMAT,&nbonds);
@@ -1084,6 +1111,10 @@ void ReadData::header(int firstpass)
   // error check on total system size
 
   if (atom->natoms < 0 || atom->natoms >= MAXBIGINT ||
+      atom->nellipsoids < 0 || atom->nellipsoids >= MAXBIGINT ||
+      atom->nlines < 0 || atom->nlines >= MAXBIGINT ||
+      atom->ntris < 0 || atom->ntris >= MAXBIGINT ||
+      atom->nbodies < 0 || atom->nbodies >= MAXBIGINT ||
       atom->nbonds < 0 || atom->nbonds >= MAXBIGINT ||
       atom->nangles < 0 || atom->nangles >= MAXBIGINT ||
       atom->ndihedrals < 0 || atom->ndihedrals >= MAXBIGINT ||
@@ -1174,6 +1205,10 @@ void ReadData::atoms()
 
   atom->tag_check();
 
+  // check that bonus data has been reserved as needed
+
+  atom->bonus_check();
+
   // create global mapping of atoms
 
   if (atom->map_style) {
@@ -1248,7 +1283,7 @@ void ReadData::bonds(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process bonds
@@ -1331,7 +1366,7 @@ void ReadData::angles(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process angles
@@ -1414,7 +1449,7 @@ void ReadData::dihedrals(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process dihedrals
@@ -1435,7 +1470,7 @@ void ReadData::dihedrals(int firstpass)
 
   if (firstpass) {
     int max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
+    for (int i = nlocal_previous; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;
@@ -1497,7 +1532,7 @@ void ReadData::impropers(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process impropers
@@ -1733,7 +1768,8 @@ void ReadData::paircoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,1,2,toffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
+    if (narg == 0)
+      error->all(FLERR,"Unexpected empty line in PairCoeffs section");
     force->pair->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1759,7 +1795,8 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf,'\n');
       *next = '\0';
       parse_coeffs(buf,NULL,0,2,toffset);
-      if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
+      if (narg == 0)
+        error->all(FLERR,"Unexpected empty line in PairCoeffs section");
       force->pair->coeff(narg,arg);
       buf = next + 1;
     }
@@ -1783,7 +1820,8 @@ void ReadData::bondcoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,0,1,boffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of BondCoeffs section");
+    if (narg == 0)
+      error->all(FLERR,"Unexpected empty line in BondCoeffs section");
     force->bond->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1809,7 +1847,7 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,NULL,0,1,aoffset);
     else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of AngleCoeffs section");
+    if (narg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
     force->angle->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1838,7 +1876,8 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 3) parse_coeffs(buf,"at",0,1,doffset);
     else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset);
     else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of DihedralCoeffs section");
+    if (narg == 0)
+      error->all(FLERR,"Unexpected empty line in DihedralCoeffs section");
     force->dihedral->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1863,7 +1902,7 @@ void ReadData::impropercoeffs(int which)
     *next = '\0';
     if (which == 0) parse_coeffs(buf,NULL,0,1,ioffset);
     else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
-    if (narg == 0) error->all(FLERR,"Unexpected end of ImproperCoeffs section");
+    if (narg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
     force->improper->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1919,7 +1958,7 @@ void ReadData::open(char *file)
   else {
 #ifdef LAMMPS_GZIP
     char gunzip[128];
-    sprintf(gunzip,"gzip -c -d %s",file);
+    snprintf(gunzip,128,"gzip -c -d %s",file);
 
 #ifdef _WIN32
     fp = _popen(gunzip,"rb");
@@ -1934,7 +1973,7 @@ void ReadData::open(char *file)
 
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 }
@@ -1963,7 +2002,7 @@ void ReadData::parse_keyword(int first)
     }
     while (eof == 0 && done == 0) {
       int blank = strspn(line," \t\n\r");
-      if ((blank == strlen(line)) || (line[blank] == '#')) {
+      if ((blank == (int)strlen(line)) || (line[blank] == '#')) {
         if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
       } else done = 1;
     }
@@ -2057,6 +2096,10 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
     word = strtok(NULL," \t\n\r\f");
   }
 
+  // to avoid segfaults on empty lines
+
+  if (narg == 0) return;
+  
   if (noffset) {
     int value = force->inumeric(FLERR,arg[0]);
     sprintf(argoffset1,"%d",value+offset);

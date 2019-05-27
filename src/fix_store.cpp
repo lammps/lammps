@@ -229,7 +229,7 @@ void FixStore::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStore::copy_arrays(int i, int j, int delflag)
+void FixStore::copy_arrays(int i, int j, int /*delflag*/)
 {
   if (disable) return;
 
@@ -324,7 +324,7 @@ int FixStore::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixStore::size_restart(int nlocal)
+int FixStore::size_restart(int /*nlocal*/)
 {
   if (disable) return 1;
   return nvalues+1;

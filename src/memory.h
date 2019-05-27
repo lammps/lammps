@@ -50,7 +50,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE **create(TYPE **&array, int n, const char *name)
+  TYPE **create(TYPE **& /*array*/, int /*n*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -68,7 +68,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE **grow(TYPE **&array, int n, const char *name)
+  TYPE **grow(TYPE **& /*array*/, int /*n*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -96,7 +96,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE **create1d_offset(TYPE **&array, int nlo, int nhi, const char *name)
+  TYPE **create1d_offset(TYPE **& /*array*/, int /*nlo*/, int /*nhi*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -131,7 +131,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ***create(TYPE ***&array, int n1, int n2, const char *name)
+  TYPE ***create(TYPE ***& /*array*/, int /*n1*/, int /*n2*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -158,7 +158,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ***grow(TYPE ***&array, int n1, int n2, const char *name)
+  TYPE ***grow(TYPE ***& /*array*/, int /*n1*/, int /*n2*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -198,7 +198,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ***create_ragged(TYPE ***&array, int n1, int *n2, const char *name)
+  TYPE ***create_ragged(TYPE ***& /*array*/, int /*n1*/, int * /*n2*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -217,7 +217,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ***create2d_offset(TYPE ***&array, int n1, int n2lo, int n2hi,
+  TYPE ***create2d_offset(TYPE ***& /*array*/, int /*n1*/, int /*n2lo*/, int /*n2hi*/,
                           const char *name) {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -262,7 +262,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ****create(TYPE ****&array, int n1, int n2, int n3, const char *name)
+  TYPE ****create(TYPE ****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -297,7 +297,7 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, const char *name)
+  TYPE ****grow(TYPE ****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -330,8 +330,8 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ****create3d_offset(TYPE ****&array, int n1lo, int n1hi,
-                           int n2, int n3, const char *name)
+  TYPE ****create3d_offset(TYPE ****& /*array*/, int /*n1lo*/, int /*n1hi*/,
+                           int /*n2*/, int /*n3*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------
@@ -374,8 +374,8 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ****create3d_offset(TYPE ****&array, int n1lo, int n1hi,
-                           int n2lo, int n2hi, int n3lo, int n3hi,
+  TYPE ****create3d_offset(TYPE ****& /*array*/, int /*n1lo*/, int /*n1hi*/,
+                           int /*n2lo*/, int /*n2hi*/, int /*n3lo*/, int /*n3hi*/,
                            const char *name)
   {fail(name); return NULL;}
 
@@ -432,9 +432,56 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE *****create(TYPE *****&array, int n1, int n2, int n3, int n4,
+  TYPE *****create(TYPE *****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, int /*n4*/,
                    const char *name)
   {fail(name); return NULL;}
+
+/* ----------------------------------------------------------------------
+  grow or shrink 1st dim of a 4d array
+  last 3 dims must stay the same
+  ------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+  TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, int n4,
+          const char *name)
+  {
+          if (array == NULL) return create(array, n1, n2, n3, n4, name);
+
+          bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2*n3*n4;
+          TYPE *data = (TYPE *)srealloc(array[0][0][0], nbytes, name);
+          nbytes = ((bigint) sizeof(TYPE *)) * n1*n2*n3;
+          TYPE **cube = (TYPE **)srealloc(array[0][0], nbytes, name);
+          nbytes = ((bigint) sizeof(TYPE **)) * n1*n2;
+          TYPE ***plane = (TYPE ***)srealloc(array[0], nbytes, name);
+          nbytes = ((bigint) sizeof(TYPE ***)) * n1;
+          array = (TYPE ****)srealloc(array, nbytes, name);
+
+          int i, j, k;
+          bigint m1, m2;
+          bigint n = 0;
+          for (i = 0; i < n1; i++) {
+                  m2 = ((bigint)i) * n2;
+                  array[i] = &plane[m2];
+                  for (j = 0; j < n2; j++) {
+                          m1 = ((bigint)i) * n2 + j;
+                          m2 = ((bigint)i) * n2*n3 + j*n3;
+                          plane[m1] = &cube[m2];
+                          for (k = 0; k < n3; k++) {
+                                  m1 = ((bigint)i) * n2*n3 + j*n3 + k;
+                                  cube[m1] = &data[n];
+                                  n += n4;
+                          }
+                  }
+          }
+          return array;
+  }
+
+  template <typename TYPE>
+  TYPE *****grow(TYPE *****& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, int /*n4*/,
+          const char *name)
+  {
+          fail(name); return NULL;
+  }
 
 /* ----------------------------------------------------------------------
    destroy a 4d array
@@ -478,8 +525,8 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ****create4d_offset(TYPE *****&array, int n1, int n2lo, int n2hi,
-                           int n3lo, int n3hi, int n4lo, int n4hi,
+  TYPE ****create4d_offset(TYPE *****& /*array*/, int /*n1*/, int /*n2lo*/, int /*n2hi*/,
+                           int /*n3lo*/, int /*n3hi*/, int /*n4lo*/, int /*n4hi*/,
                            const char *name)
   {fail(name); return NULL;}
 
@@ -546,8 +593,8 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ******create(TYPE ******&array, int n1, int n2, int n3, int n4,
-                    int n5, const char *name)
+  TYPE ******create(TYPE ******& /*array*/, int /*n1*/, int /*n2*/, int /*n3*/, int /*n4*/,
+                    int /*n5*/, const char *name)
   {fail(name); return NULL;}
 
 /* ----------------------------------------------------------------------

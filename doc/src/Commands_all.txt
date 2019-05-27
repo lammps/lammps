@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -17,9 +17,9 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 "Improper styles"_Commands_bond.html#improper,
 "KSpace styles"_Commands_kspace.html :tb(c=3,ea=c)
 
-All commands :h3
+General commands :h3
 
-An alphabetic list of all LAMMPS commmands.
+An alphabetic list of all general LAMMPS commands.
 
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,
@@ -48,35 +48,42 @@ An alphabetic list of all LAMMPS commmands.
 "dimension"_dimension.html,
 "displace_atoms"_displace_atoms.html,
 "dump"_dump.html,
+"dump adios"_dump_adios.html,
 "dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
 "dump movie"_dump_image.html,
 "dump netcdf"_dump_netcdf.html,
 "dump netcdf/mpiio"_dump_netcdf.html,
 "dump vtk"_dump_vtk.html,
+"dynamical_matrix"_dynamical_matrix.html,
 "echo"_echo.html,
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,
 "group"_group.html,
 "group2ndx"_group2ndx.html,
+"hyper"_hyper.html,
 "if"_if.html,
 "info"_info.html,
 "improper_coeff"_improper_coeff.html,
 "improper_style"_improper_style.html,
 "include"_include.html,
 "jump"_jump.html,
+"kim_query"_kim_query.html,
 "kspace_modify"_kspace_modify.html,
 "kspace_style"_kspace_style.html,
 "label"_label.html,
 "lattice"_lattice.html,
 "log"_log.html,
 "mass"_mass.html,
+"message"_message.html,
 "minimize"_minimize.html,
 "min_modify"_min_modify.html,
 "min_style"_min_style.html,
+"min_style spin"_min_spin.html,
 "molecule"_molecule.html,
 "ndx2group"_group2ndx.html,
 "neb"_neb.html,
+"neb/spin"_neb_spin.html,
 "neigh_modify"_neigh_modify.html,
 "neighbor"_neighbor.html,
 "newton"_newton.html,
@@ -103,6 +110,7 @@ An alphabetic list of all LAMMPS commmands.
 "restart"_restart.html,
 "run"_run.html,
 "run_style"_run_style.html,
+"server"_server.html,
 "set"_set.html,
 "shell"_shell.html,
 "special_bonds"_special_bonds.html,

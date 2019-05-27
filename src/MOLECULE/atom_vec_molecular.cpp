@@ -677,33 +677,33 @@ int AtomVecMolecular::unpack_exchange(double *buf)
   num_bond[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_bond[nlocal]; k++) {
     bond_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    bond_atom[nlocal][k] = (int) ubuf(buf[m++]).i;
+    bond_atom[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   num_angle[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_angle[nlocal]; k++) {
     angle_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    angle_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
-    angle_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
-    angle_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom1[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    angle_atom2[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    angle_atom3[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   num_dihedral[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_dihedral[nlocal]; k++) {
     dihedral_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom1[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    dihedral_atom2[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    dihedral_atom3[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    dihedral_atom4[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   num_improper[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_improper[nlocal]; k++) {
     improper_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom1[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    improper_atom2[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    improper_atom3[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    improper_atom4[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   nspecial[nlocal][0] = (int) ubuf(buf[m++]).i;
@@ -840,33 +840,33 @@ int AtomVecMolecular::unpack_restart(double *buf)
   num_bond[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_bond[nlocal]; k++) {
     bond_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    bond_atom[nlocal][k] = (int) ubuf(buf[m++]).i;
+    bond_atom[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   num_angle[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_angle[nlocal]; k++) {
     angle_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    angle_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
-    angle_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
-    angle_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom1[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    angle_atom2[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    angle_atom3[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   num_dihedral[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_dihedral[nlocal]; k++) {
     dihedral_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
-    dihedral_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom1[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    dihedral_atom2[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    dihedral_atom3[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    dihedral_atom4[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   num_improper[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_improper[nlocal]; k++) {
     improper_type[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
-    improper_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom1[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    improper_atom2[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    improper_atom3[nlocal][k] = (tagint) ubuf(buf[m++]).i;
+    improper_atom4[nlocal][k] = (tagint) ubuf(buf[m++]).i;
   }
 
   nspecial[nlocal][0] = nspecial[nlocal][1] = nspecial[nlocal][2] = 0;

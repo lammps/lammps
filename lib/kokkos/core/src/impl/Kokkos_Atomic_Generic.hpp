@@ -230,9 +230,6 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if<
                 ( sizeof(T) != 4 )
              && ( sizeof(T) != 8 )
-          #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-             && ( sizeof(T) != 16 )
-          #endif
            , const T >::type val )
 {
 
@@ -246,7 +243,12 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   // This is a way to (hopefully) avoid dead lock in a warp
   T return_val;
   int done = 0;
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+  unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
+#else
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
+#endif
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -257,7 +259,11 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
         done=1;
       }
     }
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
+#else
     done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
+#endif
   }
   return return_val;
 #endif
@@ -285,7 +291,12 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+  unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
+#else
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
+#endif
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -296,7 +307,11 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
         done=1;
       }
     }
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
+#else
     done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
+#endif
   }
   return return_val;
 #endif

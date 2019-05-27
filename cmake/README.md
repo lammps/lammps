@@ -24,7 +24,7 @@ tasks, act as a reference and provide examples of typical use cases.
       * [Build directory vs. Source Directory](#build-directory-vs-source-directory)
    * [Defining and using presets](#defining-and-using-presets)
    * [Reference](#reference)
-      * [Common CMAKE Configuration Options](#common-cmake-configuration-options)
+      * [Common CMake Configuration Options](#common-cmake-configuration-options)
       * [LAMMPS Configuration Options](#lammps-configuration-options)
       * [Parallelization and Accelerator Packages](#parallelization-and-accelerator-packages)
       * [Default Packages](#default-packages)
@@ -62,7 +62,7 @@ should get you started.
 git clone https://github.com/lammps/lammps.git
 mkdir lammps/build
 cd lammps/build
-cmake ../cmake [-DOPTION_A=VALUE_A -DOPTION_B=VALUE_B ...]
+cmake [-D OPTION_A=VALUE_A -D OPTION_B=VALUE_B ...] ../cmake
 make
 ```
 
@@ -155,11 +155,13 @@ make
 
 The CMake build exposes a lot of different options. In the old build system
 some of the package selections were possible by using special make target like
-`make yes-std` or `make no-lib`. Achieving the same result with cmake requires
+`make yes-std` or `make no-lib`. Achieving a similar result with cmake requires
 specifying all options manually. This can quickly become a very long command
 line that is hard to handle.  While these could be stored in a simple script
 file, there is another way of defining "presets" to compile LAMMPS in a certain
-way.
+way. Since the cmake build process - contrary to the conventional build system -
+includes the compilation of the bundled libraries into the standard build process,
+the grouping of those presets is somewhat different.
 
 A preset is a regular CMake script file that can use constructs such as
 variables, lists and for-loops to manipulate configuration options and create
@@ -171,15 +173,15 @@ Such a file can then be passed to cmake via the `-C` flag. Several examples of
 presets can be found in the `cmake/presets` folder.
 
 ```bash
-# build LAMMPS with all "standard" packages which don't use libraries and enable GPU package
+# build LAMMPS with all packages enabled which don't use external libraries and enable GPU package
 mkdir build
 cd build
-cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
+cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GPU=on ../cmake
 ```
 
 # Reference
 
-## Common CMAKE Configuration Options
+## Common CMake Configuration Options
 
 
 <table>
@@ -195,6 +197,7 @@ cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
   <td><code>CMAKE_INSTALL_PREFIX</code></td>
   <td>Install location where LAMMPS files will be copied to. In the Unix/Linux case with Makefiles this controls what `make install` will do.</td>
   <td>
+   Default setting is <code>$HOME/.local</code>.
   </td>
 </tr>
 <tr>
@@ -204,6 +207,16 @@ cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
   <dl>
   <dt><code>Release</code> (default)</dt>
   <dt><code>Debug</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>CMAKE_VERBOSE_MAKEFILE</code></td>
+  <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achived by adding `VERBOSE=1` to the `make` call.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
   </dl>
   </td>
 </tr>
@@ -266,6 +279,26 @@ cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
   </td>
 </tr>
 <tr>
+  <td><code>BUILD_LIB</code></td>
+  <td>control whether to build LAMMPS as a library</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>BUILD_EXE</code></td>
+  <td>control whether to build LAMMPS executable</td>
+  <td>
+  <dl>
+    <dt><code>on</code> (default)</dt>
+    <dt><code>off</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>BUILD_SHARED_LIBS</code></td>
   <td>control whether to build LAMMPS as a shared-library</td>
   <td>
@@ -315,8 +348,8 @@ cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
   `mpicxx` in your path and use this MPI implementation.</td>
   <td>
   <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
+    <dt><code>on</code> (default, if found)</dt>
+    <dt><code>off</code></dt>
   </dl>
   </td>
 </tr>
@@ -325,8 +358,8 @@ cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
   <td>control whether to build LAMMPS with OpenMP support.</td>
   <td>
   <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
+    <dt><code>on</code> (default, if found)</dt>
+    <dt><code>off</code></dt>
   </dl>
   </td>
 </tr>
@@ -1271,7 +1304,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
   <td>
   <dl>
-    <dt><code>KISSFFT</code></dt>
+    <dt><code>KISS</code></dt>
     <dt><code>FFTW3</code></dt>
     <dt><code>FFTW2</code></dt>
     <dt><code>MKL</code></dt>
@@ -1279,13 +1312,13 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>PACK_ARRAY</code></td>
+  <td><code>FFT_PACK</code></td>
   <td>Optimization for FFT</td>
   <td>
   <dl>
-    <dt><code>PACK_ARRAY</code></dt>
-    <dt><code>PACK_POINTER</code></dt>
-    <dt><code>PACK_MEMCPY</code></dt>
+    <dt><code>array (default)</code></dt>
+    <dt><code>pointer</code></dt>
+    <dt><code>memcpy</code></dt>
   </dl>
   </td>
 </tr>
@@ -1377,6 +1410,40 @@ TODO
 
 ### PYTHON Package
 
+### USER-INTEL Package
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Description</th>
+  <th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>INTEL_ARCH</code></td>
+  <td>Target architecture for USER-INTEL package</td>
+  <td>
+  <dl>
+    <dt><code>cpu</code> (default)</dt>
+    <dt><code>knl</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>INTEL_LRT_MODE</code></td>
+  <td>How to support Long-range thread mode in Verlet integration</td>
+  <td>
+  <dl>
+    <dt><code>threads</code> (default, if pthreads available)</dt>
+    <dt><code>none</code> (default, if pthreads not available)</dt>
+    <dt><code>c++11</code></dt>
+  </dl>
+  </td>
+</tr>
+</tbody>
+</table>
 
 ### GPU Package
 The GPU package builds a support library which can either use OpenCL or CUDA as
@@ -1396,8 +1463,8 @@ target API.
   <td>API used by GPU package</td>
   <td>
   <dl>
-    <dt><code>OpenCL</code> (default)</dt>
-    <dt><code>CUDA</code></dt>
+    <dt><code>opencl</code> (default)</dt>
+    <dt><code>cuda</code></dt>
   </dl>
   </td>
 </tr>
@@ -1406,9 +1473,9 @@ target API.
   <td>Precision size used by GPU package kernels</td>
   <td>
   <dl>
-    <dt><code>SINGLE_DOUBLE</code></dt>
-    <dt><code>SINGLE_SINGLE</code></dt>
-    <dt><code>DOUBLE_DOUBLE</code></dt>
+    <dt><code>mixed</code> (default)</dt>
+    <dt><code>single</code></dt>
+    <dt><code>double</code></dt>
   </dl>
   </td>
 </tr>
@@ -1417,12 +1484,12 @@ target API.
   <td>Tuning target for OpenCL driver code</td>
   <td>
   <dl>
-    <dt><code>GENERIC</code> (default)</dt>
-    <dt><code>INTEL</code> (Intel CPU)</dt>
-    <dt><code>PHI</code> (Intel Xeon Phi)</dt>
-    <dt><code>FERMI</code> (NVIDIA)</dt>
-    <dt><code>KEPLER</code> (NVIDIA)</dt>
-    <dt><code>CYPRESS</code> (AMD)</dt>
+    <dt><code>generic</code> (default)</dt>
+    <dt><code>intel</code> (Intel CPU)</dt>
+    <dt><code>phi</code> (Intel Xeon Phi)</dt>
+    <dt><code>fermi</code> (NVIDIA)</dt>
+    <dt><code>kepler</code> (NVIDIA)</dt>
+    <dt><code>cypress</code> (AMD)</dt>
   </dl>
   </td>
 </tr>
@@ -1448,6 +1515,21 @@ target API.
     <dt><code>off</code></dt>
   </dl>
   </td>
+</tr>
+<tr>
+  <td><code>CUDA_MPS_SUPPORT</code> (CUDA only)</td>
+  <td>Enable tweaks for running with Nvidia CUDA Multi-process services daemon</td>
+  <td>
+  <dl>
+    <dt><code>on</code></dt>
+    <dt><code>off</code> (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>BIN2C</code> (CUDA only)</td>
+  <td>Path to bin2c executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1518,6 +1600,16 @@ Requires a Eigen3 installation
 </thead>
 <tbody>
 <tr>
+  <td><code>WITH_JPEG</code></td>
+  <td>Enables/Disable JPEG support in LAMMPS</td>
+  <td>
+  <dl>
+    <dt><code>yes</code> (default, if found)</dt>
+    <dt><code>no</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>JPEG_INCLUDE_DIR</code></td>
   <td></td>
   <td>
@@ -1544,6 +1636,16 @@ Requires a Eigen3 installation
 </tr>
 </thead>
 <tbody>
+<tr>
+  <td><code>WITH_PNG</code></td>
+  <td>Enables/Disable PNG support in LAMMPS</td>
+  <td>
+  <dl>
+    <dt><code>yes</code> (default, if found)</dt>
+    <dt><code>no</code></dt>
+  </dl>
+  </td>
+</tr>
 <tr>
   <td><code>PNG_INCLUDE_DIR</code></td>
   <td></td>
@@ -1573,10 +1675,19 @@ requires `gzip` to be in your `PATH`
 </thead>
 <tbody>
 <tr>
-  <td><code>GZIP_EXECUTABLE</code></td>
-  <td></td>
+  <td><code>WITH_GZIP</code></td>
+  <td>Enables/Disable GZIP support in LAMMPS</td>
   <td>
+  <dl>
+    <dt><code>yes</code> (default, if found)</dt>
+    <dt><code>no</code></dt>
+  </dl>
   </td>
+</tr>
+<tr>
+  <td><code>GZIP_EXECUTABLE</code></td>
+  <td>Path to gzip executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1595,10 +1706,19 @@ requires `ffmpeg` to be in your `PATH`
 </thead>
 <tbody>
 <tr>
-  <td><code>FFMPEG_EXECUTABLE</code></td>
-  <td></td>
+  <td><code>WITH_FFMPEG</code></td>
+  <td>Enables/Disable FFMPEG support in LAMMPS</td>
   <td>
+  <dl>
+    <dt><code>yes</code> (default, if found)</dt>
+    <dt><code>no</code></dt>
+  </dl>
   </td>
+</tr>
+<tr>
+  <td><code>FFMPEG_EXECUTABLE</code></td>
+  <td>Path to ffmpeg executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1606,8 +1726,13 @@ requires `ffmpeg` to be in your `PATH`
 
 ## Compilers
 
-By default, `cmake` will use your environment C/C++/Fortran compilers for a build. It uses the `CC`, `CXX` and `FC` environment variables to detect which compilers should be used. However, these values
-will be cached after the first run of `cmake`. Subsequent runs of `cmake` will ignore changes in these environment variables. To ensure the correct values are used you avoid the cache by setting the `CMAKE_C_COMPILER`, `CMAKE_CXX_COMPILER`, `CMAKE_Fortran_COMPILER` options directly.
+By default, `cmake` will use your environment C/C++/Fortran compilers for a
+build. It uses the `CC`, `CXX` and `FC` environment variables to detect which
+compilers should be used. However, these values will be cached after the first
+run of `cmake`. Subsequent runs of `cmake` will ignore changes in these
+environment variables. To ensure the correct values are used you avoid the
+cache by setting the `CMAKE_C_COMPILER`, `CMAKE_CXX_COMPILER`,
+`CMAKE_Fortran_COMPILER` options directly.
 
 <table>
 <thead>
@@ -1637,26 +1762,33 @@ will be cached after the first run of `cmake`. Subsequent runs of `cmake` will i
   value of `FC` environment variable at first `cmake` run
   </td>
 </tr>
+<tr>
+  <td><code>CXX_COMPILER_LAUNCHER</code></td>
+  <td>CMake will run this tool and pass the compiler and its arguments to the tool. Some example tools are distcc and ccache.</td>
+  <td>
+  (empty)
+  </td>
+</tr>
 </tbody>
 </table>
 
 ### Building with GNU Compilers
 
 ```bash
-cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
+cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -D CMAKE_Fortran_COMPILER=gfortran ../cmake
 ```
 
 ### Building with Intel Compilers
 
 ```bash
-cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
+cmake -D CMAKE_C_COMPILER=icc -D CMAKE_CXX_COMPILER=icpc -D CMAKE_Fortran_COMPILER=ifort ../cmake
 ```
 
 
 ### Building with LLVM/Clang Compilers
 
 ```bash
-cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
+cmake -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_Fortran_COMPILER=flang ../cmake
 ```
 
 

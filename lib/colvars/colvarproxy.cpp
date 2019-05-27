@@ -60,7 +60,7 @@ bool colvarproxy_system::total_forces_same_step() const
 
 inline int round_to_integer(cvm::real x)
 {
-  return std::floor(x+0.5);
+  return cvm::floor(x+0.5);
 }
 
 
@@ -129,7 +129,10 @@ cvm::rvector colvarproxy_system::position_distance(cvm::atom_pos const &pos1,
 
 
 
-colvarproxy_atoms::colvarproxy_atoms() {}
+colvarproxy_atoms::colvarproxy_atoms()
+{
+  updated_masses_ = updated_charges_ = false;
+}
 
 
 colvarproxy_atoms::~colvarproxy_atoms()
@@ -289,13 +292,23 @@ colvarproxy_smp::colvarproxy_smp()
   omp_lock_state = NULL;
 #if defined(_OPENMP)
   if (smp_thread_id() == 0) {
+    omp_lock_state = reinterpret_cast<void *>(new omp_lock_t);
     omp_init_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
   }
 #endif
 }
 
 
-colvarproxy_smp::~colvarproxy_smp() {}
+colvarproxy_smp::~colvarproxy_smp()
+{
+#if defined(_OPENMP)
+  if (smp_thread_id() == 0) {
+    if (omp_lock_state) {
+      delete reinterpret_cast<omp_lock_t *>(omp_lock_state);
+    }
+  }
+#endif
+}
 
 
 int colvarproxy_smp::smp_enabled()
@@ -499,6 +512,14 @@ char const *colvarproxy_script::script_obj_to_str(unsigned char *obj)
 }
 
 
+std::vector<std::string> colvarproxy_script::script_obj_to_str_vector(unsigned char *obj)
+{
+  cvm::error("Error: trying to print a script object without a scripting "
+             "language interface.\n", BUG_ERROR);
+  return std::vector<std::string>();
+}
+
+
 int colvarproxy_script::run_force_callback()
 {
   return COLVARS_NOT_IMPLEMENTED;
@@ -526,7 +547,7 @@ int colvarproxy_script::run_colvar_gradient_callback(
 
 colvarproxy_tcl::colvarproxy_tcl()
 {
-  _tcl_interp = NULL;
+  tcl_interp_ = NULL;
 }
 
 
@@ -555,7 +576,7 @@ char const *colvarproxy_tcl::tcl_obj_to_str(unsigned char *obj)
 int colvarproxy_tcl::tcl_run_force_callback()
 {
 #if defined(COLVARS_TCL)
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   std::string cmd = std::string("calc_colvar_forces ")
     + cvm::to_str(cvm::step_absolute());
   int err = Tcl_Eval(tcl_interp, cmd.c_str());
@@ -578,7 +599,7 @@ int colvarproxy_tcl::tcl_run_colvar_callback(
 {
 #if defined(COLVARS_TCL)
 
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   size_t i;
   std::string cmd = std::string("calc_") + name;
   for (i = 0; i < cvc_values.size(); i++) {
@@ -615,7 +636,7 @@ int colvarproxy_tcl::tcl_run_colvar_gradient_callback(
 {
 #if defined(COLVARS_TCL)
 
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   size_t i;
   std::string cmd = std::string("calc_") + name + "_gradient";
   for (i = 0; i < cvc_values.size(); i++) {

@@ -47,7 +47,7 @@ class TestStructuralFilters(unittest.TestCase):
         self.assertEqual("Title\n\n"
                          "\n.. _lws: http://lammps.sandia.gov\n"
                          ".. _ld: Manual.html\n"
-                         ".. _lc: Section_commands.html#comm\n", s)
+                         ".. _lc: Commands_all.html\n", s)
 
     def test_filter_multiple_horizontal_rules(self):
         s = self.txt2rst.convert(":hline\n"

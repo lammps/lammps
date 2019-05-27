@@ -13,6 +13,7 @@ dump command :h3
 "dump netcdf"_dump_netcdf.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
+"dump adios"_dump_adios.html command :h3
 
 [Syntax:]
 
@@ -20,17 +21,19 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {custom} or {custom/gz} or {custom/mpiio} or {dcd} or {h5md} or {image} or or {local} or {molfile} or {movie} or {netcdf} or {netcdf/mpiio} or {vtk} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} :l
+style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {custom} or {custom/gz} or {custom/mpiio} or {dcd} or {h5md} or {image} or {local} or {molfile} or {movie} or {netcdf} or {netcdf/mpiio} or {vtk} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
   {atom} args = none
   {atom/gz} args = none
   {atom/mpiio} args = none
+  {atom/adios} args = none,  discussed on "dump adios"_dump_adios.html doc page
   {cfg} args = same as {custom} args, see below
   {cfg/gz} args = same as {custom} args, see below
   {cfg/mpiio} args = same as {custom} args, see below
   {custom}, {custom/gz}, {custom/mpiio} args = see below
+  {custom/adios} args = same as {custom} args, discussed on "dump adios"_dump_adios.html doc page
   {dcd} args = none
   {h5md} args = discussed on "dump h5md"_dump_h5md.html doc page
   {image} args = discussed on "dump image"_dump_image.html doc page
@@ -193,7 +196,7 @@ For post-processing purposes the {atom}, {local}, and {custom} text
 files are self-describing in the following sense.
 
 The dimensions of the simulation box are included in each snapshot.
-For an orthogonal simulation box this information is is formatted as:
+For an orthogonal simulation box this information is formatted as:
 
 ITEM: BOX BOUNDS xx yy zz
 xlo xhi
@@ -312,7 +315,7 @@ so that any machine which supports XDR should be able to read them.
 The number of atoms per snapshot cannot change with the {xtc} style.
 The {unwrap} option of the "dump_modify"_dump_modify.html command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
-atom.  Unwrapped means that if the atom has passed thru a periodic
+atom.  Unwrapped means that if the atom has passed through a periodic
 boundary one or more times, the value is printed for what the
 coordinate would be if it had not been wrapped back into the periodic
 box.  Note that these coordinates may thus be far outside the box size
@@ -534,7 +537,7 @@ on the "Howto triclinic"_Howto_triclinic.html doc page.
 
 Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
-passed thru a periodic boundary one or more times, the value is
+passed through a periodic boundary one or more times, the value is
 printed for what the coordinate would be if it had not been wrapped
 back into the periodic box.  Note that using {xu}, {yu}, {zu} means
 that the coordinate values may be far outside the box bounds printed
@@ -616,7 +619,7 @@ should be replaced by the actual name of the variable that has been
 defined previously in the input script.  Only an atom-style variable
 can be referenced, since it is the only style that generates per-atom
 values.  Variables of style {atom} can reference individual atom
-attributes, per-atom atom attributes, thermodynamic keywords, or
+attributes, per-atom attributes, thermodynamic keywords, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
@@ -634,27 +637,26 @@ which could then be output into dump files.
 [Restrictions:]
 
 To write gzipped dump files, you must either compile LAMMPS with the
--DLAMMPS_GZIP option or use the styles from the COMPRESS package
-- see the "Making LAMMPS"_Section_start.html#start_2 section of
-the documentation.
+-DLAMMPS_GZIP option or use the styles from the COMPRESS package.
+See the "Build settings"_Build_settings.html doc page for details.
 
-The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part
-of the COMPRESS package.  They are only enabled if LAMMPS was built
-with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part of
+the COMPRESS package.  They are only enabled if LAMMPS was built with
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 The {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The {xtc} style is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"dump h5md"_dump_h5md.html, "dump image"_dump_image.html,
+"dump adios"_dump_adios.html "dump h5md"_dump_h5md.html, "dump image"_dump_image.html,
 "dump molfile"_dump_molfile.html, "dump_modify"_dump_modify.html,
 "undump"_undump.html
 

@@ -38,6 +38,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "pair_hybrid.h"
 
 using namespace LAMMPS_NS;
@@ -120,7 +121,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"hybrid") == 0) {
       // the hybrid keyword requires a hybrid pair style
-      if (!strstr(force->pair_style,"hybrid"))
+      if (!utils::strmatch(force->pair_style,"^hybrid"))
         error->all(FLERR,"Illegal run_style respa command");
       PairHybrid *hybrid = (PairHybrid *) force->pair;
       nhybrid_styles = hybrid->nstyles;
@@ -774,7 +775,7 @@ void Respa::recurse(int ilevel)
    clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-void Respa::force_clear(int newtonflag)
+void Respa::force_clear(int /*newtonflag*/)
 {
   if (external_force_clear) return;
 

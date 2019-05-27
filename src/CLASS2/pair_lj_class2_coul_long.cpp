@@ -50,21 +50,21 @@ PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJClass2CoulLong::~PairLJClass2CoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
   if (ftable) free_tables();
 }
@@ -82,8 +82,7 @@ void PairLJClass2CoulLong::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -252,8 +251,9 @@ void PairLJClass2CoulLong::settings(int narg, char **arg)
 
 void PairLJClass2CoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6)
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -549,5 +549,8 @@ void *PairLJClass2CoulLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
   return NULL;
 }

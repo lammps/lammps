@@ -124,13 +124,13 @@ configuration. In the literature, however, the three-body parameters
 are usually defined by simple formulas involving two sets of pair-wise
 parameters, corresponding to the ij and ik pairs, where i is the
 center atom. The user must ensure that the correct combining rule is
-used to calculate the values of the threebody parameters for
+used to calculate the values of the three-body parameters for
 alloys. Note also that the function phi3 contains two exponential
 screening factors with parameter values from the ij pair and ik
 pairs. So phi3 for a C atom bonded to a Si atom and a second C atom
 will depend on the three-body parameters for the CSiC entry, and also
 on the two-body parameters for the CCC and CSiSi entries. Since the
-order of the two neighbors is arbitrary, the threebody parameters for
+order of the two neighbors is arbitrary, the three-body parameters for
 entries CSiC and CCSi should be the same.  Similarly, the two-body
 parameters for entries SiCC and CSiSi should also be the same.  The
 parameters used only for two-body interactions (A, B, p, and q) in
@@ -150,13 +150,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 When using the USER-INTEL package with this style, there is an
 additional 5 to 10 percent performance improvement when the
@@ -191,8 +191,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.

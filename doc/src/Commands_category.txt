@@ -10,10 +10,9 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 Commands by category :h3
 
 This page lists most of the LAMMPS commands, grouped by category.  The
-"Commands all"_Commands_all.html doc page lists all commands
-alphabetically.  It also includes long lists of style options for
-entries that appear in the following categories as a single command
-(fix, compute, pair, etc).
+"General commands"_Commands_all.html doc page lists all general commands
+alphabetically.  Style options for entries like fix, compute, pair etc.
+have their own pages where they are listed alphabetically.
 
 Initialization:
 
@@ -117,6 +116,7 @@ Actions:
 
 "minimize"_minimize.html,
 "neb"_neb.html,
+"neb_spin"_neb_spin.html,
 "prd"_prd.html,
 "rerun"_rerun.html,
 "run"_run.html,

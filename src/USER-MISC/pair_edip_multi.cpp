@@ -118,8 +118,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
  // vflag != 0 means compute virial contributions in this step
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -516,7 +515,7 @@ void PairEDIPMulti::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEDIPMulti::settings(int narg, char **arg)
+void PairEDIPMulti::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -644,7 +643,7 @@ void PairEDIPMulti::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EDIP potential file %s",file);
+      snprintf(str,128,"Cannot open EDIP potential file %s",file);
       error->one(FLERR,str);
     }
   }

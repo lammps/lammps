@@ -11,6 +11,7 @@ pair_style lj/long/coul/long/intel command :h3
 pair_style lj/long/coul/long/omp command :h3
 pair_style lj/long/coul/long/opt command :h3
 pair_style lj/long/tip4p/long command :h3
+pair_style lj/long/tip4p/long/omp command :h3
 
 [Syntax:]
 
@@ -90,13 +91,13 @@ is to enable LAMMPS to "find" the 2 H atoms associated with each O
 atom.  For example, if the atom ID of an O atom in a TIP4P water
 molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the the "Howto tip4p"_Howto_tip4p.html doc page for more
+See the "Howto tip4p"_Howto_tip4p.html doc page for more
 information on how to use the TIP4P pair style.  Note that the
 neighbor list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for
 the offset distance of the fictitious charges on O atoms in water
 molecules.  Thus it is typically best in an efficiency sense to use a
-LJ cutoff >= Coulomb cutoff + 2*qdist, to shrink the size of the
+LJ cutoff >= Coulombic cutoff + 2*qdist, to shrink the size of the
 neighbor list.  This leads to slightly larger cost for the long-range
 calculation, so you can test the trade-off for your model.
 
@@ -153,6 +154,14 @@ specified in the pair_style command.
 
 :line
 
+A version of these styles with a soft core, {lj/cut/soft}, suitable for use in
+free energy calculations, is part of the USER-FEP package and is documented with
+the "pair_fep_soft"_pair_fep_soft.html styles. The version with soft core is
+only available if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
+
+:line
+
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
@@ -162,13 +171,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -209,9 +218,8 @@ different levels of the rRESPA hierarchy.  See the
 [Restrictions:]
 
 These styles are part of the KSPACE package.  They are only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  Note that
-the KSPACE package is installed by default.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

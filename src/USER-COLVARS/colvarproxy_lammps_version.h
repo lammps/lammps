@@ -1,5 +1,5 @@
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2018-04-29"
+#define COLVARPROXY_VERSION "2019-04-09"
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
 // https://github.com/colvars/colvars

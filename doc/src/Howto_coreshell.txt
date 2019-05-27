@@ -19,7 +19,7 @@ polarizable"_Howto_polarizable.html doc page for a discussion of all
 the polarizable models available in LAMMPS.
 
 Technically, shells are attached to the cores by a spring force f =
-k*r where k is a parametrized spring constant and r is the distance
+k*r where k is a parameterized spring constant and r is the distance
 between the core and the shell. The charges of the core and the shell
 add up to the ion charge, thus q(ion) = q(core) + q(shell). This
 setup introduces the ion polarizability (alpha) given by
@@ -111,7 +111,7 @@ the core and shell particles corresponds to the polarization,
 hereby an instantaneous relaxation of the shells is approximated
 and a fast core/shell spring frequency ensures a nearly constant
 internal kinetic energy during the simulation.
-Thermostats can alter this polarization behaviour, by scaling the
+Thermostats can alter this polarization behavior, by scaling the
 internal kinetic energy, meaning the shell will not react freely to
 its electrostatic environment.
 Therefore it is typically desirable to decouple the relative motion of
@@ -119,7 +119,7 @@ the core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the "compute
 temp/cs"_compute_temp_cs.html command can be used, in conjunction with
 any of the thermostat fixes, such as "fix nvt"_fix_nh.html or "fix
-langevin"_fix_langevin.  This compute uses the center-of-mass velocity
+langevin"_fix_langevin.html.  This compute uses the center-of-mass velocity
 of the core/shell pairs to calculate a temperature, and insures that
 velocity is what is rescaled for thermostatting purposes.  This
 compute also works for a system with both core/shell pairs and
@@ -150,9 +150,9 @@ The pressure for the core/shell system is computed via the regular
 LAMMPS convention by "treating the cores and shells as individual
 particles"_#MitchellFincham2. For the thermo output of the pressure
 as well as for the application of a barostat, it is necessary to
-use an additional "pressure"_compute_pressure compute based on the
-default "temperature"_compute_temp and specifying it as a second
-argument in "fix modify"_fix_modify.html and
+use an additional "pressure"_compute_pressure.html compute based on
+the default "temperature"_compute_temp.html and specifying it as a
+second argument in "fix modify"_fix_modify.html and
 "thermo_modify"_thermo_modify.html resulting in:
 
 (...)
@@ -165,7 +165,7 @@ fix_modify press_bar temp CSequ press thermo_press_lmp  # pressure modification 
 If "compute temp/cs"_compute_temp_cs.html is used, the decoupled
 relative motion of the core and the shell should in theory be
 stable.  However numerical fluctuation can introduce a small
-momentum to the system, which is noticable over long trajectories.
+momentum to the system, which is noticeable over long trajectories.
 Therefore it is recommendable to use the "fix
 momentum"_fix_momentum.html command in combination with "compute
 temp/cs"_compute_temp_cs.html when equilibrating the system to

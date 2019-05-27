@@ -129,7 +129,7 @@ void ComputeHexOrderAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeHexOrderAtom::init_list(int id, NeighList *ptr)
+void ComputeHexOrderAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

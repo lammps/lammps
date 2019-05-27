@@ -23,25 +23,25 @@ The {cosine/buck6d} angle style uses the potential
 
 :c,image(Eqs/angle_cosine_buck6d.jpg)
 
-where K is the energy constant, n is the periodic multiplicity and 
+where K is the energy constant, n is the periodic multiplicity and
 Theta0 is the equilibrium angle.
 
-The coefficients must be defined for each angle type via the 
+The coefficients must be defined for each angle type via the
 "angle_coeff"_angle_coeff.html command as in the example above, or in
 the data file or restart files read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands in the following order:
 
 K (energy)
-n 
+n
 Theta0 (degrees) :ul
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians 
+Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally.
 
-Additional to the cosine term the {cosine/buck6d} angle style computes 
-the short range (vdW) interaction belonging to the 
-"pair_buck6d"_pair_buck6d_coul_gauss.html between the end atoms of 
-the angle.  For this reason this angle style only works in combination
+Additional to the cosine term the {cosine/buck6d} angle style computes
+the short range (vdW) interaction belonging to the
+"pair_buck6d"_pair_buck6d_coul_gauss.html between the end atoms of the
+angle.  For this reason this angle style only works in combination
 with the "pair_buck6d"_pair_buck6d_coul_gauss.html styles and needs
 the "special_bonds"_special_bonds.html 1-3 interactions to be weighted
 0.0 to prevent double counting.
@@ -51,12 +51,12 @@ the "special_bonds"_special_bonds.html 1-3 interactions to be weighted
 [Restrictions:]
 
 {cosine/buck6d} can only be used in combination with the
-"pair_buck6d"_pair_buck6d_coul_gauss.html style and with a 
-"special_bonds"_special_bonds.html 0.0 weighting of 1-3 interactions.  
+"pair_buck6d"_pair_buck6d_coul_gauss.html style and with a
+"special_bonds"_special_bonds.html 0.0 weighting of 1-3 interactions.
 
 This angle style can only be used if LAMMPS was built with the
-USER-MOFFF package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+USER-MOFFF package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

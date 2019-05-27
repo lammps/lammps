@@ -146,7 +146,7 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 
 namespace LAMMPS_NS {
 template class NBinKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NBinKokkos<LMPHostType>;
 #endif
 }

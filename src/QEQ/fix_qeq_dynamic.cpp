@@ -88,7 +88,7 @@ void FixQEqDynamic::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqDynamic::pre_force(int vflag)
+void FixQEqDynamic::pre_force(int /*vflag*/)
 {
   int i,ii,iloop,inum,*ilist;
   double qmass,dtq2;
@@ -103,7 +103,7 @@ void FixQEqDynamic::pre_force(int vflag)
 
   if (update->ntimestep % nevery) return;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
   inum = list->inum;
   ilist = list->ilist;
@@ -247,11 +247,11 @@ double FixQEqDynamic::compute_eneg()
 /* ---------------------------------------------------------------------- */
 
 int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
-                          int pbc_flag, int *pbc)
+                          int /*pbc_flag*/, int * /*pbc*/)
 {
   int m=0;
 
-  if( pack_flag == 1 )
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = qf[list[m]];
@@ -265,7 +265,7 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
   else if( pack_flag == 2)
     for(m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];

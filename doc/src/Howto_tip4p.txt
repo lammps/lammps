@@ -31,7 +31,7 @@ using the "fix shake"_fix_shake.html command.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
-"(Jorgensen)"_#Jorgensen1.  Note that the OM distance is specified in
+"(Jorgensen)"_#Jorgensen5.  Note that the OM distance is specified in
 the "pair_style"_pair_style.html command, not as part of the pair
 coefficients.
 
@@ -107,6 +107,6 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line
 
-:link(Jorgensen1)
+:link(Jorgensen5)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).

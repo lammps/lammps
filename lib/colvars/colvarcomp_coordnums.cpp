@@ -7,8 +7,6 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-#include <cmath>
-
 #include "colvarmodule.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
@@ -18,45 +16,36 @@
 
 
 
-
-template<bool calculate_gradients>
+template<int flags>
 cvm::real colvar::coordnum::switching_function(cvm::real const &r0,
-                                               int const &en,
-                                               int const &ed,
+                                               cvm::rvector const &r0_vec,
+                                               int en,
+                                               int ed,
                                                cvm::atom &A1,
-                                               cvm::atom &A2)
+                                               cvm::atom &A2,
+                                               bool **pairlist_elem,
+                                               cvm::real pairlist_tol)
 {
-  cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
-  cvm::real const l2 = diff.norm2()/(r0*r0);
-
-  // Assume en and ed are even integers, and avoid sqrt in the following
-  int const en2 = en/2;
-  int const ed2 = ed/2;
-
-  cvm::real const xn = cvm::integer_power(l2, en2);
-  cvm::real const xd = cvm::integer_power(l2, ed2);
-  cvm::real const func = (1.0-xn)/(1.0-xd);
-
-  if (calculate_gradients) {
-    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
-    cvm::rvector const dl2dx = (2.0/(r0*r0))*diff;
-    A1.grad += (-1.0)*dFdl2*dl2dx;
-    A2.grad +=        dFdl2*dl2dx;
+  if ((flags & ef_use_pairlist) && !(flags & ef_rebuild_pairlist)) {
+    bool const within = **pairlist_elem;
+    (*pairlist_elem)++;
+    if (!within) {
+      return 0.0;
+    }
   }
 
-  return func;
-}
+  cvm::rvector const r0sq_vec(r0_vec.x*r0_vec.x,
+                              r0_vec.y*r0_vec.y,
+                              r0_vec.z*r0_vec.z);
 
-
-template<bool calculate_gradients>
-cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
-                                               int const &en,
-                                               int const &ed,
-                                               cvm::atom &A1,
-                                               cvm::atom &A2)
-{
   cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
-  cvm::rvector const scal_diff(diff.x/r0_vec.x, diff.y/r0_vec.y, diff.z/r0_vec.z);
+
+  cvm::rvector const scal_diff(diff.x/((flags & ef_anisotropic) ?
+                                       r0_vec.x : r0),
+                               diff.y/((flags & ef_anisotropic) ?
+                                       r0_vec.y : r0),
+                               diff.z/((flags & ef_anisotropic) ?
+                                       r0_vec.z : r0));
   cvm::real const l2 = scal_diff.norm2();
 
   // Assume en and ed are even integers, and avoid sqrt in the following
@@ -65,22 +54,45 @@ cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
 
   cvm::real const xn = cvm::integer_power(l2, en2);
   cvm::real const xd = cvm::integer_power(l2, ed2);
-  cvm::real const func = (1.0-xn)/(1.0-xd);
+  //The subtraction and division stretches the function back to the range of [0,1] from [pairlist_tol,1]
+  cvm::real const func = (((1.0-xn)/(1.0-xd)) - pairlist_tol) / (1.0-pairlist_tol);
 
-  if (calculate_gradients) {
-    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
-    cvm::rvector const dl2dx((2.0/(r0_vec.x*r0_vec.x))*diff.x,
-                             (2.0/(r0_vec.y*r0_vec.y))*diff.y,
-                             (2.0/(r0_vec.z*r0_vec.z))*diff.z);
+  if (flags & ef_rebuild_pairlist) {
+    //Particles just outside of the cutoff also are considered if they come near.
+    **pairlist_elem = (func > (-pairlist_tol * 0.5)) ? true : false;
+    (*pairlist_elem)++;
+  }
+  //If the value is too small, we need to exclude it, rather than let it contribute to the sum or the gradients.
+  if (func < 0)
+    return 0;
+
+  if (flags & ef_gradients) {
+    //This is the old, completely correct expression for dFdl2:
+    //cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) -
+    //                                        func*ed2*(xd/l2))*(-1.0);
+    //This can become:
+    //cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2)*(1.0-xn)/(1.0-xn) -
+    //                                        func*ed2*(xd/l2))*(-1.0);
+    //Recognizing that func = (1.0-xn)/(1.0-xd), we can group together the "func" and get a version of dFdl2 that is 0
+    //when func=0, which lets us skip this gradient calculation when func=0.
+    cvm::real const dFdl2 = func * ((ed2*xd/((1.0-xd)*l2)) - (en2*xn/((1.0-xn)*l2)));
+    cvm::rvector const dl2dx((2.0/((flags & ef_anisotropic) ? r0sq_vec.x :
+                                   r0*r0)) * diff.x,
+                             (2.0/((flags & ef_anisotropic) ? r0sq_vec.y :
+                                   r0*r0)) * diff.y,
+                             (2.0/((flags & ef_anisotropic) ? r0sq_vec.z :
+                                   r0*r0)) * diff.z);
     A1.grad += (-1.0)*dFdl2*dl2dx;
     A2.grad +=        dFdl2*dl2dx;
   }
+
   return func;
 }
 
 
 colvar::coordnum::coordnum(std::string const &conf)
-  : cvc(conf), b_anisotropic(false), b_group2_center_only(false)
+  : cvc(conf), b_anisotropic(false), group2_center(NULL), pairlist(NULL)
+
 {
   function_type = "coordnum";
   x.type(colvarvalue::type_scalar);
@@ -88,25 +100,34 @@ colvar::coordnum::coordnum(std::string const &conf)
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
 
+  if (group1 == NULL || group2 == NULL) {
+    cvm::error("Error: failed to initialize atom groups.\n",
+                INPUT_ERROR);
+    return;
+  }
+
   if (int atom_number = cvm::atom_group::overlap(*group1, *group2)) {
     cvm::error("Error: group1 and group2 share a common atom (number: " +
-      cvm::to_str(atom_number) + ")\n");
+               cvm::to_str(atom_number) + ")\n", INPUT_ERROR);
     return;
   }
 
   if (group1->b_dummy) {
-    cvm::error("Error: only group2 is allowed to be a dummy atom\n");
+    cvm::error("Error: only group2 is allowed to be a dummy atom\n",
+               INPUT_ERROR);
     return;
   }
 
   bool const b_isotropic = get_keyval(conf, "cutoff", r0,
                                       cvm::real(4.0 * cvm::unit_angstrom()));
 
-  if (get_keyval(conf, "cutoff3", r0_vec, cvm::rvector(4.0 * cvm::unit_angstrom(),
-                                                       4.0 * cvm::unit_angstrom(),
-                                                       4.0 * cvm::unit_angstrom()))) {
+  if (get_keyval(conf, "cutoff3", r0_vec,
+                 cvm::rvector(4.0 * cvm::unit_angstrom(),
+                              4.0 * cvm::unit_angstrom(),
+                              4.0 * cvm::unit_angstrom()))) {
     if (b_isotropic) {
-      cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" at the same time.\n",
+      cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" "
+                 "at the same time.\n",
                  INPUT_ERROR);
       return;
     }
@@ -135,86 +156,178 @@ colvar::coordnum::coordnum(std::string const &conf)
     cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 
+  bool b_group2_center_only = false;
   get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2->b_dummy);
+  if (b_group2_center_only) {
+    if (!group2_center) {
+      group2_center = new cvm::atom_group();
+      group2_center->add_atom(cvm::atom());
+    }
+  }
+
+  get_keyval(conf, "tolerance", tolerance, 0.0);
+  if (tolerance > 0) {
+    get_keyval(conf, "pairListFrequency", pairlist_freq, 100);
+    if ( ! (pairlist_freq > 0) ) {
+      cvm::error("Error: non-positive pairlistfrequency provided.\n",
+                 INPUT_ERROR);
+      return; // and do not allocate the pairlists below
+    }
+    if (b_group2_center_only) {
+      pairlist = new bool[group1->size()];
+    }
+    else {
+      pairlist = new bool[group1->size() * group2->size()];
+    }
+  }
+
 }
 
 
 colvar::coordnum::coordnum()
-  : b_anisotropic(false), b_group2_center_only(false)
+  : b_anisotropic(false), group2_center(NULL), pairlist(NULL)
 {
   function_type = "coordnum";
   x.type(colvarvalue::type_scalar);
 }
 
 
-void colvar::coordnum::calc_value()
+colvar::coordnum::~coordnum()
 {
-  x.real_value = 0.0;
+  if (pairlist != NULL) {
+    delete [] pairlist;
+  }
+  if (group2_center != NULL) {
+    delete group2_center;
+  }
+}
 
-  if (b_group2_center_only) {
 
-    // create a fake atom to hold the group2 com coordinates
-    cvm::atom group2_com_atom;
-    group2_com_atom.pos = group2->center_of_mass();
+template<int compute_flags> int colvar::coordnum::compute_coordnum()
+{
+  if (group2_center) {
+    (*group2_center)[0].pos = group2->center_of_mass();
+    group2_center->calc_required_properties();
+  }
+  cvm::atom_group *group2p = group2_center ? group2_center : group2;
 
-    if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        x.real_value += switching_function<false>(r0_vec, en, ed, *ai1, group2_com_atom);
-    } else {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        x.real_value += switching_function<false>(r0, en, ed, *ai1, group2_com_atom);
+  bool const use_pairlist = (pairlist != NULL);
+  bool const rebuild_pairlist = (pairlist != NULL) &&
+    (cvm::step_relative() % pairlist_freq == 0);
+
+  bool *pairlist_elem = use_pairlist ? pairlist : NULL;
+  cvm::atom_iter ai1 = group1->begin(), ai2 = group2p->begin();
+  cvm::atom_iter const ai1_end = group1->end();
+  cvm::atom_iter const ai2_end = group2p->end();
+
+  if (b_anisotropic) {
+
+    if (use_pairlist) {
+
+      if (rebuild_pairlist) {
+
+        int const flags = compute_flags | ef_anisotropic | ef_use_pairlist |
+          ef_rebuild_pairlist;
+        for (ai1 = group1->begin(); ai1 != ai1_end; ai1++) {
+          for (ai2 = group2->begin(); ai2 != ai2_end; ai2++) {
+            x.real_value += switching_function<flags>(r0, r0_vec, en, ed,
+                                                      *ai1, *ai2,
+                                                      &pairlist_elem,
+                                                      tolerance);
+          }
+        }
+
+      } else {
+
+        int const flags = compute_flags | ef_anisotropic | ef_use_pairlist;
+        for (ai1 = group1->begin(); ai1 != ai1_end; ai1++) {
+          for (ai2 = group2->begin(); ai2 != ai2_end; ai2++) {
+            x.real_value += switching_function<flags>(r0, r0_vec, en, ed,
+                                                      *ai1, *ai2,
+                                                      &pairlist_elem,
+                                                      tolerance);
+          }
+        }
+      }
+
+    } else { // if (use_pairlist) {
+
+      int const flags = compute_flags | ef_anisotropic;
+      for (ai1 = group1->begin(); ai1 != ai1_end; ai1++) {
+        for (ai2 = group2->begin(); ai2 != ai2_end; ai2++) {
+          x.real_value += switching_function<flags>(r0, r0_vec, en, ed,
+                                                    *ai1, *ai2,
+                                                    NULL, 0.0);
+        }
+      }
     }
 
   } else {
 
-    if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
-          x.real_value += switching_function<false>(r0_vec, en, ed, *ai1, *ai2);
+    if (use_pairlist) {
+
+      if (rebuild_pairlist) {
+
+        int const flags = compute_flags | ef_use_pairlist | ef_rebuild_pairlist;
+        for (ai1 = group1->begin(); ai1 != ai1_end; ai1++) {
+          for (ai2 = group2->begin(); ai2 != ai2_end; ai2++) {
+            x.real_value += switching_function<flags>(r0, r0_vec, en, ed,
+                                                      *ai1, *ai2,
+                                                      &pairlist_elem,
+                                                      tolerance);
+          }
         }
-    } else {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
-          x.real_value += switching_function<false>(r0, en, ed, *ai1, *ai2);
+
+      } else {
+
+        int const flags = compute_flags | ef_use_pairlist;
+        for (ai1 = group1->begin(); ai1 != ai1_end; ai1++) {
+          for (ai2 = group2->begin(); ai2 != ai2_end; ai2++) {
+            x.real_value += switching_function<flags>(r0, r0_vec, en, ed,
+                                                      *ai1, *ai2,
+                                                      &pairlist_elem,
+                                                      tolerance);
+          }
         }
+      }
+
+    } else { // if (use_pairlist) {
+
+      int const flags = compute_flags;
+      for (ai1 = group1->begin(); ai1 != ai1_end; ai1++) {
+        for (ai2 = group2->begin(); ai2 != ai2_end; ai2++) {
+          x.real_value += switching_function<flags>(r0, r0_vec, en, ed,
+                                                    *ai1, *ai2,
+                                                    NULL, 0.0);
+        }
+      }
     }
+  }
+
+  if (compute_flags & ef_gradients) {
+    if (group2_center) {
+      group2->set_weighted_gradient((*group2_center)[0].grad);
+    }
+  }
+
+  return COLVARS_OK;
+}
+
+
+void colvar::coordnum::calc_value()
+{
+  x.real_value = 0.0;
+  if (is_enabled(f_cvc_gradient)) {
+    compute_coordnum<ef_gradients>();
+  } else {
+    compute_coordnum<ef_null>();
   }
 }
 
 
 void colvar::coordnum::calc_gradients()
 {
-  if (b_group2_center_only) {
-
-    // create a fake atom to hold the group2 com coordinates
-    cvm::atom group2_com_atom;
-    group2_com_atom.pos = group2->center_of_mass();
-
-
-    if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        switching_function<true>(r0_vec, en, ed, *ai1, group2_com_atom);
-    } else {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        switching_function<true>(r0, en, ed, *ai1, group2_com_atom);
-    }
-
-    group2->set_weighted_gradient(group2_com_atom.grad);
-
-  } else {
-
-    if (b_anisotropic) {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
-          switching_function<true>(r0_vec, en, ed, *ai1, *ai2);
-        }
-    } else {
-      for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++)
-        for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
-          switching_function<true>(r0, en, ed, *ai1, *ai2);
-        }
-    }
-  }
+  // Gradients are computed by calc_value() if f_cvc_gradients is enabled
 }
 
 
@@ -235,7 +348,7 @@ simple_scalar_dist_functions(coordnum)
 // h_bond member functions
 
 colvar::h_bond::h_bond(std::string const &conf)
-  : cvc(conf)
+: cvc(conf)
 {
   if (cvm::debug())
     cvm::log("Initializing h_bond object.\n");
@@ -299,21 +412,26 @@ colvar::h_bond::h_bond()
 }
 
 
-colvar::h_bond::~h_bond()
-{
-  delete atom_groups[0];
-}
-
-
 void colvar::h_bond::calc_value()
 {
-  x.real_value = colvar::coordnum::switching_function<false>(r0, en, ed, (*atom_groups[0])[0], (*atom_groups[0])[1]);
+  int const flags = coordnum::ef_null;
+  cvm::rvector const r0_vec(0.0); // TODO enable the flag?
+  x.real_value =
+    coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                        (*atom_groups[0])[0],
+                                        (*atom_groups[0])[1],
+                                        NULL, 0.0);
 }
 
 
 void colvar::h_bond::calc_gradients()
 {
-  colvar::coordnum::switching_function<true>(r0, en, ed, (*atom_groups[0])[0], (*atom_groups[0])[1]);
+  int const flags = coordnum::ef_gradients;
+  cvm::rvector const r0_vec(0.0); // TODO enable the flag?
+  coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                      (*atom_groups[0])[0],
+                                      (*atom_groups[0])[1],
+                                      NULL, 0.0);
 }
 
 
@@ -328,7 +446,7 @@ simple_scalar_dist_functions(h_bond)
 
 
 colvar::selfcoordnum::selfcoordnum(std::string const &conf)
-  : cvc(conf)
+  : cvc(conf), pairlist(NULL)
 {
   function_type = "selfcoordnum";
   x.type(colvarvalue::type_scalar);
@@ -353,35 +471,114 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
   if (!is_enabled(f_cvc_pbc_minimum_image)) {
     cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
+
+  get_keyval(conf, "tolerance", tolerance, 0.0);
+  if (tolerance > 0) {
+    get_keyval(conf, "pairListFrequency", pairlist_freq, 100);
+    if ( ! (pairlist_freq > 0) ) {
+      cvm::error("Error: non-positive pairlistfrequency provided.\n",
+                 INPUT_ERROR);
+      return;
+    }
+    pairlist = new bool[(group1->size()-1) * (group1->size()-1)];
+  }
 }
 
 
 colvar::selfcoordnum::selfcoordnum()
+  : pairlist(NULL)
 {
   function_type = "selfcoordnum";
   x.type(colvarvalue::type_scalar);
 }
 
 
+colvar::selfcoordnum::~selfcoordnum()
+{
+  if (pairlist != NULL) {
+    delete [] pairlist;
+  }
+}
+
+
+template<int compute_flags> int colvar::selfcoordnum::compute_selfcoordnum()
+{
+  cvm::rvector const r0_vec(0.0); // TODO enable the flag?
+
+  bool const use_pairlist = (pairlist != NULL);
+  bool const rebuild_pairlist = (pairlist != NULL) &&
+    (cvm::step_relative() % pairlist_freq == 0);
+
+  bool *pairlist_elem = use_pairlist ? pairlist : NULL;
+  size_t i = 0, j = 0;
+  size_t const n = group1->size();
+
+  // Always isotropic (TODO: enable the ellipsoid?)
+
+  if (use_pairlist) {
+
+    if (rebuild_pairlist) {
+      int const flags = compute_flags | coordnum::ef_use_pairlist |
+        coordnum::ef_rebuild_pairlist;
+      for (i = 0; i < n - 1; i++) {
+        for (j = i + 1; j < n; j++) {
+          x.real_value +=
+            coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                                (*group1)[i],
+                                                (*group1)[j],
+                                                &pairlist_elem,
+                                                tolerance);
+        }
+      }
+    } else {
+      int const flags = compute_flags | coordnum::ef_use_pairlist;
+      for (i = 0; i < n - 1; i++) {
+        for (j = i + 1; j < n; j++) {
+          x.real_value +=
+            coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                                (*group1)[i],
+                                                (*group1)[j],
+                                                &pairlist_elem,
+                                                tolerance);
+        }
+      }
+    }
+
+  } else { // if (use_pairlist) {
+
+    int const flags = compute_flags | coordnum::ef_null;
+    for (i = 0; i < n - 1; i++) {
+      for (j = i + 1; j < n; j++) {
+        x.real_value +=
+          coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                              (*group1)[i],
+                                              (*group1)[j],
+                                              &pairlist_elem,
+                                              tolerance);
+      }
+    }
+  }
+
+  return COLVARS_OK;
+}
+
+
 void colvar::selfcoordnum::calc_value()
 {
   x.real_value = 0.0;
-  for (size_t i = 0; i < group1->size() - 1; i++) {
-    for (size_t j = i + 1; j < group1->size(); j++) {
-      x.real_value += colvar::coordnum::switching_function<false>(r0, en, ed, (*group1)[i], (*group1)[j]);
-    }
+  if (is_enabled(f_cvc_gradient)) {
+    compute_selfcoordnum<coordnum::ef_gradients>();
+  } else {
+    compute_selfcoordnum<coordnum::ef_null>();
   }
 }
 
 
 void colvar::selfcoordnum::calc_gradients()
 {
-  for (size_t i = 0; i < group1->size() - 1; i++) {
-    for (size_t j = i + 1; j < group1->size(); j++) {
-      colvar::coordnum::switching_function<true>(r0, en, ed, (*group1)[i], (*group1)[j]);
-    }
-  }
+  // Gradients are computed by calc_value() if f_cvc_gradients is enabled
 }
+
 
 void colvar::selfcoordnum::apply_force(colvarvalue const &force)
 {
@@ -392,6 +589,7 @@ void colvar::selfcoordnum::apply_force(colvarvalue const &force)
 
 
 simple_scalar_dist_functions(selfcoordnum)
+
 
 
 // groupcoordnum member functions
@@ -415,7 +613,7 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
 
     if (b_scale) {
       cvm::error("Error: cannot specify \"scale\" and "
-                       "\"scale3\" at the same time.\n");
+                 "\"scale3\" at the same time.\n");
       return;
     }
     b_anisotropic = true;
@@ -453,81 +651,26 @@ colvar::groupcoordnum::groupcoordnum()
 }
 
 
-template<bool calculate_gradients>
-cvm::real colvar::groupcoordnum::switching_function(cvm::real const &r0,
-                                                    int const &en,
-                                                    int const &ed,
-                                                    cvm::atom &A1,
-                                                    cvm::atom &A2)
-{
-  cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
-  cvm::real const l2 = diff.norm2()/(r0*r0);
-
-  // Assume en and ed are even integers, and avoid sqrt in the following
-  int const en2 = en/2;
-  int const ed2 = ed/2;
-
-  cvm::real const xn = cvm::integer_power(l2, en2);
-  cvm::real const xd = cvm::integer_power(l2, ed2);
-  cvm::real const func = (1.0-xn)/(1.0-xd);
-
-  if (calculate_gradients) {
-    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
-    cvm::rvector const dl2dx = (2.0/(r0*r0))*diff;
-    A1.grad += (-1.0)*dFdl2*dl2dx;
-    A2.grad +=        dFdl2*dl2dx;
-  }
-
-  return func;
-}
-
-
-#if 0  // AMG: I don't think there's any reason to support anisotropic,
-       //      and I don't have those flags below in calc_value, but
-       //      if I need them, I'll also need to uncomment this method
-template<bool calculate_gradients>
-cvm::real colvar::groupcoordnum::switching_function(cvm::rvector const &r0_vec,
-                                                    int const &en,
-                                                    int const &ed,
-                                                    cvm::atom &A1,
-                                                    cvm::atom &A2)
-{
-  cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
-  cvm::rvector const scal_diff(diff.x/r0_vec.x, diff.y/r0_vec.y, diff.z/r0_vec.z);
-  cvm::real const l2 = scal_diff.norm2();
-
-  // Assume en and ed are even integers, and avoid sqrt in the following
-  int const en2 = en/2;
-  int const ed2 = ed/2;
-
-  cvm::real const xn = cvm::integer_power(l2, en2);
-  cvm::real const xd = cvm::integer_power(l2, ed2);
-  cvm::real const func = (1.0-xn)/(1.0-xd);
-
-  if (calculate_gradients) {
-    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
-    cvm::rvector const dl2dx((2.0/(r0_vec.x*r0_vec.x))*diff.x,
-                             (2.0/(r0_vec.y*r0_vec.y))*diff.y,
-                             (2.0/(r0_vec.z*r0_vec.z))*diff.z);
-    A1.grad += (-1.0)*dFdl2*dl2dx;
-    A2.grad +=        dFdl2*dl2dx;
-  }
-  return func;
-}
-#endif
-
-
 void colvar::groupcoordnum::calc_value()
 {
-
   // create fake atoms to hold the com coordinates
   cvm::atom group1_com_atom;
   cvm::atom group2_com_atom;
   group1_com_atom.pos = group1->center_of_mass();
   group2_com_atom.pos = group2->center_of_mass();
-
-  x.real_value = coordnum::switching_function<false>(r0, en, ed,
-                                                     group1_com_atom, group2_com_atom);
+  if (b_anisotropic) {
+    int const flags = coordnum::ef_anisotropic;
+    x.real_value = coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                                       group1_com_atom,
+                                                       group2_com_atom,
+                                                       NULL, 0.0);
+  } else {
+    int const flags = coordnum::ef_null;
+    x.real_value = coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                                       group1_com_atom,
+                                                       group2_com_atom,
+                                                       NULL, 0.0);
+  }
 }
 
 
@@ -538,10 +681,22 @@ void colvar::groupcoordnum::calc_gradients()
   group1_com_atom.pos = group1->center_of_mass();
   group2_com_atom.pos = group2->center_of_mass();
 
-  coordnum::switching_function<true>(r0, en, ed, group1_com_atom, group2_com_atom);
+  if (b_anisotropic) {
+    int const flags = coordnum::ef_gradients | coordnum::ef_anisotropic;
+    coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                        group1_com_atom,
+                                        group2_com_atom,
+                                        NULL, 0.0);
+  } else {
+    int const flags = coordnum::ef_gradients;
+    coordnum::switching_function<flags>(r0, r0_vec, en, ed,
+                                        group1_com_atom,
+                                        group2_com_atom,
+                                        NULL, 0.0);
+  }
+
   group1->set_weighted_gradient(group1_com_atom.grad);
   group2->set_weighted_gradient(group2_com_atom.grad);
-
 }
 
 

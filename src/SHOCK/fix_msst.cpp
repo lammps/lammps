@@ -357,7 +357,7 @@ void FixMSST::init()
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixMSST::setup(int vflag)
+void FixMSST::setup(int /*vflag*/)
 {
   lagrangian_position = 0.0;
 
@@ -442,7 +442,7 @@ void FixMSST::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixMSST::initial_integrate(int vflag)
+void FixMSST::initial_integrate(int /*vflag*/)
 {
   int i,k;
   double p_msst;                       // MSST driving pressure

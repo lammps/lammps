@@ -17,15 +17,14 @@
 colvarbias::colvarbias(char const *key)
   : bias_type(to_lower_cppstr(key))
 {
-  init_cvb_requires();
-
+  description = "uninitialized " + cvm::to_str(key) + " bias";
+  init_dependencies();
   rank = 1;
 
   has_data = false;
   b_output_energy = false;
   reset();
-  state_file_step = 0;
-  description = "uninitialized " + cvm::to_str(key) + " bias";
+  state_file_step = 0L;
 }
 
 
@@ -76,6 +75,7 @@ int colvarbias::init(std::string const &conf)
       cvm::error("Error: no collective variables specified.\n", INPUT_ERROR);
       return INPUT_ERROR;
     }
+
   } else {
     cvm::log("Reinitializing bias \""+name+"\".\n");
   }
@@ -93,6 +93,70 @@ int colvarbias::init(std::string const &conf)
   // Now that children are defined, we can solve dependencies
   enable(f_cvb_active);
   if (cvm::debug()) print_state();
+
+  return COLVARS_OK;
+}
+
+
+int colvarbias::init_dependencies() {
+  int i;
+  if (features().size() == 0) {
+    for (i = 0; i < f_cvb_ntot; i++) {
+      modify_features().push_back(new feature);
+    }
+
+    init_feature(f_cvb_active, "active", f_type_dynamic);
+    require_feature_children(f_cvb_active, f_cv_active);
+
+    init_feature(f_cvb_awake, "awake", f_type_static);
+    require_feature_self(f_cvb_awake, f_cvb_active);
+
+    init_feature(f_cvb_apply_force, "apply force", f_type_user);
+    require_feature_children(f_cvb_apply_force, f_cv_gradient);
+
+    init_feature(f_cvb_get_total_force, "obtain total force", f_type_dynamic);
+    require_feature_children(f_cvb_get_total_force, f_cv_total_force);
+
+    init_feature(f_cvb_output_acc_work, "output accumulated work", f_type_user);
+    require_feature_self(f_cvb_output_acc_work, f_cvb_apply_force);
+
+    init_feature(f_cvb_history_dependent, "history-dependent", f_type_static);
+
+    init_feature(f_cvb_time_dependent, "time-dependent", f_type_static);
+
+    init_feature(f_cvb_scalar_variables, "require scalar variables", f_type_static);
+    require_feature_children(f_cvb_scalar_variables, f_cv_scalar);
+
+    init_feature(f_cvb_calc_pmf, "calculate a PMF", f_type_static);
+
+    init_feature(f_cvb_calc_ti_samples, "calculate TI samples", f_type_dynamic);
+    require_feature_self(f_cvb_calc_ti_samples, f_cvb_get_total_force);
+    require_feature_children(f_cvb_calc_ti_samples, f_cv_grid);
+
+    init_feature(f_cvb_write_ti_samples, "write TI samples ", f_type_user);
+    require_feature_self(f_cvb_write_ti_samples, f_cvb_calc_ti_samples);
+
+    init_feature(f_cvb_write_ti_pmf, "write TI PMF", f_type_user);
+    require_feature_self(f_cvb_write_ti_pmf, f_cvb_calc_ti_samples);
+
+    // check that everything is initialized
+    for (i = 0; i < colvardeps::f_cvb_ntot; i++) {
+      if (is_not_set(i)) {
+        cvm::error("Uninitialized feature " + cvm::to_str(i) + " in " + description);
+      }
+    }
+  }
+
+  // Initialize feature_states for each instance
+  feature_states.reserve(f_cvb_ntot);
+  for (i = 0; i < f_cvb_ntot; i++) {
+    feature_states.push_back(feature_state(true, false));
+    // Most features are available, so we set them so
+    // and list exceptions below
+  }
+
+  // only compute TI samples when deriving from colvarbias_ti
+  feature_states[f_cvb_calc_ti_samples].available = false;
 
   return COLVARS_OK;
 }
@@ -217,6 +281,9 @@ int colvarbias::update()
 
 void colvarbias::communicate_forces()
 {
+  if (! is_enabled(f_cvb_apply_force)) {
+    return;
+  }
   size_t i = 0;
   for (i = 0; i < num_variables(); i++) {
     if (cvm::debug()) {
@@ -233,6 +300,12 @@ void colvarbias::communicate_forces()
   for (i = 0; i < num_variables(); i++) {
     previous_colvar_forces[i] = colvar_forces[i];
   }
+}
+
+
+int colvarbias::end_of_step()
+{
+  return COLVARS_OK;
 }
 
 
@@ -339,7 +412,8 @@ std::istream & colvarbias::read_state(std::istream &is)
        (set_state_params(conf) != COLVARS_OK) ) {
     cvm::error("Error: in reading state configuration for \""+bias_type+"\" bias \""+
                this->name+"\" at position "+
-               cvm::to_str(is.tellg())+" in stream.\n", INPUT_ERROR);
+               cvm::to_str(static_cast<size_t>(is.tellg()))+
+               " in stream.\n", INPUT_ERROR);
     is.clear();
     is.seekg(start_pos, std::ios::beg);
     is.setstate(std::ios::failbit);
@@ -349,7 +423,8 @@ std::istream & colvarbias::read_state(std::istream &is)
   if (!read_state_data(is)) {
     cvm::error("Error: in reading state data for \""+bias_type+"\" bias \""+
                this->name+"\" at position "+
-               cvm::to_str(is.tellg())+" in stream.\n", INPUT_ERROR);
+               cvm::to_str(static_cast<size_t>(is.tellg()))+
+               " in stream.\n", INPUT_ERROR);
     is.clear();
     is.seekg(start_pos, std::ios::beg);
     is.setstate(std::ios::failbit);
@@ -359,7 +434,8 @@ std::istream & colvarbias::read_state(std::istream &is)
   if (brace != "}") {
     cvm::error("Error: corrupt restart information for \""+bias_type+"\" bias \""+
                this->name+"\": no matching brace at position "+
-               cvm::to_str(is.tellg())+" in stream.\n");
+               cvm::to_str(static_cast<size_t>(is.tellg()))+
+               " in stream.\n");
     is.setstate(std::ios::failbit);
   }
 
@@ -375,7 +451,8 @@ std::istream & colvarbias::read_state_data_key(std::istream &is, char const *key
        !(key_in == to_lower_cppstr(std::string(key))) ) {
     cvm::error("Error: in reading restart configuration for "+
                bias_type+" bias \""+this->name+"\" at position "+
-               cvm::to_str(is.tellg())+" in stream.\n", INPUT_ERROR);
+               cvm::to_str(static_cast<size_t>(is.tellg()))+
+               " in stream.\n", INPUT_ERROR);
     is.clear();
     is.seekg(start_pos, std::ios::beg);
     is.setstate(std::ios::failbit);
@@ -634,7 +711,7 @@ int colvarbias_ti::write_output_files()
       cvm::proxy->close_output_stream(ti_count_file_name);
     }
 
-    std::string const ti_grad_file_name(ti_output_prefix+".ti.grad");
+    std::string const ti_grad_file_name(ti_output_prefix+".ti.force");
     os = cvm::proxy->output_stream(ti_grad_file_name);
     if (os) {
       ti_avg_forces->write_multicol(*os);

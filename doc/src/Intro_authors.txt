@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-LAMMPS authors :h3
+Authors of LAMMPS :h3
 
 The primary LAMMPS developers are at Sandia National Labs and Temple
 University:
@@ -15,7 +15,8 @@ University:
 "Steve Plimpton"_sjp, sjplimp at sandia.gov
 Aidan Thompson, athomps at sandia.gov
 Stan Moore, stamoor at sandia.gov
-Axel Kohlmeyer, akohlmey at gmail.com :ul
+Axel Kohlmeyer, akohlmey at gmail.com
+Richard Berger, richard.berger at temple.edu :ul
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
@@ -24,26 +25,31 @@ and Ray Shan, now at Materials Design.
 
 :line
 
-The following folks are responsible for significant contributions to
-the code, or other aspects of the LAMMPS development effort.  Many of
-the packages they have written are somewhat unique to LAMMPS and the
-code would not be as general-purpose as it is without their expertise
-and efforts.
+The "Authors page"_http://lammps.sandia.gov/authors.html of the
+"LAMMPS website"_lws has a comprehensive list of all the individuals
+who have contributed code for a new feature or command or tool to
+LAMMPS.
 
-Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CG-CMM, USER-OMP, USER-COLVARS, USER-MOLFILE, USER-QMMM packages
+:line
+
+The following folks deserve special recognition.  Many of the packages
+they have written are unique for an MD code and LAMMPS would not be as
+general-purpose as it is without their expertise and efforts.
+
+Metin Aktulga (MSU), USER-REAXC package for C version of ReaxFF
+Mike Brown (Intel), GPU and USER-INTEL packages
+Colin Denniston (U Western Ontario), USER-LB package
+Georg Ganzenmuller (EMI), USER-SMD and USER-SPH packages
+Andres Jaramillo-Botero (Caltech), USER-EFF package for electron force field
+Reese Jones (Sandia) and colleagues, USER-ATC package for atom/continuum coupling
+Christoph Kloss (DCS Computing), LIGGGHTS code for granular materials, built on top of LAMMPS
+Rudra Mukherjee (JPL), POEMS package for articulated rigid body motion
+Trung Ngyuen (Northwestern U), GPU and RIGID and BODY packages
+Mike Parks (Sandia), PERI package for Peridynamics
 Roy Pollock (LLNL), Ewald and PPPM solvers
-Mike Brown (ORNL), brownw at ornl.gov, GPU and USER-INTEL packages
-Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential
-Mike Parks (Sandia), mlparks at sandia.gov, PERI package for Peridynamics
-Rudra Mukherjee (JPL), Rudranarayan.M.Mukherjee at jpl.nasa.gov, POEMS package for articulated rigid body motion
-Reese Jones (Sandia) and collaborators, rjones at sandia.gov, USER-ATC package for atom/continuum coupling
-Ilya Valuev (JIHT), valuev at physik.hu-berlin.de, USER-AWPMD package for wave-packet MD
-Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA and KOKKOS packages
-Andres Jaramillo-Botero (Caltech), ajaramil at wag.caltech.edu, USER-EFF package for electron force field
-Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for granular models and granular/fluid coupling
-Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
-Georg Gunzenmueller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SMD and USER-SPH packages
-Colin Denniston (U Western Ontario), cdennist at uwo.ca, USER-LB package :ul
+Christian Trott (Sandia), USER-CUDA and KOKKOS packages
+Ilya Valuev (JIHT), USER-AWPMD package for wave packet MD
+Greg Wagner (Northwestern U), MEAM package for MEAM potential :ul
 
 :line
 
@@ -52,328 +58,9 @@ page"_http://lammps.sandia.gov/history.html of the website, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners.  Folks involved in the design and testing of the original
 version of LAMMPS were the following:
-    
+
 John Carpenter (Mayo Clinic, formerly at Cray Research)
 Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
 Steve Lustig (Dupont)
 Jim Belak and Roy Pollock (LLNL) :ul
 
-:line
-:line
-
-Here is a timeline for when various individuals contributed to a new
-feature or command or tool added to LAMMPS:
-
-Jul18 : DEM polygonal and polyhedron particles : Trung Nguyen (Northwestern U)
-Jun18 : SPIN package : Julien Tranchida (Sandia and CEA)
-Jun18 : compute entropy/atom : Pablo Piaggi (EPLF, Switzerland)
-May18 : fix bond/react : Jake Gissinger (CU Boulder)
-Apr18 : USER-BOCS package : Nicholas Dunn and Michael DeLyser (Penn State U)
-Mar18: pair coul/shield, kolmogorov/crespi/full, ilp/graphene/hbn : Wengen Ouyang (Tel Aviv U) 
-Feb18 : pair lj/cut/coul/wolf : Vishal Boddu (U of Erlangen-Nuremberg)
-Feb18 : USER-MOFFF package : Hendrik Heenen (Technical U of Munich) and Rochus Schmid (Ruhr-University Bochum)
-Feb18 : pair ufm : Rodolfo Paula Leite and Maurice de Koning (Unicamp/Brazil)
-Dec17 : fix python/move : Richard Berger (Temple U)
-Nov17 : pair extep : Jaap Kroes (Radboud U)
-Oct17 : USER-UEF package : David Nicholson (MIT)
-Oct17 : fix rhok : Ulf Pederson (Roskilde U)
-Oct17 : bond gromos : Axel Kohlmeyer (Temple U)
-Oct17 : pair born/coul/wolf/cs and coul/wolf/cs : Vishal Boddu
-Sep17 : fix latte : Christian Negre (LANL)
-Sep17 : temper_npt : Amulya Pervaje and Cody Addington (NCSU)
-Aug17 : USER-MESO package : Zhen Li (Brown University)
-Aug17 : compute aggregate/atom & fragment/atom : Axel Kohlmeyer (Temple U)
-Jul17 : pair meam/c : Sebastian Hutter (Otto-von-Guericke University)
-Jun17 : pair reaxc/omp : Metin Aktulga (MSU) and Axel Kohlmeyer (Temple U)
-Jun17 : pair vashishita/gpu : Anders Hafreager (UiO)
-Jun17 : kspace pppm/disp/intel and pair lj/long/coul/long/intel : Mike Brown (Intel) and William McDoniel (RWTH Aachen U)
-Jun17 : compute cnp/atom : Paulo Branicio (USC)
-May17 : fix python and pair python : Richard Berger (Temple U)
-May17 : pair edip/multi : Chao Jiang (U Wisconsin)
-May17 : pair gw and gw/zbl : German Samolyuk (ORNL)
-Mar17 : pair charmm fsw and fsh : Robert Meissner & Lucio Colombi Ciacchi (Bremen U), Robert Latour (Clemson U)
-Mar17 : pair momb : Ya Zhou, Kristen Fichthorn, and Tonnam Balankura (PSU)
-Mar17 : fix filter/corotate : Lukas Fath (KIT)
-Mar17 : pair kolmogorov/crespi/z : Jaap Kroes (Radboud Universiteit)
-Feb17 : Kokkos versions of the class2 bond/angle/dihedral/improper : Ray Shan (Materials Design)
-Jan17 : USER-CGDNA package : Oliver Henrich (U Edinburgh)
-Jan17 : fix mscg : Lauren Abbott (Sandia)
-Nov16 : temper/grem and fix grem : David Stelter (BU), Edyta Malolepsza (Broad Institute), Tom Keyes (BU)
-Nov16 : pair agni : Axel Kohlmeyer (Temple U) and Venkatesh Botu
-Nov16 : pair tersoff/mod.c : Ganga P Purja Pun (George Mason University)
-Nov16 : pair born/coul/dsf and pair born/coul/dsf/cs : Ariel Lozano
-Nov16 : fix reaxc/species/kk & fix reaxc/bonds/kk : Stan Moore (Sandia)
-Oct16 : fix wall/gran/region : Dan Bolintineanu (Sandia)
-Sep16 : weight options for balance & fix balance : Axel Kohlmeyer (Temple U) & Iain Bethune (EPCC)
-Sep16 : fix cmap : Xiaohu Hu (ORNL), David Hyde-Volpe & Tigran Abramyan & Robert Latour (Clemson U), Chris Lorenz (Kings College, London)
-Sep16 : pair vashishta/table : Anders Hafreager (U Oslo)
-Sep16 : kspace pppm/kk : Stan Moore (Sandia)
-Aug16 : fix flow/gauss : Steve Strong and Joel Eaves (U Colorado)
-Aug16 : fix controller : Aidan Thompson (Sandia)
-Jul16 : dipole integration by DLM method : Iain Bethune (EPCC)
-Jul16 : dihedral spherical : Andrew Jewett
-Jun16 : pair reax/c/kk : Ray Shan (Materials Design), Stan Moore (Sandia)
-Jun16 : fix orient/bcc : Tegar Wicaksono (UBC) 
-Jun16 : fix ehex : Peter Wirnsberger (University of Cambridge)
-Jun16 : reactive DPD extensions to USER-DPD : James Larentzos (ARL), Timothy Mattox (Engility Corp), John Brennan (ARL), Christopher Stone (Computational Science & Engineering, LLC)
-May16 : USER-MANIFOLD package : Stefan Paquay (Eindhoven U of Tech, The Netherlands)
-Apr16 : write_coeff : Axel Kohlmeyer (Temple U)
-Apr16 : pair morse/soft : Stefan Paquay (Eindhoven U of Tech, The Netherlands)
-Apr16 : compute dipole/chunk : Axel Kohlmeyer (Temple U)
-Apr16 : bond write : Axel Kohlmeyer (Temple U)
-Mar16 : pair morse/smooth/linear : Stefan Paquay (Eindhoven U of Tech, The Netherlands)
-Feb16 : pair/bond/angle/dihedral/improper zero : Carsten Svaneborg (SDU)
-Feb16 : dump custom/vtk : Richard Berger (JKU) and Daniel Queteschiner (DCS Computing)
-Feb16 : fix (nvt/npt/nph)/body and compute temp/body : Trung Nguyen
-Feb16 : USER-DPD package : James Larentzos (ARL), Timothy Mattox (Engility Corp), John Brennan (ARL)
-Dec15 : fix qeq/fire : Ray Shan (Sandia)
-Dec15 : pair lj/mdf, pair lennard/mdf, pair buck/mdf, improper distance : Paolo Raiteri (Curtin University)
-Nov15 : compute orientorder/atom : Aidan Thompson (Sandia) and Axel Kohlmeyer (U Temple)
-Nov15 : compute hexorder/atom : Aidan Thompson (Sandia)
-Oct15 : displace_atoms variable option : Reese Jones (Sandia)
-Oct15 : pair mgpt & USER-MGPT package : Tomas Oppelstrup and John Moriarty (LLNL)
-Oct15 : pair smtbq & USER-SMTBQ package : Nicolas Salles, Emile Maras, Olivier Politano, and Robert Tetot (LAAS-CNRS)
-Oct15 : fix ave/correlate/long command : Jorge Ramirez (UPM) and Alexei Likhtman (U Reading)
-Oct15 : pair vashishta command : Aidan Thompson (Sandia) and Yongnan Xiong (HNU)
-Aug15 : USER-TALLY package : Axel Kohlmeyer (Temple U)
-Aug15 : timer command : Axel Kohlmeyer (Temple U)
-Aug15 : USER-H5MD package : Pierre de Buyl (KU Leuven)
-Aug15 : COMPRESS package : Axel Kohlmeyer (Temple U)
-Aug15 : USER-SMD package : Georg Gunzenmueller (EMI)
-Jul15 : new HTML format for "doc pages"_Manual.html with search option : Richard Berger (JKU)
-Jul15 : rRESPA with pair hybrid : Sam Genheden (U of Southampton)
-Jul15 : pair_modify special : Axel Kohlmeyer (Temple U)
-Jul15 : pair polymorphic : Xiaowang Zhou and Reese Jones (Sandia)
-Jul15 : USER-DRUDE package : Alain Dequidt and Agilio Padua (U Blaise Pascal Clermont-Ferrand) and Julien Devemy (CNRS)
-Jul15 : USER-QTB package : Yuan Shen, Tingting Qi, and Evan Reed (Stanford U)
-Jul15 : USER-DIFFRACTION package : Shawn Coleman (ARL)
-Mar15 : fix temp/csld : Axel Kohlmeyer (Temple U)
-Mar15 : CORESHELL package : Hendrik Heenen (Technical University of Munich)
-Feb15 : pair quip for GAP and other potentials : Albert Bartok-Partay (U Cambridge)
-Feb15 : pair coul/streitz for Streitz-Mintmire potential : Ray Shan (Sandia)
-Feb15 : fix tfmc : Kristof Bal (U of Antwerp) 
-Feb15 : fix ttm/mod : Sergey Starikov and Vasily Pisarev (JIHT of RAS)
-Jan15 : fix atom/swap for MC swaps of atom types/charge : Paul Crozier (Sandia)
-Nov14 : fix pimd for path-integral MD : Chris Knight and Yuxing Peng (U Chicago)
-Nov14 : fix gle and fix ipi for path-integral MD : Michele Ceriotti (EPFL)
-Nov14 : pair style srp : Tim Sirk (ARL) and Pieter in 't Veld (BASF) 
-Nov14 : fix ave/spatial/sphere : Niall Jackson (Imperial College)
-Sep14 : QEQ package and several fix qeq/variant styles : Ray Shan (Sandia)
-Sep14 : SNAP package and pair style : Aidan Thompson (Sandia) and collaborators
-Aug14 : USER-INTEL package : Mike Brown (Intel)
-May14 : KOKKOS pacakge : Christian Trott and Carter Edwards (Sandia)
-May14 : USER-FEP pacakge : Agilio Padua (U Blaise Pascal Clermont-Ferrand)
-Apr14 : fix rigid/small NVE/NVT/NPH/NPT : Trung Nguyen (ORNL)
-Apr14 : fix qmmm for QM/MM coupling : Axel Kohlmeyer (Temple U)
-Mar14 : kspace_modify collective for faster FFTs on BG/Q : Paul Coffman (IBM)
-Mar14 : fix temp/csvr and fix oneway : Axel Kohlmeyer (Temple U)
-Feb14 : pair peri/eps, compute dilatation/atom, compute plasticity/atom : Rezwanur Rahman and John Foster (UTSA)
-Jan14 : MPI-IO options for dump and restart files : Paul Coffman (IBM)
-Nov13 : USER-LB package for Lattice Boltzmann : Francis Mackay and Colin Denniston (U Western Ontario)
-Nov13 : fix ti/rs and ti/spring : Rodrigo Freitas (UC Berkeley)
-Nov13 : pair comb3 : Ray Shan (Sandia), Tao Liang and Dundar Yilmaz (U Florida)
-Nov13 : write_dump and dump movie : Axel Kohlmeyer (Temple U)
-Sep13 : xmgrace tool : Vikas Varshney
-Sep13 : pair zbl : Aidan Thompson and Stephen Foiles (Sandia)
-Aug13 : pair nm and variants : Julien Devemy (ICCF)
-Aug13 : fix wall/lj1043 : Jonathan Lee (Sandia)
-Jul13 : pair peri/ves : Rezwan Rahman, JT Foster (U Texas San Antonio)
-Jul13 : pair tersoff/mod : Vitaly Dozhdikov (JIHT of RAS)
-Jul13 : compute basal/atom : Christopher Barrett,(Mississippi State)
-Jul13 : polybond tool : Zachary Kraus (Georgia Tech)
-Jul13 : fix gld : Stephen Bond and Andrew Baczewski (Sandia) 
-Jun13 : pair nb3b/harmonic : Todd Zeitler (Sandia)
-Jun13 : kspace_style pppm/stagger : Stan Moore (Sandia)
-Jun13 : fix tune/kspace : Paul Crozier (Sandia)
-Jun13 : long-range point dipoles : Stan Moore (Sandia) and Pieter in 't Veld (BASF)
-May13 : compute msd/nongauss : Rob Hoy
-May13 : pair list : Axel Kohlmeyer (Temple U)
-May13 : triclinic support for long-range solvers : Stan Moore (Sandia)
-Apr13 : dump_modify nfile and fileper : Christopher Knight
-Mar13 : fix phonon : Ling-Ti Kong (Shanghai Jiao Tong University)
-Mar13 : pair_style lj/cut/tip4p/cut : Pavel Elkind (Gothenburg University)
-Feb13 : immediate variables in input script : Daniel Moller (Autonomous University of Barcelona)
-Feb13 : fix species : Ray Shan (Sandia)
-Jan13 : compute voronoi/atom : Daniel Schwen
-Nov12 : pair_style mie/cut : Cassiano Aimoli Petrobras (U Notre Dame)
-Oct12 : pair_style meam/sw/spline : Robert Rudd (LLNL)
-Oct12 : angle_style fourier and fourier/simple and quartic : Loukas Peristeras (Scienomics)
-Oct12 : dihedral_style fourier and nharmonic and quadratic : Loukas Peristeras (Scienomics)
-Oct12 : improper_style fourier : Loukas Peristeras (Scienomics)
-Oct12 : kspace_style pppm/disp for 1/r^6 : Rolf Isele-Holder (Aachen University)
-Oct12 : moltemplate molecular builder tool : Andrew Jewett (UCSB)
-Sep12 : pair_style lj/cut/coul/dsf and coul/dsf : Trung Nguyen (ORNL)
-Sep12 : multi-level summation long-range solver : Stan Moore, Stephen Bond, and Paul Crozier (Sandia)
-Aug12 : fix rigid/npt and fix rigid/nph : Trung Nguyen (ORNL)
-Aug12 : Fortran wrapper on lib interface : Karl Hammond (UT, Knoxville)
-Aug12 : kspace_modify diff for 2-FFT PPPM : Rolf Isele-Holder (Aachen University), Stan Moore (BYU), Paul Crozier (Sandia)
-Jun12 : pair_style bop : Don Ward and Xiaowang Zhou (Sandia)
-Jun12 : USER-MOLFILE package : Axel Kohlmeyer (U Temple)
-Jun12 : USER-COLVARS package : Axel Kohlmeyer (U Temple)
-May12 : read_dump : Tim Sirk (ARL)
-May12 : improper_style cossq and ring : Georgios Vogiatzis (CoMSE, NTU Athens)
-May12 : pair_style lcbop : Dominik Wojt (Wroclaw University of Technology)
-Feb12 : PPPM per-atom energy/virial : Stan Moore (BYU)
-Feb12 : Ewald per-atom energy/virial : German Samolyuk (ORNL), Stan Moore (BYU)
-Feb12 : minimize forcezero linesearch : Asad Hasan (CMU)
-Feb12 : pair_style beck : Jon Zimmerman (Sandia)
-Feb12 : pair_style meam/spline : Alex Stukowski (LLNL)
-Jan12 : pair_style kim : Valeriu Smirichinski, Ryan Elliott, Ellad Tadmor (U Minn)
-Jan12 : dihedral_style table : Andrew Jewett (UCSB)
-Jan12 : angle_style dipole : Mario Orsi
-Jan12 : pair_style lj/smooth/linear : Jon Zimmerman (Sandia)
-Jan12 : fix reax/c/bond : Tzu-Ray Shan (Sandia)
-Dec11 : pair_style coul/wolf : Yongfeng Zhang (INL)
-Dec11 : run_style verlet/split : Yuxing Peng and Chris Knight (U Chicago)
-Dec11 : pair_style tersoff/table : Luca Ferraro (CASPUR)
-Nov11 : per-atom energy/stress for reax/c : Tzu-Ray Shan (Sandia)
-Oct11 : Fast Lubrication Dynamics (FLD) package: Amit Kumar, Michael Bybee, Jonathan Higdon (UIUC)
-Oct11 : USER-OMP package : Axel Kohlmeyer (Temple U)
-Sep11 : pair_style edip : Luca Ferraro (CASPUR)
-Aug11 : USER-SPH package : Georg Ganzenmuller (FIHSD, EMI, Germany)
-Aug11 : fix restrain : Craig Tenney (Sandia)
-Aug11 : USER-CUDA package : Christian Trott (U Tech Ilmenau)
-Aug11 : pair_style lj/sf : Laurent Joly (U Lyon)
-Aug11 : bond_style harmonic/shift and harmonic/shift/cut : Carsten Svaneborg
-Aug11 : angle_style cosine/shift and cosine/shift/exp : Carsten Svaneborg
-Aug11 : dihedral_style cosine/shift/exp : Carsten Svaneborg
-Aug11 : pair_style dipole/sf : Mario Orsi
-Aug11 : fix addtorque and compute temp/rotate : Laurent Joly (U Lyon)
-Aug11 : FFT support via FFTW3, MKL, ACML, KISSFFT libraries : \
-  Axel Kohlmeyer (Temple U)
-Jun11 : pair_style adp : Chris Weinberger (Sandia), Stephen Foiles (Sandia), \
-  Chandra Veer Singh (Cornell)
-Jun11 : Windows build option via Microsoft Visual Studio : \
-  Ilya Valuev (JIHT, Moscow, Russia)
-Jun11 : antisymmetrized wave packet MD : Ilya Valuev (JIHT, Moscow, Russia)
-Jun11 : dump image : Nathan Fabian (Sandia)
-May11 : pppm GPU single and double : Mike Brown (ORNL)
-May11 : pair_style lj/expand/gpu : Inderaj Bains (NVIDIA)
-2010 : pair_style reax/c and fix qeq/reax : Metin Aktulga (Purdue, now LBNL)
-- : DREIDING force field, pair_style hbond/dreiding, etc : Tod Pascal (Caltech)
-- : fix adapt and compute ti for thermodynamic integration for \
-  free energies : Sai Jayaraman (Sandia)
-- : pair_style born and gauss : Sai Jayaraman (Sandia)
-- : stochastic rotation dynamics (SRD) via fix srd : \
-  Jeremy Lechman (Sandia) and Pieter in 't Veld (BASF)
-- : ipp Perl script tool : Reese Jones (Sandia)
-- : eam_database and createatoms tools : Xiaowang Zhou (Sandia)
-- : electron force field (eFF) : Andres Jaramillo-Botero and Julius Su (Caltech)
-- : embedded ion method (EIM) potential : Xiaowang Zhou (Sandia)
-- : COMB potential with charge equilibration : Tzu-Ray Shan (U Florida)
-- : fix ave/correlate :  Benoit Leblanc, Dave Rigby, \
-  Paul Saxe (Materials Design) and Reese Jones (Sandia)
-- : pair_style peri/lps : Mike Parks (Sandia)
-- : fix msst : Lawrence Fried (LLNL), Evan Reed (LLNL, Stanford)
-- : thermo_style custom tpcpu & spcpu keywords : Axel Kohlmeyer (Temple U) 
-- : fix rigid/nve, fix rigid/nvt : Tony Sheh and Trung Dac Nguyen (U Michigan)
-- : public SVN & Git repositories for LAMMPS : \
-  Axel Kohlmeyer (Temple U) and Bill Goldman (Sandia)
-- : compute heat/flux : German Samolyuk (ORNL) and \
-  Mario Pinto (Computational Research Lab, Pune, India)
-- : pair_style yukawa/colloid : Randy Schunk (Sandia)
-- : fix wall/colloid : Jeremy Lechman (Sandia)
-2009 : fix imd for real-time viz and interactive MD : Axel Kohlmeyer (Temple Univ)
-- : concentration-dependent EAM potential : \
-  Alexander Stukowski (Technical University of Darmstadt)
-- : parallel replica dymamics (PRD) : Mike Brown (Sandia)
-- : min_style hftn : Todd Plantenga (Sandia)
-- : fix atc : Reese Jones, Jon Zimmerman, Jeremy Templeton (Sandia)
-- : dump cfg : Liang Wan (Chinese Academy of Sciences)
-- : fix nvt with Nose/Hoover chains : Andy Ballard (U Maryland)
-- : pair_style lj/cut/gpu, pair_style gayberne/gpu : Mike Brown (Sandia)
-- : pair_style lj96/cut, bond_style table, angle_style table : Chuanfu Luo
-- : fix langevin tally : Carolyn Phillips (U Michigan)
-- : compute heat/flux for Green-Kubo : Reese Jones (Sandia), \
-  Philip Howell (Siemens), Vikas Varsney (AFRL)
-- : region cone : Pim Schravendijk
-- : pair_style born/coul/long : Ahmed Ismail (Sandia)
-- : fix ttm : Paul Crozier (Sandia) and Carolyn Phillips (U Michigan)
-- : fix box/relax : Aidan Thompson and David Olmsted (Sandia)
-- : ReaxFF potential : Aidan Thompson (Sandia) and Hansohl Cho (MIT)
-- : compute cna/atom : Liang Wan (Chinese Academy of Sciences)
-2008 : Tersoff/ZBL potential : Dave Farrell (Northwestern U)
-- : peridynamics : Mike Parks (Sandia)
-- : fix smd for steered MD : Axel Kohlmeyer (U Penn)
-- : GROMACS pair potentials : Mark Stevens (Sandia)
-- : lmp2vmd tool : Axel Kohlmeyer (U Penn)
-- : compute group/group : Naveen Michaud-Agrawal (Johns Hopkins U)
-- : USER-CG-CMM package for coarse-graining : Axel Kohlmeyer (U Penn)
-- : cosine/delta angle potential : Axel Kohlmeyer (U Penn)
-- : VIM editor add-ons for LAMMPS input scripts : Gerolf Ziegenhain
-- : pair_style lubricate : Randy Schunk (Sandia)
-- : compute ackland/atom : Gerolf Ziegenhain
-- : kspace_style ewald/n, pair_style lj/coul, pair_style buck/coul : \
-  Pieter in 't Veld (Sandia)
-- : AI-REBO bond-order potential : Ase Henry (MIT)
-- : making LAMMPS a true "object" that can be instantiated \
-  multiple times, e.g. as a library : Ben FrantzDale (RPI)
-- : pymol_asphere viz tool : Mike Brown (Sandia)
-2007 : NEMD SLLOD integration : Pieter in 't Veld (Sandia)
-- : tensile and shear deformations : Pieter in 't Veld (Sandia)
-- : GayBerne potential : Mike Brown (Sandia)
-- : ellipsoidal particles : Mike Brown (Sandia)
-- : colloid potentials : Pieter in 't Veld (Sandia)
-- : fix heat : Paul Crozier and Ed Webb (Sandia)
-- : neighbor multi and communicate multi : Pieter in 't Veld (Sandia)
-- : MATLAB post-processing scripts : Arun Subramaniyan (Purdue)
-- : triclinic (non-orthogonal) simulation domains : Pieter in 't Veld (Sandia)
-- : thermo_extract tool: Vikas Varshney (Wright Patterson AFB)
-- : fix ave/time and fix ave/spatial : Pieter in 't Veld (Sandia)
-- : MEAM potential : Greg Wagner (Sandia)
-- : optimized pair potentials for lj/cut, charmm/long, eam, morse : \
-  James Fischer (High Performance Technologies), \
-  David Richie and Vincent Natoli (Stone Ridge Technologies)
-2006 : fix wall/lj126 : Mark Stevens (Sandia)
-- : Stillinger-Weber and Tersoff potentials : \
-  Aidan Thompson and Xiaowang Zhou (Sandia)
-- : region prism : Pieter in 't Veld (Sandia)
-- : fix momentum and recenter : Naveen Michaud-Agrawal (Johns Hopkins U)
-- : multi-letter variable names : Naveen Michaud-Agrawal (Johns Hopkins U)
-- : OPLS dihedral potential: Mark Stevens (Sandia)
-- : POEMS coupled rigid body integrator: Rudranarayan Mukherjee (RPI)
-- : faster pair hybrid potential: James Fischer \
-    (High Performance Technologies, Inc), Vincent Natoli and \
-    David Richie (Stone Ridge Technology)
-- : breakable bond quartic potential: Chris Lorenz and Mark Stevens (Sandia)
-- : DCD and XTC dump styles: Naveen Michaud-Agrawal (Johns Hopkins U)
-- : grain boundary orientation fix : Koenraad Janssens and \
-  David Olmsted (Sandia)
-- : pair_style lj/smooth potential : Craig Maloney (UCSB) 
-- : radius-of-gyration spring fix : Naveen Michaud-Agrawal \
-  (Johns Hopkins U) and Paul Crozier (Sandia)
-- : self spring fix : Naveen Michaud-Agrawal (Johns Hopkins U)
-- : EAM CoAl and AlCu potentials : Kwang-Reoul Lee (KIST, Korea)
-- : cosine/squared angle potential : Naveen Michaud-Agrawal (Johns Hopkins U)
-- : helix dihedral potential : Naveen Michaud-Agrawal (Johns Hopkins U) and \
-    Mark Stevens (Sandia)
-- : Finnis/Sinclair EAM: Tim Lau (MIT)
-- : dissipative particle dynamics (DPD) potentials: Kurt Smith (U Pitt) and \
-    Frank van Swol (Sandia)
-- : TIP4P potential (4-site water): Ahmed Ismail and \
-  Amalie Frischknecht (Sandia)
-2005 : uniaxial strain fix: Carsten Svaneborg (Max Planck Institute)
-- : compressed dump files: Erik Luijten (U Illinois)
-- : cylindrical indenter fix: Ravi Agrawal (Northwestern U)
-- : electric field fix: Christina Payne (Vanderbilt U)
-- : AMBER <-> LAMMPS tool: Keir Novik (Univ College London) and \
-  Vikas Varshney (U Akron)
-- : CHARMM <-> LAMMPS tool: Pieter in 't Veld and Paul Crozier (Sandia)
-- : Morse bond potential: Jeff Greathouse (Sandia)
-- : radial distribution functions: Paul Crozier & Jeff Greathouse (Sandia)
-- : force tables for long-range Coulombics: Paul Crozier (Sandia)
-2004 : targeted molecular dynamics (TMD): Paul Crozier (Sandia) and \
-  Christian Burisch (Bochum University, Germany)
-- : FFT support for SGI SCLS (Altix): Jim Shepherd (Ga Tech)
-- : lmp2cfg and lmp2traj tools: Ara Kooser, Jeff Greathouse, \
-    Andrey Kalinichev (Sandia)
-- : parallel tempering: Mark Sears (Sandia)
-earlier : granular force fields and BC: Leo Silbert & Gary Grest (Sandia)
-- : multi-harmonic dihedral potential: Mathias Putz (Sandia)
-- : embedded atom method (EAM) potential: Stephen Foiles (Sandia)
-- : msi2lmp tool: Steve Lustig (Dupont), Mike Peachey & John Carpenter (Cray)
-- : HTFN energy minimizer: Todd Plantenga (Sandia)
-- : class 2 force fields: Eric Simon (Cray)
-- : NVT/NPT integrators: Mark Stevens (Sandia)
-- : rRESPA: Mark Stevens & Paul Crozier (Sandia)
-- : Ewald and PPPM solvers: Roy Pollock (LLNL) : :tb(s=:,ca1=c)

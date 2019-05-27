@@ -79,8 +79,7 @@ void PairTIP4PCut::compute(int eflag, int vflag)
   double *x1,*x2,*xH1,*xH2;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred
@@ -443,7 +442,7 @@ void PairTIP4PCut::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairTIP4PCut::init_one(int i, int j)
+double PairTIP4PCut::init_one(int /*i*/, int /*j*/)
 {
   // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
 

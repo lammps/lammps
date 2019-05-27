@@ -74,15 +74,16 @@ class FixIntel : public Fix {
   inline int nbor_pack_width() const { return _nbor_pack_width; }
   inline void nbor_pack_width(const int w) { _nbor_pack_width = w; }
   inline int three_body_neighbor() { return _three_body_neighbor; }
-  inline void three_body_neighbor(const int i) { _three_body_neighbor = 1; }
+  inline void three_body_neighbor(const int i) { _three_body_neighbor = i; }
 
   inline int need_zero(const int tid) {
     if (_need_reduce == 0 && tid > 0) return 1;
-    return 0;
+    else if (_zero_master && tid == 0) { _zero_master = 0; return 1; }
+    else return 0;
   }
   inline void set_reduce_flag() { if (_nthreads > 1) _need_reduce = 1; }
   inline int lrt() {
-    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1) 
+    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1)
       return _lrt;
     else return 0;
   }
@@ -100,6 +101,9 @@ class FixIntel : public Fix {
   IntelBuffers<double,double> *_double_buffers;
 
   int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
+  int _pair_intel_count, _pair_hybrid_flag;
+  // These should be removed in subsequent update w/ simpler hybrid arch
+  int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
 
  public:
   inline int* get_overflow_flag() { return _overflow_flag; }
@@ -159,8 +163,8 @@ class FixIntel : public Fix {
   inline int host_start_neighbor() { return 0; }
   inline int host_start_pair() { return 0; }
   inline void zero_timers() {}
-  inline void start_watch(const int which) {}
-  inline double stop_watch(const int which) { return 0.0; }
+  inline void start_watch(const int /*which*/) {}
+  inline double stop_watch(const int /*which*/) { return 0.0; }
   double * off_watch_pair() { return NULL; }
   double * off_watch_neighbor() { return NULL; }
   inline void balance_stamp() {}
@@ -209,6 +213,8 @@ class FixIntel : public Fix {
   double _stopwatch[NUM_ITIMERS];
   _alignvar(double _stopwatch_offload_neighbor[1],64);
   _alignvar(double _stopwatch_offload_pair[1],64);
+
+  void _sync_main_arrays(const int prereverse);
 
   template <class ft>
   void reduce_results(ft * _noalias const f_in);
@@ -282,6 +288,8 @@ void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
     _off_results_vatom = vatom;
     _off_force_array_d = f_in;
     _off_ev_array_d = ev_in;
+    if (_pair_hybrid_flag && force->pair->fdotr_is_set())
+       _sync_main_arrays(1);
     return;
   }
   #endif
@@ -296,6 +304,9 @@ void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
 
   if (_overflow_flag[LMP_OVERFLOW])
     error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+
+  if (_pair_hybrid_flag > 1 ||
+      (_pair_hybrid_flag && force->pair->fdotr_is_set())) _sync_main_arrays(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -310,6 +321,8 @@ void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
     _off_results_vatom = vatom;
     _off_force_array_m = f_in;
     _off_ev_array_d = ev_in;
+    if (_pair_hybrid_flag && force->pair->fdotr_is_set())
+       _sync_main_arrays(1);
     return;
   }
   #endif
@@ -324,6 +337,10 @@ void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
 
   if (_overflow_flag[LMP_OVERFLOW])
     error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+
+  if (_pair_hybrid_flag > 1 ||
+      (_pair_hybrid_flag && force->pair->fdotr_is_set()))
+    _sync_main_arrays(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -338,6 +355,8 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
     _off_results_vatom = vatom;
     _off_force_array_s = f_in;
     _off_ev_array_s = ev_in;
+    if (_pair_hybrid_flag && force->pair->fdotr_is_set())
+       _sync_main_arrays(1);
     return;
   }
   #endif
@@ -352,6 +371,10 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
 
   if (_overflow_flag[LMP_OVERFLOW])
     error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+
+  if (_pair_hybrid_flag > 1 ||
+      (_pair_hybrid_flag && force->pair->fdotr_is_set()))
+    _sync_main_arrays(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -472,9 +495,9 @@ E: Currently, neighbor style BIN must be used with Intel package.
 This is the only neighbor style that has been implemented for the Intel
 package.
 
-E: Currently, cannot use neigh_modify exclude with Intel package.
+E: Currently, cannot use neigh_modify exclude with Intel package offload.
 
-This is a current restriction of the Intel package.
+This is a current restriction of the Intel package when built for offload.
 
 W: Unknown Intel Compiler Version
 
@@ -487,16 +510,16 @@ The compiler version used to build LAMMPS is not supported when using
 offload to a coprocessor. There could be performance or correctness
 issues. Please use 14.0.1.106 or 15.1.133 or later.
 
-E: Currently, cannot use more than one intel style with hybrid.
+E: Currently, cannot offload more than one intel style with hybrid.
 
-Currently, hybrid pair styles can only use the intel suffix for one of the
-pair styles.
+Currently, when using offload, hybrid pair styles can only use the intel
+suffix for one of the pair styles.
 
-E: Cannot yet use hybrid styles with Intel package.
+E: Cannot yet use hybrid styles with Intel offload.
 
-The hybrid pair style configuration is not yet supported by the Intel
-package. Support is limited to hybrid/overlay or a hybrid style that does
-not require a skip list.
+The hybrid pair style configuration is not yet supported when using offload
+within the Intel package. Support is limited to hybrid/overlay or a hybrid
+style that does not require a skip list.
 
 W: Leaving a core/node free can improve performance for offload
 
@@ -537,5 +560,17 @@ E: Too few atoms for load balancing offload.
 
 When using offload to a coprocessor, each MPI task must have at least 2
 atoms throughout the simulation.
+
+E: Intel package requires fdotr virial with newton on.
+
+This error can occur with a hybrid pair style that mixes styles that are
+incompatible with the newton pair setting turned on. Try turning the
+newton pair setting off.
+
+E: Add -DLMP_INTEL_NBOR_COMPAT to build for special_bond exclusions with Intel
+
+When using a manybody pair style, bonds/angles/dihedrals, and special_bond
+exclusions, LAMMPS should be built with the above compile flag for compatible
+results.
 
 */

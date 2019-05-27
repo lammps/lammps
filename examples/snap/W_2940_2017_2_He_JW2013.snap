@@ -1,17 +1,1 @@
-# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
-#
-# Definition of SNAP+ZBL+Tabulated potential.
-variable zblcutinner equal 4
-variable zblcutouter equal 4.8
-variable zblz equal 74
-
-# Specify hybrid with SNAP and ZBL
-
-pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap table spline 10000 table spline 10000
-pair_coeff 	1 1 zbl ${zblz} ${zblz}
-pair_coeff 	* * snap W_2940_2017_2.snapcoeff W W_2940_2017_2.snapparam W NULL
-pair_coeff      2 2 table 1 He_He_JW2013.table HeHe
-pair_coeff      1 2 table 2 W_He_JW2013.table WHe
-#Hybrid/overlay will take all pair styles and add their contributions equally, order of pair_coeff doesnt matter here
-#This is not the case for pair_style hybrid ... where only one pair_coeff is read for each type combination, order matters here.
-
+../../potentials/W_2940_2017_2_He_JW2013.snap

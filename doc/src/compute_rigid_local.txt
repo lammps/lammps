@@ -92,7 +92,7 @@ dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_1\[4\] c_1\[5\
 
 This section explains the rigid body attributes that can be specified.
 
-The {id} attribute is the atomID of the atom which owns the rigid body, which is
+The {id} attribute is the atom-ID of the atom which owns the rigid body, which is
 assigned by the "fix rigid/small"_fix_rigid.html command.
 
 The {mol} attribute is the molecule ID of the rigid body.  It should
@@ -106,8 +106,8 @@ There are two options for outputting the coordinates of the center of
 mass (COM) of the body.  The {x}, {y}, {z} attributes write the COM
 "unscaled", in the appropriate distance "units"_units.html (Angstroms,
 sigma, etc).  Use {xu}, {yu}, {zu} if you want the COM "unwrapped" by
-the image flags for each atobody.  Unwrapped means that if the body
-COM has passed thru a periodic boundary one or more times, the value
+the image flags for each body.  Unwrapped means that if the body
+COM has passed through a periodic boundary one or more times, the value
 is generated what the COM coordinate would be if it had not been
 wrapped back into the periodic box.
 
@@ -175,8 +175,8 @@ inertiax,inertiay,inertiaz = mass*distance^2 units :ul
 [Restrictions:]
 
 This compute is part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

@@ -105,7 +105,10 @@ namespace Kokkos {
   template< typename T > struct is_ ## CONCEPT { \
   private: \
     template< typename , typename = std::true_type > struct have : std::false_type {}; \
-    template< typename U > struct have<U,typename std::is_same<U,typename U:: CONCEPT >::type> : std::true_type {}; \
+    template< typename U > struct have<U,typename std::is_same< \
+     typename std::remove_cv<U>::type, \
+     typename std::remove_cv<typename U:: CONCEPT>::type \
+   >::type> : std::true_type {}; \
   public: \
     enum { value = is_ ## CONCEPT::template have<T>::value }; \
   };

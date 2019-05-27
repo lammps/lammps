@@ -42,18 +42,27 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg),
+MSMCG::MSMCG(LAMMPS *lmp) : MSM(lmp),
   is_charged(NULL)
+{
+  triclinic_support = 0;
+
+  num_charged = -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MSMCG::settings(int narg, char **arg)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg command");
 
-  triclinic_support = 0;
+  // first argument is processed in parent class
+
+  MSM::settings(narg,arg);
 
   if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
   else smallq = SMALLQ;
-
-  num_charged = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -81,9 +90,7 @@ void MSMCG::compute(int eflag, int vflag)
 
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-    eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
+  ev_init(eflag,vflag);
 
   // invoke allocate_peratom() if needed for first time
 
@@ -190,7 +197,7 @@ void MSMCG::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for nonperiodic
+  // compute direct interation for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {

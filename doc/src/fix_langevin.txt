@@ -179,7 +179,7 @@ options.
 For the {omega} keyword there is also a scale factor of 10.0/3.0 that
 is applied as a multiplier on the Ff (damping) term in the equation
 above and of sqrt(10.0/3.0) as a multiplier on the Fr term.  This does
-not affect the thermostatting behaviour of the Langevin formalism but
+not affect the thermostatting behavior of the Langevin formalism but
 insures that the randomized rotational diffusivity of spherical
 particles is correct.
 
@@ -217,10 +217,6 @@ the particles.  As described below, this energy can then be printed
 out or added to the potential energy of the system to monitor energy
 conservation.
 
-NOTE: this accumulated energy does NOT include kinetic energy removed
-by the {zero} flag. LAMMPS will print a warning when both options are
-active.
-
 The keyword {zero} can be used to eliminate drift due to the
 thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero.  As a result, this fix
@@ -255,7 +251,7 @@ bonds, configurational properties generated with dt = 2.5 fs and tdamp
 = 100 fs are indistinguishable from dt = 0.5 fs.  Because the velocity
 distribution systematically decreases with increasing timestep, the
 method should not be used to generate properties that depend on the
-velocity distribution, such as the velocity autocorrelation function
+velocity distribution, such as the velocity auto-correlation function
 (VACF). In this example, the velocity distribution at dt = 2.5fs
 generates an average temperature of 220 K, instead of 300 K.
 
@@ -270,13 +266,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.

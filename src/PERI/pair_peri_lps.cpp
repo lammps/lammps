@@ -93,8 +93,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;
@@ -364,7 +363,7 @@ void PairPeriLPS::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPeriLPS::settings(int narg, char **arg)
+void PairPeriLPS::settings(int narg, char **/*arg*/)
 {
   if (narg) error->all(FLERR,"Illegal pair_style command");
 }
@@ -631,7 +630,7 @@ void PairPeriLPS::compute_dilatation()
  ---------------------------------------------------------------------- */
 
 int PairPeriLPS::pack_forward_comm(int n, int *list, double *buf,
-                                   int pbc_flag, int *pbc)
+                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

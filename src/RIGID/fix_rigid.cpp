@@ -174,7 +174,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) 
+          if (mask[i] & groupbit)
             molecule[i] = (tagint)((tagint)value[i] - minval + 1);
         delete[] value;
       } else error->all(FLERR,"Unsupported fix rigid custom property");
@@ -727,10 +727,10 @@ void FixRigid::init()
     int rflag = 0;
     for (i = 0; i < modify->nfix; i++) {
       if (modify->fix[i]->rigid_flag) rflag = 1;
-      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+      if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        sprintf(str,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        snprintf(str,128,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
         error->warning(FLERR,str);
       }
     }
@@ -1030,7 +1030,6 @@ void FixRigid::enforce2d()
 void FixRigid::compute_forces_and_torques()
 {
   int i,ibody;
-  double dtfm;
 
   // sum over atoms to get force and torque on rigid body
 
@@ -1096,7 +1095,7 @@ void FixRigid::compute_forces_and_torques()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::post_force(int vflag)
+void FixRigid::post_force(int /*vflag*/)
 {
   if (langflag) apply_langevin_thermostat();
   if (earlyflag) compute_forces_and_torques();
@@ -1141,7 +1140,7 @@ void FixRigid::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixRigid::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -1153,7 +1152,7 @@ void FixRigid::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::final_integrate_respa(int ilevel, int iloop)
+void FixRigid::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();
@@ -2272,7 +2271,7 @@ void FixRigid::readfile(int which, double *vec,
     fp = fopen(infile,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix rigid infile %s",infile);
+      snprintf(str,128,"Cannot open fix rigid infile %s",infile);
       error->one(FLERR,str);
     }
 
@@ -2381,11 +2380,11 @@ void FixRigid::write_restart_file(char *file)
   if (me) return;
 
   char outfile[128];
-  sprintf(outfile,"%s.rigid",file);
+  snprintf(outfile,128,"%s.rigid",file);
   FILE *fp = fopen(outfile,"w");
   if (fp == NULL) {
     char str[192];
-    sprintf(str,"Cannot open fix rigid restart file %s",outfile);
+    snprintf(str,192,"Cannot open fix rigid restart file %s",outfile);
     error->one(FLERR,str);
   }
 
@@ -2478,7 +2477,7 @@ void FixRigid::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixRigid::copy_arrays(int i, int j, int delflag)
+void FixRigid::copy_arrays(int i, int j, int /*delflag*/)
 {
   body[j] = body[i];
   xcmimage[j] = xcmimage[i];
@@ -2640,7 +2639,7 @@ int FixRigid::modify_param(int narg, char **arg)
     else error->all(FLERR,"Illegal fix_modify command");
 
     // reset fix mask
-    // must do here and not in init, 
+    // must do here and not in init,
     // since modify.cpp::init() uses fix masks before calling fix::init()
 
     for (int i = 0; i < modify->nfix; i++)

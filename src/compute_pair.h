@@ -33,7 +33,7 @@ class ComputePair : public Compute {
   void compute_vector();
 
  private:
-  int evalue,npair;
+  int evalue,npair,nsub;
   char *pstyle;
   class Pair *pair;
   double *one;

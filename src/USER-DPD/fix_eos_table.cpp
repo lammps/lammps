@@ -200,7 +200,7 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   FILE *fp = force->open_potential(file);
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 

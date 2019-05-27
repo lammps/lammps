@@ -38,8 +38,9 @@ PairLJExpand::PairLJExpand(LAMMPS *lmp) : Pair(lmp)
 
 PairLJExpand::~PairLJExpand()
 {
-  if (!copymode) {
-   if (allocated) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -52,7 +53,6 @@ PairLJExpand::~PairLJExpand()
     memory->destroy(lj3);
     memory->destroy(lj4);
     memory->destroy(offset);
-   }
   }
 }
 
@@ -67,8 +67,7 @@ void PairLJExpand::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -396,8 +395,8 @@ void PairLJExpand::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJExpand::single(int i, int j, int itype, int jtype, double rsq,
-                            double factor_coul, double factor_lj,
+double PairLJExpand::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj,
                             double &fforce)
 {
   double r,rshift,rshiftsq,r2inv,r6inv,forcelj,philj;

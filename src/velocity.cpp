@@ -33,6 +33,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -410,7 +411,7 @@ void Velocity::create(double t_desired, int seed)
 
 /* ---------------------------------------------------------------------- */
 
-void Velocity::set(int narg, char **arg)
+void Velocity::set(int /*narg*/, char **arg)
 {
   int xstyle,ystyle,zstyle,varflag;
   double vx,vy,vz;
@@ -579,7 +580,7 @@ void Velocity::set(int narg, char **arg)
    rescale velocities of a group after computing its temperature
 ------------------------------------------------------------------------- */
 
-void Velocity::scale(int narg, char **arg)
+void Velocity::scale(int /*narg*/, char **arg)
 {
   double t_desired = force->numeric(FLERR,arg[0]);
 
@@ -628,7 +629,7 @@ void Velocity::scale(int narg, char **arg)
    apply a ramped set of velocities
 ------------------------------------------------------------------------- */
 
-void Velocity::ramp(int narg, char **arg)
+void Velocity::ramp(int /*narg*/, char **arg)
 {
   // set scale factors
 
@@ -641,7 +642,7 @@ void Velocity::ramp(int narg, char **arg)
 
   // parse args
 
-  int v_dim;
+  int v_dim = 0;
   if (strcmp(arg[0],"vx") == 0) v_dim = 0;
   else if (strcmp(arg[0],"vy") == 0) v_dim = 1;
   else if (strcmp(arg[0],"vz") == 0) v_dim = 2;
@@ -662,7 +663,7 @@ void Velocity::ramp(int narg, char **arg)
     v_hi = zscale*force->numeric(FLERR,arg[2]);
   }
 
-  int coord_dim;
+  int coord_dim = 0;
   if (strcmp(arg[3],"x") == 0) coord_dim = 0;
   else if (strcmp(arg[3],"y") == 0) coord_dim = 1;
   else if (strcmp(arg[3],"z") == 0) coord_dim = 2;
@@ -705,23 +706,23 @@ void Velocity::ramp(int narg, char **arg)
    zero linear or angular momentum of a group
 ------------------------------------------------------------------------- */
 
-void Velocity::zero(int narg, char **arg)
+void Velocity::zero(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();
-    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
       modify->fix[rfix]->setup_pre_neighbor();
       modify->fix[rfix]->zero_momentum();
-    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
       modify->fix[rfix]->zero_momentum();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else if (strcmp(arg[0],"angular") == 0) {
     if (rfix < 0) zero_rotation();
-    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
       modify->fix[rfix]->setup_pre_neighbor();
       modify->fix[rfix]->zero_rotation();
-    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
       modify->fix[rfix]->zero_rotation();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 

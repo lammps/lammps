@@ -343,7 +343,7 @@ void FixWall::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWall::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWall::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

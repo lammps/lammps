@@ -4,9 +4,9 @@
 
 latte_SYSINC = 
 latte_SYSLIB = ../../lib/latte/filelink.o \
-               -llatte -lifcore -lsvml -lompstub -limf -lmkl_intel_lp64 \
-               -lmkl_intel_thread -lmkl_core -lmkl_intel_thread -lpthread \
-               -openmp -O0
+               -llatte -lifport -lifcore -lsvml -lompstub -limf \
+               -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core \
+               -lmkl_intel_thread -lpthread -openmp
 latte_SYSPATH = -openmp -L${MKLROOT}/lib/intel64 -lmkl_lapack95_lp64 \
                 -L/opt/intel/composer_xe_2013_sp1.2.144/compiler/lib/intel64
 

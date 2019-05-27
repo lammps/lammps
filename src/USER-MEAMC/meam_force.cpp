@@ -7,7 +7,7 @@ using namespace LAMMPS_NS;
 
 void
 MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
-                 double* eatom, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                 double* eatom, int /*ntype*/, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
                  int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom)
 {
   int j, jn, k, kn, kk, m, n, p, q;

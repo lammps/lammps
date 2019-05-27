@@ -1,3 +1,4 @@
+
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -45,7 +46,7 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
 PairHybrid::~PairHybrid()
 {
-  if (nstyles) {
+  if (nstyles > 0) {
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete [] keywords[m];
@@ -95,9 +96,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // check if global component of incoming vflag = 2
   // if so, reset vflag passed to substyle as if it were 0
@@ -243,11 +242,18 @@ void PairHybrid::settings(int narg, char **arg)
 
   // delete old lists, since cannot just change settings
 
-  if (nstyles) {
-    for (int m = 0; m < nstyles; m++) delete styles[m];
-    delete [] styles;
-    for (int m = 0; m < nstyles; m++) delete [] keywords[m];
-    delete [] keywords;
+  if (nstyles > 0) {
+    for (int m = 0; m < nstyles; m++) {
+      delete styles[m];
+      delete [] keywords[m];
+      if (special_lj[m])   delete [] special_lj[m];
+      if (special_coul[m]) delete [] special_coul[m];
+    }
+    delete[] styles;
+    delete[] keywords;
+    delete[] multiple;
+    delete[] special_lj;
+    delete[] special_coul;
   }
 
   if (allocated) {
@@ -281,7 +287,7 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"hybrid") == 0)
+    if (strncmp(arg[iarg],"hybrid",6) == 0)
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
@@ -670,6 +676,12 @@ void PairHybrid::read_restart(FILE *fp)
 
   // allocate list of sub-styles
 
+  delete[] styles;
+  delete[] keywords;
+  delete[] multiple;
+  delete[] special_lj;
+  delete[] special_coul;
+
   styles = new Pair*[nstyles];
   keywords = new char*[nstyles];
   multiple = new int[nstyles];
@@ -844,7 +856,7 @@ void PairHybrid::modify_params(int narg, char **arg)
    store a local per pair style override for special_lj and special_coul
 ------------------------------------------------------------------------- */
 
-void PairHybrid::modify_special(int m, int narg, char **arg)
+void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
 {
   double special[4];
   int i;

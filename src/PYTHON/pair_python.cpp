@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "update.h"
 #include "neigh_list.h"
-#include "python.h"
+#include "lmppython.h"
 #include "error.h"
 #include "python_compat.h"
 
@@ -82,8 +82,7 @@ void PairPython::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -401,9 +400,9 @@ double PairPython::init_one(int, int)
 
 /* ---------------------------------------------------------------------- */
 
-double PairPython::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
-                         double &fforce)
+double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
+                         double rsq, double /* factor_coul */,
+                         double factor_lj, double &fforce)
 {
   // with hybrid/overlay we might get called for skipped types
   if (skip_types[itype] || skip_types[jtype]) {

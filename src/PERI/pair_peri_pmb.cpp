@@ -84,8 +84,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;
@@ -297,7 +296,7 @@ void PairPeriPMB::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPeriPMB::settings(int narg, char **arg)
+void PairPeriPMB::settings(int narg, char **/*arg*/)
 {
   if (narg) error->all(FLERR,"Illegal pair_style command");
 }
@@ -441,7 +440,7 @@ void PairPeriPMB::read_restart(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
-                           double factor_coul, double factor_lj,
+                           double /*factor_coul*/, double /*factor_lj*/,
                            double &fforce)
 {
   double delx0,dely0,delz0,rsq0;

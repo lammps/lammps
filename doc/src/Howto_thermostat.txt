@@ -43,6 +43,11 @@ nvt/asphere"_fix_nvt_asphere.html thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
 particles.
 
+NOTE: A recent (2017) book by "(Daivis and Todd)"_#Daivis-thermostat
+discusses use of the SLLOD method and non-equilibrium MD (NEMD)
+thermostatting generally, for both simple and complex fluids,
+e.g. molecular systems.  The latter can be tricky to do correctly.
+
 DPD thermostatting alters pairwise interactions in a manner analogous
 to the per-particle thermostatting of "fix
 langevin"_fix_langevin.html.
@@ -87,3 +92,9 @@ specify them explicitly via the "thermo_style
 custom"_thermo_style.html command.  Or you can use the
 "thermo_modify"_thermo_modify.html command to re-define what
 temperature compute is used for default thermodynamic output.
+
+:line
+
+:link(Daivis-thermostat)
+[(Daivis and Todd)] Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
+Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

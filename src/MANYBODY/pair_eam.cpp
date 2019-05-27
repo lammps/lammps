@@ -142,8 +142,7 @@ void PairEAM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
@@ -347,7 +346,7 @@ void PairEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEAM::settings(int narg, char **arg)
+void PairEAM::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -460,7 +459,7 @@ void PairEAM::read_file(char *filename)
     fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EAM potential file %s",filename);
+      snprintf(str,128,"Cannot open EAM potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -795,7 +794,7 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,
-                       double rsq, double factor_coul, double factor_lj,
+                       double rsq, double /*factor_coul*/, double /*factor_lj*/,
                        double &fforce)
 {
   int m;
@@ -829,7 +828,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairEAM::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

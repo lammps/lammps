@@ -36,7 +36,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,8 +71,7 @@ void DihedralCosineShiftExp::compute(int eflag, int vflag)
   double cccpsss,cssmscc,exp2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

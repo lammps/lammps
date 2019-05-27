@@ -33,6 +33,7 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
 {
   writedata = 0;
   nstyles = 0;
+  has_quartic = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,8 +103,7 @@ void BondHybrid::compute(int eflag, int vflag)
   // set neighbor->bondlist to sub-style bondlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];
@@ -171,6 +171,7 @@ void BondHybrid::settings(int narg, char **arg)
     delete [] styles;
     for (int i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
+    has_quartic = -1;
   }
 
   if (allocated) {
@@ -214,13 +215,22 @@ void BondHybrid::settings(int narg, char **arg)
   i = 0;
 
   while (i < narg) {
+
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0)
         error->all(FLERR,"Bond style hybrid cannot use same bond style twice");
+
     if (strcmp(arg[i],"hybrid") == 0)
       error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
+
     if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
+
+    // register index of quartic bond type,
+    // so that bond type 0 can be mapped to it
+
+    if (strncmp(arg[i],"quartic",7) == 0)
+      has_quartic = m;
 
     styles[nstyles] = force->new_bond(arg[i],1,dummy);
     force->store_style(keywords[nstyles],arg[i],0);
@@ -283,6 +293,12 @@ void BondHybrid::init_style()
 {
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
+
+  // bond style quartic will set broken bonds to bond type 0, so we need
+  // to create an entry for it in the bond type to sub-style map
+
+  if (has_quartic >= 0)
+    map[0] = has_quartic;
 }
 
 /* ----------------------------------------------------------------------

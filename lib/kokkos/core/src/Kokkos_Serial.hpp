@@ -262,7 +262,7 @@ public:
   }
 
   //----------------------------------------
-
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   template< class FunctorType >
   static
   int team_size_max( const FunctorType & ) { return 1 ; }
@@ -274,6 +274,16 @@ public:
   template< class FunctorType >
   static
   int team_size_recommended( const FunctorType & , const int& ) { return 1 ; }
+#endif
+
+  template<class FunctorType>
+  int team_size_max( const FunctorType&, const ParallelForTag& ) const { return 1 ; }
+  template<class FunctorType>
+  int team_size_max( const FunctorType&, const ParallelReduceTag& ) const { return 1 ; }
+  template<class FunctorType>
+  int team_size_recommended( const FunctorType&, const ParallelForTag& ) const { return 1 ; }
+  template<class FunctorType>
+  int team_size_recommended( const FunctorType&, const ParallelReduceTag& ) const { return 1 ; }
 
   //----------------------------------------
 
@@ -281,6 +291,16 @@ public:
   inline int league_size() const { return m_league_size ; }
   inline size_t scratch_size(const int& level, int = 0) const { return m_team_scratch_size[level] + m_thread_scratch_size[level]; }
 
+  inline static
+  int vector_length_max()
+    { return 1024; } // Use arbitrary large number, is meant as a vectorizable length
+
+  inline static
+  int scratch_size_max(int level)
+  { return (level==0?
+        1024*32:
+        20*1024*1024);
+  }
   /** \brief  Specify league size, request team size */
   TeamPolicyInternal( execution_space &
             , int league_size_request

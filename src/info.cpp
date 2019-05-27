@@ -42,9 +42,10 @@
 #include "variable.h"
 #include "update.h"
 #include "error.h"
+#include "utils.h"
 
 #include <ctime>
-#include <vector>
+#include <map>
 #include <string>
 #include <algorithm>
 
@@ -117,7 +118,8 @@ static const char bstyles[] = "pfsm";
 using namespace LAMMPS_NS;
 using namespace std;
 
-static void print_columns(FILE* fp, vector<string> & styles);
+template<typename ValueType>
+static void print_columns(FILE* fp, map<string, ValueType> * styles);
 
 /* ---------------------------------------------------------------------- */
 
@@ -259,12 +261,26 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-    fprintf(out,"\nLAMMPS version: %s / %s\n\n",
-            universe->version, universe->num_ver);
+    if (lmp->has_git_info) {
+      fprintf(out,"\nLAMMPS version: %s / %s\nGit info: %s / %s / %s\n\n",
+              universe->version, universe->num_ver,lmp->git_branch,
+              lmp->git_descriptor,lmp->git_commit);
+    } else {
+      fprintf(out,"\nLAMMPS version: %s / %s\n\n",
+              universe->version, universe->num_ver);
+    }
+    const char *infobuf = get_os_info();
+    fprintf(out,"OS information: %s\n\n",infobuf);
+    delete[] infobuf;
+
     fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
     fprintf(out,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
     fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
     fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
+    infobuf = get_compiler_info();
+    fprintf(out,"\nCompiler: %s with %s\n",infobuf,get_openmp_info());
+    delete[] infobuf;
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -272,6 +288,14 @@ void Info::command(int narg, char **arg)
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
     if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
+
+#if defined(LAMMPS_BIGBIG)
+    fputs("-DLAMMPS_BIGBIG\n",out);
+#elif defined(LAMMPS_SMALLBIG)
+    fputs("-DLAMMPS_SMALLBIG\n",out);
+#else // defined(LAMMPS_SMALLSMALL)
+    fputs("-DLAMMPS_SMALLSMALL\n",out);
+#endif
 
     const char *pkg;
     int ncword, ncline = 0;
@@ -287,44 +311,6 @@ void Info::command(int narg, char **arg)
       ncline += ncword + 1;
     }
     fputs("\n",out);
-
-#if defined(_WIN32)
-    DWORD fullversion,majorv,minorv,buildv=0;
-
-    fullversion = GetVersion();
-    majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
-    minorv = (DWORD) (HIBYTE(LOWORD(fullversion)));
-    if (fullversion < 0x80000000)
-      buildv = (DWORD) (HIWORD(fullversion));
-
-    SYSTEM_INFO si;
-    GetSystemInfo(&si);
-
-    const char *machine;
-    switch (si.wProcessorArchitecture) {
-    case PROCESSOR_ARCHITECTURE_AMD64:
-      machine = (const char *) "x86_64";
-      break;
-    case PROCESSOR_ARCHITECTURE_ARM:
-      machine = (const char *) "arm";
-      break;
-    case PROCESSOR_ARCHITECTURE_IA64:
-      machine = (const char *) "ia64";
-      break;
-    case PROCESSOR_ARCHITECTURE_INTEL:
-      machine = (const char *) "i386";
-      break;
-    default:
-      machine = (const char *) "(unknown)";
-    }
-    fprintf(out,"\nOS information: Windows %d.%d (%d) on %s\n",
-            majorv,minorv,buildv,machine);
-#else
-    struct utsname ut;
-    uname(&ut);
-    fprintf(out,"\nOS information: %s %s on %s\n",
-            ut.sysname, ut.release, ut.machine);
-#endif
   }
 
   if (flags & MEMORY) {
@@ -412,7 +398,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
             atom->natoms, atom->ntypes, force->pair_style);
 
-    if (force->pair && strstr(force->pair_style,"hybrid")) {
+    if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       PairHybrid *hybrid = (PairHybrid *)force->pair;
       fprintf(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
@@ -552,6 +538,12 @@ void Info::command(int narg, char **arg)
       fprintf(out,"Region[%3d]: %s,  style = %s,  side = %s\n",
               i, regs[i]->id, regs[i]->style,
               regs[i]->interior ? "in" : "out");
+      if (regs[i]->bboxflag)
+        fprintf(out,"     Boundary: lo %g %g %g  hi %g %g %g\n",
+                regs[i]->extent_xlo, regs[i]->extent_ylo,
+                regs[i]->extent_zlo, regs[i]->extent_xhi,
+                regs[i]->extent_yhi, regs[i]->extent_zhi);
+      else fprintf(out,"     No Boundary\n");
     }
   }
 
@@ -686,196 +678,98 @@ void Info::available_styles(FILE * out, int flags)
 void Info::atom_styles(FILE * out)
 {
   fprintf(out, "\nAtom styles:\n");
-
-  vector<string> styles;
-
-  for(Atom::AtomVecCreatorMap::iterator it = atom->avec_map->begin(); it != atom->avec_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, atom->avec_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::integrate_styles(FILE * out)
 {
   fprintf(out, "\nIntegrate styles:\n");
-
-  vector<string> styles;
-
-  for(Update::IntegrateCreatorMap::iterator it = update->integrate_map->begin(); it != update->integrate_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, update->integrate_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::minimize_styles(FILE * out)
 {
   fprintf(out, "\nMinimize styles:\n");
-
-  vector<string> styles;
-
-  for(Update::MinimizeCreatorMap::iterator it = update->minimize_map->begin(); it != update->minimize_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, update->minimize_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::pair_styles(FILE * out)
 {
   fprintf(out, "\nPair styles:\n");
-
-  vector<string> styles;
-
-  for(Force::PairCreatorMap::iterator it = force->pair_map->begin(); it != force->pair_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, force->pair_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::bond_styles(FILE * out)
 {
   fprintf(out, "\nBond styles:\n");
-
-  vector<string> styles;
-
-  for(Force::BondCreatorMap::iterator it = force->bond_map->begin(); it != force->bond_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, force->bond_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::angle_styles(FILE * out)
 {
   fprintf(out, "\nAngle styles:\n");
-
-  vector<string> styles;
-
-  for(Force::AngleCreatorMap::iterator it = force->angle_map->begin(); it != force->angle_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, force->angle_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::dihedral_styles(FILE * out)
 {
   fprintf(out, "\nDihedral styles:\n");
-
-  vector<string> styles;
-
-  for(Force::DihedralCreatorMap::iterator it = force->dihedral_map->begin(); it != force->dihedral_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, force->dihedral_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::improper_styles(FILE * out)
 {
   fprintf(out, "\nImproper styles:\n");
-
-  vector<string> styles;
-
-  for(Force::ImproperCreatorMap::iterator it = force->improper_map->begin(); it != force->improper_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, force->improper_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::kspace_styles(FILE * out)
 {
   fprintf(out, "\nKSpace styles:\n");
-
-  vector<string> styles;
-
-  for(Force::KSpaceCreatorMap::iterator it = force->kspace_map->begin(); it != force->kspace_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, force->kspace_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::fix_styles(FILE * out)
 {
   fprintf(out, "\nFix styles:\n");
-
-  vector<string> styles;
-
-  for(Modify::FixCreatorMap::iterator it = modify->fix_map->begin(); it != modify->fix_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, modify->fix_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::compute_styles(FILE * out)
 {
   fprintf(out, "\nCompute styles:\n");
-
-  vector<string> styles;
-
-  for(Modify::ComputeCreatorMap::iterator it = modify->compute_map->begin(); it != modify->compute_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, modify->compute_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::region_styles(FILE * out)
 {
   fprintf(out, "\nRegion styles:\n");
-
-  vector<string> styles;
-
-  for(Domain::RegionCreatorMap::iterator it = domain->region_map->begin(); it != domain->region_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, domain->region_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::dump_styles(FILE * out)
 {
   fprintf(out, "\nDump styles:\n");
-
-  vector<string> styles;
-
-  for(Output::DumpCreatorMap::iterator it = output->dump_map->begin(); it != output->dump_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, output->dump_map);
   fprintf(out, "\n\n\n");
 }
 
 void Info::command_styles(FILE * out)
 {
   fprintf(out, "\nCommand styles (add-on input script commands):\n");
-
-  vector<string> styles;
-
-  for(Input::CommandCreatorMap::iterator it = input->command_map->begin(); it != input->command_map->end(); ++it) {
-    styles.push_back(it->first);
-  }
-
-  print_columns(out, styles);
+  print_columns(out, input->command_map);
   fprintf(out, "\n\n\n");
 }
 
@@ -1110,41 +1004,42 @@ bool Info::is_defined(const char *category, const char *name)
   return false;
 }
 
-static void print_columns(FILE* fp, vector<string> & styles)
+template<typename ValueType>
+static void print_columns(FILE* fp, map<string, ValueType> * styles)
 {
-  if (styles.size() == 0) {
+  if (styles->empty()) {
     fprintf(fp, "\nNone");
     return;
   }
 
-  std::sort(styles.begin(), styles.end());
-
+  // std::map keys are already sorted
   int pos = 80;
-  for (int i = 0; i < styles.size(); ++i) {
+  for(typename map<string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+    const string & style_name = it->first;
 
     // skip "secret" styles
-    if (isupper(styles[i][0])) continue;
+    if (isupper(style_name[0])) continue;
 
-    int len = styles[i].length();
+    int len = style_name.length();
     if (pos + len > 80) {
       fprintf(fp,"\n");
       pos = 0;
     }
 
     if (len < 16) {
-      fprintf(fp,"%-16s",styles[i].c_str());
+      fprintf(fp,"%-16s", style_name.c_str());
       pos += 16;
     } else if (len < 32) {
-      fprintf(fp,"%-32s",styles[i].c_str());
+      fprintf(fp,"%-32s", style_name.c_str());
       pos += 32;
     } else if (len < 48) {
-      fprintf(fp,"%-48s",styles[i].c_str());
+      fprintf(fp,"%-48s", style_name.c_str());
       pos += 48;
     } else if (len < 64) {
-      fprintf(fp,"%-64s",styles[i].c_str());
+      fprintf(fp,"%-64s", style_name.c_str());
       pos += 64;
     } else {
-      fprintf(fp,"%-80s",styles[i].c_str());
+      fprintf(fp,"%-80s", style_name.c_str());
       pos += 80;
     }
   }
@@ -1197,6 +1092,103 @@ bool Info::has_package(const char * package_name) {
     }
   }
   return false;
+}
+
+/* ---------------------------------------------------------------------- */
+#define _INFOBUF_SIZE 256
+
+char *Info::get_os_info()
+{
+  char *buf = new char[_INFOBUF_SIZE];
+
+#if defined(_WIN32)
+  DWORD fullversion,majorv,minorv,buildv=0;
+
+  fullversion = GetVersion();
+  majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
+  minorv = (DWORD) (HIBYTE(LOWORD(fullversion)));
+  if (fullversion < 0x80000000)
+    buildv = (DWORD) (HIWORD(fullversion));
+
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+
+  const char *machine;
+  switch (si.wProcessorArchitecture) {
+  case PROCESSOR_ARCHITECTURE_AMD64:
+    machine = (const char *) "x86_64";
+    break;
+  case PROCESSOR_ARCHITECTURE_ARM:
+    machine = (const char *) "arm";
+    break;
+  case PROCESSOR_ARCHITECTURE_IA64:
+    machine = (const char *) "ia64";
+    break;
+  case PROCESSOR_ARCHITECTURE_INTEL:
+    machine = (const char *) "i386";
+    break;
+  default:
+    machine = (const char *) "(unknown)";
+  }
+  snprintf(buf,_INFOBUF_SIZE,"Windows %d.%d (%d) on %s",
+           majorv,minorv,buildv,machine);
+#else
+  struct utsname ut;
+  uname(&ut);
+  snprintf(buf,_INFOBUF_SIZE,"%s %s on %s",
+           ut.sysname, ut.release, ut.machine);
+#endif
+  return buf;
+}
+
+char *Info::get_compiler_info()
+{
+  char *buf = new char[_INFOBUF_SIZE];
+#if __clang__
+  snprintf(buf,_INFOBUF_SIZE,"Clang C++ %s", __VERSION__);
+#elif __INTEL_COMPILER
+  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %s", __VERSION__);
+#elif __GNUC__
+  snprintf(buf,_INFOBUF_SIZE,"GNU C++ %s",   __VERSION__);
+#else
+  snprintf(buf,_INFOBUF_SIZE,"(Unknown)");
+#endif
+  return buf;
+}
+
+const char *Info::get_openmp_info()
+{
+
+#if !defined(_OPENMP)
+  return (const char *)"OpenMP not enabled";
+#else
+
+// Supported OpenMP version corresponds to the release date of the
+// specifications as posted at https://www.openmp.org/specifications/
+
+#if _OPENMP > 201811
+  return (const char *)"OpenMP newer than version 5.0";
+#elif _OPENMP == 201811
+  return (const char *)"OpenMP 5.0";
+#elif _OPENMP == 201611
+  return (const char *)"OpenMP 5.0 preview 1";
+#elif _OPENMP == 201511
+  return (const char *)"OpenMP 4.5";
+#elif _OPENMP == 201307
+  return (const char *)"OpenMP 4.0";
+#elif _OPENMP == 201107
+  return (const char *)"OpenMP 3.1";
+#elif _OPENMP == 200805
+  return (const char *)"OpenMP 3.0";
+#elif _OPENMP == 200505
+  return (const char *)"OpenMP 2.5";
+#elif _OPENMP == 200203
+  return (const char *)"OpenMP 2.0";
+#else
+  return (const char *)"unknown OpenMP version";
+#endif
+
+#endif
 }
 
 /* ---------------------------------------------------------------------- */

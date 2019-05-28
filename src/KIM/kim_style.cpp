@@ -232,17 +232,26 @@ void KimStyle::do_defn(int narg, char **arg)
     // validate species selection
 
     int sim_num_species;
+    bool species_is_supported;
     const std::string *sim_species;
     simulatorModel->GetNumberOfSupportedSpecies(&sim_num_species);
-    for (int i=0; i < sim_num_species; ++i) {
-      simulatorModel->GetSupportedSpecies(i, &sim_species);
-      strcpy(strbuf,atom_type_sym_list.c_str());
-      strword = strtok(strbuf," \t");
-      while (strword) {
-        if ((strcmp(strword,"NULL") != 0) && (strcmp(sim_species->c_str(),strword) != 0))
-          error->all(FLERR,"Species not supported by KIM Simulator Model");
-        strword = strtok(NULL," \t");
+    strcpy(strbuf,atom_type_sym_list.c_str());
+    strword = strtok(strbuf," \t");
+    while (strword) {
+      species_is_supported = false;
+      if (strcmp(strword,"NULL") == 0) continue;
+      for (int i=0; i < sim_num_species; ++i) {
+        simulatorModel->GetSupportedSpecies(i, &sim_species);
+        if (strcmp(sim_species->c_str(),strword) == 0)
+          species_is_supported = true;
       }
+      if (!species_is_supported) {
+        std::string msg("Species '");
+        msg += strword;
+        msg += "' is not supported by this KIM Simulator Model";
+        error->all(FLERR,msg.c_str());
+      }
+      strword = strtok(NULL," \t");
     }
     delete[] strbuf;
 

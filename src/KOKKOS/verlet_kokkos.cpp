@@ -186,7 +186,9 @@ void VerletKokkos::setup(int flag)
   }
   if (force->newton) comm->reverse_comm();
 
+  lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
+  lmp->kokkos->auto_sync = 1;
   output->setup(flag);
   update->setupflag = 0;
 }

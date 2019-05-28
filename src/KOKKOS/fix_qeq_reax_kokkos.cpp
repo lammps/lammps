@@ -58,7 +58,7 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK | TAG_MASK;
   datamask_modify = Q_MASK | X_MASK;
 
   nmax = nmax = m_cap = 0;
@@ -164,6 +164,9 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init_hist()
 {
+  k_s_hist.clear_sync_state();
+  k_t_hist.clear_sync_state();
+
   Kokkos::deep_copy(d_s_hist,0.0);
   Kokkos::deep_copy(d_t_hist,0.0);
 
@@ -189,7 +192,6 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   if (update->ntimestep % nevery) return;
 
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
 
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
@@ -273,6 +275,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   // free duplicated memory
   if (need_dup)
     dup_o = decltype(dup_o)();
+
+  atomKK->modified(execution_space,datamask_modify);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1199,8 +1203,11 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  k_s_hist.template sync<LMPHostType>(); // force reallocation on host
+  k_s_hist.template sync<LMPHostType>();
   k_t_hist.template sync<LMPHostType>();
+
+  k_s_hist.template modify<LMPHostType>(); // force reallocation on host
+  k_t_hist.template modify<LMPHostType>();
 
   memoryKK->grow_kokkos(k_s_hist,s_hist,nmax,nprev,"qeq:s_hist");
   memoryKK->grow_kokkos(k_t_hist,t_hist,nmax,nprev,"qeq:t_hist");

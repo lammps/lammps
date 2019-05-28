@@ -211,7 +211,7 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx==1.7.6; \
+		pip install Sphinx; \
 		deactivate;\
 	)
 

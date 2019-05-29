@@ -173,6 +173,7 @@ class NeighborKokkosExecute
 
   // data from NBin class
 
+  const int mbins;
   const typename AT::t_int_1d bincount;
   const typename AT::t_int_1d_const c_bincount;
   typename AT::t_int_2d bins;
@@ -226,7 +227,7 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d &_bincount,
                         const typename AT::t_int_2d &_bins,
                         const typename AT::t_int_1d &_atom2bin,
-                        const int _nstencil,
+                        const int _mbins,const int _nstencil,
                         const typename AT::t_int_1d &_d_stencil,
                         const typename AT::t_int_1d_3 &_d_stencilxyz,
                         const int _nlocal,
@@ -264,7 +265,7 @@ class NeighborKokkosExecute
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_resize,
                         const typename AT::t_int_scalar _new_maxneighs,
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
-    neigh_list(_neigh_list), cutneighsq(_cutneighsq),
+    neigh_list(_neigh_list), cutneighsq(_cutneighsq),mbins(_mbins),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     atom2bin(_atom2bin),c_atom2bin(_atom2bin),
     nstencil(_nstencil),d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),

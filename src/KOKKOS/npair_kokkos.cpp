@@ -140,7 +140,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
          k_bincount.view<DeviceType>(),
          k_bins.view<DeviceType>(),
          k_atom2bin.view<DeviceType>(),
-         nstencil,
+         mbins,nstencil,
          k_stencil.view<DeviceType>(),
          k_stencilxyz.view<DeviceType>(),
          nlocal,
@@ -511,7 +511,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
   const int ibin = dev.league_rank()*BINS_PER_TEAM+MY_BIN;
 
-  if(ibin >=c_bincount.extent(0)) return;
+  if(ibin >= mbins) return;
   X_FLOAT* other_x = sharedmem;
   other_x = other_x + 5*atoms_per_bin*MY_BIN;
 
@@ -947,7 +947,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
 
   const int ibin = dev.league_rank()*BINS_PER_TEAM+MY_BIN;
 
-  if(ibin >=c_bincount.extent(0)) return;
+  if(ibin >= mbins) return;
   X_FLOAT* other_x = sharedmem;
   other_x = other_x + 6*atoms_per_bin*MY_BIN;
 

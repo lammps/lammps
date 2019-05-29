@@ -31,18 +31,14 @@ class MinAdaptGlok : public Min {
   void init();
   void setup_style();
   void reset_vectors();
-  void save_box_state();
-  void relax_box();
-  void relax_box1();
   int iterate(int);
 
  private:
   double dt,dtmax,dtmin;
   double alpha;
   bigint last_negative,ntimestep_start;
-  int pflag,vdotf_negatif;
+  int vdotf_negatif;
   class Compute *temperature,*pressure;
-  double boxlo[3],h_inv[6];
 };
 
 }

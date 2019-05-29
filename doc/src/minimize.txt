@@ -64,8 +64,7 @@ backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
 The "minimization styles"_min_style.html {quickmin}, {fire} and 
-{adaptglok} perform damped dynamics using an Euler integration step. The style
-{adaptglok} can also use a leapfrog or velocity Verlet integration step.
+{adaptglok} perform damped dynamics using an Euler integration step.
 Thus they require a "timestep"_timestep.html be defined.
 
 NOTE: The damped dynamic minimizers use whatever timestep you have

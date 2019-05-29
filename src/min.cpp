@@ -66,11 +66,6 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   halfstepback_flag = 1;
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
-  relaxbox_mod = 1000000;
-  relaxbox_rate = 0.33;
-  relaxbox_flag = 0;
-  ptol = 0.1;
-  p_flag[0] = p_flag[1] = p_flag[2] = 0;
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -724,43 +719,6 @@ void Min::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = 2;
       else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = 3;
       else error->all(FLERR,"Illegal min_modify command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"relaxbox") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) {
-        relaxbox_flag = 0;
-      } else if (strcmp(arg[iarg+1],"iso") == 0) {
-        relaxbox_flag = 1;
-        p_flag[0] = p_flag[1] = p_flag[2] = 1;
-        if (dimension == 2) p_flag[2] = 0;
-      } else if (strcmp(arg[iarg+1],"aniso") == 0) {
-        relaxbox_flag = 2;
-        p_flag[0] = p_flag[1] = p_flag[2] = 1;
-        if (dimension == 2) p_flag[2] = 0;
-      } else if (strcmp(arg[iarg+1],"x") == 0) {
-        relaxbox_flag = 2;
-        p_flag[0] = 1;
-      } else if (strcmp(arg[iarg+1],"y") == 0) {
-        relaxbox_flag = 2;
-        p_flag[1] = 1;
-      } else if (strcmp(arg[iarg+1],"z") == 0) {
-        relaxbox_flag = 2;
-        p_flag[2] = 1;
-        if (dimension == 2)
-          error->all(FLERR,"Invalid min_modify command for a 2d simulation");
-      } else error->all(FLERR,"Illegal min_modify command");
-      iarg += 2;       
-    } else if (strcmp(arg[iarg],"relaxbox_mod") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      relaxbox_mod = force->numeric(FLERR,arg[iarg+1]);
-      iarg += 2;       
-    } else if (strcmp(arg[iarg],"relaxbox_rate") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      relaxbox_rate = force->numeric(FLERR,arg[iarg+1]);
-      iarg += 2;        
-    } else if (strcmp(arg[iarg],"ptol") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      ptol = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;        
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");

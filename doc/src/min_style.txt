@@ -64,7 +64,7 @@ a minimization.
 
 Style {adaptglok} is a re-implementation of the style {fire} with
 additional optimizations of the method described
-in "(Bitzek)"_#Bitzek.
+in "(Bitzek)"_#Bitzek, including different time integration schemes.
 
 Style {spin} is a damped spin dynamics with an adaptive 
 timestep.
@@ -81,8 +81,6 @@ would normally use for dynamics simulations.
 NOTE: The {quickmin}, {fire}, {adaptglok}, and {hftn} styles do not yet support the
 use of the "fix box/relax"_fix_box_relax.html command or minimizations
 involving the electron radius in "eFF"_pair_eff.html models. 
-The {adaptglok} style actually support box relaxation by the implementation of
-a basic relaxation scheme, see "min_modify"_min_modify.html.
 
 [Restrictions:] none
 

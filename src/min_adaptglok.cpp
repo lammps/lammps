@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "min_adaptglok.h"
 #include "universe.h"
 #include "atom.h"
@@ -48,17 +48,6 @@ void MinAdaptGlok::init()
   if (tmax < tmin) error->all(FLERR,"tmax has to be larger than tmin");
   if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
   if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
-  if (relaxbox_mod < 0.0) error->all(FLERR,"relaxbox_mod has to be positif");
-  if (relaxbox_rate < 0.0 || relaxbox_rate > 1.0) error->all(FLERR,"relaxbox_rate has to be positif, lower than 1.0");
-
-  // require periodicity in boxrelax dimensions
-
-  if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
-  if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
-  if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use boxrelax on a non-periodic dimension");
 
   dt = update->dt;
   dtmax = tmax * dt;
@@ -67,18 +56,6 @@ void MinAdaptGlok::init()
   last_negative = ntimestep_start = update->ntimestep;
   vdotf_negatif = 0;
 
-  if (relaxbox_flag){
-
-    // require the box to be orthogonal
-
-    if (domain->triclinic)
-      error->all(FLERR,"Cannot use boxrelax with triclinic box");
-
-    int icompute = modify->find_compute("thermo_press");
-    pressure = modify->compute[icompute];
-
-    pflag = 1;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,16 +69,14 @@ void MinAdaptGlok::setup_style()
 
   const char *s1[] = {"eulerimplicit","verlet","leapfrog","eulerexplicit"};
   const char *s2[] = {"no","yes"};
-  const char *s3[] = {"no","iso","aniso"};
 
   if (comm->me == 0 && logfile) {
       fprintf(logfile,"  Parameters for adaptglok: \n"
       "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
       "   integrator halfstepback relaxbox relaxbox_mod relaxbox_rate ptol \n"
-      "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s %8s %12g %13g %4g \n",
+      "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s \n",
       dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin, 
-      s1[integrator], s2[halfstepback_flag], s3[relaxbox_flag], relaxbox_mod,
-      relaxbox_rate, ptol);
+      s1[integrator], s2[halfstepback_flag]);
   }
 
   // initialize the velocities
@@ -122,98 +97,6 @@ void MinAdaptGlok::reset_vectors()
   nvec = 3 * atom->nlocal;
   if (nvec) xvec = atom->x[0];
   if (nvec) fvec = atom->f[0];
-}
-
-/* ----------------------------------------------------------------------
-   save current box state for converting atoms to lamda coords
-------------------------------------------------------------------------- */
-
-void MinAdaptGlok::save_box_state()
-{
-  boxlo[0] = domain->boxlo[0];
-  boxlo[1] = domain->boxlo[1];
-  boxlo[2] = domain->boxlo[2];
-
-  for (int i = 0; i < 6; i++)
-    h_inv[i] = domain->h_inv[i];
-}
-
-/* ----------------------------------------------------------------------
-   deform the simulation box and remap the particles
-------------------------------------------------------------------------- */
-
-void MinAdaptGlok::relax_box()
-{
-  // rescale simulation box and scale atom coords for all atoms
-  // inspired by change_box.cpp
-
-  int i,n;
-  double **x = atom->x;
-  double **v = atom->v;
-  double epsilon,disp;
-  int nlocal = atom->nlocal;
-
-  domain->pbc();
-  save_box_state();
-  neighbor->setup_bins();
-  comm->exchange();
-  comm->borders();
-  if (neighbor->decide()) neighbor->build(1);
-
-  // ensure the virial is tallied, update the flag
-
-  pressure->addstep(update->ntimestep);
-  update->vflag_global = update->ntimestep;
-
-  // Only when the presure is not yet free:
-  // - compute and apply box re-scaling
-  // - freez atoms
-
-  if (pflag != 1){
-
-    // compute pressure and change simulation box
-
-    pressure->compute_scalar();
-    pressure->compute_vector();
-    epsilon = pressure->scalar / relaxbox_mod;
-    for (int i = 0; i < 3; i++) {
-      if (relaxbox_flag == 2) epsilon = pressure->vector[i] / relaxbox_mod;
-      disp = domain->h[i] * epsilon * relaxbox_rate;
-      if (fabs(disp) > dmax) disp > 0.0 ? disp = dmax : disp = -1 * dmax;
-      domain->boxlo[i] -= p_flag[i] * disp * 0.5;
-      domain->boxhi[i] += p_flag[i] * disp * 0.5;
-    }
-
-    // reset global and local box to new size/shape
-
-    domain->set_initial_box();
-    domain->set_global_box();
-    domain->set_local_box();
-
-    // convert atoms to lamda coords, using last box state
-    // convert atoms back to box coords, using current box state
-    // save current box state
-    
-    for (i = 0; i < nlocal; i++)
-      domain->x2lamda(x[i],x[i],boxlo,h_inv);
-    for (i = 0; i < nlocal; i++)
-      domain->lamda2x(x[i],x[i]);
-    save_box_state();
-
-    // move atoms back inside simulation box and to new processors
-    // use remap() instead of pbc()
-    //   in case box moved a long distance relative to atoms
-
-    imageint *image = atom->image;
-    for (i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
-    domain->reset_box();
-
-    // freez atoms velocities when the box is rescaled
-    // prevent atoms getting unintended extra velocity
-
-    for (int i = 0; i < nlocal; i++)
-      v[i][0] = v[i][1] = v[i][2] = 0.0;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,10 +151,6 @@ int MinAdaptGlok::iterate(int maxiter)
 
     ntimestep = ++update->ntimestep;
     niter++;
-
-    // Relax the simulation box
-
-    if (relaxbox_flag) relax_box();
 
     // pointers
 
@@ -367,10 +246,9 @@ int MinAdaptGlok::iterate(int maxiter)
       }
 
       // stopping criterion while stuck in a local bassin of the PES
-      // only checked when the box dimesions are not modified bu relax_box()
 
       vdotf_negatif++;
-      if (pflag == 1 && max_vdotf_negatif > 0 && vdotf_negatif > max_vdotf_negatif)
+      if (max_vdotf_negatif > 0 && vdotf_negatif > max_vdotf_negatif)
         return MAXVDOTF;
 
       // inertia correction
@@ -555,21 +433,6 @@ int MinAdaptGlok::iterate(int maxiter)
 
     }
 
-    // Pressure relaxation criterion
-    // set pflag = 0 if relaxbox is activated and pressure > ptol
-    // pflag = 0 will hinder the energy or force criterion
-
-    pflag = 1;
-    if (relaxbox_flag == 1){
-      pressure->compute_scalar();
-      if (fabs(pressure->scalar) > ptol) pflag = 0;
-      
-    }else if (relaxbox_flag == 2){
-      pressure->compute_vector();
-      for (int i = 0; i < 3; i++)
-        if (fabs(pressure->vector[i]) * p_flag[i] > ptol) pflag = 0;
-    }
-
     // energy tolerance criterion
     // only check after delaystep elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
@@ -578,13 +441,11 @@ int MinAdaptGlok::iterate(int maxiter)
     if (update->etol > 0.0 && ntimestep-last_negative > delaystep) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
-            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)
-            && pflag)
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
           return ETOL;
       } else {
         if (fabs(ecurrent-eprevious) <
-            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY)
-            && pflag)
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
           flag = 0;
         else flag = 1;
         MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
@@ -600,10 +461,10 @@ int MinAdaptGlok::iterate(int maxiter)
     if (update->ftol > 0.0) {
       fdotf = fnorm_sqr();
       if (update->multireplica == 0) {
-        if (fdotf < update->ftol*update->ftol && pflag)
+        if (fdotf < update->ftol*update->ftol)
           return FTOL;
       } else {
-        if (fdotf < update->ftol*update->ftol && pflag) flag = 0;
+        if (fdotf < update->ftol*update->ftol) flag = 0;
         else flag = 1;
         MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
         if (flagall == 0)

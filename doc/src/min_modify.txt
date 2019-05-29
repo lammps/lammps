@@ -26,8 +26,7 @@ keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
 
 these keywords apply only to the "min_style"_min_style.html {adaptglok} :ulb,l
 keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} 
-          or {alpha0} or {alphashrink} or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} 
-          or {ptol} or {halfstepback} or {initialdelay} or {vdfmax}
+          or {alpha0} or {alphashrink} or {halfstepback} or {initialdelay} or {vdfmax}
   {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
     eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme
   {tmax} arg = coef
@@ -44,15 +43,6 @@ keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshri
     alpha = coefficient mixing velocities and forces
   {alphashrink} arg = shrink
     shrink = factor decreasing alpha
-  {relaxbox} arg = {no} or {iso} or {aniso} or {x} or {y} or {z}
-    no = no changes in box dimension (default)
-    iso, aniso, x, y, z = type of box relaxation
-  {relaxbox_mod} arg = modulus
-    modulus = bulk modulus of the system, order of magnitude (pressure units)
-  {relaxbox_rate} arg = rate
-    rate = scaling factor to relax the box dimensions
-  {ptol} arg = pressure
-    pressure = threshold below which the box pressure is considered as null (pressure units)
   {vdfmax} arg = max 
     max = maximum number of consecutive iterations with P(t) < 0 before forced interruption 
   {halfstepback} arg = {yes} or {no}
@@ -62,7 +52,7 @@ keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshri
 [Examples:]
 
 min_modify dmax 0.2
-min_modify integrator verlet tmax 0.4 relaxbox y relaxbox_mod 2e7 :pre
+min_modify integrator verlet tmax 0.4 :pre
 
 [Description:]
 
@@ -127,25 +117,6 @@ happen when the system comes to be stuck in a local basin of the phase space.
 For debugging purposes, it is possible to switch off the inertia correction 
 ({halfstepback} = {no}) and the initial delay ({initialdelay} = {no}).
 
-The style {adaptglok} performing a damped dynamics, it is not possible to use
-"fix box/relax"_fix_box_relax.html to relax the simulation box.
-Thus {adaptglok} implements a rudimentary box relaxation procedure that can be
-controlled by the keywords {relaxbox}, {relaxbox_mod}, {relaxbox_rate} 
-and {ptol}.
-The argument {relaxbox} control in which directions the pressure is relaxed.
-Note that the corresponding directions have to be periodic.
-Note also that {relaxbox_mod} doesn't requires the exact value for the bulk modulus,
-but rather the order of magnitude (in pressure "units"_units.html).
-Ultimately, {relaxbox_mod} and {relaxbox_rate} 
-control how fast the relaxation of the box is performed: lower values will slow
-down the box relaxation but improve the stability of the procedure.
-
-NOTE: the option {relaxbox} is currently experimental and often 
-requires to tune the communication cutoff for ghost atoms with the command 
-"comm_modify cutoff"_comm_modify.html. The value will depend on the expected
-box variation and the number of cpu. A value from 2 to 3 times the current cutoff
-(largest pair cutoff + neighbor skin) is often enough.
-
 Keywords {alpha_damp} and {discrete_factor} only make sense when
 a "min_spin"_min_spin.html command is declared. 
 Keyword {alpha_damp} defines an analog of a magnetic Gilbert
@@ -168,5 +139,4 @@ Default values are {alpha_damp} = 1.0 and {discrete_factor} = 10.0.
 The option defaults are dmax = 0.1, line = quadratic, 
 integrator = eulerimplicit, tmax = 10.0, tmin = 0.02,
 delaystep = 20, dtgrow = 1.1, dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99,
-relaxbox = no, relaxbox_mod = 1e6 and relaxbox_rate = 0.33, ptol = 0.1
 vdfmax = 2000, halfstepback = yes and initialdelay = yes.

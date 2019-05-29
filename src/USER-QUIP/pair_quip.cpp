@@ -107,14 +107,14 @@ void PairQUIP::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
-       quip_neigh[iquip] = (jlist[jj] & NEIGHMASK) + 1;
-       iquip++;
+      quip_neigh[iquip] = (jlist[jj] & NEIGHMASK) + 1;
+      iquip++;
     }
   }
 
   atomic_numbers = new int[ntotal];
   for (ii = 0; ii < ntotal; ii++)
-     atomic_numbers[ii] = map[type[ii]-1];
+     atomic_numbers[ii] = map[type[ii]];
 
   quip_local_e = new double [ntotal];
   quip_force = new double [ntotal*3];
@@ -239,7 +239,7 @@ void PairQUIP::allocate()
 
   setflag = memory->create(setflag,n+1,n+1,"pair:setflag");
   cutsq = memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  map = new int[n];
+  map = new int[n+1];
 }
 
 void PairQUIP::coeff(int narg, char **arg)

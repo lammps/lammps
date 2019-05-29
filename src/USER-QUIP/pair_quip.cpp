@@ -44,6 +44,11 @@ PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
    one_coeff = 1;
    no_virial_fdotr_compute = 1;
    manybody_flag = 1;
+
+   map = NULL;
+   quip_potential = NULL;
+   quip_file = NULL;
+   quip_string = NULL;
 }
 
 PairQUIP::~PairQUIP()
@@ -52,8 +57,10 @@ PairQUIP::~PairQUIP()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
-    delete [] quip_potential;
   }
+  delete [] quip_potential;
+  delete [] quip_file;
+  delete [] quip_string;
 }
 
 void PairQUIP::compute(int eflag, int vflag)

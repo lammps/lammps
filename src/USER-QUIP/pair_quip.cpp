@@ -227,6 +227,11 @@ void PairQUIP::settings(int narg, char ** /* arg */)
   if (quip_lammps_api_version() != 1)
     error->all(FLERR,"QUIP LAMMPS wrapper API version is not compatible "
         "with this version of LAMMPS");
+
+  // QUIP potentials are parameterized in metal units
+
+  if (strcmp("metal",update->unit_style) != 0)
+    error->all(FLERR,"QUIP potentials require 'metal' units");
 }
 
 /* ----------------------------------------------------------------------

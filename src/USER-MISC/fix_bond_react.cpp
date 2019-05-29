@@ -472,17 +472,19 @@ FixBondReact::~FixBondReact()
   delete [] guess_branch;
   delete [] pioneer_count;
 
-  char **newarg;
-  newarg = new char*[2];
-  newarg[0] = master_group;
-  newarg[1] = (char *) "delete";
-  group->assign(2,newarg);
-  if (stabilization_flag == 1) {
-    newarg[0] = exclude_group;
+  if (group) {
+    char **newarg;
+    newarg = new char*[2];
+    newarg[0] = master_group;
+    newarg[1] = (char *) "delete";
     group->assign(2,newarg);
-    delete [] exclude_group;
+    if (stabilization_flag == 1) {
+      newarg[0] = exclude_group;
+      group->assign(2,newarg);
+      delete [] exclude_group;
+    }
+    delete [] newarg;
   }
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */

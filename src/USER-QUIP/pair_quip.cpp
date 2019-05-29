@@ -244,43 +244,53 @@ void PairQUIP::allocate()
 
 void PairQUIP::coeff(int narg, char **arg)
 {
-   if (!allocated) allocate();
+  if (!allocated) allocate();
 
-   int n = atom->ntypes;
+  int n = atom->ntypes;
+  if (narg != (4+n)) {
+    char str[1024];
+    sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
+    error->all(FLERR,str);
+  }
 
   // ensure I,J args are * *
 
-   for (int i = 1; i <= n; i++){
-      for (int j = 1; j <= n; j++) {
-         setflag[i][j] = 1;
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  n_quip_file = strlen(arg[2]);
+  quip_file = new char[n_quip_file+1];
+  strcpy(quip_file,arg[2]);
+
+  n_quip_string = strlen(arg[3]);
+  quip_string = new char[n_quip_string+1];
+  strcpy(quip_string,arg[3]);
+
+  for (int i = 4; i < narg; i++) {
+    if (strcmp(arg[i],"NULL") == 0)
+      map[i-3] = -1;
+    else
+      map[i-3] = force->inumeric(FLERR,arg[i]);
+  }
+
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
+
+  int count = 0;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        count++;
       }
-   }
 
-   if (narg != (4+n)) {
-      char str[1024];
-      sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
-      error->all(FLERR,str);
-   }
-
-   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-      error->all(FLERR,"Incorrect args for pair coefficients");
-
-   n_quip_file = strlen(arg[2]);
-   quip_file = new char[n_quip_file+1];
-   strcpy(quip_file,arg[2]);
-
-   n_quip_string = strlen(arg[3]);
-   quip_string = new char[n_quip_string+1];
-   strcpy(quip_string,arg[3]);
-
-   for (int i = 4; i < narg; i++) {
-
-      if (0 == sscanf(arg[i],"%d",&map[i-4])) {
-         char str[1024];
-         sprintf(str,"Incorrect atomic number %s at position %d",arg[i],i);
-         error->all(FLERR,str);
-      }
-   }
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // Initialise potential
   // First call initialises potential via the fortran code in memory, and returns the necessary size

@@ -218,11 +218,9 @@ void PairQUIP::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairQUIP::settings(int narg, char **/*arg*/)
+void PairQUIP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strcmp(force->pair_style,"hybrid") == 0)
-    error->all(FLERR,"Pair style quip is only compatible with hybrid/overlay");
 
   // check if linked to the correct QUIP library API version
   // as of 2017-07-19 this is API_VERSION 1

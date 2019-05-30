@@ -18,7 +18,7 @@
 #define pclose _pclose
 #define strdup _strdup
 
-// the following functions ared defined to get rid of
+// the following functions are defined to get rid of
 // 'ambiguous call to overloaded function' error in VSS for mismatched type arguments
 #if !defined(__MINGW32__)
 inline double pow(int i, int j){

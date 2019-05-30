@@ -19,7 +19,7 @@
 #define strdup _strdup
 
 // the following functions ared defined to get rid of
-// 'ambiguous call to overloaded function' error in VSS for mismathched type arguments
+// 'ambiguous call to overloaded function' error in VSS for mismatched type arguments
 #if !defined(__MINGW32__)
 inline double pow(int i, int j){
   return pow((double)i,j);

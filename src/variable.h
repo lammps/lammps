@@ -210,6 +210,10 @@ E: Invalid variable style with next command
 Variable styles {equal} and {world} cannot be used in a next
 command.
 
+E: Incorrect conversion in format string
+
+A format style variable was not using either a %f or a %g conversion.
+
 E: Next command must list all universe and uloop variables
 
 This is to insure they stay in sync.

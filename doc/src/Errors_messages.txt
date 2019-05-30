@@ -5828,6 +5828,12 @@ Must have periodic x,y dimensions and non-periodic z dimension to use
 Must have periodic x,y dimensions and non-periodic z dimension to use
 2d slab option with pppm/disp. :dd
 
+{Incorrect conversion in format string} :dt
+
+A format style variable was not using either a %f or a %g conversion.
+Or an immediate variable with format suffix was not using either
+a %f or a %g conversion in the format suffix. :dd
+
 {Incorrect element names in ADP potential file} :dt
 
 The element names in the ADP file do not match those requested. :dd

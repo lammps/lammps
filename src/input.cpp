@@ -50,6 +50,7 @@
 #include "accelerator_kokkos.h"
 #include "error.h"
 #include "memory.h"
+#include "utils.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -525,6 +526,11 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
           strncpy(fmtstr,&fmtflag[1],sizeof(fmtstr)-1);
           *fmtflag='\0';
         }
+
+        // quick check for proper format string
+
+        if (!utils::strmatch(fmtstr,"%[0-9 ]*\\.[0-9]+[fg]"))
+          error->all(FLERR,"Incorrect conversion in format string");
 
         snprintf(immediate,256,fmtstr,variable->compute_equal(var));
         value = immediate;

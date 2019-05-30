@@ -890,6 +890,7 @@ void PairGranular::coeff(int narg, char **arg)
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       cutoff_one = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR, "Illegal pair coeff command");
   }
 
@@ -1234,7 +1235,7 @@ void PairGranular::write_restart(FILE *fp)
         fwrite(&tangential_coeffs[i][j],sizeof(double),3,fp);
         fwrite(&roll_coeffs[i][j],sizeof(double),3,fp);
         fwrite(&twist_coeffs[i][j],sizeof(double),3,fp);
-        fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cutoff_type[i][j],sizeof(double),1,fp);
       }
     }
   }
@@ -1264,7 +1265,7 @@ void PairGranular::read_restart(FILE *fp)
           fread(&tangential_coeffs[i][j],sizeof(double),3,fp);
           fread(&roll_coeffs[i][j],sizeof(double),3,fp);
           fread(&twist_coeffs[i][j],sizeof(double),3,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          fread(&cutoff_type[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);
@@ -1275,7 +1276,7 @@ void PairGranular::read_restart(FILE *fp)
         MPI_Bcast(&tangential_coeffs[i][j],3,MPI_DOUBLE,0,world);
         MPI_Bcast(&roll_coeffs[i][j],3,MPI_DOUBLE,0,world);
         MPI_Bcast(&twist_coeffs[i][j],3,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cutoff_type[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }

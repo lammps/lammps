@@ -205,6 +205,7 @@ gitversion:
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh packages
 	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \

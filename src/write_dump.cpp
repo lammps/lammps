@@ -26,6 +26,7 @@
 #include "input.h"
 #include "update.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -64,7 +65,7 @@ void WriteDump::command(int narg, char **arg)
 #include "style_dump.h"
 #undef DUMP_CLASS
 
-  else error->all(FLERR,"Unknown dump style");
+  else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp).c_str());
 
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 

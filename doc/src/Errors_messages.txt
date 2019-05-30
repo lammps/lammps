@@ -7448,6 +7448,11 @@ The Atoms section of a data file must come before a Triangles section. :dd
 The Atoms section of a data file must come before a Velocities
 section. :dd
 
+{Must re-specify non-restarted pair style (xxx) after read_restart} :dt
+
+For pair styles, that do not store their settings in a restart file,
+it must be defined with a new 'pair_style' command after read_restart. :dd
+
 {Must set both respa inner and outer} :dt
 
 Cannot use just the inner or outer option with respa without using the
@@ -10049,19 +10054,19 @@ create_box command. :dd
 A universe or uloop style variable must specify a number of values >= to the
 number of processor partitions. :dd
 
-{Unknown angle style} :dt
+{Unrecognized angle style} :dt
 
 The choice of angle style is unknown. :dd
 
-{Unknown atom style} :dt
+{Unrecognized atom style} :dt
 
 The choice of atom style is unknown. :dd
 
-{Unknown body style} :dt
+{Unrecognized body style} :dt
 
 The choice of body style is unknown. :dd
 
-{Unknown bond style} :dt
+{Unrecognized bond style} :dt
 
 The choice of bond style is unknown. :dd
 
@@ -10077,23 +10082,23 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Unknown command: %s} :dt
+{Unrecognized command: %s} :dt
 
 The command is not known to LAMMPS.  Check the input script. :dd
 
-{Unknown compute style} :dt
+{Unrecognized compute style} :dt
 
 The choice of compute style is unknown. :dd
 
-{Unknown dihedral style} :dt
+{Unrecognized dihedral style} :dt
 
 The choice of dihedral style is unknown. :dd
 
-{Unknown dump reader style} :dt
+{Unrecognized dump reader style} :dt
 
 The choice of dump reader style via the format keyword is unknown. :dd
 
-{Unknown dump style} :dt
+{Unrecognized dump style} :dt
 
 The choice of dump style is unknown. :dd
 
@@ -10101,7 +10106,7 @@ The choice of dump style is unknown. :dd
 
 Self-explanatory. :dd
 
-{Unknown fix style} :dt
+{Unrecognized fix style} :dt
 
 The choice of fix style is unknown. :dd
 
@@ -10109,7 +10114,7 @@ The choice of fix style is unknown. :dd
 
 A section of the data file cannot be read by LAMMPS. :dd
 
-{Unknown improper style} :dt
+{Unrecognized improper style} :dt
 
 The choice of improper style is unknown. :dd
 
@@ -10117,7 +10122,7 @@ The choice of improper style is unknown. :dd
 
 One or more specified keywords are not recognized. :dd
 
-{Unknown kspace style} :dt
+{Unrecognized kspace style} :dt
 
 The choice of kspace style is unknown. :dd
 
@@ -10133,7 +10138,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Unknown pair style} :dt
+{Unrecognized pair style} :dt
 
 The choice of pair style is unknown. :dd
 
@@ -10141,7 +10146,7 @@ The choice of pair style is unknown. :dd
 
 The choice of sub-style is unknown. :dd
 
-{Unknown region style} :dt
+{Unrecognized region style} :dt
 
 The choice of region style is unknown. :dd
 

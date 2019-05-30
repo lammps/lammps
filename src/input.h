@@ -176,7 +176,7 @@ quote.
 E: Incorrect conversion in format string
 
 An immediate variable with format suffix was not using
-either a %f or a %g conversion in the format suffix.
+either a %f, a %g, or a %e conversion in the format suffix.
 
 E: Input line quote not followed by white-space
 

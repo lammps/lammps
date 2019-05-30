@@ -5830,9 +5830,9 @@ Must have periodic x,y dimensions and non-periodic z dimension to use
 
 {Incorrect conversion in format string} :dt
 
-A format style variable was not using either a %f or a %g conversion.
+A format style variable was not using either a %f, a %g, or a %e conversion.
 Or an immediate variable with format suffix was not using either
-a %f or a %g conversion in the format suffix. :dd
+a %f, a %g or a %e conversion in the format suffix. :dd
 
 {Incorrect element names in ADP potential file} :dt
 

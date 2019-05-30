@@ -212,7 +212,7 @@ command.
 
 E: Incorrect conversion in format string
 
-A format style variable was not using either a %f or a %g conversion.
+A format style variable was not using either a %f, a %g, or a %e conversion.
 
 E: Next command must list all universe and uloop variables
 

@@ -1,0 +1,132 @@
+LAMMPS (30 Apr 2019)
+  using 1 OpenMP thread(s) per MPI task
+
+units           metal
+kim_style   init  ex_sim_model_Si_mod_tersoff
+units metal
+newton on
+
+atom_style      atomic
+atom_modify     map array
+boundary        p p p
+
+# temperatures
+variable tlo equal 1800.0
+variable thi equal 2400.0
+
+# coordination number cutoff
+
+variable r equal 2.835
+
+# minimization parameters
+
+variable etol equal 1.0e-5
+variable ftol equal 1.0e-5
+variable maxiter equal 100
+variable maxeval equal 100
+variable dmax equal 1.0e-1
+
+# diamond unit cell
+
+variable a equal 5.431
+lattice         custom $a                               a1 1.0 0.0 0.0                          a2 0.0 1.0 0.0                          a3 0.0 0.0 1.0                          basis 0.0 0.0 0.0                       basis 0.0 0.5 0.5                       basis 0.5 0.0 0.5                       basis 0.5 0.5 0.0                       basis 0.25 0.25 0.25                    basis 0.25 0.75 0.75                    basis 0.75 0.25 0.75                    basis 0.75 0.75 0.25
+lattice         custom 5.431                               a1 1.0 0.0 0.0                          a2 0.0 1.0 0.0                          a3 0.0 0.0 1.0                          basis 0.0 0.0 0.0                       basis 0.0 0.5 0.5                       basis 0.5 0.0 0.5                       basis 0.5 0.5 0.0                       basis 0.25 0.25 0.25                    basis 0.25 0.75 0.75                    basis 0.75 0.25 0.75                    basis 0.75 0.75 0.25
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+
+region          myreg block     0 4                                 0 4                                 0 4
+create_box      1 myreg
+Created orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 region myreg
+Created 512 atoms
+  create_atoms CPU = 0.102434 secs
+
+mass            1       28.06
+
+group Si type 1
+512 atoms in group Si
+
+velocity all create ${thi} 5287286 mom yes rot yes dist gaussian
+velocity all create 2400 5287286 mom yes rot yes dist gaussian
+
+# make a vacancy
+
+group del id 300
+1 atoms in group del
+delete_atoms group del
+Deleted 1 atoms, new total = 511
+kim_style   define  Si
+Using KIM Simulator Model : ex_sim_model_Si_mod_tersoff
+For Simulator             : LAMMPS 12-Dec-2018
+Running on                : LAMMPS 30 Apr 2019
+pair_style tersoff/mod
+pair_coeff * * /tmp/kim-simulator-model-parameter-file-XXXXXXqDlERL  Si
+Reading potential file /tmp/kim-simulator-model-parameter-file-XXXXXXqDlERL with DATE: 2013-07-26
+
+thermo          10
+
+fix             1 all nve
+fix 		2 all langevin ${thi} ${thi} 0.1 48278
+fix 		2 all langevin 2400 ${thi} 0.1 48278
+fix 		2 all langevin 2400 2400 0.1 48278
+
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15, bins = 11 11 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff/mod, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.082 | 3.082 | 3.082 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    2397.5824   -2363.0694            0   -2205.0143    15087.562 
+      10    1298.5003   -2292.5456            0    -2206.945    28361.893 
+      20    1114.7065   -2260.7006            0   -2187.2161    30574.077 
+      30    1504.9472   -2271.8639            0   -2172.6537    20395.651 
+      40    1357.5949   -2248.6066            0   -2159.1103    21779.773 
+      50    1351.7212   -2235.0803            0   -2145.9713    23404.844 
+      60    1582.4191   -2238.3233            0    -2134.006     21711.26 
+      70    1654.3988   -2230.0965            0   -2121.0341    24276.504 
+      80    1654.9629   -2218.6654            0   -2109.5658    27571.472 
+      90    1815.7206   -2219.2065            0   -2099.5093    28475.757 
+     100    1901.1544   -2216.5428            0   -2091.2137     28962.04 
+Loop time of 4.36959 on 4 procs for 100 steps with 511 atoms
+
+Performance: 1.977 ns/day, 12.138 hours/ns, 22.885 timesteps/s
+47.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.051784   | 0.056551   | 0.064825   |   2.1 |  1.29
+Neigh   | 0.00093389 | 0.001028   | 0.0011392  |   0.3 |  0.02
+Comm    | 2.8964     | 2.9342     | 3.016      |   2.8 | 67.15
+Output  | 0.673      | 0.68159    | 0.69707    |   1.1 | 15.60
+Modify  | 0.0011303  | 0.0029655  | 0.0081694  |   5.5 |  0.07
+Other   |            | 0.6933     |            |       | 15.87
+
+Nlocal:    127.75 ave 134 max 123 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+Nghost:    495 ave 498 max 489 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  2302 ave 2443 max 2194 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+
+Total # of neighbors = 9208
+Ave neighs/atom = 18.0196
+Neighbor list builds = 4
+Dangerous builds = 0
+
+Total wall time: 0:00:05

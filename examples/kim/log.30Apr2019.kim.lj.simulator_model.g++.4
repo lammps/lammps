@@ -1,0 +1,104 @@
+LAMMPS (30 Apr 2019)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+#
+# This example requires that the example models provided with
+# the kim-api package are installed.  see the ./lib/kim/README or
+# ./lib/kim/Install.py files for details on how to install these
+# example models.
+#
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
+
+units		metal
+atom_style	atomic
+newton          on
+
+kim_style       init LennardJones_Ar
+
+lattice		fcc 4.4300
+Lattice spacing in x,y,z = 4.43 4.43 4.43
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+  create_atoms CPU = 0.0979962 secs
+
+#pair_style	lj/cut 8.1500
+#pair_coeff	1 1 0.0104 3.4000
+
+kim_style      define Ar
+pair_style kim LennardJones_Ar
+WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (src/KIM/pair_kim.cpp:980)
+WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (src/KIM/pair_kim.cpp:985)
+pair_coeff * * Ar 
+
+mass		1 39.95
+velocity	all create 200.0 232345 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+#fix		1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run 		100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.45
+  ghost atom cutoff = 8.45
+  binsize = 4.225, bins = 21 21 21
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair kim, perpetual
+      attributes: full, newton off, cut 8.45
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.789 | 9.789 | 9.789 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200    6290.8194            0    7118.0584    129712.25 
+     100    95.179725     6718.814            0     7112.496    133346.59 
+Loop time of 6.29539 on 4 procs for 100 steps with 32000 atoms
+
+Performance: 1.372 ns/day, 17.487 hours/ns, 15.885 timesteps/s
+48.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.9399     | 2.079      | 2.2181     |   9.1 | 33.02
+Neigh   | 0.25924    | 0.26632    | 0.2692     |   0.8 |  4.23
+Comm    | 2.5011     | 2.6605     | 2.751      |   5.9 | 42.26
+Output  | 0.069904   | 0.07097    | 0.071545   |   0.3 |  1.13
+Modify  | 0.011383   | 0.012206   | 0.01419    |   1.0 |  0.19
+Other   |            | 1.206      |            |       | 19.16
+
+Nlocal:    8000 ave 8018 max 7967 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    9131 ave 9164 max 9113 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  1.06344e+06 ave 1.06594e+06 max 1.05881e+06 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+
+Total # of neighbors = 4253750
+Ave neighs/atom = 132.93
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:07

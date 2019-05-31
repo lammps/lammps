@@ -802,7 +802,7 @@ void FixDeposit::write_restart(FILE *fp)
   list[n++] = random->state();
   list[n++] = ninserted;
   list[n++] = nfirst;
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -823,7 +823,7 @@ void FixDeposit::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   ninserted = static_cast<int> (list[n++]);
   nfirst = static_cast<int> (list[n++]);
-  next_reneighbor = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
 
   random->reset(seed);
 }

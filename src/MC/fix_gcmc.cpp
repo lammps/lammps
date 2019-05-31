@@ -2531,10 +2531,19 @@ double FixGCMC::memory_usage()
 void FixGCMC::write_restart(FILE *fp)
 {
   int n = 0;
-  double list[4];
+  double list[12];
   list[n++] = random_equal->state();
   list[n++] = random_unequal->state();
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ntranslation_attempts;
+  list[n++] = ntranslation_successes;
+  list[n++] = nrotation_attempts;
+  list[n++] = nrotation_successes;
+  list[n++] = ndeletion_attempts;
+  list[n++] = ndeletion_successes;
+  list[n++] = ninsertion_attempts;
+  list[n++] = ninsertion_successes;
+
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -2558,7 +2567,16 @@ void FixGCMC::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   random_unequal->reset(seed);
 
-  next_reneighbor = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+
+  ntranslation_attempts  = list[n++];
+  ntranslation_successes = list[n++];
+  nrotation_attempts     = list[n++];
+  nrotation_successes    = list[n++];
+  ndeletion_attempts     = list[n++];
+  ndeletion_successes    = list[n++];
+  ninsertion_attempts    = list[n++];
+  ninsertion_successes   = list[n++];
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

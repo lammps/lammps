@@ -82,6 +82,11 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch. :dd
 
+{Bond/react: An atom in 'react #%d' changes bond connectivity but not atom type} :dt
+
+You may want to double-check that all atom types are properly assigned
+in the post-reaction template. :dd
+
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
 Self-explanatory. :dd

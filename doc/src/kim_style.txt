@@ -51,7 +51,7 @@ The {kim_style define} command will issue commands that will realize
 the selected model (through generating pair_style and pair_coeff commands,
 but also other commands, as required).  It has to be issued [after] the
 the simulation box is defined. The {kim_style define} command allows a
-varying numbver of additional arguments.  Those are used to map the atom
+varying number of additional arguments.  Those are used to map the atom
 types in LAMMPS to the available species in the KIM model.  This is
 equivalent to the arguments following "pair_coeff * *" in a
 "kim"_pair_kim.html pair style. Thus the commands:

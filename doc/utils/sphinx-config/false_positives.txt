@@ -521,6 +521,7 @@ decrementing
 deeppink
 deepskyblue
 defgrad
+defn
 deformable
 del
 deleteIDs
@@ -2792,6 +2793,7 @@ txt
 typeI
 typeJ
 typeN
+typeargs
 Tz
 Tzou
 ub

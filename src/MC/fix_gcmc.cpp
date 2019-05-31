@@ -2543,7 +2543,7 @@ void FixGCMC::write_restart(FILE *fp)
   list[n++] = ndeletion_successes;
   list[n++] = ninsertion_attempts;
   list[n++] = ninsertion_successes;
-
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -2577,6 +2577,10 @@ void FixGCMC::restart(char *buf)
   ndeletion_successes    = list[n++];
   ninsertion_attempts    = list[n++];
   ninsertion_successes   = list[n++];
+
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

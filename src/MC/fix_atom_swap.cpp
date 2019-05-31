@@ -777,6 +777,7 @@ void FixAtomSwap::write_restart(FILE *fp)
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = nswap_attempts;
   list[n++] = nswap_successes;
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -804,4 +805,8 @@ void FixAtomSwap::restart(char *buf)
 
   nswap_attempts = static_cast<int>(list[n++]);
   nswap_successes = static_cast<int>(list[n++]);
+
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix atom/swap");
 }

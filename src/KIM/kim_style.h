@@ -85,34 +85,34 @@ class KimStyle : protected Pointers {
 
 E: Illegal kim_style command
 
-Incorrect number or kind of arguments to kim_style
+Incorrect number or kind of arguments to kim_style.
 
 E: Must use 'kim_style init' command before simulation box is defined
 
-Self-explanatory
+Self-explanatory.
 
 E: Must use 'kim_style define' command after simulation box is defined
 
-Self-explanatory
+Self-explanatory.
 
 E: Must use 'kim_style init' command before 'kim_style define'
 
-Self-explanatory
+Self-explanatory.
 
 E: Incompatible KIM Simulator Model
 
 The requested KIM Simulator Model was defined for a different MD code
-and thus is not compatible with LAMMPS
+and thus is not compatible with LAMMPS.
 
 E: Species XXX is not supported by this KIM Simulator Model
 
 The kim_style define command was referencing a species that is not
-present in the requested KIM Simulator Model
+present in the requested KIM Simulator Model.
 
 E: Incompatible units for KIM Simulator Model
 
 The selected unit style is not compatible with the requested KIM
-Simulator Model
+Simulator Model.
 
 E: KIM Simulator Model has no Model definition
 

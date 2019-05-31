@@ -54,7 +54,7 @@ velocity all create ${thi} 5287286 mom yes rot yes dist gaussian
 
 group del id 300
 delete_atoms group del
-kim_style   define  ex_sim_model_Si_mod_tersoff Si
+kim_style   define  Si
 
 thermo          10
 

@@ -8,7 +8,7 @@ kim_style init Sim_LAMMPS_ReaxFF_ChenowethVanDuinPersson_2008_CHOV__SM_429148913
 
 read_data	data.VOH
 
-kim_style define NULL H C O V
+kim_style define H C O V
 
 neighbor	2 bin
 neigh_modify	every 10 delay 0 check no

@@ -18,6 +18,8 @@ units		metal
 atom_style	atomic
 newton          on
 
+kim_style       init LennardJones_Ar
+
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
@@ -26,7 +28,7 @@ create_atoms	1 box
 #pair_style	lj/cut 8.1500
 #pair_coeff	1 1 0.0104 3.4000
 
-kim_style      define LennardJones_Ar Ar
+kim_style      define Ar
 
 mass		1 39.95
 velocity	all create 200.0 232345 loop geom

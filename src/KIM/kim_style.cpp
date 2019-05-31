@@ -79,7 +79,7 @@ void KimStyle::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal kim_style command");
 
   if (strcmp(arg[0],"init") == 0) {
-    if (narg > 2) error->all(FLERR,"Illegal kim_style init command");
+    if (narg > 2) error->all(FLERR,"Illegal kim_style command");
     if (domain->box_exist)
       error->all(FLERR,"Must use 'kim_style init' command before "
                  "simulation box is defined");
@@ -167,10 +167,10 @@ void KimStyle::do_init(char *model)
 
 void KimStyle::do_defn(int narg, char **arg)
 {
-  if (narg != atom->ntypes + 1)
-    error->all(FLERR,"Incorrect number of arguments for kim_style define command");
+  if (narg != atom->ntypes)
+    error->all(FLERR,"Illegal kim_style command");
 
-  char *model = arg[0];
+  char *model = NULL;
   KIM::SimulatorModel *simulatorModel(NULL);
   int kimerror;
 
@@ -182,17 +182,9 @@ void KimStyle::do_defn(int narg, char **arg)
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
     FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
-    if (strcmp(model,"NULL") == 0)
-      model = (char *)fix_store->getptr("model_name");
-    else if (strcmp(model,(const char*)fix_store->getptr("model_name")) != 0)
-      error->all(FLERR,"Inconsistent KIM model name");
-
+    model = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM::SimulatorModel *)fix_store->getptr("simulator_model");
-  } else {
-
-    kimerror = KIM::SimulatorModel::Create(model,&simulatorModel);
-    if (kimerror) simulatorModel = NULL;
-  }
+  } else error->all(FLERR,"Must use 'kim_style init' before 'kim_style define'");
 
   if (simulatorModel) {
 
@@ -219,7 +211,7 @@ void KimStyle::do_defn(int narg, char **arg)
     if (*sim_name != "LAMMPS")
       error->all(FLERR,"Incompatible KIM Simulator Model");
 
-    for (int i = 1; i < narg; i++)
+    for (int i = 0; i < narg; i++)
       atom_type_sym_list += std::string(" ") + arg[i];
 
     simulatorModel->AddTemplateMap("atom-type-sym-list",atom_type_sym_list);
@@ -268,14 +260,6 @@ void KimStyle::do_defn(int narg, char **arg)
         if (*sim_value != update->unit_style)
           error->all(FLERR,"Incompatible units for KIM Simulator Model");
       }
-
-      if ((ifix < 0) && ( *sim_field == "model-init")) {
-        for (int j=0; j < sim_lines; ++j) {
-          simulatorModel->GetSimulatorFieldLine(i,j,&sim_value);
-          if (*sim_value != "")
-            error->all(FLERR,"Must use 'kim_style init' with this model");
-        }
-      }
     }
 
     int sim_model_idx=-1;
@@ -294,6 +278,7 @@ void KimStyle::do_defn(int narg, char **arg)
       error->all(FLERR,"KIM Simulator Model has no Model definition");
 
     simulatorModel->ClearTemplateMap();
+
   } else {
 
     // not a simulator model. issue pair_style and pair_coeff commands.
@@ -304,7 +289,7 @@ void KimStyle::do_defn(int narg, char **arg)
     cmd1 += model;
 
     std::string cmd2("pair_coeff * * ");
-    for (int i=1; i < narg; ++i) {
+    for (int i=0; i < narg; ++i) {
       cmd2 += arg[i];
       cmd2 += " ";
     }

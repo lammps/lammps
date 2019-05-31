@@ -316,7 +316,18 @@ pkg_depends(USER-SCAFACOS MPI)
 
 include(CheckIncludeFileCXX)
 find_package(OpenMP QUIET)
-option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+
+# TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
+# GNU GCC 9.x uses settings incompatible with our use of 'default(none)' in OpenMP pragmas
+# where we assume older GCC semantics. For the time being, we disable OpenMP by default
+# for GCC 9.x and beyond. People may manually turn it on, but need to run the script
+# src/USER-OMP/hack_openmp_for_pgi_gcc9.sh on all sources to make it compatible with gcc 9.
+if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0.0))
+  option(BUILD_OMP "Build with OpenMP support" OFF)
+else()
+  option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+endif()
+
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)

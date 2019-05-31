@@ -173,6 +173,11 @@ E: Unbalanced quotes in input line
 No matching end double quote was found following a leading double
 quote.
 
+E: Incorrect conversion in format string
+
+An immediate variable with format suffix was not using
+either a %f, a %g, or a %e conversion in the format suffix.
+
 E: Input line quote not followed by white-space
 
 An end quote must be followed by white-space.

@@ -148,12 +148,20 @@ int MPI_Finalize()
 
 double MPI_Wtime()
 {
+#if defined(_MSC_VER)
+  double t;
+
+  t = GetTickCount();
+  t /= 1000.0;
+  return t;
+#else
   double time;
   struct timeval tv;
 
   gettimeofday(&tv,NULL);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */

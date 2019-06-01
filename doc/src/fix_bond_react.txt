@@ -136,10 +136,12 @@ words, can be customized for each reaction, or reaction step):
 A check for possible new reaction sites is performed every {Nevery}
 timesteps.
 
-Two conditions must be met for a reaction to occur. First a bonding
-atom pair must be identified. Second, the topology surrounding the
-bonding atom pair must match the topology of the pre-reaction
-template. If both these conditions are met, the reaction site is
+Three physical conditions must be met for a reaction to occur. First,
+a bonding atom pair must be identified within the reaction distance
+cutoffs. Second, the topology surrounding the bonding atom pair must
+match the topology of the pre-reaction template. Finally, any reaction
+constraints listed in the map file (see below) must be satisfied. If
+all of these conditions are met, the reaction site is eligible to be
 modified to match the post-reaction template.
 
 A bonding atom pair will be identified if several conditions are met.

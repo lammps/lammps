@@ -159,35 +159,36 @@ class Force : protected Pointers {
 
 E: Must re-specify non-restarted pair style (%s) after read_restart
 
-UNDOCUMENTED
+For pair styles, that do not store their settings in a restart file,
+it must be defined with a new 'pair_style' command after read_restart.
 
-E: Unknown pair style %s
+E: Unrecognized pair style %s
 
-UNDOCUMENTED
+The choice of pair style is unknown.
 
-E: Unknown bond style %s
+E: Unrecognized bond style %s
 
-UNDOCUMENTED
+The choice of bond style is unknown.
 
-E: Unknown angle style %s
+E: Unrecognized angle style %s
 
-UNDOCUMENTED
+The choice of angle style is unknown.
 
-E: Unknown dihedral style %s
+E: Unrecognized dihedral style %s
 
-UNDOCUMENTED
+The choice of dihedral style is unknown.
 
-E: Unknown improper style %s
+E: Unrecognized improper style %s
 
-UNDOCUMENTED
+The choice of improper style is unknown.
 
 E: Cannot yet use KSpace solver with grid with comm style tiled
 
 This is current restriction in LAMMPS.
 
-E: Unknown kspace style %s
+E: Unrecognized kspace style %s
 
-UNDOCUMENTED
+The choice of kspace style is unknown.
 
 E: Illegal ... command
 

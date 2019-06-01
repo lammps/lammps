@@ -87,7 +87,8 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 # this is fast, so check for it all the time
 message(STATUS "Running check for auto-generated files from make-based build system")
 file(GLOB SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-list(APPEND SRC_AUTOGEN_FILES ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
+file(GLOB SRC_AUTOGEN_PACKAGES ${LAMMPS_SOURCE_DIR}/packages_*.h)
+list(APPEND SRC_AUTOGEN_FILES ${SRC_AUTOGEN_PACKAGES} ${LAMMPS_SOURCE_DIR}/lmpinstalledpkgs.h ${LAMMPS_SOURCE_DIR}/lmpgitversion.h)
 foreach(_SRC ${SRC_AUTOGEN_FILES})
   get_filename_component(FILENAME "${_SRC}" NAME)
   if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
@@ -172,21 +173,17 @@ set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
-  KSPACE MANYBODY MC MESSAGE MISC MOLECULE PERI REPLICA RIGID SHOCK
-  SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD
-  USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
-  USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
-  USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
-  USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
-  USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
+set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE
+  GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MOLECULE PERI POEMS QEQ
+  REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS
+  USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
+  USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
+  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC
+  USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF
+  USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-set(OTHER_PACKAGES CORESHELL QEQ)
-foreach(PKG ${DEFAULT_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
-foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -203,7 +200,6 @@ endif()
 
 include_directories(${LAMMPS_SOURCE_DIR})
 
-
 if(PKG_USER-ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
@@ -212,7 +208,6 @@ if(PKG_USER-ADIOS)
   find_package(ADIOS2 REQUIRED)
   list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
 endif()
-
 
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
@@ -232,7 +227,6 @@ else()
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
   list(APPEND LAMMPS_LINK_LIBS mpi_stubs)
 endif()
-
 
 set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallsmall: all 32-bit, smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
 set(LAMMPS_SIZES_VALUES smallbig bigbig smallsmall)
@@ -322,7 +316,18 @@ pkg_depends(USER-SCAFACOS MPI)
 
 include(CheckIncludeFileCXX)
 find_package(OpenMP QUIET)
-option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+
+# TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
+# GNU GCC 9.x uses settings incompatible with our use of 'default(none)' in OpenMP pragmas
+# where we assume older GCC semantics. For the time being, we disable OpenMP by default
+# for GCC 9.x and beyond. People may manually turn it on, but need to run the script
+# src/USER-OMP/hack_openmp_for_pgi_gcc9.sh on all sources to make it compatible with gcc 9.
+if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0.0))
+  option(BUILD_OMP "Build with OpenMP support" OFF)
+else()
+  option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+endif()
+
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
   check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
@@ -445,7 +450,6 @@ else()
   set(CMAKE_REQUEST_PIC)
   set(CUDA_REQUEST_PIC)
 endif()
-
 
 if(PKG_VORONOI)
   find_package(VORO)
@@ -895,6 +899,8 @@ foreach(PKG ${DEFAULT_PACKAGES})
     list(APPEND LIB_SOURCES ${${PKG}_SOURCES})
     include_directories(${${PKG}_SOURCES_DIR})
   endif()
+
+  RegisterPackages(${${PKG}_SOURCES_DIR})
 endforeach()
 
 # packages that need defines set
@@ -913,6 +919,8 @@ foreach(PKG ${ACCEL_PACKAGES})
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
+
+  RegisterPackages(${${PKG}_SOURCES_DIR})
 endforeach()
 
 ##############################################
@@ -960,7 +968,6 @@ if(PKG_USER-H5MD)
   target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
   include_directories(${HDF5_INCLUDE_DIRS})
 endif()
-
 
 ######################################################################
 # packages which selectively include variants based on enabled styles
@@ -1438,10 +1445,12 @@ endif()
 ######################################################
 # Generate style headers based on global list of
 # styles registered during package selection
+# Generate packages headers from all packages
 ######################################################
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
+GeneratePackagesHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 
 include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
@@ -1450,7 +1459,7 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-set(temp_PKG_LIST ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+set(temp_PKG_LIST ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
 list(SORT temp_PKG_LIST)
 foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
@@ -1528,8 +1537,6 @@ if(BUILD_EXE)
   install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 endif()
-
-
 
 ###############################################################################
 # Build documentation
@@ -1683,7 +1690,7 @@ endif()
 ###############################################################################
 # Print package summary
 ###############################################################################
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")
   endif()

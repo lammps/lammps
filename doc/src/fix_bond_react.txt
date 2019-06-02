@@ -205,9 +205,9 @@ new types must also be defined during the setup of a given simulation.
 A discussion of correctly handling this is also provided on the
 "molecule"_molecule.html command page.
 
-NOTE: When a reaction includes edge atoms, it is possible that the
-resulting topology/atom (e.g. special bonds, dihedrals, etc.) exceeds
-that of the existing system and reaction templates. As when inserting
+NOTE: When a reaction occurs, it is possible that the resulting
+topology/atom (e.g. special bonds, dihedrals, etc.) exceeds that of
+the existing system and reaction templates. As when inserting
 molecules, enough space for this increased topology/atom must be
 reserved by using the relevant "extra" keywords to the
 "read_data"_read_data.html or "create_box"_create_box.html commands.

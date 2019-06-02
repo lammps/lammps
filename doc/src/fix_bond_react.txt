@@ -215,7 +215,7 @@ reserved by using the relevant "extra" keywords to the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and three optional keywords. The
+contains one mandatory keyword and four optional keywords. The
 mandatory keyword is 'equivalences':
 
 N {equivalences} = # of atoms N in the reaction molecule templates :pre

@@ -216,10 +216,13 @@ The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
 contains one mandatory keyword and three optional keywords. The
-mandatory keyword is 'equivalences' and the optional keywords are
-'edgeIDs' and 'deleteIDs' and 'customIDs':
+mandatory keyword is 'equivalences':
 
-N {equivalences} = # of atoms N in the reaction molecule templates
+N {equivalences} = # of atoms N in the reaction molecule templates :pre
+
+The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
+'constraints':
+
 N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template
 N {deleteIDs} = # of atoms N that are specified for deletion
 N {customIDs} = # of atoms N that are specified for a custom update
@@ -253,8 +256,8 @@ A sample map file is given below:
 
 # this is a map file :pre
 
-2 edgeIDs
-7 equivalences :pre
+7 equivalences
+2 edgeIDs :pre
 
 BondingIDs :pre
 

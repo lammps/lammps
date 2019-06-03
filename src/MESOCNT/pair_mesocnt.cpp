@@ -99,11 +99,9 @@ void PairMesoCNT::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  //printf("Number of bonds: %d\n",nbondlist);
   for(n = 0; n < nbondlist; n++){
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
-    //printf("Local IDs in bond: %d %d\n",i1,i2);
     
     r1 = x[i1];
     r2 = x[i2];
@@ -114,8 +112,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
     j2list = firstneigh[i2];
     j1num = numneigh[i1];
     j2num = numneigh[i2];
-
-    //printf("Bond neighbours: %d\n",j1num + j2num);
 
     if(j1num + j2num == 0) continue;
     
@@ -141,7 +137,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
       if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < 5) continue; 
       redlist[numred++] = ind;
     }
-
+    
+    if (numred < 2) continue;
     
     //printf("Unsorted:\n");
     for(int mm = 0; mm < numred; mm++){
@@ -182,7 +179,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     }
     //printf("\n");
 
-    fflush(stdout);
+    //fflush(stdout);
    
  
     // split into connected chains
@@ -196,7 +193,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
       int j1 = redlist[jj];
       int j2 = redlist[jj+1];
       chain[cid][cnum++] = j1;
-      //printf("%d %d %d %d\n",cid,tag[j1],tag[j2],abs(tag[j1] - tag[j2]));
       if(abs(tag[j1] - tag[j2]) != 1 || mol[j1] != mol[j2]){
         nchain[cid++] = cnum;
 	cnum = 0;
@@ -204,17 +200,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
     }
     chain[cid][cnum++] = redlist[numred-1];
     nchain[cid++] = cnum;
-
-    //printf("Chains:\n");
-    for(int i = 0; i < cid; i++){
-      int cn = nchain[i];
-      //printf("Chain %d: ",i);
-      for(int j = 0; j < cn; j++){
-        //printf("%d ", chain[i][j]);
-      }
-      //printf("\n");
-    }
-    fflush(stdout);
 
     // check for ends
    
@@ -250,6 +235,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       sumw = 0;
       double sumindex1 = 0;
       double sumindex2 = 0;
+      int chainnumber = 0;
       
       //printf("Vectors r:\n");
       //printf("%e %e %e\n",r1[0],r1[1],r1[2]);
@@ -260,65 +246,46 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	q2 = x[chain[i][j+1]];
 
 	w = weight(r1,r2,q1,q2);
+	//if(w < SMALL) continue;
+	chainnumber++;
 	sumw += w;
-
-	sumindex1 += w * chain[i][j];
-	sumindex2 += w * chain[i][j+1];
-	//printf("Vectors q %d:\n",j);
-        //printf("%e %e %e\n",q1[0],q1[1],q1[2]);
-        //printf("%e %e %e\n",q2[0],q2[1],q2[2]);
-	//printf("Weight: %e\n",w);
-        fflush(stdout);
-
-        for(int ax = 0; ax < 3; ax++){
-          p1[ax] += w * q1[ax];
-	  p2[ax] += w * q2[ax];
-	}
+	sumindex1 += w*chain[i][j];
+	sumindex2 += w*chain[i][j+1];
+	MathExtra::scaleadd3(w,q1,p1,p1);
+	MathExtra::scaleadd3(w,q2,p2,p2);
       }
-      
-      if(sumw == 0) continue;
+      if (sumw < SMALL) continue;
+
       sumwreq = 1 / sumw;
       sumindex1 *= sumwreq;
       sumindex2 *= sumwreq;
       scale3(sumwreq,p1);
       scale3(sumwreq,p2);
-
-      //printf("Weight sum:\n");
-      //printf("%e\n",sumw);
-      //printf("Vectors p:\n");
-      //printf("%e %e %e\n",p1[0],p1[1],p1[2]);
-      //printf("%e %e %e\n",p2[0],p2[1],p2[2]);
-      fflush(stdout);
-
-      /*
-      geom(r1,r2,p1,p2,param,basis);
-      //printf("%e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
-      if(param[0] > cutoff || param[0] < diameter) continue;
-      finf(param,flocal);
-      */
-
+ 
       /*
       printf("End index: %d\n",end[i]);
       if(end[i] == 1) printf("Chain end: %d\n",tag[chain[i][0]]);
       else if(end[i] == 2) printf("Chain end: %d\n",tag[chain[i][nchain[i]-1]]);
       */
 
+      /*
+      geom(r1,r2,p1,p2,param,basis);
+      if(param[0] > cutoff) continue;
+      finf(param,flocal);
+      */
        
       if(end[i] == 1){
         geom(r1,r2,p1,p2,param,basis);
-	//printf("%e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
 	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
       else if(end[i] == 2){
 	geom(r1,r2,p2,p1,param,basis);
-	//printf("%e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
 	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
       else{
         geom(r1,r2,p1,p2,param,basis);
-	//printf("%e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
 	if(param[0] > cutoff) continue;
 	finf(param,flocal);
       }
@@ -368,25 +335,21 @@ void PairMesoCNT::compute(int eflag, int vflag)
       f[i2][2] += flocal[1][0]*basis[0][2]
 	      + flocal[1][1]*basis[1][2]
 	      + flocal[1][2]*basis[2][2];
-          
-      double fabs1 = flocal[0][0]*flocal[0][0]
-	      + flocal[0][1]*flocal[0][1]
-	      + flocal[0][2]*flocal[0][2];
-      double fabs2 = flocal[1][0]*flocal[1][0]
-	      + flocal[1][1]*flocal[1][1]
-	      + flocal[1][2]*flocal[1][2];
 
-      /*
+      if(false){//update->ntimestep > 2039 && i1 > 500){
+      //if(uinf(param)>0){
+      printf("Timestep: %d\n",update->ntimestep);
       printf("Vectors r:\n");
       printf("%e %e %e\n",r1[0],r1[1],r1[2]);
       printf("%e %e %e\n",r2[0],r2[1],r2[2]);
       printf("Vectors p:\n");
       printf("%e %e %e\n",p1[0],p1[1],p1[2]);
       printf("%e %e %e\n",p2[0],p2[1],p2[2]);
-      //printf("Indices current segments:\n");
-      //printf("%d %d\n",i1,i2);
-      //printf("Indices chain:\n");
-      //printf("%e %e\n",sumindex1,sumindex2);
+      printf("Indices current segments:\n");
+      printf("%d %d\n",i1,i2);
+      printf("Average indices chain with weight:\n");
+      printf("%f %f %f %d\n",sumindex1,sumindex2,sumw,chainnumber);
+      printf("Energy: %e\n",uinf(param));
       printf("Forces:\n");
       printf("%e %e %e\n",f1x,f1y,f1z);
       printf("%e %e %e\n",f2x,f2y,f2z);
@@ -395,8 +358,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
       printf("%e %e %e\n",flocal[1][0],flocal[1][1],flocal[1][2]);
       printf("Parameters:\n");
       printf("%e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
+      printf("End index: %d\n",end[i]);
+      if(end[i] == 1) printf("Chain end: %d\n",tag[chain[i][0]]);
+      else if(end[i] == 2) printf("Chain end: %d\n",tag[chain[i][nchain[i]-1]]);
+      printf("\n");
       fflush(stdout);
-      */
+      }
+      
     }
 
     memory->destroy(redlist);
@@ -560,23 +528,25 @@ void PairMesoCNT::coeff(int narg, char **arg)
     }
   }
 
+  /*
   std::ofstream outFile1;
   std::ofstream outFile2;
   std::ofstream outFile3;
   outFile1.open("test1.dat");
   outFile2.open("test2.dat");
   outFile3.open("test3.dat");
-  double u[1000],f[1000];
+  double u[1000][1000],f[1000];
   for(int i = 0; i < 1000; i++){
-    double angle = i * 2*M_PI/1000.0;
-    //double h = diameter + 1.0e-10 + i*0.01e-10;
-    double h = 1.663866e-09;
-    double y = 0;//-10e-10 + i*0.02e-10;
+    //double angle = i * 2*M_PI;
+    for(int j = 0; j < 1000; j++){
+    double h = 1.67e-09;
+    double xpos = -4e-09 + i*8e-12;
+    double ypos = -1e-09 + j*2e-12;
     double f1x,f1y,f1z,f2x,f2y,f2z;
-    double r1[3] = {-1.0e-9,y,0};
-    double r2[3] = {1.0-9,y,0};
-    double p1[3] = {-1.0e-7*cos(angle),-1.0e-7*sin(angle),h};
-    double p2[3] = {1.0e-7*cos(angle),1.0e-7*sin(angle),h};
+    double r1[3] = {-0.835e-9 + xpos,ypos,0};
+    double r2[3] = {0.835e-9 + xpos,ypos,0};
+    double p1[3] = {-1.0e-7,0,h};
+    double p2[3] = {1.0e-7,0,h};
     double param[6];
     double **basis, **flocal;
     memory->create(basis,3,3,"pair:basis");
@@ -584,21 +554,23 @@ void PairMesoCNT::coeff(int narg, char **arg)
     geom(r1,r2,p1,p2,param,basis);
     finf(param,flocal);
     f[i] = flocal[0][0];
-    u[i] = uinf(param);
+    u[i][j] = uinf(param) / qelectron;
     memory->destroy(flocal);
-    memory->destroy(basis); 
+    memory->destroy(basis);
+    }
   }
   for(int i = 0; i < 1000; i++){
     //double h = diameter + 1.0e-10 + i*0.01e-10;
     //double y = -10e-10 + i*0.02e-10;
     double h = 1.663866e-09;
     double angle = 0 + i*2*M_PI/1000.0;
-    outFile1 << angle << " " << u[i] << std::endl;
-    outFile2 << angle << " " << f[i] << std::endl;
-    if(i != 0 && i != 999){
-      double d = (u[i+1] - u[i-1])/0.04e-10;
-      outFile3 << angle << " " << d << std::endl;
+    for(int j = 0; j < 1000; j++){
+    double xpos = -4e-9 + i*8e-12;
+    double ypos = -1e-9 + j*2e-12;
+    outFile1 << xpos*1.0e10 << " " << ypos*1.0e10 << " " << u[i][j] << std::endl;
+    //outFile2 << angle << " " << f[i] << std::endl;
     }
+    outFile1 << std::endl;
   }
   outFile1.close();
   outFile2.close();
@@ -634,7 +606,8 @@ void PairMesoCNT::coeff(int narg, char **arg)
       f2z = flocal[1][0]*basis[0][2]
 	      + flocal[1][1]*basis[1][2]
 	      + flocal[1][2]*basis[2][2];
-
+  
+  */
   //printf("Param: %e %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4],param[5]);
   //printf("Forces: \n");
   //printf("%e %e %e\n",f1x,f1y,f1z);
@@ -647,8 +620,10 @@ void PairMesoCNT::coeff(int narg, char **arg)
   //printf("%e %e %e \n",basis[1][0], basis[1][1], basis[1][2]);
   //printf("%e %e %e \n",basis[2][0], basis[2][1], basis[2][2]);
   
+	 /* 
   memory->destroy(basis);
   memory->destroy(flocal);
+  */
 }
 
 /* ---------------------------------------------------------------------- */

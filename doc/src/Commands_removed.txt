@@ -11,6 +11,9 @@ Removed commands and packages :h3
 
 This page lists LAMMPS commands and packages that have been removed from
 the distribution and provides suggestions for alternatives or replacements.
+LAMMPS has special dummy styles implemented, that will stop LAMMPS and
+print a suitable error message in most cases, when a style/command is used
+that has been removed.
 
 Fix ave/spatial and fix ave/spatial/sphere :h4
 

@@ -56,3 +56,11 @@ performance characteristics on Nvidia GPUs. Both, the KOKKOS
 and the "GPU package"_Package_details.html#PKG-GPU are maintained
 and allow running LAMMPS with GPU acceleration.
 
+restart2data tool :h4
+
+The functionality of the restart2data tool has been folded into the
+LAMMPS executable directly instead of having a separate tool.  A
+combination of the commands "read_restart"_read_restart.html and
+"write_data"_write_data.html can be used to the same effect.  For added
+convenience this conversion can also be triggered by "command line
+flags"_Run_options.html

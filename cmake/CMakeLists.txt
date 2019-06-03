@@ -322,7 +322,7 @@ find_package(OpenMP QUIET)
 # where we assume older GCC semantics. For the time being, we disable OpenMP by default
 # for GCC 9.x and beyond. People may manually turn it on, but need to run the script
 # src/USER-OMP/hack_openmp_for_pgi_gcc9.sh on all sources to make it compatible with gcc 9.
-if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") AND (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 8.99.9))
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
   option(BUILD_OMP "Build with OpenMP support" OFF)
 else()
   option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})

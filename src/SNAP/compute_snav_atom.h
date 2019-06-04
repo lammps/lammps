@@ -44,9 +44,8 @@ class ComputeSNAVAtom : public Compute {
   double rcutfac;
   double *radelem;
   double *wjelem;
-  class SNA** snaptr;
+  class SNA* snaptr;
   int quadraticflag;
-  int nthreads;
 };
 
 }

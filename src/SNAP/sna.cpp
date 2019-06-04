@@ -21,7 +21,6 @@
 #include "math_extra.h"
 #include <cstring>
 #include <cstdlib>
-#include "openmp_snap.h"
 
 #include "memory.h"
 #include "error.h"
@@ -114,12 +113,11 @@ using namespace MathConst;
 ------------------------------------------------------------------------- */
 
 SNA::SNA(LAMMPS* lmp, double rfac0_in,
-         int twojmax_in, int diagonalstyle_in, int use_shared_arrays_in,
+         int twojmax_in, int diagonalstyle_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
 
-  use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
@@ -141,7 +139,8 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   wj = NULL;
   rcutij = NULL;
   nmax = 0;
-  idxj = NULL;
+  idxz = NULL;
+  idxb= NULL;
 
   if (bzero_flag) {
     double www = wself*wself*wself;
@@ -149,133 +148,178 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
       bzero[j] = www*(j+1);
   }
 
-#ifdef TIMING_INFO
-  timers = new double[20];
-  for(int i = 0; i < 20; i++) timers[i] = 0;
-  print = 0;
-  counter = 0;
-#endif
-
   build_indexlist();
-
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 SNA::~SNA()
 {
-  if(!use_shared_arrays) {
-    destroy_twojmax_arrays();
-    memory->destroy(rij);
-    memory->destroy(inside);
-    memory->destroy(wj);
-    memory->destroy(rcutij);
-    memory->destroy(bvec);
-    memory->destroy(dbvec);
-  }
-  delete[] idxj;
+  destroy_twojmax_arrays();
+  memory->destroy(rij);
+  memory->destroy(inside);
+  memory->destroy(wj);
+  memory->destroy(rcutij);
+  memory->destroy(bvec);
+  memory->destroy(dbvec);
+  delete[] idxz;
+  delete[] idxb;
 }
 
 void SNA::build_indexlist()
 {
-  if(diagonalstyle == 0) {
-    int idxj_count = 0;
+  if(diagonalstyle != 3)
+    error->all(FLERR, "diagonal_style must be 3\n");
 
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
-          idxj_count++;
+  // index list for cglist
 
-    // indexList can be changed here
+  int jdim = twojmax + 1;
+  memory->create(idxcg_block, jdim, jdim, jdim,
+                 "sna:idxcg_block");
 
-    idxj = new SNA_LOOPINDICES[idxj_count];
-    idxj_max = idxj_count;
+  int idxcg_count = 0;
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+        idxcg_block[j1][j2][j] = idxcg_count; 
+        for (int m1 = 0; m1 <= j1; m1++)
+          for (int m2 = 0; m2 <= j2; m2++)
+            idxcg_count++;
+      }
+  idxcg_max = idxcg_count;
 
-    idxj_count = 0;
+  // index list for uarray
+  // need to include both halves
 
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
-          idxj[idxj_count].j1 = j1;
-          idxj[idxj_count].j2 = j2;
-          idxj[idxj_count].j = j;
-          idxj_count++;
+  memory->create(idxu_block, jdim,
+                 "sna:idxu_block");
+
+  int idxu_count = 0;
+  
+  for(int j = 0; j <= twojmax; j++) {
+    idxu_block[j] = idxu_count; 
+    for(int mb = 0; mb <= j; mb++)
+      for(int ma = 0; ma <= j; ma++)
+        idxu_count++;
+  }
+  idxu_max = idxu_count;
+
+  // index list for beta and B
+
+  int idxb_count = 0;  
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
+        if (j >= j1) idxb_count++;
+  
+  idxb_max = idxb_count;
+  idxb = new SNA_BINDICES[idxb_max];
+  
+  idxb_count = 0;
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
+        if (j >= j1) {
+          idxb[idxb_count].j1 = j1;
+          idxb[idxb_count].j2 = j2;
+          idxb[idxb_count].j = j;
+          idxb_count++;
         }
-  }
 
-  if(diagonalstyle == 1) {
-    int idxj_count = 0;
+  // reverse index list for beta and b
 
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j = 0; j <= MIN(twojmax, 2 * j1); j += 2) {
-        idxj_count++;
+  memory->create(idxb_block, jdim, jdim, jdim,
+                 "sna:idxb_block");
+  idxb_count = 0;
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+        if (j < j1) continue;
+        idxb_block[j1][j2][j] = idxb_count; 
+        idxb_count++;
       }
 
-    // indexList can be changed here
+  // index list for zlist
 
-    idxj = new SNA_LOOPINDICES[idxj_count];
-    idxj_max = idxj_count;
+  int idxz_count = 0;
 
-    idxj_count = 0;
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
+        for (int mb = 0; 2*mb <= j; mb++)
+          for (int ma = 0; ma <= j; ma++)
+            idxz_count++;
+  
+  idxz_max = idxz_count;
+  idxz = new SNA_ZINDICES[idxz_max];
+  
+  memory->create(idxz_block, jdim, jdim, jdim,
+                 "sna:idxz_block");
+  
+  idxz_count = 0;
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+        idxz_block[j1][j2][j] = idxz_count; 
 
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j = 0; j <= MIN(twojmax, 2 * j1); j += 2) {
-        idxj[idxj_count].j1 = j1;
-        idxj[idxj_count].j2 = j1;
-        idxj[idxj_count].j = j;
-        idxj_count++;
-      }
-  }
+        // find right beta[jjb] entry
+        // multiply and divide by j+1 factors
+        // account for multiplicity of 1, 2, or 3
 
-  if(diagonalstyle == 2) {
-    int idxj_count = 0;
+        // CODE HORROR!! Need to figure this out later
+        double betaj = 1.0;
+// #ifdef USE_YDIRECT_ZLIST
+//         double betaj; 
+//         if (j >= j1) {
+//           const int jjb = idxb_block[j1][j2][j];
+//           if (j1 == j) {
+//             if (j2 == j) betaj = 3*beta[jjb];
+//             else betaj = 2*beta[jjb];
+//           } else betaj = beta[jjb]; 
+//         } else if (j >= j2) {
+//           const int jjb = idxb_block[j][j2][j1];
+//           if (j2 == j) betaj = 2*beta[jjb]*(j1+1)/(j+1.0);
+//           else betaj = beta[jjb]*(j1+1)/(j+1.0);
+//         } else {
+//           const int jjb = idxb_block[j2][j][j1];
+//           betaj = beta[jjb]*(j1+1)/(j+1.0); 
+//         }
+// #else
+//         double betaj; 
+//         if (j >= j1) {
+//           const int jjb = idxb_block[j1][j2][j];
+//           betaj = beta[jjb]; 
+//         } else if (j >= j2) {
+//           const int jjb = idxb_block[j][j2][j1];
+//           betaj = beta[jjb]*(j1+1)/(j+1.0);
+//         } else {
+//           const int jjb = idxb_block[j2][j][j1];
+//           betaj = beta[jjb]*(j1+1)/(j+1.0); 
+//         }
+// #endif
 
-    for(int j1 = 0; j1 <= twojmax; j1++) {
-      idxj_count++;
-    }
+        for (int mb = 0; 2*mb <= j; mb++)
+          for (int ma = 0; ma <= j; ma++) {
+            idxz[idxz_count].j1 = j1;
+            idxz[idxz_count].j2 = j2;
+            idxz[idxz_count].j = j;
+            idxz[idxz_count].ma1min = MAX(0, (2 * ma - j - j2 + j1) / 2);
+            idxz[idxz_count].ma2max = (2 * ma - j - (2 * idxz[idxz_count].ma1min - j1) + j2) / 2;
+            idxz[idxz_count].na = MIN(j1, (2 * ma - j + j2 + j1) / 2) - idxz[idxz_count].ma1min + 1;
+            idxz[idxz_count].mb1min = MAX(0, (2 * mb - j - j2 + j1) / 2);
+            idxz[idxz_count].mb2max = (2 * mb - j - (2 * idxz[idxz_count].mb1min - j1) + j2) / 2;
+            idxz[idxz_count].nb = MIN(j1, (2 * mb - j + j2 + j1) / 2) - idxz[idxz_count].mb1min + 1;
 
-    // indexList can be changed here
+            // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+            // find right beta[jjb] and y_list[jju] entries
 
-    idxj = new SNA_LOOPINDICES[idxj_count];
-    idxj_max = idxj_count;
+            const int jju = idxu_block[j] + (j+1)*mb + ma;
+            idxz[idxz_count].jju = jju;
+            idxz[idxz_count].betaj = betaj;
 
-    idxj_count = 0;
-
-    for(int j1 = 0; j1 <= twojmax; j1++) {
-      idxj[idxj_count].j1 = j1;
-      idxj[idxj_count].j2 = j1;
-      idxj[idxj_count].j = j1;
-      idxj_count++;
-    }
-  }
-
-  if(diagonalstyle == 3) {
-    int idxj_count = 0;
-
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
-          if (j >= j1) idxj_count++;
-
-    // indexList can be changed here
-
-    idxj = new SNA_LOOPINDICES[idxj_count];
-    idxj_max = idxj_count;
-
-    idxj_count = 0;
-
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
-          if (j >= j1) {
-            idxj[idxj_count].j1 = j1;
-            idxj[idxj_count].j2 = j2;
-            idxj[idxj_count].j = j;
-            idxj_count++;
+            idxz_count++;
           }
-  }
-
+      }
 }
 /* ---------------------------------------------------------------------- */
 
@@ -292,16 +336,14 @@ void SNA::grow_rij(int newnmax)
 
   nmax = newnmax;
 
-  if(!use_shared_arrays) {
-    memory->destroy(rij);
-    memory->destroy(inside);
-    memory->destroy(wj);
-    memory->destroy(rcutij);
-    memory->create(rij, nmax, 3, "pair:rij");
-    memory->create(inside, nmax, "pair:inside");
-    memory->create(wj, nmax, "pair:wj");
-    memory->create(rcutij, nmax, "pair:rcutij");
- }
+  memory->destroy(rij);
+  memory->destroy(inside);
+  memory->destroy(wj);
+  memory->destroy(rcutij);
+  memory->create(rij, nmax, 3, "pair:rij");
+  memory->create(inside, nmax, "pair:inside");
+  memory->create(wj, nmax, "pair:wj");
+  memory->create(rcutij, nmax, "pair:rcutij");
 }
 /* ----------------------------------------------------------------------
    compute Ui by summing over neighbors j
@@ -320,10 +362,6 @@ void SNA::compute_ui(int jnum)
   zero_uarraytot();
   addself_uarraytot(wself);
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &starttime);
-#endif
-
   for(int j = 0; j < jnum; j++) {
     x = rij[j][0];
     y = rij[j][1];
@@ -339,48 +377,6 @@ void SNA::compute_ui(int jnum)
     add_uarraytot(r, wj[j], rcutij[j]);
   }
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &endtime);
-  timers[0] += (endtime.tv_sec - starttime.tv_sec + 1.0 *
-                (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
-#endif
-
-}
-
-void SNA::compute_ui_omp(int jnum, int sub_threads)
-{
-  double rsq, r, x, y, z, z0, theta0;
-
-  // utot(j,ma,mb) = 0 for all j,ma,ma
-  // utot(j,ma,ma) = 1 for all j,ma
-  // for j in neighbors of i:
-  //   compute r0 = (x,y,z,z0)
-  //   utot(j,ma,mb) += u(r0;j,ma,mb) for all j,ma,mb
-
-  zero_uarraytot();
-  addself_uarraytot(wself);
-
-  for(int j = 0; j < jnum; j++) {
-    x = rij[j][0];
-    y = rij[j][1];
-    z = rij[j][2];
-    rsq = x * x + y * y + z * z;
-    r = sqrt(rsq);
-    theta0 = (r - rmin0) * rfac0 * MY_PI / (rcutij[j] - rmin0);
-    //    theta0 = (r - rmin0) * rscale0;
-    z0 = r / tan(theta0);
-    omp_set_num_threads(sub_threads);
-
-#if defined(_OPENMP)
-#pragma omp parallel shared(x,y,z,z0,r,sub_threads) default(none)
-#endif
-    {
-      compute_uarray_omp(x, y, z, z0, r, sub_threads);
-    }
-    add_uarraytot(r, wj[j], rcutij[j]);
-  }
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -389,24 +385,6 @@ void SNA::compute_ui_omp(int jnum, int sub_threads)
 
 void SNA::compute_zi()
 {
-  // for j1 = 0,...,twojmax
-  //   for j2 = 0,twojmax
-  //     for j = |j1-j2|,Min(twojmax,j1+j2),2
-  //        for ma = 0,...,j
-  //          for mb = 0,...,jmid
-  //            z(j1,j2,j,ma,mb) = 0
-  //            for ma1 = Max(0,ma+(j1-j2-j)/2),Min(j1,ma+(j1+j2-j)/2)
-  //              sumb1 = 0
-  //              ma2 = ma-ma1+(j1+j2-j)/2;
-  //              for mb1 = Max(0,mb+(j1-j2-j)/2),Min(j1,mb+(j1+j2-j)/2)
-  //                mb2 = mb-mb1+(j1+j2-j)/2;
-  //                sumb1 += cg(j1,mb1,j2,mb2,j) *
-  //                  u(j1,ma1,mb1) * u(j2,ma2,mb2)
-  //              z(j1,j2,j,ma,mb) += sumb1*cg(j1,ma1,j2,ma2,j)
-
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &starttime);
-#endif
 
   // compute_dbidrj() requires full j1/j2/j chunk of z elements
   // use zarray j1/j2 symmetry
@@ -449,84 +427,13 @@ void SNA::compute_zi()
       } // end loop over j
     } // end loop over j1, j2
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &endtime);
-  timers[1] += (endtime.tv_sec - starttime.tv_sec + 1.0 *
-                (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
-#endif
-}
-
-void SNA::compute_zi_omp(int sub_threads)
-{
-  // for j1 = 0,...,twojmax
-  //   for j2 = 0,twojmax
-  //     for j = |j1-j2|,Min(twojmax,j1+j2),2
-  //        for ma = 0,...,j
-  //          for mb = 0,...,j
-  //            z(j1,j2,j,ma,mb) = 0
-  //            for ma1 = Max(0,ma+(j1-j2-j)/2),Min(j1,ma+(j1+j2-j)/2)
-  //              sumb1 = 0
-  //              ma2 = ma-ma1+(j1+j2-j)/2;
-  //              for mb1 = Max(0,mb+(j1-j2-j)/2),Min(j1,mb+(j1+j2-j)/2)
-  //                mb2 = mb-mb1+(j1+j2-j)/2;
-  //                sumb1 += cg(j1,mb1,j2,mb2,j) *
-  //                  u(j1,ma1,mb1) * u(j2,ma2,mb2)
-  //              z(j1,j2,j,ma,mb) += sumb1*cg(j1,ma1,j2,ma2,j)
-
-  if(omp_in_parallel())
-    omp_set_num_threads(sub_threads);
-
-  // compute_dbidrj() requires full j1/j2/j chunk of z elements
-  // use zarray j1/j2 symmetry
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(auto) default(none)
-#endif
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
-
-    double sumb1_r, sumb1_i;
-    int ma2, mb2;
-
-    for(int ma = 0; ma <= j; ma++)
-      for(int mb = 0; mb <= j; mb++) {
-        zarray_r[j1][j2][j][ma][mb] = 0.0;
-        zarray_i[j1][j2][j][ma][mb] = 0.0;
-
-        for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
-            ma1 <= MIN(j1, (2 * ma - j + j2 + j1) / 2); ma1++) {
-          sumb1_r = 0.0;
-          sumb1_i = 0.0;
-
-          ma2 = (2 * ma - j - (2 * ma1 - j1) + j2) / 2;
-
-          for(int mb1 = MAX(0, (2 * mb - j - j2 + j1) / 2);
-              mb1 <= MIN(j1, (2 * mb - j + j2 + j1) / 2); mb1++) {
-
-            mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
-            sumb1_r += cgarray[j1][j2][j][mb1][mb2] *
-              (uarraytot_r[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2] -
-               uarraytot_i[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2]);
-            sumb1_i += cgarray[j1][j2][j][mb1][mb2] *
-              (uarraytot_r[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2] +
-               uarraytot_i[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2]);
-          }
-
-          zarray_r[j1][j2][j][ma][mb] +=
-            sumb1_r * cgarray[j1][j2][j][ma1][ma2];
-          zarray_i[j1][j2][j][ma][mb] +=
-            sumb1_i * cgarray[j1][j2][j][ma1][ma2];
-        }
-      }
-  }
 }
 
 /* ----------------------------------------------------------------------
    compute Yi by summing over products of beta and Zi
 ------------------------------------------------------------------------- */
 
-void SNA::compute_yi(double* beta)
+void SNA::compute_yi(const double* beta)
 {
   int j;
   int idxz_count;
@@ -540,18 +447,18 @@ void SNA::compute_yi(double* beta)
       } // end loop over ma, mb
   } // end loop over j
 
-  for(int JJ = 0; JJ < idxj_max; JJ++) {
-    const int j1 = idxj[JJ].j1;
-    const int j2 = idxj[JJ].j2;
-    const int j3 = idxj[JJ].j;
+  for(int jjb = 0; jjb < idxb_max; jjb++) {
+    const int j1 = idxb[jjb].j1;
+    const int j2 = idxb[jjb].j2;
+    const int j3 = idxb[jjb].j;
 
     j = j3;
     jjjzarray_r = zarray_r[j1][j2][j3];
     jjjzarray_i = zarray_i[j1][j2][j3];
     for(int mb = 0; 2*mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++) {
-        yarray_r[j][ma][mb] += beta[JJ]*jjjzarray_r[ma][mb];
-        yarray_i[j][ma][mb] += beta[JJ]*jjjzarray_i[ma][mb];
+        yarray_r[j][ma][mb] += beta[jjb]*jjjzarray_r[ma][mb];
+        yarray_i[j][ma][mb] += beta[jjb]*jjjzarray_i[ma][mb];
       } // end loop over ma, mb
 
     j = j1;
@@ -560,8 +467,8 @@ void SNA::compute_yi(double* beta)
     double j1fac = (j3+1)/(j+1.0);
     for(int mb = 0; 2*mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++) {
-        yarray_r[j][ma][mb] += beta[JJ]*jjjzarray_r[ma][mb]*j1fac;
-        yarray_i[j][ma][mb] += beta[JJ]*jjjzarray_i[ma][mb]*j1fac;
+        yarray_r[j][ma][mb] += beta[jjb]*jjjzarray_r[ma][mb]*j1fac;
+        yarray_i[j][ma][mb] += beta[jjb]*jjjzarray_i[ma][mb]*j1fac;
       } // end loop over ma, mb
 
     j = j2;
@@ -570,8 +477,8 @@ void SNA::compute_yi(double* beta)
     double j2fac = (j3+1)/(j+1.0);
     for(int mb = 0; 2*mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++) {
-        yarray_r[j][ma][mb] += beta[JJ]*jjjzarray_r[ma][mb]*j2fac;
-        yarray_i[j][ma][mb] += beta[JJ]*jjjzarray_i[ma][mb]*j2fac;
+        yarray_r[j][ma][mb] += beta[jjb]*jjjzarray_r[ma][mb]*j2fac;
+        yarray_i[j][ma][mb] += beta[jjb]*jjjzarray_i[ma][mb]*j2fac;
       } // end loop over ma, mb
 
   } // end loop over jjb
@@ -655,10 +562,6 @@ void SNA::compute_bi()
   //            b(j1,j2,j) +=
   //              2*Conj(u(j,ma,mb))*z(j1,j2,j,ma,mb)
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &starttime);
-#endif
-
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++) {
       for(int j = abs(j1 - j2);
@@ -690,12 +593,6 @@ void SNA::compute_bi()
           barray[j1][j2][j] -= bzero[j];
       }
     }
-
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &endtime);
-  timers[2] += (endtime.tv_sec - starttime.tv_sec + 1.0 *
-                (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
-#endif
 
 }
 
@@ -760,163 +657,7 @@ void SNA::compute_duidrj(double* rij, double wj, double rcut)
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &starttime);
-#endif
-
   compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut);
-
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &endtime);
-  timers[3] += (endtime.tv_sec - starttime.tv_sec + 1.0 *
-                (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
-#endif
-
-}
-
-/* ----------------------------------------------------------------------
-   calculate derivative of Bi w.r.t. atom j
-   variant using indexlist for j1,j2,j
-   variant not using symmetry relation
-------------------------------------------------------------------------- */
-
-void SNA::compute_dbidrj_nonsymm()
-{
-  // for j1 = 0,...,twojmax
-  //   for j2 = 0,twojmax
-  //     for j = |j1-j2|,Min(twojmax,j1+j2),2
-  //        dbdr(j1,j2,j) = 0
-  //        for ma = 0,...,j
-  //          for mb = 0,...,j
-  //            dzdr = 0
-  //            for ma1 = Max(0,ma+(j1-j2-j)/2),Min(j1,ma+(j1+j2-j)/2)
-  //              sumb1 = 0
-  //              ma2 = ma-ma1+(j1+j2-j)/2;
-  //              for mb1 = Max(0,mb+(j1-j2-j)/2),Min(j1,mb+(j1+j2-j)/2)
-  //                mb2 = mb-mb1+(j1+j2-j)/2;
-  //                sumb1 += cg(j1,mb1,j2,mb2,j) *
-  //                  (dudr(j1,ma1,mb1) * u(j2,ma2,mb2) +
-  //                  u(j1,ma1,mb1) * dudr(j2,ma2,mb2))
-  //              dzdr += sumb1*cg(j1,ma1,j2,ma2,j)
-  //            dbdr(j1,j2,j) +=
-  //              Conj(dudr(j,ma,mb))*z(j1,j2,j,ma,mb) +
-  //              Conj(u(j,ma,mb))*dzdr
-
-  double* dbdr;
-  double* dudr_r, *dudr_i;
-  double sumb1_r[3], sumb1_i[3], dzdr_r[3], dzdr_i[3];
-  int ma2;
-
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &starttime);
-#endif
-
-  for(int JJ = 0; JJ < idxj_max; JJ++) {
-    const int j1 = idxj[JJ].j1;
-    const int j2 = idxj[JJ].j2;
-    const int j = idxj[JJ].j;
-
-    dbdr = dbarray[j1][j2][j];
-    dbdr[0] = 0.0;
-    dbdr[1] = 0.0;
-    dbdr[2] = 0.0;
-
-    double** *j1duarray_r = duarray_r[j1];
-    double** *j2duarray_r = duarray_r[j2];
-    double** *j1duarray_i = duarray_i[j1];
-    double** *j2duarray_i = duarray_i[j2];
-    double** j1uarraytot_r = uarraytot_r[j1];
-    double** j2uarraytot_r = uarraytot_r[j2];
-    double** j1uarraytot_i = uarraytot_i[j1];
-    double** j2uarraytot_i = uarraytot_i[j2];
-    double** j1j2jcgarray = cgarray[j1][j2][j];
-
-    for(int ma = 0; ma <= j; ma++)
-      for(int mb = 0; mb <= j; mb++) {
-        dzdr_r[0] = 0.0;
-        dzdr_r[1] = 0.0;
-        dzdr_r[2] = 0.0;
-        dzdr_i[0] = 0.0;
-        dzdr_i[1] = 0.0;
-        dzdr_i[2] = 0.0;
-
-        const int max_mb1 = MIN(j1, (2 * mb - j + j2 + j1) / 2) + 1;
-        const int max_ma1 = MIN(j1, (2 * ma - j + j2 + j1) / 2) + 1;
-
-        for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
-            ma1 < max_ma1; ma1++) {
-
-          ma2 = (2 * ma - j - (2 * ma1 - j1) + j2) / 2;
-          sumb1_r[0] = 0.0;
-          sumb1_r[1] = 0.0;
-          sumb1_r[2] = 0.0;
-          sumb1_i[0] = 0.0;
-          sumb1_i[1] = 0.0;
-          sumb1_i[2] = 0.0;
-
-          //inside loop 54 operations (mul and add)
-          for(int mb1 = MAX(0, (2 * mb - j - j2 + j1) / 2),
-              mb2 = mb + (j1 + j2 - j) / 2 - mb1;
-              mb1 < max_mb1; mb1++, mb2--) {
-
-            double* dudr1_r, *dudr1_i, *dudr2_r, *dudr2_i;
-
-            dudr1_r = j1duarray_r[ma1][mb1];
-            dudr2_r = j2duarray_r[ma2][mb2];
-            dudr1_i = j1duarray_i[ma1][mb1];
-            dudr2_i = j2duarray_i[ma2][mb2];
-
-            const double cga_mb1mb2 = j1j2jcgarray[mb1][mb2];
-            const double uat_r_ma2mb2 = cga_mb1mb2 * j2uarraytot_r[ma2][mb2];
-            const double uat_r_ma1mb1 = cga_mb1mb2 * j1uarraytot_r[ma1][mb1];
-            const double uat_i_ma2mb2 = cga_mb1mb2 * j2uarraytot_i[ma2][mb2];
-            const double uat_i_ma1mb1 = cga_mb1mb2 * j1uarraytot_i[ma1][mb1];
-
-            for(int k = 0; k < 3; k++) {
-              sumb1_r[k] += dudr1_r[k] * uat_r_ma2mb2;
-              sumb1_r[k] -= dudr1_i[k] * uat_i_ma2mb2;
-              sumb1_i[k] += dudr1_r[k] * uat_i_ma2mb2;
-              sumb1_i[k] += dudr1_i[k] * uat_r_ma2mb2;
-
-              sumb1_r[k] += dudr2_r[k] * uat_r_ma1mb1;
-              sumb1_r[k] -= dudr2_i[k] * uat_i_ma1mb1;
-              sumb1_i[k] += dudr2_r[k] * uat_i_ma1mb1;
-              sumb1_i[k] += dudr2_i[k] * uat_r_ma1mb1;
-            }
-          } // end loop over mb1,mb2
-
-          // dzdr += sumb1*cg(j1,ma1,j2,ma2,j)
-
-          dzdr_r[0] += sumb1_r[0] * j1j2jcgarray[ma1][ma2];
-          dzdr_r[1] += sumb1_r[1] * j1j2jcgarray[ma1][ma2];
-          dzdr_r[2] += sumb1_r[2] * j1j2jcgarray[ma1][ma2];
-          dzdr_i[0] += sumb1_i[0] * j1j2jcgarray[ma1][ma2];
-          dzdr_i[1] += sumb1_i[1] * j1j2jcgarray[ma1][ma2];
-          dzdr_i[2] += sumb1_i[2] * j1j2jcgarray[ma1][ma2];
-        } // end loop over ma1,ma2
-
-        // dbdr(j1,j2,j) +=
-        //   Conj(dudr(j,ma,mb))*z(j1,j2,j,ma,mb) +
-        //   Conj(u(j,ma,mb))*dzdr
-
-        dudr_r = duarray_r[j][ma][mb];
-        dudr_i = duarray_i[j][ma][mb];
-
-        for(int k = 0; k < 3; k++)
-          dbdr[k] +=
-            (dudr_r[k] * zarray_r[j1][j2][j][ma][mb] +
-             dudr_i[k] * zarray_i[j1][j2][j][ma][mb]) +
-            (uarraytot_r[j][ma][mb] * dzdr_r[k] +
-             uarraytot_i[j][ma][mb] * dzdr_i[k]);
-      } //end loop over ma mb
-
-  } //end loop over j1 j2 j
-
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &endtime);
-  timers[4] += (endtime.tv_sec - starttime.tv_sec + 1.0 *
-                (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
-#endif
 
 }
 
@@ -958,14 +699,10 @@ void SNA::compute_dbidrj()
   double jjjmambzarray_r;
   double jjjmambzarray_i;
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &starttime);
-#endif
-
-  for(int JJ = 0; JJ < idxj_max; JJ++) {
-    const int j1 = idxj[JJ].j1;
-    const int j2 = idxj[JJ].j2;
-    const int j = idxj[JJ].j;
+  for(int jjb = 0; jjb < idxb_max; jjb++) {
+    const int j1 = idxb[jjb].j1;
+    const int j2 = idxb[jjb].j2;
+    const int j = idxb[jjb].j;
 
     dbdr = dbarray[j1][j2][j];
     dbdr[0] = 0.0;
@@ -1149,12 +886,6 @@ void SNA::compute_dbidrj()
 
   } //end loop over j1 j2 j
 
-#ifdef TIMING_INFO
-  clock_gettime(CLOCK_REALTIME, &endtime);
-  timers[4] += (endtime.tv_sec - starttime.tv_sec + 1.0 *
-                (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
-#endif
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1251,27 +982,6 @@ void SNA::add_uarraytot(double r, double wj, double rcut)
       }
 }
 
-void SNA::add_uarraytot_omp(double r, double wj, double rcut)
-{
-  double sfac;
-
-  sfac = compute_sfac(r, rcut);
-
-  sfac *= wj;
-
-#if defined(_OPENMP)
-#pragma omp for
-#endif
-  for (int j = 0; j <= twojmax; j++)
-    for (int ma = 0; ma <= j; ma++)
-      for (int mb = 0; mb <= j; mb++) {
-        uarraytot_r[j][ma][mb] +=
-          sfac * uarray_r[j][ma][mb];
-        uarraytot_i[j][ma][mb] +=
-          sfac * uarray_i[j][ma][mb];
-      }
-}
-
 /* ----------------------------------------------------------------------
    compute Wigner U-functions for one neighbor
 ------------------------------------------------------------------------- */
@@ -1344,88 +1054,6 @@ void SNA::compute_uarray(double x, double y, double z,
           uarray_i[j][j-ma][j-mb] = uarray_i[j][ma][mb];
         }
       }
-    }
-  }
-}
-
-void SNA::compute_uarray_omp(double x, double y, double z,
-                             double z0, double r, int /*sub_threads*/)
-{
-  double r0inv;
-  double a_r, b_r, a_i, b_i;
-  double rootpq;
-
-  // compute Cayley-Klein parameters for unit quaternion
-
-  r0inv = 1.0 / sqrt(r * r + z0 * z0);
-  a_r = r0inv * z0;
-  a_i = -r0inv * z;
-  b_r = r0inv * y;
-  b_i = -r0inv * x;
-
-  // VMK Section 4.8.2
-
-  uarray_r[0][0][0] = 1.0;
-  uarray_i[0][0][0] = 0.0;
-
-  for (int j = 1; j <= twojmax; j++) {
-#if defined(_OPENMP)
-#pragma omp for
-#endif
-    for (int mb = 0; mb < j; mb++) {
-      uarray_r[j][0][mb] = 0.0;
-      uarray_i[j][0][mb] = 0.0;
-
-      for (int ma = 0; ma < j; ma++) {
-        rootpq = rootpqarray[j - ma][j - mb];
-        uarray_r[j][ma][mb] +=
-          rootpq *
-          (a_r * uarray_r[j - 1][ma][mb] +
-           a_i * uarray_i[j - 1][ma][mb]);
-        uarray_i[j][ma][mb] +=
-          rootpq *
-          (a_r * uarray_i[j - 1][ma][mb] -
-           a_i * uarray_r[j - 1][ma][mb]);
-
-        rootpq = rootpqarray[ma + 1][j - mb];
-        uarray_r[j][ma + 1][mb] =
-          -rootpq *
-          (b_r * uarray_r[j - 1][ma][mb] +
-           b_i * uarray_i[j - 1][ma][mb]);
-        uarray_i[j][ma + 1][mb] =
-          -rootpq *
-          (b_r * uarray_i[j - 1][ma][mb] -
-           b_i * uarray_r[j - 1][ma][mb]);
-      }
-    }
-
-    int mb = j;
-    uarray_r[j][0][mb] = 0.0;
-    uarray_i[j][0][mb] = 0.0;
-
-#if defined(_OPENMP)
-#pragma omp for
-#endif
-    for (int ma = 0; ma < j; ma++) {
-      rootpq = rootpqarray[j - ma][mb];
-      uarray_r[j][ma][mb] +=
-        rootpq *
-        (b_r * uarray_r[j - 1][ma][mb - 1] -
-         b_i * uarray_i[j - 1][ma][mb - 1]);
-      uarray_i[j][ma][mb] +=
-        rootpq *
-        (b_r * uarray_i[j - 1][ma][mb - 1] +
-         b_i * uarray_r[j - 1][ma][mb - 1]);
-
-      rootpq = rootpqarray[ma + 1][mb];
-      uarray_r[j][ma + 1][mb] =
-        rootpq *
-        (a_r * uarray_r[j - 1][ma][mb - 1] -
-         a_i * uarray_i[j - 1][ma][mb - 1]);
-      uarray_i[j][ma + 1][mb] =
-        rootpq *
-        (a_r * uarray_i[j - 1][ma][mb - 1] +
-         a_i * uarray_r[j - 1][ma][mb - 1]);
     }
   }
 }
@@ -1644,20 +1272,18 @@ void SNA::create_twojmax_arrays()
     bzero = NULL;
 
 
-  if(!use_shared_arrays) {
-    memory->create(uarraytot_r, jdim, jdim, jdim,
-                   "sna:uarraytot");
-    memory->create(zarray_r, jdim, jdim, jdim, jdim, jdim,
-                   "sna:zarray");
-    memory->create(uarraytot_i, jdim, jdim, jdim,
-                   "sna:uarraytot");
-    memory->create(zarray_i, jdim, jdim, jdim, jdim, jdim,
-                   "sna:zarray");
-    memory->create(yarray_r, jdim, jdim, jdim,
-                   "sna:yarray");
-    memory->create(yarray_i, jdim, jdim, jdim,
-                   "sna:yarray");
-  }
+  memory->create(uarraytot_r, jdim, jdim, jdim,
+                 "sna:uarraytot");
+  memory->create(zarray_r, jdim, jdim, jdim, jdim, jdim,
+                 "sna:zarray");
+  memory->create(uarraytot_i, jdim, jdim, jdim,
+                 "sna:uarraytot");
+  memory->create(zarray_i, jdim, jdim, jdim, jdim, jdim,
+                 "sna:zarray");
+  memory->create(yarray_r, jdim, jdim, jdim,
+                 "sna:yarray");
+  memory->create(yarray_i, jdim, jdim, jdim,
+                 "sna:yarray");
 
 }
 
@@ -1680,14 +1306,12 @@ void SNA::destroy_twojmax_arrays()
   if (bzero_flag)
     memory->destroy(bzero);
 
-  if(!use_shared_arrays) {
-    memory->destroy(uarraytot_r);
-    memory->destroy(zarray_r);
-    memory->destroy(uarraytot_i);
-    memory->destroy(zarray_i);
-    memory->destroy(yarray_r);
-    memory->destroy(yarray_i);
-  }
+  memory->destroy(uarraytot_r);
+  memory->destroy(zarray_r);
+  memory->destroy(uarraytot_i);
+  memory->destroy(zarray_i);
+  memory->destroy(yarray_r);
+  memory->destroy(yarray_i);
 }
 
 /* ----------------------------------------------------------------------

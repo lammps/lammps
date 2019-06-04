@@ -445,7 +445,10 @@ void KSpace::modify_params(int narg, char **arg)
       nx_pppm = nx_msm_max = force->inumeric(FLERR,arg[iarg+1]);
       ny_pppm = ny_msm_max = force->inumeric(FLERR,arg[iarg+2]);
       nz_pppm = nz_msm_max = force->inumeric(FLERR,arg[iarg+3]);
-      if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0) gridflag = 0;
+      if (nx_pppm <= 0 || ny_pppm <= 0 || nz_pppm <= 0) {
+        gridflag = 0;
+        error->all(FLERR,"Non-positive grid dimension in kspace_modify mesh");
+      }
       else gridflag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
@@ -453,7 +456,11 @@ void KSpace::modify_params(int narg, char **arg)
       nx_pppm_6 = force->inumeric(FLERR,arg[iarg+1]);
       ny_pppm_6 = force->inumeric(FLERR,arg[iarg+2]);
       nz_pppm_6 = force->inumeric(FLERR,arg[iarg+3]);
-      if (nx_pppm_6 == 0 || ny_pppm_6 == 0 || nz_pppm_6 == 0) gridflag_6 = 0;
+      if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 <= 0) { 
+        gridflag_6 = 0;
+        error->all(FLERR,"Non-positive grid dimension "
+          "in kspace_modify mesh/disp");
+      }
       else gridflag_6 = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {

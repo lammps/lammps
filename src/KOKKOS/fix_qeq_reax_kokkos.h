@@ -34,6 +34,9 @@ struct TagSparseMatvec2 {};
 struct TagSparseMatvec3 {};
 struct TagZeroQGhosts{};
 
+template<int NEIGHFLAG>
+struct TagComputeHItem{};
+
 template<class DeviceType>
 class FixQEqReaxKokkos : public FixQEqReax {
  public:
@@ -53,8 +56,9 @@ class FixQEqReaxKokkos : public FixQEqReax {
   KOKKOS_INLINE_FUNCTION
   void zero_item(int) const;
 
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void compute_h_item(int, int &, const bool &) const;
+  void compute_h_team(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team, int, int) const;
 
   KOKKOS_INLINE_FUNCTION
   void matvec_item(int) const;
@@ -79,6 +83,10 @@ class FixQEqReaxKokkos : public FixQEqReax {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void sparse33_item(int) const;
+
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagComputeHItem<NEIGHFLAG>, const typename Kokkos::TeamPolicy <DeviceType, TagComputeHItem<NEIGHFLAG> > ::member_type &team) const;
 
   typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> ::member_type membertype1;
   KOKKOS_INLINE_FUNCTION
@@ -149,6 +157,9 @@ class FixQEqReaxKokkos : public FixQEqReax {
   int inum;
   int allocated_flag;
   int need_dup;
+
+  DAT::tdual_int_scalar k_mfill_offset;
+  typename AT::t_int_scalar d_mfill_offset;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
@@ -247,17 +258,33 @@ struct FixQEqReaxKokkosMatVecFunctor  {
   }
 };
 
-template <class DeviceType>
+template <class DeviceType, int NEIGHFLAG>
 struct FixQEqReaxKokkosComputeHFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &m_fill, const bool &final) const {
-    c.compute_h_item(ii,m_fill,final);
-  }
+    int atoms_per_team, vector_length;
+    typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
+    FixQEqReaxKokkos<DeviceType> c;
+
+    FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr,
+				    int _atoms_per_team,
+				    int _vector_length):
+	c(*c_ptr), atoms_per_team(_atoms_per_team), vector_length(_vector_length) {
+	c.cleanup_copy();
+    };
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team) const {
+	c.template compute_h_team<NEIGHFLAG> (team, atoms_per_team, vector_length);
+    }
+
+    size_t team_shmem_size( int team_size ) const {
+	size_t shmem_size = Kokkos::View<int*, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team) + // s_ilist
+	    Kokkos::View<int*, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team) + // s_numnbrs
+	    Kokkos::View<int*, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team) +  // s_firstnbr
+	    Kokkos::View<int**, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team, vector_length) + //s_jtype
+	    Kokkos::View<int**, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team, vector_length) + //s_j
+	    Kokkos::View<F_FLOAT**, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team, vector_length) ; //s_r
+	return shmem_size;
+    }
 };
 
 template <class DeviceType>

@@ -653,15 +653,15 @@ void PairExTeP::read_file(char *file)
     // if all 3 args are in element list, then parse this line
     // else skip to next line
 
-    for (ielement = 0; ielement < nelements; ielement++)
+    for (ielement = 0; ielement < atom->ntypes; ielement++)
       if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
+    if (ielement == atom->ntypes) continue;
+    for (jelement = 0; jelement < atom->ntypes; jelement++)
       if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
+    if (jelement == atom->ntypes) continue;
+    for (kelement = 0; kelement < atom->ntypes; kelement++)
       if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
+    if (kelement == atom->ntypes) continue;
 
     // load up parameter settings and error check their values
 
@@ -705,7 +705,7 @@ void PairExTeP::read_file(char *file)
       error->all(FLERR,"Illegal ExTeP parameter");
 
     nparams++;
-    if (nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(nelements,3)) break;
   }
 
   // deallocate words array
@@ -746,6 +746,9 @@ void PairExTeP::read_file(char *file)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
+    //skip a line if it is an unused single entry
+    if (nwords == 17) continue;
+
     if (nwords != params_per_line)
       error->all(FLERR,"Incorrect format in ExTeP potential file");
 
@@ -761,12 +764,12 @@ void PairExTeP::read_file(char *file)
     // these lines set ielement and jelement to the
     // integers matching the strings from the input
 
-    for (ielement = 0; ielement < nelements; ielement++)
+    for (ielement = 0; ielement < atom->ntypes; ielement++)
       if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
+    if (ielement == atom->ntypes) continue;
+    for (jelement = 0; jelement < atom->ntypes; jelement++)
       if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
+    if (jelement == atom->ntypes) continue;
 
     int Ni  = atoi(words[2]);
     int Nj  = atoi(words[3]);

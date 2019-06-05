@@ -53,6 +53,12 @@
 #include "memory.h"
 #include "error.h"
 
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
+#pragma GCC optimize ("O0")
+#endif
+#endif
+
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 

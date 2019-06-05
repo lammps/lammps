@@ -53,7 +53,7 @@ endif
 # PACKEXT    = subset that require an external (downloaded) library
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace latte manybody mc meam message misc \
+	  granular kim kokkos kspace latte manybody mc meam mesocnt message misc \
 	  molecule mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap spin srd voronoi
 

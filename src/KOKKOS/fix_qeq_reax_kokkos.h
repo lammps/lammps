@@ -259,32 +259,41 @@ struct FixQEqReaxKokkosMatVecFunctor  {
 };
 
 template <class DeviceType, int NEIGHFLAG>
-struct FixQEqReaxKokkosComputeHFunctor  {
-    int atoms_per_team, vector_length;
-    typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
-    FixQEqReaxKokkos<DeviceType> c;
+struct FixQEqReaxKokkosComputeHFunctor {
+  int atoms_per_team, vector_length;
+  typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
+  FixQEqReaxKokkos<DeviceType> c;
 
-    FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr,
-				    int _atoms_per_team,
-				    int _vector_length):
-	c(*c_ptr), atoms_per_team(_atoms_per_team), vector_length(_vector_length) {
-	c.cleanup_copy();
-    };
+  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType> *c_ptr,
+                                  int _atoms_per_team, int _vector_length)
+      : c(*c_ptr), atoms_per_team(_atoms_per_team),
+        vector_length(_vector_length) {
+    c.cleanup_copy();
+  };
 
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team) const {
-	c.template compute_h_team<NEIGHFLAG> (team, atoms_per_team, vector_length);
-    }
+  KOKKOS_INLINE_FUNCTION
+  void operator()(
+      const typename Kokkos::TeamPolicy<DeviceType>::member_type &team) const {
+    c.template compute_h_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
+  }
 
-    size_t team_shmem_size( int team_size ) const {
-	size_t shmem_size = Kokkos::View<int*, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team) + // s_ilist
-	    Kokkos::View<int*, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team) + // s_numnbrs
-	    Kokkos::View<int*, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team) +  // s_firstnbr
-	    Kokkos::View<int**, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team, vector_length) + //s_jtype
-	    Kokkos::View<int**, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team, vector_length) + //s_j
-	    Kokkos::View<F_FLOAT**, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team, vector_length) ; //s_r
-	return shmem_size;
-    }
+  size_t team_shmem_size(int team_size) const {
+    size_t shmem_size =
+        Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
+            atoms_per_team) + // s_ilist
+        Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
+            atoms_per_team) + // s_numnbrs
+        Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
+            atoms_per_team) + // s_firstnbr
+        Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
+            shmem_size(atoms_per_team, vector_length) + // s_jtype
+        Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
+            shmem_size(atoms_per_team, vector_length) + // s_j
+        Kokkos::View<F_FLOAT **, scratch_space,
+                     Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team,
+                                                          vector_length); // s_r
+    return shmem_size;
+  }
 };
 
 template <class DeviceType>

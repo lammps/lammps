@@ -55,7 +55,7 @@
 
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
-#pragma GCC optimize ("O0")
+#pragma GCC optimize ("no-var-tracking")
 #endif
 #endif
 
@@ -114,7 +114,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   initclock = MPI_Wtime();
 
   init_pkg_lists();
-  
+
   // check if -mpi is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS

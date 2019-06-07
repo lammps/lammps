@@ -53,12 +53,6 @@
 #include "memory.h"
 #include "error.h"
 
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
-#pragma GCC optimize ("no-var-tracking-assignments")
-#endif
-#endif
-
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
@@ -902,7 +896,7 @@ void LAMMPS::destroy()
    initialize lists of styles in packages
 ------------------------------------------------------------------------- */
 
-void LAMMPS::init_pkg_lists()
+void _noopt LAMMPS::init_pkg_lists()
 {
   pkg_lists = new package_styles_lists;
 #define PACKAGE "UNKNOWN"
@@ -1002,7 +996,7 @@ void LAMMPS::init_pkg_lists()
 #include "packages_region.h"
 #undef RegionStyle
 #undef REGION_CLASS
-} 
+}
 
 bool LAMMPS::is_installed_pkg(const char *pkg) 
 {
@@ -1045,7 +1039,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
    help message for command line options and styles present in executable
 ------------------------------------------------------------------------- */
 
-void LAMMPS::help()
+void _noopt LAMMPS::help()
 {
   FILE *fp = screen;
   const char *pager = NULL;

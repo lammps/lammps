@@ -172,6 +172,7 @@ class Modify : protected Pointers {
   FixCreatorMap *fix_map;
 
  protected:
+  void create_factories();
   template <typename T> static Compute *compute_creator(LAMMPS *, int, char **);
   template <typename T> static Fix *fix_creator(LAMMPS *, int, char **);
 };

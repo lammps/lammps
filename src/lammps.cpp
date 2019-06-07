@@ -108,7 +108,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   initclock = MPI_Wtime();
 
   init_pkg_lists();
-  
+
   // check if -mpi is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
@@ -896,7 +896,7 @@ void LAMMPS::destroy()
    initialize lists of styles in packages
 ------------------------------------------------------------------------- */
 
-void LAMMPS::init_pkg_lists()
+void _noopt LAMMPS::init_pkg_lists()
 {
   pkg_lists = new package_styles_lists;
 #define PACKAGE "UNKNOWN"
@@ -996,7 +996,7 @@ void LAMMPS::init_pkg_lists()
 #include "packages_region.h"
 #undef RegionStyle
 #undef REGION_CLASS
-} 
+}
 
 bool LAMMPS::is_installed_pkg(const char *pkg) 
 {
@@ -1039,7 +1039,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
    help message for command line options and styles present in executable
 ------------------------------------------------------------------------- */
 
-void LAMMPS::help()
+void _noopt LAMMPS::help()
 {
   FILE *fp = screen;
   const char *pager = NULL;

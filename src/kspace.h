@@ -251,6 +251,18 @@ E: Bad kspace_modify slab parameter
 
 Kspace_modify value for the slab/volume keyword must be >= 2.0.
 
+E: Kspace_modify mesh parameter must be all zero or all positive
+
+Valid kspace mesh parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero (the default).
+
+E: Kspace_modify mesh/disp parameter must be all zero or all positive
+
+Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero [and]
+the required accuracy via {force/disp/real} as well as
+{force/disp/kspace} is set.
+
 W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 
 The kspace_modify slab parameter should be larger to insure periodic

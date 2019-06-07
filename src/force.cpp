@@ -80,7 +80,11 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   strcpy(kspace_style,str);
 
   pair_restart = NULL;
+  create_factories();
+}
 
+void _noopt Force::create_factories()
+{
   // fill pair map with pair styles listed in style_pair.h
 
   pair_map = new PairCreatorMap();

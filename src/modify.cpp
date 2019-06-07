@@ -81,6 +81,11 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   ncompute = maxcompute = 0;
   compute = NULL;
 
+  create_factories();
+}
+
+void _noopt Modify::create_factories()
+{
   // fill map with fixes listed in style_fix.h
 
   fix_map = new FixCreatorMap();

@@ -2105,7 +2105,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,doub
 void partition_range( const int begin, const int end, int &thread_begin, int &thread_end, const int chunkSize = 1)
 {
    int threadId = omp_get_thread_num();
-   int nThreads = omp_get_nthreads();
+   int nThreads = omp_get_num_threads();
 
    const int len = end - begin;
    const int nBlocks = (len + (chunkSize - 1)) / chunkSize;

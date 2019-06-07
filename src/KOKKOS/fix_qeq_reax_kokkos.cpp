@@ -69,7 +69,7 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   memory->destroy(t_hist);
   grow_arrays(atom->nmax);
 
-  d_mfill_offset = DAT::t_int_scalar("qeq/kk:mfill_offset");
+  d_mfill_offset = typename AT::t_int_scalar("qeq/kk:mfill_offset");
 }
 
 /* ---------------------------------------------------------------------- */

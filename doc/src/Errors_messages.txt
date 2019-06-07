@@ -7097,6 +7097,18 @@ Self-explanatory. :dd
 
 One or more GPUs must be used when Kokkos is compiled for CUDA. :dd
 
+{Kspace_modify mesh parameter must be all zero or all positive} :dt
+
+Valid kspace mesh parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero (the default). :dd
+
+{Kspace_modify mesh/disp parameter must be all zero or all positive} :dt
+
+Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero [and]
+the required accuracy via {force/disp/real} as well as
+{force/disp/kspace} is set. :dd
+
 {Kspace style does not support compute group/group} :dt
 
 Self-explanatory. :dd

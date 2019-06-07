@@ -23,6 +23,7 @@
 #include "modify.h"
 #include "comm.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -72,8 +73,8 @@ void FixNVELimit::init()
   // warn if using fix shake, which will lead to invalid constraint forces
 
   for (int i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0)) {
+    if (utils::strmatch(modify->fix[i]->style,"^shake")
+        || utils::strmatch(modify->fix[i]->style,"^rattle")) {
       if (comm->me == 0)
         error->warning(FLERR,"Should not use fix nve/limit with fix shake or fix rattle");
     }

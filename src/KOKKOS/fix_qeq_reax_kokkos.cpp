@@ -68,6 +68,8 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   memory->destroy(s_hist);
   memory->destroy(t_hist);
   grow_arrays(atom->nmax);
+
+  d_mfill_offset = DAT::t_int_scalar("qeq/kk:mfill_offset");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,9 +131,6 @@ void FixQEqReaxKokkos<DeviceType>::init()
 
   init_shielding_k();
   init_hist();
-
-  k_mfill_offset = DAT::tdual_int_scalar("reax:k_mfill_offset");
-  d_mfill_offset = k_mfill_offset.view<DeviceType>(); 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -218,16 +217,17 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   copymode = 1;
 
   // allocate
+
   allocate_array();
 
   // get max number of neighbor
+
   if (!allocated_flag || update->ntimestep == neighbor->lastcall)
     allocate_matrix();
 
   // compute_H
-  k_mfill_offset.h_view() = 0;
-  k_mfill_offset.modify<LMPHostType>();
-  k_mfill_offset.sync<DeviceType>();
+
+  Kokkos::deep_copy(d_mfill_offset,0);
 
   int vector_length = 32;
   int atoms_per_team = 4;
@@ -250,6 +250,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   }
 
   // init_matvec
+
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
   FixQEqReaxKokkosMatVecFunctor<DeviceType> matvec_functor(this);
@@ -279,12 +280,15 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
     ndup_o = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> (d_o);
 
   // 1st cg solve over b_s, s
+
   cg_solve1();
 
   // 2nd cg solve over b_t, t
+
   cg_solve2();
 
   // calculate_Q();
+
   calculate_q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
@@ -295,6 +299,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
     allocated_flag = 1;
 
   // free duplicated memory
+
   if (need_dup)
     dup_o = decltype(dup_o)();
 }

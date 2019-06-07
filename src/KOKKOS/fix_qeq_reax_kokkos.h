@@ -34,9 +34,6 @@ struct TagSparseMatvec2 {};
 struct TagSparseMatvec3 {};
 struct TagZeroQGhosts{};
 
-template<int NEIGHFLAG>
-struct TagComputeHItem{};
-
 template<class DeviceType>
 class FixQEqReaxKokkos : public FixQEqReax {
  public:
@@ -83,10 +80,6 @@ class FixQEqReaxKokkos : public FixQEqReax {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void sparse33_item(int) const;
-
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagComputeHItem<NEIGHFLAG>, const typename Kokkos::TeamPolicy <DeviceType, TagComputeHItem<NEIGHFLAG> > ::member_type &team) const;
 
   typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> ::member_type membertype1;
   KOKKOS_INLINE_FUNCTION

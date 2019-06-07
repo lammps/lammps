@@ -106,6 +106,10 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
                              ExecutionSpace space);
+  int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                             DAT::tdual_int_1d &indices, int nrecv,
+                             int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
+                             ExecutionSpace space);
 
   void sync(ExecutionSpace space, unsigned int mask);
   void modified(ExecutionSpace space, unsigned int mask);

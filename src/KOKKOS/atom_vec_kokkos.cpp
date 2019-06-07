@@ -29,6 +29,7 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 
   no_comm_vel_flag = 0;
   no_border_vel_flag = 1;
+  unpack_exchange_indices_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

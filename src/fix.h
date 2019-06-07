@@ -209,7 +209,7 @@ class Fix : protected Pointers {
   virtual void *extract(const char *, int &) {return NULL;}
 
   virtual double memory_usage() {return 0.0;}
-
+  
  protected:
   int instance_me;        // which Fix class instantiation I am
 

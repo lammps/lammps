@@ -143,6 +143,8 @@ action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
 action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
+action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
+action fix_wall_gran_kokkos.h fix_wall_gran.h
 action gridcomm_kokkos.cpp gridcomm.cpp
 action gridcomm_kokkos.h gridcomm.h
 action improper_class2_kokkos.cpp improper_class2.cpp 

@@ -227,26 +227,32 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // compute_H
 
-  Kokkos::deep_copy(d_mfill_offset,0);
+  if (lmp->kokkos->ngpus == 0) { // CPU
+    if (neighflag == FULL) {
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
+      Kokkos::parallel_scan(inum,computeH_functor);
+    } else { // HALF and HALFTHREAD are the same
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(this);
+      Kokkos::parallel_scan(inum,computeH_functor);
+    }
+  } else { // GPU, use teams
+    Kokkos::deep_copy(d_mfill_offset,0);
 
-  int vector_length = 32;
-  int atoms_per_team = 4;
-  int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
+    int vector_length = 32;
+    int atoms_per_team = 4;
+    int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
 
-  Kokkos::TeamPolicy<DeviceType> policy(num_teams, atoms_per_team,
-                                        vector_length);
-  if (neighflag == FULL) {
-    FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(
-        this, atoms_per_team, vector_length);
-    Kokkos::parallel_for(policy, computeH_functor);
-  } else if (neighflag == HALF) {
-    FixQEqReaxKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(
-        this, atoms_per_team, vector_length);
-    Kokkos::parallel_for(policy, computeH_functor);
-  } else {
-    FixQEqReaxKokkosComputeHFunctor<DeviceType, HALFTHREAD> computeH_functor(
-        this, atoms_per_team, vector_length);
-    Kokkos::parallel_for(policy, computeH_functor);
+    Kokkos::TeamPolicy<DeviceType> policy(num_teams, atoms_per_team,
+                                          vector_length);
+    if (neighflag == FULL) {
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(
+          this, atoms_per_team, vector_length);
+      Kokkos::parallel_for(policy, computeH_functor);
+    } else { // HALF and HALFTHREAD are the same
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(
+          this, atoms_per_team, vector_length);
+      Kokkos::parallel_for(policy, computeH_functor);
+    }
   }
 
   // init_matvec
@@ -397,6 +403,68 @@ void FixQEqReaxKokkos<DeviceType>::zero_item(int ii) const
     d_d[i] = 0.0;
   }
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template <int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const bool &final) const
+{
+  const int i = d_ilist[ii];
+  int j,jj,jtype;
+
+  if (mask[i] & groupbit) {
+
+    const X_FLOAT xtmp = x(i,0);
+    const X_FLOAT ytmp = x(i,1);
+    const X_FLOAT ztmp = x(i,2);
+    const int itype = type(i);
+    const tagint itag = tag(i);
+    const int jnum = d_numneigh[i];
+    if (final)
+      d_firstnbr[i] = m_fill;
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+      jtype = type(j);
+
+      const X_FLOAT delx = x(j,0) - xtmp;
+      const X_FLOAT dely = x(j,1) - ytmp;
+      const X_FLOAT delz = x(j,2) - ztmp;
+
+      if (NEIGHFLAG != FULL) {
+        // skip half of the interactions
+        const tagint jtag = tag(j);
+        if (j >= nlocal) {
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (x(j,2) < ztmp) continue;
+            if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+            if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
+          }
+        }
+      }
+
+      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq > cutsq) continue;
+
+      if (final) {
+        const F_FLOAT r = sqrt(rsq);
+        d_jlist(m_fill) = j;
+        const F_FLOAT shldij = d_shield(itype,jtype);
+        d_val(m_fill) = calculate_H_k(r,shldij);
+      }
+      m_fill++;
+    }
+    if (final)
+      d_numnbrs[i] = m_fill - d_firstnbr[i];
+  }
 }
 
 /* ---------------------------------------------------------------------- */

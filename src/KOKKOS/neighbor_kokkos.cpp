@@ -362,7 +362,7 @@ void NeighborKokkos::modify_mol_intra_grow_kokkos(){
 
 /* ---------------------------------------------------------------------- */
 void NeighborKokkos::set_binsize_kokkos() {
-  if (!binsizeflag && lmp->kokkos->ngpu > 0) {
+  if (!binsizeflag && lmp->kokkos->ngpus > 0) {
     binsize_user = cutneighmax;
     binsizeflag = 1;
   }

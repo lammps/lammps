@@ -322,7 +322,7 @@ find_package(OpenMP QUIET)
 # where we assume older GCC semantics. For the time being, we disable OpenMP by default
 # for GCC 9.x and beyond. People may manually turn it on, but need to run the script
 # src/USER-OMP/hack_openmp_for_pgi_gcc9.sh on all sources to make it compatible with gcc 9.
-if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0.0))
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
   option(BUILD_OMP "Build with OpenMP support" OFF)
 else()
   option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
@@ -1134,6 +1134,12 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
+  include(CheckIncludeFile)
+  check_include_file(immintrin.h FOUND_IMMINTRIN)
+  if(NOT FOUND_IMMINTRIN)
+    message(FATAL_ERROR "immintrin.h header not found, Intel package won't work without it")
+  endif()
+
   add_definitions(-DLMP_USER_INTEL)
 
   set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")

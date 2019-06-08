@@ -143,6 +143,7 @@ class Force : protected Pointers {
   bigint memory_usage();
 
  private:
+  void create_factories();
   template <typename T> static Pair *pair_creator(LAMMPS *);
   template <typename T> static Bond *bond_creator(LAMMPS *);
   template <typename T> static Angle *angle_creator(LAMMPS *);

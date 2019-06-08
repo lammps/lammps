@@ -875,7 +875,7 @@ The {is_active()} function allows to query for active settings which
 are grouped by categories. Currently supported categories and
 arguments are:
 
-{package} (argument = {cuda} or {gpu} or {intel} or {kokkos} or {omp})
+{package} (argument = {gpu} or {intel} or {kokkos} or {omp})
 {newton} (argument = {pair} or {bond} or {any})
 {pair} (argument = {single} or {respa} or {manybody} or {tail} or {shift})
 {comm_style} (argument = {brick} or {tiled})
@@ -904,7 +904,7 @@ kspace_style pppm :pre
 
 Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
 
-timestep $(2.0*(1.0+*is_active(pair,respa))
+timestep $(2.0*(1.0+2.0*is_active(pair,respa))
 if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3" :pre
 
 The {is_defined()} function allows to query categories like {compute},

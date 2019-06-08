@@ -22,23 +22,21 @@ in the syntax file (lammps.vim). You can easily add new ones.
 
 (0) Create/edit ~/.vimrc to contain:
          syntax on
-(1) Create directories ~/.vim and ~/.vim/syntax
+(1) Create directories ~/.vim/syntax and ~/.vim/ftdetect
 (2) Copy lammps.vim to ~/.vim/syntax/lammps.vim
-(3) Create/edit ~/.vim/filetype.vim to contain
-
-" vim syntax highlight customizations
-if exists("did_load_filetypes")
- finish
-endif
-
-augroup filetypedetect
- au! BufRead,BufNewFile in.*           setfiletype lammps
- au! BufRead,BufNewFile *.lmp          setfiletype lammps
-augroup END
-(4) the end
+(3) Copy filetype.vim as ~/.vim/ftdetect/lammps.vim
 
 
 Gerolf Ziegenhain <gerolf@ziegenhain.com> 2007
+
+Distribution Packaging guidelines:
+==================================
+
+(0) Copy lammps.vim to ${VIMFILES}/syntax/lammps.vim
+(1) Copy filetype.vim as ${VIMFILES}/ftdetect/lammps.vim
+
+${VIMFILES} is typically /usr/share/vim/vimfiles
+Consult your packaging guidlines for exact location.
 
 ---------------
 

@@ -1,0 +1,6 @@
+if(PKG_USER-QMMM)
+  message(WARNING "Building QMMM with CMake is still experimental")
+  find_package(QE REQUIRED)
+  include_directories(${QE_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES})
+endif()

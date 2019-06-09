@@ -1,28 +1,50 @@
 ###############################################################################
 # Testing
-#
-# Requires latest gcovr (for GCC 8.1 support):#
-# pip install git+https://github.com/gcovr/gcovr.git
 ###############################################################################
-if(ENABLE_COVERAGE)
-    find_program(GCOVR_BINARY gcovr)
-    find_package_handle_standard_args(GCOVR DEFAULT_MSG GCOVR_BINARY)
+option(ENABLE_TESTING "Enable testing" OFF)
+if(ENABLE_TESTING AND BUILD_EXE)
+  enable_testing()
+  option(LAMMPS_TESTING_SOURCE_DIR "Location of lammps-testing source directory" "")
+  option(LAMMPS_TESTING_GIT_TAG    "Git tag of lammps-testing" "master")
+  mark_as_advanced(LAMMPS_TESTING_SOURCE_DIR LAMMPS_TESTING_GIT_TAG)
 
-    if(GCOVR_FOUND)
-        get_filename_component(ABSOLUTE_LAMMPS_SOURCE_DIR ${LAMMPS_SOURCE_DIR} ABSOLUTE)
+  if (CMAKE_VERSION VERSION_GREATER "3.10.3" AND NOT LAMMPS_TESTING_SOURCE_DIR)
+    include(FetchContent)
 
-        add_custom_target(
-            gen_coverage_xml
-            COMMAND ${GCOVR_BINARY} -s -x -r ${ABSOLUTE_LAMMPS_SOURCE_DIR} --object-directory=${CMAKE_BINARY_DIR} -o coverage.xml
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMENT "Generating XML Coverage Report..."
-        )
+    FetchContent_Declare(lammps-testing
+      GIT_REPOSITORY https://github.com/lammps/lammps-testing.git
+      GIT_TAG ${LAMMPS_TESTING_GIT_TAG}
+    )
 
-        add_custom_target(
-            gen_coverage_html
-            COMMAND ${GCOVR_BINARY} -s  --html --html-details -r ${ABSOLUTE_LAMMPS_SOURCE_DIR} --object-directory=${CMAKE_BINARY_DIR} -o coverage.html
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMENT "Generating HTML Coverage Report..."
-        )
+    FetchContent_GetProperties(lammps-testing)
+    if(NOT lammps-testing_POPULATED)
+      message(STATUS "Downloading tests...")
+      FetchContent_Populate(lammps-testing)
     endif()
+
+    set(LAMMPS_TESTING_SOURCE_DIR ${lammps-testing_SOURCE_DIR})
+  elseif(NOT LAMMPS_TESTING_SOURCE_DIR)
+    message(WARNING "Full test-suite requires CMake >= 3.11 or copy of\n"
+                    "https://github.com/lammps/lammps-testing in LAMMPS_TESTING_SOURCE_DIR")
+  endif()
+
+  if(EXISTS ${LAMMPS_TESTING_SOURCE_DIR})
+    message(STATUS "Running test discovery...")
+
+    file(GLOB_RECURSE TEST_SCRIPTS ${LAMMPS_TESTING_SOURCE_DIR}/tests/core/*/in.*)
+    foreach(script_path ${TEST_SCRIPTS})
+      get_filename_component(TEST_NAME ${script_path} EXT)
+      get_filename_component(SCRIPT_NAME ${script_path} NAME)
+      get_filename_component(PARENT_DIR ${script_path} DIRECTORY)
+      string(SUBSTRING ${TEST_NAME} 1 -1 TEST_NAME)
+      string(REPLACE "-" "_" TEST_NAME ${TEST_NAME})
+      string(REPLACE "+" "_" TEST_NAME ${TEST_NAME})
+      set(TEST_NAME "test_core_${TEST_NAME}_serial")
+      add_test(${TEST_NAME} ${CMAKE_BINARY_DIR}/${LAMMPS_BINARY} -in ${SCRIPT_NAME})
+      set_tests_properties(${TEST_NAME} PROPERTIES WORKING_DIRECTORY ${PARENT_DIR})
+    endforeach()
+    list(LENGTH TEST_SCRIPTS NUM_TESTS)
+
+    message(STATUS "Found ${NUM_TESTS} tests.")
+  endif()
 endif()

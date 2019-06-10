@@ -227,7 +227,6 @@ if(BUILD_OMP)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-include(Packages/KSPACE)
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-PLUMED OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
@@ -242,12 +241,6 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-PLUMED OR PKG_USER-QUI
   endif()
 endif()
 
-if(PKG_PYTHON)
-  find_package(PythonLibs REQUIRED)
-  add_definitions(-DLMP_PYTHON)
-  include_directories(${PYTHON_INCLUDE_DIR})
-  list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-endif()
 
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
@@ -303,6 +296,8 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
+include(Packages/KSPACE)
+include(Packages/PYTHON)
 include(Packages/VORONOI)
 include(Packages/USER-SCAFACOS)
 include(Packages/USER-PLUMED)

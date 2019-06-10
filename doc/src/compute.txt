@@ -169,7 +169,7 @@ There are also additional accelerated compute styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
 The individual style names on the "Commands
 compute"_Commands_compute.html doc page are followed by one or more of
-(g,i,k,o,t) to indicate which accerlerated styles exist.
+(g,i,k,o,t) to indicate which accelerated styles exist.
 
 "ackland/atom"_compute_ackland_atom.html -
 "adf"_compute_adf.html - angular distribution function of triples of atoms
@@ -184,6 +184,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "bond/local"_compute_bond_local.html - distance and energy of each bond
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "chunk/atom"_compute_chunk_atom.html - assign chunk IDs to each atom
+"chunk/spread/atom"_compute_chunk_spread_atom.html - spreads chunk values to each atom in chunk
 "cluster/atom"_compute_cluster_atom.html - cluster ID for each atom
 "cna/atom"_compute_cna_atom.html - common neighbor analysis (CNA) for each atom
 "cnp/atom"_compute_cnp_atom.html -
@@ -223,6 +224,12 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "inertia/chunk"_compute_inertia_chunk.html - inertia tensor for each chunk
 "ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
+"ke/atom/eff"_compute_ke_atom_eff.html -
+"ke/eff"_compute_ke_eff.html -
+"ke/rigid"_compute_ke_rigid.html - translational kinetic energy of rigid bodies
+"meso/e/atom"_compute_meso_e_atom.html -
+"meso/rho/atom"_compute_meso_rho_atom.html -
+"meso/t/atom"_compute_meso_t_atom.html -
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/chunk"_compute_msd_chunk.html - mean-squared displacement for each chunk
 "msd/nongauss"_compute_msd_nongauss.html - MSD and non-Gaussian parameter of group of atoms
@@ -239,10 +246,12 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "pressure/cylinder"_compute_pressure_cylinder.html -
 "pressure/uef"_compute_pressure_uef.html -
 "property/atom"_compute_property_atom.html - convert atom attributes to per-atom vectors/arrays
+"property/chunk"_compute_property_chunk.html - extract various per-chunk attributes
 "property/local"_compute_property_local.html - convert local attributes to localvectors/arrays
 "ptm/atom"_compute_ptm_atom.html -
 "rdf"_compute_rdf.html - radial distribution function g(r) histogram of group of atoms
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
+"reduce/chunk"_compute_reduce_chunk.html - reduce per-atom quantities within each chunk
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region
 "rigid/local"_compute_rigid_local.html - extract rigid body attributes
 "saed"_compute_saed.html -
@@ -299,7 +308,8 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "torque/chunk"_compute_torque_chunk.html - torque applied on each chunk
 "vacf"_compute_vacf.html - velocity auto-correlation function of group of atoms
 "vcm/chunk"_compute_vcm_chunk.html - velocity of center-of-mass for each chunk
-"voronoi/atom"_compute_voronoi_atom.html - Voronoi volume and neighbors for each atom :ul
+"voronoi/atom"_compute_voronoi_atom.html - Voronoi volume and neighbors for each atom
+"xrd"_compute_xrd.html - :ul
 
 [Restrictions:] none
 

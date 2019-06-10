@@ -119,6 +119,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       extvec.push_back(1);
     }
     else if (!strcasecmp(arg[iarg], "anharmonic")) {
+      // the first time we're called, we'll grab lattice pressure and energy
       returnAnharmonic = -1;
     }
     else {
@@ -333,9 +334,7 @@ void ComputeHMA::compute_vector()
     }
   }
 
-//adding PE for this processor
- 
-//adding the energies of all processors
+  // compute and sum up properties across processors
 
   double fdrTotal;
   MPI_Allreduce(&fdr,&fdrTotal,1,MPI_DOUBLE,MPI_SUM,world);
@@ -383,6 +382,7 @@ void ComputeHMA::compute_vector()
     }
   }
   if (returnAnharmonic == -1) {
+    // we have our lattice properties
     returnAnharmonic = 1;
   }
 }

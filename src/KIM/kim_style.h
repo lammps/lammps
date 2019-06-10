@@ -72,8 +72,12 @@ class KimStyle : protected Pointers {
   KimStyle(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
  private:
+  char *units_from;
+  char *units_to;
   void do_init(char *);
   void do_defn(int, char **);
+  int do_units(int, char **);
+  void do_variables();
 };
 
 }

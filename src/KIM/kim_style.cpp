@@ -65,6 +65,7 @@
 #include "update.h"
 #include "universe.h"
 #include "input.h"
+#include "variable.h"
 #include "fix_store_kim.h"
 
 #include "KIM_SimulatorModel.hpp"
@@ -78,20 +79,33 @@ void KimStyle::command(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal kim_style command");
 
+  units_from = NULL;
+  units_to = NULL;
+
   if (strcmp(arg[0],"init") == 0) {
-    if (narg > 2) error->all(FLERR,"Illegal kim_style command");
     if (domain->box_exist)
       error->all(FLERR,"Must use 'kim_style init' command before "
                  "simulation box is defined");
     int len = strlen(arg[1])+1;
     char *model = new char[len];
     strcpy(model,arg[1]);
+
+    int args_done = do_units(narg-2,arg-2);
+    if (narg > (args_done + 2))
+      error->all(FLERR,"Illegal kim_style command");
     do_init(model);
+    do_variables();
   } else if (strcmp(arg[0],"define") == 0) {
     if (!domain->box_exist)
       error->all(FLERR,"Must use 'kim_style define' command after "
                  "simulation box is defined");
-    do_defn(narg-1,arg+1);
+    int args_done = do_units(narg-1,arg-1);
+    do_defn(narg - (args_done+1),arg + (args_done+1));
+  } else if (strcmp(arg[0],"unit_variables") == 0) {
+    int args_done = do_units(narg,arg);
+    if (narg > args_done)
+      error->all(FLERR,"Illegal kim_style command");
+    do_variables();
   } else error->all(FLERR,"Illegal kim_style command");
 }
 
@@ -113,6 +127,8 @@ void KimStyle::do_init(char *model)
 
   FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
   fix_store->setptr("model_name", (void *) model);
+  fix_store->setptr("units_from", (void *) units_from);
+  fix_store->setptr("units_to", (void *) units_to);
 
   int kimerror;
   KIM::SimulatorModel * simulatorModel;
@@ -172,7 +188,6 @@ void KimStyle::do_defn(int narg, char **arg)
 
   char *model = NULL;
   KIM::SimulatorModel *simulatorModel(NULL);
-  int kimerror;
 
   // check if we had a kim_style init command by finding fix STORE/KIM
   // retrieve model name and pointer to simulator model class instance.
@@ -296,5 +311,145 @@ void KimStyle::do_defn(int narg, char **arg)
 
     input->one(cmd1.c_str());
     input->one(cmd2.c_str());
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int KimStyle::do_units(int narg, char **arg)
+{
+  // retrieve custom units setting if kim_style had been called before
+
+  int ifix = modify->find_fix("KIM_MODEL_STORE");
+  FixStoreKIM *fix_store = NULL;
+  if (ifix >= 0) {
+    fix_store = (FixStoreKIM *) modify->fix[ifix];
+    units_from = (char *)fix_store->getptr("units_from");
+    units_to = (char *)fix_store->getptr("units_to");
+  }
+
+  if (narg < 2) return 0;
+  int iarg=0;
+  for (iarg = 0; iarg < narg; iarg += 2) {
+    if (strcmp(arg[iarg],"unit_variables") == 0) {
+      if (narg > iarg+2) error->all(FLERR,"Illegal kim_style command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) {
+        delete[] units_to;
+        units_to = NULL;
+      } else {
+        int len = strlen(arg[iarg+1])+1;
+        delete[] units_to;
+        units_to = new char[len];
+        strcpy(units_to,arg[iarg+1]);
+      }
+      if (fix_store) fix_store->setptr("units_to",units_to);
+    } else if (strcmp(arg[iarg],"unit_from") == 0) {
+      if (narg > iarg+2) error->all(FLERR,"Illegal kim_style command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) {
+        delete[] units_from;
+        units_from = NULL;
+      } else {
+        int len = strlen(arg[iarg+1])+1;
+        delete[] units_from;
+        units_from = new char[len];
+        strcpy(units_from,arg[iarg+1]);
+      }
+      if (fix_store) fix_store->setptr("units_from",units_from);
+    } else return iarg;
+  }
+  return iarg;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KimStyle::do_variables()
+{
+  char *from, *to;
+  Variable *variable = input->variable;
+
+  if (units_from) from = units_from;
+  else from = update->unit_style;
+  if (units_to) to = units_to;
+  else to = update->unit_style;
+
+  // refuse convertion from or to reduced units
+
+  if ((strcmp(from,"lj") == 0) || (strcmp(to,"lj") == 0))
+    error->all(FLERR,"Cannot set up conversion variables for 'lj' units");
+
+  // get index to internal style variables. create, if needed.
+  // default to conversion factor 1.0 for newly created variables
+
+  int v_length, v_mass, v_time;
+  char *args[3];
+  args[1] = (char *)"internal";
+  args[2] = (char *)"1.0";
+
+  args[0] = (char *)"_u_length";
+  v_length = variable->find(args[0]);
+  if (v_length < 0) {
+    variable->set(3,args);
+    v_length = variable->find(args[0]);
+  }
+
+  args[0] = (char *)"_u_mass";
+  v_mass = variable->find(args[0]);
+  if (v_mass < 0) {
+    variable->set(3,args);
+    v_mass = variable->find(args[0]);
+  }
+
+  args[0] = (char *)"_u_time";
+  v_time = variable->find(args[0]);
+  if (v_time < 0) {
+    variable->set(3,args);
+    v_time = variable->find(args[0]);
+  }
+
+  // special case: both unit styles are the same => conversion factor 1.0
+
+  if (strcmp(from,to) == 0) {
+    variable->internal_set(v_length,1.0);
+    variable->internal_set(v_mass,1.0);
+    variable->internal_set(v_time,1.0);
+    return;
+  }
+
+  if (strcmp(from,"real") == 0) {
+    if (strcmp(to,"metal") == 0) {
+      variable->internal_set(v_length,1.0);
+      variable->internal_set(v_mass,1.0);
+      variable->internal_set(v_time,0.001);
+    } else {
+      std::string err("Do not know how to set up conversion variables ");
+      err += "between '";
+      err += from;
+      err += "' and '";
+      err += to;
+      err += "' units";
+      error->all(FLERR,err.c_str());
+    }
+  } else if (strcmp(from,"metal") == 0) {
+    if (strcmp(to,"real") == 0) {
+      variable->internal_set(v_length,1.0);
+      variable->internal_set(v_mass,1.0);
+      variable->internal_set(v_time,1000.0);
+    } else {
+      std::string err("Do not know how to set up conversion variables ");
+      err += "between '";
+      err += from;
+      err += "' and '";
+      err += to;
+      err += "' units";
+      error->all(FLERR,err.c_str());
+    }
+  } else {
+    std::string err("Do not know how to set up conversion variables ");
+    err += "between '";
+    err += from;
+    err += "' and '";
+    err += to;
+    err += "' units";
+    error->all(FLERR,err.c_str());
   }
 }

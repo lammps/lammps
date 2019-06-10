@@ -201,6 +201,7 @@ accelerated styles exist.
 "edpd/source"_fix_dpd_source.html -
 "efield"_fix_efield.html - impose electric field on system
 "ehex"_fix_ehex.html - enhanced heat exchange algorithm
+"electron/stopping"_fix_electron_stopping.html - electronic stopping power as a friction force
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "eos/cv"_fix_eos_cv.html -
 "eos/table"_fix_eos_table.html -
@@ -320,20 +321,16 @@ accelerated styles exist.
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral
 "rhok"_fix_rhok.html -
 "rigid"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NVE integration
-"rigid/nph"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NPH integration
-"rigid/nph/small"_fix_rigid.html -
-"rigid/npt"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NPT integration
-"rigid/npt/small"_fix_rigid.html -
-"rigid/nve"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with alternate NVE integration
-"rigid/nve/small"_fix_rigid.html -
-"rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NVT integration
-"rigid/nvt/small"_fix_rigid.html -
-"rigid/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVE integration
-"rigid/small/nph"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NPH integration
-"rigid/small/npt"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NPT integration
-"rigid/small/nve"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with alternate NVE integration
-"rigid/small/nvt"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVT integration
 "rigid/meso"_fix_rigid_meso.html - constrain clusters of mesoscopic SPH/SDPD particles to move as a rigid body
+"rigid/nph"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NPH integration
+"rigid/nph/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NPH integration
+"rigid/npt"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NPT integration
+"rigid/npt/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NPT integration
+"rigid/nve"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with alternate NVE integration
+"rigid/nve/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with alternate NVE integration
+"rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to move as a rigid body with NVT integration
+"rigid/nvt/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVT integration
+"rigid/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVE integration
 "rx"_fix_rx.html -
 "saed/vtk"_fix_saed_vtk.html -
 "setforce"_fix_setforce.html - set the force on each atom

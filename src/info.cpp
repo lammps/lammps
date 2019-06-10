@@ -42,6 +42,7 @@
 #include "variable.h"
 #include "update.h"
 #include "error.h"
+#include "utils.h"
 
 #include <ctime>
 #include <map>
@@ -397,7 +398,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
             atom->natoms, atom->ntypes, force->pair_style);
 
-    if (force->pair && strstr(force->pair_style,"hybrid")) {
+    if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       PairHybrid *hybrid = (PairHybrid *)force->pair;
       fprintf(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)

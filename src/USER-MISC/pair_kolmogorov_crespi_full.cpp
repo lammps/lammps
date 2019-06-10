@@ -46,6 +46,9 @@ using namespace LAMMPS_NS;
 
 PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
 {
+  restartinfo = 0;
+  one_coeff = 1;
+
   // initialize element to parameter maps
   nelements = 0;
   elements = NULL;
@@ -129,6 +132,10 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
   double fp2[3] = {0.0, 0.0, 0.0};
   double fprod1[3] = {0.0, 0.0, 0.0};
   double fprod2[3] = {0.0, 0.0, 0.0};
+  double fk[3] = {0.0, 0.0, 0.0};
+  double fl[3] = {0.0, 0.0, 0.0};
+  double delkj[3] = {0.0, 0.0, 0.0};
+  double delli[3] = {0.0, 0.0, 0.0};
 
   inum = list->inum;	
   ilist = list->ilist;
@@ -252,30 +259,44 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
 
 	// calculate the forces acted on the neighbors of atom i from atom j
 	KC_neighs_i = KC_firstneigh[i];
-  	for (kk = 0; kk < KC_numneigh[i]; kk++) {
+	for (kk = 0; kk < KC_numneigh[i]; kk++) {
 	  k = KC_neighs_i[kk];
           if (k == i) continue;
           // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
           dprodnorm1[0] = dnormal[0][0][kk][i]*delx + dnormal[1][0][kk][i]*dely + dnormal[2][0][kk][i]*delz;
           dprodnorm1[1] = dnormal[0][1][kk][i]*delx + dnormal[1][1][kk][i]*dely + dnormal[2][1][kk][i]*delz;
           dprodnorm1[2] = dnormal[0][2][kk][i]*delx + dnormal[1][2][kk][i]*dely + dnormal[2][2][kk][i]*delz;
-	  f[k][0] += (-prodnorm1*dprodnorm1[0]*fpair1)*Tap;
-	  f[k][1] += (-prodnorm1*dprodnorm1[1]*fpair1)*Tap;
-	  f[k][2] += (-prodnorm1*dprodnorm1[2]*fpair1)*Tap;
+          fk[0] = (-prodnorm1*dprodnorm1[0]*fpair1)*Tap;
+          fk[1] = (-prodnorm1*dprodnorm1[1]*fpair1)*Tap;
+          fk[2] = (-prodnorm1*dprodnorm1[2]*fpair1)*Tap;
+          f[k][0] += fk[0];
+          f[k][1] += fk[1];
+          f[k][2] += fk[2];
+          delkj[0] = x[k][0] - x[j][0];
+          delkj[1] = x[k][1] - x[j][1];
+          delkj[2] = x[k][2] - x[j][2];
+          if (evflag) ev_tally_xyz(k,j,nlocal,newton_pair,0.0,0.0,fk[0],fk[1],fk[2],delkj[0],delkj[1],delkj[2]);
 	}
 
 	// calculate the forces acted on the neighbors of atom j from atom i
 	KC_neighs_j = KC_firstneigh[j];
-  	for (ll = 0; ll < KC_numneigh[j]; ll++) {
+	for (ll = 0; ll < KC_numneigh[j]; ll++) {
 	  l = KC_neighs_j[ll];
           if (l == j) continue;
           // derivatives of the product of rji and nj respect to rl, l=0,1,2, where atom l is the neighbors of atom j
           dprodnorm2[0] = dnormal[0][0][ll][j]*delx + dnormal[1][0][ll][j]*dely + dnormal[2][0][ll][j]*delz;
           dprodnorm2[1] = dnormal[0][1][ll][j]*delx + dnormal[1][1][ll][j]*dely + dnormal[2][1][ll][j]*delz;
           dprodnorm2[2] = dnormal[0][2][ll][j]*delx + dnormal[1][2][ll][j]*dely + dnormal[2][2][ll][j]*delz;
-	  f[l][0] += (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
-	  f[l][1] += (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
-	  f[l][2] += (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
+          fl[0] = (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
+          fl[1] = (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
+          fl[2] = (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
+          f[l][0] += fl[0];
+          f[l][1] += fl[1];
+          f[l][2] += fl[2];
+          delli[0] = x[l][0] - x[i][0];
+          delli[1] = x[l][1] - x[i][1];
+          delli[2] = x[l][2] - x[i][2];
+          if (evflag) ev_tally_xyz(l,i,nlocal,newton_pair,0.0,0.0,fl[0],fl[1],fl[2],delli[0],delli[1],delli[2]);
 	}
 
         if (eflag) {
@@ -283,10 +304,7 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
           else  evdwl = Vkc - offset[itype][jtype];
         }
 
-        if (evflag){
-          ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
-                       fkcx,fkcy,fkcz,delx,dely,delz);
-        }
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,fkcx,fkcy,fkcz,delx,dely,delz);
       }
     }
   }
@@ -431,7 +449,7 @@ void PairKolmogorovCrespiFull::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->all(FLERR,"The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR,"The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0]/nn;
       normal[i][1] = n1[1]/nn;
@@ -579,7 +597,7 @@ void PairKolmogorovCrespiFull::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->all(FLERR,"The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR,"The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0]/nn;
       normal[i][1] = n1[1]/nn;
@@ -619,7 +637,7 @@ void PairKolmogorovCrespiFull::calc_normal()
       }
     }
     else {
-      error->all(FLERR,"There are too many neighbors for calculating normals");
+      error->one(FLERR,"There are too many neighbors for calculating normals");
     }
 
 //##############################################################################################
@@ -727,8 +745,7 @@ void PairKolmogorovCrespiFull::KC_neigh()
 
     KC_firstneigh[i] = neighptr;
     KC_numneigh[i] = n;
-    if (n == 0) error->all(FLERR,"Could not build neighbor list to calculate normals, please check your configuration");
-    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please check your configuration");
+    if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
@@ -791,9 +808,10 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  // insure I,J args are * *
+
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -827,16 +845,23 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
 
   read_file(arg[2]);
 
-  double cut_one = cut_global;
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        cut[i][j] = cut_global;
+        count++;
+      }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -849,6 +874,8 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
 double PairKolmogorovCrespiFull::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (!offset_flag)
+    error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];

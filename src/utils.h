@@ -23,6 +23,7 @@ namespace LAMMPS_NS {
 
   // forward declarations
   class Error;
+  class LAMMPS;
 
   namespace utils {
 
@@ -66,6 +67,15 @@ namespace LAMMPS_NS {
      */
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
+
+    /** \brief Report if a requested style is in a package or may have a typo
+     *
+     *  \param style type of style that is to be checked for
+     *  \param name  name of style that was not found
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return string usable for error messages
+     */
+    std::string check_packages_for_style(std::string style, std::string name, LAMMPS *lmp);
   }
 }
 

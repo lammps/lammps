@@ -10,7 +10,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 TIP3P water model :h3
 
 The TIP3P water model as implemented in CHARMM
-"(MacKerell)"_#howto-MacKerell specifies a 3-site rigid water molecule with
+"(MacKerell)"_#howto-tip3p specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
 In LAMMPS the "fix shake"_fix_shake.html command can be used to hold
 the two O-H bonds and the H-O-H angle rigid.  A bond style of
@@ -59,6 +59,10 @@ Wikipedia also has a nice article on "water
 models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line
+
+:link(howto-tip3p)
+[(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 :link(Jorgensen1)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem

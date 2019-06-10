@@ -39,6 +39,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"
@@ -509,7 +510,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown atom style");
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
   return NULL;
 }
 

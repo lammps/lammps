@@ -171,10 +171,11 @@ void PairSpinDmi::init_style()
   int ifix = 0;
   while (ifix < modify->nfix) {
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
+    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
     ifix++;
   }
   if ((ifix == modify->nfix) && (comm->me == 0))
-    error->warning(FLERR,"Using pair/spin style without nve/spin");
+    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
 
   // get the lattice_flag from nve/spin
 
@@ -430,9 +431,9 @@ void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double
   dmiy = eij[2]*v_dmx[itype][jtype] - eij[0]*v_dmz[itype][jtype];
   dmiz = eij[0]*v_dmy[itype][jtype] - eij[1]*v_dmx[itype][jtype];
 
-  fmi[0] -= (spj[1]*dmiz - spj[2]*dmiy);
-  fmi[1] -= (spj[2]*dmix - spj[0]*dmiz);
-  fmi[2] -= (spj[0]*dmiy - spj[1]*dmix);
+  fmi[0] -= (dmiy*spj[2] - dmiz*spj[1]);
+  fmi[1] -= (dmiz*spj[0] - dmix*spj[2]);
+  fmi[2] -= (dmix*spj[1] - dmiy*spj[0]);
 }
 
 /* ----------------------------------------------------------------------

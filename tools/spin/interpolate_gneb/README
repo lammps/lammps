@@ -1,0 +1,31 @@
+Interpolate.x tries to perform a cubic polynomial interpolation
+of the MEP.  
+
+Compile the program with:
+gcc interpolate.c -o interpolate.x
+
+and then run it as:
+./interpolate.x
+
+Enter N-1 (with N the number of replica).
+The program reads the "neb_init.dat", in which you need to
+replace the current values by your GNEB outputs.
+
+Each line corresponds to a replica, and has to respectively
+contain:
+
+Reac. coords /tab/ pot. energy /tab/ fm dot tangent /tab/
+geodesic dist to next replica
+
+All those information can be provided by the verbose output of
+a neb/spin calculation
+
+The progam outputs the interpolation result, and the
+interpolated MEP in "interpolation_result.dat". 
+
+This code is a courtesy of Aleksei Ivanov, University of
+Iceland.
+For more explanation about this calculation, see Appendix D 
+of the following reference:
+Bessarab, P. F., Uzdin, V. M., & Jónsson, H. (2015). 
+Computer Physics Communications, 196, 335-347. 

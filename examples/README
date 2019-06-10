@@ -64,37 +64,37 @@ balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
-comb:	  models using the COMB potential
+comb:     models using the COMB potential
 coreshell: adiabatic core/shell model
 controller: use of fix controller as a thermostat
-crack:	  crack propagation in a 2d solid
+crack:    crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF
 eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
-flow:	  Couette and Poiseuille flow in a 2d channel
+flow:     Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
 gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 hyper:    global and local hyperdynamics of diffusion on Pt surface
-indent:	  spherical indenter into a 2d solid
+indent:   spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
 latte:    use of LATTE density-functional tight-binding quantum code
-meam:	  MEAM test for SiC and shear (same as shear examples)
-melt:	  rapid melt of 3d LJ system
+meam:     MEAM test for SiC and shear (same as shear examples)
+melt:     rapid melt of 3d LJ system
 message:  client/server coupling of 2 codes
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
-min:	  energy minimization of 2d LJ melt
+min:      energy minimization of 2d LJ melt
 mscg:     parameterize a multi-scale coarse-graining (MSCG) model
-msst:	  MSST shock dynamics
+msst:     MSST shock dynamics
 nb3b:     use of nonbonded 3-body harmonic pair style
-neb:	  nudged elastic band (NEB) calculation for barrier finding
-nemd:	  non-equilibrium MD of 2d sheared system
+neb:      nudged elastic band (NEB) calculation for barrier finding
+nemd:     non-equilibrium MD of 2d sheared system
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
-peri:	  Peridynamic model of cylinder impacted by indenter
+peri:     Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
@@ -107,6 +107,7 @@ srd:      stochastic rotation dynamics (SRD) particles as solvent
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+threebody: regression test input for a variety of manybody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 
@@ -117,9 +118,7 @@ cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
 lmp_mpi -in in.indent              # run the problem
 
 Running the simulation produces the files {dump.indent} and
-{log.lammps}.  You can visualize the dump file as follows:
-
-../../tools/xmovie/xmovie -scale dump.indent
+{log.lammps}.
 
 If you uncomment the dump image line(s) in the input script a series
 of JPG images will be produced by the run.  These can be viewed

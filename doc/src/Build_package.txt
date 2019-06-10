@@ -41,7 +41,6 @@ packages:
 "KIM"_Build_extras.html#kim,
 "KOKKOS"_Build_extras.html#kokkos,
 "LATTE"_Build_extras.html#latte,
-"MEAM"_Build_extras.html#meam,
 "MESSAGE"_Build_extras.html#message,
 "MSCG"_Build_extras.html#mscg,
 "OPT"_Build_extras.html#opt,
@@ -149,26 +148,41 @@ system. Using these files you can enable/disable portions of the
 available packages in LAMMPS. If you need a custom preset you can take
 one of them as a starting point and customize it to your needs.
 
-cmake -C ../cmake/presets/all_on.cmake \[OPTIONS\] ../cmake | enable all packages
-cmake -C ../cmake/presets/all_off.cmake \[OPTIONS\] ../cmake | disable all packages
-cmake -C ../cmake/presets/std.cmake \[OPTIONS\] ../cmake | enable standard packages
-cmake -C ../cmake/presets/user.cmake \[OPTIONS\] ../cmake | enable user packages
-cmake -C ../cmake/presets/std_nolib.cmake \[OPTIONS\] ../cmake | enable standard packages that do not require extra libraries
-cmake -C ../cmake/presets/nolib.cmake \[OPTIONS\] ../cmake | disable all packages that do not require extra libraries
-cmake -C ../cmake/presets/manual_selection.cmake \[OPTIONS\] ../cmake | example of how to create a manual selection of packages :tb(s=|,a=l)
+cmake -C ../cmake/presets/all_on.cmake  \[OPTIONS\] ../cmake |
+      enable all packages |
+cmake -C ../cmake/presets/all_off.cmake \[OPTIONS\] ../cmake |
+      disable all packages |
+cmake -C ../cmake/presets/minimal.cmake \[OPTIONS\] ../cmake |
+      enable just a few core packages |
+cmake -C ../cmake/presets/most.cmake    \[OPTIONS\] ../cmake |
+      enable most common packages |
+cmake -C ../cmake/presets/nolib.cmake   \[OPTIONS\] ../cmake |
+      disable packages that do require extra libraries or tools |
+cmake -C ../cmake/presets/clang.cmake   \[OPTIONS\] ../cmake |
+      change settings to use the Clang compilers by default |
+cmake -C ../cmake/presets/mingw.cmake \[OPTIONS\] ../cmake |
+      enable all packages compatible with MinGW compilers :tb(c=2,s=|,a=l)
 
 NOTE: Running cmake this way manipulates the variable cache in your
-current build directory. You can combine presets and options with
-multiple cmake runs.
+current build directory. You can combine multiple presets and options
+in a single cmake run, or change settings incrementally by running
+cmake with new flags.
 
 [Example:]
 
-# build LAMMPS with all "standard" packages which don't
-# use libraries and enable GPU package
+# build LAMMPS with most commonly used packages, but then remove
+# those requiring additional library or tools, but still enable
+# GPU package and configure it for using CUDA. You can run.
 mkdir build
 cd build
-cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake :pre
+cmake -C ../cmake/presets/most.cmake -C ../cmake/presets/nolib.cmake -D PKG_GPU=on -D GPU_API=cuda ../cmake :pre
 
+# to add another package, say BODY to the previous configuration you can run:
+cmake -D PKG_BODY=on . :pre
+
+# to reset the package selection from above to the default of no packages
+# but leaving all other settings untouched. You can run:
+cmake -C ../cmake/presets/no_all.cmake . :pre
 :line
 
 [Make shortcuts for installing many packages]:

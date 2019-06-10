@@ -32,7 +32,7 @@
 #define MAXLINE 1024
 #define MAXWORD 3
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
 
 // Outstanding issues with quadratic term
 // 1. there seems to a problem with compute_optimized energy calc
@@ -673,4 +673,5 @@ double PairSNAPKokkos<DeviceType>::memory_usage()
   bytes += (ncoeff*3)*sizeof(double);
   bytes += snaKK.memory_usage();
   return bytes;
+}
 }

@@ -209,7 +209,7 @@ available on your system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#compress on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -359,7 +359,7 @@ developed the pair style.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#kim on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -405,7 +405,7 @@ lib/kokkos.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#kokkos on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -478,7 +478,7 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#latte on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -655,7 +655,7 @@ University of Chicago.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#mscg on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -687,7 +687,7 @@ and Vincent Natoli (Stone Ridge Technolgy).
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#opt on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -707,7 +707,7 @@ PERI package :link(PKG-PERI),h4
 
 An atom style, several pair styles which implement different
 Peridynamics materials models, and several computes which calculate
-diagnostics.  Peridynamics is a a particle-based meshless continuum
+diagnostics.  Peridynamics is a particle-based meshless continuum
 model.
 
 [Authors:] The original package was created by Mike Parks (Sandia).
@@ -744,7 +744,7 @@ connections at hinge points.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#poems on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -776,7 +776,7 @@ lib/python/README for more details.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#python on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -906,7 +906,7 @@ SPIN package :link(PKG-SPIN),h4
 Model atomic magnetic spins classically, coupled to atoms moving in
 the usual manner via MD.  Various pair, fix, and compute styles.
 
-[Author:] Julian Tranchida (Sandia).
+[Author:] Julien Tranchida (Sandia).
 
 [Supporting info:]
 
@@ -919,6 +919,7 @@ src/SPIN: filenames -> commands
 "fix nve/spin"_fix_nve_spin.html
 "fix precession/spin"_fix_precession_spin.html
 "compute spin"_compute_spin.html
+"neb/spin"_neb_spin.html
 examples/SPIN :ul
 
 :line
@@ -965,7 +966,7 @@ and LBNL.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#voronoi on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1017,7 +1018,7 @@ atomic information to continuum fields.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-atc on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1044,7 +1045,7 @@ model.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-awpmd on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1184,7 +1185,7 @@ Tribello.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-plumed on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1229,7 +1230,7 @@ isothermal, isoenergetic, isobaric and isenthalpic conditions are
 included.  These enable long timesteps via the Shardlow splitting
 algorithm.
 
-[Authors:] Jim Larentzos (ARL), Tim Mattox (Engility Corp), and and John
+[Authors:] Jim Larentzos (ARL), Tim Mattox (Engility Corp), and John
 Brennan (ARL).
 
 [Supporting info:]
@@ -1362,7 +1363,7 @@ H5MD format.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-h5md on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1419,7 +1420,7 @@ NOTE: the USER-INTEL package contains styles that require using the
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-intel on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1556,7 +1557,7 @@ USER-MESO package :link(PKG-USER-MESO),h4
 
 [Contents:]
 
-Several extensions of the the dissipative particle dynamics (DPD)
+Several extensions of the dissipative particle dynamics (DPD)
 method.  Specifically, energy-conserving DPD (eDPD) that can model
 non-isothermal processes, many-body DPD (mDPD) for simulating
 vapor-liquid coexistence, and transport DPD (tDPD) for modeling
@@ -1639,7 +1640,7 @@ at
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-molfile on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1679,7 +1680,7 @@ tools:
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-netcdf on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1723,7 +1724,7 @@ install/un-install the package and build LAMMPS in the usual manner:
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-omp on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1807,7 +1808,7 @@ without changes to LAMMPS itself.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-qmmm on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1865,7 +1866,7 @@ on your system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-quip on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1983,7 +1984,7 @@ Dynamics, Ernst Mach Institute, Germany).
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-smd on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -2109,7 +2110,7 @@ system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-vtk on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]

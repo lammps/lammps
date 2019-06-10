@@ -141,10 +141,15 @@ specify if this should be done.
 
 This fix writes the state of the fix to "binary restart
 files"_restart.html.  This includes information about the random
-number generator seed, the next timestep for MC exchanges, etc.  See
+number generator seed, the next timestep for MC exchanges, the number
+of exchange attempts and successes etc.  See
 the "read_restart"_read_restart.html command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.
+
+NOTE: For this to work correctly, the timestep must [not] be changed
+after reading the restart with "reset_timestep"_reset_timestep.html.
+The fix will try to detect it and stop with an error.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.

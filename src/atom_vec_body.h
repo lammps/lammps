@@ -130,7 +130,7 @@ E: Invalid atom_style body command
 
 No body style argument was provided.
 
-E: Unknown body style
+E: Unrecognized body style
 
 The choice of body style is unknown.
 

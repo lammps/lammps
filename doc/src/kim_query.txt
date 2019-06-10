@@ -26,12 +26,13 @@ kim_query latconst get_test_result test=TE_156715955670 model=MO_800509458712 &
 The kim_query command allows to retrieve properties from the OpenKIM
 through a web query. The result is stored in a string style
 "variable"_variable.html, the name of which must be given as the first
-argument of the kim_query command. The second required argument is the
-name of the actual query function (e.g. {get_test_result}). All following
+argument of the kim_query command.  The second required argument is the
+name of the actual query function (e.g. {get_test_result}).  All following
 arguments are parameters handed over to the web query in the format
-{keyword=value}. This list of supported keywords and the type of how
-the value has to be encoded depends on the query function used.
-For more details on this, please refer to the OpenKIM homepage.
+{keyword=value}.  The list of supported keywords and the type of how
+the value has to be encoded depends on the query function used.  This
+mirrors the functionality available on the OpenKIM webpage at
+"https://query.openkim.org"_https://query.openkim.org/
 
 [Restrictions:]
 

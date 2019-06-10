@@ -10,6 +10,9 @@ get_filename_component(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src ABSO
 get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
+get_filename_component(LAMMPS_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tools ABSOLUTE)
+get_filename_component(LAMMPS_PYTHON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../python ABSOLUTE)
+get_filename_component(LAMMPS_POTENTIALS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../potentials ABSOLUTE)
 
 find_package(Git)
 
@@ -537,7 +540,7 @@ if(BUILD_EXE)
   endif()
 
   enable_language(C)
-  get_filename_component(MSI2LMP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tools/msi2lmp/src ABSOLUTE)
+  get_filename_component(MSI2LMP_SOURCE_DIR ${LAMMPS_TOOLS_DIR}/msi2lmp/src ABSOLUTE)
   file(GLOB MSI2LMP_SOURCES ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
   add_executable(msi2lmp ${MSI2LMP_SOURCES})
   target_link_libraries(msi2lmp m)
@@ -551,11 +554,11 @@ include(Documentation)
 ###############################################################################
 # Install potential and force field files in data directory
 ###############################################################################
-set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
-install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials/ DESTINATION ${LAMMPS_POTENTIALS_DIR})
+set(LAMMPS_INSTALL_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
+install(DIRECTORY ${LAMMPS_POTENTIALS_DIR} DESTINATION ${LAMMPS_INSTALL_POTENTIALS_DIR})
 
-set(LAMMPS_FRC_FILES_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/frc_files)
-install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../tools/msi2lmp/frc_files/ DESTINATION ${LAMMPS_FRC_FILES_DIR})
+set(LAMMPS_INSTALL_FRC_FILES_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/frc_files)
+install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files/ DESTINATION ${LAMMPS_INSTALL_FRC_FILES_DIR})
 
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)
@@ -577,9 +580,9 @@ if(BUILD_LIB AND BUILD_SHARED_LIBS)
     add_custom_target(
       install-python
       ${PYTHON_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
-      -m ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py
+      -m ${LAMMPS_PYTHON_DIR}/lammps.py
       -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
-      WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../python
+      WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(
@@ -604,7 +607,7 @@ if((BUILD_LIB AND BUILD_SHARED_LIBS) OR (PKG_PYTHON))
       -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
       OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
+    install(FILES ${LAMMPS_PYTHON_DIR}/lammps.py DESTINATION ${PYTHON_INSTDIR})
   endif()
 endif()
 

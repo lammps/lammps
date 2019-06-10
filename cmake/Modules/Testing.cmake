@@ -28,6 +28,8 @@ if(ENABLE_TESTING AND BUILD_EXE)
                     "https://github.com/lammps/lammps-testing in LAMMPS_TESTING_SOURCE_DIR")
   endif()
 
+  add_test(ShowHelp ${CMAKE_BINARY_DIR}/${LAMMPS_BINARY} -help)
+
   if(EXISTS ${LAMMPS_TESTING_SOURCE_DIR})
     message(STATUS "Running test discovery...")
 

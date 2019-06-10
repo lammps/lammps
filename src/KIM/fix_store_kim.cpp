@@ -65,7 +65,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixStoreKIM::FixStoreKIM(LAMMPS *lmp, int narg, char **arg)
-  : Fix(lmp, narg, arg), simulator_model(NULL), model_name(NULL)
+  : Fix(lmp, narg, arg), simulator_model(NULL), model_name(NULL),
+    units_from(NULL), units_to(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix STORE/KIM command");
 }
@@ -86,6 +87,18 @@ FixStoreKIM::~FixStoreKIM()
     char *mn = (char *)model_name;
     delete[] mn;
     model_name = NULL;
+  }
+
+  if (units_from) {
+    char *uf = (char *)units_from;
+    delete[] uf;
+    units_from = NULL;
+  }
+
+  if (units_to) {
+    char *ut = (char *)units_to;
+    delete[] ut;
+    units_to = NULL;
   }
 }
 
@@ -114,6 +127,18 @@ void FixStoreKIM::setptr(const char *name, void *ptr)
       delete[] mn;
     }
     model_name = ptr;
+  } else if (strcmp(name,"units_from") == 0) {
+    if (units_from) {
+      char *uf = (char *)units_from;
+      delete[] uf;
+    }
+    units_from = ptr;
+  } else if (strcmp(name,"units_to") == 0) {
+    if (units_to) {
+      char *ut = (char *)units_to;
+      delete[] ut;
+    }
+    units_to = ptr;
   }
 }
 
@@ -123,5 +148,7 @@ void *FixStoreKIM::getptr(const char *name)
 {
   if (strcmp(name,"simulator_model") == 0) return simulator_model;
   else if (strcmp(name,"model_name") == 0) return model_name;
+  else if (strcmp(name,"units_from") == 0) return units_from;
+  else if (strcmp(name,"units_to") == 0) return units_to;
   else return NULL;
 }

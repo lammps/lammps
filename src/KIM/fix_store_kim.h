@@ -80,6 +80,8 @@ class FixStoreKIM : public Fix {
  private:
   void *simulator_model;        // pointer to KIM simulator model class
   void *model_name;             // string of KIM model name
+  void *units_from;             // string of unit conversion origin or NULL
+  void *units_to;               // string of unit conversion target or NULL
 };
 
 }

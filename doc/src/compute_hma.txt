@@ -61,7 +61,7 @@ The pressure is computed by the formula:
 \end\{equation\}
 
 where \(\rho\) is the number density of the system, \(\Delta \hat P\) is the
-difference between theh harmonic and lattice pressure, and \(P_\{vir\}\) is
+difference between the harmonic and lattice pressure, and \(P_\{vir\}\) is
 the virial pressure computed as the sum of pair, bond, angle, dihedral,
 improper, kspace (long-range), and fix contributions to the force on each
 atom.  Although the method will work for any value of \(\Delta \hat P\)
@@ -76,13 +76,13 @@ U_\{HMA\}^2 \right> - \left<U_\{HMA\}\right>^2 \right)/T + \frac\{1\}\{4 T\}
 \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>
 \end\{equation\}
 
-where \(\Phi\) is the Hessian of second derivatives. The compute hma command
+where \(\Phi\) is the Hessian matrix. The compute hma command
 computes the full expression for \(C_V\) except for the
 \(\left<U_\{HMA\}^2\right>^2\) in the variance term, which can be obtained by
 passing the {u} keyword; you must add this extra contribution to the \(C_V\)
 value reported by this compute.  The variance term can cause significant
 roundoff error when computing \(C_V\).  To address this, the {anharmonic}
-keyword can be passed and/or the output format can be speicified with more
+keyword can be passed and/or the output format can be specified with more
 digits.
 
 thermo_modify format float '%22.15e' :pre

@@ -51,6 +51,7 @@ Package, Description, Doc page, Example, Library
 "USER-EFF"_Packages_details.html#PKG-USER-EFF, electron force field,"pair_style eff/cut"_pair_eff.html, USER/eff, no
 "USER-FEP"_Packages_details.html#PKG-USER-FEP, free energy perturbation,"compute fep"_compute_fep.html, USER/fep, no
 "USER-H5MD"_Packages_details.html#PKG-USER-H5MD, dump output via HDF5,"dump h5md"_dump_h5md.html, n/a, ext
+"USER-HMA"_Packages_details.html#PKG-USER-HMA, compute properties via HMA,"compute hma"_compute_hma.html, USER/hma, no
 "USER-INTEL"_Packages_details.html#PKG-USER-INTEL, optimized Intel CPU and KNL styles,"Speed intel"_Speed_intel.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, no
 "USER-LB"_Packages_details.html#PKG-USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, no
 "USER-MANIFOLD"_Packages_details.html#PKG-USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, no

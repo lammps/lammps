@@ -1,4 +1,5 @@
 if(PKG_LATTE)
+  enable_language(Fortran)
   find_package(LATTE)
   if(LATTE_FOUND)
     set(DOWNLOAD_LATTE_DEFAULT OFF)

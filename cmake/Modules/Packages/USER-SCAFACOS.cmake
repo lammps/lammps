@@ -1,4 +1,7 @@
 if(PKG_USER-SCAFACOS)
+  enable_language(Fortran)
+  enable_language(C)
+
   find_package(GSL REQUIRED)
   find_package(PkgConfig QUIET)
   set(DOWNLOAD_SCAFACOS_DEFAULT ON)

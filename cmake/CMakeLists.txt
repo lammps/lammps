@@ -134,14 +134,6 @@ endforeach()
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-if(PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE OR PKG_USER-SCAFACOS)
-  enable_language(Fortran)
-endif()
-
-if(PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
-  enable_language(C)
-endif()
-
 include_directories(${LAMMPS_SOURCE_DIR})
 
 if(PKG_USER-ADIOS)
@@ -433,12 +425,7 @@ if(PKG_USER-ATC)
   target_link_libraries(atc ${LAPACK_LIBRARIES})
 endif()
 
-if(PKG_USER-H5MD)
-  find_package(HDF5 REQUIRED)
-  target_link_libraries(h5md ${HDF5_LIBRARIES})
-  target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
-  include_directories(${HDF5_INCLUDE_DIRS})
-endif()
+include(Packages/USER-H5MD)
 
 ######################################################################
 # packages which selectively include variants based on enabled styles

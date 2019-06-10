@@ -12,15 +12,18 @@ kim_style command :h3
 
 kim_style mode args :pre
 
-mode = {init model} or {define typeargs}
+mode = {init model} or {define typeargs} or no mode chosen
 model = name of the KIM model (KIM potential or KIM simulator model)
-typeargs = atom type to species mapping (one entry per atom type) :ul
+typeargs = atom type to species mapping (one entry per atom type)
+args = {unit_variables unit_style} or {unit_from unit_style} (optional):ul
 
 [Examples:]
 
-kim_style init ex_sim_model_Si_mod_tersoff
+kim_style init ex_sim_model_Si_mod_tersoff unit_variables metal
 kim_style define Si Si
-kim_style init LennardJones_Ar
+kim_style unit_variables real
+kim_style init LennardJones_Ar unit_variables metal
+kim_style unit_variables real unit_from metal
 kim_style define Ar :pre
 
 [Description:]
@@ -46,6 +49,21 @@ additional commands changing LAMMPS default settings that are required
 for using a selected simulator model.  If needed, those settings can be
 overridden. The second argument to the {kim_style init} command is the
 KIM model ID.
+
+In both modes, the keywords {unit_variables} and {unit_from} may be
+added.  They control the values of a set of
+"internal style variables"_variable.html that can be used to convert
+between different unit styles in LAMMPS. The argument to
+each keyword is a LAMMPS unit style or NULL, which means to look up
+the unit style from what was set with the "units"_units.html command.
+Please note, that KIM simulator models will set their preferred unit style.
+By default all conversion variables are set to 1.0.  Converting to or
+from the "lj" unit style is not supported.  The following variables are defined:
+
+_u_length
+_u_mass
+_u_time :ul
+
 
 The {kim_style define} command will issue commands that will realize
 the selected model (through generating pair_style and pair_coeff commands,

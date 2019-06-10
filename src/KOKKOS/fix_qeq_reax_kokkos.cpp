@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ray Shan (SNL), Stan Moore (SNL)
+   Contributing authors: Ray Shan (SNL), Stan Moore (SNL),
+                          Kamesh Arumugam (NVIDIA)
 ------------------------------------------------------------------------- */
 
 #include <cmath>

@@ -36,6 +36,8 @@ class KokkosLMP : protected Pointers {
   int numa;
   int auto_sync;
   int gpu_direct_flag;
+  int neigh_thread;
+  int neigh_thread_set;
   int newtonflag;
   double binsize;
 
@@ -86,5 +88,9 @@ command-line option when running LAMMPS to see the offending line.
 U: Must use Kokkos half/thread or full neighbor list with threads or GPUs
 
 Using Kokkos half-neighbor lists with threading is not allowed.
+
+E: Must use KOKKOS package option 'neigh full' with 'neigh/thread on'
+
+The 'neigh/thread on' option requires a full neighbor list
 
 */

@@ -1,6 +1,6 @@
 if(PKG_USER-INTEL)
   include(CheckIncludeFile)
-  check_include_file(immintrin.h FOUND_IMMINTRIN)
+  check_include_file_cxx(immintrin.h FOUND_IMMINTRIN)
   if(NOT FOUND_IMMINTRIN)
     message(FATAL_ERROR "immintrin.h header not found, Intel package won't work without it")
   endif()

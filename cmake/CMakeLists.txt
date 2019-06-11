@@ -33,7 +33,6 @@ include(LAMMPSUtils)
 
 get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
 
-
 include(PreventInSourceBuilds)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
@@ -51,6 +50,7 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 # these need ot be done early (before further tests).
 #####################################################################
 include(CheckCCompilerFlag)
+include(CheckIncludeFileCXX)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
@@ -186,10 +186,6 @@ if(LAMMPS_EXCEPTIONS)
   set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
-option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
-
-
-
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(MPIIO MPI)
@@ -198,7 +194,6 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
 
-include(CheckIncludeFileCXX)
 find_package(OpenMP QUIET)
 
 # TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30

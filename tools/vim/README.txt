@@ -7,10 +7,10 @@ end on *.lmp or start with in.* (see mysyntax.vim).
 By far not all commands are included
 in the syntax file (lammps.vim). You can easily add new ones.
 
-=To enable the highlighting:
+=To enable the highlighting (compatible with old versions of VIM):
 ============================
 (0)   Create a ~/.vimrc
-      You can have a look in /usr/local/share/vim/current/vimrc.example
+      You can have a look in /usr/share/vim/vim*/vimrc_example.vim
 (1)   Insert in ~/.vimrc
          let mysyntaxfile = "~/.vim/mysyntax.vim"
       just before
@@ -24,7 +24,7 @@ in the syntax file (lammps.vim). You can easily add new ones.
          syntax on
 (1) Create directories ~/.vim/syntax and ~/.vim/ftdetect
 (2) Copy lammps.vim to ~/.vim/syntax/lammps.vim
-(3) Copy filetype.vim as ~/.vim/ftdetect/lammps.vim
+(3) Copy filetype.vim to ~/.vim/ftdetect/lammps.vim
 
 
 Gerolf Ziegenhain <gerolf@ziegenhain.com> 2007

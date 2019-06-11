@@ -503,7 +503,7 @@ void BondTable::param_extract(Table *tb, char *line)
 void BondTable::bcast_table(Table *tb)
 {
   MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
+  MPI_Bcast(&tb->r0,1,MPI_DOUBLE,0,world);
 
   int me;
   MPI_Comm_rank(world,&me);

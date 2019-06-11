@@ -32,7 +32,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
-  int num_threads,ngpu;
+  int nthreads,ngpus;
   int numa;
   int auto_sync;
   int gpu_direct_flag;

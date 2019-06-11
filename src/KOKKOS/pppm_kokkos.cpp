@@ -1656,7 +1656,7 @@ void PPPMKokkos<DeviceType>::make_rho()
   iy = nyhi_out-nylo_out + 1;
 
   copymode = 1;
-  Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->num_threads,1);
+  Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->nthreads,1);
   Kokkos::parallel_for(config,*this);
   copymode = 0;
 #endif

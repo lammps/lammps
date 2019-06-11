@@ -522,7 +522,6 @@ void BondTable::bcast_table(Table *tb)
     MPI_Bcast(&tb->fplo,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&tb->fphi,1,MPI_DOUBLE,0,world);
   }
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

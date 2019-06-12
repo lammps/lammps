@@ -23,7 +23,10 @@ class PairMesoCNT : public Pair {
  
  protected:
   int n, gamma_points, pot_points;
-  double cutoff;
+  int redlist_size,chain_size,end_size;
+  int *redlist,*nchain,*end;
+  int **chain;
+  double cutoff, cutoffsq;
   double angstrom, angstromrec, qelectron, qelectronrec, forceunit;
   double sigma, epsilon, n_sigma, radius, radiussq, diameter, rc, rc0, comega, ctheta;
   double start_gamma, start_uinf, startxi_usemi, starth_phi;

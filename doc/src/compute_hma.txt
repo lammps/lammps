@@ -81,7 +81,7 @@ computes the full expression for \(C_V\) except for the
 \(\left<U_\{HMA\}^2\right>^2\) in the variance term, which can be obtained by
 passing the {u} keyword; you must add this extra contribution to the \(C_V\)
 value reported by this compute.  The variance term can cause significant
-roundoff error when computing \(C_V\).  To address this, the {anharmonic}
+round-off error when computing \(C_V\).  To address this, the {anharmonic}
 keyword can be passed and/or the output format can be specified with more
 digits.
 

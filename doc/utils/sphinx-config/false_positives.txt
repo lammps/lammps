@@ -98,6 +98,7 @@ antisymmetry
 anton
 Antonelli
 api
+Apoorva
 Appl
 Apu
 arccos
@@ -1064,6 +1065,7 @@ Hilger
 histo
 histogrammed
 histogramming
+hma
 hmaktulga
 hoc
 Hochbruck
@@ -1320,6 +1322,7 @@ kmax
 Kmax
 Knizhnik
 knl
+Kofke
 Kohlmeyer
 Kohn
 kokkos
@@ -1701,6 +1704,7 @@ Morteza
 Mosayebi
 Moseler
 Moskalev
+Moustafa
 mov
 mpi
 MPI
@@ -2200,6 +2204,7 @@ PTM
 ptr
 pu
 purdue
+Purohit
 pushstore
 pvar
 pw
@@ -2413,6 +2418,7 @@ Ryckaert
 Rycroft
 Rydbergs
 Rz
+Sabry
 saddlebrown
 Sadigh
 saed

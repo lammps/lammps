@@ -325,7 +325,7 @@ void PairLJSmoothLinear::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSmoothLinear::single(int i, int j, int itype, int jtype,
+double PairLJSmoothLinear::single(int /*i*/, int /*j*/, int itype, int jtype,
                                   double rsq,
                                   double factor_coul, double factor_lj,
                                   double &fforce)
@@ -347,7 +347,7 @@ double PairLJSmoothLinear::single(int i, int j, int itype, int jtype,
   return factor_lj*philj;
 }
 
-double PairLJSmoothLinear::single2(int i, int j, int itype, int jtype, double rsq,
+double PairLJSmoothLinear::single2(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
                          double delr[3], double factor_coul, double factor_lj,
                          double &fforce, double d2u[6])
 {

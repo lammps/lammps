@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cmath>
+#include <cstring>
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
 #include "compute_hma.h"
 #include "atom.h"
 #include "update.h"
@@ -100,25 +100,29 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
 
   computeU = computeP = computeCv = -1;
   returnAnharmonic = 0;
-  std::vector<int> extvec;
+  size_vector = 0;
+  memory->create(extlist, 3, "hma:extlist");
   for (int iarg=4; iarg<narg; iarg++) {
-    if (!strcasecmp(arg[iarg], "u")) {
-      computeU = extvec.size();
-      extvec.push_back(1);
+    if (!strcmp(arg[iarg], "u")) {
+      if (computeU>-1) continue;
+      computeU = size_vector;
+      extlist[size_vector] = 1;
     }
-    else if (!strcasecmp(arg[iarg], "p")) {
+    else if (!strcmp(arg[iarg], "p")) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix hma command");
-      computeP = extvec.size();
+      if (computeP>-1) continue;
+      computeP = size_vector;
       deltaPcap = force->numeric(FLERR, arg[iarg+1]);
-      extvec.push_back(0);
+      extlist[size_vector] = 0;
       iarg++;
     }
-    else if (!strcasecmp(arg[iarg], "cv")) {
-      computeCv = extvec.size();
+    else if (!strcmp(arg[iarg], "cv")) {
+      if (computeCv>-1) continue;
+      computeCv = size_vector;
       comm_forward = 3;
-      extvec.push_back(1);
+      extlist[size_vector] = 1;
     }
-    else if (!strcasecmp(arg[iarg], "anharmonic")) {
+    else if (!strcmp(arg[iarg], "anharmonic")) {
       // the first time we're called, we'll grab lattice pressure and energy
       returnAnharmonic = -1;
     }
@@ -127,18 +131,16 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (extvec.size() == 0) {
+  if (size_vector == 0) {
     error->all(FLERR,"Illegal fix hma command");
   }
-  size_vector = extvec.size();
-  memory->create(vector, size_vector, "hma::vector");
-  extlist = new int[size_vector];
-  for (int i=0; i<size_vector; i++) {
-    extlist[i] = extvec[i];
+  if (size_vector<3) {
+    memory->grow(extlist, size_vector, "hma:extlist");
   }
+  memory->create(vector, size_vector, "hma:vector");
 
   if (computeU>-1 || computeCv>-1) {
-   peflag = 1;                             
+    peflag = 1;                             
   }
   if (computeP>-1) {
     pressflag = 1;
@@ -156,7 +158,7 @@ ComputeHMA::~ComputeHMA()
 
   delete [] id_fix;
   delete [] id_temp;
-  delete [] extlist;
+  memory->destroy(extlist);
   memory->destroy(vector);
   memory->destroy(deltaR);
 }
@@ -184,11 +186,10 @@ void ComputeHMA::setup()
   if (temperat==NULL) error->all(FLERR,"Could not find compute hma temperature ID");
   finaltemp = * temperat;       
 
-
   // set fix which stores original atom coords
 
   int ifix2 = modify->find_fix(id_fix);
-  if (ifix2 < 0) error->all(FLERR,"Could not find compute hma ID");
+  if (ifix2 < 0) error->all(FLERR,"Could not find hma store fix ID");
   fix = (FixStore *) modify->fix[ifix2];             
 }
 

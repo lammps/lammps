@@ -307,7 +307,7 @@ void Pair::init_style()
    specific pair style can override this function
 ------------------------------------------------------------------------- */
 
-void Pair::init_list(int which, NeighList *ptr)
+void Pair::init_list(int /*which*/, NeighList *ptr)
 {
   list = ptr;
 }

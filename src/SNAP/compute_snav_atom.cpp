@@ -260,7 +260,6 @@ void ComputeSNAVAtom::compute_peratom()
       snaptr->compute_zi();
       if (quadraticflag) {
         snaptr->compute_bi();
-        snaptr->copy_bi2bvec();
       }
 
       for (int jj = 0; jj < ninside; jj++) {
@@ -270,7 +269,6 @@ void ComputeSNAVAtom::compute_peratom()
                                     snaptr->wj[jj],
                                     snaptr->rcutij[jj]);
         snaptr->compute_dbidrj();
-        snaptr->copy_dbi2dbvec();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj
 
@@ -278,18 +276,18 @@ void ComputeSNAVAtom::compute_peratom()
         double *snavj = snav[j]+typeoffset;
 
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          snavi[icoeff]           += snaptr->dbvec[icoeff][0]*xtmp;
-          snavi[icoeff+nperdim]   += snaptr->dbvec[icoeff][1]*ytmp;
-          snavi[icoeff+2*nperdim] += snaptr->dbvec[icoeff][2]*ztmp;
-          snavi[icoeff+3*nperdim] += snaptr->dbvec[icoeff][1]*ztmp;
-          snavi[icoeff+4*nperdim] += snaptr->dbvec[icoeff][0]*ztmp;
-          snavi[icoeff+5*nperdim] += snaptr->dbvec[icoeff][0]*ytmp;
-          snavj[icoeff]           -= snaptr->dbvec[icoeff][0]*x[j][0];
-          snavj[icoeff+nperdim]   -= snaptr->dbvec[icoeff][1]*x[j][1];
-          snavj[icoeff+2*nperdim] -= snaptr->dbvec[icoeff][2]*x[j][2];
-          snavj[icoeff+3*nperdim] -= snaptr->dbvec[icoeff][1]*x[j][2];
-          snavj[icoeff+4*nperdim] -= snaptr->dbvec[icoeff][0]*x[j][2];
-          snavj[icoeff+5*nperdim] -= snaptr->dbvec[icoeff][0]*x[j][1];
+          snavi[icoeff]           += snaptr->dblist[icoeff][0]*xtmp;
+          snavi[icoeff+nperdim]   += snaptr->dblist[icoeff][1]*ytmp;
+          snavi[icoeff+2*nperdim] += snaptr->dblist[icoeff][2]*ztmp;
+          snavi[icoeff+3*nperdim] += snaptr->dblist[icoeff][1]*ztmp;
+          snavi[icoeff+4*nperdim] += snaptr->dblist[icoeff][0]*ztmp;
+          snavi[icoeff+5*nperdim] += snaptr->dblist[icoeff][0]*ytmp;
+          snavj[icoeff]           -= snaptr->dblist[icoeff][0]*x[j][0];
+          snavj[icoeff+nperdim]   -= snaptr->dblist[icoeff][1]*x[j][1];
+          snavj[icoeff+2*nperdim] -= snaptr->dblist[icoeff][2]*x[j][2];
+          snavj[icoeff+3*nperdim] -= snaptr->dblist[icoeff][1]*x[j][2];
+          snavj[icoeff+4*nperdim] -= snaptr->dblist[icoeff][0]*x[j][2];
+          snavj[icoeff+5*nperdim] -= snaptr->dblist[icoeff][0]*x[j][1];
         }
 
         if (quadraticflag) {
@@ -298,10 +296,10 @@ void ComputeSNAVAtom::compute_peratom()
           snavj += quadraticoffset;
           int ncount = 0;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-            double bi = snaptr->bvec[icoeff];
-            double bix = snaptr->dbvec[icoeff][0];
-            double biy = snaptr->dbvec[icoeff][1];
-            double biz = snaptr->dbvec[icoeff][2];
+            double bi = snaptr->blist[icoeff];
+            double bix = snaptr->dblist[icoeff][0];
+            double biy = snaptr->dblist[icoeff][1];
+            double biz = snaptr->dblist[icoeff][2];
 
             // diagonal element of quadratic matrix
 
@@ -325,12 +323,12 @@ void ComputeSNAVAtom::compute_peratom()
             // upper-triangular elements of quadratic matrix
 
             for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-              double dbxtmp = bi*snaptr->dbvec[jcoeff][0]
-                + bix*snaptr->bvec[jcoeff];
-              double dbytmp = bi*snaptr->dbvec[jcoeff][1]
-                + biy*snaptr->bvec[jcoeff];
-              double dbztmp = bi*snaptr->dbvec[jcoeff][2]
-                + biz*snaptr->bvec[jcoeff];
+              double dbxtmp = bi*snaptr->dblist[jcoeff][0]
+                + bix*snaptr->blist[jcoeff];
+              double dbytmp = bi*snaptr->dblist[jcoeff][1]
+                + biy*snaptr->blist[jcoeff];
+              double dbztmp = bi*snaptr->dblist[jcoeff][2]
+                + biz*snaptr->blist[jcoeff];
               snavi[ncount] +=           dbxtmp*xtmp;
               snavi[ncount+nperdim] +=   dbytmp*ytmp;
               snavi[ncount+2*nperdim] += dbztmp*ztmp;

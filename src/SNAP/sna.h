@@ -26,7 +26,6 @@ namespace LAMMPS_NS {
 
 struct SNA_ZINDICES {
   int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
-  double betaj;
 };
 
 struct SNA_BINDICES {
@@ -51,19 +50,20 @@ public:
   void compute_ui(int);
   void compute_zi();
   void compute_yi(const double*);
+  void compute_yterm(int, int, int, const double*);
   void compute_bi();
-  void copy_bi2bvec();
 
   // functions for derivatives
 
   void compute_duidrj(double*, double, double);
   void compute_dbidrj();
   void compute_deidrj(double*);
-  void copy_dbi2dbvec();
   double compute_sfac(double, double);
   double compute_dsfac(double, double);
 
   double* bvec, ** dbvec;
+  double* blist;
+  double** dblist;
   double** rij;
   int* inside;
   double* wj;
@@ -73,31 +73,17 @@ public:
   void grow_rij(int);
 
   int twojmax, diagonalstyle;
-  double*** uarraytot_r, *** uarraytot_i;
-  double***** zarray_r, ***** zarray_i;
-  double*** yarray_r, *** yarray_i;
-  double*** uarray_r, *** uarray_i;
 
 private:
   double rmin0, rfac0;
 
-  // use indexlist instead of loops, constructor generates these
+  // data for bispectrum coefficients
 
   SNA_ZINDICES* idxz;
   SNA_BINDICES* idxb;
   int idxcg_max, idxu_max, idxz_max, idxb_max;
 
-  // data for bispectrum coefficients
-
-  double***** cgarray;
   double** rootpqarray;
-  double*** barray;
-
-  // derivatives of data
-
-  double**** duarray_r, **** duarray_i;
-  double**** dbarray;
-
   double* cglist;  
   int*** idxcg_block; 
 
@@ -121,9 +107,6 @@ private:
   void destroy_twojmax_arrays();
   void init_clebsch_gordan();
   void init_rootpqarray();
-  void jtostr(char*, int);
-  void mtostr(char*, int, int);
-  void print_clebsch_gordan(FILE*);
   void zero_uarraytot();
   void addself_uarraytot(double);
   void add_uarraytot(double, double, double);

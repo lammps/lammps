@@ -166,16 +166,13 @@ void PairSNAP::compute(int eflag, int vflag)
       }
     }
 
-    // compute Ui, Zi, and Bi for atom I
+    // compute Ui, Yi for atom I
 
     snaptr->compute_ui(ninside);
-    snaptr->compute_zi();
 
     // for neighbors of I within cutoff:
     // compute Fij = dEi/dRj = -dEi/dRi 
     // add to Fi, subtract from Fj
-
-    // compute beta_i*Z_i = Y_i
 
     snaptr->compute_yi(beta[ii]);
 
@@ -310,10 +307,9 @@ void PairSNAP::compute_bispectrum()
     snaptr->compute_ui(ninside);
     snaptr->compute_zi();
     snaptr->compute_bi();
-    snaptr->copy_bi2bvec();
 
     for (int k = 0; k < ncoeff; k++)
-      bispectrum[ii][k] = snaptr->bvec[k];
+      bispectrum[ii][k] = snaptr->blist[k];
   }
 }
 

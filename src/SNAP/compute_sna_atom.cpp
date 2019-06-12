@@ -247,13 +247,12 @@ void ComputeSNAAtom::compute_peratom()
       snaptr->compute_ui(ninside);
       snaptr->compute_zi();
       snaptr->compute_bi();
-      snaptr->copy_bi2bvec();
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-        sna[i][icoeff] = snaptr->bvec[icoeff];
+        sna[i][icoeff] = snaptr->blist[icoeff];
       if (quadraticflag) {
         int ncount = ncoeff;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bi = snaptr->bvec[icoeff];
+          double bi = snaptr->blist[icoeff];
 
           // diagonal element of quadratic matrix
 
@@ -262,7 +261,7 @@ void ComputeSNAAtom::compute_peratom()
           // upper-triangular elements of quadratic matrix
 
           for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-            sna[i][ncount++] = bi*snaptr->bvec[jcoeff];
+            sna[i][ncount++] = bi*snaptr->blist[jcoeff];
         }
       }
     } else {

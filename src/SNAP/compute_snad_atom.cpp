@@ -266,7 +266,6 @@ void ComputeSNADAtom::compute_peratom()
       snaptr->compute_zi();
       if (quadraticflag) {
         snaptr->compute_bi();
-        snaptr->copy_bi2bvec();
       }
 
       for (int jj = 0; jj < ninside; jj++) {
@@ -275,7 +274,6 @@ void ComputeSNADAtom::compute_peratom()
                                     snaptr->wj[jj],
                                     snaptr->rcutij[jj]);
         snaptr->compute_dbidrj();
-        snaptr->copy_dbi2dbvec();
 
         // Accumulate -dBi/dRi, -dBi/dRj
 
@@ -283,12 +281,12 @@ void ComputeSNADAtom::compute_peratom()
         double *snadj = snad[j]+typeoffset;
 
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          snadi[icoeff] += snaptr->dbvec[icoeff][0];
-          snadi[icoeff+yoffset] += snaptr->dbvec[icoeff][1];
-          snadi[icoeff+zoffset] += snaptr->dbvec[icoeff][2];
-          snadj[icoeff] -= snaptr->dbvec[icoeff][0];
-          snadj[icoeff+yoffset] -= snaptr->dbvec[icoeff][1];
-          snadj[icoeff+zoffset] -= snaptr->dbvec[icoeff][2];
+          snadi[icoeff] += snaptr->dblist[icoeff][0];
+          snadi[icoeff+yoffset] += snaptr->dblist[icoeff][1];
+          snadi[icoeff+zoffset] += snaptr->dblist[icoeff][2];
+          snadj[icoeff] -= snaptr->dblist[icoeff][0];
+          snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
+          snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
         }
 
         if (quadraticflag) {
@@ -297,10 +295,10 @@ void ComputeSNADAtom::compute_peratom()
           snadj += quadraticoffset;
           int ncount = 0;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-            double bi = snaptr->bvec[icoeff];
-            double bix = snaptr->dbvec[icoeff][0];
-            double biy = snaptr->dbvec[icoeff][1];
-            double biz = snaptr->dbvec[icoeff][2];
+            double bi = snaptr->blist[icoeff];
+            double bix = snaptr->dblist[icoeff][0];
+            double biy = snaptr->dblist[icoeff][1];
+            double biz = snaptr->dblist[icoeff][2];
 
             // diagonal elements of quadratic matrix
 
@@ -319,12 +317,12 @@ void ComputeSNADAtom::compute_peratom()
             // upper-triangular elements of quadratic matrix
 
             for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-              double dbxtmp = bi*snaptr->dbvec[jcoeff][0]
-                + bix*snaptr->bvec[jcoeff];
-              double dbytmp = bi*snaptr->dbvec[jcoeff][1]
-                + biy*snaptr->bvec[jcoeff];
-              double dbztmp = bi*snaptr->dbvec[jcoeff][2]
-                + biz*snaptr->bvec[jcoeff];
+              double dbxtmp = bi*snaptr->dblist[jcoeff][0]
+                + bix*snaptr->blist[jcoeff];
+              double dbytmp = bi*snaptr->dblist[jcoeff][1]
+                + biy*snaptr->blist[jcoeff];
+              double dbztmp = bi*snaptr->dblist[jcoeff][2]
+                + biz*snaptr->blist[jcoeff];
 
               snadi[ncount] +=         dbxtmp;
               snadi[ncount+yoffset] += dbytmp;

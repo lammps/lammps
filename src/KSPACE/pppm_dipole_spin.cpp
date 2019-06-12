@@ -72,8 +72,6 @@ PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) :
   mub = 9.274e-4;                     		// in A.Ang^2
   mu_0 = 785.15;               			// in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV.Ang^3
-  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
-  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
   mub2mu0hbinv = mub2mu0 / hbar;        	// in rad.THz
 }
 
@@ -107,9 +105,6 @@ void PPPMDipoleSpin::init()
   // error check
 
   spinflag = atom->sp?1:0;
-  //qsum_qsq(0); // q[i] is probably not declared ?
-  //if (spinflag && q2)
-  //  error->all(FLERR,"Cannot use charges with Kspace style PPPMDipoleSpin");
   
   triclinic_check();
 

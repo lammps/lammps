@@ -113,7 +113,7 @@ using namespace MathConst;
 ------------------------------------------------------------------------- */
 
 SNA::SNA(LAMMPS* lmp, double rfac0_in,
-         int twojmax_in, int diagonalstyle_in,
+         int twojmax_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
@@ -124,21 +124,16 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   bzero_flag = bzero_flag_in;
 
   twojmax = twojmax_in;
-  diagonalstyle = diagonalstyle_in;
 
   ncoeff = compute_ncoeff();
 
-  bvec = NULL;
-  dbvec = NULL;
-  memory->create(bvec, ncoeff, "pair:bvec");
-  memory->create(dbvec, ncoeff, 3, "pair:dbvec");
   rij = NULL;
   inside = NULL;
   wj = NULL;
   rcutij = NULL;
   nmax = 0;
   idxz = NULL;
-  idxb= NULL;
+  idxb = NULL;
 
   build_indexlist();
   create_twojmax_arrays();
@@ -159,8 +154,6 @@ SNA::~SNA()
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
-  memory->destroy(bvec);
-  memory->destroy(dbvec);
   delete[] idxz;
   delete[] idxb;
   destroy_twojmax_arrays();
@@ -168,8 +161,6 @@ SNA::~SNA()
 
 void SNA::build_indexlist()
 {
-  if(diagonalstyle != 3)
-    error->all(FLERR, "diagonal_style must be 3\n");
 
   // index list for cglist
 
@@ -180,7 +171,7 @@ void SNA::build_indexlist()
   int idxcg_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         idxcg_block[j1][j2][j] = idxcg_count; 
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
@@ -209,7 +200,7 @@ void SNA::build_indexlist()
   int idxb_count = 0;  
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) idxb_count++;
   
   idxb_max = idxb_count;
@@ -218,7 +209,7 @@ void SNA::build_indexlist()
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) {
           idxb[idxb_count].j1 = j1;
           idxb[idxb_count].j2 = j2;
@@ -233,7 +224,7 @@ void SNA::build_indexlist()
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         if (j >= j1) {
           idxb_block[j1][j2][j] = idxb_count; 
           idxb_count++;
@@ -246,7 +237,7 @@ void SNA::build_indexlist()
 
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         for (int mb = 0; 2*mb <= j; mb++)
           for (int ma = 0; ma <= j; ma++)
             idxz_count++;
@@ -260,7 +251,7 @@ void SNA::build_indexlist()
   idxz_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         idxz_block[j1][j2][j] = idxz_count; 
 
         // find right beta[jjb] entry
@@ -288,6 +279,7 @@ void SNA::build_indexlist()
           }
       }
 }
+
 /* ---------------------------------------------------------------------- */
 
 void SNA::init()
@@ -312,6 +304,7 @@ void SNA::grow_rij(int newnmax)
   memory->create(wj, nmax, "pair:wj");
   memory->create(rcutij, nmax, "pair:rcutij");
 }
+
 /* ----------------------------------------------------------------------
    compute Ui by summing over neighbors j
 ------------------------------------------------------------------------- */
@@ -401,12 +394,6 @@ void SNA::compute_zi()
       icgb += j2;
     } // end loop over ib
 
-//     // apply symmetry factor
- 
-//     const double jfac = 1.0/(j+1);
-//     zlist_r[jjz] *= jfac;
-//     zlist_i[jjz] *= jfac;
-    
   } // end loop over jjz
 }
 
@@ -631,6 +618,11 @@ void SNA::compute_bi()
     } // end if jeven
 
     blist[jjb] = 2.0*sumzu;
+
+    // apply bzero shift
+
+    if (bzero_flag)
+      blist[jjb] -= bzero[j];
   }
 }
 
@@ -1186,25 +1178,38 @@ double SNA::memory_usage()
   int jdimpq = twojmax + 2;
   int jdim = twojmax + 1;
   double bytes;
-  bytes = ncoeff * sizeof(double);                       // coeff
+
+  bytes = 0;
 
   bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
   bytes += idxcg_max * sizeof(double);                   // cglist
-  bytes += jdim * jdim * jdim * sizeof(int);                // idxcg_block
 
   bytes += idxu_max * sizeof(double) * 2;                // ulist
   bytes += idxu_max * sizeof(double) * 2;                // ulisttot
   bytes += idxu_max * 3 * sizeof(double) * 2;            // dulist
-  bytes += jdim * sizeof(int);                              // idxu_block
 
-  bytes += idxz_max * 9 * sizeof(int);                      // idxz
   bytes += idxz_max * sizeof(double) * 2;                // zlist
-  bytes += jdim * jdim * jdim * sizeof(int);                // idxz_block
-
+  bytes += idxb_max * sizeof(double);                    // blist
+  bytes += idxb_max * 3 * sizeof(double);                // dblist
   bytes += idxu_max * sizeof(double) * 2;                // ylist
-  bytes += idxb_max * 3 * sizeof(int);                      // idxb
 
-  bytes += jdim * jdim * jdim * sizeof(int);                // idxb_block
+  bytes += jdim * jdim * jdim * sizeof(int);             // idxcg_block
+  bytes += jdim * sizeof(int);                           // idxu_block
+  bytes += jdim * jdim * jdim * sizeof(int);             // idxz_block
+  bytes += jdim * jdim * jdim * sizeof(int);             // idxb_block
+
+  bytes += idxz_max * sizeof(SNA_ZINDICES);              // idxz
+  bytes += idxb_max * sizeof(SNA_BINDICES);              // idxb
+
+  bytes += jdim * sizeof(double);                        // bzero
+
+  bytes += nmax * 3 * sizeof(double);                    // rij
+  bytes += nmax * sizeof(int);                           // inside
+  bytes += nmax * sizeof(double);                        // wj
+  bytes += nmax * sizeof(double);                        // rcutij
+
+  printf("SNAP Z list Memory Usage %d\n",idxz_max * sizeof(double) * 2);
+  printf("SNAP CG list Memory Usage %d\n",idxcg_max * sizeof(double));
 
   return bytes;
 }
@@ -1242,25 +1247,22 @@ void SNA::destroy_twojmax_arrays()
 {
   memory->destroy(rootpqarray);
   memory->destroy(cglist);
-  memory->destroy(idxcg_block);
-
   memory->destroy(ulist_r);
   memory->destroy(ulist_i);
   memory->destroy(ulisttot_r);
   memory->destroy(ulisttot_i);
   memory->destroy(dulist_r);
   memory->destroy(dulist_i);
-  memory->destroy(idxu_block);
-
   memory->destroy(zlist_r);
   memory->destroy(zlist_i);
   memory->destroy(blist);
   memory->destroy(dblist);
-  memory->destroy(idxz_block);
-
   memory->destroy(ylist_r);
   memory->destroy(ylist_i);
 
+  memory->destroy(idxcg_block);
+  memory->destroy(idxu_block);
+  memory->destroy(idxz_block);
   memory->destroy(idxb_block);
 
   if (bzero_flag)
@@ -1484,7 +1486,7 @@ void SNA::init_clebsch_gordan()
   int idxcg_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         for (int m1 = 0; m1 <= j1; m1++) {
           aa2 = 2 * m1 - j1;
 
@@ -1557,7 +1559,7 @@ int SNA::compute_ncoeff()
 
   for (int j1 = 0; j1 <= twojmax; j1++)
     for (int j2 = 0; j2 <= j1; j2++)
-      for (int j = abs(j1 - j2);
+      for (int j = j1 - j2;
            j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) ncount++;
 

@@ -34,10 +34,6 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define MAXWORD 3
 
-// Outstanding issues with quadratic term
-// 1. there seems to a problem with compute_optimized energy calc
-// it does not match compute_regular, even when quadratic coeffs = 0
-
 /* ---------------------------------------------------------------------- */
 
 PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
@@ -52,8 +48,6 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   radelem = NULL;
   wjelem = NULL;
   coeffelem = NULL;
-
-  nmax = 0;
 
   beta_max = 0;
   beta = NULL;
@@ -74,6 +68,7 @@ PairSNAP::~PairSNAP()
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
   }
+
   memory->destroy(beta);
   memory->destroy(bispectrum);
 
@@ -115,7 +110,8 @@ void PairSNAP::compute(int eflag, int vflag)
 
   // compute dE_i/dB_i = beta_i for all i in list
 
-  compute_bispectrum();
+  if (quadraticflag || eflag) 
+    compute_bispectrum();
   compute_beta();
 
   numneigh = list->numneigh;
@@ -209,15 +205,25 @@ void PairSNAP::compute(int eflag, int vflag)
       evdwl = coeffi[0];
 
       // E = beta.B + 0.5*B^t.alpha.B
-      // coeff[k] = beta[k-1] or
-      // coeff[k] = alpha_ii or
-      // coeff[k] = alpha_ij = alpha_ji, j != i
 
       // linear contributions
 
-      for (int k = 0; k < ncoeff; k++)
-        evdwl += beta[ii][k]*bispectrum[ii][k];
+      for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+        evdwl += coeffi[icoeff+1]*bispectrum[ii][icoeff];
 
+      // quadratic contributions
+
+      if (quadraticflag) {
+        int k = ncoeff+1;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+          double bveci = bispectrum[ii][icoeff];
+          evdwl += 0.5*coeffi[k++]*bveci*bveci;
+          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+            double bvecj = bispectrum[ii][jcoeff];
+            evdwl += coeffi[k++]*bveci*bvecj;
+          }
+        }
+      }
       ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
     }
 
@@ -241,8 +247,23 @@ void PairSNAP::compute_beta()
     const int ielem = map[itype];
     double* coeffi = coeffelem[ielem];
 
-    for (int k = 1; k <= ncoeff; k++)
-      beta[ii][k-1] = coeffi[k];
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+      beta[ii][icoeff] = coeffi[icoeff+1];
+
+    if (quadraticflag) {
+      int k = ncoeff+1;
+      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+        double bveci = bispectrum[ii][icoeff];
+        beta[ii][icoeff] += coeffi[k]*bveci;
+        k++;
+        for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+          double bvecj = bispectrum[ii][jcoeff];
+          beta[ii][icoeff] += coeffi[k]*bvecj;
+          beta[ii][jcoeff] += coeffi[k]*bveci;
+          k++;
+        }
+      }
+    }
   }
 }
 
@@ -308,8 +329,8 @@ void PairSNAP::compute_bispectrum()
     snaptr->compute_zi();
     snaptr->compute_bi();
 
-    for (int k = 0; k < ncoeff; k++)
-      bispectrum[ii][k] = snaptr->blist[k];
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+      bispectrum[ii][icoeff] = snaptr->blist[icoeff];
   }
 }
 
@@ -354,8 +375,6 @@ void PairSNAP::coeff(int narg, char **arg)
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
   }
-  memory->destroy(beta);
-  memory->destroy(bispectrum);
 
   char* type1 = arg[0];
   char* type2 = arg[1];
@@ -425,9 +444,7 @@ void PairSNAP::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   snaptr = new SNA(lmp,rfac0,twojmax,
-                   diagonalstyle,
                    rmin0,switchflag,bzeroflag);
-  snaptr->grow_rij(nmax);
 
   if (ncoeff != snaptr->ncoeff) {
     if (comm->me == 0)
@@ -617,7 +634,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   rfac0 = 0.99363;
   rmin0 = 0.0;
-  diagonalstyle = 3;
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
@@ -678,8 +694,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       rfac0 = atof(keyval);
     else if (strcmp(keywd,"rmin0") == 0)
       rmin0 = atof(keyval);
-    else if (strcmp(keywd,"diagonalstyle") == 0)
-      diagonalstyle = atoi(keyval);
     else if (strcmp(keywd,"switchflag") == 0)
       switchflag = atoi(keyval);
     else if (strcmp(keywd,"bzeroflag") == 0)
@@ -702,13 +716,16 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 double PairSNAP::memory_usage()
 {
   double bytes = Pair::memory_usage();
+
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);
-  bytes += n*n*sizeof(double);
-  bytes += 3*nmax*sizeof(double);
-  bytes += nmax*sizeof(int);
-  bytes += (2*ncoeffall)*sizeof(double);
-  bytes += (ncoeff*3)*sizeof(double);
+  bytes += n*n*sizeof(int);      // setflag
+  bytes += n*n*sizeof(double);   // cutsq
+  bytes += n*sizeof(int);        // map
+  bytes += beta_max*ncoeff*sizeof(double); // bispectrum
+  bytes += beta_max*ncoeff*sizeof(double); // beta
+
+  bytes += snaptr->memory_usage(); // SNA object
+
   return bytes;
 }
 

@@ -36,7 +36,7 @@ class ComputeSNADAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax, njmax, diagonalstyle;
+  int nmax;
   int ncoeff, nperdim, yoffset, zoffset;
   double **cutsq;
   class NeighList *list;

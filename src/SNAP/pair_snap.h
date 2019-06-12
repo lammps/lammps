@@ -40,9 +40,7 @@ public:
 
 protected:
   int ncoeffq, ncoeffall;
-  double **bvec, ***dbvec;
   class SNA* snaptr;
-  int nmax;
   virtual void allocate();
   void read_files(char *, char *);
   inline int equal(double* x,double* y);
@@ -60,7 +58,7 @@ protected:
   double** beta;                // betas for all atoms in list
   double** bispectrum;          // bispectrum components for all atoms in list
   int *map;                     // mapping from atom types to elements
-  int twojmax, diagonalstyle, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters
   int beta_max;                 // length of beta

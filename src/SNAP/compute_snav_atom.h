@@ -36,7 +36,7 @@ class ComputeSNAVAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax, njmax, diagonalstyle;
+  int nmax;
   int ncoeff, nperdim;
   double **cutsq;
   class NeighList *list;

@@ -44,7 +44,6 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
-  diagonalstyle = 0;
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
@@ -78,14 +77,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nargmin;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"diagonal") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      diagonalstyle = atof(arg[iarg+1]);
-      if (diagonalstyle < 0 || diagonalstyle > 3)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"rmin0") == 0) {
+    if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snav/atom command");
       rmin0 = atof(arg[iarg+1]);
@@ -108,7 +100,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute snav/atom command");
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,diagonalstyle,
+  snaptr = new SNA(lmp,rfac0,twojmax,
                    rmin0,switchflag,bzeroflag);
 
   ncoeff = snaptr->ncoeff;
@@ -119,7 +111,6 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
 
   nmax = 0;
-  njmax = 0;
   snav = NULL;
 
 }
@@ -389,10 +380,8 @@ void ComputeSNAVAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeSNAVAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double);
-  bytes += 3*njmax*sizeof(double);
-  bytes += njmax*sizeof(int);
-  bytes += 6*nperdim*atom->ntypes;
-  if (quadraticflag) bytes += 6*nperdim*atom->ntypes;
+  double bytes = nmax*size_peratom_cols * sizeof(double); // snav
+  bytes += snaptr->memory_usage();                        // SNA object
+
   return bytes;
 }

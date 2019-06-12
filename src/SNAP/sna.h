@@ -18,9 +18,7 @@
 #ifndef LMP_SNA_H
 #define LMP_SNA_H
 
-#include <complex>
 #include "pointers.h"
-#include <ctime>
 
 namespace LAMMPS_NS {
 
@@ -35,7 +33,7 @@ struct SNA_BINDICES {
 class SNA : protected Pointers {
 
 public:
-  SNA(LAMMPS*, double, int, int, double, int, int);
+  SNA(LAMMPS*, double, int, double, int, int);
 
   SNA(LAMMPS* lmp) : Pointers(lmp) {};
   ~SNA();
@@ -61,7 +59,6 @@ public:
   double compute_sfac(double, double);
   double compute_dsfac(double, double);
 
-  double* bvec, ** dbvec;
   double* blist;
   double** dblist;
   double** rij;
@@ -72,7 +69,7 @@ public:
 
   void grow_rij(int);
 
-  int twojmax, diagonalstyle;
+  int twojmax;
 
 private:
   double rmin0, rfac0;
@@ -126,7 +123,7 @@ private:
   double wself;
 
   int bzero_flag; // 1 if bzero subtracted from barray
-  double *bzero;  // array of B values for isolated atoms
+  double* bzero;  // array of B values for isolated atoms
 };
 
 }

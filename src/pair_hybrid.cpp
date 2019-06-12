@@ -358,6 +358,7 @@ void PairHybrid::flags()
     if (styles[m]->pppmflag) pppmflag = 1;
     if (styles[m]->msmflag) msmflag = 1;
     if (styles[m]->dipoleflag) dipoleflag = 1;
+    if (styles[m]->spinflag) spinflag = 1;
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   www.cs.sandia.gov/~sjplimp/lammps.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,7 +13,7 @@
 
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
-                         Aidan Thompson (SNL)
+                         Stan Moore (SNL)
 
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
@@ -22,50 +22,57 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
+#include "pair_spin_dipole_cut.h"
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
-#include "fix.h"
-#include "fix_nve_spin.h"
-#include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "fix_nve_spin.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_exchange.h"
+#include "error.h"
 #include "update.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp),
+PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
   single_enable = 0;
+  spinflag = 1;
+  respa_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
+
+  hbar = force->hplanck/MY_2PI;			// eV/(rad.THz)
+  mub = 9.274e-4;                               // in A.Ang^2
+  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
+  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
+  mub2mu0hbinv = mub2mu0 / hbar;		// in rad.THz
+
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   free all arrays
+------------------------------------------------------------------------- */
 
-PairSpinExchange::~PairSpinExchange()
+PairSpinDipoleCut::~PairSpinDipoleCut()
 {
   if (allocated) {
     memory->destroy(setflag);
-    memory->destroy(cut_spin_exchange);
-    memory->destroy(J1_mag);
-    memory->destroy(J1_mech);
-    memory->destroy(J2);
-    memory->destroy(J3);
-    memory->destroy(cutsq); // to be implemented
+    memory->destroy(cut_spin_long);
+    memory->destroy(cutsq);
   }
 }
 
@@ -73,86 +80,78 @@ PairSpinExchange::~PairSpinExchange()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::settings(int narg, char **arg)
+void PairSpinDipoleCut::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 7) 
-    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
+  if (narg < 1 || narg > 2)
+    error->all(FLERR,"Incorrect args in pair_style command");
 
   if (strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"Spin simulations require metal unit style");
 
-  cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
+  if (!atom->sp) 
+    error->all(FLERR,"Pair/spin style requires atom attribute sp");
 
+  cut_spin_long_global = force->numeric(FLERR,arg[0]);
+  
   // reset cutoffs that have been explicitly set
-
+  
   if (allocated) {
     int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+    for (i = 1; i <= atom->ntypes; i++) {
+      for (j = i+1; j <= atom->ntypes; j++) {
         if (setflag[i][j]) {
-          cut_spin_exchange[i][j] = cut_spin_exchange_global;
+          cut_spin_long[i][j] = cut_spin_long_global;
         }
+      }
+    }
   }
 
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type spin pairs
+   set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::coeff(int narg, char **arg)
+void PairSpinDipoleCut::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-
-  // check if args correct
-
-  if (strcmp(arg[2],"exchange") != 0)
+ 
+  if (narg != 3) 
     error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg != 7)
-    error->all(FLERR,"Incorrect args in pair_style command");
-
+  
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  // get exchange arguments from input command
-
-  const double rc = force->numeric(FLERR,arg[3]);
-  const double j1 = force->numeric(FLERR,arg[4]);
-  const double j2 = force->numeric(FLERR,arg[5]);
-  const double j3 = force->numeric(FLERR,arg[6]);
+  double spin_long_cut_one = force->numeric(FLERR,arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut_spin_exchange[i][j] = rc;
-      J1_mag[i][j] = j1/hbar;
-      J1_mech[i][j] = j1;
-      J2[i][j] = j2;
-      J3[i][j] = j3;
       setflag[i][j] = 1;
+      cut_spin_long[i][j] = spin_long_cut_one;
       count++;
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::init_style()
+void PairSpinDipoleCut::init_style()
 {
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
-
+  
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
-
+  
   // checking if nve/spin or neb/spin are a listed fix
 
   int ifix = 0;
@@ -179,55 +178,60 @@ void PairSpinExchange::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairSpinExchange::init_one(int i, int j)
+double PairSpinDipoleCut::init_one(int i, int j)
 {
-
-   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-
-  J1_mag[j][i] = J1_mag[i][j];
-  J1_mech[j][i] = J1_mech[i][j];
-  J2[j][i] = J2[i][j];
-  J3[j][i] = J3[i][j];
-  cut_spin_exchange[j][i] = cut_spin_exchange[i][j];
-
-  return cut_spin_exchange_global;
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  
+  cut_spin_long[j][i] = cut_spin_long[i][j];
+  
+  return cut_spin_long_global;
 }
 
 /* ----------------------------------------------------------------------
-   extract the larger cutoff
+   extract the larger cutoff if "cut" or "cut_coul"
 ------------------------------------------------------------------------- */
 
-void *PairSpinExchange::extract(const char *str, int &dim)
+void *PairSpinDipoleCut::extract(const char *str, int &dim)
 {
-  dim = 0;
-  if (strcmp(str,"cut") == 0) return (void *) &cut_spin_exchange_global;
+  if (strcmp(str,"cut") == 0) {
+    dim = 0;
+    return (void *) &cut_spin_long_global;
+  } else if (strcmp(str,"cut_coul") == 0) {
+    dim = 0;
+    return (void *) &cut_spin_long_global;
+  } else if (strcmp(str,"ewald_order") == 0) {
+    ewald_order = 0;
+    ewald_order |= 1<<1;
+    ewald_order |= 1<<3;
+    dim = 0;
+    return (void *) &ewald_order;
+  } else if (strcmp(str,"ewald_mix") == 0) {
+    dim = 0;
+    return (void *) &mix_flag;
+  }
   return NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinExchange::compute(int eflag, int vflag)
+void PairSpinDipoleCut::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double evdwl, ecoul;
-  double xi[3], eij[3];
-  double delx,dely,delz;
-  double spi[3], spj[3];
-  double fi[3], fmi[3];
-  double local_cut2;
-  double rsq, inorm;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,ii,jj,inum,jnum,itype,jtype;  
+  int *ilist,*jlist,*numneigh,**firstneigh;  
+  double rinv,r2inv,r3inv,rsq,local_cut2,evdwl,ecoul;
+  double xi[3],rij[3],eij[3],spi[4],spj[4],fi[3],fmi[3];
 
   evdwl = ecoul = 0.0;
-  ev_init(eflag,vflag);
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
+  int *type = atom->type;  
+  int nlocal = atom->nlocal;  
+  int newton_pair = force->newton_pair;
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
+  double **sp = atom->sp;	
 
   inum = list->inum;
   ilist = list->ilist;
@@ -239,104 +243,100 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itype = type[i];
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
-    spi[0] = sp[i][0];
-    spi[1] = sp[i][1];
+    jlist = firstneigh[i];
+    jnum = numneigh[i]; 
+    spi[0] = sp[i][0]; 
+    spi[1] = sp[i][1]; 
     spi[2] = sp[i][2];
-
-    // loop on neighbors
+    spi[3] = sp[i][3];
+    itype = type[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = type[j];
 
-      spj[0] = sp[j][0];
-      spj[1] = sp[j][1];
-      spj[2] = sp[j][2];
+      spj[0] = sp[j][0]; 
+      spj[1] = sp[j][1]; 
+      spj[2] = sp[j][2]; 
+      spj[3] = sp[j][3]; 
 
       evdwl = 0.0;
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
+     
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      rinv = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*rinv;
+      eij[1] = rij[1]*rinv;
+      eij[2] = rij[2]*rinv;
 
-      delx = xi[0] - x[j][0];
-      dely = xi[1] - x[j][1];
-      delz = xi[2] - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      inorm = 1.0/sqrt(rsq);
-      eij[0] = -inorm*delx;
-      eij[1] = -inorm*dely;
-      eij[2] = -inorm*delz;
+      local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
-      local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
-
-      // compute exchange interaction
-
-      if (rsq <= local_cut2) {
-        compute_exchange(i,j,rsq,fmi,spj);
-        if (lattice_flag) {
-          compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
-        }
+      if (rsq < local_cut2) {
+        r2inv = 1.0/rsq;
+	r3inv = r2inv*rinv;
+	
+	compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
+	if (lattice_flag) compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
       }
 
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
+      // force accumulation
+
+      f[i][0] += fi[0]; 
+      f[i][1] += fi[1];  	  
       f[i][2] += fi[2];
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];
-        f[j][1] -= fi[1];
+	f[j][0] -= fi[0];	 
+        f[j][1] -= fi[1];	  	  
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
-        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+	if (rsq <= local_cut2) {
+	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+	  evdwl *= hbar;
+	}
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
+	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+
     }
   }
-
-  if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
-   update the pair interactions fmi acting on the spin ii
+   update the pair interaction fmi acting on the spin ii
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
+void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
 {
-  int *type = atom->type;
-  double **x = atom->x;
-  double **sp = atom->sp;
-  double local_cut2;
-  double xi[3];
-  double delx,dely,delz;
-  double spj[3];
+  int j,jnum,itype,jtype,ntypes; 
+  int *ilist,*jlist,*numneigh,**firstneigh;  
+  double rsq,rinv,r2inv,r3inv,local_cut2;
+  double xi[3],rij[3],eij[3],spi[4],spj[4];
 
-  int j,jnum,itype,jtype,ntypes;
   int k,locflag;
-  int *jlist,*numneigh,**firstneigh;
-
-  double rsq;
+  int *type = atom->type;  
+  double **x = atom->x;
+  double **sp = atom->sp;	
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
   // check if interaction applies to type of ii
-
+  
   itype = type[ii];
   ntypes = atom->ntypes;
   locflag = 0;
@@ -357,96 +357,103 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
     } else error->all(FLERR,"Wrong type number");
   }
 
+
   // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction
-
+ 
   if (locflag == 1) {
 
     xi[0] = x[ii][0];
     xi[1] = x[ii][1];
     xi[2] = x[ii][2];
-
+    spi[0] = sp[ii][0]; 
+    spi[1] = sp[ii][1]; 
+    spi[2] = sp[ii][2];
+    spi[3] = sp[ii][3];
     jlist = firstneigh[ii];
-    jnum = numneigh[ii];
-
+    jnum = numneigh[ii]; 
+    
     for (int jj = 0; jj < jnum; jj++) {
-
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = type[j];
-      local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
 
-      spj[0] = sp[j][0];
-      spj[1] = sp[j][1];
-      spj[2] = sp[j][2];
+      spj[0] = sp[j][0]; 
+      spj[1] = sp[j][1]; 
+      spj[2] = sp[j][2]; 
+      spj[3] = sp[j][3]; 
 
-      delx = xi[0] - x[j][0];
-      dely = xi[1] - x[j][1];
-      delz = xi[2] - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      rinv = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*rinv;
+      eij[1] = rij[1]*rinv;
+      eij[2] = rij[2]*rinv;
 
-      if (rsq <= local_cut2) {
-        compute_exchange(ii,j,rsq,fmi,spj);
+      local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
+
+      if (rsq < local_cut2) {
+        r2inv = 1.0/rsq;
+        r3inv = r2inv*rinv;
+        
+        // compute dipolar interaction
+        
+        compute_dipolar(ii,j,eij,fmi,spi,spj,r3inv);
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   compute exchange interaction between spins i and j
+   compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3], double spj[3])
+void PairSpinDipoleCut::compute_dipolar(int i, int j, double eij[3], 
+    double fmi[3], double spi[4], double spj[4], double r3inv)
 {
-  int *type = atom->type;
-  int itype, jtype;
-  double Jex, ra;
-  itype = type[i];
-  jtype = type[j];
+  double sjdotr;
+  double gigjiri3,pre;
 
-  ra = rsq/J3[itype][jtype]/J3[itype][jtype];
-  Jex = 4.0*J1_mag[itype][jtype]*ra;
-  Jex *= (1.0-J2[itype][jtype]*ra);
-  Jex *= exp(-ra);
+  sjdotr = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
+  gigjiri3 = (spi[3] * spj[3])*r3inv;
+  pre = mub2mu0hbinv * gigjiri3;
 
-  fmi[0] += Jex*spj[0];
-  fmi[1] += Jex*spj[1];
-  fmi[2] += Jex*spj[2];
+  fmi[0] += pre * (3.0 * sjdotr *eij[0] - spj[0]);
+  fmi[1] += pre * (3.0 * sjdotr *eij[1] - spj[1]);
+  fmi[2] += pre * (3.0 * sjdotr *eij[2] - spj[2]);
 }
 
 /* ----------------------------------------------------------------------
-   compute the mechanical force due to the exchange interaction between atom i and atom j
+   compute the mechanical force due to the dipolar interaction between 
+   atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double eij[3],
-    double fi[3],  double spi[3], double spj[3])
+void PairSpinDipoleCut::compute_dipolar_mech(int i, int j, double eij[3],
+    double fi[3], double spi[3], double spj[3], double r2inv)
 {
-  int *type = atom->type;
-  int itype, jtype;
-  double Jex, Jex_mech, ra, rr, iJ3;
-  itype = type[i];
-  jtype = type[j];
+  double sisj,sieij,sjeij;
+  double gigjri4,bij,pre;
 
-  Jex = J1_mech[itype][jtype];
-  iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
+  gigjri4 = (spi[3] * spj[3])*r2inv*r2inv;
+  sisj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  sieij = spi[0]*eij[0] + spi[1]*eij[1] + spi[2]*eij[2];
+  sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
+  
+  bij = sisj - 5.0*sieij*sjeij;
+  pre = 3.0*mub2mu0*gigjri4;
 
-  ra = rsq*iJ3;
-  rr = sqrt(rsq)*iJ3;
-
-  Jex_mech = 1.0-ra-J2[itype][jtype]*ra*(2.0-ra);
-  Jex_mech *= 8.0*Jex*rr*exp(-ra);
-  Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
-
-  fi[0] -= Jex_mech*eij[0];
-  fi[1] -= Jex_mech*eij[1];
-  fi[2] -= Jex_mech*eij[2];
+  fi[0] -= pre * (eij[0] * bij + (sjeij*spi[0] + sieij*spj[0]));
+  fi[1] -= pre * (eij[1] * bij + (sjeij*spi[1] + sieij*spj[1]));
+  fi[2] -= pre * (eij[2] * bij + (sjeij*spi[2] + sieij*spj[2]));
 }
 
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::allocate()
+void PairSpinDipoleCut::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -456,19 +463,15 @@ void PairSpinExchange::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cut_spin_exchange,n+1,n+1,"pair/spin/exchange:cut_spin_exchange");
-  memory->create(J1_mag,n+1,n+1,"pair/spin/exchange:J1_mag");
-  memory->create(J1_mech,n+1,n+1,"pair/spin/exchange:J1_mech");
-  memory->create(J2,n+1,n+1,"pair/spin/exchange:J2");
-  memory->create(J3,n+1,n+1,"pair/spin/exchange:J3");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cut_spin_long,n+1,n+1,"pair/spin/long:cut_spin_long");
+  memory->create(cutsq,n+1,n+1,"pair/spin/long:cutsq");
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::write_restart(FILE *fp)
+void PairSpinDipoleCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -477,11 +480,7 @@ void PairSpinExchange::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        fwrite(&J1_mag[i][j],sizeof(double),1,fp);
-        fwrite(&J1_mech[i][j],sizeof(double),1,fp);
-        fwrite(&J2[i][j],sizeof(double),1,fp);
-        fwrite(&J3[i][j],sizeof(double),1,fp);
-        fwrite(&cut_spin_exchange[i][j],sizeof(double),1,fp);
+	fwrite(&cut_spin_long[i][j],sizeof(int),1,fp);
       }
     }
   }
@@ -491,7 +490,7 @@ void PairSpinExchange::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::read_restart(FILE *fp)
+void PairSpinDipoleCut::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -504,32 +503,22 @@ void PairSpinExchange::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) {
-          fread(&J1_mag[i][j],sizeof(double),1,fp);
-          fread(&J1_mech[i][j],sizeof(double),1,fp);
-          fread(&J2[i][j],sizeof(double),1,fp);
-          fread(&J2[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_exchange[i][j],sizeof(double),1,fp);
-        }
-        MPI_Bcast(&J1_mag[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&J1_mech[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&J2[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&J3[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_spin_exchange[i][j],1,MPI_DOUBLE,0,world);
+	if (me == 0) {
+	  fread(&cut_spin_long[i][j],sizeof(int),1,fp);
+	}
+	MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
     }
   }
 }
 
-
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::write_restart_settings(FILE *fp)
+void PairSpinDipoleCut::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_spin_exchange_global,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&cut_spin_long_global,sizeof(double),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
@@ -537,14 +526,12 @@ void PairSpinExchange::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::read_restart_settings(FILE *fp)
+void PairSpinDipoleCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_exchange_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
+    fread(&cut_spin_long_global,sizeof(double),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_spin_exchange_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_spin_long_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }

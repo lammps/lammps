@@ -1361,22 +1361,24 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 }
 
 void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
+  int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int k = 0; k < group->ngroup; k++) {
       FFT_SCALAR *src = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
-        buf[i] = src[list[i]];
+        buf[n++] = src[list[i]];
     }
   }
 }
 
 void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
+  int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int k = 0; k < group->ngroup; k++) {
       FFT_SCALAR *dest = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
-        dest[list[i]] += buf[i];
+        dest[list[i]] += buf[n++];
     }
   }
 }

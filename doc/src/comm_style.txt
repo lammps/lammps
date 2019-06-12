@@ -12,12 +12,13 @@ comm_style command :h3
 
 comm_style style :pre
 
-style = {brick} or {tiled} :ul
+style = {brick} , {tiled} , or {CAC} :ul
 
 [Examples:]
 
 comm_style brick
-comm_style tiled :pre
+comm_style tiled 
+comm_style CAC :pre
 
 [Description:]
 
@@ -51,10 +52,15 @@ decomposition will be the same, as described by
 commands.  The decomposition can be changed via the
 "balance"_balance.html or "fix balance"_fix_balance.html commands.
 
+The CAC style inherits the features restrictions of comm style tiled. This
+style is utilized with the USER-CAC package. For more information
+about the USER-CAC package see "Howto CAC"_Howto_CAC.html for details.
+
 [Restrictions:]
 
-Communication style {tiled} cannot be used with {triclinic} simulation
-cells.
+Communication styles {tiled} or {CAC} cannot be used with {triclinic} simulation
+cells or the {multi} comm modify option. The {CAC} comm style requires a CAC
+atom style and pair style to be invoked
 
 [Related commands:]
 

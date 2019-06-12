@@ -1,0 +1,91 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix CAC/viscous command :h3
+
+[Syntax:]
+
+fix ID group-ID CAC/viscous gamma keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+viscous = style name of this fix command :l
+gamma = damping coefficient (force/velocity units) :l
+zero or more keyword/value pairs may be appended :l
+keyword = {scale}
+  {scale} values = type ratio
+    type = atom type (1-N)
+    ratio = factor to scale the damping coefficient by :pre
+:ule
+
+[Examples:]
+
+fix 1 flow CAC/viscous 0.1
+fix 1 damp CAC/viscous 0.5 scale 3 2.5 :pre
+
+[Description:]
+
+Add a viscous damping force to atoms and finite elements in the group 
+that is proportional to the velocity of the atom or the finite element's nodal velocities. 
+The added force can be thought of as a
+frictional interaction with implicit solvent, i.e. the no-slip Stokes
+drag on a spherical particle.  This can be useful for draining the
+kinetic energy from the system in a controlled fashion.
+If used without additional thermostatting (to add kinetic
+energy to the system), it has the effect of slowly (or rapidly)
+freezing the system; hence it can also be used as a simple energy
+minimization technique.
+
+The damping force F is given by F = - gamma * velocity.  The larger
+the coefficient, the faster the kinetic energy is reduced.  If the
+optional keyword {scale} is used, gamma can scaled up or down by the
+specified factor for atoms of that type.  It can be used multiple
+times to adjust gamma for several atom types.
+
+NOTE: You should specify gamma in force/velocity units.  This is not
+the same as mass/time units, at least for some of the LAMMPS
+"units"_units.html options like "real" or "metal" that are not
+self-consistent.
+
+In a Brownian dynamics context, gamma = Kb T / D, where Kb =
+Boltzmann's constant, T = temperature, and D = particle diffusion
+coefficient.  D can be written as Kb T / (3 pi eta d), where eta =
+dynamic viscosity of the frictional fluid and d = diameter of
+particle.  This means gamma = 3 pi eta d, and thus is proportional to
+the viscosity of the fluid and the particle diameter.
+
+In the current implementation, rather than have the user specify a
+viscosity, gamma is specified directly in force/velocity units.  If
+needed, gamma can be adjusted for atoms of different sizes
+(i.e. sigma) by using the {scale} keyword.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+The "fix_modify"_fix_modify.html {respa} option is supported by this
+fix. This allows to set at which level of the "r-RESPA"_run_style.html
+integrator the fix is modifying forces. Default is the outermost level.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.  This fix should only
+be used with damped dynamics minimizers that allow for
+non-conservative forces.  See the "min_style"_min_style.html command
+for details.
+
+[Restrictions:] 
+
+This fix requires a CAC atom style
+
+[Default:] none

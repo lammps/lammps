@@ -95,6 +95,7 @@ Howto_drude.html
 Howto_drude2.html
 Howto_manifold.html
 Howto_spins.html
+Howto_CAC.html
 Examples.html
 Tools.html
 Modify.html
@@ -151,6 +152,11 @@ dimension.html
 displace_atoms.html
 dump.html
 dump_adios.html
+dump_CAC_initial_nodes.html
+dump_CAC_kinetic.html
+dump_CAC_nodal_positions.html
+dump_CAC_nodal_velocities.html
+dump_CAC_xyz.html
 dump_h5md.html
 dump_image.html
 dump_modify.html
@@ -252,6 +258,12 @@ fix_bond_create.html
 fix_bond_react.html
 fix_bond_swap.html
 fix_box_relax.html
+fix_CAC_nve.html
+fix_CAC_viscous.html
+fix_CAC_setvelocity.html
+fix_CAC_setforce.html
+fix_CAC_addforce.html
+fix_CAC_temp_rescale.html
 fix_client_md.html
 fix_cmap.html
 fix_colvars.html
@@ -425,6 +437,8 @@ compute_basal_atom.html
 compute_body_local.html
 compute_bond.html
 compute_bond_local.html
+compute_CAC_quad_count.html
+compute_CAC_nodal_temp.html
 compute_centro_atom.html
 compute_chunk_atom.html
 compute_chunk_spread_atom.html
@@ -562,6 +576,11 @@ pair_brownian.html
 pair_buck.html
 pair_buck_long.html
 pair_buck6d_coul_gauss.html
+pair_CAC_buck.html
+pair_CAC_coul_wolf.html
+pair_CAC_eam.html
+pair_CAC_lj.html
+pair_CAC_sw.html
 pair_charmm.html
 pair_class2.html
 pair_colloid.html
@@ -574,8 +593,6 @@ pair_dipole.html
 pair_dpd.html
 pair_dpd_fdt.html
 pair_dsmc.html
-pair_e3b.html
-pair_drip.html
 pair_eam.html
 pair_edip.html
 pair_eff.html

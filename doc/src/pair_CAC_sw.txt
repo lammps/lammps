@@ -1,0 +1,51 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+pair_style CAC/sw command :h3
+
+[Syntax:]
+
+pair_style style args :pre
+
+style = {CAC/sw}
+args = list of arguments for a particular style :ul
+  {CAC/sw} args = quadrature_flag
+    quadrature_flag = left blank or set to the {one} keyword :pre
+
+[Examples:]
+
+pair_style CAC/sw
+pair_coeff * * si.sw Si
+pair_coeff * * GaN.sw Ga N Ga :pre
+
+pair_style CAC/sw one
+pair_coeff * * si.sw Si :pre
+
+[Description:]
+
+The {CAC/sw} style computes 3-body forces using the Stillinger-Weber
+potential for a CAC model. Other than the allotment of the 
+{one} keyword, the rest of the input parameters and pair_coeff settings 
+are as found in "pair_style sw"_pair_sw.html. For more information on 
+the quadrature scheme and the effect of the {one} keyword see "Howto CAC"_Howto_CAC.html 
+for the details.
+
+NOTE: CAC Pair Styles do not currently support being substyles of pair_style
+hybrid
+
+NOTE: this pair style does not require the MANYBODY package to be installed.
+
+[Restrictions:]
+
+CAC Pair styles require the definition of a CAC atom style. 
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "atom_style"_atom_style.html
+
+[Default:] none

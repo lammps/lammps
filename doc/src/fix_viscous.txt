@@ -96,10 +96,8 @@ be used with damped dynamics minimizers that allow for
 non-conservative forces.  See the "min_style"_min_style.html command
 for details.
 
-[Restrictions:] none
+[Restrictions:] 
 
-[Related commands:]
-
-"fix langevin"_fix_langevin.html
+This fix requires a CAC atom style
 
 [Default:] none

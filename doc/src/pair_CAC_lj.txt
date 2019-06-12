@@ -1,0 +1,49 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+pair_style CAC/lj command :h3
+
+[Syntax:]
+
+pair_style style args :pre
+
+style = {CAC/lj}
+args = list of arguments for a particular style :ul
+  {CAC/lj} args = cutoff quadrature_flag
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+    quadrature_flag = left blank or set to the {one} :pre
+
+[Examples:]
+
+pair_style CAC/lj 8.0
+pair_coeff   1 1 0.583 2.27 :pre
+
+pair_style CAC/lj 8.0 one
+pair_coeff   1 1 0.583 2.27 :pre
+
+[Description:]
+
+The {CAC/lj} style computes pair forces using the standard 12/6
+Lennard Jones potential for a CAC model. Other than the allotment of the 
+{one} keyword, the rest of the input parameters and pair_coeff settings 
+are as found in "pair_style lj/cut"_pair_lj.html. For more information on 
+the quadrature scheme and the effect of the {one} keyword see "Howto CAC"_Howto_CAC.html 
+for the details.
+
+NOTE: CAC Pair Styles do not currently support being substyles of pair_style
+hybrid
+
+[Restrictions:]
+
+CAC Pair styles require the definition of a CAC atom style. 
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "atom_style"_atom_style.html
+
+[Default:] none

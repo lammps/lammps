@@ -96,6 +96,21 @@ class Atom : protected Pointers {
   double *eff_plastic_strain_rate;
   double *damage;
 
+  //USER-CAC package
+   int nodes_per_element, maxpoly, words_per_node; //maximum number of nodes and atoms per unit cell per element in model
+	// followed by number of words per node in a data file and the number of pure atoms in the CAC model
+  double **node_charges, ****nodal_positions, ****nodal_velocities, ****nodal_forces,
+	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes;
+  int *poly_count, **node_types,  *element_type,
+	  **element_scale, *nodes_per_element_list, bin_foreign, CAC_comm_flag, 
+    , initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref;
+  int neigh_weight_flag, **neighbor_weights, quadrature_node_count;
+  double CAC_cut, CAC_skin, max_search_range;				//used by npair_CAC styles
+  int one_layer_flag, weight_count,CAC_pair_flag, element_type_count, outer_neigh_flag;
+  char **element_names;
+  double *min_x, *min_v, *min_f; //used by CAC min styles
+  int dense_count; //used when minimizing with CAC styles
+
   // USER-DPD package
 
   double *uCond,*uMech,*uChem,*uCGnew,*uCG;
@@ -154,6 +169,7 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
+  int CAC_flag;
 
   //USER-SPIN package
 
@@ -253,6 +269,7 @@ class Atom : protected Pointers {
   void data_impropers(int, char *, int *, tagint, int);
   void data_bonus(int, char *, class AtomVec *, tagint);
   void data_bodies(int, char *, class AtomVecBody *, tagint);
+  void data_CAC(int, char *, tagint, int, int, double *);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();

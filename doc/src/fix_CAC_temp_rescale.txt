@@ -1,0 +1,132 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix CAC/temp/rescale command :h3
+
+[Syntax:]
+
+fix ID group-ID CAC/temp/rescale N Tstart Tstop window fraction :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+temp/rescale = style name of this fix command :l
+N = perform rescaling every N steps  :l
+Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
+  Tstart can be a variable (see below) :pre
+window = only rescale if temperature is outside this window (temperature units) :l
+fraction = rescale to target temperature by this fraction :l
+:ule
+
+[Examples:]
+
+fix 3 flow CAC/temp/rescale 100 1.0 1.1 0.02 0.5
+fix 3 boundary CAC/temp/rescale 1 1.0 1.5 0.05 1.0
+fix 3 boundary CAC/temp/rescale 1 1.0 1.5 0.05 1.0 :pre
+
+[Description:]
+
+Reset the temperature of a group of atoms and/or CAC elements by
+explicitly rescaling their velocities and/or nodal velocities.
+
+Rescaling is performed every N timesteps.  The target temperature is a
+ramped value between the {Tstart} and {Tstop} temperatures at the
+beginning and end of the run.
+
+NOTE: This thermostat will generate an error if the current
+temperature is zero at the end of a timestep it is invoked on.  It
+cannot rescale a zero temperature.
+
+{Tstart} can be specified as an equal-style "variable"_variable.html.
+In this case, the {Tstop} setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+
+Rescaling is only performed if the difference between the current and
+desired temperatures is greater than the {window} value.  The amount
+of rescaling that is applied is a {fraction} (from 0.0 to 1.0) of the
+difference between the actual and desired temperature.  E.g. if
+{fraction} = 1.0, the temperature is reset to exactly the desired
+value.
+
+NOTE: Unlike the "fix nvt"_fix_nh.html command which performs
+Nose/Hoover thermostatting AND time integration, this fix does NOT
+perform time integration.  It only modifies velocities to effect
+thermostatting.  Thus you must use a separate time integration fix,
+like "fix CAC/nve"_fix_CAC_nve.html to actually update the positions of 
+atoms and elements using the modified velocities.  Likewise, this fix 
+should not normally be used on groups that also have their temperature 
+or kinetic energy controlled by another fix.
+
+See the "Howto thermostat"_Howto_thermostat.html doc page for a
+discussion of different ways to compute temperature and perform
+thermostatting.
+
+This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "CAC/nodal_temp", as if one of this command had
+been issued:
+
+compute fix-ID_temp group-ID CAC/nodal_temp :pre
+
+See the "compute CAC/nodal_temp"_compute_CAC_nodal_temp.html for details.  Note that the
+ID of the new compute is the fix-ID + underscore + "CAC/nodal_temp", and the
+group for the new compute is the same as the fix group.
+
+Note that this is NOT the compute used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+"compute_modify"_compute_modify.html command or print this temperature
+during thermodynamic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} will have no
+effect on this fix.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {temp} option is supported by this
+fix.  You can use it to assign a temperature "compute"_compute.html
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy change implied by a velocity rescaling to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
+
+This fix computes a global scalar which can be accessed by various
+"output commands"_Howto_output.html.  The scalar is the cumulative
+energy change due to this fix.  The scalar value calculated by this
+fix is "extensive".
+
+This fix can ramp its target temperature over multiple runs, using the
+{start} and {stop} keywords of the "run"_run.html command.  See the
+"run"_run.html command for details of how to do this.
+
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:] 
+
+Requires a CAC atom style
+
+[Related commands:]
+
+"compute CAC/nodal_temp"_compute_CAC_nodal_temp.html,
+"fix_modify"_fix_modify.html
+
+[Default:] none

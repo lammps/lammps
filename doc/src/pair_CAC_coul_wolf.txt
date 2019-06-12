@@ -1,0 +1,50 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+pair_style CAC/coul/wolf command :h3
+
+[Syntax:]
+
+pair_style style args :pre
+
+style = {CAC/coul/wolf}
+args = list of arguments for a particular style :ul
+  {CAC/coul/wolf} args = alpha cutoff quadrature_flag
+    alpha = damping parameter (inverse distance units)
+    cutoff = global cutoff for Coulombic interactions
+    quadrature_flag = left blank or set to the {one} keyword :pre
+
+[Examples:]
+
+pair_style CAC/coul/wolf
+pair_coeff * * :pre
+
+pair_style CAC/coul/wolf one
+pair_coeff * * :pre
+
+[Description:]
+
+The {CAC/coul/wof} style computes coulomb pair interactions using the Wolf
+summation method for a CAC model. Other than the allotment of the 
+{one} keyword, the rest of the input parameters and pair_coeff settings 
+are as found in "pair_style coul"_pair_coul.html. For more information on 
+the quadrature scheme and the effect of the {one} keyword see "Howto CAC"_Howto_CAC.html 
+for the details.
+
+NOTE: CAC Pair Styles do not currently support being substyles of pair_style
+hybrid
+
+[Restrictions:]
+
+CAC Pair styles require the definition of a CAC atom style. 
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "atom_style"_atom_style.html
+
+[Default:] none

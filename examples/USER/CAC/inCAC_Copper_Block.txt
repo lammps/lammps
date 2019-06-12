@@ -1,0 +1,95 @@
+units       metal
+
+dimension    3
+boundary     s s s
+
+#two CAC element styles currently available
+#one has charge and the other does not
+#the first number specified is the maximum number
+#of nodes an element can have in your input model
+#the second is the maximum number of internal 
+#degrees of freedom an element can have in the model
+#atom_style     CAC/charge 8 4
+atom_style     CAC 8 4
+
+#use CAC style for load balancing non uniform
+#element scales
+comm_style CAC
+
+#turn off newton since reverse communication is not needed
+newton off
+
+#neighbor 5 bin
+
+#read model data file using CAC format
+read_data     Cu_Model_CACa.txt
+
+#example pair styles and pair_coeff commands
+#in addition to the arguments of the non-CAC version
+#of this pair style you can specify the one keyword
+#to simplify the set of quadrature points for
+#non-local force calculation
+pair_style   CAC/eam one
+pair_coeff     * * Cu_u3.eam 
+#pair_style   CAC/lj 6.0 one 
+#pair_coeff   1 1 0.583 2.27
+
+
+timestep     0.002
+
+
+restart      10000 restart.*
+
+#CAC minimization style
+#min_style CAC/cg
+#minimize 1.0e-4 1.0e-6 100 1000
+
+#computes the kinetic energy using nodal velocities
+compute Ntemp all CAC/nodal_temp
+
+#thermo_style custom step c_Ntemp 
+thermo_style custom step time 
+thermo	     100
+
+#required to weight the elements and load balance non-uniform meshes
+compute Eweight all CAC/quad_count
+variable Eweights atom c_Eweight
+
+fix comm all balance 100 1.00 rcb weight var Eweights
+
+#usual lammps output routine; outputs nodal temp and load balancing 
+#info
+fix callertest all ave/time 100 1 100 c_Ntemp f_comm[1] f_comm[2] f_comm[3] f_comm file Node_temps.txt
+
+
+#rescales the temperature in the same way the lammps version of temp rescale does; this one just uses nodal velocities instead
+#fix tempre all CAC/temp/rescale 5 0.01 300 0.02 1.0
+
+#NVE integrator for nodal quantities
+fix NVE all CAC/nve
+
+#a viscous dampener for nodal velocities
+#fix visc all CAC/viscous 0.1
+
+#outputs all the nodal positions including atom positions
+#dump	      1 all CAC/nodal_positions 1000 CACmesh.txt
+
+#outputs the velocity norm for every dimension for every nodal position
+#dump	      2 all CAC/kinetic_energy 1000 CACmeshkin.txt
+
+#outputs an atomic resolution of your CAC model; this can be useful for ovito/vmd analysis etc.
+#dump	      3 all CAC/xyz 2000 atom_plot.txt
+
+
+#can be used to fix nodal velocities in the specified group to a value
+#fix	loading all CAC/setvelocity 0 1 0
+
+#can be used to fix nodal forces in the specified group to a value
+#fix	BCs all CAC/setforce 0 0 0
+
+#can be used to add to nodal forces in the specified group by a value
+#fix	BCs all CAC/addforce 1 1 1
+
+
+run 10000
+

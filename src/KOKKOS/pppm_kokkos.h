@@ -24,6 +24,8 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 
 #include "pppm.h"
 #include "gridcomm_kokkos.h"
+#include "remap_kokkos.h"
+#include "fft3d_kokkos.h"
 #include "kokkos_base.h"
 #include "kokkos_type.h"
 
@@ -331,8 +333,8 @@ class PPPMKokkos : public PPPM, public KokkosBase {
   //double **acons;
   typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,DeviceType>::t_host acons;
 
-  class FFT3d *fft1,*fft2;
-  class Remap *remap;
+  FFT3dKokkos<DeviceType> *fft1,*fft2;
+  RemapKokkos<DeviceType> *remap;
   GridCommKokkos<DeviceType> *cg;
   GridCommKokkos<DeviceType> *cg_peratom;
 

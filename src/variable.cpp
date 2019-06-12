@@ -288,11 +288,11 @@ void Variable::set(int narg, char **arg)
 
     int maxcopy = strlen(arg[2]) + 1;
     int maxwork = maxcopy;
-    char *scopy = new char[maxcopy];
-    char *work = new char[maxwork];
+    char *scopy = (char *) memory->smalloc(maxcopy,"var:string/copy");
+    char *work = (char *) memory->smalloc(maxwork,"var:string/work");
     strcpy(scopy,arg[2]);
     input->substitute(scopy,work,maxcopy,maxwork,1);
-    delete [] work;
+    memory->sfree(work);
 
     int ivar = find(arg[0]);
     if (ivar >= 0) {
@@ -310,7 +310,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(1,&scopy,data[nvar]);
     }
-    delete [] scopy;
+    memory->sfree(scopy);
 
   // GETENV
   // remove pre-existing var if also style GETENV (allows it to be reset)

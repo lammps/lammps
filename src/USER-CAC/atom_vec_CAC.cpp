@@ -1344,9 +1344,6 @@ int AtomVecCAC::unpack_restart(double *buf)
 
   int *nodes_count_list = atom->nodes_per_element_list;
 
-  scale_search_range=atom->scale_search_range;
-  scale_list=atom->scale_list;
-  scale_count=atom->scale_count;
   initial_size=atom->initial_size;
   if (nlocal == nmax) {
     grow(0);
@@ -1440,9 +1437,9 @@ void AtomVecCAC::create_atom(int itype, double *coord)
 
   poly_count[nlocal] =1;
   for (int type_map = 0; type_map < poly_count[nlocal]; type_map++) {
-	  node_types[nlocal][type_map] = type_map+1;
+	  node_types[nlocal][type_map] = itype;
   }
-  for (int nodecount = 0; nodecount < nodes_per_element; nodecount++) {
+  for (int nodecount = 0; nodecount < 1; nodecount++) {
 	  for (int poly_index = 0; poly_index < poly_count[nlocal]; poly_index++)
 	  {
 		  nodal_positions[nlocal][nodecount][poly_index][0] = coord[0];
@@ -1478,9 +1475,6 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
 	int tmp;
 	int types_filled = 0;
 	int *nodes_count_list = atom->nodes_per_element_list;
-	scale_search_range=atom->scale_search_range;
-    scale_list=atom->scale_list;
-    scale_count=atom->scale_count;
     initial_size=atom->initial_size;
 
 	poly_index = 0;

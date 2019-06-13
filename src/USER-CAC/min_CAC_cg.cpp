@@ -81,6 +81,7 @@ void CACMinCG::init()
 {
   Min::init();
   if (!atom->CAC_flag) error->all(FLERR,"min style CAC/cg requires a CAC atom style");
+  if (!atom->CAC_pair_flag) error->all(FLERR,"min style CAC/cg requires a CAC pair style");
   if (linestyle == 0) linemin = &CACMinCG::linemin_backtrack;
   else if (linestyle == 1) linemin = &CACMinCG::linemin_quadratic;
   else if (linestyle == 2) linemin = &CACMinCG::linemin_forcezero;

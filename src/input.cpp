@@ -1500,6 +1500,14 @@ void Input::comm_style()
     else comm = new CommTiled(lmp,oldcomm);
 
     delete oldcomm;
+  } else if (strcmp(arg[0],"CAC") == 0) {
+    if (comm->style == 2) return;
+    Comm *oldcomm = comm;
+
+    if (lmp->kokkos) error->all(FLERR,"CAC comm style is not yet Kokkos compatible");
+    else comm = new CommCAC(lmp,oldcomm);
+
+    delete oldcomm;
   } else error->all(FLERR,"Illegal comm_style command");
 }
 

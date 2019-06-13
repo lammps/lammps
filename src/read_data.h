@@ -55,7 +55,7 @@ class ReadData : protected Pointers {
   class AtomVecTri *avec_tri;
   bigint nbodies;
   class AtomVecBody *avec_body;
-
+  bigint nCAC_elements;
   // box info
 
   double boxlo[3],boxhi[3];
@@ -99,6 +99,7 @@ class ReadData : protected Pointers {
 
   void bonus(bigint, class AtomVec *, const char *);
   void bodies(int);
+  void CAC_elements();
 
   void mass();
   void paircoeffs();

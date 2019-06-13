@@ -55,7 +55,7 @@ using namespace LAMMPS_NS;
 #define MAXBODY 32         // max # of lines in one body
 
                            // customize for new sections
-#define NSECTIONS 25       // change when add to header::section_keywords
+#define NSECTIONS 26       // change when add to header::section_keywords
 
 enum{NONE,APPEND,VALUE,MERGE};
 
@@ -391,11 +391,11 @@ void ReadData::command(int narg, char **arg)
 
   int atomflag,topoflag;
   int bondflag,angleflag,dihedralflag,improperflag;
-  int ellipsoidflag,lineflag,triflag,bodyflag;
+  int ellipsoidflag,lineflag,triflag,bodyflag,CACflag;
 
   atomflag = topoflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
-  ellipsoidflag = lineflag = triflag = bodyflag = 0;
+  ellipsoidflag = lineflag = triflag = bodyflag = CACflag = 0;
 
   // values in this data file
 
@@ -573,7 +573,14 @@ void ReadData::command(int narg, char **arg)
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bodies");
         bodies(firstpass);
 
-      } else if (strcmp(keyword,"Masses") == 0) {
+      } else if (strcmp(keyword, "CAC_Elements") == 0) {
+		  CACflag = 1;
+		  if (me == 0 && !style_match("CAC", atom->atom_style))
+			  error->warning(FLERR, "Atom style in data file (CAC) differs "
+				  "from currently defined atom style");
+		  CAC_elements();
+
+	    }else if (strcmp(keyword,"Masses") == 0) {
         if (firstpass) mass();
         else skip_lines(ntypes);
       } else if (strcmp(keyword,"Pair Coeffs") == 0) {
@@ -942,7 +949,7 @@ void ReadData::header(int firstpass)
 
   const char *section_keywords[NSECTIONS] =
     {"Atoms","Velocities","Ellipsoids","Lines","Triangles","Bodies",
-     "Bonds","Angles","Dihedrals","Impropers",
+     "Bonds","Angles","Dihedrals","Impropers", "CAC_Elements",
      "Masses","Pair Coeffs","PairIJ Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
@@ -1033,7 +1040,11 @@ void ReadData::header(int firstpass)
       if (addflag == NONE) atom->nbodies = nbodies;
       else if (firstpass) atom->nbodies += nbodies;
 
-    } else if (strstr(line,"bonds")) {
+    } else if (strstr(line, "CAC_elements")) {
+		sscanf(line, BIGINT_FORMAT, &nCAC_elements);
+		if (addflag == NONE) atom->natoms = nCAC_elements;
+		else if (firstpass) atom->natoms += nCAC_elements;
+	  } else if (strstr(line,"bonds")) {
       sscanf(line,BIGINT_FORMAT,&nbonds);
       if (addflag == NONE) atom->nbonds = nbonds;
       else if (firstpass) atom->nbonds += nbonds;
@@ -1731,6 +1742,128 @@ void ReadData::bodies(int firstpass)
     if (screen) fprintf(screen,"  " BIGINT_FORMAT " bodies\n",natoms);
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bodies\n",natoms);
   }
+}
+
+/* ----------------------------------------------------------------------
+read all CAC element definitions
+------------------------------------------------------------------------- */
+
+void ReadData::CAC_elements()
+{
+	int m, nchunk, nline, nlineinner, nmax, npoly, tmp, nodecount;
+
+	char *eof;
+	char *element_type = (char*)memory->smalloc(sizeof(char) * 20, "read_data: element type string");
+	int chunk = 20;
+	int mapflag = 0;
+  int maxelement = 2*(atom->maxpoly*atom->nodes_per_element);
+	char *CAC_buffer = (char*)memory->smalloc(sizeof(char) *(chunk*MAXLINE*(maxelement+1)+1), "read_data: CAC_buffer");
+  int *nodes_per_element_list = atom->nodes_per_element_list;
+  char **element_names = atom->element_names;
+  int element_type_count = atom->element_type_count;
+	//std::ofstream myfile;
+
+	// nmax = max # of bodies to read in this chunk
+	// nchunk = actual # read
+
+	bigint nread = 0;
+
+
+	while (nread < nCAC_elements) {
+		if (nCAC_elements - nread > chunk) nmax = chunk;
+		else nmax = nCAC_elements - nread;
+
+		if (me == 0) {
+
+
+			nchunk = 0;
+			nline = 0;
+			m = 0;
+
+			while (nchunk < nmax) {
+				eof = fgets(&CAC_buffer[m], MAXLINE, fp);
+
+				if (eof == NULL) error->one(FLERR, "Unexpected end of data file");
+				sscanf(&CAC_buffer[m], "%d %s %d", &tmp, element_type, &npoly);
+				m += strlen(&CAC_buffer[m]);
+				element_type = strtok(element_type, " \t\n\r\f");
+        
+        int type_found=0;
+	      for(int string_check=1; string_check < element_type_count; string_check++){
+	    	if (strcmp(element_type, element_names[string_check]) == 0){
+		    type_found=1;	
+	     	nodecount = nodes_per_element_list[string_check];
+		    }
+	      }
+        if (strcmp(element_type, "Atom") == 0) {
+        type_found=1;
+		   	nodecount = 1;
+		  	npoly = 1;
+	      }
+        if(!type_found) {
+		    error->one(FLERR, "element type not yet defined, add definition in process_args function of atom_vec_CAC.cpp style");
+	      }
+        if(npoly<1)
+        error->one(FLERR, "poly_count less than one in data file");
+        
+				for (nlineinner = 0; nlineinner < nodecount*npoly; nlineinner++) {
+					eof = fgets(&CAC_buffer[m], MAXLINE, fp);
+					// fflush(fp);
+					if (eof == NULL) error->one(FLERR, "Unexpected end of data file");
+
+					m += strlen(&CAC_buffer[m]);
+					if (nlineinner + 1 >= maxelement)
+						error->one(FLERR,
+							"Too many lines in one element in data file - increase maxpoly or max nodes per element for atom style CAC");
+
+				}
+
+				nchunk += 1;
+			}
+    if (m) {
+      if (CAC_buffer[m-1] != '\n') strcpy(&CAC_buffer[m++],"\n");
+      m++;
+    }
+
+		}
+
+
+		MPI_Bcast(&nchunk, 1, MPI_INT, 0, world);
+		MPI_Bcast(&m, 1, MPI_INT, 0, world);
+    
+		MPI_Bcast(CAC_buffer, m, MPI_CHAR, 0, world);
+
+
+
+		atom->data_CAC(nchunk, CAC_buffer, id_offset, toffset, shiftflag, shift);
+		nread += nchunk;
+	}
+
+	//check elements were assigned correctly
+	bigint n = atom->nlocal;
+	bigint sum;
+	MPI_Allreduce(&n, &sum, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+	bigint nassign = sum - (atom->natoms - nCAC_elements);
+
+	if (me == 0) {
+		if (screen) fprintf(screen, "  " BIGINT_FORMAT " CAC_Elements\n", nassign);
+		if (logfile) fprintf(logfile, "  " BIGINT_FORMAT " CAC_Elements\n", nassign);
+	}
+
+	if (sum != atom->natoms)
+		error->all(FLERR, "Did not assign all atoms correctly");
+
+
+	//check if atom ids are valid
+	atom->tag_check();
+
+	if (atom->map_style) {
+		atom->map_init();
+		atom->map_set();
+	}
+	
+	free (element_type);
+	free (CAC_buffer);
 }
 
 /* ---------------------------------------------------------------------- */

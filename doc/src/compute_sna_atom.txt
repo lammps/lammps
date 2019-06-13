@@ -200,7 +200,7 @@ for the number of bispectrum components was removed in 2019,
 since all potentials use the value of 3, corresponding to the
 above set of bispectrum components.
 
-ompute {snad/atom} evaluates a per-atom array. The columns are
+Compute {snad/atom} evaluates a per-atom array. The columns are
 arranged into {ntypes} blocks, listed in order of atom type {I}.  Each
 block contains three sub-blocks corresponding to the {x}, {y}, and {z}
 components of the atom position.  Each of these sub-blocks contains

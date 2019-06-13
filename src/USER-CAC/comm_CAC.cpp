@@ -117,8 +117,6 @@ CommCAC::~CommCAC()
    if (mode == Comm::MULTI) {
     memory->destroy(cutghostmulti);
   }
-  memory->destroy(eboxes);
-  memory->destroy(ebox_ref);
   memory->destroy(work1);
   memory->destroy(work2);
   atom->CAC_comm_flag=0;

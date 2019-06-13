@@ -128,7 +128,7 @@ void ComputeCACQuadCount::compute_peratom()
 	else{
     //quad_count[i]=neighbor_weights[i][0]+QUADSCALE*neighbor_weights[i][1]+QUADSCALE2*neighbor_weights[i][2];
 		if(atom->outer_neigh_flag)
-		quad_count[i]=neighbor_weights[i][2]/MAXNEIGH;
+		quad_count[i]=neighbor_weights[i][2];
 		//quad_count[i]=neighbor_weights[i][0]+neighbor_weights[i][1];
 		else
 		quad_count[i]=neighbor_weights[i][0]+neighbor_weights[i][1]+QUADSCALE*neighbor_weights[i][1]+QUADSCALE2*neighbor_weights[i][2];

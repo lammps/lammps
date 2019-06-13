@@ -448,10 +448,10 @@ void PairCAC::settings(int narg, char **arg) {
  
   //cutmax = force->numeric(FLERR,arg[0]);
  
-  
+      if(narg==1){
 	  if (strcmp(arg[0], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
 	  else error->all(FLERR, "Unexpected argument in CAC pair style invocation");
-
+	  }
   
     //cut_global_s = force->numeric(FLERR,arg[1]);
 	//neighrefresh = force->numeric(FLERR, arg[1]);
@@ -3390,7 +3390,7 @@ int *npoly = atom->poly_count;
   double ****nodal_velocities = atom->nodal_velocities;
   double ****nodal_forces = atom->nodal_forces;
   double *min_x = atom->min_x;
-  double *min_v = atom->min_x;
+  double *min_v = atom->min_v;
   double *min_f = atom->min_f;
   atom->dense_count=0;
 

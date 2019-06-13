@@ -1208,9 +1208,6 @@ double SNA::memory_usage()
   bytes += nmax * sizeof(double);                        // wj
   bytes += nmax * sizeof(double);                        // rcutij
 
-  printf("SNAP Z list Memory Usage %d\n",idxz_max * sizeof(double) * 2);
-  printf("SNAP CG list Memory Usage %d\n",idxcg_max * sizeof(double));
-
   return bytes;
 }
 /* ---------------------------------------------------------------------- */

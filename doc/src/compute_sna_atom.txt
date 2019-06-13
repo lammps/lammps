@@ -25,7 +25,6 @@ R_1, R_2,... = list of cutoff radii, one for each type (distance units) :l
 w_1, w_2,... = list of neighbor weights, one for each type  :l
 zero or more keyword/value pairs may be appended :l
 keyword = {rmin0} or {switchflag} or {bzeroflag} or {quadraticflag} :l
-//     {3} = subset satisfying j2 <= j1 <= j
   {rmin0} value = parameter in distance to angle conversion (distance units)
   {switchflag} value = {0} or {1}
      {0} = do not use switching function

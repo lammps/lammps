@@ -398,13 +398,18 @@ void SNA::compute_zi()
 }
 
 /* ----------------------------------------------------------------------
-   compute Yi from Ui without storing Zi, looping over ylist
+   compute Yi from Ui without storing Zi, looping over zlist indices
 ------------------------------------------------------------------------- */
 
 void SNA::compute_yi(const double* beta)
 {
+  int j;
+  int jjz;
+  int jju;
+  double betaj;
+
   for(int j = 0; j <= twojmax; j++) {
-    int jju = idxu_block[j];
+    jju = idxu_block[j];
     for(int mb = 0; 2*mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++) {
         ylist_r[jju] = 0.0;
@@ -413,93 +418,85 @@ void SNA::compute_yi(const double* beta)
       } // end loop over ma, mb
   } // end loop over j
 
-  for(int jjb = 0; jjb < idxb_max; jjb++) {
-    const int j1b = idxb[jjb].j1;
-    const int j2b = idxb[jjb].j2;
-    const int j3b = idxb[jjb].j;
+  int ma2, mb2;
+  for(int jjz = 0; jjz < idxz_max; jjz++) {
+    const int j1 = idxz[jjz].j1;
+    const int j2 = idxz[jjz].j2;
+    const int j = idxz[jjz].j;
+    const int ma1min = idxz[jjz].ma1min;
+    const int ma2max = idxz[jjz].ma2max;
+    const int na = idxz[jjz].na;
+    const int mb1min = idxz[jjz].mb1min;
+    const int mb2max = idxz[jjz].mb2max;
+    const int nb = idxz[jjz].nb;
 
-    compute_yterm(j1b,j2b,j3b,beta);
-    compute_yterm(j3b,j2b,j1b,beta);
-    compute_yterm(j3b,j1b,j2b,beta);
+    const double* cgblock = cglist + idxcg_block[j1][j2][j];
+    int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
+    int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
-  } // end loop over jjb
+    double ztmp_r = 0.0;
+    double ztmp_i = 0.0;
 
-}
+    int jju1 = idxu_block[j1] + (j1+1)*mb1min;
+    int jju2 = idxu_block[j2] + (j2+1)*mb2max;
+    int icgb = mb1min*(j2+1) + mb2max;
+    for(int ib = 0; ib < nb; ib++) {
 
-void SNA::compute_yterm(int j1, int j2, int j, const double* beta) {
-  double betaj;
+      double suma1_r = 0.0;
+      double suma1_i = 0.0;
 
-  int jju = idxu_block[j];
-  int jjz = idxz_block[j1][j2][j];
+      const double* u1_r = &ulisttot_r[jju1];
+      const double* u1_i = &ulisttot_i[jju1];
+      const double* u2_r = &ulisttot_r[jju2];
+      const double* u2_i = &ulisttot_i[jju2];
+
+      int ma1 = ma1min;
+      int ma2 = ma2max;
+      int icga = ma1min*(j2+1) + ma2max;
+
+      for(int ia = 0; ia < na; ia++) {
+        suma1_r += cgblock[icga] * (u1_r[ma1] * u2_r[ma2] - u1_i[ma1] * u2_i[ma2]);
+        suma1_i += cgblock[icga] * (u1_r[ma1] * u2_i[ma2] + u1_i[ma1] * u2_r[ma2]);
+        ma1++;
+        ma2--;
+        icga += j2;
+      } // end loop over ia
+
+      ztmp_r += cgblock[icgb] * suma1_r;
+      ztmp_i += cgblock[icgb] * suma1_i;
+      jju1 += j1+1;
+      jju2 -= j2+1;
+      icgb += j2;
+    } // end loop over ib
+
+    // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+    // find right y_list[jju] and beta[jjb] entries
+    // multiply and divide by j+1 factors
+    // account for multiplicity of 1, 2, or 3
+
+    const int jju = idxz[jjz].jju;
 
   // pick out right beta value
 
-  if (j >= j1) {
-    const int jjb = idxb_block[j1][j2][j];
-    betaj = beta[jjb];
-  } else if (j >= j2) {
-    const int jjb = idxb_block[j][j2][j1];
-    betaj = beta[jjb]*(j1+1)/(j+1.0);
-  } else {
-    const int jjb = idxb_block[j2][j][j1];
-    betaj = beta[jjb]*(j1+1)/(j+1.0);
-  }
+    if (j >= j1) {
+      const int jjb = idxb_block[j1][j2][j];
+      if (j1 == j) {
+        if (j2 == j) betaj = 3*beta[jjb];
+        else betaj = 2*beta[jjb];
+      } else betaj = beta[jjb]; 
+    } else if (j >= j2) {
+      const int jjb = idxb_block[j][j2][j1];
+      if (j2 == j) betaj = 2*beta[jjb]*(j1+1)/(j+1.0);
+      else betaj = beta[jjb]*(j1+1)/(j+1.0);
+    } else {
+      const int jjb = idxb_block[j2][j][j1];
+      betaj = beta[jjb]*(j1+1)/(j+1.0);
+    }
 
-  // can replace this with a single loop over jjz
+    ylist_r[jju] += betaj*ztmp_r;
+    ylist_i[jju] += betaj*ztmp_i;
 
-  for (int mb = 0; 2*mb <= j; mb++)
-    for (int ma = 0; ma <= j; ma++) {
-
-      const int ma1min = idxz[jjz].ma1min;
-      const int ma2max = idxz[jjz].ma2max;
-      const int na = idxz[jjz].na;
-      const int mb1min = idxz[jjz].mb1min;
-      const int mb2max = idxz[jjz].mb2max;
-      const int nb = idxz[jjz].nb;
-      
-      const double* cgblock = cglist + idxcg_block[j1][j2][j];
-
-      double ztmp_r = 0.0;
-      double ztmp_i = 0.0;
-
-      int jju1 = idxu_block[j1] + (j1+1)*mb1min;
-      int jju2 = idxu_block[j2] + (j2+1)*mb2max;
-      int icgb = mb1min*(j2+1) + mb2max;
-      for(int ib = 0; ib < nb; ib++) {
-
-        double suma1_r = 0.0;
-        double suma1_i = 0.0;
-
-        const double* u1_r = &ulisttot_r[jju1];
-        const double* u1_i = &ulisttot_i[jju1];
-        const double* u2_r = &ulisttot_r[jju2];
-        const double* u2_i = &ulisttot_i[jju2];
-
-        int ma1 = ma1min;
-        int ma2 = ma2max;
-        int icga = ma1min*(j2+1) + ma2max;
-          
-        for(int ia = 0; ia < na; ia++) {
-          suma1_r += cgblock[icga] * (u1_r[ma1] * u2_r[ma2] - u1_i[ma1] * u2_i[ma2]);
-          suma1_i += cgblock[icga] * (u1_r[ma1] * u2_i[ma2] + u1_i[ma1] * u2_r[ma2]);
-          ma1++;
-          ma2--;
-          icga += j2;
-        } // end loop over ia
-
-        ztmp_r += cgblock[icgb] * suma1_r;
-        ztmp_i += cgblock[icgb] * suma1_i;
-        jju1 += j1+1;
-        jju2 -= j2+1;
-        icgb += j2;
-      } // end loop over ib
-
-      // printf("jju betaj ztmp ylist %d %g %g %d %d %d %d %d\n",jju,betaj,ztmp_r,j1,j2,j,ma,mb);
-      ylist_r[jju] += betaj*ztmp_r;
-      ylist_i[jju] += betaj*ztmp_i;
-      jjz++;
-      jju++;
-    } // end loop over ma, mb
+  } // end loop over jjz
 }
 
 /* ----------------------------------------------------------------------

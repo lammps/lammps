@@ -555,6 +555,8 @@ void PairCAC::init_style()
 
 }
 
+//-----------------------------------------------------------------------
+
 void PairCAC::check_existence_flags(){
 //check existence of CAC atomvec here for convenience since children implement init_style
 //but all implementations call this routine
@@ -563,9 +565,13 @@ error->all(FLERR,"Pair CAC style requires a CAC atom style");
 //check if hybrid pair style is invoked
 if(force->pair_match("hybrid",0,0)!=NULL)
 error->all(FLERR,"Pair CAC styles cannot be invoked with hybrid; also don't use the word hybrid in your style name to avoid this error");
+//check that the CAC comm style is defined
+if (strcmp(comm->comm_style, "CAC") != 0)
+error->all(FLERR,"Pair CAC style requires a CAC comm style");
 }
 
 //-----------------------------------------------------------------------
+
 void PairCAC::quadrature_init(int quadrature_rank){
 
 if(quadrature_rank==1){

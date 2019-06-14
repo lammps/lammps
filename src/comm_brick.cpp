@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "universe.h"
@@ -46,6 +46,9 @@ using namespace LAMMPS_NS;
 #define BUFEXTRA 1000
 #define BIG 1.0e20
 
+enum{SINGLE,MULTI};               // same as in Comm
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
+
 /* ---------------------------------------------------------------------- */
 
 CommBrick::CommBrick(LAMMPS *lmp) :
@@ -55,11 +58,12 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   size_reverse_send(NULL), size_reverse_recv(NULL),
   slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
   cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL),
-  sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
-  buf_send(NULL), buf_recv(NULL)
+  sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
 {
+  memory->create(comm_style,10,"comm: comm_style");
+  strcpy(comm_style,"brick");
   style = 0;
-  layout = Comm::LAYOUT_UNIFORM;
+  layout = LAYOUT_UNIFORM;
   pbc_flag = NULL;
   init_buffers();
 }
@@ -69,13 +73,12 @@ CommBrick::CommBrick(LAMMPS *lmp) :
 CommBrick::~CommBrick()
 {
   free_swap();
-  if (mode == Comm::MULTI) {
+  if (mode == MULTI) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
 
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
-  if (localsendlist) memory->destroy(localsendlist);
   memory->sfree(sendlist);
   memory->destroy(maxsendlist);
 
@@ -90,11 +93,12 @@ CommBrick::~CommBrick()
 //           The call to Comm::copy_arrays() then converts the shallow copy
 //           into a deep copy of the class with the new layout.
 
-CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
+CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  if (oldcomm->layout == Comm::LAYOUT_TILED)
+  if (oldcomm->layout == LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
-
+  memory->create(comm_style,10,"comm: comm_style");
+  strcpy(comm_style,"brick");
   style = 0;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
@@ -143,11 +147,11 @@ void CommBrick::init()
 
   // memory for multi-style communication
 
-  if (mode == Comm::MULTI && multilo == NULL) {
+  if (mode == MULTI && multilo == NULL) {
     allocate_multi(maxswap);
     memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
   }
-  if (mode == Comm::SINGLE && multilo) {
+  if (mode == SINGLE && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
@@ -183,7 +187,7 @@ void CommBrick::setup()
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
 
-    if (mode == Comm::MULTI) {
+    if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
         cut = 0.0;
@@ -207,7 +211,7 @@ void CommBrick::setup()
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
 
-    if (mode == Comm::MULTI) {
+    if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
         cut = 0.0;
@@ -239,7 +243,7 @@ void CommBrick::setup()
   int *periodicity = domain->periodicity;
   int left,right;
 
-  if (layout == Comm::LAYOUT_UNIFORM) {
+  if (layout == LAYOUT_UNIFORM) {
     maxneed[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
     maxneed[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
     maxneed[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
@@ -356,7 +360,7 @@ void CommBrick::setup()
       if (ineed % 2 == 0) {
         sendproc[iswap] = procneigh[dim][0];
         recvproc[iswap] = procneigh[dim][1];
-        if (mode == Comm::SINGLE) {
+        if (mode == SINGLE) {
           if (ineed < 2) slablo[iswap] = -BIG;
           else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
           slabhi[iswap] = sublo[dim] + cutghost[dim];
@@ -379,7 +383,7 @@ void CommBrick::setup()
       } else {
         sendproc[iswap] = procneigh[dim][1];
         recvproc[iswap] = procneigh[dim][0];
-        if (mode == Comm::SINGLE) {
+        if (mode == SINGLE) {
           slablo[iswap] = subhi[dim] - cutghost[dim];
           if (ineed < 2) slabhi[iswap] = BIG;
           else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
@@ -459,7 +463,7 @@ int CommBrick::updown(int dim, int dir, int loc,
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm(int /*dummy*/)
+void CommBrick::forward_comm(int dummy)
 {
   int n;
   MPI_Request request;
@@ -611,7 +615,7 @@ void CommBrick::exchange()
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
   if (bufextra > bufextra_old)
-    grow_send(maxsend+bufextra,1);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
 
   // subbox bounds for orthogonal or triclinic
 
@@ -736,7 +740,7 @@ void CommBrick::borders()
       // store sent atom indices in sendlist for use in future timesteps
 
       x = atom->x;
-      if (mode == Comm::SINGLE) {
+      if (mode == SINGLE) {
         lo = slablo[iswap];
         hi = slabhi[iswap];
       } else {
@@ -765,7 +769,7 @@ void CommBrick::borders()
 
       if (sendflag) {
         if (!bordergroup || ineed >= 2) {
-          if (mode == Comm::SINGLE) {
+          if (mode == SINGLE) {
             for (i = nfirst; i < nlast; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
@@ -782,7 +786,7 @@ void CommBrick::borders()
           }
 
         } else {
-          if (mode == Comm::SINGLE) {
+          if (mode == SINGLE) {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
@@ -1069,7 +1073,6 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
       MPI_Sendrecv(&nsend,1,MPI_INT,recvproc[iswap],0,
                    &nrecv,1,MPI_INT,sendproc[iswap],0,world,
                    MPI_STATUS_IGNORE);
-
       if (sendnum[iswap]) {
         if (nrecv > maxrecv) grow_recv(nrecv);
         MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
@@ -1396,7 +1399,7 @@ void CommBrick::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
-  if (mode == Comm::MULTI) {
+  if (mode == MULTI) {
     free_multi();
     allocate_multi(n);
   }
@@ -1470,35 +1473,6 @@ void CommBrick::free_multi()
   memory->destroy(multilo);
   memory->destroy(multihi);
   multilo = multihi = NULL;
-}
-
-/* ----------------------------------------------------------------------
-   extract data potentially useful to other classes
-------------------------------------------------------------------------- */
-
-void *CommBrick::extract(const char *str, int &dim)
-{
-  dim = 0;
-  if (strcmp(str,"localsendlist") == 0) {
-    int i, iswap, isend;
-    dim = 1;
-    if (!localsendlist)
-      memory->create(localsendlist,atom->nlocal,"comm:localsendlist");
-    else
-      memory->grow(localsendlist,atom->nlocal,"comm:localsendlist");
-
-    for (i = 0; i < atom->nlocal; i++)
-      localsendlist[i] = 0;
-
-    for (iswap = 0; iswap < nswap; iswap++)
-      for (isend = 0; isend < sendnum[iswap]; isend++)
-        if (sendlist[iswap][isend] < atom->nlocal)
-          localsendlist[sendlist[iswap][isend]] = 1;
-
-    return (void *) localsendlist;
-  }
-
-  return NULL;
 }
 
 /* ----------------------------------------------------------------------

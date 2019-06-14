@@ -67,6 +67,7 @@ class AtomVecCAC : public AtomVec {
   virtual void mygrad(asa_objective *asa);
   virtual double shape_function(double, double, double,int,int);
   virtual double shape_function_derivative(double, double, double,int,int,int);
+  virtual void init();
 
 
 

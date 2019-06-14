@@ -107,13 +107,15 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       if (computeU>-1) continue;
       computeU = size_vector;
       extlist[size_vector] = 1;
+      size_vector++;
     }
     else if (!strcmp(arg[iarg], "p")) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix hma command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute hma command");
       if (computeP>-1) continue;
       computeP = size_vector;
       deltaPcap = force->numeric(FLERR, arg[iarg+1]);
       extlist[size_vector] = 0;
+      size_vector++;
       iarg++;
     }
     else if (!strcmp(arg[iarg], "cv")) {
@@ -121,18 +123,19 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       computeCv = size_vector;
       comm_forward = 3;
       extlist[size_vector] = 1;
+      size_vector++;
     }
     else if (!strcmp(arg[iarg], "anharmonic")) {
       // the first time we're called, we'll grab lattice pressure and energy
       returnAnharmonic = -1;
     }
     else {
-      error->all(FLERR,"Illegal fix hma command");
+      error->all(FLERR,"Illegal compute hma command");
     }
   }
 
   if (size_vector == 0) {
-    error->all(FLERR,"Illegal fix hma command");
+    error->all(FLERR,"Illegal compute hma command");
   }
   if (size_vector<3) {
     memory->grow(extlist, size_vector, "hma:extlist");

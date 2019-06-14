@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author (multi) : Adrian Diaz (University of Florida)
-------------------------------------------------------------------------- */
-
 #include <cstring>
 #include "comm_tiled.h"
 #include "comm_brick.h"
@@ -80,9 +76,6 @@ CommTiled::~CommTiled()
   memory->destroy(overlap);
   deallocate_swap(nswap);
   memory->sfree(rcbinfo);
-   if (mode == Comm::MULTI) {
-    memory->destroy(cutghostmulti);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -91,8 +84,6 @@ CommTiled::~CommTiled()
 
 void CommTiled::init_buffers()
 {
-  sendbox_multi = NULL;
-  cutghostmulti = NULL;
   // bufextra = max size of one exchanged atom
   //          = allowed overflow of sendbuf in exchange()
   // atomvec, fix reset these 2 maxexchange values if needed
@@ -121,21 +112,12 @@ void CommTiled::init()
 {
   Comm::init();
 
-  // memory for multi-style communication
- int maxswap = 6;
-  if (mode == Comm::MULTI) {
-    memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
-  }
-
-  if (mode == Comm::SINGLE && cutghostmulti) {
-    memory->destroy(cutghostmulti);
-  }
-
   // temporary restrictions
 
   if (triclinic)
     error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
-
+  if (mode == Comm::MULTI)
+    error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
 }
 
 /* ----------------------------------------------------------------------
@@ -146,7 +128,7 @@ void CommTiled::init()
 void CommTiled::setup()
 {
   int i,j,n;
-  int ntypes = atom->ntypes;
+
   // domain properties used in setup method and methods it calls
 
   dimension = domain->dimension;
@@ -179,21 +161,8 @@ void CommTiled::setup()
   // set cutoff for comm forward and comm reverse
   // check that cutoff < any periodic box length
 
-  double cut;
-
-    if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
-      }
-    }
-  cut = MAX(neighbor->cutneighmax,cutghostuser);
+  double cut = MAX(neighbor->cutneighmax,cutghostuser);
   cutghost[0] = cutghost[1] = cutghost[2] = cut;
-
 
   if ((periodicity[0] && cut > prd[0]) ||
       (periodicity[1] && cut > prd[1]) ||
@@ -296,7 +265,6 @@ void CommTiled::setup()
         grow_swap_send(iswap,nprocmax[iswap],oldmax);
         if (idir == 0) grow_swap_recv(iswap+1,nprocmax[iswap]);
         else grow_swap_recv(iswap-1,nprocmax[iswap]);
-        
       }
 
       // overlap how has list of noverlap procs
@@ -329,8 +297,8 @@ void CommTiled::setup()
       // if sbox touches other proc's sub-box boundaries in lower dims,
       //   extend sbox in those lower dims to include ghost atoms
 
-      double oboxlo[3],oboxhi[3],sbox[6],sbox_multi[6];
-      if (mode == Comm::SINGLE) {
+      double oboxlo[3],oboxhi[3],sbox[6];
+
       for (i = 0; i < noverlap; i++) {
         pbc_flag[iswap][i] = 0;
         pbc[iswap][i][0] = pbc[iswap][i][1] = pbc[iswap][i][2] =
@@ -378,65 +346,7 @@ void CommTiled::setup()
 
         memcpy(sendbox[iswap][i],sbox,6*sizeof(double));
       }
-      }
-      else{
-        for (i = 0; i < noverlap; i++) {
-          
-          
-        pbc_flag[iswap][i] = 0;
-        pbc[iswap][i][0] = pbc[iswap][i][1] = pbc[iswap][i][2] =
-          pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
 
-        (this->*box_other)(idim,idir,overlap[i],oboxlo,oboxhi);
-
-        if (i < noverlap1) {
-          sbox[0] = MAX(oboxlo[0],lo1[0]);
-          sbox[1] = MAX(oboxlo[1],lo1[1]);
-          sbox[2] = MAX(oboxlo[2],lo1[2]);
-          sbox[3] = MIN(oboxhi[0],hi1[0]);
-          sbox[4] = MIN(oboxhi[1],hi1[1]);
-          sbox[5] = MIN(oboxhi[2],hi1[2]);
-        } else {
-          pbc_flag[iswap][i] = 1;
-          if (idir == 0) pbc[iswap][i][idim] = 1;
-          else pbc[iswap][i][idim] = -1;
-          sbox[0] = MAX(oboxlo[0],lo2[0]);
-          sbox[1] = MAX(oboxlo[1],lo2[1]);
-          sbox[2] = MAX(oboxlo[2],lo2[2]);
-          sbox[3] = MIN(oboxhi[0],hi2[0]);
-          sbox[4] = MIN(oboxhi[1],hi2[1]);
-          sbox[5] = MIN(oboxhi[2],hi2[2]);
-        }
-        for (int itype = 1; itype <= atom->ntypes; itype++) {
-          sbox_multi[0] = sbox[0];
-          sbox_multi[1] = sbox[1];
-          sbox_multi[2] = sbox[2];
-          sbox_multi[3] = sbox[3];
-          sbox_multi[4] = sbox[4];
-          sbox_multi[5] = sbox[5];
-        if (idir == 0) {
-          sbox_multi[idim] = sublo[idim];
-          if (i < noverlap1) sbox_multi[3+idim] = MIN(sbox_multi[3+idim]+cutghostmulti[itype][idim],subhi[idim]);
-          else sbox_multi[3+idim] = MIN(sbox_multi[3+idim]-prd[idim]+cutghostmulti[itype][idim],subhi[idim]);
-        } else {
-          if (i < noverlap1) sbox_multi[idim] = MAX(sbox_multi[idim]-cutghostmulti[itype][idim],sublo[idim]);
-          else sbox_multi[idim] = MAX(sbox_multi[idim]+prd[idim]-cutghostmulti[itype][idim],sublo[idim]);
-          sbox_multi[3+idim] = subhi[idim];
-        }
-
-        if (idim >= 1) {
-          if (sbox_multi[0] == oboxlo[0]) sbox_multi[0] -= cutghostmulti[itype][0];
-          if (sbox_multi[3] == oboxhi[0]) sbox_multi[3] += cutghostmulti[itype][0];
-        }
-        if (idim == 2) {
-          if (sbox_multi[1] == oboxlo[1]) sbox_multi[1] -= cutghostmulti[itype][1];
-          if (sbox_multi[4] == oboxhi[1]) sbox_multi[4] += cutghostmulti[itype][1];
-        }
-
-        memcpy(sendbox_multi[iswap][i][itype],sbox_multi,6*sizeof(double));
-        }
-      }
-      }
       iswap++;
     }
   }
@@ -859,7 +769,6 @@ void CommTiled::borders()
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
-  
   AtomVec *avec = atom->avec;
 
   // send/recv max one = max # of atoms in single send/recv for any swap
@@ -885,7 +794,6 @@ void CommTiled::borders()
 
     ncountall = 0;
     for (m = 0; m < nsendproc[iswap]; m++) {
-      if (mode == Comm::SINGLE) {
       bbox = sendbox[iswap][m];
       xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
       xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
@@ -924,58 +832,6 @@ void CommTiled::borders()
       sendnum[iswap][m] = ncount;
       smaxone = MAX(smaxone,ncount);
       ncountall += ncount;
-    }
-    else{
-      int* type=atom->type;
-      int itype;
-      ncount = 0;
-
-      if (!bordergroup) {
-        for (i = 0; i < nlast; i++) {
-          itype=type[i];    
-          bbox = sendbox_multi[iswap][m][itype];
-          xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-          xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
-          if (x[i][0] >= xlo && x[i][0] < xhi &&
-              x[i][1] >= ylo && x[i][1] < yhi &&
-              x[i][2] >= zlo && x[i][2] < zhi) {
-            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            sendlist[iswap][m][ncount++] = i;
-          }
-          
-        }
-      } else {
-        ngroup = atom->nfirst;
-        for (i = 0; i < ngroup; i++) {
-          itype=type[i];    
-          bbox = sendbox_multi[iswap][m][itype];
-          xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-          xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
-          if (x[i][0] >= xlo && x[i][0] < xhi &&
-              x[i][1] >= ylo && x[i][1] < yhi &&
-              x[i][2] >= zlo && x[i][2] < zhi) {
-            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            sendlist[iswap][m][ncount++] = i;
-          }
-        }
-        for (i = atom->nlocal; i < nlast; i++) {
-           itype=type[i];    
-           bbox = sendbox_multi[iswap][m][itype];
-           xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-           xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
-          if (x[i][0] >= xlo && x[i][0] < xhi &&
-              x[i][1] >= ylo && x[i][1] < yhi &&
-              x[i][2] >= zlo && x[i][2] < zhi) {
-            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            sendlist[iswap][m][ncount++] = i;
-          }
-        }
-      }
-
-      sendnum[iswap][m] = ncount;
-      smaxone = MAX(smaxone,ncount);
-      ncountall += ncount;
-    }
     }
     smaxall = MAX(smaxall,ncountall);
 
@@ -2021,12 +1877,7 @@ void CommTiled::allocate_swap(int n)
 
   pbc_flag = new int*[n];
   pbc = new int**[n];
-   //if(mode == SINGLE){ 
-     sendbox = new double**[n];
-   //}
-   //else{  
-     sendbox_multi = new double***[n];
-     //}
+  sendbox = new double**[n];
   maxsendlist = new int*[n];
   sendlist = new int**[n];
 
@@ -2039,12 +1890,7 @@ void CommTiled::allocate_swap(int n)
 
     pbc_flag[i] = NULL;
     pbc[i] = NULL;
-    //if(mode == SINGLE){
-      sendbox[i] = NULL;
-     // }
-    //else{
-      sendbox_multi[i] = NULL;
-      //}
+    sendbox[i] = NULL;
     maxsendlist[i] = NULL;
     sendlist[i] = NULL;
   }
@@ -2091,14 +1937,8 @@ void CommTiled::grow_swap_send(int i, int n, int nold)
   pbc_flag[i] = new int[n];
   memory->destroy(pbc[i]);
   memory->create(pbc[i],n,6,"comm:pbc_flag");
-  //if(mode == SINGLE){
   memory->destroy(sendbox[i]);
   memory->create(sendbox[i],n,6,"comm:sendbox");
-  //}
-  //else {
-  memory->destroy(sendbox_multi[i]);
-  memory->create(sendbox_multi[i],n,atom->ntypes+1,6,"comm:sendbox_multi");
-  //}
 
   delete [] maxsendlist[i];
   maxsendlist[i] = new int[n];
@@ -2156,12 +1996,7 @@ void CommTiled::deallocate_swap(int n)
 
     delete [] pbc_flag[i];
     memory->destroy(pbc[i]);
-    //if(mode == Comm::SINGLE){
-      memory->destroy(sendbox[i]);
-     // }
-    //else{
-      memory->destroy(sendbox_multi[i]);
-     // }
+    memory->destroy(sendbox[i]);
     delete [] maxsendlist[i];
 
     for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
@@ -2181,12 +2016,7 @@ void CommTiled::deallocate_swap(int n)
 
   delete [] pbc_flag;
   delete [] pbc;
-  //if(mode == SINGLE){
-     delete [] sendbox;
-    // }
-  //else{ 
-    delete [] sendbox_multi;
-    //}
+  delete [] sendbox;
   delete [] maxsendlist;
   delete [] sendlist;
 

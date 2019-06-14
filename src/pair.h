@@ -149,7 +149,7 @@ class Pair : protected Pointers {
 
   void pairTensor(double fforce, double dfac, double delr[3], double phiTensor[6]);
 
-  virtual double single2(int, int, int, int,
+  virtual double single2nd(int, int, int, int,
                         double, double[3], double, double,
                         double& fforce, double d2u[6]) {
     fforce = 0.0;

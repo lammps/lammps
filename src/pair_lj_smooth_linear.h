@@ -38,7 +38,7 @@ class PairLJSmoothLinear : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
-  double single2(int, int, int, int, double, double[3], double, double, double&, double[6]);
+  double single2nd(int, int, int, int, double, double[3], double, double, double&, double[6]);
 
  protected:
   double cut_global;

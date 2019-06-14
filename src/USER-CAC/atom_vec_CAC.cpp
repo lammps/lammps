@@ -149,7 +149,22 @@ void AtomVecCAC::process_args(int narg, char **arg)
 	
 }
 
+/* ----------------------------------------------------------------------
+   copy of velocity remap settings from Domain and existence check
+------------------------------------------------------------------------- */
 
+void AtomVecCAC::init()
+{
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
+  h_rate = domain->h_rate;
+
+  if (lmp->kokkos != NULL && !kokkosable)
+    error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
+
+  if (strcmp(comm->comm_style, "CAC") != 0)
+  error->all(FLERR," CAC atom style requires a CAC comm style");
+}
 
 /* ----------------------------------------------------------------------
    grow atom arrays

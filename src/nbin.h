@@ -35,10 +35,17 @@ class NBin : protected Pointers {
   int *bins;                   // index of next atom in same bin
   int *atom2bin;               // bin assignment for each atom (local+ghost)
 
+  //CAC package bin arrays
+  int *bin_ncontent;          //number of contents in each bin
+  int **bin_content;          //array of local and ghost indices in each bin
+  int *quad2bin;              //bin location of each local quadrature point
+  int *nbin_element_overlap;  //array storing the number of bins this element overlaps
+  int **bin_element_overlap;  //set of bins this element overlaps
+
   double cutoff_custom;        // cutoff set by requestor
 
   NBin(class LAMMPS *);
-  ~NBin();
+  virtual ~NBin();
   void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
   virtual void bin_atoms_setup(int);
@@ -68,7 +75,7 @@ class NBin : protected Pointers {
 
   // methods
 
-  int coord2bin(double *);
+  virtual int coord2bin(double *);
 };
 
 }

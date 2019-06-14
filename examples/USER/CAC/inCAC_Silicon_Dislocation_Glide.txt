@@ -70,8 +70,8 @@ dump	      2 all CAC/kinetic_energy 8000 CACmeshkin.txt
 #dump	      5 scan CAC/xyz 5000 atom_plot.txt
 
 #outputs initial nodal positions to calculate deformation if they are not available
-#dump	      init all CAC/initial_nodes 2000000 CAC_initialnodes.txt
-#dump_modify init first yes
+#write_dump all CAC/initial_nodes CAC_initialnodes.txt
+
 
 #can be used to fix nodal forces in the specified group to a value 
 fix	BCs BD CAC/setforce 0 0 0

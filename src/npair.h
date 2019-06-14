@@ -33,6 +33,7 @@ class NPair : protected Pointers {
   virtual void copy_neighbor_info();
   void build_setup();
   virtual void build(class NeighList *) = 0;
+  virtual bigint memory_usage() {return 0;}
 
  protected:
   double **mycutneighsq;         // per-type cutoffs when user specified
@@ -78,6 +79,14 @@ class NPair : protected Pointers {
   double bininvx,bininvy,bininvz;
   int *atom2bin,*bins;
   int *binhead;
+
+  //USER-CAC package bin arrays
+  
+  int *bin_ncontent;          //number of contents in each bin
+  int **bin_content;          //array of local and ghost indices in each bin
+  int *quad2bin;              //bin location of each local quadrature point
+  int *nbin_element_overlap;  //array storing the number of bins this element overlaps
+  int **bin_element_overlap;  //set of bins this element overlaps
 
   // data from NStencil class
 

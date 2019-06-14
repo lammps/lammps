@@ -82,6 +82,11 @@ void ComputePEMolTally::init()
 
 void ComputePEMolTally::pair_setup_callback(int, int)
 {
+  // run setup only once per time step.
+  // we may be called from multiple pair styles
+
+  if (did_setup == update->ntimestep) return;
+
   etotal[0] = etotal[1] = etotal[2] = etotal[3] = 0.0;
   did_setup = update->ntimestep;
 }

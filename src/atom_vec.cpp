@@ -34,6 +34,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   forceclearflag = 0;
   size_data_bonus = 0;
   kokkosable = 0;
+  check_distance_flag=0;
 
   nargcopy = 0;
   argcopy = NULL;

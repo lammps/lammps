@@ -66,6 +66,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   extra_peratom = extra_nlen = NULL;
   extra_max = NULL;
   requestor = NULL;
+  copy_flag=0;
 
   external_force_clear = 0;
 }
@@ -475,6 +476,9 @@ void Min::cleanup()
 
 double Min::energy_force(int resetflag)
 {
+  //check if it is necessary to copy array values to avec arrays
+  if(copy_flag) copy_vectors();
+  
   // check for reneighboring
   // always communicate since minimizer moved atoms
 

@@ -103,6 +103,11 @@ Irregular::~Irregular()
 
 void Irregular::migrate_atoms(int sortflag, int preassign, int *procassign)
 {
+  //ensure initial send buf is big enough in case maxexchange variables in comm are non-zero
+  if(comm->maxexchange_atom||comm->maxexchange_fix){
+   memory->grow(buf_send,maxsend+BUFEXTRA+comm->maxexchange_atom+comm->maxexchange_fix,"comm:buf_send"); 
+  }
+
   // clear global->local map since atoms move to new procs
   // clear old ghosts so map_set() at end will operate only on local atoms
   // exchange() doesn't need to clear ghosts b/c borders()
@@ -992,10 +997,10 @@ void Irregular::grow_send(int n, int flag)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);
   if (flag)
-    memory->grow(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
+    memory->grow(buf_send,maxsend+BUFEXTRA+comm->maxexchange_atom+comm->maxexchange_fix,"comm:buf_send");
   else {
     memory->destroy(buf_send);
-    memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
+    memory->create(buf_send,maxsend+BUFEXTRA+comm->maxexchange_atom+comm->maxexchange_fix,"comm:buf_send");
   }
 }
 

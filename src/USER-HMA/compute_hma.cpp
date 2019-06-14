@@ -169,6 +169,13 @@ ComputeHMA::~ComputeHMA()
 /* ---------------------------------------------------------------------- */
 
 void ComputeHMA::init() {
+  if (computeCv>-1) {
+    if (force->pair == NULL)
+      error->all(FLERR,"No pair style is defined for compute hma cv");
+    if (force->pair->single_enable == 0)
+      error->all(FLERR,"Pair style does not support compute hma cv");
+  }
+
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0; 
   neighbor->requests[irequest]->compute = 1; 

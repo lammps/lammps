@@ -60,6 +60,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  single2nd_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;

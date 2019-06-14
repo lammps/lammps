@@ -155,9 +155,12 @@ All of the lj/class2 pair styles write their information to "binary
 restart files"_restart.html, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
-All of the lj/class2 pair styles can only be used via the {pair}
-keyword of the "run_style respa"_run_style.html command.  They do not
-support the {inner}, {middle}, {outer} keywords.
+Only the {lj/class2} pair style support the use of the
+{inner}, {middle}, and {outer} keywords of the "run_style
+respa"_run_style.html command, meaning the pairwise forces can be
+partitioned by distance at different levels of the rRESPA hierarchy.
+The other styles only support the {pair} keyword of run_style respa.
+See the "run_style"_run_style.html command for details.
 
 [Restrictions:]
 

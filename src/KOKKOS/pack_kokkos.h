@@ -47,6 +47,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
@@ -58,27 +59,33 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int in = slow*nmid*nfast;
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int in_orig = slow*nmid*nfast;
     const int plane = slow*nstride_plane;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int out = plane + mid*nstride_line;
-      for (int fast = 0; fast < nfast; fast++)
-        d_buf[buf_offset + in++] = d_data[data_offset + out++];
-    }
+    const int out_orig = plane + mid*nstride_line;
+    const int in = in_orig + mid*nfast + fast;
+    const int out = out_orig + fast;
+    d_buf[buf_offset + in] = d_data[data_offset + out];
   }
 };
 
 static void pack_3d(typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   pack_3d_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 
@@ -94,6 +101,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
@@ -105,27 +113,33 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast;
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast;
     const int plane = slow*nstride_plane;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int in = plane + mid*nstride_line;
-      for (int fast = 0; fast < nfast; fast++)
-        d_data[data_offset + in++] = d_buf[buf_offset + out++];
-    }
+    const int in_orig = plane + mid*nstride_line;
+    const int in = in_orig + fast;
+    const int out = out_orig + mid*nfast + fast;
+    d_data[data_offset + in] = d_buf[buf_offset + out];
   }
 };
 
 static void unpack_3d(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 
@@ -142,6 +156,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
@@ -153,27 +168,33 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast;
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast;
     const int plane = slow*nstride_line;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int in = plane + mid;
-      for (int fast = 0; fast < nfast; fast++, in += nstride_plane)
-        d_data[data_offset + in] = d_buf[buf_offset + out++];
-    }
+    const int in_orig = plane + mid;
+    const int in = in_orig + fast*nstride_plane;
+    const int out = out_orig + mid*nfast + fast;
+    d_data[data_offset + in] = d_buf[buf_offset + out];
   }
 };
 
 static void unpack_3d_permute1_1(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_permute1_1_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 /* ----------------------------------------------------------------------
@@ -188,6 +209,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
@@ -199,29 +221,34 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast*2;
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast*2;
     const int plane = slow*nstride_line;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int in = plane + 2*mid;
-      for (int fast = 0; fast < nfast; fast++, in += nstride_plane) {
-        d_data[data_offset + in] = d_buf[buf_offset + out++];
-        d_data[data_offset + in+1] = d_buf[buf_offset + out++];
-      }
-    }
+    const int in_orig = plane + 2*mid;
+    const int in = in_orig + fast*nstride_plane;
+    const int out = out_orig + 2*mid*nfast + 2*fast;
+    d_data[data_offset + in] = d_buf[buf_offset + out];
+    d_data[data_offset + in+1] = d_buf[buf_offset + out+1];
   }
 };
 
 static void unpack_3d_permute1_2(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_permute1_2_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 
@@ -237,6 +264,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
   int nqty;                  // # of values/element
@@ -249,30 +277,34 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
       nqty          = plan->nqty         ;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast*nqty;
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast*nqty;
     const int plane = slow*nstride_line;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int instart = plane + nqty*mid;
-      for (int fast = 0; fast < nfast; fast++, instart += nstride_plane) {
-        int in = instart;
-        for (int iqty = 0; iqty < nqty; iqty++) d_data[data_offset + in++] = d_buf[buf_offset + out++];
-      }
-    }
+    const int instart = plane + nqty*mid;
+    int in = instart + nqty*fast*nstride_plane;
+    int out = out_orig + nqty*mid*nfast + nqty*fast;
+    for (int iqty = 0; iqty < nqty; iqty++) d_data[data_offset + in++] = d_buf[buf_offset + out++];
   }
 };
 
 static void unpack_3d_permute1_n(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_permute1_n_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 
@@ -288,6 +320,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
@@ -299,26 +332,32 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int in = slow + mid*nstride_plane;
-      for (int fast = 0; fast < nfast; fast++, in += nstride_line)
-        d_data[data_offset + in] = d_buf[buf_offset + out++];
-    }
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast;
+    const int in_orig = slow + mid*nstride_plane;
+    const int in = in_orig + fast*nstride_line;
+    const int out = out_orig + mid*nfast + fast;
+    d_data[data_offset + in] = d_buf[buf_offset + out];
   }
 };
 
 static void unpack_3d_permute2_1(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_permute2_1_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 
@@ -334,6 +373,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
@@ -345,28 +385,33 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast*2;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int in = 2*slow + mid*nstride_plane;
-      for (int fast = 0; fast < nfast; fast++, in += nstride_line) {
-        d_data[data_offset + in] = d_buf[buf_offset + out++];
-        d_data[data_offset + in+1] = d_buf[buf_offset + out++];
-      }
-    }
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast*2;
+    const int in_orig = 2*slow + mid*nstride_plane;
+    const int in = in_orig + fast*nstride_line;
+    const int out = out_orig + 2*mid*nfast + 2*fast;
+    d_data[data_offset + in] = d_buf[buf_offset + out];
+    d_data[data_offset + in+1] = d_buf[buf_offset + out+1];
   }
 };
 
 static void unpack_3d_permute2_2(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_permute2_2_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 /* ----------------------------------------------------------------------
@@ -381,6 +426,7 @@ public:
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
+  int nslow;                 // # of elements in slow index
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
   int nqty;                  // # of values/element
@@ -393,29 +439,33 @@ public:
       data_offset   = data_offset_       ;
       nfast         = plan->nfast        ;
       nmid          = plan->nmid         ;
+      nslow         = plan->nslow        ;
       nstride_line  = plan->nstride_line ;
       nstride_plane = plan->nstride_plane;
       nqty          = plan->nqty         ;
     }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int &slow) const {
-    int out = slow*nmid*nfast*nqty;
-    for (int mid = 0; mid < nmid; mid++) { // TODO: use thread team or flatten loop
-      int instart = nqty*slow + mid*nstride_plane;
-      for (int fast = 0; fast < nfast; fast++, instart += nstride_line) {
-        int in = instart;
-        for (int iqty = 0; iqty < nqty; iqty++) d_data[data_offset + in++] = d_buf[buf_offset + out++];
-      }
-    }
+  void operator() (const int &index) const {
+    const int fast = index / (nslow * nmid);
+    const int index_new = index - (fast * nslow * nmid);
+    const int mid = index_new / nslow;
+    const int slow = index_new % nslow;
+    const int out_orig = slow*nmid*nfast*nqty;
+    const int instart = nqty*slow + mid*nstride_plane;
+    int in = instart + nqty*fast*nstride_line;
+    int out = out_orig + nqty*mid*nfast + nqty*fast;
+    for (int iqty = 0; iqty < nqty; iqty++) d_data[data_offset + in++] = d_buf[buf_offset + out++];
   }
 };
 
 static void unpack_3d_permute2_n(typename AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
+  const int nmid = plan->nmid;
+  const int nfast = plan->nfast;
   unpack_3d_permute2_n_functor f(d_buf,buf_offset,d_data,data_offset,plan);
-  Kokkos::parallel_for(nslow,f);
+  Kokkos::parallel_for(nslow*nmid*nfast,f);
   DeviceType::fence();
 }
 

@@ -22,6 +22,7 @@
 #include "fix.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -66,6 +67,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   // process optional args
 
+  hybridpairflag = 0;
   if (narg == 4) {
     keflag = 1;
     pairflag = 1;
@@ -79,6 +81,8 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     int iarg = 4;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
+      else if (strcmp(arg[iarg],"hybridpair") == 0) 
+        hybridpairflag = force->inumeric(FLERR, arg[++iarg]);
       else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
       else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
@@ -140,6 +144,12 @@ void ComputePressure::init()
   nvirial = 0;
   vptr = NULL;
 
+  if (hybridpairflag > 0 && force->pair) {
+    if (strstr(force->pair_style, "hybrid")) {
+      PairHybrid *ph = (PairHybrid *) force->pair;
+      if (hybridpairflag <= ph->nstyles) nvirial++;
+    }
+  }
   if (pairflag && force->pair) nvirial++;
   if (bondflag && atom->molecular && force->bond) nvirial++;
   if (angleflag && atom->molecular && force->angle) nvirial++;
@@ -152,6 +162,13 @@ void ComputePressure::init()
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
+    if (hybridpairflag > 0 && force->pair) {
+      if (strstr(force->pair_style, "hybrid")) {
+        PairHybrid *ph = (PairHybrid *) force->pair;
+        if (hybridpairflag <= ph->nstyles)
+          vptr[nvirial++] = ph->styles[hybridpairflag-1]->virial;
+      }
+    }
     if (pairflag && force->pair) vptr[nvirial++] = force->pair->virial;
     if (bondflag && force->bond) vptr[nvirial++] = force->bond->virial;
     if (angleflag && force->angle) vptr[nvirial++] = force->angle->virial;

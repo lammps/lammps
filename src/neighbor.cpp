@@ -2427,6 +2427,7 @@ int Neighbor::exclude_setting()
 bigint Neighbor::memory_usage()
 {
   bigint bytes = 0;
+  int m;
   bytes += memory->usage(xhold,maxhold,3);
 
   for (int i = 0; i < nlist; i++)

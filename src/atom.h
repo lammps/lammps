@@ -103,7 +103,7 @@ class Atom : protected Pointers {
 	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes;
   int *poly_count, **node_types,  *element_type,
 	  **element_scale, *nodes_per_element_list, bin_foreign, CAC_comm_flag, 
-    , initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref;
+     initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref;
   int neigh_weight_flag, **neighbor_weights, quadrature_node_count;
   double CAC_cut, CAC_skin, max_search_range;				//used by npair_CAC styles
   int one_layer_flag, weight_count,CAC_pair_flag, element_type_count, outer_neigh_flag;

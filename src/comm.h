@@ -59,6 +59,9 @@ class Comm : protected Pointers {
   double rcbcutfrac;                // fractional RCB cut by this proc
   int rcbcutdim;                    // dimension of RCB cut
 
+  class NBin *bin_pointer;                //used to invoke possible binning for comm substyles
+  class NStencil *stencil_pointer;        //used for possible binning in comm substyle
+
   // methods
 
   Comm(class LAMMPS *);

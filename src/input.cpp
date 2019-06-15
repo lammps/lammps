@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
+#include "comm_CAC.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"

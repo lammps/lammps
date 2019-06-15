@@ -670,9 +670,9 @@ void NBinCAC::bin_atoms()
     for (i = 0; i < atom->nfirst; i++) {
 
 		int current_element_type = element_type[i];
-	  current_element_scale[0] = element_scale[i][0];
-	  current_element_scale[1] = element_scale[i][1];
-	  current_element_scale[2] = element_scale[i][2];
+	    current_element_scale[0] = element_scale[i][0];
+	    current_element_scale[1] = element_scale[i][1];
+	    current_element_scale[2] = element_scale[i][2];
  
   
 		//find the current quadrature points of this element
@@ -681,8 +681,8 @@ void NBinCAC::bin_atoms()
 		quadrature_count=compute_quad_points(i);
 		}
 		else{
-    quadrature_count=1;
-    current_element_quad_points[0][0]=x[i][0];
+        quadrature_count=1;
+        current_element_quad_points[0][0]=x[i][0];
 		current_element_quad_points[0][1]=x[i][1];
 		current_element_quad_points[0][2]=x[i][2];
 		}
@@ -754,7 +754,7 @@ void NBinCAC::bin_atoms()
 		foreign_boxes=0;
     for (i = 0; i < nall; i++) {
       //computes the quadrature point locations for this ith element and returns the # of points
-  int current_element_type = element_type[i];
+    int current_element_type = element_type[i];
 	current_element_scale[0] = element_scale[i][0];
 	current_element_scale[1] = element_scale[i][1];
 	current_element_scale[2] = element_scale[i][2];
@@ -766,18 +766,18 @@ void NBinCAC::bin_atoms()
 		quadrature_count=compute_quad_points(i);
 		}
 		else{
-    quadrature_count=1;
-    current_element_quad_points[0][0]=x[i][0];
+        quadrature_count=1;
+        current_element_quad_points[0][0]=x[i][0];
 		current_element_quad_points[0][1]=x[i][1];
 		current_element_quad_points[0][2]=x[i][2];
 		}
       //bin this element's quadrature points and assign to quad2bin
       for (int iquad = 0; iquad < quadrature_count; iquad++) {
-      ibin = quad2bins(current_element_quad_points[iquad]);
+            ibin = quad2bins(current_element_quad_points[iquad]);
 			if(ibin<0) error->one(FLERR," negative bin index");
 			if(ibin>=mbins) error->one(FLERR," excessive bin index");
-      quad2bin[qi] = ibin;
-      qi++;
+            quad2bin[qi] = ibin;
+            qi++;
       }
 		}
       //returns the set of bins an elements bounding box overlaps
@@ -809,11 +809,11 @@ void NBinCAC::bin_atoms()
       for(int overlapx=bin_overlap_limits[0]; overlapx<=bin_overlap_limits[3]; overlapx++){
         for(int overlapy=bin_overlap_limits[1]; overlapy<=bin_overlap_limits[4]; overlapy++){
           for(int overlapz=bin_overlap_limits[2]; overlapz<=bin_overlap_limits[5]; overlapz++){
-            current_bin=(overlapz-mbinzlo)*mbiny*mbinx + (overlapy-mbinylo)*mbinx + (overlapx-mbinxlo);
+                        current_bin=(overlapz-mbinzlo)*mbiny*mbinx + (overlapy-mbinylo)*mbinx + (overlapx-mbinxlo);
 						if(current_bin<0) error->one(FLERR," negative bin index");
 						if(current_bin>=mbins) error->one(FLERR," excessive bin index");
 						if(!atom->bin_foreign){
-            current_bin_ncount=bin_ncontent[current_bin];
+                        current_bin_ncount=bin_ncontent[current_bin];
             //check bin memory allocation is large enough and grow if needed
             if(bin_ncontent[current_bin]==MAXBINCONTENT+bin_expansion_counts[current_bin]*EXPAND){
             bin_expansion_counts[current_bin]++;

@@ -29,6 +29,11 @@ using namespace ucl_opencl;
 #include "geryon/nvc_mat.h"
 #include "geryon/nvc_kernel.h"
 using namespace ucl_cudart;
+#elif defined(USE_HIP)
+#include "geryon/hip_timer.h"
+#include "geryon/hip_mat.h"
+#include "geryon/hip_kernel.h"
+using namespace ucl_hip;
 #else
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"

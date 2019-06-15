@@ -883,7 +883,7 @@ void NBinCAC::bin_atoms()
   
   //typical binning for atoms
   
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bsubboxhi[0])
@@ -958,7 +958,7 @@ void NBinCAC::bin_atoms()
 	}
   //typical binning for atoms
   if(!foreign_boxes){
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] > bsubboxhi[0])

@@ -2580,11 +2580,6 @@ int PairCAC::mldivide3(const double m[3][3], const double *v, double *ans)
   return 0;
 }
 
-
-
-
-
-
 //--------------------------------------------------------------------------
 //populate array of shape functions
 void PairCAC::set_shape_functions(){
@@ -2597,8 +2592,6 @@ shape_functions[5]=&PairCAC::quad_shape_six;
 shape_functions[6]=&PairCAC::quad_shape_seven;
 shape_functions[7]=&PairCAC::quad_shape_eight;
 }
-
-
 
 //-------------------------------------------------------------------------
 
@@ -3448,5 +3441,50 @@ int *npoly = atom->poly_count;
      }
   }
   }
+
+}
+
+//memory usage due to quadrature point list memory structure
+double PairCAC::memory_usage()
+{
+	  int quad= quadrature_node_count;
+		int n1=surface_counts_max[0];
+		int n2=surface_counts_max[1];
+		int n3=surface_counts_max[2];
+    double bytes_used = 0;
+    if (quad_allocated) {
+		for (int init = 0; init < old_atom_count; init++) {
+
+			if (old_atom_etype[init] == 0) {
+				bytes_used +=memory->usage(inner_quad_lists_ucell[init][0], maxneigh_quad_inner,3);
+				bytes_used +=memory->usage(inner_quad_lists_index[init][0], maxneigh_quad_inner,2);
+				if(outer_neighflag){
+				bytes_used +=memory->usage(outer_quad_lists_ucell[init][0], maxneigh_quad_outer,3);
+				bytes_used +=memory->usage(outer_quad_lists_index[init][0], maxneigh_quad_outer,2);
+				}
+				//bytes_used +=memory->usage(quad_list_container[init],1);
+				
+			}
+			else {
+
+				for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
+					bytes_used +=memory->usage(inner_quad_lists_ucell[init][neigh_loop], maxneigh_quad_inner,3);
+					bytes_used +=memory->usage(inner_quad_lists_index[init][neigh_loop], maxneigh_quad_inner,2);
+					if(outer_neighflag){
+				    bytes_used +=memory->usage(outer_quad_lists_ucell[init][neigh_loop], maxneigh_quad_outer,3);
+				    bytes_used +=memory->usage(outer_quad_lists_index[init][neigh_loop], maxneigh_quad_outer,2);
+				    }
+				}
+				//bytes_used +=memory->usage(quad_list_container[init].list2ucell,1);
+				
+			
+			}
+		}
+
+
+	}
+    
+   
+  return bytes_used;
 
 }

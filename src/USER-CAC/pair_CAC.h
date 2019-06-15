@@ -59,7 +59,7 @@ class PairCAC : public Pair {
   double myvalue(asa_objective *asa);
   void mygrad(asa_objective *asa);
 
-
+  virtual double memory_usage();
 
  protected:
   int outer_neighflag;

@@ -712,7 +712,7 @@ int DeviceT::compile_kernels() {
   gpu_lib_data.update_host(false);
 
   _ptx_arch=static_cast<double>(gpu_lib_data[0])/100.0;
-  #ifndef USE_OPENCL
+  #if !(defined(USE_OPENCL) || defined(USE_HIP))
   if (_ptx_arch>gpu->arch() || floor(_ptx_arch)<floor(gpu->arch()))
     return -4;
   #endif

@@ -11,7 +11,7 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {spin} or {CAC/cg} :ul
+style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {spin} or {CAC/cg} or {CAC/fire} :ul
 
 [Examples:]
 
@@ -66,8 +66,8 @@ Style {spin} is a damped spin dynamics with an adaptive
 timestep.
 See the "min/spin"_min_spin.html doc page for more information.
 
-Style {CAC/cg} performs the same functionaly as style {cg} for 
-the CAC package with atoms and finite elements. This style 
+Styles {CAC/cg} and CAC/fire} performs the same functionaly as styles {cg}
+and {fire} for the CAC package with atoms and finite elements. These styles
 requires a CAC "atom_style"_atom_style.html
 
 Either the {quickmin} and {fire} styles are useful in the context of

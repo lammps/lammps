@@ -1105,19 +1105,20 @@ src/USER-CAC: filenames -> commands
 /src/USER-CAC/README
 "Howto_CAC"_Howto_CAC.html
 "atom_style CAC"_atom_style.html
-"min_style CAC/cg"_min_style.html
 "comm_style CAC"_comm_style.html
 "pair_style CAC/lj"_pair_CAC_lj.html
 "pair_style CAC/coul/wolf"_pair_CAC_coul_wolf.html
 "pair_style CAC/buck"_pair_CAC_buck.html
 "pair_style CAC/sw"_pair_CAC_sw.html
-"pair_style CAC/eam"_pair_CAC_eam.html 
+"pair_style CAC/eam"_pair_CAC_eam.html
+"min_style CAC/cg"_min_style.html
+"min_style CAC/fire"_min_style.html 
 "fix CAC/nve"_fix_CAC_nve.html
 "fix CAC/viscous"_fix_CAC_viscous.html
 "fix CAC/setvelocity"_fix_CAC_setvelocity.html
 "fix CAC/setforce"_fix_CAC_setforce.html
+"fix CAC/addforce"_fix_CAC_addforce.html
 "fix CAC/temp/rescale"_fix_CAC_temp_rescale.html
-"min_style CAC/cg"_min_style_CAC_cg.html
 "compute CAC/quad_count"_compute_CAC_quad_count.html
 "compute CAC/nodal_temp"_compute_CAC_nodal_temp.html
 "dump CAC/nodal_positions"_dump_CAC_nodal_positions.html

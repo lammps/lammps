@@ -406,6 +406,8 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep",&step);
+  int plumedStopCondition=0; 
+  p->cmd("setStopFlag",&plumedStopCondition);
   p->cmd("setPositions",&atom->x[0][0]);
   p->cmd("setBox",&box[0][0]);
   p->cmd("setForces",&atom->f[0][0]);
@@ -477,6 +479,8 @@ void FixPlumed::post_force(int /* vflag */)
   }
   // do the real calculation:
   p->cmd("performCalc");
+
+  if(plumedStopCondition) error->all(FLERR,"received instruction from PLUMED to stop");
 
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full

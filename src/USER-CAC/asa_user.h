@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define INT long int
-#define INT_INF LONG_MAX
-#define INF DBL_MAX
+#define ASA_INT long int
+#define ASA_INT_INF LONG_MAX
+#define ASA_INF DBL_MAX
 
 #ifndef FALSE
 #define FALSE 0
@@ -35,9 +35,9 @@ typedef struct asa_objective_struct
 {
     double      *x ; /* current iterate */
     double      *g ; /* user will store the gradient at x in g */
-    INT          n ; /* problem dimension */
-    INT     *ifree ; /* if not NULL, contains indices of free variables */
-    INT      nfree ; /* if ifree not NULL, contains number of free variables */
+    ASA_INT          n ; /* problem dimension */
+    ASA_INT     *ifree ; /* if not NULL, contains indices of free variables */
+    ASA_INT      nfree ; /* if ifree not NULL, contains number of free variables */
 } asa_objective ;
 
 /*============================================================================
@@ -237,7 +237,7 @@ typedef struct asacg_parm_struct
     double step ;
 
     /* abort cg after maxit iterations */
-    INT maxit ;
+    ASA_INT maxit ;
 
     /* maximum number of times the bracketing interval grows during expansion */
     int ntries ;
@@ -305,12 +305,12 @@ typedef struct asa_stat_struct /* statistics returned to user */
 {
     double               f ; /*function value at solution */
     double          pgnorm ; /* ||Proj (x_k - g_k) - x_k||_infty */
-    INT            cbbiter ; /* total cbb iterations */
-    INT            cbbfunc ; /* total cbb function evaluations */
-    INT            cbbgrad ; /* total cbb gradient evaluations */
-    INT             cgiter ; /* total cg iterations */
-    INT             cgfunc ; /* total cg function evaluations */
-    INT             cggrad ; /* total cg gradient evaluations */
+    ASA_INT            cbbiter ; /* total cbb iterations */
+    ASA_INT            cbbfunc ; /* total cbb function evaluations */
+    ASA_INT            cbbgrad ; /* total cbb gradient evaluations */
+    ASA_INT             cgiter ; /* total cg iterations */
+    ASA_INT             cgfunc ; /* total cg function evaluations */
+    ASA_INT             cggrad ; /* total cg gradient evaluations */
 } asa_stat ;
 
 /* prototypes */
@@ -354,7 +354,7 @@ int asa_cg /*  return:
     double            *x, /* input: starting guess, output: the solution */
     double           *lo, /* lower bounds */
     double           *hi, /* upper bounds */
-    INT                n, /* problem dimension */
+    ASA_INT                n, /* problem dimension */
     asa_stat       *Stat, /* structure with statistics (can be NULL) */
     asacg_parm    *CParm, /* user parameters, NULL = use default parameters */
     asa_parm      *AParm, /* user parameters, NULL = use default parameters */
@@ -369,7 +369,7 @@ int asa_cg /*  return:
                                                  mem = MIN(memory, n)
                                 memory = 0 => need 5*n + m
                             if DynamicMemory = TRUE, need  5n + m */
-    INT          *iWork,  /* NULL => allocate integer work space
+    ASA_INT          *iWork,  /* NULL => allocate integer work space
                             otherwise provide space to n integers */
     LAMMPS_NS::PairCAC* objpoint,
     LAMMPS_NS::AtomVecCAC* avec_objpoint

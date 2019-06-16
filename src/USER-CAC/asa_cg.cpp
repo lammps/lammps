@@ -76,7 +76,7 @@ int asa_cg /*  return:
     double            *x, /* input: starting guess, output: the solution */
     double           *lo, /* lower bounds */
     double           *hi, /* upper bounds */
-    INT                n, /* problem dimension */
+    ASA_INT                n, /* problem dimension */
     asa_stat       *Stat, /* structure with statistics (can be NULL) */
     asacg_parm    *CParm, /* user parameters, NULL = use default parameters */
     asa_parm      *AParm, /* user parameters, NULL = use default parameters */
@@ -91,14 +91,14 @@ int asa_cg /*  return:
                                                mem = MIN(memory, n)
                                  memory = 0 => need 5*n + m
                             if DymamicMemory = TRUE, need  5n + m */
-    INT          *iWork,   /* NULL => allocate integer work space
+    ASA_INT          *iWork,   /* NULL => allocate integer work space
                              otherwise provide space to n integers */
     LAMMPS_NS::PairCAC* objpoint,
     LAMMPS_NS::AtomVecCAC* avec_objpoint
 )
 {
     int gp, ident, status, mem ;
-    INT i, j, nfree, cbb_totit, cg_totit, *ifree ;
+    ASA_INT i, j, nfree, cbb_totit, cg_totit, *ifree ;
     double alpha, gj, pert_lo, pert_hi, t, tl, th, gnorm, ginorm, pgnorm, xnorm,
            xj, xg, xp, *work, *d, *g, *xtemp, *gtemp, *pg ;
     asacg_parm *cgParm, cgParmStruc ;
@@ -131,16 +131,16 @@ int asa_cg /*  return:
     if ( asaParm->PrintParms ) asa_printParms (asaParm) ;
 
     /* abort after maxit iterations of cbb in one pass */
-    if ( asaParm->maxit_fac == INF ) Com.pgmaxit = INT_INF ;
-    else Com.pgmaxit = (INT) (((double) n)*asaParm->maxit_fac) ;
+    if ( asaParm->maxit_fac == ASA_INF ) Com.pgmaxit = ASA_INT_INF ;
+    else Com.pgmaxit = (ASA_INT) (((double) n)*asaParm->maxit_fac) ;
 
     /* abort after totit iterations of cbb in all passes */
-    if ( asaParm->totit_fac == INF ) cbb_totit = INT_INF ;
-    else cbb_totit = (INT) (((double) n)*asaParm->totit_fac) ;
+    if ( asaParm->totit_fac == ASA_INF ) cbb_totit = ASA_INT_INF ;
+    else cbb_totit = (ASA_INT) (((double) n)*asaParm->totit_fac) ;
 
     /* abort after maxfunc function evaluation in one pass of cbb */
-    if ( asaParm->maxfunc_fac == INF ) Com.pgmaxfunc = INT_INF ;
-    else Com.pgmaxfunc = (INT) (((double) n)*asaParm->maxfunc_fac) ;
+    if ( asaParm->maxfunc_fac == ASA_INF ) Com.pgmaxfunc = ASA_INT_INF ;
+    else Com.pgmaxfunc = (ASA_INT) (((double) n)*asaParm->maxfunc_fac) ;
 
     cg_totit = cgParm->maxit ;
 
@@ -166,10 +166,10 @@ int asa_cg /*  return:
     Com.x = x ;
     Com.n = n ;             /* problem dimension */
     Com.n5 = n % 5 ;
-    Com.nf = (INT) 0 ;      /* number of function evaluations */
-    Com.ng = (INT) 0 ;      /* number of gradient evaluations */
-    Com.cbbiter = (INT) 0 ; /* number of cbb iterations evaluations */
-    Com.cgiter = (INT) 0 ;  /* number of cg iterations */
+    Com.nf = (ASA_INT) 0 ;      /* number of function evaluations */
+    Com.ng = (ASA_INT) 0 ;      /* number of gradient evaluations */
+    Com.cbbiter = (ASA_INT) 0 ; /* number of cbb iterations evaluations */
+    Com.cgiter = (ASA_INT) 0 ;  /* number of cg iterations */
     Com.AWolfe = cgParm->AWolfe ; /* do not touch user's AWolfe */
     Com.AArmijo = asaParm->AArmijo ; /* do not touch user's AArmijo */
 
@@ -180,7 +180,7 @@ int asa_cg /*  return:
     /* allocate integer work array */
     if ( iWork == NULL )
     {
-        ifree = Com.ifree = (INT *) malloc (n*sizeof (INT)) ;
+        ifree = Com.ifree = (ASA_INT *) malloc (n*sizeof (ASA_INT)) ;
     }
     else
     {
@@ -659,7 +659,7 @@ int asa_cg /*  return:
     asa_com *Com
 )
 {
-    INT     i, iter, IterRestart, maxit, n, n5, nfree, nf, ng, nrestart,
+    ASA_INT     i, iter, IterRestart, maxit, n, n5, nfree, nf, ng, nrestart,
             nrestartsub ;
     int     nslow, slowlimit, IterQuad, status, PrintLevel, QuadF ;
     double  delta2, Qk, Ck, fbest, gbest, pgnorm, ginorm,
@@ -741,7 +741,7 @@ int asa_cg /*  return:
     memk = 0 ;         /* number of vectors in current memory */
 
     /* the conjugate gradient algorithm is restarted every nrestart iteration */
-    nrestart = (INT) (((double) nfree)*Parm->restart_fac) ;
+    nrestart = (ASA_INT) (((double) nfree)*Parm->restart_fac) ;
 
     /* abort when number of iterations reaches maxit in one pass through cg */
     Com->cgmaxit = maxit = Parm->maxit ;
@@ -786,8 +786,8 @@ int asa_cg /*  return:
         }
     }
 
-    fbest = INF ;
-    gbest = INF ;
+    fbest = ASA_INF ;
+    gbest = ASA_INF ;
     nslow = 0 ;
     slowlimit = 2*nfree + Parm->nslow ;
     n5 = nfree % 5 ;
@@ -801,7 +801,7 @@ int asa_cg /*  return:
 
     /* compute inf-norm of x and distance to bounds */
     xnorm = ZERO ;
-    bdist = INF ;
+    bdist = ASA_INF ;
     for (i = 0; i < nfree; i++)
     {
         xi = x [i] ;
@@ -2877,10 +2877,10 @@ Line:
     double *gold, /* initial vector */
     double *gnew, /* search direction */
     double  *yty, /* y'y */
-    INT        n  /* length of the vectors */
+    ASA_INT        n  /* length of the vectors */
 )
 {
-    INT n5, i ;
+    ASA_INT n5, i ;
     double s, t ;
     n5 = n % 5 ;
     if ( (y != NULL) && (yty == NULL) )
@@ -3015,7 +3015,7 @@ Line:
     asa_com   *Com
 )
 {
-    INT n ;
+    ASA_INT n ;
     int i ;
     double alpha, *d, *g, *gtemp, *x, *xtemp ;
     asacg_parm *Parm ;
@@ -3072,7 +3072,7 @@ Line:
             }
             Com->nf++ ;
             /* reduce stepsize if function value is nan */
-            if ( (Com->f != Com->f) || (Com->f >= INF) || (Com->f <= -INF) )
+            if ( (Com->f != Com->f) || (Com->f >= ASA_INF) || (Com->f <= -ASA_INF) )
             {
                 for (i = 0; i < Parm->ntries; i++)
                 {
@@ -3120,8 +3120,8 @@ Line:
                        Com->f = Com->avec_objpoint->myvalue(user) ;
                     }
                     Com->nf++ ;
-                    if ( (Com->f == Com->f) && (Com->f < INF) &&
-                         (Com->f > -INF) ) break ;
+                    if ( (Com->f == Com->f) && (Com->f < ASA_INF) &&
+                         (Com->f > -ASA_INF) ) break ;
                 }
                 if ( i == Parm->ntries ) return (11) ;
             }
@@ -3164,7 +3164,7 @@ Line:
             Com->ng++ ;
             Com->df = asa_dot (gtemp, d, Com->nfree) ;
             /* reduce stepsize if derivative is nan */
-            if ( (Com->df != Com->df) || (Com->df >= INF) || (Com->df <= -INF) )
+            if ( (Com->df != Com->df) || (Com->df >= ASA_INF) || (Com->df <= -ASA_INF) )
             {
                 for (i = 0; i < Parm->ntries; i++)
                 {
@@ -3212,8 +3212,8 @@ Line:
                     }
                     Com->ng++ ;
                     Com->df = asa_dot (gtemp, d, Com->nfree) ;
-                    if ( (Com->df == Com->df) && (Com->df < INF) &&
-                         (Com->df > -INF) ) break ;
+                    if ( (Com->df == Com->df) && (Com->df < ASA_INF) &&
+                         (Com->df > -ASA_INF) ) break ;
                 }
                 if ( i == Parm->ntries ) return (11) ;
                 Com->rho = Parm->nan_rho ;
@@ -3275,8 +3275,8 @@ Line:
             Com->ng++ ;
             /* reduce stepsize if function value or derivative is nan */
             if ( (Com->df !=  Com->df) || (Com->f != Com->f) ||
-                 (Com->df >=  INF)     || (Com->f >= INF)    ||
-                 (Com->df <= -INF)     || (Com->f <= -INF))
+                 (Com->df >=  ASA_INF)     || (Com->f >= ASA_INF)    ||
+                 (Com->df <= -ASA_INF)     || (Com->f <= -ASA_INF))
             {
                 for (i = 0; i < Parm->ntries; i++)
                 {
@@ -3339,8 +3339,8 @@ Line:
                     Com->nf++ ;
                     Com->ng++ ;
                     if ( (Com->df == Com->df) && (Com->f == Com->f) &&
-                         (Com->df <  INF)     && (Com->f <  INF)    &&
-                         (Com->df > -INF)     && (Com->f > -INF) ) break ;
+                         (Com->df <  ASA_INF)     && (Com->f <  ASA_INF)    &&
+                         (Com->df > -ASA_INF)     && (Com->f > -ASA_INF) ) break ;
                 }
                 if ( i == Parm->ntries ) return (11) ;
                 Com->rho = Parm->nan_rho ;
@@ -3458,8 +3458,8 @@ Line:
             Com->nf++ ;
             Com->ng++ ;
             if ( (Com->df != Com->df) || (Com->f != Com->f) ||
-                 (Com->df == INF)     || (Com->f == INF)    ||
-                 (Com->df ==-INF)     || (Com->f ==-INF) ) return (11) ;
+                 (Com->df == ASA_INF)     || (Com->f == ASA_INF)    ||
+                 (Com->df ==-ASA_INF)     || (Com->f ==-ASA_INF) ) return (11) ;
         }
         else if ( !strcmp (what, "f") ) /* compute function */
         {
@@ -3489,7 +3489,7 @@ Line:
                Com->f = Com->avec_objpoint->myvalue(user) ;
             }
             Com->nf++ ;
-            if ( (Com->f != Com->f) || (Com->f == INF) || (Com->f ==-INF) )
+            if ( (Com->f != Com->f) || (Com->f == ASA_INF) || (Com->f ==-ASA_INF) )
                 return (11) ;
         }
         else
@@ -3521,7 +3521,7 @@ Line:
             }
             Com->df = asa_dot (gtemp, d, Com->nfree) ;
             Com->ng++ ;
-            if ( (Com->df != Com->df) || (Com->df == INF) || (Com->df ==-INF) )
+            if ( (Com->df != Com->df) || (Com->df == ASA_INF) || (Com->df ==-ASA_INF) )
                 return (11) ;
         }
     }
@@ -3543,13 +3543,13 @@ Line:
     double *A, /* dense matrix */
     double *x, /* input vector */
     int     n, /* number of columns of A */
-    INT     m, /* number of rows of A */
+    ASA_INT     m, /* number of rows of A */
     int     w  /* T => y = A*x, F => y = A'*x */
 )
 {
 /* if the blas have not been installed, then hand code the produce */
 #ifdef NOBLAS
-    INT j, l ;
+    ASA_INT j, l ;
     l = 0 ;
     if ( w )
     {
@@ -3572,7 +3572,7 @@ Line:
 
 /* if the blas have been installed, then possibly call gdemv */
 #ifndef NOBLAS
-    INT j, l ;
+    ASA_INT j, l ;
     BLAS_INT M, N ;
     if ( w || (!w && (m*n < MATVEC_START)) )
     {
@@ -3717,10 +3717,10 @@ Line:
     double *y, /* output vector */
     double *x, /* input vector */
     double  s, /* scalar */
-    INT     n /* length of vector */
+    ASA_INT     n /* length of vector */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     n5 = n % 5 ;
     if ( y == x)
     {
@@ -3799,7 +3799,7 @@ Line:
     int         n  /* length of the vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     n5 = n % 5 ;
     if (alpha == -ONE)
     {
@@ -3838,11 +3838,11 @@ Line:
     double     *x, /* input and output vector */
     double     *d, /* direction */
     double  alpha, /* stepsize */
-    INT         n  /* length of the vectors */
+    ASA_INT         n  /* length of the vectors */
 )
 {
 #ifdef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     n5 = n % 5 ;
     if (alpha == -ONE)
     {
@@ -3871,7 +3871,7 @@ Line:
 #endif
 
 #ifndef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     BLAS_INT N ;
     if ( n < DAXPY_START )
     {
@@ -3923,7 +3923,7 @@ Line:
     int     n /* length of vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double t ;
     t = ZERO ;
     if ( n <= 0 ) return (t) ;
@@ -3946,11 +3946,11 @@ double asa_dot
 (
     double *x, /* first vector */
     double *y, /* second vector */
-    INT     n /* length of vectors */
+    ASA_INT     n /* length of vectors */
 )
 {
 #ifdef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double t ;
     t = ZERO ;
     if ( n <= 0 ) return (t) ;
@@ -3965,7 +3965,7 @@ double asa_dot
 #endif
 
 #ifndef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double t ;
     BLAS_INT N ;
     if ( n < DDOT_START )
@@ -4030,11 +4030,11 @@ void asa_copy
 (
     double *y, /* output of copy */
     double *x, /* input of copy */
-    INT     n  /* length of vectors */
+    ASA_INT     n  /* length of vectors */
 )
 {
 #ifdef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     n5 = n % 5 ;
     for (i = 0; i < n5; i++) y [i] = x [i] ;
     for (; i < n; )
@@ -4053,7 +4053,7 @@ void asa_copy
 #endif
 
 #ifndef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     BLAS_INT N ;
     if ( n < DCOPY_START )
     {
@@ -4094,11 +4094,11 @@ void asa_copy
     double *xnew, /* input of copy */
     double *y, /* output of copy */
     double *ynew, /* input of copy */
-    INT     n  /* length of vectors */
+    ASA_INT     n  /* length of vectors */
 )
 {
 #ifdef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     n5 = n % 5 ;
     for (i = 0; i < n5; i++)
     {
@@ -4126,7 +4126,7 @@ void asa_copy
 #endif
 
 #ifndef NOBLAS
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     BLAS_INT N ;
     if ( n < DCOPY_START )
     {
@@ -4183,12 +4183,12 @@ void asa_copy
     double   bdist, /* distance of x to the boundary is greater than bdist*/
     double     *lo, /* lower bound */
     double     *hi, /* upper bound */
-    INT      nfree, /* dimension of subspace */
-    INT         n, /* length of vectors */
+    ASA_INT      nfree, /* dimension of subspace */
+    ASA_INT         n, /* length of vectors */
     asa_com   *Com
 )
 {
-    INT j ;
+    ASA_INT j ;
     double ginorm, pgnorm ;
     double xj, gj, xg, xp, t ;
 
@@ -4247,10 +4247,10 @@ void asa_copy
     double *gold, /* old g */
     double *gnew, /* new g */
     double    *d, /* d */
-    INT        n /* length of vectors */
+    ASA_INT        n /* length of vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double s, t ;
     t = ZERO ;
     n5 = n % 5 ;
@@ -4382,10 +4382,10 @@ void asa_copy
     double   *gnew, /* new g */
     double      *d, /* d */
     double *gnorm2, /* 2-norm of g */
-    INT          n /* length of vectors */
+    ASA_INT          n /* length of vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double s, t ;
     s = ZERO ;
     n5 = n % 5 ;
@@ -4485,10 +4485,10 @@ void asa_copy
     double      *d,
     double    beta,
     double *gnorm2, /* 2-norm of gnew */
-    INT          n /* length of vectors */
+    ASA_INT          n /* length of vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double dnorm2, s, t ;
     s = ZERO ;
     dnorm2 = ZERO ;
@@ -4615,10 +4615,10 @@ void asa_update_ykyk
     double *gnew, /* new g */
     double *Ykyk,
     double *Ykgk,
-    INT        n /* length of vectors */
+    ASA_INT        n /* length of vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double t, yk, ykyk, ykgk ;
     ykyk = ZERO ;
     ykgk = ZERO ;
@@ -4678,10 +4678,10 @@ void asa_update_ykyk
     double   *gnew, /* new g */
     double      *d, /* d */
     double *gnorm2, /* 2-norm of g */
-    INT          n /* length of vectors */
+    ASA_INT          n /* length of vectors */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     double gnorm, s, t ;
     gnorm = ZERO ;
     s = ZERO ;
@@ -4747,10 +4747,10 @@ void asa_update_ykyk
     double     *x , /* initial vector */
     double     *d , /* search direction */
     double  alpha , /* stepsize */
-    INT         n   /* length of the vectors */
+    ASA_INT         n   /* length of the vectors */
 )
 {
-    INT n5, i ;
+    ASA_INT n5, i ;
     n5 = n % 5 ;
     if (alpha == -ONE)
     {
@@ -4788,10 +4788,10 @@ void asa_update_ykyk
 (
     double *x, /* input and output vector */
     double  s, /* scalar */
-    INT     n /* length of vector */
+    ASA_INT     n /* length of vector */
 )
 {
-    INT i, n5 ;
+    ASA_INT i, n5 ;
     n5 = n % 5 ;
     for (i = 0; i < n5; i++) x [i] = s ;
     for (; i < n;)
@@ -4818,11 +4818,11 @@ void asa_update_ykyk
 double asa_max
 (
     double *x,
-    INT     n
+    ASA_INT     n
 )
 {
     double xnorm ;
-    INT j, n5 ;
+    ASA_INT j, n5 ;
     n5 = n % 5 ;
     xnorm = ZERO ;
     for (j = 0; j < n5; j++) if ( xnorm < fabs (x [j]) ) xnorm = fabs (x [j]) ;
@@ -4852,7 +4852,7 @@ void asa_project
     asa_com  *Com   /* cg com structure */
 )
 {
-    INT j, n ;
+    ASA_INT j, n ;
     double t, *lo, *hi ;
     lo = Com->lo ;
     hi = Com->hi ;
@@ -4879,13 +4879,13 @@ void asa_project
 )
 {
     double bdist, step, minstep, maxstep, xj, t, *lo, *hi ;
-    INT j, n ;
+    ASA_INT j, n ;
 
     Com->minflag = TRUE ;
     n = Com->nfree ;
-    minstep = INF ;
+    minstep = ASA_INF ;
     maxstep = ZERO ;
-    bdist = INF ;
+    bdist = ASA_INF ;
     lo = Com->lo ;
     hi = Com->hi ;
 
@@ -4894,7 +4894,7 @@ void asa_project
         xj = x [j] ;
         if ( d [j] > ZERO )
         {
-            if ( hi [j] < INF )
+            if ( hi [j] < ASA_INF )
             {
                 t = hi [j] - xj ;
                 if ( bdist > t ) bdist = t ;
@@ -4907,7 +4907,7 @@ void asa_project
         }
         else if ( d [j] < ZERO )
         {
-            if ( lo [j] >-INF )
+            if ( lo [j] >-ASA_INF )
             {
                 t = xj - lo [j] ;
                 if ( bdist > t ) bdist = t ;
@@ -4966,7 +4966,7 @@ void asa_project
 )
 {
     int status, hitbound, getbound, freebound ;
-    INT count, i, ident, index, iter, j, ll, ll0, mcount, mm, n, nf, nf_line,
+    ASA_INT count, i, ident, index, iter, j, ll, ll0, mcount, mm, n, nf, nf_line,
         ng, nl, np ;
     double alpha, armijo_decay, armijo0, armijo1, f, fmin, fc, fr, sts, gtd,
            fmax, lambda, pgnorm, ginorm, gnorm, xnorm,
@@ -5005,7 +5005,7 @@ void asa_project
     ident = FALSE ;
     lambda = Com->alpha ;
     lastfvalues [0] = f ;
-    for (i = 1; i < Parm->m; i++) lastfvalues [i] = -INF ;
+    for (i = 1; i < Parm->m; i++) lastfvalues [i] = -ASA_INF ;
     mm = 0 ; /* number of iterations in the current CBB cycle */
     ll = 0 ; /* zero as long as unit steps in line search */
     nl = 0 ; /* number of iterations since fmin decreased in value */
@@ -5765,7 +5765,7 @@ double asa_fg
 )
 {
     int ident ;
-    INT j, n ;
+    ASA_INT j, n ;
     double t, t1, xj, *lo, *hi ;
     n = Com->n ;
     lo = Com->lo ;
@@ -5794,7 +5794,7 @@ double asa_fg
     asa_com *Com
 )
 {
-    INT i, j, nfree, *ifree ;
+    ASA_INT i, j, nfree, *ifree ;
     double t ;
     ifree = Com->ifree ;
     nfree = Com->nfree ;
@@ -5821,7 +5821,7 @@ void asa_shrinkx
     asa_com *Com
 )
 {
-    INT i, j, nfree, *ifree ;
+    ASA_INT i, j, nfree, *ifree ;
     double t ;
     ifree = Com->ifree ;
     nfree = Com->nfree ;
@@ -5849,7 +5849,7 @@ void asa_shrinkx
     asa_com *Com
 )
 {
-    INT i, j, nfree, *ifree ;
+    ASA_INT i, j, nfree, *ifree ;
     double t ;
     ifree = Com->ifree ;
     nfree = Com->nfree ;
@@ -5880,7 +5880,7 @@ void asa_shrinkx
     asa_com *Com
 )
 {
-    INT i, j, nfree, *ifree ;
+    ASA_INT i, j, nfree, *ifree ;
     double t, *x, *g, *pg, *lo, *hi ;
     x = Com->x ;
     g = Com->g ;
@@ -5929,7 +5929,7 @@ void asa_shrinkx
     asa_com *Com
 )
 {
-    INT i, j, nfree, *ifree ;
+    ASA_INT i, j, nfree, *ifree ;
     double t, *lo, *hi, *g, *x ;
     x = Com->x ;
     g = Com->g ;
@@ -6149,13 +6149,13 @@ void asa_default
     Parm->max_backsteps = (int) 50 ;
 
     /* abort cbb after maxit_fac*n iterations in one pass through cbb */
-    Parm->maxit_fac = INF ;
+    Parm->maxit_fac = ASA_INF ;
 
     /* abort cbb after totit_fac*n iterations in all passes through cbb */
-    Parm->totit_fac = INF ;
+    Parm->totit_fac = ASA_INF ;
 
     /* abort cbb iteration after maxfunc_fac*n function evaluations */
-    Parm->maxfunc_fac = INF ;
+    Parm->maxfunc_fac = ASA_INF ;
 
     /* perturbation in bounds based on machine epsilon, which we now compute */
     eps = ONE ;
@@ -6366,7 +6366,7 @@ void asa_default
     Parm->step = ZERO ;
 
     /* abort cg after maxit iterations */
-    Parm->maxit = INT_INF ;
+    Parm->maxit = ASA_INT_INF ;
 
     /* maximum number of times the bracketing interval grows during expansion */
     Parm->ntries = (int) 50 ;

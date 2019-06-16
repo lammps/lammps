@@ -35,20 +35,20 @@ typedef struct asa_com_struct /* common variables */
     double        bdist ; /* closest distance to bounds */
     int         minflag ; /* T (minstep correct), F (minstep is lower bound) */
     int           nfree ; /* number of free variables */
-    INT          *ifree ; /* indices of free variables */
-    INT               n ; /* problem dimension, saved for reference */
-    INT              n5 ; /* n % 5 */
-    INT              nf ; /* total number of function evaluations */
-    INT              ng ; /* total number of gradient evaluations */
-    INT         cbbiter ; /* total number of cbb iterations */
-    INT          cgiter ; /* total number of cg iterations */
-    INT         cbbfunc ; /* total cbb function evaluations */
-    INT         cbbgrad ; /* total cbb gradient evaluations */
-    INT          cgfunc ; /* total cg function evaluations */
-    INT          cggrad ; /* total cg gradient evaluations */
-    INT         cgmaxit ; /* maximum number of iterations in one pass of cg */
-    INT         pgmaxit ; /* max iterations in one pass of gradient projection*/
-    INT       pgmaxfunc ; /* max function evals/pass of gradient projection */
+    ASA_INT          *ifree ; /* indices of free variables */
+    ASA_INT               n ; /* problem dimension, saved for reference */
+    ASA_INT              n5 ; /* n % 5 */
+    ASA_INT              nf ; /* total number of function evaluations */
+    ASA_INT              ng ; /* total number of gradient evaluations */
+    ASA_INT         cbbiter ; /* total number of cbb iterations */
+    ASA_INT          cgiter ; /* total number of cg iterations */
+    ASA_INT         cbbfunc ; /* total cbb function evaluations */
+    ASA_INT         cbbgrad ; /* total cbb gradient evaluations */
+    ASA_INT          cgfunc ; /* total cg function evaluations */
+    ASA_INT          cggrad ; /* total cg gradient evaluations */
+    ASA_INT         cgmaxit ; /* maximum number of iterations in one pass of cg */
+    ASA_INT         pgmaxit ; /* max iterations in one pass of gradient projection*/
+    ASA_INT       pgmaxfunc ; /* max function evals/pass of gradient projection */
 
     double    SmallCost ; /* |f| <= SmallCost => set PertRule = F */
     double        alpha ; /* stepsize along search direction */
@@ -181,7 +181,7 @@ int asa_tol
     double *gold, /* initial vector */
     double *gnew, /* search direction */
     double  *yty, /* y'y */
-    INT        n  /* length of the vectors */
+    ASA_INT        n  /* length of the vectors */
 ) ;
 
  int asacg_evaluate /* same as cg_evaluate */
@@ -197,7 +197,7 @@ int asa_tol
     double *A, /* dense matrix */
     double *x, /* input vector */
     int     n, /* number of columns of A */
-    INT     m, /* number of rows of A */
+    ASA_INT     m, /* number of rows of A */
     int     w  /* T => y = A*x, F => y = A'*x */
 ) ;
 
@@ -223,7 +223,7 @@ int asa_tol
     double *y, /* output vector */
     double *x, /* input vector */
     double  s, /* scalar */
-    INT     n /* length of vector */
+    ASA_INT     n /* length of vector */
 ) ;
 
  void asa_daxpy0
@@ -239,7 +239,7 @@ int asa_tol
     double     *x, /* input and output vector */
     double     *d, /* direction */
     double  alpha, /* stepsize */
-    INT         n  /* length of the vectors */
+    ASA_INT         n  /* length of the vectors */
 ) ;
 
  double asa_dot0
@@ -254,7 +254,7 @@ int asa_tol
 (
     double *x , /* first vector */
     double *y , /* second vector */
-    INT     n   /* length of vectors */
+    ASA_INT     n   /* length of vectors */
 ) ;
 
  void asa_copy0
@@ -268,7 +268,7 @@ int asa_tol
 (
     double *y, /* output of copy */
     double *x, /* input of copy */
-    INT     n  /* length of vectors */
+    ASA_INT     n  /* length of vectors */
 ) ;
 
  void asa_update_xy
@@ -277,7 +277,7 @@ int asa_tol
     double *xnew, /* input of copy */
     double *y, /* output of copy */
     double *ynew, /* input of copy */
-    INT     n  /* length of vectors */
+    ASA_INT     n  /* length of vectors */
 ) ;
 
  double asa_update_pg /* compute ginorm and pgnorm of g */
@@ -288,8 +288,8 @@ int asa_tol
     double   bdist, /* distance of x to the boundary is greater than bdist*/
     double     *lo, /* lower bound */
     double     *hi, /* upper bound */
-    INT      nfree, /* dimension of subspace */
-    INT         n, /* length of vectors */
+    ASA_INT      nfree, /* dimension of subspace */
+    ASA_INT         n, /* length of vectors */
     asa_com  *Com
 ) ;
 
@@ -298,7 +298,7 @@ int asa_tol
     double *gold, /* old g */
     double *gnew, /* new g */
     double    *d, /* d */
-    INT        n /* length of vectors */
+    ASA_INT        n /* length of vectors */
 ) ;
 
  void asa_update_dg0
@@ -307,7 +307,7 @@ int asa_tol
     double   *gnew, /* new g */
     double      *d, /* d */
     double *gnorm2, /* 2-norm of g */
-    INT          n /* length of vectors */
+    ASA_INT          n /* length of vectors */
 ) ;
 
  double asa_update_dg
@@ -317,7 +317,7 @@ int asa_tol
     double      *d,
     double    beta,
     double *gnorm2, /* 2-norm of gnew */
-    INT          n /* length of vectors */
+    ASA_INT          n /* length of vectors */
 ) ;
 
  void asa_update_ykyk
@@ -326,7 +326,7 @@ int asa_tol
     double *gnew, /* new g */
     double *Ykyk,
     double *Ykgk,
-    INT        n /* length of vectors */
+    ASA_INT        n /* length of vectors */
 ) ;
 
  double asa_update_inf2
@@ -335,7 +335,7 @@ int asa_tol
     double   *gnew, /* new g */
     double      *d, /* d */
     double *gnorm2, /* 2-norm of g */
-    INT          n /* length of vectors */
+    ASA_INT          n /* length of vectors */
 ) ;
 
  void asa_step /* Compute xtemp = x + alpha d */
@@ -344,21 +344,21 @@ int asa_tol
     double     *x, /* initial vector */
     double     *d, /* search direction */
     double  alpha, /* stepsize */
-    INT         n  /* length of the vectors */
+    ASA_INT         n  /* length of the vectors */
 ) ;
 
  void asa_init
 (
     double *x, /* input and output vector */
     double  s, /* scalar */
-    INT     n /* length of vector */
+    ASA_INT     n /* length of vector */
 ) ;
 
 
  double asa_max /* Return max {fabs (x [j]) : 1 <= j < n}*/
 (
     double *x,
-    INT     n
+    ASA_INT     n
 ) ;
 
  void asa_project

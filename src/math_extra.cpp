@@ -56,7 +56,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       if (fabs(aug[j][i]) > fabs(aug[i][i])) {
         double tempv[4];
         memcpy(tempv,aug[i],4*sizeof(double));
-        memcpy(aug[i],aug[j],4*sizeof(double));
+        memmove(aug[i],aug[j],4*sizeof(double));
         memcpy(aug[j],tempv,4*sizeof(double));
       }
     }
@@ -68,7 +68,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       if (p != i) {
         double tempv[4];
         memcpy(tempv,aug[i],4*sizeof(double));
-        memcpy(aug[i],aug[p],4*sizeof(double));
+        memmove(aug[i],aug[p],4*sizeof(double));
         memcpy(aug[p],tempv,4*sizeof(double));
       }
 

@@ -39,6 +39,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"
@@ -99,7 +100,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // SPIN package
 
-  sp = fm = NULL;
+  sp = fm = fm_long = NULL;
 
   // USER-DPD
 
@@ -278,6 +279,7 @@ Atom::~Atom()
 
   memory->destroy(sp);
   memory->destroy(fm);
+  memory->destroy(fm_long);
 
   memory->destroy(vfrac);
   memory->destroy(s0);
@@ -509,7 +511,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown atom style");
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
   return NULL;
 }
 

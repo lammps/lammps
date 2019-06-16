@@ -189,47 +189,65 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Invalid exclude group name
+E: Bond/react: Cannot use fix bond/react with non-molecular systems
 
-Exclude group name should not previously be defined.
-
-E: Cannot use fix bond/react with non-molecular systems
-
-Only systems with bonds that can be changed can be used.  Atom_style
+Only systems with bonds that can be changed can be used. Atom_style
 template does not qualify.
 
-E: Fix bond/react cutoff is longer than pairwise cutoff
+E: Bond/react: Rmax cutoff is longer than pairwise cutoff
 
-This is not allowed because bond creation is done using the
-pairwise neighbor list.
+This is not allowed because bond creation is done using the pairwise
+neighbor list.
 
-E: Molecule template ID for fix bond/react does not exist
+E: Bond/react: Molecule template ID for fix bond/react does not exist
 
-A valid molecule template must have been created with the molecule command.
+A valid molecule template must have been created with the molecule
+command.
 
-E: Superimpose file errors:
+E: Bond/react: Reaction templates must contain the same number of atoms
 
-Please ensure superimpose file is properly formatted.
+There should be a one-to-one correspondence between atoms in the
+pre-reacted and post-reacted templates, as specified by the map file.
 
-E: Atom affected by reaction too close to template edge
+E: Bond/react: Unknown section in map file
+
+Please ensure reaction map files are properly formatted.
+
+E: Bond/react: Atom affected by reaction too close to template edge
 
 This means an atom which changes type during the reaction is too close
-to an 'edge' atom defined in the superimpose file. This could cause incorrect
-assignment of bonds, angle, etc. Generally, this means you must include
-more atoms in your templates, such that there are at least two atoms
-between each atom involved in the reaction and an edge atom.
+to an 'edge' atom defined in the superimpose file. This could cause
+incorrect assignment of bonds, angle, etc. Generally, this means you
+must include more atoms in your templates, such that there are at
+least two atoms between each atom involved in the reaction and an edge
+atom.
 
-E: Fix bond/react needs ghost atoms from farther away
+E: Bond/react: Fix bond/react needs ghost atoms from farther away
 
 This is because a processor needs to superimpose the entire unreacted
-molecule template onto simulation atoms it can 'see.' The comm_modify cutoff
-command can be used to extend the communication range.
+molecule template onto simulation atoms it knows about. The
+comm_modify cutoff command can be used to extend the communication
+range.
 
-E: Excessive iteration of superimpose algorithm
+E: Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted
 
-You may have discovered a bug! But first, please double check that your
-molecule template atom types, bond types, etc. are consistent with your simulation,
-and that all atoms affected by a reaction are sufficently separated from edge atoms.
-If this issue persists, please contact the developer.
+Self-explanatory.
+
+W: Bond/react: An atom in 'react #%d' changes bond connectivity but not atom type
+
+You may want to double-check that all atom types are properly assigned
+in the post-reaction template.
+
+E: Bond/react special bond generation overflow
+
+The number of special bonds per-atom created by a reaction exceeds the
+system setting. See the read_data or create_box command for how to
+specify this value.
+
+E: Bond/react topology/atom exceed system topology/atom
+
+The number of bonds, angles etc per-atom created by a reaction exceeds
+the system setting. See the read_data or create_box command for how to
+specify this value.
 
 */

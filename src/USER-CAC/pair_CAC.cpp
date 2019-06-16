@@ -1702,7 +1702,7 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
     quad_r[1]=y;
     quad_r[2]=z;
 
-    INT n ;
+    ASA_INT n ;
     n = 2 ; /* problem dimension */
     double xm[2], lo[2], hi[2] ;
 	int swap_dof_set[6];
@@ -2980,7 +2980,7 @@ double PairCAC::myvalue /* evaluate the objective function */
 	unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(neighbor_element_scale[2]);
-	INT i, n;
+	ASA_INT i, n;
 	x = asa->x;
 	g = asa->g;
 	n = asa->n;
@@ -3069,7 +3069,7 @@ void PairCAC::mygrad /* evaluate the gradient of the objective function */
 	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(neighbor_element_scale[2]);
 
-	INT i, n;
+	ASA_INT i, n;
 	x = asa->x;
 	g = asa->g;
 	n = asa->n;

@@ -1984,7 +1984,7 @@ double AtomVecCAC::myvalue /* evaluate the objective function */
 	unit_cell_mapped[0] = 2 / double(atom->element_scale[min_element_index][0]);
 	unit_cell_mapped[1] = 2 / double(atom->element_scale[min_element_index][1]);
 	unit_cell_mapped[2] = 2 / double(atom->element_scale[min_element_index][2]);
-	INT i, n;
+	ASA_INT i, n;
 	x = asa->x;
 	g = asa->g;
 	n = asa->n;
@@ -2041,7 +2041,7 @@ void AtomVecCAC::mygrad /* evaluate the gradient of the objective function */
 	unit_cell_mapped[1] = 2 / double(atom->element_scale[min_element_index][1]);
 	unit_cell_mapped[2] = 2 / double(atom->element_scale[min_element_index][2]);
 
-	INT i, n;
+	ASA_INT i, n;
 	x = asa->x;
 	g = asa->g;
 	n = asa->n;

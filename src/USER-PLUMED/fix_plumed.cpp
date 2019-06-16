@@ -34,6 +34,7 @@
 #include "modify.h"
 #include "pair.h"
 #include "utils.h"
+#include "timer.h"
 
 #include "plumed/wrapper/Plumed.h"
 
@@ -480,7 +481,7 @@ void FixPlumed::post_force(int /* vflag */)
   // do the real calculation:
   p->cmd("performCalc");
 
-  if(plumedStopCondition) error->all(FLERR,"received instruction from PLUMED to stop");
+  if(plumedStopCondition) timer->force_timeout();
 
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full

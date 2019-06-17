@@ -77,7 +77,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int inum,i,i1,i2,j,j1,j2,jj,jj1,jj2,j1num,j2num,listmax,numred,inflag,n;
   int ind,m,mm,loc1,loc2,cid,cnum,cn,tag1,tag2,idprev,idnext;
   double w,sumw,sumwreq,evdwl;
-  double *r1,*r2,*q1,*q2,*pend;
+  double *r1,*r2,*q1,*q2,*qe;
 
   int *ilist,*j1list,*j2list,*numneigh,**firstneigh;
  
@@ -155,18 +155,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     
     // insertion sort according to atom-id
     
-    for(mm = 1; mm < numred; mm++){
-      m = mm;
-      loc1 = redlist[m-1];
-      loc2 = redlist[m];
-      while(m > 0 && tag[loc1] > tag[loc2]){
-	redlist[m] = loc1;
-	redlist[m-1] = loc2;
-	m--;
-	loc1 = redlist[m-1];
-	loc2 = redlist[m];
-      }
-    } 
+    sort(redlist,numred);
  
     // split into connected chains
     
@@ -231,8 +220,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       loc1 = chain[i][0];
       loc2 = chain[i][nchain[i]-2];
-      if(end[i] == 1) pend = x[loc1];
-      if(end[i] == 2) pend = x[loc2];
+      if(end[i] == 1) qe = x[loc1];
+      if(end[i] == 2) qe = x[loc2];
 
       for(j = 0; j < nchain[i]-1; j++){
 	q1 = x[chain[i][j]];
@@ -255,17 +244,12 @@ void PairMesoCNT::compute(int eflag, int vflag)
       scale3(sumwreq,p2);
 
       if(end[i] == 0){
-        geom(r1,r2,p1,p2,param,basis);
+        geominf(r1,r2,p1,p2,param,basis);
         if(param[0] > cutoff) continue;
         finf(param,flocal);
       }
-      else if(end[i] == 1){
-        geom(r1,r2,pend,p2,param,basis);
-	if(param[0] > cutoff) continue;
-	fsemi(param,flocal);
-      }
       else{
-        geom(r1,r2,p1,pend,param,basis);
+        geomsemi(r1,r2,p1,p2,qe,param,basis);
 	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
@@ -379,7 +363,7 @@ void PairMesoCNT::allocate()
 
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
-  memory->create(param,6,"pair:param");
+  memory->create(param,5,"pair:param");
   memory->create(flocal,2,3,"pair:flocal");
   memory->create(basis,3,3,"pair:basis");
 }
@@ -917,7 +901,7 @@ double PairMesoCNT::usemi(double *param)
   double alpha = param[1];
   double xi1 = param[2] * angstromrec;
   double xi2 = param[3] * angstromrec;
-  double etaend = param[4] * angstromrec;
+  double etae = param[4] * angstromrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
@@ -926,7 +910,7 @@ double PairMesoCNT::usemi(double *param)
   double theta = 1.0 - ctheta*sin_alphasq; 
 
   double a1 = omega * sin_alpha;
-  double a2 = theta * etaend;
+  double a2 = theta * etae;
 
   int points = 100;
   double delxi = (xi2 - xi1) / (points - 1);
@@ -1066,12 +1050,10 @@ void PairMesoCNT::fsemi(double *param, double **f)
   double alpha = param[1];
   double xi1 = param[2] * angstromrec;
   double xi2 = param[3] * angstromrec;
-  double etaend = param[4] * angstromrec;
+  double etae = param[4] * angstromrec;
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
-  double sin_alpharec = 1.0 / sin_alpha;
-  double sin_alpharecsq = sin_alpharec * sin_alpharec;
   double cos_alpha = cos(alpha);
 
   double omega = 1.0 / (1.0 - comega*sin_alphasq);
@@ -1083,8 +1065,7 @@ void PairMesoCNT::fsemi(double *param, double **f)
 
   double a1 = omega * sin_alpha;
   double a1sq = a1 * a1;
-  double a1rec = 1.0 / a1;
-  double a2 = theta * etaend;
+  double a2 = theta * etae;
 
   double gamma_orth = spline(h,start_gamma,del_gamma,
 		    gamma_coeff,gamma_points);
@@ -1141,7 +1122,7 @@ void PairMesoCNT::fsemi(double *param, double **f)
   double dh_ubar = dh_gamma*a4 + h*jh;
   double dalpha_ubar = dalpha_gamma*a4 
     + a1*(domega*sin_alpha + omega*cos_alpha)*jh2
-    - sin_alpha * jxi1 - dtheta*etaend*jxi;
+    - sin_alpha * jxi1 - dtheta*etae*jxi;
 
   double cx = h * (omegasq*jh1 + cos_alpha*ctheta*jxi);
   double cy = sin_alpha * (cos_alpha*omegasq*jh1 + (ctheta-1)*jxi);
@@ -1159,7 +1140,7 @@ void PairMesoCNT::fsemi(double *param, double **f)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMesoCNT::geom(const double *r1, const double *r2, 
+void PairMesoCNT::geominf(const double *r1, const double *r2, 
 		const double *p1, const double *p2, 
 		double *param, double **basis)
 {
@@ -1168,8 +1149,8 @@ void PairMesoCNT::geom(const double *r1, const double *r2,
   double psil[3], psim[3], dell_psim[3], delpsil_m[3];
   double delr1[3], delr2[3], delp1[3], delp2[3];
   double *ex, *ey, *ez;
-  double psi, denom, frac, taur, taup, rhoe;
-  double h, alpha, xi1, xi2, eta1, eta2;
+  double psi, denom, frac, taur, taup;
+  double h, alpha, xi1, xi2;
 
   ex = basis[0];
   ey = basis[1];
@@ -1228,18 +1209,95 @@ void PairMesoCNT::geom(const double *r1, const double *r2,
   xi1 = dot3(delr1,l);
   xi2 = dot3(delr2,l);
 
-  sub3(p1,pbar,delp1);
-  sub3(p2,pbar,delp2);
-  eta1 = dot3(delp1,m);
-  eta2 = dot3(delp2,m);
+  param[0] = h;
+  param[1] = alpha;
+  param[2] = xi1;
+  param[3] = xi2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairMesoCNT::geomsemi(const double *r1, const double *r2, 
+		const double *p1, const double *p2, const double *qe,
+		double *param, double **basis)
+{
+  using namespace MathExtra;
+  double r[3], p[3], delr[3], l[3], m[3], rbar[3], pbar[3], delrbar[3];
+  double psil[3], psim[3], dell_psim[3], delpsil_m[3];
+  double delr1[3], delr2[3], delp1[3], delp2[3], delpqe[3];
+  double *ex, *ey, *ez;
+  double psi, denom, frac, taur, taup, rhoe;
+  double h, alpha, xi1, xi2, etae;
+
+  ex = basis[0];
+  ey = basis[1];
+  ez = basis[2];
+
+  add3(r1,r2,r);
+  scale3(0.5,r);
+  add3(p1,p2,p);
+  scale3(0.5,p);
+  
+  sub3(p,r,delr);
+
+  sub3(r2,r1,l);
+  normalize3(l,l);
+  sub3(p2,p1,m);
+  normalize3(m,m);
+
+  psi = dot3(l,m);
+  if(psi > 1.0) psi = 1.0;
+  else if(psi < -1.0) psi = -1.0;
+  denom = 1.0 - psi*psi;
+
+  copy3(l,psil);
+  scale3(psi,psil);
+  copy3(m,psim);
+  scale3(psi,psim);
+
+  sub3(p,qe,delpqe);
+  rhoe = dot3(delpqe,m); 
+
+  if(denom < SMALL){
+    taur = dot3(delr,l) - rhoe*dot3(m,l);
+    taup = -rhoe;
+    etae = 0;
+  }
+  else{
+    frac = 1.0 / denom;
+    sub3(l,psim,dell_psim);
+    sub3(psil,m,delpsil_m);
+    taur = dot3(delr,dell_psim) * frac;
+    taup = dot3(delr,delpsil_m) * frac;
+    etae = -rhoe - taup;
+  }
+
+  scaleadd3(taur,l,r,rbar);
+  scaleadd3(taup,m,p,pbar);
+  sub3(pbar,rbar,delrbar);
+  
+  h = len3(delrbar);
+    
+  copy3(delrbar,ex);
+  copy3(l,ez);
+  scale3(1/h,ex);
+  cross3(ez,ex,ey);
+
+  if(dot3(m,ey) < 0) alpha = acos(psi);
+  else alpha = MY_2PI - acos(psi);
+
+  sub3(r1,rbar,delr1);
+  sub3(r2,rbar,delr2);
+  xi1 = dot3(delr1,l);
+  xi2 = dot3(delr2,l);
 
   param[0] = h;
   param[1] = alpha;
   param[2] = xi1;
   param[3] = xi2;
-  param[4] = eta1;
-  param[5] = eta2;
+  param[4] = etae;
 }
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -1276,3 +1334,21 @@ double PairMesoCNT::s(double x)
   return heaviside(-x) + heaviside(x)*heaviside(1-x)*(1 - x*x*(3 - 2*x));
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairMesoCNT::sort(int *list, int size){
+  int i,j,loc1,loc2;
+  int *tag = atom->tag;
+  for(i = 1; i < size; i++){
+    j = i;
+    loc1 = list[j-1];
+    loc2 = list[j];
+    while(j > 0 && tag[loc1] > tag[loc2]){
+      list[j] = loc1;
+      list[j-1] = loc2;
+      j--;
+      loc1 = list[j-1];
+      loc2 = list[j];
+    }
+  } 
+}

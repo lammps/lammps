@@ -64,12 +64,15 @@ class PairMesoCNT : public Pair {
   void finf(double *, double **);
   void fsemi(double *, double **);
 
-  void geom(const double *, const double *, const double *, 
+  void geominf(const double *, const double *, const double *, 
 		  const double *, double *, double **);
+  void geomsemi(const double *, const double *, const double *, 
+		  const double *, const double *, double *, double **);
   double weight(const double *, const double *,
 		  const double *, const double *);
   int heaviside(double);
-  double s(double x);
+  double s(double);
+  void sort(int *, int);
 };
 
 }

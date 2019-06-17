@@ -84,6 +84,11 @@ void ComputePETally::init()
 
 void ComputePETally::pair_setup_callback(int, int)
 {
+  // run setup only once per time step.
+  // we may be called from multiple pair styles
+
+  if (did_setup == update->ntimestep) return;
+
   const int ntotal = atom->nlocal + atom->nghost;
 
   // grow per-atom storage, if needed

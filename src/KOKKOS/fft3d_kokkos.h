@@ -17,21 +17,22 @@
 #include "pointers.h"
 #include "kokkos_type.h"
 #include "remap_kokkos.h"
-#include "kissfft_kokkos.h"
 
 #define FFT_PRECISION 2
-
 typedef double FFT_SCALAR;
+
+// if user set FFTW, it means FFTW3
+
+#ifdef FFT_FFTW
+#define FFT_FFTW3
+#endif
 
 #if defined(FFT_FFTW3)
   #include "fftw3.h"
-  #if defined(FFT_MKL)
-    #include "fftw/fftw3_mkl.h"
-  #endif
   typedef fftw_complex FFT_DATA;
+  #define FFTW_API(function)  fftw_ ## function
 #elif defined(FFT_CUFFT)
   #include "cufft.h"
-  void scale(double * ptr, double value, int n);
   typedef cufftDoubleComplex FFT_DATA;
 #else
   #include "kissfft_kokkos.h"

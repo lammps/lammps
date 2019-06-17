@@ -18,6 +18,7 @@
 #include <mpi.h>
 #include "fftdata_kokkos.h"
 #include "remap.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 

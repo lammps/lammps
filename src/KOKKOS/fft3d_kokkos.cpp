@@ -19,6 +19,7 @@
 #include "remap_kokkos.h"
 #include "kokkos_type.h"
 #include "error.h"
+#include "kokkos.h"
 
 
 using namespace LAMMPS_NS;
@@ -31,10 +32,10 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int scaled, int permute, int *nbuf, int usecollective,
-             int nthreads) : 
+             int scaled, int permute, int *nbuf, int usecollective) : 
   Pointers(lmp)
 {
+  int nthreads = lmp->kokkos->nthreads;
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
@@ -335,7 +336,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
     cufft_norm_functor<DeviceType> f(d_norm_scalar,norm);
     Kokkos::parallel_for(num,f);
     DeviceType::fence();
-  #else
+  #elif defined(FFT_KISFFT)
     kiss_norm_functor<DeviceType> f(d_out,norm);
     Kokkos::parallel_for(num,f);
     DeviceType::fence();
@@ -595,41 +596,41 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   // and scaling normalization
 
 #if defined(FFT_FFTW3)
-  if (nthreads > 1)
-    fftw_plan_with_nthreads(nthreads);
+//  if (nthreads > 1)
+//    fftw_plan_with_nthreads(nthreads);
 
-  plan->plan_1D_fast_forward =
+  plan->plan_fast_forward =
     fftw_plan_many_dft(1, &nfast,plan->total1/plan->length1,
                        NULL,&nfast,1,plan->length1,
                        NULL,&nfast,1,plan->length1,
                        FFTW_FORWARD,FFTW_ESTIMATE);
 
-  plan->plan_1D_fast_backward =
+  plan->plan_fast_backward =
     fftw_plan_many_dft(1, &nfast,plan->total1/plan->length1,
                        NULL,&nfast,1,plan->length1,
                        NULL,&nfast,1,plan->length1,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
 
-  plan->plan_1D_mid_forward =
+  plan->plan_mid_forward =
     fftw_plan_many_dft(1, &nmid,plan->total2/plan->length2,
                        NULL,&nmid,1,plan->length2,
                        NULL,&nmid,1,plan->length2,
                        FFTW_FORWARD,FFTW_ESTIMATE);
 
-  plan->plan_1D_mid_backward =
+  plan->plan_mid_backward =
     fftw_plan_many_dft(1, &nmid,plan->total2/plan->length2,
                        NULL,&nmid,1,plan->length2,
                        NULL,&nmid,1,plan->length2,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
 
 
-  plan->plan_1D_slow_forward =
+  plan->plan_slow_forward =
     fftw_plan_many_dft(1, &nslow,plan->total3/plan->length3,
-                       NULL,&slow,1,plan->length3,
-                       NULL,&slow,1,plan->length3,
+                       NULL,&nslow,1,plan->length3,
+                       NULL,&nslow,1,plan->length3,
                        FFTW_FORWARD,FFTW_ESTIMATE);
 
-  plan->plan_1D_slow_backward =
+  plan->plan_slow_backward =
     fftw_plan_many_dft(1, &nslow,plan->total3/plan->length3,
                        NULL,&nslow,1,plan->length3,
                        NULL,&nslow,1,plan->length3,
@@ -649,7 +650,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     &nslow,1,plan->length3,
     &nslow,1,plan->length3,
     CUFFT_Z2Z,plan->total3/plan->length3);
-#else  
+#else
   kissfftKK = new KissFFTKokkos<DeviceType>();
 
   plan->cfg_fast_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,0,NULL,NULL);
@@ -705,7 +706,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   delete plan;
   delete remapKK;
 
+#ifdef FFT_KISSFFT
   delete kissfftKK;
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -827,7 +830,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceTy
     cufft_norm_functor<DeviceType> f(d_norm_scalar,norm);
     Kokkos::parallel_for(num,f);
     DeviceType::fence();
-  #else
+  #elif defined(FFT_KISFFT)
     kiss_norm_functor<DeviceType> f(d_data,norm);
     Kokkos::parallel_for(num,f);
     DeviceType::fence();

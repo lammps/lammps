@@ -19,8 +19,6 @@
 #ifndef FFT_DATA_KOKKOS_H
 #define FFT_DATA_KOKKOS_H
 
-#include "kokkos_type.h"
-
 // User-settable FFT precision
 
 // FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
@@ -41,55 +39,9 @@ typedef double FFT_SCALAR;
 // Data types for single-precision complex
 
 #if FFT_PRECISION == 1
-
-// use a stripped down version of kiss fft as default fft
-
-#ifndef FFT_KISSFFT
-#define FFT_KISSFFT
-#endif
-#define kiss_fft_scalar_kokkos float
-//typedef struct {
-//    kiss_fft_scalar re;
-//    kiss_fft_scalar im;
-//} FFT_DATA;
-
-// -------------------------------------------------------------------------
-
-// Data types for double-precision complex
-
 #elif FFT_PRECISION == 2
-
-// use a stripped down version of kiss fft as default fft
-
-#ifndef FFT_KISSFFT
-#define FFT_KISSFFT
-#endif
-#define kiss_fft_scalar_kokkos double
-//typedef struct {
-//    kiss_fft_scalar re;
-//    kiss_fft_scalar im;
-//} FFT_DATA;
-
-// -------------------------------------------------------------------------
-
 #else
 #error "FFT_PRECISION needs to be either 1 (=single) or 2 (=double)"
 #endif
-
-// -------------------------------------------------------------------------
-
-#define MAXFACTORS 32
-/* e.g. an fft of length 128 has 4 factors
- as far as kissfft is concerned: 4*4*4*2  */
-template<class DeviceType>
-struct kiss_fft_state_kokkos {
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  int nfft;
-  int inverse;
-  typename AT::t_int_64 d_factors;
-  typename AT::t_FFT_DATA_1d d_twiddles;
-  typename AT::t_FFT_DATA_1d d_scratch;
-};
 
 #endif

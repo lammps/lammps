@@ -128,10 +128,10 @@
     do{ (c)[0] *= (s);\
         (c)[1] *= (s); }while(0)
 
-#define  C_ADD( res, a,b)\
-    do { \
-            (res)[0]=(a)[0]+(b)[0];  (res)[1]=(a)[1]+(b)[1]; \
-    }while(0)
+//#define  C_ADD( res, a,b)\
+//    do { \
+//            (res)[0]=(a)[0]+(b)[0];  (res)[1]=(a)[1]+(b)[1]; \
+//    }while(0)
 
 #define  C_SUB( res, a,b)\
     do { \
@@ -165,6 +165,20 @@
         }while(0)
 
 namespace LAMMPS_NS {
+
+#define MAXFACTORS 32
+/* e.g. an fft of length 128 has 4 factors
+ as far as kissfft is concerned: 4*4*4*2  */
+template<class DeviceType>
+struct kiss_fft_state_kokkos {
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  int nfft;
+  int inverse;
+  typename AT::t_int_64 d_factors;
+  typename AT::t_FFT_DATA_1d d_twiddles;
+  typename AT::t_FFT_DATA_1d d_scratch;
+};
 
 template<class DeviceType>
 class KissFFTKokkos {

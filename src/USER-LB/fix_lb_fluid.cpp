@@ -552,7 +552,7 @@ FixLbFluid::~FixLbFluid()
   MPI_Type_free(&passzf);
   MPI_Type_free(&passxu);
   MPI_Type_free(&passyu);
-  MPI_Type_free(&passzf);
+  MPI_Type_free(&passzu);
   MPI_Type_free(&passxrho);
   MPI_Type_free(&passyrho);
   MPI_Type_free(&passzrho);

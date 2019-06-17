@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis)
+------------------------------------------------------------------------- */
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +40,13 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
+  int ngpus = lmp->kokkos->ngpus;
+
+#if defined(FFT_FFTW3)
+  if (ngpus > 0)
+    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA");
+#endif
+
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
@@ -596,8 +607,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   // and scaling normalization
 
 #if defined(FFT_FFTW3)
-//  if (nthreads > 1)
-//    fftw_plan_with_nthreads(nthreads);
+  if (nthreads > 1)
+    fftw_plan_with_nthreads(nthreads);
 
   plan->plan_fast_forward =
     fftw_plan_many_dft(1, &nfast,plan->total1/plan->length1,

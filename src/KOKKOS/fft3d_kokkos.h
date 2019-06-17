@@ -135,4 +135,9 @@ The FFT setup for the PPPM solver failed, typically due
 to lack of memory.  This is an unusual error.  Check the
 size of the FFT grid you are requesting.
 
+E: Cannot use the FFTW library with Kokkos CUDA
+
+Kokkos CUDA doesn't support using the FFTW library to
+calculate FFTs for PPPM on GPUs.
+
 */

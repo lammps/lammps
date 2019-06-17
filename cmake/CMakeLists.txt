@@ -106,6 +106,8 @@ if(BUILD_LIB)
   endif()
 endif()
 
+option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
+
 if(NOT BUILD_EXE AND NOT BUILD_LIB)
   message(FATAL_ERROR "You need to at least enable one of two following options: BUILD_LIB or BUILD_EXE")
 endif()
@@ -518,6 +520,18 @@ if(BUILD_EXE)
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
 
+if(BUILD_TOOLS)
+  add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
+  install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+  # ninja-build currently does not support fortran. thus we skip building this tool
+  if(NOT CMAKE_GENERATOR STREQUAL "Ninja")
+    message(STATUS "Skipping building 'chain.x' with Ninja build tool due to lack of Fortran support")
+    enable_language(Fortran)
+    add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
+    target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  endif()
+
   enable_language(C)
   get_filename_component(MSI2LMP_SOURCE_DIR ${LAMMPS_TOOLS_DIR}/msi2lmp/src ABSOLUTE)
   file(GLOB MSI2LMP_SOURCES ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
@@ -525,7 +539,6 @@ if(BUILD_EXE)
   target_link_libraries(msi2lmp m)
   install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-
 endif()
 
 include(Documentation)

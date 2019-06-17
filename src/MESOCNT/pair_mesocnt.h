@@ -22,7 +22,7 @@ class PairMesoCNT : public Pair {
   double init_one(int, int);
  
  protected:
-  int n, gamma_points, pot_points;
+  int me, n, gamma_points, pot_points;
   int redlist_size,chain_size,end_size;
   int *redlist,*nchain,*end;
   int **chain;

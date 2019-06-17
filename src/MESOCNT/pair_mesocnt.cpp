@@ -74,9 +74,10 @@ PairMesoCNT::~PairMesoCNT()
 
 void PairMesoCNT::compute(int eflag, int vflag)
 {
-  int inum,i1,i2,jj,jj1,jj2,j1num,j2num,listmax,numred,inflag,n;
-  double evdwl;
-  double *r1,*r2,*q1,*q2;
+  int inum,i,i1,i2,j,j1,j2,jj,jj1,jj2,j1num,j2num,listmax,numred,inflag,n;
+  int ind,m,mm,loc1,loc2,cid,cnum,cn,tag1,tag2,idprev,idnext;
+  double w,sumw,sumwreq,evdwl;
+  double *r1,*r2,*q1,*q2,*pend;
 
   int *ilist,*j1list,*j2list,*numneigh,**firstneigh;
  
@@ -106,10 +107,20 @@ void PairMesoCNT::compute(int eflag, int vflag)
     
     // reduce neighbors to common list
     
-    j1list = firstneigh[i1];
-    j2list = firstneigh[i2];
-    j1num = numneigh[i1];
-    j2num = numneigh[i2];
+    if(i1 > nlocal-1){
+      j1num = 0;
+    }
+    else{
+      j1list = firstneigh[i1];
+      j1num = numneigh[i1];
+    }
+    if(i2 > nlocal-1){
+      j2num = 0;
+    }
+    else{
+      j2list = firstneigh[i2];
+      j2num = numneigh[i2];
+    }
 
     listmax = j1num + j2num;
     if(listmax < 2) continue;
@@ -120,8 +131,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
     numred = 0;
     for(jj1 = 0; jj1 < j1num; jj1++){
-      int ind = j1list[jj1];
-      if (mol[ind] == mol[i1] && abs(tag[ind] - tag[i1]) < 5) continue;
+      ind = j1list[jj1];
+      if ((mol[ind] == mol[i1]) && (abs(tag[ind] - tag[i1]) < 5)) continue;
       redlist[numred++] = ind;
     }
     for(jj2 = 0; jj2 < j2num; jj2++){
@@ -135,8 +146,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
         inflag = 0;
 	continue;
       }
-      int ind = j2list[jj2];
-      if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < 5) continue; 
+      ind = j2list[jj2];
+      if ((mol[ind] == mol[i2]) && (abs(tag[ind] - tag[i2]) < 5)) continue; 
       redlist[numred++] = ind;
     }
     
@@ -144,8 +155,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     
     // insertion sort according to atom-id
     
-    int m,loc1,loc2;
-    for(int mm = 1; mm < numred; mm++){
+    for(mm = 1; mm < numred; mm++){
       m = mm;
       loc1 = redlist[m-1];
       loc2 = redlist[m];
@@ -160,8 +170,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
  
     // split into connected chains
     
-    int cid = 0;
-    int cnum = 0;
+    cid = 0;
+    cnum = 0;
     
     if(numred > chain_size){
       chain_size = 2 * numred;
@@ -170,7 +180,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
       memory->grow(nchain,chain_size,"pair:nchain");
     }
     
-    int j1,j2;
     for(jj = 0; jj < numred-1; jj++){
       j1 = redlist[jj];
       j2 = redlist[jj+1];
@@ -184,48 +193,57 @@ void PairMesoCNT::compute(int eflag, int vflag)
     nchain[cid++] = cnum;
 
     // check for ends
-   
+ 
     if(cid > end_size){
       end_size = 2 * cid;
       memory->grow(end,end_size,"pair:end_size");
     }
     
-    int cn,tag1,tag2;
-    for(int i = 0; i < cid; i++){
+    for(i = 0; i < cid; i++){
       cn = nchain[i];
-      tag1 = tag[chain[i][0]];
-      tag2 = tag[chain[i][cn-1]];
+      loc1 = chain[i][0];
+      loc2 = chain[i][cn-1];
+      tag1 = tag[loc1];
+      tag2 = tag[loc2];
       end[i] = 0;
       if(tag1 == 1) end[i] = 1;
       else{
-        int idprev = atom->map(tag1-1);
-	if(idprev == -1 || mol[chain[i][0]] != mol[idprev]) end[i] = 1;
+        idprev = atom->map(tag1-1);
+	if(idprev == -1 || mol[loc1] != mol[idprev]) end[i] = 1;
       }
       if(tag2 == atom->natoms) end[i] = 2;
       else{
-        int idnext = atom->map(tag2+1);
-	if(idnext == -1 || mol[chain[i][0]] != mol[idnext]) end[i] = 2;
+        idnext = atom->map(tag2+1);
+	if(idnext == -1 || mol[loc2] != mol[idnext]) end[i] = 2;
       }
     }
 
     // compute subsitute chains, forces and energies
 
     using namespace MathExtra;
-    double w,sumwreq,sumw;
     
-    for(int i = 0; i < cid; i++){
+    for(i = 0; i < cid; i++){
       if(nchain[i] < 2) continue;
 
       zero3(p1);
       zero3(p2);
       sumw = 0;
 
-      for(int j = 0; j < nchain[i]-1; j++){
+      loc1 = chain[i][0];
+      loc2 = chain[i][nchain[i]-2];
+      if(end[i] == 1) pend = x[loc1];
+      if(end[i] == 2) pend = x[loc2];
+
+      for(j = 0; j < nchain[i]-1; j++){
 	q1 = x[chain[i][j]];
 	q2 = x[chain[i][j+1]];
 
 	w = weight(r1,r2,q1,q2);
-	if(w < SMALL) continue;
+	if(w < SMALL){ 
+          if(end[i] == 1 && j == 0) end[i] = 0;
+	  else if(end[i] == 2 && j == nchain[i] - 2) end[i] = 0;
+	  continue;
+	}
 	sumw += w;
 	MathExtra::scaleadd3(w,q1,p1,p1);
 	MathExtra::scaleadd3(w,q2,p2,p2);
@@ -235,35 +253,23 @@ void PairMesoCNT::compute(int eflag, int vflag)
       sumwreq = 1 / sumw;
       scale3(sumwreq,p1);
       scale3(sumwreq,p2);
-       
-      if(end[i] == 1){
+
+      if(end[i] == 0){
         geom(r1,r2,p1,p2,param,basis);
-	if(param[0] > cutoff){ 
-	  continue;
-	}
-	fsemi(param,flocal);
+        if(param[0] > cutoff) continue;
+        finf(param,flocal);
       }
-      else if(end[i] == 2){
-	geom(r1,r2,p2,p1,param,basis);
-	if(param[0] > cutoff){ 
-	  continue;
-	}
+      else if(end[i] == 1){
+        geom(r1,r2,pend,p2,param,basis);
+	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
       else{
-        geom(r1,r2,p1,p2,param,basis);
-	if(param[0] > cutoff){ 
-	  continue;
-	}
-	finf(param,flocal);
+        geom(r1,r2,p1,pend,param,basis);
+	if(param[0] > cutoff) continue;
+	fsemi(param,flocal);
       }
-      
-
-      if(eflag){
-        if(end[i] == 0) evdwl = uinf(param);
-        else evdwl = usemi(param);
-      }
-
+            
       f[i1][0] += flocal[0][0]*basis[0][0] 
 	      + flocal[0][1]*basis[1][0] 
 	      + flocal[0][2]*basis[2][0];
@@ -282,8 +288,37 @@ void PairMesoCNT::compute(int eflag, int vflag)
       f[i2][2] += flocal[1][0]*basis[0][2]
 	      + flocal[1][1]*basis[1][2]
 	      + flocal[1][2]*basis[2][2];
+    
+      if(eflag_either){
+	if(eflag_global){
+          if(end[i] == 0) evdwl = uinf(param);
+          else evdwl = usemi(param);
+	  eng_vdwl += 0.5 * evdwl;
+	}
+	if(eflag_atom){
+	  eatom[i1] += 0.25 * evdwl;
+	  eatom[i2] += 0.25 * evdwl;
+	}
+      }
+
+      if(vflag_atom){
+        vatom[i1][0] += f[i1][0]*x[i1][0];
+	vatom[i1][1] += f[i1][1]*x[i1][1];
+	vatom[i1][2] += f[i1][2]*x[i1][2];
+	vatom[i1][3] += f[i1][1]*x[i1][0];
+	vatom[i1][4] += f[i1][2]*x[i1][0];
+	vatom[i1][5] += f[i1][2]*x[i1][1];
+        vatom[i2][0] += f[i2][0]*x[i2][0];
+	vatom[i2][1] += f[i2][1]*x[i2][1];
+	vatom[i2][2] += f[i2][2]*x[i2][2];
+	vatom[i2][3] += f[i2][1]*x[i2][0];
+	vatom[i2][4] += f[i2][2]*x[i2][0];
+	vatom[i2][5] += f[i2][2]*x[i2][1];
+      }
     }
-  } 
+  }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -394,7 +429,6 @@ void PairMesoCNT::coeff(int narg, char **arg)
   ctheta = 0.35 + 0.0226*(radius*angstromrec - 6.785);
 
   //Parse and bcast data
-  int me;
   MPI_Comm_rank(world,&me);
   if (me == 0) { 
     read_file(gamma_file,gamma_data,&start_gamma,&del_gamma,gamma_points);

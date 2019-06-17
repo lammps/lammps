@@ -31,13 +31,14 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int scaled, int permute, int *nbuf, int usecollective) : 
+             int scaled, int permute, int *nbuf, int usecollective,
+             int nthreads) : 
   Pointers(lmp)
 {
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                            scaled,permute,nbuf,usecollective);
+                            scaled,permute,nbuf,usecollective,nthreads);
   if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
 }
 
@@ -211,7 +212,10 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
   dim = 0;
 
   #if defined(FFT_FFTW3)
-    fftw_execute_dft(plan->plan_1D[dim][dir],d_data.data(),d_data.data());
+    if (flag == -1)
+      fftw_execute_dft(plan->plan_fast_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+    else
+      fftw_execute_dft(plan->plan_fast_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
   #elif defined(FFT_CUFFT)
     cufftExecZ2Z(plan->plan_fast,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
   #else
@@ -250,7 +254,10 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
   dim = 1;
 
   #if defined(FFT_FFTW3)
-    fftw_execute_dft(plan->plan_1D[dim][dir],d_data.data(),d_data.data());
+    if (flag == -1)
+      fftw_execute_dft(plan->plan_mid_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+    else
+      fftw_execute_dft(plan->plan_mid_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
   #elif defined(FFT_CUFFT)
     cufftExecZ2Z(plan->plan_mid,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
   #else
@@ -286,7 +293,11 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
   dim = 2;
 
   #if defined(FFT_FFTW3)
-    fftw_execute_dft(plan->plan_1D[dim][dir],d_data.data(),d_data.data());
+    if (flag == -1)
+      fftw_execute_dft(plan->plan_slow_forward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+    else
+      fftw_execute_dft(plan->plan_slow_backward,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data());
+
   #elif defined(FFT_CUFFT)
     cufftExecZ2Z(plan->plan_slow,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
     // CUDA
@@ -361,7 +372,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
        int in_klo, int in_khi,
        int out_ilo, int out_ihi, int out_jlo, int out_jhi,
        int out_klo, int out_khi,
-       int scaled, int permute, int *nbuf, int usecollective)
+       int scaled, int permute, int *nbuf, int usecollective,
+       int nthreads)
 {
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   int me,nprocs;
@@ -372,13 +384,6 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   int out_size,first_size,second_size,third_size,copy_size,scratch_size;
   int np1,np2,ip1,ip2;
   int list[50];
- 
-  #ifdef FFT_FFTW
-  if (nthreads > 1) { /////////////
-    std::cout << "fftw_init_threads: " << fftw_init_threads() << std::endl;;
-    fftw_plan_with_nthreads(nthreads);
-  }
-  #endif
 
   // query MPI info
 
@@ -586,25 +591,49 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->d_scratch = typename ArrayTypes<DeviceType>::t_FFT_DATA_1d("fft3d:scratch",scratch_size);
   }
 
-  
-    kissfftKK = new KissFFTKokkos<DeviceType>();
-
   // system specific pre-computation of 1d FFT coeffs
   // and scaling normalization
 
 #if defined(FFT_FFTW3)
+  if (nthreads > 1)
+    fftw_plan_with_nthreads(nthreads);
 
-  for (int dim = 0; dim < 3; dim++) {
-    for (int dir = 0; dir < 2; dir++) {
-      plan->plan_1D[dim][dir] =
-        fftw_plan_many_dft(1, &n[dim],plan->totals[dim]/plan->lengths[dim],
-                           NULL,&n[dim],1,plan->lengths[dim],
-                           NULL,&n[dim],1,plan->lengths[dim],
-                           (dir == forward) ? FFTW_FORWARD : FFTW_BACKWARD,
-                           FFTW_ESTIMATE);
-    }
-  }
+  plan->plan_1D_fast_forward =
+    fftw_plan_many_dft(1, &nfast,plan->total1/plan->length1,
+                       NULL,&nfast,1,plan->length1,
+                       NULL,&nfast,1,plan->length1,
+                       FFTW_FORWARD,FFTW_ESTIMATE);
 
+  plan->plan_1D_fast_backward =
+    fftw_plan_many_dft(1, &nfast,plan->total1/plan->length1,
+                       NULL,&nfast,1,plan->length1,
+                       NULL,&nfast,1,plan->length1,
+                       FFTW_BACKWARD,FFTW_ESTIMATE);
+
+  plan->plan_1D_mid_forward =
+    fftw_plan_many_dft(1, &nmid,plan->total2/plan->length2,
+                       NULL,&nmid,1,plan->length2,
+                       NULL,&nmid,1,plan->length2,
+                       FFTW_FORWARD,FFTW_ESTIMATE);
+
+  plan->plan_1D_mid_backward =
+    fftw_plan_many_dft(1, &nmid,plan->total2/plan->length2,
+                       NULL,&nmid,1,plan->length2,
+                       NULL,&nmid,1,plan->length2,
+                       FFTW_BACKWARD,FFTW_ESTIMATE);
+
+
+  plan->plan_1D_slow_forward =
+    fftw_plan_many_dft(1, &nslow,plan->total3/plan->length3,
+                       NULL,&slow,1,plan->length3,
+                       NULL,&slow,1,plan->length3,
+                       FFTW_FORWARD,FFTW_ESTIMATE);
+
+  plan->plan_1D_slow_backward =
+    fftw_plan_many_dft(1, &nslow,plan->total3/plan->length3,
+                       NULL,&nslow,1,plan->length3,
+                       NULL,&nslow,1,plan->length3,
+                       FFTW_BACKWARD,FFTW_ESTIMATE);
 #elif defined(FFT_CUFFT)
   cufftPlanMany(&(plan->plan_fast), 1, &nfast,
     &nfast,1,plan->length1,
@@ -620,7 +649,9 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     &nslow,1,plan->length3,
     &nslow,1,plan->length3,
     CUFFT_Z2Z,plan->total3/plan->length3);
-#else
+#else  
+  kissfftKK = new KissFFTKokkos<DeviceType>();
+
   plan->cfg_fast_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,0,NULL,NULL);
   plan->cfg_fast_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,1,NULL,NULL);
 
@@ -741,7 +772,15 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceTy
 
 #if defined(FFT_FFTW3)
   for (int dim = 0; dim < 3; dim++)
-    fftw_execute_dft(plan->plan_1D[dim][dir],data,data);
+    if (flag == -1) {
+      fftw_execute_dft(plan->plan_fast_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+      fftw_execute_dft(plan->plan_mid_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+      fftw_execute_dft(plan->plan_slow_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    } else {
+      fftw_execute_dft(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+      fftw_execute_dft(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+      fftw_execute_dft(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    }
 #elif defined(FFT_CUFFT)
     cufftExecZ2Z(plan->plan_fast,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
     cufftExecZ2Z(plan->plan_mid,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);

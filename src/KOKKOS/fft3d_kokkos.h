@@ -103,6 +103,7 @@ class FFT3dKokkos : protected Pointers {
  private:
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   RemapKokkos<DeviceType> *remapKK;
+
 #ifdef FFT_KISSFFT
   KissFFTKokkos<DeviceType> *kissfftKK;
 #endif
@@ -112,7 +113,7 @@ class FFT3dKokkos : protected Pointers {
   struct fft_plan_3d_kokkos<DeviceType> *fft_3d_create_plan_kokkos(MPI_Comm, int, int, int,
                                          int, int, int, int, int,
                                          int, int, int, int, int, int, int,
-                                         int, int, int *, int);
+                                         int, int, int *, int, int);
 
   void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *);
 

@@ -15,10 +15,30 @@
 #define LMP_FFT3D_KOKKOS_H
 
 #include "pointers.h"
-#include "fft3d.h"
 #include "kokkos_type.h"
 #include "remap_kokkos.h"
 #include "kissfft_kokkos.h"
+
+#define FFT_PRECISION 2
+
+typedef double FFT_SCALAR;
+
+#if defined(FFT_FFTW3)
+  #include "fftw3.h"
+  #if defined(FFT_MKL)
+    #include "fftw/fftw3_mkl.h"
+  #endif
+  typedef fftw_complex FFT_DATA;
+#elif defined(FFT_CUFFT)
+  #include "cufft.h"
+  void scale(double * ptr, double value, int n);
+  typedef cufftDoubleComplex FFT_DATA;
+#else
+  #include "kissfft_kokkos.h"
+  #ifndef FFT_KISSFFT
+  #define FFT_KISSFFT
+  #endif
+#endif
 
 namespace LAMMPS_NS {
 
@@ -46,12 +66,25 @@ struct fft_plan_3d_kokkos {
   double norm;                      // normalization factor for rescaling
 
                                     // system specific 1d FFT info
+#if defined(FFT_FFTW3)
+  FFTW_API(plan) plan_fast_forward;
+  FFTW_API(plan) plan_fast_backward;
+  FFTW_API(plan) plan_mid_forward;
+  FFTW_API(plan) plan_mid_backward;
+  FFTW_API(plan) plan_slow_forward;
+  FFTW_API(plan) plan_slow_backward;
+#elif defined(FFT_CUFFT)
+  cufftHandle plan_fast;
+  cufftHandle plan_mid;
+  cufftHandle plan_slow;
+#else
   kiss_fft_state_kokkos<DeviceType> cfg_fast_forward;
   kiss_fft_state_kokkos<DeviceType> cfg_fast_backward;
   kiss_fft_state_kokkos<DeviceType> cfg_mid_forward;
   kiss_fft_state_kokkos<DeviceType> cfg_mid_backward;
   kiss_fft_state_kokkos<DeviceType> cfg_slow_forward;
   kiss_fft_state_kokkos<DeviceType> cfg_slow_backward;
+#endif
 };
 
 template<class DeviceType>
@@ -70,7 +103,9 @@ class FFT3dKokkos : protected Pointers {
  private:
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   RemapKokkos<DeviceType> *remapKK;
+#ifdef FFT_KISSFFT
   KissFFTKokkos<DeviceType> *kissfftKK;
+#endif
 
   void fft_3d_kokkos(typename AT::t_FFT_DATA_1d, typename AT::t_FFT_DATA_1d, int, struct fft_plan_3d_kokkos<DeviceType> *);
 
@@ -82,6 +117,8 @@ class FFT3dKokkos : protected Pointers {
   void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *);
 
   void fft_3d_1d_only_kokkos(typename AT::t_FFT_DATA_1d, int, int, struct fft_plan_3d_kokkos<DeviceType> *);
+
+  void bifactor(int, int *, int *);
 };
 
 }

@@ -35,7 +35,7 @@ enables the two codes to work in tandem to perform a simulation.
 When this command is invoked, LAMMPS will run in server mode in an
 endless loop, waiting for messages from the client code.  The client
 signals when it is done sending messages to LAMMPS, at which point the
-loop will exit, and the remainder of the LAMMPS script will be
+loop will exit, and the remainder of the LAMMPS input script will be
 processed.
 
 The {protocol} argument defines the format and content of messages

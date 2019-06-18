@@ -37,10 +37,10 @@ computes their interaction, and returns the energy, forces, and virial
 for the interacting particles to LAMMPS, so it can complete the
 timestep.
 
-The server code could be a quantum code, or another classical MD code
-which encodes a force field (pair_style in LAMMPS lingo) which LAMMPS
-does not have.  In the quantum case, this fix is a mechanism for
-running {ab initio} MD with quantum forces.
+Note that the server code can be a quantum code, or another classical
+MD code which encodes a force field (pair_style in LAMMPS lingo) which
+LAMMPS does not have.  In the quantum case, this fix is a mechanism
+for running {ab initio} MD with quantum forces.
 
 The group associated with this fix is ignored.
 
@@ -96,8 +96,8 @@ was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
 A script that uses this command must also use the
-"message"_message.html command to setup the messaging protocol with
-the other server code.
+"message"_message.html command to setup and shut down the messaging
+protocol with the server code.
 
 [Related commands:]
 

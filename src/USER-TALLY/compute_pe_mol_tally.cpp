@@ -39,6 +39,7 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 4;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   extvector = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run

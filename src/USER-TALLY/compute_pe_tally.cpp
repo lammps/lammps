@@ -40,6 +40,7 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 2;
   extscalar = 1;

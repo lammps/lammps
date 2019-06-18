@@ -113,9 +113,11 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   if (strcmp(style,"one") == 0) {
     line = new char[256+6*64];
+    memset(line,0,256+6*64);
     strcpy(line,ONE);
   } else if (strcmp(style,"multi") == 0) {
     line = new char[256+12*64];
+    memset(line,0,256+12*64);
     strcpy(line,MULTI);
     lineflag = MULTILINE;
 

@@ -229,7 +229,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
     cufftExecZ2Z(plan->plan_fast,(FFT_DATA *)d_data.data(),(FFT_DATA *)d_data.data(),flag);
   #else
     typename AT::t_FFT_DATA_1d d_tmp = 
-     typename AT::t_FFT_DATA_1d("fft_3d:tmp",d_in.dimension_0());
+     typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
     kiss_fft_functor<DeviceType> f;
     if (flag == -1)
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_forward,length);
@@ -237,7 +237,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_backward,length);
     Kokkos::parallel_for(total/length,f);
     d_data = d_tmp;
-    d_tmp = typename AT::t_FFT_DATA_1d("fft_3d:tmp",d_in.dimension_0());
+    d_tmp = typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
   #endif
 
 
@@ -275,7 +275,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename AT::t_FFT_DATA_1d d_in, typ
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_backward,length);
     Kokkos::parallel_for(total/length,f);
     d_data = d_tmp;
-    d_tmp = typename AT::t_FFT_DATA_1d("fft_3d:tmp",d_in.dimension_0());
+    d_tmp = typename AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.dimension_0());
   #endif
 
   // 2nd mid-remap to prepare for 3rd FFTs

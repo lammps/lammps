@@ -46,8 +46,8 @@ CACMinFire::CACMinFire(LAMMPS *lmp) : Min(lmp) {
 void CACMinFire::init()
 {
   Min::init();
-  if (!atom->CAC_flag) error->all(FLERR,"min style cac/cg requires a CAC atom style");
-  if (!atom->CAC_pair_flag) error->all(FLERR,"min style cac/cg requires a CAC pair style");
+  if (!atom->CAC_flag) error->all(FLERR,"min style cac/fire requires a CAC atom style");
+  if (!atom->CAC_pair_flag) error->all(FLERR,"min style cac/fire requires a CAC pair style");
   dt = update->dt;
   dtmax = TMAX * dt;
   alpha = ALPHA0;

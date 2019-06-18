@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(CAC/xyz,DumpCACXYZ)
+DumpStyle(cac/xyz,DumpCACXYZ)
 
 #else
 

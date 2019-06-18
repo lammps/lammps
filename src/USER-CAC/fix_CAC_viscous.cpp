@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_CAC_viscous.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,7 @@ using namespace FixConst;
 FixViscousCAC::FixViscousCAC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
+  if (narg < 4) error->all(FLERR,"Illegal fix cac/viscous command");
 
   double gamma_one = force->numeric(FLERR,arg[3]);
   gamma = new double[atom->ntypes+1];
@@ -40,14 +40,14 @@ FixViscousCAC::FixViscousCAC(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix viscous command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix cac/viscous command");
       int itype = force->inumeric(FLERR,arg[iarg+1]);
       double scale = force->numeric(FLERR,arg[iarg+2]);
       if (itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR,"Illegal fix viscous command");
+        error->all(FLERR,"Illegal fix cac/viscous command");
       gamma[itype] = gamma_one * scale;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix viscous command");
+    } else error->all(FLERR,"Illegal fix cac/viscous command");
   }
 
   respa_level_support = 1;
@@ -77,7 +77,7 @@ int FixViscousCAC::setmask()
 void FixViscousCAC::init()
 {
   int max_respa = 0;
-  if (!atom->CAC_flag) error->all(FLERR,"fix CAC/viscous requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"fix cac/viscous requires a CAC atom style");
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,max_respa);

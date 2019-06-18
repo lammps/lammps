@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(CAC/setforce,FixCAC_Set_Force)
+FixStyle(cac/setforce,FixCAC_Set_Force)
 
 #else
 

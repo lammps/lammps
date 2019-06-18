@@ -6,11 +6,11 @@
 
 :line
 
-fix CAC/addforce command :h3
+fix cac/addforce command :h3
 
 [Syntax:]
 
-fix ID group-ID CAC/addforce fx fy fz keyword value ... :pre
+fix ID group-ID cac/addforce fx fy fz keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 CAC/addforce = style name of this fix command :l
@@ -24,9 +24,9 @@ keyword = {region}  :l
 
 [Examples:]
 
-fix freeze indenter CAC/addforce 0.0 0.0 0.0
-fix 2 edge CAC/addforce NULL 0.0 0.0
-fix 2 edge CAC/addforce NULL 0.0 v_oscillate :pre
+fix freeze indenter cac/addforce 0.0 0.0 0.0
+fix 2 edge cac/addforce NULL 0.0 0.0
+fix 2 edge cac/addforce NULL 0.0 v_oscillate :pre
 
 [Description:]
 
@@ -96,6 +96,6 @@ This fix requires a CAC atom style
 
 [Related commands:]
 
-"fix CAC/addforce"_fix_CAC_addforce.html
+"fix cac/addforce"_fix_CAC_addforce.html
 
 [Default:] none

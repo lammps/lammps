@@ -11,10 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_CAC_eam.h"
 #include "atom.h"
 #include "force.h"
@@ -31,7 +31,7 @@
 #include "error.h"
 #include "domain.h"
 #include "asa_user.h"
-#include <stdint.h>
+
 
 //#include "math_extra.h"
 #define MAXNEIGH1  70
@@ -50,36 +50,36 @@ PairCACEAM::PairCACEAM(LAMMPS *lmp) : PairCAC(lmp)
 
 
 	
-	restartinfo = 0;
+  restartinfo = 0;
 	
-	manybody_flag = 1;
-	rho = NULL;
-	fp = NULL;
-	map = NULL;
-	type2frho = NULL;
+  manybody_flag = 1;
+  rho = NULL;
+  fp = NULL;
+  map = NULL;
+  type2frho = NULL;
 
-	nfuncfl = 0;
-	funcfl = NULL;
+  nfuncfl = 0;
+  funcfl = NULL;
 
-	setfl = NULL;
-	fs = NULL;
+  setfl = NULL;
+  fs = NULL;
 
-	frho = NULL;
-	rhor = NULL;
-	z2r = NULL;
-	scale = NULL;
+  frho = NULL;
+  rhor = NULL;
+  z2r = NULL;
+  scale = NULL;
 
-	frho_spline = NULL;
-	rhor_spline = NULL;
-	z2r_spline = NULL;
-	outer_neighflag = 1;
+  frho_spline = NULL;
+  rhor_spline = NULL;
+  z2r_spline = NULL;
+  outer_neighflag = 1;
  
-	inner_neighbor_coords = NULL;
-	outer_neighbor_coords = NULL;
-	inner_neighbor_types = NULL;
-	outer_neighbor_types = NULL;
-	rho = NULL;
-	fp = NULL;
+  inner_neighbor_coords = NULL;
+  outer_neighbor_coords = NULL;
+  inner_neighbor_types = NULL;
+  outer_neighbor_types = NULL;
+  rho = NULL;
+  fp = NULL;
   nmax = 0;
   
 
@@ -98,77 +98,72 @@ PairCACEAM::PairCACEAM(LAMMPS *lmp) : PairCAC(lmp)
 
 PairCACEAM::~PairCACEAM() {
 
-	if (copymode) return;
+  if (copymode) return;
 
-	memory->destroy(rho);
-	memory->destroy(fp);
+  memory->destroy(rho);
+  memory->destroy(fp);
 
-	if (allocated) {
-		memory->destroy(setflag);
-		memory->destroy(cutsq);
-		delete[] map;
-		delete[] type2frho;
-		map = NULL;
-		type2frho = NULL;
-		memory->destroy(type2rhor);
-		memory->destroy(type2z2r);
-		memory->destroy(scale);
-		memory->destroy(mass_matrix);
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    delete[] map;
+    delete[] type2frho;
+    map = NULL;
+    type2frho = NULL;
+    memory->destroy(type2rhor);
+    memory->destroy(type2z2r);
+    memory->destroy(scale);
+    memory->destroy(mass_matrix);
 
-		memory->destroy(surface_counts);
-		memory->destroy(interior_scales);
-		memory->destroy(inner_neighbor_coords);
-		memory->destroy(outer_neighbor_coords);
-		memory->destroy(inner_neighbor_types);
-		memory->destroy(outer_neighbor_types);
-		memory->destroy(rho);
-		memory->destroy(fp);
-	}
+    memory->destroy(surface_counts);
+    memory->destroy(interior_scales);
+    memory->destroy(inner_neighbor_coords);
+    memory->destroy(outer_neighbor_coords);
+    memory->destroy(inner_neighbor_types);
+    memory->destroy(outer_neighbor_types);
+    memory->destroy(rho);
+    memory->destroy(fp);
+  }
 
-	if (funcfl) {
-		for (int i = 0; i < nfuncfl; i++) {
-			delete[] funcfl[i].file;
-			memory->destroy(funcfl[i].frho);
-			memory->destroy(funcfl[i].rhor);
-			memory->destroy(funcfl[i].zr);
-		}
-		memory->sfree(funcfl);
-		funcfl = NULL;
-	}
+  if (funcfl) {
+    for (int i = 0; i < nfuncfl; i++) {
+      delete[] funcfl[i].file;
+      memory->destroy(funcfl[i].frho);
+      memory->destroy(funcfl[i].rhor);
+      memory->destroy(funcfl[i].zr);
+    }
+    memory->sfree(funcfl);
+    funcfl = NULL;
+  }
 
-	if (setfl) {
-		for (int i = 0; i < setfl->nelements; i++) delete[] setfl->elements[i];
-		delete[] setfl->elements;
-		delete[] setfl->mass;
-		memory->destroy(setfl->frho);
-		memory->destroy(setfl->rhor);
-		memory->destroy(setfl->z2r);
-		delete setfl;
-		setfl = NULL;
-	}
+  if (setfl) {
+    for (int i = 0; i < setfl->nelements; i++) delete[] setfl->elements[i];
+    delete[] setfl->elements;
+    delete[] setfl->mass;
+    memory->destroy(setfl->frho);
+    memory->destroy(setfl->rhor);
+    memory->destroy(setfl->z2r);
+    delete setfl;
+    setfl = NULL;
+  }
 
-	if (fs) {
-		for (int i = 0; i < fs->nelements; i++) delete[] fs->elements[i];
-		delete[] fs->elements;
-		delete[] fs->mass;
-		memory->destroy(fs->frho);
-		memory->destroy(fs->rhor);
-		memory->destroy(fs->z2r);
-		delete fs;
-		fs = NULL;
-	}
+  if (fs) {
+    for (int i = 0; i < fs->nelements; i++) delete[] fs->elements[i];
+    delete[] fs->elements;
+    delete[] fs->mass;
+    memory->destroy(fs->frho);
+    memory->destroy(fs->rhor);
+    memory->destroy(fs->z2r);
+    delete fs;
+    fs = NULL;
+  }
 
-	memory->destroy(frho);
-	memory->destroy(rhor);
-	memory->destroy(z2r);
-
-	memory->destroy(frho_spline);
-	memory->destroy(rhor_spline);
-	memory->destroy(z2r_spline);
-
-
-
-
+  memory->destroy(frho);
+  memory->destroy(rhor);
+  memory->destroy(z2r);
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
 }
 
 
@@ -179,28 +174,23 @@ PairCACEAM::~PairCACEAM() {
 
 void PairCACEAM::allocate()
 {
-	allocated = 1;
-	int n = atom->ntypes;
-	max_nodes_per_element = atom->nodes_per_element;
-	memory->create(setflag, n + 1, n + 1, "pair:setflag");
-	for (int i = 1; i <= n; i++)
-		for (int j = i; j <= n; j++)
-			setflag[i][j] = 0;
+  allocated = 1;
+  int n = atom->ntypes;
+  max_nodes_per_element = atom->nodes_per_element;
+  memory->create(setflag, n + 1, n + 1, "pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
 
-	memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
+  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
 
-	map = new int[n + 1];
-	for (int i = 1; i <= n; i++) map[i] = -1;
+  map = new int[n + 1];
+  for (int i = 1; i <= n; i++) map[i] = -1;
 
-	type2frho = new int[n + 1];
-	memory->create(type2rhor, n + 1, n + 1, "pair:type2rhor");
-	memory->create(type2z2r, n + 1, n + 1, "pair:type2z2r");
-	memory->create(scale, n + 1, n + 1, "pair:scale");
-
-
-
-
-
+  type2frho = new int[n + 1];
+  memory->create(type2rhor, n + 1, n + 1, "pair:type2rhor");
+  memory->create(type2z2r, n + 1, n + 1, "pair:type2z2r");
+  memory->create(scale, n + 1, n + 1, "pair:scale");
   memory->create(mass_matrix,max_nodes_per_element, max_nodes_per_element,"pairCAC:mass_matrix");
   memory->create(mass_copy, max_nodes_per_element, max_nodes_per_element,"pairCAC:copy_mass_matrix");
   memory->create(force_column, max_nodes_per_element,3,"pairCAC:force_residue");
@@ -327,7 +317,7 @@ void PairCACEAM::init_style()
 	int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->CAC = 1;
+  neighbor->requests[irequest]->cac = 1;
   //surface selection array 
   surf_set[0][0] = 1;
   surf_set[0][1] = -1;

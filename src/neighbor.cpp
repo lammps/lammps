@@ -1628,7 +1628,7 @@ int Neighbor::choose_bin(NeighRequest *rq)
     if (!rq->ssa != !(mask & NB_SSA)) continue;
     if (!rq->kokkos_device != !(mask & NB_KOKKOS_DEVICE)) continue;
     if (!rq->kokkos_host != !(mask & NB_KOKKOS_HOST)) continue;
-    if (!rq->CAC != !(mask & NB_CAC)) continue;
+    if (!rq->cac != !(mask & NB_CAC)) continue;
 
     return i+1;
   }
@@ -1687,7 +1687,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     }
     
     //check for CAC style
-    if (rq->CAC) {
+    if (rq->cac) {
 		if (!(mask & NS_CAC)) continue;
 	  }
 
@@ -1800,7 +1800,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
     }
     
     //check for CAC style
-    if (rq->CAC) {
+    if (rq->cac) {
 		  if (!(mask & NP_CAC)) continue;
 	  }
 

@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(CAC/setvelocity,FixCAC_Set_Velocity)
+FixStyle(cac/setvelocity,FixCAC_Set_Velocity)
 
 #else
 

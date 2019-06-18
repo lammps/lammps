@@ -6,30 +6,30 @@
 
 :line
 
-pair_style CAC/coul/wolf command :h3
+pair_style cac/coul/wolf command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {CAC/coul/wolf}
+style = {cac/coul/wolf}
 args = list of arguments for a particular style :ul
-  {CAC/coul/wolf} args = alpha cutoff quadrature_flag
+  {cac/coul/wolf} args = alpha cutoff quadrature_flag
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for Coulombic interactions
     quadrature_flag = left blank or set to the {one} keyword :pre
 
 [Examples:]
 
-pair_style CAC/coul/wolf
+pair_style cac/coul/wolf
 pair_coeff * * :pre
 
-pair_style CAC/coul/wolf one
+pair_style cac/coul/wolf one
 pair_coeff * * :pre
 
 [Description:]
 
-The {CAC/coul/wof} style computes coulomb pair interactions using the Wolf
+The {cac/coul/wof} style computes coulomb pair interactions using the Wolf
 summation method for a CAC model. Other than the allotment of the 
 {one} keyword, the rest of the input parameters and pair_coeff settings 
 are as found in "pair_style coul"_pair_coul.html. For more information on 

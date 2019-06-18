@@ -13,7 +13,7 @@
 
 #ifdef ATOM_CLASS
 
-AtomStyle(CAC/charge,AtomVecCAC_Charge)
+AtomStyle(cac/charge,AtomVecCAC_Charge)
 
 #else
 
@@ -61,7 +61,7 @@ class AtomVecCAC_Charge : public AtomVecCAC {
    
   double **x,**v,**f;
   double ****nodal_positions,****nodal_velocities,****nodal_forces,
-  ****nodal_gradients, **node_charges, ****initial_nodal_positions, *scale_search_range;
+    ****nodal_gradients, **node_charges, ****initial_nodal_positions, *scale_search_range;
   int *poly_count, **node_types, *element_type,
 	  **element_scale, scale_count, oneflag, *scale_list;
   int element_type_count;

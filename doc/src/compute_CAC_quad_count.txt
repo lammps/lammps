@@ -6,18 +6,18 @@
 
 :line
 
-compute CAC/quad_count command :h3
+compute cac/quad_count command :h3
 
 [Syntax:]
 
-compute ID group-ID CAC/quad_count :pre
+compute ID group-ID cac/quad/count :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-CAC/quad_count = style name of this compute command :ul
+cac/quad/count = style name of this compute command :ul
 
 [Examples:]
 
-compute Eweight all CAC/quad_count
+compute Eweight all cac/quad/count
 
 [Description:]
 

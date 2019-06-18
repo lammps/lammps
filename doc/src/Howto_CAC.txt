@@ -35,11 +35,10 @@ defects do however require the definition
 of an unconnected mesh; this process will be discussed in detail in later sections of this Howto.
 
 Once the typical LAMMPS settings such as units, dimenion, and boundary conditions have been specified in your
-input script,the CAC style can first be invoked via the "atom_style CAC"_atom_style.html command; in 
+input script,the CAC code can first be invoked via the "atom_style CAC"_atom_style.html command; in 
 addition to other CAC atom substyles that require charge etc. Please note that CAC atom styles take two
 input arguments, these are described in the atom style's specific page of the manual and later on.
-as found in the "package details section"_Packages_details.html of the manual. Afterwards 
-the comm style must be set to "CAC" in your input script, not doing so will generate an error message when using CAC pair styles.
+Afterwards the comm style must be set to "cac" in your input script, not doing so will generate an error message when using CAC pair styles.
 Once the CAC atom and Comm style has been set the model to be simulated must be read in with 
 a typical "read_data"_read_data.html command in your input script. What is not typical however is the format in which a
 CAC model is declared in the data file to be read in. For an explicit example, please look in the 
@@ -147,8 +146,8 @@ currently all CAC atom styles have the same input arguments as show in the CAC
 atom style documented in "atom style"_atom_style.html. The current list of CAC atom
 styles is:
 
-{CAC}
-{CAC/charge} :pre
+{cac}
+{cac/charge} :pre
 
 [The CAC input geometry:]
 
@@ -204,11 +203,11 @@ NOTE: Elements are also considered owned by a task's subbox if the centroid is i
 
 The CAC method is implemented to run with its own version of Pair Styles and Fixes that come with the package.
 The Pair Styles are named according to the interatomic potential that is used to define the force field in the 
-convention of CAC/potential_name. Likewise fixes, such as the typical nve integrator, are labeled CAC/fix_name.
+convention of cac/potential_name. Likewise fixes, such as the typical nve integrator, are labeled cac/fix_name.
 
 When invoking CAC Pair styles one can declare the potential parameters using "pair_coeff"_pair_coeff.html
 just as they would for non-CAC pair styles of the respective potential. Examples of CAC pair styles currently
-implemented include "CAC/buck"_pair_CAC_buck.html, "CAC/eam"_pair_CAC_eam.html, and "CAC/sw"_pair_CAC_sw.html.
+implemented include "cac/buck"_pair_CAC_buck.html, "cac/eam"_pair_CAC_eam.html, and "cac/sw"_pair_CAC_sw.html.
 
 :line
 
@@ -217,7 +216,7 @@ implemented include "CAC/buck"_pair_CAC_buck.html, "CAC/eam"_pair_CAC_eam.html, 
 In order to obtain good performance running CAC models with multiple resolutions one must invoke the 
 "fix balance"_fix_balance.html command. This ensures that your simulation has the capability to dynamically
 reassign each computing task's burden according to a set of weights. The weights in question are provided
-by the compute "compute CAC/quad_count"_compute_CAC_quad_count.html through a variable command. For 
+by the compute "compute cac/quad/count"_compute_CAC_quad_count.html through a variable command. For 
 specific details of syntanx, please see the example input scripts in /examples/USER/CAC of your LAMMPS
 directory or refer to the online documention of fix balance and creating variables that call on computes.
 
@@ -226,8 +225,8 @@ directory or refer to the online documention of fix balance and creating variabl
 [CAC output:]
 
 Obtaining simulation output with CAC can currently be done with both therodynamic data (such as the kinetic energy
-of the nodal information in your model) with "compute CAC/nodal_temp"_compute_CAC_nodal_temp.html or 
-outputting a list of nodal information at specified times with dumps such as "dump CAC/nodal_positions"_dump_CAC_nodal_positions. 
+of the nodal information in your model) with "compute cac/nodal/temp"_compute_CAC_nodal_temp.html or 
+outputting a list of nodal information at specified times with dumps such as "dump cac/nodal/positions"_dump_CAC_nodal_positions. 
 This nodal information can then be converted to the user's preferred visualization format for software such as 
 Paraview (which is open source) or Tecplot. It is worth noting that Paraview interprets many formats. The Tecplot
 and VTK formats are among these. The following is an example tecplot output of four fold phonon focusing in Silicon.

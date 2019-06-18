@@ -1501,7 +1501,7 @@ void Input::comm_style()
     else comm = new CommTiled(lmp,oldcomm);
 
     delete oldcomm;
-  } else if (strcmp(arg[0],"CAC") == 0) {
+  } else if (strcmp(arg[0],"cac") == 0) {
     if (comm->style == 1&&(strcmp(comm->comm_style, "CAC") == 0)) return;
     Comm *oldcomm = comm;
 

@@ -13,7 +13,7 @@
 
 #ifdef ATOM_CLASS
 
-AtomStyle(CAC,AtomVecCAC)
+AtomStyle(cac,AtomVecCAC)
 
 #else
 
@@ -62,25 +62,22 @@ class AtomVecCAC : public AtomVec {
   virtual void force_clear(int, size_t);
   virtual int check_distance_function(double deltasq); //specific neighbor rebuild check function 
   virtual void set_hold_properties(); //sets nodal positions at reneighboring step for comparison
-    //CAC min objective functions for neighbor rebuild
+
+  //CAC min objective functions for neighbor rebuild
   virtual double myvalue(asa_objective *asa);
   virtual void mygrad(asa_objective *asa);
   virtual double shape_function(double, double, double,int,int);
   virtual double shape_function_derivative(double, double, double,int,int,int);
   virtual void init();
 
-
-
-
-
  protected:
   tagint *tag;
   int *type,*mask;
   imageint *image;
-   int nodes_per_element, maxpoly; //maximum number of nodes and atoms per unit cell per element in model
+  int nodes_per_element, maxpoly; //maximum number of nodes and atoms per unit cell per element in model
   double **x,**v,**f;
   double ****nodal_positions,****nodal_velocities,****nodal_forces,
-  ****nodal_gradients, ****initial_nodal_positions, *scale_search_range;
+    ****nodal_gradients, ****initial_nodal_positions, *scale_search_range;
   int *poly_count, **node_types, *element_type,
 	  **element_scale, scale_count, oneflag, *scale_list;
   int element_type_count;

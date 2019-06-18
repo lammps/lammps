@@ -12,7 +12,7 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {body} or {bond} or {CAC} or {charge} or {dipole} or \
+style = {angle} or {atomic} or {body} or {bond} or {cac} or {charge} or {dipole} or \
         {dpd} or {edpd} or {mdpd} or {tdpd} or {electron} or {ellipsoid} or \
         {full} or {line} or {meso} or {molecular} or {peri} or {smd} or \
         {sphere} or {spin} or {tri} or {template} or {hybrid} :ulb,l
@@ -21,7 +21,7 @@ style = {angle} or {atomic} or {body} or {bond} or {CAC} or {charge} or {dipole}
       bstyle = style of body particles
       bstyle-args = additional arguments specific to the bstyle
                     see the "Howto body"_Howto_body.html doc page for details
-    {CAC} args = max_nodes_per_element max_iDOF_per_element
+    {cac} args = max_nodes_per_element max_iDOF_per_element
       max_nodes_per_element = maximum # of nodes an element in the model can have
       max_iDOF_per_element = maximum # of internal DOF an element in the model can have
                     see the "Howto CAC"_Howto_CAC.html doc page for details and other CAC substyles
@@ -80,7 +80,7 @@ quantities.
 {atomic} | only the default values | coarse-grain liquids, solids, metals |
 {body} | mass, inertia moments, quaternion, angular momentum | arbitrary bodies |
 {bond} | bonds | bead-spring polymers |
-{CAC} | coarse-grained matter | finite elements and atoms |
+{cac} | coarse-grained matter | finite elements and atoms |
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
 {dpd} | internal temperature and internal energies | DPD particles |
@@ -241,7 +241,7 @@ Note that there may be additional arguments required along with the
 {bstyle} specification, in the atom_style body command.  These
 arguments are described on the "Howto body"_Howto_body.html doc page.
 
-For the {CAC} style, the system may be composed of unconnected finite
+For the {cac} style, the system may be composed of unconnected finite
 elements and atoms in an unconnected mesh. The finite elements carry
 several nodal properties such as position, velocity, and force. See
 the "Howto CAC"_Howto_CAC.html doc page for the list of all CAC
@@ -334,6 +334,9 @@ The {spin} style is part of the SPIN package.
 
 The {wavepacket} style is part of the USER-AWPMD package for the
 "antisymmetrized wave packet MD method"_pair_awpmd.html.
+
+The {cac} style is part of the USER-CAC package for 
+Concurrent Atomistic Continuum Simulations (CAC).
 
 [Related commands:]
 

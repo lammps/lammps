@@ -11,10 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include "pair_CAC.h"
 #include "atom.h"
 #include "force.h"
@@ -30,10 +30,7 @@
 #include "error.h"
 #include "domain.h"
 #include "asa_user.h"
-#include <stdint.h>
-#include <vector>
-#include "timer.h"
-//#include "math_extra.h"
+
 #define MAXESHAPE  30 //maximum number of shape functions per element
 #define MAXNEIGH1  500
 #define MAXNEIGH2  10
@@ -49,24 +46,15 @@ using namespace std;
 
 PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
 {
+  restartinfo = 0;
+  manybody_flag = 1;
 
-
-	
-	restartinfo = 0;
-	
-	manybody_flag = 1;
-
-
- 
   nmax = 0;
   cutoff_skin = 2;
   max_expansion_count_inner = 0;
   max_expansion_count_outer = 0;
-  warning_flag = 0;
-  warned_flag = 0;
   interior_scales = NULL;
   surface_counts = NULL;
-  atomic_counter_map = NULL;
   old_atom_etype = NULL;
   quad_allocated = 0;
   surface_counts_max[0] = 1;
@@ -75,22 +63,23 @@ PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
   surface_counts_max_old[0] = 1;
   surface_counts_max_old[1] = 1;
   surface_counts_max_old[2] = 1;
-	local_inner_max=0;
-	local_outer_max=0;
+  local_inner_max=0;
+  local_outer_max=0;
   one_layer_flag = 0;
   old_quad_minima= NULL;
   old_minima_neighbors= NULL;
-	cgParm=NULL;
+  shape_quad_result = NULL;
+  cgParm=NULL;
   asaParm=NULL;
   Objective=NULL;
   densemax=0;
-	neighbor->pgsize=10;
-	neighbor->oneatom=1;
-	old_atom_count=0;
-	atom->CAC_pair_flag=1;
-	//allocate shape function pointers
-	shape_functions= (Shape_Functions *) memory->smalloc(sizeof(Shape_Functions)*MAXESHAPE, "Pair CAC:shape_functions");
-	set_shape_functions();
+  neighbor->pgsize=10;
+  neighbor->oneatom=1;
+  old_atom_count=0;
+  atom->CAC_pair_flag=1;
+  //allocate shape function pointers
+  shape_functions= (Shape_Functions *) memory->smalloc(sizeof(Shape_Functions)*MAXESHAPE, "Pair CAC:shape_functions");
+  set_shape_functions();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,91 +90,79 @@ PairCAC::~PairCAC() {
 
 
 
-	if (allocated) {
-		memory->destroy(setflag);
-		memory->destroy(cutsq);
-
-		//memory->destroy(scale);
-		memory->destroy(mass_matrix);
-
-		memory->destroy(surface_counts);
-		memory->destroy(interior_scales);
-		memory->destroy(quadrature_abcissae);
-		memory->destroy(quadrature_weights);
-
-	 memory->destroy(force_column);
-   memory->destroy(current_force_column);
-   memory->destroy(current_nodal_forces);
-   memory->destroy(pivot);
-   memory->destroy(surf_set);
-   memory->destroy(dof_set);
-   memory->destroy(sort_surf_set);
-   memory->destroy(sort_dof_set);
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(mass_matrix);
+    memory->destroy(surface_counts);
+    memory->destroy(interior_scales);
+    memory->destroy(quadrature_abcissae);
+    memory->destroy(quadrature_weights);
+    memory->destroy(force_column);
+    memory->destroy(current_force_column);
+    memory->destroy(current_nodal_forces);
+    memory->destroy(pivot);
+    memory->destroy(surf_set);
+    memory->destroy(dof_set);
+    memory->destroy(sort_surf_set);
+    memory->destroy(sort_dof_set);
+    memory->destroy(shape_quad_result);
 	}
 
-	if (quad_allocated) {
-		for (int init = 0; init < old_atom_count; init++) {
+  if (quad_allocated) {
+    for (int init = 0; init < old_atom_count; init++) {
 
-			if (old_atom_etype[init] == 0) {
+      if (old_atom_etype[init] == 0) {
 
-				memory->destroy(inner_quad_lists_ucell[init][0]);
-				memory->destroy(inner_quad_lists_index[init][0]);
-				memory->sfree(inner_quad_lists_ucell[init]);
-				memory->sfree(inner_quad_lists_index[init]);
-				memory->destroy(inner_quad_lists_counts[init]);
-				if (outer_neighflag) {
-
-				memory->destroy(outer_quad_lists_ucell[init][0]);
-				memory->destroy(outer_quad_lists_index[init][0]);
-				memory->sfree(outer_quad_lists_ucell[init]);
-				memory->sfree(outer_quad_lists_index[init]);
-				memory->destroy(outer_quad_lists_counts[init]);
-				}
-			}
-			else {
-
-				for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
-					memory->destroy(inner_quad_lists_ucell[init][neigh_loop]);
-				  memory->destroy(inner_quad_lists_index[init][neigh_loop]);
-				}
-				memory->sfree(inner_quad_lists_ucell[init]);
-				memory->sfree(inner_quad_lists_index[init]);
-				memory->destroy(inner_quad_lists_counts[init]);
-				if (outer_neighflag) {
-
-					for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
-					memory->destroy(outer_quad_lists_ucell[init][neigh_loop]);
-				  memory->destroy(outer_quad_lists_index[init][neigh_loop]);
-					}
-				memory->sfree(outer_quad_lists_ucell[init]);
-				memory->sfree(outer_quad_lists_index[init]);
-				memory->destroy(outer_quad_lists_counts[init]);
-				}
-			}
+         memory->destroy(inner_quad_lists_ucell[init][0]);
+         memory->destroy(inner_quad_lists_index[init][0]);
+         memory->sfree(inner_quad_lists_ucell[init]);
+         memory->sfree(inner_quad_lists_index[init]);
+         memory->destroy(inner_quad_lists_counts[init]);
+         if (outer_neighflag) {
+           memory->destroy(outer_quad_lists_ucell[init][0]);
+           memory->destroy(outer_quad_lists_index[init][0]);
+           memory->sfree(outer_quad_lists_ucell[init]);
+           memory->sfree(outer_quad_lists_index[init]);
+           memory->destroy(outer_quad_lists_counts[init]);
+         }
+      }
+      else {
+        for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
+           memory->destroy(inner_quad_lists_ucell[init][neigh_loop]);
+           memory->destroy(inner_quad_lists_index[init][neigh_loop]);
+         }
+         memory->sfree(inner_quad_lists_ucell[init]);
+         memory->sfree(inner_quad_lists_index[init]);
+         memory->destroy(inner_quad_lists_counts[init]);
+         if (outer_neighflag) {
+           for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
+               memory->destroy(outer_quad_lists_ucell[init][neigh_loop]);
+               memory->destroy(outer_quad_lists_index[init][neigh_loop]);
+             }
+             memory->sfree(outer_quad_lists_ucell[init]);
+             memory->sfree(outer_quad_lists_index[init]);
+             memory->destroy(outer_quad_lists_counts[init]);
+         }
+      }
 	
-		}
+    }
 
-		
     memory->sfree(inner_quad_lists_ucell);
-		memory->sfree(inner_quad_lists_index);
-		memory->sfree(inner_quad_lists_counts);
-		memory->sfree(outer_quad_lists_ucell);
-		memory->sfree(outer_quad_lists_index);
-		memory->sfree(outer_quad_lists_counts);
-
-		memory->destroy(neighbor_copy_ucell);
-		memory->destroy(neighbor_copy_index);
-		memory->destroy(old_quad_minima);
-		memory->destroy(old_minima_neighbors);
-    
-
-	}
+    memory->sfree(inner_quad_lists_index);
+    memory->sfree(inner_quad_lists_counts);
+    memory->sfree(outer_quad_lists_ucell);
+    memory->sfree(outer_quad_lists_index);
+    memory->sfree(outer_quad_lists_counts);
+    memory->destroy(neighbor_copy_ucell);
+    memory->destroy(neighbor_copy_index);
+    memory->destroy(old_quad_minima);
+    memory->destroy(old_minima_neighbors);
+  }
    
-	 memory->destroy(cgParm);
-
-   memory->destroy(asaParm);
-
-   memory->destroy(Objective);
+  memory->destroy(cgParm);
+  memory->destroy(asaParm);
+  memory->destroy(Objective);
 
 
 
@@ -233,26 +210,7 @@ void PairCAC::compute(int eflag, int vflag) {
 	atom->neigh_weight_flag=1;
 	atom->weight_count=atom->nlocal;
 	}
-  //quadrature warning
-  /*
-  if (warning_flag && !warned_flag) {
-	  int root = comm->me;
-	  MPI_Bcast(&warning_flag, 1, MPI_INT, root, world);
-
-
-  }
-  if (warning_flag && !warned_flag) {
-	  int root = comm->me;
-	  if (root == 0) {
-		  error->warning(FLERR, "Interior quadrature search range exceeds element domain; accuracy may be aversely affected");
-		  warned_flag = 1;
-		  MPI_Bcast(&warned_flag, 1, MPI_INT, root, world);
-
-	  }
-	  MPI_Barrier(world);
-  }
-  */
-
+ 
   // loop over neighbors of my atoms
     compute_mass_matrix();
     //cout <<"\n";
@@ -272,10 +230,7 @@ void PairCAC::compute(int eflag, int vflag) {
 			//count number of pure atoms in the local domain
 			natomic = 0;
 			
-			//memory->grow(atomic_counter_map, list->inum, "Pair CAC:atomic_counter_mapd");
 			for (i = 0; i < atom->nlocal; i++) {
-				//i = ilist[ii];
-				//atomic_counter_map[i] = natomic;
 				current_element_type = element_type[i];
 				if (current_element_type == 0) natomic += 1;
 				
@@ -365,7 +320,6 @@ void PairCAC::compute(int eflag, int vflag) {
 			//determine element type
 			if (current_element_type == 0) atomic_counter += 1;
 			
-				//int ri = i - atomic_counter_map[i];
 				nodes_per_element = nodes_count_list[current_element_type];
 				if (current_element_type == 0) {
 					atomic_flag = 1;
@@ -481,7 +435,7 @@ void PairCAC::init_style()
 	int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->CAC = 1;
+  neighbor->requests[irequest]->cac = 1;
   
   //surface selection array 
   surf_set[0][0] = 1;
@@ -613,7 +567,6 @@ if(quadrature_rank==5)
 
 
 memory->create(shape_quad_result, max_nodes_per_element, quadrature_node_count*quadrature_node_count*quadrature_node_count, "pairCAC:shape_quad_result");
-memory->create(shape_quad_interior, max_nodes_per_element, quadrature_node_count*quadrature_node_count*quadrature_node_count, "pairCAC:shape_quad_interior");
 
 
 
@@ -1270,37 +1223,6 @@ void PairCAC::compute_forcev(int iii){
 
 //--------------------------------------------------------------------
 
-
-
-
-
-
-
-//-------------------------------------------------------------------
-/*
-double PairCACLJ::density_map(double mass){
-    double density;
-
-    double Jacobian;
-    Jacobian=cell_vectors[0][0]*(cell_vectors[1][1]*cell_vectors[2][2]-cell_vectors[2][1]*cell_vectors[1][2])
-    -cell_vectors[0][1]*(cell_vectors[1][0]*cell_vectors[2][2]-cell_vectors[2][0]*cell_vectors[1][2])
-    +cell_vectors[0][2]*(cell_vectors[1][0]*cell_vectors[2][1]-cell_vectors[2][0]*cell_vectors[1][1]);
-
-    if(Jacobian<0) Jacobian=-Jacobian;
-    mapped_volume=8/scale[0]*scale[1]*scale[2];
-    density=mass/mapped_volume;
-   // density = Jacobian*density/8;
-    return density;
-}
-
-*/
-
-//---------------------------------------------------------------------
-
-
-
-//-----------------------------------------------------------------------
-
 void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 	int internal;
 
@@ -1529,22 +1451,11 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 							|| scanning_unit_cell[2] < -1) {
 							neighborflag = 1;
 							outofbounds = 1;
-							if (interior_flag == 1 && warning_flag==0) {
-								warning_flag = 1;
-								//error->warning(FLERR, "Interior quadrature search range exceeds element domain; accuracy may be aversely affected");
-							}
-
-
 						}
 						if (scanning_unit_cell[0] > 1 || scanning_unit_cell[1] > 1
 							|| scanning_unit_cell[2] > 1) {
 							neighborflag = 1;
 							outofbounds = 1;
-							if (interior_flag == 1 && warning_flag == 0) {
-								warning_flag = 1;
-								//error->warning(FLERR, "Interior quadrature search range exceeds element domain; accuracy may be aversely affected");
-								
-							}
 						}
 	
 						

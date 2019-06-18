@@ -32,8 +32,6 @@ class CommCAC : public CommTiled {
   virtual void exchange();                     // move atoms to new procs
   virtual void borders();                      // setup list of atoms to comm
 
-
-
   virtual void coord2proc_setup();
   virtual int coord2proc(double *, int &, int &, int &);
 

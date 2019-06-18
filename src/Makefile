@@ -58,13 +58,13 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  molecule mpiio mscg opt peri poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-adios user-atc user-awpmd user-bocs user-CAC user-cgdna user-cgsdk \
-	   user-colvars user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
+PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars user-cac \
+	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
 	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
 	   user-qtb user-quip user-reaxc user-scafacos user-smd user-smtbq \
-	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff 
+	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
 	  python voronoi \
@@ -154,6 +154,7 @@ help:
 
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
+	@echo 'Gathering installed package information (may take a little while)'
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
@@ -203,7 +204,6 @@ gitversion:
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
-	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh packages
 	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion

@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(CAC/nodal_positions,DumpCACNodalPositions)
+DumpStyle(cac/nodal/positions,DumpCACNodalPositions)
 
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(CAC/addforce,FixCAC_Add_Force)
+FixStyle(cac/addforce,FixCAC_Add_Force)
 
 #else
 
@@ -35,7 +35,6 @@ class FixCAC_Add_Force : public Fix {
   virtual void post_force(int);
   void min_post_force(int);
   double compute_vector(int);
-
   double memory_usage();
 
  protected:
@@ -46,8 +45,6 @@ class FixCAC_Add_Force : public Fix {
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   double foriginal[3],foriginal_all[3];
   int force_flag;
-  
-
   int maxatom;
   double **sforce;
 };

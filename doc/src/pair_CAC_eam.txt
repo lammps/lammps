@@ -6,28 +6,28 @@
 
 :line
 
-pair_style CAC/eam command :h3
+pair_style cac/eam command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {CAC/eam}
+style = {cac/eam}
 args = list of arguments for a particular style :ul
-  {CAC/eam} args = quadrature_flag
+  {cac/eam} args = quadrature_flag
     quadrature_flag = left blank or set to the {one} keyword :pre
 
 [Examples:]
 
-pair_style CAC/eam
+pair_style cac/eam
 pair_coeff     * * Cu_u3.eam :pre
 
-pair_style CAC/eam one
+pair_style cac/eam one
 pair_coeff     * * Cu_u3.eam :pre
 
 [Description:]
 
-The {CAC/eam} style computes pairwise forces using the Embedded-Atom-Method (EAM)
+The {cac/eam} style computes pairwise forces using the Embedded-Atom-Method (EAM)
 potential for a CAC model. Other than the allotment of the 
 {one} keyword, the rest of the input parameters and pair_coeff settings 
 are as found in "pair_style eam"_pair_eam.html. For more information on 

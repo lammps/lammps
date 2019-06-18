@@ -6,11 +6,11 @@
 
 :line
 
-fix CAC/temp/rescale command :h3
+fix cac/temp/rescale command :h3
 
 [Syntax:]
 
-fix ID group-ID CAC/temp/rescale N Tstart Tstop window fraction :pre
+fix ID group-ID cac/temp/rescale N Tstart Tstop window fraction :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 temp/rescale = style name of this fix command :l
@@ -23,9 +23,9 @@ fraction = rescale to target temperature by this fraction :l
 
 [Examples:]
 
-fix 3 flow CAC/temp/rescale 100 1.0 1.1 0.02 0.5
-fix 3 boundary CAC/temp/rescale 1 1.0 1.5 0.05 1.0
-fix 3 boundary CAC/temp/rescale 1 1.0 1.5 0.05 1.0 :pre
+fix 3 flow cac/temp/rescale 100 1.0 1.1 0.02 0.5
+fix 3 boundary cac/temp/rescale 1 1.0 1.5 0.05 1.0
+fix 3 boundary cac/temp/rescale 1 1.0 1.5 0.05 1.0 :pre
 
 [Description:]
 
@@ -62,7 +62,7 @@ NOTE: Unlike the "fix nvt"_fix_nh.html command which performs
 Nose/Hoover thermostatting AND time integration, this fix does NOT
 perform time integration.  It only modifies velocities to effect
 thermostatting.  Thus you must use a separate time integration fix,
-like "fix CAC/nve"_fix_CAC_nve.html to actually update the positions of 
+like "fix cac/nve"_fix_CAC_nve.html to actually update the positions of 
 atoms and elements using the modified velocities.  Likewise, this fix 
 should not normally be used on groups that also have their temperature 
 or kinetic energy controlled by another fix.
@@ -72,13 +72,13 @@ discussion of different ways to compute temperature and perform
 thermostatting.
 
 This fix computes a temperature each timestep.  To do this, the fix
-creates its own compute of style "CAC/nodal_temp", as if one of this command had
+creates its own compute of style "cac/nodal/temp", as if one of this command had
 been issued:
 
-compute fix-ID_temp group-ID CAC/nodal_temp :pre
+compute fix-ID_temp group-ID cac/nodal/temp :pre
 
-See the "compute CAC/nodal_temp"_compute_CAC_nodal_temp.html for details.  Note that the
-ID of the new compute is the fix-ID + underscore + "CAC/nodal_temp", and the
+See the "compute cac/nodal/temp"_compute_CAC_nodal_temp.html for details.  Note that the
+ID of the new compute is the fix-ID + underscore + "cac/nodal/temp", and the
 group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
@@ -126,7 +126,7 @@ Requires a CAC atom style
 
 [Related commands:]
 
-"compute CAC/nodal_temp"_compute_CAC_nodal_temp.html,
+"compute cac/nodal_temp"_compute_CAC_nodal_temp.html,
 "fix_modify"_fix_modify.html
 
 [Default:] none

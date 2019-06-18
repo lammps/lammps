@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstdlib>
+#include <cstring>
 #include "atom_vec_CAC_Charge.h"
 #include "atom.h"
 #include "comm.h"
@@ -21,8 +22,6 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
-#include <string.h>
-
 
 #define MAX_ELEMENT_NAME 256
 
@@ -49,7 +48,7 @@ AtomVecCAC_Charge::AtomVecCAC_Charge(LAMMPS *lmp) : AtomVecCAC(lmp)
   atom->q_flag = 1;
   search_range_max = 0;
   initial_size=0;
-	check_distance_flag=1;
+  check_distance_flag=1;
 }
 
 
@@ -61,8 +60,8 @@ AtomVecCAC_Charge::AtomVecCAC_Charge(LAMMPS *lmp) : AtomVecCAC(lmp)
 
 void AtomVecCAC_Charge::process_args(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Invalid atom_style CAC command");
-  if (narg > 3) error->all(FLERR,"Invalid atom_style CAC command");
+  if (narg < 1) error->all(FLERR,"Invalid atom_style cac command");
+  if (narg > 3) error->all(FLERR,"Invalid atom_style cac command");
 
 
  nodes_per_element=force->numeric(FLERR,arg[0]);
@@ -143,11 +142,11 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
 
 void AtomVecCAC_Charge::grow(int n)
 {
-	if (n == 0) grow_nmax();
-	else nmax = n;
-	atom->nmax = nmax;
-	if (nmax < 0 || nmax > MAXSMALLINT)
-		error->one(FLERR, "Per-processor system is too big");
+  if (n == 0) grow_nmax();
+  else nmax = n;
+  atom->nmax = nmax;
+  if (nmax < 0 || nmax > MAXSMALLINT)
+  error->one(FLERR, "Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
@@ -1539,7 +1538,7 @@ void AtomVecCAC_Charge::data_atom(double *coord, imageint imagetmp, char **value
 		error->one(FLERR, "element type not yet defined, add definition in process_args function of atom_vec_CAC.cpp style");
 	}
 	if (nodetotal > nodes_per_element)
-		error->one(FLERR, "element type requires a greater number of nodes than the specified maximum nodes per element passed to atom style CAC");
+		error->one(FLERR, "element type requires a greater number of nodes than the specified maximum nodes per element passed to atom style cac/charge");
 	for (int polycount = 0; polycount < npoly; polycount++) {
 		node_types[nlocal][polycount] = 0; //initialize
 		node_charges[nlocal][polycount] = 0; //initialize
@@ -1618,7 +1617,7 @@ void AtomVecCAC_Charge::data_atom(double *coord, imageint imagetmp, char **value
 
 void AtomVecCAC_Charge::pack_data(double **buf)
 {
-	error->all(FLERR,"CAC atom style does not yet support writing data files");
+	error->all(FLERR,"cac atom style does not yet support writing data files");
   int nlocal = atom->nlocal;
 	int *nodes_count_list = atom->nodes_per_element_list;
   for (int i = 0; i < nlocal; i++) {
@@ -1669,7 +1668,7 @@ void AtomVecCAC_Charge::pack_data(double **buf)
 
 void AtomVecCAC_Charge::write_data(FILE *fp, int n, double **buf)
 { 
-	error->all(FLERR,"CAC atom style does not yet support writing data files");
+	error->all(FLERR,"cac atom style does not yet support writing data files");
   for (int i = 0; i < n; i++)
     fprintf(fp,TAGINT_FORMAT " %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,

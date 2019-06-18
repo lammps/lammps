@@ -10,8 +10,8 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#include <mpi.h>
-#include <string.h>
+
+#include <cstring>
 #include "dump_CAC_nodal_positions.h"
 #include "atom.h"
 #include "group.h"

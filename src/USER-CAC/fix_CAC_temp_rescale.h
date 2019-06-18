@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(CAC/temp/rescale,FixTempRescale_CAC)
+FixStyle(cac/temp/rescale,FixTempRescale_CAC)
 
 #else
 

@@ -1,14 +1,15 @@
+#this example pulls a Silicon block with surface roughness in tension
 units       metal
 
 dimension    3
 boundary     s s s
 
 #CAC atom style
-atom_style     CAC 8 2
+atom_style     cac 8 2
 
 #use CAC style for load balancing non uniform
 #element scales; this example has a uniform mesh
-#comm_style CAC
+#comm_style cac
 
 #turn off newton since reverse communication is not needed
 newton off
@@ -18,7 +19,7 @@ read_data     Dislocation_Model.txt
 
 #example pair styles and pair_coeff commands
 
-pair_style   CAC/sw 
+pair_style   cac/sw 
 pair_coeff     * * Si.sw Si 
 	
 
@@ -27,14 +28,14 @@ timestep     0.001
 restart      10000 restart.*
 
 #computes the kinetic energy using nodal velocities
-compute Ntemp all nodal_temp
+compute Ntemp all cac/nodal/temp
 
 thermo_style custom step c_Ntemp 
 #thermo_style custom step temp 
 thermo	     100
 
 #required to weight the elements and load balance non-uniform meshes
-#compute Eweight all CAC/quad_count
+#compute Eweight all cac/quad/count
 #variable Eweights atom c_Eweight
 #fix comm all balance 1000 1.10 rcb weight var Eweights
 
@@ -43,50 +44,50 @@ thermo	     100
 fix callertest all ave/time 1 1 1 c_Ntemp file Node_temps.txt
 
 #rescales the temperature in the same way the lammps version #does; this one just uses nodal velocities instead
-#fix tempre all temp/rescale_CAC 1 0.001 10 0.02 1.0
+#fix tempre all cac/temp/rescale 1 0.001 10 0.02 1.0
 
 
 
- region boundary block EDGE EDGE EDGE 250 EDGE EDGE units box
- region loading block EDGE EDGE 7750 EDGE EDGE EDGE units box
-  region scan block EDGE EDGE 4000 5000 EDGE EDGE units box
- group BD region boundary
+region boundary block EDGE EDGE EDGE 250 EDGE EDGE units box
+region loading block EDGE EDGE 7750 EDGE EDGE EDGE units box
+region scan block EDGE EDGE 4000 5000 EDGE EDGE units box
+group BD region boundary
 group scan region scan
 group displace region loading
 group conditions union BD displace
 group integrate subtract all conditions
 
 #NVE integrator for nodal quantities
-fix NVE integrate CAC/nve
+fix NVE integrate cac/nve
 
 
 #outputs all the nodal positions in the specified group
-dump	      1 all CAC/nodal_positions 8000 CACmesh.txt
+dump	      1 all cac/nodal/positions 8000 CACmesh.txt
 
 #outputs the velocity squared for every dimension of nodal velocities for every element
-dump	      2 all CAC/kinetic_energy 8000 CACmeshkin.txt
+dump	      2 all cac/kinetic/energy 8000 CACmeshkin.txt
 
 #outputs atomic resolution of the model group; can be useful for ovito/vmd diagnostics
-#dump	      5 scan CAC/xyz 5000 atom_plot.txt
+#dump	      5 scan cac/xyz 5000 atom_plot.txt
 
 #outputs initial nodal positions to calculate deformation if they are not available
-#write_dump all CAC/initial_nodes CAC_initialnodes.txt
+#write_dump all cac/initial/nodes cac/initial/nodes.txt
 
 
 #can be used to fix nodal forces in the specified group to a value 
-fix	BCs BD CAC/setforce 0 0 0
+fix	BCs BD cac/setforce 0 0 0
 
 
 label loop
 #set nodal velocities
-fix	loading displace CAC/setvelocity 0 0.3 0
+fix	loading displace cac/setvelocity 0 0.3 0
 
 #dampen periodically to prevent model instability due to kinetic energy
 
 run 4000
 unfix loading
 #use viscous dampening on nodal velocities
-fix visc all CAC/viscous 0.01
+fix visc all cac/viscous 0.01
 run 1000
 unfix visc
 jump in2dislocation.dm loop

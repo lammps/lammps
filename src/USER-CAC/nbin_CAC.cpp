@@ -40,19 +40,17 @@ NBinCAC::NBinCAC(LAMMPS *lmp) : NBin(lmp) {
   quad2bin=NULL;
   atom2bin=NULL;
   bin_expansion_counts=NULL;
-	nbin_element_overlap=NULL; 
+  nbin_element_overlap=NULL; 
   bin_element_overlap=NULL;
-	max_nbin_overlap=NULL;
+  max_nbin_overlap=NULL;
   first_alloc=0;
   max_bin_expansion_count=0;
   quad_rule_initialized=0;
   nmax=0;
   surface_counts = NULL;
-	interior_scales = NULL;
-	bad_bin_flag=0;
+  interior_scales = NULL;
   current_element_quad_points=NULL;
-	setup_called=0;
-	max_nall=0;
+  max_nall=0;
   //quad_allocated = 0;
   surface_counts_max[0] = 1;
   surface_counts_max[1] = 1;
@@ -90,8 +88,7 @@ void NBinCAC::bin_atoms_setup(int nall)
 }
 void NBinCAC::CAC_bin_atoms_setup(int nall)
 {
-	//if(!setup_called)
-	//setup_bins(1);
+
   int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
   int **element_scale = atom->element_scale;
@@ -230,7 +227,6 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
 			}
 		}
     memory->grow(quad2bin,quadrature_point_count,"NBinCAC:quad2bin");
-		setup_called=0;
 }
 
 /* ----------------------------------------------------------------------
@@ -287,7 +283,6 @@ void NBinCAC::CAC_setup_bins(int style)
 	double cut_max=neighbor->cutneighmax;
 	double **eboxes=atom->eboxes;
 	int *ebox_ref=atom->ebox_ref;
-  //setup_called=1;
   //expand sub-box sizes to contain all element bounding boxes
 	//in general initial box wont since only x, element centroid, must lie 
 	//inside box for lammps comms
@@ -877,8 +872,6 @@ void NBinCAC::bin_atoms()
  int NBinCAC::quad2bins(double *x)
 {
 
- 
-
   int ix,iy,iz;
   
   //typical binning for atoms
@@ -1126,19 +1119,12 @@ void NBinCAC::compute_surface_depths(double &scalex, double &scaley, double &sca
 	dw_surf = unit_cell_mapped[2] * (int)(dw_surf / unit_cell_mapped[2]) + unit_cell_mapped[2];
 	if (ds_surf > 1) {
 		ds_surf = 1;
-
-
 	}
 	if (dt_surf > 1) {
-
 		dt_surf = 1;
-
-
 	}
 	if (dw_surf > 1) {
-
 		dw_surf = 1;
-
 	}
 
 	if (atom->one_layer_flag) {
@@ -1157,8 +1143,6 @@ void NBinCAC::compute_surface_depths(double &scalex, double &scaley, double &sca
 	if(county==0) county=1;
 	if(countz==0) countz=1;
 
-
-
 }
 
 
@@ -1169,37 +1153,26 @@ void NBinCAC::quadrature_init(int quadrature_rank) {
   
 	if (quadrature_rank == 1) {
 		quadrature_node_count = 1;
-		
 		memory->create(quadrature_abcissae, quadrature_node_count, "pairCAC:quadrature_abcissae");
-
 		quadrature_abcissae[0] = 0;
 	}
 	if (quadrature_rank == 2) {
-
-
-
 		quadrature_node_count = 2;
-
 		memory->create(quadrature_abcissae, quadrature_node_count, "pairCAC:quadrature_abcissae");
-
 		quadrature_abcissae[0] = -0.5773502691896258;
 		quadrature_abcissae[1] = 0.5773502691896258;
-
 	}
 
 	if (quadrature_rank == 3)
 	{
 
-
 	}
 	if (quadrature_rank == 4)
 	{
 
-
 	}
 	if (quadrature_rank == 5)
 	{
-
 
 	}
 
@@ -1223,7 +1196,7 @@ int NBinCAC::compute_quad_points(int element_index){
 	double ****nodal_positions = atom->nodal_positions;
 	double shape_func;
 	int *element_type = atom->element_type;
-  int **element_scale = atom->element_scale;
+    int **element_scale = atom->element_scale;
 	int *poly_count = atom->poly_count;
 	double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
 	int *nodes_per_element_list = atom->nodes_per_element_list;
@@ -1233,7 +1206,7 @@ int NBinCAC::compute_quad_points(int element_index){
 	unit_cell_mapped[2] = 2 / double(element_scale[element_index][2]);
 	double ***current_nodal_positions = nodal_positions[element_index];
 	int current_poly_count = poly_count[element_index];
-  int quadrature_counter=0;
+    int quadrature_counter=0;
 
 
 	//compute quadrature point positions to test for neighboring

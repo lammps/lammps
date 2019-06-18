@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "min_CAC_fire.h"
 #include "universe.h"
 #include "atom.h"
@@ -46,7 +46,8 @@ CACMinFire::CACMinFire(LAMMPS *lmp) : Min(lmp) {
 void CACMinFire::init()
 {
   Min::init();
-
+  if (!atom->CAC_flag) error->all(FLERR,"min style cac/cg requires a CAC atom style");
+  if (!atom->CAC_pair_flag) error->all(FLERR,"min style cac/cg requires a CAC pair style");
   dt = update->dt;
   dtmax = TMAX * dt;
   alpha = ALPHA0;

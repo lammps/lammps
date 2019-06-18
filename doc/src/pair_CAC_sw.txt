@@ -6,29 +6,29 @@
 
 :line
 
-pair_style CAC/sw command :h3
+pair_style cac/sw command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {CAC/sw}
+style = {cac/sw}
 args = list of arguments for a particular style :ul
-  {CAC/sw} args = quadrature_flag
+  {cac/sw} args = quadrature_flag
     quadrature_flag = left blank or set to the {one} keyword :pre
 
 [Examples:]
 
-pair_style CAC/sw
+pair_style cac/sw
 pair_coeff * * si.sw Si
 pair_coeff * * GaN.sw Ga N Ga :pre
 
-pair_style CAC/sw one
+pair_style cac/sw one
 pair_coeff * * si.sw Si :pre
 
 [Description:]
 
-The {CAC/sw} style computes 3-body forces using the Stillinger-Weber
+The {cac/sw} style computes 3-body forces using the Stillinger-Weber
 potential for a CAC model. Other than the allotment of the 
 {one} keyword, the rest of the input parameters and pair_coeff settings 
 are as found in "pair_style sw"_pair_sw.html. For more information on 

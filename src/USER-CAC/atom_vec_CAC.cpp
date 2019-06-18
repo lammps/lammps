@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
+#include <cstring>
 #include "atom_vec_CAC.h"
 #include "atom.h"
 #include "comm.h"
@@ -22,7 +23,6 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
-#include <string.h>
 #include "asa_user.h"
 
 #define MAX_ELEMENT_NAME 256
@@ -48,13 +48,13 @@ AtomVecCAC::AtomVecCAC(LAMMPS *lmp) : AtomVec(lmp)
   forceclearflag = 1;
   atom->CAC_flag=1;
   search_range_max = 0;
-   initial_size=0;
-	 check_distance_flag=1;
-	 cgParm=NULL;
+  initial_size=0;
+  check_distance_flag=1;
+  cgParm=NULL;
   asaParm=NULL;
   Objective=NULL;
-	hold_nodal_positions=NULL;
-	max_old=0;
+  hold_nodal_positions=NULL;
+  max_old=0;
  
 }
 
@@ -62,7 +62,7 @@ AtomVecCAC::AtomVecCAC(LAMMPS *lmp) : AtomVec(lmp)
 
 AtomVecCAC::~AtomVecCAC() {
 
-	memory->destroy(cgParm);
+  memory->destroy(cgParm);
 
   memory->destroy(asaParm);
 
@@ -78,8 +78,8 @@ AtomVecCAC::~AtomVecCAC() {
 
 void AtomVecCAC::process_args(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Invalid atom_style CAC command");
-  if (narg > 3) error->all(FLERR,"Invalid atom_style CAC command");
+  if (narg < 1) error->all(FLERR,"Invalid atom_style cac command");
+  if (narg > 3) error->all(FLERR,"Invalid atom_style cac command");
  
  
  nodes_per_element=force->numeric(FLERR,arg[0]);
@@ -163,7 +163,7 @@ void AtomVecCAC::init()
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 
   if (strcmp(comm->comm_style, "CAC") != 0)
-  error->all(FLERR," CAC atom style requires a CAC comm style");
+  error->all(FLERR," cac atom style requires a CAC comm style");
 }
 
 /* ----------------------------------------------------------------------
@@ -1535,7 +1535,7 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
 		error->one(FLERR, "element type not yet defined, add definition in process_args function of atom_vec_CAC.cpp style");
 	}
 	if (nodetotal > nodes_per_element)
-		error->one(FLERR, "element type requires a greater number of nodes than the specified maximum nodes per element passed to atom style CAC");
+		error->one(FLERR, "element type requires a greater number of nodes than the specified maximum nodes per element passed to atom style cac");
 	for (int polycount = 0; polycount < npoly; polycount++) {
 		node_types[nlocal][polycount] = 0; //initialize
 		node_count_per_poly[polycount]=0;
@@ -1610,7 +1610,7 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
 
 void AtomVecCAC::pack_data(double **buf)
 {
-	error->all(FLERR,"CAC atom style does not yet support writing data files");
+	error->all(FLERR,"cac atom style does not yet support writing data files");
   int nlocal = atom->nlocal;
 	int *nodes_count_list = atom->nodes_per_element_list;
   for (int i = 0; i < nlocal; i++) {
@@ -1658,7 +1658,7 @@ void AtomVecCAC::pack_data(double **buf)
 
 void AtomVecCAC::write_data(FILE *fp, int n, double **buf)
 {
-	error->all(FLERR,"CAC atom style does not yet support writing data files");
+	error->all(FLERR,"cac atom style does not yet support writing data files");
   for (int i = 0; i < n; i++)
     fprintf(fp,TAGINT_FORMAT " %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,

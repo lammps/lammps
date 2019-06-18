@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(CAC/nodal_temp,ComputeNodalTemp)
+ComputeStyle(cac/nodal/temp,ComputeNodalTemp)
 
 #else
 

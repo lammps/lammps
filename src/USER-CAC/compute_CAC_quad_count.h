@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(CAC/quad_count,ComputeCACQuadCount)
+ComputeStyle(cac/quad/count,ComputeCACQuadCount)
 
 #else
 

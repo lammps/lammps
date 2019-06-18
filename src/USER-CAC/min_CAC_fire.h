@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(CAC/fire,CACMinFire)
+MinimizeStyle(cac/fire,CACMinFire)
 
 #else
 

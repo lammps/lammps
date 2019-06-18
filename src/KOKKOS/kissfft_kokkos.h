@@ -79,7 +79,7 @@
    C_SUBFROM( res , a)  : res -= a
    C_ADDTO( res , a)    : res += a
    C_EQ( res , a)       : res = a
-
+*/
 
 #define S_MUL(a,b) ( (a)*(b) )
 
@@ -87,6 +87,7 @@
     do{ (m)[0] = (a)(a_index,0)*(b)(b_index,0) - (a)(a_index,1)*(b)(b_index,1);\
         (m)[1] = (a)(a_index,0)*(b)(b_index,1) + (a)(a_index,1)*(b)(b_index,0); }while(0)
 
+/*
 #define C_FIXDIV(c,div) // NOOP
 
 #define C_MULBYSCALAR( c, s ) \
@@ -526,15 +527,15 @@ class KissFFTKokkos {
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename AT::t_FFT_DATA_1d_um &d_fin, typename AT::t_FFT_DATA_1d_um &d_fout, int in_stride, int offset)
   {
-      if (d_fin.data() == d_fout.data()) {
-          // NOTE: this is not really an in-place FFT algorithm.
-          // It just performs an out-of-place FFT into a temp buffer
-          typename AT::t_FFT_DATA_1d d_tmpbuf = typename AT::t_FFT_DATA_1d("kissfft:tmpbuf",d_fin.extent(1));
-          kf_work(d_tmpbuf,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
-          Kokkos::deep_copy(d_fout,d_tmpbuf);
-      } else {
+      //if (d_fin.data() == d_fout.data()) {
+      //    // NOTE: this is not really an in-place FFT algorithm.
+      //    // It just performs an out-of-place FFT into a temp buffer
+      //    typename AT::t_FFT_DATA_1d_um d_tmpbuf = typename AT::t_FFT_DATA_1d("kissfft:tmpbuf",d_fin.extent(1));
+      //    kf_work(d_tmpbuf,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
+      //    Kokkos::deep_copy(d_fout,d_tmpbuf);
+      //} else {
         kf_work(d_fout,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
-      }
+      //}
   }
 
   KOKKOS_INLINE_FUNCTION

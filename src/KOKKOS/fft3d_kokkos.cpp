@@ -43,9 +43,9 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
-  int ngpus = lmp->kokkos->ngpus;
 
 #if defined(FFT_FFTW3)
+  int ngpus = lmp->kokkos->ngpus;
   if (ngpus > 0)
     lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA");
 #endif
@@ -187,18 +187,12 @@ public:
 };
 #endif
 
-const int forward  = 0;
-const int backward = 1;
-
 template<class DeviceType>
 void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_FFT_DATA_1d d_in, typename ArrayTypes<DeviceType>::t_FFT_DATA_1d d_out, int flag, struct fft_plan_3d_kokkos<DeviceType> *plan)
 {
-  int i,total,length,offset,num,dim;
-  FFT_SCALAR norm;
+  int total,length;
   typename ArrayTypes<DeviceType>::t_FFT_DATA_1d d_data,d_copy;
   typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d d_in_scalar,d_data_scalar,d_out_scalar,d_copy_scalar,d_scratch_scalar;
-
-  int dir = (flag == -1) ? forward : backward;
 
   // pre-remap to prepare for 1st FFTs if needed
   // copy = loc for remap result
@@ -221,7 +215,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
 
   total = plan->total1;
   length = plan->length1;
-  dim = 0;
 
   #if defined(FFT_FFTW3)
     if (flag == -1)
@@ -262,7 +255,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
 
   total = plan->total2;
   length = plan->length2;
-  dim = 1;
 
   #if defined(FFT_FFTW3)
     if (flag == -1)
@@ -300,7 +292,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
 
   total = plan->total3;
   length = plan->length3;
-  dim = 2;
 
   #if defined(FFT_FFTW3)
     if (flag == -1)
@@ -336,14 +327,14 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
   // scaling if required
 
   if (flag == 1 && plan->scaled) {
-    norm = plan->norm;
-    num = plan->normnum;
+    int norm = plan->norm;
+    FFT_SCALAR num = plan->normnum;
   #if defined(FFT_CUFFT)
     typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d d_norm_scalar = 
      typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
     cufft_norm_functor<DeviceType> f(d_norm_scalar,norm);
     Kokkos::parallel_for(num,f);
-  #elif defined(FFT_KISFFT)
+  #elif defined(FFT_KISSFFT)
     kiss_norm_functor<DeviceType> f(d_out,norm);
     Kokkos::parallel_for(num,f);
   #endif
@@ -384,13 +375,12 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 {
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   int me,nprocs;
-  int i,num,flag,remapflag,fftflag;
+  int flag,remapflag;
   int first_ilo,first_ihi,first_jlo,first_jhi,first_klo,first_khi;
   int second_ilo,second_ihi,second_jlo,second_jhi,second_klo,second_khi;
   int third_ilo,third_ihi,third_jlo,third_jhi,third_klo,third_khi;
   int out_size,first_size,second_size,third_size,copy_size,scratch_size;
   int np1,np2,ip1,ip2;
-  int list[50];
 
   // query MPI info
 
@@ -753,8 +743,6 @@ template<class DeviceType>
 void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceType>::t_FFT_DATA_1d d_data, int nsize, int flag,
                     struct fft_plan_3d_kokkos<DeviceType> *plan)
 {
-  int i,total,length,offset,num;
-
   // total = size of data needed in each dim
   // length = length of 1d FFT in each dim
   // total/length = # of 1d FFTs in each dim
@@ -777,23 +765,20 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceTy
   // perform 1d FFTs in each of 3 dimensions
   // data is just an array of 0.0
 
-  int dir = (flag == 1) ? forward : backward;
-
 #if defined(FFT_FFTW3)
-  for (int dim = 0; dim < 3; dim++)
-    if (flag == -1) {
-      fftw_execute_dft(plan->plan_fast_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-      fftw_execute_dft(plan->plan_mid_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-      fftw_execute_dft(plan->plan_slow_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-    } else {
-      fftw_execute_dft(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-      fftw_execute_dft(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-      fftw_execute_dft(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
-    }
+  if (flag == -1) {
+    fftw_execute_dft(plan->plan_fast_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    fftw_execute_dft(plan->plan_mid_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    fftw_execute_dft(plan->plan_slow_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+  } else {
+    fftw_execute_dft(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    fftw_execute_dft(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+    fftw_execute_dft(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
+  }
 #elif defined(FFT_CUFFT)
-    cufftExecZ2Z(plan->plan_fast,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
-    cufftExecZ2Z(plan->plan_mid,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
-    cufftExecZ2Z(plan->plan_slow,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+  cufftExecZ2Z(plan->plan_fast,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+  cufftExecZ2Z(plan->plan_mid,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
+  cufftExecZ2Z(plan->plan_slow,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data(),flag);
 #else
   kiss_fft_functor<DeviceType> f;
   typename ArrayTypes<DeviceType>::t_FFT_DATA_1d d_tmp = typename ArrayTypes<DeviceType>::t_FFT_DATA_1d("fft_3d:tmp",d_data.dimension_0());
@@ -823,13 +808,13 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceTy
 
   if (flag == 1 && plan->scaled) {
     FFT_SCALAR norm = plan->norm;
-    num = MIN(plan->normnum,nsize);
+    int num = MIN(plan->normnum,nsize);
   #if defined(FFT_CUFFT)
     typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d d_norm_scalar = 
      typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
     cufft_norm_functor<DeviceType> f(d_norm_scalar,norm);
     Kokkos::parallel_for(num,f);
-  #elif defined(FFT_KISFFT)
+  #elif defined(FFT_KISSFFT)
     kiss_norm_functor<DeviceType> f(d_data,norm);
     Kokkos::parallel_for(num,f);
   #endif

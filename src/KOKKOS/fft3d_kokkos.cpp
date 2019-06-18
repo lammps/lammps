@@ -43,11 +43,15 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
+  int ngpus = lmp->kokkos->ngpus;
+  ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
 #if defined(FFT_FFTW3)
-  int ngpus = lmp->kokkos->ngpus;
-  if (ngpus > 0)
-    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA");
+  if (ngpus > 0 && execution_space == Device)
+    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA on GPUs");
+#elif defined(FFT_CUFFT)
+  if (ngpus > 0 && execution_space == Host)
+    lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos CUDA on the host CPUs");
 #endif
 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
@@ -339,7 +343,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
     Kokkos::parallel_for(num,f);
   #endif
   }
-
 }
 
 /* ----------------------------------------------------------------------

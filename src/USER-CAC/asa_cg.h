@@ -1,13 +1,13 @@
 
 #ifndef ASA_CG_H
 #define ASA_CG_H
-#include <math.h>
-#include <limits.h>
-#include <float.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cmath>
+#include <climits>
+#include <cfloat>
+#include <cstring>
+#include <cctype>
+#include <cstdlib>
+#include <cstdio>
 #include "pair_CAC.h"
 #include "atom_vec_CAC.h"
 #define PRIVATE public

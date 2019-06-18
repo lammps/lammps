@@ -13,17 +13,14 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(CAC/lj,PairCACLJ)
+PairStyle(cac/lj,PairCACLJ)
 
 #else
 
 #ifndef LMP_PAIR_LJ_CAC_H
 #define LMP_PAIR_LJ_CAC_H
 
-//#include "asa_user.h"
-#include "pair.h"
 #include "pair_CAC.h"
-
 
 namespace LAMMPS_NS {
 
@@ -32,39 +29,21 @@ class PairCACLJ : public PairCAC {
   PairCACLJ(class LAMMPS *);
   virtual ~PairCACLJ();
  
-  
   void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
 
-  //double LJEOS(int);
-
-
  protected:
 
-             
-    int neigh_nodes_per_element;
-
-    
-
-
-    
   double **cut;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
-  
   double **inner_neighbor_coords;
- 
   int *inner_neighbor_types;
   
-	
   void allocate();
-  //double density_map(double);
- 
-  
-  
   void force_densities(int,double,double,double, double,double
-                                &fx, double &fy, double &fz);
+    &fx, double &fy, double &fz);
   virtual void settings(int, char **);
 };
 

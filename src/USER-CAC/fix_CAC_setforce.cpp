@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_CAC_setforce.h"
 #include "atom.h"
 #include "update.h"
@@ -36,7 +36,7 @@ FixCAC_Set_Force::FixCAC_Set_Force(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL), sforce(NULL)
 {
-  if (narg < 6) error->all(FLERR,"Illegal fix CAC_setforce command");
+  if (narg < 6) error->all(FLERR,"Illegal fix cac/setforce command");
 
   dynamic_group_allow = 1;
   vector_flag = 1;
@@ -84,22 +84,22 @@ FixCAC_Set_Force::FixCAC_Set_Force(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix setforce command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix cac/setforce command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-        error->all(FLERR,"Region ID for fix setforce does not exist");
+        error->all(FLERR,"Region ID for fix cac/setforce does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix setforce command");
+    } else error->all(FLERR,"Illegal fix cac/setforce command");
   }
 
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 
   maxatom = 1;
-  memory->create(sforce,maxatom,3,"setforce:sforce");
+  memory->create(sforce,maxatom,3,"cac_setforce:sforce");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,30 +130,30 @@ int FixCAC_Set_Force::setmask()
 void FixCAC_Set_Force::init()
 {
 	// check variables
-  if (!atom->CAC_flag) error->all(FLERR,"fix CAC/setforce requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"fix cac/setforce requires a CAC atom style");
 	if (xstr) {
 		xvar = input->variable->find(xstr);
 		if (xvar < 0)
-			error->all(FLERR, "Variable name for fix setforce does not exist");
+			error->all(FLERR, "Variable name for fix cac/setforce does not exist");
 		if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
 		else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-		else error->all(FLERR, "Variable for fix setforce is invalid style");
+		else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
 	}
 	if (ystr) {
 		yvar = input->variable->find(ystr);
 		if (yvar < 0)
-			error->all(FLERR, "Variable name for fix setforce does not exist");
+			error->all(FLERR, "Variable name for fix cac/setforce does not exist");
 		if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
 		else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-		else error->all(FLERR, "Variable for fix setforce is invalid style");
+		else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
 	}
 	if (zstr) {
 		zvar = input->variable->find(zstr);
 		if (zvar < 0)
-			error->all(FLERR, "Variable name for fix setforce does not exist");
+			error->all(FLERR, "Variable name for fix cac/setforce does not exist");
 		if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
 		else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-		else error->all(FLERR, "Variable for fix setforce is invalid style");
+		else error->all(FLERR, "Variable for fix cac/setforce is invalid style");
 	}
 
 	// set index and check validity of region
@@ -161,7 +161,7 @@ void FixCAC_Set_Force::init()
 	if (iregion >= 0) {
 		iregion = domain->find_region(idregion);
 		if (iregion == -1)
-			error->all(FLERR, "Region ID for fix setforce does not exist");
+			error->all(FLERR, "Region ID for fix cac/setforce does not exist");
 	}
 
 	if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
@@ -194,7 +194,7 @@ void FixCAC_Set_Force::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else
-    error->all(FLERR, "Cannot use respa with CAC/setforce");
+    error->all(FLERR, "Cannot use respa with cac/setforce");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -230,7 +230,7 @@ void FixCAC_Set_Force::post_force(int vflag)
   if (varflag == ATOM && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(sforce);
-    memory->create(sforce,maxatom,3,"setforce:sforce");
+    memory->create(sforce,maxatom,3,"cac_setforce:sforce");
   }
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;

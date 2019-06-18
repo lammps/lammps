@@ -11,10 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_CAC_buck.h"
 #include "atom.h"
 #include "force.h"
@@ -33,8 +33,6 @@
 
 #define MAXNEIGH1  50
 #define MAXNEIGH2  10
-//#include "math_extra.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -68,7 +66,6 @@ PairCACBuck::~PairCACBuck() {
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-
 	memory->destroy(cut);
 	memory->destroy(a);
 	memory->destroy(rho);
@@ -77,14 +74,9 @@ PairCACBuck::~PairCACBuck() {
 	memory->destroy(buck1);
 	memory->destroy(buck2);
 	memory->destroy(offset);
-
     memory->destroy(mass_matrix);
-    //memory->destroy(force_density_interior);
 	memory->destroy(inner_neighbor_coords);
-
 	memory->destroy(inner_neighbor_types);
-
-
   }
 }
 
@@ -133,7 +125,7 @@ void PairCACBuck::allocate()
 global settings
 ------------------------------------------------------------------------- */
 void PairCACBuck::settings(int narg, char **arg) {
-	if (narg <1 || narg>2) error->all(FLERR, "Illegal pair_style CAC/buck command");
+	if (narg <1 || narg>2) error->all(FLERR, "Illegal pair_style cac/buck command");
 
 	//cutmax = force->numeric(FLERR, arg[0]);
 
@@ -146,7 +138,7 @@ void PairCACBuck::settings(int narg, char **arg) {
 	
 	 if (narg == 2) {
 		if (strcmp(arg[1], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
-		else error->all(FLERR, "Unexpected argument in pair CAC/buck invocation; only accepts cutoff and the 'one' keyword");
+		else error->all(FLERR, "Unexpected argument in pair cac/buck invocation; only accepts cutoff and the 'one' keyword");
 	}
 	if (allocated) {
 		int i, j;
@@ -261,7 +253,7 @@ void PairCACBuck::init_style()
   check_existence_flags();
 
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style CAC_Buck requires atom IDs");
+    error->all(FLERR,"Pair style cac/Buck requires atom IDs");
 
   maxneigh_quad_inner = MAXNEIGH2;
   maxneigh_quad_outer = MAXNEIGH1;
@@ -270,7 +262,7 @@ void PairCACBuck::init_style()
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->CAC = 1;
+  neighbor->requests[irequest]->cac = 1;
   //surface selection array 
   surf_set[0][0] = 1;
   surf_set[0][1] = -1;
@@ -469,9 +461,9 @@ int distanceflag=0;
 			double ****nodal_positions = atom->nodal_positions;
 
 			
-			if(neigh_max>local_inner_max){
-      memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_buck:inner_neighbor_coords");
-			memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_buck:inner_neighbor_types");
+		 if(neigh_max>local_inner_max){
+         memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_buck:inner_neighbor_coords");
+		 memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_buck:inner_neighbor_types");
 	     local_inner_max=neigh_max;
 	     }   
 			for (int l = 0; l < neigh_max; l++) {
@@ -513,6 +505,11 @@ int distanceflag=0;
 					force_densityx += delx*fpair;
 					force_densityy += dely*fpair;
 					force_densityz += delz*fpair;
+
+					if (quad_eflag) {
+                      quadrature_energy += (a[origin_type][scan_type]*rexp - c[origin_type][scan_type]*r6inv -
+                      offset[origin_type][scan_type])/2;
+                    }
 				}
 			}
 

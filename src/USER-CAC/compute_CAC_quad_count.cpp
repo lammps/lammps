@@ -11,7 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
+#include <cmath>
 #include "compute_CAC_quad_count.h"
 #include "atom.h"
 #include "update.h"
@@ -22,7 +23,6 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
-#include <math.h>
 
 #define QUADSCALE  0 //adhoc scaling used to offset the fact that quadrature points
 #define QUADSCALE2  0 //adhoc scaling used to offset the fact that quadrature points
@@ -38,7 +38,7 @@ ComputeCACQuadCount::ComputeCACQuadCount(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   quad_count(NULL)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute CAC/quad_count command");
+  if (narg != 3) error->all(FLERR,"Illegal compute cac/quad/count command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -59,12 +59,12 @@ void ComputeCACQuadCount::init()
 {
   int count = 0;
 	if(!atom->CAC_flag){
-		error->all(FLERR,"compute CAC/quad_count requires a CAC atom style");
+		error->all(FLERR,"compute CAC/quad/count requires a CAC atom style");
 	}
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"CAC/quad_count") == 0) count++;
+    if (strcmp(modify->compute[i]->style,"cac/quad/count") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute CAC/quad_count");
+    error->warning(FLERR,"More than one compute cac/quad/count");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,7 +78,7 @@ void ComputeCACQuadCount::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(quad_count);
     nmax = atom->nmax;
-    memory->create(quad_count,nmax,"comput_CAC_quad_count: quad_count");
+    memory->create(quad_count,nmax,"compute_CAC_quad_count: quad_count");
     vector_atom = quad_count;
   }
   int nlocal = atom->nlocal;
@@ -109,20 +109,14 @@ void ComputeCACQuadCount::compute_peratom()
 	  current_element_type = element_type[i];
 	  current_poly_count = poly_count[i];
 	  if (current_element_type == 0) quad_count[i]=1;
-	  if (current_element_type != 0) {
-		  
-		 
-
-			  compute_surface_depths(interior_scales[0], interior_scales[1], interior_scales[2],
+      if (current_element_type != 0) {
+        compute_surface_depths(interior_scales[0], interior_scales[1], interior_scales[2],
 				  n1, n2, n3, 1);
 
-			  quad_count[i]= quad*quad*quad + 2 * n1*quad*quad + 2 * n2*quad*quad +
+        quad_count[i]= quad*quad*quad + 2 * n1*quad*quad + 2 * n2*quad*quad +
 				  +2 * n3*quad*quad + 4 * n1*n2*quad + 4 * n3*n2*quad + 4 * n1*n3*quad
 				  + 8 * n1*n2*n3;
-			  quad_count[i] *= current_poly_count;
-		
-		  
-
+        quad_count[i] *= current_poly_count;
 	  }
 	}
 	else{
@@ -149,7 +143,6 @@ void ComputeCACQuadCount::compute_surface_depths(double &scalex, double &scaley,
 	double unit_cell_mapped[3];
 	
 	double rcut=neighbor->cutneighmax - neighbor->skin;
-	//if (force->pair->outer_neighflag) rcut = 2 * rcut;
 	//flag determines the current element type and corresponding procedure to calculate parameters for 
 	//surface penetration depth to be used when computing force density with influences from neighboring
 	//elements
@@ -187,19 +180,12 @@ void ComputeCACQuadCount::compute_surface_depths(double &scalex, double &scaley,
 	dw_surf = unit_cell_mapped[2] * (int)(dw_surf / unit_cell_mapped[2]) + unit_cell_mapped[2];
 	if (ds_surf > 1) {
 		ds_surf = 1;
-
-
 	}
 	if (dt_surf > 1) {
-
 		dt_surf = 1;
-
-
 	}
 	if (dw_surf > 1) {
-
 		dw_surf = 1;
-
 	}
     if (atom->one_layer_flag) {
 		ds_surf = unit_cell_mapped[0];

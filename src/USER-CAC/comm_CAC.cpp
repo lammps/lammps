@@ -177,9 +177,9 @@ void CommCAC::init()
     // temporary restrictions
 
   if (triclinic)
-    error->all(FLERR,"Cannot yet use comm_style CAC with triclinic box");
+    error->all(FLERR,"Cannot yet use comm_style cac with triclinic box");
   if (mode == Comm::MULTI)
-    error->all(FLERR,"Cannot yet use comm_style CAC with multi comm option");
+    error->all(FLERR,"Cannot yet use comm_style cac with multi comm option");
   // memory for multi-style communication
  int maxswap = 26;
   if (mode == Comm::MULTI) {
@@ -195,7 +195,7 @@ void CommCAC::init()
 
   //CAC atom style check
   if (!atom->CAC_flag)
-  error->all(FLERR,"Cannot use comm_style CAC with non CAC atom style");
+  error->all(FLERR,"Cannot use comm_style cac with non CAC atom style");
 
   atom->CAC_comm_flag=1;
   
@@ -327,7 +327,7 @@ void CommCAC::setup()
   if ((periodicity[0] && cutghost[0] > prd[0]) ||
       (periodicity[1] && cutghost[1] > prd[1]) ||
       (dimension == 3 && periodicity[2] && cutghost[2] > prd[2]))
-    error->all(FLERR,"Communication cutoff for comm_style tiled "
+    error->all(FLERR,"Communication cutoff for comm_style cac "
                "cannot exceed periodic box length");
 
   // if cut = 0.0, set to epsilon to induce nearest neighbor comm
@@ -2304,7 +2304,7 @@ void CommCAC::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   } else if (lo[idim] == boxlo[idim]) {
     index = 0;
     dir = 1;
-  } else error->one(FLERR,"Comm tiled mis-match in box drop brick");
+  } else error->one(FLERR,"Comm cac mis-match in box drop brick");
 
   int other1,other2,proc;
   double lower,upper;
@@ -2322,7 +2322,7 @@ void CommCAC::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   }
 
   if (index < 0 || index > procgrid[idim])
-    error->one(FLERR,"Comm tiled invalid index in box drop brick");
+    error->one(FLERR,"Comm cac invalid index in box drop brick");
 
   while (1) {
     lower = boxlo[idim] + prd[idim]*split[index];

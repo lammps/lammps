@@ -6,11 +6,11 @@
 
 :line
 
-fix CAC/viscous command :h3
+fix cac/viscous command :h3
 
 [Syntax:]
 
-fix ID group-ID CAC/viscous gamma keyword values ... :pre
+fix ID group-ID cac/viscous gamma keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 viscous = style name of this fix command :l
@@ -24,8 +24,8 @@ keyword = {scale}
 
 [Examples:]
 
-fix 1 flow CAC/viscous 0.1
-fix 1 damp CAC/viscous 0.5 scale 3 2.5 :pre
+fix 1 flow cac/viscous 0.1
+fix 1 damp cac/viscous 0.5 scale 3 2.5 :pre
 
 [Description:]
 

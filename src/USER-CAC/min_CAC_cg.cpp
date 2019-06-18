@@ -20,8 +20,8 @@
             "Conjugate Gradient Method Without the Agonizing Pain" by
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
-#include <mpi.h>
-#include <math.h>
+
+#include <cmath>
 #include "min_CAC_cg.h"
 #include "atom.h"
 #include "update.h"
@@ -80,8 +80,8 @@ CACMinCG::~CACMinCG()
 void CACMinCG::init()
 {
   Min::init();
-  if (!atom->CAC_flag) error->all(FLERR,"min style CAC/cg requires a CAC atom style");
-  if (!atom->CAC_pair_flag) error->all(FLERR,"min style CAC/cg requires a CAC pair style");
+  if (!atom->CAC_flag) error->all(FLERR,"min style cac/cg requires a CAC atom style");
+  if (!atom->CAC_pair_flag) error->all(FLERR,"min style cac/cg requires a CAC pair style");
   if (linestyle == 0) linemin = &CACMinCG::linemin_backtrack;
   else if (linestyle == 1) linemin = &CACMinCG::linemin_quadratic;
   else if (linestyle == 2) linemin = &CACMinCG::linemin_forcezero;

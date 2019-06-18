@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cmath> 
 #include "npair_CAC.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -21,7 +22,7 @@
 #include "my_page.h"
 #include "error.h"
 #include "memory.h"
-#include <math.h> 
+
 #define MAXNEIGH  10
 #define EXPAND 50
 using namespace LAMMPS_NS;

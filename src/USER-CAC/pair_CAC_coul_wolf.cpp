@@ -11,10 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_CAC_coul_wolf.h"
 #include "atom.h"
 #include "force.h"
@@ -33,13 +33,10 @@
 
 #define MAXNEIGH1  50
 #define MAXNEIGH2  10
-//#include "math_extra.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,16 +66,10 @@ PairCACCoulWolf::~PairCACCoulWolf() {
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-
-
-
     memory->destroy(mass_matrix);
-    //memory->destroy(force_density_interior);
 	memory->destroy(inner_neighbor_coords);
-
 	memory->destroy(inner_neighbor_types);
 	memory->destroy(inner_neighbor_charges);
-
   }
 }
 
@@ -134,7 +125,7 @@ void PairCACCoulWolf::settings(int narg, char **arg) {
 	cut_global_s = force->numeric(FLERR, arg[1]);
 	if (narg == 3) {
 		if (strcmp(arg[2], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
-		else error->all(FLERR, "Unexpected argument in CAC/coul/wolf invocation");
+		else error->all(FLERR, "Unexpected argument in cac/coul/wolf invocation");
 	}
 	cut_coul = cut_global_s;
 	// reset cutoffs that have been explicitly set
@@ -184,7 +175,7 @@ void PairCACCoulWolf::init_style()
 {
 	check_existence_flags();
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style CAC_Buck requires atom IDs");
+    error->all(FLERR,"Pair style cac/coul/wolf requires atom IDs");
   maxneigh_quad_inner = MAXNEIGH2;
   maxneigh_quad_outer = MAXNEIGH1;
   if (!atom->q_flag)
@@ -194,7 +185,7 @@ void PairCACCoulWolf::init_style()
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->CAC = 1;
+  neighbor->requests[irequest]->cac = 1;
   cut_coulsq = cut_coul*cut_coul;
   //surface selection array 
   surf_set[0][0] = 1;
@@ -406,13 +397,12 @@ int distanceflag=0;
 			qisq = origin_element_charge*origin_element_charge;
 			e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
 			
-			if(neigh_max>local_inner_max){
-      memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_coul_wolf:neighbor_coords");
-
-			memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_coul_wolf:neighbor_types");
-			memory->grow(inner_neighbor_charges, neigh_max, "Pair_CAC_coul_wolf:neighbor_charges");
-	     local_inner_max=neigh_max;
-	     }      
+		    if(neigh_max>local_inner_max){
+              memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_coul_wolf:neighbor_coords");
+		      memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_coul_wolf:neighbor_types");
+		      memory->grow(inner_neighbor_charges, neigh_max, "Pair_CAC_coul_wolf:neighbor_charges");
+	          local_inner_max=neigh_max;
+	        }      
 			for (int l = 0; l < neigh_max; l++) {
 			scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
 		    scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
@@ -457,26 +447,11 @@ int distanceflag=0;
 					force_densityx += delx*fpair;
 					force_densityy += dely*fpair;
 					force_densityz += delz*fpair;
+
+					if (quad_eflag) 
+                    quadrature_energy += v_sh/2;
+          
 				}
 			}
-
-		
-
-
-
-
-
 //end of scanning loop
-
-
- //induce segfault to debug
- //segv=force_density[133][209];
-
-
-
-
-
-
-
-
 }

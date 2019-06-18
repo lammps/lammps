@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(CAC/viscous,FixViscousCAC)
+FixStyle(cac/viscous,FixViscousCAC)
 
 #else
 
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixViscousCAC : public Fix {
  public:
-	 FixViscousCAC(class LAMMPS *, int, char **);
+  FixViscousCAC(class LAMMPS *, int, char **);
   virtual ~FixViscousCAC();
   int setmask();
   void init();

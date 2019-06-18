@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(CAC/nodal_velocities,DumpCACNodalVelocities)
+DumpStyle(cac/nodal/velocities,DumpCACNodalVelocities)
 
 #else
 

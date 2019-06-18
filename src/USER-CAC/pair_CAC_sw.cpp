@@ -11,10 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include "pair_CAC_sw.h"
 #include "atom.h"
 #include "force.h"
@@ -30,7 +30,6 @@
 #include "error.h"
 #include "domain.h"
 #include "asa_user.h"
-#include <stdint.h>
 
 //#include "math_extra.h"
 #define MAXNEIGH1  110
@@ -41,25 +40,24 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
 
-
 /* ---------------------------------------------------------------------- */
 
 PairCACSW::PairCACSW(LAMMPS *lmp) : PairCAC(lmp)
 {
 
 
-	single_enable = 0;
-	restartinfo = 0;
-	one_coeff = 1;
-	manybody_flag = 1;
+  single_enable = 0;
+  restartinfo = 0;
+  one_coeff = 1;
+  manybody_flag = 1;
 
-	nelements = 0;
-	elements = NULL;
-	nparams = maxparam = 0;
-	params = NULL;
-	elem2param = NULL;
-	map = NULL;
-	outer_neighflag = 1;
+  nelements = 0;
+  elements = NULL;
+  nparams = maxparam = 0;
+  params = NULL;
+  elem2param = NULL;
+  map = NULL;
+  outer_neighflag = 1;
   nmax = 0;
   
   inner_neighbor_coords = NULL;
@@ -81,15 +79,13 @@ PairCACSW::PairCACSW(LAMMPS *lmp) : PairCAC(lmp)
 
 PairCACSW::~PairCACSW() {
 
-	if (copymode) return;
+  if (copymode) return;
 
-	if (elements)
-		for (int i = 0; i < nelements; i++) delete[] elements[i];
-	delete[] elements;
-	memory->destroy(params);
-	memory->destroy(elem2param);
-
-
+  if (elements)
+    for (int i = 0; i < nelements; i++) delete[] elements[i];
+    delete[] elements;
+    memory->destroy(params);
+    memory->destroy(elem2param);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -99,10 +95,7 @@ PairCACSW::~PairCACSW() {
 	memory->destroy(outer_neighbor_coords);
 	memory->destroy(inner_neighbor_types);
 	memory->destroy(outer_neighbor_types);
-
-   
     memory->destroy(mass_matrix);
-    //memory->destroy(force_density_interior);
   }
 }
 
@@ -118,10 +111,6 @@ void PairCACSW::allocate()
   memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
 
   map = new int[n + 1];
-
-
-
-
 
   memory->create(mass_matrix,max_nodes_per_element, max_nodes_per_element,"pairCAC:mass_matrix");
   memory->create(mass_copy, max_nodes_per_element, max_nodes_per_element,"pairCAC:copy_mass_matrix");
@@ -240,7 +229,7 @@ void PairCACSW::init_style()
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->CAC = 1;
+  neighbor->requests[irequest]->cac = 1;
   //surface selection array 
   surf_set[0][0] = 1;
   surf_set[0][1] = -1;
@@ -712,9 +701,8 @@ int distanceflag=0;
 	int neigh_max_inner = inner_quad_lists_counts[iii][neigh_quad_counter];
 	int neigh_max_outer = outer_quad_lists_counts[iii][neigh_quad_counter];
 	int itype, jtype, ktype, ijparam, ikparam, ijkparam;
-	int dummy1;
-	double dummy2;
-	dummy1 = dummy2 = 0;
+	double energy_contribution;
+	energy_contribution = 0;
 
 	if(neigh_max_inner>local_inner_max){
 	memory->grow(inner_neighbor_types, neigh_max_inner, "Pair_CAC_sw:inner_neighbor_types");
@@ -782,12 +770,14 @@ int distanceflag=0;
 		ijparam = elem2param[origin_type][scan_type][scan_type];
 		if (distancesq >= params[ijparam].cutsq) continue;
 
-		twobody(&params[ijparam], distancesq, fpair, dummy1, dummy2);
-
+		twobody(&params[ijparam], distancesq, fpair, quad_eflag, energy_contribution);
+        quadrature_energy += energy_contribution/2;
 
 		force_densityx += delx*fpair;
 		force_densityy += dely*fpair;
 		force_densityz += delz*fpair;
+
+
 	}
 
 	//ith three body contributions
@@ -825,8 +815,8 @@ int distanceflag=0;
 
 
 			threebody(&params[ijparam], &params[ikparam], &params[ijkparam],
-				rsq1, rsq2, delr1, delr2, fj, fk, dummy1, dummy2);
-
+				rsq1, rsq2, delr1, delr2, fj, fk, quad_eflag, energy_contribution);
+            quadrature_energy += energy_contribution/3;
 
 			force_densityx -= fj[0] + fk[0];
 			force_densityy -= fj[1] + fk[1];
@@ -872,8 +862,8 @@ int distanceflag=0;
 
 
 			threebody(&params[ijparam], &params[ikparam], &params[ijkparam],
-				rsq1, rsq2, delr1, delr2, fj, fk, dummy1, dummy2);
-
+				rsq1, rsq2, delr1, delr2, fj, fk, quad_eflag, energy_contribution);
+            quadrature_energy += energy_contribution/3;
 
 			force_densityx += fj[0];
 			force_densityy += fj[1];
@@ -898,8 +888,8 @@ int distanceflag=0;
 
 
 			threebody(&params[ijparam], &params[ikparam], &params[ijkparam],
-				rsq1, rsq2, delr1, delr2, fj, fk, dummy1, dummy2);
-
+				rsq1, rsq2, delr1, delr2, fj, fk, quad_eflag, energy_contribution);
+            quadrature_energy += energy_contribution/3;
 
 			force_densityx += fj[0];
 			force_densityy += fj[1];

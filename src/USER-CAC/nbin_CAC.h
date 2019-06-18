@@ -13,7 +13,7 @@
 
 #ifdef NBIN_CLASS
 
-NBinStyle(CAC,
+NBinStyle(cac,
           NBinCAC,
           NB_CAC)
 
@@ -57,8 +57,6 @@ class NBinCAC : public NBin {
   double *quadrature_weights;
   double *quadrature_abcissae;
   int quad_rule_initialized;
-  int setup_called;
-  int bad_bin_flag;
   double bsubbox[3],bsubboxlo[3],bsubboxhi[3];
   int max_nall;                  //upper bound on number of local + ghost atoms that have been encountered
   int *max_nbin_overlap;         //upper bound on how many bins an element has overlapped

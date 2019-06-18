@@ -12,26 +12,26 @@ pair_style CAC/buck command :h3
 
 pair_style style args :pre
 
-style = {CAC/buck}
+style = {cac/buck}
 args = list of arguments for a particular style :ul
-  {CAC/buck} args = cutoff quadrature_flag
+  {cac/buck} args = cutoff quadrature_flag
     cutoff = global cutoff for Buckingham interactions (distance units)
     quadrature_flag = left blank or set to the {one} keyword :pre
 
 [Examples:]
 
-pair_style CAC/buck 8.0
+pair_style cac/buck 8.0
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff * * 100.0 1.5 200.0 3.0 :pre
 
-pair_style CAC/buck 8.0 one
+pair_style cac/buck 8.0 one
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff * * 100.0 1.5 200.0 3.0 :pre
 
 
 [Description:]
 
-The {CAC/buck} style computes a computes pair forces using the Buckingham 
+The {cac/buck} style computes a computes pair forces using the Buckingham 
 potential for a CAC model. Other than the allotment of the {one} keyword,
 the rest of the input parameters and pair_coeff settings are as found in
 "pair_style buck"_pair_buck.html. For more information on the quadrature

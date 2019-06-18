@@ -6,22 +6,22 @@
 
 :line
 
-dump CAC/nodal_positions command :h3
+dump cac/nodal/positions command :h3
 
 [Syntax:]
 
-dump ID group-ID CAC/nodal_positions N file args :pre
+dump ID group-ID cac/nodal/positions N file args :pre
 
 ID = user-assigned name for the dump
 group-ID = ID of the group of atoms/elements to be dumped
-CAC/nodal_positions = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page)
+cac/nodal/positions = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page)
 N = dump every this many timesteps
 file = name of file to write dump info to
 args = same as arguments for "dump_style custom"_dump.html :ul
 
 [Examples:]
 
-dump mesh all CAC/nodal_positions 1000 CACmesh.txt
+dump mesh all cac/nodal/positions 1000 CACmesh.txt
 
 [Description:]
 
@@ -42,9 +42,9 @@ This dump style requires a CAC "atom style"_atom_style.html
 
 [Related commands:]
 
-"dump"_dump.html, "dump CAC/initial_nodes"_dump_CAC_initial_nodes.html,
-"dump CAC/kinetic_energy"_dump_CAC_kinetic_energy.html, "dump CAC/xyz"_dump_CAC_xyz.html,
-"dump CAC/nodal_velocities"_dump_CAC_nodal_velocities.html,
+"dump"_dump.html, "dump cac/initial/nodes"_dump_CAC_initial_nodes.html,
+"dump cac/kinetic/energy"_dump_CAC_kinetic_energy.html, "dump CAC/xyz"_dump_CAC_xyz.html,
+"dump cac/nodal/velocities"_dump_CAC_nodal_velocities.html,
 "dump_modify"_dump_modify.html, "undump"_undump.html
 
 

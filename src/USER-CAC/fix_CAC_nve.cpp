@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_CAC_nve.h"
 #include "atom.h"
 #include "force.h"
@@ -29,7 +29,7 @@ FixNVECAC::FixNVECAC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (strcmp(style,"nve/sphere") != 0 && narg < 3)
-    error->all(FLERR,"Illegal fix nve command");
+    error->all(FLERR,"Illegal fix cac/nve command");
 
   dynamic_group_allow = 1;
   time_integrate = 1;
@@ -51,7 +51,7 @@ int FixNVECAC::setmask()
 
 void FixNVECAC::init()
 {
-	if (!atom->CAC_flag) error->all(FLERR,"fix CAC/nve requires a CAC atom style");
+	if (!atom->CAC_flag) error->all(FLERR,"fix cac/nve requires a CAC atom style");
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 

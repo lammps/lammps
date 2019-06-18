@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include <mpi.h>
-#include <string.h>
 #include "compute_CAC_nodal_temp.h"
 #include "atom.h"
 #include "update.h"
@@ -52,7 +52,7 @@ ComputeNodalTemp::~ComputeNodalTemp()
 
 void ComputeNodalTemp::setup()
 {
-  if (!atom->CAC_flag) error->all(FLERR,"compute CAC/nodal_temp requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"compute cac/nodal/temp requires a CAC atom style");
   dynamic = 0;
   if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof_compute();

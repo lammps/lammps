@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_CAC_temp_rescale.h"
 #include "atom.h"
 #include "force.h"
@@ -72,12 +72,12 @@ FixTempRescale_CAC::FixTempRescale_CAC(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(id) + 16;
   id_temp = new char[n];
   strcpy(id_temp,id);
-  strcat(id_temp,"_CAC/nodal_temp");
+  strcat(id_temp,"_cac/nodal/temp");
 
   char **newarg = new char*[6];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "CAC/nodal_temp";
+  newarg[2] = (char *) "cac/nodal/temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -112,18 +112,18 @@ int FixTempRescale_CAC::setmask()
 void FixTempRescale_CAC::init()
 {
   // check variable
-  if (!atom->CAC_flag) error->all(FLERR,"fix CAC/temp/rescale requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"fix cac/temp/rescale requires a CAC atom style");
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/rescale does not exist");
+      error->all(FLERR,"Variable name for fix cac/temp/rescale does not exist");
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable for fix temp/rescale is invalid style");
+    else error->all(FLERR,"Variable for fix cac/temp/rescale is invalid style");
   }
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix temp/rescale does not exist");
+    error->all(FLERR,"Temperature ID for fix cac/temp/rescale does not exist");
   temperature = modify->compute[icompute];
 
   if (temperature->tempbias) which = BIAS;
@@ -143,7 +143,7 @@ void FixTempRescale_CAC::end_of_step()
   // protect against division by zero
 
   if (t_current == 0.0)
-    error->all(FLERR,"Computed temperature for fix temp/rescale cannot be 0.0");
+    error->all(FLERR,"Computed temperature for fix cac/temp/rescale cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -158,7 +158,7 @@ void FixTempRescale_CAC::end_of_step()
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
       error->one(FLERR,
-                 "Fix temp/rescale variable returned negative temperature");
+                 "Fix cac/temp/rescale variable returned negative temperature");
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -221,7 +221,7 @@ void FixTempRescale_CAC::end_of_step()
 
 int FixTempRescale_CAC::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0],"CAC/nodal_temp") == 0) {
+  if (strcmp(arg[0],"cac/nodal_temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);

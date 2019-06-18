@@ -11,10 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_CAC_lj.h"
 #include "atom.h"
 #include "force.h"
@@ -34,8 +34,6 @@
 
 #define MAXNEIGH1  50
 #define MAXNEIGH2  10
-//#include "math_extra.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -73,7 +71,6 @@ PairCACLJ::~PairCACLJ() {
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-
     memory->destroy(cut);
     memory->destroy(epsilon);
     memory->destroy(sigma);
@@ -83,12 +80,8 @@ PairCACLJ::~PairCACLJ() {
     memory->destroy(lj4);
     memory->destroy(offset);
     memory->destroy(mass_matrix);
-    //memory->destroy(force_density_interior);
-	memory->destroy(inner_neighbor_coords);
-	
-	memory->destroy(inner_neighbor_types);
-
-
+	  memory->destroy(inner_neighbor_coords);
+    memory->destroy(inner_neighbor_types);
   }
 }
 
@@ -149,7 +142,7 @@ void PairCACLJ::settings(int narg, char **arg) {
 	cut_global_s = force->numeric(FLERR, arg[0]);
 	if (narg == 2) {
 		if (strcmp(arg[1], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
-		else error->all(FLERR, "Unexpected argument in pair style CAC/lj invocation; only accepts cutoff and the 'one' keyword");
+		else error->all(FLERR, "Unexpected argument in pair style cac/lj invocation; only accepts cutoff and the 'one' keyword");
 	}
 
 	if (allocated) {
@@ -268,7 +261,7 @@ void PairCACLJ::init_style()
 {
   check_existence_flags();
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style CAC_LJ requires atom IDs");
+    error->all(FLERR,"Pair style cac/lj requires atom IDs");
 
   maxneigh_quad_inner = MAXNEIGH2;
   maxneigh_quad_outer = MAXNEIGH1;
@@ -277,7 +270,7 @@ void PairCACLJ::init_style()
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->CAC = 1;
+  neighbor->requests[irequest]->cac = 1;
   //surface selection array 
   surf_set[0][0] = 1;
   surf_set[0][1] = -1;
@@ -433,10 +426,10 @@ unit_cell[2] = w;
  scanning_unit_cell[2]=unit_cell[2];
 
 
-int distanceflag=0;
-    current_position[0]=0;
-    current_position[1]=0;
-    current_position[2]=0;
+  int distanceflag=0;
+  current_position[0]=0;
+  current_position[1]=0;
+  current_position[2]=0;
 
 	if (!atomic_flag) {
 		nodes_per_element = nodes_count_list[current_element_type];
@@ -457,12 +450,7 @@ int distanceflag=0;
 	rcut = cut_global_s;
 	int origin_type = type_array[poly_counter];
 
-
-
 	//precompute virtual neighbor atom locations
-
-	
-
 
 			int listtype;
 			int listindex;
@@ -503,7 +491,6 @@ int distanceflag=0;
 
 			}
 			
-		  
 			for (int l = 0; l < neigh_max; l++) {
 
 				scan_type = inner_neighbor_types[l];
@@ -530,73 +517,17 @@ int distanceflag=0;
 				force_contribution[1] = dely*fpair;
 				force_contribution[2] = delz*fpair;
 				//timer->stamp(Timer::CAC_FD);
-				//if (0) {
         if (quad_eflag) {
-
 				scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
 			  scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
 			  scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
 			  listindex = inner_quad_lists_index[iii][neigh_quad_counter][l][0];
 			  poly_grad_scan = inner_quad_lists_index[iii][neigh_quad_counter][l][1];
 
-
 					quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
 						offset[origin_type][scan_type]/2;
-
-					//evdwl *= factor_lj;
-					//compute gradients of the potential with respect to nodes
-					//the calculation is the chain rule derivative evaluation of the integral of the energy density
-					//added for every internal degree of freedom i.e. u=u1+u2+u3..upoly defines the total unit cell energy density to integrate
-					//differentiating with nodal positions leaves terms of force contributions times shape function at the particle locations
-					//corresponding to the force contributions at that quadrature point
-          /*
-          if(update->whichflag==2){
-          if (!atomic_flag){
-					for (int js = 0; js < nodes_per_element; js++) {
-						for (int jj = 0; jj < 3; jj++) {
-							if (listindex == iii) {
-    					current_nodal_gradients[js][poly_counter][jj] += coefficients*force_contribution[jj] *
-    						shape_function(s, t, w, 2, js + 1)/2;
-							}
-    					//listindex determines if the neighbor virtual atom belongs to the current element or a neighboring element
-    					//derivative contributions are zero for jth virtual atoms in other elements that depend on other nodal variables
-    					if (listindex <atom->nlocal) {
-    						nodal_gradients[listindex][js][poly_grad_scan][jj] -= coefficients*force_contribution[jj] *
-    							shape_function(scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2], 2, js + 1)/2;
-    					}
-
-						}
-					}
-          }
-          else{
-            for (int jj = 0; jj < 3; jj++){
-                    current_nodal_gradients[0][poly_counter][jj] += coefficients*force_contribution[jj];
-                }
-          }
-        }
-        */
 				}
 				//end of energy portion
 			}
-
-		  //portion that computes the energy and gradients of energy
-         
-
-
-    
-
-
 //end of scanning loop
-
-
- //induce segfault to debug
- //segv=force_density[133][209];
-
-
-
-
-
-
-
-
 }

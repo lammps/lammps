@@ -259,7 +259,7 @@ void NeighList::print_attributes()
   printf("\n");
   printf("  %d = half\n",rq->half);
   printf("  %d = full\n",rq->full);
-  printf("  %d = full\n",rq->CAC);
+  printf("  %d = cac\n",rq->cac);
   printf("\n");
   printf("  %d = occasional\n",occasional);
   printf("  %d = newton\n",rq->newton);

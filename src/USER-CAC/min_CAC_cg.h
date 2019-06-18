@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(CAC/cg,CACMinCG)
+MinimizeStyle(cac/cg,CACMinCG)
 
 #else
 

@@ -10,14 +10,14 @@ fix CAC/nve command :h3
 
 [Syntax:]
 
-fix ID group-ID CAC/nve :pre
+fix ID group-ID cac/nve :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-CAC/nve = style name of this fix command :ul
+cac/nve = style name of this fix command :ul
 
 [Examples:]
 
-fix 1 all CAC/nve :pre
+fix 1 all cac/nve :pre
 
 [Description:]
 

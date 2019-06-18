@@ -1,11 +1,11 @@
 
 #ifndef ASA_USER_H
 #define ASA_USER_H
-#include <limits.h>
-#include <float.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <limits>
+#include <cfloat>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
 
 #define ASA_INT long int
 #define ASA_INT_INF LONG_MAX

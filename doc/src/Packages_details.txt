@@ -1104,28 +1104,28 @@ The Journal of Chemical Physics 130, 134706, (2009).
 src/USER-CAC: filenames -> commands
 /src/USER-CAC/README
 "Howto_CAC"_Howto_CAC.html
-"atom_style CAC"_atom_style.html
-"comm_style CAC"_comm_style.html
-"pair_style CAC/lj"_pair_CAC_lj.html
-"pair_style CAC/coul/wolf"_pair_CAC_coul_wolf.html
-"pair_style CAC/buck"_pair_CAC_buck.html
-"pair_style CAC/sw"_pair_CAC_sw.html
-"pair_style CAC/eam"_pair_CAC_eam.html
-"min_style CAC/cg"_min_style.html
-"min_style CAC/fire"_min_style.html 
-"fix CAC/nve"_fix_CAC_nve.html
-"fix CAC/viscous"_fix_CAC_viscous.html
-"fix CAC/setvelocity"_fix_CAC_setvelocity.html
-"fix CAC/setforce"_fix_CAC_setforce.html
-"fix CAC/addforce"_fix_CAC_addforce.html
-"fix CAC/temp/rescale"_fix_CAC_temp_rescale.html
-"compute CAC/quad_count"_compute_CAC_quad_count.html
-"compute CAC/nodal_temp"_compute_CAC_nodal_temp.html
-"dump CAC/nodal_positions"_dump_CAC_nodal_positions.html
-"dump CAC/initial_nodes"_dump_CAC_initial_nodes.html
-"dump CAC/nodal_velocities"_dump_nodal_velocities.html
-"dump CAC/kinetic_energy"_dump_CAC_kinetic.html
-"dump CAC/xyz"_dump_CAC_xyz.html :ul
+"atom_style cac"_atom_style.html
+"comm_style cac"_comm_style.html
+"pair_style cac/lj"_pair_CAC_lj.html
+"pair_style cac/coul/wolf"_pair_CAC_coul_wolf.html
+"pair_style cac/buck"_pair_CAC_buck.html
+"pair_style cac/sw"_pair_CAC_sw.html
+"pair_style cac/eam"_pair_CAC_eam.html 
+"min_style cac/cg"_min_style.html
+"min_style cac/fire"_min_style.html
+"fix cac/nve"_fix_CAC_nve.html
+"fix cac/viscous"_fix_CAC_viscous.html
+"fix cac/setvelocity"_fix_CAC_setvelocity.html
+"fix cac/setforce"_fix_CAC_setforce.html
+"fix cac/addforce"_fix_CAC_addforce.html
+"fix cac/temp/rescale"_fix_CAC_temp_rescale.html
+"compute cac/quad_count"_compute_CAC_quad_count.html
+"compute cac/nodal_temp"_compute_CAC_nodal_temp.html
+"dump cac/nodal_positions"_dump_CAC_nodal_positions.html
+"dump cac/initial_nodes"_dump_CAC_initial_nodes.html
+"dump cac/nodal_velocities"_dump_nodal_velocities.html
+"dump cac/kinetic_energy"_dump_CAC_kinetic.html
+"dump cac/xyz"_dump_CAC_xyz.html :ul
 
 Example inputs are in the examples/USER/CAC folder.
 

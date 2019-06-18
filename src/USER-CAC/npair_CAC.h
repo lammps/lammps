@@ -13,7 +13,7 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(CAC,
+NPairStyle(cac,
            NPairCAC,
 	 NP_BIN | NP_ATOMONLY |
 	NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_CAC)

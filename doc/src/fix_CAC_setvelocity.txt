@@ -6,14 +6,14 @@
 
 :line
 
-fix CAC/setvelocity command :h3
+fix cac/setvelocity command :h3
 
 [Syntax:]
 
-fix ID group-ID CAC/setvelocity vx vy vz keyword value ... :pre
+fix ID group-ID cac/setvelocity vx vy vz keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-CAC/setvelocity = style name of this fix command :l
+cac/setvelocity = style name of this fix command :l
 vx,vy,vz = force component values :l
 any of vx,vy,vz can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
@@ -24,9 +24,9 @@ keyword = {region}  :l
 
 [Examples:]
 
-fix freeze indenter CAC/setvelocity 0.0 0.0 0.0
-fix 2 edge CAC/setvelocity NULL 0.0 0.0
-fix 2 edge CAC/setvelocity NULL 0.0 v_oscillate :pre
+fix freeze indenter cac/setvelocity 0.0 0.0 0.0
+fix 2 edge cac/setvelocity NULL 0.0 0.0
+fix 2 edge cac/setvelocity NULL 0.0 v_oscillate :pre
 
 [Description:]
 
@@ -82,5 +82,9 @@ the "run"_run.html command.
 [Restrictions:] 
 
 This fix requires a CAC atom style
+
+[Related commands:]
+
+"fix cac/setforce"_fix_CAC_setforce.html
 
 [Default:] none

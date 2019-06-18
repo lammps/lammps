@@ -30,7 +30,7 @@ typedef double FFT_SCALAR;
 #if defined(FFT_FFTW3)
   #include "fftw3.h"
   typedef fftw_complex FFT_DATA;
-  #define FFTW_API(function)  fftw_ ## function
+  #define FFTW_API(function) fftw_ ## function
 #elif defined(FFT_CUFFT)
   #include "cufft.h"
   typedef cufftDoubleComplex FFT_DATA;

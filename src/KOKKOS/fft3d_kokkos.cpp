@@ -28,6 +28,9 @@
 
 using namespace LAMMPS_NS;
 
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -82,9 +85,6 @@ void FFT3dKokkos<DeviceType>::timing1d(typename AT::t_FFT_SCALAR_1d d_in, int ns
 
   fft_3d_1d_only_kokkos(d_in_data,nsize,flag,plan);
 }
-
-#define MIN(A,B) ((A) < (B) ? (A) : (B))
-#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 /* ----------------------------------------------------------------------
    Data layout for 3d FFTs:
@@ -238,7 +238,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
     else
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_backward,length);
     Kokkos::parallel_for(total/length,f);
-    DeviceType::fence();
     d_data = d_tmp;
     d_tmp = typename ArrayTypes<DeviceType>::t_FFT_DATA_1d("fft_3d:tmp",d_in.dimension_0());
   #endif
@@ -278,7 +277,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
     else
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_backward,length);
     Kokkos::parallel_for(total/length,f);
-    DeviceType::fence();
     d_data = d_tmp;
     d_tmp = typename ArrayTypes<DeviceType>::t_FFT_DATA_1d("fft_3d:tmp",d_in.dimension_0());
   #endif
@@ -319,7 +317,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
     else
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_backward,length);
     Kokkos::parallel_for(total/length,f);
-    DeviceType::fence();
     d_data = d_tmp;
   #endif
 
@@ -346,11 +343,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename ArrayTypes<DeviceType>::t_F
      typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
     cufft_norm_functor<DeviceType> f(d_norm_scalar,norm);
     Kokkos::parallel_for(num,f);
-    DeviceType::fence();
   #elif defined(FFT_KISFFT)
     kiss_norm_functor<DeviceType> f(d_out,norm);
     Kokkos::parallel_for(num,f);
-    DeviceType::fence();
   #endif
   }
 
@@ -805,27 +800,21 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceTy
   if (flag == -1) {
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_forward,length1);
     Kokkos::parallel_for(total1/length1,f);
-    DeviceType::fence();
 
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_forward,length2);
     Kokkos::parallel_for(total2/length2,f);
-    DeviceType::fence();
 
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_forward,length3);
     Kokkos::parallel_for(total3/length3,f);
-    DeviceType::fence();
   } else {
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_backward,length1);
     Kokkos::parallel_for(total1/length1,f);
-    DeviceType::fence();
 
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_backward,length2);
     Kokkos::parallel_for(total2/length2,f);
-    DeviceType::fence();
 
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_backward,length3);
     Kokkos::parallel_for(total3/length3,f);
-    DeviceType::fence();
   }
 #endif
 
@@ -840,11 +829,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename ArrayTypes<DeviceTy
      typename ArrayTypes<DeviceType>::t_FFT_SCALAR_1d(d_data.data(),d_data.size());
     cufft_norm_functor<DeviceType> f(d_norm_scalar,norm);
     Kokkos::parallel_for(num,f);
-    DeviceType::fence();
   #elif defined(FFT_KISFFT)
     kiss_norm_functor<DeviceType> f(d_data,norm);
     Kokkos::parallel_for(num,f);
-    DeviceType::fence();
   #endif
   }
 }

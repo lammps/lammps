@@ -17,13 +17,9 @@
    homepage: http://kissfft.sf.net/
 
    changes 2008-2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+
+   KISS FFT ported to Kokkos by Stan Moore (SNL)
 */
-
-#ifndef LMP_KISSFFT_KOKKOS_H
-#define LMP_KISSFFT_KOKKOS_H
-
-#include "fftdata_kokkos.h"
-#include "kokkos_type.h"
 
 /*
   Copyright (c) 2003-2010, Mark Borgerding
@@ -58,50 +54,21 @@
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+
+#ifndef LMP_KISSFFT_KOKKOS_H
+#define LMP_KISSFFT_KOKKOS_H
 
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "kissfft_kokkos.h"
 #include "fftdata_kokkos.h"
+#include "kokkos_type.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502884197169399375105820974944
 #endif
-
-/*
-  Copyright (c) 2003-2010, Mark Borgerding
-
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in
-      the documentation and/or other materials provided with the
-      distribution.
-
-    * Neither the author nor the names of any contributors may be used
-      to endorse or promote products derived from this software without
-      specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 
 /*
   Explanation of macros dealing with complex math:
@@ -112,7 +79,7 @@
    C_SUBFROM( res , a)  : res -= a
    C_ADDTO( res , a)    : res += a
    C_EQ( res , a)       : res = a
- * */
+
 
 #define S_MUL(a,b) ( (a)*(b) )
 
@@ -120,18 +87,16 @@
     do{ (m)[0] = (a)(a_index,0)*(b)(b_index,0) - (a)(a_index,1)*(b)(b_index,1);\
         (m)[1] = (a)(a_index,0)*(b)(b_index,1) + (a)(a_index,1)*(b)(b_index,0); }while(0)
 
-#define C_FIXDIV(c,div) /* NOOP */
-
-
+#define C_FIXDIV(c,div) // NOOP
 
 #define C_MULBYSCALAR( c, s ) \
     do{ (c)[0] *= (s);\
         (c)[1] *= (s); }while(0)
 
-//#define  C_ADD( res, a,b)\
-//    do { \
-//            (res)[0]=(a)[0]+(b)[0];  (res)[1]=(a)[1]+(b)[1]; \
-//    }while(0)
+#define  C_ADD( res, a,b)\
+    do { \
+            (res)[0]=(a)[0]+(b)[0];  (res)[1]=(a)[1]+(b)[1]; \
+    }while(0)
 
 #define  C_SUB( res, a,b)\
     do { \
@@ -152,7 +117,7 @@
     do {\
             (res)[0] = (a)[0];  (res)[1] = (a)[1]; \
     }while(0)
-
+*/
 
 #define KISS_FFT_COS(phase) (FFT_SCALAR) cos(phase)
 #define KISS_FFT_SIN(phase) (FFT_SCALAR) sin(phase)
@@ -163,6 +128,7 @@
                 (x)(x_index,0) = KISS_FFT_COS(phase);\
                 (x)(x_index,1) = KISS_FFT_SIN(phase);\
         }while(0)
+
 
 namespace LAMMPS_NS {
 
@@ -439,7 +405,6 @@ class KissFFTKokkos {
               k += m;
           }
       }
-      //KISS_FFT_TMP_FREE(d_scratch);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -561,17 +526,16 @@ class KissFFTKokkos {
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename AT::t_FFT_DATA_1d_um &d_fin, typename AT::t_FFT_DATA_1d_um &d_fout, int in_stride, int offset)
   {
-      //if (d_fin == d_fout) {
-      //    // NOTE: this is not really an in-place FFT algorithm.
-      //    // It just performs an out-of-place FFT into a temp buffer
-      //    typename AT::t_FFT_DATA_1d_um d_tmpbuf = typename AT::t_FFT_DATA_1d("kissfft:tmpbuf",st.nfft);
-      //    kf_work(d_tmpbuf,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
-      //    memcpy(d_fout,d_tmpbuf,sizeof(FFT_DATA)*st.nfft);
-      //} else {
-          kf_work(d_fout,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
-      //}
+      if (d_fin.data() == d_fout.data()) {
+          // NOTE: this is not really an in-place FFT algorithm.
+          // It just performs an out-of-place FFT into a temp buffer
+          typename AT::t_FFT_DATA_1d d_tmpbuf = typename AT::t_FFT_DATA_1d("kissfft:tmpbuf",d_fin.extent(1));
+          kf_work(d_tmpbuf,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
+          Kokkos::deep_copy(d_fout,d_tmpbuf);
+      } else {
+        kf_work(d_fout,d_fin,1,in_stride,st.d_factors,st,offset,offset,0);
+      }
   }
-
 
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_kokkos(const kiss_fft_state_kokkos<DeviceType> &cfg, const typename AT::t_FFT_DATA_1d_um d_fin, typename AT::t_FFT_DATA_1d_um d_fout, int offset)
@@ -582,5 +546,4 @@ class KissFFTKokkos {
 };
 
 }
-
 #endif

@@ -12,10 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "remap_kokkos.h"
+#include "pack_kokkos.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,13 +63,6 @@ void RemapKokkos<DeviceType>::perform(typename AT::t_FFT_SCALAR_1d d_in, typenam
   remap_3d_kokkos(d_in,d_out,d_buf,plan);
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "pack_kokkos.h"
-
-#define MIN(A,B) ((A) < (B) ? (A) : (B))
-#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 /* ----------------------------------------------------------------------
    Data layout for 3d remaps:
@@ -106,157 +105,65 @@ template<class DeviceType>
 void RemapKokkos<DeviceType>::remap_3d_kokkos(typename AT::t_FFT_SCALAR_1d d_in, typename AT::t_FFT_SCALAR_1d d_out, typename AT::t_FFT_SCALAR_1d d_buf,
               struct remap_plan_3d_kokkos<DeviceType> *plan)
 {
+  // collective flag not yet supported
+
   // use point-to-point communication
 
-  //if (!plan->usecollective) {
-    int i,isend,irecv;
-    typename AT::t_FFT_SCALAR_1d d_scratch;
+  int i,isend,irecv;
+  typename AT::t_FFT_SCALAR_1d d_scratch;
 
-    if (plan->memory == 0)
-      d_scratch = d_buf;
-    else
-      d_scratch = plan->d_scratch;
+  if (plan->memory == 0)
+    d_scratch = d_buf;
+  else
+    d_scratch = plan->d_scratch;
 
-    // post all recvs into scratch space
+  // post all recvs into scratch space
 
-    for (irecv = 0; irecv < plan->nrecv; irecv++) {
-      double* scratch = d_scratch.ptr_on_device() + plan->recv_bufloc[irecv];
-      MPI_Irecv(scratch,plan->recv_size[irecv],
-                MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
-                plan->comm,&plan->request[irecv]);
-    }
+  for (irecv = 0; irecv < plan->nrecv; irecv++) {
+    double* scratch = d_scratch.ptr_on_device() + plan->recv_bufloc[irecv];
+    MPI_Irecv(scratch,plan->recv_size[irecv],
+              MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
+              plan->comm,&plan->request[irecv]);
+  }
 
-    // send all messages to other procs
+  // send all messages to other procs
 
-    for (isend = 0; isend < plan->nsend; isend++) {
-      int in_offset = plan->send_offset[isend];
-      plan->pack(d_in,in_offset,
-                 plan->d_sendbuf,0,&plan->packplan[isend]);
-      MPI_Send(plan->d_sendbuf.ptr_on_device(),plan->send_size[isend],MPI_FFT_SCALAR,
-               plan->send_proc[isend],0,plan->comm);
-    }
+  for (isend = 0; isend < plan->nsend; isend++) {
+    int in_offset = plan->send_offset[isend];
+    plan->pack(d_in,in_offset,
+               plan->d_sendbuf,0,&plan->packplan[isend]);
+    MPI_Send(plan->d_sendbuf.ptr_on_device(),plan->send_size[isend],MPI_FFT_SCALAR,
+             plan->send_proc[isend],0,plan->comm);
+  }
 
-    // copy in -> scratch -> out for self data
+  // copy in -> scratch -> out for self data
 
-    if (plan->self) {
-      isend = plan->nsend;
-      irecv = plan->nrecv;
+  if (plan->self) {
+    isend = plan->nsend;
+    irecv = plan->nrecv;
 
-      int in_offset = plan->send_offset[isend];
-      int scratch_offset = plan->recv_bufloc[irecv];
-      int out_offset = plan->recv_offset[irecv];
+    int in_offset = plan->send_offset[isend];
+    int scratch_offset = plan->recv_bufloc[irecv];
+    int out_offset = plan->recv_offset[irecv];
 
-      plan->pack(d_in,in_offset,
-                 d_scratch,scratch_offset,
-                 &plan->packplan[isend]);
-      plan->unpack(d_scratch,scratch_offset,
-                   d_out,out_offset,&plan->unpackplan[irecv]);
-    }
+    plan->pack(d_in,in_offset,
+               d_scratch,scratch_offset,
+               &plan->packplan[isend]);
+    plan->unpack(d_scratch,scratch_offset,
+                 d_out,out_offset,&plan->unpackplan[irecv]);
+  }
 
-    // unpack all messages from scratch -> out
+  // unpack all messages from scratch -> out
 
-    for (i = 0; i < plan->nrecv; i++) {
-      MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
+  for (i = 0; i < plan->nrecv; i++) {
+    MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
 
-      int scratch_offset = plan->recv_bufloc[irecv];
-      int out_offset = plan->recv_offset[irecv];
+    int scratch_offset = plan->recv_bufloc[irecv];
+    int out_offset = plan->recv_offset[irecv];
 
-      plan->unpack(d_scratch,scratch_offset,
-                   d_out,out_offset,&plan->unpackplan[irecv]);
-    }
-
-  // use All2Allv collective for remap communication
-
-  //} else {
-  //  if (plan->commringlen > 0) {
-  //    int isend,irecv;
-  //
-  //    // create send and recv buffers for alltoallv collective
-  //
-  //    int sendBufferSize = 0;
-  //    int recvBufferSize = 0;
-  //    for (int i=0;i<plan->nsend;i++)
-  //      sendBufferSize += plan->send_size[i];
-  //    for (int i=0;i<plan->nrecv;i++)
-  //      recvBufferSize += plan->recv_size[i];
-  //
-  //    typename AT::t_FFT_SCALAR_1d packedSendBuffer
-  //      = (typename AT::t_FFT_SCALAR_1d ) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
-  //    typename AT::t_FFT_SCALAR_1d packedRecvBuffer
-  //      = (typename AT::t_FFT_SCALAR_1d ) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
-  //
-  //    int *sendcnts = (int *) malloc(sizeof(int) * plan->commringlen);
-  //    int *rcvcnts = (int *) malloc(sizeof(int) * plan->commringlen);
-  //    int *sdispls = (int *) malloc(sizeof(int) * plan->commringlen);
-  //    int *rdispls = (int *) malloc(sizeof(int) * plan->commringlen);
-  //    int *nrecvmap = (int *) malloc(sizeof(int) * plan->commringlen);
-  //
-  //    // create and populate send data, count and displacement buffers
-  //
-  //    int currentSendBufferOffset = 0;
-  //    for (isend = 0; isend < plan->commringlen; isend++) {
-  //      sendcnts[isend] = 0;
-  //      sdispls[isend] = 0;
-  //      int foundentry = 0;
-  //      for (int i=0;(i<plan->nsend && !foundentry); i++) {
-  //        if (plan->send_proc[i] == plan->commringlist[isend]) {
-  //          foundentry = 1;
-  //          sendcnts[isend] = plan->send_size[i];
-  //          sdispls[isend] = currentSendBufferOffset;
-  //          plan->pack(&d_in[plan->send_offset[i]],
-  //                     &packedSendBuffer[currentSendBufferOffset],
-  //                     &plan->packplan[i]);
-  //          currentSendBufferOffset += plan->send_size[i];
-  //        }
-  //      }
-  //    }
-  //
-  //    // create and populate recv count and displacement buffers
-  //
-  //    int currentRecvBufferOffset = 0;
-  //    for (irecv = 0; irecv < plan->commringlen; irecv++) {
-  //      rcvcnts[irecv] = 0;
-  //      rdispls[irecv] = 0;
-  //      nrecvmap[irecv] = -1;
-  //      int foundentry = 0;
-  //      for (int i=0;(i<plan->nrecv && !foundentry); i++) {
-  //        if (plan->recv_proc[i] == plan->commringlist[irecv]) {
-  //          foundentry = 1;
-  //          rcvcnts[irecv] = plan->recv_size[i];
-  //          rdispls[irecv] = currentRecvBufferOffset;
-  //          currentRecvBufferOffset += plan->recv_size[i];
-  //          nrecvmap[irecv] = i;
-  //        }
-  //      }
-  //    }
-  //
-  //    MPI_Alltoallv(packedSendBuffer, sendcnts, sdispls,
-  //                  MPI_FFT_SCALAR, packedRecvBuffer, rcvcnts,
-  //                  rdispls, MPI_FFT_SCALAR, plan->comm);
-  //
-  //    // unpack the data from the recv buffer into out
-  //
-  //    currentRecvBufferOffset = 0;
-  //    for (irecv = 0; irecv < plan->commringlen; irecv++) {
-  //      if (nrecvmap[irecv] > -1) {
-  //        plan->unpack(&packedRecvBuffer[currentRecvBufferOffset],
-  //                     &d_out[plan->recv_offset[nrecvmap[irecv]]],
-  //                     &plan->unpackplan[nrecvmap[irecv]]);
-  //        currentRecvBufferOffset += plan->recv_size[nrecvmap[irecv]];
-  //      }
-  //    }
-  //
-  //    // free temporary data structures
-  //
-  //    free(sendcnts);
-  //    free(rcvcnts);
-  //    free(sdispls);
-  //    free(rdispls);
-  //    free(nrecvmap);
-  //    free(packedSendBuffer);
-  //    free(packedRecvBuffer);
-  //  }
-  //}
+    plan->unpack(d_scratch,scratch_offset,
+                 d_out,out_offset,&plan->unpackplan[irecv]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -508,109 +415,6 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     }
   }
 
-  // create sub-comm rank list
-
-  //if (plan->usecollective) {
-  //  plan->commringlist = NULL;
-  //
-  //  // merge recv and send rank lists
-  //  // ask Steve Plimpton about method to more accurately determine
-  //  // maximum number of procs contributing to pencil
-  //
-  //  int maxcommsize = nprocs;
-  //  int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
-  //  int commringlen = 0;
-  //
-  //  for (int i = 0; i < nrecv; i++) {
-  //    commringlist[i] = plan->recv_proc[i];
-  //    commringlen++;
-  //  }
-  //
-  //  for (int i = 0; i < nsend; i++) {
-  //    int foundentry = 0;
-  //    for (int j=0;j<commringlen;j++)
-  //      if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
-  //    if (!foundentry) {
-  //      commringlist[commringlen] = plan->send_proc[i];
-  //      commringlen++;
-  //    }
-  //  }
-  //
-  //  // sort initial commringlist
-  //
-  //  int swap = 0;
-  //  for (int c = 0 ; c < (commringlen - 1); c++) {
-  //    for (int d = 0 ; d < commringlen - c - 1; d++) {
-  //      if (commringlist[d] > commringlist[d+1]) {
-  //        swap = commringlist[d];
-  //        commringlist[d]   = commringlist[d+1];
-  //        commringlist[d+1] = swap;
-  //      }
-  //    }
-  //  }
-  //
-  //  // collide all inarray extents for the comm ring with all output
-  //  // extents and all outarray extents for the comm ring with all input
-  //  // extents - if there is a collison add the rank to the comm ring,
-  //  // keep iterating until nothing is added to commring
-  //
-  //  int commringappend = 1;
-  //  while (commringappend) {
-  //    int newcommringlen = commringlen;
-  //    commringappend = 0;
-  //    for (int i=0;i<commringlen;i++) {
-  //      for (int j=0;j<nprocs;j++) {
-  //        if (remap_3d_collide(&inarray[commringlist[i]],
-  //                             &outarray[j],&overlap)) {
-  //          int alreadyinlist = 0;
-  //          for (int k=0;k<newcommringlen;k++) {
-  //            if (commringlist[k] == j) {
-  //              alreadyinlist = 1;
-  //            }
-  //          }
-  //          if (!alreadyinlist) {
-  //            commringlist[newcommringlen++] = j;
-  //            commringappend = 1;
-  //          }
-  //        }
-  //        if (remap_3d_collide(&outarray[commringlist[i]],
-  //                             &inarray[j],&overlap)) {
-  //          int alreadyinlist = 0;
-  //          for (int k=0;k<newcommringlen;k++) {
-  //            if (commringlist[k] == j) alreadyinlist = 1;
-  //          }
-  //          if (!alreadyinlist) {
-  //            commringlist[newcommringlen++] = j;
-  //            commringappend = 1;
-  //          }
-  //        }
-  //      }
-  //    }
-  //    commringlen = newcommringlen;
-  //  }
-  //
-  //  // sort the final commringlist
-  //
-  //  for (int c = 0 ; c < ( commringlen - 1 ); c++) {
-  //    for (int d = 0 ; d < commringlen - c - 1; d++) {
-  //      if (commringlist[d] > commringlist[d+1]) {
-  //        swap = commringlist[d];
-  //        commringlist[d]   = commringlist[d+1];
-  //        commringlist[d+1] = swap;
-  //      }
-  //    }
-  //  }
-  //
-  //  // resize commringlist to final size
-  //
-  //  commringlist = (int *) realloc(commringlist, commringlen*sizeof(int));
-  //
-  //  // set the plan->commringlist
-  //
-  //  plan->commringlen = commringlen;
-  //  plan->commringlist = commringlist;
-  //}
-
   // plan->nrecv = # of recvs not including self
   // for collectives include self in the nsend list
 
@@ -653,28 +457,9 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     }
   }
 
-  // if using collective and the commringlist is NOT empty create a
-  // communicator for the plan based off an MPI_Group created with
-  // ranks from the commringlist
-
-  //if ((plan->usecollective && (plan->commringlen > 0))) {
-  //  MPI_Group orig_group, new_group;
-  //  MPI_Comm_group(comm, &orig_group);
-  //  MPI_Group_incl(orig_group, plan->commringlen,
-  //                 plan->commringlist, &new_group);
-  //  MPI_Comm_create(comm, new_group, &plan->comm);
-  //}
-
-  // if using collective and the comm ring list is empty create
-  // a communicator for the plan with an empty group
-
-  //else if ((plan->usecollective) && (plan->commringlen == 0)) {
-  //  MPI_Comm_create(comm, MPI_GROUP_EMPTY, &plan->comm);
-  //}
-
   // not using collective - dup comm
 
-  /*else*/ MPI_Comm_dup(comm,&plan->comm);
+  MPI_Comm_dup(comm,&plan->comm);
 
   // return pointer to plan
 
@@ -695,11 +480,6 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
   if (!((plan->usecollective) && (plan->commringlen == 0)))
     MPI_Comm_free(&plan->comm);
 
-  //if (plan->usecollective) {
-  //  if (plan->commringlist != NULL)
-  //    free(plan->commringlist);
-  //}
-
   // free internal arrays
 
   if (plan->nsend || plan->self) {
@@ -707,7 +487,6 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
     free(plan->send_size);
     free(plan->send_proc);
     free(plan->packplan);
-    //if (plan->d_sendbuf) free(plan->d_sendbuf);
   }
 
   if (plan->nrecv || plan->self) {
@@ -717,7 +496,6 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
     free(plan->recv_bufloc);
     free(plan->request);
     free(plan->unpackplan);
-    //if (plan->scratch) free(plan->scratch);
   }
 
   // free plan itself

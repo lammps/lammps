@@ -13,7 +13,6 @@
 
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
-
 // data types for 2d/3d FFTs
 
 #ifndef FFT_DATA_KOKKOS_H

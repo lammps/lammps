@@ -636,12 +636,12 @@ Please ensure reaction map files are properly formatted. :dd
 
 {Bond/react: Atom affected by reaction too close to template edge} :dt
 
-This means an atom which changes type during the reaction is too close
-to an 'edge' atom defined in the superimpose file. This could cause
-incorrect assignment of bonds, angle, etc. Generally, this means you
-must include more atoms in your templates, such that there are at
-least two atoms between each atom involved in the reaction and an edge
-atom. :dd
+This means an atom which changes type or connectivity during the
+reaction is too close to an 'edge' atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom. :dd
 
 {Bond/react: Fix bond/react needs ghost atoms from farther away} :dt
 
@@ -2201,10 +2201,6 @@ Self-explanatory. :dd
 {Cannot use package gpu neigh yes with triclinic box} :dt
 
 This is a current restriction in LAMMPS. :dd
-
-{Cannot use pair hybrid with GPU neighbor list builds} :dt
-
-Neighbor list builds must be done on the CPU for this pair style. :dd
 
 {Cannot use pair tail corrections with 2d simulations} :dt
 
@@ -5522,10 +5518,6 @@ Self-explanatory. :dd
 
 For this pair style, you cannot run part of the force calculation on
 the host.  See the package command. :dd
-
-{GPU split param must be positive for hybrid pair styles} :dt
-
-See the package gpu command. :dd
 
 {GPUs are requested but Kokkos has not been compiled for CUDA} :dt
 

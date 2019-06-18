@@ -48,7 +48,7 @@ inline
   SNAKokkos(const SNAKokkos<DeviceType>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
 inline
-  SNAKokkos(double, int, int, int, double, int, int);
+  SNAKokkos(double, int, double, int, int);
 
   KOKKOS_INLINE_FUNCTION
   ~SNAKokkos();
@@ -177,12 +177,6 @@ inline
   void compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
                        double, double, double, // compute_duidrj
                        double, double, double, double, double);
-
-  // if number of atoms are small use per atom arrays
-  // for twojmax arrays, rij, inside, bvec
-  // this will increase the memory footprint considerably,
-  // but allows parallel filling and reuse of these arrays
-  int use_shared_arrays;
 
   // Sets the style for the switching function
   // 0 = none

@@ -219,7 +219,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       sumw = 0;
 
       loc1 = chain[i][0];
-      loc2 = chain[i][nchain[i]-2];
+      loc2 = chain[i][nchain[i]-1];
       if(end[i] == 1) qe = x[loc1];
       if(end[i] == 2) qe = x[loc2];
 
@@ -248,8 +248,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
         if(param[0] > cutoff) continue;
         finf(param,flocal);
       }
-      else{
+      else if(end[i] == 1){
         geomsemi(r1,r2,p1,p2,qe,param,basis);
+	if(param[0] > cutoff) continue;
+	fsemi(param,flocal);
+      }
+      else{
+	geomsemi(r1,r2,p2,p1,qe,param,basis);
 	if(param[0] > cutoff) continue;
 	fsemi(param,flocal);
       }
@@ -299,6 +304,19 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	vatom[i2][4] += f[i2][2]*x[i2][0];
 	vatom[i2][5] += f[i2][2]*x[i2][1];
       }
+
+      /*
+      if(end[i] != 0){
+	printf("End index: %d\n",end[i]);
+	printf("Parameters: %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4]);
+        printf("p1: %e %e %e\n",p1[0],p1[1],p1[2]);
+	printf("p2: %e %e %e\n",p2[0],p2[1],p2[2]);
+	printf("qe: %e %e %e\n",qe[0],qe[1],qe[2]);
+	printf("Force local 1: %e %e %e\n",flocal[0][0],flocal[0][1],flocal[0][2]);
+	printf("Force local 2: %e %e %e\n",flocal[1][0],flocal[1][1],flocal[1][2]);
+	printf("Distance p1, qe: %e, distance p2, qe: %e\n", MathExtra::distsq3(p1,qe), MathExtra::distsq3(p2,qe));
+      }
+      */
     }
   }
 
@@ -1218,17 +1236,30 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
 /* ---------------------------------------------------------------------- */
 
 void PairMesoCNT::geomsemi(const double *r1, const double *r2, 
-		const double *p1, const double *p2, const double *qe,
+		const double *pin1, const double *pin2, const double *qe,
 		double *param, double **basis)
 {
   using namespace MathExtra;
   double r[3], p[3], delr[3], l[3], m[3], rbar[3], pbar[3], delrbar[3];
   double psil[3], psim[3], dell_psim[3], delpsil_m[3];
   double delr1[3], delr2[3], delp1[3], delp2[3], delpqe[3];
+  const double *p1, *p2;
   double *ex, *ey, *ez;
+  double dist1, dist2;
   double psi, denom, frac, taur, taup, rhoe;
   double h, alpha, xi1, xi2, etae;
 
+  dist1 = distsq3(pin1,qe);
+  dist2 = distsq3(pin2,qe);
+  if(dist2 > dist1){
+    p1 = pin1;
+    p2 = pin2;
+  }
+  else{
+    p1 = pin2;
+    p2 = pin1;
+  }
+  
   ex = basis[0];
   ey = basis[1];
   ez = basis[2];
@@ -1259,7 +1290,7 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   rhoe = dot3(delpqe,m); 
 
   if(denom < SMALL){
-    taur = dot3(delr,l) - rhoe*dot3(m,l);
+    taur = dot3(delr,l) - rhoe*psi;
     taup = -rhoe;
     etae = 0;
   }

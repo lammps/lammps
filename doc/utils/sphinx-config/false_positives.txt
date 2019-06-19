@@ -518,6 +518,7 @@ Dcut
 de
 dE
 De
+decorrelation
 debye
 Debye
 Decius

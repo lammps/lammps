@@ -51,7 +51,7 @@ HMA should not be used if atoms are expected to diffuse.  It is also
 restricted to simulations in the NVT ensemble.
 
 Computation of the heat capacity with this compute is presently restricted to
-the "lj_smooth_linear"_lj_smooth_linear.html pair style.  Use with other pair
+the "pair_lj_smooth_linear"_pair_lj_smooth_linear.html pair style.  Use with other pair
 styles requires an additional method (single2nd) to be implemented in the
 corresponding Pair class.  Computation of the energy and pressure does not
 have this restriction.

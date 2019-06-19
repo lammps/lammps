@@ -76,7 +76,6 @@ as contained in the file name.
 "USER-EFF"_#PKG-USER-EFF,
 "USER-FEP"_#PKG-USER-FEP,
 "USER-H5MD"_#PKG-USER-H5MD,
-"USER-HMA"_#PKG-USER-HMA,
 "USER-INTEL"_#PKG-USER-INTEL,
 "USER-LB"_#PKG-USER-LB,
 "USER-MANIFOLD"_#PKG-USER-MANIFOLD,
@@ -1372,25 +1371,6 @@ src/USER-H5MD: filenames -> commands
 src/USER-H5MD/README
 lib/h5md/README
 "dump h5md"_dump_h5md.html :ul
-
-:line
-
-USER-HMA package :link(PKG-USER-HMA),h4
-
-[Contents:]
-
-Harmonically mapped averaging for efficient calculation of properties of
-crystalline solids. The compute hma can specify use of HMA for calculation of
-potential energy, pressure and heat capacity.
-
-[Author:] Apoorva Purohit, Andrew Schultz and David Kofke (University at
-Buffalo, NY, USA)
-
-[Supporting info:]
-
-examples/USER/hma/README
-src/USER-HMA/README
-"compute hma"_compute_hma.html :ul
 
 :line
 

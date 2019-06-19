@@ -37,8 +37,24 @@ energy, pressure or heat capacity), using the harmonically-mapped averaging
 (HMA) method. 
 This command yields much higher precision than the equivalent compute commands
 ("compute pe"_compute_pe.html, "compute pressure"_compute_pressure.html, etc.)
-commands during a canonical simulation of an atomic crystal.
+commands during a canonical simulation of an atomic crystal. Specifically,
+near melting HMA can yield averages of a given precision an order of magnitude
+faster than conventional methods, and this only improves as the temperatures is
+lowered.  This is particularly important for evaluating the free energy by
+thermodynamic integration, where the low-temperature contributions are the
+greatest source of statistical uncertainty.  Moreover, HMA has other
+advantages, including smaller potential-truncation effects, finite-size
+effects, smaller timestep inaccuracy, faster equilibration and shorter
+decorrelation time.
 
+HMA should not be used if atoms are expected to diffuse.  It is also
+restricted to simulations in the NVT ensemble.
+
+Computation of the heat capacity with this compute is presently restricted to
+the "lj_smooth_linear"_lj_smooth_linear.html pair style.  Use with other pair
+styles requires an additional method (single2nd) to be implemented in the
+corresponding Pair class.  Computation of the energy and pressure does not
+have this restriction.
 
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble
 averages, which leads to an accurate and precise measurement of the anharmonic contributions without contamination 
@@ -119,7 +135,9 @@ NOTE: Compute hma should be used when the atoms of the solid do not diffuse. Dif
  
 NOTE: The "fix_modify energy yes"_fix_modify.html command must also be specified if a fix is to contribute potential energy to this command.
 
-:line
+An example input script that uses this compute is included in
+examples/USER/hma/ along with corresponding LAMMPS output showing that the HMA
+properties fluctuate less than the corresponding conventional properties.
 
 [Output info:]
 

@@ -69,6 +69,7 @@ class Atom : protected Pointers {
 
   double **sp;
   double **fm;
+  double **fm_long;
 
   // PERI package
 

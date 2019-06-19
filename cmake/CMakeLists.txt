@@ -33,7 +33,6 @@ include(LAMMPSUtils)
 
 get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
 
-
 include(PreventInSourceBuilds)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
@@ -51,6 +50,7 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 # these need ot be done early (before further tests).
 #####################################################################
 include(CheckCCompilerFlag)
+include(CheckIncludeFileCXX)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
@@ -105,6 +105,8 @@ if(BUILD_LIB)
     set(LAMMPS_LIB_SUFFIX "_${LAMMPS_LIB_SUFFIX}")
   endif()
 endif()
+
+option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 
 if(NOT BUILD_EXE AND NOT BUILD_LIB)
   message(FATAL_ERROR "You need to at least enable one of two following options: BUILD_LIB or BUILD_EXE")
@@ -186,10 +188,6 @@ if(LAMMPS_EXCEPTIONS)
   set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
-option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
-
-
-
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(MPIIO MPI)
@@ -198,7 +196,6 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
 
-include(CheckIncludeFileCXX)
 find_package(OpenMP QUIET)
 
 # TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
@@ -227,6 +224,9 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-PLUMED OR PKG_USER-QUI
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
+    if(CMAKE_GENERATOR STREQUAL "Ninja")
+      status(FATAL_ERROR "Cannot build internal linear algebra library with Ninja build tool due to lack for Fortran support")
+    endif()
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
@@ -522,6 +522,19 @@ if(BUILD_EXE)
   set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
+endif()
+
+if(BUILD_TOOLS)
+  add_executable(binary2txt ${LAMMPS_TOOLS_DIR}/binary2txt.cpp)
+  install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+  # ninja-build currently does not support fortran. thus we skip building this tool
+  if(NOT CMAKE_GENERATOR STREQUAL "Ninja")
+    message(STATUS "Skipping building 'chain.x' with Ninja build tool due to lack of Fortran support")
+    enable_language(Fortran)
+    add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
+    target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  endif()
 
   enable_language(C)
   get_filename_component(MSI2LMP_SOURCE_DIR ${LAMMPS_TOOLS_DIR}/msi2lmp/src ABSOLUTE)
@@ -530,7 +543,6 @@ if(BUILD_EXE)
   target_link_libraries(msi2lmp m)
   install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-
 endif()
 
 include(Documentation)

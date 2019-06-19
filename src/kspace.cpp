@@ -37,7 +37,7 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -190,6 +190,8 @@ void KSpace::pair_check()
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (dipoleflag && !force->pair->dipoleflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (spinflag && !force->pair->spinflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (tip4pflag && !force->pair->tip4pflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
 
@@ -266,7 +268,7 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
    called initially, when particle count changes, when charges are changed
 ------------------------------------------------------------------------- */
 
-void KSpace::qsum_qsq()
+void KSpace::qsum_qsq(int warning_flag)
 {
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
@@ -283,7 +285,7 @@ void KSpace::qsum_qsq()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge) {
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge && warning_flag) {
     error->warning(FLERR,"Using kspace solver on system with no charge");
     warn_nocharge = 0;
   }

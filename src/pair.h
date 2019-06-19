@@ -62,6 +62,7 @@ class Pair : protected Pointers {
   int dispersionflag;            // 1 if compatible with LJ/dispersion solver
   int tip4pflag;                 // 1 if compatible with TIP4P solver
   int dipoleflag;                // 1 if compatible with dipole solver
+  int spinflag;			 // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
   int tail_flag;                 // pair_modify flag for LJ tail correction

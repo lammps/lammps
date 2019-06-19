@@ -468,6 +468,7 @@ compute_ke_rigid.html
 compute_meso_e_atom.html
 compute_meso_rho_atom.html
 compute_meso_t_atom.html
+compute_momentum.html
 compute_msd.html
 compute_msd_chunk.html
 compute_msd_nongauss.html

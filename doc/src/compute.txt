@@ -229,6 +229,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "meso/e/atom"_compute_meso_e_atom.html -
 "meso/rho/atom"_compute_meso_rho_atom.html -
 "meso/t/atom"_compute_meso_t_atom.html -
+"momentum"_compute_momentum.html - translational momentum
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/chunk"_compute_msd_chunk.html - mean-squared displacement for each chunk
 "msd/nongauss"_compute_msd_nongauss.html - MSD and non-Gaussian parameter of group of atoms

@@ -66,8 +66,8 @@ Style {spin} is a damped spin dynamics with an adaptive
 timestep.
 See the "min/spin"_min_spin.html doc page for more information.
 
-Styles {cac/cg} and cac/fire} performs the same functionaly as styles {cg}
-and {fire} for the CAC package with atoms and finite elements. These styles
+Styles {cac/cg} and cac/fire} performs the same functionality as styles {cg}
+and {fire}, respectively, for the CAC package with atoms and finite elements. These styles
 requires a CAC "atom_style"_atom_style.html
 
 Either the {quickmin} and {fire} styles are useful in the context of

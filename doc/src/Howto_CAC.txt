@@ -34,7 +34,7 @@ interatomic potential are defined to drive the system. The features involving
 defects do however require the definition
 of an unconnected mesh; this process will be discussed in detail in later sections of this Howto.
 
-Once the typical LAMMPS settings such as units, dimenion, and boundary conditions have been specified in your
+Once the typical LAMMPS settings such as units, dimension, and boundary conditions have been specified in your
 input script,the CAC code can first be invoked via the "atom_style CAC"_atom_style.html command; in 
 addition to other CAC atom substyles that require charge etc. Please note that CAC atom styles take two
 input arguments, these are described in the atom style's specific page of the manual and later on.
@@ -135,7 +135,7 @@ you can for example specify the first node for the range of internal DOFs and th
 for the range etc. instead of the sorting used in the above example. Any other combination
 is also acceptable as long as you have supplied number_of_nodes*number_of_iDOF entries.
 
-While this estbalishes how to provide the information there remains a couple of details
+While this establishes how to provide the information there remains a couple of details
 to explain about how to create CAC model geometries that work as intended.
 
 :line
@@ -177,7 +177,7 @@ spaced apart by a (the unit cell length) with respect to other atoms. Thus, when
 between resolving a crystal with finite elements and atoms they must leave a space of a/2 
 between the adjacent node and atom. This would then simulate a lattice with a mix of atoms and finite elements.
 In the case of polyatomic unit cells the same logic applies to your unit cell origin in place of the atom;
-one then simply convolves the internal basis around that point. 
+one then simply convolutes the internal basis around that point. 
 
 NOTE: The CAC algorithm assumes for the sake of symmetry that the unit cell's atom or convolution point is
 at the center of the unit cell volume. Thus if you are accustomed to introducing a basis with an atom
@@ -217,14 +217,14 @@ In order to obtain good performance running CAC models with multiple resolutions
 "fix balance"_fix_balance.html command. This ensures that your simulation has the capability to dynamically
 reassign each computing task's burden according to a set of weights. The weights in question are provided
 by the compute "compute cac/quad/count"_compute_CAC_quad_count.html through a variable command. For 
-specific details of syntanx, please see the example input scripts in /examples/USER/CAC of your LAMMPS
-directory or refer to the online documention of fix balance and creating variables that call on computes.
+specific details of syntax, please see the example input scripts in /examples/USER/CAC of your LAMMPS
+directory or refer to the online documentation of fix balance and creating variables that call on computes.
 
 :line
 
 [CAC output:]
 
-Obtaining simulation output with CAC can currently be done with both therodynamic data (such as the kinetic energy
+Obtaining simulation output with CAC can currently be done with both thermodynamic data (such as the kinetic energy
 of the nodal information in your model) with "compute cac/nodal/temp"_compute_CAC_nodal_temp.html or 
 outputting a list of nodal information at specified times with dumps such as "dump cac/nodal/positions"_dump_CAC_nodal_positions. 
 This nodal information can then be converted to the user's preferred visualization format for software such as 

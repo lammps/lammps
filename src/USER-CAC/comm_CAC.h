@@ -212,15 +212,31 @@ class CommCAC : public CommTiled {
 
 /* ERROR/WARNING messages:
 
-E: Cannot yet use comm_style tiled with triclinic box
+E: Cannot yet use comm_style cac with triclinic box
 
 Self-explanatory.
 
-E: Cannot yet use comm_style tiled with multi-mode comm
+E: Cannot yet use comm_style cac with multi-mode comm
+
+Self-explanatory
+
+E: Cannot use comm_style cac with non CAC atom style
 
 Self-explanatory.
 
-E: Communication cutoff for comm_style tiled cannot exceed periodic box length
+E: Can only use comm style CAC with brick and rcb decompositions
+
+Self-explanatory
+
+E: Cannot use the CAC comm style without a CAC pair style
+
+Self-explanatory
+
+E: excessive/negative bin index
+
+internal error check that should not occur unless a bug is present. Contact the Author.
+
+E: Communication cutoff for comm_style cac cannot exceed periodic box length
 
 Self-explanatory.
 
@@ -228,17 +244,17 @@ E: Reverse comm fix variable not yet supported by CommTiled
 
 UNDOCUMENTED
 
-E: Comm tiled mis-match in box drop brick
+E: Comm cac mis-match in box drop brick
 
-Internal error check in comm_style tiled which should not occur.
-Contact the developers.
+Internal error check in comm_style cac which should not occur.
+Contact the Author.
 
-E: Comm tiled invalid index in box drop brick
+E: Comm cac invalid index in box drop brick
 
-Internal error check in comm_style tiled which should not occur.
-Contact the developers.
+Internal error check in comm_style cac which should not occur.
+Contact the Author.
 
-U: KOKKOS package does not yet support comm_style tiled
+U: KOKKOS package does not yet support comm_style cac
 
 Self-explanatory.
 

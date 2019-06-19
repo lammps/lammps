@@ -64,3 +64,15 @@ class CACMinCG : public Min {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: min style cac/cg requires a CAC atom style
+
+Self Explanatory
+
+E: min style cac/cg requires a CAC pair style
+
+Self Explanatory
+
+*/

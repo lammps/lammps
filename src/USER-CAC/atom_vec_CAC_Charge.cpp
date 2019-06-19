@@ -22,6 +22,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "asa_data.h"
 
 #define MAX_ELEMENT_NAME 256
 
@@ -60,8 +61,7 @@ AtomVecCAC_Charge::AtomVecCAC_Charge(LAMMPS *lmp) : AtomVecCAC(lmp)
 
 void AtomVecCAC_Charge::process_args(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Invalid atom_style cac command");
-  if (narg > 3) error->all(FLERR,"Invalid atom_style cac command");
+  if (narg != 2) error->all(FLERR,"Invalid atom_style cac command");
 
 
  nodes_per_element=force->numeric(FLERR,arg[0]);
@@ -105,28 +105,6 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
   //create array that tests in data_atom for odd node to iDod counts
 	memory->create(node_count_per_poly, maxpoly, "AtomVecCAC: node_count_per_poly");
 
-   //minimization algorithm parameters
-  //asacg_parm scgParm;
-  //asa_parm sasaParm;
-
-  memory->create(cgParm, 1, "AtomVecCAC:cgParm");
-
-  memory->create(asaParm, 1, "AtomVecCAC:asaParm");
-
-  memory->create(Objective, 1, "AtomVecCAC:Objective");
-
-  // if you want to change parameter value, initialize strucs with default 
-  asa_cg_default(cgParm);
-  asa_default(asaParm);
-
-  // if you want to change parameters, change them here: 
-  cgParm->PrintParms = FALSE;
-  cgParm->PrintLevel = 0;
-
-  asaParm->PrintParms = FALSE;
-  asaParm->PrintLevel = 0;
-  asaParm->PrintFinal = 0;
-   
 
 }
 

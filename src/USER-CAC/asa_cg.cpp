@@ -93,8 +93,7 @@ int asa_cg /*  return:
                             if DymamicMemory = TRUE, need  5n + m */
     ASA_INT          *iWork,   /* NULL => allocate integer work space
                              otherwise provide space to n integers */
-    LAMMPS_NS::PairCAC* objpoint,
-    LAMMPS_NS::AtomVecCAC* avec_objpoint
+    LAMMPS_NS::Asa_Data* objpoint
 )
 {
     int gp, ident, status, mem ;
@@ -154,10 +153,6 @@ int asa_cg /*  return:
     Com.user = objpoint->Objective ;
 	(objpoint->Objective)->n = n ;
     }
-    if(avec_objpoint!=NULL){
-    Com.user = avec_objpoint->Objective ;
-	(avec_objpoint->Objective)->n = n ;    
-    }
     Com.tau1 = asaParm->tau1 ;
     Com.tau2 = asaParm->tau2 ;
 
@@ -176,7 +171,6 @@ int asa_cg /*  return:
     Com.valgrad = NULL ;
     Com.DimReduce = FALSE ;
     Com.objpoint=objpoint;
-    Com.avec_objpoint=avec_objpoint;
     /* allocate integer work array */
     if ( iWork == NULL )
     {
@@ -3055,8 +3049,6 @@ Line:
                user->nfree = Com->nfree ;
                if(Com->objpoint!=NULL)
                Com->f = Com->objpoint->myvalue(user) ;
-               if(Com->avec_objpoint!=NULL)
-               Com->f = Com->avec_objpoint->myvalue(user) ;
                /* Shrink xtemp to the reduced space */
                asa_shrinkx (xtemp, Com) ;
             }
@@ -3067,8 +3059,6 @@ Line:
                user->nfree = Com->n ;
                if(Com->objpoint!=NULL)
                Com->f = Com->objpoint->myvalue(user) ;
-               if(Com->avec_objpoint!=NULL)
-               Com->f = Com->avec_objpoint->myvalue(user) ;
             }
             Com->nf++ ;
             /* reduce stepsize if function value is nan */
@@ -3104,8 +3094,6 @@ Line:
                        user->nfree = Com->nfree ;
                        if(Com->objpoint!=NULL)
                        Com->f =Com->objpoint->myvalue(user) ;
-                       if(Com->avec_objpoint!=NULL)
-                       Com->f =Com->avec_objpoint->myvalue(user) ;
                        /* Shrink xtemp to the reduced space */
                        asa_shrinkx (xtemp, Com) ;
                     }
@@ -3116,8 +3104,6 @@ Line:
                        user->nfree = Com->n ;
                        if(Com->objpoint!=NULL)
                        Com->f = Com->objpoint->myvalue(user) ;
-                       if(Com->avec_objpoint!=NULL)
-                       Com->f = Com->avec_objpoint->myvalue(user) ;
                     }
                     Com->nf++ ;
                     if ( (Com->f == Com->f) && (Com->f < ASA_INF) &&
@@ -3146,8 +3132,6 @@ Line:
                 user->nfree = Com->nfree ;
                if(Com->objpoint!=NULL) 
                Com->objpoint->mygrad(user) ;
-               if(Com->avec_objpoint!=NULL) 
-               Com->avec_objpoint->mygrad(user) ;
                 /* Shrink x and g to the reduced space */
                 asa_shrinkxg (xtemp, gtemp, Com) ;
             }
@@ -3158,8 +3142,6 @@ Line:
                user->nfree = Com->n ;
                if(Com->objpoint!=NULL) 
                Com->objpoint->mygrad(user) ;
-               if(Com->avec_objpoint!=NULL) 
-               Com->avec_objpoint->mygrad(user) ;
             }
             Com->ng++ ;
             Com->df = asa_dot (gtemp, d, Com->nfree) ;
@@ -3195,8 +3177,6 @@ Line:
                         user->nfree = Com->nfree ;
                         if(Com->objpoint!=NULL)
                         Com->objpoint->mygrad(user) ;
-                        if(Com->avec_objpoint!=NULL)
-                        Com->avec_objpoint->mygrad(user) ;
                         /* Shrink x and g to the reduced space */
                         asa_shrinkxg (xtemp, gtemp, Com) ;
                     }
@@ -3207,8 +3187,6 @@ Line:
                         user->nfree = Com->n ;
                         if(Com->objpoint!=NULL)
                         Com->objpoint->mygrad(user) ;
-                        if(Com->avec_objpoint!=NULL)
-                        Com->avec_objpoint->mygrad(user) ;
                     }
                     Com->ng++ ;
                     Com->df = asa_dot (gtemp, d, Com->nfree) ;
@@ -3241,10 +3219,6 @@ Line:
                    Com->objpoint->mygrad(user) ;
                    Com->f = Com->objpoint->myvalue(user) ;
                    }
-                   if(Com->avec_objpoint!=NULL){
-                   Com->avec_objpoint->mygrad(user) ;
-                   Com->f = Com->avec_objpoint->myvalue(user) ;
-                   }
                 }
                 /* Shrink xtemp and gtemp to the reduced space */
                 asa_shrinkxg (xtemp, gtemp, Com) ;
@@ -3263,10 +3237,6 @@ Line:
                    if(Com->objpoint!=NULL){
                    Com->objpoint->mygrad(user) ;
                    Com->f = Com->objpoint->myvalue(user) ;
-                   }
-                   if(Com->avec_objpoint!=NULL){
-                   Com->avec_objpoint->mygrad(user) ;
-                   Com->f = Com->avec_objpoint->myvalue(user) ;
                    }
                 }
             }
@@ -3306,10 +3276,6 @@ Line:
                            Com->objpoint->mygrad(user) ;
                            Com->f = Com->objpoint->myvalue(user) ;
                            }
-                           if(Com->avec_objpoint!=NULL){
-                            Com->avec_objpoint->mygrad(user) ;
-                            Com->f = Com->avec_objpoint->myvalue(user) ;
-                           }
                         }
                         /* Shrink xtemp and gtemp to the reduced space */
                         asa_shrinkxg (xtemp, gtemp, Com) ;
@@ -3328,10 +3294,6 @@ Line:
                            if(Com->objpoint!=NULL){
                            Com->objpoint->mygrad(user) ;
                            Com->f = Com->objpoint->myvalue(user) ;
-                           }
-                           if(Com->avec_objpoint!=NULL){
-                           Com->avec_objpoint->mygrad(user) ;
-                           Com->f = Com->avec_objpoint->myvalue(user) ;
                            }
                         }
                     }
@@ -3374,10 +3336,6 @@ Line:
                         Com->objpoint->mygrad(user) ;
                         Com->f = Com->objpoint->myvalue(user) ;
                         }
-                        if(Com->avec_objpoint!=NULL){
-                        Com->avec_objpoint->mygrad(user) ;
-                        Com->f = Com->avec_objpoint->myvalue(user) ;
-                        }
                     }
                     /* Shrink x and g to the reduced space */
                     asa_shrinkxg (x, g, Com) ;
@@ -3396,10 +3354,6 @@ Line:
                        if(Com->objpoint!=NULL){
                        Com->objpoint->mygrad(user) ;
                        Com->f = Com->objpoint->myvalue(user) ;
-                       }
-                       if(Com->avec_objpoint!=NULL){
-                       Com->avec_objpoint->mygrad(user) ;
-                       Com->f = Com->avec_objpoint->myvalue(user) ;
                        }
                     }
                 }
@@ -3424,10 +3378,6 @@ Line:
                         Com->objpoint->mygrad(user) ;
                         Com->f = Com->objpoint->myvalue(user) ;
                         }
-                        if(Com->avec_objpoint!=NULL){
-                        Com->avec_objpoint->mygrad(user) ;
-                        Com->f = Com->avec_objpoint->myvalue(user) ;
-                        }
                     }
                     /* Shrink xtemp and gtemp to the reduced space */
                     asa_shrinkxg (xtemp, gtemp, Com) ;
@@ -3446,10 +3396,6 @@ Line:
                        if(Com->objpoint!=NULL){
                        Com->objpoint->mygrad(user) ;
                        Com->f = Com->objpoint->myvalue(user) ;
-                       }
-                       if(Com->avec_objpoint!=NULL){
-                       Com->avec_objpoint->mygrad(user) ;
-                       Com->f = Com->avec_objpoint->myvalue(user) ;
                        }
                     }
                 }
@@ -3473,8 +3419,6 @@ Line:
                user->nfree = Com->nfree ;
                if(Com->objpoint!=NULL)
                Com->f = Com->objpoint->myvalue(user) ;
-               if(Com->avec_objpoint!=NULL)
-               Com->f = Com->avec_objpoint->myvalue(user) ;
                /* Shrink xtemp to the reduced space */
                asa_shrinkx (xtemp, Com) ;
             }
@@ -3485,8 +3429,6 @@ Line:
                user->nfree = Com->n ;
                if(Com->objpoint!=NULL)
                Com->f = Com->objpoint->myvalue(user) ;
-               if(Com->avec_objpoint!=NULL)
-               Com->f = Com->avec_objpoint->myvalue(user) ;
             }
             Com->nf++ ;
             if ( (Com->f != Com->f) || (Com->f == ASA_INF) || (Com->f ==-ASA_INF) )
@@ -3504,8 +3446,6 @@ Line:
                 user->nfree = Com->nfree ;
                 if(Com->objpoint!=NULL)
                 Com->objpoint->mygrad(user) ;
-                if(Com->avec_objpoint!=NULL)
-                Com->avec_objpoint->mygrad(user) ;
                 /* Shrink x and g to the reduced space */
                 asa_shrinkxg (xtemp, gtemp, Com) ;
             }
@@ -3516,8 +3456,6 @@ Line:
                user->nfree = Com->n ;
                if(Com->objpoint!=NULL)
                Com->objpoint->mygrad(user) ;
-               if(Com->avec_objpoint!=NULL)
-               Com->avec_objpoint->mygrad(user) ;
             }
             Com->df = asa_dot (gtemp, d, Com->nfree) ;
             Com->ng++ ;
@@ -5617,8 +5555,6 @@ double asa_f
         user->nfree = Com->nfree ;
         if(Com->objpoint!=NULL)
         f = Com->objpoint->myvalue(user) ;
-        if(Com->avec_objpoint!=NULL)
-        f = Com->avec_objpoint->myvalue(user) ;
 
         /* Shrink x to the reduced space */
         asa_shrinkx (x, Com) ;
@@ -5630,8 +5566,6 @@ double asa_f
         user->nfree = Com->n ;
         if(Com->objpoint!=NULL)
         f = Com->objpoint->myvalue(user) ;
-        if(Com->avec_objpoint!=NULL)
-        f = Com->avec_objpoint->myvalue(user) ;
     }
     return (f) ;
 
@@ -5663,8 +5597,6 @@ double asa_f
         user->nfree = Com->nfree ;
         if(Com->objpoint!=NULL)
         Com->objpoint->mygrad(user) ;
-        if(Com->avec_objpoint!=NULL)
-        Com->avec_objpoint->mygrad(user) ;
 
         /* Shrink x and g to the reduced space */
         asa_shrinkxg (x, g, Com) ;
@@ -5676,8 +5608,6 @@ double asa_f
         user->nfree = Com->n ;
         if(Com->objpoint!=NULL)
         Com->objpoint->mygrad(user) ;
-        if(Com->avec_objpoint!=NULL)
-        Com->avec_objpoint->mygrad(user) ;
     }
 }
 
@@ -5718,10 +5648,6 @@ double asa_fg
             Com->objpoint->mygrad(user) ;
             f = Com->objpoint->myvalue(user) ;
             }
-            if(Com->avec_objpoint!=NULL){
-            Com->avec_objpoint->mygrad(user) ;
-            f = Com->avec_objpoint->myvalue(user) ;
-            }
         }
 
         /* Shrink x and g to the reduced space */
@@ -5741,10 +5667,6 @@ double asa_fg
             if(Com->objpoint!=NULL){
             Com->objpoint->mygrad(user) ;
             f = Com->objpoint->myvalue(user) ;
-            }
-            if(Com->avec_objpoint!=NULL){
-            Com->avec_objpoint->mygrad(user) ;
-            f = Com->avec_objpoint->myvalue(user) ;
             }
         }
     }

@@ -67,6 +67,10 @@ E: Invalid dump xyz filename
 Filenames used with the dump xyz style cannot be binary or cause files
 to be written by each processor.
 
+E: CAC dump styles require a CAC atom style
+
+Self-explanatory
+
 E: Dump modify element names do not match atom types
 
 Number of element names must equal number of atom types.

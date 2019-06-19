@@ -61,19 +61,23 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Variable name for fix temp/rescale does not exist
+E: fix cac/temp/rescale requires a CAC atom style
+
+Self-explanatory
+
+E: Variable name for fix cac/temp/rescale does not exist
 
 Self-explanatory.
 
-E: Variable for fix temp/rescale is invalid style
+E: Variable for fix cac/temp/rescale is invalid style
 
 Only equal-style variables can be used.
 
-E: Temperature ID for fix temp/rescale does not exist
+E: Temperature ID for fix cac/temp/rescale does not exist
 
 Self-explanatory.
 
-E: Computed temperature for fix temp/rescale cannot be 0.0
+E: Computed temperature for fix cac/temp/rescale cannot be 0.0
 
 Cannot rescale the temperature to a new value if the current
 temperature is 0.0.

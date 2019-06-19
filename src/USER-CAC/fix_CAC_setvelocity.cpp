@@ -132,7 +132,7 @@ int FixCAC_Set_Velocity::setmask()
 void FixCAC_Set_Velocity::init()
 {
 	// check variables
-  if (!atom->CAC_flag) error->all(FLERR,"fix cac/setvelocity requires a cac atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"fix cac/setvelocity requires a CAC atom style");
 	if (xstr) {
 		xvar = input->variable->find(xstr);
 		if (xvar < 0)

@@ -74,6 +74,10 @@ E: Variable for fix setforce is invalid style
 
 Only equal-style variables can be used.
 
+E: fix cac/addforce requires a CAC atom style
+
+Self-explanatory.
+
 E: Cannot use non-zero forces in an energy minimization
 
 Fix setforce cannot be used in this manner.  Use fix addforce

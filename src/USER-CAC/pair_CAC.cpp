@@ -30,6 +30,7 @@
 #include "error.h"
 #include "domain.h"
 #include "asa_user.h"
+#include "asa_data.h"
 
 #define MAXESHAPE  30 //maximum number of shape functions per element
 #define MAXNEIGH1  500
@@ -69,9 +70,10 @@ PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
   old_quad_minima= NULL;
   old_minima_neighbors= NULL;
   shape_quad_result = NULL;
-  cgParm=NULL;
-  asaParm=NULL;
-  Objective=NULL;
+  //cgParm=NULL;
+  //asaParm=NULL;
+  //Objective=NULL;
+  asa_pointer = NULL;
   densemax=0;
   neighbor->pgsize=10;
   neighbor->oneatom=1;
@@ -80,14 +82,14 @@ PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
   //allocate shape function pointers
   shape_functions= (Shape_Functions *) memory->smalloc(sizeof(Shape_Functions)*MAXESHAPE, "Pair CAC:shape_functions");
   set_shape_functions();
+
+  //instance asa interface object
+   asa_pointer = new Asa_Data(lmp, this);
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairCAC::~PairCAC() {
-
-	
-
 
 
   if (allocated) {
@@ -159,11 +161,12 @@ PairCAC::~PairCAC() {
     memory->destroy(old_quad_minima);
     memory->destroy(old_minima_neighbors);
   }
-   
-  memory->destroy(cgParm);
+  /* 
+  memory->destroy(asa_pointer);
   memory->destroy(asaParm);
   memory->destroy(Objective);
-
+  */
+  delete asa_pointer;
 
 
 
@@ -398,7 +401,7 @@ void PairCAC::allocate()
  ------------------------------------------------------------------------- */
 
 void PairCAC::settings(int narg, char **arg) {
-  if (narg>1) error->all(FLERR,"Illegal pair_style CAC command");
+  if (narg>1) error->all(FLERR,"Illegal CAC pair_style command");
  
   //cutmax = force->numeric(FLERR,arg[0]);
  
@@ -482,31 +485,8 @@ void PairCAC::init_style()
   dof_set[5][1] = 5;
   dof_set[5][2] = 6;
   dof_set[5][3] = 7;
-
-  //minimization algorithm parameters
-  //asacg_parm scgParm;
-  //asa_parm sasaParm;
-
-  memory->create(cgParm, 1, "pairCAC:cgParm");
-
-  memory->create(asaParm, 1, "pairCAC:asaParm");
-
-  memory->create(Objective, 1, "pairCAC:asaParm");
-
-  // if you want to change parameter value, initialize strucs with default 
-  asa_cg_default(cgParm);
-  asa_default(asaParm);
-
-  // if you want to change parameters, change them here: 
-  cgParm->PrintParms = FALSE;
-  cgParm->PrintLevel = 0;
-
-  asaParm->PrintParms = FALSE;
-  asaParm->PrintLevel = 0;
-  asaParm->PrintFinal = 0;
-  
-	
-
+  //minimization algorithm data
+  //init_asa_cg();
 }
 
 //-----------------------------------------------------------------------
@@ -515,15 +495,22 @@ void PairCAC::check_existence_flags(){
 //check existence of CAC atomvec here for convenience since children implement init_style
 //but all implementations call this routine
 if(!atom->CAC_flag)
-error->all(FLERR,"Pair CAC style requires a CAC atom style");
+error->all(FLERR,"CAC Pair style requires a CAC atom style");
 //check if hybrid pair style is invoked
 if(force->pair_match("hybrid",0,0)!=NULL)
-error->all(FLERR,"Pair CAC styles cannot be invoked with hybrid; also don't use the word hybrid in your style name to avoid this error");
+error->all(FLERR,"CAC Pair styles cannot be invoked with hybrid; also don't use the word hybrid in your style name to avoid this error");
 //check that the CAC comm style is defined
 if (strcmp(comm->comm_style, "CAC") != 0)
-error->all(FLERR,"Pair CAC style requires a CAC comm style");
+error->all(FLERR,"CAC Pair style requires a CAC comm style");
 }
 
+//-----------------------------------------------------------------------
+/*
+void PairCAC::init_asa_cg(){
+//instance minimization algorithm interface
+  asa_pointer = new Asa_Data();
+}
+*/
 //-----------------------------------------------------------------------
 
 void PairCAC::quadrature_init(int quadrature_rank){
@@ -1328,47 +1315,6 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 
 		}
 
-
-		/*
-		for (int n=0; n<8; n++ ){
-		cbox_positions[0]=box_positions[n][0];
-		cbox_positions[1]=box_positions[n][1];
-		cbox_positions[2]=box_positions[n][2];
-		cds[0]=0;
-		cds[1]=0;
-		cds[2]=0;
-
-
-		flagm=mldivide3(boxmap_matrix, cbox_positions, cds);
-
-		if(fabs(cds[0])>maxds){  maxds=fabs(cds[0]);   }
-		if(fabs(cds[1])>maxdt){  maxdt=fabs(cds[1]);   }
-		if(fabs(cds[2])>maxdw){  maxdw=fabs(cds[2]);  }
-
-
-		}
-
-		if(((maxds<0.5*unit_cell_mapped[0])||(maxdt<0.5*unit_cell_mapped[1]))||(maxdw<0.5*unit_cell_mapped[2])){
-		error->all(FLERR,"element has deformed excessively");
-		//double seg=force_density[230][43];
-
-		}
-
-		if(((maxds>10*unit_cell_mapped[0])||(maxdt>10*unit_cell_mapped[1]))||(maxdw>10*unit_cell_mapped[2])){
-		error->all(FLERR,"element has deformed excessively");
-		//double seg=force_density[230][43];
-
-		}
-
-
-
-		neighbor_cell_count[0]=((int)(maxds/unit_cell_mapped[0]))+2;
-		neighbor_cell_count[1]=((int)(maxdt/unit_cell_mapped[1]))+2;
-		neighbor_cell_count[2]=((int)(maxdw/unit_cell_mapped[2]))+2;
-		neighbor_cell_count[0]=3;
-		neighbor_cell_count[1]=3;
-		neighbor_cell_count[2]=3;
-		*/
 		// initialize local lattice vector approximation
 		double a[3];
 		a[0] = unit_cell_mapped[0] * boxmap_matrix[0][0];
@@ -1819,8 +1765,8 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 					for (poly_min = 0; poly_min < neigh_poly_count; poly_min++) {
 
 
-						asa_cg(xm, lo, hi, n, NULL, cgParm, asaParm,
-							1.e-2*unit_cell_min, NULL, Work, iWork, this, NULL);
+						asa_pointer->call_asa_cg(xm, lo, hi, n, 
+							1.e-2*unit_cell_min, NULL, Work, iWork);
 
 						double tol = 0.00001*unit_cell_min;
 						if (xm[0] > 1 + tol || xm[1] > 1 + tol || xm[0] < -1 - tol || xm[1] < -1 - tol) {
@@ -2092,7 +2038,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 			}
 
 			if (xm[0] > 1 || xm[1] > 1 || xm[0] < -1 || xm[1] < -1) {
-
 				error->one(FLERR, "minimum points exceed element domain");
 			}
 			min_point[0] = 0;
@@ -2141,47 +2086,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 
 				}
 
-
-				/*
-				for (int n=0; n<8; n++ ){
-				cbox_positions[0]=box_positions[n][0];
-				cbox_positions[1]=box_positions[n][1];
-				cbox_positions[2]=box_positions[n][2];
-				cds[0]=0;
-				cds[1]=0;
-				cds[2]=0;
-
-
-				flagm=mldivide3(boxmap_matrix, cbox_positions, cds);
-
-				if(fabs(cds[0])>maxds){  maxds=fabs(cds[0]);   }
-				if(fabs(cds[1])>maxdt){  maxdt=fabs(cds[1]);   }
-				if(fabs(cds[2])>maxdw){  maxdw=fabs(cds[2]);  }
-
-
-				}
-
-				if(((maxds<0.5*unit_cell_mapped[0])||(maxdt<0.5*unit_cell_mapped[1]))||(maxdw<0.5*unit_cell_mapped[2])){
-				error->all(FLERR,"element has deformed excessively");
-				//double seg=force_density[230][43];
-
-				}
-
-				if(((maxds>10*unit_cell_mapped[0])||(maxdt>10*unit_cell_mapped[1]))||(maxdw>10*unit_cell_mapped[2])){
-				error->all(FLERR,"element has deformed excessively");
-				//double seg=force_density[230][43];
-
-				}
-
-
-
-				neighbor_cell_count[0]=((int)(maxds/unit_cell_mapped[0]))+2;
-				neighbor_cell_count[1]=((int)(maxdt/unit_cell_mapped[1]))+2;
-				neighbor_cell_count[2]=((int)(maxdw/unit_cell_mapped[2]))+2;
-				neighbor_cell_count[0]=3;
-				neighbor_cell_count[1]=3;
-				neighbor_cell_count[2]=3;
-				*/
 				// initialize local lattice vector approximation
 				double a[3];
 				a[0] = unit_cell_mapped[0] * boxmap_matrix[0][0];
@@ -2869,256 +2773,7 @@ unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 
 }
 
-
-
-
-
-///////////////////////////////////////////////////
-
-
-
-double PairCAC::myvalue /* evaluate the objective function */
-(
-	asa_objective *asa
-)
-{
-	double f, xi, t, *g, *x;
-	double px, py, pz;
-	double px1, px2, py1, py2, pz1, pz2;
-
-	double unit_cell_mapped[3];
-	double shape_func2;
-	unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
-	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
-	unit_cell_mapped[2] = 2 / double(neighbor_element_scale[2]);
-	ASA_INT i, n;
-	x = asa->x;
-	g = asa->g;
-	n = asa->n;
-	f = 0;
-	double r[3] = { quad_r[0]  ,quad_r[1]  , quad_r[2] };
-	int n1, n2, n3, n4;
-	n1 = dof_surf_list[0];
-	n2 = dof_surf_list[1];
-	n3 = dof_surf_list[2];
-	n4 = dof_surf_list[3];
-	if (surf_select[0] == 1 && surf_select[1] == -1) {
-		surf_args[0] = -1 + unit_cell_mapped[0] / 2;
-		surf_args[1] = x[0];
-		surf_args[2] = x[1];
-
-	}
-	else if (surf_select[0] == 1 && surf_select[1] == 1) {
-		surf_args[0] = 1 - unit_cell_mapped[0] / 2;
-		surf_args[1] = x[0];
-		surf_args[2] = x[1];
-	}
-	else if (surf_select[0] == 2 && surf_select[1] == -1) {
-		surf_args[0] = x[0];
-		surf_args[1] = -1 + unit_cell_mapped[1] / 2;
-		surf_args[2] = x[1];
-	}
-	else if (surf_select[0] == 2 && surf_select[1] == 1) {
-		surf_args[0] = x[0];
-		surf_args[1] = 1 - unit_cell_mapped[1] / 2;
-		surf_args[2] = x[1];
-	}
-	else if (surf_select[0] == 3 && surf_select[1] == -1) {
-		surf_args[0] = x[0];
-		surf_args[1] = x[1];
-		surf_args[2] = -1 + unit_cell_mapped[2] / 2;
-	}
-	else if (surf_select[0] == 3 && surf_select[1] == 1) {
-		surf_args[0] = x[0];
-		surf_args[1] = x[1];
-		surf_args[2] = 1 - unit_cell_mapped[2] / 2;
-	}
-	/*
-	px= nodal_positions[n1][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n1+1)
-	+nodal_positions[n2][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n2+1)
-	+nodal_positions[n3][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n3+1)
-	+nodal_positions[n4][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n4+1);
-
-	py= nodal_positions[n1][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n1+1)
-	+nodal_positions[n2][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n2+1)
-	+nodal_positions[n3][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n3+1)
-	+nodal_positions[n4][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n4+1);
-
-	pz= nodal_positions[n1][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n1+1)
-	+nodal_positions[n2][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n2+1)
-	+nodal_positions[n3][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n3+1)
-	+nodal_positions[n4][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n4+1);
-	*/
-	px = 0;
-	py = 0;
-	pz = 0;
-	for (int kk = 0; kk < neigh_nodes_per_element; kk++) {
-		shape_func2 = shape_function(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1);
-		px += neighbor_element_positions[kk][poly_min][0] * shape_func2;
-		py += neighbor_element_positions[kk][poly_min][1] * shape_func2;
-		pz += neighbor_element_positions[kk][poly_min][2] * shape_func2;
-	}
-
-
-	f = (r[0] - px)*(r[0] - px) + (r[1] - py)*(r[1] - py) + (r[2] - pz)*(r[2] - pz);
-
-
-	return (f);
-}
-
-void PairCAC::mygrad /* evaluate the gradient of the objective function */
-(
-	asa_objective *asa
-)
-{
-	double f, xi, t, *g, *x;
-	double px, py, pz;
-	double px1, px2, py1, py2, pz1, pz2;
-	double unit_cell_mapped[3];
-	double shape_func2, shape_func1;
-	unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
-	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
-	unit_cell_mapped[2] = 2 / double(neighbor_element_scale[2]);
-
-	ASA_INT i, n;
-	x = asa->x;
-	g = asa->g;
-	n = asa->n;
-	f = 0;
-	double r[3] = { quad_r[0]  ,quad_r[1]  , quad_r[2] };
-	int deriv_select[2];
-	int n1, n2, n3, n4;
-	n1 = dof_surf_list[0];
-	n2 = dof_surf_list[1];
-	n3 = dof_surf_list[2];
-	n4 = dof_surf_list[3];
-	if (surf_select[0] == 1 && surf_select[1] == -1) {
-		surf_args[0] = -1 + unit_cell_mapped[0] / 2;
-		surf_args[1] = x[0];
-		surf_args[2] = x[1];
-		deriv_select[0] = 2;
-		deriv_select[1] = 3;
-	}
-	else if (surf_select[0] == 1 && surf_select[1] == 1) {
-		surf_args[0] = 1 - unit_cell_mapped[0] / 2;
-		surf_args[1] = x[0];
-		surf_args[2] = x[1];
-		deriv_select[0] = 2;
-		deriv_select[1] = 3;
-	}
-	else if (surf_select[0] == 2 && surf_select[1] == -1) {
-		surf_args[0] = x[0];
-		surf_args[1] = -1 + unit_cell_mapped[1] / 2;
-		surf_args[2] = x[1];
-		deriv_select[0] = 1;
-		deriv_select[1] = 3;
-	}
-	else if (surf_select[0] == 2 && surf_select[1] == 1) {
-		surf_args[0] = x[0];
-		surf_args[1] = 1 - unit_cell_mapped[1] / 2;
-		surf_args[2] = x[1];
-		deriv_select[0] = 1;
-		deriv_select[1] = 3;
-	}
-	else if (surf_select[0] == 3 && surf_select[1] == -1) {
-		surf_args[0] = x[0];
-		surf_args[1] = x[1];
-		surf_args[2] = -1 + unit_cell_mapped[2] / 2;
-		deriv_select[0] = 1;
-		deriv_select[1] = 2;
-	}
-	else if (surf_select[0] == 3 && surf_select[1] == 1) {
-		surf_args[0] = x[0];
-		surf_args[1] = x[1];
-		surf_args[2] = 1 - unit_cell_mapped[2] / 2;
-		deriv_select[0] = 1;
-		deriv_select[1] = 2;
-	}
-
-	/*
-	px= nodal_positions[n1][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n1+1)
-	+nodal_positions[n2][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n2+1)
-	+nodal_positions[n3][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n3+1)
-	+nodal_positions[n4][0]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n4+1);
-
-	py= nodal_positions[n1][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n1+1)
-	+nodal_positions[n2][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n2+1)
-	+nodal_positions[n3][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n3+1)
-	+nodal_positions[n4][1]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n4+1);
-
-	pz= nodal_positions[n1][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n1+1)
-	+nodal_positions[n2][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n2+1)
-	+nodal_positions[n3][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n3+1)
-	+nodal_positions[n4][2]*shape_function(surf_args[0],surf_args[1],surf_args[2],2,n4+1);
-	*/
-
-	px = 0;
-	py = 0;
-	pz = 0;
-	for (int kk = 0; kk < neigh_nodes_per_element; kk++) {
-		shape_func2 = shape_function(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1);
-
-		px += neighbor_element_positions[kk][poly_min][0] * shape_func2;
-		py += neighbor_element_positions[kk][poly_min][1] * shape_func2;
-		pz += neighbor_element_positions[kk][poly_min][2] * shape_func2;
-	}
-	/*
-	px1= nodal_positions[n1][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n1+1, deriv_select[0])
-	+nodal_positions[n2][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n2+1, deriv_select[0])
-	+nodal_positions[n3][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n3+1, deriv_select[0])
-	+nodal_positions[n4][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n4+1, deriv_select[0]);
-
-	py1= nodal_positions[n1][1]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n1+1, deriv_select[0])
-	+nodal_positions[n2][1]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n2+1, deriv_select[0])
-	+nodal_positions[n3][1]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n3+1, deriv_select[0])
-	+nodal_positions[n4][1]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n4+1, deriv_select[0]);
-
-	pz1= nodal_positions[n1][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n1+1, deriv_select[0])
-	+nodal_positions[n2][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n2+1, deriv_select[0])
-	+nodal_positions[n3][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n3+1, deriv_select[0])
-	+nodal_positions[n4][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n4+1, deriv_select[0]);
-
-	px2= nodal_positions[n1][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n1+1, deriv_select[1])
-	+nodal_positions[n2][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n2+1, deriv_select[1])
-	+nodal_positions[n3][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n3+1, deriv_select[1])
-	+nodal_positions[n4][0]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n4+1, deriv_select[1]);
-
-	py2 = nodal_positions[n1][1] * shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, n1 + 1, deriv_select[1])
-	+ nodal_positions[n2][1] * shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, n2 + 1, deriv_select[1])
-	+ nodal_positions[n3][1] * shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, n3 + 1, deriv_select[1])
-	+ nodal_positions[n4][1] * shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, n4 + 1, deriv_select[1]);
-
-	pz2= nodal_positions[n1][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n1+1, deriv_select[1])
-	+nodal_positions[n2][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n2+1, deriv_select[1])
-	+nodal_positions[n3][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n3+1, deriv_select[1])
-	+nodal_positions[n4][2]*shape_function_derivative(surf_args[0],surf_args[1],surf_args[2],2,n4+1, deriv_select[1]);
-	*/
-	px1 = 0;
-	py1 = 0;
-	pz1 = 0;
-	px2 = 0;
-	py2 = 0;
-	pz2 = 0;
-	for (int kk = 0; kk < neigh_nodes_per_element; kk++) {
-		shape_func1 = shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1, deriv_select[0]);
-		shape_func2 = shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1, deriv_select[1]);
-		px1 += neighbor_element_positions[kk][poly_min][0] * shape_func1;
-		py1 += neighbor_element_positions[kk][poly_min][1] * shape_func1;
-		pz1 += neighbor_element_positions[kk][poly_min][2] * shape_func1;
-		px2 += neighbor_element_positions[kk][poly_min][0] * shape_func2;
-		py2 += neighbor_element_positions[kk][poly_min][1] * shape_func2;
-		pz2 += neighbor_element_positions[kk][poly_min][2] * shape_func2;
-	}
-
-
-	g[0] = -2 * (r[0] - px)*px1 - 2 * (r[1] - py)*py1 - 2 * (r[2] - pz)*pz1;
-	g[1] = -2 * (r[0] - px)*px2 - 2 * (r[1] - py)*py2 - 2 * (r[2] - pz)*pz2;
-
-	//g [0] = 4 * (x[0] - 0.5) *(x[0] - 0.5)*(x[0] - 0.5) ;
-	//g [1] = 4 * (x[1] - 0.3)* (x[1] - 0.3)*(x[1] - 0.3);
-
-	return;
-}
+//////////////////////////////////////////////////////////////
 
 void PairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 	int *element_type = atom->element_type;

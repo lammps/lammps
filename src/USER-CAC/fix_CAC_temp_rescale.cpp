@@ -40,10 +40,10 @@ FixTempRescale_CAC::FixTempRescale_CAC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   tstr(NULL), id_temp(NULL), tflag(0)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale command");
+  if (narg < 8) error->all(FLERR,"Illegal fix cac/temp/rescale command");
 
   nevery = force->inumeric(FLERR,arg[3]);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix cac/temp/rescale command");
 
   scalar_flag = 1;
   global_freq = nevery;
@@ -72,7 +72,7 @@ FixTempRescale_CAC::FixTempRescale_CAC(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(id) + 16;
   id_temp = new char[n];
   strcpy(id_temp,id);
-  strcat(id_temp,"_cac/nodal/temp");
+  strcat(id_temp,"_cac_nodal_temp");
 
   char **newarg = new char*[6];
   newarg[0] = id_temp;

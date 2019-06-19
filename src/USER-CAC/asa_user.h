@@ -24,8 +24,7 @@
 #endif
 
 namespace LAMMPS_NS {
-class PairCAC; //forward declaration
-class AtomVecCAC; //forward declaration
+class Asa_Data; //forward declaration
 }
 
 /*============================================================================
@@ -371,8 +370,7 @@ int asa_cg /*  return:
                             if DynamicMemory = TRUE, need  5n + m */
     ASA_INT          *iWork,  /* NULL => allocate integer work space
                             otherwise provide space to n integers */
-    LAMMPS_NS::PairCAC* objpoint,
-    LAMMPS_NS::AtomVecCAC* avec_objpoint
+    LAMMPS_NS::Asa_Data* objpoint
 ) ;
 
 void asa_default /* set default parameter values for asa */

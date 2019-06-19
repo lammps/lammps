@@ -8,8 +8,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstdio>
-#include "pair_CAC.h"
-#include "atom_vec_CAC.h"
+#include "asa_data.h"
 #define PRIVATE public
 #define ZERO ((double) 0)
 #define ONE  ((double) 1)
@@ -101,10 +100,8 @@ typedef struct asa_com_struct /* common variables */
 	asa_objective *user ; /* information passed to user when function or
                              gradient must be evaluated */
    
-	double        (LAMMPS_NS::PairCAC::*valgrad) (asa_objective *); /* function & gradient if given*/
-    LAMMPS_NS::PairCAC* objpoint;
-
-    LAMMPS_NS::AtomVecCAC* avec_objpoint;
+	double        (LAMMPS_NS::Asa_Data::*valgrad) (asa_objective *); /* function & gradient if given*/
+    LAMMPS_NS::Asa_Data* objpoint;
 } asa_com ;
 
 /* prototypes */

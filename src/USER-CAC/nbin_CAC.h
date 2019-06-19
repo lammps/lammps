@@ -81,4 +81,24 @@ class NBinCAC : public NBin {
 
 /* ERROR/WARNING messages:
 
+E: Cannot use the CAC method without the CAC comm style
+
+Self-explanatory
+
+E: Domain too large for neighbor bins
+
+The domain is deemed excessively demanding in terms of bin allocation due to memory resources etc.
+
+E: excessive/negatic bin index
+
+Internal debugging check in case of logical failure in the algorithm. Contact author for support
+
+E: Cannot use neighbor bins - box size << cutoff
+
+UNDOCUMENTED
+
+E: Too many neighbor bins
+
+UNDOCUMENTED
+
 */

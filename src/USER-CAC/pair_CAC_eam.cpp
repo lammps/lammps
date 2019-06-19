@@ -372,28 +372,7 @@ void PairCACEAM::init_style()
 	  sort_surf_set[si][0] = surf_set[si][0];
 	  sort_surf_set[si][1] = surf_set[si][1];
   }
-  //minimization algorithm parameters
-  //asacg_parm scgParm;
-  //asa_parm sasaParm;
-
-  memory->create(cgParm, 1, "pairCAC:cgParm");
-
-  memory->create(asaParm, 1, "pairCAC:asaParm");
-
-  memory->create(Objective, 1, "pairCAC:asaParm");
-
-  // if you want to change parameter value, initialize strucs with default 
-  asa_cg_default(cgParm);
-  asa_default(asaParm);
-
-  // if you want to change parameters, change them here: 
-  cgParm->PrintParms = FALSE;
-  cgParm->PrintLevel = 0;
-
-  asaParm->PrintParms = FALSE;
-  asaParm->PrintLevel = 0;
-  asaParm->PrintFinal = 0;
-
+ 
 
 }
 

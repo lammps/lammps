@@ -21,17 +21,21 @@ PairStyle(cac,PairCAC)
 #define LMP_PAIR_CAC_H
 
 #include "pair.h"
-#include "asa_user.h"
-using namespace std;
 
 namespace LAMMPS_NS {
 
 class PairCAC : public Pair {
  public:
 	double cutmax;                // max cutoff for all elements
-  asacg_parm *cgParm;
-  asa_parm *asaParm;
-  asa_objective *Objective;
+  class Asa_Data *asa_pointer; 
+  //variable for Asa_Data to obtain
+  int poly_min; 
+  int surf_select[2];
+  int dof_surf_list[4];
+  double quad_r[3];
+  int neigh_nodes_per_element; 
+  int *neighbor_element_scale;
+  double ***neighbor_element_positions;    
    
   PairCAC(class LAMMPS *);
   virtual ~PairCAC();
@@ -40,6 +44,10 @@ class PairCAC : public Pair {
   virtual void coeff(int, char **){}
   virtual void init_style();
   virtual double init_one(int, int){ return 0.0; }
+
+  //functions for Asa_Data and class to obtain
+  double shape_function(double, double, double,int,int);
+  double shape_function_derivative(double, double, double,int,int,int);
  
   //set of shape functions
   double quad_shape_one(double s, double t, double w){ return (1-s)*(1-t)*(1-w)/8;}
@@ -51,10 +59,6 @@ class PairCAC : public Pair {
   double quad_shape_seven(double s, double t, double w){ return (1+s)*(1+t)*(1+w)/8;}
   double quad_shape_eight(double s, double t, double w){ return (1-s)*(1+t)*(1+w)/8;}
  
-  //end of shape function declarations
-  double myvalue(asa_objective *asa);
-  void mygrad(asa_objective *asa);
-
   virtual double memory_usage();
 
  protected:
@@ -62,19 +66,15 @@ class PairCAC : public Pair {
   double cutforcesq;
   double **scale;
   int *current_element_scale;
-  int *neighbor_element_scale;
   double mapped_volume;
-  int dof_surf_list[4];
-  double quad_r[3];
   int reneighbor_time;
-  int max_nodes_per_element, neigh_nodes_per_element, neigh_poly_count;
+  int max_nodes_per_element, neigh_poly_count;
 	
   double cut_global_s;
   int   quadrature_node_count;
   double cutoff_skin;
   double cell_vectors[3][3];
   double interior_scale[3];
-  double surf_args[3];
   int **surf_set;
   int **dof_set;
   int **sort_surf_set;
@@ -86,7 +86,6 @@ class PairCAC : public Pair {
   typedef double(PairCAC::*Shape_Functions)(double s, double t, double w);
   Shape_Functions *shape_functions;
 
-  int surf_select[2];
   double element_energy;
   int quad_eflag;
   double quadrature_energy;
@@ -104,7 +103,6 @@ class PairCAC : public Pair {
   double **shape_quad_result;
   double ***current_nodal_positions;
   double ***current_nodal_gradients;
-  double ***neighbor_element_positions;
   double **neighbor_copy_ucell;
   int **neighbor_copy_index;
   int neighbor_element_type;
@@ -134,7 +132,6 @@ class PairCAC : public Pair {
   int *type_array;
   int poly_counter;
   int current_list_index;
-  int poly_min;
   int interior_flag;
   int neigh_quad_counter;
   int quad_list_counter;
@@ -151,14 +148,13 @@ class PairCAC : public Pair {
   //further CAC functions 
   void quadrature_init(int degree);
   void check_existence_flags();
+  //void init_asa_cg();
   void allocate_quad_neigh_list(int,int,int,int);
   void allocate_surface_counts();
   void compute_mass_matrix();
   void compute_forcev(int);
   void neigh_list_cord(double& coordx, double& coordy, double& coordz, int, int, double, double, double);
   void set_shape_functions();
-  double shape_function(double, double, double,int,int);
-  double shape_function_derivative(double, double, double,int,int,int);
   void compute_surface_depths(double &x, double &y, double &z, 
     int &xb, int &yb, int &zb, int flag);
   void LUPSolve(double **A, int *P, double *b, int N, double *x);
@@ -175,3 +171,43 @@ class PairCAC : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: LU matrix is degenerate
+
+For some reason the mass matrix for one of the finite elements defined
+in your model is ill conditioned.
+
+E: Unexpected argument in CAC pair style invocation
+
+Self-explanatory.  Check the input script or data file. See the documention
+for appropriate syntax.
+
+E: CAC Pair style requires a CAC atom style
+
+Self-explanatory.
+
+E: CAC Pair styles cannot be invoked with hybrid; also 
+don't use the word hybrid in your style name to avoid this error
+
+Self-explanatory.
+
+E: CAC Pair style requires a CAC comm style
+
+Self-explanatory.
+
+E: minimum points exceed element domain
+
+The minimization algorithm used to locate adjacent finite element 
+geometry and complete the virtual atom neighborhood is encountering
+an invalid solution. Request help for this supposedly impossible scenario.
+See the documentation for contact info.
+
+*/

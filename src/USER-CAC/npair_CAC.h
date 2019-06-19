@@ -84,4 +84,8 @@ protected:
 
 /* ERROR/WARNING messages:
 
+E: excessive/negative bin index
+
+Internal debug error message that may be removed in the near future.
+
 */

@@ -72,6 +72,10 @@ E: Variable name for fix setforce does not exist
 
 Self-explanatory.
 
+E: fix cac/setvelocity requires a CAC atom style
+
+Self-explanatory.
+
 E: Variable for fix setforce is invalid style
 
 Only equal-style variables can be used.

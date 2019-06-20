@@ -14,11 +14,10 @@ variable	xx equal 20*$x
 variable	yy equal 20*$y
 variable	zz equal 20*$z
 
-units		metal
-atom_style	atomic
+echo            both
+#kim_style       model LennardJones_Ar metal
+kim_style       model Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu real unit_conversion_mode
 newton          on
-
-kim_style       init LennardJones_Ar
 
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}
@@ -28,7 +27,7 @@ create_atoms	1 box
 #pair_style	lj/cut 8.1500
 #pair_coeff	1 1 0.0104 3.4000
 
-kim_style      define Ar
+kim_style       setup Au
 
 mass		1 39.95
 velocity	all create 200.0 232345 loop geom

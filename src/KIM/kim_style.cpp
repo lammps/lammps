@@ -51,7 +51,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.0.2 (and newer) package
+   Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -68,6 +68,9 @@
 #include "variable.h"
 #include "fix_store_kim.h"
 
+extern "C" {
+#include "KIM_SimulatorHeaders.h"
+}
 //@@@@@ Need to switch to c-bindings when they are available.
 #include "KIM_SimulatorModel.hpp"
 //@@@@@
@@ -78,42 +81,188 @@ using namespace LAMMPS_NS;
 
 void KimStyle::command(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal kim_style command");
+  if ((narg < 2) || (narg > 4)) error->all(FLERR,"Illegal kim_style command");
 
-  units_from = NULL;
-  units_to = NULL;
-
-  if (strcmp(arg[0],"init") == 0) {
+  if (strcmp(arg[0],"model") == 0) {
     if (domain->box_exist)
-      error->all(FLERR,"Must use 'kim_style init' command before "
+      error->all(FLERR,"Must use 'kim_style model' command before "
                  "simulation box is defined");
-    int len = strlen(arg[1])+1;
-    char *model = new char[len];
-    strcpy(model,arg[1]);
+    int len1 = strlen(arg[1])+1;
+    int len2 = strlen(arg[2])+1;
+    char *model_name = new char[len1]; strcpy(model_name,arg[1]);
+    char *user_units = new char[len2]; strcpy(user_units,arg[2]);
+    if (narg == 4) {
+      if (strcmp(arg[3],"unit_conversion_mode")==0) unit_conversion_mode = true;
+      else { error->all(FLERR,"Illegal kim_style command"); }
+    } else unit_conversion_mode = false;
 
-    int args_done = do_units(narg-2,arg-2);
-    if (narg > (args_done + 2))
-      error->all(FLERR,"Illegal kim_style command");
-    do_init(model);
-    do_variables();
-  } else if (strcmp(arg[0],"define") == 0) {
+    char *model_units;
+    determine_model_type_and_units(model_name, user_units, &model_units);
+
+    do_init(model_name, user_units, model_units);
+    if (unit_conversion_mode) do_variables(user_units, model_units);
+  } else if (strcmp(arg[0],"setup") == 0) {
     if (!domain->box_exist)
-      error->all(FLERR,"Must use 'kim_style define' command after "
+      error->all(FLERR,"Must use 'kim_style setup' command after "
                  "simulation box is defined");
-    int args_done = do_units(narg-1,arg-1);
-    do_defn(narg - (args_done+1),arg + (args_done+1));
-  } else if (strcmp(arg[0],"unit_variables") == 0) {
-    int args_done = do_units(narg,arg);
-    if (narg > args_done)
-      error->all(FLERR,"Illegal kim_style command");
-    do_variables();
+    do_setup(narg-1,++arg);
   } else error->all(FLERR,"Illegal kim_style command");
 }
 
 
 /* ---------------------------------------------------------------------- */
+namespace {
+void get_kim_unit_names(
+    char const * const system,
+    KIM_LengthUnit & lengthUnit,
+    KIM_EnergyUnit & energyUnit,
+    KIM_ChargeUnit & chargeUnit,
+    KIM_TemperatureUnit & temperatureUnit,
+    KIM_TimeUnit & timeUnit,
+    Error * error)
+{
+  if ((strcmp(system,"real")==0)) {
+    lengthUnit = KIM_LENGTH_UNIT_A;
+    energyUnit = KIM_ENERGY_UNIT_kcal_mol;
+    chargeUnit = KIM_CHARGE_UNIT_e;
+    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+    timeUnit = KIM_TIME_UNIT_fs;
+  } else if ((strcmp(system,"metal")==0)) {
+    lengthUnit = KIM_LENGTH_UNIT_A;
+    energyUnit = KIM_ENERGY_UNIT_eV;
+    chargeUnit = KIM_CHARGE_UNIT_e;
+    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+    timeUnit = KIM_TIME_UNIT_ps;
+  } else if ((strcmp(system,"si")==0)) {
+    lengthUnit = KIM_LENGTH_UNIT_m;
+    energyUnit = KIM_ENERGY_UNIT_J;
+    chargeUnit = KIM_CHARGE_UNIT_C;
+    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+    timeUnit = KIM_TIME_UNIT_s;
+  } else if ((strcmp(system,"cgs")==0)) {
+    lengthUnit = KIM_LENGTH_UNIT_cm;
+    energyUnit = KIM_ENERGY_UNIT_erg;
+    chargeUnit = KIM_CHARGE_UNIT_statC;
+    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+    timeUnit = KIM_TIME_UNIT_s;
+  } else if ((strcmp(system,"electron")==0)) {
+    lengthUnit = KIM_LENGTH_UNIT_Bohr;
+    energyUnit = KIM_ENERGY_UNIT_Hartree;
+    chargeUnit = KIM_CHARGE_UNIT_e;
+    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+    timeUnit = KIM_TIME_UNIT_fs;
+  } else if ((strcmp(system,"lj")==0)) {
+    error->all(FLERR,"LAMMPS unit_style lj not supported by KIM models");
+  } else {
+    error->all(FLERR,"Unknown unit_style");
+  }
+}
+}  // namespace
+void KimStyle::determine_model_type_and_units(char * model_name,
+                                              char * user_units,
+                                              char ** model_units)
+{
+  KIM_LengthUnit lengthUnit;
+  KIM_EnergyUnit energyUnit;
+  KIM_ChargeUnit chargeUnit;
+  KIM_TemperatureUnit temperatureUnit;
+  KIM_TimeUnit timeUnit;
+  int units_accepted;
+  KIM_Model * kim_MO;
 
-void KimStyle::do_init(char *model)
+  get_kim_unit_names(user_units, lengthUnit, energyUnit,
+                     chargeUnit, temperatureUnit, timeUnit, error);
+  int kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
+                                   lengthUnit,
+                                   energyUnit,
+                                   chargeUnit,
+                                   temperatureUnit,
+                                   timeUnit,
+                                   model_name,
+                                   &units_accepted,
+                                   &kim_MO);
+
+  if (!kim_error)  // model is an MO
+  {
+    model_type = MO;
+    KIM_Model_Destroy(&kim_MO);
+
+    if (units_accepted)
+    {
+      int len=strlen(user_units);
+      *model_units = new char[len]; strcpy(*model_units,user_units);
+      return;
+    }
+    else if (unit_conversion_mode)
+    {
+      int const num_systems = 5;
+      char const * const systems[num_systems]
+          = {"metal", "real", "si", "cgs", "electron"};
+      for (int i=0; i < num_systems; ++i)
+      {
+        get_kim_unit_names(systems[i], lengthUnit, energyUnit,
+                           chargeUnit, temperatureUnit, timeUnit, error);
+        kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
+                                     lengthUnit,
+                                     energyUnit,
+                                     chargeUnit,
+                                     temperatureUnit,
+                                     timeUnit,
+                                     model_name,
+                                     &units_accepted,
+                                     &kim_MO);
+        KIM_Model_Destroy(&kim_MO);
+        if (units_accepted)
+        {
+          int len=strlen(systems[i]);
+          *model_units = new char[len]; strcpy(*model_units,systems[i]);
+          return;
+        }
+      }
+      error->all(FLERR,"KIM Model does not support any lammps unit system");
+    }
+    else
+    {
+      error->all(FLERR,"KIM Model does not support the requested unit system");
+    }
+  }
+
+  KIM::SimulatorModel * kim_SM;
+  kim_error = KIM::SimulatorModel::Create(model_name, &kim_SM);
+  if (kim_error)
+  {
+    error->all(FLERR,"KIM model name not found");
+  }
+  model_type = SM;
+
+  int sim_fields;
+  int sim_lines;
+  std::string const * sim_field;
+  std::string const * sim_value;
+  kim_SM->GetNumberOfSimulatorFields(&sim_fields);
+  kim_SM->CloseTemplateMap();
+  for (int i=0; i < sim_fields; ++i) {
+    kim_SM->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+
+    if (*sim_field == "units") {
+      kim_SM->GetSimulatorFieldLine(i,0,&sim_value);
+      int len=(*sim_value).length();
+      *model_units = new char[len]; strcpy(*model_units,sim_value->c_str());
+      break;
+    }
+  }
+  KIM::SimulatorModel::Destroy(&kim_SM);
+
+  if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0))
+  {
+    error->all(FLERR,"Incompatible units for KIM Simulator Model");
+  }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void KimStyle::do_init(char *model_name, char *user_units, char* model_units)
 {
   // create storage proxy fix. delete existing fix, if needed.
 
@@ -127,14 +276,20 @@ void KimStyle::do_init(char *model)
   ifix = modify->find_fix("KIM_MODEL_STORE");
 
   FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
-  fix_store->setptr("model_name", (void *) model);
-  fix_store->setptr("units_from", (void *) units_from);
-  fix_store->setptr("units_to", (void *) units_to);
+  fix_store->setptr("model_name", (void *) model_name);
+  fix_store->setptr("user_units", (void *) user_units);
+  fix_store->setptr("model_units", (void *) model_units);
+
+  // set units
+
+  std::string cmd("units ");
+  cmd += model_units;
+  input->one(cmd.c_str());
 
   int kimerror;
   // @@@@@ switch to c-bindings when they are available
   KIM::SimulatorModel * simulatorModel;
-  kimerror = KIM::SimulatorModel::Create(model,&simulatorModel);
+  kimerror = KIM::SimulatorModel::Create(model_name,&simulatorModel);
 
   // not a Kim Simulator Model; nothing else to do here.
 
@@ -149,19 +304,6 @@ void KimStyle::do_init(char *model)
   int sim_fields, sim_lines;
   const std::string *sim_field, *sim_value;
   simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
-
-  // set units
-
-  for (int i=0; i < sim_fields; ++i) {
-    simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-    if (*sim_field == "units") {
-      simulatorModel->GetSimulatorFieldLine(i,0,&sim_value);
-      std::string cmd("units ");
-      cmd += *sim_value;
-      input->one(cmd.c_str());
-      break;
-    }
-  }
 
   // init model
 
@@ -183,7 +325,7 @@ void KimStyle::do_init(char *model)
 
 /* ---------------------------------------------------------------------- */
 
-void KimStyle::do_defn(int narg, char **arg)
+void KimStyle::do_setup(int narg, char **arg)
 {
   if (narg != atom->ntypes)
     error->all(FLERR,"Illegal kim_style command");
@@ -201,7 +343,7 @@ void KimStyle::do_defn(int narg, char **arg)
     FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
     model = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM::SimulatorModel *)fix_store->getptr("simulator_model");
-  } else error->all(FLERR,"Must use 'kim_style init' before 'kim_style define'");
+  } else error->all(FLERR,"Must use 'kim_style model' before 'kim_style setup'");
 
   if (simulatorModel) {
 
@@ -317,61 +459,10 @@ void KimStyle::do_defn(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int KimStyle::do_units(int narg, char **arg)
+void KimStyle::do_variables(char *user_units, char *model_units)
 {
-  // retrieve custom units setting if kim_style had been called before
-
-  int ifix = modify->find_fix("KIM_MODEL_STORE");
-  FixStoreKIM *fix_store = NULL;
-  if (ifix >= 0) {
-    fix_store = (FixStoreKIM *) modify->fix[ifix];
-    units_from = (char *)fix_store->getptr("units_from");
-    units_to = (char *)fix_store->getptr("units_to");
-  }
-
-  if (narg < 2) return 0;
-  int iarg=0;
-  for (iarg = 0; iarg < narg; iarg += 2) {
-    if (strcmp(arg[iarg],"unit_variables") == 0) {
-      if (narg > iarg+2) error->all(FLERR,"Illegal kim_style command");
-      if (strcmp(arg[iarg+1],"NULL") == 0) {
-        delete[] units_to;
-        units_to = NULL;
-      } else {
-        int len = strlen(arg[iarg+1])+1;
-        delete[] units_to;
-        units_to = new char[len];
-        strcpy(units_to,arg[iarg+1]);
-      }
-      if (fix_store) fix_store->setptr("units_to",units_to);
-    } else if (strcmp(arg[iarg],"unit_from") == 0) {
-      if (narg > iarg+2) error->all(FLERR,"Illegal kim_style command");
-      if (strcmp(arg[iarg+1],"NULL") == 0) {
-        delete[] units_from;
-        units_from = NULL;
-      } else {
-        int len = strlen(arg[iarg+1])+1;
-        delete[] units_from;
-        units_from = new char[len];
-        strcpy(units_from,arg[iarg+1]);
-      }
-      if (fix_store) fix_store->setptr("units_from",units_from);
-    } else return iarg;
-  }
-  return iarg;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void KimStyle::do_variables()
-{
-  char *from, *to;
+  char *from = user_units, *to = model_units;
   Variable *variable = input->variable;
-
-  if (units_from) from = units_from;
-  else from = update->unit_style;
-  if (units_to) to = units_to;
-  else to = update->unit_style;
 
   // refuse convertion from or to reduced units
 
@@ -381,6 +472,7 @@ void KimStyle::do_variables()
   // get index to internal style variables. create, if needed.
   // default to conversion factor 1.0 for newly created variables
 
+  // @@@@@@ below needs to be updated to use Ellad's luc.
   int v_length, v_mass, v_time;
   char *args[3];
   args[1] = (char *)"internal";

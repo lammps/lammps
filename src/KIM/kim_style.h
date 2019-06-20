@@ -51,7 +51,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.0.2 (and newer) package
+   Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
@@ -72,12 +72,14 @@ class KimStyle : protected Pointers {
   KimStyle(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
  private:
-  char *units_from;
-  char *units_to;
-  void do_init(char *);
-  void do_defn(int, char **);
-  int do_units(int, char **);
-  void do_variables();
+  enum model_type_enum {MO, SM};
+  model_type_enum model_type;
+  bool unit_conversion_mode;
+
+  void determine_model_type_and_units(char *, char *, char **);
+  void do_init(char *, char *, char *);
+  void do_setup(int, char **);
+  void do_variables(char*, char*);
 };
 
 }
@@ -91,15 +93,27 @@ E: Illegal kim_style command
 
 Incorrect number or kind of arguments to kim_style.
 
-E: Must use 'kim_style init' command before simulation box is defined
+E: Must use 'kim_style model' command before simulation box is defined
 
 Self-explanatory.
 
-E: Must use 'kim_style define' command after simulation box is defined
+E: Must use 'kim_style setup' command after simulation box is defined
 
 Self-explanatory.
 
-E: Must use 'kim_style init' command before 'kim_style define'
+E: Must use 'kim_style model' command before 'kim_style setup'
+
+Self-explanatory.
+
+E: KIM Model does not support the requested unit system
+
+Self-explanatory.
+
+E: KIM Model does not support any lammps unit system
+
+Self-explanatory.
+
+E: KIM model name not found
 
 Self-explanatory.
 

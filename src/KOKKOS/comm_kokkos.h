@@ -37,6 +37,7 @@ class CommKokkos : public CommBrick {
   bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);
+  CommKokkos(class LAMMPS *, class Comm *); 
   ~CommKokkos();
 
   virtual void post_constructor();

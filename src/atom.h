@@ -525,6 +525,38 @@ E: Too many atom sorting bins
 This is likely due to an immense simulation box that has blown up
 to a large size.
 
+E: Incorrect element header line format in data file
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its header line. See the documentation for 
+format and syntax and check your data file.
+
+E: Incorrect element header line format in data file
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its header line. See the documentation for 
+format and syntax and check your data file.
+
+E: Incorrect node line format for this CAC atom style
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its node lines. Specifically the number of
+entries is incorrect for some reason; perhaps the atom substyle
+is not the correct one for your data file or you missed lines
+for the previously read element.
+
+E: poly_count less than one in data file
+
+Self-explanatory. USER-CAC package related.
+
+E: negative element scale in data file
+
+Self-explanatory. USER-CAC package related.
+
+E: element type not yet defined, add definition in define_elements function of atom_vec_CAC.cpp style
+
+Self-explanatory. Contact the author for help if encountering issues in defining new elements.
+
 U: Cannot set mass for this atom style
 
 This atom style does not support mass settings for each atom type.

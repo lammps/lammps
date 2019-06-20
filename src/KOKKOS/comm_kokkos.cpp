@@ -88,6 +88,16 @@ CommKokkos::~CommKokkos()
   buf_recv = NULL;
 }
 
+/* ----------------------------------------------------------------------
+   set comm style name
+------------------------------------------------------------------------- */
+
+void CommKokkos::post_constructor()
+{
+  memory->create(comm_style,20,"comm: comm_style");
+  strcpy(comm_style,"brick/kk\0");
+}
+
 /* ---------------------------------------------------------------------- */
 
 void CommKokkos::init()

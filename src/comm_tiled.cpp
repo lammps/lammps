@@ -42,8 +42,6 @@ using namespace LAMMPS_NS;
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"tiled");
   style = 1;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
@@ -59,8 +57,6 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"tiled");
   style = 1;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
@@ -76,6 +72,16 @@ CommTiled::~CommTiled()
   memory->destroy(overlap);
   deallocate_swap(nswap);
   memory->sfree(rcbinfo);
+}
+
+/* ----------------------------------------------------------------------
+   set comm style name
+------------------------------------------------------------------------- */
+
+void CommTiled::post_constructor()
+{
+  memory->create(comm_style,10,"comm: comm_style");
+  strcpy(comm_style,"tiled\0");
 }
 
 /* ----------------------------------------------------------------------

@@ -500,7 +500,7 @@ error->all(FLERR,"CAC Pair style requires a CAC atom style");
 if(force->pair_match("hybrid",0,0)!=NULL)
 error->all(FLERR,"CAC Pair styles cannot be invoked with hybrid; also don't use the word hybrid in your style name to avoid this error");
 //check that the CAC comm style is defined
-if (strcmp(comm->comm_style, "CAC") != 0)
+if (strcmp(comm->comm_style, "cac") != 0)
 error->all(FLERR,"CAC Pair style requires a CAC comm style");
 }
 

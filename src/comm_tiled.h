@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMM_CLASS
+
+CommStyle(tiled,CommTiled)
+
+#else
+
 #ifndef LMP_COMM_TILED_H
 #define LMP_COMM_TILED_H
 
@@ -24,6 +30,7 @@ class CommTiled : public Comm {
   CommTiled(class LAMMPS *, class Comm *);
   virtual ~CommTiled();
 
+  virtual void post_constructor();
   void init();
   void setup();                        // setup comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
@@ -151,6 +158,7 @@ class CommTiled : public Comm {
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

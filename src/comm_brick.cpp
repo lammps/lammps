@@ -58,8 +58,6 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
   buf_send(NULL), buf_recv(NULL)
 {
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"brick");
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
@@ -96,12 +94,20 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"brick");
   style = 0;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
   init_buffers();
+}
+
+/* ----------------------------------------------------------------------
+   set comm style name
+------------------------------------------------------------------------- */
+
+void CommBrick::post_constructor()
+{
+  memory->create(comm_style,10,"comm: comm_style");
+  strcpy(comm_style,"brick\0");
 }
 
 /* ----------------------------------------------------------------------

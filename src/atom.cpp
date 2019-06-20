@@ -1607,10 +1607,6 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
 	}
 
 
-
-
-
-
 	// loop over lines of CAC data
 	// tokenize the lines into values
 	// extract xyz coords and image flags

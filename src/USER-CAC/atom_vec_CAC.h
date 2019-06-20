@@ -90,6 +90,7 @@ class AtomVecCAC : public AtomVec {
   int *node_count_per_poly;
 
   double evaluate_check(double x1, double x2, double x3);
+  virtual void define_elements();
 };
 
 }

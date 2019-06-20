@@ -95,26 +95,35 @@ void AtomVecCAC::process_args(int narg, char **arg)
   
   
   //define element node counts and names
-  if(element_type_count==0){
-		atom->element_type_count=element_type_count = 3; //increase if new types added
-		 memory->grow(atom->nodes_per_element_list, element_type_count, "atom:nodes_per_element_list");
-		//define number of nodes for existing element types
-		atom->nodes_per_element_list[0] = 1;
-		atom->nodes_per_element_list[1] = 8;
-		atom->nodes_per_element_list[2] = 4;
-		//define element type names, must be less than 256 characters in length
-	  element_names=memory->grow(atom->element_names, element_type_count, MAX_ELEMENT_NAME, "atom:nodes_per_element_list");
-		strcpy(element_names[0],"Atom");
-		strcpy(element_names[1],"Eight_Node");
-		strcpy(element_names[2],"Tetrahedral");
-		//define set of element names
-	}	
+  define_elements();
 
 	//create array that tests in data_atom for odd node to iDod counts
 	memory->create(node_count_per_poly, maxpoly, "AtomVecCAC: node_count_per_poly");
 
   //instance minimization algorithm interface
   //asa_pointer = new Asa_Data();
+}
+
+/* ----------------------------------------------------------------------
+   define set of element types
+------------------------------------------------------------------------- */
+
+void AtomVecCAC::define_elements()
+{
+  if(element_type_count==0){
+    atom->element_type_count=element_type_count = 3; //increase if new types added
+    memory->grow(atom->nodes_per_element_list, element_type_count, "atom:nodes_per_element_list");
+	//define number of nodes for existing element types
+	atom->nodes_per_element_list[0] = 1;
+	atom->nodes_per_element_list[1] = 8;
+	atom->nodes_per_element_list[2] = 4;
+	//define element type names, must be less than 256 characters in length
+	element_names=memory->grow(atom->element_names, element_type_count, MAX_ELEMENT_NAME, "atom:nodes_per_element_list");
+	strcpy(element_names[0],"Atom\0");
+	strcpy(element_names[1],"Eight_Node\0");
+	strcpy(element_names[2],"Tetrahedral\0");
+	//define set of element names
+	}		
 }
 
 /* ----------------------------------------------------------------------
@@ -130,7 +139,7 @@ void AtomVecCAC::init()
   if (lmp->kokkos != NULL && !kokkosable)
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 
-  if (strcmp(comm->comm_style, "CAC") != 0)
+  if (strcmp(comm->comm_style, "cac") != 0)
   error->all(FLERR," cac atom styles require a CAC comm style");
 }
 

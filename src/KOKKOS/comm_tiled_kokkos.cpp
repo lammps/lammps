@@ -65,8 +65,15 @@ CommTiledKokkos::~CommTiledKokkos()
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   set comm style name
+------------------------------------------------------------------------- */
 
+void CommTiledKokkos::post_constructor()
+{
+  memory->create(comm_style,20,"comm: comm_style");
+  strcpy(comm_style,"tiled/kk\0");
+}
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep

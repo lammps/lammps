@@ -76,6 +76,46 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",1);
 }
 
+/* ----------------------------------------------------------------------
+   setup MPI and allocate buffer space, pass old comm
+------------------------------------------------------------------------- */
+
+CommKokkos::CommKokkos(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, oldcomm)
+{
+  if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
+  memory->sfree(sendlist);
+  sendlist = NULL;
+  k_sendlist = DAT::tdual_int_2d();
+  k_total_send = DAT::tdual_int_scalar("comm::k_total_send");
+
+  // error check for disallow of OpenMP threads?
+
+  // initialize comm buffers & exchange memory
+
+  memory->destroy(buf_send);
+  buf_send = NULL;
+  memory->destroy(buf_recv);
+  buf_recv = NULL;
+
+  k_exchange_lists = DAT::tdual_int_2d("comm:k_exchange_lists",2,100);
+  k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
+  k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
+  k_count = DAT::tdual_int_scalar("comm:k_count");
+  k_sendflag = DAT::tdual_int_1d("comm:k_sendflag",100);
+
+  memory->destroy(maxsendlist);
+  maxsendlist = NULL;
+  memory->create(maxsendlist,maxswap,"comm:maxsendlist");
+  for (int i = 0; i < maxswap; i++) {
+    maxsendlist[i] = BUFMIN;
+  }
+  memoryKK->create_kokkos(k_sendlist,sendlist,maxswap,BUFMIN,"comm:sendlist");
+
+  max_buf_pair = 0;
+  k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",1);
+  k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",1);
+}
+
 /* ---------------------------------------------------------------------- */
 
 CommKokkos::~CommKokkos()

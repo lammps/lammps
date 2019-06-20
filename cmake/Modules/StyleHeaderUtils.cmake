@@ -101,6 +101,7 @@ function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} BODY_CLASS      body_      BODY      ) # body      ) # atom_vec_body
     FindStyleHeaders(${search_path} BOND_CLASS      bond_      BOND      ) # bond      ) # force
     FindStyleHeaders(${search_path} COMMAND_CLASS   "[^.]"     COMMAND   ) # command   ) # input
+    FindStyleHeaders(${search_path} COMM_CLASS      comm_      COMM      ) # comm      ) # input
     FindStyleHeaders(${search_path} COMPUTE_CLASS   compute_   COMPUTE   ) # compute   ) # modify
     FindStyleHeaders(${search_path} DIHEDRAL_CLASS  dihedral_  DIHEDRAL  ) # dihedral  ) # force
     FindStyleHeaders(${search_path} DUMP_CLASS      dump_      DUMP      ) # dump      ) # output    write_dump
@@ -124,6 +125,7 @@ function(RegisterStylesExt search_path extension sources)
     FindStyleHeadersExt(${search_path} BODY_CLASS      ${extension}  BODY      ${sources})
     FindStyleHeadersExt(${search_path} BOND_CLASS      ${extension}  BOND      ${sources})
     FindStyleHeadersExt(${search_path} COMMAND_CLASS   ${extension}  COMMAND   ${sources})
+    FindStyleHeadersExt(${search_path} COMM_CLASS      ${extension}  COMM      ${sources})
     FindStyleHeadersExt(${search_path} COMPUTE_CLASS   ${extension}  COMPUTE   ${sources})
     FindStyleHeadersExt(${search_path} DIHEDRAL_CLASS  ${extension}  DIHEDRAL  ${sources})
     FindStyleHeadersExt(${search_path} DUMP_CLASS      ${extension}  DUMP      ${sources})
@@ -147,6 +149,7 @@ function(GenerateStyleHeaders output_path)
     GenerateStyleHeader(${output_path} BODY       body      ) # atom_vec_body
     GenerateStyleHeader(${output_path} BOND       bond      ) # force
     GenerateStyleHeader(${output_path} COMMAND    command   ) # input
+    GenerateStyleHeader(${output_path} COMM       command   ) # input
     GenerateStyleHeader(${output_path} COMPUTE    compute   ) # modify
     GenerateStyleHeader(${output_path} DIHEDRAL   dihedral  ) # force
     GenerateStyleHeader(${output_path} DUMP       dump      ) # output    write_dump
@@ -202,6 +205,7 @@ function(RegisterPackages search_path)
     FindPackagesHeaders(${search_path} BODY_CLASS      body_      PKGBODY      ) # body      ) # atom_vec_body
     FindPackagesHeaders(${search_path} BOND_CLASS      bond_      PKGBOND      ) # bond      ) # force
     FindPackagesHeaders(${search_path} COMMAND_CLASS   "[^.]"     PKGCOMMAND   ) # command   ) # input
+    FindPackagesHeaders(${search_path} COMM_CLASS      comm_      PKGCOMM      ) # comm      ) # input
     FindPackagesHeaders(${search_path} COMPUTE_CLASS   compute_   PKGCOMPUTE   ) # compute   ) # modify
     FindPackagesHeaders(${search_path} DIHEDRAL_CLASS  dihedral_  PKGDIHEDRAL  ) # dihedral  ) # force
     FindPackagesHeaders(${search_path} DUMP_CLASS      dump_      PKGDUMP      ) # dump      ) # output    write_dump
@@ -249,6 +253,7 @@ function(GeneratePackagesHeaders output_path)
     GeneratePackagesHeader(${output_path} PKGBODY       body      ) # atom_vec_body
     GeneratePackagesHeader(${output_path} PKGBOND       bond      ) # force
     GeneratePackagesHeader(${output_path} PKGCOMMAND    command   ) # input
+    GeneratePackagesHeader(${output_path} PKGCOMM       comm      ) # input
     GeneratePackagesHeader(${output_path} PKGCOMPUTE    compute   ) # modify
     GeneratePackagesHeader(${output_path} PKGDIHEDRAL   dihedral  ) # force
     GeneratePackagesHeader(${output_path} PKGDUMP       dump      ) # output    write_dump

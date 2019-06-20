@@ -81,4 +81,3 @@ currently supported.
 "fix nve/spin"_fix_nve_spin.html
 
 [Default:] none
-

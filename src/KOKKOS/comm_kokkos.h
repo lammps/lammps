@@ -37,7 +37,6 @@ class CommKokkos : public CommBrick {
   bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);
-  CommKokkos(class LAMMPS *, class Comm *);
   ~CommKokkos();
 
   virtual void post_constructor();
@@ -67,10 +66,20 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_2d k_sendlist;
   DAT::tdual_int_scalar k_total_send;
   DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
+  DAT::tdual_int_2d k_exchange_lists;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_sendflag;
   DAT::tdual_int_scalar k_count;
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
+
+  DAT::tdual_int_2d k_swap;
+  DAT::tdual_int_2d k_swap2;
+  DAT::tdual_int_2d k_pbc;
+  DAT::tdual_int_1d k_pbc_flag;
+  DAT::tdual_int_1d k_g2l;
+  DAT::tdual_int_1d k_firstrecv;
+  DAT::tdual_int_1d k_sendnum_scan;
+  int totalsend;
 
   int max_buf_pair;
   DAT::tdual_xfloat_1d k_buf_send_pair;
@@ -83,6 +92,7 @@ class CommKokkos : public CommBrick {
   void grow_recv_kokkos(int, ExecutionSpace space = Host);
   void grow_list(int, int);
   void grow_swap(int);
+  void copy_swap_info();
 };
 
 }

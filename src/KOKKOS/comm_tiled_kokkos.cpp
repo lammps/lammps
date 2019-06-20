@@ -42,7 +42,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
-{}
+{
+
+}
 
 /* ---------------------------------------------------------------------- */
 //IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
@@ -52,12 +54,16 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
 //           into a deep copy of the class with the new layout.
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm)
-{}
+{
+
+}
 
 /* ---------------------------------------------------------------------- */
 
 CommTiledKokkos::~CommTiledKokkos()
-{}
+{
+
+}
 
 /* ----------------------------------------------------------------------
    set comm style name

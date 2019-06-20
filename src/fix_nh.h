@@ -92,6 +92,7 @@ class FixNH : public Fix {
   int mpchain;                     // length of chain
 
   int mtk_flag;                    // 0 if using Hoover barostat
+  int fix_volume;                  // default 0, if 1 the volume is fixed
   int pdim;                        // number of barostatted dims
   double p_freq_max;               // maximum barostat frequency
 
@@ -275,5 +276,22 @@ The compute ID assigned to the fix must compute pressure.
 U: The dlm flag must be used with update dipole
 
 Self-explanatory.
+
+E: Fixvolume requires a Nose-Hoover barostat
+
+Self-explanatory.
+
+E: Fixvolume requires triclinic cell fluctuations
+
+The box shape needs to be flexible if the volume is constrained
+
+E: Fixvolume requires controlling all 6 pressure tensor components
+
+It is `possible` that this requirement is too strict, but the
+algorithm has not been tested for this case.
+
+E: Fixvolume is only implemented for three dimensional systems
+
+Self-explanatory
 
 */

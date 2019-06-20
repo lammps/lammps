@@ -75,6 +75,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   allremap = 1;
   id_dilate = NULL;
   mtchain = mpchain = 3;
+  fix_volume = 0;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
   deviatoric_flag = 0;
@@ -347,6 +348,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
       fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
+    } else if (strcmp(arg[iarg],"fixvolume") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) fix_volume = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) fix_volume = 0;
+      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      iarg += 2;
 
     // disc keyword is also parsed in fix/nh/sphere
 
@@ -512,6 +519,20 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   if (p_flag[3]) p_freq[3] = 1.0 / p_period[3];
   if (p_flag[4]) p_freq[4] = 1.0 / p_period[4];
   if (p_flag[5]) p_freq[5] = 1.0 / p_period[5];
+
+  // Checks for simulations with fixvolume
+
+  if (!pstat_flag && fix_volume)
+    error->all(FLERR,"Fixvolume requires a Nose-Hoover barostat");
+
+  if (pstyle!=TRICLINIC && fix_volume)
+    error->all(FLERR,"Fixvolume requires triclinic cell fluctuations");
+
+  if (!(p_flag[0] && p_flag[1] && p_flag[2] && p_flag[3] && p_flag[4] && p_flag[5]) && fix_volume)
+    error->all(FLERR,"Fixvolume requires controlling all 6 pressure tensor components");
+
+  if (dimension!=3 && fix_volume)
+    error->all(FLERR,"Fixvolume is only implemented for three dimensional systems");
 
   // Nose/Hoover temp and pressure init
 
@@ -2278,6 +2299,13 @@ void FixNH::nh_omega_dot()
       omega_dot[i] += f_omega*dthalf;
       omega_dot[i] *= pdrag_factor;
     }
+
+  if (fix_volume) {
+    // Make omega dot traceless
+    f_omega = (omega_dot[0] + omega_dot[1] + omega_dot[2])/3.0;
+    for (int i=0; i<3; i++)
+      omega_dot[i] -= f_omega;
+  }
 
   mtk_term2 = 0.0;
   if (mtk_flag) {

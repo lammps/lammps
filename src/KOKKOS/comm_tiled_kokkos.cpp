@@ -42,9 +42,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
-{
-
-}
+{}
 
 /* ---------------------------------------------------------------------- */
 //IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
@@ -54,19 +52,22 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
 //           into a deep copy of the class with the new layout.
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm)
-{
-
-}
+{}
 
 /* ---------------------------------------------------------------------- */
 
 CommTiledKokkos::~CommTiledKokkos()
+{}
+
+/* ----------------------------------------------------------------------
+   set comm style name
+------------------------------------------------------------------------- */
+
+void CommTiledKokkos::post_constructor()
 {
-
+  memory->create(comm_style,20,"comm: comm_style");
+  strcpy(comm_style,"tiled/kk\0");
 }
-
-/* ---------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep

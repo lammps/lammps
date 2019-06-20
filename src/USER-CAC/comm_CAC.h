@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMM_CLASS
+
+CommStyle(cac,CommCAC)
+
+#else
+
 #ifndef LMP_COMM_CAC_H
 #define LMP_COMM_CAC_H
 
@@ -25,6 +31,7 @@ class CommCAC : public CommTiled {
   CommCAC(class LAMMPS *, class Comm *);
   virtual ~CommCAC();
 
+  virtual void post_constructor();
   virtual void init();
   virtual void setup();                        // setup comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
@@ -208,6 +215,7 @@ class CommCAC : public CommTiled {
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

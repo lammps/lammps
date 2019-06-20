@@ -85,22 +85,8 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
 
   
 	//initialize node counts associated with each element type
-
- //define element node counts and names
-  if(element_type_count==0){
-		element_type_count = 3; //increase if new types added
-		 memory->grow(atom->nodes_per_element_list, element_type_count, "atom:nodes_per_element_list");
-		//define number of nodes for existing element types
-		atom->nodes_per_element_list[0] = 1;
-		atom->nodes_per_element_list[1] = 8;
-		atom->nodes_per_element_list[2] = 4;
-		//define element type names, must be less than 256 characters in length
-	  element_names=memory->grow(atom->element_names, element_type_count, MAX_ELEMENT_NAME, "atom:nodes_per_element_list");
-		strcpy(element_names[0],"Atom");
-		strcpy(element_names[1],"Eight_Node");
-		strcpy(element_names[2],"Tetrahedral");
-		//define set of element names
-	}	
+  //call setup for element types
+  define_elements();
 
   //create array that tests in data_atom for odd node to iDod counts
 	memory->create(node_count_per_poly, maxpoly, "AtomVecCAC: node_count_per_poly");
@@ -108,15 +94,11 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
 
 }
 
-
-
 /* ----------------------------------------------------------------------
    grow atom arrays
    n = 0 grows arrays by a chunk
    n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
-
-
 
 void AtomVecCAC_Charge::grow(int n)
 {

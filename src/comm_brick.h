@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMM_CLASS
+
+CommStyle(brick,CommBrick)
+
+#else
+
 #ifndef LMP_COMM_BRICK_H
 #define LMP_COMM_BRICK_H
 
@@ -23,7 +29,8 @@ class CommBrick : public Comm {
   CommBrick(class LAMMPS *);
   CommBrick(class LAMMPS *, class Comm *);
   virtual ~CommBrick();
-
+  
+  virtual void post_constructor();
   virtual void init();
   virtual void setup();                        // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
@@ -94,6 +101,7 @@ class CommBrick : public Comm {
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

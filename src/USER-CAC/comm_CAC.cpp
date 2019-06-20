@@ -49,9 +49,6 @@ using namespace LAMMPS_NS;
 
 CommCAC::CommCAC(LAMMPS *lmp) : CommTiled(lmp)
 {
-  
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"CAC");
   buf_send=NULL;
   buf_recv=NULL;
   pbc_flag = NULL;
@@ -83,8 +80,6 @@ CommCAC::CommCAC(LAMMPS *lmp) : CommTiled(lmp)
 
 CommCAC::CommCAC(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp, oldcomm)
 {
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"CAC");
   buf_send=NULL;
   buf_recv=NULL;
   eboxes=NULL;
@@ -124,6 +119,16 @@ CommCAC::~CommCAC()
   memory->destroy(work1);
   memory->destroy(work2);
   atom->CAC_comm_flag=0;
+}
+
+/* ----------------------------------------------------------------------
+   set comm style name
+------------------------------------------------------------------------- */
+
+void CommCAC::post_constructor()
+{
+  memory->create(comm_style,10,"comm: comm_style");
+  strcpy(comm_style,"cac\0");
 }
 
 /* ----------------------------------------------------------------------

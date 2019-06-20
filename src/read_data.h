@@ -534,6 +534,18 @@ E: Too many lines in one body in data file - boost MAXBODY
 MAXBODY is a setting at the top of the src/read_data.cpp file.
 Set it larger and re-compile the code.
 
+E: element type not yet defined, add definition in define_elements function of atom_vec_CAC.cpp style
+
+Self-explanatory. Contact the author for help if encountering issues in defining new elements.
+
+E: poly_count less than one in data file
+
+Self-explanatory. USER-CAC package related.
+
+E: Too many lines in one element in data file - increase maxpoly or max nodes per element for atom style CAC
+
+Self-explanatory. USER-CAC package related.
+
 E: Unexpected empty line in PairCoeffs section
 
 Read a blank line where there should be coefficient data.

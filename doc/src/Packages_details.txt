@@ -1123,7 +1123,7 @@ src/USER-CAC: filenames -> commands
 "compute cac/nodal_temp"_compute_CAC_nodal_temp.html
 "dump cac/nodal_positions"_dump_CAC_nodal_positions.html
 "dump cac/initial_nodes"_dump_CAC_initial_nodes.html
-"dump cac/nodal_velocities"_dump_nodal_velocities.html
+"dump cac/nodal_velocities"_dump_CAC_nodal_velocities.html
 "dump cac/kinetic_energy"_dump_CAC_kinetic.html
 "dump cac/xyz"_dump_CAC_xyz.html :ul
 

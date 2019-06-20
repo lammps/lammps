@@ -1542,7 +1542,6 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
 	char *read_element_type;
   char *next, *node_next;
   int nwords;
-  int decline_size;
 
 	int decline = 6;
 	iptr = NULL;

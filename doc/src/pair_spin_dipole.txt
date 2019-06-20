@@ -82,8 +82,3 @@ currently supported.
 
 [Default:] none
 
-:line
-
-:link(Allen2)
-[(Allen)] Allen and Tildesley, Computer Simulation of Liquids,
-Clarendon Press, Oxford, 1987.

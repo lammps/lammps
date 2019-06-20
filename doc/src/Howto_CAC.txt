@@ -229,7 +229,7 @@ of the nodal information in your model) with "compute cac/nodal/temp"_compute_CA
 outputting a list of nodal information at specified times with dumps such as "dump cac/nodal/positions"_dump_CAC_nodal_positions. 
 This nodal information can then be converted to the user's preferred visualization format for software such as 
 Paraview (which is open source) or Tecplot. It is worth noting that Paraview interprets many formats. The Tecplot
-and VTK formats are among these. The following is an example tecplot output of four fold phonon focusing in Silicon.
+and VTK formats are among these. The following is an example Tecplot output of four fold phonon focusing in Silicon.
 
 :image(JPG/four_fold_focusing_Si.jpg):c
 

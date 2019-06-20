@@ -50,7 +50,7 @@ This dump style requires a CAC "atom style"_atom_style.html
 [Related commands:]
 
 "dump"_dump.html, "dump cac/initial/nodes"_dump_CAC_initial_nodes.html,
-"dump cac/kinetic/energy"_dump_CAC_kinetic_energy.html, "dump cac/nodal/positions"_dump_CAC_nodal_positions.html,
+"dump cac/kinetic/energy"_dump_CAC_kinetic.html, "dump cac/nodal/positions"_dump_CAC_nodal_positions.html,
 "dump cac/nodal/velocities"_dump_CAC_nodal_velocities.html,
 "dump_modify"_dump_modify.html, "undump"_undump.html
 

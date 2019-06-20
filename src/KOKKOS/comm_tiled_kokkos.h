@@ -30,7 +30,8 @@ class CommTiledKokkos : public CommTiled {
   CommTiledKokkos(class LAMMPS *);
   CommTiledKokkos(class LAMMPS *, class Comm *);
   virtual ~CommTiledKokkos();
-
+  
+  virtual void post_constructor();
   void forward_comm(int dummy = 0);    // forward comm of atom coords
   void reverse_comm();                 // reverse comm of forces
   void exchange();                     // move atoms to new procs

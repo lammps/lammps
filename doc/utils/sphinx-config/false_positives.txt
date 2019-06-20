@@ -849,6 +849,7 @@ Finchham
 Finnis
 Fiorin
 fixID
+fixvolume
 fj
 Fji
 flagfld
@@ -949,6 +950,7 @@ Gezelter
 Gflop
 gfortran
 ghostwhite
+Ghysels
 Giacomo
 gif
 gifsicle
@@ -1557,6 +1559,7 @@ matlab
 matplotlib
 Mattox
 Mattson
+Maurin
 maxangle
 maxbond
 maxelt
@@ -2386,6 +2389,7 @@ ro
 Rochus
 Rockett
 Rodrigues
+Rogge
 Rohart
 Ronchetti
 Rosati
@@ -2549,6 +2553,7 @@ sp
 spacings
 Spearot
 Spellmeyer
+Speybroeck
 sph
 SPH
 Spickermann
@@ -2900,6 +2905,7 @@ Verlag
 verlet
 Verlet
 versa
+Verstraelen
 ves
 vhi
 vibrational
@@ -2963,6 +2969,7 @@ Wadley
 wallstyle
 walltime
 Waltham
+Waroquier
 wavepacket
 wB
 Wbody

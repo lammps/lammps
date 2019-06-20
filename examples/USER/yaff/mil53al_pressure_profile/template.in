@@ -20,23 +20,25 @@ dihedral_style  fourier
 improper_style  distharm
 box tilt large
 
-read_data       lammps.data       # Data file location
+read_data       __nptdir__/lammps.data       # Data file location
 kspace_style    pppm 0.0000001      # Ewald accuracy
 neighbor        2.0 multi
 neigh_modify    every 2 delay 4 check yes
 
+read_dump __nptdir__/positions.dat __step__ x y z
+change_box all x scale __scale__ y scale __scale__ z scale __scale__
+reset_timestep 0
 #########################################
 #Output settings
 #########################################
-thermo 100       # Provide output every n steps
+thermo 50       # Provide output every n steps
 thermo_style 	custom step time etotal ke temp pe emol evdwl ecoul elong etail vol press
 thermo_modify	line multi format float %20.12f
-dump 1 all custom 100 positions.dat id type x y z
 #########################################
 #Sampling options
 #########################################
 timestep 0.5 # in femtosecond
 velocity all create 0.0 5 # initial temperature in Kelvin and random seed
-fix 1 all npt temp 300.0 300.0 100.0 tri 2000.0 2000.0 1000.0 tchain 3 mtk yes nreset 1000
+fix 1 all npt temp 300.0 300.0 100.0 tri 0.0 0.0 1000.0 tchain 3 mtk yes nreset 1000 fixvolume yes
 fix_modify 1 energy yes # Add thermo/barostat contributions to energy
-run 10000
+run 25000

@@ -1,0 +1,24 @@
+This example shows how to construct the pressure profile as a function of the
+volume. Theoretical background is provided in
+https://pubs.acs.org/doi/10.1021/acs.jctc.5b00748
+It is advised to use significantly longer simulation times for serious
+production runs.
+
+Step 1:
+    Run one or more NPT simulations. For this example the necessary files are
+    in ../mil53al Make sure that all volumes you are interested in, are
+    sampled during these simulations.
+
+Step 2:
+    Use the prepare.py script to generate the input files for the fixed-volume
+    simulations. The script will extract initial configurations from the NPT
+    simulations in step 1 that are close to the volumes for which you want to
+    compute the pressure.
+
+Step 3:
+    Run all fixed-volume simulations using the run_fixed_volume.sh script
+
+Step 4:
+    Use the postprocess.py script to read the average pressure from each
+    fixed-volume simulation. Using thermodynamic integration, also the free
+    energy profile can be obtained.

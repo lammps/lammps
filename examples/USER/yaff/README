@@ -5,3 +5,10 @@ mil53al:
     NPT simulation of MIL-53(Al) using a QuickFF force field.
     If the pressure is high enough (for instance 2000 atm),
     a phase transition from large pore to narrow pore is observed
+
+mil53al_pressure_profile:
+    Construct the pressure profile as a function of the volume,
+    by performing fixed-volume simulations. Starting configurations
+    are extracted from an NPT simulation (see mil53al directory)
+    Theoretical background is provided in
+    https://pubs.acs.org/doi/10.1021/acs.jctc.5b00748

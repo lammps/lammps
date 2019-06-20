@@ -68,8 +68,9 @@
 #include "variable.h"
 #include "fix_store_kim.h"
 
+//@@@@@ Need to switch to c-bindings when they are available.
 #include "KIM_SimulatorModel.hpp"
-
+//@@@@@
 
 using namespace LAMMPS_NS;
 
@@ -131,6 +132,7 @@ void KimStyle::do_init(char *model)
   fix_store->setptr("units_to", (void *) units_to);
 
   int kimerror;
+  // @@@@@ switch to c-bindings when they are available
   KIM::SimulatorModel * simulatorModel;
   kimerror = KIM::SimulatorModel::Create(model,&simulatorModel);
 
@@ -176,7 +178,7 @@ void KimStyle::do_init(char *model)
 
   // reset template map.
 
-  simulatorModel->ClearTemplateMap();
+  simulatorModel->OpenAndInitializeTemplateMap();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,8 +208,7 @@ void KimStyle::do_defn(int narg, char **arg)
     const std::string *sim_name, *sim_version;
     std::string atom_type_sym_list;
 
-    simulatorModel->GetSimulatorName(&sim_name);
-    simulatorModel->GetSimulatorVersion(&sim_version);
+    simulatorModel->GetSimulatorNameAndVersion(&sim_name, &sim_version);
 
     if (comm->me == 0) {
       std::string mesg("Using KIM Simulator Model : ");
@@ -292,7 +293,7 @@ void KimStyle::do_defn(int narg, char **arg)
     if (sim_model_idx < 0)
       error->all(FLERR,"KIM Simulator Model has no Model definition");
 
-    simulatorModel->ClearTemplateMap();
+    simulatorModel->OpenAndInitializeTemplateMap();
 
   } else {
 

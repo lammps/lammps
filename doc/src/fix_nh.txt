@@ -25,7 +25,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt} or {npt} or {nph} :l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update} or {fixvolume}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -58,7 +58,8 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
     x,y,z = perform barostat dilation/contraction around this point (distance units)
   {update} value = {dipole} or {dipole/dlm}
     dipole = update dipole orientation (only for sphere variants)
-    dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants) :pre
+    dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants)
+  {fixvolume} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -141,7 +142,7 @@ they represent are varied together during a constant-pressure
 simulation.
 
 Other barostat-related keywords are {pchain}, {mtk}, {ploop},
-{nreset}, {drag}, and {dilate}, which are discussed below.
+{nreset}, {drag}, {dilate}, and {fixvolume} which are discussed below.
 
 Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
 Triclinic (non-orthogonal) simulation boxes have 6 adjustable
@@ -251,6 +252,21 @@ xy 0.0 0.0 Pdamp
 yz 0.0 0.0 Pdamp
 xz 0.0 0.0 Pdamp
 couple none :pre
+
+:line
+
+When the {fixvolume} keyword is set to {yes}, the (N, V, sigma_a=0, T)
+ensemble is sampled. In this ensemble, the volume and the deviatoric stress
+are controlled, but the cell shape and isotropic pressure are unconstrained,
+as described in "(Rogge)"_#nh-Rogge. This ensemble can be used to obtain the
+pressure as a function of the cell volume for flexible materials.
+If {fixvolume yes} is specified, it is required that a Nose-Hoover barostat
+is specified using the {npt} command. Do note that the values of {Pstart}
+and {Pstop} are irrelevant for these simulations. Obviously, the cell shape
+has to be flexible when {fixvolume yes} is specified, which can be done by
+including the {tri} keyword.
+An example of usage can be found in the
+examples/USER/yaff/mil53al_pressure_profile directory
 
 :line
 
@@ -619,6 +635,9 @@ and barostat are defined for systems with a static set of atoms.  You
 may observe odd behavior if the atoms in a group vary dramatically
 over time or the atom count becomes very small.
 
+The {fixvolume yes} keyword/value pair can only be used for 3D simulations
+where a Nose-Hoover barostat with a fully flexible cell shape is used.
+
 [Related commands:]
 
 "fix nve"_fix_nve.html, "fix_modify"_fix_modify.html,
@@ -629,7 +648,8 @@ over time or the atom count becomes very small.
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop = 1,
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
 flip = yes, scaleyz = scalexz = scalexy = yes if periodic in 2nd
-dimension and not coupled to barostat, otherwise no.
+dimension and not coupled to barostat, otherwise no,
+fixvolume = no.
 
 :line
 
@@ -649,3 +669,7 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 :link(nh-Dullweber)
 [(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
+
+:link(nh-Rogge)
+[(Rogge)] Rogge, Vanduyfhuys, Ghysels, Waroquier, Verstraelen, Maurin, 
+and Van Speybroeck, J Chem Theory Comput, 11, 5583-5597 (2015).

@@ -26,6 +26,12 @@ Fixes :h1
    fix_bond_swap
    fix_bond_react
    fix_box_relax
+   fix_CAC_addforce
+   fix_CAC_nve
+   fix_CAC_setforce
+   fix_CAC_setvelocity
+   fix_CAC_temp_rescale
+   fix_CAC_viscous
    fix_client_md
    fix_cmap
    fix_colvars

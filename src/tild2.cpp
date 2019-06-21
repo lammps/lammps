@@ -1957,10 +1957,15 @@ void TILD::accumulate_gradient() {
   int Dim = domain->dimension;
   double rho0;
   int n = 0;
-  double scale_inv = 1.0/( nx_pppm * ny_pppm *  nz_pppm);
+  double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
   bool do_fft = false;
+  for (int k = 0; k < group->ngroup; k++)
+    for (int i = 0; i < Dim; i++)
+      memset(&(gradWgroup[k][i][nzlo_out][nylo_out][nxlo_out]), 0,
+             ngrid * sizeof(FFT_SCALAR));
   for (int i = 0; i < group->ngroup; i++) {
+    do_fft = false;
     for (int j = 0; j < group->ngroup; j++) {
       if (fabs(param[i][j]) >= 1e-10) {
         do_fft = true;
@@ -1969,9 +1974,8 @@ void TILD::accumulate_gradient() {
     }
 
     if (do_fft) {
-
       n = 0;
-      
+
       // Preparing the density for convolution
       for (int k = 0; k < nfft; k++) {
         work1[n++] = density_fft_types[i][k];
@@ -1981,20 +1985,25 @@ void TILD::accumulate_gradient() {
       // FFT the density to k-space
       fft1->compute(work1, work2, 1);
 
-      for (int k =0 ; k <2*nfft; k++)
-        work2[k] *= scale_inv;
+      n = 0;
+      for (int k = 0; k < nfft; k++) {
+        work2[n++] *= scale_inv;
+        work2[n++] *= scale_inv;
+      }
 
       // Convolve the grad wth density
       for (int j = 0; j < Dim; j++) {
         n = 0;
+
         for (int k = 0; k < nfft; k++) {
-          ktmp2[n] = (grad_uG_hat[j][n] * work2[n] - grad_uG_hat[j][n+1] * work2[n+1] );
-          ktmp2[n+1] = (grad_uG_hat[j][n+1] * work2[n] + grad_uG_hat[j][n] * work2[n+1] );
-          n+=2;
+          ktmp2[n] = (grad_uG_hat[j][n] * work2[n] -
+                      grad_uG_hat[j][n + 1] * work2[n + 1]);
+          ktmp2[n + 1] = (grad_uG_hat[j][n + 1] * work2[n] +
+                          grad_uG_hat[j][n] * work2[n + 1]);
+          n += 2;
         }
 
-          fft2->compute(ktmp2, ktmp, -1);
-
+        fft2->compute(ktmp2, ktmp, -1);
 
         // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
@@ -2005,9 +2014,10 @@ void TILD::accumulate_gradient() {
                 for (int o = nxlo_in; o <= nxhi_in; o++) {
                   if (rho0 == 0 || rho0 != rho0) {
                     std::cout << rho0 << std::endl;
-                    error->all(FLERR, "WEIRD DENSITY");}
-                  gradWgroup[i][j][k][m][o] = tmp[n++] * param[i][i2] / rho0;
-                  // std::cout << tmp[n -1] << "\t" << param[i][i2] << "\t" << rho0 << "random text" <<std::endl; 
+                    error->all(FLERR, "WEIRD DENSITY");
+                  }
+                  gradWgroup[i2][j][k][m][o] += ktmp[n] * param[i][i2] / rho0;
+                  n += 2;
                 }
           }
         }
@@ -2061,9 +2071,9 @@ void TILD::fieldforce_param(){
           x0 = y0*rho1d[0][l];
           for (int k = 0; k < group->ngroup; k++){
             if (mask[i] & groupbits[k]){
-              ekx -= x0 *gradWgroup[k][0][mz][my][mx];
-              eky -= x0 *gradWgroup[k][1][mz][my][mx];
-              ekz -= x0 *gradWgroup[k][2][mz][my][mx];
+              ekx += x0 *gradWgroup[k][0][mz][my][mx];
+              eky += x0 *gradWgroup[k][1][mz][my][mx];
+              ekz += x0 *gradWgroup[k][2][mz][my][mx];
             }
           }
         }

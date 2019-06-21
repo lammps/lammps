@@ -1243,6 +1243,7 @@ void TILD::brick2fft(int nxlo_i, int nylo_i, int nzlo_i,
 void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
+  int Dim = domain->dimension;
 
   if (flag == FORWARD_IK) {
     FFT_SCALAR *xsrc = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
@@ -1291,11 +1292,14 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
       buf[n++] = v4src[list[i]];
       buf[n++] = v5src[list[i]];
     }
-  } else if (flag == FORWARD_NONE){
+  } 
+  else if (flag == FORWARD_NONE){
     for (int k = 0; k < group->ngroup; k++) {
-      FFT_SCALAR *src = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
+    for (int j = 0; j < Dim; j++) {
+      FFT_SCALAR *src = &gradWgroup[k][j][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
         buf[n++] = src[list[i]];
+    }
     }
   }
 }
@@ -1303,6 +1307,7 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
+  int Dim = domain->dimension;
 
   if (flag == FORWARD_IK) {
     FFT_SCALAR *xdest = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
@@ -1351,11 +1356,14 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
       v4src[list[i]] = buf[n++];
       v5src[list[i]] = buf[n++];
     }
-  } else if (flag == FORWARD_NONE){
+  } 
+  else if (flag == FORWARD_NONE){
     for (int k = 0; k < group->ngroup; k++) {
-      FFT_SCALAR *dest = &density_brick_types[k][nzlo_out][nylo_out][nxlo_out];
+    for (int j = 0; j < Dim; j++) {
+      FFT_SCALAR *dest = &gradWgroup[k][j][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
         dest[list[i]] = buf[n++];
+      }
     }
   }
 }

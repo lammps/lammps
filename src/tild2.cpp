@@ -597,6 +597,7 @@ void TILD::deallocate()
   memory->destroy(temp);
   memory->destroy(grad_uG);
   memory->destroy(grad_uG_hat);
+  memory->destroy(groupbits);
 
   delete fft1;
   delete fft2;
@@ -928,7 +929,6 @@ void TILD::deallocate_peratom()
   if (differentiation_flag != 1)
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
 
-  memory->destroy(groupbits);
 
   delete cg_peratom;
   cg_peratom = NULL;

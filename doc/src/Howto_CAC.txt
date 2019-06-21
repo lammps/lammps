@@ -19,8 +19,8 @@ a non-local force density at all finite elements, as well as the typical particl
 at atoms, using the interatomic potentials that are ubiquitous in Molecular Dynamics. The theoretical
 framework that makes this possible is an atomistic formulation of the field representation
 of conservation laws; this formulation is constructed around the concepts of discontinuous atomic
-level structures and non-local atomic interaction as presented in "(Chen)"_#USER-CAC-Chen
-.Thus, with no additional treatment other than the coarse graining of matter into finite element
+level structures and non-local atomic interaction as presented in "(Chen)"_#USER-CAC-Chen .
+Thus, with no additional treatment other than the coarse graining of matter into finite element
 regions, a fully dynamic and consistent solution is obtained with both coarse-grained
 and atomistic regions.
 

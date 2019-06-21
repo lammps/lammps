@@ -13,7 +13,7 @@
 
 #include <cstdlib>
 #include <cstring>
-#include "atom_vec_CAC_Charge.h"
+#include "atom_vec_CAC_charge.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

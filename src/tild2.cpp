@@ -1163,7 +1163,7 @@ void TILD::particle_map(double delx, double dely, double delz,
       }
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
+ if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
 }
 
 
@@ -1186,6 +1186,10 @@ int TILD::modify_param(int narg, char** arg)
     if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
     if (strcmp(arg[1], "all") == 0) {
+      igroup1 = group->find(arg[1]);
+      if (igroup1 == -1) {
+        error->all(FLERR, "the all group is not defined; kspace_modify tild command");
+      }
       if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
       kappa = atof(arg[2]);

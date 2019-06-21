@@ -192,17 +192,17 @@ void TILD::init()
 
   triclinic_check();
   if (domain->dimension == 2)
-    error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
+    error->all(FLERR,"Cannot use TILD with 2d simulation");
   if (comm->style != 0)
-    error->universe_all(FLERR,"PPPMDisp can only currently be used with "
+    error->universe_all(FLERR,"TILD can only currently be used with "
                         "comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with TILD ");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all(FLERR,"Incorrect boundaries with slab PPPMDisp");
+      error->all(FLERR,"Incorrect boundaries with slab TILD");
   }
 
   if (order > MAXORDER || order_6 > MAXORDER) {

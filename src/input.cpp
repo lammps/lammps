@@ -20,8 +20,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include "input.h"
-#include "style_command.h"
 #include "style_comm.h"
+#include "style_command.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -102,7 +102,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 #undef CommandStyle
 #undef COMMAND_CLASS
 
-  //fill comm map with comm styles 
+  // fill comm map with comm styles
 
   comm_map = new CommCreatorMap();
 
@@ -151,6 +151,7 @@ Input::~Input()
   memory->sfree(infiles);
   delete variable;
 
+  delete comm_map;
   delete command_map;
 }
 
@@ -1509,16 +1510,21 @@ void Input::comm_style()
   int sflag;
   char estyle[256];
   if (narg < 1) error->all(FLERR,"Illegal comm_style command");
-  //concatenate /kk for kokkos styles
+
+  // append /kk for kokkos styles
+
   if(lmp->kokkos)
-  sprintf(estyle,"%s/%s",arg[0],"kk"); 
+    sprintf(estyle,"%s/%s",arg[0],"kk");
   else
-  sprintf(estyle,"%s",arg[0]);
-  //check if new style is already the current style
+    sprintf(estyle,"%s",arg[0]);
+
+  // check if new style is already the current style
+
   if (strcmp(estyle,comm->comm_style) == 0) return;
   Comm *oldcomm = comm;
 
-  //create Comm Class by searching through styles using comm_map
+  // create Comm Class by searching through styles using comm_map
+
   comm = new_comm(estyle,1,sflag,oldcomm);
   delete oldcomm;
   comm->post_constructor();

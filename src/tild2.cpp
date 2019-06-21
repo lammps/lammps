@@ -2067,9 +2067,9 @@ void TILD::fieldforce_param(){
           x0 = y0*rho1d[0][l];
           for (int k = 0; k < group->ngroup; k++){
             if (mask[i] & groupbits[k]){
-              ekx -= x0 *gradWgroup[k][0][mz][my][mx];
-              eky -= x0 *gradWgroup[k][1][mz][my][mx];
-              ekz -= x0 *gradWgroup[k][2][mz][my][mx];
+              ekx += x0 *gradWgroup[k][0][mz][my][mx];
+              eky += x0 *gradWgroup[k][1][mz][my][mx];
+              ekz += x0 *gradWgroup[k][2][mz][my][mx];
             }
           }
         }

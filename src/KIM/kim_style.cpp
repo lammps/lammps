@@ -56,6 +56,7 @@
 
 #include <cstring>
 #include <string>
+#include <sstream>
 #include "kim_style.h"
 #include "error.h"
 #include "atom.h"
@@ -67,6 +68,7 @@
 #include "input.h"
 #include "variable.h"
 #include "fix_store_kim.h"
+#include "kim_units.h"
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -100,7 +102,6 @@ void KimStyle::command(int narg, char **arg)
     determine_model_type_and_units(model_name, user_units, &model_units);
 
     do_init(model_name, user_units, model_units);
-    if (unit_conversion_mode) do_variables(user_units, model_units);
   } else if (strcmp(arg[0],"setup") == 0) {
     if (!domain->box_exist)
       error->all(FLERR,"Must use 'kim_style setup' command after "
@@ -255,7 +256,10 @@ void KimStyle::determine_model_type_and_units(char * model_name,
 
   if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0))
   {
-    error->all(FLERR,"Incompatible units for KIM Simulator Model");
+    std::stringstream mesg;
+    mesg << "Incompatible units for KIM Simulator Model, required units = " 
+         << *model_units;
+    error->all(FLERR,mesg.str().c_str());
   }
 }
 
@@ -280,16 +284,42 @@ void KimStyle::do_init(char *model_name, char *user_units, char* model_units)
   fix_store->setptr("user_units", (void *) user_units);
   fix_store->setptr("model_units", (void *) model_units);
 
+  int kimerror;
+  // @@@@@ switch to c-bindings when they are available
+  KIM::SimulatorModel * simulatorModel;
+  kimerror = KIM::SimulatorModel::Create(model_name,&simulatorModel);
+
+  const std::string *sim_name, *sim_version;
+  simulatorModel->GetSimulatorNameAndVersion(&sim_name, &sim_version);
+
+  if (*sim_name != "LAMMPS")
+    error->all(FLERR,"Incompatible KIM Simulator Model");
+
+  // Begin output to log file
+  kim_style_log_delimiter("begin","model");
+  if (comm->me == 0) {
+    std::string mesg("# Using KIM Simulator Model : ");
+    mesg += model_name;
+    mesg += "\n";
+    mesg += "# For Simulator             : ";
+    mesg += *sim_name + " " + *sim_version + "\n";
+    mesg += "# Running on                : LAMMPS ";
+    mesg += universe->version;
+    mesg += "\n";
+    mesg += "#\n";
+
+    if (screen) fputs(mesg.c_str(),screen);
+    if (logfile) fputs(mesg.c_str(),logfile);
+  }
+
+  // Define unit conversion factor variables and print to log
+  if (unit_conversion_mode) do_variables(user_units, model_units);
+
   // set units
 
   std::string cmd("units ");
   cmd += model_units;
   input->one(cmd.c_str());
-
-  int kimerror;
-  // @@@@@ switch to c-bindings when they are available
-  KIM::SimulatorModel * simulatorModel;
-  kimerror = KIM::SimulatorModel::Create(model_name,&simulatorModel);
 
   // not a Kim Simulator Model; nothing else to do here.
 
@@ -318,9 +348,32 @@ void KimStyle::do_init(char *model_name, char *user_units, char* model_units)
     }
   }
 
-  // reset template map.
+  // End output to log file
+  kim_style_log_delimiter("end","model");
 
+  // reset template map.
   simulatorModel->OpenAndInitializeTemplateMap();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KimStyle::kim_style_log_delimiter(std::string begin_end, 
+                                       std::string model_setup)
+{
+    if (comm->me == 0) {
+      std::string mesg;
+      if ((begin_end == "begin") && (model_setup == "model")) mesg = 
+        "#=== BEGIN kim-style MODEL ==================================\n";
+      else if ((begin_end == "begin") && (model_setup == "setup")) mesg = 
+        "#=== BEGIN kim-style SETUP ==================================\n";
+      else if ((begin_end == "end") && (model_setup == "model")) mesg = 
+        "#=== END kim-style MODEL ====================================\n\n";
+      else if ((begin_end == "end") && (model_setup == "setup")) mesg = 
+        "#=== END kim-style SETUP ====================================\n\n";
+
+      if (screen) fputs(mesg.c_str(),screen);
+      if (logfile) fputs(mesg.c_str(),logfile);
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -345,29 +398,12 @@ void KimStyle::do_setup(int narg, char **arg)
     simulatorModel = (KIM::SimulatorModel *)fix_store->getptr("simulator_model");
   } else error->all(FLERR,"Must use 'kim_style model' before 'kim_style setup'");
 
+  // Begin output to log file
+  kim_style_log_delimiter("begin","setup");
+
   if (simulatorModel) {
 
-    const std::string *sim_name, *sim_version;
     std::string atom_type_sym_list;
-
-    simulatorModel->GetSimulatorNameAndVersion(&sim_name, &sim_version);
-
-    if (comm->me == 0) {
-      std::string mesg("Using KIM Simulator Model : ");
-      mesg += model;
-      mesg += "\n";
-      mesg += "For Simulator             : ";
-      mesg += *sim_name + " " + *sim_version + "\n";
-      mesg += "Running on                : LAMMPS ";
-      mesg += universe->version;
-      mesg += "\n";
-
-      if (screen) fputs(mesg.c_str(),screen);
-      if (logfile) fputs(mesg.c_str(),logfile);
-    }
-
-    if (*sim_name != "LAMMPS")
-      error->all(FLERR,"Incompatible KIM Simulator Model");
 
     for (int i = 0; i < narg; i++)
       atom_type_sym_list += std::string(" ") + arg[i];
@@ -455,6 +491,10 @@ void KimStyle::do_setup(int narg, char **arg)
     input->one(cmd1.c_str());
     input->one(cmd2.c_str());
   }
+
+  // End output to log file
+  kim_style_log_delimiter("end","setup");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -464,85 +504,74 @@ void KimStyle::do_variables(char *user_units, char *model_units)
   char *from = user_units, *to = model_units;
   Variable *variable = input->variable;
 
-  // refuse convertion from or to reduced units
+  // refuse conversion from or to reduced units
 
   if ((strcmp(from,"lj") == 0) || (strcmp(to,"lj") == 0))
     error->all(FLERR,"Cannot set up conversion variables for 'lj' units");
 
   // get index to internal style variables. create, if needed.
-  // default to conversion factor 1.0 for newly created variables
-
-  // @@@@@@ below needs to be updated to use Ellad's luc.
-  int v_length, v_mass, v_time;
+  // set conversion factors for newly created variables.
+  double conversion_factor;
+  int ier;
   char *args[3];
+  std::string var_str;
   args[1] = (char *)"internal";
   args[2] = (char *)"1.0";
-
-  args[0] = (char *)"_u_length";
-  v_length = variable->find(args[0]);
-  if (v_length < 0) {
-    variable->set(3,args);
-    v_length = variable->find(args[0]);
+  int v_unit;
+  int const nunits = 14;
+  char *units[nunits] = {(char *)"mass",
+                         (char *)"distance",
+                         (char *)"time",
+                         (char *)"energy",
+                         (char *)"velocity",
+                         (char *)"force",
+                         (char *)"torque",
+                         (char *)"temperature",
+                         (char *)"pressure",
+                         (char *)"viscosity",
+                         (char *)"charge",
+                         (char *)"dipole",
+                         (char *)"efield",
+                         (char *)"density"};
+  
+  if (comm->me == 0) {
+    std::stringstream mesg;
+    mesg << "# Conversion factors from " << from << " to " << to 
+         << ":" << std::endl;
+    if (screen) fputs(mesg.str().c_str(),screen);
+    if (logfile) fputs(mesg.str().c_str(),logfile);
   }
 
-  args[0] = (char *)"_u_mass";
-  v_mass = variable->find(args[0]);
-  if (v_mass < 0) {
-    variable->set(3,args);
-    v_mass = variable->find(args[0]);
-  }
-
-  args[0] = (char *)"_u_time";
-  v_time = variable->find(args[0]);
-  if (v_time < 0) {
-    variable->set(3,args);
-    v_time = variable->find(args[0]);
-  }
-
-  // special case: both unit styles are the same => conversion factor 1.0
-
-  if (strcmp(from,to) == 0) {
-    variable->internal_set(v_length,1.0);
-    variable->internal_set(v_mass,1.0);
-    variable->internal_set(v_time,1.0);
-    return;
-  }
-
-  if (strcmp(from,"real") == 0) {
-    if (strcmp(to,"metal") == 0) {
-      variable->internal_set(v_length,1.0);
-      variable->internal_set(v_mass,1.0);
-      variable->internal_set(v_time,0.001);
-    } else {
-      std::string err("Do not know how to set up conversion variables ");
-      err += "between '";
-      err += from;
-      err += "' and '";
-      err += to;
-      err += "' units";
+  for (int i = 0; i < nunits; i++)
+  {
+    var_str = std::string("_u_") + std::string(units[i]);
+    args[0] = (char *)var_str.c_str();
+    v_unit = variable->find(args[0]);
+    if (v_unit < 0) {
+      variable->set(3,args);
+      v_unit = variable->find(args[0]);
+    }
+    ier = lammps_unit_conversion(units[i],
+                                 from,
+                                 to,
+                                 conversion_factor);
+    if (ier != 0) {
+      std::string err = std::string("Unable to obtain conversion factor: ") +
+                        "unit = " + units[i] + "; "
+                        "from = " + from + "; "
+                        "to = " + to + ".";
       error->all(FLERR,err.c_str());
     }
-  } else if (strcmp(from,"metal") == 0) {
-    if (strcmp(to,"real") == 0) {
-      variable->internal_set(v_length,1.0);
-      variable->internal_set(v_mass,1.0);
-      variable->internal_set(v_time,1000.0);
-    } else {
-      std::string err("Do not know how to set up conversion variables ");
-      err += "between '";
-      err += from;
-      err += "' and '";
-      err += to;
-      err += "' units";
-      error->all(FLERR,err.c_str());
+    variable->internal_set(v_unit,conversion_factor);
+    if (comm->me == 0) {
+      std::stringstream mesg;
+      mesg << "# " << var_str << " = " << conversion_factor << std::endl;
+      if (screen) fputs(mesg.str().c_str(),screen);
+      if (logfile) fputs(mesg.str().c_str(),logfile);
     }
-  } else {
-    std::string err("Do not know how to set up conversion variables ");
-    err += "between '";
-    err += from;
-    err += "' and '";
-    err += to;
-    err += "' units";
-    error->all(FLERR,err.c_str());
+  }
+  if (comm->me == 0) {
+    if (screen) fputs("#\n",screen);
+    if (logfile) fputs("#\n",logfile);
   }
 }

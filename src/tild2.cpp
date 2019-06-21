@@ -1993,14 +1993,8 @@ void TILD::accumulate_gradient() {
           n+=2;
         }
 
-        fft1->compute(ktmp2, ktmp, -1);
+          fft2->compute(ktmp2, ktmp, -1);
 
-        n = 0;
-        for (int k = 0; k < nfft; k++) {
-          tmp[k] = ktmp[n];
-          // std::cout<<tmp[k] << "\t" << ktmp[n] << std::endl;
-          n +=2;
-        }
 
         // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
@@ -2067,9 +2061,9 @@ void TILD::fieldforce_param(){
           x0 = y0*rho1d[0][l];
           for (int k = 0; k < group->ngroup; k++){
             if (mask[i] & groupbits[k]){
-              ekx += x0 *gradWgroup[k][0][mz][my][mx];
-              eky += x0 *gradWgroup[k][1][mz][my][mx];
-              ekz += x0 *gradWgroup[k][2][mz][my][mx];
+              ekx -= x0 *gradWgroup[k][0][mz][my][mx];
+              eky -= x0 *gradWgroup[k][1][mz][my][mx];
+              ekz -= x0 *gradWgroup[k][2][mz][my][mx];
             }
           }
         }

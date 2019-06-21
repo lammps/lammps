@@ -1028,6 +1028,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(atom,style,name);
   check_for_match(body,style,name);
   check_for_match(bond,style,name);
+  check_for_match(comm,style,name);
   check_for_match(command,style,name);
   check_for_match(compute,style,name);
   check_for_match(dump,style,name);

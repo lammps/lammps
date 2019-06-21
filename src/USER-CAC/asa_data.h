@@ -16,8 +16,8 @@
 
 #include "asa_user.h"
 #include "pointers.h"
-#include "pair_CAC.h"
-#include "atom_vec_CAC.h"
+#include "pair_cac.h"
+#include "atom_vec_cac.h"
 using namespace std;
 
 namespace LAMMPS_NS {

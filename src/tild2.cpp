@@ -442,7 +442,7 @@ void TILD::allocate()
   memory->create4d_offset(density_brick_types,group->ngroup,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick_types");
-memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim-1,
+  memory->create5d_offset(gradWgroup,group->ngroup, 0, Dim-1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWgroup");
 

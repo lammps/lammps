@@ -1001,18 +1001,27 @@ void TILD::init_gauss(){
 
   double vole; // Note: the factor of V comes from the FFT
   output->thermo->evaluate_keyword("vol",&vole);
-  double pref = vole / ( pow( 2.0 * sqrt(PI * a_squared) , Dim ) ) ; 
+  double pref = vole / ( pow( 2.0 * sqrt(PI * a_squared) , Dim ) ) ;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
-    zper = zprd * (static_cast<double>(m) / nz_pppm - 0.5);
-    
+    zper = zprd * (static_cast<double>(m) / nz_pppm);
+    if (zper >= zprd / 2.0) {
+      zper = zprd - zper;
+    }
+
     for (l = nylo_fft; l <= nyhi_fft; l++) {
-      yper = yprd * (static_cast<double>(l) / ny_pppm - 0.5);
+      yper = yprd * (static_cast<double>(l) / ny_pppm);
+      if (yper >= yprd / 2.0) {
+        yper = yprd - yper;
+      }
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
-        xper = xprd * (static_cast<double>(k) / nx_pppm - 0.5);
+        xper = xprd * (static_cast<double>(k) / nx_pppm);
+        if (xper >= xprd / 2.0) {
+          xper = xprd - xper;
+        }
 
-        mdr2=xper*xper + yper*yper + zper*zper;
-        uG[n++] = exp(-mdr2 * 0.25 / a_squared)  * pref;
+        mdr2 = xper * xper + yper * yper + zper * zper;
+        uG[n++] = exp(-mdr2 * 0.25 / a_squared) * pref;
       }
     }
   }

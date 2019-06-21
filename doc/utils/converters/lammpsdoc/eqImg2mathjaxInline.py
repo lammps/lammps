@@ -21,6 +21,7 @@
 import argparse
 import os
 import re
+import shutil
 import sys
 
 
@@ -37,7 +38,8 @@ imageMarker = ">>>image was here"
 image_marker_pattern = re.compile(r'>>>image was here')
 align_pattern = re.compile(r'.*:align: center')
 
-modifiedFileFolder = "src/modifiedRst/"
+modifiedRstFolder = "src/modifiedRst/"
+safeRstFolder = "src/safeRst/"
 # Since this is a proof of concept implementation,
 # skip any rst files that are known to cause problems
 skipFileList = ["pair_tersoff_zbl.rst"]
@@ -151,7 +153,13 @@ def processFile(filename):
                 # not an equation line, so simply queue it up for output as is
                 modifiedFileLines.append(line)
     if doWriteModifiedFile:
-        #print(*modifiedFileLines, sep="\n")
+        # We're going to write out a modified file, so first copy the original rst
+        # file into the original file folder.
+        nameParts = filename.split("/")
+        filenamePos = len(nameParts) - 1
+        safeFilePath = "{0}{1}".format(safeRstFolder, nameParts[filenamePos])
+        shutil.copyfile(filename, safeFilePath)
+
         print("modifiedFileLines has %d lines before align center cleanup" % len(modifiedFileLines))
         # First, go through the file and pull out the lines where there is
         # now an image file marker followed by an align center directive
@@ -172,17 +180,13 @@ def processFile(filename):
         print("modifiedFileLines has %d lines after align center cleanup" % len(modifiedFileLines))
         # Now we can actually write out the new contents
         try:
-            if not os.path.exists(modifiedFileFolder):
-                os.makedirs(modifiedFileFolder)
-            nameParts = filename.split("/")
-            filenamePos = len(nameParts) - 1
-            modFilePath = "{0}{1}".format(modifiedFileFolder, nameParts[filenamePos])
+            modFilePath = "{0}{1}".format(modifiedRstFolder, nameParts[filenamePos])
             modRst = open(modFilePath, "w")
             for rstLine in modifiedFileLines:
                 modRst.write(rstLine)
             modRst.close()
         except OSError:
-            print('Error: Creating directory. ' + modifiedFileFolder)
+            print('Error: Creating directory. ' + modifiedRstFolder)
     return imageCount
 
 
@@ -193,16 +197,28 @@ def main():
     parser = argparse.ArgumentParser(description='replace image markup in rst files with inline mathjax markup from .txt source of images')
     parser.add_argument('files',  metavar='file', nargs='+', help='one or more files to scan')
     parsed_args = parser.parse_args()
+    print(parsed_args)
 
-    # TODO: make originalRst folder and copy src/*.rst files into it
+    if not os.path.exists(safeRstFolder):
+        os.makedirs(safeRstFolder)
+    if not os.path.exists(modifiedRstFolder):
+        os.makedirs(modifiedRstFolder)
 
     # Because we may decide to add files to the skip list between runs,
     # if we have more than one file to process,
-    # remove the modified file folder so we don't end up with
+    # files from both original and modified folders
     # zombie modifications
     if len(parsed_args.files) > 1:
-        for outputFile in os.listdir(modifiedFileFolder):
-            filePath = os.path.join(modifiedFileFolder, outputFile)
+        for outputFile in os.listdir(modifiedRstFolder):
+            filePath = os.path.join(modifiedRstFolder, outputFile)
+            try:
+                if os.path.isfile(filePath):
+                    os.unlink(filePath)
+            except Exception as e:
+                print(e)
+                sys.exit(1)
+        for safeFile in os.listdir(safeRstFolder):
+            filePath = os.path.join(safeRstFolder, safeFile)
             try:
                 if os.path.isfile(filePath):
                     os.unlink(filePath)
@@ -211,6 +227,7 @@ def main():
                 sys.exit(1)
 
     for filename in parsed_args.files:
+        print("filename: %s" % filename)
         doSkip = False
         for skipName in skipFileList:
             if filename.find(skipName) != -1:

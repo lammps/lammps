@@ -1702,7 +1702,6 @@ void TILD::make_rho_none()
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
-  int type;
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

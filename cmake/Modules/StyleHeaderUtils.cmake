@@ -149,7 +149,7 @@ function(GenerateStyleHeaders output_path)
     GenerateStyleHeader(${output_path} BODY       body      ) # atom_vec_body
     GenerateStyleHeader(${output_path} BOND       bond      ) # force
     GenerateStyleHeader(${output_path} COMMAND    command   ) # input
-    GenerateStyleHeader(${output_path} COMM       command   ) # input
+    GenerateStyleHeader(${output_path} COMM       comm      ) # input
     GenerateStyleHeader(${output_path} COMPUTE    compute   ) # modify
     GenerateStyleHeader(${output_path} DIHEDRAL   dihedral  ) # force
     GenerateStyleHeader(${output_path} DUMP       dump      ) # output    write_dump

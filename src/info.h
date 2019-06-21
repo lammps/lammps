@@ -63,6 +63,7 @@ private:
   void region_styles(FILE * out);
   void dump_styles(FILE * out);
   void command_styles(FILE * out);
+  void comm_styles(FILE * out);
 };
 
 }

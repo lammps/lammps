@@ -602,6 +602,9 @@ void TILD::deallocate()
   delete fft2;
   delete remap;
   delete cg;
+  fft1 = fft2 = NULL;
+  remap = NULL;
+  cg = NULL;
 }
 
 /* ----------------------------------------------------------------------

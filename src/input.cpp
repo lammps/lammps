@@ -1527,13 +1527,12 @@ void Input::comm_style()
 
   comm = new_comm(estyle,1,sflag,oldcomm);
   delete oldcomm;
-  comm->post_constructor();
 }
 
 /* ---------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   generate a pair class
+   generate a comm class
    if trysuffix = 1, try first with suffix1/2 appended
    return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
 ------------------------------------------------------------------------- */
@@ -1544,7 +1543,7 @@ Comm *Input::new_comm(const char *style, int trysuffix, int &sflag, Comm *oldcom
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (comm_map->find(estyle) != comm_map->end()) {
         CommCreator comm_creator = (*comm_map)[estyle];
         return comm_creator(lmp, oldcomm);
@@ -1553,7 +1552,7 @@ Comm *Input::new_comm(const char *style, int trysuffix, int &sflag, Comm *oldcom
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (comm_map->find(estyle) != comm_map->end()) {
         CommCreator comm_creator = (*comm_map)[estyle];
         return comm_creator(lmp, oldcomm);

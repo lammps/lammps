@@ -29,8 +29,7 @@ class CommBrick : public Comm {
   CommBrick(class LAMMPS *);
   CommBrick(class LAMMPS *, class Comm *);
   virtual ~CommBrick();
-  
-  virtual void post_constructor();
+
   virtual void init();
   virtual void setup();                        // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords

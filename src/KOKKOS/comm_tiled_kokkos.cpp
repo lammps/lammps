@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
 {
-
+  comm_style = (const char *) "tiled/kk";
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,16 +63,6 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,old
 CommTiledKokkos::~CommTiledKokkos()
 {
 
-}
-
-/* ----------------------------------------------------------------------
-   set comm style name
-------------------------------------------------------------------------- */
-
-void CommTiledKokkos::post_constructor()
-{
-  memory->create(comm_style,20,"comm: comm_style");
-  strcpy(comm_style,"tiled/kk\0");
 }
 
 /* ----------------------------------------------------------------------

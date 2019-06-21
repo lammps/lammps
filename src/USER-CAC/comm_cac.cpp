@@ -98,7 +98,7 @@ CommCAC::CommCAC(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp, oldcomm)
   work2=NULL;
   overlap_repeat=NULL;
   proc2box=NULL;
-  //maxforeign_eboxes=0;
+  comm_style = (const char *) "cac";
   Comm::copy_arrays(oldcomm);
   init_buffers();
 }
@@ -119,16 +119,6 @@ CommCAC::~CommCAC()
   memory->destroy(work1);
   memory->destroy(work2);
   atom->CAC_comm_flag=0;
-}
-
-/* ----------------------------------------------------------------------
-   set comm style name
-------------------------------------------------------------------------- */
-
-void CommCAC::post_constructor()
-{
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"cac\0");
 }
 
 /* ----------------------------------------------------------------------

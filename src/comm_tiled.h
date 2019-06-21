@@ -30,7 +30,6 @@ class CommTiled : public Comm {
   CommTiled(class LAMMPS *, class Comm *);
   virtual ~CommTiled();
 
-  virtual void post_constructor();
   void init();
   void setup();                        // setup comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords

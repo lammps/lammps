@@ -40,7 +40,6 @@ class CommKokkos : public CommBrick {
   CommKokkos(class LAMMPS *, class Comm *); 
   ~CommKokkos();
 
-  virtual void post_constructor();
   void init();
 
   void forward_comm(int dummy = 0);    // forward comm of atom coords

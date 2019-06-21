@@ -26,16 +26,15 @@ namespace LAMMPS_NS {
 
 class CommCAC : public CommTiled {
  public:
-  
+
   CommCAC(class LAMMPS *);
   CommCAC(class LAMMPS *, class Comm *);
   virtual ~CommCAC();
 
-  virtual void post_constructor();
   virtual void init();
   virtual void setup();                        // setup comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
-  
+
   virtual void exchange();                     // move atoms to new procs
   virtual void borders();                      // setup list of atoms to comm
 
@@ -94,7 +93,7 @@ class CommCAC : public CommTiled {
   int recheck_flag;             //determines if ghost vs. nforeign box overlaps have been rechecked and communicated for corner cases
   int ***sent_flag;             //determines if the current element was already sent for the given swap and overlap proc in the first border comm round
   int *recv_flag;              //determines in which swap the current element was received
-  int **maxsent;               
+  int **maxsent;
   int maxall;
   int *overlap_repeat;           //stores flags for each proc to determine if overlap array has repeats in O(P)
   int *work1,*work2;                // work vectors
@@ -112,7 +111,7 @@ class CommCAC : public CommTiled {
   int **bin_content;
   int *nbin_element_overlap;  //array storing the number of bins this element overlaps
   int **bin_element_overlap;  //set of bins this element overlaps
- 
+
   double ***sendbox;            // bounding box of atoms to send per swap/proc
   double ***overlap_sendbox;            // bounding box of atoms to send per swap/proc
   double ****sendbox_multi;     // bounding box of atoms to send per swap/proc for multi comm
@@ -124,11 +123,10 @@ class CommCAC : public CommTiled {
   int **exchproc;               // procs to exchange with per dim
   int **exchnum;                // # of values received per dim/proc
 
- 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm
   int maxsend,maxrecv;          // current size of send/recv buffer
-  
+
   int bufextra;                 // extra space beyond maxsend in send buffer
   int smaxone,rmaxone;          // max size in atoms of single borders send/recv
   int smaxall,rmaxall;          // max size in atoms of any borders send/recv
@@ -150,7 +148,7 @@ class CommCAC : public CommTiled {
   int maxoverlap_box;              // current max length of overlap
   int *overlap;                // list of overlapping procs
   int **overlap_pbc;           // list of image offsets in each dim for each overlap proc
-  double **proc2box;           // list of proc boxes setup by overlap calculation for brick    
+  double **proc2box;           // list of proc boxes setup by overlap calculation for brick
   int overlap_counter;          // global counter used in box other to retain the typedef for box other
 
   double *prd;                 // local ptrs to Domain attributes
@@ -193,7 +191,7 @@ class CommCAC : public CommTiled {
   int point_drop_tiled(int, double *);
   int point_drop_tiled_recurse(double *, int, int);
   int closer_subbox_edge(int, double *);
- 
+
   void overlap_element_comm(int);       // communicate element overlaps
   void get_aug_oboxes(int);       // communicate element overlaps
   void compute_eboxes(int);                //compute set of local and ghost eboxes as needed

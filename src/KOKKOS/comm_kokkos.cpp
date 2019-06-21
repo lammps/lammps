@@ -82,6 +82,8 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 
 CommKokkos::CommKokkos(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, oldcomm)
 {
+  comm_style = (const char *) "brick/kk";
+
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
   sendlist = NULL;
@@ -126,16 +128,6 @@ CommKokkos::~CommKokkos()
   buf_send = NULL;
   memoryKK->destroy_kokkos(k_buf_recv,buf_recv);
   buf_recv = NULL;
-}
-
-/* ----------------------------------------------------------------------
-   set comm style name
-------------------------------------------------------------------------- */
-
-void CommKokkos::post_constructor()
-{
-  memory->create(comm_style,20,"comm: comm_style");
-  strcpy(comm_style,"brick/kk\0");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -27,7 +27,7 @@ class Comm : protected Pointers {
   enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};
   int mode;      // 0 = single cutoff, 1 = multi-type cutoff
   enum{SINGLE,MULTI};
-  char *comm_style; //name of the comm style
+  const char *comm_style;           //name of the comm style
 
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
@@ -68,7 +68,6 @@ class Comm : protected Pointers {
   virtual ~Comm();
   // NOTE: copy_arrays is called from a constructor and must not be made virtual
   void copy_arrays(class Comm *);
-  virtual void post_constructor() {}
   virtual void init();
   void modify_params(int, char **);
 

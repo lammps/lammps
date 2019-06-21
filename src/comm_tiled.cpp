@@ -45,6 +45,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
   style = 1;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
+  comm_style = (const char *)"tiled";
   init_buffers();
 }
 
@@ -72,16 +73,6 @@ CommTiled::~CommTiled()
   memory->destroy(overlap);
   deallocate_swap(nswap);
   memory->sfree(rcbinfo);
-}
-
-/* ----------------------------------------------------------------------
-   set comm style name
-------------------------------------------------------------------------- */
-
-void CommTiled::post_constructor()
-{
-  memory->create(comm_style,10,"comm: comm_style");
-  strcpy(comm_style,"tiled\0");
 }
 
 /* ----------------------------------------------------------------------

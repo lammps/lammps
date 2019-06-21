@@ -20,7 +20,7 @@ AtomStyle(cac/charge,AtomVecCAC_Charge)
 #ifndef LMP_ATOM_VEC_CAC_CHARGE_H
 #define LMP_ATOM_VEC_CAC_CHARGE_H
 
-#include "atom_vec_CAC.h"
+#include "atom_vec_cac.h"
 
 namespace LAMMPS_NS {
 

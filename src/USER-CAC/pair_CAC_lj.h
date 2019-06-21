@@ -20,7 +20,7 @@ PairStyle(cac/lj,PairCACLJ)
 #ifndef LMP_PAIR_LJ_CAC_H
 #define LMP_PAIR_LJ_CAC_H
 
-#include "pair_CAC.h"
+#include "pair_cac.h"
 
 namespace LAMMPS_NS {
 

@@ -13,7 +13,7 @@
 
 #include <cstring>
 #include <mpi.h>
-#include "compute_CAC_nodal_temp.h"
+#include "compute_cac_nodal_temp.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

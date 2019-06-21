@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <cstring>
-#include "atom_vec_CAC.h"
+#include "atom_vec_cac.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

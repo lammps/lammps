@@ -20,7 +20,7 @@ PairStyle(cac/coul/wolf,PairCACCoulWolf)
 #ifndef LMP_PAIR_COUL_WOLF_CAC_H
 #define LMP_PAIR_COUL_WOLF_CAC_H
 
-#include "pair_CAC.h"
+#include "pair_cac.h"
 
 namespace LAMMPS_NS {
 

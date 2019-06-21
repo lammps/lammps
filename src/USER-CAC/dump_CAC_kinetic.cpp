@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "dump_CAC_kinetic.h"
+#include "dump_cac_kinetic.h"
 #include "atom.h"
 #include "group.h"
 #include "error.h"

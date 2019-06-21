@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-#include "pair_CAC.h"
+#include "pair_cac.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

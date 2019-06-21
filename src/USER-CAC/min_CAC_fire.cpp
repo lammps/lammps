@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include "min_CAC_fire.h"
+#include "min_cac_fire.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"

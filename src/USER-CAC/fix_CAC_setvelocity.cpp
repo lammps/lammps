@@ -14,7 +14,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_CAC_setvelocity.h"
+#include "fix_cac_setvelocity.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

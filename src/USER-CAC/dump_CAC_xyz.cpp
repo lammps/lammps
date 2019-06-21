@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "dump_CAC_xyz.h"
+#include "dump_cac_xyz.h"
 #include "atom.h"
 #include "group.h"
 #include "error.h"

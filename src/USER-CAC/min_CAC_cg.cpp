@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include "min_CAC_cg.h"
+#include "min_cac_cg.h"
 #include "atom.h"
 #include "update.h"
 #include "neighbor.h"

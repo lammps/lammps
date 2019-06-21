@@ -13,7 +13,7 @@
 
 #include <cstring>
 #include <cstdlib>
-#include "fix_CAC_setforce.h"
+#include "fix_cac_setforce.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

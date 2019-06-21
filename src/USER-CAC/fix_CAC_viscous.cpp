@@ -14,7 +14,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "fix_CAC_viscous.h"
+#include "fix_cac_viscous.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"

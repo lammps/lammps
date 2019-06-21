@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "dump_CAC_nodal_positions.h"
+#include "dump_cac_nodal_positions.h"
 #include "atom.h"
 #include "group.h"
 #include "error.h"

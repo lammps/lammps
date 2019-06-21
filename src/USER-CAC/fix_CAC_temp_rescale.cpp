@@ -14,7 +14,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_CAC_temp_rescale.h"
+#include "fix_cac_temp_rescale.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"

@@ -13,7 +13,7 @@
 
 #include <cstdio>
 #include <cstring>
-#include "fix_CAC_nve.h"
+#include "fix_cac_nve.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"

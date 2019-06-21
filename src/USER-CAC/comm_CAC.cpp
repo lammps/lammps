@@ -17,7 +17,7 @@
 
 #include <cstring>
 #include <cmath>
-#include "comm_CAC.h"
+#include "comm_cac.h"
 #include "comm_brick.h"
 #include "atom.h"
 #include "atom_vec.h"

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath> 
-#include "npair_CAC.h"
+#include "npair_cac.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"

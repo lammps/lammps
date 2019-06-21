@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nbin_CAC.h"
+#include "nbin_cac.h"
 #include "neighbor.h"
 #include "atom.h"
 #include "group.h"

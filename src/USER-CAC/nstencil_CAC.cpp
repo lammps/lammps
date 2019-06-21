@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_CAC.h"
+#include "nstencil_cac.h"
 #include "neighbor.h"
 #include "atom.h"
 #include "update.h"

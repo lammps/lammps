@@ -13,7 +13,7 @@
 
 #include <cstring>
 #include <cmath>
-#include "compute_CAC_quad_count.h"
+#include "compute_cac_quad_count.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

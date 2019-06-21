@@ -56,8 +56,10 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutghostuser = 0.0;
   cutusermulti = NULL;
   ghost_velocity = 0;
-  //initialize char array to a starting size
+
+  // initialize char array to a starting size
   comm_style = memory->create(comm_style,10,"comm: comm_style");
+  strcpy(comm_style,"brick");
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   coregrid[0] = coregrid[1] = coregrid[2] = 1;

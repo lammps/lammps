@@ -237,8 +237,8 @@ void TILD::setup(){
   double *prd;
 
   // volume-dependent factors
-  // adjust z dimension for 2d slab PPPM
-  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
+  // adjust z dimension for 2d slab TILD
+  // z dimension for 3d TILD is zprd since slab_volfactor = 1.0
 
   if (triclinic == 0) prd = domain->prd;
   else prd = domain->prd_lamda;

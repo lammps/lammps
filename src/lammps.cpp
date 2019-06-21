@@ -20,6 +20,7 @@
 #include "style_angle.h"
 #include "style_atom.h"
 #include "style_bond.h"
+#include "style_comm.h"
 #include "style_command.h"
 #include "style_compute.h"
 #include "style_dihedral.h"
@@ -63,6 +64,7 @@ struct LAMMPS_NS::package_styles_lists {
   std::map<std::string,std::string> atom_styles;
   std::map<std::string,std::string> body_styles;
   std::map<std::string,std::string> bond_styles;
+  std::map<std::string,std::string> comm_styles;
   std::map<std::string,std::string> command_styles;
   std::map<std::string,std::string> compute_styles;
   std::map<std::string,std::string> dihedral_styles;
@@ -924,6 +926,12 @@ void _noopt LAMMPS::init_pkg_lists()
 #include "packages_bond.h"
 #undef BondStyle
 #undef BOND_CLASS
+#define COMM_CLASS
+#define CommStyle(key,Class)                 \
+  pkg_lists->comm_styles[#key] = PACKAGE;
+#include "packages_comm.h"
+#undef CommStyle
+#undef COMM_CLASS
 #define COMMAND_CLASS
 #define CommandStyle(key,Class)                 \
   pkg_lists->command_styles[#key] = PACKAGE;
@@ -998,7 +1006,7 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef REGION_CLASS
 }
 
-bool LAMMPS::is_installed_pkg(const char *pkg) 
+bool LAMMPS::is_installed_pkg(const char *pkg)
 {
   for (int i=0; installed_packages[i] != NULL; ++i)
     if (strcmp(installed_packages[i],pkg) == 0) return true;
@@ -1107,6 +1115,14 @@ void _noopt LAMMPS::help()
 #define AtomStyle(key,Class) print_style(fp,#key,pos);
 #include "style_atom.h"
 #undef ATOM_CLASS
+  fprintf(fp,"\n\n");
+
+  pos = 80;
+  fprintf(fp,"* Comm styles\n");
+#define COMM_CLASS
+#define CommStyle(key,Class) print_style(fp,#key,pos);
+#include "style_comm.h"
+#undef COMM_CLASS
   fprintf(fp,"\n\n");
 
   pos = 80;

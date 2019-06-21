@@ -1532,211 +1532,210 @@ unpack N lines from CAC section of data file
 ------------------------------------------------------------------------- */
 
 void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
-	int shiftflag, double *shift)
+  int shiftflag, double *shift)
 {
 
-	int m, xptr, iptr, npoly, nodecount;
-	imageint imagedata;
-	double xdata[3], lamda[3];
-	double *coord;
-	char *read_element_type;
+  int m, xptr, iptr, npoly, nodecount;
+  imageint imagedata;
+  double xdata[3], lamda[3];
+  double *coord;
+  char *read_element_type;
   char *next, *node_next;
   int nwords;
 
-	int decline = 6;
-	iptr = NULL;
+  int decline = 6;
+  iptr = 0;
 
   int maxelement = 2*(maxpoly*nodes_per_element);
-	char **values = new char*[2 * maxelement*words_per_node];
+  char **values = new char*[2 * maxelement*words_per_node];
 
-	// set bounds for my proc
-	// if periodic and I am lo/hi proc, adjust bounds by EPSILON
-	// insures all data atoms will be owned even with round-off
+  // set bounds for my proc
+  // if periodic and I am lo/hi proc, adjust bounds by EPSILON
+  // insures all data atoms will be owned even with round-off
 
-	int triclinic = domain->triclinic;
+  int triclinic = domain->triclinic;
 
-	double epsilon[3];
-	if (triclinic) epsilon[0] = epsilon[1] = epsilon[2] = EPSILON;
-	else {
-		epsilon[0] = domain->prd[0] * EPSILON;
-		epsilon[1] = domain->prd[1] * EPSILON;
-		epsilon[2] = domain->prd[2] * EPSILON;
-	}
+  double epsilon[3];
+  if (triclinic) epsilon[0] = epsilon[1] = epsilon[2] = EPSILON;
+  else {
+    epsilon[0] = domain->prd[0] * EPSILON;
+    epsilon[1] = domain->prd[1] * EPSILON;
+    epsilon[2] = domain->prd[2] * EPSILON;
+  }
 
-	double sublo[3], subhi[3];
-	if (triclinic == 0) {
-		sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
-		sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
-		sublo[2] = domain->sublo[2]; subhi[2] = domain->subhi[2];
-	}
-	else {
-		sublo[0] = domain->sublo_lamda[0]; subhi[0] = domain->subhi_lamda[0];
-		sublo[1] = domain->sublo_lamda[1]; subhi[1] = domain->subhi_lamda[1];
-		sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
-	}
+  double sublo[3], subhi[3];
+  if (triclinic == 0) {
+    sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
+    sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
+    sublo[2] = domain->sublo[2]; subhi[2] = domain->subhi[2];
+  } else {
+    sublo[0] = domain->sublo_lamda[0]; subhi[0] = domain->subhi_lamda[0];
+    sublo[1] = domain->sublo_lamda[1]; subhi[1] = domain->subhi_lamda[1];
+    sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
+  }
 
-	if (comm->layout != Comm::LAYOUT_TILED) {
-		if (domain->xperiodic) {
-			if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
-			if (comm->myloc[0] == comm->procgrid[0] - 1) subhi[0] += epsilon[0];
-		}
-		if (domain->yperiodic) {
-			if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
-			if (comm->myloc[1] == comm->procgrid[1] - 1) subhi[1] += epsilon[1];
-		}
-		if (domain->zperiodic) {
-			if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
-			if (comm->myloc[2] == comm->procgrid[2] - 1) subhi[2] += epsilon[2];
-		}
+  if (comm->layout != Comm::LAYOUT_TILED) {
+    if (domain->xperiodic) {
+      if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
+      if (comm->myloc[0] == comm->procgrid[0] - 1) subhi[0] += epsilon[0];
+    }
+    if (domain->yperiodic) {
+      if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
+      if (comm->myloc[1] == comm->procgrid[1] - 1) subhi[1] += epsilon[1];
+    }
+    if (domain->zperiodic) {
+      if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
+      if (comm->myloc[2] == comm->procgrid[2] - 1) subhi[2] += epsilon[2];
+    }
+  } else {
+    if (domain->xperiodic) {
+    if (comm->mysplit[0][0] == 0.0) sublo[0] -= epsilon[0];
+      if (comm->mysplit[0][1] == 1.0) subhi[0] += epsilon[0];
+    }
+    if (domain->yperiodic) {
+      if (comm->mysplit[1][0] == 0.0) sublo[1] -= epsilon[1];
+      if (comm->mysplit[1][1] == 1.0) subhi[1] += epsilon[1];
+    }
+    if (domain->zperiodic) {
+      if (comm->mysplit[2][0] == 0.0) sublo[2] -= epsilon[2];
+      if (comm->mysplit[2][1] == 1.0) subhi[2] += epsilon[2];
+    }
+  }
 
-	}
-	else {
-		if (domain->xperiodic) {
-			if (comm->mysplit[0][0] == 0.0) sublo[0] -= epsilon[0];
-			if (comm->mysplit[0][1] == 1.0) subhi[0] += epsilon[0];
-		}
-		if (domain->yperiodic) {
-			if (comm->mysplit[1][0] == 0.0) sublo[1] -= epsilon[1];
-			if (comm->mysplit[1][1] == 1.0) subhi[1] += epsilon[1];
-		}
-		if (domain->zperiodic) {
-			if (comm->mysplit[2][0] == 0.0) sublo[2] -= epsilon[2];
-			if (comm->mysplit[2][1] == 1.0) subhi[2] += epsilon[2];
-		}
-	}
+  // loop over lines of CAC data
+  // tokenize the lines into values
+  // extract xyz coords and image flags
+  // if element/atom is in my sub-domain, unpack its values
 
-
-	// loop over lines of CAC data
-	// tokenize the lines into values
-	// extract xyz coords and image flags
-	// if element/atom is in my sub-domain, unpack its values
-
-	for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
 
     //count number of tokens in the element header of the first
     //element to probe for error; expensive to do for all
-    if(i==0){
-    next = strchr(buf,'\n');
-    *next = '\0';
-    nwords = count_words(buf);
-    *next = '\n';
-    if(nwords!=6)
-    error->one(FLERR, "Incorrect element header line format in data file");
-    //count tokens in first node of first element to probe for error
-    
-    node_next = strchr(next+1,'\n');
-    *node_next = '\0';
-    nwords = count_words(next+1);
-    *node_next = '\n';
-    if(nwords!=words_per_node)
-    error->one(FLERR, "Incorrect node line format for this CAC atom style");
+
+    if (i == 0) {
+      next = strchr(buf,'\n');
+      *next = '\0';
+      nwords = count_words(buf);
+      *next = '\n';
+
+      if (nwords != 6)
+        error->one(FLERR, "Incorrect element header line format in data file");
+
+      //count tokens in first node of first element to probe for error
+
+      node_next = strchr(next+1,'\n');
+      *node_next = '\0';
+      nwords = count_words(next+1);
+      *node_next = '\n';
+      if (nwords != words_per_node)
+      error->one(FLERR, "Incorrect node line format for this CAC atom style");
     }
-   
-    
-		if (i == 0) {
-			values[0] = strtok(buf, " \t\n\r\f");
-		}
-		else {
-			values[0] = strtok(NULL, " \t\n\r\f");
-		}
-		if (values[0] == NULL)
-			error->one(FLERR, "Incorrect atom format in data file");
-		values[1] = strtok(NULL, " \t\n\r\f");
 
-		if (values[1] == NULL)
-			error->one(FLERR, "Incorrect atom format in data file");
-		read_element_type = values[1];
+    if (i == 0) {
+      values[0] = strtok(buf, " \t\n\r\f");
+    } else {
+      values[0] = strtok(NULL, " \t\n\r\f");
+    }
+    if (values[0] == NULL)
+      error->one(FLERR, "Incorrect atom format in data file");
+    values[1] = strtok(NULL, " \t\n\r\f");
 
-		values[2] = strtok(NULL, " \t\n\r\f");
+    if (values[1] == NULL)
+      error->one(FLERR, "Incorrect atom format in data file");
+    read_element_type = values[1];
 
-		if (values[2] == NULL)
-			error->one(FLERR, "Incorrect atom format in data file");
-		npoly = atoi(values[2]);
-    if(npoly<1)
+    values[2] = strtok(NULL, " \t\n\r\f");
+
+    if (values[2] == NULL)
+      error->one(FLERR, "Incorrect atom format in data file");
+    npoly = atoi(values[2]);
+    if (npoly < 1)
       error->one(FLERR, "poly_count less than one in data file");
-      
-   int type_found=0;
-	for(int string_check=1; string_check < element_type_count; string_check++){
-		if (strcmp(read_element_type, element_names[string_check]) == 0){
-		type_found=1;	
-		nodecount = nodes_per_element_list[string_check];
-		}
-	}
-  if (strcmp(read_element_type, "Atom") == 0) {
-    type_found=1;
-			nodecount = 1;
-			npoly = 1;
-	}
-  if(!type_found) {
-		error->one(FLERR, "element type not yet defined, add definition in process_args function of atom_vec_CAC.cpp style");
-	}
-    //check element scales
-    int escale;
-    for(int dimcheck=0; dimcheck<3; dimcheck++){
-    values[3+dimcheck] = strtok(NULL, " \t\n\r\f");
-			if (values[3+dimcheck] == NULL)
-				error->one(FLERR, "Incorrect atom format in data file"); 
-    escale=atoi(values[3+dimcheck]);
-    if(escale<1)
-    error->one(FLERR, "negative element scale in data file"); 
+
+    int type_found=0;
+    for (int string_check=1; string_check < element_type_count; string_check++) {
+      if (strcmp(read_element_type, element_names[string_check]) == 0) {
+        type_found=1;
+        nodecount = nodes_per_element_list[string_check];
+      }
     }
+    if (strcmp(read_element_type, "Atom") == 0) {
+      type_found=1;
+      nodecount = 1;
+      npoly = 1;
+    }
+    if (!type_found) {
+      error->one(FLERR, "Element type not yet defined, add definition in "
+                      "process_args function of atom_vec_CAC.cpp style");
+    }
+
+    // check element scales
+
+    int escale;
+    for (int dimcheck=0; dimcheck<3; dimcheck++) {
+      values[3+dimcheck] = strtok(NULL, " \t\n\r\f");
+      if (values[3+dimcheck] == NULL)
+        error->one(FLERR, "Incorrect atom format in data file");
+      escale=atoi(values[3+dimcheck]);
+      if (escale<1)
+        error->one(FLERR, "negative element scale in data file");
+    }
+
     //count the number of tokens in each nodel line for error check
-		for (m = decline; m < nodecount*npoly*words_per_node + decline; m++) {
-			values[m] = strtok(NULL, " \t\n\r\f");
-			if (values[m] == NULL)
-				error->one(FLERR, "Incorrect atom format in data file");
-		}
 
-		int imageflag = 0;
+    for (m = decline; m < nodecount*npoly*words_per_node + decline; m++) {
+      values[m] = strtok(NULL, " \t\n\r\f");
+      if (values[m] == NULL)
+        error->one(FLERR, "Incorrect atom format in data file");
+    }
 
-		if (imageflag)
-			imagedata = ((imageint)(atoi(values[iptr]) + IMGMAX) & IMGMASK) |
-			(((imageint)(atoi(values[iptr + 1]) + IMGMAX) & IMGMASK) << IMGBITS) |
-			(((imageint)(atoi(values[iptr + 2]) + IMGMAX) & IMGMASK) << IMG2BITS);
-		else imagedata = ((imageint)IMGMAX << IMG2BITS) |
-			((imageint)IMGMAX << IMGBITS) | IMGMAX;
+    int imageflag = 0;
 
+    if (imageflag)
+      imagedata = ((imageint)(atoi(values[iptr]) + IMGMAX) & IMGMASK) |
+        (((imageint)(atoi(values[iptr + 1]) + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint)(atoi(values[iptr + 2]) + IMGMAX) & IMGMASK) << IMG2BITS);
+    else
+      imagedata = ((imageint)IMGMAX << IMG2BITS) |
+        ((imageint)IMGMAX << IMGBITS) | IMGMAX;
 
-		xdata[0] = xdata[1] = xdata[2] = 0;
-		xptr = avec->xcol_data;
-		for (int mm = 0; mm < nodecount*npoly; mm++) {
-			xdata[0] += atof(values[decline + xptr + mm*words_per_node]);
-			xdata[1] += atof(values[decline + xptr + 1 + mm*words_per_node]);
-			xdata[2] += atof(values[decline + xptr + 2 + mm*words_per_node]);
-		}
-		xdata[0] = xdata[0] / nodecount / npoly;
-		xdata[1] = xdata[1] / nodecount / npoly;
-		xdata[2] = xdata[2] / nodecount / npoly;
+    xdata[0] = xdata[1] = xdata[2] = 0;
+    xptr = avec->xcol_data;
+    for (int mm = 0; mm < nodecount*npoly; mm++) {
+      xdata[0] += atof(values[decline + xptr + mm*words_per_node]);
+      xdata[1] += atof(values[decline + xptr + 1 + mm*words_per_node]);
+      xdata[2] += atof(values[decline + xptr + 2 + mm*words_per_node]);
+    }
+    xdata[0] = xdata[0] / nodecount / npoly;
+    xdata[1] = xdata[1] / nodecount / npoly;
+    xdata[2] = xdata[2] / nodecount / npoly;
 
-		if (shiftflag) {
-			xdata[0] += shift[0];
-			xdata[1] += shift[1];
-			xdata[2] += shift[2];
-		}
+    if (shiftflag) {
+      xdata[0] += shift[0];
+      xdata[1] += shift[1];
+      xdata[2] += shift[2];
+    }
 
-		domain->remap(xdata, imagedata);
-		if (triclinic) {
-			domain->x2lamda(xdata, lamda);
-			coord = lamda;
-		}
-		else coord = xdata;
+    domain->remap(xdata, imagedata);
+    if (triclinic) {
+      domain->x2lamda(xdata, lamda);
+      coord = lamda;
+    } else coord = xdata;
 
-		if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-			coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-			coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-			avec->data_atom(xdata, imagedata, values);
-			if (id_offset) tag[nlocal - 1] += id_offset;
-			if (type_offset) {
-				type[nlocal - 1] += type_offset;
-				if (type[nlocal - 1] > ntypes)
-					error->one(FLERR, "Invalid atom type in Atoms section of data file");
-			}
-		}
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+      coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+      coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+      avec->data_atom(xdata, imagedata, values);
+      if (id_offset) tag[nlocal - 1] += id_offset;
+      if (type_offset) {
+        type[nlocal - 1] += type_offset;
+        if (type[nlocal - 1] > ntypes)
+          error->one(FLERR, "Invalid atom type in Atoms section of data file");
+      }
+    }
+  }
 
-	}
-
-	delete[] values;
-
+  delete[] values;
 }
 
 /* ----------------------------------------------------------------------

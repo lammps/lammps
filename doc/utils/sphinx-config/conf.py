@@ -29,9 +29,15 @@ import os
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+# imgmath for epub
 extensions = [
-    'sphinx.ext.mathjax',
 ]
+# TODO: use a commandline argument to use mathjax for html build,
+# support mathjax output for html by default
+extensions.append('sphinx.ext.mathjax')
+# to support imgmath for epub, do this instead
+#extensions.append('sphinx.ext.mathjax')
+
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
 #             newer version of the multiprocessor module.

@@ -455,8 +455,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   if (sflag) {
     char estyle[256];
-    if (sflag == 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
-    else sprintf(estyle,"%s/%s",style,lmp->suffix2);
+    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
     int n = strlen(estyle) + 1;
     atom_style = new char[n];
     strcpy(atom_style,estyle);
@@ -487,7 +487,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -497,7 +497,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);

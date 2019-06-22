@@ -699,6 +699,14 @@ create_box command. :dd
 When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
 spherical particles, the neighbor list must be built on the CPU :dd
 
+{cac atom style does not yet support writing data files.} :dt
+
+Self-explanatory. :dd
+
+{cac atom styles require a CAC comm style.} :dt
+
+Self-explanatory. :dd
+
 {Can not specify Pxy/Pxz/Pyz in fix box/relax with non-triclinic box} :dt
 
 Only triclinic boxes can be used with off-diagonal pressure components.
@@ -4000,6 +4008,15 @@ Something has gone wrong with the fix ttm electron temperature model. :dd
 
 The specified element is not in the potential file. :dd
 
+{Element type not yet defined, add definition in process_args function of atom_vec_CAC.cpp style.} :dt
+
+Self-explanatory. Contact author for detailed advice if encountering issues defining a new element type. :dd
+
+{Element type requires a greater number of nodes than the specified maximum nodes per element passed to atom style cac.} :dt
+
+One of the input element types in your data file requires more nodes than the maximum you specified as an
+arg to the atom style cac command. :dd
+
 {Empty brackets in variable} :dt
 
 There is no variable syntax that uses empty brackets.  Check
@@ -6204,6 +6221,11 @@ Mass specified in fix shake command must be > 0.0. :dd
 
 Masses must be > 0.0. :dd
 
+{Invalid atom_style cac command.} :dt
+
+Check the documentation for the correct arguments
+to the cac atom styles. :dt
+
 {Invalid atom type in Atoms section of data file} :dt
 
 Atom types must range from 1 to specified # of types. :dd
@@ -6227,6 +6249,10 @@ The atom type specified in the atom/swap command does not exist. :dd
 {Invalid atom type in fix bond/create command} :dt
 
 Self-explanatory. :dd
+
+{Invalid atom type in CAC_Elements section of data file}
+
+Atom types must range from 1 to specified # of types.
 
 {Invalid atom type in fix deposit command} :dt
 
@@ -6775,6 +6801,11 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Invalid node index in CAC_Elements section of data file.} :dt
+
+A node index supplied as part of a CAC element's definition is not within the range of possible 
+node indices (1-element_node_count) for this element type. :dd
+
 {Invalid option in lattice command for non-custom style} :dt
 
 Certain lattice keywords are not supported unless the
@@ -6807,6 +6838,13 @@ Zeta value is 0.0. :dd
 
 Valid partitions are numbered 1 to N and the sender and receiver
 cannot be the same partition. :dd
+
+{Invalid poly index in CAC_Elements section of data file} :dt
+
+A poly index supplied as part of a CAC element's definition
+is not within the range of possible poly indices (1-poly_count)
+for the poly_count declared in the element's header line. :dd
+
 
 {Invalid python command} :dt
 
@@ -7403,6 +7441,14 @@ potentials access it. :dd
 {More than one fix shake} :dt
 
 Only one fix shake can be defined. :dd
+
+{More than one type assigned to the same poly index in an element.} :dd
+
+The poly index represents an internal variable of the underlying
+crystal structure approximated by the given finite element. Since
+each such internal variable essentially represents a particle
+spanning a deforming lattice it is not correct to associate
+two different mass types to one poly index. :dt
 
 {Mu not allowed when not using semi-grand in fix atom/swap command} :dt
 
@@ -8018,6 +8064,14 @@ This potential is infinite when there is an overlap. :dd
 
 NPT/NPH fix must be defined in input script after all poems fixes,
 else the fix contribution to the pressure virial is incorrect. :dd
+
+{poly count declared in data file was greater than maxpoly in input file.} :dt
+
+One of the input poly counts for an element in the data file 
+was greater than the maximum declared poly count that was 
+passed as an arg to the atom style cac invocation. Increase 
+the argument value to be greater than any poly count in your 
+data file. :dd
 
 {PPPM can only currently be used with comm_style brick} :dt
 
@@ -9565,6 +9619,7 @@ Self-explanatory. :dd
 The TIP4P pairwise computation found an H atom whose type does not
 agree with the specified H type. :dd
 
+
 {TIP4P hydrogen is missing} :dt
 
 The TIP4P pairwise computation failed to find the correct H atom
@@ -9747,6 +9802,13 @@ This is an internal error.  Contact the developers. :dd
 {The package gpu command is required for gpu styles} :dt
 
 Self-explanatory. :dd
+
+{There are more nodes for one internal DOF than the element type admits} :dt
+
+one of the poly indices has too many nodes associated with it in the
+declartion of element data. Make sure that the total number of line entries
+after your element header is element_node_count*poly_count and that each
+poly index appears element_node_count times. :dt
 
 {Thermo and fix not computed at compatible times} :dt
 

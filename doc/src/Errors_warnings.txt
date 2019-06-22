@@ -443,6 +443,11 @@ i.e. the first molecule in the template. :dd
 The fix shake command will only recognize molecules of a single
 type, i.e. the first molecule in the template. :dd
 
+{More than one compute cac/quad/count} :dt
+
+It is redundant to define more than one of these computes given
+their use in tandem with fix balance to load balance models. :dd
+
 {More than one compute centro/atom} :dt
 
 It is not efficient to use compute centro/atom more than once. :dd

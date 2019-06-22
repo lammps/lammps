@@ -6221,10 +6221,10 @@ Mass specified in fix shake command must be > 0.0. :dd
 
 Masses must be > 0.0. :dd
 
-{Invalid atom_style cac command.} :dt
+{Invalid atom_style cac command} :dt
 
 Check the documentation for the correct arguments
-to the cac atom styles. :dt
+to the cac atom styles. :dd
 
 {Invalid atom type in Atoms section of data file} :dt
 
@@ -7442,13 +7442,13 @@ potentials access it. :dd
 
 Only one fix shake can be defined. :dd
 
-{More than one type assigned to the same poly index in an element.} :dd
+{More than one type assigned to the same poly index in an element.} :dt
 
 The poly index represents an internal variable of the underlying
 crystal structure approximated by the given finite element. Since
 each such internal variable essentially represents a particle
 spanning a deforming lattice it is not correct to associate
-two different mass types to one poly index. :dt
+two different mass types to one poly index. :dd
 
 {Mu not allowed when not using semi-grand in fix atom/swap command} :dt
 
@@ -9805,10 +9805,10 @@ Self-explanatory. :dd
 
 {There are more nodes for one internal DOF than the element type admits} :dt
 
-one of the poly indices has too many nodes associated with it in the
+One of the poly indices has too many nodes associated with it in the
 declartion of element data. Make sure that the total number of line entries
 after your element header is element_node_count*poly_count and that each
-poly index appears element_node_count times. :dt
+poly index appears element_node_count times. :dd
 
 {Thermo and fix not computed at compatible times} :dt
 

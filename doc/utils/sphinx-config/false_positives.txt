@@ -1414,6 +1414,7 @@ Lenart
 lennard
 Lennard
 Lenosky
+Lenz
 Lett
 Leuven
 Leven
@@ -2628,6 +2629,7 @@ subcutoff
 Subramaniyan
 subscripted
 subscripting
+substyle
 substyles
 sudo
 Sugaku

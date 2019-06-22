@@ -77,6 +77,10 @@ extern "C" {
 #include "KIM_SimulatorModel.hpp"
 //@@@@@
 
+#define SNUM(x)                                                \
+  static_cast<std::ostringstream const &>(std::ostringstream() \
+                                          << std::dec << x).str()
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -257,7 +261,7 @@ void KimStyle::determine_model_type_and_units(char * model_name,
   if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0))
   {
     std::stringstream mesg;
-    mesg << "Incompatible units for KIM Simulator Model, required units = " 
+    mesg << "Incompatible units for KIM Simulator Model, required units = "
          << *model_units;
     error->all(FLERR,mesg.str().c_str());
   }
@@ -357,18 +361,18 @@ void KimStyle::do_init(char *model_name, char *user_units, char* model_units)
 
 /* ---------------------------------------------------------------------- */
 
-void KimStyle::kim_style_log_delimiter(std::string begin_end, 
-                                       std::string model_setup)
+void KimStyle::kim_style_log_delimiter(std::string const begin_end,
+                                       std::string const model_setup) const
 {
     if (comm->me == 0) {
       std::string mesg;
-      if ((begin_end == "begin") && (model_setup == "model")) mesg = 
+      if ((begin_end == "begin") && (model_setup == "model")) mesg =
         "#=== BEGIN kim-style MODEL ==================================\n";
-      else if ((begin_end == "begin") && (model_setup == "setup")) mesg = 
+      else if ((begin_end == "begin") && (model_setup == "setup")) mesg =
         "#=== BEGIN kim-style SETUP ==================================\n";
-      else if ((begin_end == "end") && (model_setup == "model")) mesg = 
+      else if ((begin_end == "end") && (model_setup == "model")) mesg =
         "#=== END kim-style MODEL ====================================\n\n";
-      else if ((begin_end == "end") && (model_setup == "setup")) mesg = 
+      else if ((begin_end == "end") && (model_setup == "setup")) mesg =
         "#=== END kim-style SETUP ====================================\n\n";
 
       if (screen) fputs(mesg.c_str(),screen);
@@ -403,12 +407,19 @@ void KimStyle::do_setup(int narg, char **arg)
 
   if (simulatorModel) {
 
+    std::string delimiter("");
     std::string atom_type_sym_list;
+    std::string atom_type_num_list;
 
     for (int i = 0; i < narg; i++)
-      atom_type_sym_list += std::string(" ") + arg[i];
+    {
+      atom_type_sym_list += delimiter + arg[i];
+      atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
+      delimiter = " ";
+    }
 
     simulatorModel->AddTemplateMap("atom-type-sym-list",atom_type_sym_list);
+    simulatorModel->AddTemplateMap("atom-type-num-list",atom_type_num_list);
     simulatorModel->CloseTemplateMap();
 
     int len = strlen(atom_type_sym_list.c_str())+1;
@@ -533,10 +544,10 @@ void KimStyle::do_variables(char *user_units, char *model_units)
                          (char *)"dipole",
                          (char *)"efield",
                          (char *)"density"};
-  
+
   if (comm->me == 0) {
     std::stringstream mesg;
-    mesg << "# Conversion factors from " << from << " to " << to 
+    mesg << "# Conversion factors from " << from << " to " << to
          << ":" << std::endl;
     if (screen) fputs(mesg.str().c_str(),screen);
     if (logfile) fputs(mesg.str().c_str(),logfile);
@@ -574,4 +585,129 @@ void KimStyle::do_variables(char *user_units, char *model_units)
     if (screen) fputs("#\n",screen);
     if (logfile) fputs("#\n",logfile);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int KimStyle::species_to_atomic_no(std::string const species) const
+{
+  if (species == "H") return 1;
+  else if (species == "He") return 2;
+  else if (species == "Li") return 3;
+  else if (species == "Be") return 4;
+  else if (species == "B") return 5;
+  else if (species == "C") return 6;
+  else if (species == "N") return 7;
+  else if (species == "O") return 8;
+  else if (species == "F") return 9;
+  else if (species == "Ne") return 10;
+  else if (species == "Na") return 11;
+  else if (species == "Mg") return 12;
+  else if (species == "Al") return 13;
+  else if (species == "Si") return 14;
+  else if (species == "P") return 15;
+  else if (species == "S") return 16;
+  else if (species == "Cl") return 17;
+  else if (species == "Ar") return 18;
+  else if (species == "K") return 19;
+  else if (species == "Ca") return 20;
+  else if (species == "Sc") return 21;
+  else if (species == "Ti") return 22;
+  else if (species == "V") return 23;
+  else if (species == "Cr") return 24;
+  else if (species == "Mn") return 25;
+  else if (species == "Fe") return 26;
+  else if (species == "Co") return 27;
+  else if (species == "Ni") return 28;
+  else if (species == "Cu") return 29;
+  else if (species == "Zn") return 30;
+  else if (species == "Ga") return 31;
+  else if (species == "Ge") return 32;
+  else if (species == "As") return 33;
+  else if (species == "Se") return 34;
+  else if (species == "Br") return 35;
+  else if (species == "Kr") return 36;
+  else if (species == "Rb") return 37;
+  else if (species == "Sr") return 38;
+  else if (species == "Y") return 39;
+  else if (species == "Zr") return 40;
+  else if (species == "Nb") return 41;
+  else if (species == "Mo") return 42;
+  else if (species == "Tc") return 43;
+  else if (species == "Ru") return 44;
+  else if (species == "Rh") return 45;
+  else if (species == "Pd") return 46;
+  else if (species == "Ag") return 47;
+  else if (species == "Cd") return 48;
+  else if (species == "In") return 49;
+  else if (species == "Sn") return 50;
+  else if (species == "Sb") return 51;
+  else if (species == "Te") return 52;
+  else if (species == "I") return 53;
+  else if (species == "Xe") return 54;
+  else if (species == "Cs") return 55;
+  else if (species == "Ba") return 56;
+  else if (species == "La") return 57;
+  else if (species == "Ce") return 58;
+  else if (species == "Pr") return 59;
+  else if (species == "Nd") return 60;
+  else if (species == "Pm") return 61;
+  else if (species == "Sm") return 62;
+  else if (species == "Eu") return 63;
+  else if (species == "Gd") return 64;
+  else if (species == "Tb") return 65;
+  else if (species == "Dy") return 66;
+  else if (species == "Ho") return 67;
+  else if (species == "Er") return 68;
+  else if (species == "Tm") return 69;
+  else if (species == "Yb") return 70;
+  else if (species == "Lu") return 71;
+  else if (species == "Hf") return 72;
+  else if (species == "Ta") return 73;
+  else if (species == "W") return 74;
+  else if (species == "Re") return 75;
+  else if (species == "Os") return 76;
+  else if (species == "Ir") return 77;
+  else if (species == "Pt") return 78;
+  else if (species == "Au") return 79;
+  else if (species == "Hg") return 80;
+  else if (species == "Tl") return 81;
+  else if (species == "Pb") return 82;
+  else if (species == "Bi") return 83;
+  else if (species == "Po") return 84;
+  else if (species == "At") return 85;
+  else if (species == "Rn") return 86;
+  else if (species == "Fr") return 87;
+  else if (species == "Ra") return 88;
+  else if (species == "Ac") return 89;
+  else if (species == "Th") return 90;
+  else if (species == "Pa") return 91;
+  else if (species == "U") return 92;
+  else if (species == "Np") return 93;
+  else if (species == "Pu") return 94;
+  else if (species == "Am") return 95;
+  else if (species == "Cm") return 96;
+  else if (species == "Bk") return 97;
+  else if (species == "Cf") return 98;
+  else if (species == "Es") return 99;
+  else if (species == "Fm") return 100;
+  else if (species == "Md") return 101;
+  else if (species == "No") return 102;
+  else if (species == "Lr") return 103;
+  else if (species == "Rf") return 104;
+  else if (species == "Db") return 105;
+  else if (species == "Sg") return 106;
+  else if (species == "Bh") return 107;
+  else if (species == "Hs") return 108;
+  else if (species == "Mt") return 109;
+  else if (species == "Ds") return 110;
+  else if (species == "Rg") return 111;
+  else if (species == "Cn") return 112;
+  else if (species == "Nh") return 113;
+  else if (species == "Fl") return 114;
+  else if (species == "Mc") return 115;
+  else if (species == "Lv") return 116;
+  else if (species == "Ts") return 117;
+  else if (species == "Og") return 118;
+  else return -1;
 }

@@ -80,8 +80,9 @@ class KimStyle : protected Pointers {
   void do_init(char *, char *, char *);
   void do_setup(int, char **);
   void do_variables(char*, char*);
-  void kim_style_log_delimiter(std::string begin_end, 
-                               std::string model_setup);
+  int species_to_atomic_no(std::string const species) const;
+  void kim_style_log_delimiter(std::string const begin_end,
+                               std::string const model_setup) const;
 };
 
 }

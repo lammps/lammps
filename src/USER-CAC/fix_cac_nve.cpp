@@ -51,7 +51,7 @@ int FixNVECAC::setmask()
 
 void FixNVECAC::init()
 {
-	if (!atom->CAC_flag) error->all(FLERR,"fix cac/nve requires a CAC atom style");
+	if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 

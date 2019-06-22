@@ -61,14 +61,14 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Unexpected argument in cac/coul/wolf invocation
 
-The one keyword was not supplied correctly either due to arg ordering or spelling.
-Check the input script syntax and compare to the documentation for the command.
+Self-explanatory. Check the input script. See the documention
+for appropriate syntax.
 
 E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair coul/wolf requires atom attribute q
+E: Pair cac/coul/wolf requires atom attribute q
 
 The atom style defined does not have this attribute.
 

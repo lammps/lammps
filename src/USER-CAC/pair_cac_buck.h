@@ -62,7 +62,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Unexpected argument in pair cac/buck invocation; only accepts cutoff and the 'one' keyword
 
-Self-explanatory.  Check the input script or data file. See the documentation for the proper syntax.
+Self-explanatory.  Check the input script. See the documentation for the proper syntax.
 
 E: Incorrect args for pair coefficients
 

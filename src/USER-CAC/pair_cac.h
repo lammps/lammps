@@ -183,7 +183,7 @@ command-line option when running LAMMPS to see the offending line.
 E: LU matrix is degenerate
 
 For some reason the mass matrix for one of the finite elements defined
-in your model is ill conditioned.
+in your CAC model is ill conditioned.
 
 E: Unexpected argument in CAC pair style invocation
 

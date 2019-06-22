@@ -118,7 +118,7 @@ class AtomVec : protected Pointers {
   virtual void pack_property_atom(int, double *, int, int) {}
 
   virtual bigint memory_usage() = 0;
-  virtual int check_distance_function(double deltasq) {return 0;} //specific neighbor rebuild check function an atom style might need
+  virtual int check_distance_function(double /* deltasq */) {return 0;} //specific neighbor rebuild check function an atom style might need
   virtual void set_hold_properties() {} //specific neighbor rebuild check function an atom style might need
 
  protected:

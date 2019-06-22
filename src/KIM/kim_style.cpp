@@ -576,7 +576,8 @@ void KimStyle::do_variables(char *user_units, char *model_units)
     variable->internal_set(v_unit,conversion_factor);
     if (comm->me == 0) {
       std::stringstream mesg;
-      mesg << "# " << var_str << " = " << conversion_factor << std::endl;
+      mesg << "variable " << var_str << " internal " << conversion_factor
+           << std::endl;
       if (screen) fputs(mesg.str().c_str(),screen);
       if (logfile) fputs(mesg.str().c_str(),logfile);
     }

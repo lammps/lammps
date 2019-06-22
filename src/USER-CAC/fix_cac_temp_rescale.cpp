@@ -112,7 +112,7 @@ int FixTempRescale_CAC::setmask()
 void FixTempRescale_CAC::init()
 {
   // check variable
-  if (!atom->CAC_flag) error->all(FLERR,"fix cac/temp/rescale requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)

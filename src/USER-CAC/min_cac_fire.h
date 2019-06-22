@@ -46,11 +46,11 @@ class CACMinFire : public Min {
 
 /* ERROR/WARNING messages:
 
-E: min style cac/fire requires a CAC atom style
+E: CAC min styles require a CAC atom style
 
 Self Explanatory
 
-E: min style cac/fire requires a CAC pair style
+E: CAC min styles require a CAC pair style
 
 Self Explanatory
 

@@ -73,7 +73,7 @@ E: Variable name for fix cac/setforce does not exist
 
 Self-explanatory.
 
-E: fix cac/setforce requires a CAC atom style
+E: CAC fix styles require a CAC atom style
 
 Self-explanatory.
 

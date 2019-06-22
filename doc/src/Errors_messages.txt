@@ -699,11 +699,35 @@ create_box command. :dd
 When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
 spherical particles, the neighbor list must be built on the CPU :dd
 
-{cac atom style does not yet support writing data files.} :dt
+{CAC atom style does not yet support writing data files} :dt
 
 Self-explanatory. :dd
 
-{cac atom styles require a CAC comm style.} :dt
+{CAC atom styles require a CAC comm style} :dt
+
+Self-explanatory. :dd
+
+{CAC dump styles require a CAC atom style} :dt
+
+Self-explanatory. :dd
+
+{CAC fix styles require a CAC atom style} :dt
+
+Self-explanatory. :dd
+
+{CAC min styles require a CAC atom style} :dt
+
+Self-explanatory. :dd
+
+{CAC min styles require a CAC pair style} :dt
+
+Self-explanatory. :dd
+
+{CAC pair style requires a CAC atom style} :dt
+
+Self-explanatory. :dd
+
+{CAC pair style requires a CAC comm style} :dt
 
 Self-explanatory. :dd
 
@@ -734,6 +758,10 @@ Self-explanatory. :dd
 This is current restriction for NEB as implemented in LAMMPS. :dd
 
 {Can only use TAD with 1-processor replicas for NEB} :dt
+
+This is current restriction for NEB as implemented in LAMMPS. :dd
+
+{Can only use comm style CAC with brick and rcb decompositions} :dt
 
 This is current restriction for NEB as implemented in LAMMPS. :dd
 
@@ -829,6 +857,14 @@ fix. :dd
 This is because some dumps store the shape of the box.  You need to
 use undump to discard the dump, change the box, then redefine a new
 dump. :dd
+
+{Cannot use comm_style cac with non CAC atom style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use the CAC comm style without a CAC pair style} :dt
+
+Self-explanatory. :dd
 
 {Cannot change box tilt factors for orthogonal box} :dt
 
@@ -2441,6 +2477,14 @@ cutoff explicitly via the comm_modify cutoff command. :dd
 {Compute %s does not allow use of dynamic group} :dt
 
 Dynamic groups have not yet been enabled for this compute. :dd
+
+{Compute cac/nodal/temp requires a CAC atom style} :dt
+
+Self-explanatory. :dd
+
+{Compute cac/quad/count requires a CAC atom style} :dt
+
+Self-explanatory. :dd
 
 {Compute ID for compute chunk /atom does not exist} :dt
 
@@ -5834,6 +5878,20 @@ See doc page for body style. :dd
 
 See doc page for body style. :dd
 
+{Incorrect element header line format in data file} :dt
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its header line. See the documentation for 
+format and syntax and check your data file. :dd
+
+{Incorrect node line format for this CAC atom style} :dt
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its node lines. Specifically the number of
+entries is incorrect for some reason; perhaps the atom substyle
+is not the correct one for your data file or you missed lines
+for the previously read element. :dd
+
 {Incorrect %s format in data file} :dt
 
 A section of the data file being read by fix property/atom does
@@ -7228,6 +7286,11 @@ thermo_modify lost command for options.  Lost atoms usually indicate
 bad dynamics, e.g. atoms have been blown far out of the simulation
 box, or moved further than one processor's sub-domain away before
 reneighboring. :dd
+
+{LU matrix is degenerate} :dt
+
+For some reason the mass matrix for one of the finite elements defined
+in your CAC model is ill conditioned. Check shape function definitions.
 
 {MEAM library error %d} :dt
 
@@ -10127,6 +10190,21 @@ There was a problem initializing an accelerator for the gpu package :dd
 No matching end double quote was found following a leading double
 quote. :dd
 
+{Unexpected argument in CAC pair style invocation} :dt
+
+Self-explanatory. Check the input script or data file. See the documention
+for appropriate syntax. :dd
+
+{Unexpected argument in cac/coul/wolf invocation} :dt
+
+Self-explanatory. Check the input script. See the documention
+for appropriate syntax. :dd
+
+{Unexpected argument in cac/lj invocation; only accepts cutoff and the 'one' keyword} :dt
+
+Self-explanatory. Check the input script. See the documention
+for appropriate syntax. :dd
+
 {Unexpected end of -reorder file} :dt
 
 Self-explanatory. :dd
@@ -10452,6 +10530,38 @@ Only equal-style variables can be used. :dd
 Self-explanatory. :dd
 
 {Variable for fix aveforce is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
+{Variable for fix cac/addforce does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable for fix cac/addforce is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
+{Variable for fix cac/setforce does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable for fix cac/setforce is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
+{Variable for fix cac/setvelocity does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable for fix cac/setvelocity is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
+{Variable for fix cac/temp/rescale does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable for fix cac/temp/rescale is invalid style} :dt
 
 Only equal-style variables can be used. :dd
 

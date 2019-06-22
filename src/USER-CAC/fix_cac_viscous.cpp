@@ -77,7 +77,7 @@ int FixViscousCAC::setmask()
 void FixViscousCAC::init()
 {
   int max_respa = 0;
-  if (!atom->CAC_flag) error->all(FLERR,"fix cac/viscous requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,max_respa);

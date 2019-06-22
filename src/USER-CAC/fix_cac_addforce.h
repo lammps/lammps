@@ -62,19 +62,19 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Region ID for fix setforce does not exist
+E: Region ID for fix cac/setforce does not exist
 
 Self-explanatory.
 
-E: Variable name for fix setforce does not exist
+E: Variable name for fix cac/setforce does not exist
 
 Self-explanatory.
 
-E: Variable for fix setforce is invalid style
+E: Variable for fix cac/setforce is invalid style
 
 Only equal-style variables can be used.
 
-E: fix cac/addforce requires a CAC atom style
+E: CAC fix styles require a CAC atom style
 
 Self-explanatory.
 

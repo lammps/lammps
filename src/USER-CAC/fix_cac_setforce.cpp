@@ -130,7 +130,7 @@ int FixCAC_Set_Force::setmask()
 void FixCAC_Set_Force::init()
 {
 	// check variables
-  if (!atom->CAC_flag) error->all(FLERR,"fix cac/setforce requires a CAC atom style");
+  if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
 	if (xstr) {
 		xvar = input->variable->find(xstr);
 		if (xvar < 0)

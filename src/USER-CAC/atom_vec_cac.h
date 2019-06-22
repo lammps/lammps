@@ -155,7 +155,7 @@ spanning a deforming lattice it is not correct to associate two different mass t
 
 E: there are more nodes for one internal DOF than the element type admits
 
-one of the poly indices has too many nodes associated with it in the declartion of 
+one of the poly indices has too many nodes associated with it in the declaration of 
 element data. Make sure that the total number of line entries after your element
 header is element_node_count*poly_count and that each poly index appears element_node_count
 times.

@@ -9806,7 +9806,7 @@ Self-explanatory. :dd
 {There are more nodes for one internal DOF than the element type admits} :dt
 
 one of the poly indices has too many nodes associated with it in the
-declartion of element data. Make sure that the total number of line entries
+declaration of element data. Make sure that the total number of line entries
 after your element header is element_node_count*poly_count and that each
 poly index appears element_node_count times. :dt
 

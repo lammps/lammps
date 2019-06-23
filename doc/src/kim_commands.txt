@@ -67,7 +67,7 @@ The {kim_query} web query tool provides the ability to use the predictions of IM
 Support is provided for unit conversion between the "unit style"_units.html used in the LAMMPS input script and the units required by the OpenKIM IM. This makes it possible to use a single input script with IMs using different units without change and minimizes the likelihood of errors due to incompatible units.  :ul
 
 :link(IM_types)
-Types of KIM IMs :h4
+Types of IMs in OpenKIM :h4
 
 There are two types of IMs archived in OpenKIM:
 
@@ -108,6 +108,10 @@ listed above the Model Page is located at:
 "https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005"_https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005
 :pre
 
+See the "current list of KIM Models and SMs archived in OpenKIM"_https://openkim.org/browse/models/by-species.
+This list is sorted by species and can be filtered to display only
+IMs for certain species combinations.
+
 NOTE: It is also possible to locally install IMs not archived in OpenKIM,
 in which case their names do not have to conform to the KIM ID format.
 
@@ -117,6 +121,9 @@ Two commands are employed when using OpenKIM IMs, one to select the
 IM and perform necessary initialization ({kim_init}), and the second
 to set up the IM for use by executing any necessary LAMMPS commands
 ({kim_interactions}). Both are required.
+
+See the {examples/kim} directory for example input scripts that use KIM Models
+and KIM SMs.
 
 OpenKIM IM Initialization ({kim_init}) :h5
 
@@ -375,11 +382,16 @@ OpenKIM to function.
 [Restrictions:]
 
 The set of {kim_commands} is part of the KIM package.  It is only enabled if
-LAMMPS was built with that package.  Furthermore, its correct
-functioning depends on compiling LAMMPS with all required packages
-installed that are required by the commands embedded in any KIM
-SM used.
-See the "Build package"_Build_package.html doc page for more info.
+LAMMPS is built with that package. A requirement for the KIM package,
+is the KIM API library that must be downloaded from the
+"OpenKIM website"_https://openkim.org/kim-api/ and installed before
+LAMMPS is compiled. When installing LAMMPS from binary, the kim-api package
+is a dependency that is automatically downloaded and installed. See the KIM
+section of the "Packages details"_Packages_details.html for details.
+
+Furthermore, when using {kim_commands} to run KIM SMs, any packages required
+by the native potential being used or other commands or fixes that it invokes
+must be installed.
 
 [Related commands:]
 

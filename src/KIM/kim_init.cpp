@@ -79,10 +79,6 @@ extern "C" {
 #include "KIM_SimulatorModel.hpp"
 //@@@@@
 
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -187,14 +183,11 @@ void KimInit::determine_model_type_and_units(char * model_name,
     model_type = MO;
     KIM_Model_Destroy(&kim_MO);
 
-    if (units_accepted)
-    {
+    if (units_accepted) {
       int len=strlen(user_units);
       *model_units = new char[len]; strcpy(*model_units,user_units);
       return;
-    }
-    else if (unit_conversion_mode)
-    {
+    } else if (unit_conversion_mode) {
       int const num_systems = 5;
       char const * const systems[num_systems]
           = {"metal", "real", "si", "cgs", "electron"};

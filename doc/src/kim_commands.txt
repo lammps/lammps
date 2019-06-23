@@ -71,7 +71,7 @@ Types of KIM IMs :h4
 
 There are two types of IMs archived in OpenKIM:
 
-The first type is called a {KIM Model}. A KIM Model is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran, Python), which conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/). A KIM Model will work seamlessly with any simulation code that support the KIM API (including LAMMPS; see "complete list of supported code"_https://openkim.org/projects-using-kim/).
+The first type is called a {KIM Model}. A KIM Model is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran), which conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/). A KIM Model will work seamlessly with any simulation code that supports the KIM API (including LAMMPS; see "complete list of supported code"_https://openkim.org/projects-using-kim/).
 The second type is called a {KIM Simulator Model} (SM). In this case, the IM is implemented natively within the simulation code ({simulator}), i.e. LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS. :ol
 
 With these two IM types, OpenKIM can archive and test almost all IMs that
@@ -212,13 +212,13 @@ The second and final step in using an OpenKIM IM is to execute the
 {kim_interactions} command. This command must be preceded by a {kim_init}
 command and a "create_box"_create_box.html command,
 which defines the number of atom types {N}.
-The {kim_interaction} command has one argument {typeargs}. This argument
+The {kim_interactions} command has one argument {typeargs}. This argument
 contains a list of {N} chemical species, which defines a mapping between
 atom types in LAMMPS to the available species in the OpenKIM IM.
 
 For example, consider an OpenKIM IM that supports Si and C species.
 If the LAMMPS simulation has four atom types, where the first three are Si,
-and the fourth is C, the following {kim_interaction} command would be used:
+and the fourth is C, the following {kim_interactions} command would be used:
 
 kim_interactions Si Si Si C
 :pre
@@ -376,4 +376,3 @@ doi: "https://doi.org/10.1007/s11837-011-0102-6"_https://doi.org/10.1007/s11837-
 :link(kim-api)
 [(Elliott)] Elliott, Tadmor and Bernstein, "https://openkim.org/kim-api"_https://openkim.org/kim-api (2011)
 doi: "https://doi.org/10.25950/FF8F563A"_https://doi.org/10.25950/FF8F563A
-

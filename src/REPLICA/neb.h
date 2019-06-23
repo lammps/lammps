@@ -47,7 +47,7 @@ class NEB : protected Pointers {
   double ftol;                 // force tolerance convergence criterion
   int n1steps, n2steps;        // number of steps in stage 1 and 2
   int nevery;                  // output interval
-  char *infile;                // name of file containing final state
+  char *inpfile;                // name of file containing final state
 
   class FixNEB *fneb;
   int numall;                  // per-replica dimension of array all

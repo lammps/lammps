@@ -6,7 +6,7 @@
 
 :line
 
-pair_style CAC/buck command :h3
+pair_style cac/buck command :h3
 
 [Syntax:]
 
@@ -35,7 +35,7 @@ The {cac/buck} style computes a computes pair forces using the Buckingham
 potential for a CAC model. Other than the allotment of the {one} keyword,
 the rest of the input parameters and pair_coeff settings are as found in
 "pair_style buck"_pair_buck.html. For more information on the quadrature
-scheme and the effect of the {one} keyword see "Howto CAC"_Howto_CAC.html 
+scheme and the effect of the {one} keyword see "Howto CAC"_Howto_cac.html 
 for the details.
 
 NOTE: CAC Pair Styles do not currently support being substyles of pair_style

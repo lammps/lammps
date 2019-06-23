@@ -1103,29 +1103,29 @@ The Journal of Chemical Physics 130, 134706, (2009).
 
 src/USER-CAC: filenames -> commands
 /src/USER-CAC/README
-"Howto_CAC"_Howto_CAC.html
+"Howto_CAC"_Howto_cac.html
 "atom_style cac"_atom_style.html
 "comm_style cac"_comm_style.html
-"pair_style cac/lj"_pair_CAC_lj.html
-"pair_style cac/coul/wolf"_pair_CAC_coul_wolf.html
-"pair_style cac/buck"_pair_CAC_buck.html
-"pair_style cac/sw"_pair_CAC_sw.html
-"pair_style cac/eam"_pair_CAC_eam.html 
+"pair_style cac/lj"_pair_cac_lj.html
+"pair_style cac/coul/wolf"_pair_cac_coul_wolf.html
+"pair_style cac/buck"_pair_cac_buck.html
+"pair_style cac/sw"_pair_cac_sw.html
+"pair_style cac/eam"_pair_cac_eam.html 
 "min_style cac/cg"_min_style.html
 "min_style cac/fire"_min_style.html
-"fix cac/nve"_fix_CAC_nve.html
-"fix cac/viscous"_fix_CAC_viscous.html
-"fix cac/setvelocity"_fix_CAC_setvelocity.html
-"fix cac/setforce"_fix_CAC_setforce.html
-"fix cac/addforce"_fix_CAC_addforce.html
-"fix cac/temp/rescale"_fix_CAC_temp_rescale.html
-"compute cac/quad_count"_compute_CAC_quad_count.html
-"compute cac/nodal_temp"_compute_CAC_nodal_temp.html
-"dump cac/nodal_positions"_dump_CAC_nodal_positions.html
-"dump cac/initial_nodes"_dump_CAC_initial_nodes.html
-"dump cac/nodal_velocities"_dump_CAC_nodal_velocities.html
-"dump cac/kinetic_energy"_dump_CAC_kinetic.html
-"dump cac/xyz"_dump_CAC_xyz.html :ul
+"fix cac/nve"_fix_cac_nve.html
+"fix cac/viscous"_fix_cac_viscous.html
+"fix cac/setvelocity"_fix_cac_setvelocity.html
+"fix cac/setforce"_fix_cac_setforce.html
+"fix cac/addforce"_fix_cac_addforce.html
+"fix cac/temp/rescale"_fix_cac_temp_rescale.html
+"compute cac/quad_count"_compute_cac_quad_count.html
+"compute cac/nodal_temp"_compute_cac_nodal_temp.html
+"dump cac/nodal_positions"_dump_cac_nodal_positions.html
+"dump cac/initial_nodes"_dump_cac_initial_nodes.html
+"dump cac/nodal_velocities"_dump_cac_nodal_velocities.html
+"dump cac/kinetic_energy"_dump_cac_kinetic.html
+"dump cac/xyz"_dump_cac_xyz.html :ul
 
 Example inputs are in the examples/USER/CAC folder.
 

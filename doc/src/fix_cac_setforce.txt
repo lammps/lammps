@@ -97,6 +97,6 @@ This fix requires a CAC atom style
 
 [Related commands:]
 
-"fix cac/addforce"_fix_CAC_addforce.html
+"fix cac/addforce"_fix_cac_addforce.html
 
 [Default:] none

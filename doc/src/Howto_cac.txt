@@ -39,7 +39,7 @@ discussed in detail in later sections of this Howto.
 
 Once the typical LAMMPS settings such as units, dimension, and boundary
 conditions have been specified in your input script,the CAC code can
-first be invoked via the "atom_style CAC"_atom_style.html command; in
+first be invoked via the "atom_style cac"_atom_style.html command; in
 addition to other CAC atom substyles that require charge etc. Please
 note that CAC atom styles take two input arguments, these are described
 in the atom style's specific page of the manual and later on.
@@ -157,7 +157,7 @@ DOF the interpolation scheme of your element type requires. The internal
 DOF index denotes which internal degree of freedom this node belongs to,
 and the atom type index denotes which material this nodal degree of
 freedom is interpolating for. With other CAC atom styles, such as
-CAC/charge, the charge of the respective material for that node/DOF will
+cac/charge, the charge of the respective material for that node/DOF will
 be declared before the position of that node/DOF.  In the example above
 this is blank since there were no additional material properties to
 declare.
@@ -258,8 +258,8 @@ the typical nve integrator, are labeled cac/fix_name.
 When invoking CAC Pair styles one can declare the potential parameters
 using "pair_coeff"_pair_coeff.html just as they would for non-CAC pair
 styles of the respective potential. Examples of CAC pair styles
-currently implemented include "cac/buck"_pair_CAC_buck.html,
-"cac/eam"_pair_CAC_eam.html, and "cac/sw"_pair_CAC_sw.html.
+currently implemented include "cac/buck"_pair_cac_buck.html,
+"cac/eam"_pair_cac_eam.html, and "cac/sw"_pair_cac_sw.html.
 
 :line
 
@@ -270,7 +270,7 @@ resolutions one must invoke the "fix balance"_fix_balance.html
 command. This ensures that your simulation has the capability to
 dynamically reassign each computing task's burden according to a set of
 weights. The weights in question are provided by the compute "compute
-cac/quad/count"_compute_CAC_quad_count.html through a variable
+cac/quad/count"_compute_cac_quad_count.html through a variable
 command. For specific details of syntax, please see the example input
 scripts in /examples/USER/CAC of your LAMMPS directory or refer to the
 online documentation of fix balance and creating variables that call on
@@ -282,9 +282,9 @@ computes.
 
 Obtaining simulation output with CAC can currently be done with both
 thermodynamic data (such as the kinetic energy of the nodal information
-in your model) with "compute cac/nodal/temp"_compute_CAC_nodal_temp.html
+in your model) with "compute cac/nodal/temp"_compute_cac_nodal_temp.html
 or outputting a list of nodal information at specified times with dumps
-such as "dump cac/nodal/positions"_dump_CAC_nodal_positions.  This nodal
+such as "dump cac/nodal/positions"_dump_cac_nodal_positions.  This nodal
 information can then be converted to the user's preferred visualization
 format for software such as Paraview (which is open source) or
 Tecplot. It is worth noting that Paraview interprets many formats. The

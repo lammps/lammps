@@ -6,7 +6,7 @@
 
 :line
 
-fix CAC/nve command :h3
+fix cac/nve command :h3
 
 [Syntax:]
 

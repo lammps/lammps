@@ -43,9 +43,9 @@ be in an indeterminate order for each snapshot.
 
 [Related commands:]
 
-"dump"_dump.html, "dump cac/nodal/positions"_dump_CAC_nodal_positions.html,
-"dump cac/kinetic/energy"_dump_CAC_kinetic.html, "dump cac/xyz"_dump_CAC_xyz.html,
-"dump cac/nodal/velocities"_dump_CAC_nodal_velocities.html,
+"dump"_dump.html, "dump cac/nodal/positions"_dump_cac_nodal_positions.html,
+"dump cac/kinetic/energy"_dump_cac_kinetic.html, "dump cac/xyz"_dump_cac_xyz.html,
+"dump cac/nodal/velocities"_dump_cac_nodal_velocities.html,
 "dump_modify"_dump_modify.html, "undump"_undump.html
 
 

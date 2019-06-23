@@ -13,7 +13,7 @@ fix cac/addforce command :h3
 fix ID group-ID cac/addforce fx fy fz keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-CAC/addforce = style name of this fix command :l
+cac/addforce = style name of this fix command :l
 fx,fy,fz = force component values :l
 any of fx,fy,fz can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
@@ -87,7 +87,7 @@ the "run"_run.html command.
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command, but you cannot set
 forces to any value besides zero when performing a minimization.  Use
-the "fix addforce"_fix_addforce.html command if you want to apply a
+the "fix cac/addforce"_fix_cac_addforce.html command if you want to apply a
 non-zero force to atoms during a minimization.
 
 [Restrictions:] 
@@ -96,6 +96,6 @@ This fix requires a CAC atom style
 
 [Related commands:]
 
-"fix cac/addforce"_fix_CAC_addforce.html
+"fix cac/addforce"_fix_cac_addforce.html
 
 [Default:] none

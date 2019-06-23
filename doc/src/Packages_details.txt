@@ -338,27 +338,37 @@ KIM package :link(PKG-KIM),h4
 
 [Contents:]
 
-A "pair_style kim"_pair_kim.html command which is a wrapper on the
-Knowledge Base for Interatomic Models (KIM) repository of interatomic
-potentials, enabling any of them to be used in LAMMPS simulations.
-Also a "kim_query"_kim_commands.html command, which allows to query
-the OpenKIM database for stored properties, and the commands
-"kim_init and kim_interactions"_kim_commands.html, which serve as
-front end to generating LAMMPS input on-the-fly for KIM simulator
-models and native KIM models.
+This package contains a set of commands that serve as a wrapper on the
+"Open Knowledgebase of Interatomic Models (OpenKIM)"_https://openkim.org
+repository of interatomic models (IMs)
+enabling compatible ones to be used in LAMMPS simulations.
+This includes "kim_init and kim_interactions"_kim_commands.html
+commands to select, initialize and instantiate the IM, and a
+"kim_query"_kim_commands.html command to perform web queries
+for material property predictions of OpenKIM IMs.
+Support for KIM IMs that conform to the
+"KIM Application Programming Interface (API)"_https://openkim.org/kim-api/
+is provided by the "pair_style kim"_pair_kim.html command.
 
-To use this package you must have the KIM library available on your
-system.
+NOTE: The command {pair_style kim} is called by {kim_interactions} and
+is not recommended to be directly used in input scripts.
+
+To use this package you must have the KIM API library available on your
+system. The KIM API is available for download on the
+"OpenKIM website"_https://openkim.org/kim-api/.
+When installing LAMMPS from binary, the kim-api package
+is a dependency that is automatically downloaded and installed.
 
 Information about the KIM project can be found at its website:
-https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
-Elliott (U Minnesota).
+"https://openkim.org"_https://openkim.org.
+The KIM project is led by Ellad Tadmor and Ryan Elliott (U Minnesota)
+and is funded by the "National Science Foundation"_https://www.nsf.gov/.
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
-API which the "pair_style kim"_pair_kim.html command uses.  He developed
-the pair style.  Axel Kohlmeyer (Temple U) contributed the
-"kim_query"_kim_commands.html and "kim_init"_kim_commands.html commands
-in close collaboration with Ryan.
+API and the {pair_style kim} command. Axel Kohlmeyer (Temple U) and
+Ellad Tadmor (U Minnesota) contributed to the "kim_commands"_kim_commands.html
+interface in close collaboration with Ryan Elliott.
+
 
 [Install:]
 
@@ -368,10 +378,11 @@ extras"_Build_extras.html doc page.
 
 [Supporting info:]
 
+"kim_commands"_kim_commands.html
+"pair_style kim"_pair_kim.html
 src/KIM: filenames -> commands
 src/KIM/README
 lib/kim/README
-"pair_style kim"_pair_kim.html
 examples/kim :ul
 
 :line
@@ -987,9 +998,9 @@ USER-ADIOS package :link(PKG-USER-ADIOS),h4
 
 [Contents:]
 
-ADIOS is a high-performance I/O library. This package implements the 
+ADIOS is a high-performance I/O library. This package implements the
 dump "atom/adios" and dump "custom/adios" commands to write data using
-the ADIOS library. 
+the ADIOS library.
 
 [Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
 

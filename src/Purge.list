@@ -3,6 +3,7 @@ style_angle.h
 style_atom.h
 style_body.h
 style_bond.h
+style_comm.h
 style_command.h
 style_compute.h
 style_dihedral.h
@@ -27,6 +28,7 @@ packages_angle.h
 packages_atom.h
 packages_body.h
 packages_bond.h
+packages_comm.h
 packages_command.h
 packages_compute.h
 packages_dihedral.h

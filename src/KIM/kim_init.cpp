@@ -246,12 +246,11 @@ void KimInit::determine_model_type_and_units(char * model_name,
   }
   KIM::SimulatorModel::Destroy(&kim_SM);
 
-  if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0))
-  {
-    std::stringstream mesg;
-    mesg << "Incompatible units for KIM Simulator Model, required units = "
-         << *model_units;
-    error->all(FLERR,mesg.str().c_str());
+  if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
+    std::string mesg("Incompatible units for KIM Simulator Model, "
+                    "required units = ");
+    mesg += *model_units;
+    error->all(FLERR,mesg.c_str());
   }
 }
 

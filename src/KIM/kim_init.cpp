@@ -363,8 +363,8 @@ void KimInit::kim_init_log_delimiter(std::string const begin_end) const
       mesg =
           "#=== END kim-init ============================================\n\n";
 
-    if (screen) fputs(mesg.c_str(),screen);
-    if (logfile) fputs(mesg.c_str(),logfile);
+    if ((screen) && (input->echo_screen)) fputs(mesg.c_str(),screen);
+    if ((logfile) && (input->echo_log)) fputs(mesg.c_str(),logfile);
   }
 }
 
@@ -411,8 +411,8 @@ void KimInit::do_variables(char *user_units, char *model_units)
     mesg += " to ";
     mesg += to;
     mesg += ":\n";
-    if (screen) fputs(mesg.c_str(),screen);
-    if (logfile) fputs(mesg.c_str(),logfile);
+    if ((screen) && (input->echo_screen)) fputs(mesg.c_str(),screen);
+    if ((logfile) && (input->echo_log)) fputs(mesg.c_str(),logfile);
   }
 
   for (int i = 0; i < nunits; i++) {
@@ -441,12 +441,12 @@ void KimInit::do_variables(char *user_units, char *model_units)
            << " internal "
            << std::setprecision(12) << std::scientific << conversion_factor
            << std::endl;
-      if (screen) fputs(mesg.str().c_str(),screen);
-      if (logfile) fputs(mesg.str().c_str(),logfile);
+      if ((screen) && (input->echo_screen)) fputs(mesg.str().c_str(),screen);
+      if ((logfile) && (input->echo_log)) fputs(mesg.str().c_str(),logfile);
     }
   }
   if (comm->me == 0) {
-    if (screen) fputs("#\n",screen);
-    if (logfile) fputs("#\n",logfile);
+    if ((screen) && (input->echo_screen)) fputs("#\n",screen);
+    if ((logfile) && (input->echo_log)) fputs("#\n",logfile);
   }
 }

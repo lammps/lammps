@@ -109,8 +109,8 @@ void KimInteractions::kim_interactions_log_delimiter(
       mesg =
           "#=== END kim_interactions ====================================\n\n";
 
-    if (screen) fputs(mesg.c_str(),screen);
-    if (logfile) fputs(mesg.c_str(),logfile);
+    if ((screen) && (input->echo_screen)) fputs(mesg.c_str(),screen);
+    if ((logfile) && (input->echo_log)) fputs(mesg.c_str(),logfile);
   }
 }
 

@@ -570,6 +570,7 @@ Dihedrals
 dihydride
 Dij
 dimdim
+dimensioned
 dimensionality
 dimgray
 dipolar
@@ -599,6 +600,7 @@ Dobson
 Dodds
 dodgerblue
 dof
+doi
 Donadio
 dotc
 Doty
@@ -749,6 +751,7 @@ equilibrating
 equilibration
 Equilibria
 equilization
+Ercolessi
 eradius
 erate
 erc
@@ -2243,6 +2246,7 @@ quati
 quatj
 quatk
 quatw
+queryargs
 Queteschiner
 qw
 qx

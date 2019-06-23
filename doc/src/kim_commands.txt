@@ -10,24 +10,234 @@ kim_commands :h3
 
 [Syntax:]
 
-kim_init model user_units :pre
-kim_interactions typeargs :pre
+kim_init model user_units unitarg
+kim_interactions typeargs
+kim_query variable query_function web_query_flags :pre
 
-mode = {init model} or {define typeargs} or no mode chosen
-model = name of the KIM model (KIM potential or KIM simulator model)
+model = designation of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
+user_units = the LAMMPS "units"_units.html style assumed in the user input script
+unitarg = {unit_conversion_mode} (optional)
 typeargs = atom type to species mapping (one entry per atom type)
-args = {unit_variables unit_style} or {unit_from unit_style} (optional):ul
+variable = name of a (string style) variable where the result of the query is stored
+query_function = name of the OpenKIM web API query function to be used
+web_query_flags = a series of keyword=value pairs that represent the web query; supported keywords depend on query function :ul
+
 
 [Examples:]
 
-kim_style init ex_sim_model_Si_mod_tersoff unit_variables metal
-kim_style define Si Si
-kim_style unit_variables real
-kim_style init LennardJones_Ar unit_variables metal
-kim_style unit_variables real unit_from metal
-kim_style define Ar :pre
+kim_init SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
+kim_interactions Si
+kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
+kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 metal unit_conversion_mode
+kim_interactions C H O
+kim_query NEED EXAMPLES :pre
 
 [Description:]
+
+The "Open Knowledgebase for Interatomic Models (OpenKIM)"_https://openkim.org
+archives interatomic models (IMs) (potentials and force fields) in a format
+that can be directly used with LAMMPS using the commands documented on this
+page.
+
+Benefits of Using OpenKIM IMs :h4
+
+Employing OpenKIM IMs provides LAMMPS users with multiple benefits:
+
+Reliability :h5
+
+All content archived in OpenKIM is subject to quality control by the "KIM Editor"_https://openkim.org/governance/.
+IMs in OpenKIM are archived with full provenance control. Each is associated with a maintainer responsible for the integrity of the content. All changes are tracked and recorded.
+IMs in OpenKIM are exhaustively tested using "KIM Tests"_https://openkim.org/getting-started/kim-tests/ that compute a host of material properties, and "KIM Verification Checks"_https://openkim.org/about-verification-checks/ that provide the user with information on various aspects of the IM behavior and coding correctness. This information is displayed on the IM's page on "OpenKIM"_https://openkim.org. :ul
+
+Reproducibility :h5
+
+Each IM in OpenKIM is issued a unique identifier ("KIM ID"_https://openkim.org/about-kim-ids/), which includes a version number (last three digits).  Any changes that can result in different numerical values lead to a version increment in the KIM ID. This makes it possible to reproduce simulations since the specific version of a specific IM used can be retrieved using its KIM ID.
+OpenKIM is a member organization of "DataCite"_https://datacite.org/ and issues digitial object identifiers (DOIs) to all IMs archived in OpenKIM. This makes it possible to cite the IM code used in a simulation in a publications to give credit to the developers and further facilitate reproducibility. :ul
+
+Convenience :h5
+
+IMs in OpenKIM are distributed in binary form along with LAMMPS and can be used in a LAMMPS input script simply by providing their KIM ID in the {kim_init} command documented on this page. (For more on using KIM with LAMMPS, see the KIM section of the "Packages details"_Packages_details.html doc page.)
+The {kim_query} web query tool provides the ability to use the predictions of IMs for supported material properties (computed via "KIM Tests"https://openkim.org/getting-started/kim-tests/) as part of a LAMMPS input script setup and analysis.
+Support is provided for unit conversion between the "units"_units.html system used in the LAMMPS input script and the OpenKIM IM. This makes it possible to use a single input script with IMs using different units without change and minimizes the liklihood of errors due to incompatible units.  :ul
+
+Types of KIM IMs :h4
+
+There are two types of IMs archived in OpenKIM:
+
+The first type is called a {KIM Model}. A KIM Model is an independent computer implemention of an IM written in one of the languages supported by KIM (C, C++, Fortran, Python), which conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/). A KIM Model will work seamlessly with any simulation code that support the KIM API (including LAMMPS; see "complete list of supported code"_https://openkim.org/projects-using-kim/).
+The second type is called a {KIM Simulator Model} (SM). In this case, the IM is implemented natively within the simulation code ({simulator}), i.e. LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS. :ol
+
+With these two IM tpes, OpenKIM can archive and test almost all IMs that
+can be used by LAMMPS. (It is easy to contribute new IMs to OpenKIM, see
+the "upload instructions"_https://openkim.org/getting-started/adding-content/.)
+
+OpenKIM IMs are uniquely identified by a
+"KIM ID"_https://openkim.org/about-kim-ids/. The extended KIM ID consists of
+a human-readable prefix identifying the type of IM, authors, publication year,
+and supported species, separated by two underscores from the KIM ID itself,
+which begins with an IM code
+({MO} for a KIM Model, and {SM} for a KIM Simulator Model)
+followed by a unique 12-digit code and a 3-digit version identifier.
+By convension SM prefixes begin with {SM} to readily identify them.
+
+SW_StillingerWeber_1985_Si__MO_405512056662_005
+Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 :pre
+
+NOTE: It is also possible to locally install IMs not archived in OpenKIM,
+in which case their designation does not have to conform to the KIM ID format.
+
+Using OpenKIM IMs with LAMMPS :h4
+
+Two commands are employed when using OpenKIM IMs, one to select the
+IM and perform necessary initializations ({kim_init}), and the second
+to set up the IM for use by executing any necessary LAMMPS commands
+({kim_interactions}).
+
+OpenKIM IM Initialization :h5
+
+The kim_init command must be located at the top of the input script
+before any other commands. Input scripts containing a kim_init command
+shoud {not} include a "units"_units.html command or an
+"atom_style"_atom_style.html command. These are set by the kim_init
+command based on its arguments.
+
+The required arguments of kim_init are the {model} designation of the
+IM to be used in the simulation (for an IM archived in OpenKIM this is
+its "extended KIM ID"_https://openkim.org/about-kim-ids/), and
+the {user_units}, which are the LAMMPS "units"_units.html system used
+in the input script.  (Any numerical values in the input script and values
+read in from files are expected to be in the {user_units} system.)
+
+Based on the selected model kim_init may modify "atom_style"_atom_style.html.
+Some SMs have requirements for this variable. If this is the case, then
+atom_style will be set to the required style. Otherwise, the value is left
+unchanged (which in the absence of an atom_style command in the input script
+is the default LAMMPS value).
+
+Regarding units, the kim_init command behaves in different ways depending
+on whether or not "unit conversion mode" is activated as indicated by the
+optional {unitarg} argument.
+If unit conversion mode is {not} active, then {user_units} must
+either match the required units of the IM or the IM must be able
+to adjust its units to match. (The latter is only possible with some KIM Models;
+SMs can never adjust their units.) If a match is possible, the LAMMPS
+"units"_units.html command is called to set the units to
+{user_units}. If the match fails, the simulation is terminated with
+an error.
+
+If unit conversion mode {is} active, then the LAMMPS "units"_units.html
+command is called to set the units to the IM's required or preferred units.
+Conversion factors between the IM's units and the {user_units} are
+defined for all "physical quantities"_units.html (mass, distance, etc.).
+These factors are stored as internal "variables"_variable.html with
+standard names:
+
+_u_mass
+_u_distance
+_u_time
+_u_energy
+_u_velocity
+_u_force
+_u_torque
+_u_temperature
+_u_pressure
+_u_viscosity
+_u_charge
+_u_dipole
+_u_efield
+_u_density :pre
+
+If desired, the input script can be designed to work with these conversion
+factors so that the script will work without change with any OpenKIM IM.
+(This approach is used in the
+"OpenKIM Testing Framework"_https://openkim.org/getting-started/kim-tests/.)
+For example, the following simple script constructs an fcc lattice with
+a lattice parameter defined in meters, computes the total energy,
+and prints the cohesive energy in Joules regardless of the units of the IM.
+
+kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 si unit_conversion_mode
+boundary         p p p
+lattice          fcc 4.032e-10*$\{_u_distance\}
+region           simbox block 0 1 0 1 0 1 units lattice
+create_box       1 simbox
+create_atoms     1 box
+mass             1 4.480134e-26*$\{_u_mass\}
+kim_interactions Al
+run              0
+variable         Ec_in_J equal (pe/count(all))/$\{_u_energy\}
+print            "Cohesive Energy = $\{Ec_in_J\} J" :pre
+
+Note the multiplication by $\{_u_distance\} and $\{_u_mass\} to convert
+from SI units (specified in the kim_init command) to whatever units the
+IM uses (metal in this case), and the division by $\{_u_energy\}
+to convert from the IM's energy units to SI units (Joule). This script
+will work correctly for any IM for Al (KIM Model or SM) selected by the
+kim_init command.
+
+Care must be taken to apply unit conversion to dimensional variables read in
+from a file. For example if a configuration of atoms is read in from a
+dump file using the "read_dump"_read_dump.html command, the following can
+be done to convert the box and all atomic positions to the correct units:
+
+change_box all x scale $\{_u_distance\} y scale $\{_u_distance\} z scale $\{_u_distance\} remap  :pre
+
+NOTE: Unit conversion will only work if the conversion factors are placed in
+all appropriate places in the input script. It is up to the user to do this
+correctly.
+
+OpenKIM IM Execution :h5
+
+The second and final step in using an OpenKIM IM is to execute the
+kim_interaction command. This command must be preceded by a kim_init
+command and must follow the "create_box"_create_box.html command,
+which defines the number of atom types {N}.
+The kim_interaction command has one argument {typeargs}, which contains
+a list of {N} chemical species that are mapped to the atom types.
+
+For example, imagine the OpenKIM IM supports Si and C species.
+If the LAMMPS simulation has 4 atom types and you want the first three to be Si,
+and the fourth to be C, you would use the following kim_interaction command:
+
+kim_interaction Si Si Si C :pre
+
+The kim_interaction command performs all the necessary steps to set up
+the OpenKIM IM set in the kim_init command. The specific actions depend
+on whether the IM is a KIM Model or a KIM SM.  For a KIM Model,
+a "pair_style kim"_pair_kim.html command will be executed followed by
+the appropriate pair_coeff command.
+
+For a KIM SM, the set of commands defined in the SM speficiation file
+will be executed. For example, consider the ReaxFF SM due to
+Strachan et al. (2003) executed by the following commands:
+
+kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
+...
+...  box specification lines skipped
+...
+kim_interactions C H N O  :pre
+
+The kim_interactions command executes the following commands defined for this
+SM:
+
+pair_style reax/c lmp_control safezone 2.0 mincap 100
+pair_coeff * * ffield.reax.rdx C H N O
+fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq  :pre
+
+Note that the files lmp_control, ffield.reax.rdx and param.qeq are specific
+to Strachan et al. (2003) ReaxFF parameterization and are archived as part
+of the SM package in OpenKIM. Note also that parameters like cutoff radii
+and charge tolerances that have an effect on IM predictions are also
+included in the SM definition ensuring reproducibility.
+
+NOTE: Clearly when using using kim_init and kim_interactions to select
+and set up an OpenKIM IM, other LAMMPS commands
+for the same functions (such as pair_style, pair_coeff, bond_style,
+bond_coeff, fixes related to charge equilibration, etc.) should not
+appear in the input script.
+
+Using OpenKIM Web Queries in LAMMPS :h4
+
+@@@@@@@@@
 
 The kim_style command is a high-level wrapper around the
 "Knowledge Base for Interatomic Models (OpenKIM)"_https://openkim.org

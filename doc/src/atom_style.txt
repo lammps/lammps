@@ -24,7 +24,7 @@ style = {angle} or {atomic} or {body} or {bond} or {cac} or {charge} or {dipole}
     {cac} args = max_nodes_per_element max_iDOF_per_element
       max_nodes_per_element = maximum # of nodes an element in the model can have
       max_iDOF_per_element = maximum # of internal DOF an element in the model can have
-                    see the "Howto CAC"_Howto_CAC.html doc page for details and other CAC substyles
+                    see the "Howto CAC"_Howto_cac.html doc page for details and other CAC substyles
     {tdpd} arg = Nspecies
       Nspecies = # of chemical species
     {template} arg = template-ID
@@ -244,7 +244,7 @@ arguments are described on the "Howto body"_Howto_body.html doc page.
 For the {cac} style, the system may be composed of unconnected finite
 elements and atoms in an unconnected mesh. The finite elements carry
 several nodal properties such as position, velocity, and force. See
-the "Howto CAC"_Howto_CAC.html doc page for the list of all CAC
+the "Howto CAC"_Howto_cac.html doc page for the list of all CAC
 atom styles available and the details of use.
 
 :line

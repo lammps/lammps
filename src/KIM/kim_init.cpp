@@ -246,7 +246,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
 
     if (*sim_field == "units") {
       kim_SM->GetSimulatorFieldLine(i,0,&sim_value);
-      int len=(*sim_value).length();
+      int len=(*sim_value).length()+1;
       *model_units = new char[len]; strcpy(*model_units,sim_value->c_str());
       break;
     }
@@ -414,15 +414,16 @@ void KimInit::do_variables(char *user_units, char *model_units)
                          (char *)"density"};
 
   if (comm->me == 0) {
-    std::stringstream mesg;
-    mesg << "# Conversion factors from " << from << " to " << to
-         << ":" << std::endl;
-    if (screen) fputs(mesg.str().c_str(),screen);
-    if (logfile) fputs(mesg.str().c_str(),logfile);
+    std::string mesg("# Conversion factors from ");
+    mesg += from;
+    mesg += " to ";
+    mesg += to;
+    mesg += ":\n";
+    if (screen) fputs(mesg.c_str(),screen);
+    if (logfile) fputs(mesg.c_str(),logfile);
   }
 
-  for (int i = 0; i < nunits; i++)
-  {
+  for (int i = 0; i < nunits; i++) {
     var_str = std::string("_u_") + std::string(units[i]);
     args[0] = (char *)var_str.c_str();
     v_unit = variable->find(args[0]);

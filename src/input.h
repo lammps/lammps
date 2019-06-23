@@ -46,7 +46,6 @@ class Input : protected Pointers {
   char *command;               // ptr to current command
   int echo_screen;             // 0 = no, 1 = yes
   int echo_log;                // 0 = no, 1 = yes
-  int eof_return;              // if 1: at EOF return from parsing in file()
 
  private:
   int me;                      // proc ID

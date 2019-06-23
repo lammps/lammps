@@ -77,7 +77,6 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 
   echo_screen = 0;
   echo_log = 1;
-  eof_return = 0;
 
   label_active = 0;
   labelstr = NULL;
@@ -206,18 +205,7 @@ void Input::file()
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n == 0) {
       if (label_active) error->all(FLERR,"Label wasn't found in input script");
-      if (eof_return) break;
-      if (me == 0) {
-        if (infile != stdin) {
-          fclose(infile);
-          infile = NULL;
-        }
-        nfile--;
-      }
-      MPI_Bcast(&nfile,1,MPI_INT,0,world);
-      if (nfile == 0) break;
-      if (me == 0) infile = infiles[nfile-1];
-      continue;
+      break;
     }
 
     if (n > maxline) reallocate(line,maxline,n);
@@ -1053,9 +1041,8 @@ void Input::include()
       error->one(FLERR,str);
     }
     infiles[nfile++] = infile;
-    eof_return = 1;
     file();
-    eof_return = 0;
+    fclose(infile);
     nfile--;
     infile = infiles[nfile-1];
   }

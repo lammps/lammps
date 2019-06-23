@@ -54,7 +54,7 @@ commands.  The decomposition can be changed via the
 
 The cac style inherits the features and restrictions of comm style tiled. This
 style is utilized with the USER-CAC package. For more information
-about the USER-CAC package see "Howto CAC"_Howto_CAC.html for details.
+about the USER-CAC package see "Howto CAC"_Howto_cac.html for details.
 
 [Restrictions:]
 

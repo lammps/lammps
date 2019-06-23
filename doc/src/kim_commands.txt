@@ -12,15 +12,15 @@ kim_commands :h3
 
 kim_init model user_units unitarg
 kim_interactions typeargs
-kim_query variable query_function web_query_flags :pre
+kim_query variable query_function queryargs :pre
 
-model = designation of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
-user_units = the LAMMPS "units"_units.html style assumed in the user input script
+model = name of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
+user_units = the LAMMPS "units"_units.html style assumed in the LAMMPS input script
 unitarg = {unit_conversion_mode} (optional)
 typeargs = atom type to species mapping (one entry per atom type)
 variable = name of a (string style) variable where the result of the query is stored
 query_function = name of the OpenKIM web API query function to be used
-web_query_flags = a series of keyword=value pairs that represent the web query; supported keywords depend on query function :ul
+queryargs = a series of {keyword=value} pairs that represent the web query; supported keywords depend on the query function :ul
 
 
 [Examples:]
@@ -30,15 +30,20 @@ kim_interactions Si
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 metal unit_conversion_mode
 kim_interactions C H O
-kim_query latconst get_test_result test=TE_156715955670 model=MO_800509458712 &
-  prop=structure-cubic-crystal-npt species=\["Al"\] keys=\["a"\] units=\["angstrom"\] :pre
+kim_query a0 get_lattice_constant_fcc units=\["angstrom"\] :pre
+
 
 [Description:]
 
-The "Open Knowledgebase for Interatomic Models (OpenKIM)"_https://openkim.org
-archives interatomic models (IMs) (potentials and force fields) in a format
-that can be directly used with LAMMPS using the commands documented on this
-page.
+The set of {kim_commands} provide a high-level wrapper around the
+"Open Knowledgebase of Interatomic Models (OpenKIM)"_https://openkim.org
+repository of interatomic models (IMs) (potentials and force fields),
+so that they can be used by LAMMPS scripts.  These commands do not implement
+any computations directly, but rather generate LAMMPS input commands based
+on the information retrieved from the OpenKIM repository to initialize and
+activate OpenKIM IMs and query their predictions for use in the LAMMPS script.
+All LAMMPS input commands executed by {kim_commands} are echoed to the
+LAMMPS log file.
 
 Benefits of Using OpenKIM IMs :h4
 
@@ -57,10 +62,11 @@ OpenKIM is a member organization of "DataCite"_https://datacite.org/ and issues 
 
 Convenience :h5
 
-IMs in OpenKIM are distributed in binary form along with LAMMPS and can be used in a LAMMPS input script simply by providing their KIM ID in the {kim_init} command documented on this page. (For more on using KIM with LAMMPS, see the KIM section of the "Packages details"_Packages_details.html doc page.)
+IMs in OpenKIM are distributed in binary form along with LAMMPS and can be used in a LAMMPS input script simply by providing their KIM ID in the {kim_init} command documented on this page.
 The {kim_query} web query tool provides the ability to use the predictions of IMs for supported material properties (computed via "KIM Tests"https://openkim.org/getting-started/kim-tests/) as part of a LAMMPS input script setup and analysis.
-Support is provided for unit conversion between the "units"_units.html system used in the LAMMPS input script and the OpenKIM IM. This makes it possible to use a single input script with IMs using different units without change and minimizes the likelihood of errors due to incompatible units.  :ul
+Support is provided for unit conversion between the "unit style"_units.html used in the LAMMPS input script and the units required by the OpenKIM IM. This makes it possible to use a single input script with IMs using different units without change and minimizes the likelihood of errors due to incompatible units.  :ul
 
+:link(IM_types)
 Types of KIM IMs :h4
 
 There are two types of IMs archived in OpenKIM:
@@ -79,46 +85,59 @@ and supported species, separated by two underscores from the KIM ID itself,
 which begins with an IM code
 ({MO} for a KIM Model, and {SM} for a KIM Simulator Model)
 followed by a unique 12-digit code and a 3-digit version identifier.
-By convention SM prefixes begin with {SM} to readily identify them.
+By convention SM prefixes begin with {Sim_} to readily identify them.
 
 SW_StillingerWeber_1985_Si__MO_405512056662_005
 Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 :pre
 
 NOTE: It is also possible to locally install IMs not archived in OpenKIM,
-in which case their designation does not have to conform to the KIM ID format.
+in which case their names do not have to conform to the KIM ID format.
 
 Using OpenKIM IMs with LAMMPS :h4
 
 Two commands are employed when using OpenKIM IMs, one to select the
 IM and perform necessary initialization ({kim_init}), and the second
 to set up the IM for use by executing any necessary LAMMPS commands
-({kim_interactions}).
+({kim_interactions}). Both are required.
 
-OpenKIM IM Initialization :h5
+OpenKIM IM Initialization ({kim_init}) :h5
 
-The kim_init command must be located at the top of the input script
-before any other commands. Input scripts containing a kim_init command
-should {not} include a "units"_units.html command or an
-"atom_style"_atom_style.html command. These are set by the kim_init
-command based on its arguments.
+The {kim_init} mode command must be issued [before]
+the simulation box is created (normally at the top of the file).
+This command sets the OpenKIM IM that will be used and may issue
+additional commands changing LAMMPS default settings that are required
+for using the selected IM (such as "units"_units.html or
+"atom_style"_atom_style.html). If needed, those settings can be overridden,
+however, typically a script containing a {kim_init} command
+would not include {units} and {atom_style} commands.
 
-The required arguments of kim_init are the {model} designation of the
+The required arguments of {kim_init} are the {model} name of the
 IM to be used in the simulation (for an IM archived in OpenKIM this is
 its "extended KIM ID"_https://openkim.org/about-kim-ids/), and
-the {user_units}, which are the LAMMPS "units"_units.html system used
-in the input script.  (Any numerical values in the input script and values
-read in from files are expected to be in the {user_units} system.)
+the {user_units}, which are the LAMMPS "units style"_units.html used
+in the input script.  (Any dimensioned numerical values in the input
+script and values read in from files are expected to be in the
+{user_units} system.)
 
-Based on the selected model kim_init may modify "atom_style"_atom_style.html.
+The selected IM can be either a "KIM Model or a KIM SM"_#IM_types.
+For a KIM SM, the {kim_init} command verifies that the SM is designed
+to work with LAMMPS (and not another simulation code).
+In addition, the version strings for the LAMMPS version used for defining
+the SM and the LAMMPS version being currently run are
+printed, to help diagnose any incompatible changes to input script or
+command syntax between the two LAMMPS versions.
+
+Based on the selected model {kim_init} may modify the
+"atom_style"_atom_style.html.
 Some SMs have requirements for this variable. If this is the case, then
-atom_style will be set to the required style. Otherwise, the value is left
-unchanged (which in the absence of an atom_style command in the input script
-is the default LAMMPS value).
+{atom_style} will be set to the required style. Otherwise, the value is left
+unchanged (which in the absence of an {atom_style} command in the input script
+is the "default atom_style value"_atom_style.html).
 
-Regarding units, the kim_init command behaves in different ways depending
-on whether or not "unit conversion mode" is activated as indicated by the
+Regarding units, the {kim_init} command behaves in different ways depending
+on whether or not {unit conversion mode} is activated as indicated by the
 optional {unitarg} argument.
-If unit conversion mode is {not} active, then {user_units} must
+If unit conversion mode is [not] active, then {user_units} must
 either match the required units of the IM or the IM must be able
 to adjust its units to match. (The latter is only possible with some KIM Models;
 SMs can never adjust their units.) If a match is possible, the LAMMPS
@@ -130,7 +149,8 @@ If unit conversion mode {is} active, then the LAMMPS "units"_units.html
 command is called to set the units to the IM's required or preferred units.
 Conversion factors between the IM's units and the {user_units} are
 defined for all "physical quantities"_units.html (mass, distance, etc.).
-These factors are stored as internal "variables"_variable.html with
+(Note that converting to or from the "lj" unit style is not supported.)
+These factors are stored as "internal style variables"_variable.html with
 standard names:
 
 _u_mass
@@ -169,11 +189,11 @@ variable         Ec_in_J equal (pe/count(all))/$\{_u_energy\}
 print            "Cohesive Energy = $\{Ec_in_J\} J" :pre
 
 Note the multiplication by $\{_u_distance\} and $\{_u_mass\} to convert
-from SI units (specified in the kim_init command) to whatever units the
+from SI units (specified in the {kim_init} command) to whatever units the
 IM uses (metal in this case), and the division by $\{_u_energy\}
 to convert from the IM's energy units to SI units (Joule). This script
 will work correctly for any IM for Al (KIM Model or SM) selected by the
-kim_init command.
+{kim_init} command.
 
 Care must be taken to apply unit conversion to dimensional variables read in
 from a file. For example if a configuration of atoms is read in from a
@@ -186,31 +206,48 @@ NOTE: Unit conversion will only work if the conversion factors are placed in
 all appropriate places in the input script. It is up to the user to do this
 correctly.
 
-OpenKIM IM Execution :h5
+OpenKIM IM Execution ({kim_interactions}) :h5
 
 The second and final step in using an OpenKIM IM is to execute the
-kim_interactions command. This command must be preceded by a kim_init
-command and must follow the "create_box"_create_box.html command,
+{kim_interactions} command. This command must be preceded by a {kim_init}
+command and a "create_box"_create_box.html command,
 which defines the number of atom types {N}.
-The kim_interactions command has one argument {typeargs}, which contains
-a list of {N} chemical species that are mapped to the atom types.
+The {kim_interaction} command has one argument {typeargs}. This argument
+contains a list of {N} chemical species, which defines a mapping between
+atom types in LAMMPS to the available species in the OpenKIM IM.
 
-For example, imagine the OpenKIM IM supports Si and C species.
-If the LAMMPS simulation has 4 atom types and you want the first three to be Si,
-and the fourth to be C, you would use the following kim_interactions command:
+For example, consider an OpenKIM IM that supports Si and C species.
+If the LAMMPS simulation has four atom types, where the first three are Si,
+and the fourth is C, the following {kim_interaction} command would be used:
 
 kim_interactions Si Si Si C
 :pre
 
-The kim_interactions command performs all the necessary steps to set up
-the OpenKIM IM set in the kim_init command. The specific actions depend
+The {kim_interactions} command performs all the necessary steps to set up
+the OpenKIM IM selected in the {kim_init} command. The specific actions depend
 on whether the IM is a KIM Model or a KIM SM.  For a KIM Model,
-a "pair_style kim"_pair_kim.html command will be executed followed by
-the appropriate pair_coeff command.
+a "pair_style kim"_pair_kim.html command is executed followed by
+the appropriate {pair_coeff} command. For example, for the
+Ercolessi and Adams (1994) KIM Model for Al set by the following commands:
 
-For a KIM SM, the set of commands defined in the SM specification file
-will be executed. For example, consider the ReaxFF SM due to
-Strachan et al. (2003) executed by the following commands:
+kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+...
+...  box specification lines skipped
+...
+kim_interactions Al :pre
+
+the {kim_interactions} command executes the following LAMMPS input commands:
+
+pair_style kim EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005
+pair_coeff * * Al  :pre
+
+For a KIM SM, the generated input commands may be more complex
+and require that LAMMPS is built with the required packages included
+for the type of potential being used. The set of commands to be executed
+is defined in the SM specification file, which is part of the SM package
+on "OpenKIM"_https://openkim.org.
+For example, for the Strachan et al. (2003) ReaxFF SM
+set by the following commands:
 
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
 ...
@@ -218,103 +255,125 @@ kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657
 ...
 kim_interactions C H N O  :pre
 
-The kim_interactions command executes the following commands defined for this
-SM:
+the {kim_interactions} command executes the following LAMMPS input commands:
 
 pair_style reax/c lmp_control safezone 2.0 mincap 100
 pair_coeff * * ffield.reax.rdx C H N O
 fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq  :pre
 
-Note that the files lmp_control, ffield.reax.rdx and param.qeq are specific
-to Strachan et al. (2003) ReaxFF parameterization and are archived as part
-of the SM package in OpenKIM. Note also that parameters like cutoff radii
-and charge tolerances that have an effect on IM predictions are also
-included in the SM definition ensuring reproducibility.
+Note that the files {lmp_control}, {ffield.reax.rdx} and {param.qeq}
+are specific to the Strachan et al. (2003) ReaxFF parameterization
+and are archived as part of the SM package in OpenKIM.
+Note also that parameters like cutoff radii and charge tolerances,
+which have an effect on IM predictions, are also included in the
+SM definition ensuring reproducibility.
 
-NOTE: Clearly when using using kim_init and kim_interactions to select
+NOTE: When using using {kim_init} and {kim_interactions} to select
 and set up an OpenKIM IM, other LAMMPS commands
 for the same functions (such as pair_style, pair_coeff, bond_style,
-bond_coeff, fixes related to charge equilibration, etc.) should not
-appear in the input script.
+bond_coeff, fixes related to charge equilibration, etc.) should normally
+not appear in the input script.
 
-Using OpenKIM Web Queries in LAMMPS :h4
+Using OpenKIM Web Queries in LAMMPS ({kim_query}) :h5
 
-@@@@@@@@@
+The {kim_query} command performs a web query to retrieve the predictions
+of the IM set by {kim_init} for material properties archived in
+"OpenKIM"_https://openkim.org.  The {kim_query} command must be preceded
+by a {kim_init} command. The result of the query is stored in a
+"string style variable"_variable.html, the name of which is given as the first
+argument of the {kim_query command}.  The second required argument
+{query_function} is the name of the query function to be called
+(e.g. {get_lattice_constant_fcc}).
+All following arguments are parameters handed over to the web query
+in the format {keyword=value}.  The list of supported keywords and
+and the type and format of their values depend on the query function
+used.
 
-The kim_style command is a high-level wrapper around the
-"Knowledge Base for Interatomic Models (OpenKIM)"_https://openkim.org
-repository of interatomic potentials, so that they can be used by
-LAMMPS scripts.  It does not implement any computations directly, but
-rather will generate LAMMPS input commands based on the information
-retrieved from the OpenKIM repository.  It is able to realize so-called
-"KIM Simulator Models", which are OpenKIM repository entries of models
-using native features of the simulation engine in use, i.e. LAMMPS
-in this case, but it also supports realizing conventional KIM models
-implicitly via generating a "pair_style kim"_pair_kim.html command
-followed by a suitable "pair_coeff"_pair_coeff.html command.
+NOTE: The current list of supported query functions is available on the OpenKIM
+webpage at "https://query.openkim.org"_https://query.openkim.org/
 
-The kim_style command has two modes, {init} and {define}, indicated by
-the first argument to the kim_style command.  An {init} mode command
-must be issued [before] the simulation box is created, while the {define}
-mode version may only be used [after] the simulation box exists.  Both
-are required.  The {init} mode version sets the model name and may issue
-additional commands changing LAMMPS default settings that are required
-for using a selected simulator model.  If needed, those settings can be
-overridden. The second argument to the {kim_style init} command is the
-KIM model ID.
+The data obtained by {kim_query} commands can be used as part of the setup
+or analysis phases of LAMMPS simulations. Some examples are given below.
 
-In both modes, the keywords {unit_variables} and {unit_from} may be
-added.  They control the values of a set of
-"internal style variables"_variable.html that can be used to convert
-between different unit styles in LAMMPS. The argument to
-each keyword is a LAMMPS unit style or NULL, which means to look up
-the unit style from what was set with the "units"_units.html command.
-Please note, that KIM simulator models will set their preferred unit style.
-By default all conversion variables are set to 1.0.  Converting to or
-from the "lj" unit style is not supported.  The following variables are defined:
+[Define a crystal at its equilibrium lattice constant]
 
-_u_length
-_u_mass
-_u_time :ul
+kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+boundary         p p p
+kim_query        a0 get_lattice_constant_fcc units=\["angstrom"\]
+lattice          fcc $\{a0\}
+... :pre
 
+The {kim_query} command retrieves from "OpenKIM"_https://openkim.org
+the equilibrium lattice constant predicted by the Ercolessi and Adams (1994)
+potential for the face-centered cubic (fcc) structure and places it in
+variable {a0}. This variable is then used on the next line to set up the
+crystal. By using {kim_query}, the user is saved the trouble and possible
+error of tracking this value down, or of having to perform an energy
+minimization to find the equilibrium lattice constant.
 
-The {kim_style define} command will issue commands that will realize
-the selected model (through generating pair_style and pair_coeff commands,
-but also other commands, as required).  It has to be issued [after] the
-the simulation box is defined. The {kim_style define} command allows a
-varying number of additional arguments.  Those are used to map the atom
-types in LAMMPS to the available species in the KIM model.  This is
-equivalent to the arguments following "pair_coeff * *" in a
-"kim"_pair_kim.html pair style. Thus the commands:
+[Define a crystal at finite temperature accounting for thermal expansion]
 
-kim_style init LennardJones_Ar
-kim_style define Ar :pre
+kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+boundary         p p p
+kim_query        a0 get_lattice_constant_fcc units=\["angstrom"\]
+kim_query        alpha get_linear_thermal_expansion_fcc
+variable         DeltaT equal 300
+lattice          fcc $\{a0\}*$\{alpha\}*$\{DeltaT\}
+... :pre
 
-will generate the LAMMPS input commands:
+As in the previous example, the equilibrium lattice constant is obtained
+for the Ercolessi and Adams (1994) potential. However, in this case the
+crystal is scaled to the appropriate lattice constant at 300 K by using
+the linear thermal expansion coefficient predicted by the potential.
 
-pair_style kim LennardJones_Ar
-pair_coeff * * Ar :pre
+[Compute defect formation energy]
 
-For simulator models, the generated input commands may be more complex
-and require that LAMMPS is built with the required packages included.
-The commands generated by the kim_style command, can be copied to the
-screen or log file, through the "echo"_echo.html command.
-The kim_style command will also validate, that a selected simulator
-model was generated for the LAMMPS MD code and not some other software.
-In addition, the version strings for LAMMPS version used for defining
-the simulator model and the LAMMPS version being currently run are
-printed, so that it can be tracked down, if there are any incompatible
-changes to input script or command syntax between the two LAMMPS versions.
+kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+...
+... Build fcc crystal containing some defect and compute the total energy
+... which is stored in the variable {Etot}
+...
+kim_query        Ec get_cohesive_energy_fcc units=\["eV"\]
+variable         Eform equal $\{Etot\} - count(all)*$\{Ec\}
+... :pre
+
+The defect formation energy {Eform} is computed by subtracting from {Etot} the
+ideal fcc cohesive energy of the atoms in the system obtained from
+"OpenKIM"_https://openkim.org for the Ercolessi and Adams (1994) potential.
+
+Citation of OpenKIM IMs :h4
+
+When publishing results obtained using OpenKIM IMs researchers are requested
+to cite the OpenKIM project "(Tadmor)"_#kim-mainpaper and KIM API
+"(Elliott)"_#kim-api as well as the specific IM codes used in the simulations.
+The citation format for an IM is displayed on its page on
+"OpenKIM"_https://openkim.org along with the corresponding BibTex file.
+
+Citing the codes used in the simulation gives credit
+to the researchers who developed them and enables open source efforts like
+OpenKIM to function.
+
 
 [Restrictions:]
 
-These commands are part of the KIM package.  It is only enabled if
+The set of {kim_commands} is part of the KIM package.  It is only enabled if
 LAMMPS was built with that package.  Furthermore, its correct
 functioning depends on compiling LAMMPS with all required packages
 installed that are required by the commands embedded in any KIM
-simulator models used.
+SM used.
 See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
 "pair_style kim"_pair_kim.html, "units"_units.html
+
+:line
+
+:link(kim-mainpaper)
+[(Tadmor)] Tadmor, Elliott, Sethna, Miller and Becker, JOM, 63, 17 (2011).
+doi: "https://doi.org/10.1007/s11837-011-0102-6"_https://doi.org/10.1007/s11837-011-0102-6
+
+:link(kim-api)
+[(Elliott)] Elliott, Tadmor and Bernstein, "https://openkim.org/kim-api"_https://openkim.org/kim-api (2011)
+doi: "https://doi.org/10.25950/FF8F563A"_https://doi.org/10.25950/FF8F563A
+

@@ -42,16 +42,18 @@ the ADP potential files themselves.  Likewise, the ADP potential files
 list atomic masses; thus you do not need to use the "mass"_mass.html
 command to specify them.
 
-The NIST WWW site distributes and documents ADP potentials:
+[ADP potentials are available from:]
 
-http://www.ctcms.nist.gov/potentials :pre
+The NIST WWW site at http://www.ctcms.nist.gov/potentials.
+Note that ADP potentials obtained from NIST must be converted
+into the extended DYNAMO {setfl} format discussed below.
+:l
 
-Note that these must be converted into the extended DYNAMO {setfl}
-format discussed below.
+The OpenKIM Project at https://openkim.org provides ADP potentials
+as Simulator Models that can be used directly in LAMMPS with
+the "kim_commands interface"_kim_commands.html.
+:l
 
-The NIST site is maintained by Chandler Becker (cbecker at nist.gov)
-who is good resource for info on interatomic potentials and file
-formats.
 
 :line
 

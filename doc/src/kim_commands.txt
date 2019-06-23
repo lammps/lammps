@@ -225,7 +225,16 @@ from a file. For example if a configuration of atoms is read in from a
 dump file using the "read_dump"_read_dump.html command, the following can
 be done to convert the box and all atomic positions to the correct units:
 
-change_box all x scale $\{_u_distance\} y scale $\{_u_distance\} z scale $\{_u_distance\} remap  :pre
+variable xyfinal equal xy*$\{_u_distance\}
+variable xzfinal equal xz*$\{_u_distance\}
+variable yzfinal equal yz*$\{_u_distance\}
+change_box all x scale $\{_u_distance\} &
+               y scale $\{_u_distance\} &
+               z scale $\{_u_distance\} &
+               xy final $\{xyfinal\} &
+               xz final $\{xzfinal\} &
+               yz final $\{yzfinal\} &
+               remap  :pre
 
 NOTE: Unit conversion will only work if the conversion factors are placed in
 all appropriate places in the input script. It is up to the user to do this

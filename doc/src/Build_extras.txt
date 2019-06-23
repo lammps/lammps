@@ -173,7 +173,7 @@ KIM package :h4,link(kim)
 
 To build with this package, the KIM library with API v2 must be downloaded
 and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the "kim_query"_kim_query.html
+use with LAMMPS. If you want to use the "kim_query"_kim_commands.html
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 

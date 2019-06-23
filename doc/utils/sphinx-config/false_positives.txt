@@ -1606,6 +1606,7 @@ meso
 mesoparticle
 mesoscale
 mesoscopic
+metadata
 metadynamics
 Metadynamics
 Methfessel
@@ -2271,6 +2272,7 @@ rcutfac
 rdc
 rdf
 RDideal
+rdx
 README
 realtime
 reamin
@@ -2297,6 +2299,8 @@ Rensselaer
 reparameterizing
 repo
 representable
+Reproducibility
+reproducibility
 repuls
 rescale
 rescaled
@@ -2585,6 +2589,7 @@ Stoll
 stopstep
 Stouch
 Straatsma
+Strachan
 Stratford
 Strathclyde
 Straub
@@ -2822,6 +2827,7 @@ undump
 uniaxial
 uniaxially
 unimodal
+unitarg
 unitless
 Universite
 unix

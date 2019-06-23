@@ -66,7 +66,7 @@ using namespace FixConst;
 
 FixStoreKIM::FixStoreKIM(LAMMPS *lmp, int narg, char **arg)
   : Fix(lmp, narg, arg), simulator_model(NULL), model_name(NULL),
-    units_from(NULL), units_to(NULL)
+    model_units(NULL), user_units(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix STORE/KIM command");
 }
@@ -89,16 +89,15 @@ FixStoreKIM::~FixStoreKIM()
     model_name = NULL;
   }
 
-  if (units_from) {
-    char *uf = (char *)units_from;
-    delete[] uf;
-    units_from = NULL;
+  if (model_units) {
+    char *mu = (char *)model_units;
+    delete[] mu;
+    model_units = NULL;
   }
-
-  if (units_to) {
-    char *ut = (char *)units_to;
-    delete[] ut;
-    units_to = NULL;
+  if (user_units) {
+    char *uu = (char *)user_units;
+    delete[] uu;
+    user_units = NULL;
   }
 }
 
@@ -127,19 +126,17 @@ void FixStoreKIM::setptr(const char *name, void *ptr)
       delete[] mn;
     }
     model_name = ptr;
-  } else if (strcmp(name,"units_from") == 0) {
-    if (units_from) {
-      char *uf = (char *)units_from;
-      delete[] uf;
+  } else if (strcmp(name,"model_units") == 0) {
+    if (model_units) {
+      char *mu = (char *)model_units;
+      delete[] mu;
     }
-    units_from = ptr;
-  } else if (strcmp(name,"units_to") == 0) {
-    if (units_to) {
-      char *ut = (char *)units_to;
-      delete[] ut;
+  } else if (strcmp(name,"user_units") == 0) {
+    if (user_units) {
+      char *uu = (char *)user_units;
+      delete[] uu;
     }
-    units_to = ptr;
-  }
+  } else error->all(FLERR,"Unknown property in fix STORE/KIM");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,7 +145,7 @@ void *FixStoreKIM::getptr(const char *name)
 {
   if (strcmp(name,"simulator_model") == 0) return simulator_model;
   else if (strcmp(name,"model_name") == 0) return model_name;
-  else if (strcmp(name,"units_from") == 0) return units_from;
-  else if (strcmp(name,"units_to") == 0) return units_to;
+  else if (strcmp(name,"model_units") == 0) return model_units;
+  else if (strcmp(name,"user_units") == 0) return user_units;
   else return NULL;
 }

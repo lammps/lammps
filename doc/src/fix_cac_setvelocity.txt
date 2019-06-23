@@ -85,6 +85,6 @@ This fix requires a CAC atom style
 
 [Related commands:]
 
-"fix cac/setforce"_fix_CAC_setforce.html
+"fix cac/setforce"_fix_cac_setforce.html
 
 [Default:] none

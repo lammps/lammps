@@ -20,6 +20,11 @@ Pair Styles :h1
    pair_buck
    pair_buck_long
    pair_buck6d_coul_gauss
+   pair_cac_buck
+   pair_cac_coul_wolf
+   pair_cac_eam
+   pair_cac_lj
+   pair_cac_sw
    pair_charmm
    pair_class2
    pair_colloid

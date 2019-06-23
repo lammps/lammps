@@ -14,6 +14,8 @@ Computes :h1
    compute_body_local
    compute_bond
    compute_bond_local
+   compute_cac_nodal_temp
+   compute_cac_quad_count
    compute_centro_atom
    compute_chunk_atom
    compute_chunk_spread_atom

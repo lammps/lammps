@@ -62,7 +62,7 @@ NOTE: Unlike the "fix nvt"_fix_nh.html command which performs
 Nose/Hoover thermostatting AND time integration, this fix does NOT
 perform time integration.  It only modifies velocities to effect
 thermostatting.  Thus you must use a separate time integration fix,
-like "fix cac/nve"_fix_CAC_nve.html to actually update the positions of 
+like "fix cac/nve"_fix_cac_nve.html to actually update the positions of 
 atoms and elements using the modified velocities.  Likewise, this fix 
 should not normally be used on groups that also have their temperature 
 or kinetic energy controlled by another fix.
@@ -77,7 +77,7 @@ been issued:
 
 compute fix-ID_temp group-ID cac/nodal/temp :pre
 
-See the "compute cac/nodal/temp"_compute_CAC_nodal_temp.html for details.  Note that the
+See the "compute cac/nodal/temp"_compute_cac_nodal_temp.html for details.  Note that the
 ID of the new compute is the fix-ID + underscore + "cac/nodal/temp", and the
 group for the new compute is the same as the fix group.
 
@@ -126,7 +126,7 @@ Requires a CAC atom style
 
 [Related commands:]
 
-"compute cac/nodal_temp"_compute_CAC_nodal_temp.html,
+"compute cac/nodal_temp"_compute_cac_nodal_temp.html,
 "fix_modify"_fix_modify.html
 
 [Default:] none

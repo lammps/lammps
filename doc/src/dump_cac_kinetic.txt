@@ -42,9 +42,9 @@ This dump style requires a CAC "atom style"_atom_style.html
 
 [Related commands:]
 
-"dump"_dump.html, "dump cac/initial/nodes"_dump_CAC_initial_nodes.html,
-"dump cac/nodal/velocities"_dump_CAC_nodal_velocities.html, "dump CAC/xyz"_dump_CAC_xyz.html,
-"dump cac/nodal/positions"_dump_CAC_nodal_positions.html,
+"dump"_dump.html, "dump cac/initial/nodes"_dump_cac_initial_nodes.html,
+"dump cac/nodal/velocities"_dump_cac_nodal_velocities.html, "dump cac/xyz"_dump_cac_xyz.html,
+"dump cac/nodal/positions"_dump_cac_nodal_positions.html,
 "dump_modify"_dump_modify.html, "undump"_undump.html
 
 

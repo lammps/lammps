@@ -131,11 +131,13 @@ void FixStoreKIM::setptr(const char *name, void *ptr)
       char *mu = (char *)model_units;
       delete[] mu;
     }
+    model_units = ptr;
   } else if (strcmp(name,"user_units") == 0) {
     if (user_units) {
       char *uu = (char *)user_units;
       delete[] uu;
     }
+    user_units = ptr;
   } else error->all(FLERR,"Unknown property in fix STORE/KIM");
 }
 

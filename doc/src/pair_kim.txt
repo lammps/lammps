@@ -12,76 +12,71 @@ pair_style kim command :h3
 
 pair_style kim model :pre
 
-model = name of KIM model (potential)
+model = name of a KIM model (the KIM ID for models archived in OpenKIM)
 
 [Examples:]
 
-pair_style kim ex_model_Ar_P_LJ
-pair_coeff * * Ar Ar :pre
+pair_style kim SW_StillingerWeber_1985_Si__MO_405512056662_005
+pair_coeff * * Si :pre
 
 [Description:]
 
-This pair style is a wrapper on the "Knowledge Base for Interatomic
+This pair style is a wrapper on the "Open Knowledgebase of Interatomic
 Models (OpenKIM)"_https://openkim.org repository of interatomic
-potentials, so that they can be used by LAMMPS scripts.
+potentials to enable their use in LAMMPS scripts.
 
-Note that in LAMMPS lingo, a KIM model driver is a pair style
-(e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
-element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.
+The preferred interface for using interatomic models archived in
+OpenKIM is the "kim_commands interface"_kim_commands.html. That
+interface supports both "KIM Models" that conform to the KIM API
+and can be used by any KIM-compliant simulation code, and
+"KIM Simulator Models" that are natively implemented within a single
+simulation code (like LAMMPS) and can only be used with it.
+The {pair_style kim} command is limited to KIM Models. It is
+used by the "kim_commands interface"_kim_commands.html as needed.
 
-See the current list of "KIM model
-drivers"_https://openkim.org/browse/model-drivers/alphabetical.
+NOTE: Since {pair_style kim} is called by {kim_interactions} as needed,
+is not recommended to be directly used in input scripts.
 
-See the current list of all "KIM
-models"_https://openkim.org/browse/models/by-model-drivers
-
-To use this pair style, you must first download and install the KIM
-API library from the "OpenKIM website"_https://openkim.org.  The KIM
-section of the "Packages details"_Packages_details.html doc page has
-instructions on how to do this with a simple make command, when
-building LAMMPS.
-
-See the examples/kim dir for an input script that uses a KIM model
-(potential) for Lennard-Jones.
- 
 :line
 
 The argument {model} is the name of the KIM model for a specific
-potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
-model.  You should get an error or warning message from either LAMMPS
-or KIM if there is an incompatibility.
+potential as KIM defines it.  For potentials archived in OpenKIM
+this is the extended KIM ID (see "kim_commands"_kim_commands.html
+for details). LAMMPS can invoke any KIM Model, however there can
+be incompatibilities (for example unit matching issues).
+In the event of an incompatibility, the code will terminate with
+an error message. Check both the LAMMPS and KIM log files for details.
 
-Only a single pair_coeff command is used with the {kim} style which
-specifies the mapping of LAMMPS atom types to KIM elements.  This is
-done by specifying N additional arguments after the * * in the
-pair_coeff command, where N is the number of LAMMPS atom types:
+Only a single {pair_coeff} command is used with the {kim} style, which
+specifies the mapping of LAMMPS atom types to the species supported by
+the KIM Model.  This is done by specifying {N} additional arguments
+after the * * in the {pair_coeff} command, where {N} is the number of
+LAMMPS atom types:
 
 N element names = mapping of KIM elements to atom types :ul
 
-As an example, imagine the KIM model supports Si and C atoms.  If your
-LAMMPS simulation has 4 atom types and you want the 1st 3 to be Si,
-and the 4th to be C, you would use the following pair_coeff command:
+For example, consider a KIM Model that supports Si and C species.
+If the LAMMPS simulation has four atom types, where the first three are Si,
+and the fourth is C, the following {pair_coeff} command would be used:
 
 pair_coeff * * Si Si Si C :pre
 
-The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
-The first three Si arguments map LAMMPS atom types 1,2,3 to Si as
-defined within KIM.  The final C argument maps LAMMPS atom type 4 to C
-as defined within KIM.
+The first two arguments must be * * so as to span all LAMMPS atom types.
+The first three Si arguments map LAMMPS atom types 1, 2, and 3 to Si as
+defined within KIM Model.  The final C argument maps LAMMPS atom type 4 to C.
 
 :line
 
 In addition to the usual LAMMPS error messages, the KIM library itself
 may generate errors, which should be printed to the screen.  In this
-case it is also useful to check the kim.log file for additional error
+case it is also useful to check the {kim.log} file for additional error
 information.  The file kim.log should be generated in the same
 directory where LAMMPS is running.
 
 To download, build, and install the KIM library on your system, see
-the lib/kim/README file.  Once you have done this and built LAMMPS
+the {lib/kim/README} file.  Once you have done this and built LAMMPS
 with the KIM package installed you can run the example input scripts
-in examples/kim.
+in {examples/kim}.
 
 :line
 
@@ -103,16 +98,14 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This pair style is part of the KIM package.  It is only enabled if
-LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.
+This pair style is part of the KIM package. See details on
+restrictions in "kim_commands"_kim_commands.html.
 
 This current version of pair_style kim is compatible with the
 kim-api package version 2.0.0 and higher.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "kim_init"_kim_commands.html,
-"kim_interactions"_kim_commands, "kim_query"_kim_commands.html
+"pair_coeff"_pair_coeff.html, "kim_commands"_kim_commands.html
 
 [Default:] none

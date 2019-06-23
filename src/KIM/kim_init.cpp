@@ -90,10 +90,10 @@ void KimInit::command(int narg, char **arg)
   if (domain->box_exist)
     error->all(FLERR,"Must use 'kim_init' command before "
                      "simulation box is defined");
-  int len0 = strlen(arg[0])+1;
-  int len1 = strlen(arg[1])+1;
-  char *model_name = new char[len0]; strcpy(model_name,arg[0]);
-  char *user_units = new char[len1]; strcpy(user_units,arg[1]);
+  char *model_name = new char[strlen(arg[0])+1];
+  strcpy(model_name,arg[0]);
+  char *user_units = new char[strlen(arg[1])+1];
+  strcpy(user_units,arg[1]);
   if (narg == 3) {
     if (strcmp(arg[2],"unit_conversion_mode")==0) unit_conversion_mode = true;
     else { error->all(FLERR,"Illegal kim_init command"); }
@@ -178,21 +178,19 @@ void KimInit::determine_model_type_and_units(char * model_name,
                                    &units_accepted,
                                    &kim_MO);
 
-  if (!kim_error)  // model is an MO
-  {
+  if (!kim_error) { // model is an MO
     model_type = MO;
     KIM_Model_Destroy(&kim_MO);
 
     if (units_accepted) {
-      int len=strlen(user_units);
-      *model_units = new char[len]; strcpy(*model_units,user_units);
+      *model_units = new char[strlen(user_units)+1];
+      strcpy(*model_units,user_units);
       return;
     } else if (unit_conversion_mode) {
       int const num_systems = 5;
       char const * const systems[num_systems]
           = {"metal", "real", "si", "cgs", "electron"};
-      for (int i=0; i < num_systems; ++i)
-      {
+      for (int i=0; i < num_systems; ++i) {
         get_kim_unit_names(systems[i], lengthUnit, energyUnit,
                            chargeUnit, temperatureUnit, timeUnit, error);
         kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
@@ -205,17 +203,13 @@ void KimInit::determine_model_type_and_units(char * model_name,
                                      &units_accepted,
                                      &kim_MO);
         KIM_Model_Destroy(&kim_MO);
-        if (units_accepted)
-        {
-          int len=strlen(systems[i]);
-          *model_units = new char[len]; strcpy(*model_units,systems[i]);
+        if (units_accepted) {
+          *model_units = new char[strlen(systems[i])+1];
+          strcpy(*model_units,systems[i]);
           return;
         }
-      }
-      error->all(FLERR,"KIM Model does not support any lammps unit system");
-    }
-    else
-    {
+      } error->all(FLERR,"KIM Model does not support any lammps unit system");
+    } else {
       error->all(FLERR,"KIM Model does not support the requested unit system");
     }
   }
@@ -223,9 +217,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
   KIM::SimulatorModel * kim_SM;
   kim_error = KIM::SimulatorModel::Create(model_name, &kim_SM);
   if (kim_error)
-  {
     error->all(FLERR,"KIM model name not found");
-  }
   model_type = SM;
 
   int sim_fields;
@@ -257,7 +249,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::do_init(char *model_name, char *user_units, char* model_units)
+void KimInit::do_init(char *model_name, char *user_units, char *model_units)
 {
   // create storage proxy fix. delete existing fix, if needed.
 
@@ -322,8 +314,7 @@ void KimInit::do_init(char *model_name, char *user_units, char* model_units)
   cmd += model_units;
   input->one(cmd.c_str());
 
-  if (model_type == SM)
-  {
+  if (model_type == SM) {
     int sim_fields, sim_lines;
     const std::string *sim_field, *sim_value;
     simulatorModel->GetNumberOfSimulatorFields(&sim_fields);

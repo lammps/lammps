@@ -76,9 +76,9 @@ double const Nav = 6.022140857e23;       // [unitless] Avogadro's number
                                          //   (NIST value)
 // double const Nav = 6.02214076e23;     // [unitless] Avogadro's number
                                          //   (official value May 2019)
-double const me = 9.10938356e-31;        // [kg] electron rest mass
+double const me_si = 9.10938356e-31;     // [kg] electron rest mass
                                          //   (NIST value)
-// double me = 9.10938291e-31;           // [kg] electron rest mass
+// double me_si = 9.10938291e-31;        // [kg] electron rest mass
 double const e_si = 1.6021766208e-19;    // [C] elementary charge
                                          //   (charge of an electron/proton)
                                          //   (NIST value)
@@ -114,8 +114,9 @@ double const attogram_si = 1e-21;          // [kg[ attogram
 double const atu_si = 2.418884326509e-17;  // [s] atomic time unit
                                            //   ( = hbar/E_h where E_h is the
                                            //   Hartree energy) (NIST value)
-double const atu_electron_si = atu_si*sqrt(amu_si/me); // [s] atomic time unit
-                                                       //   used in electron system (see https://sourceforge.net/p/lammps/mailman/lammps-users/thread/BCA2BDB2-BA03-4280-896F-1E6120EF47B2%40caltech.edu/)
+double const atu_electron_si = atu_si*sqrt(amu_si/me_si);
+                                          // [s] atomic time unit
+                                          //   used in electron system (see https://sourceforge.net/p/lammps/mailman/lammps-users/thread/BCA2BDB2-BA03-4280-896F-1E6120EF47B2%40caltech.edu/)
 double const microsecond_si = 1e-6;        // [s] microsecond
 double const nanosecond_si = 1e-9;         // [s] nanosecond
 double const picosecond_si = 1e-12;        // [s] picosecond
@@ -130,13 +131,12 @@ double const amu_per_bohrcu_si = amu_si/pow(bohr_si,3);  // [kg/m^3] amu/bohr^3
 double const picogram_per_micrometercu_si =
              picogram_si/pow(micrometer_si,3); // [kg/m^3] picogram/micrometer^3
 double const attogram_per_nanometercu_si =
-             attogram_si/pow(nanometer_si,3);  // [kg/m^3] attogram/
-                                               //    nanomaterial^3
+             attogram_si/pow(nanometer_si,3);  // [kg/m^3] attogram/nanometer^3
 
 /*----------------------
    Energy/torque units
 ------------------------ */
-double const kcal_si = 4184.0;              // [J] kilocalroie (heat energy
+double const kcal_si = 4184.0;              // [J] kilocalorie (heat energy
                                             //   involved in warming up one
                                             //   kilogram of water by one
                                             //   degree Kelvin)
@@ -155,8 +155,8 @@ double const erg_si = 1e-7;                 // [J] erg
 double const dyne_centimeter_si = 1e-7;     // [J[ dyne*centimeter
 double const picogram_micrometersq_per_microsecondsq_si =
              picogram_si*pow(micrometer_si,2)/pow(microsecond_si,2);
-                                            // [J] pigogram*micrometer^2/
-                                            //   micorsecond^2
+                                            // [J] picogram*micrometer^2/
+                                            //   microsecond^2
 double const attogram_nanometersq_per_nanosecondsq_si =
              attogram_si*pow(nanometer_si,2)/pow(nanosecond_si,2);
                                             // [J] attogram*nanometer^2/

@@ -239,8 +239,8 @@ void Input::file()
 }
 
 /* ----------------------------------------------------------------------
-   process all input from filename
-   called from library interface
+   process all input from file at filename
+   mostly called from library interface
 ------------------------------------------------------------------------- */
 
 void Input::file(const char *filename)
@@ -250,21 +250,30 @@ void Input::file(const char *filename)
   // call to file() will close filename and decrement nfile
 
   if (me == 0) {
-    if (nfile > 1)
-      error->one(FLERR,"Invalid use of library file() function");
+    if (nfile == maxfile) {
+      maxfile++;
+      infiles = (FILE **)
+        memory->srealloc(infiles,maxfile*sizeof(FILE *),"input:infiles");
+    }
 
-    if (infile && infile != stdin) fclose(infile);
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open input script %s",filename);
       error->one(FLERR,str);
     }
-    infiles[0] = infile;
-    nfile = 1;
+    infiles[nfile++] = infile;
   }
 
+  // process contents of file
+
   file();
+
+  if (me == 0) {
+    fclose(infile);
+    nfile--;
+    infile = infiles[nfile-1];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1041,7 +1050,13 @@ void Input::include()
       error->one(FLERR,str);
     }
     infiles[nfile++] = infile;
-    file();
+  }
+
+  // process contents of file
+
+  file();
+
+  if (me == 0) {
     fclose(infile);
     nfile--;
     infile = infiles[nfile-1];

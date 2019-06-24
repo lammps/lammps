@@ -52,16 +52,16 @@ the velocity for the force evaluation:
 
 .. math::
 
-  v(t+\frac{\Delta t}{2}) = v(t) + \frac{\Delta t}{2}\cdot a(t),
+   v(t+\frac{\Delta t}{2}) = v(t) + \frac{\Delta t}{2}\cdot a(t),
 
 >>>image was here
-  r(t+\Delta t) = r(t) + \Delta t\cdot v(t+\frac{\Delta t}{2}),
+   r(t+\Delta t) = r(t) + \Delta t\cdot v(t+\frac{\Delta t}{2}),
 
 >>>image was here
-  a(t+\Delta t) = \frac{1}{m}\cdot F\left[ r(t+\Delta t), v(t) +\lambda \cdot \Delta t\cdot a(t)\right],
+   a(t+\Delta t) = \frac{1}{m}\cdot F\left[ r(t+\Delta t), v(t) +\lambda \cdot \Delta t\cdot a(t)\right],
 
 >>>image was here
-  v(t+\Delta t) = v(t+\frac{\Delta t}{2}) + \frac{\Delta t}{2}\cdot a(t+\Delta t)
+   v(t+\Delta t) = v(t+\frac{\Delta t}{2}) + \frac{\Delta t}{2}\cdot a(t+\Delta t)
 
 
 where the parameter <font size="4">&lambda;</font> depends on the

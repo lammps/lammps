@@ -40,7 +40,7 @@ expressed as a weighted sum over bispectrum components.
 
 .. math::
 
-E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\alpha_i}_0 + \sum_{k=1}^K \beta_k^{\alpha_i} B_k^i
+   E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\alpha_i}_0 + \sum_{k=1}^K \beta_k^{\alpha_i} B_k^i
 
 
 where *B\_k\^i* is the *k*\ -th bispectrum component of atom *i*\ ,

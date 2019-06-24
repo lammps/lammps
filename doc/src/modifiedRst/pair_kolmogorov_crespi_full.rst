@@ -37,11 +37,11 @@ No simplification is made,
 
 .. math::
 
-  E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
-  V_{ij} & = & e^{-\lambda (r_{ij} -z_0)} \left [ C + f(\rho_{ij}) + f(\rho_{ji}) - A \left ( \frac{r_{ij}}{z_0}\right )^{-6} \right ] \\
-  \rho_{ij}^2 & = & r_{ij}^2 - ({\bf r}_{ij}\cdot {\bf n}_{i})^2 \\[15pt]
-  \rho_{ji}^2 & = & r_{ij}^2 - ({\bf r}_{ij}\cdot  {\bf n}_{j})^2 \\[15pt]
-  f(\rho) & = &  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} { \rho/\delta }^{2n}
+   E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
+   V_{ij} & = & e^{-\lambda (r_{ij} -z_0)} \left [ C + f(\rho_{ij}) + f(\rho_{ji}) - A \left ( \frac{r_{ij}}{z_0}\right )^{-6} \right ] \\
+   \rho_{ij}^2 & = & r_{ij}^2 - ({\bf r}_{ij}\cdot {\bf n}_{i})^2 \\[15pt]
+   \rho_{ji}^2 & = & r_{ij}^2 - ({\bf r}_{ij}\cdot  {\bf n}_{j})^2 \\[15pt]
+   f(\rho) & = &  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} { \rho/\delta }^{2n}
 
 
 It is important to have a sufficiently large cutoff to ensure smooth

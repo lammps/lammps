@@ -32,7 +32,7 @@ The *sdk* angle style is a combination of the harmonic angle potential,
 
 .. math::
 
-  E = K (\theta - \theta_0)^2 
+   E = K (\theta - \theta_0)^2 
 
 
 where theta0 is the equilibrium value of the angle and K a prefactor,

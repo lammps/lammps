@@ -30,7 +30,7 @@ The *cossq* improper style uses the potential
 
 .. math::
 
-  E = \frac{1}{2} K \cos^2{\left(\chi - \chi_0\right)}
+   E = \frac{1}{2} K \cos^2{\left(\chi - \chi_0\right)}
 
 
 where x is the improper angle, x0 is its equilibrium value, and K is a

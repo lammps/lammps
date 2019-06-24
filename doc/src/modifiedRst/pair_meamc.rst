@@ -48,8 +48,8 @@ given by:
 
 .. math::
 
-  E = \sum_i \left\{ F_i(\bar{\rho}_i)
-      + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
+   E = \sum_i \left\{ F_i(\bar{\rho}_i)
+   + \frac{1}{2} \sum_{i \neq j} \phi_{ij} (r_{ij}) \right\}
 
 
 where F is the embedding energy which is a function of the atomic

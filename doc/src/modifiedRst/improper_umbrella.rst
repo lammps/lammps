@@ -32,10 +32,10 @@ commonly referred to as a classic inversion and used in the
 
 .. math::
 
-E=\frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o
+   E=\frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o
 
 >>>image was here
-E=K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
+   E=K\left( 1-cos\omega\right)  \qquad \omega_0 = 0^o
 
 
 where K is the force constant and omega is the angle between the IL

@@ -24,7 +24,7 @@ The *distharm* improper style uses the potential
 
 .. math::
 
-  E = K (d - d_0)^2
+   E = K (d - d_0)^2
 
 
 where d is the oriented distance between the central atom and the plane formed

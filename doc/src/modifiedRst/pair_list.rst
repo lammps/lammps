@@ -79,9 +79,9 @@ The style *lj126* computes pairwise interactions with the formula
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-                       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+   \qquad r < r_c
 
 
 and the coefficients:
@@ -94,7 +94,7 @@ The style *morse* computes pairwise interactions with the formula
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
-       \qquad r < r_c
+   \qquad r < r_c
 
 
 and the coefficients:

@@ -78,7 +78,7 @@ averages the parameter over the neighbors  of atom i according to:
 
 .. math::
 
-  \bar{s}_S^i  = \frac{\sum_j s_S^j + s_S^i}{N + 1} ,
+   \bar{s}_S^i  = \frac{\sum_j s_S^j + s_S^i}{N + 1} ,
 
 
 where the sum j goes over the neighbors of atom i and N is the number

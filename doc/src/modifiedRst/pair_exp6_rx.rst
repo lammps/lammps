@@ -45,7 +45,7 @@ particle through a site-site interaction potential model.  The
 
 .. math::
 
-U_{ij}(r) = \frac{\epsilon}{\alpha-6}\{6exp[\alpha(1-\frac{r_{ij}}{R_{m}})]-\alpha(\frac{R_{m}}{r_{ij}})^6\}
+   U_{ij}(r) = \frac{\epsilon}{\alpha-6}\{6exp[\alpha(1-\frac{r_{ij}}{R_{m}})]-\alpha(\frac{R_{m}}{r_{ij}})^6\}
 
 
 where the *epsilon* parameter determines the depth of the potential

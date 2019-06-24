@@ -50,7 +50,7 @@ each atom is given by
 
 .. math::
 
-  F = \left( 1-\lambda \right) F_{\text{solid}} + \lambda F_{\text{harm}}
+   F = \left( 1-\lambda \right) F_{\text{solid}} + \lambda F_{\text{harm}}
 
 
 where F\_solid is the force that acts on an atom due to an interatomic
@@ -91,7 +91,7 @@ time:
 
 .. math::
 
-  \lambda(\tau) = \tau
+   \lambda(\tau) = \tau
 
 
 where tau is the scaled time variable *t/t\_s*. The option *2* performs
@@ -100,7 +100,7 @@ function
 
 .. math::
 
-  \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 - 420 \tau + 126 \right)
+   \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 - 420 \tau + 126 \right)
 
 
 This function has zero slope as lambda approaches its extreme values

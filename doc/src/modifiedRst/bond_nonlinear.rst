@@ -30,7 +30,7 @@ The *nonlinear* bond style uses the potential
 
 .. math::
 
-  E = \frac{\epsilon (r - r_0)^2}{ [ \lambda^2 - (r - r_0)^2 ]}
+   E = \frac{\epsilon (r - r_0)^2}{ [ \lambda^2 - (r - r_0)^2 ]}
 
 
 to define an anharmonic spring :ref:`(Rector) <Rector>` of equilibrium

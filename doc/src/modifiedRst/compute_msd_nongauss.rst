@@ -48,7 +48,7 @@ group.  The 3rd component is the nonGaussian diffusion parameter NGP =
 
 .. math::
 
- NGP(t) = 3<(r(t)-r(0))^4>/(5<(r(t)-r(0))^2>^2) - 1
+   NGP(t) = 3<(r(t)-r(0))^4>/(5<(r(t)-r(0))^2>^2) - 1
 
 
 The NGP is a commonly used quantity in studies of dynamical

@@ -35,11 +35,11 @@ applied between the inner and outer cutoff.
 
 .. math::
 
- E & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-                       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_{in} \\
- F & = & C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3 
-                       \qquad r_{in} < r < r_c
+   E & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+   \qquad r < r_{in} \\
+   F & = & C_1 + C_2 (r - r_{in}) + C_3 (r - r_{in})^2 + C_4 (r - r_{in})^3 
+   \qquad r_{in} < r < r_c
 
 
 The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to

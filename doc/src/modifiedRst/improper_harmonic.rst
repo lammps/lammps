@@ -36,7 +36,7 @@ The *harmonic* improper style uses the potential
 
 .. math::
 
-  E = K (\chi - \chi_0)^2
+   E = K (\chi - \chi_0)^2
 
 
 where X is the improper angle, X0 is its equilibrium value, and K is a

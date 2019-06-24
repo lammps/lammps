@@ -40,7 +40,7 @@ dependent effective temperature
 
 .. math::
 
-  T_{eff} = \lambda + \eta (H - H_0)
+   T_{eff} = \lambda + \eta (H - H_0)
 
 
 with *eta* negative and steep enough to only intersect the

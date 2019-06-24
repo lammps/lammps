@@ -30,7 +30,7 @@ The *morse* bond style uses the potential
 
 .. math::
 
-%   E = D \left[ 1 - \exp \left( -\alpha (r - r_0) \right) \right]^2 
+   %   E = D \left[ 1 - \exp \left( -\alpha (r - r_0) \right) \right]^2 
    E = D \left[ 1 - e^{-\alpha (r - r_0)} \right]^2 
 
 

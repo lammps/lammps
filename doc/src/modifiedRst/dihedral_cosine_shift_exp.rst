@@ -30,11 +30,11 @@ The *cosine/shift/exp* dihedral style uses the potential
 
 .. math::
 
-E=-U_{min} 
-\frac{e^{-a U(\theta,\theta_0)}-1}{e^a-1}
-\quad\mbox{with}\quad
-U(\theta,\theta_0)
-=-0.5 \left(1+\cos(\theta-\theta_0) \right)
+   E=-U_{min} 
+   \frac{e^{-a U(\theta,\theta_0)}-1}{e^a-1}
+   \quad\mbox{with}\quad
+   U(\theta,\theta_0)
+   =-0.5 \left(1+\cos(\theta-\theta_0) \right)
 
 
 where Umin, theta, and a are defined for each dihedral type.

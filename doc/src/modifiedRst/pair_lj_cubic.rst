@@ -41,9 +41,9 @@ the energy and force are zero.
 
 .. math::
 
- E &=& u_{LJ}(r) \qquad r \leq r_s \\
-    &=&  u_{LJ}(r_s) + (r-r_s) u'_{LJ}(r_s) - \frac{1}{6} A_3 (r-r_s)^3 \qquad r_s < r \leq r_c \\
-    &=& 0 \qquad r > r_c 
+   E &=& u_{LJ}(r) \qquad r \leq r_s \\
+   &=&  u_{LJ}(r_s) + (r-r_s) u'_{LJ}(r_s) - \frac{1}{6} A_3 (r-r_s)^3 \qquad r_s < r \leq r_c \\
+   &=& 0 \qquad r > r_c 
 
 
 The location of the inflection point rs is defined

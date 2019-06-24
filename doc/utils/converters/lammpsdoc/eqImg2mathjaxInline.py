@@ -38,6 +38,8 @@ imageMarker = ">>>image was here"
 image_marker_pattern = re.compile(r'>>>image was here')
 align_pattern = re.compile(r'.*:align: center')
 
+leading_space_pattern = re.compile(r'^ *(.*)')  # first group will match rest of line after leading spaces
+
 modifiedRstFolder = "src/modifiedRst/"
 safeRstFolder = "src/safeRst/"
 # Since this is a proof of concept implementation,
@@ -94,6 +96,16 @@ def endMathjax(mathjaxLines):
     return mathjaxLines
 
 
+def adjustIndentation(texLine):
+    adjustedLine = texLine
+    m = leading_space_pattern.match(texLine)
+    if m:
+        lineContent = m.group(1)
+        adjustedLine = "   %s\n" % lineContent
+
+    return adjustedLine
+
+
 def processFile(filename):
     print("in processFile for filename: %s" % filename)
     imageCount = 0
@@ -125,7 +137,17 @@ def processFile(filename):
                                 else:
                                     endFound = checkForEquationEnd(texLine, eqType)
                                     if endFound != True:
-                                        eqLines.append(texLine)
+                                        # rst syntax rules require consistent indentation for block
+                                        # the txt2rst converter appears to have used 3 spaces
+                                        # which is a bit unusual but does mean that content lines up under the
+                                        # directive word for common markup prefixes like:
+                                        # .. parsed-literal:
+                                        # .. math:
+                                        # So, we double-clutch
+                                        # - delete any leading spaces on the line as we find it
+                                        # - add 3 spaces to the front of the line
+                                        newEqLine = adjustIndentation(texLine)
+                                        eqLines.append(newEqLine)
                                     else:
                                         eqType = None
                                         eqLines = endMathjax(eqLines)

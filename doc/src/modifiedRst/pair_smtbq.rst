@@ -30,11 +30,11 @@ is given by three contributions:
 
 .. math::
 
-E_{tot} & = & E_{ES} + E_{OO} + E_{MO} \\
-E_{ES} & = & \sum_i{\Big[ \chi_{i}^{0}Q_i + \frac{1}{2}J_{i}^{0}Q_{i}^{2} +
- \frac{1}{2} \sum_{j\neq i}{ J_{ij}(r_{ij})f_{cut}^{R_{coul}}(r_{ij})Q_i Q_j } \Big] } \\
-E_{OO} & = & \sum_{i,j}^{i,j = O}{\Bigg[Cexp( -\frac{r_{ij}}{\rho} ) - Df_{cut}^{r_1^{OO}r_2^{OO}}(r_{ij}) exp(Br_{ij})\Bigg]}  \\
-E_{MO} & = & \sum_i{E_{cov}^{i} + \sum_{j\neq i}{ Af_{cut}^{r_{c1}r_{c2}}(r_{ij})exp\Big[-p(\frac{r_{ij}}{r_0} -1) \Big] } }  \\
+   E_{tot} & = & E_{ES} + E_{OO} + E_{MO} \\
+   E_{ES} & = & \sum_i{\Big[ \chi_{i}^{0}Q_i + \frac{1}{2}J_{i}^{0}Q_{i}^{2} +
+   \frac{1}{2} \sum_{j\neq i}{ J_{ij}(r_{ij})f_{cut}^{R_{coul}}(r_{ij})Q_i Q_j } \Big] } \\
+   E_{OO} & = & \sum_{i,j}^{i,j = O}{\Bigg[Cexp( -\frac{r_{ij}}{\rho} ) - Df_{cut}^{r_1^{OO}r_2^{OO}}(r_{ij}) exp(Br_{ij})\Bigg]}  \\
+   E_{MO} & = & \sum_i{E_{cov}^{i} + \sum_{j\neq i}{ Af_{cut}^{r_{c1}r_{c2}}(r_{ij})exp\Big[-p(\frac{r_{ij}}{r_0} -1) \Big] } }  \\
 
 
 where *E<sub>tot</sub>* is the total potential energy of the system,
@@ -93,10 +93,10 @@ ffield.SMTBQ.Syst. The energy band term is given by:
 
 .. math::
 
-E_{cov}^{i(i=M,O)} & = & - \Bigg\{\eta_i(\mu \xi^{0})^2 f_{cut}^{r_{c1}r_{c2}}(r_{ij})
-\Bigg( \sum_{j(j=O,M)}{ exp[ -2q(\frac{r_{ij}}{r_0} - 1)] } \Bigg) 
-\delta Q_i \Big( 2\frac{n_0}{\eta_i} - \delta Q_i \Big) \Bigg\}^{1/2} \\
-\delta Q_i & = & | Q_i^{F} | - | Q_i |
+   E_{cov}^{i(i=M,O)} & = & - \Bigg\{\eta_i(\mu \xi^{0})^2 f_{cut}^{r_{c1}r_{c2}}(r_{ij})
+   \Bigg( \sum_{j(j=O,M)}{ exp[ -2q(\frac{r_{ij}}{r_0} - 1)] } \Bigg) 
+   \delta Q_i \Big( 2\frac{n_0}{\eta_i} - \delta Q_i \Big) \Bigg\}^{1/2} \\
+   \delta Q_i & = & | Q_i^{F} | - | Q_i |
 
 
 where *&#951<sub>i</sub>* is the stoichiometry of atom *i*\ ,
@@ -123,8 +123,8 @@ relationship:
 
 .. math::
 
-\xi^0 & = & \frac{\xi_O}{m} = \frac{\xi_C}{n} \\
-\frac{\beta_O}{\sqrt{m}} & = & \frac{\beta_C}{\sqrt{n}} = \xi^0 \frac{\sqrt{m}+\sqrt{n}}{2}\\
+   \xi^0 & = & \frac{\xi_O}{m} = \frac{\xi_C}{n} \\
+   \frac{\beta_O}{\sqrt{m}} & = & \frac{\beta_C}{\sqrt{n}} = \xi^0 \frac{\sqrt{m}+\sqrt{n}}{2}\\
 
 
 Thus parameter &#956, indicated above, is given by : &#956 = (&#8730n

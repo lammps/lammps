@@ -60,10 +60,10 @@ The potential energy added to atom I is given by these formulas
 
 .. math::
 
-  \xi_{i} = \sum_{j=1}^{12} \left| \br_{j} - \br_{j}^{\rm I} \right|
+   \xi_{i} = \sum_{j=1}^{12} \left| \br_{j} - \br_{j}^{\rm I} \right|
 
 >>>image was here
-  \xi_{\rm IJ} = \sum_{j=1}^{12} \left| \br_{j}^{\rm J} - \br_{j}^{\rm I} \right|
+   \xi_{\rm IJ} = \sum_{j=1}^{12} \left| \br_{j}^{\rm J} - \br_{j}^{\rm I} \right|
 
 
 which are fully explained in :ref:`(Janssens) <Janssens>`.  For fcc crystals

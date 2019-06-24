@@ -70,11 +70,11 @@ function :ref:`(Mei) <Mei>`.
 
 .. math::
 
-\begin{array}{lcl}
-f(r) = 1.0 &\mathrm{for}& r < r_m \\
-f(r) = (1 - x)^3*(1+3x+6x^2) &\mathrm{for}& r_m < r < r_{cut} \\
-f(r) = 0.0 &\mathrm{for}& r >= r_{cut} \\
-\end{array}
+   \begin{array}{lcl}
+   f(r) = 1.0 &\mathrm{for}& r < r_m \\
+   f(r) = (1 - x)^3*(1+3x+6x^2) &\mathrm{for}& r_m < r < r_{cut} \\
+   f(r) = 0.0 &\mathrm{for}& r >= r_{cut} \\
+   \end{array}
 
 
 where

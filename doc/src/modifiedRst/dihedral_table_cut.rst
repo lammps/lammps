@@ -68,8 +68,8 @@ cutoff function:
 
 .. math::
 
-        f(\theta) & = & K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
-        f(\theta) & = & K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
+   f(\theta) & = & K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
+   f(\theta) & = & K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
 
 
 The cutoff specifies an prefactor to the cutoff function.  While this value

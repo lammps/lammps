@@ -54,7 +54,7 @@ formula
 
 .. math::
 
- {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
+   {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
 
 
 where M is the total mass of the chunk, Rcm is the center-of-mass

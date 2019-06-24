@@ -34,13 +34,13 @@ which is a generalization of the :doc:`embedded atom method (EAM) potential <pai
 
 .. math::
 
-E_i & = & F_\alpha \left( \sum_{j\neq i} \rho_\beta (r_{ij}) \right) + \frac{1}{2} \sum_{j\neq i}\phi_{\alpha\beta}(r_{ij})+ \frac{1}{2} \sum_s (\mu_i^s)^2 + \frac{1}{2} \sum_{s,t} (\lambda_i^{st})^2 - \frac{1}{6} \nu_i^2 \\
-%
-\mu_i^s & = & \sum_{j\neq i}u_{\alpha\beta}(r_{ij})r_{ij}^s\\
-%
-\lambda_i^{st} & = & \sum_{j\neq i}w_{\alpha\beta}(r_{ij})r_{ij}^sr_{ij}^t\\
-%
-\nu_i & = & \sum_s\lambda_i^{ss}
+   E_i & = & F_\alpha \left( \sum_{j\neq i} \rho_\beta (r_{ij}) \right) + \frac{1}{2} \sum_{j\neq i}\phi_{\alpha\beta}(r_{ij})+ \frac{1}{2} \sum_s (\mu_i^s)^2 + \frac{1}{2} \sum_{s,t} (\lambda_i^{st})^2 - \frac{1}{6} \nu_i^2 \\
+   %
+   \mu_i^s & = & \sum_{j\neq i}u_{\alpha\beta}(r_{ij})r_{ij}^s\\
+   %
+   \lambda_i^{st} & = & \sum_{j\neq i}w_{\alpha\beta}(r_{ij})r_{ij}^sr_{ij}^t\\
+   %
+   \nu_i & = & \sum_s\lambda_i^{ss}
 
 
 where F is the embedding energy which is a function of the atomic

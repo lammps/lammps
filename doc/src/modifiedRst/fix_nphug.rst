@@ -90,7 +90,7 @@ target temperature Tt obtained from the following equation:
 
 .. math::
 
-T_t - T = \frac{\left(\frac{1}{2}\left(P + P_0\right)\left(V_0 - V\right) + E_0 - E\right)}{N_{dof} k_B } = Delta
+   T_t - T = \frac{\left(\frac{1}{2}\left(P + P_0\right)\left(V_0 - V\right) + E_0 - E\right)}{N_{dof} k_B } = Delta
 
 
 where T and Tt are the instantaneous and target temperatures,

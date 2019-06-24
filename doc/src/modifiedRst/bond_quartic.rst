@@ -30,9 +30,9 @@ The *quartic* bond style uses the potential
 
 .. math::
 
-  E = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 +
-  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-    \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
+   E = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 +
+   4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
 
 
 to define a bond that can be broken as the simulation proceeds (e.g.

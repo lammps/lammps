@@ -79,8 +79,8 @@ reference and perturbed systems:
 
 .. math::
 
-  \lambda = 0 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_0 \\
-  \lambda = 1 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_1 
+   \lambda = 0 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_0 \\
+   \lambda = 1 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_1 
 
 
 It is possible but not necessary that the coupling parameter (or a

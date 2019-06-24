@@ -52,7 +52,7 @@ Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Bal
    a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c
 
 >>>image was here
-\Omega_N = \mathbf{n} \times (v_1 - v_2) / r
+   \Omega_N = \mathbf{n} \times (v_1 - v_2) / r
 
 
 which represents the dissipation W between two nearby particles due to
@@ -86,7 +86,7 @@ solved to balance the forces and torques is
 
 .. math::
 
--R_{FU}(U-U^{\infty}) = -R_{FE}E^{\infty} - F^{rest}
+   -R_{FU}(U-U^{\infty}) = -R_{FE}E^{\infty} - F^{rest}
 
 
 where U represents the velocities and angular velocities of the

@@ -35,7 +35,7 @@ The *oxdna/fene* and *oxdna2/fene* bond styles use the potential
 
 .. math::
 
-  E = - \frac{\epsilon}{2} \ln \left[ 1 - \left(\frac{r-r0}{\Delta}\right)^2\right]
+   E = - \frac{\epsilon}{2} \ln \left[ 1 - \left(\frac{r-r0}{\Delta}\right)^2\right]
 
 
 to define a modified finite extensible nonlinear elastic (FENE)

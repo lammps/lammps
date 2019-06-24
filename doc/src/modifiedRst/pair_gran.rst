@@ -83,11 +83,11 @@ The Hertzian style uses this formula:
 .. math::
 
    F_{hz} = \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} F_{hk} = 
-     \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} 
-     \Big[ (k_n \delta \mathbf{n}_{ij} -  
-       m_{\mbox{\scriptsize{eff}}} \: \gamma_n \mathbf{ v}_n) -
-       (k_t \mathbf{ \Delta s}_t +
-       m_{\mbox{\scriptsize{eff}}} \: \gamma_t \mathbf{v}_t) \Big]
+   \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} 
+   \Big[ (k_n \delta \mathbf{n}_{ij} -  
+   m_{\mbox{\scriptsize{eff}}} \: \gamma_n \mathbf{ v}_n) -
+   (k_t \mathbf{ \Delta s}_t +
+   m_{\mbox{\scriptsize{eff}}} \: \gamma_t \mathbf{v}_t) \Big]
 
 
 In both equations the first parenthesized term is the normal force

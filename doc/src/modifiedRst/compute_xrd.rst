@@ -59,22 +59,22 @@ is computed from the structure factor, F, using the equations:
 
 .. math::
 
-  I=Lp(\theta)\frac{F^{*}F}{N}
+   I=Lp(\theta)\frac{F^{*}F}{N}
 
 
 .. math::
 
-  F(\mathbf{k})=\sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j)
+   F(\mathbf{k})=\sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j)
 
 
 .. math::
 
-  Lp(\theta)=\frac{1+cos^{2}(2\theta)}{cos(\theta)sin^{2}(\theta)}
+   Lp(\theta)=\frac{1+cos^{2}(2\theta)}{cos(\theta)sin^{2}(\theta)}
 
 
 .. math::
 
-  \frac{sin(\theta)}{\lambda}=\frac{\left | \mathbf{k} \right |}{2}
+   \frac{sin(\theta)}{\lambda}=\frac{\left | \mathbf{k} \right |}{2}
 
 
 Here, K is the location of the reciprocal lattice node, rj is the
@@ -124,8 +124,8 @@ The analytic approximation is computed using the formula
 
 .. math::
 
-  f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4} 
-a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4} 
+   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
 
 Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each

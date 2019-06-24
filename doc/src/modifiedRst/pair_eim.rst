@@ -36,7 +36,7 @@ energy of the system E is given by
 
 .. math::
 
-E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left(r_{ij}\right) + \sum_{i=1}^{N}E_i\left(q_i,\sigma_i\right)
+   E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left(r_{ij}\right) + \sum_{i=1}^{N}E_i\left(q_i,\sigma_i\right)
 
 
 The first term is a double pairwise sum over the J neighbors of all I
@@ -47,9 +47,9 @@ and sigma\_i are calculated as
 
 .. math::
 
-q_i & = & \sum_{j=i_1}^{i_N} \eta_{ji}\left(r_{ij}\right) \\
-\sigma_i & = & \sum_{j=i_1}^{i_N} q_j \cdot \psi_{ij} \left(r_{ij}\right) \\
-E_i\left(q_i,\sigma_i\right) & = & \frac{1}{2} \cdot q_i \cdot \sigma_i
+   q_i & = & \sum_{j=i_1}^{i_N} \eta_{ji}\left(r_{ij}\right) \\
+   \sigma_i & = & \sum_{j=i_1}^{i_N} q_j \cdot \psi_{ij} \left(r_{ij}\right) \\
+   E_i\left(q_i,\sigma_i\right) & = & \frac{1}{2} \cdot q_i \cdot \sigma_i
 
 
 where eta\_ji is a pairwise function describing electron flow from atom
@@ -60,20 +60,20 @@ below
 
 .. math::
 
-\phi_{ij}\left(r\right) = \left\{ \begin{array}{lr}
-\left[\frac{E_{b,ij}\beta_{ij}}{\beta_{ij}-\alpha_{ij}}\exp\left(-\alpha_{ij} \frac{r-r_{e,ij}}{r_{e,ij}}\right)-\frac{E_{b,ij}\alpha_{ij}}{\beta_{ij}-\alpha_{ij}}\exp\left(-\beta_{ij} \frac{r-r_{e,ij}}{r_{e,ij}}\right)\right]f_c\left(r,r_{e,ij},r_{c,\phi,ij}\right),& p_{ij}=1 \\
-\left[\frac{E_{b,ij}\beta_{ij}}{\beta_{ij}-\alpha_{ij}} \left(\frac{r_{e,ij}}{r}\right)^{\alpha_{ij}}  -\frac{E_{b,ij}\alpha_{ij}}{\beta_{ij}-\alpha_{ij}} \left(\frac{r_{e,ij}}{r}\right)^{\beta_{ij}}\right]f_c\left(r,r_{e,ij},r_{c,\phi,ij}\right),& p_{ij}=2
-\end{array}
-\right.
+   \phi_{ij}\left(r\right) = \left\{ \begin{array}{lr}
+   \left[\frac{E_{b,ij}\beta_{ij}}{\beta_{ij}-\alpha_{ij}}\exp\left(-\alpha_{ij} \frac{r-r_{e,ij}}{r_{e,ij}}\right)-\frac{E_{b,ij}\alpha_{ij}}{\beta_{ij}-\alpha_{ij}}\exp\left(-\beta_{ij} \frac{r-r_{e,ij}}{r_{e,ij}}\right)\right]f_c\left(r,r_{e,ij},r_{c,\phi,ij}\right),& p_{ij}=1 \\
+   \left[\frac{E_{b,ij}\beta_{ij}}{\beta_{ij}-\alpha_{ij}} \left(\frac{r_{e,ij}}{r}\right)^{\alpha_{ij}}  -\frac{E_{b,ij}\alpha_{ij}}{\beta_{ij}-\alpha_{ij}} \left(\frac{r_{e,ij}}{r}\right)^{\beta_{ij}}\right]f_c\left(r,r_{e,ij},r_{c,\phi,ij}\right),& p_{ij}=2
+   \end{array}
+   \right.
 
 >>>image was here
-\eta_{ji} = A_{\eta,ij}\left(\chi_j-\chi_i\right)f_c\left(r,r_{s,\eta,ij},r_{c,\eta,ij}\right)
+   \eta_{ji} = A_{\eta,ij}\left(\chi_j-\chi_i\right)f_c\left(r,r_{s,\eta,ij},r_{c,\eta,ij}\right)
 
 >>>image was here
-\psi_{ij}\left(r\right) = A_{\psi,ij}\exp\left(-\zeta_{ij}r\right)f_c\left(r,r_{s,\psi,ij},r_{c,\psi,ij}\right)
+   \psi_{ij}\left(r\right) = A_{\psi,ij}\exp\left(-\zeta_{ij}r\right)f_c\left(r,r_{s,\psi,ij},r_{c,\psi,ij}\right)
 
 >>>image was here
-f_{c}\left(r,r_p,r_c\right) = 0.510204 erfc\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
+   f_{c}\left(r,r_p,r_c\right) = 0.510204 erfc\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
 
 
 Here E\_b, r\_e, r\_(c,phi), alpha, beta, A\_(psi), zeta, r\_(s,psi),

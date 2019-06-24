@@ -46,15 +46,15 @@ than the target value RG0.
 
 .. math::
 
-{R_G}^2 = \frac{1}{M}\sum_{i}^{N}{m_{i}\left( x_{i} -
-\frac{1}{M}\sum_{j}^{N}{m_{j}x_{j}} \right)^{2}}
+   {R_G}^2 = \frac{1}{M}\sum_{i}^{N}{m_{i}\left( x_{i} -
+   \frac{1}{M}\sum_{j}^{N}{m_{j}x_{j}} \right)^{2}}
 
 >>>image was here
- E = K\left( R_G - R_{G0} \right)^{2}
+   E = K\left( R_G - R_{G0} \right)^{2}
 
 >>>image was here
-F_{i} = 2K\frac{m_{i}}{M}\left( 1-\frac{R_{G0}}{R_G}
-\right)\left( x_{i} - \frac{1}{M}\sum_{j}^{N}{m_{j}x_{j}} \right)
+   F_{i} = 2K\frac{m_{i}}{M}\left( 1-\frac{R_{G0}}{R_G}
+   \right)\left( x_{i} - \frac{1}{M}\sum_{j}^{N}{m_{j}x_{j}} \right)
 
 
 The (xi - center-of-mass) term is computed taking into account

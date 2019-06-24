@@ -47,8 +47,8 @@ in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the total energy
 
 .. math::
 
-E_T & = & \sum_i [ E_i^{self} (q_i) + \sum_{j>i} [E_{ij}^{short} (r_{ij}, q_i, q_j) + E_{ij}^{Coul} (r_{ij}, q_i, q_j)] + \\
-&& E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})] \\
+   E_T & = & \sum_i [ E_i^{self} (q_i) + \sum_{j>i} [E_{ij}^{short} (r_{ij}, q_i, q_j) + E_{ij}^{Coul} (r_{ij}, q_i, q_j)] + \\
+   && E^{polar} (q_i, r_{ij}) + E^{vdW} (r_{ij}) + E^{barr} (q_i) + E^{corr} (r_{ij}, \theta_{jik})] \\
 
 
 where *E<sub>i</sub><sup>self</sup>* is the self-energy of atom *i*

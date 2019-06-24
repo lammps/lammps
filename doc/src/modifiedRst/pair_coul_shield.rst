@@ -41,12 +41,12 @@ the pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
 
 .. math::
 
-  E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
-  V_{ij} & = & {\rm Tap}(r_{ij})\frac{\kappa q_i q_j}{\sqrt[3]{r_{ij}^3+(1/\lambda_{ij})^3}}\\[15pt]
-  {\rm Tap}(r_{ij}) & = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
-                          70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
-                          84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
-                          35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
+   E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
+   V_{ij} & = & {\rm Tap}(r_{ij})\frac{\kappa q_i q_j}{\sqrt[3]{r_{ij}^3+(1/\lambda_{ij})^3}}\\[15pt]
+   {\rm Tap}(r_{ij}) & = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
+   70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
+   84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
+   35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
 
 
 Where Tap(r\_ij) is the taper function which provides a continuous cutoff

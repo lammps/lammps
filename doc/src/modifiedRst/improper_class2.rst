@@ -34,11 +34,11 @@ The *class2* improper style uses the potential
 
 .. math::
 
-  E & = & E_i + E_{aa} \\
-  E_i & = & K [ \frac{\chi_{ijkl} + \chi_{kjli} + \chi_{ljik}}{3} - \chi_0 ]^2 \\
-  E_{aa} & = & M_1 (\theta_{ijk} - \theta_1) (\theta_{kjl} - \theta_3) + \\
-  & & M_2 (\theta_{ijk} - \theta_1) (\theta_{ijl} - \theta_2) + \\
-  & & M_3 (\theta_{ijl} - \theta_2) (\theta_{kjl} - \theta_3)
+   E & = & E_i + E_{aa} \\
+   E_i & = & K [ \frac{\chi_{ijkl} + \chi_{kjli} + \chi_{ljik}}{3} - \chi_0 ]^2 \\
+   E_{aa} & = & M_1 (\theta_{ijk} - \theta_1) (\theta_{kjl} - \theta_3) + \\
+   & & M_2 (\theta_{ijk} - \theta_1) (\theta_{ijl} - \theta_2) + \\
+   & & M_3 (\theta_{ijl} - \theta_2) (\theta_{kjl} - \theta_3)
 
 
 where Ei is the improper term and Eaa is an angle-angle term.  The 3 X

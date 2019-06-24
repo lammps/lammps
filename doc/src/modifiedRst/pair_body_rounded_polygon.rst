@@ -74,11 +74,11 @@ are given by:
 
 .. math::
 
- F_n &=& k_n \delta_n - c_n v_n, \qquad \delta_n \le 0 \\
-     &=& -k_{na} \delta_n - c_n v_n, \qquad 0 < \delta_n \le r_c \\
-     &=& 0 \qquad \qquad \qquad \qquad \delta_n > r_c \\
- F_t &=& \mu k_n \delta_n - c_t v_t, \qquad \delta_n \le 0 \\
-     &=& 0 \qquad \qquad \qquad \qquad \delta_n > 0
+   F_n &=& k_n \delta_n - c_n v_n, \qquad \delta_n \le 0 \\
+   &=& -k_{na} \delta_n - c_n v_n, \qquad 0 < \delta_n \le r_c \\
+   &=& 0 \qquad \qquad \qquad \qquad \delta_n > r_c \\
+   F_t &=& \mu k_n \delta_n - c_t v_t, \qquad \delta_n \le 0 \\
+   &=& 0 \qquad \qquad \qquad \qquad \delta_n > 0
 
 
 .. image:: JPG/pair_body_rounded.jpg

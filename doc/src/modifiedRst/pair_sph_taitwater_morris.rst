@@ -28,7 +28,7 @@ particles according to Tait's equation of state:
 
 .. math::
 
-  p = B [(\frac{\rho}{\rho_0})^{\gamma} - 1]
+   p = B [(\frac{\rho}{\rho_0})^{\gamma} - 1]
 
 
 where gamma = 7 and B = c\_0\^2 rho\_0 / gamma, with rho\_0 being the

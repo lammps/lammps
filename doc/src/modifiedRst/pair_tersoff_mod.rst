@@ -51,22 +51,22 @@ E of a system of atoms as
 
 .. math::
 
-  E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} & = & f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
-  f_C(r) & = & \left\{ \begin{array} {r@{\quad:\quad}l}
-    1 & r < R - D \\
-    \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
-      R-D < r < R + D \\
-    0 & r > R + D
-    \end{array} \right. \\
-  f_R(r) & = & A \exp (-\lambda_1 r) \\
-  f_A(r) & = & -B \exp (-\lambda_2 r) \\
-  b_{ij} & = & \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
-  \zeta_{ij} & = & \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
-                   \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
-  g(\theta) & = & c_1 + g_o(\theta) g_a(\theta) \\
-  g_o(\theta) & = & \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
-  g_a(\theta) & = & 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
+   E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij} & = & f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+   f_C(r) & = & \left\{ \begin{array} {r@{\quad:\quad}l}
+   1 & r < R - D \\
+   \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
+   R-D < r < R + D \\
+   0 & r > R + D
+   \end{array} \right. \\
+   f_R(r) & = & A \exp (-\lambda_1 r) \\
+   f_A(r) & = & -B \exp (-\lambda_2 r) \\
+   b_{ij} & = & \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
+   \zeta_{ij} & = & \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+   \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
+   g(\theta) & = & c_1 + g_o(\theta) g_a(\theta) \\
+   g_o(\theta) & = & \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
+   g_a(\theta) & = & 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
 
 
 where f\_R is a two-body term and f\_A includes three-body interactions.
@@ -77,7 +77,7 @@ formulation of the V\_ij term, where it contains an additional c0 term.
 
 .. math::
 
-  V_{ij}  & =  & f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
+   V_{ij}  & =  & f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
 
 
 The modified cutoff function f\_C proposed by :ref:`(Murty) <Murty>` and

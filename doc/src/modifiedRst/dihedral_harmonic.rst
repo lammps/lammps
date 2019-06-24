@@ -33,7 +33,7 @@ The *harmonic* dihedral style uses the potential
 
 .. math::
 
-  E = K [ 1 + d  \cos (n \phi) ]
+   E = K [ 1 + d  \cos (n \phi) ]
 
 
 The following coefficients must be defined for each dihedral type via the

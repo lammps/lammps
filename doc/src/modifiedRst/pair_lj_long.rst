@@ -80,14 +80,14 @@ Coulombic potentials, given by
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-                       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+   \qquad r < r_c
 
 
 .. math::
 
-  E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 
 where C is an energy-conversion constant, Qi and Qj are the charges on

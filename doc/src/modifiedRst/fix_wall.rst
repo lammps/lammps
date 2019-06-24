@@ -84,28 +84,28 @@ For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
 
 .. math::
 
- E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
-                       \left(\frac{\sigma}{r}\right)^3 \right]
-                       \qquad r < r_c
+   E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
+   \left(\frac{\sigma}{r}\right)^3 \right]
+   \qquad r < r_c
 
 
 For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-                       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+   \qquad r < r_c
 
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
 .. math::
 
- E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
-                       \left(\frac{\sigma}{r}\right)^4 -
-                       \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
-                       \qquad r < r_c
+   E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
+   \left(\frac{\sigma}{r}\right)^4 -
+   \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
+   \qquad r < r_c
 
 
 For style *wall/colloid*\ , the energy E is given by an integrated form
@@ -120,7 +120,7 @@ potential:
 
 .. math::
 
- E = \epsilon \hspace{0.1cm} (r - r_c)^2 \qquad r < r_c
+   E = \epsilon \hspace{0.1cm} (r - r_c)^2 \qquad r < r_c
 
 
 In all cases, *r* is the distance from the particle to the wall at

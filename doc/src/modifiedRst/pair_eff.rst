@@ -100,34 +100,34 @@ given as,
 
 .. math::
 
-U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
+   U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
 
 
 The individual terms are defined as follows:
 
 .. math::
 
-E_{KE}  = \frac{\hbar^2 }{{m_{e} }}\sum\limits_i {\frac{3}{{2s_i^2 }}}
+   E_{KE}  = \frac{\hbar^2 }{{m_{e} }}\sum\limits_i {\frac{3}{{2s_i^2 }}}
 
 
 .. math::
 
-E_{NN}  = \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{{Z_i Z_j }}{{R_{ij} }}}
+   E_{NN}  = \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{{Z_i Z_j }}{{R_{ij} }}}
 
 
 .. math::
 
-E_{Ne}  =  - \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i,j} {\frac{{Z_i }}{{R_{ij} }}Erf\left( {\frac{{\sqrt 2 R_{ij} }}{{s_j }}} \right)}
+   E_{Ne}  =  - \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i,j} {\frac{{Z_i }}{{R_{ij} }}Erf\left( {\frac{{\sqrt 2 R_{ij} }}{{s_j }}} \right)}
 
 
 .. math::
 
-E_{ee}  = \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{1}{{r_{ij} }}Erf\left( {\frac{{\sqrt 2 r_{ij} }}{{\sqrt {s_i^2  + s_j^2 } }}} \right)} 
+   E_{ee}  = \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{1}{{r_{ij} }}Erf\left( {\frac{{\sqrt 2 r_{ij} }}{{\sqrt {s_i^2  + s_j^2 } }}} \right)} 
 
 
 .. math::
 
-E_{Pauli}  = \sum\limits_{\sigma _i  = \sigma _j } {E\left( { \uparrow  \uparrow } \right)_{ij}}  + \sum\limits_{\sigma _i  \ne \sigma _j } {E\left( { \uparrow  \downarrow } \right)_{ij}}
+   E_{Pauli}  = \sum\limits_{\sigma _i  = \sigma _j } {E\left( { \uparrow  \uparrow } \right)_{ij}}  + \sum\limits_{\sigma _i  \ne \sigma _j } {E\left( { \uparrow  \downarrow } \right)_{ij}}
 
 
 where, s\_i correspond to the electron sizes, the sigmas i's to the
@@ -243,12 +243,12 @@ representations, after the "ecp" keyword.
 
 .. math::
 
-E_{Pauli(ECP_s)}=p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right)
+   E_{Pauli(ECP_s)}=p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right)
 
 
 .. math::
 
-E_{Pauli(ECP_p)}=p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right] 
+   E_{Pauli(ECP_p)}=p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right] 
 
 
 Where the 1st form correspond to core interactions with s-type valence

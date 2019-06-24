@@ -157,7 +157,7 @@ the restraint is
 
 .. math::
 
-  E = K (\theta - \theta_0)^2 
+   E = K (\theta - \theta_0)^2 
 
 
 with the following coefficients:
@@ -179,7 +179,7 @@ associated with the restraint is
 
 .. math::
 
-  E = K [ 1 + \cos (n \phi - d) ]
+   E = K [ 1 + \cos (n \phi - d) ]
 
 
 with the following coefficients:

@@ -70,7 +70,7 @@ interaction has the following form:
 
 .. math::
 
- E = \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - 
+   E = \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - 
    n \left(\frac{r_0}{r}\right)^m \right] \qquad r < r_c
 
 
@@ -80,7 +80,7 @@ Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
 .. math::
 
-  E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 
 where C is an energy-conversion constant, Qi and Qj are the charges on

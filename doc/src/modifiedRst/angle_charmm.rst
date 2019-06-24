@@ -1,10 +1,16 @@
-.. index:: angle\_style cosine/shift
+.. index:: angle\_style charmm
 
-angle\_style cosine/shift command
+angle\_style charmm command
+===========================
+
+angle\_style charmm/intel command
 =================================
 
-angle\_style cosine/shift/omp command
-=====================================
+angle\_style charmm/kk command
+==============================
+
+angle\_style charmm/omp command
+===============================
 
 Syntax
 """"""
@@ -12,7 +18,7 @@ Syntax
 
 .. parsed-literal::
 
-   angle_style cosine/shift
+   angle_style charmm
 
 Examples
 """"""""
@@ -20,30 +26,38 @@ Examples
 
 .. parsed-literal::
 
-   angle_style cosine/shift
-   angle_coeff \* 10.0 45.0
+   angle_style charmm
+   angle_coeff 1 300.0 107.0 50.0 3.0
 
 Description
 """""""""""
 
-The *cosine/shift* angle style uses the potential
+The *charmm* angle style uses the potential
 
 .. math::
 
-   E=-\frac{Umin}{2} \left[ 1+Cos(\theta-\theta_0) \right]
+   E = K (\theta - \theta_0)^2 + K_{UB} (r - r_{UB})^2 
 
 
-where theta0 is the equilibrium angle. The potential is bounded
-between -Umin and zero. In the neighborhood of the minimum E=- Umin +
-Umin/4(theta-theta0)\^2 hence the spring constant is umin/2.
+with an additional Urey\_Bradley term based on the distance *r* between
+the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
+coefficients defined for each angle type.
+
+See :ref:`(MacKerell) <angle-MacKerell>` for a description of the CHARMM force
+field.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* umin (energy)
-* theta (angle)
+* K (energy/radian\^2)
+* theta0 (degrees)
+* K\_ub (energy/distance\^2)
+* r\_ub (distance)
+
+Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian\^2.
 
 
 ----------
@@ -64,7 +78,7 @@ You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
 :doc:`suffix <suffix>` command in your input script.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more
+See :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
 
@@ -76,15 +90,26 @@ Restrictions
 
 
 This angle style can only be used if LAMMPS was built with the
-USER-MISC package.
+MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`,
-:doc:`angle\_cosine\_shift\_exp <angle_cosine_shift_exp>`
+:doc:`angle\_coeff <angle_coeff>`
 
 **Default:** none
+
+
+----------
+
+
+.. _angle-MacKerell:
+
+
+
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 
 .. _lws: http://lammps.sandia.gov

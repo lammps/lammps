@@ -30,7 +30,7 @@ The *quartic* angle style uses the potential
 
 .. math::
 
-  E = K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4 (\theta - \theta_0)^4
+   E = K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4 (\theta - \theta_0)^4
 
 
 where theta0 is the equilibrium value of the angle, and K is a

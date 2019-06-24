@@ -24,7 +24,7 @@ The *sqdistharm* improper style uses the potential
 
 .. math::
 
-  E = K (d^2 - d_0^2)^2
+   E = K (d^2 - d_0^2)^2
 
 
 where d is the distance between the central atom and the plane formed

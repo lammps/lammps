@@ -28,7 +28,7 @@ according to the ideal gas equation of state:
 
 .. math::
 
-  p = (\gamma - 1) \rho e
+   p = (\gamma - 1) \rho e
 
 
 where gamma = 1.4 is the heat capacity ratio, rho is the local

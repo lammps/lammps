@@ -81,8 +81,8 @@ units:
 
 .. math::
 
-
-\end{document}
+   
+   \end{document}
    :align: center
 
 where rho gives the number density of the spherical particles
@@ -96,8 +96,8 @@ details):
 
 .. math::
 
-
-\end{document}
+   
+   \end{document}
    :align: center
 
 For ellipsoid/LJ sphere interactions, a correction to the distance-
@@ -111,8 +111,8 @@ standard LJ formula:
 
 .. math::
 
-
-\end{document}
+   
+   \end{document}
    :align: center
 
 and the specified *sigma* is used as the sigma in the standard LJ
@@ -153,10 +153,10 @@ contact curvatures :ref:`(Everaers) <Everaers3>`:
 
 .. math::
 
-\sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {
-\frac{c}{ a \cdot b } } $$
-
-\end{document}
+   \sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {
+   \frac{c}{ a \cdot b } } $$
+   
+   \end{document}
    :align: center
 
 where a, b, and c give the particle diameters.

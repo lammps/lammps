@@ -30,7 +30,7 @@ The *nharmonic* dihedral style uses the potential:
 
 .. math::
 
-  E = \sum_{n=1,n} A_n  \cos^{n-1}(\phi)
+   E = \sum_{n=1,n} A_n  \cos^{n-1}(\phi)
 
 
 The following coefficients must be defined for each dihedral type via the

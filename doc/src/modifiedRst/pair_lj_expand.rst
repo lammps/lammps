@@ -53,9 +53,9 @@ formula:
 
 .. math::
 
-  E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
-    \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
-    \qquad r < r_c + \Delta
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 
+   \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
+   \qquad r < r_c + \Delta
 
 
 Rc is the cutoff which does not include the delta distance.  I.e. the

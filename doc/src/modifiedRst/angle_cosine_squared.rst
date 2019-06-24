@@ -30,7 +30,7 @@ The *cosine/squared* angle style uses the potential
 
 .. math::
 
-  E = K [\cos(\theta) - \cos(\theta_0)]^2 
+   E = K [\cos(\theta) - \cos(\theta_0)]^2 
 
 
 where theta0 is the equilibrium value of the angle, and K is a

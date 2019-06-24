@@ -33,7 +33,7 @@ The *cosine* angle style uses the potential
 
 .. math::
 
-  E = K [1 + \cos(\theta)] 
+   E = K [1 + \cos(\theta)] 
 
 
 where K is defined for each angle type.

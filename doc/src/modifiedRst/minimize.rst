@@ -86,12 +86,12 @@ coordinates:
 
 .. math::
 
-E(r_1,r_2, \ldots ,r_N) & = & \sum_{i,j} E_{\it pair}(r_i,r_j) + 
-                              \sum_{ij} E_{\it bond}(r_i,r_j) +
-                              \sum_{ijk} E_{\it angle}(r_i,r_j,r_k) + \\
-                           && \sum_{ijkl} E_{\it dihedral}(r_i,r_j,r_k,r_l) +
-                              \sum_{ijkl} E_{\it improper}(r_i,r_j,r_k,r_l) +
-                              \sum_i E_{\it fix}(r_i) 
+   E(r_1,r_2, \ldots ,r_N) & = & \sum_{i,j} E_{\it pair}(r_i,r_j) + 
+   \sum_{ij} E_{\it bond}(r_i,r_j) +
+   \sum_{ijk} E_{\it angle}(r_i,r_j,r_k) + \\
+   && \sum_{ijkl} E_{\it dihedral}(r_i,r_j,r_k,r_l) +
+   \sum_{ijkl} E_{\it improper}(r_i,r_j,r_k,r_l) +
+   \sum_i E_{\it fix}(r_i) 
 
 
 where the first term is the sum of all non-bonded :doc:`pairwise interactions <pair_style>` including :doc:`long-range Coulombic interactions <kspace_style>`, the 2nd through 5th terms are

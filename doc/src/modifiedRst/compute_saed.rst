@@ -61,12 +61,12 @@ is computed from the structure factor F using the equations:
 
 .. math::
 
-  I=\frac{F^{*}F}{N}
+   I=\frac{F^{*}F}{N}
 
 
 .. math::
 
-  F(\mathbf{k})=\sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j)
+   F(\mathbf{k})=\sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j)
 
 
 Here, K is the location of the reciprocal lattice node, rj is the
@@ -125,8 +125,8 @@ The analytic approximation is computed using the formula
 
 .. math::
 
-  f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
-a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
+   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
 
 
 Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each

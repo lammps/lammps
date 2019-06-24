@@ -55,23 +55,23 @@ rotation of **A**\ , **B**\ , and **C** and can be computed as follows:
 
 .. math::
 
-\begin{pmatrix}
-\mathbf{a}  &
-\mathbf{b}  &
-\mathbf{c} 
-\end{pmatrix}
-& = &
-\begin{pmatrix}
-a_x & b_x & c_x \\
-0 & b_y & c_y \\
-0 & 0 & c_z \\
-\end{pmatrix} \\
-a_x &=& A \\
-b_x &=& \mathbf{B} \cdot \mathbf{\hat{A}} \quad = \quad B \cos{\gamma} \\
-b_y &=& |\mathbf{\hat{A}} \times \mathbf{B}| \quad = \quad B \sin{\gamma} \quad =  \quad  \sqrt{B^2 - {b_x}^2} \\
-c_x &=& \mathbf{C} \cdot \mathbf{\hat{A}} \quad = \quad C \cos{\beta} \\
-c_y &=& \mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})} \times \mathbf{\hat{A}} \quad = \quad \frac{\mathbf{B} \cdot \mathbf{C} - b_x c_x}{b_y} \\
-c_z &=& |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2} \\
+   \begin{pmatrix}
+   \mathbf{a}  &
+   \mathbf{b}  &
+   \mathbf{c} 
+   \end{pmatrix}
+   & = &
+   \begin{pmatrix}
+   a_x & b_x & c_x \\
+   0 & b_y & c_y \\
+   0 & 0 & c_z \\
+   \end{pmatrix} \\
+   a_x &=& A \\
+   b_x &=& \mathbf{B} \cdot \mathbf{\hat{A}} \quad = \quad B \cos{\gamma} \\
+   b_y &=& |\mathbf{\hat{A}} \times \mathbf{B}| \quad = \quad B \sin{\gamma} \quad =  \quad  \sqrt{B^2 - {b_x}^2} \\
+   c_x &=& \mathbf{C} \cdot \mathbf{\hat{A}} \quad = \quad C \cos{\beta} \\
+   c_y &=& \mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})} \times \mathbf{\hat{A}} \quad = \quad \frac{\mathbf{B} \cdot \mathbf{C} - b_x c_x}{b_y} \\
+   c_z &=& |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2} \\
 
 
 where A = \| **A** \| indicates the scalar length of **A**\ . The hat symbol (\^)
@@ -94,22 +94,22 @@ The transformation is given by the following equation:
 
 .. math::
 
-\mathbf{x}
- &=& 
-\begin{pmatrix}
-\mathbf{a}  &
-\mathbf{b}  &
-\mathbf{c} 
-\end{pmatrix}
-\cdot 
- \frac{1}{V}
- \begin{pmatrix}
-\mathbf{B \times C}  \\
-\mathbf{C \times A}  \\
-\mathbf{A \times B} 
-\end{pmatrix}
-\cdot 
-\mathbf{X}
+   \mathbf{x}
+   &=& 
+   \begin{pmatrix}
+   \mathbf{a}  &
+   \mathbf{b}  &
+   \mathbf{c} 
+   \end{pmatrix}
+   \cdot 
+   \frac{1}{V}
+   \begin{pmatrix}
+   \mathbf{B \times C}  \\
+   \mathbf{C \times A}  \\
+   \mathbf{A \times B} 
+   \end{pmatrix}
+   \cdot 
+   \mathbf{X}
 
 
 where *V* is the volume of the box, **X** is the original vector quantity and
@@ -200,24 +200,24 @@ defined above.  The relationship between these 6 quantities
 
 .. math::
 
-a &=& {\rm lx} \\
-b^2 &=&  {\rm ly}^2 +  {\rm xy}^2 \\
-c^2 &=&  {\rm lz}^2 +  {\rm xz}^2 +  {\rm yz}^2 \\
-\cos{\alpha} &=& \frac{{\rm xy}*{\rm xz} + {\rm ly}*{\rm yz}}{b*c} \\
-\cos{\beta} &=& \frac{\rm xz}{c} \\
-\cos{\gamma} &=& \frac{\rm xy}{b} \\
+   a &=& {\rm lx} \\
+   b^2 &=&  {\rm ly}^2 +  {\rm xy}^2 \\
+   c^2 &=&  {\rm lz}^2 +  {\rm xz}^2 +  {\rm yz}^2 \\
+   \cos{\alpha} &=& \frac{{\rm xy}*{\rm xz} + {\rm ly}*{\rm yz}}{b*c} \\
+   \cos{\beta} &=& \frac{\rm xz}{c} \\
+   \cos{\gamma} &=& \frac{\rm xy}{b} \\
 
 
 The inverse relationship can be written as follows:
 
 .. math::
 
-{\rm lx} &=& a \\
-{\rm xy} &=& b \cos{\gamma}  \\
-{\rm xz} &=& c \cos{\beta}\\
-{\rm ly}^2 &=&   b^2 - {\rm xy}^2 \\
-{\rm yz} &=& \frac{b*c \cos{\alpha} - {\rm xy}*{\rm xz}}{\rm ly} \\
-{\rm lz}^2 &=&  c^2 - {\rm xz}^2 - {\rm yz}^2 \\
+   {\rm lx} &=& a \\
+   {\rm xy} &=& b \cos{\gamma}  \\
+   {\rm xz} &=& c \cos{\beta}\\
+   {\rm ly}^2 &=&   b^2 - {\rm xy}^2 \\
+   {\rm yz} &=& \frac{b*c \cos{\alpha} - {\rm xy}*{\rm xz}}{\rm ly} \\
+   {\rm lz}^2 &=&  c^2 - {\rm xz}^2 - {\rm yz}^2 \\
 
 
 The values of *a*\ , *b*\ , *c* , *alpha*\ , *beta* , and *gamma* can be printed

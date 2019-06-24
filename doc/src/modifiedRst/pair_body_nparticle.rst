@@ -69,9 +69,9 @@ interaction, using the standard formula
 
 .. math::
 
- E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-                       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right]
+   \qquad r < r_c
 
 
 where Rc is the cutoff.  As explained above, an interaction involving

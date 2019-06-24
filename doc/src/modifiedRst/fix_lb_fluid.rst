@@ -71,17 +71,17 @@ the Navier Stokes equations,
 
 .. math::
 
-\partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= 0
+   \partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= 0
 
 >>>image was here
-\partial_t\left(\rho u_{\alpha}\right) + \partial_{\beta}\left(\rho u_{\alpha} u_{\beta}\right) = \partial_{\beta}\sigma_{\alpha \beta} + F_{\alpha} + \partial_{\beta}\left(\eta_{\alpha \beta \gamma \nu}\partial_{\gamma} u_{\nu}\right)
+   \partial_t\left(\rho u_{\alpha}\right) + \partial_{\beta}\left(\rho u_{\alpha} u_{\beta}\right) = \partial_{\beta}\sigma_{\alpha \beta} + F_{\alpha} + \partial_{\beta}\left(\eta_{\alpha \beta \gamma \nu}\partial_{\gamma} u_{\nu}\right)
 
 
 with,
 
 .. math::
 
-\eta_{\alpha \beta \gamma \nu} = \eta\left[\delta_{\alpha \gamma}\delta_{\beta \nu} + \delta_{\alpha \nu}\delta_{\beta \gamma} - \frac{2}{3}\delta_{\alpha \beta}\delta_{\gamma \nu}\right] + \Lambda \delta_{\alpha \beta}\delta_{\gamma \nu}
+   \eta_{\alpha \beta \gamma \nu} = \eta\left[\delta_{\alpha \gamma}\delta_{\beta \nu} + \delta_{\alpha \nu}\delta_{\beta \gamma} - \frac{2}{3}\delta_{\alpha \beta}\delta_{\gamma \nu}\right] + \Lambda \delta_{\alpha \beta}\delta_{\gamma \nu}
 
 
 where rho is the fluid density, u is the local fluid velocity, sigma
@@ -91,7 +91,7 @@ implemented
 
 .. math::
 
-\sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
+   \sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
 
 
 with a\_0 set to 1/3 (dx/dt)\^2 by default.
@@ -102,7 +102,7 @@ discretized version of the Boltzmann equation,
 
 .. math::
 
-\left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
+   \left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
 
 
 where the first term on the right hand side represents a single time
@@ -121,10 +121,10 @@ functions,
 
 .. math::
 
-\rho = \displaystyle\sum\limits_{i} f_i
+   \rho = \displaystyle\sum\limits_{i} f_i
 
 >>>image was here
-\rho u_{\alpha} = \displaystyle\sum\limits_{i} f_i e_{i\alpha}
+   \rho u_{\alpha} = \displaystyle\sum\limits_{i} f_i e_{i\alpha}
 
 
 Full details of the lattice-Boltzmann algorithm used can be found in
@@ -137,7 +137,7 @@ calculated as:
 
 .. math::
 
-{\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
+   {\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
 
 
 where v\_n is the velocity of the MD particle, u\_f is the fluid
@@ -157,7 +157,7 @@ By default, the force coupling constant, gamma, is calculated according to
 
 .. math::
 
-\gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
 
 
 Here, m\_v is the mass of the MD particle, m\_u is a representative
@@ -386,7 +386,7 @@ By default, the force coupling constant is set according to
 
 .. math::
 
-\gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
 
 
 and an area of dx\_lb\^2 per node, used to calculate the fluid mass at

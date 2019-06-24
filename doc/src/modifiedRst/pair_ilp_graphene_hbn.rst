@@ -42,18 +42,18 @@ in :ref:`(Kolmogorov) <Kolmogorov2>`.
 
 .. math::
 
-  E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
-  V_{ij} & = & {\rm Tap}(r_{ij})\left \{ e^{-\alpha (r_{ij}/\beta -1)} 
-               \left [ \epsilon + f(\rho_{ij}) + f(\rho_{ji})\right ] - 
-                \frac{1}{1+e^{-d\left [ \left ( r_{ij}/\left (s_R \cdot r^{eff} \right ) \right )-1 \right ]}}
-                \cdot \frac{C_6}{r^6_{ij}} \right \}\\[15pt]
-  \rho_{ij}^2 & = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_i)^2 \\[15pt]
-  \rho_{ji}^2 & = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_j)^2 \\[15pt]
-  f(\rho) & = &  C e^{ -( \rho / \delta )^2 }\\[15pt]
-  {\rm Tap}(r_{ij}) & = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
-                          70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
-                          84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
-                          35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
+   E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
+   V_{ij} & = & {\rm Tap}(r_{ij})\left \{ e^{-\alpha (r_{ij}/\beta -1)} 
+   \left [ \epsilon + f(\rho_{ij}) + f(\rho_{ji})\right ] - 
+   \frac{1}{1+e^{-d\left [ \left ( r_{ij}/\left (s_R \cdot r^{eff} \right ) \right )-1 \right ]}}
+   \cdot \frac{C_6}{r^6_{ij}} \right \}\\[15pt]
+   \rho_{ij}^2 & = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_i)^2 \\[15pt]
+   \rho_{ji}^2 & = & r_{ij}^2 - ({\bf r}_{ij} \cdot {\bf n}_j)^2 \\[15pt]
+   f(\rho) & = &  C e^{ -( \rho / \delta )^2 }\\[15pt]
+   {\rm Tap}(r_{ij}) & = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
+   70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
+   84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
+   35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
 
 
 Where Tap(r\_ij) is the taper function which provides a continuous

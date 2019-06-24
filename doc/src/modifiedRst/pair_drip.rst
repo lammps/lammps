@@ -42,7 +42,7 @@ The total potential energy of a system is
 
 .. math::
 
-E &=& \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\\phi_{ij} &=& f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right] \\
+   E &=& \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\\phi_{ij} &=& f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right] \\
 
 
 where the *r\^-6* term models the attractive London dispersion,

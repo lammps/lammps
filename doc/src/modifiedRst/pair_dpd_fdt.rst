@@ -56,11 +56,11 @@ given as a sum of 3 terms
 
 .. math::
 
- \vec{f} & = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
- F^C & = & A w(r) \\
- F^D & = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
- F^R & = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
- w(r) & = & 1 - r/r_c
+   \vec{f} & = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
+   F^C & = & A w(r) \\
+   F^D & = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
+   F^R & = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
+   w(r) & = & 1 - r/r_c
 
 
 where Fc is a conservative force, Fd is a dissipative force, and Fr is
@@ -73,7 +73,7 @@ between 0 and 1, and is chosen to have the following functional form:
 
 .. math::
 
- \omega_{ij} = 1 - \frac{r_{ij}}{r_{c}}
+   \omega_{ij} = 1 - \frac{r_{ij}}{r_{c}}
 
 
 Note that alternative definitions of the weighting function exist, but
@@ -105,19 +105,19 @@ within style *dpd/fdt/energy* as:
 
 .. math::
 
-  du_{i}^{cond} & = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
-  du_{i}^{mech} & = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} - 
-  \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} - 
-  \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2} \\
+   du_{i}^{cond} & = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
+   du_{i}^{mech} & = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} - 
+   \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} - 
+   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2} \\
 
 
 where
 
 .. math::
 
-  \alpha_{ij}^{2} & = & 2k_{B}\kappa_{ij} \\
-  \sigma^{2}_{ij} & = & 2\gamma_{ij}k_{B}\Theta_{ij} \\
-  \Theta_{ij}^{-1} & = & \frac{1}{2}(\frac{1}{\theta_{i}}+\frac{1}{\theta_{j}}) \\
+   \alpha_{ij}^{2} & = & 2k_{B}\kappa_{ij} \\
+   \sigma^{2}_{ij} & = & 2\gamma_{ij}k_{B}\Theta_{ij} \\
+   \Theta_{ij}^{-1} & = & \frac{1}{2}(\frac{1}{\theta_{i}}+\frac{1}{\theta_{j}}) \\
 
 
 Zeta\_ij\^q is a second Gaussian random number with zero mean and unit

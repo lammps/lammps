@@ -44,10 +44,10 @@ Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) 
 
 .. math::
 
-	E = -\varepsilon\, \ln{\left[1-\exp{\left(-r^{2}/\sigma^{2}\right)}\right]} \qquad  r < r_c
+   	E = -\varepsilon\, \ln{\left[1-\exp{\left(-r^{2}/\sigma^{2}\right)}\right]} \qquad  r < r_c
 
 >>>image was here
-  \varepsilon = p\,k_B\,T
+   \varepsilon = p\,k_B\,T
 
 
 where rc is the cutoff, sigma is a distance-scale and epsilon is an energy-scale, i.e., a product of Boltzmann constant kB, temperature T and the Uhlenbeck-Ford p-parameter which is responsible

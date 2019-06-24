@@ -28,7 +28,7 @@ as defined in :ref:`(Allinger) <mm3-allinger1989>`
 
 .. math::
 
-  E = K (\theta - \theta_0)^2 \left[ 1 - 0.014(\theta - \theta_0) + 5.6(10)^{-5} (\theta - \theta_0)^2 - 7.0(10)^{-7} (\theta - \theta_0)^3 + 9(10)^{-10} (\theta - \theta_0)^4 \right]
+   E = K (\theta - \theta_0)^2 \left[ 1 - 0.014(\theta - \theta_0) + 5.6(10)^{-5} (\theta - \theta_0)^2 - 7.0(10)^{-7} (\theta - \theta_0)^3 + 9(10)^{-10} (\theta - \theta_0)^4 \right]
 
 
 where theta0 is the equilibrium value of the angle, and K is a

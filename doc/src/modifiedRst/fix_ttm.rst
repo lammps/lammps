@@ -111,9 +111,9 @@ transfer between the subsystems:
 
 .. math::
 
-  C_e \rho_e \frac{\partial T_e}{\partial t} = 
-  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
-  g_p (T_e - T_a) + g_s T_a'
+   C_e \rho_e \frac{\partial T_e}{\partial t} = 
+   \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+   g_p (T_e - T_a) + g_s T_a'
 
 
 where C\_e is the specific heat, rho\_e is the density, kappa\_e is the
@@ -200,9 +200,9 @@ heat sources (e.g. laser heating in ablation simulations):
 
 .. math::
 
-  C_e \rho_e \frac{\partial T_e}{\partial t} = 
-  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
-  g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
+   C_e \rho_e \frac{\partial T_e}{\partial t} = 
+   \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+   g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
 
 
 where theta is the Heaviside step function, I\_0 is the (absorbed)
@@ -217,7 +217,7 @@ as
 
 .. math::
 
-  C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
+   C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
 
 
 where *X* = T\_e/1000, and the thermal conductivity is defined as
@@ -231,7 +231,7 @@ acting on an ion is:
 
 .. math::
 
-  {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec F}_{langevin} - \nabla P_e/n_{ion}
+   {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec F}_{langevin} - \nabla P_e/n_{ion}
 
 
 where F\_langevin is a force from Langevin thermostat simulating
@@ -256,7 +256,7 @@ is calculated as
 
 .. math::
 
-  \nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} + \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta x}-(C_e{}T_e)_{x}}{\Delta x} \right]
+   \nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} + \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta x}-(C_e{}T_e)_{x}}{\Delta x} \right]
 
 
 where lambda is the electron mean free path (see :ref:`(Norman) <Norman>`,

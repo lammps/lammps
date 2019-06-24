@@ -230,7 +230,7 @@ function then is:
 
 .. math::
 
-E = U + P_t \left(V-V_0 \right) + E_{strain}
+   E = U + P_t \left(V-V_0 \right) + E_{strain}
 
 
 where *U* is the system potential energy, *P*\ \_t is the desired
@@ -243,7 +243,7 @@ global system stress tensor **P** will satisfy the relation:
 
 .. math::
 
-\mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}
+   \mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}
 
 
 where **I** is the identity matrix, **h**\ \_0 is the box dimension tensor of

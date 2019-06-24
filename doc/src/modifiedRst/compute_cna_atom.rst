@@ -53,9 +53,9 @@ obtain a good cutoff distance:
 
 .. math::
 
-  r_{c}^{fcc} & = & \frac{1}{2} \left(\frac{\sqrt{2}}{2} + 1\right) \mathrm{a} \simeq 0.8536 \:\mathrm{a} \\
-  r_{c}^{bcc} & = & \frac{1}{2}(\sqrt{2} + 1) \mathrm{a} \simeq 1.207 \:\mathrm{a} \\
-  r_{c}^{hcp} & = & \frac{1}{2}\left(1+\sqrt{\frac{4+2x^{2}}{3}}\right) \mathrm{a}
+   r_{c}^{fcc} & = & \frac{1}{2} \left(\frac{\sqrt{2}}{2} + 1\right) \mathrm{a} \simeq 0.8536 \:\mathrm{a} \\
+   r_{c}^{bcc} & = & \frac{1}{2}(\sqrt{2} + 1) \mathrm{a} \simeq 1.207 \:\mathrm{a} \\
+   r_{c}^{hcp} & = & \frac{1}{2}\left(1+\sqrt{\frac{4+2x^{2}}{3}}\right) \mathrm{a}
 
 
 where a is the lattice constant for the crystal structure concerned
@@ -68,7 +68,7 @@ following relation should also be satisfied:
 
 .. math::
 
-  Rc + Rs > 2*{\rm cutoff}
+   Rc + Rs > 2*{\rm cutoff}
 
 
 where Rc is the cutoff distance of the potential, Rs is the skin

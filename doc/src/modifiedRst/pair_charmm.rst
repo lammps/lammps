@@ -162,18 +162,18 @@ artifacts.
 
 .. math::
 
- E & = & LJ(r) \qquad \qquad \qquad r < r_{\rm in} \\
+   E & = & LJ(r) \qquad \qquad \qquad r < r_{\rm in} \\
    & = & S(r) * LJ(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
    & = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
- E & = & C(r) \qquad \qquad \qquad r < r_{\rm in} \\
+   E & = & C(r) \qquad \qquad \qquad r < r_{\rm in} \\
    & = & S(r) * C(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
    & = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
- LJ(r) & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-         \left(\frac{\sigma}{r}\right)^6 \right] \\
- C(r) & = & \frac{C q_i q_j}{ \epsilon r} \\
- S(r) & = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
+   LJ(r) & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right] \\
+   C(r) & = & \frac{C q_i q_j}{ \epsilon r} \\
+   S(r) & = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2  
    \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]} 
- { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
+   { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
 
 
 where S(r) is the energy switching function mentioned above for the

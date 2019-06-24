@@ -77,7 +77,7 @@ molecule. The distance vector between sites *i* and *j* is given by
 
 .. math::
 
- \mathbf r^{n+1}_{ij} = \mathbf r^n_j - \mathbf r^n_i
+   \mathbf r^{n+1}_{ij} = \mathbf r^n_j - \mathbf r^n_i
 
 
 The constraints can then be formulated as

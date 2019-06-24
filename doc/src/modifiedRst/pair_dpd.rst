@@ -69,11 +69,11 @@ of 3 terms
 
 .. math::
 
- \vec{f} & = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
- F^C & = & A w(r) \\
- F^D & = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
- F^R & = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
- w(r) & = & 1 - r/r_c
+   \vec{f} & = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
+   F^C & = & A w(r) \\
+   F^D & = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
+   F^R & = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
+   w(r) & = & 1 - r/r_c
 
 
 where Fc is a conservative force, Fd is a dissipative force, and Fr is

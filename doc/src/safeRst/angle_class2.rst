@@ -36,13 +36,8 @@ Description
 
 The *class2* angle style uses the potential
 
-.. math::
-
-  E & = & E_a + E_{bb} + E_{ba} \\
-  E_a & = & K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4 (\theta - \theta_0)^4 \\
-  E_{bb} & = & M (r_{ij} - r_1) (r_{jk} - r_2) \\
-  E_{ba} & = & N_1 (r_{ij} - r_1) (\theta - \theta_0) + N_2 (r_{jk} - r_2) (\theta - \theta_0)
-
+.. image:: Eqs/angle_class2.jpg
+   :align: center
 
 where Ea is the angle term, Ebb is a bond-bond term, and Eba is a
 bond-angle term.  Theta0 is the equilibrium angle and r1 and r2 are

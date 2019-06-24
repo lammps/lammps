@@ -34,7 +34,7 @@ center:
 
 .. math::
 
-E=C\left[ 1-B(-1)^ncos\left( n\theta\right) \right]  
+   E=C\left[ 1-B(-1)^ncos\left( n\theta\right) \right]  
 
 
 where C, B and n are coefficients defined for each angle type.

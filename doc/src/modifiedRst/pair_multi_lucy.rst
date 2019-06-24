@@ -32,8 +32,8 @@ the many-body form described in :ref:`(Moore) <Moore1>` and
 
 .. math::
 
- F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
-                       \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
 
 
 which consists of a density-dependent function, A(rho), and a
@@ -42,14 +42,14 @@ weight function, omegaDD(rij), is taken as the Lucy function:
 
 .. math::
 
- \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
+   \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
 
 
 The density-dependent energy for a given particle is given by:
 
 .. math::
 
- u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho^{'}\right) d\rho^{'}
+   u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho^{'}\right) d\rho^{'}
 
 
 See the supporting information of :ref:`(Brennan) <Brennan1>` or the

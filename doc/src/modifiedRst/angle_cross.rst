@@ -28,7 +28,7 @@ a bend with the angle stretch of that bend:
 
 .. math::
 
-  E = K_{SS} \left(r_{12}-r_{12,0}\right)\left(r_{32}-r_{32,0}\right) + K_{BS0}\left(r_{12}-r_{12,0}\right)\left(\theta-\theta_0\right) + K_{BS1}\left(r_{32}-r_{32,0}\right)\left(\theta-\theta_0\right)
+   E = K_{SS} \left(r_{12}-r_{12,0}\right)\left(r_{32}-r_{32,0}\right) + K_{BS0}\left(r_{12}-r_{12,0}\right)\left(\theta-\theta_0\right) + K_{BS1}\left(r_{32}-r_{32,0}\right)\left(\theta-\theta_0\right)
 
 
 where r12,0 is the rest value of the bond length between atom 1 and 2,

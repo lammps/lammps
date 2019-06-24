@@ -58,7 +58,7 @@ bond-pairwise potential, such that the force on bond *i* due to bond
 
 .. math::
 
- F^{SRP}_{ij} & = & C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c \\
+   F^{SRP}_{ij} & = & C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c \\
 
 
 where *r* and *rij* are the distance and unit vector between the two
@@ -71,8 +71,8 @@ according to the lever rule,
 
 .. math::
 
- F_{i1}^{SRP} & = & F^{SRP}_{ij}(L) \\
- F_{i2}^{SRP} & = & F^{SRP}_{ij}(1-L)  
+   F_{i1}^{SRP} & = & F^{SRP}_{ij}(L) \\
+   F_{i2}^{SRP} & = & F^{SRP}_{ij}(1-L)  
 
 
 where *L* is the normalized distance from the atom to the point of

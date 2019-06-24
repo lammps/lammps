@@ -38,8 +38,8 @@ includes truncation at a cutoff distance Rc.
 
 .. math::
 
-E\left(r\right) = A \exp\left[-\alpha r - \beta r^6\right] -
-\frac{B}{\left(r^2+a^2\right)^3} \left(1+\frac{2.709+3a^2}{r^2+a^2}\right)
+   E\left(r\right) = A \exp\left[-\alpha r - \beta r^6\right] -
+   \frac{B}{\left(r^2+a^2\right)^3} \left(1+\frac{2.709+3a^2}{r^2+a^2}\right)
    \qquad r < R_c 
 
 

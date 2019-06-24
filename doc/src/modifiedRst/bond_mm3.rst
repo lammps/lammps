@@ -28,7 +28,7 @@ as defined in :ref:`(Allinger) <mm3-allinger1989>`
 
 .. math::
 
-  E = K (r - r_0)^2 \left[ 1 - 2.55(r-r_0) + (7/12) 2.55^2(r-r_0)^2 \right]
+   E = K (r - r_0)^2 \left[ 1 - 2.55(r-r_0) + (7/12) 2.55^2(r-r_0)^2 \right]
 
 
 where r0 is the equilibrium value of the bond, and K is a

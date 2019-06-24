@@ -44,7 +44,7 @@ The *charmm* and *charmmfsw* dihedral styles use the potential
 
 .. math::
 
-  E = K [ 1 + \cos (n \phi - d) ]
+   E = K [ 1 + \cos (n \phi - d) ]
 
 
 See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM

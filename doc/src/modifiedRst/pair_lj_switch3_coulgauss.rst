@@ -42,8 +42,8 @@ vdW potential
 
 .. math::
 
-  E = 4\epsilon \left[ \left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^{6} \right]
-% \qquad r < r_c \\
+   E = 4\epsilon \left[ \left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^{6} \right]
+   % \qquad r < r_c \\
 
 
 , which goes smoothly to zero at the cutoff r\_c as defined
@@ -51,11 +51,11 @@ by the switching function
 
 .. math::
 
- S_3(r) = \left\lbrace \begin{array}{ll}
-                     1 & \quad\mathrm{if}\quad r < r_\mathrm{c} - w \\
-                     3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
-                     0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
-                 \end{array} \right.
+   S_3(r) = \left\lbrace \begin{array}{ll}
+   1 & \quad\mathrm{if}\quad r < r_\mathrm{c} - w \\
+   3x^2 - 2x^3 & \quad\mathrm{if}\quad r < r_\mathrm{c} \quad\mathrm{with\quad} x=\frac{r_\mathrm{c} - r}{w} \\
+   0 & \quad\mathrm{if}\quad r >= r_\mathrm{c}
+   \end{array} \right.
 
 
 where w is the width defined in the arguments. This potential
@@ -63,7 +63,7 @@ is combined with Coulomb interaction between Gaussian charge densities:
 
 .. math::
 
-  E &=& \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
+   E &=& \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}
 
 
 where qi and qj are the

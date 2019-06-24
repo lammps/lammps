@@ -36,7 +36,7 @@ extensions = [
 # support mathjax output for html by default
 extensions.append('sphinx.ext.mathjax')
 # to support imgmath for epub, do this instead
-#extensions.append('sphinx.ext.mathjax')
+#extensions.append('sphinx.ext.imgmath')
 
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with

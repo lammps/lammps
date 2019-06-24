@@ -33,7 +33,7 @@ The *fourier* dihedral style uses the potential:
 
 .. math::
 
-  E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
+   E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
 
 
 The following coefficients must be defined for each dihedral type via the

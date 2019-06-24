@@ -75,7 +75,7 @@ polar angle *theta0* defined by,
 
 .. math::
 
-\theta_0 = {\tt rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
+   \theta_0 = {\tt rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
 
 
 In this way, all possible neighbor positions are mapped on to a subset
@@ -96,7 +96,7 @@ coefficient as
 
 .. math::
 
-u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)} 
+   u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)} 
 
 
 The *w\_i'* neighbor weights are dimensionless numbers that are chosen
@@ -107,9 +107,9 @@ the contribution of each neighbor atom goes smoothly to zero at
 
 .. math::
 
-\label{eqn:f_c}
-f_c(r)  & = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
-& = & 0,  r > R_{ii'}
+   \label{eqn:f_c}
+   f_c(r)  & = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
+   & = & 0,  r > R_{ii'}
 
 
 The expansion coefficients *u\^j\_m,m'* are complex-valued and they are
@@ -120,10 +120,10 @@ real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
 
 .. math::
 
-B_{j_1,j_2,j}  = \\
-\sum_{m_1,m'_1=-j_1}^{j_1}\sum_{m_2,m'_2=-j_2}^{j_2}\sum_{m,m'=-j}^{j} (u^j_{m,m'})^*
-\hcoeff{j}{m}{m'}{j_1}{\!m_1}{\!m'_1}{j_2}{m_2}{m'_2}
-u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
+   B_{j_1,j_2,j}  = \\
+   \sum_{m_1,m'_1=-j_1}^{j_1}\sum_{m_2,m'_2=-j_2}^{j_2}\sum_{m,m'=-j}^{j} (u^j_{m,m'})^*
+   \hcoeff{j}{m}{m'}{j_1}{\!m_1}{\!m'_1}{j_2}{m_2}{m'_2}
+   u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
 
 
 The constants *H\^jmm'\_j1m1m1'\_j2m2m2'* are coupling coefficients,
@@ -144,7 +144,7 @@ summed separately for each atom type:
 
 .. math::
 
-- \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}  }}{\partial {\bf r}_i}
+   - \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}  }}{\partial {\bf r}_i}
 
 
 The sum is over all atoms *i'* of atom type *I*\ .  For each atom *i*\ ,
@@ -157,7 +157,7 @@ derivatives:
 
 .. math::
 
-- {\bf r}_i \otimes \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}}}{\partial {\bf r}_i}
+   - {\bf r}_i \otimes \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}}}{\partial {\bf r}_i}
 
 
 Again, the sum is over all atoms *i'* of atom type *I*\ .  For each atom

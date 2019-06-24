@@ -70,7 +70,7 @@ between pairs of particles:
 
 .. math::
 
- E = & \frac{H}{\sigma_h\sqrt{2\pi}} \exp\left[-\frac{(r-r_{mh})^2}{2\sigma_h^2}\right]
+   E = & \frac{H}{\sigma_h\sqrt{2\pi}} \exp\left[-\frac{(r-r_{mh})^2}{2\sigma_h^2}\right]
 
 
 where H determines together with the standard deviation sigma\_h the

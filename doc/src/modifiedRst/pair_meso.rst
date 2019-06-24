@@ -70,12 +70,12 @@ momentum and energy given by
 
 .. math::
 
-  \frac{\mathrm{d}^2 \mathbf{r}_i}{\mathrm{d} t^2}=
-  \frac{\mathrm{d} \mathbf{v}_i}{\mathrm{d} t}
-  =\mathbf{F}_{i}=\sum_{i\neq j}(\mathbf{F}_{ij}^{C}+\mathbf{F}_{ij}^{D}+\mathbf{F}_{ij}^{R}),
+   \frac{\mathrm{d}^2 \mathbf{r}_i}{\mathrm{d} t^2}=
+   \frac{\mathrm{d} \mathbf{v}_i}{\mathrm{d} t}
+   =\mathbf{F}_{i}=\sum_{i\neq j}(\mathbf{F}_{ij}^{C}+\mathbf{F}_{ij}^{D}+\mathbf{F}_{ij}^{R}),
 
 >>>image was here
-  C_v\frac{\mathrm{d} T_i}{\mathrm{d} t}= q_{i} = \sum_{i\neq j}(q_{ij}^{C}+q_{ij}^{V}+q_{ij}^{R}),
+   C_v\frac{\mathrm{d} T_i}{\mathrm{d} t}= q_{i} = \sum_{i\neq j}(q_{ij}^{C}+q_{ij}^{V}+q_{ij}^{R}),
 
 
 where the three components of <font size="4">F<sub>i</sub></font>
@@ -86,25 +86,25 @@ size="4">F<sub>ij</sub><sup>R</sup></font> are expressed as
 
 .. math::
 
-  \mathbf{F}_{ij}^{C} = \alpha_{ij}{\omega_{C}}(r_{ij})\mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{C} = \alpha_{ij}{\omega_{C}}(r_{ij})\mathbf{e}_{ij},
 
 >>>image was here
-  \mathbf{F}_{ij}^{D} = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{D} = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij},
 
 >>>image was here
-  \mathbf{F}_{ij}^{R} = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{R} = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij},
 
 >>>image was here
-  \omega_{C}(r) = 1 - r/r_c,
+   \omega_{C}(r) = 1 - r/r_c,
 
 >>>image was here
-  \alpha_{ij} = A\cdot k_B(T_i + T_j)/2,
+   \alpha_{ij} = A\cdot k_B(T_i + T_j)/2,
 
 >>>image was here
-  \omega_{D}(r) = \omega^2_{R}(r) = (1-r/r_c)^s,
+   \omega_{D}(r) = \omega^2_{R}(r) = (1-r/r_c)^s,
 
 >>>image was here
-  \sigma_{ij}^2 = 4\gamma k_B T_i T_j/(T_i + T_j),
+   \sigma_{ij}^2 = 4\gamma k_B T_i T_j/(T_i + T_j),
 
 
 in which the exponent of the weighting function <font
@@ -116,29 +116,29 @@ heat flux <font size="4">q<sup>V</sup></font>, and random heat flux
 
 .. math::
 
-  q_i^C = \sum_{j \ne i} k_{ij} \omega_{CT}(r_{ij}) \left( \frac{1}{T_i} - \frac{1}{T_j} \right),
+   q_i^C = \sum_{j \ne i} k_{ij} \omega_{CT}(r_{ij}) \left( \frac{1}{T_i} - \frac{1}{T_j} \right),
 
 >>>image was here
-  q_i^V = \frac{1}{2 C_v}\sum_{j \ne i}{ \left\{ \omega_D(r_{ij})\left[\gamma_{ij} \left( \mathbf{e}_{ij} \cdot \mathbf{v}_{ij} \right)^2 - \frac{\left( \sigma _{ij} \right)^2}{m}\right] - \sigma _{ij} \omega_R(r_{ij})\left( \mathbf{e}_{ij} \cdot \mathbf{v}_{ij} \right){\xi_{ij}} \right\} },
+   q_i^V = \frac{1}{2 C_v}\sum_{j \ne i}{ \left\{ \omega_D(r_{ij})\left[\gamma_{ij} \left( \mathbf{e}_{ij} \cdot \mathbf{v}_{ij} \right)^2 - \frac{\left( \sigma _{ij} \right)^2}{m}\right] - \sigma _{ij} \omega_R(r_{ij})\left( \mathbf{e}_{ij} \cdot \mathbf{v}_{ij} \right){\xi_{ij}} \right\} },
 
 >>>image was here
-  q_i^R = \sum_{j \ne i} \beta _{ij} \omega_{RT}(r_{ij}) d {t^{ - 1/2}} \xi_{ij}^e,
+   q_i^R = \sum_{j \ne i} \beta _{ij} \omega_{RT}(r_{ij}) d {t^{ - 1/2}} \xi_{ij}^e,
 
 >>>image was here
-  \omega_{CT}(r)=\omega_{RT}^2(r)=\left(1-r/r_{ct}\right)^{s_T},
+   \omega_{CT}(r)=\omega_{RT}^2(r)=\left(1-r/r_{ct}\right)^{s_T},
 
 >>>image was here
-  k_{ij}=C_v^2\kappa(T_i + T_j)^2/4k_B,
+   k_{ij}=C_v^2\kappa(T_i + T_j)^2/4k_B,
 
 >>>image was here
-  \beta_{ij}^2=2k_Bk_{ij},
+   \beta_{ij}^2=2k_Bk_{ij},
 
 
 where the mesoscopic heat friction <font size="4">&kappa;</font> is given by
 
 .. math::
 
-  \kappa  = \frac{315k_B\upsilon }{2\pi \rho C_v r_{ct}^5}\frac{1}{Pr},
+   \kappa  = \frac{315k_B\upsilon }{2\pi \rho C_v r_{ct}^5}\frac{1}{Pr},
 
 
 with <font size="4">&upsilon;</font> being the kinematic
@@ -195,13 +195,13 @@ local density dependent, which are given by
 
 .. math::
 
-  \mathbf{F}_{ij}^C = Aw_c(r_{ij})\mathbf{e}_{ij} + B(\rho_i+\rho_j)w_d(r_{ij})\mathbf{e}_{ij},
+   \mathbf{F}_{ij}^C = Aw_c(r_{ij})\mathbf{e}_{ij} + B(\rho_i+\rho_j)w_d(r_{ij})\mathbf{e}_{ij},
 
 >>>image was here
-  \mathbf{F}_{ij}^{D} = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{D} = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij},
 
 >>>image was here
-  \mathbf{F}_{ij}^{R} = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{R} = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij},
 
 
 where the first term in <font size="4">F<sup>C</sup></font> with a
@@ -230,10 +230,10 @@ governed by the conservation of momentum and concentration given by
 
 .. math::
 
-  \frac{\mathrm{d}^2 \mathbf{r}_i}{\mathrm{d} t^2} = \frac{\mathrm{d} \mathbf{v}_i}{\mathrm{d} t}=\mathbf{F}_{i}=\sum_{i\neq j}(\mathbf{F}_{ij}^{C}+\mathbf{F}_{ij}^{D}+\mathbf{F}_{ij}^{R}),
+   \frac{\mathrm{d}^2 \mathbf{r}_i}{\mathrm{d} t^2} = \frac{\mathrm{d} \mathbf{v}_i}{\mathrm{d} t}=\mathbf{F}_{i}=\sum_{i\neq j}(\mathbf{F}_{ij}^{C}+\mathbf{F}_{ij}^{D}+\mathbf{F}_{ij}^{R}),
 
 >>>image was here
-  \frac{\mathrm{d} C_{i}}{\mathrm{d} t}= Q_{i} = \sum_{i\neq j}(Q_{ij}^{D}+Q_{ij}^{R}) + Q_{i}^{S}, 
+   \frac{\mathrm{d} C_{i}}{\mathrm{d} t}= Q_{i} = \sum_{i\neq j}(Q_{ij}^{D}+Q_{ij}^{R}) + Q_{i}^{S}, 
 
 
 where the three components of <font size="4">F<sub>i</sub></font>
@@ -244,22 +244,22 @@ size="4">F<sub>ij</sub><sup>R</sup></font> are expressed as
 
 .. math::
 
-  \mathbf{F}_{ij}^{C} = A{\omega_{C}}(r_{ij})\mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{C} = A{\omega_{C}}(r_{ij})\mathbf{e}_{ij},
 
 >>>image was here
-  \mathbf{F}_{ij}^{D} = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{D} = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij},
 
 >>>image was here
-  \mathbf{F}_{ij}^{R} = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij},
+   \mathbf{F}_{ij}^{R} = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij},
 
 >>>image was here
-  \omega_{C}(r) = 1 - r/r_c,
+   \omega_{C}(r) = 1 - r/r_c,
 
 >>>image was here
-  \omega_{D}(r) = \omega^2_{R}(r) = (1-r/r_c)^{\rm power\_f},
+   \omega_{D}(r) = \omega^2_{R}(r) = (1-r/r_c)^{\rm power\_f},
 
 >>>image was here
-  \sigma^2 = 2\gamma k_B T,
+   \sigma^2 = 2\gamma k_B T,
 
 
 The concentration flux between two tDPD particles includes the Fickian
@@ -268,16 +268,16 @@ flux <font size="4">Q<sub>ij</sub><sup>D</sup></font> and random flux
 
 .. math::
 
-  Q_{ij}^D = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right),
+   Q_{ij}^D = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right),
 
 >>>image was here
-  Q_{ij}^R = \epsilon_{ij}\left( C_i + C_j \right) w_{RC}(r_{ij}) \xi_{ij},
+   Q_{ij}^R = \epsilon_{ij}\left( C_i + C_j \right) w_{RC}(r_{ij}) \xi_{ij},
 
 >>>image was here
-  w_{DC}(r_{ij})=w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power\_{cc}},
+   w_{DC}(r_{ij})=w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power\_{cc}},
 
 >>>image was here
-  \epsilon_{ij}^2 = m_s^2\kappa_{ij}\rho,
+   \epsilon_{ij}^2 = m_s^2\kappa_{ij}\rho,
 
 
 where the parameters kappa and epsilon determine the strength of the

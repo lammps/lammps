@@ -51,8 +51,8 @@ For each atom, *Ql* is a real number defined as follows:
 >>>image was here
    Q_l = \sqrt{\frac{4 \pi}{2 l + 1} \sum_{m = -l}^{m = l} \bar{Y}_{lm} \bar{Y}^*_{lm}}
    $$
-
-\end{document}
+   
+   \end{document}
    :align: center
 
 The first equation defines the spherical harmonic order parameters.

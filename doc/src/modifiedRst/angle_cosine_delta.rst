@@ -30,7 +30,7 @@ The *cosine/delta* angle style uses the potential
 
 .. math::
 
-  E = K [1 - \cos(\theta - \theta_0)]
+   E = K [1 - \cos(\theta - \theta_0)]
 
 
 where theta0 is the equilibrium value of the angle, and K is a

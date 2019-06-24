@@ -43,14 +43,14 @@ ellipsoidal and spherical particle via the formulas
 
 .. math::
 
-\mathbf{A}_1, \mathbf{A}_2, \mathbf{r}_{12}, \gamma ) \cdot \eta_{12} (
-\mathbf{A}_1, \mathbf{A}_2, \upsilon ) \cdot \chi_{12} ( \mathbf{A}_1,
-\mathbf{A}_2, \mathbf{r}_{12}, \mu ) $$
-
+   \mathbf{A}_1, \mathbf{A}_2, \mathbf{r}_{12}, \gamma ) \cdot \eta_{12} (
+   \mathbf{A}_1, \mathbf{A}_2, \upsilon ) \cdot \chi_{12} ( \mathbf{A}_1,
+   \mathbf{A}_2, \mathbf{r}_{12}, \mu ) $$
+   
 
 >>>image was here
-
-\end{document}
+   
+   \end{document}
    :align: center
 
 where A1 and A2 are the transformation matrices from the simulation
@@ -68,10 +68,10 @@ curvatures :ref:`(Everaers) <Everaers2>`:
 
 .. math::
 
-\sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {
-\frac{c}{ a \cdot b } } $$
-
-\end{document}
+   \sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {
+   \frac{c}{ a \cdot b } } $$
+   
+   \end{document}
    :align: center
 
 The variable names utilized as potential parameters are for the most

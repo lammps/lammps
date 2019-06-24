@@ -57,7 +57,7 @@ instead of Lennard-Jones 12/6) and Coulombic potential, given by
 
 .. math::
 
-  E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 
 Rc is the cutoff.  If one cutoff is specified in the pair\_style

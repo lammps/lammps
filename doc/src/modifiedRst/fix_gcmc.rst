@@ -248,7 +248,7 @@ as:
 
 .. math::
 
-\mu &=&\mu^{id} + \mu^{ex}
+   \mu &=&\mu^{id} + \mu^{ex}
 
 
 The second term mu\_ex is the excess chemical potential due to
@@ -262,8 +262,8 @@ pressure of the fictitious gas reservoir by:
 
 .. math::
 
-\mu^{id} &=& k T \ln{\rho \Lambda^3} \\
-&=& k T \ln{\frac{\phi P \Lambda^3}{k T}} 
+   \mu^{id} &=& k T \ln{\rho \Lambda^3} \\
+   &=& k T \ln{\frac{\phi P \Lambda^3}{k T}} 
 
 
 where k is Boltzman's constant,
@@ -275,7 +275,7 @@ de Broglie wavelength
 
 .. math::
 
-\Lambda &=& \sqrt{ \frac{h^2}{2 \pi m k T}}
+   \Lambda &=& \sqrt{ \frac{h^2}{2 \pi m k T}}
 
 
 where h is Planck's constant, and m is the mass of the exchanged atom

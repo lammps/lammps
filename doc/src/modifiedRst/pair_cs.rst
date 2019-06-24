@@ -140,7 +140,7 @@ pair is treated, as follows
 
 .. math::
 
- E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
+   E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
 
 
 where C is an energy-conversion constant, Qi and Qj are the charges on

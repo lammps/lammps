@@ -36,9 +36,9 @@ The *fene* bond style uses the potential
 
 .. math::
 
-  E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] +
-  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
-    \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
+   E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] +
+   4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
 
 
 to define a finite extensible nonlinear elastic (FENE) potential

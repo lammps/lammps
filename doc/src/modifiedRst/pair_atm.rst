@@ -38,7 +38,7 @@ potential for the energy E of a system of atoms as
 
 .. math::
 
-E=\nu\frac{1+3\cos\gamma_1\cos\gamma_2\cos\gamma_3}{r_{12}^3r_{23}^3r_{31}^3}
+   E=\nu\frac{1+3\cos\gamma_1\cos\gamma_2\cos\gamma_3}{r_{12}^3r_{23}^3r_{31}^3}
 
 
 where nu is the three-body interaction strength.  The distances

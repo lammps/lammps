@@ -40,8 +40,8 @@ in the Coulomb correction term for small ion separations as follows
 
 .. math::
 
- E & = & \frac{Cq_iq_j}{\epsilon r} \left( \frac{\epsilon}{\epsilon_D(r)}-1\right)                       \qquad r < r_c \\
- \epsilon_D(r) & = & \frac{5.2+\epsilon}{2} +  \frac{\epsilon-5.2}{2}\tanh\left(\frac{r-r_{me}}{\sigma_e}\right) 
+   E & = & \frac{Cq_iq_j}{\epsilon r} \left( \frac{\epsilon}{\epsilon_D(r)}-1\right)                       \qquad r < r_c \\
+   \epsilon_D(r) & = & \frac{5.2+\epsilon}{2} +  \frac{\epsilon-5.2}{2}\tanh\left(\frac{r-r_{me}}{\sigma_e}\right) 
 
 
 where r\_me is the inflection point of epsilon\_D(r) and sigma\_e is a slope

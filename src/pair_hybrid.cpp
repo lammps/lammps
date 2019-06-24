@@ -945,17 +945,24 @@ void *PairHybrid::extract(const char *str, int &dim)
   void *cutptr = NULL;
   void *ptr;
   double cutvalue = 0.0;
+  int couldim = -1;
 
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
+      if (cutptr && dim != couldim)
+        error->all(FLERR,
+                   "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
-      if (cutptr && newvalue != cutvalue)
+      if (cutptr && (newvalue != cutvalue))
         error->all(FLERR,
                    "Coulomb cutoffs of pair hybrid sub-styles do not match");
-      cutptr = ptr;
-      cutvalue = newvalue;
+      if (dim == 0) {
+        cutptr = ptr;
+        cutvalue = newvalue;
+      }
+      couldim = dim;
     } else if (ptr) return ptr;
   }
 

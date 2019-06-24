@@ -44,8 +44,8 @@ so that they can be used by LAMMPS scripts.  These commands do not implement
 any computations directly, but rather generate LAMMPS input commands based
 on the information retrieved from the OpenKIM repository to initialize and
 activate OpenKIM IMs and query their predictions for use in the LAMMPS script.
-All LAMMPS input commands executed by {kim_commands} are echoed to the
-LAMMPS log file.
+All LAMMPS input commands generated and executed by {kim_commands} are
+echoed to the LAMMPS log file.
 
 Benefits of Using OpenKIM IMs :h4
 
@@ -65,7 +65,7 @@ OpenKIM is a member organization of "DataCite"_https://datacite.org/ and issues 
 Convenience :h5
 
 IMs in OpenKIM are distributed in binary form along with LAMMPS and can be used in a LAMMPS input script simply by providing their KIM ID in the {kim_init} command documented on this page.
-The {kim_query} web query tool provides the ability to use the predictions of IMs for supported material properties (computed via "KIM Tests"https://openkim.org/getting-started/kim-tests/) as part of a LAMMPS input script setup and analysis.
+The {kim_query} web query tool provides the ability to use the predictions of IMs for supported material properties (computed via "KIM Tests"_https://openkim.org/getting-started/kim-tests/) as part of a LAMMPS input script setup and analysis.
 Support is provided for unit conversion between the "unit style"_units.html used in the LAMMPS input script and the units required by the OpenKIM IM. This makes it possible to use a single input script with IMs using different units without change and minimizes the likelihood of errors due to incompatible units.  :ul
 
 :link(IM_types)
@@ -73,8 +73,8 @@ Types of IMs in OpenKIM :h4
 
 There are two types of IMs archived in OpenKIM:
 
-The first type is called a {KIM Model}. A KIM Model is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran), which conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/). A KIM Model will work seamlessly with any simulation code that supports the KIM API (including LAMMPS; see "complete list of supported code"_https://openkim.org/projects-using-kim/).
-The second type is called a {KIM Simulator Model} (SM). In this case, the IM is implemented natively within the simulation code ({simulator}), i.e. LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS. :ol
+The first type is called a {KIM Portable Model} (PM). A KIM PM is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran), which conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/) Portable Model Interface (PMI) standard. A KIM PM will work seamlessly with any simulation code that supports the KIM API/PMI standard (including LAMMPS; see "complete list of supported codes"_https://openkim.org/projects-using-kim/).
+The second type is called a {KIM Simulator Model} (SM). A KIM SM is an IM that is implemented natively within a simulation code ({simulator}) that supports the KIM API/SMI (Simulator Model Interface); in this case LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS. :ol
 
 With these two IM types, OpenKIM can archive and test almost all IMs that
 can be used by LAMMPS. (It is easy to contribute new IMs to OpenKIM, see
@@ -85,7 +85,7 @@ OpenKIM IMs are uniquely identified by a
 a human-readable prefix identifying the type of IM, authors, publication year,
 and supported species, separated by two underscores from the KIM ID itself,
 which begins with an IM code
-({MO} for a KIM Model, and {SM} for a KIM Simulator Model)
+({MO} for a KIM Portable Model, and {SM} for a KIM Simulator Model)
 followed by a unique 12-digit code and a 3-digit version identifier.
 By convention SM prefixes begin with {Sim_} to readily identify them.
 
@@ -97,7 +97,7 @@ providing all the information on the IM including a title, description,
 authorship and citation information, test and verification check results,
 visualizations of results, a wiki with documentation and user comments, and
 access to raw files, and other information.
-This is referred to as the "Model Page" or "SM Page".
+This is referred to as the "PM Page" or "SM Page".
 The URL for such a page is constructed from the
 "extended KIM ID"_https://openkim.org/about-kim-ids/ of the IM:
 
@@ -110,7 +110,7 @@ listed above the Model Page is located at:
 "https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005"_https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005
 :pre
 
-See the "current list of KIM Models and SMs archived in OpenKIM"_https://openkim.org/browse/models/by-species.
+See the "current list of KIM PMs and SMs archived in OpenKIM"_https://openkim.org/browse/models/by-species.
 This list is sorted by species and can be filtered to display only
 IMs for certain species combinations.
 
@@ -124,7 +124,7 @@ IM and perform necessary initialization ({kim_init}), and the second
 to set up the IM for use by executing any necessary LAMMPS commands
 ({kim_interactions}). Both are required.
 
-See the {examples/kim} directory for example input scripts that use KIM Models
+See the {examples/kim} directory for example input scripts that use KIM PMs
 and KIM SMs.
 
 OpenKIM IM Initialization ({kim_init}) :h5
@@ -146,17 +146,17 @@ in the input script.  (Any dimensioned numerical values in the input
 script and values read in from files are expected to be in the
 {user_units} system.)
 
-The selected IM can be either a "KIM Model or a KIM SM"_#IM_types.
+The selected IM can be either a "KIM PM or a KIM SM"_#IM_types.
 For a KIM SM, the {kim_init} command verifies that the SM is designed
 to work with LAMMPS (and not another simulation code).
-In addition, the version strings for the LAMMPS version used for defining
+In addition, the LAMMPS version used for defining
 the SM and the LAMMPS version being currently run are
-printed, to help diagnose any incompatible changes to input script or
+printed to help diagnose any incompatible changes to input script or
 command syntax between the two LAMMPS versions.
 
 Based on the selected model {kim_init} may modify the
 "atom_style"_atom_style.html.
-Some SMs have requirements for this variable. If this is the case, then
+Some SMs have requirements for this setting. If this is the case, then
 {atom_style} will be set to the required style. Otherwise, the value is left
 unchanged (which in the absence of an {atom_style} command in the input script
 is the "default atom_style value"_atom_style.html).
@@ -166,7 +166,7 @@ on whether or not {unit conversion mode} is activated as indicated by the
 optional {unitarg} argument.
 If unit conversion mode is [not] active, then {user_units} must
 either match the required units of the IM or the IM must be able
-to adjust its units to match. (The latter is only possible with some KIM Models;
+to adjust its units to match. (The latter is only possible with some KIM PMs;
 SMs can never adjust their units.) If a match is possible, the LAMMPS
 "units"_units.html command is called to set the units to
 {user_units}. If the match fails, the simulation is terminated with
@@ -198,7 +198,7 @@ preferred units. Conversion factors between the IM's units and the {user_units}
 are defined for all "physical quantities"_units.html (mass, distance, etc.).
 (Note that converting to or from the "lj" unit style is not supported.)
 These factors are stored as "internal style variables"_variable.html with
-standard names:
+the following standard names:
 
 _u_mass
 _u_distance
@@ -241,7 +241,7 @@ Note the multiplication by $\{_u_distance\} and $\{_u_mass\} to convert
 from SI units (specified in the {kim_init} command) to whatever units the
 IM uses (metal in this case), and the division by $\{_u_energy\}
 to convert from the IM's energy units to SI units (Joule). This script
-will work correctly for any IM for Al (KIM Model or SM) selected by the
+will work correctly for any IM for Al (KIM PM or SM) selected by the
 {kim_init} command.
 
 Care must be taken to apply unit conversion to dimensional variables read in
@@ -283,10 +283,10 @@ kim_interactions Si Si Si C
 
 The {kim_interactions} command performs all the necessary steps to set up
 the OpenKIM IM selected in the {kim_init} command. The specific actions depend
-on whether the IM is a KIM Model or a KIM SM.  For a KIM Model,
+on whether the IM is a KIM PM or a KIM SM.  For a KIM PM,
 a "pair_style kim"_pair_kim.html command is executed followed by
 the appropriate {pair_coeff} command. For example, for the
-Ercolessi and Adams (1994) KIM Model for Al set by the following commands:
+Ercolessi and Adams (1994) KIM PM for Al set by the following commands:
 
 kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 ...
@@ -302,8 +302,7 @@ pair_coeff * * Al  :pre
 For a KIM SM, the generated input commands may be more complex
 and require that LAMMPS is built with the required packages included
 for the type of potential being used. The set of commands to be executed
-is defined in the SM specification file, which is part of the SM package
-on "OpenKIM"_https://openkim.org.
+is defined in the SM specification file, which is part of the SM package.
 For example, for the Strachan et al. (2003) ReaxFF SM
 set by the following commands:
 
@@ -416,14 +415,16 @@ the nature of the query or its source is recorded.
 Citation of OpenKIM IMs :h4
 
 When publishing results obtained using OpenKIM IMs researchers are requested
-to cite the OpenKIM project "(Tadmor)"_#kim-mainpaper and KIM API
-"(Elliott)"_#kim-api as well as the specific IM codes used in the simulations.
+to cite the OpenKIM project "(Tadmor)"_#kim-mainpaper, KIM API
+"(Elliott)"_#kim-api, and the specific IM codes used in the simulations,
+in addition to the relevant scientific references for the IM.
 The citation format for an IM is displayed on its page on
-"OpenKIM"_https://openkim.org along with the corresponding BibTex file.
+"OpenKIM"_https://openkim.org along with the corresponding BibTex file,
+and is automatically added to the LAMMPS {log.cite} file.
 
-Citing the codes used in the simulation gives credit
-to the researchers who developed them and enables open source efforts like
-OpenKIM to function.
+Citing the IM software (KIM infrastucture and specific PM or SM codes)
+used in the simulation gives credit to the researchers who developed them
+and enables open source efforts like OpenKIM to function.
 
 
 [Restrictions:]
@@ -442,7 +443,7 @@ must be installed.
 
 [Related commands:]
 
-"pair_style kim"_pair_kim.html, "units"_units.html
+"pair_style kim"_pair_kim.html
 
 :line
 

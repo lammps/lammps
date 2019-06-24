@@ -254,6 +254,7 @@ void PairHybrid::settings(int narg, char **arg)
     delete[] multiple;
     delete[] special_lj;
     delete[] special_coul;
+    delete[] compute_tally;
   }
 
   if (allocated) {
@@ -273,7 +274,6 @@ void PairHybrid::settings(int narg, char **arg)
 
   special_lj = new double*[narg];
   special_coul = new double*[narg];
-
   compute_tally = new int[narg];
 
   // allocate each sub-style
@@ -649,6 +649,8 @@ void PairHybrid::write_restart(FILE *fp)
 
   // each sub-style writes its settings, but no coeff info
 
+  fwrite(compute_tally,sizeof(int),nstyles,fp);
+
   int n;
   for (int m = 0; m < nstyles; m++) {
     n = strlen(keywords[m]) + 1;
@@ -682,6 +684,7 @@ void PairHybrid::read_restart(FILE *fp)
   delete[] multiple;
   delete[] special_lj;
   delete[] special_coul;
+  delete[] compute_tally;
 
   styles = new Pair*[nstyles];
   keywords = new char*[nstyles];
@@ -689,9 +692,13 @@ void PairHybrid::read_restart(FILE *fp)
 
   special_lj = new double*[nstyles];
   special_coul = new double*[nstyles];
+  compute_tally = new int[nstyles];
 
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
+
+  if (me == 0) fread(compute_tally,sizeof(int),nstyles,fp);
+  MPI_Bcast(compute_tally,nstyles,MPI_INT,0,world);
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {

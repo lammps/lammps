@@ -6,7 +6,9 @@
 
 :line
 
-kim_commands :h3
+kim_init command :h3
+kim_interactions command :h3
+kim_query command :h3
 
 [Syntax:]
 

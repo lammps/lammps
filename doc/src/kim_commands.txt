@@ -170,10 +170,30 @@ SMs can never adjust their units.) If a match is possible, the LAMMPS
 {user_units}. If the match fails, the simulation is terminated with
 an error.
 
-If unit conversion mode {is} active, then the LAMMPS "units"_units.html
-command is called to set the units to the IM's required or preferred units.
-Conversion factors between the IM's units and the {user_units} are
-defined for all "physical quantities"_units.html (mass, distance, etc.).
+Here is an example of a LAMMPS script to compute the cohesive energy
+of a face-centered cubic (fcc) lattice for the Ercolessi and Adams (1994)
+potential for Al:
+
+kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+boundary         p p p
+lattice          fcc 4.032
+region           simbox block 0 1 0 1 0 1 units lattice
+create_box       1 simbox
+create_atoms     1 box
+mass             1 26.981539
+kim_interactions Al
+run              0
+variable         Ec equal (pe/count(all))/$\{_u_energy\}
+print            "Cohesive Energy = $\{EcJ\} eV"
+:pre
+
+The above script will end with an error in the {kim_init} line if the
+IM is changed to another potential for Al that does not work with {metal}
+units. To address this {kim_init} offers the {unit_conversion_mode}.
+If unit conversion mode {is} active, then {kim_init} calls the LAMMPS
+"units"_units.html command to set the units to the IM's required or
+preferred units. Conversion factors between the IM's units and the {user_units}
+are defined for all "physical quantities"_units.html (mass, distance, etc.).
 (Note that converting to or from the "lj" unit style is not supported.)
 These factors are stored as "internal style variables"_variable.html with
 standard names:
@@ -197,9 +217,11 @@ If desired, the input script can be designed to work with these conversion
 factors so that the script will work without change with any OpenKIM IM.
 (This approach is used in the
 "OpenKIM Testing Framework"_https://openkim.org/getting-started/kim-tests/.)
-For example, the following simple script constructs an fcc lattice with
-a lattice parameter defined in meters, computes the total energy,
-and prints the cohesive energy in Joules regardless of the units of the IM.
+For example, the script given above for the cohesive energy of fcc Al
+can be rewritten to work with any IM regardless of units. The following
+script constructs an fcc lattice with a lattice parameter defined in
+meters, computes the total energy, and prints the cohesive energy in
+Joules regardless of the units of the IM.
 
 kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 si unit_conversion_mode
 boundary         p p p
@@ -339,18 +361,23 @@ lattice          fcc $\{a0\}
 
 The {kim_query} command retrieves from "OpenKIM"_https://openkim.org
 the equilibrium lattice constant predicted by the Ercolessi and Adams (1994)
-potential for the face-centered cubic (fcc) structure and places it in
+potential for the fcc structure and places it in
 variable {a0}. This variable is then used on the next line to set up the
 crystal. By using {kim_query}, the user is saved the trouble and possible
 error of tracking this value down, or of having to perform an energy
 minimization to find the equilibrium lattice constant.
+
+Note that in {unit_conversion_mode} the results obtained from a
+{kim_query} would need to be converted to the appropriate units system.
+For example, in the above script, the lattice command would need to be
+changed to: "lattice fcc $\{a0\}*$\{_u_distance\}".
 
 [Define a crystal at finite temperature accounting for thermal expansion]
 
 kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 boundary         p p p
 kim_query        a0 get_lattice_constant_fcc units=\["angstrom"\]
-kim_query        alpha get_linear_thermal_expansion_fcc
+kim_query        alpha get_linear_thermal_expansion_fcc units=\{"1/K"\}
 variable         DeltaT equal 300
 lattice          fcc $\{a0\}*$\{alpha\}*$\{DeltaT\}
 ... :pre
@@ -374,6 +401,15 @@ variable         Eform equal $\{Etot\} - count(all)*$\{Ec\}
 The defect formation energy {Eform} is computed by subtracting from {Etot} the
 ideal fcc cohesive energy of the atoms in the system obtained from
 "OpenKIM"_https://openkim.org for the Ercolessi and Adams (1994) potential.
+
+NOTE: {kim_query} commands return results archived in
+"OpenKIM"_https://openkim.org. These results are obtained
+using programs for computing material properties
+(KIM Tests and KIM Test Drivers) that were contributed to OpenKIM.
+In order to give credit to Test developers, the number of times results
+from these programs are queried is tracked. No other information about
+the nature of the query or its source is recorded.
+
 
 Citation of OpenKIM IMs :h4
 

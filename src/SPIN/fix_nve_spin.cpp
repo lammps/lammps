@@ -620,11 +620,11 @@ void FixNVESpin::AdvanceSingleSpin(int i)
 
   // renormalization (check if necessary)
 
-  //msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-  //scale = 1.0/sqrt(msq);
-  //sp[i][0] *= scale;
-  //sp[i][1] *= scale;
-  //sp[i][2] *= scale;
+  // msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+  // scale = 1.0/sqrt(msq);
+  // sp[i][0] *= scale;
+  // sp[i][1] *= scale;
+  // sp[i][2] *= scale;
 
   // comm. sp[i] to atoms with same tag (for serial algo)
 

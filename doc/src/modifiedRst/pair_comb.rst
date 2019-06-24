@@ -45,6 +45,7 @@ third-generation COMB potential.  These COMB potentials are described
 in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the total energy
 *E<sub>T</sub>* of a system of atoms is given by
 
+.. math source doc: src/Eqs/pair_comb1.tex
 .. math::
 
    E_T & = & \sum_i [ E_i^{self} (q_i) + \sum_{j>i} [E_{ij}^{short} (r_{ij}, q_i, q_j) + E_{ij}^{Coul} (r_{ij}, q_i, q_j)] + \\
@@ -107,6 +108,7 @@ H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
 following table:
 
+.. math source doc: src/Eqs/pair_comb2.tex
 .. math::
 
    :align: center

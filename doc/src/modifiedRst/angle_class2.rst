@@ -36,6 +36,7 @@ Description
 
 The *class2* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_class2.tex
 .. math::
 
    E & = & E_a + E_{bb} + E_{ba} \\

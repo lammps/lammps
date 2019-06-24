@@ -34,6 +34,7 @@ Style *eim* computes pairwise interactions for ionic compounds
 using embedded-ion method (EIM) potentials :ref:`(Zhou) <Zhou2>`.  The
 energy of the system E is given by
 
+.. math source doc: src/Eqs/pair_eim1.tex
 .. math::
 
    E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left(r_{ij}\right) + \sum_{i=1}^{N}E_i\left(q_i,\sigma_i\right)
@@ -45,6 +46,7 @@ the embedding energy E\_i of atom I, which is a function of its charge
 q\_i and the electrical potential sigma\_i at its location.  E\_i, q\_i,
 and sigma\_i are calculated as
 
+.. math source doc: src/Eqs/pair_eim2.tex
 .. math::
 
    q_i & = & \sum_{j=i_1}^{i_N} \eta_{ji}\left(r_{ij}\right) \\
@@ -58,6 +60,7 @@ nature of the EIM potential is a result of the embedding energy term.
 A complete list of all the pair functions used in EIM is summarized
 below
 
+.. math source doc: src/Eqs/pair_eim3.tex
 .. math::
 
    \phi_{ij}\left(r\right) = \left\{ \begin{array}{lr}

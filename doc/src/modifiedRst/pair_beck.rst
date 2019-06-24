@@ -36,6 +36,7 @@ Style *beck* computes interactions based on the potential by
 :ref:`(Beck) <Beck>`, originally designed for simulation of Helium.  It
 includes truncation at a cutoff distance Rc.
 
+.. math source doc: src/Eqs/pair_beck.tex
 .. math::
 
    E\left(r\right) = A \exp\left[-\alpha r - \beta r^6\right] -

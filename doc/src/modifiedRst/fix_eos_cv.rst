@@ -31,6 +31,7 @@ particle internal energy (u\_i) to the particle internal temperature
 (dpdTheta\_i).  The *eos/cv* mesoparticle equation of state requires
 the constant-volume heat capacity, and is defined as follows:
 
+.. math source doc: src/Eqs/fix_eos-cv.tex
 .. math::
 
    u_{i} = u^{mech}_{i} + u^{cond}_{i} = C_{V} \theta_{i}

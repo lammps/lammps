@@ -38,6 +38,7 @@ interaction coul/long or coul/cut.
 The transition is modeled by a hyperbolic function which is incorporated
 in the Coulomb correction term for small ion separations as follows
 
+.. math source doc: src/Eqs/pair_coul_diel.tex
 .. math::
 
    E & = & \frac{Cq_iq_j}{\epsilon r} \left( \frac{\epsilon}{\epsilon_D(r)}-1\right)                       \qquad r < r_c \\

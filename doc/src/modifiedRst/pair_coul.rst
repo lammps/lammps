@@ -140,6 +140,7 @@ Description
 The *coul/cut* style computes the standard Coulombic interaction
 potential given by
 
+.. math source doc: src/Eqs/pair_coulomb.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
@@ -157,6 +158,7 @@ the interaction distance.
 Style *coul/debye* adds an additional exp() damping factor to the
 Coulombic term, given by
 
+.. math source doc: src/Eqs/pair_debye.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
@@ -172,6 +174,7 @@ mimic the screening effect of a polar solvent.
 Style *coul/dsf* computes Coulombic interactions via the damped
 shifted force model described in :ref:`Fennell <Fennell1>`, given by:
 
+.. math source doc: src/Eqs/pair_coul_dsf.tex
 .. math::
 
    E = 
@@ -192,6 +195,7 @@ decay to zero.
 Style *coul/wolf* computes Coulombic interactions via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
+.. math source doc: src/Eqs/pair_coul_wolf.tex
 .. math::
 
    E_i = \frac{1}{2} \sum_{j \neq i} 

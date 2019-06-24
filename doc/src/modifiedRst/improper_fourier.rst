@@ -28,6 +28,7 @@ Description
 
 The *fourier* improper style uses the following potential:
 
+.. math source doc: src/Eqs/improper_fourier.tex
 .. math::
 
    E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ] 

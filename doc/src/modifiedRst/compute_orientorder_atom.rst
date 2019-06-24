@@ -44,6 +44,7 @@ were introduced by :ref:`Steinhardt et al. <Steinhardt>` as a way to
 characterize the local orientational order in atomic structures.
 For each atom, *Ql* is a real number defined as follows:
 
+.. math source doc: src/Eqs/orientorder.tex
 .. math::
 
    \bar{Y}_{lm} = \frac{1}{nnn}\sum_{j = 1}^{nnn} Y_{lm}( \theta( {\bf r}_{ij} ), \phi( {\bf r}_{ij} ) ) 

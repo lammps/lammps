@@ -25,6 +25,7 @@ Description
 
 The *fourier/simple* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_fourier_simple.tex
 .. math::
 
    E = K [ 1.0 + c \cos ( n \theta) ] 

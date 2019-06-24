@@ -28,6 +28,7 @@ Description
 
 The *quartic* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_quartic.tex
 .. math::
 
    E = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 +

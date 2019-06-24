@@ -73,6 +73,7 @@ onto the 3-sphere, the surface of the unit ball in a four-dimensional
 space.  The radial distance *r* within *R\_ii'* is mapped on to a third
 polar angle *theta0* defined by,
 
+.. math source doc: src/Eqs/compute_sna_atom1.tex
 .. math::
 
    \theta_0 = {\tt rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
@@ -94,6 +95,7 @@ radial distance. Expanding this density function as a generalized
 Fourier series in the basis functions, we can write each Fourier
 coefficient as
 
+.. math source doc: src/Eqs/compute_sna_atom2.tex
 .. math::
 
    u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{i'} U^j_{m,m'}(\theta_0,\theta,\phi)} 
@@ -105,6 +107,7 @@ arbitrarily assigned a unit weight.  The function *fc(r)* ensures that
 the contribution of each neighbor atom goes smoothly to zero at
 *R\_ii'*:
 
+.. math source doc: src/Eqs/compute_sna_atom4.tex
 .. math::
 
    \label{eqn:f_c}
@@ -118,6 +121,7 @@ under rotation of the polar coordinate frame. However, the following
 scalar triple products of expansion coefficients can be shown to be
 real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
 
+.. math source doc: src/Eqs/compute_sna_atom3.tex
 .. math::
 
    B_{j_1,j_2,j}  = \\
@@ -142,6 +146,7 @@ atom.
 Compute *snad/atom* calculates the derivative of the bispectrum components
 summed separately for each atom type:
 
+.. math source doc: src/Eqs/compute_sna_atom5.tex
 .. math::
 
    - \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}  }}{\partial {\bf r}_i}
@@ -155,6 +160,7 @@ for a detailed explanation.
 Compute *snav/atom* calculates the virial contribution due to the
 derivatives:
 
+.. math source doc: src/Eqs/compute_sna_atom6.tex
 .. math::
 
    - {\bf r}_i \otimes \sum_{i' \in I} \frac{\partial {B^{i'}_{j_1,j_2,j}}}{\partial {\bf r}_i}

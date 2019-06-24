@@ -79,6 +79,7 @@ the formulas in the supplementary document referenced above.  A12 is
 the Hamaker constant as described in :ref:`(Everaers) <Everaers3>`. In LJ
 units:
 
+.. math source doc: src/Eqs/pair_resquared.tex
 .. math::
 
    
@@ -94,6 +95,7 @@ by the formulas in the supplementary document referenced above.  A12
 has a modified form (see `here <PDF/pair_resquared_extra.pdf>`_ for
 details):
 
+.. math source doc: src/Eqs/pair_resquared2.tex
 .. math::
 
    
@@ -109,6 +111,7 @@ using the standard Lennard-Jones formula, which is much cheaper to
 compute than the ellipsoidal formulas.  A12 is used as epsilon in the
 standard LJ formula:
 
+.. math source doc: src/Eqs/pair_resquared3.tex
 .. math::
 
    
@@ -151,6 +154,7 @@ For large uniform molecules it has been shown that the epsilon\_\*\_\*
 energy parameters are approximately representable in terms of local
 contact curvatures :ref:`(Everaers) <Everaers3>`:
 
+.. math source doc: src/Eqs/pair_resquared4.tex
 .. math::
 
    \sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {

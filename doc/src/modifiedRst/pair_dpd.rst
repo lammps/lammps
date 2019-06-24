@@ -67,6 +67,7 @@ pair interaction and the thermostat for each pair of particles.
 For style *dpd*\ , the force on atom I due to atom J is given as a sum
 of 3 terms
 
+.. math source doc: src/Eqs/pair_dpd.tex
 .. math::
 
    \vec{f} & = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\

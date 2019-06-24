@@ -36,6 +36,7 @@ Description
 
 The *opls* dihedral style uses the potential
 
+.. math source doc: src/Eqs/dihedral_opls.tex
 .. math::
 
    E = \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] +

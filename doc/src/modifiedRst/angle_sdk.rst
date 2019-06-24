@@ -30,6 +30,7 @@ Description
 
 The *sdk* angle style is a combination of the harmonic angle potential,
 
+.. math source doc: src/Eqs/angle_harmonic.tex
 .. math::
 
    E = K (\theta - \theta_0)^2 

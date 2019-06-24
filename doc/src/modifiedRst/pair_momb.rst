@@ -36,6 +36,7 @@ described comprehensively in :ref:`(Fichthorn) <Fichthorn>` and
 :ref:`(Zhou) <Zhou4>`. Grimme's method is widely used to correct for
 dispersion in density functional theory calculations.
 
+.. math source doc: src/Eqs/pair_momb.tex
 .. math::
 
    :align: center

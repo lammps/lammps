@@ -30,6 +30,7 @@ The *umbrella* improper style uses the following potential, which is
 commonly referred to as a classic inversion and used in the
 :doc:`DREIDING <Howto_bioFF>` force field:
 
+.. math source doc: src/Eqs/improper_umbrella.tex
 .. math::
 
    E=\frac{1}{2}K\left( \frac{1}{\sin\omega_0}\right) ^2 \left( \cos\omega - \cos\omega_0\right) ^2 \qquad \omega_0 \neq 0^o

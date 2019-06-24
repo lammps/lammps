@@ -28,6 +28,7 @@ Description
 
 The *ring* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_ring.tex
 .. math::
 
    E & = &\frac{1}{6} K \left(\Delta_{ijl} + \Delta_{ijk} + \Delta_{kjl} \right)^6 \\

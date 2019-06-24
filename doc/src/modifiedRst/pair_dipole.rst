@@ -90,6 +90,7 @@ charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)
 interactions are computed by these formulas for the energy (E), force
 (F), and torque (T) between particles I and J.
 
+.. math source doc: src/Eqs/pair_dipole.tex
 .. math::
 
    E_{LJ} & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
@@ -148,6 +149,7 @@ charge-dipole (Eqp), dipole-charge (Epq) and dipole-dipole (Epp)
 potentials are computed by these formulas for the energy (E), force
 (F), and torque (T) between particles I and J:
 
+.. math source doc: src/Eqs/pair_dipole_sf.tex
 .. math::
 
    E_{LJ} & = &  4\epsilon \left\{ \left[ \left( \frac{\sigma}{r} \right)^{\!12} -
@@ -193,6 +195,7 @@ potentials are computed by these formulas for the energy (E), force
    (\vec{p_j} \bullet \vec{r})\vec{r}\right] \Bigg\} \\
 
 
+.. math source doc: src/Eqs/pair_dipole_sf2.tex
 .. math::
 
    T_{pq} = T_{ij} & = & \frac{q_j}{r^3} \left[ 1 - 

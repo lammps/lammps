@@ -31,6 +31,7 @@ Description
 
 The *cvff* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_cvff.tex
 .. math::
 
    E = K [1 + d  \cos (n \phi) ] 

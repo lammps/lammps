@@ -29,6 +29,7 @@ Description
 
 The fix applies a force to atoms given by the potential
 
+.. math source doc: src/Eqs/fix_rhok.tex
 .. math::
 
    U &=&  \frac{1}{2} K (|\rho_{\vec{k}}| - a)^2 \\

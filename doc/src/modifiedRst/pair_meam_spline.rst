@@ -32,6 +32,7 @@ using a variant of modified embedded-atom method (MEAM) potentials
 :ref:`(Lenosky) <Lenosky1>`.  For a single species ("old-style") MEAM,
 the total energy E is given by
 
+.. math source doc: src/Eqs/pair_meam_spline.tex
 .. math::
 
    E=\sum_{i<j}\phi(r_{ij})+\sum_{i}U(n_{i}),
@@ -48,6 +49,7 @@ The *meam/spline* style also supports a new style multicomponent
 modified embedded-atom method (MEAM) potential :ref:`(Zhang) <Zhang4>`, where
 the total energy E is given by
 
+.. math source doc: src/Eqs/pair_meam_spline_multicomponent.tex
 .. math::
 
    E=\sum_{i<j}\phi_{ij}(r_{ij})+\sum_{i}U_i(n_{i}),

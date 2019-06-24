@@ -28,6 +28,7 @@ Description
 
 The *cosine/delta* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_cosine_delta.tex
 .. math::
 
    E = K [1 - \cos(\theta - \theta_0)]

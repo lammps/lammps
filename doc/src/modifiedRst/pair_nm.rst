@@ -68,6 +68,7 @@ by :ref:`Clarke <Clarke>`, mainly used for ionic liquids.  A site can
 represent a single atom or a united-atom site.  The energy of an
 interaction has the following form:
 
+.. math source doc: src/Eqs/pair_nm.tex
 .. math::
 
    E = \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - 
@@ -78,6 +79,7 @@ Rc is the cutoff.
 
 Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
+.. math source doc: src/Eqs/pair_coulomb.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c

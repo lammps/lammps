@@ -40,6 +40,7 @@ in :ref:`(Wen) <Wen2018>`, which is based on the :ref:`(Kolmogorov) <Kolmogorov2
 potential and provides an improved prediction for forces.
 The total potential energy of a system is
 
+.. math source doc: src/Eqs/pair_drip.tex
 .. math::
 
    E &=& \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\\phi_{ij} &=& f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right] \\

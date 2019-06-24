@@ -39,6 +39,7 @@ the pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
    molecule id and is recommended to use the "full" atom style, so that
    charge and molecule ID information is included.
 
+.. math source doc: src/Eqs/pair_coul_shield.tex
 .. math::
 
    E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]

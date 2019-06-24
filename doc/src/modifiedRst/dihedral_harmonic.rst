@@ -31,6 +31,7 @@ Description
 
 The *harmonic* dihedral style uses the potential
 
+.. math source doc: src/Eqs/dihedral_harmonic.tex
 .. math::
 
    E = K [ 1 + d  \cos (n \phi) ]

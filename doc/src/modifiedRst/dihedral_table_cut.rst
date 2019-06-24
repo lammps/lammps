@@ -66,6 +66,7 @@ above.
 The cutoff dihedral style uses a tabulated dihedral interaction with a
 cutoff function:
 
+.. math source doc: src/Eqs/dihedral_table_cut.tex
 .. math::
 
    f(\theta) & = & K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\

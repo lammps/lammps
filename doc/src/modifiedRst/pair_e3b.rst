@@ -57,6 +57,7 @@ Description
 
 The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :ref:`(Kumar 2008) <Kumar>`.
 
+.. math source doc: src/Eqs/e3b.tex
 .. math::
 
    :align: center

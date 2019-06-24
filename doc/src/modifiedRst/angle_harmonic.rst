@@ -34,6 +34,7 @@ Description
 
 The *harmonic* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_harmonic.tex
 .. math::
 
    E = K (\theta - \theta_0)^2 

@@ -30,6 +30,7 @@ Style *multi/lucy* computes a density-dependent force following from
 the many-body form described in :ref:`(Moore) <Moore1>` and
 :ref:`(Warren) <Warren1>` as
 
+.. math source doc: src/Eqs/pair_multi_lucy.tex
 .. math::
 
    F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
@@ -40,6 +41,7 @@ which consists of a density-dependent function, A(rho), and a
 radial-dependent weight function, omegaDD(rij).  The radial-dependent
 weight function, omegaDD(rij), is taken as the Lucy function:
 
+.. math source doc: src/Eqs/pair_multi_lucy2.tex
 .. math::
 
    \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
@@ -47,6 +49,7 @@ weight function, omegaDD(rij), is taken as the Lucy function:
 
 The density-dependent energy for a given particle is given by:
 
+.. math source doc: src/Eqs/pair_multi_lucy_energy.tex
 .. math::
 
    u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho^{'}\right) d\rho^{'}

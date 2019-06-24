@@ -51,6 +51,7 @@ E.g. 12 nearest neighbor for perfect FCC and HCP crystals, 14 nearest
 neighbors for perfect BCC crystals.  These formulas can be used to
 obtain a good cutoff distance:
 
+.. math source doc: src/Eqs/cna_cutoff1.tex
 .. math::
 
    r_{c}^{fcc} & = & \frac{1}{2} \left(\frac{\sqrt{2}}{2} + 1\right) \mathrm{a} \simeq 0.8536 \:\mathrm{a} \\
@@ -66,6 +67,7 @@ Also note that since the CNA calculation in LAMMPS uses the neighbors
 of an owned atom to find the nearest neighbors of a ghost atom, the
 following relation should also be satisfied:
 
+.. math source doc: src/Eqs/cna_cutoff2.tex
 .. math::
 
    Rc + Rs > 2*{\rm cutoff}

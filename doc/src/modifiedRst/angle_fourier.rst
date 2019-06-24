@@ -25,6 +25,7 @@ Description
 
 The *fourier* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_fourier.tex
 .. math::
 
    E = K [C_0 + C_1 \cos ( \theta) + C_2 \cos( 2 \theta) ] 

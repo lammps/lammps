@@ -32,6 +32,7 @@ Description
 
 The *class2* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_class2.tex
 .. math::
 
    E & = & E_i + E_{aa} \\

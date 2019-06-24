@@ -72,6 +72,7 @@ and applying the r\_c cutoff.
 The forces between vertex-vertex, vertex-edge, and edge-edge overlaps
 are given by:
 
+.. math source doc: src/Eqs/pair_body_rounded.tex
 .. math::
 
    F_n &=& k_n \delta_n - c_n v_n, \qquad \delta_n \le 0 \\

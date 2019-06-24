@@ -134,6 +134,7 @@ The *bond* keyword applies a bond restraint to the specified atoms
 using the same functional form used by the :doc:`bond\_style harmonic <bond_harmonic>` command.  The potential associated with
 the restraint is
 
+.. math source doc: src/Eqs/bond_harmonic.tex
 .. math::
 
    E = K (r - r_0)^2 
@@ -155,6 +156,7 @@ The *angle* keyword applies an angle restraint to the specified atoms
 using the same functional form used by the :doc:`angle\_style harmonic <angle_harmonic>` command.  The potential associated with
 the restraint is
 
+.. math source doc: src/Eqs/angle_harmonic.tex
 .. math::
 
    E = K (\theta - \theta_0)^2 
@@ -177,6 +179,7 @@ atoms using a simplified form of the function used by the
 :doc:`dihedral\_style charmm <dihedral_charmm>` command.  The potential
 associated with the restraint is
 
+.. math source doc: src/Eqs/dihedral_charmm.tex
 .. math::
 
    E = K [ 1 + \cos (n \phi - d) ]

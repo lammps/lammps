@@ -57,6 +57,7 @@ third calculates per-atom stress (\ *stress-ID*\ ).
 The Green-Kubo formulas relate the ensemble average of the
 auto-correlation of the heat flux J to the thermal conductivity kappa:
 
+.. math source doc: src/Eqs/heat_flux_J.tex
 .. math::
 
    \mathbf{J} & = & \frac{1}{V} \left[ \sum_i e_i \mathbf{v}_i - \sum_{i} \mathbf{S}_{i} \mathbf{v}_i \right] \\
@@ -64,6 +65,7 @@ auto-correlation of the heat flux J to the thermal conductivity kappa:
    & = & \frac{1}{V} \left[ \sum_i e_i \mathbf{v}_i + \frac{1}{2} \sum_{i<j} \left( \mathbf{f}_{ij} \cdot \left(\mathbf{v}_i + \mathbf{v}_j \right)  \right) \mathbf{x}_{ij} \right]
 
 
+.. math source doc: src/Eqs/heat_flux_k.tex
 .. math::
 
    \kappa  = \frac{V}{k_B T^2} \int_0^\infty \langle J_x(0)  J_x(t) \rangle \, dt

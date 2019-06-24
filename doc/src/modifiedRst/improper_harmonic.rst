@@ -34,6 +34,7 @@ Description
 
 The *harmonic* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_harmonic.tex
 .. math::
 
    E = K (\chi - \chi_0)^2

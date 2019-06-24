@@ -38,6 +38,7 @@ which uses non-Boltzmann ensembles to sample over first order phase
 transitions. The is done by defining replicas with an enthalpy
 dependent effective temperature
 
+.. math source doc: src/Eqs/fix_grem.tex
 .. math::
 
    T_{eff} = \lambda + \eta (H - H_0)

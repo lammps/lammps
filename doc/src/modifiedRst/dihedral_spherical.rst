@@ -30,6 +30,7 @@ The *spherical* dihedral style uses the potential:
 .. image:: JPG/dihedral_spherical_angles.jpg
    :align: center
 
+.. math source doc: src/Eqs/dihedral_spherical.tex
 .. math::
 
    E(\phi,\theta_1,\theta_2) & = &\sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2)\\

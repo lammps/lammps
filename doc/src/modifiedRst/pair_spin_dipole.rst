@@ -44,6 +44,7 @@ The magnetic dipole-dipole interactions are computed by the
 following formulas for the magnetic energy, magnetic precession 
 vector omega and mechanical force between particles I and J.
 
+.. math source doc: src/Eqs/pair_spin_dipole.tex
 .. math::
 
    :align: center

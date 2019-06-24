@@ -35,6 +35,7 @@ Description
 
 Style *yukawa/colloid* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/pair_yukawa_colloid.tex
 .. math::
 
    E = \frac{A}{\kappa} e^{- \kappa (r - (r_i + r_j))} \qquad r < r_c

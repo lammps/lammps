@@ -26,6 +26,7 @@ Description
 The *mm3* bond style uses the potential that is anharmonic in the bond
 as defined in :ref:`(Allinger) <mm3-allinger1989>`
 
+.. math source doc: src/Eqs/bond_mm3.tex
 .. math::
 
    E = K (r - r_0)^2 \left[ 1 - 2.55(r-r_0) + (7/12) 2.55^2(r-r_0)^2 \right]

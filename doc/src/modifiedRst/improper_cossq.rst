@@ -28,6 +28,7 @@ Description
 
 The *cossq* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_cossq.tex
 .. math::
 
    E = \frac{1}{2} K \cos^2{\left(\chi - \chi_0\right)}

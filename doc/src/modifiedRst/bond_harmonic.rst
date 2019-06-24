@@ -34,6 +34,7 @@ Description
 
 The *harmonic* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_harmonic.tex
 .. math::
 
    E = K (r - r_0)^2 

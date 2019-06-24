@@ -28,6 +28,7 @@ tight-Binding QEq) potential as described in :ref:`SMTB-Q\_1 <SMTB-Q_1>` and
 :ref:`SMTB-Q\_2 <SMTB-Q_2>`. Briefly, the energy of metallic-oxygen systems
 is given by three contributions:
 
+.. math source doc: src/Eqs/pair_smtbq1.tex
 .. math::
 
    E_{tot} & = & E_{ES} + E_{OO} + E_{MO} \\
@@ -91,6 +92,7 @@ a N-body potential for the band energy term,
 as indicated by the keyword *'second\_moment'* in the
 ffield.SMTBQ.Syst. The energy band term is given by:
 
+.. math source doc: src/Eqs/pair_smtbq2.tex
 .. math::
 
    E_{cov}^{i(i=M,O)} & = & - \Bigg\{\eta_i(\mu \xi^{0})^2 f_{cut}^{r_{c1}r_{c2}}(r_{ij})
@@ -121,6 +123,7 @@ relationship between the hopping integral *&#958<sup>0</sup>* and the
 others, we have in an oxide C<sub>n</sub>O<sub>m</sub> the following
 relationship:
 
+.. math source doc: src/Eqs/pair_smtbq3.tex
 .. math::
 
    \xi^0 & = & \frac{\xi_O}{m} = \frac{\xi_C}{n} \\

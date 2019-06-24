@@ -102,6 +102,7 @@ Style *eam* computes pairwise interactions for metals and metal alloys
 using embedded-atom method (EAM) potentials :ref:`(Daw) <Daw>`.  The total
 energy Ei of an atom I is given by
 
+.. math source doc: src/Eqs/pair_eam.tex
 .. math::
 
    E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) + 
@@ -374,6 +375,7 @@ alloys using a generalized form of EAM potentials due to Finnis and
 Sinclair :ref:`(Finnis) <Finnis1>`.  The total energy Ei of an atom I is
 given by
 
+.. math source doc: src/Eqs/pair_eam_fs.tex
 .. math::
 
    E_i = F_\alpha \left(\sum_{j \neq i}\ 

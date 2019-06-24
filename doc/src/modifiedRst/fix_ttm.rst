@@ -109,6 +109,7 @@ Energy transport within the electronic subsystem is solved according
 to the heat diffusion equation with added source terms for heat
 transfer between the subsystems:
 
+.. math source doc: src/Eqs/fix_ttm.tex
 .. math::
 
    C_e \rho_e \frac{\partial T_e}{\partial t} = 
@@ -198,6 +199,7 @@ temperature controlled by another fix - e.g. :doc:`fix nvt <fix_nh>` or
 Fix ttm/mod uses the heat diffusion equation with possible external
 heat sources (e.g. laser heating in ablation simulations):
 
+.. math source doc: src/Eqs/fix_ttm_mod.tex
 .. math::
 
    C_e \rho_e \frac{\partial T_e}{\partial t} = 
@@ -215,6 +217,7 @@ Fix ttm/mod also allows users to specify the dependencies of C\_e and
 kappa\_e on the electronic temperature. The specific heat is expressed
 as
 
+.. math source doc: src/Eqs/fix_ttm_ce.tex
 .. math::
 
    C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
@@ -229,6 +232,7 @@ for the blast force acting on ions because of electronic pressure
 gradient (see :ref:`(Chen) <Chen>`, :ref:`(Norman) <Norman>`).  The total force
 acting on an ion is:
 
+.. math source doc: src/Eqs/fix_ttm_blast.tex
 .. math::
 
    {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec F}_{langevin} - \nabla P_e/n_{ion}
@@ -254,6 +258,7 @@ initial borders of vacuum can be set in the *init\_file* via *lsurface*
 and *rsurface* parameters. In this case, electronic pressure gradient
 is calculated as
 
+.. math source doc: src/Eqs/fix_ttm_blast1.tex
 .. math::
 
    \nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} + \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta x}-(C_e{}T_e)_{x}}{\Delta x} \right]

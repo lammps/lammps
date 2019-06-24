@@ -51,6 +51,7 @@ interactions between mono-disperse finite-size spherical particles in
 a pairwise fashion.  The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Ball1>`
 
+.. math source doc: src/Eqs/pair_lubricate.tex
 .. math::
 
    W & = & - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 - 
@@ -91,6 +92,7 @@ The other component is due to the Fast Lubrication Dynamics (FLD)
 approximation, described in :ref:`(Kumar) <Kumar1>`, which can be
 represented by the following equation
 
+.. math source doc: src/Eqs/fld.tex
 .. math::
 
    F^{H} = -R_{FU}(U-U^{\infty}) + R_{FE}E^{\infty}

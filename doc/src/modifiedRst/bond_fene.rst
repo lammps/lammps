@@ -34,6 +34,7 @@ Description
 
 The *fene* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_fene.tex
 .. math::
 
    E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] +

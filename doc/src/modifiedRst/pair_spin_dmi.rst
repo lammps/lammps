@@ -32,6 +32,7 @@ between pairs of magnetic spins.
 According to the expression reported in :ref:`(Rohart) <Rohart>`, one has
 the following DM energy:
 
+.. math source doc: src/Eqs/pair_spin_dmi_interaction.tex
 .. math::
 
    :align: center
@@ -49,6 +50,7 @@ in :ref:`(Tranchida) <Tranchida5>`) allows to derive a magnetic torque omega, an
 mechanical force F (for spin-lattice calculations only) for each magnetic
 particle i:
 
+.. math source doc: src/Eqs/pair_spin_dmi_forces.tex
 .. math::
 
    :align: center

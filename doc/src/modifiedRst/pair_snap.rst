@@ -38,6 +38,7 @@ In SNAP, the total energy is decomposed into a sum over
 atom energies. The energy of atom *i* is
 expressed as a weighted sum over bispectrum components.
 
+.. math source doc: src/Eqs/pair_snap.tex
 .. math::
 
    E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\alpha_i}_0 + \sum_{k=1}^K \beta_k^{\alpha_i} B_k^i

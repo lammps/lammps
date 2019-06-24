@@ -35,6 +35,7 @@ per-particle internal energies and internal temperatures.
 The system internal properties are computed according to the following
 relations:
 
+.. math source doc: src/Eqs/compute_dpd.tex
 .. math::
 
    U^{cond} = \displaystyle\sum_{i=1}^{N} u_{i}^{cond} \\ 

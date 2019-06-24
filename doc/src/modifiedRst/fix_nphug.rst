@@ -88,6 +88,7 @@ Essentially, a Hugoniostat simulation is an NPT simulation in which the
 user-specified target temperature is replaced with a time-dependent
 target temperature Tt obtained from the following equation:
 
+.. math source doc: src/Eqs/fix_nphug.tex
 .. math::
 
    T_t - T = \frac{\left(\frac{1}{2}\left(P + P_0\right)\left(V_0 - V\right) + E_0 - E\right)}{N_{dof} k_B } = Delta

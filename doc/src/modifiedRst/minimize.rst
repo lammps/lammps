@@ -84,6 +84,7 @@ In all cases, the objective function being minimized is the total
 potential energy of the system as a function of the N atom
 coordinates:
 
+.. math source doc: src/Eqs/min_energy.tex
 .. math::
 
    E(r_1,r_2, \ldots ,r_N) & = & \sum_{i,j} E_{\it pair}(r_i,r_j) + 

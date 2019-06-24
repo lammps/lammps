@@ -50,6 +50,7 @@ Description
 The *tersoff* style computes a 3-body Tersoff potential
 :ref:`(Tersoff\_1) <Tersoff_11>` for the energy E of a system of atoms as
 
+.. math source doc: src/Eqs/pair_tersoff_1.tex
 .. math::
 
    E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
@@ -190,6 +191,7 @@ gamma\_ijk = omega\_ik, lambda3 = 0 and the value of
 m has no effect.  The parameters for species i and j can be calculated
 using the Tersoff\_2 mixing rules:
 
+.. math source doc: src/Eqs/pair_tersoff_2.tex
 .. math::
 
    \lambda_1^{i,j} &=& \frac{1}{2}(\lambda_1^i + \lambda_1^j)\\

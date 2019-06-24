@@ -28,6 +28,7 @@ Description
 
 The *cosine/shift* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_cosine_shift.tex
 .. math::
 
    E=-\frac{Umin}{2} \left[ 1+Cos(\theta-\theta_0) \right]

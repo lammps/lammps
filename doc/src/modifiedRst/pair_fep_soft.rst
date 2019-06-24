@@ -187,6 +187,7 @@ are suited for "alchemical" free energy calculations using the :doc:`fix adapt/f
 The *lj/cut/soft* style and related sub-styles compute the 12-6 Lennard-Jones
 and Coulomb potentials modified by a soft core, with the functional form
 
+.. math source doc: src/Eqs/pair_lj_soft.tex
 .. math::
 
    :align: center
@@ -198,6 +199,7 @@ denominator of the first term in brackets taking the value 1.5 instead of 2
 
 Coulomb interactions can also be damped with a soft core at short distance,
 
+.. math source doc: src/Eqs/pair_coul_soft.tex
 .. math::
 
    :align: center
@@ -311,6 +313,7 @@ The *morse/soft* variant modifies the :doc:`pair\_morse <pair_morse>` style at
 short range to have a soft core. The functional form differs from that of the
 *lj/soft* styles, and is instead given by:
 
+.. math source doc: src/Eqs/pair_morse_soft.tex
 .. math::
 
    :align: center

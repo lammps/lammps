@@ -33,6 +33,7 @@ multi-ion interatomic potentials in d-band transition metals, with a
 volume-dependent, real-space total-energy functional for the N-ion
 elemental bulk material in the form
 
+.. math source doc: src/Eqs/pair_mgpt.tex
 .. math::
 
    E_{\rm tot}({\bf R}_1 \ldots {\bf R}_N) = NE_{\rm vol}(\Omega ) 

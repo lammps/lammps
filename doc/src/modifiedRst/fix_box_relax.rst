@@ -228,6 +228,7 @@ With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
 function then is:
 
+.. math source doc: src/Eqs/fix_box_relax1.tex
 .. math::
 
    E = U + P_t \left(V-V_0 \right) + E_{strain}
@@ -241,6 +242,7 @@ Taking derivatives of *E* w.r.t. the box dimensions, and setting these
 to zero, we find that at the minimum of the objective function, the
 global system stress tensor **P** will satisfy the relation:
 
+.. math source doc: src/Eqs/fix_box_relax2.tex
 .. math::
 
    \mathbf P = P_t \mathbf I + {\mathbf S_t} \left( \mathbf h_0^{-1} \right)^t \mathbf h_{0d}

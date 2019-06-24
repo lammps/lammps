@@ -43,6 +43,7 @@ By default (lattice = yes), a spin-lattice integration is performed.
 The *nve/spin* fix applies a Suzuki-Trotter decomposition to
 the equations of motion of the spin lattice system, following the scheme:
 
+.. math source doc: src/Eqs/fix_integration_spin_stdecomposition.tex
 .. math::
 
    :align: center

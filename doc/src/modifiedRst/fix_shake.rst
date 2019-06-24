@@ -75,6 +75,7 @@ be the position and velocity of atom *i* at time *n*\ , for
 *i* =1,...,\ *N*\ , where *N* is the number of sites of our reference
 molecule. The distance vector between sites *i* and *j* is given by
 
+.. math source doc: src/Eqs/fix_rattle_rij.tex
 .. math::
 
    \mathbf r^{n+1}_{ij} = \mathbf r^n_j - \mathbf r^n_i
@@ -82,6 +83,7 @@ molecule. The distance vector between sites *i* and *j* is given by
 
 The constraints can then be formulated as
 
+.. math source doc: src/Eqs/fix_rattle_constraints.tex
 .. math::
 
    :align: center

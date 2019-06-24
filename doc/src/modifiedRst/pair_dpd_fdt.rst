@@ -54,6 +54,7 @@ under isoenergetic and isoenthalpic conditions (see :ref:`(Lisal) <Lisal3>`).
 For DPD simulations in general, the force on atom I due to atom J is
 given as a sum of 3 terms
 
+.. math source doc: src/Eqs/pair_dpd.tex
 .. math::
 
    \vec{f} & = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
@@ -71,6 +72,7 @@ the timestep size, and w(r) is a weighting factor that varies between
 0 and 1.  Rc is the cutoff.  The weighting factor, omega\_ij, varies
 between 0 and 1, and is chosen to have the following functional form:
 
+.. math source doc: src/Eqs/pair_dpd_omega.tex
 .. math::
 
    \omega_{ij} = 1 - \frac{r_{ij}}{r_{c}}
@@ -103,6 +105,7 @@ a mesoparticle equation of state (see :doc:`fix eos <fix>`). The
 differential internal conductive and mechanical energies are computed
 within style *dpd/fdt/energy* as:
 
+.. math source doc: src/Eqs/pair_dpd_energy.tex
 .. math::
 
    du_{i}^{cond} & = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
@@ -113,6 +116,7 @@ within style *dpd/fdt/energy* as:
 
 where
 
+.. math source doc: src/Eqs/pair_dpd_energy_terms.tex
 .. math::
 
    \alpha_{ij}^{2} & = & 2k_{B}\kappa_{ij} \\

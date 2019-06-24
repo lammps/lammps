@@ -69,6 +69,7 @@ dependent force to the fluid.
 The lattice-Boltzmann algorithm solves for the fluid motion governed by
 the Navier Stokes equations,
 
+.. math source doc: src/Eqs/fix_lb_fluid_navierstokes.tex
 .. math::
 
    \partial_t \rho + \partial_{\beta}\left(\rho u_{\beta}\right)= 0
@@ -79,6 +80,7 @@ the Navier Stokes equations,
 
 with,
 
+.. math source doc: src/Eqs/fix_lb_fluid_viscosity.tex
 .. math::
 
    \eta_{\alpha \beta \gamma \nu} = \eta\left[\delta_{\alpha \gamma}\delta_{\beta \nu} + \delta_{\alpha \nu}\delta_{\beta \gamma} - \frac{2}{3}\delta_{\alpha \beta}\delta_{\gamma \nu}\right] + \Lambda \delta_{\alpha \beta}\delta_{\gamma \nu}
@@ -89,6 +91,7 @@ is the stress tensor, F is a local external force, and eta and Lambda
 are the shear and bulk viscosities respectively.  Here, we have
 implemented
 
+.. math source doc: src/Eqs/fix_lb_fluid_stress.tex
 .. math::
 
    \sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
@@ -100,6 +103,7 @@ The algorithm involves tracking the time evolution of a set of partial
 distribution functions which evolve according to a velocity
 discretized version of the Boltzmann equation,
 
+.. math source doc: src/Eqs/fix_lb_fluid_boltzmann.tex
 .. math::
 
    \left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
@@ -119,6 +123,7 @@ finite difference LB integrator is used.  If *LBtype* is set equal to
 Physical variables are then defined in terms of moments of the distribution
 functions,
 
+.. math source doc: src/Eqs/fix_lb_fluid_properties.tex
 .. math::
 
    \rho = \displaystyle\sum\limits_{i} f_i
@@ -135,6 +140,7 @@ through a velocity dependent force.  The contribution to the fluid
 force on a given lattice mesh site j due to MD particle alpha is
 calculated as:
 
+.. math source doc: src/Eqs/fix_lb_fluid_fluidforce.tex
 .. math::
 
    {\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
@@ -155,6 +161,7 @@ stencil by specifying the keyword, *trilinear*\ .
 
 By default, the force coupling constant, gamma, is calculated according to
 
+.. math source doc: src/Eqs/fix_lb_fluid_gammadefault.tex
 .. math::
 
    \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
@@ -384,6 +391,7 @@ Default
 
 By default, the force coupling constant is set according to
 
+.. math source doc: src/Eqs/fix_lb_fluid_gammadefault.tex
 .. math::
 
    \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)

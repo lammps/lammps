@@ -39,6 +39,7 @@ Description
 
 Style *soft* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/pair_soft.tex
 .. math::
 
    E = A \left[ 1 + \cos\left(\frac{\pi r}{r_c}\right) \right]

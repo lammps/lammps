@@ -160,6 +160,7 @@ artifacts.
    the CHARMM force field energies and forces, when using one of these
    two CHARMM pair styles.
 
+.. math source doc: src/Eqs/pair_charmm.tex
 .. math::
 
    E & = & LJ(r) \qquad \qquad \qquad r < r_{\rm in} \\

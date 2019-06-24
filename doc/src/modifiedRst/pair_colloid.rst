@@ -41,6 +41,7 @@ Lennard-Jones particle of size sigma.
 
 The colloid-colloid interaction energy is given by
 
+.. math source doc: src/Eqs/pair_colloid_cc.tex
 .. math::
 
    :align: center
@@ -53,6 +54,7 @@ Lennard-Jones particles of size sigma and is derived in
 
 The colloid-solvent interaction energy is given by
 
+.. math source doc: src/Eqs/pair_colloid_cs.tex
 .. math::
 
    :align: center
@@ -65,6 +67,7 @@ zero.
 The solvent-solvent interaction energy is given by the usual
 Lennard-Jones formula
 
+.. math source doc: src/Eqs/pair_colloid_ss.tex
 .. math::
 
    :align: center

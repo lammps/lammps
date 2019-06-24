@@ -57,21 +57,25 @@ of wavelength lambda.
 The x-ray diffraction intensity, I, at each reciprocal lattice point, k,
 is computed from the structure factor, F, using the equations:
 
+.. math source doc: src/Eqs/compute_xrd1.tex
 .. math::
 
    I=Lp(\theta)\frac{F^{*}F}{N}
 
 
+.. math source doc: src/Eqs/compute_xrd2.tex
 .. math::
 
    F(\mathbf{k})=\sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j)
 
 
+.. math source doc: src/Eqs/compute_xrd3.tex
 .. math::
 
    Lp(\theta)=\frac{1+cos^{2}(2\theta)}{cos(\theta)sin^{2}(\theta)}
 
 
+.. math source doc: src/Eqs/compute_xrd4.tex
 .. math::
 
    \frac{sin(\theta)}{\lambda}=\frac{\left | \mathbf{k} \right |}{2}
@@ -122,6 +126,7 @@ for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
 :ref:`(Colliex) <Colliex>`:
 
+.. math source doc: src/Eqs/compute_xrd5.tex
 .. math::
 
    f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4} 

@@ -109,6 +109,7 @@ Description
 The *buck* style computes a Buckingham potential (exp/6 instead of
 Lennard-Jones 12/6) given by
 
+.. math source doc: src/Eqs/pair_buck.tex
 .. math::
 
    E = A e^{-r / \rho} - \frac{C}{r^6} \qquad r < r_c

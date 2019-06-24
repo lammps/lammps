@@ -52,6 +52,7 @@ boundaries.
 Rg is a measure of the size of a chunk, and is computed by this
 formula
 
+.. math source doc: src/Eqs/compute_gyration.tex
 .. math::
 
    {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2

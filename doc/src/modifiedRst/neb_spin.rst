@@ -136,6 +136,7 @@ is assigned to be a fraction of the angular distance.
    The angular interpolation between the starting and final point 
    is achieved using Rodrigues formula:
 
+.. math source doc: src/Eqs/neb_spin_rodrigues_formula.tex
 .. math::
 
    :align: center
@@ -143,6 +144,7 @@ is assigned to be a fraction of the angular distance.
 where m\_i\^I is the initial spin configuration for the spin i,
 omega\_i\^nu is a rotation angle defined as:
 
+.. math source doc: src/Eqs/neb_spin_angle.tex
 .. math::
 
    :align: center
@@ -151,6 +153,7 @@ with nu the image number, Q the total number of images, and
 omega\_i the total rotation between the initial and final spins.
 k\_i defines a rotation axis such as:
 
+.. math source doc: src/Eqs/neb_spin_k.tex
 .. math::
 
    :align: center

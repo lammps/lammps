@@ -28,6 +28,7 @@ Description
 
 The *cosine/shift/exp* dihedral style uses the potential
 
+.. math source doc: src/Eqs/dihedral_cosine_shift_exp.tex
 .. math::
 
    E=-U_{min} 

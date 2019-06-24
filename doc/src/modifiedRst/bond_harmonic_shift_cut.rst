@@ -29,6 +29,7 @@ Description
 The *harmonic/shift/cut* bond style is a shifted harmonic bond that
 uses the potential
 
+.. math source doc: src/Eqs/bond_harmonic_shift_cut.tex
 .. math::
 
    E = \frac{Umin}{(r_0-r_c)^2} \left[ (r-r_0)^2-(r_c-r_0)^2 \right] 

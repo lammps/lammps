@@ -51,6 +51,7 @@ delta which can be useful when particles are of different sizes, since
 it is different that using different sigma values in a standard LJ
 formula:
 
+.. math source doc: src/Eqs/pair_lj_expand.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} - 

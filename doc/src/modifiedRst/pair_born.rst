@@ -102,6 +102,7 @@ Description
 The *born* style computes the Born-Mayer-Huggins or Tosi/Fumi
 potential described in :ref:`(Fumi and Tosi) <FumiTosi>`, given by
 
+.. math source doc: src/Eqs/pair_born.tex
 .. math::
 
    E = A \exp \left(\frac{\sigma - r}{\rho} \right) - 

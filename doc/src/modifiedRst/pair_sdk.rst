@@ -70,6 +70,7 @@ Description
 The *lj/sdk* styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
 given by
 
+.. math source doc: src/Eqs/pair_cmm.tex
 .. math::
 
    E = & \frac{27}{4} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 

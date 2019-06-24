@@ -30,6 +30,7 @@ Style *spin/me* computes a magneto-electric interaction between
 pairs of magnetic spins. According to the derivation reported in
 :ref:`(Katsura) <Katsura1>`, this interaction is defined as:
 
+.. math source doc: src/Eqs/pair_spin_me_interaction.tex
 .. math::
 
    :align: center
@@ -45,6 +46,7 @@ to a magnetic torque omega, and its associated atom can be submitted to a
 force F for spin-lattice calculations (see :doc:`fix\_nve\_spin <fix_nve_spin>`),
 such as:
 
+.. math source doc: src/Eqs/pair_spin_me_forces.tex
 .. math::
 
    :align: center

@@ -36,6 +36,7 @@ Description
 
 The *class2* dihedral style uses the potential
 
+.. math source doc: src/Eqs/dihedral_class2.tex
 .. math::
 
    E & = & E_d + E_{mbt} + E_{ebt} + E_{at} + E_{aat} + E_{bb13} \\

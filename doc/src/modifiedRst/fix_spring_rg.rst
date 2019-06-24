@@ -44,6 +44,7 @@ energy of the constraint and associated force on each atom is given by
 the second and third formulas, when the group is at a different RG
 than the target value RG0.
 
+.. math source doc: src/Eqs/fix_spring_rg.tex
 .. math::
 
    {R_G}^2 = \frac{1}{M}\sum_{i}^{N}{m_{i}\left( x_{i} -

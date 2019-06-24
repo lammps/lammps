@@ -60,6 +60,7 @@ Lennard-Jones and Buckingham potential with the addition of a taper
 function that ramps the energy and force smoothly to zero between an
 inner and outer cutoff.
 
+.. math source doc: src/Eqs/pair_mdf-1.tex
 .. math::
 
    E_{smooth}(r) = E(r)*f(r)
@@ -68,6 +69,7 @@ inner and outer cutoff.
 The tapering, *f(r)*\ , is done by using the Mei, Davenport, Fernando
 function :ref:`(Mei) <Mei>`.
 
+.. math source doc: src/Eqs/pair_mdf-2.tex
 .. math::
 
    \begin{array}{lcl}
@@ -79,6 +81,7 @@ function :ref:`(Mei) <Mei>`.
 
 where
 
+.. math source doc: src/Eqs/pair_mdf-3.tex
 .. math::
 
    x = \frac{(r-r_m)}{(r_{cut}-r_m)}
@@ -94,6 +97,7 @@ radius.
 For the *lj/mdf* pair\_style, the potential energy, *E(r)*\ , is the
 standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
+.. math source doc: src/Eqs/pair_mdf-4.tex
 .. math::
 
    E(r) = 4\epsilon\Big[\Big(\frac{\sigma}{r}\Big)^{12} - \Big(\frac{\sigma}{r}\Big)^6\Big]
@@ -120,6 +124,7 @@ standard Buckingham potential with three required coefficients.
 The two cutoffs can be omitted and default to the corresponding
 global values:
 
+.. math source doc: src/Eqs/pair_mdf-5.tex
 .. math::
 
    E(r) = A e^{(-r/\rho)} -\frac{C}{r^6}
@@ -138,6 +143,7 @@ global values:
 For the *lennard/mdf* pair\_style, the potential energy, *E(r)*\ , is the
 standard 12-6 Lennard-Jones written in the A/B form:
 
+.. math source doc: src/Eqs/pair_mdf-6.tex
 .. math::
 
    E(r) = \frac{A}{r^{12}} - \frac{B}{r^{6}}

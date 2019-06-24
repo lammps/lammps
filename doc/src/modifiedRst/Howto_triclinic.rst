@@ -53,6 +53,7 @@ vectors of a general parallelepiped, where there is no restriction on
 **A** x **B** . **C** > 0.  The equivalent LAMMPS **a**\ ,\ **b**\ ,\ **c** are a linear
 rotation of **A**\ , **B**\ , and **C** and can be computed as follows:
 
+.. math source doc: src/Eqs/transform.tex
 .. math::
 
    \begin{pmatrix}
@@ -92,6 +93,7 @@ fractional coordinates in the
 old basis and then converting to distance coordinates in the new basis.
 The transformation is given by the following equation:
 
+.. math source doc: src/Eqs/rotate.tex
 .. math::
 
    \mathbf{x}
@@ -198,6 +200,7 @@ defined above.  The relationship between these 6 quantities
 (a,b,c,alpha,beta,gamma) and the LAMMPS box sizes (lx,ly,lz) =
 (xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) is as follows:
 
+.. math source doc: src/Eqs/box.tex
 .. math::
 
    a &=& {\rm lx} \\
@@ -210,6 +213,7 @@ defined above.  The relationship between these 6 quantities
 
 The inverse relationship can be written as follows:
 
+.. math source doc: src/Eqs/box_inverse.tex
 .. math::
 
    {\rm lx} &=& a \\

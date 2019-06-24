@@ -39,6 +39,7 @@ Description
 The *sw* style computes a 3-body :ref:`Stillinger-Weber <Stillinger2>`
 potential for the energy E of a system of atoms as
 
+.. math source doc: src/Eqs/pair_sw.tex
 .. math::
 
    E & = & \sum_i \sum_{j > i} \phi_2 (r_{ij}) + 

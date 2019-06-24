@@ -46,6 +46,7 @@ The *hbond/dreiding* styles compute the Acceptor-Hydrogen-Donor (AHD)
 3-body hydrogen bond interaction for the :doc:`DREIDING <Howto_bioFF>`
 force field, given by:
 
+.. math source doc: src/Eqs/pair_hbond_dreiding.tex
 .. math::
 
    E & = & \left[LJ(r) | Morse(r) \right] \qquad \qquad \qquad r < r_{\rm in} \\

@@ -32,6 +32,7 @@ was first proposed by Nicklas, Fellinger, and Park
 :ref:`(Nicklas) <Nicklas>`.  We refer to it as MEAM+SW.  The total energy E
 is given by
 
+.. math source doc: src/Eqs/pair_meam_sw_spline.tex
 .. math::
 
    :align: center

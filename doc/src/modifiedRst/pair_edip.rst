@@ -37,6 +37,7 @@ potentials, while *edip/multi* supports multi-element EDIP runs.
 
 In EDIP, the energy E of a system of atoms is
 
+.. math source doc: src/Eqs/pair_edip.tex
 .. math::
 
    E & = & \sum_{j \ne i} \phi_{2}(R_{ij}, Z_{i}) + \sum_{j \ne i} \sum_{k \ne i,k > j} \phi_{3}(R_{ij}, R_{ik}, Z_{i}) \\

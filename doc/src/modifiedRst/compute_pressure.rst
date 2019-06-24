@@ -36,6 +36,7 @@ of atoms via the :doc:`compute reduce <compute_reduce>` command.
 
 The pressure is computed by the formula
 
+.. math source doc: src/Eqs/pressure.tex
 .. math::
 
    P = \frac{N k_B T}{V} + \frac{\sum_{i}^{N'} r_i \bullet f_i}{dV}
@@ -63,6 +64,7 @@ ordered xx, yy, zz, xy, xz, yz.  The equation for the I,J components
 the first term uses components of the kinetic energy tensor and the
 second term uses components of the virial tensor:
 
+.. math source doc: src/Eqs/pressure_tensor.tex
 .. math::
 
    P_{IJ} = \frac{\sum_{k}^{N} m_k v_{k_I} v_{k_J}}{V} + 

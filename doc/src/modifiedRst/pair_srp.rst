@@ -56,6 +56,7 @@ Bonds of specified type *btype* interact with one another through a
 bond-pairwise potential, such that the force on bond *i* due to bond
 *j* is as follows
 
+.. math source doc: src/Eqs/pair_srp1.tex
 .. math::
 
    F^{SRP}_{ij} & = & C(1-r/r_c)\hat{r}_{ij} \qquad r < r_c \\
@@ -69,6 +70,7 @@ computes *r* and *rij* from the midpoint distance between bonds. The
 bonds. The force acting on a bond is mapped onto the two bond atoms
 according to the lever rule,
 
+.. math source doc: src/Eqs/pair_srp2.tex
 .. math::
 
    F_{i1}^{SRP} & = & F^{SRP}_{ij}(L) \\

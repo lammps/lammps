@@ -77,6 +77,7 @@ Here is an example file:
 
 The style *lj126* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/pair_lj.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
@@ -91,6 +92,7 @@ and the coefficients:
 
 The style *morse* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/pair_morse.tex
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
@@ -105,6 +107,7 @@ and the coefficients:
 
 The style *harmonic* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/bond_harmonic.tex
 .. math::
 
    E = K (r - r_0)^2 

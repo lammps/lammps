@@ -44,6 +44,7 @@ Description
 
 Style *gauss* computes a tethering potential of the form
 
+.. math source doc: src/Eqs/pair_gauss.tex
 .. math::
 
    E = - A \exp(-B r^2) \qquad r < r_c
@@ -68,6 +69,7 @@ is used.
 Style *gauss/cut* computes a generalized Gaussian interaction potential
 between pairs of particles:
 
+.. math source doc: src/Eqs/pair_gauss_cut.tex
 .. math::
 
    E = & \frac{H}{\sigma_h\sqrt{2\pi}} \exp\left[-\frac{(r-r_{mh})^2}{2\sigma_h^2}\right]

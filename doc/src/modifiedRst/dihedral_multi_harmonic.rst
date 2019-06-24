@@ -28,6 +28,7 @@ Description
 
 The *multi/harmonic* dihedral style uses the potential
 
+.. math source doc: src/Eqs/dihedral_multi_harmonic.tex
 .. math::
 
    E = \sum_{n=1,5} A_n  \cos^{n-1}(\phi)

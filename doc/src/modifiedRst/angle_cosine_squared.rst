@@ -28,6 +28,7 @@ Description
 
 The *cosine/squared* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_cosine_squared.tex
 .. math::
 
    E = K [\cos(\theta) - \cos(\theta_0)]^2 

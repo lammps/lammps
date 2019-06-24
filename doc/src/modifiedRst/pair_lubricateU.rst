@@ -43,6 +43,7 @@ other types of interactions.
 The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Ball2>`
 
+.. math source doc: src/Eqs/pair_lubricate.tex
 .. math::
 
    W & = & - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 - 
@@ -84,6 +85,7 @@ The other component is due to the Fast Lubrication Dynamics (FLD)
 approximation, described in :ref:`(Kumar) <Kumar2>`.  The equation being
 solved to balance the forces and torques is
 
+.. math source doc: src/Eqs/fld2.tex
 .. math::
 
    -R_{FU}(U-U^{\infty}) = -R_{FE}E^{\infty} - F^{rest}

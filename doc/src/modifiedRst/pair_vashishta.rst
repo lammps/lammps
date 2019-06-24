@@ -63,6 +63,7 @@ including SiO2 :ref:`Vashishta1990 <Vashishta1990>`, SiC
 
 The potential for the energy U of a system of atoms is
 
+.. math source doc: src/Eqs/pair_vashishta.tex
 .. math::
 
    U & = & \sum_i^N \sum_{j > i}^N U_{ij}^{(2)} (r_{ij}) + 

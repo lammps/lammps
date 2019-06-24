@@ -32,6 +32,7 @@ Description
 
 The *mie/cut* style computes the Mie potential, given by
 
+.. math source doc: src/Eqs/pair_mie.tex
 .. math::
 
    E =  C \epsilon \left[ \left(\frac{\sigma}{r}\right)^{\gamma_{rep}} - \left(\frac{\sigma}{r}\right)^{\gamma_{att}} \right]
@@ -41,6 +42,7 @@ The *mie/cut* style computes the Mie potential, given by
 Rc is the cutoff and C is a function that depends on the repulsive and
 attractive exponents, given by:
 
+.. math source doc: src/Eqs/pair_mie2.tex
 .. math::
 
    C = \left(\frac{\gamma_{rep}}{\gamma_{rep}-\gamma_{att}}\right) \left(\frac{\gamma_{rep}}{\gamma_{att}}\right)^{\left(\frac{\gamma_{att}}{\gamma_{rep}-\gamma_{att}}\right)}

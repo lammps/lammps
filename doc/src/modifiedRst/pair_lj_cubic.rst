@@ -39,6 +39,7 @@ point.  The cubic coefficient A3 is chosen so that both energy and
 force go to zero at the cutoff distance.  Outside the cutoff distance
 the energy and force are zero.
 
+.. math source doc: src/Eqs/pair_lj_cubic.tex
 .. math::
 
    E &=& u_{LJ}(r) \qquad r \leq r_s \\

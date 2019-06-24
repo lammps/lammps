@@ -42,6 +42,7 @@ parameter was introduced by :ref:`Nelson and Halperin <Nelson>` as a way to dete
 hexagonal symmetry in two-dimensional systems. For each atom, *qn*
 is a complex number (stored as two real numbers) defined as follows:
 
+.. math source doc: src/Eqs/hexorder.tex
 .. math::
 
    q_n = \frac{1}{nnn}\sum_{j = 1}^{nnn} e^{n i \theta({\bf r}_{ij})}

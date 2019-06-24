@@ -36,6 +36,7 @@ Brownian dynamics (BD).
 A random torque and a transverse dissipation are applied to each spin i according to
 the following stochastic differential equation:
 
+.. math source doc: src/Eqs/fix_langevin_spin_sLLG.tex
 .. math::
 
    :align: center

@@ -46,6 +46,7 @@ defined within the file associated with this command.
 
 For a general reaction such that
 
+.. math source doc: src/Eqs/fix_rx_reaction.tex
 .. math::
 
    \nu_{A}A + \nu_{B}B \rightarrow \nu_{C}C
@@ -53,6 +54,7 @@ For a general reaction such that
 
 the reaction rate equation is defined to be of the form
 
+.. math source doc: src/Eqs/fix_rx_reactionRate.tex
 .. math::
 
    r = k(T)[A]^{\nu_{A}}[B]^{\nu_{B}}
@@ -125,6 +127,7 @@ irreversible reaction.  After specifying the reaction, the reaction
 rate constant is determined through the temperature dependent
 Arrhenius equation:
 
+.. math source doc: src/Eqs/fix_rx.tex
 .. math::
 
    k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
@@ -142,6 +145,7 @@ be specified to compute a local-average particle internal temperature
 for use in the reaction rate constant expressions.  The local-average
 particle internal temperature is defined as:
 
+.. math source doc: src/Eqs/fix_rx_localTemp.tex
 .. math::
 
    \theta_i^{-1} = \frac{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)\theta_j^{-1}}{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)}
@@ -149,6 +153,7 @@ particle internal temperature is defined as:
 
 where the Lucy function is expressed as:
 
+.. math source doc: src/Eqs/fix_rx_localTemp2.tex
 .. math::
 
    \omega_{Lucy}\left(r_{ij}\right) = \left( 1 + \frac{3r_{ij}}{r_c} \right) \left( 1 - \frac{r_{ij}}{r_c} \right)^3

@@ -43,6 +43,7 @@ that ramps the energy, force, and curvature smoothly to zero
 between an inner and outer cutoff. The potential
 energy due to a pair of atoms at a distance r\_ij is given by:
 
+.. math source doc: src/Eqs/pair_zbl.tex
 .. math::
 
    E^{ZBL}_{ij} & = & \frac{1}{4\pi\epsilon_0} \frac{Z_i Z_j \,e^2}{r_{ij}} \phi(r_{ij}/a)+ S(r_{ij})\\

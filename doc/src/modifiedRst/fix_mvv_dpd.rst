@@ -50,6 +50,7 @@ The modified velocity-Verlet (MVV) algorithm aims to improve the
 stability of the time integrator by using an extrapolated version of
 the velocity for the force evaluation:
 
+.. math source doc: src/Eqs/fix_mvv_dpd.tex
 .. math::
 
    v(t+\frac{\Delta t}{2}) = v(t) + \frac{\Delta t}{2}\cdot a(t),

@@ -59,11 +59,13 @@ radiation of wavelength lambda.
 The electron diffraction intensity I at each reciprocal lattice point
 is computed from the structure factor F using the equations:
 
+.. math source doc: src/Eqs/compute_saed1.tex
 .. math::
 
    I=\frac{F^{*}F}{N}
 
 
+.. math source doc: src/Eqs/compute_saed2.tex
 .. math::
 
    F(\mathbf{k})=\sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j)
@@ -123,6 +125,7 @@ for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
 :ref:`(Brown) <Brown>`:
 
+.. math source doc: src/Eqs/compute_saed3.tex
 .. math::
 
    f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}

@@ -22,6 +22,7 @@ Description
 
 The *distharm* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_distharm.tex
 .. math::
 
    E = K (d - d_0)^2

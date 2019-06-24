@@ -116,6 +116,7 @@ style.
 
 For style *lj93*\ , the energy E is given by the 9/3 potential:
 
+.. math source doc: src/Eqs/fix_wall_lj93.tex
 .. math::
 
    E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} - 
@@ -125,6 +126,7 @@ For style *lj93*\ , the energy E is given by the 9/3 potential:
 
 For style *lj126*\ , the energy E is given by the 12/6 potential:
 
+.. math source doc: src/Eqs/pair_lj.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
@@ -134,6 +136,7 @@ For style *lj126*\ , the energy E is given by the 12/6 potential:
 
 For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 
+.. math source doc: src/Eqs/fix_wall_lj1043.tex
 .. math::
 
    E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} - 
@@ -145,6 +148,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
 For style *colloid*\ , the energy E is given by an integrated form of
 the :doc:`pair\_style colloid <pair_colloid>` potential:
 
+.. math source doc: src/Eqs/fix_wall_colloid.tex
 .. math::
 
    :align: center
@@ -152,6 +156,7 @@ the :doc:`pair\_style colloid <pair_colloid>` potential:
 For style *wall/harmonic*\ , the energy E is given by a harmonic spring
 potential:
 
+.. math source doc: src/Eqs/fix_wall_harmonic.tex
 .. math::
 
    E = \epsilon \hspace{0.1cm} (r - r_c)^2 \qquad r < r_c

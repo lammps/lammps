@@ -26,6 +26,7 @@ Description
 The sph/taitwater/morris style computes pressure forces between SPH
 particles according to Tait's equation of state:
 
+.. math source doc: src/Eqs/pair_sph_tait.tex
 .. math::
 
    p = B [(\frac{\rho}{\rho_0})^{\gamma} - 1]

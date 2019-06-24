@@ -78,6 +78,7 @@ Description
 Style *lj/long/coul/long* computes the standard 12/6 Lennard-Jones and
 Coulombic potentials, given by
 
+.. math source doc: src/Eqs/pair_lj.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
@@ -85,6 +86,7 @@ Coulombic potentials, given by
    \qquad r < r_c
 
 
+.. math source doc: src/Eqs/pair_coulomb.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c

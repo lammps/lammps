@@ -32,6 +32,7 @@ particularly for organometallic systems where *n* = 4 might be used
 for an octahedral complex and *n* = 3 might be used for a trigonal
 center:
 
+.. math source doc: src/Eqs/angle_cosine_periodic.tex
 .. math::
 
    E=C\left[ 1-B(-1)^ncos\left( n\theta\right) \right]  

@@ -70,6 +70,7 @@ no force between the particles when r > d.
 
 The two Hookean styles use this formula:
 
+.. math source doc: src/Eqs/pair_gran_hooke.tex
 .. math::
 
    F_{hk} = (k_n \delta \mathbf{n}_{ij} -  
@@ -80,6 +81,7 @@ The two Hookean styles use this formula:
 
 The Hertzian style uses this formula:
 
+.. math source doc: src/Eqs/pair_gran_hertz.tex
 .. math::
 
    F_{hz} = \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}} F_{hk} = 

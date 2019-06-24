@@ -22,6 +22,7 @@ Description
 
 The *distance* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_dist-1.tex
 .. math::
 
    E = K_2 d^2 + K_4 d^4

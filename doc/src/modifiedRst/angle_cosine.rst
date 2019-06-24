@@ -31,6 +31,7 @@ Description
 
 The *cosine* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_cosine.tex
 .. math::
 
    E = K [1 + \cos(\theta)] 

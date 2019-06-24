@@ -28,6 +28,7 @@ Description
 
 The *gromos* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_gromos.tex
 .. math::
 
    E = K (r^2 - r_0^2)^2

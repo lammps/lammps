@@ -40,6 +40,7 @@ Description
 The *lj/switch3/coulgauss* style evaluates the LJ
 vdW potential
 
+.. math source doc: src/Eqs/pair_lj_switch3.tex
 .. math::
 
    E = 4\epsilon \left[ \left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^{6} \right]
@@ -49,6 +50,7 @@ vdW potential
 , which goes smoothly to zero at the cutoff r\_c as defined
 by the switching function
 
+.. math source doc: src/Eqs/pair_switch3.tex
 .. math::
 
    S_3(r) = \left\lbrace \begin{array}{ll}
@@ -61,6 +63,7 @@ by the switching function
 where w is the width defined in the arguments. This potential
 is combined with Coulomb interaction between Gaussian charge densities:
 
+.. math source doc: src/Eqs/pair_coulgauss.tex
 .. math::
 
    E &=& \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}

@@ -82,6 +82,7 @@ with a few slightly different parameters
 
 The AIREBO potential consists of three terms:
 
+.. math source doc: src/Eqs/pair_airebo.tex
 .. math::
 
    E = \frac{1}{2} \sum_i \sum_{j \neq i} 

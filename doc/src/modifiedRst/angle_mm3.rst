@@ -26,6 +26,7 @@ Description
 The *mm3* angle style uses the potential that is anharmonic in the angle
 as defined in :ref:`(Allinger) <mm3-allinger1989>`
 
+.. math source doc: src/Eqs/angle_mm3.tex
 .. math::
 
    E = K (\theta - \theta_0)^2 \left[ 1 - 0.014(\theta - \theta_0) + 5.6(10)^{-5} (\theta - \theta_0)^2 - 7.0(10)^{-7} (\theta - \theta_0)^3 + 9(10)^{-10} (\theta - \theta_0)^4 \right]

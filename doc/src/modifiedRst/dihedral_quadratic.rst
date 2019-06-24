@@ -28,6 +28,7 @@ Description
 
 The *quadratic* dihedral style uses the potential:
 
+.. math source doc: src/Eqs/dihedral_quadratic.tex
 .. math::
 
    E = K (\phi - \phi_0)^2 

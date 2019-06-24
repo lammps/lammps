@@ -28,6 +28,7 @@ Description
 
 The *cosine/shift/exp* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_cosine_shift_exp.tex
 .. math::
 
    E=-U_{min} 

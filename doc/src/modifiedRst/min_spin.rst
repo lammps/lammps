@@ -28,6 +28,7 @@ command is performed.
 Style *spin* defines a damped spin dynamics with an adaptive
 timestep, according to:
 
+.. math source doc: src/Eqs/min_spin_damping.tex
 .. math::
 
    :align: center
@@ -42,6 +43,7 @@ adaptive timestep. The value of this timestep is defined
 by the largest precession frequency that has to be solved in the 
 system:
 
+.. math source doc: src/Eqs/min_spin_timestep.tex
 .. math::
 
    :align: center

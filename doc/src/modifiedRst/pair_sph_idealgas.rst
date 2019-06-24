@@ -26,6 +26,7 @@ Description
 The sph/idealgas style computes pressure forces between particles
 according to the ideal gas equation of state:
 
+.. math source doc: src/Eqs/pair_sph_ideal.tex
 .. math::
 
    p = (\gamma - 1) \rho e

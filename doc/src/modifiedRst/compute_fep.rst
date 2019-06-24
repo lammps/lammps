@@ -70,6 +70,7 @@ initial interactions of the atoms that will undergo perturbation, and
 a term :math:`U_1` corresponding to the final interactions of
 these atoms:
 
+.. math source doc: src/Eqs/compute_fep_u.tex
 .. math::
 
    :align: center
@@ -77,6 +78,7 @@ these atoms:
 A coupling parameter :math:`\lambda` varying from 0 to 1 connects the
 reference and perturbed systems:
 
+.. math source doc: src/Eqs/compute_fep_lambda.tex
 .. math::
 
    \lambda = 0 \quad\Rightarrow\quad U = U_{\mathrm{bg}} + U_0 \\
@@ -93,6 +95,7 @@ This command can be combined with :doc:`fix adapt <fix_adapt>` to
 perform multistage free-energy perturbation calculations along
 stepwise alchemical transformations during a simulation run:
 
+.. math source doc: src/Eqs/compute_fep_fep.tex
 .. math::
 
    :align: center
@@ -102,6 +105,7 @@ integration (FDTI) method :ref:`(Mezei) <Mezei>`, which is based on an
 evaluation of the numerical derivative of the free energy by a
 perturbation method using a very small :math:`\delta`:
 
+.. math source doc: src/Eqs/compute_fep_fdti.tex
 .. math::
 
    :align: center
@@ -115,6 +119,7 @@ choosing a very small perturbation :math:`\delta` the thermodynamic
 integration method can be implemented using a numerical evaluation of
 the derivative of the potential energy with respect to :math:`\lambda`:
 
+.. math source doc: src/Eqs/compute_fep_ti.tex
 .. math::
 
    :align: center
@@ -124,6 +129,7 @@ acceptance ratio method :ref:`(Bennet) <Bennet>`, which can be implemented
 by calculating the potential energy differences with :math:`\delta` = 1.0 on
 both the forward and reverse routes:
 
+.. math source doc: src/Eqs/compute_fep_bar.tex
 .. math::
 
    :align: center
@@ -273,6 +279,7 @@ If the keyword *volume* = *yes*\ , then the Boltzmann term is multiplied
 by the volume so that correct ensemble averaging can be performed over
 trajectories during which the volume fluctuates or changes :ref:`(Allen and Tildesley) <AllenTildesley>`:
 
+.. math source doc: src/Eqs/compute_fep_vol.tex
 .. math::
 
    :align: center

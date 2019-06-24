@@ -30,6 +30,7 @@ Description
 Style *spin/exchange* computes the exchange interaction between
 pairs of magnetic spins:
 
+.. math source doc: src/Eqs/pair_spin_exchange_interaction.tex
 .. math::
 
    :align: center
@@ -39,6 +40,7 @@ rij = ri - rj is the inter-atomic distance between the two particles,
 and J(rij) is a function defining the intensity and the sign of the exchange
 interaction for different neighboring shells. This function is defined as:
 
+.. math source doc: src/Eqs/pair_spin_exchange_function.tex
 .. math::
 
    :align: center
@@ -56,6 +58,7 @@ to a magnetic torque omega, and its associated atom can be submitted to a
 force F for spin-lattice calculations (see :doc:`fix\_nve\_spin <fix_nve_spin>`),
 such as:
 
+.. math source doc: src/Eqs/pair_spin_exchange_forces.tex
 .. math::
 
    :align: center

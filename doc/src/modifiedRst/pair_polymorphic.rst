@@ -31,17 +31,20 @@ Description
 The *polymorphic* pair style computes a 3-body free-form potential
 (:ref:`Zhou <Zhou3>`) for the energy E of a system of atoms as
 
+.. math source doc: src/Eqs/polymorphic1.tex
 .. math::
 
    E=\frac{1}{2}\sum_{i=1}^{i=N}\sum_{j=1}^{j=N}\left[\left(1-\delta_{ij}\right)\cdot U_{IJ}\left(r_{ij}\right)-\left(1-\eta_{ij}\right)\cdot F_{IJ}\left(r_{ij}\right)\cdot V_{IJ}\left(r_{ij}\right)\right]
 
 
+.. math source doc: src/Eqs/polymorphic2.tex
 .. math::
 
    X_{ij}=\sum_{k=i_1,k\neq i,j}^{i_N}W_{IK}\left(r_{ik}\right)\cdot G_{JIK}\left(\theta_{jik}\right)\cdot P_{IK}\left(\Delta r_{jik}\right)
    \label{X_eq2}
 
 
+.. math source doc: src/Eqs/polymorphic3.tex
 .. math::
 
    \Delta r_{jik}=r_{ij}-\xi_{IJ}\cdot r_{ik}
@@ -66,6 +69,7 @@ form. This allows users to design different potentials solely based on
 a manipulation of these functions. For instance, the potential reduces
 to Stillinger-Weber potential (:ref:`SW <SW>`) if we set
 
+.. math source doc: src/Eqs/polymorphic4.tex
 .. math::
 
    \left\{\begin{array}{l}
@@ -82,6 +86,7 @@ to Stillinger-Weber potential (:ref:`SW <SW>`) if we set
 The potential reduces to Tersoff types of potential
 (:ref:`Tersoff <Tersoff>` or :ref:`Albe <poly-Albe>`) if we set
 
+.. math source doc: src/Eqs/polymorphic5.tex
 .. math::
 
    \left\{\begin{array}{l}
@@ -95,6 +100,7 @@ The potential reduces to Tersoff types of potential
    \end{array}\right.
 
 
+.. math source doc: src/Eqs/polymorphic6.tex
 .. math::
 
    f_{c,IJ}=\left\{\begin{array}{lr}
@@ -106,6 +112,7 @@ The potential reduces to Tersoff types of potential
 
 The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
 
+.. math source doc: src/Eqs/polymorphic7.tex
 .. math::
 
    \left\{\begin{array}{l}
@@ -127,6 +134,7 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
    \end{array}\right.
 
 
+.. math source doc: src/Eqs/polymorphic6.tex
 .. math::
 
    f_{c,IJ}=\left\{\begin{array}{lr}
@@ -136,6 +144,7 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
    \end{array}\right.
 
 
+.. math source doc: src/Eqs/polymorphic8.tex
 .. math::
 
    f_{c,1,IJ}=\left\{\begin{array}{lr}
@@ -147,6 +156,7 @@ The potential reduces to Rockett-Tersoff (:ref:`Wang <Wang3>`) type if we set
 
 The potential becomes embedded atom method (:ref:`Daw <poly-Daw>`) if we set
 
+.. math source doc: src/Eqs/polymorphic9.tex
 .. math::
 
    \left\{\begin{array}{l}

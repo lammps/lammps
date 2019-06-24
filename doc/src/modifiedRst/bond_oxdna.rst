@@ -33,6 +33,7 @@ Description
 
 The *oxdna/fene* and *oxdna2/fene* bond styles use the potential
 
+.. math source doc: src/Eqs/bond_oxdna_fene.tex
 .. math::
 
    E = - \frac{\epsilon}{2} \ln \left[ 1 - \left(\frac{r-r0}{\Delta}\right)^2\right]

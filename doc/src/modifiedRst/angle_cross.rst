@@ -26,6 +26,7 @@ Description
 The *cross* angle style uses a potential that couples the bond stretches of
 a bend with the angle stretch of that bend:
 
+.. math source doc: src/Eqs/angle_cross.tex
 .. math::
 
    E = K_{SS} \left(r_{12}-r_{12,0}\right)\left(r_{32}-r_{32,0}\right) + K_{BS0}\left(r_{12}-r_{12,0}\right)\left(\theta-\theta_0\right) + K_{BS1}\left(r_{32}-r_{32,0}\right)\left(\theta-\theta_0\right)

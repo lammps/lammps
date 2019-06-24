@@ -32,6 +32,7 @@ using the angular dependent potential (ADP) of :ref:`(Mishin) <Mishin>`,
 which is a generalization of the :doc:`embedded atom method (EAM) potential <pair_eam>`.  The LAMMPS implementation is discussed in
 :ref:`(Singh) <Singh>`.  The total energy Ei of an atom I is given by
 
+.. math source doc: src/Eqs/pair_adp.tex
 .. math::
 
    E_i & = & F_\alpha \left( \sum_{j\neq i} \rho_\beta (r_{ij}) \right) + \frac{1}{2} \sum_{j\neq i}\phi_{\alpha\beta}(r_{ij})+ \frac{1}{2} \sum_s (\mu_i^s)^2 + \frac{1}{2} \sum_{s,t} (\lambda_i^{st})^2 - \frac{1}{6} \nu_i^2 \\

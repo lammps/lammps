@@ -35,6 +35,7 @@ standard 12/6 Lennard-Jones function and subtracts a linear term based
 on the cutoff distance, so that both, the potential and the force, go
 continuously to zero at the cutoff Rc :ref:`(Toxvaerd) <Toxvaerd>`:
 
+.. math source doc: src/Eqs/pair_lj_smooth_linear.tex
 .. math::
 
    \phi\left(r\right) & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 

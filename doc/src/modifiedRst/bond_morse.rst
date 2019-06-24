@@ -28,6 +28,7 @@ Description
 
 The *morse* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_morse.tex
 .. math::
 
    %   E = D \left[ 1 - \exp \left( -\alpha (r - r_0) \right) \right]^2 

@@ -36,6 +36,7 @@ Description
 The *atm* style computes a 3-body :ref:`Axilrod-Teller-Muto <Axilrod>`
 potential for the energy E of a system of atoms as
 
+.. math source doc: src/Eqs/pair_atm.tex
 .. math::
 
    E=\nu\frac{1+3\cos\gamma_1\cos\gamma_2\cos\gamma_3}{r_{12}^3r_{23}^3r_{31}^3}

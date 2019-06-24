@@ -33,6 +33,7 @@ Description
 Style *lj/smooth* computes a LJ interaction with a force smoothing
 applied between the inner and outer cutoff.
 
+.. math source doc: src/Eqs/pair_lj_smooth.tex
 .. math::
 
    E & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 

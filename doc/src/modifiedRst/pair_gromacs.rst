@@ -64,6 +64,7 @@ smoothly to zero between an inner and outer cutoff.  It is a commonly
 used potential in the `GROMACS <http://www.gromacs.org>`_ MD code and for
 the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 
+.. math source doc: src/Eqs/pair_gromacs.tex
 .. math::
 
    E_{LJ} & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 

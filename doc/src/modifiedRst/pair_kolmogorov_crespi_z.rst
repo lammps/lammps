@@ -32,6 +32,7 @@ The *kolmogorov/crespi/z* style computes the Kolmogorov-Crespi interaction
 potential as described in :ref:`(Kolmogorov) <KC05>`. An important simplification is made,
 which is to take all normals along the z-axis.
 
+.. math source doc: src/Eqs/pair_kolmogorov_crespi_z.tex
 .. math::
 
    E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\

@@ -84,8 +84,9 @@ def checkForEquationEnd(texLine, eqType):
     return endFound
 
 
-def startMathjax():
+def startMathjax(texFilename):
     mathjaxLines = []
+    mathjaxLines.append(".. math source doc: %s\n" % texFilename)
     mathjaxLines.append(".. math::\n\n")
     return mathjaxLines
 
@@ -126,7 +127,7 @@ def processFile(filename):
                 try:
                     with open(texFilename, 'rt', encoding='utf-8') as t:
                         print("%s file opened ok" % texFilename)
-                        eqLines = startMathjax()
+                        eqLines = startMathjax(texFilename)
                         try:
                             for dummy, texLine in enumerate(t):
                                 #print(texLine)

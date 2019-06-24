@@ -246,6 +246,7 @@ two groups: the default group "all" and the fix group
 The chemical potential is a user-specified input parameter defined
 as:
 
+.. math source doc: src/Eqs/fix_gcmc1.tex
 .. math::
 
    \mu &=&\mu^{id} + \mu^{ex}
@@ -260,6 +261,7 @@ quite different.  The first term mu\_id is the ideal gas contribution
 to the chemical potential.  mu\_id can be related to the density or
 pressure of the fictitious gas reservoir by:
 
+.. math source doc: src/Eqs/fix_gcmc2.tex
 .. math::
 
    \mu^{id} &=& k T \ln{\rho \Lambda^3} \\
@@ -273,6 +275,7 @@ The constant Lambda is required for dimensional consistency.
 For all unit styles except *lj* it is defined as the thermal
 de Broglie wavelength
 
+.. math source doc: src/Eqs/fix_gcmc3.tex
 .. math::
 
    \Lambda &=& \sqrt{ \frac{h^2}{2 \pi m k T}}

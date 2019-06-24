@@ -22,6 +22,7 @@ Description
 
 The *sqdistharm* improper style uses the potential
 
+.. math source doc: src/Eqs/improper_sqdistharm.tex
 .. math::
 
    E = K (d^2 - d_0^2)^2

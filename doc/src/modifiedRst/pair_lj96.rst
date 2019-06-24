@@ -35,6 +35,7 @@ Description
 The *lj96/cut* style compute a 9/6 Lennard-Jones potential, instead
 of the standard 12/6 potential, given by
 
+.. math source doc: src/Eqs/pair_lj96.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{9} - 

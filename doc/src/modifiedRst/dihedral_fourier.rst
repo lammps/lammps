@@ -31,6 +31,7 @@ Description
 
 The *fourier* dihedral style uses the potential:
 
+.. math source doc: src/Eqs/dihedral_fourier.tex
 .. math::
 
    E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]

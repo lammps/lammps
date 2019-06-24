@@ -28,6 +28,7 @@ Description
 
 The *nharmonic* dihedral style uses the potential:
 
+.. math source doc: src/Eqs/dihedral_nharmonic.tex
 .. math::
 
    E = \sum_{n=1,n} A_n  \cos^{n-1}(\phi)

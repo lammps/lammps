@@ -52,6 +52,7 @@ in the specified compute group.
 This parameter is computed using the following formula from
 :ref:`(Kelchner) <Kelchner>`
 
+.. math source doc: src/Eqs/centro_symmetry.tex
 .. math::
 
    CS = \sum_{i = 1}^{N/2} | \vec{R}_i + \vec{R}_{i+N/2} |^2

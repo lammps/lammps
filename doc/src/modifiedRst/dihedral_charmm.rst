@@ -42,6 +42,7 @@ Description
 
 The *charmm* and *charmmfsw* dihedral styles use the potential
 
+.. math source doc: src/Eqs/dihedral_charmm.tex
 .. math::
 
    E = K [ 1 + \cos (n \phi - d) ]

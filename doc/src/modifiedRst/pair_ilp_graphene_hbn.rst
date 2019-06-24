@@ -40,6 +40,7 @@ potential (ILP) potential as described in :ref:`(Leven1) <Leven1>`,
 The normals are calculated in the way as described
 in :ref:`(Kolmogorov) <Kolmogorov2>`.
 
+.. math source doc: src/Eqs/pair_ilp_graphene_hbn.tex
 .. math::
 
    E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]

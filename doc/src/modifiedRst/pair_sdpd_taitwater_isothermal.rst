@@ -47,6 +47,7 @@ imagine for a mesoscopic particle.
 The pressure forces between particles will be computed according to
 Tait's equation of state:
 
+.. math source doc: src/Eqs/pair_sph_tait.tex
 .. math::
 
    p = B [(\frac{\rho}{\rho_0})^{\gamma} - 1]

@@ -78,12 +78,14 @@ additional thermostatting force to the equations of motion, such that
 the time evolution of coordinates and momenta of particle :math:`i`
 becomes :ref:`(Wirnsberger) <Wirnsberger>`
 
+.. math source doc: src/Eqs/fix_ehex_eom.tex
 .. math::
 
    :align: center
 
 The thermostatting force is given by
 
+.. math source doc: src/Eqs/fix_ehex_f.tex
 .. math::
 
    :align: center

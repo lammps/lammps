@@ -40,6 +40,7 @@ The stress tensor for atom *I* is given by the following formula,
 where *a* and *b* take on values x,y,z to generate the 6 components of
 the symmetric tensor:
 
+.. math source doc: src/Eqs/stress_tensor.tex
 .. math::
 
    S_{ab} & = & - \left[ m v_a v_b + 

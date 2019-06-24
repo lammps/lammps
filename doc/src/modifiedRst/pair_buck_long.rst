@@ -50,11 +50,13 @@ Description
 The *buck/long/coul/long* style computes a Buckingham potential (exp/6
 instead of Lennard-Jones 12/6) and Coulombic potential, given by
 
+.. math source doc: src/Eqs/pair_buck.tex
 .. math::
 
    E = A e^{-r / \rho} - \frac{C}{r^6} \qquad r < r_c
 
 
+.. math source doc: src/Eqs/pair_coulomb.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c

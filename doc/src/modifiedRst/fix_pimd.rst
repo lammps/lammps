@@ -46,6 +46,7 @@ configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
 The classical partition function and its components are given
 by the following equations:
 
+.. math source doc: src/Eqs/fix_pimd.tex
 .. math::
 
    Z = \int d{\bf q} d{\bf p} \cdot \textrm{exp} [ -\beta H_{eff} ]

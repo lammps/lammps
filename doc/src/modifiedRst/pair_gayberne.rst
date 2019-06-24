@@ -41,6 +41,7 @@ The *gayberne* styles compute a Gay-Berne anisotropic LJ interaction
 :ref:`(Berardi) <Berardi>` between pairs of ellipsoidal particles or an
 ellipsoidal and spherical particle via the formulas
 
+.. math source doc: src/Eqs/pair_gayberne.tex
 .. math::
 
    \mathbf{A}_1, \mathbf{A}_2, \mathbf{r}_{12}, \gamma ) \cdot \eta_{12} (
@@ -66,6 +67,7 @@ For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
 curvatures :ref:`(Everaers) <Everaers2>`:
 
+.. math source doc: src/Eqs/pair_gayberne2.tex
 .. math::
 
    \sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {

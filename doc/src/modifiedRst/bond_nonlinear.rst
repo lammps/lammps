@@ -28,6 +28,7 @@ Description
 
 The *nonlinear* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_nonlinear.tex
 .. math::
 
    E = \frac{\epsilon (r - r_0)^2}{ [ \lambda^2 - (r - r_0)^2 ]}

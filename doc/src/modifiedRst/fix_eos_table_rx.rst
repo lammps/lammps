@@ -45,6 +45,7 @@ energy (u\_i) to the particle internal temperature (dpdTheta\_i).
 The concentration-dependent particle internal energy (u\_i) is
 computed according to the following relation:
 
+.. math source doc: src/Eqs/fix_eos_table_rx.tex
 .. math::
 
    U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\ 

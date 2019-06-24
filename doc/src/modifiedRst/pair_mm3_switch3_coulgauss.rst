@@ -40,6 +40,7 @@ Description
 The *mm3/switch3/coulgauss* style evaluates the MM3
 vdW potential :ref:`(Allinger) <mm3-allinger1989>`
 
+.. math source doc: src/Eqs/pair_mm3_switch3.tex
 .. math::
 
    E &=& \epsilon_{ij} \left[ -2.25 \left(\frac{r_{v,ij}}{r_{ij}}\right)^6 + 1.84(10)^5 \exp\left[-12.0 r_{ij}/r_{v,ij}\right] \right] S_3(r_{ij}) \\
@@ -50,6 +51,7 @@ vdW potential :ref:`(Allinger) <mm3-allinger1989>`
 , which goes smoothly to zero at the cutoff r\_c as defined
 by the switching function
 
+.. math source doc: src/Eqs/pair_switch3.tex
 .. math::
 
    S_3(r) = \left\lbrace \begin{array}{ll}
@@ -62,6 +64,7 @@ by the switching function
 where w is the width defined in the arguments. This potential
 is combined with Coulomb interaction between Gaussian charge densities:
 
+.. math source doc: src/Eqs/pair_coulgauss.tex
 .. math::
 
    E &=& \frac{q_i q_j \mathrm{erf}\left( r/\sqrt{\gamma_1^2+\gamma_2^2} \right) }{\epsilon r_{ij}}

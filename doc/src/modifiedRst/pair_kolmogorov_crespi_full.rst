@@ -35,6 +35,7 @@ The *kolmogorov/crespi/full* style computes the Kolmogorov-Crespi (KC)
 interaction potential as described in :ref:`(Kolmogorov) <Kolmogorov1>`.
 No simplification is made,
 
+.. math source doc: src/Eqs/pair_kolmogorov_crespi_full.tex
 .. math::
 
    E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]

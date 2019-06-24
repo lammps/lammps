@@ -82,6 +82,7 @@ Description
 
 The *lj/class2* styles compute a 6/9 Lennard-Jones potential given by
 
+.. math source doc: src/Eqs/pair_class2.tex
 .. math::
 
    E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^9 - 

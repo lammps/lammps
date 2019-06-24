@@ -31,6 +31,7 @@ Description
 
 The *class2* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_class2.tex
 .. math::
 
    E = K_2 (r - r_0)^2 + K_3 (r - r_0)^3 + K_4 (r - r_0)^4 

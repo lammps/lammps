@@ -98,6 +98,7 @@ and the quantum-derived Pauli (E\_PR) and Kinetic energy interactions
 potentials between electrons (E\_KE) for a total energy expression
 given as,
 
+.. math source doc: src/Eqs/eff_energy_expression.tex
 .. math::
 
    U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
@@ -105,26 +106,31 @@ given as,
 
 The individual terms are defined as follows:
 
+.. math source doc: src/Eqs/eff_KE.tex
 .. math::
 
    E_{KE}  = \frac{\hbar^2 }{{m_{e} }}\sum\limits_i {\frac{3}{{2s_i^2 }}}
 
 
+.. math source doc: src/Eqs/eff_NN.tex
 .. math::
 
    E_{NN}  = \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{{Z_i Z_j }}{{R_{ij} }}}
 
 
+.. math source doc: src/Eqs/eff_Ne.tex
 .. math::
 
    E_{Ne}  =  - \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i,j} {\frac{{Z_i }}{{R_{ij} }}Erf\left( {\frac{{\sqrt 2 R_{ij} }}{{s_j }}} \right)}
 
 
+.. math source doc: src/Eqs/eff_ee.tex
 .. math::
 
    E_{ee}  = \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{1}{{r_{ij} }}Erf\left( {\frac{{\sqrt 2 r_{ij} }}{{\sqrt {s_i^2  + s_j^2 } }}} \right)} 
 
 
+.. math source doc: src/Eqs/eff_Pauli.tex
 .. math::
 
    E_{Pauli}  = \sum\limits_{\sigma _i  = \sigma _j } {E\left( { \uparrow  \uparrow } \right)_{ij}}  + \sum\limits_{\sigma _i  \ne \sigma _j } {E\left( { \uparrow  \downarrow } \right)_{ij}}
@@ -241,11 +247,13 @@ representations, after the "ecp" keyword.
    Si.  The ECP captures the orbital overlap between the core and valence
    electrons (i.e. Pauli repulsion) with one of the functional forms:
 
+.. math source doc: src/Eqs/eff_ECP1.tex
 .. math::
 
    E_{Pauli(ECP_s)}=p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right)
 
 
+.. math source doc: src/Eqs/eff_ECP2.tex
 .. math::
 
    E_{Pauli(ECP_p)}=p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right] 

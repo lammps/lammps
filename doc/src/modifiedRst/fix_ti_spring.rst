@@ -48,6 +48,7 @@ The thermodynamic integration procedure is performed by rescaling the
 force on each atom. Given an atomic configuration the force (F) on
 each atom is given by
 
+.. math source doc: src/Eqs/fix_ti_spring_force.tex
 .. math::
 
    F = \left( 1-\lambda \right) F_{\text{solid}} + \lambda F_{\text{harm}}
@@ -89,6 +90,7 @@ The *function* keyword allows the use of two different lambda
 paths. Option *1* results in a constant rate of change of lambda with
 time:
 
+.. math source doc: src/Eqs/fix_ti_spring_function_1.tex
 .. math::
 
    \lambda(\tau) = \tau
@@ -98,6 +100,7 @@ where tau is the scaled time variable *t/t\_s*. The option *2* performs
 the lambda switching at a rate defined by the following switching
 function
 
+.. math source doc: src/Eqs/fix_ti_spring_function_2.tex
 .. math::
 
    \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 - 420 \tau + 126 \right)

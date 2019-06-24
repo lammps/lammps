@@ -26,6 +26,7 @@ Description
 This pair style computes a non-bonded 3-body harmonic potential for the
 energy E of a system of atoms as
 
+.. math source doc: src/Eqs/pair_nb3b_harmonic.tex
 .. math::
 
    E = K (\theta - \theta_0)^2 

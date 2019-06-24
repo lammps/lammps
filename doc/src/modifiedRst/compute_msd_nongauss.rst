@@ -46,6 +46,7 @@ dz\*dz)\*(dx\*dx + dy\*dy + dz\*dz), summed and averaged over atoms in the
 group.  The 3rd component is the nonGaussian diffusion parameter NGP =
 3\*drfourth/(5\*drsquared\*drsquared), i.e.
 
+.. math source doc: src/Eqs/compute_msd_nongauss.tex
 .. math::
 
    NGP(t) = 3<(r(t)-r(0))^4>/(5<(r(t)-r(0))^2>^2) - 1

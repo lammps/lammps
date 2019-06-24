@@ -46,6 +46,7 @@ the 12 December 2018 release.
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
 
+.. math source doc: src/Eqs/pair_meam.tex
 .. math::
 
    E = \sum_i \left\{ F_i(\bar{\rho}_i)

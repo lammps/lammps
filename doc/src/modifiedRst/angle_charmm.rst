@@ -34,6 +34,7 @@ Description
 
 The *charmm* angle style uses the potential
 
+.. math source doc: src/Eqs/angle_charmm.tex
 .. math::
 
    E = K (\theta - \theta_0)^2 + K_{UB} (r - r_{UB})^2 

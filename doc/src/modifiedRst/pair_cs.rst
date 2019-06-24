@@ -138,6 +138,7 @@ is used to calculate the correction factor is extended by a minimal
 distance (r\_min = 1.0-6) when the interaction between a core/shell
 pair is treated, as follows
 
+.. math source doc: src/Eqs/pair_cs.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0

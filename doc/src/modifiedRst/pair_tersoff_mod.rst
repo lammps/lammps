@@ -49,6 +49,7 @@ potential :ref:`(Tersoff\_1) <Tersoff_12>`, :ref:`(Tersoff\_2) <Tersoff_22>` wit
 modified cutoff function and angular-dependent term, giving the energy
 E of a system of atoms as
 
+.. math source doc: src/Eqs/pair_tersoff_mod.tex
 .. math::
 
    E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
@@ -75,6 +76,7 @@ within a cutoff distance = R + D.
 The *tersoff/mod/c* style differs from *tersoff/mod* only in the
 formulation of the V\_ij term, where it contains an additional c0 term.
 
+.. math source doc: src/Eqs/pair_tersoff_mod_c.tex
 .. math::
 
    V_{ij}  & =  & f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]

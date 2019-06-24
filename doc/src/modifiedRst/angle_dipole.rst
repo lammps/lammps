@@ -36,6 +36,7 @@ covalently bonded).
 It is convenient to define an angle gamma between the 'free' vector mu\_j
 and the reference (bond) vector r\_ij:
 
+.. math source doc: src/Eqs/angle_dipole_gamma.tex
 .. math::
 
    \cos\gamma = \frac{\vec{\mu_j}\bullet\vec{r_{ij}}}{\mu_j\,r_{ij}}
@@ -43,6 +44,7 @@ and the reference (bond) vector r\_ij:
 
 The *dipole* angle style uses the potential:
 
+.. math source doc: src/Eqs/angle_dipole_potential.tex
 .. math::
 
    E = K (\cos\gamma - \cos\gamma_0)^2 
@@ -55,6 +57,7 @@ The torque on the dipole can be obtained by differentiating the
 potential using the 'chain rule' as in appendix C.3 of
 :ref:`(Allen) <Allen1>`:
 
+.. math source doc: src/Eqs/angle_dipole_torque.tex
 .. math::
 
    \vec{T_j} = \frac{2K(\cos\gamma - \cos\gamma_0)}{\mu_j\,r_{ij}}\,
@@ -70,6 +73,7 @@ The dipolar torque T\_j must be counterbalanced in order to conserve
 the local angular momentum. This is achieved via an additional force
 couple generating a torque equivalent to the opposite of T\_j:
 
+.. math source doc: src/Eqs/angle_dipole_couple.tex
 .. math::
 
    -\vec{T_j} & = & \vec{r_{ij}} \times \vec{F_i}\\

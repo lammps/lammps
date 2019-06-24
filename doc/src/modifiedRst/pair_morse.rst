@@ -56,6 +56,7 @@ Description
 
 Style *morse* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/pair_morse.tex
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
@@ -86,6 +87,7 @@ The *morse/smooth/linear* variant is similar to the lj/smooth/linear
 variant in that it adds to the potential a shift and a linear term
 so that both, potential energy and force, go to zero at the cut-off:
 
+.. math source doc: src/Eqs/pair_morse_smooth_linear.tex
 .. math::
 
    \phi\left(r\right) & = &  D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c \\

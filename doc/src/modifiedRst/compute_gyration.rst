@@ -32,6 +32,7 @@ periodic boundaries.
 Rg is a measure of the size of the group of atoms, and is computed as
 the square root of the Rg\^2 value in this formula
 
+.. math source doc: src/Eqs/compute_gyration.tex
 .. math::
 
    {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2

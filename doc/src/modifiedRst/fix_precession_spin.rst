@@ -53,6 +53,7 @@ Style *zeeman* is used for the simulation of the interaction
 between the magnetic spins in the defined group and an external
 magnetic field:
 
+.. math source doc: src/Eqs/force_spin_zeeman.tex
 .. math::
 
    :align: center
@@ -63,6 +64,7 @@ in metal units).
 Style *anisotropy* is used to simulate an easy axis or an easy plane
 for the magnetic spins in the defined group:
 
+.. math source doc: src/Eqs/force_spin_aniso.tex
 .. math::
 
    :align: center
@@ -73,6 +75,7 @@ If K>0, an easy axis is defined, and if K<0, an easy plane is defined.
 Style *cubic* is used to simulate a cubic anisotropy, with three
 possible easy axis for the magnetic spins in the defined group:
 
+.. math source doc: src/Eqs/fix_spin_cubic.tex
 .. math::
 
    :align: center

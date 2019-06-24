@@ -67,6 +67,7 @@ The interaction between two sub-particles, or a sub-particle and point
 particle, or between two point particles is computed as a Lennard-Jones
 interaction, using the standard formula
 
+.. math source doc: src/Eqs/pair_lj.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 

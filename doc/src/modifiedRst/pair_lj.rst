@@ -208,6 +208,7 @@ Description
 The *lj/cut* styles compute the standard 12/6 Lennard-Jones potential,
 given by
 
+.. math source doc: src/Eqs/pair_lj.tex
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
@@ -219,6 +220,7 @@ Rc is the cutoff.
 
 Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
+.. math source doc: src/Eqs/pair_coulomb.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
@@ -234,6 +236,7 @@ cutoffs for the LJ and Coulombic terms respectively.
 Style *lj/cut/coul/debye* adds an additional exp() damping factor
 to the Coulombic term, given by
 
+.. math source doc: src/Eqs/pair_debye.tex
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
@@ -245,6 +248,7 @@ another way to mimic the screening effect of a polar solvent.
 Style *lj/cut/coul/dsf* computes the Coulombic term via the damped
 shifted force model described in :ref:`Fennell <Fennell2>`, given by:
 
+.. math source doc: src/Eqs/pair_coul_dsf.tex
 .. math::
 
    E = 
@@ -276,6 +280,7 @@ computed in reciprocal space.
 Style *coul/wolf* adds a Coulombic pairwise interaction via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
+.. math source doc: src/Eqs/pair_coul_wolf.tex
 .. math::
 
    E_i = \frac{1}{2} \sum_{j \neq i} 

@@ -43,6 +43,7 @@ one CG particle can interact with a species in a neighboring CG
 particle through a site-site interaction potential model.  The
 *exp6/rx* style computes an exponential-6 potential given by
 
+.. math source doc: src/Eqs/pair_exp6_rx.tex
 .. math::
 
    U_{ij}(r) = \frac{\epsilon}{\alpha-6}\{6exp[\alpha(1-\frac{r_{ij}}{R_{m}})]-\alpha(\frac{R_{m}}{r_{ij}})^6\}
@@ -143,6 +144,7 @@ coefficient, a one-fluid approximation is specified where a
 concentration-dependent combination of the parameters is computed
 through the following equations:
 
+.. math source doc: src/Eqs/pair_exp6_rx_oneFluid.tex
 .. math::
 
    R_{m}^{3} &=& \displaystyle\sum_{a}\displaystyle\sum_{b} x_{a}x_{b}R_{m,ab}^{3} \\
@@ -152,6 +154,7 @@ through the following equations:
 
 where
 
+.. math source doc: src/Eqs/pair_exp6_rx_oneFluid2.tex
 .. math::
 
    \epsilon_{ab} &=& \sqrt{\epsilon_{a}\epsilon_{b}} \\

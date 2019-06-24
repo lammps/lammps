@@ -38,6 +38,7 @@ Description
 
 Style *yukawa* computes pairwise interactions with the formula
 
+.. math source doc: src/Eqs/pair_yukawa.tex
 .. math::
 
    E = A \frac{e^{- \kappa r}}{r} \qquad r < r_c

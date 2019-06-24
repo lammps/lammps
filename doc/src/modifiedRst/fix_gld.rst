@@ -62,6 +62,7 @@ to be a Prony series.
 
 With this fix active, the force on the *j*\ th atom is given as
 
+.. math source doc: src/Eqs/fix_gld1.tex
 .. math::
 
    :align: center

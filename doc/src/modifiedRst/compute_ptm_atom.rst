@@ -62,6 +62,7 @@ to identify potential structure matches.  Next, the deviation is computed betwee
 local structure (in the simulation) and a template of the ideal lattice structure.
 The deviation is calculated as:
 
+.. math source doc: src/Eqs/ptm_rmsd.tex
 .. math::
 
    :align: center

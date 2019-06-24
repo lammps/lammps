@@ -28,6 +28,7 @@ Description
 
 The *fene/expand* bond style uses the potential
 
+.. math source doc: src/Eqs/bond_fene_expand.tex
 .. math::
 
    E = -0.5 K R_0^2

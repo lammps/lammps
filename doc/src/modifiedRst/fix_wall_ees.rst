@@ -65,6 +65,7 @@ group by generating a force on the atom in a direction perpendicular to
 the wall and a torque parallel with the wall.  The energy of
 wall-particle interactions E is given by:
 
+.. math source doc: src/Eqs/fix_wall_ees.tex
 .. math::
 
    E = \epsilon \left[ \frac{2  \sigma_{LJ}^{12} \left(7 r^5+14 r^3 \sigma_{n}^2+3 r \sigma_{n}^4\right) }{945 \left(r^2-\sigma_{n}^2\right)^7} -\frac{ \sigma_{LJ}^6 \left(2 r \sigma_{n}^3+\sigma_{n}^2 \left(r^2-\sigma_{n}^2\right)\log{ \left[\frac{r-\sigma_{n}}{r+\sigma_{n}}\right]}\right) }{12 \sigma_{n}^5 \left(r^2-\sigma_{n}^2\right)} \right]\qquad \sigma_n < r < r_c

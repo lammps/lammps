@@ -58,6 +58,7 @@ accounted for in measuring the grain boundary velocity.
 
 The potential energy added to atom I is given by these formulas
 
+.. math source doc: src/Eqs/fix_orient_fcc.tex
 .. math::
 
    \xi_{i} = \sum_{j=1}^{12} \left| \br_{j} - \br_{j}^{\rm I} \right|

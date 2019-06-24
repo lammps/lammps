@@ -68,6 +68,7 @@ for eDPD particles following the formulations in
 evolution of an eDPD particle is governed by the conservation of
 momentum and energy given by
 
+.. math source doc: src/Eqs/pair_edpd_gov.tex
 .. math::
 
    \frac{\mathrm{d}^2 \mathbf{r}_i}{\mathrm{d} t^2}=
@@ -84,6 +85,7 @@ size="4">F<sub>ij</sub><sup>C</sup></font>, dissipative force <font
 size="4">F<sub>ij</sub><sup>D</sup></font> and random force <font
 size="4">F<sub>ij</sub><sup>R</sup></font> are expressed as
 
+.. math source doc: src/Eqs/pair_edpd_force.tex
 .. math::
 
    \mathbf{F}_{ij}^{C} = \alpha_{ij}{\omega_{C}}(r_{ij})\mathbf{e}_{ij},
@@ -114,6 +116,7 @@ collisional heat flux <font size="4">q<sup>C</sup></font>, viscous
 heat flux <font size="4">q<sup>V</sup></font>, and random heat flux
 <font size="4">q<sup>R</sup></font> are given by
 
+.. math source doc: src/Eqs/pair_edpd_heat.tex
 .. math::
 
    q_i^C = \sum_{j \ne i} k_{ij} \omega_{CT}(r_{ij}) \left( \frac{1}{T_i} - \frac{1}{T_j} \right),
@@ -136,6 +139,7 @@ heat flux <font size="4">q<sup>V</sup></font>, and random heat flux
 
 where the mesoscopic heat friction <font size="4">&kappa;</font> is given by
 
+.. math source doc: src/Eqs/pair_edpd_kappa.tex
 .. math::
 
    \kappa  = \frac{315k_B\upsilon }{2\pi \rho C_v r_{ct}^5}\frac{1}{Pr},
@@ -193,6 +197,7 @@ particles following the formulations in
 the form same as the classical DPD, but the conservative force is
 local density dependent, which are given by
 
+.. math source doc: src/Eqs/pair_mdpd_force.tex
 .. math::
 
    \mathbf{F}_{ij}^C = Aw_c(r_{ij})\mathbf{e}_{ij} + B(\rho_i+\rho_j)w_d(r_{ij})\mathbf{e}_{ij},
@@ -228,6 +233,7 @@ concentration fluxes for tDPD particles following the formulations in
 :ref:`(Li2015\_JCP) <Li2015_JCP>`.  The time evolution of a tDPD particle is
 governed by the conservation of momentum and concentration given by
 
+.. math source doc: src/Eqs/pair_tdpd_gov.tex
 .. math::
 
    \frac{\mathrm{d}^2 \mathbf{r}_i}{\mathrm{d} t^2} = \frac{\mathrm{d} \mathbf{v}_i}{\mathrm{d} t}=\mathbf{F}_{i}=\sum_{i\neq j}(\mathbf{F}_{ij}^{C}+\mathbf{F}_{ij}^{D}+\mathbf{F}_{ij}^{R}),
@@ -242,6 +248,7 @@ size="4">F<sub>ij</sub><sup>C</sup></font>, dissipative force <font
 size="4">F<sub>ij</sub><sup>D</sup></font> and random force <font
 size="4">F<sub>ij</sub><sup>R</sup></font> are expressed as
 
+.. math source doc: src/Eqs/pair_tdpd_force.tex
 .. math::
 
    \mathbf{F}_{ij}^{C} = A{\omega_{C}}(r_{ij})\mathbf{e}_{ij},
@@ -266,6 +273,7 @@ The concentration flux between two tDPD particles includes the Fickian
 flux <font size="4">Q<sub>ij</sub><sup>D</sup></font> and random flux
 <font size="4">Q<sub>ij</sub><sup>R</sup></font>, which are given by
 
+.. math source doc: src/Eqs/pair_tdpd_flux.tex
 .. math::
 
    Q_{ij}^D = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right),

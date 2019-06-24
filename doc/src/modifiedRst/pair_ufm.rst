@@ -42,6 +42,7 @@ Description
 
 Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) potential :ref:`(Paula Leite2016) <PL2>` which is given by
 
+.. math source doc: src/Eqs/pair_ufm.tex
 .. math::
 
    	E = -\varepsilon\, \ln{\left[1-\exp{\left(-r^{2}/\sigma^{2}\right)}\right]} \qquad  r < r_c

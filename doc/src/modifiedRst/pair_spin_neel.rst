@@ -30,6 +30,7 @@ Description
 Style *spin/neel* computes the Neel pair anisotropy model
 between pairs of magnetic spins:
 
+.. math source doc: src/Eqs/pair_spin_neel_interaction.tex
 .. math::
 
    :align: center
@@ -40,6 +41,7 @@ eij = (ri - rj)/\|ri-rj\| is their normalized separation vector and g1,
 q1 and q2 are three functions defining the intensity of the dipolar
 and quadrupolar contributions, with:
 
+.. math source doc: src/Eqs/pair_spin_neel_functions.tex
 .. math::
 
    :align: center
@@ -47,6 +49,7 @@ and quadrupolar contributions, with:
 With the functions g(rij) and q(rij) defined and fitted according to
 the same Bethe-Slater function used to fit the exchange interaction:
 
+.. math source doc: src/Eqs/pair_spin_exchange_function.tex
 .. math::
 
    :align: center

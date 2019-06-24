@@ -134,7 +134,7 @@ E: Dump file does not contain requested snapshot
 
 Self-explanatory.
 
-E: Unknown dump reader style
+E: Unrecognized dump reader style
 
 The choice of dump reader style via the format keyword is unknown.
 

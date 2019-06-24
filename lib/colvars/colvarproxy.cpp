@@ -60,7 +60,7 @@ bool colvarproxy_system::total_forces_same_step() const
 
 inline int round_to_integer(cvm::real x)
 {
-  return std::floor(x+0.5);
+  return cvm::floor(x+0.5);
 }
 
 
@@ -129,7 +129,10 @@ cvm::rvector colvarproxy_system::position_distance(cvm::atom_pos const &pos1,
 
 
 
-colvarproxy_atoms::colvarproxy_atoms() {}
+colvarproxy_atoms::colvarproxy_atoms()
+{
+  updated_masses_ = updated_charges_ = false;
+}
 
 
 colvarproxy_atoms::~colvarproxy_atoms()
@@ -544,7 +547,7 @@ int colvarproxy_script::run_colvar_gradient_callback(
 
 colvarproxy_tcl::colvarproxy_tcl()
 {
-  _tcl_interp = NULL;
+  tcl_interp_ = NULL;
 }
 
 
@@ -573,7 +576,7 @@ char const *colvarproxy_tcl::tcl_obj_to_str(unsigned char *obj)
 int colvarproxy_tcl::tcl_run_force_callback()
 {
 #if defined(COLVARS_TCL)
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   std::string cmd = std::string("calc_colvar_forces ")
     + cvm::to_str(cvm::step_absolute());
   int err = Tcl_Eval(tcl_interp, cmd.c_str());
@@ -596,7 +599,7 @@ int colvarproxy_tcl::tcl_run_colvar_callback(
 {
 #if defined(COLVARS_TCL)
 
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   size_t i;
   std::string cmd = std::string("calc_") + name;
   for (i = 0; i < cvc_values.size(); i++) {
@@ -633,7 +636,7 @@ int colvarproxy_tcl::tcl_run_colvar_gradient_callback(
 {
 #if defined(COLVARS_TCL)
 
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   size_t i;
   std::string cmd = std::string("calc_") + name + "_gradient";
   for (i = 0; i < cvc_values.size(); i++) {

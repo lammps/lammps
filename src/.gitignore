@@ -5,6 +5,7 @@
 /lmp_*
 
 /style_*.h
+/packages_*.h
 /lmpinstalledpkgs.h
 /lmpgitversion.h
 
@@ -156,6 +157,8 @@
 /fix_nve_spin.h
 /fix_precession_spin.cpp
 /fix_precession_spin.h
+/fix_setforce_spin.cpp
+/fix_setforce_spin.h
 /min_spin.cpp
 /min_spin.h
 /neb_spin.cpp
@@ -164,6 +167,10 @@
 /pair_spin.h
 /pair_spin_dmi.cpp
 /pair_spin_dmi.h
+/pair_spin_dipole_cut.cpp
+/pair_spin_dipole_cut.h
+/pair_spin_dipole_long.cpp
+/pair_spin_dipole_long.h
 /pair_spin_exchange.cpp
 /pair_spin_exchange.h
 /pair_spin_magelec.cpp
@@ -425,6 +432,10 @@
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
+/ewald_dipole.cpp
+/ewald_dipole.h
+/ewald_dipole_spin.cpp
+/ewald_dipole_spin.h
 /ewald_disp.cpp
 /ewald_disp.h
 /ewald_n.cpp
@@ -806,6 +817,10 @@
 /pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
+/pair_e3b.cpp
+/pair_e3b.h
+/pair_drip.cpp
+/pair_drip.h
 /pair_eam.cpp
 /pair_eam.h
 /pair_eam_alloy.cpp
@@ -814,6 +829,10 @@
 /pair_eam_cd.h
 /pair_eam_fs.cpp
 /pair_eam_fs.h
+/fix_electron_stopping.cpp
+/fix_electron_stopping.h
+/pair_lebedeva_z.cpp
+/pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
 /pair_lj_expand_coul_long.h
 /pair_edip.cpp
@@ -1016,6 +1035,10 @@
 /pppm.h
 /pppm_cg.cpp
 /pppm_cg.h
+/pppm_dipole.cpp
+/pppm_dipole.h
+/pppm_dipole_spin.cpp
+/pppm_dipole_spin.h
 /pppm_disp.cpp
 /pppm_disp.h
 /pppm_disp_tip4p.cpp
@@ -1274,4 +1297,3 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
-

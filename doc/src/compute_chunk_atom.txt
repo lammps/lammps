@@ -468,7 +468,7 @@ property/chunk"_compute_property_chunk.html command.
 NOTE: The compression operation requires global communication across
 all processors to share their chunk ID values.  It can require large
 memory on every processor to store them, even after they are
-compressed, if there are are a large number of unique chunk IDs with
+compressed, if there are a large number of unique chunk IDs with
 atoms assigned to them.  It uses a STL map to find unique chunk IDs
 and store them in sorted order.  Each time an atom is assigned a
 compressed chunk ID, it must access the STL map.  All of this means

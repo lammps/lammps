@@ -78,9 +78,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // process any command-line args that invoke Kokkos settings
 
-  ngpu = 0;
+  ngpus = 0;
   int device = 0;
-  num_threads = 1;
+  nthreads = 1;
   numa = 1;
 
   int iarg = 0;
@@ -96,7 +96,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
-      ngpu = atoi(arg[iarg+1]);
+      ngpus = atoi(arg[iarg+1]);
 
       int skip_gpu = 9999;
       if (iarg+2 < narg && isdigit(arg[iarg+2][0])) {
@@ -108,23 +108,23 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       char *str;
       if ((str = getenv("SLURM_LOCALID"))) {
         int local_rank = atoi(str);
-        device = local_rank % ngpu;
+        device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
       }
       if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
         int local_rank = atoi(str);
-        device = local_rank % ngpu;
+        device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
       }
       if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
         int local_rank = atoi(str);
-        device = local_rank % ngpu;
+        device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
       }
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
-      num_threads = atoi(arg[iarg+1]);
+      nthreads = atoi(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"n") == 0 ||
@@ -138,12 +138,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // initialize Kokkos
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  will use up to %d GPU(s) per node\n",ngpu);
-    if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpu);
+    if (screen) fprintf(screen,"  will use up to %d GPU(s) per node\n",ngpus);
+    if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpus);
   }
 
 #ifdef KOKKOS_ENABLE_CUDA
-  if (ngpu <= 0)
+  if (ngpus <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
 
   // check and warn about GPU-direct availability when using multiple MPI tasks
@@ -167,14 +167,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #endif
 
 #ifndef KOKKOS_ENABLE_SERIAL
-  if (num_threads == 1)
+  if (nthreads == 1)
     error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
                          "(i.e. Makefile.kokkos_mpi_only) gives better performance "
                          "than the OpenMP backend");
 #endif
 
   Kokkos::InitArguments args;
-  args.num_threads = num_threads;
+  args.num_threads = nthreads;
   args.num_numa = numa;
   args.device_id = device;
 
@@ -182,16 +182,29 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // default settings for package kokkos command
 
-  neighflag = FULL;
-  neighflag_qeq = FULL;
-  neighflag_qeq_set = 0;
-  exchange_comm_classic = 0;
-  forward_comm_classic = 0;
-  reverse_comm_classic = 0;
-  exchange_comm_on_host = 0;
-  forward_comm_on_host = 0;
-  reverse_comm_on_host = 0;
+  binsize = 0.0;
   gpu_direct_flag = 1;
+  neigh_thread = 0;
+  neigh_thread_set = 0;
+  neighflag_qeq_set = 0;
+  if (ngpus > 0) {
+    neighflag = FULL;
+    neighflag_qeq = FULL;
+    newtonflag = 0;
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  } else {
+    if (nthreads > 1) {
+      neighflag = HALFTHREAD;
+      neighflag_qeq = HALFTHREAD;
+    } else {
+      neighflag = HALF;
+      neighflag_qeq = HALF;
+    }
+    newtonflag = 1;
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  }
 
 #if KOKKOS_USE_CUDA
   // only if we can safely detect, that GPU-direct is not available, change default
@@ -218,24 +231,13 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
-  // defaults
-
-  neighflag = FULL;
-  neighflag_qeq = FULL;
-  neighflag_qeq_set = 0;
-  int newtonflag = 0;
-  double binsize = 0.0;
-  exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-  exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
-  gpu_direct_flag = 1;
-
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"full") == 0) neighflag = FULL;
       else if (strcmp(arg[iarg+1],"half") == 0) {
-        if (num_threads > 1 || ngpu > 0)
+        if (nthreads > 1 || ngpus > 0)
           neighflag = HALFTHREAD;
         else
           neighflag = HALF;
@@ -247,7 +249,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"full") == 0) neighflag_qeq = FULL;
       else if (strcmp(arg[iarg+1],"half") == 0) {
-        if (num_threads > 1 || ngpu > 0)
+        if (nthreads > 1 || ngpus > 0)
           neighflag_qeq = HALFTHREAD;
         else
           neighflag_qeq = HALF;
@@ -317,6 +319,13 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) neigh_thread = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) neigh_thread = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
+      neigh_thread_set = 1;
+      iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -335,6 +344,9 @@ void KokkosLMP::accelerator(int narg, char **arg)
   // set neighbor binsize, same as neigh_modify command
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
+
+  if (neigh_thread && neighflag != FULL)
+    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'neigh/thread on'");
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;

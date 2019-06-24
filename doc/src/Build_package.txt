@@ -41,7 +41,6 @@ packages:
 "KIM"_Build_extras.html#kim,
 "KOKKOS"_Build_extras.html#kokkos,
 "LATTE"_Build_extras.html#latte,
-"MEAM"_Build_extras.html#meam,
 "MESSAGE"_Build_extras.html#message,
 "MSCG"_Build_extras.html#mscg,
 "OPT"_Build_extras.html#opt,

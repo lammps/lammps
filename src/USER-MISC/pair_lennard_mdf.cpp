@@ -251,13 +251,7 @@ void PairLJ_AB_MDF::coeff(int narg, char **arg)
 
 double PairLJ_AB_MDF::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-    aparm[i][j] = mix_energy(aparm[i][i],aparm[j][j],
-                               bparm[i][i],bparm[j][j]);
-    bparm[i][j] = mix_distance(bparm[i][i],bparm[j][j]);
-    cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-  }
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
 

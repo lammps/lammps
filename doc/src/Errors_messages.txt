@@ -610,6 +610,62 @@ This means there is something invalid about the topology definitions. :dd
 
 The data file header lists bonds but no bond types. :dd
 
+{Bond/react: Cannot use fix bond/react with non-molecular systems} :dt
+
+Only systems with bonds that can be changed can be used. Atom_style
+template does not qualify. :dd
+
+{Bond/react: Rmax cutoff is longer than pairwise cutoff} :dt
+
+This is not allowed because bond creation is done using the pairwise
+neighbor list. :dd
+
+{Bond/react: Molecule template ID for fix bond/react does not exist} :dt
+
+A valid molecule template must have been created with the molecule
+command. :dd
+
+{Bond/react: Reaction templates must contain the same number of atoms} :dt
+
+There should be a one-to-one correspondence between atoms in the
+pre-reacted and post-reacted templates, as specified by the map file. :dd
+
+{Bond/react: Unknown section in map file} :dt
+
+Please ensure reaction map files are properly formatted. :dd
+
+{Bond/react: Atom affected by reaction too close to template edge} :dt
+
+This means an atom which changes type or connectivity during the
+reaction is too close to an 'edge' atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom. :dd
+
+{Bond/react: Fix bond/react needs ghost atoms from farther away} :dt
+
+This is because a processor needs to superimpose the entire unreacted
+molecule template onto simulation atoms it knows about. The
+comm_modify cutoff command can be used to extend the communication
+range. :dd
+
+{Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted} :dt
+
+Self-explanatory. :dd
+
+{Bond/react special bond generation overflow} :dt
+
+The number of special bonds per-atom created by a reaction exceeds the
+system setting. See the read_data or create_box command for how to
+specify this value. :dd
+
+{Bond/react topology/atom exceed system topology/atom} :dt
+
+The number of bonds, angles etc per-atom created by a reaction exceeds
+the system setting. See the read_data or create_box command for how to
+specify this value. :dd
+
 {Both restart files must use % or neither} :dt
 
 Self-explanatory. :dd
@@ -2145,10 +2201,6 @@ Self-explanatory. :dd
 {Cannot use package gpu neigh yes with triclinic box} :dt
 
 This is a current restriction in LAMMPS. :dd
-
-{Cannot use pair hybrid with GPU neighbor list builds} :dt
-
-Neighbor list builds must be done on the CPU for this pair style. :dd
 
 {Cannot use pair tail corrections with 2d simulations} :dt
 
@@ -5467,10 +5519,6 @@ Self-explanatory. :dd
 For this pair style, you cannot run part of the force calculation on
 the host.  See the package command. :dd
 
-{GPU split param must be positive for hybrid pair styles} :dt
-
-See the package gpu command. :dd
-
 {GPUs are requested but Kokkos has not been compiled for CUDA} :dt
 
 Re-compile Kokkos with CUDA support to use GPUs. :dd
@@ -5837,6 +5885,12 @@ Must have periodic x,y dimensions and non-periodic z dimension to use
 
 Must have periodic x,y dimensions and non-periodic z dimension to use
 2d slab option with pppm/disp. :dd
+
+{Incorrect conversion in format string} :dt
+
+A format style variable was not using either a %f, a %g, or a %e conversion.
+Or an immediate variable with format suffix was not using either
+a %f, a %g or a %e conversion in the format suffix. :dd
 
 {Incorrect element names in ADP potential file} :dt
 
@@ -7051,6 +7105,18 @@ Self-explanatory. :dd
 
 One or more GPUs must be used when Kokkos is compiled for CUDA. :dd
 
+{Kspace_modify mesh parameter must be all zero or all positive} :dt
+
+Valid kspace mesh parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero (the default). :dd
+
+{Kspace_modify mesh/disp parameter must be all zero or all positive} :dt
+
+Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero [and]
+the required accuracy via {force/disp/real} as well as
+{force/disp/kspace} is set. :dd
+
 {Kspace style does not support compute group/group} :dt
 
 Self-explanatory. :dd
@@ -7463,6 +7529,11 @@ The Atoms section of a data file must come before a Triangles section. :dd
 
 The Atoms section of a data file must come before a Velocities
 section. :dd
+
+{Must re-specify non-restarted pair style (xxx) after read_restart} :dt
+
+For pair styles, that do not store their settings in a restart file,
+it must be defined with a new 'pair_style' command after read_restart. :dd
 
 {Must set both respa inner and outer} :dt
 
@@ -10023,25 +10094,25 @@ quote. :dd
 
 Self-explanatory. :dd
 
-{Unexpected end of AngleCoeffs section} :dt
+{Unexpected empty line in AngleCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of BondCoeffs section} :dt
+{Unexpected empty line in BondCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of DihedralCoeffs section} :dt
+{Unexpected empty line in DihedralCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of ImproperCoeffs section} :dt
+{Unexpected empty line in ImproperCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
-{Unexpected end of PairCoeffs section} :dt
+{Unexpected empty line in PairCoeffs section} :dt
 
-Read a blank line. :dd
+Read a blank line where there should be coefficient data. :dd
 
 {Unexpected end of custom file} :dt
 
@@ -10082,19 +10153,19 @@ create_box command. :dd
 A universe or uloop style variable must specify a number of values >= to the
 number of processor partitions. :dd
 
-{Unknown angle style} :dt
+{Unrecognized angle style} :dt
 
 The choice of angle style is unknown. :dd
 
-{Unknown atom style} :dt
+{Unrecognized atom style} :dt
 
 The choice of atom style is unknown. :dd
 
-{Unknown body style} :dt
+{Unrecognized body style} :dt
 
 The choice of body style is unknown. :dd
 
-{Unknown bond style} :dt
+{Unrecognized bond style} :dt
 
 The choice of bond style is unknown. :dd
 
@@ -10110,23 +10181,23 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Unknown command: %s} :dt
+{Unrecognized command: %s} :dt
 
 The command is not known to LAMMPS.  Check the input script. :dd
 
-{Unknown compute style} :dt
+{Unrecognized compute style} :dt
 
 The choice of compute style is unknown. :dd
 
-{Unknown dihedral style} :dt
+{Unrecognized dihedral style} :dt
 
 The choice of dihedral style is unknown. :dd
 
-{Unknown dump reader style} :dt
+{Unrecognized dump reader style} :dt
 
 The choice of dump reader style via the format keyword is unknown. :dd
 
-{Unknown dump style} :dt
+{Unrecognized dump style} :dt
 
 The choice of dump style is unknown. :dd
 
@@ -10134,7 +10205,7 @@ The choice of dump style is unknown. :dd
 
 Self-explanatory. :dd
 
-{Unknown fix style} :dt
+{Unrecognized fix style} :dt
 
 The choice of fix style is unknown. :dd
 
@@ -10142,7 +10213,7 @@ The choice of fix style is unknown. :dd
 
 A section of the data file cannot be read by LAMMPS. :dd
 
-{Unknown improper style} :dt
+{Unrecognized improper style} :dt
 
 The choice of improper style is unknown. :dd
 
@@ -10150,7 +10221,7 @@ The choice of improper style is unknown. :dd
 
 One or more specified keywords are not recognized. :dd
 
-{Unknown kspace style} :dt
+{Unrecognized kspace style} :dt
 
 The choice of kspace style is unknown. :dd
 
@@ -10166,7 +10237,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Unknown pair style} :dt
+{Unrecognized pair style} :dt
 
 The choice of pair style is unknown. :dd
 
@@ -10174,7 +10245,7 @@ The choice of pair style is unknown. :dd
 
 The choice of sub-style is unknown. :dd
 
-{Unknown region style} :dt
+{Unrecognized region style} :dt
 
 The choice of region style is unknown. :dd
 

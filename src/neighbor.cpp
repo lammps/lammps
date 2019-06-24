@@ -46,6 +46,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <map>
 
@@ -470,6 +471,9 @@ void Neighbor::init()
   if (exclude && force->kspace && me == 0)
     error->warning(FLERR,"Neighbor exclusions used with KSpace solver "
                    "may give inconsistent Coulombic energies");
+
+  if (lmp->kokkos)
+    set_binsize_kokkos();
 
   // ------------------------------------------------------------------
   // create pairwise lists
@@ -1279,8 +1283,8 @@ void Neighbor::init_topology()
   int bond_off = 0;
   int angle_off = 0;
   for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0))
+    if (utils::strmatch(modify->fix[i]->style,"^shake")
+        || utils::strmatch(modify->fix[i]->style,"^rattle"))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 

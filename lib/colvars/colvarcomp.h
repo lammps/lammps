@@ -27,12 +27,12 @@
 
 /// \brief Colvar component (base class for collective variables)
 ///
-/// A \link cvc \endlink object (or an object of a
+/// A \link colvar::cvc \endlink object (or an object of a
 /// cvc-derived class) implements the calculation of a collective
 /// variable, its gradients and any other related physical quantities
 /// that depend on microscopic degrees of freedom.
 ///
-/// No restriction is set to what kind of calculation a \link cvc \endlink
+/// No restriction is set to what kind of calculation a \link colvar::cvc \endlink
 /// object performs (usually an analytical function of atomic coordinates).
 /// The only constraints are that: \par
 ///
@@ -42,9 +42,9 @@
 ///   alike, and allows an automatic selection of the applicable algorithms.
 ///
 /// - The object provides an implementation \link apply_force() \endlink to
-///   apply forces to atoms.  Typically, one or more \link cvm::atom_group
+///   apply forces to atoms.  Typically, one or more \link colvarmodule::atom_group
 ///   \endlink objects are used, but this is not a requirement for as long as
-///   the \link cvc \endlink object communicates with the simulation program.
+///   the \link colvar::cvc \endlink object communicates with the simulation program.
 ///
 /// <b> If you wish to implement a new collective variable component, you
 /// should write your own class by inheriting directly from \link
@@ -75,9 +75,9 @@ public:
   /// \brief Description of the type of collective variable
   ///
   /// Normally this string is set by the parent \link colvar \endlink
-  /// object within its constructor, when all \link cvc \endlink
+  /// object within its constructor, when all \link colvar::cvc \endlink
   /// objects are initialized; therefore the main "config string"
-  /// constructor does not need to define it.  If a \link cvc
+  /// constructor does not need to define it.  If a \link colvar::cvc
   /// \endlink is initialized and/or a different constructor is used,
   /// this variable definition should be set within the constructor.
   std::string function_type;
@@ -109,6 +109,9 @@ public:
   /// cvc \endlink
   virtual int init(std::string const &conf);
 
+  /// \brief Initialize dependency tree
+  virtual int init_dependencies();
+
   /// \brief Within the constructor, make a group parse its own
   /// options from the provided configuration string
   /// Returns reference to new group
@@ -122,7 +125,7 @@ public:
   /// \brief After construction, set data related to dependency handling
   int setup();
 
-  /// \brief Default constructor (used when \link cvc \endlink
+  /// \brief Default constructor (used when \link colvar::cvc \endlink
   /// objects are declared within other ones)
   cvc();
 
@@ -133,7 +136,7 @@ public:
   static std::vector<feature *> cvc_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual const std::vector<feature *> &features()
+  virtual const std::vector<feature *> &features() const
   {
     return cvc_features;
   }
@@ -147,6 +150,9 @@ public:
     }
     cvc_features.clear();
   }
+
+  /// \brief Get vector of vectors of atom IDs for all atom groups
+  virtual std::vector<std::vector<int> > get_atom_lists();
 
   /// \brief Obtain data needed for the calculation for the backend
   virtual void read_data();
@@ -163,6 +169,10 @@ public:
 
   /// \brief Calculate finite-difference gradients alongside the analytical ones, for each Cartesian component
   virtual void debug_gradients();
+
+  /// \brief Calculate atomic gradients and add them to the corresponding item in gradient vector
+  /// May be overridden by CVCs that do not store their gradients in the classic way, see dihedPC
+  virtual void collect_gradients(std::vector<int> const &atom_ids, std::vector<cvm::rvector> &atomic_gradients);
 
   /// \brief Calculate the total force from the system using the
   /// inverse atomic gradients
@@ -237,7 +247,7 @@ public:
                                   colvarvalue const &x2) const;
 
   /// \brief Wrap value (for periodic/symmetric cvcs)
-  virtual void wrap(colvarvalue &x) const;
+  virtual void wrap(colvarvalue &x_unwrapped) const;
 
   /// \brief Pointers to all atom groups, to let colvars collect info
   /// e.g. atomic gradients
@@ -246,7 +256,7 @@ public:
   /// \brief Store a pointer to new atom group, and list as child for dependencies
   inline void register_atom_group(cvm::atom_group *ag) {
     atom_groups.push_back(ag);
-    add_child((colvardeps *) ag);
+    add_child(ag);
   }
 
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
@@ -415,7 +425,7 @@ public:
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
   /// \brief Redefined to make use of the user-provided period
-  virtual void wrap(colvarvalue &x) const;
+  virtual void wrap(colvarvalue &x_unwrapped) const;
 };
 
 
@@ -474,7 +484,7 @@ public:
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
-  virtual void wrap(colvarvalue &x) const;
+  virtual void wrap(colvarvalue &x_unwrapped) const;
 };
 
 
@@ -555,6 +565,35 @@ public:
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
+};
+
+
+
+/// \brief Colvar component:  dipole magnitude of a molecule
+class colvar::dipole_magnitude
+  : public colvar::cvc
+{
+protected:
+  /// Dipole atom group
+  cvm::atom_group  *atoms;
+  cvm::atom_pos dipoleV;
+public:
+  /// Initialize by parsing the configuration
+  dipole_magnitude (std::string const &conf);
+  dipole_magnitude (cvm::atom const &a1);
+  dipole_magnitude();
+  virtual inline ~dipole_magnitude() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  //virtual void calc_force_invgrads();
+  //virtual void calc_Jacobian_derivative();
+  virtual void apply_force (colvarvalue const &force);
+  virtual cvm::real dist2 (colvarvalue const &x1,
+                           colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
 };
 
 
@@ -818,7 +857,7 @@ public:
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
-  virtual void wrap(colvarvalue &x) const;
+  virtual void wrap(colvarvalue &x_unwrapped) const;
 };
 
 
@@ -1002,7 +1041,7 @@ public:
          cvm::atom const &donor,
          cvm::real r0, int en, int ed);
   h_bond();
-  virtual ~h_bond();
+  virtual ~h_bond() {}
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
@@ -1090,6 +1129,8 @@ public:
   virtual ~alpha_angles();
   void calc_value();
   void calc_gradients();
+  /// Re-implementation of cvc::collect_gradients() to carry over atomic gradients of sub-cvcs
+  void collect_gradients(std::vector<int> const &atom_ids, std::vector<cvm::rvector> &atomic_gradients);
   void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
                           colvarvalue const &x2) const;
@@ -1120,6 +1161,8 @@ public:
   virtual  ~dihedPC();
   void calc_value();
   void calc_gradients();
+  /// Re-implementation of cvc::collect_gradients() to carry over atomic gradients of sub-cvcs
+  void collect_gradients(std::vector<int> const &atom_ids, std::vector<cvm::rvector> &atomic_gradients);
   void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
                           colvarvalue const &x2) const;
@@ -1159,6 +1202,7 @@ public:
 
   orientation(std::string const &conf);
   orientation();
+  virtual int init(std::string const &conf);
   virtual ~orientation() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1183,6 +1227,7 @@ public:
 
   orientation_angle(std::string const &conf);
   orientation_angle();
+  virtual int init(std::string const &conf);
   virtual ~orientation_angle() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1207,6 +1252,7 @@ public:
 
   orientation_proj(std::string const &conf);
   orientation_proj();
+  virtual int init(std::string const &conf);
   virtual ~orientation_proj() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1234,6 +1280,7 @@ public:
 
   tilt(std::string const &conf);
   tilt();
+  virtual int init(std::string const &conf);
   virtual ~tilt() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1261,6 +1308,7 @@ public:
 
   spin_angle(std::string const &conf);
   spin_angle();
+  virtual int init(std::string const &conf);
   virtual ~spin_angle() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1275,7 +1323,7 @@ public:
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
-  virtual void wrap(colvarvalue &x) const;
+  virtual void wrap(colvarvalue &x_unwrapped) const;
 };
 
 

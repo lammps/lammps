@@ -85,7 +85,7 @@ An alphabetic list of all general LAMMPS commands.
 "molecule"_molecule.html,
 "ndx2group"_group2ndx.html,
 "neb"_neb.html,
-"neb_spin"_neb_spin.html,
+"neb/spin"_neb_spin.html,
 "neigh_modify"_neigh_modify.html,
 "neighbor"_neighbor.html,
 "newton"_newton.html,

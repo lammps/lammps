@@ -27,8 +27,11 @@ OPT.
 "none"_pair_none.html,
 "zero"_pair_zero.html,
 "hybrid (k)"_pair_hybrid.html,
-"hybrid/overlay (k)"_pair_hybrid.html :tb(c=4,ea=c)
-
+"hybrid/overlay (k)"_pair_hybrid.html,
+,
+,
+,
+,
 "adp (o)"_pair_adp.html,
 "agni (o)"_pair_agni.html,
 "airebo (io)"_pair_airebo.html,
@@ -80,6 +83,8 @@ OPT.
 "dpd/fdt/energy (k)"_pair_dpd_fdt.html,
 "dpd/tstat (go)"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
+"e3b"_pair_e3b.html,
+"drip"_pair_drip.html,
 "eam (gikot)"_pair_eam.html,
 "eam/alloy (gikot)"_pair_eam.html,
 "eam/cd (o)"_pair_eam.html,

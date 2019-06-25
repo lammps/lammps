@@ -81,8 +81,37 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     int iarg = 4;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
-      else if (strcmp(arg[iarg],"hybridpair") == 0) 
-        hybridpairflag = force->inumeric(FLERR, arg[++iarg]);
+      else if (strcmp(arg[iarg],"hybridpair") == 0) {
+        int n = strlen(arg[++iarg]) + 1;
+        if (lmp->suffix) n += strlen(lmp->suffix) + 1;
+        pstyle = new char[n];
+        strcpy(pstyle,arg[iarg++]);
+
+        nsub = 0;
+
+        if (narg > iarg) {
+          if (isdigit(arg[iarg][0])) {
+            nsub = force->inumeric(FLERR,arg[iarg]);
+            ++iarg;
+            if (nsub <= 0)
+              error->all(FLERR,"Illegal compute pressure command");
+          }
+        }
+
+        // check if pair style with and without suffix exists
+
+        hybridpair = (Pair *) force->pair_match(pstyle,1,nsub);
+        if (!hybridpair && lmp->suffix) {
+          strcat(pstyle,"/");
+          strcat(pstyle,lmp->suffix);
+          hybridpair = (Pair *) force->pair_match(pstyle,1,nsub);
+        }
+
+        if (!hybridpair)
+          error->all(FLERR,"Unrecognized pair style in compute pressure command");
+
+        hybridpairflag = 1;
+      }
       else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
       else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
@@ -144,12 +173,7 @@ void ComputePressure::init()
   nvirial = 0;
   vptr = NULL;
 
-  if (hybridpairflag > 0 && force->pair) {
-    if (strstr(force->pair_style, "hybrid")) {
-      PairHybrid *ph = (PairHybrid *) force->pair;
-      if (hybridpairflag <= ph->nstyles) nvirial++;
-    }
-  }
+  if (hybridpairflag && force->pair) nvirial++;
   if (pairflag && force->pair) nvirial++;
   if (bondflag && atom->molecular && force->bond) nvirial++;
   if (angleflag && atom->molecular && force->angle) nvirial++;
@@ -162,12 +186,10 @@ void ComputePressure::init()
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
-    if (hybridpairflag > 0 && force->pair) {
-      if (strstr(force->pair_style, "hybrid")) {
-        PairHybrid *ph = (PairHybrid *) force->pair;
-        if (hybridpairflag <= ph->nstyles)
-          vptr[nvirial++] = ph->styles[hybridpairflag-1]->virial;
-      }
+    if (hybridpairflag && force->pair) {
+      PairHybrid *ph = (PairHybrid *) force->pair;
+      ph->no_virial_fdotr_compute = 1;
+      vptr[nvirial++] = hybridpair->virial;
     }
     if (pairflag && force->pair) vptr[nvirial++] = force->pair->virial;
     if (bondflag && force->bond) vptr[nvirial++] = force->bond->virial;

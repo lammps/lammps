@@ -94,18 +94,21 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   param = NULL;
   density_fft_types = NULL;
   uG = NULL;
+  uG_hat = NULL;
   temp = NULL;
   grad_uG = NULL;
   grad_uG_hat = NULL;
   ktmp = NULL;
   ktmp2 = NULL;
   tmp = NULL;
+  tmp2 = NULL;
   groupbits = NULL;
   u_brick = NULL;
   v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
   greensfn = NULL;
   work1 = work2 = NULL;
   vg = NULL;
+  vg_hat = NULL;
   fkx = fky = fkz = NULL;
 
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 =
@@ -262,8 +265,62 @@ void TILD::setup(){
   delvolinv = delxinv*delyinv*delzinv;
 
   init_gauss();
+  vir_func_init();
 
   return;
+}
+
+void TILD::vir_func_init() {
+  int z, y, x, i, j, n;
+  int Dim = domain->dimension;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double zprd_slab = zprd * slab_volfactor;
+  double k[Dim];
+  double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+
+  n = 0;
+  for (z = nzlo_fft; z <= nzhi_fft; z++) {
+    if (double(z) < double(nz_pppm) / 2.0)
+      k[2] = 2 * PI * double(z) / zprd;
+    else
+      k[2] = 2 * PI * double(nz_pppm - z) / zprd;
+
+    for (y = nylo_fft; y <= nyhi_fft; y++) {
+      if (double(y) < double(ny_pppm) / 2.0)
+        k[1] = 2 * PI * double(y) / yprd;
+      else
+        k[1] = 2 * PI * double(ny_pppm - y) / yprd;
+
+      for (x = nxlo_fft; x <= nxhi_fft; x++) {
+        if (double(x) < double(nx_pppm) / 2.0)
+          k[0] = 2 * PI * double(x) / xprd;
+        else
+          k[0] = 2 * PI * double(nx_pppm - x) / xprd;
+
+        vg[n][0] = k[0] * -grad_uG[0][n];
+        vg[n][1] = k[1] * -grad_uG[1][n];
+        vg[n][2] = k[2] * -grad_uG[2][n];
+        vg[n][3] = k[1] * -grad_uG[0][n];
+        vg[n][4] = k[2] * -grad_uG[0][n];
+        vg[n][5] = k[2] * -grad_uG[1][n];
+        n++;
+      }
+    }
+  }
+
+  for (i = 0; i < 6; i++){
+    n=0;
+    for (j = 0; j < nfft; j++){
+      work1[n++] = vg[i][j];
+      work1[n++] = ZEROF;
+    }
+    fft1->compute(work1, vg_hat[i], 1);
+    for (j = 0; j < 2 * nfft; j++) {
+      vg_hat[i][j] *= scale_inv;
+    }
+  }
 }
 
 void TILD::setup_grid()
@@ -370,6 +427,16 @@ void TILD::compute(int eflag, int vflag){
 
   fieldforce_param();
   
+  if (eflag_global || vflag_global){
+
+  }
+
+  if (vflag_global) {
+    double virial_all[6];
+    MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
+    for (i = 0; i < 6; i++) virial[i] = virial_all[i]; // DOUBLE CHECK THIS CALCULATION
+  }
+  
   if (atom->natoms != natoms_original) {
     natoms_original = atom->natoms;
   }
@@ -453,11 +520,14 @@ void TILD::allocate()
   memory->create(ktmp,2*nfft_both,"tild:ktmp");
   memory->create(ktmp2,2*nfft_both, "tild:ktmp2");
   memory->create(tmp, nfft, "tild:tmp");
+  memory->create(tmp2, nfft, "tild:tmp2");
   memory->create(vg,nfft_both,6,"pppm:vg");
-  memory->create(uG,nfft,"pppm:uG");
+  memory->create(vg_hat,nfft_both,6,"pppm:vg_hat");
+  memory->create(uG,nfft_both,"pppm:uG");
+  memory->create(uG_hat,2*nfft_both,"pppm:uG_hat");
   memory->create(groupbits, group->ngroup, "tild:groupbits");
   memory->create(grad_uG,domain->dimension,nfft,"pppm:grad_uG");
-  memory->create(grad_uG_hat,domain->dimension,2*nfft,"pppm:grad_uG_hat");
+  memory->create(grad_uG_hat,domain->dimension,2*nfft_both,"pppm:grad_uG_hat");
   memory->create(density_fft_types, group->ngroup, nfft_both, "pppm/tild:density_fft_types");
 
   if (triclinic == 0) {
@@ -548,9 +618,11 @@ void TILD::deallocate()
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft_types);
+  memory->destroy(tmp2);
   memory->destroy(ktmp);
   memory->destroy(ktmp2);
   memory->destroy(tmp);
+  memory->destroy(vg_hat);
 
   memory->destroy5d_offset(gradWgroup, 0,
                           nzlo_out,nylo_out,
@@ -598,6 +670,7 @@ void TILD::deallocate()
   memory->destroy(grad_uG);
   memory->destroy(grad_uG_hat);
   memory->destroy(groupbits);
+  memory->destroy(uG_hat);
 
   delete fft1;
   delete fft2;
@@ -1029,6 +1102,17 @@ void TILD::init_gauss(){
   // Do the field gradient of the uG
   field_gradient(uG, grad_uG_hat, 0);
 
+  for (int i=0; i < Dim; i ++){
+    for (int j = 0; j < 2*nfft; j++){
+      work1[j] = grad_uG_hat[i][j];
+    }
+    fft1->compute(work1, work2, -1);
+    n = 0;
+    for (int j = 0; j < nfft; j++){
+      grad_uG[i][j] = work2[n];
+      n+=2;
+    }
+  }
 
 }
 
@@ -1041,12 +1125,7 @@ void TILD::field_gradient(FFT_SCALAR *in,
   int Dim = domain->dimension;
   double k2, kv[Dim];
   int n = 0;    
-  // memset(&(work1[2*nfft_both-1]),0,2*nfft_both*sizeof(FFT_SCALAR));
-  for (i = 0; i < nfft; i++) {
-    work1[n++] = ZEROF;
-    work1[n++] = ZEROF;
-  }
-  n=0;
+  
   for (i = 0; i < nfft; i++) {
     work1[n++] = in[i];
     work1[n++] = ZEROF;
@@ -1054,7 +1133,8 @@ void TILD::field_gradient(FFT_SCALAR *in,
   n=0;
   fft1->compute(work1, work1, 1);
   for (j = 0; j < 2*nfft; j++) {
-    work1[j] = work1[j]*scale_inv;
+    work1[j] *= scale_inv;
+    uG_hat[j] = work1[j];
   }
   get_k_alias(work1, out);
 
@@ -1983,10 +2063,12 @@ void TILD::accumulate_gradient() {
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
   bool do_fft = false;
+
   for (int k = 0; k < group->ngroup; k++)
     for (int i = 0; i < Dim; i++)
       memset(&(gradWgroup[k][i][nzlo_out][nylo_out][nxlo_out]), 0,
              ngrid * sizeof(FFT_SCALAR));
+
   for (int i = 0; i < group->ngroup; i++) {
     do_fft = false;
     for (int j = 0; j < group->ngroup; j++) {
@@ -2006,12 +2088,16 @@ void TILD::accumulate_gradient() {
       }
 
       // FFT the density to k-space
-      fft1->compute(work1, work2, 1);
+      fft1->compute(work1, work1, 1);
 
       n = 0;
       for (int k = 0; k < nfft; k++) {
-        work2[n++] *= scale_inv;
-        work2[n++] *= scale_inv;
+        work1[n++] *= scale_inv;
+        work1[n++] *= scale_inv;
+      }
+
+      if (eflag_global || vflag_global) {
+        ev_calculation(i);
       }
 
       // Convolve the grad wth density
@@ -2019,10 +2105,7 @@ void TILD::accumulate_gradient() {
         n = 0;
 
         for (int k = 0; k < nfft; k++) {
-          ktmp2[n] = (grad_uG_hat[j][n] * work2[n] -
-                      grad_uG_hat[j][n + 1] * work2[n + 1]);
-          ktmp2[n + 1] = (grad_uG_hat[j][n + 1] * work2[n] +
-                          grad_uG_hat[j][n] * work2[n + 1]);
+          complex_multiply(grad_uG_hat[j], work1, ktmp2, n);
           n += 2;
         }
 
@@ -2170,4 +2253,94 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
   }
 
   memory->destroy2d_offset(a,-ord);
+}
+
+void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
+  out[n] = (in1[n] * in2[n] - in1[n + 1] * in2[n + 1]);
+  out[n + 1] = (in1[n + 1] * in2[n] + in1[n] * in2[n + 1]);
+}
+
+void TILD::ev_calculation(int den_group) {
+  int n = 0;
+  double eng;
+  double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
+  double s2 = scale_inv * scale_inv;
+  double rho0;
+  double u_pot = 0;
+  double factor;
+  double *dummy;
+  double *wk2;
+  output->thermo->evaluate_keyword("density", &rho0);
+  int igroup1 = group->find("all");
+
+  // Determine if working with the all group
+  if (den_group == igroup1){
+    n=0;
+      for (int k = 0; k < nfft; k++) {
+        work2[n++] = tmp[k] = density_fft_types[den_group][k] - rho0;
+        work2[n++] = ZEROF;
+      }
+    fft1->compute(work2,work2,1);
+
+    n=0;
+    for (int k = 0; k < nfft; k++) {
+      work2[n++] *= scale_inv;
+      work2[n++] *= scale_inv;
+    }
+
+    wk2 = work2;
+  } else { // Else not the all group
+    wk2 = work1;
+  }
+
+  // Convolve uG_hat with fft(den_group)
+  n = 0;
+  for (int k = 0; k < nfft; k++) {
+    complex_multiply(uG_hat, wk2, ktmp2, n);
+    n += 2;
+  }
+  // IFFT the convolution
+  fft1->compute(ktmp2, ktmp2, -1);
+
+  
+  double same_group_factor, off_diag_factor;
+  for (int i2 = den_group; i2 < group->ngroup; i2++) {
+    if (fabs(param[den_group][i2]) >= 1e-10) {
+      if (den_group == igroup1 && i2 == igroup1) {
+        // Store the reduced all group
+        dummy = tmp;
+        same_group_factor = 1.0;
+      } else {
+        dummy = density_fft_types[i2];
+        same_group_factor = 2.0;
+      }
+
+      if (eflag_global) {
+        n = 0;
+        for (int k = 0; k < nfft; k++) {
+          energy += ktmp2[n] * dummy[k] * param[den_group][i2] / rho0 /delvolinv
+                    * same_group_factor * 0.5 * 6;
+          n += 2;
+        }
+      }
+
+      if (vflag_global) {
+        for (int i = 0; i < 6; i++) {
+          off_diag_factor = ( i/3 ? 2.0 : 1.0);
+          n = 0;
+          for (int k = 0; k < nfft; k++) {
+            complex_multiply(vg_hat[i], wk2, ktmp, n);
+            n += 2;
+          }
+          fft1->compute(ktmp, ktmp, -1);
+          n=0;
+          for (int k = 0; k < nfft; k++) {
+            virial[i] -= ktmp[n] * dummy[k] * param[den_group][i2]/rho0 
+                /delvolinv *same_group_factor*0.5 * off_diag_factor;
+            n+=2;
+          }
+        }
+      }
+    }
+  }
 }

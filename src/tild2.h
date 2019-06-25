@@ -33,7 +33,7 @@ class TILD : public KSpace{
   class Remap *remap;
   class GridComm *cg;
   class GridComm *cg_peratom;
-  double *uG;
+  double *uG, *uG_hat;
   int *groupbits;
   double a_squared;
   void setup_grid();
@@ -51,6 +51,8 @@ class TILD : public KSpace{
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
   int nmax;
+  double **vg_hat;
+  void complex_multiply(double*,double*,double*, int);
 
   double unitk[3];
   int *kxvecs,*kyvecs,*kzvecs;
@@ -166,6 +168,7 @@ class TILD : public KSpace{
                          LAMMPS_NS::Remap *);
   virtual void brick2fft();
   virtual void brick2fft_none();
+  void ev_calculation(int);
 
 
   // virtual void poisson();
@@ -220,12 +223,13 @@ class TILD : public KSpace{
                           double&, double&, int&);
   void accumulate_gradient();
   void force_field_grad();
+  void vir_func_init();
 
   FFT_SCALAR ****density_brick_types;
   FFT_SCALAR **density_fft_types;
   FFT_SCALAR *ktmp;
   FFT_SCALAR *ktmp2;
-  double *tmp;
+  FFT_SCALAR *tmp, *tmp2;
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);

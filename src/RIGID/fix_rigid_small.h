@@ -74,7 +74,7 @@ class FixRigidSmall : public Fix {
   int triclinic;
   double MINUSPI,TWOPI;
 
-  char *infile;             // file to read rigid body attributes from
+  char *inpfile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
   int earlyflag;            // 1 if forces/torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
@@ -318,7 +318,7 @@ E: Fix rigid: Bad principal moments
 The principal moments of inertia computed for a rigid body
 are not within the required tolerances.
 
-E: Cannot open fix rigid/small infile %s
+E: Cannot open fix rigid/small inpfile %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.

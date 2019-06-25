@@ -303,6 +303,7 @@ double PairCoulCut::single(int i, int j, int /*itype*/, int /*jtype*/,
 void *PairCoulCut::extract(const char *str, int &dim)
 {
   dim = 2;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   return NULL;
 }

@@ -1734,7 +1734,7 @@ void Domain::add_region(int narg, char **arg)
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
       char estyle[256];
-      sprintf(estyle,"%s/%s",arg[1],lmp->suffix);
+      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix);
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1746,7 +1746,7 @@ void Domain::add_region(int narg, char **arg)
 
     if (lmp->suffix2) {
       char estyle[256];
-      sprintf(estyle,"%s/%s",arg[1],lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix2);
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);

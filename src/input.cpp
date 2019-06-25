@@ -1818,11 +1818,11 @@ void Input::pair_style()
     if (!match && lmp->suffix_enable) {
       char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
     }

@@ -51,7 +51,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.0.2 (and newer) package
+   Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -61,7 +61,9 @@
 #include "comm.h"
 #include "error.h"
 #include "input.h"
+#include "modify.h"
 #include "variable.h"
+#include "fix_store_kim.h"
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
@@ -77,7 +79,7 @@ struct WriteBuf {
   size_t sizeleft;
 };
 
-static char *do_query(char *, int, char **, int, MPI_Comm);
+static char *do_query(char *, char *, int, char **, int, MPI_Comm);
 static size_t write_callback(void *, size_t, size_t, void *);
 
 #endif
@@ -90,12 +92,23 @@ void KimQuery::command(int narg, char **arg)
 
   if (narg < 2) error->all(FLERR,"Illegal kim_query command");
 
+  // check if we had a kim_init command by finding fix STORE/KIM
+  // retrieve model name.
+  char * model_name;
+
+  int ifix = modify->find_fix("KIM_MODEL_STORE");
+  if (ifix >= 0) {
+    FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
+    model_name = (char *)fix_store->getptr("model_name");
+  } else error->all(FLERR,"Must use 'kim_init' before 'kim_query'");
+
+
   varname = arg[0];
   function = arg[1];
 
 #if defined(LMP_KIM_CURL)
 
-  value = do_query(function, narg-2, arg+2, comm->me, world);
+  value = do_query(function, model_name, narg-2, arg+2, comm->me, world);
 
   // check for valid result
   // on error the content of "value" is a '\0' byte
@@ -147,7 +160,8 @@ size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
   return 0; // done
 }
 
-char *do_query(char *qfunction, int narg, char **arg, int rank, MPI_Comm comm)
+char *do_query(char *qfunction, char * model_name, int narg, char **arg,
+               int rank, MPI_Comm comm)
 {
   char value[512], *retval;
 
@@ -173,6 +187,8 @@ char *do_query(char *qfunction, int narg, char **arg, int rank, MPI_Comm comm)
       url += qfunction;
 
       std::string query(arg[0]);
+      query += "&model=";
+      query += model_name;
       for (int i=1; i < narg; ++i) {
         query += '&';
         query += arg[i];

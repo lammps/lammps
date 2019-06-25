@@ -69,7 +69,7 @@ compute temperature or ke and/or the virial.  The {virial} keyword
 means include all terms except the kinetic energy {ke}.
 
 The {hybridpair} keyword means to only include contribution
-from a subpair in a {hybrid} or {hybrid/overlay} pair style.
+from a sub-style in a {hybrid} or {hybrid/overlay} pair style.
 
 Details of how LAMMPS computes the virial efficiently for the entire
 system, including for many-body potentials and accounting for the

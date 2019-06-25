@@ -42,13 +42,11 @@
 
 #include "asa_user.h"
 #include "asa_cg.h"
-#include "cg_blas.h"
 
 
 using namespace LAMMPS_NS;
 /* begin external variables */
 double one [1], zero [1] ;
-BLAS_INT blas_one [1] ;
 /* end external variables */
 int asa_cg /*  return:
                        0 (convergence tolerance satisfied)
@@ -108,7 +106,6 @@ int asa_cg /*  return:
     /* assign values to the external variables */
     one [0] = (double) 1 ;
     zero [0] = (double) 0 ;
-    blas_one [0] = (BLAS_INT) 1 ;
 
 /* initialize the parameters */
 
@@ -3486,7 +3483,7 @@ Line:
 )
 {
 /* if the blas have not been installed, then hand code the produce */
-#ifdef NOBLAS
+
     ASA_INT j, l ;
     l = 0 ;
     if ( w )
@@ -3506,42 +3503,6 @@ Line:
             l += m ;
         }
     }
-#endif
-
-/* if the blas have been installed, then possibly call gdemv */
-#ifndef NOBLAS
-    ASA_INT j, l ;
-    BLAS_INT M, N ;
-    if ( w || (!w && (m*n < MATVEC_START)) )
-    {
-        l = 0 ;
-        if ( w )
-        {
-            asa_scale (y, A, x [0], m) ;
-            for (j = 1; j < n; j++)
-            {
-                l += m ;
-                asa_daxpy (y, A+l, x [j], m) ;
-            }
-        }
-        else
-        {
-            for (j = 0; j < n; j++)
-            {
-                y [j] = asa_dot0 (A+l, x, (int) m) ;
-                l += m ;
-            }
-        }
-    }
-    else
-    {
-        M = (BLAS_INT) m ;
-        N = (BLAS_INT) n ;
-        /* only use transpose mult with blas
-        CG_DGEMV ("n", &M, &N, one, A, &M, x, blas_one, zero, y, blas_one) ;*/
-        CG_DGEMV ("t", &M, &N, one, A, &M, x, blas_one, zero, y, blas_one) ;
-    }
-#endif
 
     return ;
 }
@@ -3582,14 +3543,6 @@ Line:
             l += m ;
         }
     }
-
-/* equivalent to:
-    BLAS_INT M, N ;
-    M = (BLAS_INT) m ;
-    N = (BLAS_INT) n ;
-    if ( w ) CG_DTRSV ("u", "n", "n", &N, R, &M, x, blas_one) ;
-    else     CG_DTRSV ("u", "t", "n", &N, R, &M, x, blas_one) ; */
-
     return ;
 }
 
@@ -3662,7 +3615,6 @@ Line:
     n5 = n % 5 ;
     if ( y == x)
     {
-#ifdef NOBLAS
         for (i = 0; i < n5; i++) y [i] *= s ;
         for (; i < n;)
         {
@@ -3677,32 +3629,6 @@ Line:
             y [i] *= s ;
             i++ ;
         }
-#endif
-#ifndef NOBLAS
-        if ( n < DSCAL_START )
-        {
-            for (i = 0; i < n5; i++) y [i] *= s ;
-            for (; i < n;)
-            {
-                y [i] *= s ;
-                i++ ;
-                y [i] *= s ;
-                i++ ;
-                y [i] *= s ;
-                i++ ;
-                y [i] *= s ;
-                i++ ;
-                y [i] *= s ;
-                i++ ;
-            }
-        }
-        else
-        {
-            BLAS_INT N ;
-            N = (BLAS_INT) n ;
-            CG_DSCAL (&N, &s, x, blas_one) ;
-        }
-#endif
     }
     else
     {
@@ -3779,7 +3705,6 @@ Line:
     ASA_INT         n  /* length of the vectors */
 )
 {
-#ifdef NOBLAS
     ASA_INT i, n5 ;
     n5 = n % 5 ;
     if (alpha == -ONE)
@@ -3806,45 +3731,6 @@ Line:
             x [i+4] += alpha*d [i+4] ;
         }
     }
-#endif
-
-#ifndef NOBLAS
-    ASA_INT i, n5 ;
-    BLAS_INT N ;
-    if ( n < DAXPY_START )
-    {
-        n5 = n % 5 ;
-        if (alpha == -ONE)
-        {
-            for (i = 0; i < n5; i++) x [i] -= d[i] ;
-            for (; i < n; i += 5)
-            {
-                x [i]   -= d [i] ;
-                x [i+1] -= d [i+1] ;
-                x [i+2] -= d [i+2] ;
-                x [i+3] -= d [i+3] ;
-                x [i+4] -= d [i+4] ;
-            }
-        }
-        else
-        {
-            for (i = 0; i < n5; i++) x [i] += alpha*d[i] ;
-            for (; i < n; i += 5)
-            {
-                x [i]   += alpha*d [i] ;
-                x [i+1] += alpha*d [i+1] ;
-                x [i+2] += alpha*d [i+2] ;
-                x [i+3] += alpha*d [i+3] ;
-                x [i+4] += alpha*d [i+4] ;
-            }
-        }
-    }
-    else
-    {
-        N = (BLAS_INT) n ;
-        CG_DAXPY (&N, &alpha, d, blas_one, x, blas_one) ;
-    }
-#endif
 
     return ;
 }
@@ -3887,7 +3773,7 @@ double asa_dot
     ASA_INT     n /* length of vectors */
 )
 {
-#ifdef NOBLAS
+
     ASA_INT i, n5 ;
     double t ;
     t = ZERO ;
@@ -3900,31 +3786,7 @@ double asa_dot
                         + x [i+3]*y [i+3] + x [i+4]*y [i+4] ;
     }
     return (t) ;
-#endif
 
-#ifndef NOBLAS
-    ASA_INT i, n5 ;
-    double t ;
-    BLAS_INT N ;
-    if ( n < DDOT_START )
-    {
-        t = ZERO ;
-        if ( n <= 0 ) return (t) ;
-        n5 = n % 5 ;
-        for (i = 0; i < n5; i++) t += x [i]*y [i] ;
-        for (; i < n; i += 5)
-        {
-            t += x [i]*y[i] + x [i+1]*y [i+1] + x [i+2]*y [i+2]
-                            + x [i+3]*y [i+3] + x [i+4]*y [i+4] ;
-        }
-        return (t) ;
-    }
-    else
-    {
-        N = (BLAS_INT) n ;
-        return (CG_DDOT (&N, x, blas_one, y, blas_one)) ;
-    }
-#endif
 }
 
 /* =========================================================================
@@ -3971,7 +3833,7 @@ void asa_copy
     ASA_INT     n  /* length of vectors */
 )
 {
-#ifdef NOBLAS
+
     ASA_INT i, n5 ;
     n5 = n % 5 ;
     for (i = 0; i < n5; i++) y [i] = x [i] ;
@@ -3988,35 +3850,7 @@ void asa_copy
         y [i] = x [i] ;
         i++ ;
     }
-#endif
 
-#ifndef NOBLAS
-    ASA_INT i, n5 ;
-    BLAS_INT N ;
-    if ( n < DCOPY_START )
-    {
-        n5 = n % 5 ;
-        for (i = 0; i < n5; i++) y [i] = x [i] ;
-        for (; i < n; )
-        {
-            y [i] = x [i] ;
-            i++ ;
-            y [i] = x [i] ;
-            i++ ;
-            y [i] = x [i] ;
-            i++ ;
-            y [i] = x [i] ;
-            i++ ;
-            y [i] = x [i] ;
-            i++ ;
-        }
-    }
-    else
-    {
-        N = (BLAS_INT) n ;
-        CG_DCOPY (&N, x, blas_one, y, blas_one) ;
-    }
-#endif
 
     return ;
 }
@@ -4035,7 +3869,6 @@ void asa_copy
     ASA_INT     n  /* length of vectors */
 )
 {
-#ifdef NOBLAS
     ASA_INT i, n5 ;
     n5 = n % 5 ;
     for (i = 0; i < n5; i++)
@@ -4061,47 +3894,7 @@ void asa_copy
         y [i] = ynew [i] ;
         i++ ;
     }
-#endif
-
-#ifndef NOBLAS
-    ASA_INT i, n5 ;
-    BLAS_INT N ;
-    if ( n < DCOPY_START )
-    {
-        n5 = n % 5 ;
-        for (i = 0; i < n5; i++)
-        {
-            x [i] = xnew [i] ;
-            y [i] = ynew [i] ;
-        }
-        for (; i < n; )
-        {
-            x [i] = xnew [i] ;
-            y [i] = ynew [i] ;
-            i++ ;
-            x [i] = xnew [i] ;
-            y [i] = ynew [i] ;
-            i++ ;
-            x [i] = xnew [i] ;
-            y [i] = ynew [i] ;
-            i++ ;
-            x [i] = xnew [i] ;
-            y [i] = ynew [i] ;
-            i++ ;
-            x [i] = xnew [i] ;
-            y [i] = ynew [i] ;
-            i++ ;
-        }
-    }
-    else
-    {
-        N = (BLAS_INT) n ;
-        CG_DCOPY (&N, xnew, blas_one, x, blas_one) ;
-        CG_DCOPY (&N, ynew, blas_one, y, blas_one) ;
-    }
-#endif
-
-    return ;
+  return ;
 }
 
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

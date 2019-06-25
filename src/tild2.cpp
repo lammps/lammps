@@ -426,8 +426,11 @@ void TILD::compute(int eflag, int vflag){
   cg->forward_comm(this, FORWARD_NONE);
 
   fieldforce_param();
-  
-  if (eflag_global || vflag_global){
+
+  if (eflag_global){
+    double energy_all;
+    MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
+    energy = energy_all;
 
   }
 

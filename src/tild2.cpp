@@ -2265,41 +2265,14 @@ void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
 
 void TILD::ev_calculation(int den_group) {
   int n = 0;
-  double eng;
-  double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
-  double s2 = scale_inv * scale_inv;
   double rho0;
-  double u_pot = 0;
-  double factor;
   double *dummy;
-  double *wk2;
   output->thermo->evaluate_keyword("density", &rho0);
-  int igroup1 = group->find("all");
-
-  // Determine if working with the all group
-  if (den_group == igroup1){
-    n=0;
-      for (int k = 0; k < nfft; k++) {
-        work2[n++] = tmp[k] = density_fft_types[den_group][k] - rho0;
-        work2[n++] = ZEROF;
-      }
-    fft1->compute(work2,work2,1);
-
-    n=0;
-    for (int k = 0; k < nfft; k++) {
-      work2[n++] *= scale_inv;
-      work2[n++] *= scale_inv;
-    }
-
-    wk2 = work2;
-  } else { // Else not the all group
-    wk2 = work1;
-  }
 
   // Convolve uG_hat with fft(den_group)
   n = 0;
   for (int k = 0; k < nfft; k++) {
-    complex_multiply(uG_hat, wk2, ktmp2, n);
+    complex_multiply(uG_hat, work1, ktmp2, n);
     n += 2;
   }
   // IFFT the convolution
@@ -2309,15 +2282,13 @@ void TILD::ev_calculation(int den_group) {
   double same_group_factor, off_diag_factor;
   for (int i2 = den_group; i2 < group->ngroup; i2++) {
     if (fabs(param[den_group][i2]) >= 1e-10) {
-      if (den_group == igroup1 && i2 == igroup1) {
-        // Store the reduced all group
-        dummy = tmp;
+      if (den_group == i2 ) {
         same_group_factor = 1.0;
       } else {
-        dummy = density_fft_types[i2];
         same_group_factor = 2.0;
       }
 
+      dummy = density_fft_types[i2];
       if (eflag_global) {
         n = 0;
         for (int k = 0; k < nfft; k++) {
@@ -2332,13 +2303,13 @@ void TILD::ev_calculation(int den_group) {
           off_diag_factor = ( i/3 ? 2.0 : 1.0);
           n = 0;
           for (int k = 0; k < nfft; k++) {
-            complex_multiply(vg_hat[i], wk2, ktmp, n);
+            complex_multiply(vg_hat[i], work1, ktmp, n);
             n += 2;
           }
           fft1->compute(ktmp, ktmp, -1);
           n=0;
           for (int k = 0; k < nfft; k++) {
-            virial[i] -= ktmp[n] * dummy[k] * param[den_group][i2]/rho0 
+            virial[i] += ktmp[n] * dummy[k] * param[den_group][i2]/rho0 
                 /delvolinv *same_group_factor*0.5 * off_diag_factor;
             n+=2;
           }

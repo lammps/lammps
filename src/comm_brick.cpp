@@ -611,7 +611,7 @@ void CommBrick::exchange()
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
   if (bufextra > bufextra_old)
-    grow_send(maxsend+bufextra,1);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
 
   // subbox bounds for orthogonal or triclinic
 

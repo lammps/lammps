@@ -229,7 +229,7 @@ class TILD : public KSpace{
   FFT_SCALAR **density_fft_types;
   FFT_SCALAR *ktmp;
   FFT_SCALAR *ktmp2;
-  FFT_SCALAR *tmp, *tmp2;
+  FFT_SCALAR *tmp;
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);

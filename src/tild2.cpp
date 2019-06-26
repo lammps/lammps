@@ -101,7 +101,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   ktmp = NULL;
   ktmp2 = NULL;
   tmp = NULL;
-  tmp2 = NULL;
   groupbits = NULL;
   u_brick = NULL;
   v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
@@ -279,32 +278,35 @@ void TILD::vir_func_init() {
   double zprd_slab = zprd * slab_volfactor;
   double k[Dim];
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+  double delx = xprd/nx_pppm;
+  double dely = yprd/ny_pppm;
+  double delz = zprd/nz_pppm;
 
   n = 0;
   for (z = nzlo_fft; z <= nzhi_fft; z++) {
     if (double(z) < double(nz_pppm) / 2.0)
-      k[2] = 2 * PI * double(z) / zprd;
+      k[2] = double(z) * delz;
     else
-      k[2] = 2 * PI * double(nz_pppm - z) / zprd;
+      k[2] = -double(nz_pppm - z) * delz;
 
     for (y = nylo_fft; y <= nyhi_fft; y++) {
       if (double(y) < double(ny_pppm) / 2.0)
-        k[1] = 2 * PI * double(y) / yprd;
+        k[1] = double(y) * dely;
       else
-        k[1] = 2 * PI * double(ny_pppm - y) / yprd;
+        k[1] = -double(ny_pppm - y) * dely;
 
       for (x = nxlo_fft; x <= nxhi_fft; x++) {
         if (double(x) < double(nx_pppm) / 2.0)
-          k[0] = 2 * PI * double(x) / xprd;
+          k[0] = double(x) * delx;
         else
-          k[0] = 2 * PI * double(nx_pppm - x) / xprd;
+          k[0] = -double(nx_pppm - x) * delx;
 
-        vg[n][0] = k[0] * -grad_uG[0][n];
-        vg[n][1] = k[1] * -grad_uG[1][n];
-        vg[n][2] = k[2] * -grad_uG[2][n];
-        vg[n][3] = k[1] * -grad_uG[0][n];
-        vg[n][4] = k[2] * -grad_uG[0][n];
-        vg[n][5] = k[2] * -grad_uG[1][n];
+        vg[0][n] = k[0] * grad_uG[0][n];
+        vg[1][n] = k[1] * grad_uG[1][n];
+        vg[2][n] = k[2] * grad_uG[2][n];
+        vg[3][n] = k[1] * grad_uG[0][n];
+        vg[4][n] = k[2] * grad_uG[0][n];
+        vg[5][n] = k[2] * grad_uG[1][n];
         n++;
       }
     }
@@ -523,9 +525,8 @@ void TILD::allocate()
   memory->create(ktmp,2*nfft_both,"tild:ktmp");
   memory->create(ktmp2,2*nfft_both, "tild:ktmp2");
   memory->create(tmp, nfft, "tild:tmp");
-  memory->create(tmp2, nfft, "tild:tmp2");
-  memory->create(vg,nfft_both,6,"pppm:vg");
-  memory->create(vg_hat,nfft_both,6,"pppm:vg_hat");
+  memory->create(vg,6,nfft_both,"pppm:vg");
+  memory->create(vg_hat,6,2*nfft_both,"pppm:vg_hat");
   memory->create(uG,nfft_both,"pppm:uG");
   memory->create(uG_hat,2*nfft_both,"pppm:uG_hat");
   memory->create(groupbits, group->ngroup, "tild:groupbits");
@@ -621,10 +622,10 @@ void TILD::deallocate()
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft_types);
-  memory->destroy(tmp2);
   memory->destroy(ktmp);
   memory->destroy(ktmp2);
   memory->destroy(tmp);
+  memory->destroy(vg);
   memory->destroy(vg_hat);
 
   memory->destroy5d_offset(gradWgroup, 0,
@@ -649,7 +650,6 @@ void TILD::deallocate()
   memory->destroy(greensfn);
   memory->destroy(work1);
   memory->destroy(work2);
-  memory->destroy(vg);
 
   if (triclinic == 0) {
     memory->destroy1d_offset(fkx,nxlo_fft);

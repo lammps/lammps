@@ -52,7 +52,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
                      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
-                     stride(x,y,z), stride2(x,y,z,a,b,c),
+                     logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),
                      vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
                       xcm(group,dim), vcm(group,dim), fcm(group,dim),
@@ -459,8 +459,8 @@ Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), \
      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), \
      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), \
      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), \
-     stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), \
-     swiggle(x,y,z), cwiggle(x,y,z)
+     logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), \
+     vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
      vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
      gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), \
@@ -670,6 +670,16 @@ sequence of output timesteps:
 
 100,150,200,...950,1000,1500,2000,...9500,10000,15000,etc :pre
 
+The logfreq3(x,y,z) function generates y points between x and z (inclusive),
+that are separated by a multiplicative ratio: (z/x)^(1/(y-1)). Constraints
+are: x,z > 0, y > 1, z-x >= y-1. For eg., if logfreq3(10,25,1000) is used in
+a variable by the "fix print"_fix_print.html command, then the interval
+between 10 and 1000 is divided into 24 parts with a multiplicative
+separation of ~1.21, and it will generate the following sequence of output
+timesteps:
+
+10, 13, 15, 18, 22, 27, 32,...384, 465, 563, 682, 826, 1000 :pre
+
 The stride(x,y,z) function uses the current timestep to generate a new
 timestep.  X,y >= 0 and z > 0 and x <= y are required.  The generated
 timesteps increase in increments of z, from x to y, i.e. it generates
@@ -865,7 +875,7 @@ The {is_active()} function allows to query for active settings which
 are grouped by categories. Currently supported categories and
 arguments are:
 
-{package} (argument = {cuda} or {gpu} or {intel} or {kokkos} or {omp})
+{package} (argument = {gpu} or {intel} or {kokkos} or {omp})
 {newton} (argument = {pair} or {bond} or {any})
 {pair} (argument = {single} or {respa} or {manybody} or {tail} or {shift})
 {comm_style} (argument = {brick} or {tiled})
@@ -894,7 +904,7 @@ kspace_style pppm :pre
 
 Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
 
-timestep $(2.0*(1.0+*is_active(pair,respa))
+timestep $(2.0*(1.0+2.0*is_active(pair,respa))
 if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3" :pre
 
 The {is_defined()} function allows to query categories like {compute},

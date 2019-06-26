@@ -33,6 +33,8 @@
 #include "compute.h"
 #include "modify.h"
 #include "pair.h"
+#include "utils.h"
+#include "timer.h"
 
 #include "plumed/wrapper/Plumed.h"
 
@@ -250,15 +252,15 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
     // Avoid conflict with fixes that define internal pressure computes.
     // See comment in the setup method
 
-    if ((strncmp(check_style,"nph",3) == 0) ||
-        (strncmp(check_style,"npt",3) == 0) ||
-        (strncmp(check_style,"rigid/nph",9) == 0) ||
-        (strncmp(check_style,"rigid/npt",9) == 0) ||
-        (strncmp(check_style,"msst",4) == 0) ||
-        (strncmp(check_style,"nphug",5) == 0) ||
-        (strncmp(check_style,"ipi",3) == 0) ||
-        (strncmp(check_style,"press/berendsen",15) == 0) ||
-        (strncmp(check_style,"qbmsst",6) == 0))
+    if (utils::strmatch(check_style,"^nph") ||
+        utils::strmatch(check_style,"^npt") ||
+        utils::strmatch(check_style,"^rigid/nph") ||
+        utils::strmatch(check_style,"^rigid/npt") ||
+        utils::strmatch(check_style,"^msst") ||
+        utils::strmatch(check_style,"^nphug") ||
+        utils::strmatch(check_style,"^ipi") ||
+        utils::strmatch(check_style,"^press/berendsen") ||
+        utils::strmatch(check_style,"^qbmsst"))
       error->all(FLERR,"Fix plumed must be defined before any other fixes, "
                  "that compute pressure internally");
   }
@@ -289,7 +291,7 @@ int FixPlumed::setmask()
 
 void FixPlumed::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // This avoids nan pressure if compute_pressure is called
@@ -309,12 +311,12 @@ void FixPlumed::setup(int vflag)
   // has to be executed first. This creates a race condition with the
   // setup method of fix_nh. This is why in the constructor I check if
   // nh fixes have already been called.
-  if (strcmp(update->integrate_style,"verlet") == 0)
-    post_force(vflag);
-  else {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  } else {
+    post_force(vflag);
   }
 }
 
@@ -405,6 +407,8 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep",&step);
+  int plumedStopCondition=0; 
+  p->cmd("setStopFlag",&plumedStopCondition);
   p->cmd("setPositions",&atom->x[0][0]);
   p->cmd("setBox",&box[0][0]);
   p->cmd("setForces",&atom->f[0][0]);
@@ -476,6 +480,8 @@ void FixPlumed::post_force(int /* vflag */)
   }
   // do the real calculation:
   p->cmd("performCalc");
+
+  if(plumedStopCondition) timer->force_timeout();
 
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full

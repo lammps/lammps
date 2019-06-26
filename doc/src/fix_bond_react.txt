@@ -18,8 +18,8 @@ fix ID group-ID bond/react common_keyword values ...
 
 ID, group-ID are documented in "fix"_fix.html command. Group-ID is ignored. :ulb,l
 bond/react = style name of this fix command :l
-zero or more common keyword/value pairs may be appended directly after 'bond/react' :l
-these apply to all reaction specifications (below) :l
+the common keyword/values may be appended directly after 'bond/react' :l
+this applies to all reaction specifications (below) :l
 common_keyword = {stabilization} :l
   {stabilization} values = {no} or {yes} {group-ID} {xmax}
     {no} = no reaction site stabilization
@@ -136,10 +136,12 @@ words, can be customized for each reaction, or reaction step):
 A check for possible new reaction sites is performed every {Nevery}
 timesteps.
 
-Two conditions must be met for a reaction to occur. First a bonding
-atom pair must be identified. Second, the topology surrounding the
-bonding atom pair must match the topology of the pre-reaction
-template. If both these conditions are met, the reaction site is
+Three physical conditions must be met for a reaction to occur. First,
+a bonding atom pair must be identified within the reaction distance
+cutoffs. Second, the topology surrounding the bonding atom pair must
+match the topology of the pre-reaction template. Finally, any reaction
+constraints listed in the map file (see below) must be satisfied. If
+all of these conditions are met, the reaction site is eligible to be
 modified to match the post-reaction template.
 
 A bonding atom pair will be identified if several conditions are met.
@@ -203,14 +205,24 @@ new types must also be defined during the setup of a given simulation.
 A discussion of correctly handling this is also provided on the
 "molecule"_molecule.html command page.
 
+NOTE: When a reaction occurs, it is possible that the resulting
+topology/atom (e.g. special bonds, dihedrals, etc.) exceeds that of
+the existing system and reaction templates. As when inserting
+molecules, enough space for this increased topology/atom must be
+reserved by using the relevant "extra" keywords to the
+"read_data"_read_data.html or "create_box"_create_box.html commands.
+
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and three optional keywords. The
-mandatory keyword is 'equivalences' and the optional keywords are
-'edgeIDs' and 'deleteIDs' and 'customIDs':
+contains one mandatory keyword and four optional keywords. The
+mandatory keyword is 'equivalences':
 
-N {equivalences} = # of atoms N in the reaction molecule templates
+N {equivalences} = # of atoms N in the reaction molecule templates :pre
+
+The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
+'constraints':
+
 N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template
 N {deleteIDs} = # of atoms N that are specified for deletion
 N {customIDs} = # of atoms N that are specified for a custom update
@@ -244,8 +256,8 @@ A sample map file is given below:
 
 # this is a map file :pre
 
-2 edgeIDs
-7 equivalences :pre
+7 equivalences
+2 edgeIDs :pre
 
 BondingIDs :pre
 
@@ -297,26 +309,25 @@ can allow for the possibility of one or more reverse reactions.
 
 The optional keywords deal with the probability of a given reaction
 occurring as well as the stable equilibration of each reaction site as
-it occurs.
+it occurs:
 
-The {prob} keyword can affect whether an eligible reaction actually
-occurs. The fraction setting must be a value between 0.0 and 1.0. A
-uniform random number between 0.0 and 1.0 is generated and the
+The {prob} keyword can affect whether or not an eligible reaction
+actually occurs. The fraction setting must be a value between 0.0 and
+1.0. A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
 specified by the {max_rxn} keyword.
 
 The {stabilize_steps} keyword allows for the specification of how many
 timesteps a reaction site is stabilized before being returned to the
-overall system thermostat.
-
-In order to produce the most physical behavior, this 'reaction site
-equilibration time' should be tuned to be as small as possible while
-retaining stability for a given system or reaction step. After a
-limited number of case studies, this number has been set to a default
-of 60 timesteps. Ideally, it should be individually tuned for each fix
-reaction step. Note that in some situations, decreasing rather than
-increasing this parameter will result in an increase in stability.
+overall system thermostat. In order to produce the most physical
+behavior, this 'reaction site equilibration time' should be tuned to
+be as small as possible while retaining stability for a given system
+or reaction step. After a limited number of case studies, this number
+has been set to a default of 60 timesteps. Ideally, it should be
+individually tuned for each fix reaction step. Note that in some
+situations, decreasing rather than increasing this parameter will
+result in an increase in stability.
 
 The {update_edges} keyword can increase the number of atoms whose
 atomic charges are updated, when the pre-reaction template contains
@@ -324,11 +335,11 @@ edge atoms. When the value is set to 'charges,' all atoms' atomic
 charges are updated to those specified by the post-reaction template,
 including atoms near the edge of reaction templates. When the value is
 set to 'custom,' an additional section must be included in the map
-file that specifies whether to update charges, on a per-atom basis.
-The format of this section is detailed above. Listing a pre-reaction
-atom ID with a value of 'charges' will force the update of the atom's
-charge, even if it is near a template edge. Atoms not near a template
-edge are unaffected by this setting.
+file that specifies whether or not to update charges, on a per-atom
+basis. The format of this section is detailed above. Listing a
+pre-reaction atom ID with a value of 'charges' will force the update
+of the atom's charge, even if it is near a template edge. Atoms not
+near a template edge are unaffected by this setting.
 
 A few other considerations:
 

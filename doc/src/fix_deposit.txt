@@ -261,6 +261,10 @@ next timestep for deposition, etc.  See the
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
+NOTE: For this to work correctly, the timestep must [not] be changed
+after reading the restart with "reset_timestep"_reset_timestep.html.
+The fix will try to detect it and stop with an error.
+
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various "output commands"_Howto_output.html.  No parameter

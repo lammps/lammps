@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 RandPoolWrap::RandPoolWrap(int, LAMMPS *lmp) : Pointers(lmp)
 {
   random_thr =  NULL;
-  nthreads = lmp->kokkos->num_threads;
+  nthreads = lmp->kokkos->nthreads;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +59,7 @@ void RandPoolWrap::init(RanMars* random, int seed)
   // allocate pool of RNGs
   // generate a random number generator instance for
   // all threads != 0. make sure we use unique seeds.
-  nthreads = lmp->kokkos->num_threads;
+  nthreads = lmp->kokkos->nthreads;
   random_thr = new RanMars*[nthreads];
   for (int tid = 1; tid < nthreads; ++tid) {
     random_thr[tid] = new RanMars(lmp, seed + comm->me

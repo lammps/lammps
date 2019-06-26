@@ -1430,12 +1430,13 @@ void PPPM::set_grid_local()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
 
-  double dist[3];
+  double dist[3] = {0.0,0.0,0.0};
   double cuthalf = 0.5*neighbor->skin + qdist;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
   else kspacebbox(cuthalf,&dist[0]);
 
   int nlo,nhi;
+  nlo = nhi = 0;
 
   nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
                             nx_pppm/xprd + shift) - OFFSET;

@@ -176,9 +176,9 @@ void Finish::end(int flag)
           const char fmt2[] =
             "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
           if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,
-                              lmp->kokkos->num_threads);
+                              lmp->kokkos->nthreads);
           if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,
-                               lmp->kokkos->num_threads);
+                               lmp->kokkos->nthreads);
         } else {
 #if defined(_OPENMP)
           const char fmt2[] =
@@ -579,7 +579,7 @@ void Finish::end(int flag)
   }
 #endif
 
-  if (lmp->kokkos && lmp->kokkos->ngpu > 0)
+  if (lmp->kokkos && lmp->kokkos->ngpus > 0)
     if (const char* env_clb = getenv("CUDA_LAUNCH_BLOCKING"))
       if (!(strcmp(env_clb,"1") == 0)) {
         error->warning(FLERR,"Timing breakdown may not be accurate "

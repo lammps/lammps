@@ -2322,7 +2322,7 @@ void TILD::ev_calculation(int den_group) {
         n = 0;
         for (int k = 0; k < nfft; k++) {
           energy += ktmp2[n] * dummy[k] * param[den_group][i2] / rho0 /delvolinv
-                    * same_group_factor * 0.5 * 6;
+                    * same_group_factor * 0.5;
           n += 2;
         }
       }

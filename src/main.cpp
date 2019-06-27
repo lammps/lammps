@@ -14,9 +14,6 @@
 #include <mpi.h>
 #include "lammps.h"
 #include "input.h"
-#include "error.h"
-#include <cstdio>
-#include <cstdlib>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>

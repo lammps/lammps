@@ -21,9 +21,10 @@
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H
 
-#include "lmptype.h"
+#include "lmptype.h"   // IWYU pragma: export
 #include <mpi.h>
-#include "lammps.h"
+#include <cstdio>
+#include "lammps.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -33,6 +34,10 @@ namespace LAMMPS_NS {
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+
+// enum used for KOKKOS host/device flags
+
+enum ExecutionSpace{Host,Device};
 
 class Pointers {
  public:

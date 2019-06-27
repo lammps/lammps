@@ -15,8 +15,7 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "angle_zero.h"
 #include "atom.h"

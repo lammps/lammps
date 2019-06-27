@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_reduce_chunk.h"
 #include "atom.h"
 #include "update.h"

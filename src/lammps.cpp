@@ -13,6 +13,7 @@
 
 #include <mpi.h>
 #include <cstring>
+#include <cstdlib>
 #include <cctype>
 #include <map>
 #include <string>

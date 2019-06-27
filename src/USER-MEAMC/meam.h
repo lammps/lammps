@@ -3,7 +3,6 @@
 
 #include "memory.h"
 #include <cmath>
-#include <cstdlib>
 
 #define maxelt 5
 

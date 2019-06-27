@@ -15,6 +15,7 @@
    Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include <cstdlib>
 #include <Python.h>
 #include "lmppython.h"
 #include "force.h"

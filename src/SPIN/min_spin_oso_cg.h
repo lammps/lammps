@@ -37,7 +37,7 @@ public:
     double evaluate_dt();
     void advance_spins();
     double fmnorm_sqr();
-    void calc_gradients(double);
+    void calc_gradient(double);
     void calc_search_direction(int);
 
 private:
@@ -52,7 +52,7 @@ private:
     double *spvec;               // variables for atomic dof, as 1d vector
     double *fmvec;               // variables for atomic dof, as 1d vector
 
-    double *g_old;  // gradient vector
+    double *g_old;  // gradient vector at previous iteration
     double *g;  // gradient vector
     double *p;  // search direction vector
 

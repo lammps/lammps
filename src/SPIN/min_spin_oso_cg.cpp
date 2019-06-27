@@ -145,7 +145,7 @@ int MinSpinOSO_CG::iterate(int maxiter)
     energy_force(0);
     dts = evaluate_dt();
 
-    calc_gradients(dts);
+    calc_gradient(dts);
     calc_search_direction(iter);
     advance_spins();
 
@@ -252,7 +252,7 @@ double MinSpinOSO_CG::evaluate_dt()
    calculate gradients
 ---------------------------------------------------------------------- */
 
-void MinSpinOSO_CG::calc_gradients(double dts)
+void MinSpinOSO_CG::calc_gradient(double dts)
 {
     int nlocal = atom->nlocal;
     double **sp = atom->sp;
@@ -267,7 +267,7 @@ void MinSpinOSO_CG::calc_gradients(double dts)
         tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
         tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
 
-        // calculate rotation matrix
+        // calculate gradients
         g[3 * i + 0] = -tdampz * dts;
         g[3 * i + 1] = tdampy * dts;
         g[3 * i + 2] = -tdampx * dts;
@@ -285,7 +285,7 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
     double g2old_global= 0.0;
 
     // for some reason on a second iteration g_old = 0
-    // so we make to iterations as steepest descent
+    // so we make two iterations as steepest descent
     if (iter <= 2 || iter % 5 == 0){
         // steepest descent direction
         for (int i = 0; i < nlocal; i++) {
@@ -312,7 +312,7 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
 
         beta = g2_global / g2old_global;
 
-        //calculate conjugate direction
+        // calculate conjugate direction
         for (int i = 0; i < nlocal; i++) {
             for (int j = 0; j < 3; j++){
                 p[3 * i + j] = beta * p[3 * i + j] - g[3 * i + j];
@@ -335,8 +335,7 @@ void MinSpinOSO_CG::advance_spins()
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tdampx, tdampy, tdampz;
-  //  double f[3];  // upper triag. part of skew-symm. matr. to be exponented
-  double rot_mat[9]; // exponential of a
+  double rot_mat[9]; // exponential of matrix made of search direction
   double s_new[3];
 
   // loop on all spins on proc.

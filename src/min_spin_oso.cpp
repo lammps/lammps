@@ -239,7 +239,7 @@ double MinSpinOSO::evaluate_dt()
 }
 
 /* ----------------------------------------------------------------------
-   geometric damped advance of spins
+   rotation of spins along the search direction
 ---------------------------------------------------------------------- */
 
 void MinSpinOSO::advance_spins(double dts)

@@ -32,7 +32,7 @@ kim_interactions Si
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 metal unit_conversion_mode
 kim_interactions C H O
-kim_query a0 get_lattice_constant_fcc units=\["angstrom"\] :pre
+kim_query a0 get_lattice_constant_fcc species=\["Al"] units=\["angstrom"\] :pre
 
 
 [Description:]
@@ -53,7 +53,7 @@ Employing OpenKIM IMs provides LAMMPS users with multiple benefits:
 
 Reliability :h5
 
-All content archived in OpenKIM is subject to quality control by the "KIM Editor"_https://openkim.org/governance/.
+All content archived in OpenKIM is reviewed by the "KIM Editor"_https://openkim.org/governance/ for quality.
 IMs in OpenKIM are archived with full provenance control. Each is associated with a maintainer responsible for the integrity of the content. All changes are tracked and recorded.
 IMs in OpenKIM are exhaustively tested using "KIM Tests"_https://openkim.org/getting-started/kim-tests/ that compute a host of material properties, and "KIM Verification Checks"_https://openkim.org/about-verification-checks/ that provide the user with information on various aspects of the IM behavior and coding correctness. This information is displayed on the IM's page on "OpenKIM"_https://openkim.org. :ul
 
@@ -73,8 +73,8 @@ Types of IMs in OpenKIM :h4
 
 There are two types of IMs archived in OpenKIM:
 
-The first type is called a {KIM Portable Model} (PM). A KIM PM is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran), which conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/) Portable Model Interface (PMI) standard. A KIM PM will work seamlessly with any simulation code that supports the KIM API/PMI standard (including LAMMPS; see "complete list of supported codes"_https://openkim.org/projects-using-kim/).
-The second type is called a {KIM Simulator Model} (SM). A KIM SM is an IM that is implemented natively within a simulation code ({simulator}) that supports the KIM API/SMI (Simulator Model Interface); in this case LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS. :ol
+The first type is called a {KIM Portable Model} (PM). A KIM PM is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran) that conforms to the KIM Application Programming Interface ("KIM API"_https://openkim.org/kim-api/) Portable Model Interface (PMI) standard. A KIM PM will work seamlessly with any simulation code that supports the KIM API/PMI standard (including LAMMPS; see "complete list of supported codes"_https://openkim.org/projects-using-kim/).
+The second type is called a {KIM Simulator Model} (SM). A KIM SM is an IM that is implemented natively within a simulation code ({simulator}) that supports the KIM API Simulator Model Interface (SMI); in this case LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS. :ol
 
 With these two IM types, OpenKIM can archive and test almost all IMs that
 can be used by LAMMPS. (It is easy to contribute new IMs to OpenKIM, see
@@ -356,7 +356,7 @@ or analysis phases of LAMMPS simulations. Some examples are given below.
 
 kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 boundary         p p p
-kim_query        a0 get_lattice_constant_fcc units=\["angstrom"\]
+kim_query        a0 get_lattice_constant_fcc species=\["Al"\] units=\["angstrom"\]
 lattice          fcc $\{a0\}
 ... :pre
 
@@ -377,8 +377,8 @@ changed to: "lattice fcc $\{a0\}*$\{_u_distance\}".
 
 kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 boundary         p p p
-kim_query        a0 get_lattice_constant_fcc units=\["angstrom"\]
-kim_query        alpha get_linear_thermal_expansion_fcc units=\{"1/K"\}
+kim_query        a0 get_lattice_constant_fcc species=\["Al"\] units=\["angstrom"\]
+kim_query        alpha get_linear_thermal_expansion_fcc species=\["Al"\] units=\{"1/K"\}
 variable         DeltaT equal 300
 lattice          fcc $\{a0\}*$\{alpha\}*$\{DeltaT\}
 ... :pre
@@ -395,7 +395,7 @@ kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 ... Build fcc crystal containing some defect and compute the total energy
 ... which is stored in the variable {Etot}
 ...
-kim_query        Ec get_cohesive_energy_fcc units=\["eV"\]
+kim_query        Ec get_cohesive_energy_fcc species=\["Al"\] units=\["eV"\]
 variable         Eform equal $\{Etot\} - count(all)*$\{Ec\}
 ... :pre
 

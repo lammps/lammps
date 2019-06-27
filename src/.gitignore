@@ -161,6 +161,8 @@
 /fix_setforce_spin.h
 /min_spin.cpp
 /min_spin.h
+/min_spin_oso_cg.cpp
+/min_spin_oso_cg.h
 /neb_spin.cpp
 /neb_spin.h
 /pair_spin.cpp

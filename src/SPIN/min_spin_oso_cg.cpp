@@ -12,9 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing authors: Julien Tranchida (SNL), Aleksei Ivanov (UI)
+   Contributing authors: Aleksei Ivanov (UI)
+                         Julien Tranchida (SNL)
 
    Please cite the related publication:
+   Ivanov, A. V., Uzdin, V. M., & Jónsson, H. (2019). Fast and Robust 
+   Algorithm for the Minimisation of the Energy of Spin Systems. arXiv 
+   preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -24,6 +28,7 @@
 #include "min_spin_oso_cg.h"
 #include "universe.h"
 #include "atom.h"
+#include "citeme.h"
 #include "force.h"
 #include "update.h"
 #include "output.h"
@@ -36,30 +41,40 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+static const char cite_minstyle_spin_oso_cg[] =
+  "min_style spin/oso_cg command:\n\n"
+  "@article{ivanov2019fast,\n"
+  "title={Fast and Robust Algorithm for the Minimisation of the Energy of "
+  "Spin Systems},\n"
+  "author={Ivanov, A. V and Uzdin, V. M. and J{\'o}nsson, H.},\n"
+  "journal={arXiv preprint arXiv:1904.02669},\n"
+  "year={2019}\n"
+  "}\n\n";
+
 // EPS_ENERGY = minimum normalization for energy tolerance
 
 #define EPS_ENERGY 1.0e-8
 
 #define DELAYSTEP 5
 
-void vm3(const double *m, const double *v, double *out);
-void rodrigues_rotation(const double *upp_tr, double *out);
 
 /* ---------------------------------------------------------------------- */
 
-MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) : Min(lmp) {}
+MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) : Min(lmp) {
+  if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_cg);
+}
 
 /* ---------------------------------------------------------------------- */
 
 void MinSpinOSO_CG::init()
 {
-    alpha_damp = 1.0;
-    discrete_factor = 10.0;
+  alpha_damp = 1.0;
+  discrete_factor = 10.0;
 
-    Min::init();
+  Min::init();
 
-    dts = dt = update->dt;
-    last_negative = update->ntimestep;
+  dts = dt = update->dt;
+  last_negative = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,34 +136,34 @@ void MinSpinOSO_CG::reset_vectors()
 
 int MinSpinOSO_CG::iterate(int maxiter)
 {
-    bigint ntimestep;
-    double fmdotfm;
-    int flag, flagall;
+  bigint ntimestep;
+  double fmdotfm;
+  int flag, flagall;
 
-    // not sure it is best place to allocate memory
-    int nlocal = atom->nlocal;
-    g = (double *) calloc(3*nlocal, sizeof(double));
-    p = (double *) calloc(3*nlocal, sizeof(double));
-    g_old = (double *) calloc(3*nlocal, sizeof(double));
+  // not sure it is best place to allocate memory
+  int nlocal = atom->nlocal;
+  g = (double *) calloc(3*nlocal, sizeof(double));
+  p = (double *) calloc(3*nlocal, sizeof(double));
+  g_old = (double *) calloc(3*nlocal, sizeof(double));
 
-    for (int iter = 0; iter < maxiter; iter++) {
-
+  for (int iter = 0; iter < maxiter; iter++) {
+    
     if (timer->check_timeout(niter))
       return TIMEOUT;
-
+  
     ntimestep = ++update->ntimestep;
     niter++;
-
+  
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
-
+  
     energy_force(0);
     dts = evaluate_dt();
-
+  
     calc_gradient(dts);
     calc_search_direction(iter);
     advance_spins();
-
+  
     eprevious = ecurrent;
     ecurrent = energy_force(0);
     neval++;
@@ -156,7 +171,7 @@ int MinSpinOSO_CG::iterate(int maxiter)
     //// energy tolerance criterion
     //// only check after DELAYSTEP elapsed since velocties reset to 0
     //// sync across replicas if running multi-replica minimization
-
+  
     if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
@@ -196,9 +211,9 @@ int MinSpinOSO_CG::iterate(int maxiter)
     }
   }
 
-    free(p);
-    free(g);
-    free(g_old);
+  free(p);
+  free(g);
+  free(g_old);
 
   return MAXITER;
 }
@@ -254,76 +269,80 @@ double MinSpinOSO_CG::evaluate_dt()
 
 void MinSpinOSO_CG::calc_gradient(double dts)
 {
-    int nlocal = atom->nlocal;
-    double **sp = atom->sp;
-    double **fm = atom->fm;
-    double tdampx, tdampy, tdampz;
-    // loop on all spins on proc.
+  int nlocal = atom->nlocal;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+  double tdampx, tdampy, tdampz;
+  
+  // loop on all spins on proc.
 
-    for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
+    
+    // calc. damping torque
+    
+    tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
+    tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
+    tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
 
-        // calc. damping torque
-        tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-        tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-        tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-
-        // calculate gradients
-        g[3 * i + 0] = -tdampz * dts;
-        g[3 * i + 1] = tdampy * dts;
-        g[3 * i + 2] = -tdampx * dts;
-    }
+    // calculate gradients
+    
+    g[3 * i + 0] = -tdampz * dts;
+    g[3 * i + 1] = tdampy * dts;
+    g[3 * i + 2] = -tdampx * dts;
+  }
 }
+
+/* ----------------------------------------------------------------------
+   search direction
+---------------------------------------------------------------------- */
 
 void MinSpinOSO_CG::calc_search_direction(int iter)
 {
-    int nlocal = atom->nlocal;
-    double g2old = 0.0;
-    double g2 = 0.0;
-    double beta = 0.0;
+  int nlocal = atom->nlocal;
+  double g2old = 0.0;
+  double g2 = 0.0;
+  double beta = 0.0;
 
-    double g2_global= 0.0;
-    double g2old_global= 0.0;
+  double g2_global= 0.0;
+  double g2old_global= 0.0;
 
-    // for some reason on a second iteration g_old = 0
-    // so we make two iterations as steepest descent
-    if (iter <= 2 || iter % 5 == 0){
-        // steepest descent direction
-        for (int i = 0; i < nlocal; i++) {
-            for (int j = 0; j < 3; j++){
-                p[3 * i + j] = -g[3 * i + j];
-                g_old[3 * i + j] = g[3 * i + j];
-            }
-        }
-    } else{
-        // conjugate direction
-        for (int i = 0; i < nlocal; i++) {
-            for (int j = 0; j < 3; j++){
-                g2old += g_old[3 * i + j] * g_old[3 * i + j];
-                g2 += g[3 * i + j] * g[3 * i + j];
-
-            }
-        }
-
-        // now we need to collect/broadcast beta on this replica
-        // different replica can have different beta for now.
-        // need to check what is beta for GNEB
-        MPI_Allreduce(&g2, &g2_global, 1, MPI_DOUBLE, MPI_SUM, world);
-        MPI_Allreduce(&g2old, &g2old_global, 1, MPI_DOUBLE, MPI_SUM, world);
-
-        beta = g2_global / g2old_global;
-
-        // calculate conjugate direction
-        for (int i = 0; i < nlocal; i++) {
-            for (int j = 0; j < 3; j++){
-                p[3 * i + j] = beta * p[3 * i + j] - g[3 * i + j];
-                g_old[3 * i + j] = g[3 * i + j];
-            }
-        }
-
+  // for some reason on a second iteration g_old = 0
+  // so we make two iterations as steepest descent
+  
+  if (iter <= 2 || iter % 5 == 0){ 	// steepest descent direction
+    for (int i = 0; i < nlocal; i++) {
+      for (int j = 0; j < 3; j++){
+          p[3 * i + j] = -g[3 * i + j];
+          g_old[3 * i + j] = g[3 * i + j];
+      }
+    }
+  } else { 				// conjugate direction
+    for (int i = 0; i < nlocal; i++) {
+      for (int j = 0; j < 3; j++){
+	g2old += g_old[3 * i + j] * g_old[3 * i + j];
+	g2 += g[3 * i + j] * g[3 * i + j];
+      }
     }
 
-}
+    // now we need to collect/broadcast beta on this replica
+    // different replica can have different beta for now.
+    // need to check what is beta for GNEB
+    
+    MPI_Allreduce(&g2, &g2_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&g2old, &g2old_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
+    beta = g2_global / g2old_global;
+
+    // calculate conjugate direction
+    
+    for (int i = 0; i < nlocal; i++) {
+      for (int j = 0; j < 3; j++){
+	p[3 * i + j] = beta * p[3 * i + j] - g[3 * i + j];
+	g_old[3 * i + j] = g[3 * i + j];
+      }
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
    rotation of spins along the search direction
@@ -341,14 +360,15 @@ void MinSpinOSO_CG::advance_spins()
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
-      rodrigues_rotation(p + 3 * i, rot_mat);
-      // rotate spins
-      vm3(rot_mat, sp[i], s_new);
-      sp[i][0] = s_new[0];
-      sp[i][1] = s_new[1];
-      sp[i][2] = s_new[2];
+    rodrigues_rotation(p + 3 * i, rot_mat);
+    
+    // rotate spins
+    
+    vm3(rot_mat, sp[i], s_new);
+    sp[i][0] = s_new[0];
+    sp[i][1] = s_new[1];
+    sp[i][2] = s_new[2];
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -384,86 +404,82 @@ double MinSpinOSO_CG::fmnorm_sqr()
   return norm2_sqr;
 }
 
+/* ----------------------------------------------------------------------
+  calculate 3x3 matrix exponential using Rodrigues' formula
+  (R. Murray, Z. Li, and S. Shankar Sastry,
+  A Mathematical Introduction to
+  Robotic Manipulation (1994), p. 28 and 30).
+  
+  upp_tr - vector x, y, z so that one calculate
+  U = exp(A) with A= [[0, x, y],
+                      [-x, 0, z],
+                      [-y, -z, 0]]
+------------------------------------------------------------------------- */
 
-void rodrigues_rotation(const double *upp_tr, double *out){
+void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
+{
 
-    /***
-    * calculate 3x3 matrix exponential using Rodrigues' formula
-    * (R. Murray, Z. Li, and S. Shankar Sastry,
-    * A Mathematical Introduction to
-    * Robotic Manipulation (1994), p. 28 and 30).
-    *
-    * upp_tr - vector x, y, z so that one calculate
-    * U = exp(A) with A= [[0, x, y],
-    *                     [-x, 0, z],
-    *                     [-y, -z, 0]]
-    ***/
-
-
-    if (fabs(upp_tr[0]) < 1.0e-40 &&
-        fabs(upp_tr[1]) < 1.0e-40 &&
-        fabs(upp_tr[2]) < 1.0e-40){
-        // if upp_tr is zero, return unity matrix
-        int k;
-        int m;
-        for(k = 0; k < 3; k++){
-            for(m = 0; m < 3; m++){
-                if (m == k) out[3 * k + m] = 1.0;
-                else out[3 * k + m] = 0.0;
-            }
-        }
-        return;
+  if (fabs(upp_tr[0]) < 1.0e-40 &&
+      fabs(upp_tr[1]) < 1.0e-40 &&
+      fabs(upp_tr[2]) < 1.0e-40){
+    
+    // if upp_tr is zero, return unity matrix
+    for(int k = 0; k < 3; k++){
+      for(int m = 0; m < 3; m++){
+	if (m == k) out[3 * k + m] = 1.0;
+	else out[3 * k + m] = 0.0;
+      }
     }
+    return;
+  }
 
-    double theta = sqrt(upp_tr[0] * upp_tr[0] +
-                        upp_tr[1] * upp_tr[1] +
-                        upp_tr[2] * upp_tr[2]);
+  double theta = sqrt(upp_tr[0] * upp_tr[0] +
+                      upp_tr[1] * upp_tr[1] +
+                      upp_tr[2] * upp_tr[2]);
 
-    double A = cos(theta);
-    double B = sin(theta);
-    double D = 1 - A;
-    double x = upp_tr[0]/theta;
-    double y = upp_tr[1]/theta;
-    double z = upp_tr[2]/theta;
+  double A = cos(theta);
+  double B = sin(theta);
+  double D = 1 - A;
+  double x = upp_tr[0]/theta;
+  double y = upp_tr[1]/theta;
+  double z = upp_tr[2]/theta;
 
-    // diagonal elements of U
-    out[0] = A + z * z * D;
-    out[4] = A + y * y * D;
-    out[8] = A + x * x * D;
+  // diagonal elements of U
+  
+  out[0] = A + z * z * D;
+  out[4] = A + y * y * D;
+  out[8] = A + x * x * D;
 
-    // off diagonal of U
-    double s1 = -y * z *D;
-    double s2 = x * z * D;
-    double s3 = -x * y * D;
+  // off diagonal of U
+  
+  double s1 = -y * z *D;
+  double s2 = x * z * D;
+  double s3 = -x * y * D;
 
-    double a1 = x * B;
-    double a2 = y * B;
-    double a3 = z * B;
+  double a1 = x * B;
+  double a2 = y * B;
+  double a3 = z * B;
 
-    out[1] = s1 + a1;
-    out[3] = s1 - a1;
-    out[2] = s2 + a2;
-    out[6] = s2 - a2;
-    out[5] = s3 + a3;
-    out[7] = s3 - a3;
+  out[1] = s1 + a1;
+  out[3] = s1 - a1;
+  out[2] = s2 + a2;
+  out[6] = s2 - a2;
+  out[5] = s3 + a3;
+  out[7] = s3 - a3;
 
 }
 
+/* ----------------------------------------------------------------------
+  out = vector^T x m,
+  m -- 3x3 matrix , v -- 3-d vector
+------------------------------------------------------------------------- */
 
-void vm3(const double *m, const double *v, double *out){
-    /***
-     * out = vector^T x m,
-     * m -- 3x3 matrix , v -- 3-d vector
-     ***/
-
-    int i;
-    int j;
-
-    for(i = 0; i < 3; i++){
-        out[i] *= 0.0;
-        for(j = 0; j < 3; j++){
-            out[i] += *(m + 3 * j + i) * v[j];
-        }
+void MinSpinOSO_CG::vm3(const double *m, const double *v, double *out)
+{
+  for(int i = 0; i < 3; i++){
+    out[i] *= 0.0;
+    for(int j = 0; j < 3; j++){
+      out[i] += *(m + 3 * j + i) * v[j];
     }
-
+  }
 }

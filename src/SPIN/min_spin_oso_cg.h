@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(spin_oso_cg, MinSpinOSO_CG)
+MinimizeStyle(spin/oso_cg, MinSpinOSO_CG)
 
 #else
 
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class MinSpinOSO_CG : public Min {
 
 public:
-    MinSpinOSO_CG(class LAMMPS *);  //?
-    ~MinSpinOSO_CG() {}  //?
+    MinSpinOSO_CG(class LAMMPS *);
+    ~MinSpinOSO_CG() {}
     void init();
     void setup_style();
     int modify_param(int, char **);
@@ -46,15 +46,18 @@ private:
     double dt;
     double dts;
 
-    double alpha_damp;            // damping for spin minimization
-    double discrete_factor;       // factor for spin timestep evaluation
+    double alpha_damp;		// damping for spin minimization
+    double discrete_factor;	// factor for spin timestep evaluation
 
-    double *spvec;               // variables for atomic dof, as 1d vector
-    double *fmvec;               // variables for atomic dof, as 1d vector
+    double *spvec;		// variables for atomic dof, as 1d vector
+    double *fmvec;		// variables for atomic dof, as 1d vector
 
-    double *g_old;  // gradient vector at previous iteration
-    double *g;  // gradient vector
-    double *p;  // search direction vector
+    double *g_old;  		// gradient vector at previous iteration
+    double *g;  		// gradient vector
+    double *p;  		// search direction vector
+
+    void vm3(const double *m, const double *v, double *out);
+    void rodrigues_rotation(const double *upp_tr, double *out);
 
     bigint last_negative;
 };

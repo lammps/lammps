@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing authors: Julien Tranchida (SNL)
+   Contributing authors: Julien Tranchida (SNL), Aleksei Ivanov (UI)
 
    Please cite the related publication:
 ------------------------------------------------------------------------- */

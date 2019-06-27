@@ -1006,11 +1006,9 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
   db_i[0] += -r0inv;
   db_r[1] += r0inv;
 
-  ulist_r[0] = 1.0;
   dulist_r(0,0) = 0.0;
   dulist_r(0,1) = 0.0;
   dulist_r(0,2) = 0.0;
-  ulist_i[0] = 0.0;
   dulist_i(0,0) = 0.0;
   dulist_i(0,1) = 0.0;
   dulist_i(0,2) = 0.0;
@@ -1022,11 +1020,9 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         [&] (const int& mb) {
     //for (int mb = 0; 2*mb <= j; mb++) {
       const int jju_index = jju+mb+mb*j;
-      ulist_r[jju_index] = 0.0;
       dulist_r(jju_index,0) = 0.0;
       dulist_r(jju_index,1) = 0.0;
       dulist_r(jju_index,2) = 0.0;
-      ulist_i[jju_index] = 0.0;
       dulist_i(jju_index,0) = 0.0;
       dulist_i(jju_index,1) = 0.0;
       dulist_i(jju_index,2) = 0.0;
@@ -1035,13 +1031,6 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         const int jju_index = jju+mb+mb*j+ma;
         const int jjup_index = jjup+mb*j+ma;
         rootpq = rootpqarray(j - ma,j - mb);
-        ulist_r[jju_index] += rootpq *
-                               (a_r *  ulist_r(jjup_index) +
-                                a_i *  ulist_i(jjup_index));
-        ulist_i[jju_index] += rootpq *
-                               (a_r *  ulist_i(jjup_index) -
-                                a_i *  ulist_r(jjup_index));
-
         for (int k = 0; k < 3; k++) {
           dulist_r(jju_index,k) +=
             rootpq * (da_r[k] * ulist_r[jjup_index] +
@@ -1056,13 +1045,6 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         }
 
         rootpq = rootpqarray(ma + 1,j - mb);
-        ulist_r[jju_index+1] =
-          -rootpq * (b_r *  ulist_r[jjup_index] +
-                     b_i *  ulist_i[jjup_index]);
-        ulist_i[jju_index+1] =
-          -rootpq * (b_r *  ulist_i[jjup_index] -
-                     b_i *  ulist_r[jjup_index]);
-
         for (int k = 0; k < 3; k++) {
           dulist_r(jju_index+1,k) =
             -rootpq * (db_r[k] * ulist_r[jjup_index] +
@@ -1092,15 +1074,11 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         const int jju_index = jju+mb*(j+1)+ma;
         const int jjup_index = jjup-mb*(j+1)-ma;
         if (mapar == 1) {
-          ulist_r[jjup_index] = ulist_r[jju_index];
-          ulist_i[jjup_index] = -ulist_i[jju_index];
           for (int k = 0; k < 3; k++) {
             dulist_r(jjup_index,k) = dulist_r(jju_index,k);
             dulist_i(jjup_index,k) = -dulist_i(jju_index,k);
           }
         } else {
-          ulist_r[jjup_index] = -ulist_r[jju_index];
-          ulist_i[jjup_index] = ulist_i[jju_index];
           for (int k = 0; k < 3; k++) {
             dulist_r(jjup_index,k) = -dulist_r(jju_index,k);
             dulist_i(jjup_index,k) = dulist_i(jju_index,k);

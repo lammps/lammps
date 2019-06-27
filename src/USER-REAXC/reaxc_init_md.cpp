@@ -24,6 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include <cstring>
 #include "pair_reaxc.h"
 #include "reaxc_init_md.h"
 #include "reaxc_allocate.h"

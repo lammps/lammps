@@ -26,6 +26,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include <cstring>
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 

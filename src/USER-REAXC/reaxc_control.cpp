@@ -24,6 +24,8 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include <cstdlib>
+#include <cstring>
 #include "pair_reaxc.h"
 #include "reaxc_control.h"
 #include "reaxc_tool_box.h"

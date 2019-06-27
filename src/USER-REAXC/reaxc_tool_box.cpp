@@ -24,8 +24,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include <cstring>
 #include "pair_reaxc.h"
 #include "reaxc_tool_box.h"
+
+#if !defined(_MSC_VER)
+#include <sys/time.h>
+#endif
 
 #include "error.h"
 

@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include <cstdlib>
+#include <cstring>
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"

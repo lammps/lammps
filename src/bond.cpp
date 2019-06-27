@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
+#include <mpi.h>
 #include "bond.h"
 #include "atom.h"
 #include "comm.h"

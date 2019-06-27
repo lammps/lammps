@@ -19,7 +19,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "math_const.h"
 #include "memory.h"

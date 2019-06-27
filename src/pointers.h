@@ -39,6 +39,11 @@ namespace LAMMPS_NS {
 
 enum ExecutionSpace{Host,Device};
 
+// global forward declarations
+
+template <class T> class MyPoolChunk;
+template <class T> class MyPage;
+
 class Pointers {
  public:
   Pointers(LAMMPS *ptr) :

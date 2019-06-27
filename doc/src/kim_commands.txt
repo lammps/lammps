@@ -352,7 +352,7 @@ webpage at "https://query.openkim.org"_https://query.openkim.org/
 The data obtained by {kim_query} commands can be used as part of the setup
 or analysis phases of LAMMPS simulations. Some examples are given below.
 
-[Define a crystal at its equilibrium lattice constant]
+[Define an equilibrium fcc crystal]
 
 kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 boundary         p p p
@@ -372,6 +372,26 @@ Note that in {unit_conversion_mode} the results obtained from a
 {kim_query} would need to be converted to the appropriate units system.
 For example, in the above script, the lattice command would need to be
 changed to: "lattice fcc $\{a0\}*$\{_u_distance\}".
+
+[Define an equilibrium hcp crystal]
+
+kim_init         EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal
+boundary         p p p
+kim_query        latconst get_lattice_constant_hcp species=\["Zr"\] units=\["angstrom"\]
+variable         a0 equal latconst_1
+variable         c0 equal latconst_2
+variable         c_to_a equal $\{c0\}/$\{a0\}
+lattice          custom $\{a0\} a1 0.5 -0.866025 0 a2 0.5 0.866025 0 a3 0 0 $\{c_to_a\} &
+                 basis 0.333333 0.666666 0.25 basis 0.666666 0.333333 0.75
+... :pre
+
+In this case the {kim_query} returns two arguments (since the hexagonal
+close packed (hcp) structure has two independent lattice constants).
+In the case where a query returns multiple results, the default behavior
+for {kim_query} is to split these into individual variables of the form
+{prefix_I}, where {prefix} is set to the the {kim_query} {variable} argument
+and {I} ranges from 1 to the number of returned values. The number and order of
+the returned values is determined by the type of query performed.
 
 [Define a crystal at finite temperature accounting for thermal expansion]
 

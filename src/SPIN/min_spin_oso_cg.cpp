@@ -21,7 +21,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "min_spin_oso.h"
+#include "min_spin_oso_cg.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
@@ -47,24 +47,24 @@ void rodrigues_rotation(const double *upp_tr, double *out);
 
 /* ---------------------------------------------------------------------- */
 
-MinSpinOSO::MinSpinOSO(LAMMPS *lmp) : Min(lmp) {}
+MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void MinSpinOSO::init()
+void MinSpinOSO_CG::init()
 {
-  alpha_damp = 1.0;
-  discrete_factor = 10.0;
+    alpha_damp = 1.0;
+    discrete_factor = 10.0;
 
-  Min::init();
+    Min::init();
 
-  dts = dt = update->dt;
-  last_negative = update->ntimestep;
+    dts = dt = update->dt;
+    last_negative = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void MinSpinOSO::setup_style()
+void MinSpinOSO_CG::setup_style()
 {
   double **v = atom->v;
   int nlocal = atom->nlocal;
@@ -72,7 +72,7 @@ void MinSpinOSO::setup_style()
   // check if the atom/spin style is defined
 
   if (!atom->sp_flag)
-    error->all(FLERR,"min/spin_oso requires atom/spin style");
+    error->all(FLERR,"min/spin_oso_cg requires atom/spin style");
 
   for (int i = 0; i < nlocal; i++)
     v[i][0] = v[i][1] = v[i][2] = 0.0;
@@ -80,7 +80,7 @@ void MinSpinOSO::setup_style()
 
 /* ---------------------------------------------------------------------- */
 
-int MinSpinOSO::modify_param(int narg, char **arg)
+int MinSpinOSO_CG::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"alpha_damp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
@@ -100,7 +100,7 @@ int MinSpinOSO::modify_param(int narg, char **arg)
    called after atoms have migrated
 ------------------------------------------------------------------------- */
 
-void MinSpinOSO::reset_vectors()
+void MinSpinOSO_CG::reset_vectors()
 {
   // atomic dof
 
@@ -119,13 +119,19 @@ void MinSpinOSO::reset_vectors()
    minimization via damped spin dynamics
 ------------------------------------------------------------------------- */
 
-int MinSpinOSO::iterate(int maxiter)
+int MinSpinOSO_CG::iterate(int maxiter)
 {
-  bigint ntimestep;
-  double fmdotfm;
-  int flag, flagall;
+    bigint ntimestep;
+    double fmdotfm;
+    int flag, flagall;
 
-  for (int iter = 0; iter < maxiter; iter++) {
+    // not sure it is best place to allocate memory
+    int nlocal = atom->nlocal;
+    g = (double *) calloc(3*nlocal, sizeof(double));
+    p = (double *) calloc(3*nlocal, sizeof(double));
+    g_old = (double *) calloc(3*nlocal, sizeof(double));
+
+    for (int iter = 0; iter < maxiter; iter++) {
 
     if (timer->check_timeout(niter))
       return TIMEOUT;
@@ -139,9 +145,9 @@ int MinSpinOSO::iterate(int maxiter)
     energy_force(0);
     dts = evaluate_dt();
 
-    // apply damped precessional dynamics to the spins
-
-    advance_spins(dts);
+    calc_gradients(dts);
+    calc_search_direction(iter);
+    advance_spins();
 
     eprevious = ecurrent;
     ecurrent = energy_force(0);
@@ -190,6 +196,10 @@ int MinSpinOSO::iterate(int maxiter)
     }
   }
 
+    free(p);
+    free(g);
+    free(g_old);
+
   return MAXITER;
 }
 
@@ -197,7 +207,7 @@ int MinSpinOSO::iterate(int maxiter)
    evaluate max timestep
 ---------------------------------------------------------------------- */
 
-double MinSpinOSO::evaluate_dt()
+double MinSpinOSO_CG::evaluate_dt()
 {
   double dtmax;
   double fmsq;
@@ -239,34 +249,100 @@ double MinSpinOSO::evaluate_dt()
 }
 
 /* ----------------------------------------------------------------------
+   calculate gradients
+---------------------------------------------------------------------- */
+
+void MinSpinOSO_CG::calc_gradients(double dts)
+{
+    int nlocal = atom->nlocal;
+    double **sp = atom->sp;
+    double **fm = atom->fm;
+    double tdampx, tdampy, tdampz;
+    // loop on all spins on proc.
+
+    for (int i = 0; i < nlocal; i++) {
+
+        // calc. damping torque
+        tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
+        tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
+        tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
+
+        // calculate rotation matrix
+        g[3 * i + 0] = -tdampz * dts;
+        g[3 * i + 1] = tdampy * dts;
+        g[3 * i + 2] = -tdampx * dts;
+    }
+}
+
+void MinSpinOSO_CG::calc_search_direction(int iter)
+{
+    int nlocal = atom->nlocal;
+    double g2old = 0.0;
+    double g2 = 0.0;
+    double beta = 0.0;
+
+    double g2_global= 0.0;
+    double g2old_global= 0.0;
+
+    // for some reason on a second iteration g_old = 0
+    // so we make to iterations as steepest descent
+    if (iter <= 2 || iter % 5 == 0){
+        // steepest descent direction
+        for (int i = 0; i < nlocal; i++) {
+            for (int j = 0; j < 3; j++){
+                p[3 * i + j] = -g[3 * i + j];
+                g_old[3 * i + j] = g[3 * i + j];
+            }
+        }
+    } else{
+        // conjugate direction
+        for (int i = 0; i < nlocal; i++) {
+            for (int j = 0; j < 3; j++){
+                g2old += g_old[3 * i + j] * g_old[3 * i + j];
+                g2 += g[3 * i + j] * g[3 * i + j];
+
+            }
+        }
+
+        // now we need to collect/broadcast beta on this replica
+        // different replica can have different beta for now.
+        // need to check what is beta for GNEB
+        MPI_Allreduce(&g2, &g2_global, 1, MPI_DOUBLE, MPI_SUM, world);
+        MPI_Allreduce(&g2old, &g2old_global, 1, MPI_DOUBLE, MPI_SUM, world);
+
+        beta = g2_global / g2old_global;
+
+        //calculate conjugate direction
+        for (int i = 0; i < nlocal; i++) {
+            for (int j = 0; j < 3; j++){
+                p[3 * i + j] = beta * p[3 * i + j] - g[3 * i + j];
+                g_old[3 * i + j] = g[3 * i + j];
+            }
+        }
+
+    }
+
+}
+
+
+/* ----------------------------------------------------------------------
    rotation of spins along the search direction
 ---------------------------------------------------------------------- */
 
-void MinSpinOSO::advance_spins(double dts)
+void MinSpinOSO_CG::advance_spins()
 {
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tdampx, tdampy, tdampz;
-  double f[3];  // upper triag. part of skew-symm. matr. to be exponented
+  //  double f[3];  // upper triag. part of skew-symm. matr. to be exponented
   double rot_mat[9]; // exponential of a
   double s_new[3];
 
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
-
-      // calc. damping torque
-      tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-      tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-      tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-
-      // calculate rotation matrix
-      f[0] = tdampz * dts;
-      f[1] = -tdampy * dts;
-      f[2] = tdampx * dts;
-      rodrigues_rotation(f, rot_mat);
-
+      rodrigues_rotation(p + 3 * i, rot_mat);
       // rotate spins
       vm3(rot_mat, sp[i], s_new);
       sp[i][0] = s_new[0];
@@ -280,7 +356,7 @@ void MinSpinOSO::advance_spins(double dts)
    compute and return ||mag. torque||_2^2
 ------------------------------------------------------------------------- */
 
-double MinSpinOSO::fmnorm_sqr()
+double MinSpinOSO_CG::fmnorm_sqr()
 {
   int nlocal = atom->nlocal;
   double tx,ty,tz;

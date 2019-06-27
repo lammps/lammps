@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -25,7 +26,6 @@
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
-#include "output.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"

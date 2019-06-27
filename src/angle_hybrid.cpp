@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
+#include <cstdio>
 #include <cstring>
 #include <cctype>
 #include "angle_hybrid.h"

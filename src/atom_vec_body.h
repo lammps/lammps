@@ -112,7 +112,6 @@ class AtomVecBody : public AtomVec {
 
   void grow_bonus();
   void copy_bonus(int, int);
-  //void check(int);
 };
 
 }

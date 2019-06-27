@@ -14,7 +14,6 @@
 #ifndef LMP_BOND_H
 #define LMP_BOND_H
 
-#include <cstdio>
 #include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {

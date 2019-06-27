@@ -12,11 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <climits>
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
@@ -28,14 +26,12 @@
 #include "fix.h"
 #include "compute.h"
 #include "output.h"
-#include "thermo.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "molecule.h"
-#include "atom_masks.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

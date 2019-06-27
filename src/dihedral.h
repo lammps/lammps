@@ -14,7 +14,6 @@
 #ifndef LMP_DIHEDRAL_H
 #define LMP_DIHEDRAL_H
 
-#include <cstdio>
 #include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {

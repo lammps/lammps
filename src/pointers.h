@@ -23,7 +23,7 @@
 
 #include "lmptype.h"   // IWYU pragma: export
 #include <mpi.h>
-#include <cstdio>
+#include <cstdio>      // IWYU pragma: export
 #include "lammps.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {

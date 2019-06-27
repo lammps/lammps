@@ -42,6 +42,9 @@ using namespace MathConst;
 
 #define DELAYSTEP 5
 
+void vm3(const double *m, const double *v, double *out);
+void rodrigues_rotation(const double *upp_tr, double *out);
+
 /* ---------------------------------------------------------------------- */
 
 MinSpinOSO::MinSpinOSO(LAMMPS *lmp) : Min(lmp) {}
@@ -244,58 +247,33 @@ void MinSpinOSO::advance_spins(double dts)
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double tdampx,tdampy,tdampz;
-  double msq, scale, fm2, energy, dts2;
-  double cp[3], g[3];
-
-  dts2 = dts*dts;
+  double tdampx, tdampy, tdampz;
+  double f[3];  // upper triag. part of skew-symm. matr. to be exponented
+  double rot_mat[9]; // exponential of a
+  double s_new[3];
 
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
 
-    // calc. damping torque
+      // calc. damping torque
+      tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
+      tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
+      tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
 
-    tdampx = -alpha_damp*(fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-    tdampy = -alpha_damp*(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-    tdampz = -alpha_damp*(fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
+      // calculate rotation matrix
+      f[0] = tdampz * dts;
+      f[1] = -tdampy * dts;
+      f[2] = tdampx * dts;
+      rodrigues_rotation(f, rot_mat);
 
-    // apply advance algorithm (geometric, norm preserving)
-
-    fm2 = (tdampx*tdampx+tdampy*tdampy+tdampz*tdampz);
-    energy = (sp[i][0]*tdampx)+(sp[i][1]*tdampy)+(sp[i][2]*tdampz);
-
-    cp[0] = tdampy*sp[i][2]-tdampz*sp[i][1];
-    cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
-    cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
-
-    g[0] = sp[i][0]+cp[0]*dts;
-    g[1] = sp[i][1]+cp[1]*dts;
-    g[2] = sp[i][2]+cp[2]*dts;
-
-    g[0] += (tdampx*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
-    g[1] += (tdampy*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
-    g[2] += (tdampz*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
-
-    g[0] /= (1+0.25*fm2*dts2);
-    g[1] /= (1+0.25*fm2*dts2);
-    g[2] /= (1+0.25*fm2*dts2);
-
-    sp[i][0] = g[0];
-    sp[i][1] = g[1];
-    sp[i][2] = g[2];
-
-    // renormalization (check if necessary)
-
-    msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-    scale = 1.0/sqrt(msq);
-    sp[i][0] *= scale;
-    sp[i][1] *= scale;
-    sp[i][2] *= scale;
-
-    // no comm. to atoms with same tag
-    // because no need for simplecticity
+      // rotate spins
+      vm3(rot_mat, sp[i], s_new);
+      sp[i][0] = s_new[0];
+      sp[i][1] = s_new[1];
+      sp[i][2] = s_new[2];
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -331,3 +309,86 @@ double MinSpinOSO::fmnorm_sqr()
   return norm2_sqr;
 }
 
+
+void rodrigues_rotation(const double *upp_tr, double *out){
+
+    /***
+    * calculate 3x3 matrix exponential using Rodrigues' formula
+    * (R. Murray, Z. Li, and S. Shankar Sastry,
+    * A Mathematical Introduction to
+    * Robotic Manipulation (1994), p. 28 and 30).
+    *
+    * upp_tr - vector x, y, z so that one calculate
+    * U = exp(A) with A= [[0, x, y],
+    *                     [-x, 0, z],
+    *                     [-y, -z, 0]]
+    ***/
+
+
+    if (fabs(upp_tr[0]) < 1.0e-40 &&
+        fabs(upp_tr[1]) < 1.0e-40 &&
+        fabs(upp_tr[2]) < 1.0e-40){
+        // if upp_tr is zero, return unity matrix
+        int k;
+        int m;
+        for(k = 0; k < 3; k++){
+            for(m = 0; m < 3; m++){
+                if (m == k) out[3 * k + m] = 1.0;
+                else out[3 * k + m] = 0.0;
+            }
+        }
+        return;
+    }
+
+    double theta = sqrt(upp_tr[0] * upp_tr[0] +
+                        upp_tr[1] * upp_tr[1] +
+                        upp_tr[2] * upp_tr[2]);
+
+    double A = cos(theta);
+    double B = sin(theta);
+    double D = 1 - A;
+    double x = upp_tr[0]/theta;
+    double y = upp_tr[1]/theta;
+    double z = upp_tr[2]/theta;
+
+    // diagonal elements of U
+    out[0] = A + z * z * D;
+    out[4] = A + y * y * D;
+    out[8] = A + x * x * D;
+
+    // off diagonal of U
+    double s1 = -y * z *D;
+    double s2 = x * z * D;
+    double s3 = -x * y * D;
+
+    double a1 = x * B;
+    double a2 = y * B;
+    double a3 = z * B;
+
+    out[1] = s1 + a1;
+    out[3] = s1 - a1;
+    out[2] = s2 + a2;
+    out[6] = s2 - a2;
+    out[5] = s3 + a3;
+    out[7] = s3 - a3;
+
+}
+
+
+void vm3(const double *m, const double *v, double *out){
+    /***
+     * out = vector^T x m,
+     * m -- 3x3 matrix , v -- 3-d vector
+     ***/
+
+    int i;
+    int j;
+
+    for(i = 0; i < 3; i++){
+        out[i] *= 0.0;
+        for(j = 0; j < 3; j++){
+            out[i] += *(m + 3 * j + i) * v[j];
+        }
+    }
+
+}

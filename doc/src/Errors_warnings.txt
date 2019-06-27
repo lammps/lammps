@@ -82,6 +82,15 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch. :dd
 
+{Bond/react: Atom affected by reaction too close to template edge} :dt
+
+This means an atom which changes type or connectivity during the
+reaction is too close to an 'edge' atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom. :dd
+
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
 Self-explanatory. :dd

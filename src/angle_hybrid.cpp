@@ -103,8 +103,7 @@ void AngleHybrid::compute(int eflag, int vflag)
   // set neighbor->anglelist to sub-style anglelist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nanglelist = nanglelist[m];

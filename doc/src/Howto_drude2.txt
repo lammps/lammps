@@ -274,7 +274,7 @@ crash. Even without reaching this extreme case, the correlation
 between nearby dipoles on the same molecule may be exaggerated.  Often,
 special bond relations prevent bonded neighboring atoms to see the
 charge of each other's DP, so that the problem does not always appear.
-It is possible to use screened dipole dipole interactions by using the
+It is possible to use screened dipole-dipole interactions by using the
 "{pair_style thole}"_pair_thole.html.  This is implemented as a
 correction to the Coulomb pair_styles, which dampens at short distance
 the interactions between the charges representing the induced dipoles.

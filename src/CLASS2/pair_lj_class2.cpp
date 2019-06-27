@@ -2,12 +2,10 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
-
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -19,7 +17,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
+#include "update.h"
+#include "integrate.h"
+#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -31,6 +34,7 @@ using namespace MathConst;
 
 PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
 {
+  respa_enable = 1;
   writedata = 1;
 }
 
@@ -38,20 +42,20 @@ PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
 
 PairLJClass2::~PairLJClass2()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut);
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
 }
 
@@ -65,8 +69,7 @@ void PairLJClass2::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -134,6 +137,270 @@ void PairLJClass2::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ----------------------------------------------------------------------
+*/
+
+void PairLJClass2::compute_inner()
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  double rsq,rinv,r2inv,r3inv,r6inv,forcelj,factor_lj,rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+
+  inum = list->inum_inner;
+  ilist = list->ilist_inner;
+  numneigh = list->numneigh_inner;
+  firstneigh = list->firstneigh_inner;
+
+  double cut_out_on = cut_respa[0];
+  double cut_out_off = cut_respa[1];
+
+  double cut_out_diff = cut_out_off - cut_out_on;
+  double cut_out_on_sq = cut_out_on*cut_out_on;
+  double cut_out_off_sq = cut_out_off*cut_out_off;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cut_out_off_sq) {
+        r2inv = 1.0/rsq;
+		rinv = sqrt(r2inv);
+		r3inv = r2inv*rinv;
+        r6inv = r3inv*r3inv;
+        jtype = type[j];
+        forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
+        if (rsq > cut_out_on_sq) {
+          rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
+          fpair *= 1.0 - rsw*rsw*(3.0 - 2.0*rsw);
+        }
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJClass2::compute_middle()
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  double rsq,rinv,r2inv,r3inv,r6inv,forcelj,factor_lj,rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+
+  inum = list->inum_middle;
+  ilist = list->ilist_middle;
+  numneigh = list->numneigh_middle;
+  firstneigh = list->firstneigh_middle;
+
+  double cut_in_off = cut_respa[0];
+  double cut_in_on = cut_respa[1];
+  double cut_out_on = cut_respa[2];
+  double cut_out_off = cut_respa[3];
+
+  double cut_in_diff = cut_in_on - cut_in_off;
+  double cut_out_diff = cut_out_off - cut_out_on;
+  double cut_in_off_sq = cut_in_off*cut_in_off;
+  double cut_in_on_sq = cut_in_on*cut_in_on;
+  double cut_out_on_sq = cut_out_on*cut_out_on;
+  double cut_out_off_sq = cut_out_off*cut_out_off;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
+        r2inv = 1.0/rsq;
+		rinv = sqrt(r2inv);
+		r3inv = r2inv*rinv;
+        r6inv = r3inv*r3inv;
+        jtype = type[j];
+        forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
+        if (rsq < cut_in_on_sq) {
+          rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
+          fpair *= rsw*rsw*(3.0 - 2.0*rsw);
+        }
+        if (rsq > cut_out_on_sq) {
+          rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
+          fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
+        }
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJClass2::compute_outer(int eflag, int vflag)
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,rinv,r2inv,r3inv,r6inv,forcelj,factor_lj,rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  evdwl = 0.0;
+  ev_init(eflag,vflag);
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  double cut_in_off = cut_respa[2];
+  double cut_in_on = cut_respa[3];
+
+  double cut_in_diff = cut_in_on - cut_in_off;
+  double cut_in_off_sq = cut_in_off*cut_in_off;
+  double cut_in_on_sq = cut_in_on*cut_in_on;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+
+      if (rsq < cutsq[itype][jtype]) {
+        if (rsq > cut_in_off_sq) {
+          r2inv = 1.0/rsq;
+		  rinv = sqrt(r2inv);
+		  r3inv = r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+          fpair = factor_lj*forcelj*r2inv;
+          if (rsq < cut_in_on_sq) {
+            rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
+            fpair *= rsw*rsw*(3.0 - 2.0*rsw);
+          }
+
+          f[i][0] += delx*fpair;
+          f[i][1] += dely*fpair;
+          f[i][2] += delz*fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx*fpair;
+            f[j][1] -= dely*fpair;
+            f[j][2] -= delz*fpair;
+          }
+        }
+
+        if (eflag) {
+          r2inv = 1.0/rsq;
+		  rinv = sqrt(r2inv);
+		  r3inv = r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+            offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
+
+        if (vflag) {
+          if (rsq <= cut_in_off_sq) {
+            r2inv = 1.0/rsq;
+			rinv = sqrt(r2inv);
+			r3inv = r2inv*rinv;
+            r6inv = r3inv*r3inv;
+            forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+            fpair = factor_lj*forcelj*r2inv;
+          } else if (rsq < cut_in_on_sq)
+            fpair = factor_lj*forcelj*r2inv;
+        }
+
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
+      }
+    }
+  }
+}
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
@@ -214,6 +481,38 @@ void PairLJClass2::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLJClass2::init_style()
+{
+  // request regular or rRESPA neighbor list
+
+  int irequest;
+  int respa = 0;
+
+  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
+
+  irequest = neighbor->request(this,instance_me);
+
+  if (respa >= 1) {
+    neighbor->requests[irequest]->respaouter = 1;
+    neighbor->requests[irequest]->respainner = 1;
+  }
+  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
+
+  // set rRESPA cutoffs
+
+  if (strstr(update->integrate_style,"respa") &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -246,6 +545,11 @@ double PairLJClass2::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
+
+  // check interior rRESPA cutoff
+
+  if (cut_respa && cut[i][j] < cut_respa[3])
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

@@ -36,6 +36,10 @@
 #include "atom_kokkos.h"
 #include "kokkos.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;
@@ -147,8 +151,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   vflag = vflag_in;
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -232,7 +235,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
      } else
        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroMixingWeights>(0,np_total),*this);
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetMixingWeights>(0,np_total),*this);
 #else
      int errorFlag = 0;
@@ -277,7 +280,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
-#ifdef KOKKOS_HAVE_CUDA  // Use atomics
+#ifdef KOKKOS_ENABLE_CUDA  // Use atomics
 
   if (neighflag == HALF) {
     if (newton_pair) {
@@ -307,12 +310,12 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 #else // No atomics
 
-  num_threads = lmp->kokkos->num_threads;
+  nthreads = lmp->kokkos->nthreads;
   int nmax = f.extent(0);
   if (nmax > t_f.extent(1)) {
-    t_f = t_f_array_thread("pair_exp6_rx:t_f",num_threads,nmax);
-    t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",num_threads,nmax);
-    t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",num_threads,nmax);
+    t_f = t_f_array_thread("pair_exp6_rx:t_f",nthreads,nmax);
+    t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",nthreads,nmax);
+    t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",nthreads,nmax);
   }
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroDupViews>(0,nmax),*this);
@@ -814,7 +817,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   }
 
   int tid = 0;
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
@@ -1156,7 +1159,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   t_uCG(tid,i) += uCG_i;
   t_uCGnew(tid,i) += uCGnew_i;
 
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
   unique_token.release(tid);
 #endif
 }
@@ -1189,7 +1192,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
 
   int tid = 0;
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
@@ -1623,7 +1626,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     t_uCGnew(tid,i) += uCGnew_i;
   }
 
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
   unique_token.release(tid);
 #endif
 }
@@ -1639,7 +1642,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, const int &i) const {
-  for (int n = 0; n < num_threads; n++) {
+  for (int n = 0; n < nthreads; n++) {
     f(i,0) += t_f(n,i,0);
     f(i,1) += t_f(n,i,1);
     f(i,2) += t_f(n,i,2);
@@ -1651,7 +1654,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, con
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroDupViews, const int &i) const {
-  for (int n = 0; n < num_threads; n++) {
+  for (int n = 0; n < nthreads; n++) {
     t_f(n,i,0) = 0.0;
     t_f(n,i,1) = 0.0;
     t_f(n,i,2) = 0.0;
@@ -2128,7 +2131,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 
 /* ---------------------------------------------------------------------- */
 
-#ifndef KOKKOS_HAVE_CUDA
+#ifndef KOKKOS_ENABLE_CUDA
 template<class DeviceType>
   template<class ArrayT>
 void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,
@@ -2654,7 +2657,7 @@ int PairExp6rxKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairExp6rxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairExp6rxKokkos<LMPHostType>;
 #endif
 }

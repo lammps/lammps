@@ -61,9 +61,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 {
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // extend size of per-atom arrays if necessary
 

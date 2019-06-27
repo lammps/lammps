@@ -514,9 +514,6 @@ void CreateAtoms::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
   }
 
-  MPI_Barrier(world);
-  double time2 = MPI_Wtime();
-
   // clean up
 
   delete ranmol;
@@ -525,21 +522,6 @@ void CreateAtoms::command(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-
-  // print status
-
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
-    }
-    if (logfile) {
-      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
-    }
-  }
 
   // for MOLECULE mode:
   // create special bond lists for molecular systems,
@@ -550,6 +532,25 @@ void CreateAtoms::command(int narg, char **arg)
     if (atom->molecular == 1 && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
+
+    }
+  }
+
+  // print status
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen) {
+      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
+              atom->natoms-natoms_previous);
+      fprintf(screen,"  create_atoms CPU = %g secs\n",time2-time1);
+    }
+    if (logfile) {
+      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
+              atom->natoms-natoms_previous);
+      fprintf(logfile,"  create_atoms CPU = %g secs\n",time2-time1);
     }
   }
 }

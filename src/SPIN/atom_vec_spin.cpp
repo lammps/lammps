@@ -48,7 +48,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   comm_x_only = 0;
   comm_f_only = 0;
   size_forward = 7;
-  size_reverse = 6;
+  size_reverse = 9;
   size_border = 10;
   size_velocity = 3;
   size_data_atom = 9;
@@ -57,7 +57,6 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->sp_flag = 1;
 }
-
 
 /* ----------------------------------------------------------------------
    grow atom arrays
@@ -88,6 +87,7 @@ void AtomVecSpin::grow(int n)
 
   sp = memory->grow(atom->sp,nmax,4,"atom:sp");
   fm = memory->grow(atom->fm,nmax*comm->nthreads,3,"atom:fm");
+  fm_long = memory->grow(atom->fm_long,nmax*comm->nthreads,3,"atom:fm_long");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -103,9 +103,8 @@ void AtomVecSpin::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  sp = atom->sp; fm = atom->fm;
+  sp = atom->sp; fm = atom->fm; fm_long = atom->fm_long;
 }
-
 
 /* ----------------------------------------------------------------------
    copy atom I info to atom J
@@ -342,6 +341,9 @@ int AtomVecSpin::pack_reverse(int n, int first, double *buf)
     buf[m++] = fm[i][0];
     buf[m++] = fm[i][1];
     buf[m++] = fm[i][2];
+    buf[m++] = fm_long[i][0];
+    buf[m++] = fm_long[i][1];
+    buf[m++] = fm_long[i][2];
   }
 
   return m;
@@ -361,6 +363,9 @@ void AtomVecSpin::unpack_reverse(int n, int *list, double *buf)
     fm[j][0] += buf[m++];
     fm[j][1] += buf[m++];
     fm[j][2] += buf[m++];
+    fm_long[j][0] += buf[m++];
+    fm_long[j][1] += buf[m++];
+    fm_long[j][2] += buf[m++];
   }
 }
 
@@ -939,14 +944,20 @@ bigint AtomVecSpin::memory_usage()
 
   if (atom->memcheck("sp")) bytes += memory->usage(sp,nmax,4);
   if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
+  if (atom->memcheck("fm_long")) bytes += memory->usage(fm_long,nmax*comm->nthreads,3);
 
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   clear all forces (mech and mag)
+------------------------------------------------------------------------- */
 
 void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
 {
   memset(&atom->f[0][0],0,3*nbytes);
   memset(&atom->fm[0][0],0,3*nbytes);
+  memset(&atom->fm_long[0][0],0,3*nbytes);
 }
 
 

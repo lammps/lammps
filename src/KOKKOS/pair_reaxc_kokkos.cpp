@@ -143,7 +143,7 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
-  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  if (fix_reax) modify->delete_fix(fix_id); // not needed in the Kokkos version
   fix_reax = NULL;
 
   // irequest = neigh request made by parent class
@@ -340,6 +340,7 @@ void PairReaxCKokkos<DeviceType>::init_md()
 {
   // init_taper()
   F_FLOAT d1, d7, swa, swa2, swa3, swb, swb2, swb3;
+  LR_lookup_table ** & LR = system->LR;
 
   swa = control->nonb_low;
   swb = control->nonb_cut;
@@ -437,6 +438,7 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
   double dr;
   double *h, *fh, *fvdw, *fele, *fCEvd, *fCEclmb;
   double v0_vdw, v0_ele, vlast_vdw, vlast_ele;
+  LR_lookup_table ** & LR = system->LR;
 
   /* initializations */
   v0_vdw = 0;
@@ -447,23 +449,23 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
   num_atom_types = atom->ntypes;
   dr = control->nonb_cut / control->tabulate;
   h = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:h", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:h");
   fh = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fh", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fh");
   fvdw = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fvdw", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fvdw");
   fCEvd = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fCEvd", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fCEvd");
   fele = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fele", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fele");
   fCEclmb = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fCEclmb", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fCEclmb");
 
   LR = (LR_lookup_table**)
-    scalloc( num_atom_types+1, sizeof(LR_lookup_table*), "lookup:LR", world );
+    scalloc( control->error_ptr, num_atom_types+1, sizeof(LR_lookup_table*), "lookup:LR");
   for( i = 0; i < num_atom_types+1; ++i )
     LR[i] = (LR_lookup_table*)
-      scalloc( num_atom_types+1, sizeof(LR_lookup_table), "lookup:LR[i]", world );
+      scalloc( control->error_ptr, num_atom_types+1, sizeof(LR_lookup_table), "lookup:LR[i]");
 
   for( i = 1; i <= num_atom_types; ++i ) {
     for( j = i; j <= num_atom_types; ++j ) {
@@ -473,22 +475,18 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
       LR[i][j].dx = dr;
       LR[i][j].inv_dx = control->tabulate / control->nonb_cut;
       LR[i][j].y = (LR_data*)
-        smalloc( LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y", world );
+        smalloc( control->error_ptr, LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y");
       LR[i][j].H = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H" ,
-                 world );
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H");
       LR[i][j].vdW = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW",
-                 world);
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW");
       LR[i][j].CEvd = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd",
-                 world);
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd");
       LR[i][j].ele = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele",
-                 world );
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele");
       LR[i][j].CEclmb = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),
-                 "lookup:LR[i,j].CEclmb", world );
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),
+                 "lookup:LR[i,j].CEclmb");
 
       for( r = 1; r <= control->tabulate; ++r ) {
         LR_vdW_Coulomb(i, j, r * dr, &(LR[i][j].y[r]) );
@@ -512,24 +510,20 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
       vlast_vdw = fCEvd[r-1];
       vlast_ele = fele[r-1];
 
-      Natural_Cubic_Spline( &h[1], &fh[1],
-                            &(LR[i][j].H[1]), control->tabulate+1, world );
+      Natural_Cubic_Spline( control->error_ptr, &h[1], &fh[1],
+                            &(LR[i][j].H[1]), control->tabulate+1 );
 
-      Complete_Cubic_Spline( &h[1], &fvdw[1], v0_vdw, vlast_vdw,
-                             &(LR[i][j].vdW[1]), control->tabulate+1,
-                             world );
+      Complete_Cubic_Spline( control->error_ptr, &h[1], &fvdw[1], v0_vdw, vlast_vdw,
+                             &(LR[i][j].vdW[1]), control->tabulate+1 );
 
-      Natural_Cubic_Spline( &h[1], &fCEvd[1],
-                            &(LR[i][j].CEvd[1]), control->tabulate+1,
-                            world );
+      Natural_Cubic_Spline( control->error_ptr, &h[1], &fCEvd[1],
+                            &(LR[i][j].CEvd[1]), control->tabulate+1 );
 
-      Complete_Cubic_Spline( &h[1], &fele[1], v0_ele, vlast_ele,
-                             &(LR[i][j].ele[1]), control->tabulate+1,
-                             world );
+      Complete_Cubic_Spline( control->error_ptr, &h[1], &fele[1], v0_ele, vlast_ele,
+                             &(LR[i][j].ele[1]), control->tabulate+1 );
 
-      Natural_Cubic_Spline( &h[1], &fCEclmb[1],
-                            &(LR[i][j].CEclmb[1]), control->tabulate+1,
-                            world );
+      Natural_Cubic_Spline( control->error_ptr, &h[1], &fCEclmb[1],
+                            &(LR[i][j].CEclmb[1]), control->tabulate+1 );
     }
   }
   free(h);
@@ -549,22 +543,23 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 {
   int i, j;
   int ntypes;
+  LR_lookup_table ** & LR = system->LR;
 
   ntypes = atom->ntypes;
 
   for( i = 0; i <= ntypes; ++i ) {
     for( j = i; j <= ntypes; ++j )
       if (LR[i][j].n) {
-        sfree( LR[i][j].y, "LR[i,j].y" );
-        sfree( LR[i][j].H, "LR[i,j].H" );
-        sfree( LR[i][j].vdW, "LR[i,j].vdW" );
-        sfree( LR[i][j].CEvd, "LR[i,j].CEvd" );
-        sfree( LR[i][j].ele, "LR[i,j].ele" );
-        sfree( LR[i][j].CEclmb, "LR[i,j].CEclmb" );
+        sfree( control->error_ptr, LR[i][j].y, "LR[i,j].y" );
+        sfree( control->error_ptr, LR[i][j].H, "LR[i,j].H" );
+        sfree( control->error_ptr, LR[i][j].vdW, "LR[i,j].vdW" );
+        sfree( control->error_ptr, LR[i][j].CEvd, "LR[i,j].CEvd" );
+        sfree( control->error_ptr, LR[i][j].ele, "LR[i,j].ele" );
+        sfree( control->error_ptr, LR[i][j].CEclmb, "LR[i,j].CEclmb" );
       }
-    sfree( LR[i], "LR[i]" );
+    sfree( control->error_ptr, LR[i], "LR[i]" );
   }
-  sfree( LR, "LR" );
+  sfree( control->error_ptr, LR, "LR" );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -677,8 +672,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   atomKK->sync(execution_space,datamask_read);
   k_params_sing.template sync<DeviceType>();
@@ -4292,7 +4286,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
 }
 
 template class PairReaxCKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairReaxCKokkos<LMPHostType>;
 #endif
 }

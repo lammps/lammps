@@ -50,6 +50,7 @@
 #include "accelerator_kokkos.h"
 #include "error.h"
 #include "memory.h"
+#include "utils.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -525,6 +526,11 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
           strncpy(fmtstr,&fmtflag[1],sizeof(fmtstr)-1);
           *fmtflag='\0';
         }
+
+        // quick check for proper format string
+
+        if (!utils::strmatch(fmtstr,"%[0-9 ]*\\.[0-9]+[efgEFG]"))
+          error->all(FLERR,"Incorrect conversion in format string");
 
         snprintf(immediate,256,fmtstr,variable->compute_equal(var));
         value = immediate;
@@ -1812,11 +1818,11 @@ void Input::pair_style()
     if (!match && lmp->suffix_enable) {
       char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
     }

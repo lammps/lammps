@@ -32,7 +32,7 @@
 #define MAXLINE 1024
 #define MAXWORD 3
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
 
 // Outstanding issues with quadratic term
 // 1. there seems to a problem with compute_optimized energy calc
@@ -85,9 +85,6 @@ void PairSNAPKokkos<DeviceType>::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
-  if (diagonalstyle != 3)
-    error->all(FLERR,"Must use diagonal style = 3 with pair snap/kk");
-
   // irequest = neigh request made by parent class
 
   neighflag = lmp->kokkos->neighflag;
@@ -137,8 +134,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -344,23 +340,12 @@ void PairSNAPKokkos<DeviceType>::coeff(int narg, char **arg)
   Kokkos::deep_copy(d_coeffelem,h_coeffelem);
   Kokkos::deep_copy(d_map,h_map);
 
-  // deallocate non-kokkos sna
-
-  if (sna) {
-    for (int tid = 0; tid<nthreads; tid++)
-      delete sna[tid];
-    delete [] sna;
-    sna = NULL;
-  }
-
   // allocate memory for per OpenMP thread data which
   // is wrapped into the sna class
 
   snaKK = SNAKokkos<DeviceType>(rfac0,twojmax,
-                  diagonalstyle,use_shared_arrays,
                   rmin0,switchflag,bzeroflag);
-    //if (!use_shared_arrays)
-  snaKK.grow_rij(nmax);
+  snaKK.grow_rij(0);
   snaKK.init();
 }
 
@@ -668,10 +653,9 @@ double PairSNAPKokkos<DeviceType>::memory_usage()
   int n = atom->ntypes+1;
   bytes += n*n*sizeof(int);
   bytes += n*n*sizeof(double);
-  bytes += 3*nmax*sizeof(double);
-  bytes += nmax*sizeof(int);
   bytes += (2*ncoeffall)*sizeof(double);
   bytes += (ncoeff*3)*sizeof(double);
   bytes += snaKK.memory_usage();
   return bytes;
+}
 }

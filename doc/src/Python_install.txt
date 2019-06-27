@@ -12,16 +12,23 @@ Installing LAMMPS in Python :h3
 For Python to invoke LAMMPS, there are 2 files it needs to know about:
 
 python/lammps.py
-src/liblammps.so :ul
+liblammps.so or liblammps.dylib :ul
 
-Lammps.py is the Python wrapper on the LAMMPS library interface.
-Liblammps.so is the shared LAMMPS library that Python loads, as
-described above.
+The python source code in lammps.py is the Python wrapper on the
+LAMMPS library interface. The liblammps.so or liblammps.dylib file
+is the shared LAMMPS library that Python loads dynamically.
 
-You can insure Python can find these files in one of two ways:
+You can achieve that Python can find these files in one of two ways:
 
-set two environment variables
-run the python/install.py script :ul
+set two environment variables pointing to the location in the source tree
+run "make install-python" or run the python/install.py script explicitly :ul
+
+When calling "make install-python" LAMMPS will try to install the
+python module and the shared library into the python site-packages folders;
+either the system-wide ones, or the local users ones (in case of insufficient
+permissions for the global install). Python will then find the module
+and shared library file automatically. The exact location of these folders
+depends on your python version and your operating system.
 
 If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
@@ -30,42 +37,28 @@ this to your ~/.cshrc file, one line for each of the two files:
 setenv PYTHONPATH $\{PYTHONPATH\}:/home/sjplimp/lammps/python
 setenv LD_LIBRARY_PATH $\{LD_LIBRARY_PATH\}:/home/sjplimp/lammps/src :pre
 
-If you use the python/install.py script, you need to invoke it every
-time you rebuild LAMMPS (as a shared library) or make changes to the
-python/lammps.py file.
+On MacOSX you may also need to set DYLD_LIBRARY_PATH accordingly.
+For Bourne/Korn shells accordingly into the corresponding files using
+the "export" shell builtin.
 
-You can invoke install.py from the python directory as
+If you use "make install-python" or the python/install.py script, you need
+to invoke it every time you rebuild LAMMPS (as a shared library) or
+make changes to the python/lammps.py file, so that the site-packages
+files are updated with the new version.
 
-% python install.py \[libdir\] \[pydir\] :pre
+If the default settings of "make install-python" are not what you want,
+you can invoke install.py from the python directory manually as
 
-The optional libdir is where to copy the LAMMPS shared library to; the
-default is /usr/local/lib.  The optional pydir is where to copy the
-lammps.py file to; the default is the site-packages directory of the
-version of Python that is running the install script.
+% python install.py -m \<python module\> -l <shared library> -v <version.h file> \[-d \<pydir\>\] :pre
 
-Note that libdir must be a location that is in your default
-LD_LIBRARY_PATH, like /usr/local/lib or /usr/lib.  And pydir must be a
-location that Python looks in by default for imported modules, like
-its site-packages dir.  If you want to copy these files to
-non-standard locations, such as within your own user space, you will
-need to set your PYTHONPATH and LD_LIBRARY_PATH environment variables
-accordingly, as above.
+The -m flag points to the lammps.py python module file to be installed,
+the -l flag points to the LAMMPS shared library file to be installed,
+the -v flag points to the version.h file in the LAMMPS source
+and the optional -d flag to a custom (legacy) installation folder :ul
 
-If the install.py script does not allow you to copy files into system
-directories, prefix the python command with "sudo".  If you do this,
-make sure that the Python that root runs is the same as the Python you
-run.  E.g. you may need to do something like
-
-% sudo /usr/local/bin/python install.py \[libdir\] \[pydir\] :pre
-
-You can also invoke install.py from the make command in the src
-directory as
-
-% make install-python :pre
-
-In this mode you cannot append optional arguments.  Again, you may
-need to prefix this with "sudo".  In this mode you cannot control
-which Python is invoked by root.
+If you use a legacy installation folder, you will need to set your
+PYTHONPATH and LD_LIBRARY_PATH (and/or DYLD_LIBRARY_PATH) environment
+variables accordingly, as described above.
 
 Note that if you want Python to be able to load different versions of
 the LAMMPS shared library (see "this section"_Python_shlib.html), you will

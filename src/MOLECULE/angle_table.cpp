@@ -72,8 +72,7 @@ void AngleTable::compute(int eflag, int vflag)
   double theta,u,mdu; //mdu: minus du, -du/dx=f
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -501,7 +500,7 @@ void AngleTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
   tb->fpflag = 0;
-  tb->theta0 = 180.0;
+  tb->theta0 = MY_PI;
 
   char *word = strtok(line," \t\n\r\f");
   while (word) {
@@ -518,7 +517,7 @@ void AngleTable::param_extract(Table *tb, char *line)
       tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
     } else if (strcmp(word,"EQ") == 0) {
       word = strtok(NULL," \t\n\r\f");
-      tb->theta0 = atof(word);
+      tb->theta0 = atof(word)/180.0*MY_PI;
     } else {
       error->one(FLERR,"Invalid keyword in angle table parameters");
     }

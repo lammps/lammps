@@ -7,8 +7,6 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-#include <cmath>
-
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
@@ -27,7 +25,7 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
     cvm::log("Initializing alpha_angles object.\n");
 
   function_type = "alpha_angles";
-  enable(f_cvc_implicit_gradient);
+  enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
 
   std::string segment_id;
@@ -118,7 +116,7 @@ colvar::alpha_angles::alpha_angles()
   : cvc()
 {
   function_type = "alpha_angles";
-  enable(f_cvc_implicit_gradient);
+  enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
 }
 
@@ -133,6 +131,8 @@ colvar::alpha_angles::~alpha_angles()
     delete hb.back();
     hb.pop_back();
   }
+  // Our references to atom groups have become invalid now that children cvcs are deleted
+  atom_groups.clear();
 }
 
 
@@ -191,6 +191,58 @@ void colvar::alpha_angles::calc_gradients()
 }
 
 
+void colvar::alpha_angles::collect_gradients(std::vector<int> const &atom_ids, std::vector<cvm::rvector> &atomic_gradients)
+{
+  cvm::real cvc_coeff = sup_coeff * cvm::real(sup_np) * cvm::integer_power(value().real_value, sup_np-1);
+
+  if (theta.size()) {
+    cvm::real const theta_norm = (1.0-hb_coeff) / cvm::real(theta.size());
+
+    for (size_t i = 0; i < theta.size(); i++) {
+      cvm::real const t = ((theta[i])->value().real_value-theta_ref)/theta_tol;
+      cvm::real const f = ( (1.0 - (t*t)) /
+                            (1.0 - (t*t*t*t)) );
+      cvm::real const dfdt =
+        1.0/(1.0 - (t*t*t*t)) *
+        ( (-2.0 * t) + (-1.0*f)*(-4.0 * (t*t*t)) );
+
+      // Coeficient of this CVC's gradient in the colvar gradient, times coefficient of this
+      // angle's gradient in the CVC's gradient
+      cvm::real const coeff = cvc_coeff * theta_norm * dfdt * (1.0/theta_tol);
+
+      for (size_t j = 0; j < theta[i]->atom_groups.size(); j++) {
+        cvm::atom_group &ag = *(theta[i]->atom_groups[j]);
+        for (size_t k = 0; k < ag.size(); k++) {
+          size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                      ag[k].id) - atom_ids.begin();
+          atomic_gradients[a] += coeff * ag[k].grad;
+        }
+      }
+    }
+  }
+
+  if (hb.size()) {
+
+    cvm::real const hb_norm = hb_coeff / cvm::real(hb.size());
+
+    for (size_t i = 0; i < hb.size(); i++) {
+      // Coeficient of this CVC's gradient in the colvar gradient, times coefficient of this
+      // hbond's gradient in the CVC's gradient
+      cvm::real const coeff = cvc_coeff * 0.5 * hb_norm;
+
+      for (size_t j = 0; j < hb[i]->atom_groups.size(); j++) {
+        cvm::atom_group &ag = *(hb[i]->atom_groups[j]);
+        for (size_t k = 0; k < ag.size(); k++) {
+          size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                      ag[k].id) - atom_ids.begin();
+          atomic_gradients[a] += coeff * ag[k].grad;
+        }
+      }
+    }
+  }
+}
+
+
 void colvar::alpha_angles::apply_force(colvarvalue const &force)
 {
 
@@ -242,7 +294,8 @@ colvar::dihedPC::dihedPC(std::string const &conf)
     cvm::log("Initializing dihedral PC object.\n");
 
   function_type = "dihedPC";
-  enable(f_cvc_implicit_gradient);
+  // Supported through references to atom groups of children cvcs
+  enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
 
   std::string segment_id;
@@ -372,7 +425,8 @@ colvar::dihedPC::dihedPC()
   : cvc()
 {
   function_type = "dihedPC";
-  enable(f_cvc_implicit_gradient);
+  // Supported through references to atom groups of children cvcs
+  enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
 }
 
@@ -383,6 +437,8 @@ colvar::dihedPC::~dihedPC()
     delete theta.back();
     theta.pop_back();
   }
+  // Our references to atom groups have become invalid now that children cvcs are deleted
+  atom_groups.clear();
 }
 
 
@@ -392,8 +448,8 @@ void colvar::dihedPC::calc_value()
   for (size_t i = 0; i < theta.size(); i++) {
     theta[i]->calc_value();
     cvm::real const t = (PI / 180.) * theta[i]->value().real_value;
-    x.real_value += coeffs[2*i  ] * std::cos(t)
-                  + coeffs[2*i+1] * std::sin(t);
+    x.real_value += coeffs[2*i  ] * cvm::cos(t)
+                  + coeffs[2*i+1] * cvm::sin(t);
   }
 }
 
@@ -406,12 +462,35 @@ void colvar::dihedPC::calc_gradients()
 }
 
 
+void colvar::dihedPC::collect_gradients(std::vector<int> const &atom_ids, std::vector<cvm::rvector> &atomic_gradients)
+{
+  cvm::real cvc_coeff = sup_coeff * cvm::real(sup_np) * cvm::integer_power(value().real_value, sup_np-1);
+  for (size_t i = 0; i < theta.size(); i++) {
+    cvm::real const t = (PI / 180.) * theta[i]->value().real_value;
+    cvm::real const dcosdt = - (PI / 180.) * cvm::sin(t);
+    cvm::real const dsindt =   (PI / 180.) * cvm::cos(t);
+    // Coeficient of this dihedPC's gradient in the colvar gradient, times coefficient of this
+    // dihedral's gradient in the dihedPC's gradient
+    cvm::real const coeff = cvc_coeff * (coeffs[2*i] * dcosdt + coeffs[2*i+1] * dsindt);
+
+    for (size_t j = 0; j < theta[i]->atom_groups.size(); j++) {
+      cvm::atom_group &ag = *(theta[i]->atom_groups[j]);
+      for (size_t k = 0; k < ag.size(); k++) {
+        size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                    ag[k].id) - atom_ids.begin();
+        atomic_gradients[a] += coeff * ag[k].grad;
+      }
+    }
+  }
+}
+
+
 void colvar::dihedPC::apply_force(colvarvalue const &force)
 {
   for (size_t i = 0; i < theta.size(); i++) {
     cvm::real const t = (PI / 180.) * theta[i]->value().real_value;
-    cvm::real const dcosdt = - (PI / 180.) * std::sin(t);
-    cvm::real const dsindt =   (PI / 180.) * std::cos(t);
+    cvm::real const dcosdt = - (PI / 180.) * cvm::sin(t);
+    cvm::real const dsindt =   (PI / 180.) * cvm::cos(t);
 
     theta[i]->apply_force((coeffs[2*i  ] * dcosdt +
                            coeffs[2*i+1] * dsindt) * force);

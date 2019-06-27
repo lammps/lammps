@@ -90,8 +90,7 @@ void ImproperClass2::compute(int eflag, int vflag)
   double fabcd[4][3];
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (i = 0; i < 3; i++)
     for (j = 0; j < 4; j++)

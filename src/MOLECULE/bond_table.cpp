@@ -68,8 +68,7 @@ void BondTable::compute(int eflag, int vflag)
   double u,mdu;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -504,7 +503,7 @@ void BondTable::param_extract(Table *tb, char *line)
 void BondTable::bcast_table(Table *tb)
 {
   MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
+  MPI_Bcast(&tb->r0,1,MPI_DOUBLE,0,world);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -523,7 +522,6 @@ void BondTable::bcast_table(Table *tb)
     MPI_Bcast(&tb->fplo,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&tb->fphi,1,MPI_DOUBLE,0,world);
   }
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

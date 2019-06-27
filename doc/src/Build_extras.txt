@@ -30,7 +30,6 @@ This is the list of packages that may require additional steps.
 "KIM"_#kim,
 "KOKKOS"_#kokkos,
 "LATTE"_#latte,
-"MEAM"_#meam,
 "MESSAGE"_#message,
 "MSCG"_#mscg,
 "OPT"_#opt,
@@ -82,17 +81,19 @@ which GPU hardware to build for.
 
 [CMake build]:
 
--D GPU_API=value      # value = opencl (default) or cuda
--D GPU_PREC=value     # precision setting
-                      # value = double or mixed (default) or single
--D OCL_TUNE=value     # hardware choice for GPU_API=opencl
-                      # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
--D GPU_ARCH=value     # primary GPU hardware choice for GPU_API=cuda
-                      # value = sm_XX, see below
-                      # default is Cuda-compiler dependent, but typically sm_20
--D CUDPP_OPT=value    # optimization setting for GPU_API=cuda
-                      # enables CUDA Performance Primitives Optimizations
-                      # yes (default) or no :pre
+-D GPU_API=value          # value = opencl (default) or cuda
+-D GPU_PREC=value         # precision setting
+                          # value = double or mixed (default) or single
+-D OCL_TUNE=value         # hardware choice for GPU_API=opencl
+                          # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
+-D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
+                          # value = sm_XX, see below
+                          # default is Cuda-compiler dependent, but typically sm_20
+-D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
+                          # enables CUDA Performance Primitives Optimizations
+                          # value = yes (default) or no
+-D CUDA_MPS_SUPPORT=value # enables some tweaks required to run with active nvidia-cuda-mps daemon
+                          # value = yes or no (default) :pre
 
 GPU_ARCH settings for different GPU hardware is as follows:
 
@@ -169,16 +170,18 @@ used to build the GPU library.
 
 KIM package :h4,link(kim)
 
-To build with this package, the KIM library must be downloaded and
-built on your system.  It must include the KIM models that you want to
-use with LAMMPS.
+To build with this package, the KIM library with API v2 must be downloaded
+and built on your system.  It must include the KIM models that you want to
+use with LAMMPS. If you want to use the "kim_query"_kim_query.html
+command, you also need to have libcurl installed with the matching
+development headers and the curl-config tool.
 
 Note that in LAMMPS lingo, a KIM model driver is a pair style
 (e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
 element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.  Also note that installing the KIM API
-library with all its models, may take around 30 min to build.  Of
-course you only need to do that once.
+specific EAM potential file.  Also note that downloading and installing
+the KIM API library with all its models, may take a long time (10s of
+minutes to hours) to build.  Of course you only need to do that once.
 
 See the list of KIM model drivers here:
 https://openkim.org/browse/model-drivers/alphabetical
@@ -193,7 +196,7 @@ https://openkim.org/browse/models/by-model-drivers
 If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
 inside the CMake build directory.  If the KIM library is already on
 your system (in a location CMake cannot find it), set the PKG_CONFIG_PATH
-environment variable so that libkim-api-v2 can be found.
+environment variable so that libkim-api can be found.
 
 [Traditional make]:
 
@@ -243,7 +246,10 @@ Maxwell50 = NVIDIA Maxwell generation CC 5.0
 Maxwell52 = NVIDIA Maxwell generation CC 5.2
 Maxwell53 = NVIDIA Maxwell generation CC 5.3
 Pascal60 = NVIDIA Pascal generation CC 6.0
-Pascal61 = NVIDIA Pascal generation CC 6.1 :ul
+Pascal61 = NVIDIA Pascal generation CC 6.1
+Volta70 = NVIDIA Volta generation CC 7.0
+Volta72 = NVIDIA Volta generation CC 7.2
+Turing75 = NVIDIA Turing generation CC 7.5 :ul
 
 [CMake build]:
 
@@ -341,49 +347,6 @@ Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 dir.  When LAMMPS itself is built it will use these links.  You should
 also check that the Makefile.lammps file you create is appropriate for
 the compiler you use on your system to build LATTE.
-
-:line
-
-MEAM package :h4,link(meam)
-
-NOTE: the use of the MEAM package is discouraged, as it has been
-superseded by the USER-MEAMC package, which is a direct translation of
-the Fortran code in the MEAM library to C++. The code in USER-MEAMC
-should be functionally equivalent to the MEAM package, fully supports
-use of "pair_style hybrid"_pair_hybrid.html (the MEAM package does
-not), and has optimizations that make it significantly faster than the
-MEAM package.
-
-[CMake build]:
-
-No additional settings are needed besides "-D PKG_MEAM=yes".
-
-[Traditional make]:
-
-Before building LAMMPS, you must build the MEAM library in lib/meam.
-You can build the MEAM library manually if you prefer; follow the
-instructions in lib/meam/README.  You can also do it in one step from
-the lammps/src dir, using a command like these, which simply invoke
-the lib/meam/Install.py script with the specified args:
-
-make lib-meam                  # print help message
-make lib-meam args="-m mpi"    # build with default Fortran compiler compatible with your MPI library
-make lib-meam args="-m serial" # build with compiler compatible with "make serial" (GNU Fortran)
-make lib-meam args="-m ifort"  # build with Intel Fortran compiler using Makefile.ifort :pre
-
-NOTE: You should test building the MEAM library with both the Intel
-and GNU compilers to see if a simulation runs faster with one versus
-the other on your system.
-
-The build should produce two files: lib/meam/libmeam.a and
-lib/meam/Makefile.lammps.  The latter is copied from an existing
-Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
-Fortran (MEAM library).  Typically the two compilers used for LAMMPS
-and the MEAM library need to be consistent (e.g. both Intel or both
-GNU compilers).  If necessary, you can edit/create a new
-lib/meam/Makefile.machine file for your system, which should define an
-EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
-file.
 
 :line
 
@@ -855,23 +818,34 @@ file.
 USER-INTEL package :h4,link(user-intel)
 
 To build with this package, you must choose which hardware you want to
-build for, either Intel CPUs or Intel KNLs.  You should also typically
-"install the USER-OMP package"_#user-omp, as it can be used in tandem
-with the USER-INTEL package to good effect, as explained on the "Speed
-intel"_Speed_intel.html doc page.
+build for, either x86 CPUs or Intel KNLs in offload mode.  You should
+also typically "install the USER-OMP package"_#user-omp, as it can be
+used in tandem with the USER-INTEL package to good effect, as explained
+on the "Speed intel"_Speed_intel.html doc page.
 
 [CMake build]:
 
 -D INTEL_ARCH=value     # value = cpu (default) or knl
--D BUILD_OMP=yes        # also required to build with the USER-INTEl package :pre
+-D INTEL_LRT_MODE=value # value = threads, none, or c++11 :pre
 
-Requires an Intel compiler as well as the Intel TBB and MKL libraries.
+In Long-range thread mode (LRT) a modified verlet style is used, that
+operates the Kspace calculation in a separate thread concurrently to
+other calculations. This has to be enabled in the "package intel"_package.html
+command at runtime. With the setting "threads" it used the pthreads
+library, while c++11 will use the built-in thread support of C++11
+compilers. The option "none" skips compilation of this feature. The
+default is to use "threads" if pthreads is available and otherwise "none".
+
+Best performance is achieved with Intel hardware, Intel compilers, as well as
+the Intel TBB and MKL libraries. However, the code also compiles, links, and
+runs with other compilers and without TBB and MKL.
 
 [Traditional make]:
 
 Choose which hardware to compile for in Makefile.machine via the
 following settings.  See src/MAKE/OPTIONS/Makefile.intel_cpu* and
-Makefile.knl files for examples.
+Makefile.knl files for examples. and src/USER-INTEL/README for
+additional information.
 
 For CPUs:
 
@@ -893,7 +867,17 @@ USER-MOLFILE package :h4,link(user-molfile)
 
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_USER-MOLFILE=yes".
+-D MOLFILE_INCLUDE_DIRS=path   # (optional) path where VMD molfile plugin headers are installed
+-D PKG_USER-MOLFILE=yes     :pre
+
+
+Using "-D PKG_USER-MOLFILE=yes" enables the package, and setting
+"-D MOLFILE_INCLUDE DIRS" allows to provide a custom location for
+the molfile plugin header files. These should match the ABI of the
+plugin files used, and thus one typically sets them to include
+folder of the local VMD installation in use. LAMMPS ships with a
+couple of default header files that correspond to a popular VMD
+version, usually the latest release.
 
 [Traditional make]:
 
@@ -902,7 +886,11 @@ loading library libdl.a that is typically present on all systems.  It
 is required for LAMMPS to link with this package.  If the setting is
 not valid for your system, you will need to edit the Makefile.lammps
 file.  See lib/molfile/README and lib/molfile/Makefile.lammps for
-details.
+details. It is also possible to configure a different folder with
+the VMD molfile plugin header files. LAMMPS ships with a couple of
+default headers, but these are not compatible with all VMD versions,
+so it is often best to change this setting to the location of the
+same include files of the local VMD installation in use.
 
 :line
 

@@ -610,8 +610,6 @@ void SNA::compute_bi()
 
       sumzu += 0.5*(ulisttot_r[jju]*zlist_r[jjz] + 
                    ulisttot_i[jju]*zlist_i[jjz]);
-      jjz++;
-      jju++;
     } // end if jeven
 
     blist[jjb] = 2.0*sumzu;

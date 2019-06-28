@@ -94,6 +94,14 @@ In the implementation files (typically, those would have the same base name
 as the corresponding header with a .cpp extension instead of .h) include
 statments should follow the "include what you use" principle.
 
+### Order of Include Statements
+
+Include files should be included in this order:
+* lmptype.h (should only be included if `MPI_LMP_XXX` data types are used)
+* mpi.h
+* system and library headers (anything that is using angular brackets; C-library headers first, then C++)
+* LAMMPS local headers (first the header matching the implementation file, the rest in mostly alphabetical order)
+
 ### Special Cases and Exceptions
 
 #### pointers.h

@@ -475,7 +475,6 @@ void SNAKokkos<DeviceType>::compute_deidrj(const typename Kokkos::TeamPolicy<Dev
 {
   t_scalar3<double> sum;
 
-  // TODO: which loop is faster to parallelize?
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,twojmax+1),
       [&] (const int& j, t_scalar3<double>& sum_tmp) {
   //for(int j = 0; j <= twojmax; j++) {
@@ -630,9 +629,6 @@ void SNAKokkos<DeviceType>::compute_dbidrj(const typename Kokkos::TeamPolicy<Dev
   //            zdb +=
   //              Conj(dudr(j2,ma2,mb2))*z(j1,j,j2,ma2,mb2)
   //        dbdr(j1,j2,j) += 2*zdb*(j+1)/(j2+1)
-
-
-  // TODO:   double* dudr_r, *dudr_i;
 
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,idxb_max),
@@ -1110,7 +1106,7 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
   sfac *= wj;
   dsfac *= wj;
 
-  for (int j = 0; j <= twojmax; j++) { //TODO: parallelize one of these loops
+  for (int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];
     for (int mb = 0; 2*mb <= j; mb++)
       for (int ma = 0; ma <= j; ma++) {

@@ -200,7 +200,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   team_size = 1;
 #endif
 
-  if (beta_max < list->inum) { // TODO: no init
+  if (beta_max < list->inum) {
     d_beta = Kokkos::View<F_FLOAT**, DeviceType>("PairSNAPKokkos:beta",
      list->inum,ncoeff);
     d_bispectrum = Kokkos::View<F_FLOAT**, DeviceType>("PairSNAPKokkos:bispectrum",

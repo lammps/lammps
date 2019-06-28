@@ -28,7 +28,7 @@ class MinSpinOSO_CG : public Min {
 
 public:
     MinSpinOSO_CG(class LAMMPS *);
-    ~MinSpinOSO_CG() {}
+    virtual ~MinSpinOSO_CG();
     void init();
     void setup_style();
     int modify_param(int, char **);
@@ -43,6 +43,7 @@ public:
 private:
     // global and spin timesteps
 
+    int nlocal_max;		// max value of nlocal (for size of lists)
     double dt;
     double dts;
 
@@ -53,11 +54,11 @@ private:
     double *fmvec;		// variables for atomic dof, as 1d vector
 
     double *g_old;  		// gradient vector at previous iteration
-    double *g;  		// gradient vector
-    double *p;  		// search direction vector
+    double *g_cur;  		// current gradient vector
+    double *p_s;  		// search direction vector
 
-    void vm3(const double *m, const double *v, double *out);
-    void rodrigues_rotation(const double *upp_tr, double *out);
+    void vm3(const double *, const double *, double *);
+    void rodrigues_rotation(const double *, double *);
 
     bigint last_negative;
 };

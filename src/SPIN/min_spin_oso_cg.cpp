@@ -34,6 +34,7 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
+#include "memory.h"
 #include "modify.h"
 #include "math_special.h"
 #include "math_const.h"
@@ -60,8 +61,20 @@ static const char cite_minstyle_spin_oso_cg[] =
 
 /* ---------------------------------------------------------------------- */
 
-MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) : Min(lmp) {
+MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) : 
+  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL)
+{
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_cg);
+  nlocal_max = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+MinSpinOSO_CG::~MinSpinOSO_CG()
+{
+  memory->destroy(g_old);
+  memory->destroy(g_cur);
+  memory->destroy(p_s);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,6 +88,13 @@ void MinSpinOSO_CG::init()
 
   dts = dt = update->dt;
   last_negative = update->ntimestep;
+  
+  // allocate tables
+
+  nlocal_max = atom->nlocal;
+  memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
+  memory->grow(g_cur,3*nlocal_max,"min/spin/oso/cg:g_cur");
+  memory->grow(p_s,3*nlocal_max,"min/spin/oso/cg:p_s");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,17 +154,21 @@ void MinSpinOSO_CG::reset_vectors()
    minimization via damped spin dynamics
 ------------------------------------------------------------------------- */
 
+// g_old g_cur p_s
+
 int MinSpinOSO_CG::iterate(int maxiter)
 {
+  int nlocal = atom->nlocal;
   bigint ntimestep;
   double fmdotfm;
   int flag, flagall;
 
-  // not sure it is best place to allocate memory
-  int nlocal = atom->nlocal;
-  g = (double *) calloc(3*nlocal, sizeof(double));
-  p = (double *) calloc(3*nlocal, sizeof(double));
-  g_old = (double *) calloc(3*nlocal, sizeof(double));
+  if (nlocal_max < nlocal) {
+    nlocal_max = nlocal;
+    memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
+    memory->grow(g_cur,3*nlocal_max,"min/spin/oso/cg:g_cur");
+    memory->grow(p_s,3*nlocal_max,"min/spin/oso/cg:p_s");
+  }
 
   for (int iter = 0; iter < maxiter; iter++) {
     
@@ -210,10 +234,6 @@ int MinSpinOSO_CG::iterate(int maxiter)
       timer->stamp(Timer::OUTPUT);
     }
   }
-
-  free(p);
-  free(g);
-  free(g_old);
 
   return MAXITER;
 }
@@ -286,9 +306,9 @@ void MinSpinOSO_CG::calc_gradient(double dts)
 
     // calculate gradients
     
-    g[3 * i + 0] = -tdampz * dts;
-    g[3 * i + 1] = tdampy * dts;
-    g[3 * i + 2] = -tdampx * dts;
+    g_cur[3 * i + 0] = -tdampz * dts;
+    g_cur[3 * i + 1] = tdampy * dts;
+    g_cur[3 * i + 2] = -tdampx * dts;
   }
 }
 
@@ -312,15 +332,15 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
   if (iter <= 2 || iter % 5 == 0){ 	// steepest descent direction
     for (int i = 0; i < nlocal; i++) {
       for (int j = 0; j < 3; j++){
-          p[3 * i + j] = -g[3 * i + j];
-          g_old[3 * i + j] = g[3 * i + j];
+          p_s[3 * i + j] = -g_cur[3 * i + j];
+          g_old[3 * i + j] = g_cur[3 * i + j];
       }
     }
   } else { 				// conjugate direction
     for (int i = 0; i < nlocal; i++) {
       for (int j = 0; j < 3; j++){
 	g2old += g_old[3 * i + j] * g_old[3 * i + j];
-	g2 += g[3 * i + j] * g[3 * i + j];
+	g2 += g_cur[3 * i + j] * g_cur[3 * i + j];
       }
     }
 
@@ -337,8 +357,8 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
     
     for (int i = 0; i < nlocal; i++) {
       for (int j = 0; j < 3; j++){
-	p[3 * i + j] = beta * p[3 * i + j] - g[3 * i + j];
-	g_old[3 * i + j] = g[3 * i + j];
+	p_s[3 * i + j] = beta * p_s[3 * i + j] - g_cur[3 * i + j];
+	g_old[3 * i + j] = g_cur[3 * i + j];
       }
     }
   }
@@ -360,7 +380,7 @@ void MinSpinOSO_CG::advance_spins()
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
-    rodrigues_rotation(p + 3 * i, rot_mat);
+    rodrigues_rotation(p_s + 3 * i, rot_mat);
     
     // rotate spins
     
@@ -418,6 +438,8 @@ double MinSpinOSO_CG::fmnorm_sqr()
 
 void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
 {
+  double theta,A,B,D,x,y,z;
+  double s1,s2,s3,a1,a2,a3;
 
   if (fabs(upp_tr[0]) < 1.0e-40 &&
       fabs(upp_tr[1]) < 1.0e-40 &&
@@ -433,16 +455,16 @@ void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
     return;
   }
 
-  double theta = sqrt(upp_tr[0] * upp_tr[0] +
-                      upp_tr[1] * upp_tr[1] +
-                      upp_tr[2] * upp_tr[2]);
+  theta = sqrt(upp_tr[0] * upp_tr[0] +
+               upp_tr[1] * upp_tr[1] +
+               upp_tr[2] * upp_tr[2]);
 
-  double A = cos(theta);
-  double B = sin(theta);
-  double D = 1 - A;
-  double x = upp_tr[0]/theta;
-  double y = upp_tr[1]/theta;
-  double z = upp_tr[2]/theta;
+  A = cos(theta);
+  B = sin(theta);
+  D = 1 - A;
+  x = upp_tr[0]/theta;
+  y = upp_tr[1]/theta;
+  z = upp_tr[2]/theta;
 
   // diagonal elements of U
   
@@ -452,13 +474,13 @@ void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
 
   // off diagonal of U
   
-  double s1 = -y * z *D;
-  double s2 = x * z * D;
-  double s3 = -x * y * D;
+  s1 = -y * z *D;
+  s2 = x * z * D;
+  s3 = -x * y * D;
 
-  double a1 = x * B;
-  double a2 = y * B;
-  double a3 = z * B;
+  a1 = x * B;
+  a2 = y * B;
+  a3 = z * B;
 
   out[1] = s1 + a1;
   out[3] = s1 - a1;

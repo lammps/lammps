@@ -88,7 +88,7 @@ inline
   // functions for derivatives
 
   KOKKOS_INLINE_FUNCTION
-  void compute_duidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double*, double, double); //ForceSNAP
+  void compute_duidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double*, double, double, int); //ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_dbidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); //ForceSNAP
   KOKKOS_INLINE_FUNCTION
@@ -123,10 +123,11 @@ inline
   t_sna_1d ulisttot_r, ulisttot_i;
   t_sna_1d_atomic ulisttot_r_a, ulisttot_i_a;
   t_sna_1d zlist_r, zlist_i;
+  t_sna_2d ulist_r_ij, ulist_i_ij;
 
   // Per InFlight Interaction
   t_sna_1d ulist_r, ulist_i;
-  t_sna_1d_atomic ylist_r, ylist_i;
+  t_sna_1d ylist_r, ylist_i;
 
   // derivatives of data
   t_sna_2d dulist_r, dulist_i;
@@ -171,13 +172,13 @@ inline
   KOKKOS_INLINE_FUNCTION
   void addself_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double); // compute_ui
   KOKKOS_INLINE_FUNCTION
-  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double, double, double); // compute_ui
+  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double, double, double, int); // compute_ui
 
   KOKKOS_INLINE_FUNCTION
   void compute_uarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
                       double, double, double,
                       double, double); // compute_ui
-  inline
+  KOKKOS_INLINE_FUNCTION
   double deltacg(int, int, int);  // init_clebsch_gordan
 
 inline
@@ -185,7 +186,7 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
                        double, double, double, // compute_duidrj
-                       double, double, double, double, double);
+                       double, double, double, double, double, int);
 
   // Sets the style for the switching function
   // 0 = none

@@ -134,6 +134,8 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   nmax = 0;
   idxz = NULL;
   idxb = NULL;
+  ulist_r_ij = NULL;
+  ulist_i_ij = NULL;
 
   build_indexlist();
   create_twojmax_arrays();
@@ -154,6 +156,8 @@ SNA::~SNA()
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
+  memory->destroy(ulist_r_ij);
+  memory->destroy(ulist_i_ij);
   delete[] idxz;
   delete[] idxb;
   destroy_twojmax_arrays();
@@ -299,10 +303,14 @@ void SNA::grow_rij(int newnmax)
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
+  memory->destroy(ulist_r_ij);
+  memory->destroy(ulist_i_ij);
   memory->create(rij, nmax, 3, "pair:rij");
   memory->create(inside, nmax, "pair:inside");
   memory->create(wj, nmax, "pair:wj");
   memory->create(rcutij, nmax, "pair:rcutij");
+  memory->create(ulist_r_ij, nmax, idxu_max, "sna:ulist_ij");
+  memory->create(ulist_i_ij, nmax, idxu_max, "sna:ulist_ij");
 }
 
 /* ----------------------------------------------------------------------
@@ -334,7 +342,7 @@ void SNA::compute_ui(int jnum)
     z0 = r / tan(theta0);
 
     compute_uarray(x, y, z, z0, r);
-    add_uarraytot(r, wj[j], rcutij[j]);
+    add_uarraytot(r, wj[j], rcutij[j], j);
   }
 
 }
@@ -826,7 +834,7 @@ void SNA::compute_dbidrj()
    calculate derivative of Ui w.r.t. atom j
 ------------------------------------------------------------------------- */
 
-void SNA::compute_duidrj(double* rij, double wj, double rcut)
+void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj)
 {
   double rsq, r, x, y, z, z0, theta0, cs, sn;
   double dz0dr;
@@ -843,7 +851,7 @@ void SNA::compute_duidrj(double* rij, double wj, double rcut)
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut);
+  compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut, jj);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -879,13 +887,16 @@ void SNA::addself_uarraytot(double wself_in)
    add Wigner U-functions for one neighbor to the total
 ------------------------------------------------------------------------- */
 
-void SNA::add_uarraytot(double r, double wj, double rcut)
+void SNA::add_uarraytot(double r, double wj, double rcut, int jj)
 {
   double sfac;
 
   sfac = compute_sfac(r, rcut);
 
   sfac *= wj;
+
+  double* ulist_r_j = ulist_r_ij[jj];
+  double* ulist_i_j = ulist_i_ij[jj];
 
   for (int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];
@@ -895,6 +906,9 @@ void SNA::add_uarraytot(double r, double wj, double rcut)
           sfac * ulist_r[jju];
         ulisttot_i[jju] +=
           sfac * ulist_i[jju];
+
+        ulist_r_j[jju] = ulist_r[jju];
+        ulist_i_j[jju] = ulist_i[jju];
         jju++;
       }
   }
@@ -992,7 +1006,7 @@ void SNA::compute_uarray(double x, double y, double z,
 
 void SNA::compute_duarray(double x, double y, double z,
                           double z0, double r, double dz0dr,
-                          double wj, double rcut)
+                          double wj, double rcut, int jj)
 {
   double r0inv;
   double a_r, a_i, b_r, b_i;
@@ -1035,6 +1049,9 @@ void SNA::compute_duarray(double x, double y, double z,
 
   db_i[0] += -r0inv;
   db_r[1] += r0inv;
+
+  double* ulist_r = ulist_r_ij[jj];
+  double* ulist_i = ulist_i_ij[jj];
 
   dulist_r[0][0] = 0.0;
   dulist_r[0][1] = 0.0;

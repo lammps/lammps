@@ -309,7 +309,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPBeta,const typename Kokk
   const int ii = team.league_rank();
   const int i = d_ilist[ii];
   const int itype = type[i];
-  const int ielem = d_map[itype];
+  const int ielem = map[itype];
   Kokkos::View<double*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Unmanaged>>
     d_coeffi(d_coeffelem,ielem,Kokkos::ALL);
 
@@ -601,12 +601,13 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPCompute<NEIGHFLAG,EVFLAG
     int j = my_sna.inside[jj];
 
     my_sna.compute_duidrj(team,&my_sna.rij(jj,0),
-                           my_sna.wj[jj],my_sna.rcutij[jj]);
-
-    F_FLOAT fij[3];
-    my_sna.compute_deidrj(team,fij);
+                           my_sna.wj[jj],my_sna.rcutij[jj],jj);
 
     Kokkos::single(Kokkos::PerThread(team), [&] (){
+
+      F_FLOAT fij[3];
+      my_sna.compute_deidrj(team,fij);
+      
       a_f(i,0) += fij[0];
       a_f(i,1) += fij[1];
       a_f(i,2) += fij[2];

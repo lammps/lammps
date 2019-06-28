@@ -289,7 +289,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
     compute_uarray(team,x, y, z, z0, r);
     //Kokkos::single(Kokkos::PerThread(team), [&] (){
-    add_uarraytot(team,r, wj[j], rcutij[j]);
+    add_uarraytot(team,r, wj[j], rcutij[j], j);
     //});
   });
 
@@ -780,7 +780,7 @@ void SNAKokkos<DeviceType>::compute_dbidrj(const typename Kokkos::TeamPolicy<Dev
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_duidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
-                         double* rij, double wj, double rcut)
+                         double* rij, double wj, double rcut, int jj)
 {
   double rsq, r, x, y, z, z0, theta0, cs, sn;
   double dz0dr;
@@ -797,7 +797,7 @@ void SNAKokkos<DeviceType>::compute_duidrj(const typename Kokkos::TeamPolicy<Dev
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  compute_duarray(team, x, y, z, z0, r, dz0dr, wj, rcut);
+  compute_duarray(team, x, y, z, z0, r, dz0dr, wj, rcut, jj);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -846,7 +846,8 @@ void SNAKokkos<DeviceType>::addself_uarraytot(const typename Kokkos::TeamPolicy<
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double r, double wj, double rcut)
+void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
+                                          double r, double wj, double rcut, int j)
 {
   const double sfac = compute_sfac(r, rcut) * wj;
 
@@ -854,10 +855,19 @@ void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<Devi
   const double* const ptr_i = ulist_i.data();
   double* const ptrtot_r = ulisttot_r.data();
   double* const ptrtot_i = ulisttot_i.data();
+
+  Kokkos::View<double*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+    ulist_r_j(ulist_r_ij,j,Kokkos::ALL);
+  Kokkos::View<double*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+    ulist_i_j(ulist_i_ij,j,Kokkos::ALL);
+
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,ulisttot_r.span()),
       [&] (const int& i) {
     Kokkos::atomic_add(ptrtot_r+i, sfac * ptr_r[i]);
     Kokkos::atomic_add(ptrtot_i+i, sfac * ptr_i[i]);
+
+    ulist_r_j(i) = ulist_r(i);
+    ulist_i_j(i) = ulist_i(i);
   });
 }
 
@@ -962,7 +972,7 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
                           double x, double y, double z,
                           double z0, double r, double dz0dr,
-                          double wj, double rcut)
+                          double wj, double rcut, int jj)
 {
   double r0inv;
   double a_r, a_i, b_r, b_i;
@@ -1005,6 +1015,11 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
 
   db_i[0] += -r0inv;
   db_r[1] += r0inv;
+
+  Kokkos::View<double*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+    ulist_r(ulist_r_ij,jj,Kokkos::ALL);
+  Kokkos::View<double*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+    ulist_i(ulist_i_ij,jj,Kokkos::ALL);
 
   dulist_r(0,0) = 0.0;
   dulist_r(0,1) = 0.0;
@@ -1135,6 +1150,8 @@ void SNAKokkos<DeviceType>::create_team_scratch_arrays(const typename Kokkos::Te
   rcutij = t_sna_1d(team.team_scratch(1),nmax);
   wj = t_sna_1d(team.team_scratch(1),nmax);
   inside = t_sna_1i(team.team_scratch(1),nmax);
+  ulist_r_ij = t_sna_2d(team.team_scratch(1),nmax,idxu_max);
+  ulist_i_ij = t_sna_2d(team.team_scratch(1),nmax,idxu_max);
 }
 
 template<class DeviceType>
@@ -1151,6 +1168,7 @@ T_INT SNAKokkos<DeviceType>::size_team_scratch_arrays() {
   size += t_sna_1d::shmem_size(nmax); // rcutij
   size += t_sna_1d::shmem_size(nmax); // wj
   size += t_sna_1i::shmem_size(nmax); // inside
+  size += t_sna_2d::shmem_size(nmax,idxu_max)*2; // ulist_ij
 
   return size;
 }
@@ -1558,8 +1576,8 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += jdim * jdim * jdim * sizeof(int);             // idxz_block
   bytes += jdim * jdim * jdim * sizeof(int);             // idxb_block
 
-  bytes += idxz_max * sizeof(SNAKK_ZINDICES);              // idxz
-  bytes += idxb_max * sizeof(SNAKK_BINDICES);              // idxb
+  bytes += idxz_max * sizeof(SNAKK_ZINDICES);            // idxz
+  bytes += idxb_max * sizeof(SNAKK_BINDICES);            // idxb
 
   bytes += jdim * sizeof(double);                        // bzero
 
@@ -1567,6 +1585,7 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += nmax * sizeof(int);                           // inside
   bytes += nmax * sizeof(double);                        // wj
   bytes += nmax * sizeof(double);                        // rcutij
+  bytes += nmax * idxu_max * sizeof(double) * 2;         // ulist_ij
 
   return bytes;
 }

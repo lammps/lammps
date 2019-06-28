@@ -126,7 +126,7 @@ inline
 
   // Per InFlight Interaction
   t_sna_1d ulist_r, ulist_i;
-  t_sna_1d ylist_r, ylist_i;
+  t_sna_1d_atomic ylist_r, ylist_i;
 
   // derivatives of data
   t_sna_2d dulist_r, dulist_i;
@@ -177,7 +177,7 @@ inline
   void compute_uarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
                       double, double, double,
                       double, double); // compute_ui
-  KOKKOS_INLINE_FUNCTION
+  inline
   double deltacg(int, int, int);  // init_clebsch_gordan
 
 inline

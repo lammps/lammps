@@ -610,8 +610,6 @@ void SNA::compute_bi()
 
       sumzu += 0.5*(ulisttot_r[jju]*zlist_r[jjz] + 
                    ulisttot_i[jju]*zlist_i[jjz]);
-      jjz++;
-      jju++;
     } // end if jeven
 
     blist[jjb] = 2.0*sumzu;
@@ -1038,11 +1036,9 @@ void SNA::compute_duarray(double x, double y, double z,
   db_i[0] += -r0inv;
   db_r[1] += r0inv;
 
-  ulist_r[0] = 1.0;
   dulist_r[0][0] = 0.0;
   dulist_r[0][1] = 0.0;
   dulist_r[0][2] = 0.0;
-  ulist_i[0] = 0.0;
   dulist_i[0][0] = 0.0;
   dulist_i[0][1] = 0.0;
   dulist_i[0][2] = 0.0;
@@ -1051,24 +1047,15 @@ void SNA::compute_duarray(double x, double y, double z,
     int jju = idxu_block[j];
     int jjup = idxu_block[j-1];
     for (int mb = 0; 2*mb <= j; mb++) {
-      ulist_r[jju] = 0.0;
       dulist_r[jju][0] = 0.0;
       dulist_r[jju][1] = 0.0;
       dulist_r[jju][2] = 0.0;
-      ulist_i[jju] = 0.0;
       dulist_i[jju][0] = 0.0;
       dulist_i[jju][1] = 0.0;
       dulist_i[jju][2] = 0.0;
 
       for (int ma = 0; ma < j; ma++) {
         rootpq = rootpqarray[j - ma][j - mb];
-        ulist_r[jju] += rootpq *
-                               (a_r *  ulist_r[jjup] +
-                                a_i *  ulist_i[jjup]);
-        ulist_i[jju] += rootpq *
-                               (a_r *  ulist_i[jjup] -
-                                a_i *  ulist_r[jjup]);
-
         for (int k = 0; k < 3; k++) {
           dulist_r[jju][k] +=
             rootpq * (da_r[k] * ulist_r[jjup] +
@@ -1083,13 +1070,6 @@ void SNA::compute_duarray(double x, double y, double z,
         }
 
         rootpq = rootpqarray[ma + 1][j - mb];
-        ulist_r[jju+1] =
-          -rootpq * (b_r *  ulist_r[jjup] +
-                     b_i *  ulist_i[jjup]);
-        ulist_i[jju+1] =
-          -rootpq * (b_r *  ulist_i[jjup] -
-                     b_i *  ulist_r[jjup]);
-
         for (int k = 0; k < 3; k++) {
           dulist_r[jju+1][k] =
             -rootpq * (db_r[k] * ulist_r[jjup] +
@@ -1118,15 +1098,11 @@ void SNA::compute_duarray(double x, double y, double z,
       int mapar = mbpar;
       for (int ma = 0; ma <= j; ma++) {
         if (mapar == 1) {
-          ulist_r[jjup] = ulist_r[jju];
-          ulist_i[jjup] = -ulist_i[jju];
           for (int k = 0; k < 3; k++) {
             dulist_r[jjup][k] = dulist_r[jju][k];
             dulist_i[jjup][k] = -dulist_i[jju][k];
           }
         } else {
-          ulist_r[jjup] = -ulist_r[jju];
-          ulist_i[jjup] = ulist_i[jju];
           for (int k = 0; k < 3; k++) {
             dulist_r[jjup][k] = -dulist_r[jju][k];
             dulist_i[jjup][k] = dulist_i[jju][k];

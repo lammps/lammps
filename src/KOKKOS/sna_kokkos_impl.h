@@ -223,7 +223,7 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
             // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
 
-            const int jju = idxu_block[j] + (j+1)*mb + ma;
+            const int jju = h_idxu_block[j] + (j+1)*mb + ma;
             h_idxz[idxz_count].jju = jju;
 
             idxz_count++;
@@ -258,7 +258,6 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int jnum)
 {
-  //printf("jnum %i\n",jnum);
   double rsq, r, x, y, z, z0, theta0;
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
@@ -348,7 +347,7 @@ void SNAKokkos<DeviceType>::compute_zi(const typename Kokkos::TeamPolicy<DeviceT
 
       zlist_r[jjz] += cgblock[icgb] * suma1_r;
       zlist_i[jjz] += cgblock[icgb] * suma1_i;
-      //printf("%i %i %i %g %g\n",j1,j2,j,cgblock[icgb],suma1_r);
+
       jju1 += j1+1;
       jju2 -= j2+1;
       icgb += j2;
@@ -366,9 +365,6 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
  const Kokkos::View<F_FLOAT**, DeviceType> &beta, const int ii)
 {
-  int j;
-  int jjz;
-  int jju;
   double betaj;
 
   {
@@ -400,8 +396,8 @@ void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceT
     const int nb = idxz[jjz].nb;
 
     const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
-    int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
-    int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
+    //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
+    //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
     double ztmp_r = 0.0;
     double ztmp_i = 0.0;
@@ -461,9 +457,10 @@ void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceT
       betaj = beta(ii,jjb)*(j1+1)/(j+1.0);
     }
 
+  Kokkos::single(Kokkos::PerThread(team), [&] () {
     ylist_r[jju] += betaj*ztmp_r;
     ylist_i[jju] += betaj*ztmp_i;
-    //printf("yi %i %g %g\n",jju,ylist_r[jju],ylist_i[jju]);
+  });
 
   }); // end loop over jjz
 }
@@ -476,26 +473,19 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double* dedr)
 {
-
-  for(int k = 0; k < 3; k++)
-    dedr[k] = 0.0;
+  t_scalar3<double> sum;
 
   // TODO: which loop is faster to parallelize?
-  Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,twojmax+1),
-      [&] (const int& j) {
+  Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,twojmax+1),
+      [&] (const int& j, t_scalar3<double>& sum_tmp) {
   //for(int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];
 
     for(int mb = 0; 2*mb < j; mb++)
       for(int ma = 0; ma <= j; ma++) {
-
-        double jjjmambyarray_r = ylist_r[jju];
-        double jjjmambyarray_i = ylist_i[jju];
-
-        for(int k = 0; k < 3; k++)
-          dedr[k] +=
-            dulist_r(jju,k) * jjjmambyarray_r +
-            dulist_i(jju,k) * jjjmambyarray_i;
+        sum_tmp.x += dulist_r(jju,0) * ylist_r[jju] + dulist_i(jju,0) * ylist_i[jju];
+        sum_tmp.y += dulist_r(jju,1) * ylist_r[jju] + dulist_i(jju,1) * ylist_i[jju];
+        sum_tmp.z += dulist_r(jju,2) * ylist_r[jju] + dulist_i(jju,2) * ylist_i[jju];
         jju++;
       } //end loop over ma mb
 
@@ -505,32 +495,26 @@ void SNAKokkos<DeviceType>::compute_deidrj(const typename Kokkos::TeamPolicy<Dev
 
       int mb = j/2;
       for(int ma = 0; ma < mb; ma++) {
-        double jjjmambyarray_r = ylist_r[jju];
-        double jjjmambyarray_i = ylist_i[jju];
-
-        for(int k = 0; k < 3; k++)
-          dedr[k] +=
-            dulist_r(jju,k) * jjjmambyarray_r +
-            dulist_i(jju,k) * jjjmambyarray_i;
+        sum_tmp.x += dulist_r(jju,0) * ylist_r[jju] + dulist_i(jju,0) * ylist_i[jju];
+        sum_tmp.y += dulist_r(jju,1) * ylist_r[jju] + dulist_i(jju,1) * ylist_i[jju];
+        sum_tmp.z += dulist_r(jju,2) * ylist_r[jju] + dulist_i(jju,2) * ylist_i[jju];
         jju++;
       }
 
-      int ma = mb;
-      double jjjmambyarray_r = ylist_r[jju];
-      double jjjmambyarray_i = ylist_i[jju];
-
-      for(int k = 0; k < 3; k++)
-        dedr[k] += 
-          (dulist_r(jju,k) * jjjmambyarray_r +
-           dulist_i(jju,k) * jjjmambyarray_i)*0.5;
+      //int ma = mb;
+      sum_tmp.x += (dulist_r(jju,0) * ylist_r[jju] + dulist_i(jju,0) * ylist_i[jju])*0.5;
+      sum_tmp.y += (dulist_r(jju,1) * ylist_r[jju] + dulist_i(jju,1) * ylist_i[jju])*0.5;
+      sum_tmp.z += (dulist_r(jju,2) * ylist_r[jju] + dulist_i(jju,2) * ylist_i[jju])*0.5;
     } // end if jeven
 
-  }); // end loop over j
+  },sum); // end loop over j
 
-  for(int k = 0; k < 3; k++)
-    dedr[k] *= 2.0;
+  Kokkos::single(Kokkos::PerThread(team), [&] () {
+    dedr[0] = sum.x*2.0;
+    dedr[1] = sum.y*2.0;
+    dedr[2] = sum.z*2.0;
+  });
 
-  //printf("dedr %g %g %g\n",dedr[0],dedr[1],dedr[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -576,7 +560,6 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
           ulisttot_i(jju_index) * zlist_i(jjz_index);
       },sumzu_temp); // end loop over ma, mb
       sumzu += sumzu_temp;
-      //printf("after 1 szu %g\n",sumzu);
 
     // For j even, special treatment for middle column
 
@@ -610,7 +593,6 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
         sumzu -= bzero[j];
 
       blist(jjb) = sumzu;
-      //printf("blist %i %g\n",jjb,blist[jjb]);
     });
   });
       //} // end loop over j
@@ -941,9 +923,6 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
           -rootpq *
           (b_r * ulist_i[jjup_index] -
            b_i * ulist_r[jjup_index]);
-      //printf("mb ma jjs %i %i %i %i\n",mb,ma,jju_index,jjup_index);
-        //printf("%i %i %i %i %g %g SNAP-COMPARE: UARRAY\n",ma,mb,jju_index,jjup_index,ulist_r[jju_index],ulist_i[jju_index]);
-      
       }
     });
 
@@ -967,8 +946,6 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
           ulist_r[jjup_index] = -ulist_r[jju_index];
           ulist_i[jjup_index] = ulist_i[jju_index];
         }
-        //printf("%i %i %g %g SNAP-COMPARE: UARRAY\n",jju_index,jjup_index,ulist_r[jju_index],ulist_i[jju_index]);
-        ////printf("%lf %lf %lf %lf %lf %lf %lf SNAP-COMPARE: UARRAY\n",x,y,z,z0,r,uarray_r(j,ma,mb),uarray_i(j,ma,mb));
         mapar = -mapar;
       }
     });
@@ -1029,11 +1006,9 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
   db_i[0] += -r0inv;
   db_r[1] += r0inv;
 
-  ulist_r[0] = 1.0;
   dulist_r(0,0) = 0.0;
   dulist_r(0,1) = 0.0;
   dulist_r(0,2) = 0.0;
-  ulist_i[0] = 0.0;
   dulist_i(0,0) = 0.0;
   dulist_i(0,1) = 0.0;
   dulist_i(0,2) = 0.0;
@@ -1045,11 +1020,9 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         [&] (const int& mb) {
     //for (int mb = 0; 2*mb <= j; mb++) {
       const int jju_index = jju+mb+mb*j;
-      ulist_r[jju_index] = 0.0;
       dulist_r(jju_index,0) = 0.0;
       dulist_r(jju_index,1) = 0.0;
       dulist_r(jju_index,2) = 0.0;
-      ulist_i[jju_index] = 0.0;
       dulist_i(jju_index,0) = 0.0;
       dulist_i(jju_index,1) = 0.0;
       dulist_i(jju_index,2) = 0.0;
@@ -1058,13 +1031,6 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         const int jju_index = jju+mb+mb*j+ma;
         const int jjup_index = jjup+mb*j+ma;
         rootpq = rootpqarray(j - ma,j - mb);
-        ulist_r[jju_index] += rootpq *
-                               (a_r *  ulist_r(jjup_index) +
-                                a_i *  ulist_i(jjup_index));
-        ulist_i[jju_index] += rootpq *
-                               (a_r *  ulist_i(jjup_index) -
-                                a_i *  ulist_r(jjup_index));
-
         for (int k = 0; k < 3; k++) {
           dulist_r(jju_index,k) +=
             rootpq * (da_r[k] * ulist_r[jjup_index] +
@@ -1079,13 +1045,6 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         }
 
         rootpq = rootpqarray(ma + 1,j - mb);
-        ulist_r[jju_index+1] =
-          -rootpq * (b_r *  ulist_r[jjup_index] +
-                     b_i *  ulist_i[jjup_index]);
-        ulist_i[jju_index+1] =
-          -rootpq * (b_r *  ulist_i[jjup_index] -
-                     b_i *  ulist_r[jjup_index]);
-
         for (int k = 0; k < 3; k++) {
           dulist_r(jju_index+1,k) =
             -rootpq * (db_r[k] * ulist_r[jjup_index] +
@@ -1115,15 +1074,11 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
         const int jju_index = jju+mb*(j+1)+ma;
         const int jjup_index = jjup-mb*(j+1)-ma;
         if (mapar == 1) {
-          ulist_r[jjup_index] = ulist_r[jju_index];
-          ulist_i[jjup_index] = -ulist_i[jju_index];
           for (int k = 0; k < 3; k++) {
             dulist_r(jjup_index,k) = dulist_r(jju_index,k);
             dulist_i(jjup_index,k) = -dulist_i(jju_index,k);
           }
         } else {
-          ulist_r[jjup_index] = -ulist_r[jju_index];
-          ulist_i[jjup_index] = ulist_i[jju_index];
           for (int k = 0; k < 3; k++) {
             dulist_r(jjup_index,k) = -dulist_r(jju_index,k);
             dulist_i(jjup_index,k) = dulist_i(jju_index,k);
@@ -1152,7 +1107,6 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
                                   sfac * dulist_r(jju,1);
         dulist_i(jju,1) = dsfac * ulist_i[jju] * uy +
                                   sfac * dulist_i(jju,1);
-        //printf("%i %g %g %g %g %g\n",jju,dulist_r(jju,2),dsfac,ulist_r[jju],uz,sfac);
         dulist_r(jju,2) = dsfac * ulist_r[jju] * uz +
                                   sfac * dulist_r(jju,2);
         dulist_i(jju,2) = dsfac * ulist_i[jju] * uz +
@@ -1176,7 +1130,6 @@ void SNAKokkos<DeviceType>::create_team_scratch_arrays(const typename Kokkos::Te
   zlist_r = t_sna_1d(team.team_scratch(1),idxz_max);
   zlist_i = t_sna_1d(team.team_scratch(1),idxz_max);
   blist = t_sna_1d(team.team_scratch(1),idxb_max);
-  dblist = t_sna_2d(team.team_scratch(1),idxb_max,3);
 
   rij = t_sna_2d(team.team_scratch(1),nmax,3);
   rcutij = t_sna_1d(team.team_scratch(1),nmax);
@@ -1193,7 +1146,6 @@ T_INT SNAKokkos<DeviceType>::size_team_scratch_arrays() {
   size += t_sna_1d::shmem_size(idxu_max)*2; // ylist
   size += t_sna_1d::shmem_size(idxz_max)*2; // zlist
   size += t_sna_1d::shmem_size(idxb_max); // blist
-  size += t_sna_2d::shmem_size(idxb_max,3); // dblist
 
   size += t_sna_2d::shmem_size(nmax,3); // rij
   size += t_sna_1d::shmem_size(nmax); // rcutij
@@ -1210,7 +1162,6 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::create_thread_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team)
 {
   dblist = t_sna_2d(team.thread_scratch(1),idxb_max,3);
-
   ulist_r = t_sna_1d(team.thread_scratch(1),idxu_max);
   ulist_i = t_sna_1d(team.thread_scratch(1),idxu_max);
   dulist_r = t_sna_2d(team.thread_scratch(1),idxu_max,3);
@@ -1223,7 +1174,6 @@ T_INT SNAKokkos<DeviceType>::size_thread_scratch_arrays() {
   T_INT size = 0;
 
   size += t_sna_2d::shmem_size(idxb_max,3); // dblist
-
   size += t_sna_1d::shmem_size(idxu_max)*2; // ulist
   size += t_sna_2d::shmem_size(idxu_max,3)*2; // dulist
   return size;

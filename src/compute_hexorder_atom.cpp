@@ -15,9 +15,9 @@
    Contributing author:  Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <complex>
+#include <cmath>
 #include <cstring>
-#include <cstdlib>
+#include <complex>
 #include "compute_hexorder_atom.h"
 #include "atom.h"
 #include "update.h"

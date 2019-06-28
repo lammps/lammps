@@ -33,7 +33,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "math_const.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

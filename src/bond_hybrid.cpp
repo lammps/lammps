@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdio>
 #include <cstring>
 #include <cctype>
 #include "bond_hybrid.h"

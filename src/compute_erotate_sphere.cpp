@@ -14,11 +14,8 @@
 #include <mpi.h>
 #include "compute_erotate_sphere.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
-#include "domain.h"
-#include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

@@ -13,7 +13,6 @@
 
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "compute_pressure.h"
 #include "atom.h"
 #include "update.h"

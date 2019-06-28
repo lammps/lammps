@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cmath>
 #include <cstring>
 #include "compute_dipole_chunk.h"
 #include "atom.h"

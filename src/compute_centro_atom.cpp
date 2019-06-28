@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include "compute_centro_atom.h"
 #include "atom.h"
 #include "update.h"

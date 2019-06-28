@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "compute_cluster_atom.h"
 #include "atom.h"
 #include "update.h"

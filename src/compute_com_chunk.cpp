@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
 #include "compute_com_chunk.h"
 #include "atom.h"

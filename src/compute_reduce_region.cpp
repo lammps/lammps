@@ -11,8 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
+#include <mpi.h>
 #include "compute_reduce_region.h"
 #include "atom.h"
 #include "update.h"

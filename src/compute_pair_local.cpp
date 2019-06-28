@@ -22,7 +22,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 

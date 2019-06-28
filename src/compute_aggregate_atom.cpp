@@ -15,6 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
 #include "compute_aggregate_atom.h"

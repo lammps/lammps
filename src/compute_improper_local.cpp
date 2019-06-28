@@ -20,7 +20,6 @@
 #include "update.h"
 #include "domain.h"
 #include "force.h"
-#include "improper.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

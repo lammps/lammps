@@ -17,7 +17,6 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "compute_rdf.h"
 #include "atom.h"

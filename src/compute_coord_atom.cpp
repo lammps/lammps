@@ -13,7 +13,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "compute_coord_atom.h"
 #include "compute_orientorder_atom.h"
 #include "atom.h"

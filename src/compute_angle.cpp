@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstring>
 #include "compute_angle.h"
+#include "angle.h"
 #include "update.h"
 #include "force.h"
 #include "angle_hybrid.h"

@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include "compute_gyration_chunk.h"

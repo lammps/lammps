@@ -15,8 +15,8 @@
    Contributing author: Wan Liang (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "compute_cna_atom.h"
 #include "atom.h"

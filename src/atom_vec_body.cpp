@@ -13,6 +13,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "atom_vec_body.h"
 #include "my_pool_chunk.h"
 #include "style_body.h"

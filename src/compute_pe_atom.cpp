@@ -24,7 +24,6 @@
 #include "improper.h"
 #include "kspace.h"
 #include "modify.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 

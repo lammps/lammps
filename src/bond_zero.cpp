@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdio>
 #include <cstring>
 #include "bond_zero.h"
 #include "atom.h"

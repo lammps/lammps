@@ -15,6 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
 #include "compute_fragment_atom.h"
 #include "atom.h"

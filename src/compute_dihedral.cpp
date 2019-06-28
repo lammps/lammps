@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstring>
 #include "compute_dihedral.h"
 #include "update.h"
 #include "force.h"
+#include "dihedral.h"
 #include "dihedral_hybrid.h"
 #include "error.h"
 

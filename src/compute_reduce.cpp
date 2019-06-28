@@ -20,8 +20,6 @@
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
-#include "force.h"
-#include "comm.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"

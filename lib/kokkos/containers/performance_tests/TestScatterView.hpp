@@ -83,6 +83,7 @@ void test_scatter_view(int m, int n)
       for (int k = 0; k < m; ++k) {
         Kokkos::parallel_for(policy, f2, "hand_coded_duplicate_scatter_view_test");
       }
+      Kokkos::fence();
       auto t = timer.seconds();
       std::cout << "hand-coded test took " << t << " seconds\n";
     }
@@ -101,6 +102,7 @@ void test_scatter_view(int m, int n)
       for (int k = 0; k < m; ++k) {
         Kokkos::parallel_for(policy, f, "scatter_view_test");
       }
+      Kokkos::fence();
       auto t = timer.seconds();
       std::cout << "test took " << t << " seconds\n";
     }

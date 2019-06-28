@@ -95,6 +95,7 @@ void run_deepcopyview_tests123(int N, int R) {
         a_ptr[i] = b_ptr[i];
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -135,6 +136,7 @@ void run_deepcopyview_tests45(int N, int R) {
         a_ptr[i] = b_ptr[i];
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -169,6 +171,7 @@ void run_deepcopyview_tests6(int N, int R) {
         a_ptr[i] = b_ptr[i];
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -202,6 +205,7 @@ void run_deepcopyview_tests7(int N, int R) {
         a_ptr[i] = b_ptr[i];
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif
@@ -235,6 +239,7 @@ void run_deepcopyview_tests8(int N, int R) {
         a_ptr[i] = b_ptr[i];
       });
     }
+    Kokkos::fence();
     time_raw = timer.seconds()/R;
   }
   #endif

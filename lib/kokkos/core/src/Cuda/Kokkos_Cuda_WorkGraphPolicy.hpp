@@ -102,9 +102,8 @@ public:
     const dim3 grid( Kokkos::Impl::cuda_internal_multiprocessor_count() , 1 , 1 );
     const dim3 block( 1 , Kokkos::Impl::CudaTraits::WarpSize , warps_per_block );
     const int shared = 0 ;
-    const cudaStream_t stream = 0 ;
 
-    Kokkos::Impl::CudaParallelLaunch<Self>(*this, grid, block, shared, stream);
+    Kokkos::Impl::CudaParallelLaunch<Self>(*this, grid, block, shared, Cuda().impl_internal_space_instance() , false );
   }
 
   inline

@@ -222,6 +222,14 @@ void check_correct_initialization( const Kokkos::InitArguments & argstruct ) {
       expected_nthreads = 1;
     }
 #endif
+
+#ifdef KOKKOS_ENABLE_HPX
+    // HPX uses all cores on machine by default. Skip this test.
+    if ( std::is_same< Kokkos::DefaultExecutionSpace, Kokkos::Experimental::HPX >::value ||
+         std::is_same< Kokkos::DefaultHostExecutionSpace, Kokkos::Experimental::HPX >::value ) {
+      return;
+    }
+#endif
   }
 
   int expected_numa = argstruct.num_numa;

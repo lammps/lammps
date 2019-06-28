@@ -156,13 +156,17 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union { unsigned long long int i ; T t ; } oldval , assume , newval ;
+  union U {
+    unsigned long long int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
   do {
     assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
+    newval.t = op.apply(assume.t, val) ;
     oldval.i = Kokkos::atomic_compare_exchange( (unsigned long long int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
@@ -175,7 +179,11 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union { unsigned long long int i ; T t ; } oldval , assume , newval ;
+  union U {
+    unsigned long long int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
@@ -193,13 +201,17 @@ KOKKOS_INLINE_FUNCTION
 T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union { int i ; T t ; } oldval , assume , newval ;
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
   do {
     assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
+    newval.t = op.apply(assume.t, val) ;
     oldval.i = Kokkos::atomic_compare_exchange( (int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
@@ -211,7 +223,11 @@ KOKKOS_INLINE_FUNCTION
 T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int), const T >::type val )
 {
-  union { int i ; T t ; } oldval , assume , newval ;
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 

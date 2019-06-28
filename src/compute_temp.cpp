@@ -12,13 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstring>
 #include "compute_temp.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 

@@ -18,7 +18,6 @@
 #include <cstring>
 #include "deprecated.h"
 #include "comm.h"
-#include "force.h"
 #include "error.h"
 #include "input.h"
 

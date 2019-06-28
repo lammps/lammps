@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include <cstring>
 #include "create_box.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
 #include "domain.h"
 #include "region.h"
 #include "region_prism.h"

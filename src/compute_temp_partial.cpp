@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdlib>
 #include "compute_temp_partial.h"
 #include "atom.h"
 #include "update.h"

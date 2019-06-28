@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
+#include <utility>
 #include "delete_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"

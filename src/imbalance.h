@@ -14,7 +14,6 @@
 #ifndef LMP_IMBALANCE_H
 #define LMP_IMBALANCE_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

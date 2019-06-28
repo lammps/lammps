@@ -14,6 +14,7 @@
 #ifndef LMP_COMM_TILED_H
 #define LMP_COMM_TILED_H
 
+#include <mpi.h>
 #include "comm.h"
 
 namespace LAMMPS_NS {

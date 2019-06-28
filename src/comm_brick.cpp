@@ -18,7 +18,6 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdio>
 #include "comm_brick.h"
 #include "atom.h"
 #include "atom_vec.h"

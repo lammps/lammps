@@ -2191,9 +2191,9 @@ void TILD::fieldforce_param(){
 
     // convert field to force
     
-    f[i][0] += delvolinv*ekx;
-    f[i][1] += delvolinv*eky;
-    f[i][2] += delvolinv*ekz;
+    f[i][0] += ekx;
+    f[i][1] += eky;
+    f[i][2] += ekz;
   }
 }
 

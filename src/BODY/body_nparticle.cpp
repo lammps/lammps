@@ -13,6 +13,7 @@
 
 #include <cstdlib>
 #include "body_nparticle.h"
+#include "my_pool_chunk.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"
 #include "atom.h"

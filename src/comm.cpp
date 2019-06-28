@@ -21,6 +21,7 @@
 #include "force.h"
 #include "pair.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "fix.h"
 #include "compute.h"
 #include "domain.h"

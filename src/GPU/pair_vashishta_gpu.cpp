@@ -14,7 +14,6 @@
 /* ----------------------------------------------------------------------
    Contributing author: Anders Hafreager (UiO)
 ------------------------------------------------------------------------- */
-#include <limits>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

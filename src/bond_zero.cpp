@@ -15,8 +15,8 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
+#include <mpi.h>
+#include <cstdio>
 #include <cstring>
 #include "bond_zero.h"
 #include "atom.h"

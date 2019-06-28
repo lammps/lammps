@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cstdio>
 #include "citeme.h"
-#include "version.h"
 #include "universe.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

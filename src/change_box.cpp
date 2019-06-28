@@ -13,7 +13,6 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "change_box.h"
 #include "atom.h"

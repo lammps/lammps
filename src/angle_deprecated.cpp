@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdio>
 #include "angle_deprecated.h"
 #include "angle_hybrid.h"
 #include "comm.h"

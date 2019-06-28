@@ -19,23 +19,15 @@
 #include <cmath>
 #include <cstring>
 #include <cstdio>
-#include <cstdlib>
 #include "comm_brick.h"
-#include "comm_tiled.h"
-#include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
 #include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
-#include "group.h"
-#include "modify.h"
 #include "fix.h"
 #include "compute.h"
-#include "output.h"
 #include "dump.h"
-#include "math_extra.h"
 #include "error.h"
 #include "memory.h"
 

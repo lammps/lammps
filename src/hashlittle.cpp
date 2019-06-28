@@ -3,7 +3,7 @@
 // bob_jenkins@burtleburtle.net
 
 #include <cmath>
-#include <stddef.h>
+#include <cstddef>
 #include <stdint.h>
 
 // if the system defines the __BYTE_ORDER__ define,

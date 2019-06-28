@@ -15,13 +15,11 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include <cmath>
 #include <cstring>
-#include <cstdlib>
+#include <limits>
 #include "fix_tune_kspace.h"
 #include "update.h"
-#include "domain.h"
-#include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "pair.h"
@@ -31,9 +29,6 @@
 #include "neighbor.h"
 #include "modify.h"
 #include "compute.h"
-#include <iostream>
-#include <cmath>
-#include <limits>
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 #define GOLD 1.618034
@@ -101,7 +96,7 @@ void FixTuneKspace::init()
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
   char old_acc_str[16];
   snprintf(old_acc_str,16,"%g",old_acc);
-  strcpy(new_acc_str,old_acc_str);
+  strncpy(new_acc_str,old_acc_str,16);
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
@@ -131,36 +126,37 @@ void FixTuneKspace::pre_exchange()
     // test Ewald
     store_old_kspace_settings();
     strcpy(new_kspace_style,"ewald");
-    sprintf(new_pair_style,"%s/long",base_pair_style);
+    snprintf(new_pair_style,64,"%s/long",base_pair_style);
     update_pair_style(new_pair_style,pair_cut_coul);
     update_kspace_style(new_kspace_style,new_acc_str);
   } else if (niter == 2) {
     // test PPPM
     store_old_kspace_settings();
     strcpy(new_kspace_style,"pppm");
-    sprintf(new_pair_style,"%s/long",base_pair_style);
+    snprintf(new_pair_style,64,"%s/long",base_pair_style);
     update_pair_style(new_pair_style,pair_cut_coul);
     update_kspace_style(new_kspace_style,new_acc_str);
   } else if (niter == 3) {
     // test MSM
     store_old_kspace_settings();
     strcpy(new_kspace_style,"msm");
-    sprintf(new_pair_style,"%s/msm",base_pair_style);
+    snprintf(new_pair_style,64,"%s/msm",base_pair_style);
     update_pair_style(new_pair_style,pair_cut_coul);
     update_kspace_style(new_kspace_style,new_acc_str);
   } else if (niter == 4) {
     store_old_kspace_settings();
-    cout << "ewald_time = " << ewald_time << endl;
-    cout << "pppm_time = " << pppm_time << endl;
-    cout << "msm_time = " << msm_time << endl;
+    if (screen) fprintf(screen,"ewald_time = %g\npppm_time = %g\nmsm_time = %g",
+                        ewald_time, pppm_time, msm_time);
+    if (logfile) fprintf(logfile,"ewald_time = %g\npppm_time = %g\nmsm_time = %g",
+                         ewald_time, pppm_time, msm_time);
     // switch to fastest one
     strcpy(new_kspace_style,"ewald");
-    sprintf(new_pair_style,"%s/long",base_pair_style);
+    snprintf(new_pair_style,64,"%s/long",base_pair_style);
     if (pppm_time < ewald_time && pppm_time < msm_time)
       strcpy(new_kspace_style,"pppm");
     else if (msm_time < pppm_time && msm_time < ewald_time) {
       strcpy(new_kspace_style,"msm");
-      sprintf(new_pair_style,"%s/msm",base_pair_style);
+      snprintf(new_pair_style,64,"%s/msm",base_pair_style);
     }
     update_pair_style(new_pair_style,pair_cut_coul);
     update_kspace_style(new_kspace_style,new_acc_str);
@@ -243,8 +239,8 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
   p_pair_settings_file = tmpfile();
   force->pair->write_restart(p_pair_settings_file);
   rewind(p_pair_settings_file);
-
-  cout << "Creating new pair style: " << new_pair_style << endl;
+  if (screen) fprintf(screen,"Creating new pair style: %s\n",new_pair_style);
+  if (logfile) fprintf(logfile,"Creating new pair style: %s\n",new_pair_style);
   // delete old pair style and create new one
   force->create_pair(new_pair_style,1);
 
@@ -253,7 +249,8 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
 
   double *pcutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *pcutoff;
-  cout << "Coulomb cutoff for real space: " << current_cutoff << endl;
+  if (screen) fprintf(screen,"Coulomb cutoff for real space: %g\n", current_cutoff);
+  if (logfile) fprintf(logfile,"Coulomb cutoff for real space: %g\n", current_cutoff);
 
   // close temporary file
   fclose(p_pair_settings_file);
@@ -321,7 +318,8 @@ void FixTuneKspace::adjust_rcut(double time)
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *p_cutoff;
-  cout << "Old Coulomb cutoff for real space: " << current_cutoff << endl;
+  if (screen) fprintf(screen,"Old Coulomb cutoff for real space: %g\n",current_cutoff);
+  if (logfile) fprintf(logfile,"Old Coulomb cutoff for real space: %g\n",current_cutoff);
 
   // use Brent's method from Numerical Recipes to find optimal real space cutoff
 
@@ -391,7 +389,8 @@ void FixTuneKspace::adjust_rcut(double time)
   // report the new cutoff
   double *new_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   current_cutoff = *new_cutoff;
-  cout << "Adjusted Coulomb cutoff for real space: " << current_cutoff << endl;
+  if (screen) fprintf(screen,"Adjusted Coulomb cutoff for real space: %g\n", current_cutoff);
+  if (logfile) fprintf(logfile,"Adjusted Coulomb cutoff for real space: %g\n", current_cutoff);
 
   store_old_kspace_settings();
   update_pair_style(new_pair_style,pair_cut_coul);

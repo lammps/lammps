@@ -15,6 +15,8 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cstdio>    // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>

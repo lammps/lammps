@@ -13,7 +13,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "fix_lineforce.h"
 #include "atom.h"
 #include "update.h"

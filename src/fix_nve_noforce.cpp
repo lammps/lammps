@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
 #include <cstring>
 #include "fix_nve_noforce.h"
 #include "atom.h"

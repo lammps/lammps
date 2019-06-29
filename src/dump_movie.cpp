@@ -15,13 +15,10 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "dump_movie.h"
 #include "comm.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

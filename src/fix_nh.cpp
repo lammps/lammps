@@ -16,10 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "fix_nh.h"
-#include "math_extra.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"

@@ -13,7 +13,6 @@
 
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "fix_aveforce.h"
 #include "atom.h"
 #include "update.h"

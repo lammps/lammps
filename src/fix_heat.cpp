@@ -15,8 +15,8 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_heat.h"
 #include "atom.h"

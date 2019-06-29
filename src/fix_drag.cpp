@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_drag.h"
 #include "atom.h"

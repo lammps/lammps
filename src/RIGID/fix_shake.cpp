@@ -13,11 +13,9 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
+#include <cctype>
 #include <cstring>
-#include <cstdio>
 #include "fix_shake.h"
-#include "fix_rattle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"

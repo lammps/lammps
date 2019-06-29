@@ -12,14 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include "fix_nve_sphere.h"
 #include "atom.h"
 #include "domain.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "respa.h"
 #include "force.h"
 #include "error.h"
 #include "math_vector.h"

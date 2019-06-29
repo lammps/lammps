@@ -14,7 +14,6 @@
 #include <cstring>
 #include "dump_xyz.h"
 #include "atom.h"
-#include "group.h"
 #include "error.h"
 #include "memory.h"
 #include "update.h"

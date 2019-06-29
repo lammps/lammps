@@ -17,7 +17,6 @@
 #include "atom.h"
 #include "group.h"
 #include "force.h"
-#include "comm.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"

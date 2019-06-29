@@ -15,7 +15,7 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include "fix_recenter.h"
 #include "atom.h"

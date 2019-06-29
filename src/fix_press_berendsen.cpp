@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "fix_press_berendsen.h"
 #include "atom.h"
@@ -23,7 +22,6 @@
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
 

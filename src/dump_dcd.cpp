@@ -17,8 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <inttypes.h> // <cinttypes> requires C++-11
-#include <cstdio>
 #include <ctime>
 #include <cstring>
 #include "dump_dcd.h"

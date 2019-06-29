@@ -15,7 +15,6 @@
 #include <cstring>
 #include <cstdlib>
 #include "dump_local.h"
-#include "atom.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"

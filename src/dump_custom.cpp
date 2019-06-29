@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include "dump_custom.h"

@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
+#include <cstring>
 #include "fix_nh_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
 #include "error.h"
 #include "force.h"
 #include "domain.h"

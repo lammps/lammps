@@ -17,6 +17,8 @@
      Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cstdio>    // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>

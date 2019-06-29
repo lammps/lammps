@@ -16,7 +16,6 @@
 #include <cstring>
 #include "error.h"
 #include "universe.h"
-#include "update.h"
 #include "output.h"
 #include "input.h"
 

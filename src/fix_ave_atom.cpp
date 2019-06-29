@@ -15,7 +15,6 @@
 #include <cstring>
 #include "fix_ave_atom.h"
 #include "atom.h"
-#include "domain.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"

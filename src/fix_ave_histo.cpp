@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cstdio>    // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
@@ -19,7 +21,6 @@
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"

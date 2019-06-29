@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "fix_deform.h"
 #include "atom.h"

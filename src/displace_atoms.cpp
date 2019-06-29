@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include "displace_atoms.h"
 #include "atom.h"

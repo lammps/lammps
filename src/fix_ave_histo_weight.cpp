@@ -14,21 +14,19 @@
 /* ----------------------------------------------------------------------
    Contributing author: Shawn Coleman (ARL)
 ------------------------------------------------------------------------- */
-
-#include <cstdlib>
-#include <cstring>
+#include <mpi.h>
+#include <cstdio>    // IWYU pragma: keep
 #include <unistd.h>
+#include "fix.h"
 #include "fix_ave_histo_weight.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

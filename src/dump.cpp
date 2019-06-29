@@ -12,9 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdlib>
 #include <cstring>
-#include <cstdio>
 #include "dump.h"
 #include "atom.h"
 #include "irregular.h"

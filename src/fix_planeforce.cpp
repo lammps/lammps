@@ -13,7 +13,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "fix_planeforce.h"
 #include "atom.h"
 #include "update.h"

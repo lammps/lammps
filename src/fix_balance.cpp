@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include "fix_balance.h"
 #include "balance.h"
 #include "update.h"
@@ -26,7 +25,6 @@
 #include "modify.h"
 #include "fix_store.h"
 #include "rcb.h"
-#include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

@@ -12,11 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "fix_move.h"
 #include "atom.h"
-#include "group.h"
 #include "update.h"
 #include "modify.h"
 #include "force.h"

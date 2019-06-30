@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cmath>
 #include "nbin.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 

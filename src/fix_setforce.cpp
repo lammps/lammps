@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "fix_setforce.h"
 #include "atom.h"
 #include "update.h"

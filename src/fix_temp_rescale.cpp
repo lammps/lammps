@@ -12,15 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "fix_temp_rescale.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
 #include "update.h"
-#include "domain.h"
-#include "region.h"
 #include "comm.h"
 #include "input.h"
 #include "variable.h"

@@ -13,9 +13,8 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include <cstdlib>
+#include <utility>
 #include "group.h"
 #include "domain.h"
 #include "atom.h"

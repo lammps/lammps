@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
 #include "min_fire.h"
 #include "universe.h"
@@ -19,7 +20,6 @@
 #include "update.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

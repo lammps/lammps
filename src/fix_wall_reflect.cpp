@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include <cstring>
 #include "fix_wall_reflect.h"
 #include "atom.h"

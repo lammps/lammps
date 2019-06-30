@@ -2,7 +2,6 @@
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net
 
-#include <cmath>
 #include <cstddef>
 #include <stdint.h>
 

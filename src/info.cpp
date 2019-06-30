@@ -16,7 +16,13 @@
                           Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cmath>
 #include <cstring>
+#include <cctype>
+#include <ctime>
+#include <map>
+#include <string>
 #include "info.h"
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -44,18 +50,12 @@
 #include "error.h"
 #include "utils.h"
 
-#include <ctime>
-#include <map>
-#include <string>
-#include <algorithm>
-
 #ifdef _WIN32
 #define PSAPI_VERSION 1
 #include <windows.h>
 #include <stdint.h> // <cstdint> requires C++-11
 #include <psapi.h>
 #else
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
 #endif

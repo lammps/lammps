@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
@@ -51,10 +50,6 @@
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #ifdef _WIN32
 #include <direct.h>

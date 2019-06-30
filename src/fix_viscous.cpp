@@ -11,8 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_viscous.h"
 #include "atom.h"

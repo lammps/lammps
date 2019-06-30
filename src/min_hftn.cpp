@@ -17,6 +17,7 @@
             "Parallel Unconstrained Min", Plantenga, SAND98-8201
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include "atom.h"

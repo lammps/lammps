@@ -15,7 +15,6 @@
 #include "fix_store_force.h"
 #include "atom.h"
 #include "update.h"
-#include "group.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"

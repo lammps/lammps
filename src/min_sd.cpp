@@ -12,9 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <mpi.h>
 #include "min_sd.h"
-#include "atom.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"

@@ -18,7 +18,6 @@
 #include <mpi.h>
 #include <cmath>
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
 #include "image.h"
 #include "math_extra.h"
@@ -29,7 +28,7 @@
 #include "memory.h"
 
 #ifdef LAMMPS_JPEG
-#include "jpeglib.h"
+#include <jpeglib.h>
 #endif
 
 #ifdef LAMMPS_PNG

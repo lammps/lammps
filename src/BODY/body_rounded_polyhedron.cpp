@@ -15,6 +15,7 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include <cstdlib>
 #include "body_rounded_polyhedron.h"
 #include "my_pool_chunk.h"

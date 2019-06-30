@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include "fix_temp_berendsen.h"
 #include "atom.h"

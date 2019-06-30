@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstdlib>
 #include <cstring>
 #include "irregular.h"
 #include "atom.h"

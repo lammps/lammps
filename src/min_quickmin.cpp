@@ -20,7 +20,6 @@
 #include "update.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

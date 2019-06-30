@@ -12,14 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_spring_chunk.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "respa.h"
-#include "domain.h"
 #include "modify.h"
 #include "compute_chunk_atom.h"
 #include "compute_com_chunk.h"

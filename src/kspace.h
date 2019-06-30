@@ -14,6 +14,7 @@
 #ifndef LMP_KSPACE_H
 #define LMP_KSPACE_H
 
+#include <mpi.h>
 #include "pointers.h"
 
 #ifdef FFT_SINGLE

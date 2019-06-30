@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
 #include "imbalance_var.h"
 #include "atom.h"
@@ -19,9 +20,6 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-
-// DEBUG
-#include "update.h"
 
 using namespace LAMMPS_NS;
 

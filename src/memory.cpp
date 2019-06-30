@@ -11,9 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include "memory.h"
 #include "error.h"
 

@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include <cstdlib>
 #include "body_nparticle.h"
 #include "my_pool_chunk.h"

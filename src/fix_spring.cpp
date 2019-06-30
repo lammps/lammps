@@ -16,13 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_spring.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
-#include "domain.h"
 #include "force.h"
 #include "group.h"
 #include "error.h"

@@ -18,7 +18,6 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_tmd.h"
 #include "atom.h"

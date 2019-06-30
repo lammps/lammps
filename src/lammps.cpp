@@ -48,7 +48,6 @@
 #include "output.h"
 #include "citeme.h"
 #include "accelerator_kokkos.h"
-#include "accelerator_omp.h"
 #include "timer.h"
 #include "lmppython.h"
 #include "version.h"

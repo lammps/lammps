@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
 #include <cstring>
 #include "modify.h"
 #include "style_compute.h"

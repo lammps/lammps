@@ -14,7 +14,7 @@
 #ifndef LMP_IMBALANCE_H
 #define LMP_IMBALANCE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

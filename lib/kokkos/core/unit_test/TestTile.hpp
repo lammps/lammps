@@ -42,6 +42,9 @@
 #ifndef TEST_TILE_HPP
 #define TEST_TILE_HPP
 
+//========================================================================
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+
 #include <Kokkos_Core.hpp>
 #include <impl/Kokkos_ViewTile.hpp>
 
@@ -166,4 +169,8 @@ TEST_F( TEST_CATEGORY, tile_layout )
 }
 
 }
+
+#endif // KOKKOS_ENABLE_DEPRECATED_CODE
+//=====================================================================
+
 #endif //TEST_TILE_HPP

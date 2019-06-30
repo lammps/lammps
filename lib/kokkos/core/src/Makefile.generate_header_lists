@@ -22,6 +22,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
   KOKKOS_HEADERS_OPENMP += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.hpp)
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+  KOKKOS_HEADERS_HPX += $(wildcard $(KOKKOS_PATH)/core/src/HPX/*.hpp)
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
   KOKKOS_HEADERS_ROCM += $(wildcard $(KOKKOS_PATH)/core/src/ROCm/*.hpp)
 endif

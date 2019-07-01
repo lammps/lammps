@@ -85,8 +85,9 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   ifthenelse_flag = 0;
 
   if (me == 0) {
-    nfile = maxfile = 1;
-    infiles = (FILE **) memory->smalloc(sizeof(FILE *),"input:infiles");
+    nfile = 1;
+    maxfile = 16;
+    infiles = new FILE *[maxfile];
     infiles[0] = infile;
   } else infiles = NULL;
 
@@ -138,7 +139,7 @@ Input::~Input()
   memory->sfree(work);
   if (labelstr) delete [] labelstr;
   memory->sfree(arg);
-  memory->sfree(infiles);
+  delete [] infiles;
   delete variable;
 
   delete command_map;
@@ -251,11 +252,8 @@ void Input::file(const char *filename)
   // call to file() will close filename and decrement nfile
 
   if (me == 0) {
-    if (nfile == maxfile) {
-      maxfile++;
-      infiles = (FILE **)
-        memory->srealloc(infiles,maxfile*sizeof(FILE *),"input:infiles");
-    }
+    if (nfile == maxfile)
+      error->one(FLERR,"Too many nested levels of input scripts");
 
     infile = fopen(filename,"r");
     if (infile == NULL) {
@@ -1044,11 +1042,9 @@ void Input::include()
     error->all(FLERR,"Cannot use include command within an if command");
 
   if (me == 0) {
-    if (nfile == maxfile) {
-      maxfile++;
-      infiles = (FILE **)
-        memory->srealloc(infiles,maxfile*sizeof(FILE *),"input:infiles");
-    }
+    if (nfile == maxfile)
+      error->one(FLERR,"Too many nested levels of input scripts");
+
     infile = fopen(arg[0],"r");
     if (infile == NULL) {
       char str[128];

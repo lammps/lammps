@@ -36,9 +36,13 @@ output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The vector value calculated by this compute is "extensive". The vector
-value will be in momentum "units"_units.html.
+value will be in mass*velocity "units"_units.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+This compute is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

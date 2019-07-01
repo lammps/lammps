@@ -85,7 +85,6 @@ private:
   int*** idxcg_block; 
 
   double* ulisttot_r, * ulisttot_i;
-  double* ulist_r, * ulist_i;
   double** ulist_r_ij, ** ulist_i_ij;
   int* idxu_block;
 
@@ -109,7 +108,7 @@ private:
   void addself_uarraytot(double);
   void add_uarraytot(double, double, double, int);
   void compute_uarray(double, double, double,
-                      double, double);
+                      double, double, int);
   double deltacg(int, int, int);
   int compute_ncoeff();
   void compute_duarray(double, double, double,

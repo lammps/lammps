@@ -341,7 +341,7 @@ void SNA::compute_ui(int jnum)
     //    theta0 = (r - rmin0) * rscale0;
     z0 = r / tan(theta0);
 
-    compute_uarray(x, y, z, z0, r);
+    compute_uarray(x, y, z, z0, r, j);
     add_uarraytot(r, wj[j], rcutij[j], j);
   }
 
@@ -895,8 +895,8 @@ void SNA::add_uarraytot(double r, double wj, double rcut, int jj)
 
   sfac *= wj;
 
-  double* ulist_r_j = ulist_r_ij[jj];
-  double* ulist_i_j = ulist_i_ij[jj];
+  double* ulist_r = ulist_r_ij[jj];
+  double* ulist_i = ulist_i_ij[jj];
 
   for (int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];
@@ -906,9 +906,6 @@ void SNA::add_uarraytot(double r, double wj, double rcut, int jj)
           sfac * ulist_r[jju];
         ulisttot_i[jju] +=
           sfac * ulist_i[jju];
-
-        ulist_r_j[jju] = ulist_r[jju];
-        ulist_i_j[jju] = ulist_i[jju];
         jju++;
       }
   }
@@ -919,7 +916,7 @@ void SNA::add_uarraytot(double r, double wj, double rcut, int jj)
 ------------------------------------------------------------------------- */
 
 void SNA::compute_uarray(double x, double y, double z,
-                         double z0, double r)
+                         double z0, double r, int jj)
 {
   double r0inv;
   double a_r, b_r, a_i, b_i;
@@ -934,6 +931,10 @@ void SNA::compute_uarray(double x, double y, double z,
   b_i = -r0inv * x;
 
   // VMK Section 4.8.2
+
+
+  double* ulist_r = ulist_r_ij[jj];
+  double* ulist_i = ulist_i_ij[jj];
 
   ulist_r[0] = 1.0;
   ulist_i[0] = 0.0;
@@ -1208,8 +1209,6 @@ void SNA::create_twojmax_arrays()
   memory->create(rootpqarray, jdimpq, jdimpq,
                  "sna:rootpqarray");
   memory->create(cglist, idxcg_max, "sna:cglist");
-  memory->create(ulist_r, idxu_max, "sna:ulist");
-  memory->create(ulist_i, idxu_max, "sna:ulist");
   memory->create(ulisttot_r, idxu_max, "sna:ulisttot");
   memory->create(ulisttot_i, idxu_max, "sna:ulisttot");
   memory->create(dulist_r, idxu_max, 3, "sna:dulist");
@@ -1234,8 +1233,6 @@ void SNA::destroy_twojmax_arrays()
 {
   memory->destroy(rootpqarray);
   memory->destroy(cglist);
-  memory->destroy(ulist_r);
-  memory->destroy(ulist_i);
   memory->destroy(ulisttot_r);
   memory->destroy(ulisttot_i);
   memory->destroy(dulist_r);

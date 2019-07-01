@@ -28,7 +28,7 @@ class MinSpinOSO_LBFGS : public Min {
 
 public:
     MinSpinOSO_LBFGS(class LAMMPS *);
-    ~MinSpinOSO_LBFGS() {}
+    virtual ~MinSpinOSO_LBFGS();
     void init();
     void setup_style();
     int modify_param(int, char **);
@@ -43,6 +43,7 @@ public:
 private:
     // global and spin timesteps
 
+    int nlocal_max;		// max value of nlocal (for size of lists)
     double dt;
     double dts;
 
@@ -52,9 +53,9 @@ private:
     double *spvec;		// variables for atomic dof, as 1d vector
     double *fmvec;		// variables for atomic dof, as 1d vector
 
-    double *g;  		// gradient vector
+    double *g_cur;  	// current gradient vector
     double *g_old;  	// gradient vector at previous step
-    double *p;  		// search direction vector
+    double *p_s;  		// search direction vector
     double **ds;  		// change in rotation matrix between two iterations, da
     double **dy;        // change in gradients between two iterations, dg
     double *rho;        // estimation of curvature

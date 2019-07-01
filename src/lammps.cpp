@@ -19,20 +19,20 @@
 #include <map>
 #include <string>
 #include "lammps.h"
-#include "style_angle.h"
-#include "style_atom.h"
-#include "style_bond.h"
-#include "style_command.h"
-#include "style_compute.h"
-#include "style_dihedral.h"
-#include "style_dump.h"
-#include "style_fix.h"
-#include "style_improper.h"
-#include "style_integrate.h"
-#include "style_kspace.h"
-#include "style_minimize.h"
-#include "style_pair.h"
-#include "style_region.h"
+#include "style_angle.h"     // IWYU pragma: keep
+#include "style_atom.h"      // IWYU pragma: keep
+#include "style_bond.h"      // IWYU pragma: keep
+#include "style_command.h"   // IWYU pragma: keep
+#include "style_compute.h"   // IWYU pragma: keep
+#include "style_dihedral.h"  // IWYU pragma: keep
+#include "style_dump.h"      // IWYU pragma: keep
+#include "style_fix.h"       // IWYU pragma: keep
+#include "style_improper.h"  // IWYU pragma: keep
+#include "style_integrate.h" // IWYU pragma: keep
+#include "style_kspace.h"    // IWYU pragma: keep
+#include "style_minimize.h"  // IWYU pragma: keep
+#include "style_pair.h"      // IWYU pragma: keep
+#include "style_region.h"    // IWYU pragma: keep
 #include "universe.h"
 #include "input.h"
 #include "info.h"

@@ -356,8 +356,8 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
         dy[m_index][i] = g[i] - g_old[i];
         dyds += ds[m_index][i] * dy[m_index][i];
       }
-//    MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
-    if (fabs(dyds) > 1.0e-60) rho[m_index] = 1.0 / dyds;
+    MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    if (fabs(dyds) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
 
     // set the q vector
@@ -378,10 +378,11 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       for (int i = 0; i < 3 * nlocal; i++) {
         sq += ds[c_ind][i] * q[i];
       }
+      MPI_Allreduce(&sq, &sq_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
       // update alpha
 
-      alpha[c_ind] = rho[c_ind] * sq;
+      alpha[c_ind] = rho[c_ind] * sq_global;
 
       // update q
 
@@ -395,12 +396,13 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     for (int i = 0; i < 3 * nlocal; i++) {
       yy += dy[m_index][i] * dy[m_index][i];
     }
+    MPI_Allreduce(&yy, &yy_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
-    // calculate now search direction
+      // calculate now search direction
 
-    if (fabs(yy) > 1.0e-60) {
+    if (fabs(yy_global) > 1.0e-60) {
       for (int i = 0; i < 3 * nlocal; i++) {
-        p[i] = q[i] / (rho[m_index] * yy);
+        p[i] = q[i] / (rho[m_index] * yy_global);
       }
     }else{
       for (int i = 0; i < 3 * nlocal; i++) {
@@ -419,8 +421,9 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       for (int i = 0; i < 3 * nlocal; i++) {
         yr += dy[c_ind][i] * p[i];
       }
+      MPI_Allreduce(&yr, &yr_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
-      beta = rho[c_ind] * yr;
+      beta = rho[c_ind] * yr_global;
       for (int i = 0; i < 3 * nlocal; i++) {
         p[i] += ds[c_ind][i] * (alpha[c_ind] - beta);
       }
@@ -514,7 +517,7 @@ void MinSpinOSO_LBFGS::rodrigues_rotation(const double *upp_tr, double *out)
   if (fabs(upp_tr[0]) < 1.0e-40 &&
       fabs(upp_tr[1]) < 1.0e-40 &&
       fabs(upp_tr[2]) < 1.0e-40){
-    
+
     // if upp_tr is zero, return unity matrix
     for(int k = 0; k < 3; k++){
       for(int m = 0; m < 3; m++){
@@ -537,13 +540,13 @@ void MinSpinOSO_LBFGS::rodrigues_rotation(const double *upp_tr, double *out)
   double z = upp_tr[2]/theta;
 
   // diagonal elements of U
-  
+
   out[0] = A + z * z * D;
   out[4] = A + y * y * D;
   out[8] = A + x * x * D;
 
   // off diagonal of U
-  
+
   double s1 = -y * z *D;
   double s2 = x * z * D;
   double s3 = -x * y * D;

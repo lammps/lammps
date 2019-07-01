@@ -27,19 +27,17 @@ static const double MY_PI  = 3.14159265358979323846; // pi
 template<class DeviceType>
 inline
 SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
-         int twojmax_in, int diagonalstyle_in, int use_shared_arrays_in,
+         int twojmax_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in)
 {
   wself = 1.0;
 
-  use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
   bzero_flag = bzero_flag_in;
 
   twojmax = twojmax_in;
-  diagonalstyle = diagonalstyle_in;
 
   ncoeff = compute_ncoeff();
 
@@ -70,14 +68,12 @@ KOKKOS_INLINE_FUNCTION
 SNAKokkos<DeviceType>::SNAKokkos(const SNAKokkos<DeviceType>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team) {
   wself = sna.wself;
 
-  use_shared_arrays = sna.use_shared_arrays;
   rfac0 = sna.rfac0;
   rmin0 = sna.rmin0;
   switch_flag = sna.switch_flag;
   bzero_flag = sna.bzero_flag;
 
   twojmax = sna.twojmax;
-  diagonalstyle = sna.diagonalstyle;
 
   ncoeff = sna.ncoeff;
   nmax = sna.nmax;
@@ -104,48 +100,45 @@ template<class DeviceType>
 inline
 void SNAKokkos<DeviceType>::build_indexlist()
 {
-  if(diagonalstyle == 3) {
-    int idxj_count = 0;
-    int idxj_full_count = 0;
+  int idxj_count = 0;
+  int idxj_full_count = 0;
 
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
-          if (j >= j1) idxj_count++;
-          idxj_full_count++;
-        }
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+	if (j >= j1) idxj_count++;
+	idxj_full_count++;
+      }
 
-    // indexList can be changed here
+  // indexList can be changed here
 
-    idxj = Kokkos::View<SNAKK_LOOPINDICES*, DeviceType>("SNAKokkos::idxj",idxj_count);
-    idxj_full = Kokkos::View<SNAKK_LOOPINDICES*, DeviceType>("SNAKokkos::idxj_full",idxj_full_count);
-    auto h_idxj = Kokkos::create_mirror_view(idxj);
-    auto h_idxj_full = Kokkos::create_mirror_view(idxj_full);
+  idxj = Kokkos::View<SNAKK_LOOPINDICES*, DeviceType>("SNAKokkos::idxj",idxj_count);
+  idxj_full = Kokkos::View<SNAKK_LOOPINDICES*, DeviceType>("SNAKokkos::idxj_full",idxj_full_count);
+  auto h_idxj = Kokkos::create_mirror_view(idxj);
+  auto h_idxj_full = Kokkos::create_mirror_view(idxj_full);
 
-    idxj_max = idxj_count;
-    idxj_full_max = idxj_full_count;
+  idxj_max = idxj_count;
+  idxj_full_max = idxj_full_count;
 
-    idxj_count = 0;
-    idxj_full_count = 0;
+  idxj_count = 0;
+  idxj_full_count = 0;
 
-    for(int j1 = 0; j1 <= twojmax; j1++)
-      for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
-          if (j >= j1) {
-            h_idxj[idxj_count].j1 = j1;
-            h_idxj[idxj_count].j2 = j2;
-            h_idxj[idxj_count].j = j;
-            idxj_count++;
-          }
-          h_idxj_full[idxj_full_count].j1 = j1;
-          h_idxj_full[idxj_full_count].j2 = j2;
-          h_idxj_full[idxj_full_count].j = j;
-          idxj_full_count++;
-        }
-    Kokkos::deep_copy(idxj,h_idxj);
-    Kokkos::deep_copy(idxj_full,h_idxj_full);
-
-  }
+  for(int j1 = 0; j1 <= twojmax; j1++)
+    for(int j2 = 0; j2 <= j1; j2++)
+      for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
+	if (j >= j1) {
+	  h_idxj[idxj_count].j1 = j1;
+	  h_idxj[idxj_count].j2 = j2;
+	  h_idxj[idxj_count].j = j;
+	  idxj_count++;
+	}
+	h_idxj_full[idxj_full_count].j1 = j1;
+	h_idxj_full[idxj_full_count].j2 = j2;
+	h_idxj_full[idxj_full_count].j = j;
+	idxj_full_count++;
+      }
+  Kokkos::deep_copy(idxj,h_idxj);
+  Kokkos::deep_copy(idxj_full,h_idxj_full);
 
 }
 /* ---------------------------------------------------------------------- */
@@ -1223,26 +1216,10 @@ int SNAKokkos<DeviceType>::compute_ncoeff()
   ncount = 0;
 
   for (int j1 = 0; j1 <= twojmax; j1++)
-    if(diagonalstyle == 0) {
-      for (int j2 = 0; j2 <= j1; j2++)
-        for (int j = abs(j1 - j2);
-            j <= MIN(twojmax, j1 + j2); j += 2)
-          ncount++;
-    } else if(diagonalstyle == 1) {
-      int j2 = j1;
-
+    for (int j2 = 0; j2 <= j1; j2++)
       for (int j = abs(j1 - j2);
-          j <= MIN(twojmax, j1 + j2); j += 2)
-        ncount++;
-    } else if(diagonalstyle == 2) {
-      ncount++;
-    } else if(diagonalstyle == 3) {
-      for (int j2 = 0; j2 <= j1; j2++)
-        for (int j = abs(j1 - j2);
-            j <= MIN(twojmax, j1 + j2); j += 2)
-          if (j >= j1) ncount++;
-    }
-
+	   j <= MIN(twojmax, j1 + j2); j += 2)
+	if (j >= j1) ncount++;
   return ncount;
 }
 

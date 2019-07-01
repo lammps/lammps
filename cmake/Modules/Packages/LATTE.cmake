@@ -11,6 +11,9 @@ if(PKG_LATTE)
     if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR
       message(FATAL_ERROR "For downlading LATTE you need at least cmake-3.7")
     endif()
+    if(CMAKE_GENERATOR STREQUAL "Ninja")
+      message(FATAL_ERROR "Cannot build downloaded LATTE library with Ninja build tool")
+    endif()
     message(STATUS "LATTE download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build

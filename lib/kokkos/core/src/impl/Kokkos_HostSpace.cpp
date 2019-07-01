@@ -420,15 +420,19 @@ SharedAllocationRecord< Kokkos::HostSpace , void >::get_record( void * alloc_ptr
 }
 
 // Iterate records to print orphaned memory ...
+#ifdef KOKKOS_DEBUG
 void SharedAllocationRecord< Kokkos::HostSpace , void >::
 print_records( std::ostream & s , const Kokkos::HostSpace & , bool detail )
 {
-#ifdef KOKKOS_DEBUG
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "HostSpace" , & s_root_record , detail );
-#else
-  throw_runtime_exception("SharedAllocationRecord<HostSpace>::print_records only works with KOKKOS_DEBUG enabled");
-#endif
 }
+#else
+void SharedAllocationRecord< Kokkos::HostSpace , void >::
+print_records( std::ostream & , const Kokkos::HostSpace & , bool )
+{
+  throw_runtime_exception("SharedAllocationRecord<HostSpace>::print_records only works with KOKKOS_DEBUG enabled");
+}
+#endif
 
 } // namespace Impl
 } // namespace Kokkos

@@ -64,8 +64,8 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      NOT,EQ,NE,LT,LE,GT,GE,AND,OR,XOR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
-     STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
-     IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
+     LOGFREQ3,STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
+     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
@@ -2297,8 +2297,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     stride(x,y,z),vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
-     gmask(x),rmask(x),grmask(x,y)
+     logfreq3(x,y,z),stride(x,y,z),vdisplace(x,y),swiggle(x,y,z),
+     cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::collapse_tree(Tree *tree)
@@ -2705,6 +2705,35 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  if (tree->type == LOGFREQ3) {
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (ivalue1 <= 0 || ivalue2 <= 1 || ivalue3 <= 0 ||
+        ivalue3-ivalue1+1 < ivalue2 )
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (update->ntimestep < ivalue1) tree->value = ivalue1;
+    //else if (update->ntimestep <= ivalue3){
+    else {
+      tree->value = ivalue1;
+      double logsp = ivalue1;
+      double factor = pow(((double)ivalue3)/ivalue1, 1.0/(ivalue2-1));
+      int linsp = ivalue1;
+      while (update->ntimestep >= (tree->value)) {
+        logsp *= factor;
+        linsp++;
+        if (linsp > logsp) tree->value = linsp;
+        else tree->value = ceil(logsp)-(((int)ceil(logsp)-1)/ivalue3);
+      }
+    }
+    if (update->ntimestep > ivalue3)
+      error->all(FLERR,"Calls to variable exceeded limit");
+    return tree->value;
+  }
+
   if (tree->type == STRIDE) {
     int ivalue1 = static_cast<int> (collapse_tree(tree->first));
     int ivalue2 = static_cast<int> (collapse_tree(tree->second));
@@ -2820,8 +2849,8 @@ double Variable::collapse_tree(Tree *tree)
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     stride(x,y,z),stride2(x,y,z),vdisplace(x,y),swiggle(x,y,z),
-     cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
+     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z),vdisplace(x,y),
+     swiggle(x,y,z),cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -3300,8 +3329,8 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),swiggle(x,y,z),
-     cwiggle(x,y,z)
+     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
+     swiggle(x,y,z),cwiggle(x,y,z)
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -3321,9 +3350,9 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"floor") && strcmp(word,"round") &&
       strcmp(word,"ramp") && strcmp(word,"stagger") &&
       strcmp(word,"logfreq") && strcmp(word,"logfreq2") &&
-      strcmp(word,"stride") && strcmp(word,"stride2") &&
-      strcmp(word,"vdisplace") && strcmp(word,"swiggle") &&
-      strcmp(word,"cwiggle"))
+      strcmp(word,"logfreq3") && strcmp(word,"stride") &&
+      strcmp(word,"stride2") && strcmp(word,"vdisplace") &&
+      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
     return 0;
 
   // parse contents for comma-separated args
@@ -3581,6 +3610,37 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
         }
       }
       argstack[nargstack++] = ceil(value);
+    }
+
+  } else if (strcmp(word,"logfreq3") == 0) {
+    if (narg != 3)
+      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+    if (tree) newtree->type = LOGFREQ3;
+    else {
+      int ivalue1 = static_cast<int> (value1);
+      int ivalue2 = static_cast<int> (value2);
+      int ivalue3 = static_cast<int> (values[0]);
+      if (ivalue1 <= 0 || ivalue2 <= 1 || ivalue3 <= 0 ||
+          ivalue3-ivalue1+1 < ivalue2 )
+        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+      double value;
+      if (update->ntimestep < ivalue1) value = ivalue1;
+      //else if (update->ntimestep <= ivalue3){
+      else {
+        value = ivalue1;
+        double logsp = ivalue1;
+        double factor = pow(((double)ivalue3)/ivalue1, 1.0/(ivalue2-1));
+        int linsp = ivalue1;
+        while (update->ntimestep >= value) {
+          logsp *= factor;
+          linsp++;
+          if (linsp > logsp) value = linsp;
+          else value = ceil(logsp)-(((int)ceil(logsp)-1)/ivalue3);
+        }
+      }
+      if (update->ntimestep > ivalue3)
+        error->all(FLERR,"Calls to variable exceeded limit");
+      argstack[nargstack++] = value;
     }
 
   } else if (strcmp(word,"stride") == 0) {

@@ -185,6 +185,7 @@ int main (int narg, char* arg[]) {
     // This simulates one timestep with dt = 0.1.
     parallel_for (Ai.extent(0), update<mesh_type> (A, 0.1));
 
+    Kokkos::fence();
     printf ("Done\n");
   }
   Kokkos::finalize ();

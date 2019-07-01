@@ -388,11 +388,11 @@ void neigh_build(System &s) {
     MemsetZeroFunctor f_zero;
     f_zero.ptr = (void*) s.bincount.ptr_on_device();
     Kokkos::parallel_for(s.mbins, f_zero);
-    execution_space::fence();
+    execution_space().fence();
 
     BinningFunctor f(s);
     Kokkos::parallel_for(s.natoms, f);
-    execution_space::fence();
+    execution_space().fence();
 
     /* Check if bins was large enough, if nor reallocated and rerun */
 
@@ -416,7 +416,7 @@ void neigh_build(System &s) {
     BuildFunctor f(s);
     Kokkos::parallel_for(s.nlocal, f);
 
-    execution_space::fence();
+    execution_space().fence();
 
     /* Check if neighbors was large enough, if nor reallocated and rerun */
 

@@ -471,9 +471,7 @@ void MinSpinOSO_LBFGS::advance_spins()
     // rotate spins
     
     vm3(rot_mat, sp[i], s_new);
-    sp[i][0] = s_new[0];
-    sp[i][1] = s_new[1];
-    sp[i][2] = s_new[2];
+    for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
   }
 }
 

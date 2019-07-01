@@ -15,6 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include <cstring>
+
 #include "fix_rigid_small_omp.h"
 
 #include "atom.h"
@@ -23,8 +25,6 @@
 #include "atom_vec_tri.h"
 #include "comm.h"
 #include "domain.h"
-
-#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

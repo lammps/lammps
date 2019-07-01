@@ -326,22 +326,15 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
   double g2_global= 0.0;
   double g2old_global= 0.0;
 
-  // for some reason on a second iteration g_old = 0
-  // so we make two iterations as steepest descent
-  
-  if (iter <= 2 || iter % 5 == 0){ 	// steepest descent direction
-    for (int i = 0; i < nlocal; i++) {
-      for (int j = 0; j < 3; j++){
-          p_s[3 * i + j] = -g_cur[3 * i + j];
-          g_old[3 * i + j] = g_cur[3 * i + j];
-      }
+  if (iter == 0 || iter % 5 == 0){ 	// steepest descent direction
+    for (int i = 0; i < 3 * nlocal; i++) {
+      p_s[i] = -g_cur[i];
+      g_old[i] = g_cur[i];
     }
   } else { 				// conjugate direction
-    for (int i = 0; i < nlocal; i++) {
-      for (int j = 0; j < 3; j++){
-	g2old += g_old[3 * i + j] * g_old[3 * i + j];
-	g2 += g_cur[3 * i + j] * g_cur[3 * i + j];
-      }
+    for (int i = 0; i < 3 * nlocal; i++) {
+  	  g2old += g_old[i] * g_old[i];
+	  g2 += g_cur[i] * g_cur[i];
     }
 
     // now we need to collect/broadcast beta on this replica
@@ -355,11 +348,9 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
 
     // calculate conjugate direction
     
-    for (int i = 0; i < nlocal; i++) {
-      for (int j = 0; j < 3; j++){
-	p_s[3 * i + j] = beta * p_s[3 * i + j] - g_cur[3 * i + j];
-	g_old[3 * i + j] = g_cur[3 * i + j];
-      }
+    for (int i = 0; i < 3 * nlocal; i++) {
+  	  p_s[i] = beta * p_s[i] - g_cur[i];
+	  g_old[i] = g_cur[i];
     }
   }
 }

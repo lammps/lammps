@@ -19,6 +19,8 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include <iostream>
+
 #include "body.h"
 
 

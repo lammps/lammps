@@ -14,11 +14,22 @@
  *                     110 8th St. Troy NY 12180                           * 
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
- 
+
 #ifndef MATRIXFUN_H
 #define MATRIXFUN_H
 
-#include "matrices.h"
+#include "colmatrix.h"
+#include "mat3x3.h"
+#include "mat4x4.h"
+#include "mat6x6.h"
+#include "matrix.h"
+#include "rowmatrix.h"
+#include "vect3.h"
+#include "vect6.h"
+
+class VirtualColMatrix;
+class VirtualMatrix;
+class VirtualRowMatrix;
 
 // Create a Matrix
 VirtualMatrix* NewMatrix(int type);
@@ -69,8 +80,5 @@ Matrix HStack(VirtualMatrix& A, VirtualMatrix& B);
 
 void Set6DAngularVector(Vect6& v6, Vect3& v3);
 void Set6DLinearVector(Vect6& v6, Vect3& v3);
-
-
-
 
 #endif

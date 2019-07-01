@@ -16,7 +16,9 @@
  *_________________________________________________________________________*/
 
 #include "vect4.h"
+
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
 

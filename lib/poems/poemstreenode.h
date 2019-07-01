@@ -18,12 +18,6 @@
 #ifndef TREENODE_H
 #define TREENODE_H
 
-//#define NULL 0
-
-
-//Tree depends on TreeNode
-class Tree;
-
 // declares a tree node object for a binary tree
 class TreeNode{
 

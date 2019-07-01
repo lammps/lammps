@@ -19,8 +19,9 @@
 #ifndef COLMATRIX_H
 #define COLMATRIX_H
 
+#include <iostream>
 #include "virtualcolmatrix.h"
-#include "colmatmap.h"
+#include "virtualmatrix.h"
 
 class Matrix;
 class Vect6;

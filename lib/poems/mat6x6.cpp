@@ -16,7 +16,9 @@
  *_________________________________________________________________________*/
 
 #include "mat6x6.h"
+
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
 

@@ -14,9 +14,19 @@
  *                     110 8th St. Troy NY 12180                           * 
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
- 
-#include "bodies.h"
+
+#include <iostream>
+
+#include "body.h"
+#include "inertialframe.h"
+#include "mat3x3.h"
+#include "particle.h"
+#include "poemslist.h"
 #include "point.h"
+#include "rigidbody.h"
+#include "vect3.h"
+
+class Joint;
 
 using namespace std;
 

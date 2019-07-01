@@ -17,7 +17,16 @@
 
 #ifndef FASTMATRIXOPS_H
 #define FASTMATRIXOPS_H
-#include "matrices.h"
+
+class ColMatMap;
+class ColMatrix;
+class Mat3x3;
+class Mat4x4;
+class Mat6x6;
+class Matrix;
+class Vect3;
+class Vect4;
+class Vect6;
 
 void FastCross(Vect3& a, Vect3& b, Vect3& c);
 void FastSimpleRotation(Vect3& v, double q, Mat3x3& C);

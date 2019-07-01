@@ -18,6 +18,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <iostream>
+
 #include "virtualmatrix.h"
 
 class Mat3x3;

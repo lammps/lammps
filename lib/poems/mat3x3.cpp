@@ -16,8 +16,9 @@
  *_________________________________________________________________________*/
 
 
-#include "mat3x3.h"
 #include <cstdlib>
+#include <iostream>
+#include "mat3x3.h"
 
 using namespace std;
 

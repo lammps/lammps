@@ -18,8 +18,10 @@
 #ifndef VECT4_H
 #define VECT4_H
 
-#include "virtualcolmatrix.h"
+#include <iostream>
 
+#include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
 
 class Matrix;
 class Mat4x4;

@@ -16,9 +16,8 @@
  *_________________________________________________________________________*/
 
 #include "colmatrix.h"
-#include "rowmatrix.h"
+
 #include <iostream>
-#include <cmath>
 #include <cstdlib>
 
 using namespace std;

@@ -17,9 +17,26 @@
 
 
 #include "system.h"
+
+#include <cstddef>
+#include <iostream>
+
 #include "body.h"
 #include "joint.h"
-#include <cmath>
+#include "colmatrix.h"
+#include "eulerparameters.h"
+#include "fixedpoint.h"
+#include "freebodyjoint.h"
+#include "inertialframe.h"
+#include "mat3x3.h"
+#include "matrix.h"
+#include "matrixfun.h"
+#include "rigidbody.h"
+#include "sphericaljoint.h"
+#include "vect3.h"
+#include "virtualmatrix.h"
+
+class Point;
 
 
 System::System(){

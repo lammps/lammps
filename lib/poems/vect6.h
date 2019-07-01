@@ -18,7 +18,10 @@
 #ifndef VECT6_H
 #define VECT6_H
 
+#include <iostream>
+
 #include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
 
 class Matrix;
 class Mat6x6;

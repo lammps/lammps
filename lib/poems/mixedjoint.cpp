@@ -16,13 +16,18 @@
  *_________________________________________________________________________*/
  
 #include "mixedjoint.h"
-#include "point.h"
+
+#include <iostream>
+
 #include "matrixfun.h"
 #include "body.h"
 #include "fastmatrixops.h"
-#include "norm.h"
 #include "eulerparameters.h"
-#include "matrices.h"
+#include "colmatrix.h"
+#include "mat3x3.h"
+#include "mat6x6.h"
+#include "vect3.h"
+#include "virtualmatrix.h"
 
    
 

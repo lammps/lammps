@@ -19,7 +19,10 @@
 #ifndef ROWMATRIX_H
 #define ROWMATRIX_H
 
+#include <iostream>
+
 #include "virtualrowmatrix.h"
+#include "virtualmatrix.h"
 
 class RowMatrix : public VirtualRowMatrix  {
   double* elements;

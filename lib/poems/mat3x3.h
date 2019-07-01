@@ -18,12 +18,11 @@
 #ifndef MAT3X3_H
 #define MAT3X3_H
 
+#include <iostream>
 #include "virtualmatrix.h"
-
 
 class Vect3;
 class Mat6x6;
-class Matrix;
 class ColMatrix;
 
 class Mat3x3 : public VirtualMatrix  {

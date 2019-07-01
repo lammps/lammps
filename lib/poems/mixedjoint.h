@@ -18,7 +18,11 @@
 #ifndef MIXEDJOINT_H
 #define MIXEDJOINT_H
 
+#include <iostream>
+
 #include "joint.h"
+#include "matrix.h"
+#include "vect6.h"
 
 
 class MixedJoint : public Joint{

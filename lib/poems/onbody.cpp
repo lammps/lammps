@@ -16,15 +16,18 @@
  *_________________________________________________________________________*/
 
 #include "onbody.h"
+
+#include <cstdlib>
+#include <iostream>
+
 #include "body.h"
 #include "inertialframe.h"
 #include "joint.h"
 #include "onfunctions.h"
 #include "virtualmatrix.h"
 #include "matrixfun.h"
-#include <iostream>
-#include "norm.h"
 #include "eulerparameters.h"
+#include "colmatrix.h"
 
 using namespace std;
 

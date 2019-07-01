@@ -16,10 +16,14 @@
  *_________________________________________________________________________*/
 
 #include "revolutejoint.h"
+
 #include "point.h"
 #include "matrixfun.h"
 #include "body.h"
 #include "fastmatrixops.h"
+#include "colmatrix.h"
+#include "mat3x3.h"
+#include "virtualmatrix.h"
 
 RevoluteJoint::RevoluteJoint(){
   DimQandU(1);

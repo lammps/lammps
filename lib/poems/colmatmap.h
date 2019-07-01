@@ -19,7 +19,10 @@
 #ifndef COLMATMAP_H
 #define COLMATMAP_H
 
+#include <iostream>
+
 #include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
 
 class ColMatrix;
 

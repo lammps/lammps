@@ -18,11 +18,13 @@
 #ifndef MAT4X4_H
 #define MAT4X4_H
 
+#include <iostream>
+
 #include "virtualmatrix.h"
 #include "matrix.h"
 
-
 class Vect4;
+class Matrix;
 
 class Mat4x4 : public VirtualMatrix  {
   double elements[4][4];

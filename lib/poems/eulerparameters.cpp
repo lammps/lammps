@@ -16,7 +16,11 @@
  *_________________________________________________________________________*/
 
 #include "eulerparameters.h"
+
 #include <cmath>
+
+#include "colmatrix.h"
+#include "mat3x3.h"
 
 using namespace std;
 

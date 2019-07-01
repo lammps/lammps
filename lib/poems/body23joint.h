@@ -18,11 +18,9 @@
 #ifndef BODY23JOINT_H
 #define BODY23JOINT_H
 
+#include <iostream>
 #include "joint.h"
-#include "vect3.h"
-#include "mat3x3.h"
-
-
+#include "matrix.h"
 
 class Body23Joint : public Joint  {
   Matrix const_sP;

@@ -18,7 +18,10 @@
 #ifndef ONFUNCTIONS_H
 #define ONFUNCTIONS_H
 
-#include "matrices.h"
+class Mat3x3;
+class Mat6x6;
+class Vect3;
+class Vect6;
 
 void OnPopulateSVect(Vect3& angular, Vect3& linear, Vect6& sV);
 void OnPopulateSC(Vect3& gamma, Mat3x3& C, Mat6x6& SC);

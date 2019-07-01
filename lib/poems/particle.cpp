@@ -17,7 +17,6 @@
 
 
 #include "particle.h"
-#include "fixedpoint.h"
 
 Particle::Particle(){
 }

@@ -18,7 +18,10 @@
 #ifndef VECT3_H
 #define VECT3_H
 
+#include <iostream>
+
 #include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
 
 class Matrix;
 class Mat3x3;
@@ -52,6 +55,7 @@ public:
   Vect3& operator*=(double b);
   Vect3& operator+=(const Vect3& A);
   Vect3& operator-=(const Vect3& A);
+  Vect3& operator-();
 
   friend Matrix T(const Vect3& A);  // a wasteful transpose
   friend Mat3x3 CrossMat(Vect3& a);  // a wasteful cross matrix implementation

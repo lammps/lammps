@@ -16,9 +16,15 @@
  *_________________________________________________________________________*/
 
 #include "matrixfun.h"
-#include <cmath>
-#include "fastmatrixops.h"
+
 #include <cstdlib>
+#include <iostream>
+
+#include "fastmatrixops.h"
+#include "vect4.h"
+#include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
+#include "virtualrowmatrix.h"
 
 using namespace std;
 

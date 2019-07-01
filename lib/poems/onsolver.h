@@ -21,7 +21,9 @@
 
 #include "solver.h"
 #include "onbody.h"
-#include <fstream>
+
+class ColMatrix;
+class Matrix;
 
 
   

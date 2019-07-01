@@ -15,9 +15,10 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
+#include <cstddef>
 #include "solver.h"
 #include "system.h"
-#include "matrices.h"
+#include "onsolver.h"
 
 Solver::Solver(){
 

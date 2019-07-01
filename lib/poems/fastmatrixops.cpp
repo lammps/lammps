@@ -15,9 +15,18 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
-#include <iostream>
-#include "fastmatrixops.h"
 #include <cmath>
+
+#include "fastmatrixops.h"
+#include "colmatmap.h"
+#include "colmatrix.h"
+#include "mat3x3.h"
+#include "mat4x4.h"
+#include "mat6x6.h"
+#include "matrix.h"
+#include "vect3.h"
+#include "vect4.h"
+#include "vect6.h"
 
 using namespace std;
 

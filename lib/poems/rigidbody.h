@@ -18,6 +18,8 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
+#include <iostream>
+
 #include "body.h"
 
 class RigidBody : public Body  {

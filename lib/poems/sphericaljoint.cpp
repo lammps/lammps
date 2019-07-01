@@ -17,14 +17,18 @@
  
 
 #include "sphericaljoint.h"
+
+#include <iostream>
+
 #include "point.h"
 #include "matrixfun.h"
 #include "body.h"
 #include "fastmatrixops.h"
-#include "norm.h"
 #include "eulerparameters.h"
-#include "matrices.h"
-#include <iomanip>
+#include "colmatrix.h"
+#include "mat3x3.h"
+#include "vect3.h"
+#include "virtualmatrix.h"
 
 
 SphericalJoint::SphericalJoint(){

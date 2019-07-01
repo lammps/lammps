@@ -15,35 +15,12 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
- 
+
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <cstdio>   
-#include <iomanip>  
-
 #include "poemslist.h"
-#include "matrices.h"
-#include "workspace.h"
-#include "matrixfun.h"
-#include "onsolver.h"
-#include "system.h"
-#include "inertialframe.h"
-#include "rigidbody.h"
-#include "revolutejoint.h"
-#include "fixedpoint.h"
-#include "freebodyjoint.h"
-#include "sphericaljoint.h"
-#include "body23joint.h"
-#include "mixedjoint.h"
-#include "eulerparameters.h"
-#include "matrices.h"
-#include "norm.h"
-
 
      class Body;
      class Joint;

@@ -19,15 +19,6 @@
 #ifndef WORKSPACE_H
 #define WORKSPACE_H
 
-#include "matrices.h"
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cstdio>   
-#include <iomanip>  
-#include <vector>
-
-
 class System;
 class Solver;
 

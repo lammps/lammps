@@ -17,8 +17,11 @@
 
 
 #include "fixedpoint.h"
+
 #include <iostream>
 #include <iomanip>
+
+#include "virtualmatrix.h"
 
 using namespace std;
 

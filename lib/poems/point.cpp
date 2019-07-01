@@ -16,7 +16,9 @@
  *_________________________________________________________________________*/
 
 
-#include "points.h"
+#include "fixedpoint.h"
+#include "point.h"
+#include "vect3.h"
 
 Point::Point(){
   position.Zeros();

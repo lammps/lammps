@@ -19,6 +19,8 @@
 #ifndef FIXEDPOINT_H
 #define FIXEDPOINT_H
 
+#include <iostream>
+
 #include "point.h"
 #include "vect3.h"
 

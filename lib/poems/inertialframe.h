@@ -19,7 +19,10 @@
 #ifndef INERTIALFRAME_H
 #define INERTIALFRAME_H
 
+#include <iostream>
+
 #include "body.h"
+#include "vect3.h"
 
 
 class InertialFrame : public Body  {

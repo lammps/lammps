@@ -18,7 +18,10 @@
 #ifndef FREEBODYJOINT_H
 #define FREEBODYJOINT_H
 
+#include <iostream>
+
 #include "joint.h"
+#include "matrix.h"
 
 
 class FreeBodyJoint : public Joint{

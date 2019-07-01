@@ -17,12 +17,12 @@
 
 #ifndef SOLVER_H
 #define SOLVER_H
-#include <fstream>
+
 #include "colmatmap.h"
-#include "matrices.h"
 #include "defines.h"
 
 class System;
+class Matrix;
 
 class Solver{
 protected:

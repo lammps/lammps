@@ -22,17 +22,19 @@
 #include "matrix.h"
 #include "vect6.h"
 #include "mat6x6.h"
+#include "joint.h"
+#include "mat3x3.h"
+#include "vect3.h"
+
+class Body;
+class ColMatrix;
+class InertialFrame;
 
 // emumerated type
 enum Direction {
   BACKWARD = 0,
   FORWARD= 1
 };
-
-class Body;
-class InertialFrame;
-class Joint;
-class OnSolver;
 
 class OnBody {
        Body* system_body;

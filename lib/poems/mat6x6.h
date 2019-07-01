@@ -17,8 +17,9 @@
 
 #ifndef MAT6X6_H
 #define MAT6X6_H
-#include "virtualmatrix.h"
+#include <iostream>
 
+#include "virtualmatrix.h"
 
 class Matrix;
 class Mat3x3;

@@ -18,8 +18,11 @@
 #ifndef NORM_H
 #define NORM_H
 
-#include "matrices.h"
-
+class ColMatrix;
+class RowMatrix;
+class Vect3;
+class Vect4;
+class Vect6;
 
 double Magnitude(ColMatrix& A);
 double Magnitude(RowMatrix& A);

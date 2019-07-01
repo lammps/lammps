@@ -17,8 +17,13 @@
  
 
 #include "onfunctions.h"
-#include "matrixfun.h"
-#include <iostream>
+
+#include "mat3x3.h"
+#include "mat6x6.h"
+#include "vect3.h"
+#include "vect6.h"
+#include "virtualmatrix.h"
+
 using namespace std;
 
 // friend of Vect3 & Vect6

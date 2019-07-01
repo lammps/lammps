@@ -18,9 +18,11 @@
 #ifndef PRISMATICJOINT_H
 #define PRISMATICJOINT_H
 
+#include <iostream>
+
 #include "joint.h"
 #include "vect3.h"
-#include "mat3x3.h"
+#include "matrix.h"
 
 
 

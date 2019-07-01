@@ -14,6 +14,7 @@
 #include <cstring>
 #include <cstdio>
 #include "fix_neigh_history_omp.h"
+#include "my_page.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

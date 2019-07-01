@@ -1175,7 +1175,7 @@ double SNA::memory_usage()
   bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
   bytes += idxcg_max * sizeof(double);                   // cglist
 
-  bytes += idxu_max * sizeof(double) * 2;                // ulist
+  bytes += nmax * idxu_max * sizeof(double) * 2;         // ulist_ij
   bytes += idxu_max * sizeof(double) * 2;                // ulisttot
   bytes += idxu_max * 3 * sizeof(double) * 2;            // dulist
 

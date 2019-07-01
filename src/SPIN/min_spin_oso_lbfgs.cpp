@@ -513,6 +513,8 @@ double MinSpinOSO_LBFGS::fmnorm_sqr()
 
 void MinSpinOSO_LBFGS::rodrigues_rotation(const double *upp_tr, double *out)
 {
+  double theta,A,B,D,x,y,z;
+  double s1,s2,s3,a1,a2,a3;
 
   if (fabs(upp_tr[0]) < 1.0e-40 &&
       fabs(upp_tr[1]) < 1.0e-40 &&
@@ -521,23 +523,23 @@ void MinSpinOSO_LBFGS::rodrigues_rotation(const double *upp_tr, double *out)
     // if upp_tr is zero, return unity matrix
     for(int k = 0; k < 3; k++){
       for(int m = 0; m < 3; m++){
-	if (m == k) out[3 * k + m] = 1.0;
-	else out[3 * k + m] = 0.0;
-      }
+    if (m == k) out[3 * k + m] = 1.0;
+    else out[3 * k + m] = 0.0;
+        }
     }
     return;
   }
 
-  double theta = sqrt(upp_tr[0] * upp_tr[0] +
-                      upp_tr[1] * upp_tr[1] +
-                      upp_tr[2] * upp_tr[2]);
+  theta = sqrt(upp_tr[0] * upp_tr[0] +
+               upp_tr[1] * upp_tr[1] +
+               upp_tr[2] * upp_tr[2]);
 
-  double A = cos(theta);
-  double B = sin(theta);
-  double D = 1 - A;
-  double x = upp_tr[0]/theta;
-  double y = upp_tr[1]/theta;
-  double z = upp_tr[2]/theta;
+  A = cos(theta);
+  B = sin(theta);
+  D = 1 - A;
+  x = upp_tr[0]/theta;
+  y = upp_tr[1]/theta;
+  z = upp_tr[2]/theta;
 
   // diagonal elements of U
 
@@ -547,13 +549,13 @@ void MinSpinOSO_LBFGS::rodrigues_rotation(const double *upp_tr, double *out)
 
   // off diagonal of U
 
-  double s1 = -y * z *D;
-  double s2 = x * z * D;
-  double s3 = -x * y * D;
+  s1 = -y * z *D;
+  s2 = x * z * D;
+  s3 = -x * y * D;
 
-  double a1 = x * B;
-  double a2 = y * B;
-  double a3 = z * B;
+  a1 = x * B;
+  a2 = y * B;
+  a3 = z * B;
 
   out[1] = s1 + a1;
   out[3] = s1 - a1;

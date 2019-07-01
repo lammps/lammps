@@ -17,9 +17,7 @@
 #include "pointers.h"
 #include "kokkos_type.h"
 #include "remap_kokkos.h"
-
-#define FFT_PRECISION 2
-typedef double FFT_SCALAR;
+#include "fftdata_kokkos.h"
 
 // if user set FFTW, it means FFTW3
 
@@ -29,11 +27,24 @@ typedef double FFT_SCALAR;
 
 #if defined(FFT_FFTW3)
   #include "fftw3.h"
-  typedef fftw_complex FFT_DATA;
-  #define FFTW_API(function) fftw_ ## function
+  #if defined(FFT_SINGLE)
+    typedef fftwf_complex FFT_DATA;
+    #define FFTW_API(function)  fftwf_ ## function
+  #else
+    typedef fftw_complex FFT_DATA;
+    #define FFTW_API(function) fftw_ ## function
+  #endif
 #elif defined(FFT_CUFFT)
   #include "cufft.h"
-  typedef cufftDoubleComplex FFT_DATA;
+  #if defined(FFT_SINGLE)
+    #define cufftExec cufftExecC2C
+    #define CUFFT_TYPE CUFFT_C2C
+    typedef cufftComplex FFT_DATA;
+  #else
+    #define cufftExec cufftExecZ2Z
+    #define CUFFT_TYPE CUFFT_Z2Z
+    typedef cufftDoubleComplex FFT_DATA;
+  #endif
 #else
   #include "kissfft_kokkos.h"
   #ifndef FFT_KISSFFT

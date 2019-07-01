@@ -326,9 +326,6 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
   double g2_global= 0.0;
   double g2old_global= 0.0;
 
-  // for some reason on a second iteration g_old = 0
-  // so we make two iterations as steepest descent
-  
   if (iter == 0 || iter % 5 == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i];

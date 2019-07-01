@@ -25,7 +25,7 @@ well as make otherwise hidden dependencies visible.
 
 ## Rules
 
-Below are the various rules that are applied.  Not all a enforced
+Below are the various rules that are applied.  Not all are enforced
 strictly and automatically.  If there are no significant side effects,
 exceptions may be possible for cases, where a full compliance to the
 rules may require a large effort compared to the benefit.
@@ -78,9 +78,9 @@ result in a high potential for direct or indirect symbol name clashes.
 In the ideal case, the header would only include one file defining the
 parent class. That would typically be either `#include "pointers.h"` for
 the `Pointers` class, or a header of a class derived from it like
-`#include "pair.h"` for the `Pair` class and so on.  Referenced to other
+`#include "pair.h"` for the `Pair` class and so on.  References to other
 classes inside the class should be make through pointers, for which forward
-declarations (inside the `LAMMPS_NS` or the new class'es namespace) can
+declarations (inside the `LAMMPS_NS` or the new class' namespace) can
 be employed.  The full definition will then be included into the corresponding
 implementation file.  In the given example from above, the header file
 would be called `some_name.h` and the implementation `some_name.cpp` (all
@@ -92,7 +92,7 @@ a forward slash).
 
 In the implementation files (typically, those would have the same base name
 as the corresponding header with a .cpp extension instead of .h) include
-statments should follow the "include what you use" principle.
+statements should follow the "include what you use" principle.
 
 ### Order of Include Statements
 
@@ -107,7 +107,7 @@ Include files should be included in this order:
 #### pointers.h
 
 The `pointer.h` header file also includes `cstdio` and `lmptype.h`
-(and throught it `stdint.h`, `intttypes.h`, and `climits`).
+(and through it `stdint.h`, `intttypes.h`, and `climits`).
 This means any header including `pointers.h` can assume that `FILE`,
 `NULL`, `INT_MAX` are defined.
 
@@ -115,7 +115,7 @@ This means any header including `pointers.h` can assume that `FILE`,
 
 The [Include What You Use tool](https://include-what-you-use.org/)
 can be used to provide supporting information about compliance with
-the rules listed here.  There are some limitations and the IWWU tool
+the rules listed here.  There are some limitations and the IWYU tool
 may give incorrect advice.  The tools is activated by setting the
 CMake variable `CMAKE_CXX_INCLUDE_WHAT_YOU_USE` variable to the
 path of the `include-what-you-use` command.  When activated, the

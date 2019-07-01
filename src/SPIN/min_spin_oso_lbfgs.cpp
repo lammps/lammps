@@ -34,12 +34,10 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
+#include "memory.h"
 #include "modify.h"
 #include "math_special.h"
 #include "math_const.h"
-
-#include <iostream>
-using namespace std;
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -63,8 +61,23 @@ static const char cite_minstyle_spin_oso_lbfgs[] =
 
 /* ---------------------------------------------------------------------- */
 
-MinSpinOSO_LBFGS::MinSpinOSO_LBFGS(LAMMPS *lmp) : Min(lmp) {
+MinSpinOSO_LBFGS::MinSpinOSO_LBFGS(LAMMPS *lmp) :
+  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), ds(NULL), dy(NULL), rho(NULL)
+{
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_lbfgs);
+  nlocal_max = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+MinSpinOSO_LBFGS::~MinSpinOSO_LBFGS()
+{
+    memory->destroy(g_old);
+    memory->destroy(g_cur);
+    memory->destroy(p_s);
+    memory->destroy(ds);
+    memory->destroy(dy);
+    memory->destroy(rho);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,6 +92,17 @@ void MinSpinOSO_LBFGS::init()
 
   dts = dt = update->dt;
   last_negative = update->ntimestep;
+
+  // allocate tables
+
+  nlocal_max = atom->nlocal;
+  memory->grow(g_old,3*nlocal_max,"min/spin/oso/lbfgs:g_old");
+  memory->grow(g_cur,3*nlocal_max,"min/spin/oso/lbfgs:g_cur");
+  memory->grow(p_s,3*nlocal_max,"min/spin/oso/lbfgs:p_s");
+  memory->grow(rho,num_mem,"min/spin/oso/lbfgs:rho");
+  memory->grow(ds,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:ds");
+  memory->grow(dy,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:dy");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,21 +164,19 @@ void MinSpinOSO_LBFGS::reset_vectors()
 
 int MinSpinOSO_LBFGS::iterate(int maxiter)
 {
+  int nlocal = atom->nlocal;
   bigint ntimestep;
   double fmdotfm;
   int flag, flagall;
 
-  // not sure it is best place to allocate memory
-  int nlocal = atom->nlocal;
-  g = (double *) calloc(3*nlocal, sizeof(double));
-  p = (double *) calloc(3*nlocal, sizeof(double));
-  g_old = (double *) calloc(3*nlocal, sizeof(double));
-  rho = (double *) calloc(num_mem, sizeof(double));
-  ds = (double **) calloc(num_mem, sizeof(double *));
-  dy = (double **) calloc(num_mem, sizeof(double *));
-  for (int k = 0; k < num_mem; k++){
-      ds[k] = (double *) calloc(3*nlocal, sizeof(double));
-      dy[k] = (double *) calloc(3*nlocal, sizeof(double));
+  if (nlocal_max < nlocal) {
+    nlocal_max = nlocal;
+    memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
+    memory->grow(g_cur,3*nlocal_max,"min/spin/oso/cg:g_cur");
+    memory->grow(p_s,3*nlocal_max,"min/spin/oso/cg:p_s");
+    memory->grow(rho,num_mem,"min/spin/oso/lbfgs:rho");
+    memory->grow(ds,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:ds");
+    memory->grow(dy,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:dy");
   }
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -221,17 +243,6 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
       timer->stamp(Timer::OUTPUT);
     }
   }
-
-  free(p);
-  free(g);
-  free(g_old);
-  for (int k = 0; k < num_mem; k++){
-    free(ds[k]);
-    free(dy[k]);
-  }
-  free(ds);
-  free(dy);
-  free(rho);
 
   return MAXITER;
 }
@@ -304,9 +315,9 @@ void MinSpinOSO_LBFGS::calc_gradient(double dts)
 
     // calculate gradients
     
-    g[3 * i + 0] = -tdampz * dts;
-    g[3 * i + 1] = tdampy * dts;
-    g[3 * i + 2] = -tdampx * dts;
+    g_cur[3 * i + 0] = -tdampz * dts;
+    g_cur[3 * i + 1] = tdampy * dts;
+    g_cur[3 * i + 2] = -tdampx * dts;
   }
 }
 
@@ -343,8 +354,8 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
   
   if (iter == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
-      p[i] = -g[i];
-      g_old[i] = g[i];
+      p_s[i] = -g_cur[i];
+      g_old[i] = g_cur[i];
       ds[m_index][i] = 0.0;
       dy[m_index][i] = 0.0;
 
@@ -352,8 +363,8 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
   } else {
       dyds = 0.0;
       for (int i = 0; i < 3 * nlocal; i++) {
-        ds[m_index][i] = p[i];
-        dy[m_index][i] = g[i] - g_old[i];
+        ds[m_index][i] = p_s[i];
+        dy[m_index][i] = g_cur[i] - g_old[i];
         dyds += ds[m_index][i] * dy[m_index][i];
       }
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -363,7 +374,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     // set the q vector
 
     for (int i = 0; i < 3 * nlocal; i++) {
-      q[i] = g[i];
+      q[i] = g_cur[i];
     }
 
     // loop over last m indecies
@@ -402,11 +413,11 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
 
     if (fabs(yy_global) > 1.0e-60) {
       for (int i = 0; i < 3 * nlocal; i++) {
-        p[i] = q[i] / (rho[m_index] * yy_global);
+        p_s[i] = q[i] / (rho[m_index] * yy_global);
       }
     }else{
       for (int i = 0; i < 3 * nlocal; i++) {
-        p[i] = q[i] * 1.0e60;
+        p_s[i] = q[i] * 1.0e60;
       }
     }
 
@@ -419,18 +430,18 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       // dot product between p and da
       yr = 0.0;
       for (int i = 0; i < 3 * nlocal; i++) {
-        yr += dy[c_ind][i] * p[i];
+        yr += dy[c_ind][i] * p_s[i];
       }
       MPI_Allreduce(&yr, &yr_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
       beta = rho[c_ind] * yr_global;
       for (int i = 0; i < 3 * nlocal; i++) {
-        p[i] += ds[c_ind][i] * (alpha[c_ind] - beta);
+        p_s[i] += ds[c_ind][i] * (alpha[c_ind] - beta);
       }
     }
     for (int i = 0; i < 3 * nlocal; i++) {
-      p[i] = -1.0 * p[i];
-      g_old[i] = g[i];
+      p_s[i] = -1.0 * p_s[i];
+      g_old[i] = g_cur[i];
     }
   }
 
@@ -455,7 +466,7 @@ void MinSpinOSO_LBFGS::advance_spins()
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
-    rodrigues_rotation(p + 3 * i, rot_mat);
+    rodrigues_rotation(p_s + 3 * i, rot_mat);
     
     // rotate spins
     

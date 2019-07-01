@@ -14,7 +14,6 @@
 #include <mpi.h>
 #include "imbalance_time.h"
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "timer.h"
 #include "error.h"

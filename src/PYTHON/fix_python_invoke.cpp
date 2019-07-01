@@ -16,13 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <Python.h>
-#include <cstdio>
 #include <cstring>
 #include "fix_python_invoke.h"
-#include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"

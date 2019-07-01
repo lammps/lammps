@@ -19,9 +19,7 @@
 #define MAT4X4_H
 
 #include <iostream>
-
 #include "virtualmatrix.h"
-#include "matrix.h"
 
 class Vect4;
 class Matrix;

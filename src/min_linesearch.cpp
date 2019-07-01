@@ -26,7 +26,6 @@
 #include "min_linesearch.h"
 #include "atom.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "fix_minimize.h"
 #include "pair.h"
 #include "output.h"

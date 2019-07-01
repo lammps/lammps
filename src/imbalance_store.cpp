@@ -14,7 +14,6 @@
 #include <cstring>
 #include "imbalance_store.h"
 #include "atom.h"
-#include "input.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

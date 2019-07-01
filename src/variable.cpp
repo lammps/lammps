@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -34,7 +35,6 @@
 #include "thermo.h"
 #include "random_mars.h"
 #include "math_const.h"
-#include "atom_masks.h"
 #include "lmppython.h"
 #include "memory.h"
 #include "info.h"

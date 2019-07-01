@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list.h"
-#include "my_page.h"
+#include "my_page.h"    // IWYU pragma: keep
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

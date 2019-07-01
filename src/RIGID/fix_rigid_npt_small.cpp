@@ -19,7 +19,6 @@
 
 #include <cstring>
 #include "fix_rigid_npt_small.h"
-#include "domain.h"
 #include "modify.h"
 #include "error.h"
 

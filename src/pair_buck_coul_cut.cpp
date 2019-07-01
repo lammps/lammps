@@ -15,9 +15,8 @@
    Contributing author: Eduardo Bringa (LLNL)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_buck_coul_cut.h"
 #include "atom.h"
 #include "comm.h"

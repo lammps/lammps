@@ -16,12 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <Python.h>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "pair_python.h"
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "update.h"

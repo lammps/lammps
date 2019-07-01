@@ -16,8 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <cstdlib>
+#include <cstring>
 #include <Python.h>
-#include "lmppython.h"
+#include "python_impl.h"
 #include "force.h"
 #include "input.h"
 #include "variable.h"

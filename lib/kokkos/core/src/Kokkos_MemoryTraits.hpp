@@ -71,13 +71,18 @@ template < unsigned T >
 struct MemoryTraits {
   //! Tag this class as a kokkos memory traits:
   typedef MemoryTraits memory_traits ;
-
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   enum : bool { Unmanaged    = (unsigned(0) != (T & unsigned(Kokkos::Unmanaged))) };
   enum : bool { RandomAccess = (unsigned(0) != (T & unsigned(Kokkos::RandomAccess))) };
   enum : bool { Atomic       = (unsigned(0) != (T & unsigned(Kokkos::Atomic))) };
   enum : bool { Restrict     = (unsigned(0) != (T & unsigned(Kokkos::Restrict))) };
   enum : bool { Aligned      = (unsigned(0) != (T & unsigned(Kokkos::Aligned))) };
-
+#endif
+  enum : bool { is_unmanaged    = (unsigned(0) != (T & unsigned(Kokkos::Unmanaged))) };
+  enum : bool { is_random_access = (unsigned(0) != (T & unsigned(Kokkos::RandomAccess))) };
+  enum : bool { is_atomic       = (unsigned(0) != (T & unsigned(Kokkos::Atomic))) };
+  enum : bool { is_restrict     = (unsigned(0) != (T & unsigned(Kokkos::Restrict))) };
+  enum : bool { is_aligned      = (unsigned(0) != (T & unsigned(Kokkos::Aligned))) };
 };
 
 } // namespace Kokkos

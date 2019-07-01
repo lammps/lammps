@@ -218,9 +218,9 @@ TEST_F( cuda, uvm )
 
     *uvm_ptr = 42;
 
-    Kokkos::Cuda::fence();
+    Kokkos::Cuda().fence();
     test_cuda_spaces_int_value<<< 1, 1 >>>( uvm_ptr );
-    Kokkos::Cuda::fence();
+    Kokkos::Cuda().fence();
 
     EXPECT_EQ( *uvm_ptr, int( 2 * 42 ) );
 
@@ -320,7 +320,7 @@ struct TestViewCudaAccessible {
   {
     TestViewCudaAccessible self;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename MemSpace::execution_space, TagInit >( 0, N ), self );
-    MemSpace::execution_space::fence();
+    typename MemSpace::execution_space().fence();
 
     // Next access is a different execution space, must complete prior kernel.
     long error_count = -1;

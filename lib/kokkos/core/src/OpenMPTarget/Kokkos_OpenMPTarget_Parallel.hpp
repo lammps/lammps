@@ -697,13 +697,13 @@ namespace Impl {
     const iType increment;
 
     inline
-    TeamThreadRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const iType& count):
+    TeamThreadRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, iType count):
       start( thread_.team_rank() ),
       end( count ),
       increment( thread_.team_size() )
     {}
     inline
-    TeamThreadRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const iType& begin_, const iType& end_):
+    TeamThreadRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, iType begin_, iType end_):
       start( begin_+thread_.team_rank() ),
       end( end_ ),
       increment( thread_.team_size() )
@@ -718,13 +718,13 @@ namespace Impl {
     const index_type increment;
 
     inline
-    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const index_type& count):
+    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, index_type count):
       start( thread_.m_vector_lane ),
       end( count ),
       increment( thread_.m_vector_length )
     {}
     inline
-    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const index_type& begin_, const index_type& end_):
+    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, index_type begin_, index_type end_):
       start( begin_+thread_.m_vector_lane ),
       end( end_ ),
       increment( thread_.m_vector_length )
@@ -734,28 +734,28 @@ namespace Impl {
   template<typename iType>
   KOKKOS_INLINE_FUNCTION
   Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember>
-    TeamThreadRange(const Impl::OpenMPTargetExecTeamMember& thread, const iType& count) {
+    TeamThreadRange(const Impl::OpenMPTargetExecTeamMember& thread, iType count) {
     return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember>(thread,count);
   }
   
   template<typename iType>
   KOKKOS_INLINE_FUNCTION
   Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember>
-    TeamThreadRange(const Impl::OpenMPTargetExecTeamMember& thread, const iType& begin, const iType& end) {
+    TeamThreadRange(const Impl::OpenMPTargetExecTeamMember& thread, iType begin, iType end) {
     return Impl::TeamThreadRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember>(thread,begin,end);
   }
 
   template<typename iType>
   KOKKOS_INLINE_FUNCTION
   Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember >
-    ThreadVectorRange(const Impl::OpenMPTargetExecTeamMember& thread, const iType& count) {
+    ThreadVectorRange(const Impl::OpenMPTargetExecTeamMember& thread, iType count) {
     return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember >(thread,count);
   }
 
   template<typename iType>
   KOKKOS_INLINE_FUNCTION
   Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember>
-    ThreadVectorRange(const Impl::OpenMPTargetExecTeamMember& thread, const iType& begin, const iType& end) {
+    ThreadVectorRange(const Impl::OpenMPTargetExecTeamMember& thread, iType begin, iType end) {
     return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::OpenMPTargetExecTeamMember>(thread,begin,end);
   }
 

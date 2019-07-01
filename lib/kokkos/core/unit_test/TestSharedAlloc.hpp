@@ -107,6 +107,8 @@ void test_shared_alloc()
       ASSERT_EQ( r[i], RecordMemS::get_record( r[i]->data() ) );
     });
 
+    Kokkos::fence();
+
 #ifdef KOKKOS_DEBUG
     // Sanity check for the whole set of allocation records to which this record belongs.
     RecordBase::is_sane( r[0] );
@@ -120,6 +122,8 @@ void test_shared_alloc()
 #endif
       }
     });
+
+    Kokkos::fence();
   }
 
   {
@@ -145,6 +149,8 @@ void test_shared_alloc()
       ASSERT_EQ( r[i], RecordMemS::get_record( r[i]->data() ) );
     });
 
+    Kokkos::fence();
+
 #ifdef KOKKOS_DEBUG
     RecordBase::is_sane( r[0] );
 #endif
@@ -156,6 +162,8 @@ void test_shared_alloc()
 #endif
       }
     });
+
+    Kokkos::fence();
 
     ASSERT_EQ( destroy_count, int( N ) );
   }
@@ -196,11 +204,13 @@ void test_shared_alloc()
         ASSERT_EQ( track.use_count(), 1 );
       }
 
-      Kokkos::parallel_for( range, [=] ( size_t i ) {
+      Kokkos::parallel_for( range, [=] ( size_t ) {
         Tracker local_tracker;
         local_tracker.assign_allocated_record_to_uninitialized( rec );
         ASSERT_GT( rec->use_count(), 1 );
       });
+
+      Kokkos::fence();
 
       ASSERT_EQ( rec->use_count(), 1 );
       ASSERT_EQ( track.use_count(), 1 );

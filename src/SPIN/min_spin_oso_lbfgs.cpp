@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing authors: Aleksei Ivanov (UI)
+   Contributing authors: Aleksei Ivanov (University of Iceland)
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
@@ -171,9 +171,9 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
 
   if (nlocal_max < nlocal) {
     nlocal_max = nlocal;
-    memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
-    memory->grow(g_cur,3*nlocal_max,"min/spin/oso/cg:g_cur");
-    memory->grow(p_s,3*nlocal_max,"min/spin/oso/cg:p_s");
+    memory->grow(g_old,3*nlocal_max,"min/spin/oso/lbfgs:g_old");
+    memory->grow(g_cur,3*nlocal_max,"min/spin/oso/lbfgs:g_cur");
+    memory->grow(p_s,3*nlocal_max,"min/spin/oso/lbfgs:p_s");
     memory->grow(rho,num_mem,"min/spin/oso/lbfgs:rho");
     memory->grow(ds,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:ds");
     memory->grow(dy,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:dy");
@@ -190,7 +190,7 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
   
-    energy_force(0);
+    if (iter == 0) energy_force(0);
     //  dts = evaluate_dt();
     //  dts = 1.0;
     calc_gradient(1.0);
@@ -322,7 +322,10 @@ void MinSpinOSO_LBFGS::calc_gradient(double dts)
 }
 
 /* ----------------------------------------------------------------------
-   search direction
+   search direction:
+   Limited-memory BFGS.
+   See Jorge Nocedal and Stephen J. Wright 'Numerical
+   Optimization' Second Edition, 2006 (p. 177)
 ---------------------------------------------------------------------- */
 
 void MinSpinOSO_LBFGS::calc_search_direction(int iter)

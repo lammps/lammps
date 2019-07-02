@@ -171,9 +171,9 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
 
   if (nlocal_max < nlocal) {
     nlocal_max = nlocal;
-    memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
-    memory->grow(g_cur,3*nlocal_max,"min/spin/oso/cg:g_cur");
-    memory->grow(p_s,3*nlocal_max,"min/spin/oso/cg:p_s");
+    memory->grow(g_old,3*nlocal_max,"min/spin/oso/lbfgs:g_old");
+    memory->grow(g_cur,3*nlocal_max,"min/spin/oso/lbfgs:g_cur");
+    memory->grow(p_s,3*nlocal_max,"min/spin/oso/lbfgs:p_s");
     memory->grow(rho,num_mem,"min/spin/oso/lbfgs:rho");
     memory->grow(ds,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:ds");
     memory->grow(dy,num_mem,3*nlocal_max,"min/spin/oso/lbfgs:dy");

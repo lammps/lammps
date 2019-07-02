@@ -16,7 +16,7 @@ ID, group-ID are documented in "compute"_compute.html command
 pressure = style name of this compute command
 temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 zero or more keywords may be appended
-keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} or {virial} or {hybridpair} :ul
+keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} or {virial} or {pair/hybrid} :ul
 
 [Examples:]
 
@@ -68,7 +68,7 @@ extra keywords are listed, then only those components are summed to
 compute temperature or ke and/or the virial.  The {virial} keyword
 means include all terms except the kinetic energy {ke}.
 
-The {hybridpair} keyword means to only include contribution
+The {pair/hybrid} keyword means to only include contribution
 from a sub-style in a {hybrid} or {hybrid/overlay} pair style.
 
 Details of how LAMMPS computes the virial efficiently for the entire

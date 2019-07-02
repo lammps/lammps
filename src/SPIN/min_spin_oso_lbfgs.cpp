@@ -361,12 +361,12 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
 
     }
   } else {
-      dyds = 0.0;
-      for (int i = 0; i < 3 * nlocal; i++) {
-        ds[m_index][i] = p_s[i];
-        dy[m_index][i] = g_cur[i] - g_old[i];
-        dyds += ds[m_index][i] * dy[m_index][i];
-      }
+    dyds = 0.0;
+    for (int i = 0; i < 3 * nlocal; i++) {
+      ds[m_index][i] = p_s[i];
+      dy[m_index][i] = g_cur[i] - g_old[i];
+      dyds += ds[m_index][i] * dy[m_index][i];
+    }
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
     if (fabs(dyds) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
@@ -409,7 +409,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     }
     MPI_Allreduce(&yy, &yy_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
-      // calculate now search direction
+    // calculate now search direction
 
     if (fabs(yy_global) > 1.0e-60) {
       for (int i = 0; i < 3 * nlocal; i++) {

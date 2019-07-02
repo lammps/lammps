@@ -50,6 +50,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -194,8 +195,8 @@ void NEBSpin::run()
 
   if (update->minimize->searchflag)
     error->all(FLERR,"NEBSpin requires damped dynamics minimizer");
-  if (strcmp(update->minimize_style,"spin") != 0)
-    error->all(FLERR,"NEBSpin requires spin minimizer");
+  if (!utils::strmatch(update->minimize_style,"^spin"))
+    error->all(FLERR,"NEBSpin requires a spin minimizer");
 
   // setup regular NEBSpin minimization
 

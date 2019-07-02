@@ -163,6 +163,8 @@
 /min_spin.h
 /min_spin_oso_cg.cpp
 /min_spin_oso_cg.h
+/min_spin_oso_lbfgs.cpp
+/min_spin_oso_lbfgs.h
 /neb_spin.cpp
 /neb_spin.h
 /pair_spin.cpp

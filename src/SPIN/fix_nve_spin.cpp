@@ -21,38 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
 #include <cstring>
-
+#include "fix_nve_spin.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_nve_spin.h"
 #include "fix_precession_spin.h"
 #include "fix_langevin_spin.h"
 #include "fix_setforce_spin.h"
 #include "force.h"
-#include "math_vector.h"
-#include "math_extra.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "pair.h"
-#include "pair_hybrid.h"
 #include "pair_spin.h"
-#include "respa.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
-using namespace MathExtra;
 
 static const char cite_fix_nve_spin[] =
   "fix nve/spin command:\n\n"

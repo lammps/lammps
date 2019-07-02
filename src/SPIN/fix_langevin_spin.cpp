@@ -21,31 +21,19 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-
-#include "atom.h"
-#include "atom_vec_ellipsoid.h"
-#include "comm.h"
-#include "compute.h"
-#include "domain.h"
-#include "error.h"
 #include "fix_langevin_spin.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "group.h"
-#include "input.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
-#include "random_mars.h"
 #include "random_park.h"
-#include "region.h"
 #include "respa.h"
 #include "update.h"
-#include "variable.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -142,13 +130,11 @@ void FixLangevinSpin::init()
 
 void FixLangevinSpin::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
-  else {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
-  }
+  } else post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

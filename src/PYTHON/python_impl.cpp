@@ -17,7 +17,7 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <Python.h>
+#include <Python.h>  // IWYU pragma: keep
 #include "python_impl.h"
 #include "force.h"
 #include "input.h"

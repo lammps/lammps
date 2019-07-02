@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include "compute_temp_deform_eff.h"

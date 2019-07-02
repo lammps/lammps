@@ -15,9 +15,9 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -27,7 +27,6 @@
 #include "group.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"

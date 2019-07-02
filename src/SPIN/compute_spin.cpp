@@ -22,20 +22,16 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cstring>
-#include "atom.h"
+#include <cmath>
 #include "compute_spin.h"
-#include "domain.h"
+#include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "math_special.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathSpecial;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */

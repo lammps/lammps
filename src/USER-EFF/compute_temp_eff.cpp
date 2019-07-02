@@ -17,8 +17,6 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "compute_temp_eff.h"
 #include "atom.h"
 #include "update.h"

@@ -19,7 +19,6 @@
 
 #include <cstring>
 #include "fix_rigid_nph.h"
-#include "domain.h"
 #include "modify.h"
 #include "error.h"
 

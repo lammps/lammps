@@ -13,10 +13,8 @@
 
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "fix_wall_piston.h"
 #include "atom.h"
-#include "modify.h"
 #include "domain.h"
 #include "lattice.h"
 #include "update.h"

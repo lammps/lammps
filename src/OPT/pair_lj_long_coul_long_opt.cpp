@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
+#include <cstring>
 #include "pair_lj_long_coul_long_opt.h"
 #include "atom.h"
 #include "force.h"

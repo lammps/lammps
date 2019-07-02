@@ -22,8 +22,8 @@
    which implements the heat exchange (HEX) algorithm.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "fix_ehex.h"
 #include "atom.h"
@@ -33,14 +33,9 @@
 #include "force.h"
 #include "update.h"
 #include "modify.h"
-#include "input.h"
-#include "variable.h"
 #include "memory.h"
 #include "error.h"
 #include "fix_shake.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "timer.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "fix_wall_srd.h"
-#include "atom.h"
-#include "modify.h"
 #include "fix.h"
 #include "domain.h"
 #include "lattice.h"

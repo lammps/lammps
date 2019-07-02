@@ -15,7 +15,7 @@
    Contributing authors: Axel Kohlmeyer and Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
+#include <Python.h>  // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
 #include "pair_python.h"

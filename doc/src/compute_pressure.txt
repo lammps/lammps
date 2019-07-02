@@ -22,7 +22,7 @@ keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {ks
 
 compute 1 all pressure thermo_temp
 compute 1 all pressure NULL pair bond
-compute 1 all pressure NULL hybridpair lj/cut :pre
+compute 1 all pressure NULL pair/hybrid lj/cut :pre
 
 [Description:]
 

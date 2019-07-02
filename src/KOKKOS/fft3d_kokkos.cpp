@@ -594,8 +594,13 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   // and scaling normalization
 
 #if defined(FFT_FFTW3)
-  if (nthreads > 1)
+
+  #if defined(FFT_FFTW_THREADS)
+  if (nthreads > 1) {
+    fftw_init_threads();
     fftw_plan_with_nthreads(nthreads);
+  }
+  #endif
 
   plan->plan_fast_forward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
@@ -704,7 +709,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   delete plan;
   delete remapKK;
 
-#ifdef FFT_KISSFFT
+#if defined (FFT_FFTW_THREADS)
+  fftw_cleanup_threads();
+#elif defined (FFT_KISSFFT)
   delete kissfftKK;
 #endif
 }

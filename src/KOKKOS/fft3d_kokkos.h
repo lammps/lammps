@@ -25,6 +25,10 @@
 #define FFT_FFTW3
 #endif
 
+#ifdef FFT_FFTW_THREADS
+#define FFT_FFTW3
+#endif
+
 #if defined(FFT_FFTW3)
   #include "fftw3.h"
   #if defined(FFT_SINGLE)

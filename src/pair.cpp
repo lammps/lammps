@@ -16,23 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cctype>
-#include <cfloat>
-#include <climits>
+#include <cfloat>    // IWYU pragma: keep
+#include <climits>   // IWYU pragma: keep
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
 #include "suffix.h"
 #include "atom_masks.h"

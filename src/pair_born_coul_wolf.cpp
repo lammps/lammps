@@ -15,10 +15,8 @@
    Contributing author: Yongfeng Zhang (INL), yongfeng.zhang@inl.gov
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_born_coul_wolf.h"
 #include "atom.h"
 #include "comm.h"

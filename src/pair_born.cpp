@@ -15,9 +15,8 @@
    Contributing Author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "pair_born.h"
 #include "atom.h"

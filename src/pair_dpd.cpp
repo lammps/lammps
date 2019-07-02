@@ -15,12 +15,10 @@
    Contributing author: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_dpd.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"

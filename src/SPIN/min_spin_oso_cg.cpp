@@ -180,8 +180,8 @@ int MinSpinOSO_CG::iterate(int maxiter)
   
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
-  
-    energy_force(0);
+
+    if (iter == 0) energy_force(0);
     dts = evaluate_dt();
   
     calc_gradient(dts);

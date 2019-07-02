@@ -49,7 +49,6 @@ class ComputePressure : public Compute {
   void virial_compute(int, int);
 
  private:
-  int nsub;
   char *pstyle;
 };
 

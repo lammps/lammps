@@ -87,7 +87,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
         pstyle = new char[n];
         strcpy(pstyle,arg[iarg++]);
 
-        nsub = 0;
+        int nsub = 0;
 
         if (narg > iarg) {
           if (isdigit(arg[iarg][0])) {

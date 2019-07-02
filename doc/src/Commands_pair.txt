@@ -222,6 +222,8 @@ OPT.
 "sph/rhosum"_pair_sph_rhosum.html,
 "sph/taitwater"_pair_sph_taitwater.html,
 "sph/taitwater/morris"_pair_sph_taitwater_morris.html,
+"spin/dipole/cut"_pair_spin_dipole.html,
+"spin/dipole/long"_pair_spin_dipole.html,
 "spin/dmi"_pair_spin_dmi.html,
 "spin/exchange"_pair_spin_exchange.html,
 "spin/magelec"_pair_spin_magelec.html,

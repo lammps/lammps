@@ -50,6 +50,9 @@
 namespace Kokkos {
 namespace Impl {
 
+// ===========================================================================
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+
 // View mapping for rank two tiled array
 
 template< class L >
@@ -208,10 +211,16 @@ struct ViewMapping
     }
 };
 
+#endif // KOKKOS_ENABLE_DEPRECATED_CODE
+// ===============================================================================
+
 } /* namespace Impl */
 } /* namespace Kokkos */
 
 namespace Kokkos {
+
+// ==============================================================================
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 
 template< typename T , unsigned N0 , unsigned N1 , class ... P >
 KOKKOS_INLINE_FUNCTION
@@ -228,6 +237,9 @@ tile_subview( const Kokkos::View<T**,Kokkos::LayoutTileLeft<N0,N1,true>,P...> & 
   return Kokkos::View< T[N0][N1] , LayoutLeft , P... >
     ( src , SrcLayout() , i_tile0 , i_tile1 );
 }
+
+#endif // KOKKOS_ENABLE_DEPRECATED_CODE
+// ===============================================================================
 
 } /* namespace Kokkos */
 

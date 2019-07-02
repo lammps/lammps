@@ -927,6 +927,8 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 
 src/SPIN: filenames -> commands
 "Howto spins"_Howto_spins.html
+"pair_style spin/dipole/cut"_pair_spin_dipole.html
+"pair_style spin/dipole/long"_pair_spin_dipole.html
 "pair_style spin/dmi"_pair_spin_dmi.html
 "pair_style spin/exchange"_pair_spin_exchange.html
 "pair_style spin/magelec"_pair_spin_magelec.html

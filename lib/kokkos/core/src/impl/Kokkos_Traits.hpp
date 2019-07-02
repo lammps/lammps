@@ -483,6 +483,54 @@ struct is_integral_constant< integral_constant<T,v> > : public true_
   enum { integral_value = v };
 };
 
+//----------------------------------------------------------------------------
+
+template <class...>
+class TypeList;
+
+//----------------------------------------------------------------------------
+
+template <class>
+struct ReverseTypeList;
+
+template <class Head, class... Tail>
+struct ReverseTypeList<TypeList<Head, Tail...>> {
+  template <class... ReversedTail>
+  struct impl {
+    using type = typename ReverseTypeList<TypeList<Tail...>>::template impl<Head, ReversedTail...>::type;
+  };
+  using type = typename impl<>::type;
+};
+
+template <>
+struct ReverseTypeList<TypeList<>> {
+  template <class... ReversedTail>
+  struct impl {
+    using type = TypeList<ReversedTail...>;
+  };
+  using type = TypeList<>;
+};
+
+//----------------------------------------------------------------------------
+
+template <class T>
+struct make_all_extents_into_pointers
+{
+  using type = T;
+};
+
+template <class T, unsigned N>
+struct make_all_extents_into_pointers<T[N]>
+{
+  using type = typename make_all_extents_into_pointers<T>::type*;
+};
+
+template <class T>
+struct make_all_extents_into_pointers<T*>
+{
+  using type = typename make_all_extents_into_pointers<T>::type*;
+};
+
 } // namespace Impl
 } // namespace Kokkos
 

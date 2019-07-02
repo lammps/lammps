@@ -108,7 +108,7 @@ struct UnorderedMapTest
     std::cout << std::setprecision(2) << std::fixed << std::setw(5) << (1e9*(seconds/(inserts))) << "; " << std::flush;
 
     histogram.calculate();
-    Device::fence();
+    Device().fence();
   }
 
   void print(std::ostream & metrics_out, std::ostream & length_out, std::ostream & distance_out, std::ostream & block_distance_out)
@@ -236,7 +236,7 @@ void run_performance_tests(std::string const & base_file_name)
         uint32_t inserts = static_cast<uint32_t>(test_ratios[j]*(capacity));
         std::cout << capacity << std::flush;
         UnorderedMapTest<Device, Near> test(capacity, inserts*collisions[i], collisions[i]);
-        Device::fence();
+        Device().fence();
         test.print(metrics_out, length_out, distance_out, block_distance_out);
       }
       std::cout << "\b\b  " <<  std::endl;

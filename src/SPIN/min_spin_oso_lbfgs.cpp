@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing authors: Aleksei Ivanov (UI)
+   Contributing authors: Aleksei Ivanov (University of Iceland)
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
@@ -322,7 +322,10 @@ void MinSpinOSO_LBFGS::calc_gradient(double dts)
 }
 
 /* ----------------------------------------------------------------------
-   search direction
+   search direction:
+   Limited-memory BFGS.
+   See Jorge Nocedal and Stephen J. Wright 'Numerical
+   Optimization' Second Edition, 2006 (p. 177)
 ---------------------------------------------------------------------- */
 
 void MinSpinOSO_LBFGS::calc_search_direction(int iter)

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing authors: Aleksei Ivanov (UI)
+   Contributing authors: Aleksei Ivanov (University of Iceland)
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
@@ -313,7 +313,10 @@ void MinSpinOSO_CG::calc_gradient(double dts)
 }
 
 /* ----------------------------------------------------------------------
-   search direction
+   search direction:
+   The Fletcher-Reeves conj. grad. method
+   See Jorge Nocedal and Stephen J. Wright 'Numerical
+   Optimization' Second Edition, 2006 (p. 121)
 ---------------------------------------------------------------------- */
 
 void MinSpinOSO_CG::calc_search_direction(int iter)

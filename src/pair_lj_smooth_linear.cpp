@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
-  single2nd_enable = 1;
+  single_hessian_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -349,7 +349,7 @@ double PairLJSmoothLinear::single(int /*i*/, int /*j*/, int itype, int jtype,
   return factor_lj*philj;
 }
 
-double PairLJSmoothLinear::single2nd(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+double PairLJSmoothLinear::single_hessian(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
                          double delr[3], double factor_coul, double factor_lj,
                          double &fforce, double d2u[6])
 {

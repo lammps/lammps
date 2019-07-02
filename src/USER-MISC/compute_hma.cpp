@@ -360,7 +360,7 @@ void ComputeHMA::compute_vector()
           if (rsq < cutsq[itype][jtype]) {
             double* jdr = deltaR[j];
             double fforce, d2u[6];
-            force->pair->single2nd(i, j, itype, jtype, rsq, delr, factor_coul, factor_lj, fforce, d2u);
+            force->pair->single_hessian(i, j, itype, jtype, rsq, delr, factor_coul, factor_lj, fforce, d2u);
             int m = 0;
             for (int k=0; k<3; k++) {
               double a = fac;

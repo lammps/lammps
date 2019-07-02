@@ -46,7 +46,7 @@ class Pair : protected Pointers {
   int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
-  int single2nd_enable;          // 1 if single2nd() routine exists
+  int single_hessian_enable;     // 1 if single_hessian() routine exists
   int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
@@ -151,7 +151,7 @@ class Pair : protected Pointers {
 
   void pairTensor(double fforce, double dfac, double delr[3], double phiTensor[6]);
 
-  virtual double single2nd(int, int, int, int,
+  virtual double single_hessian(int, int, int, int,
                         double, double[3], double, double,
                         double& fforce, double d2u[6]) {
     fforce = 0.0;

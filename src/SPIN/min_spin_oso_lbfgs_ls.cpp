@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing authors: Aleksei Ivanov (UI)
+   Contributing authors: Aleksei Ivanov (University of Iceland)
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
@@ -176,6 +176,7 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
   double fmdotfm;
   int flag, flagall;
   double **sp = atom->sp;
+  double der_e_cur_global = 0.0;
 
   if (nlocal_max < nlocal) {
     nlocal_max = nlocal;
@@ -213,6 +214,8 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
       for (int i = 0; i < 3 * nlocal; i++) {
         der_e_cur += g_cur[i] * p_s[i];
       }
+      MPI_Allreduce(&der_e_cur, &der_e_cur_global, 1, MPI_DOUBLE, MPI_SUM, world);
+      der_e_cur = der_e_cur_global;
     }
 
     if (use_line_search){
@@ -353,7 +356,10 @@ void MinSpinOSO_LBFGS_LS::calc_gradient(double dts)
 }
 
 /* ----------------------------------------------------------------------
-   search direction
+   search direction:
+   Limited-memory BFGS.
+   See Jorge Nocedal and Stephen J. Wright 'Numerical
+   Optimization' Second Edition, 2006 (p. 177)
 ---------------------------------------------------------------------- */
 
 void MinSpinOSO_LBFGS_LS::calc_search_direction(int iter)
@@ -624,26 +630,26 @@ void MinSpinOSO_LBFGS_LS::vm3(const double *m, const double *v, double *out)
 
 void MinSpinOSO_LBFGS_LS::make_step(double c, double *energy_and_der)
 {
-    double p_scaled[3];
-    int nlocal = atom->nlocal;
-    double rot_mat[9]; // exponential of matrix made of search direction
-    double s_new[3];
-    double **sp = atom->sp;
+  double p_scaled[3];
+  int nlocal = atom->nlocal;
+  double rot_mat[9]; // exponential of matrix made of search direction
+  double s_new[3];
+  double **sp = atom->sp;
+  double der_e_cur_global = 0.0;;
 
-    for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
+    // scale the search direction
 
-        // scale the search direction
+    for (int j = 0; j < 3; j++) p_scaled[j] = c * p_s[3 * i + j];
 
-        for (int j = 0; j < 3; j++) p_scaled[j] = c * p_s[3 * i + j];
+    // calculate rotation matrix
 
-        // calculate rotation matrix
+    rodrigues_rotation(p_scaled, rot_mat);
 
-        rodrigues_rotation(p_scaled, rot_mat);
+    // rotate spins
 
-        // rotate spins
-
-        vm3(rot_mat, sp[i], s_new);
-        for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
+    vm3(rot_mat, sp[i], s_new);
+    for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
     }
 
     ecurrent = energy_force(0);
@@ -653,65 +659,77 @@ void MinSpinOSO_LBFGS_LS::make_step(double c, double *energy_and_der)
     for (int i = 0; i < 3 * nlocal; i++) {
         der_e_cur += g_cur[i] * p_s[i];
     }
+    MPI_Allreduce(&der_e_cur, &der_e_cur_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    der_e_cur = der_e_cur_global;
+
     energy_and_der[0] = ecurrent;
     energy_and_der[1] = der_e_cur;
 }
 
+/* ----------------------------------------------------------------------
+  Calculate step length which satisfies approximate Wolfe conditions
+  using the cubic interpolation
+------------------------------------------------------------------------- */
 
 int MinSpinOSO_LBFGS_LS::calc_and_make_step(double a, double b, int index)
 {
-    double e_and_d[2] = {0.0, 0.0};
-    double alpha, c1, c2, c3;
-    double **sp = atom->sp;
-    int nlocal = atom->nlocal;
+  double e_and_d[2] = {0.0, 0.0};
+  double alpha, c1, c2, c3;
+  double **sp = atom->sp;
+  int nlocal = atom->nlocal;
 
-    make_step(b, e_and_d);
-    ecurrent = e_and_d[0];
-    der_e_cur = e_and_d[1];
-    index++;
+  make_step(b, e_and_d);
+  ecurrent = e_and_d[0];
+  der_e_cur = e_and_d[1];
+  index++;
 
-    if (awc(der_e_pr, eprevious, e_and_d[1], e_and_d[0]) || index == 3){
+  if (awc(der_e_pr, eprevious, e_and_d[1], e_and_d[0]) || index == 3){
+    MPI_Bcast(&b,1,MPI_DOUBLE,0,world);
 
-        for (int i = 0; i < 3 * nlocal; i++) {
-            p_s[i] = b * p_s[i];
-        }
-        return 1;
+      for (int i = 0; i < 3 * nlocal; i++) {
+        p_s[i] = b * p_s[i];
+      }
+    return 1;
+  }
+  else{
+    double r, f0, f1, df0, df1;
+    r = b - a;
+    f0 = eprevious;
+    f1 = ecurrent;
+    df0 = der_e_pr;
+    df1 = der_e_cur;
+
+    c1 = -2.0*(f1-f0)/(r*r*r)+(df1+df0)/(r*r);
+    c2 = 3.0*(f1-f0)/(r*r)-(df1+2.0*df0)/(r);
+    c3 = df0;
+
+    // f(x) = c1 x^3 + c2 x^2 + c3 x^1 + c4
+    // has minimum at alpha below. We do not check boundaries.
+
+    alpha = (-c2 + sqrt(c2*c2 - 3.0*c1*c3))/(3.0*c1);
+    if (alpha < 0.0) alpha = r/2.0;
+
+    for (int i = 0; i < nlocal; i++) {
+      for (int j = 0; j < 3; j++) sp[i][j] = sp_copy[i][j];
     }
-    else{
-        double r, f0, f1, df0, df1;
-        r = b - a;
-        f0 = eprevious;
-        f1 = ecurrent;
-        df0 = der_e_pr;
-        df1 = der_e_cur;
+    calc_and_make_step(0.0, alpha, index);
+   }
 
-        c1 = -2.0*(f1-f0)/(r*r*r)+(df1+df0)/(r*r);
-        c2 = 3.0*(f1-f0)/(r*r)-(df1+2.0*df0)/(r);
-        c3 = df0;
-
-        alpha = (-c2 + sqrt(c2*c2 - 3.0*c1*c3))/(3.0*c1);
-        if (alpha < 0.0) alpha = r/2.0;
-
-        for (int i = 0; i < nlocal; i++) {
-            for (int j = 0; j < 3; j++) sp[i][j] = sp_copy[i][j];
-        }
-        calc_and_make_step(0.0, alpha, index);
-    }
-
-    return 0;
-
+  return 0;
 }
-
-
+/* ----------------------------------------------------------------------
+  Approximate Wolfe conditions:
+  William W. Hager and Hongchao Zhang
+  SIAM J. optim., 16(1), 170-192. (23 pages)
+------------------------------------------------------------------------- */
 int MinSpinOSO_LBFGS_LS::awc(double der_phi_0, double phi_0, double der_phi_j, double phi_j){
 
-    double eps = 1.0e-6;
-    double delta = 0.1;
-    double sigma = 0.9;
+  double eps = 1.0e-6;
+  double delta = 0.1;
+  double sigma = 0.9;
 
-    if ((phi_j <= phi_0 + eps * fabs(phi_0)) &&
-        ((2.0*delta - 1.0) * der_phi_0 >= der_phi_j >= sigma * der_phi_0))
-        return 1;
-    else
-        return 0;
+  if ((phi_j <= phi_0 + eps * fabs(phi_0)) && ((2.0*delta - 1.0) * der_phi_0 >= der_phi_j >= sigma * der_phi_0))
+    return 1;
+  else
+    return 0;
 }

@@ -87,7 +87,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
         pstyle = new char[n];
         strcpy(pstyle,arg[iarg++]);
 
-        int nsub = 0;
+        nsub = 0;
 
         if (narg > iarg) {
           if (isdigit(arg[iarg][0])) {
@@ -164,6 +164,20 @@ void ComputePressure::init()
     if (icompute < 0)
       error->all(FLERR,"Could not find compute pressure temperature ID");
     temperature = modify->compute[icompute];
+  }
+
+  // recheck if pair style with and without suffix exists
+
+  if (pairhybridflag) {
+    pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
+    if (!pairhybrid && lmp->suffix) {
+      strcat(pstyle,"/");
+      strcat(pstyle,lmp->suffix);
+      pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
+    }
+
+    if (!pairhybrid)
+      error->all(FLERR,"Unrecognized pair style in compute pressure command");
   }
 
   // detect contributions to virial

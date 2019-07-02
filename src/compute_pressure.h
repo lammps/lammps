@@ -50,6 +50,7 @@ class ComputePressure : public Compute {
 
  private:
   char *pstyle;
+  int nsub;
 };
 
 }

@@ -56,7 +56,9 @@
 
 #include <cstring>
 #include "fix_store_kim.h"
-#include "KIM_SimulatorModel.hpp"
+extern "C" {
+#include "KIM_SimulatorModel.h"
+}
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -78,8 +80,8 @@ FixStoreKIM::~FixStoreKIM()
   // free associated storage
 
   if (simulator_model) {
-    KIM::SimulatorModel *sm = (KIM::SimulatorModel *)simulator_model;
-    KIM::SimulatorModel::Destroy(&sm);
+    KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
+    KIM_SimulatorModel_Destroy(&sm);
     simulator_model = NULL;
   }
 
@@ -116,8 +118,8 @@ void FixStoreKIM::setptr(const char *name, void *ptr)
 {
   if (strcmp(name,"simulator_model") == 0) {
     if (simulator_model) {
-      KIM::SimulatorModel *sm = (KIM::SimulatorModel *)simulator_model;
-      KIM::SimulatorModel::Destroy(&sm);
+      KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
+      KIM_SimulatorModel_Destroy(&sm);
     }
     simulator_model = ptr;
   } else if (strcmp(name,"model_name") == 0) {

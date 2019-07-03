@@ -75,9 +75,6 @@
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
-//@@@@@ Need to switch to c-bindings when they are available.
-#include "KIM_SimulatorModel.hpp"
-//@@@@@
 
 using namespace LAMMPS_NS;
 
@@ -214,29 +211,30 @@ void KimInit::determine_model_type_and_units(char * model_name,
     }
   }
 
-  KIM::SimulatorModel * kim_SM;
-  kim_error = KIM::SimulatorModel::Create(model_name, &kim_SM);
+  KIM_SimulatorModel * kim_SM;
+  kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
   if (kim_error)
     error->all(FLERR,"KIM model name not found");
   model_type = SM;
 
   int sim_fields;
   int sim_lines;
-  std::string const * sim_field;
-  std::string const * sim_value;
-  kim_SM->GetNumberOfSimulatorFields(&sim_fields);
-  kim_SM->CloseTemplateMap();
+  char const * sim_field;
+  char const * sim_value;
+  KIM_SimulatorModel_GetNumberOfSimulatorFields(kim_SM, &sim_fields);
+  KIM_SimulatorModel_CloseTemplateMap(kim_SM);
   for (int i=0; i < sim_fields; ++i) {
-    kim_SM->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+    KIM_SimulatorModel_GetSimulatorFieldMetadata(
+        kim_SM,i,&sim_lines,&sim_field);
 
-    if (*sim_field == "units") {
-      kim_SM->GetSimulatorFieldLine(i,0,&sim_value);
-      int len=(*sim_value).length()+1;
-      *model_units = new char[len]; strcpy(*model_units,sim_value->c_str());
+    if (0 == strcmp(sim_field,"units")) {
+      KIM_SimulatorModel_GetSimulatorFieldLine(kim_SM,i,0,&sim_value);
+      int len=strlen(sim_value)+1;
+      *model_units = new char[len]; strcpy(*model_units,sim_value);
       break;
     }
   }
-  KIM::SimulatorModel::Destroy(&kim_SM);
+  KIM_SimulatorModel_Destroy(&kim_SM);
 
   if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
     std::string mesg("Incompatible units for KIM Simulator Model, "
@@ -271,16 +269,16 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units)
   kim_init_log_delimiter("begin");
 
   int kimerror;
-  // @@@@@ switch to c-bindings when they are available
-  KIM::SimulatorModel * simulatorModel;
+  KIM_SimulatorModel * simulatorModel;
   if (model_type == SM)
   {
-    kimerror = KIM::SimulatorModel::Create(model_name,&simulatorModel);
+    kimerror = KIM_SimulatorModel_Create(model_name,&simulatorModel);
 
-    const std::string *sim_name, *sim_version;
-    simulatorModel->GetSimulatorNameAndVersion(&sim_name, &sim_version);
+    char const *sim_name, *sim_version;
+    KIM_SimulatorModel_GetSimulatorNameAndVersion(
+        simulatorModel,&sim_name, &sim_version);
 
-    if (*sim_name != "LAMMPS")
+    if (0 != strcmp(sim_name,"LAMMPS"))
       error->all(FLERR,"Incompatible KIM Simulator Model");
 
     if (comm->me == 0) {
@@ -288,7 +286,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units)
       mesg += model_name;
       mesg += "\n";
       mesg += "# For Simulator             : ";
-      mesg += *sim_name + " " + *sim_version + "\n";
+      mesg += std::string(sim_name) + " " + sim_version + "\n";
       mesg += "# Running on                : LAMMPS ";
       mesg += universe->version;
       mesg += "\n";
@@ -302,7 +300,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units)
 
     // need to call this to have access to (some) simulator model init data.
 
-    simulatorModel->CloseTemplateMap();
+    KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
   }
 
   // Define unit conversion factor variables and print to log
@@ -316,24 +314,26 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units)
 
   if (model_type == SM) {
     int sim_fields, sim_lines;
-    const std::string *sim_field, *sim_value;
-    simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
+    char const *sim_field, *sim_value;
+    KIM_SimulatorModel_GetNumberOfSimulatorFields(simulatorModel, &sim_fields);
 
     // init model
 
     for (int i=0; i < sim_fields; ++i) {
-      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-      if (*sim_field == "model-init") {
+      KIM_SimulatorModel_GetSimulatorFieldMetadata(
+          simulatorModel,i,&sim_lines,&sim_field);
+      if (0 == strcmp(sim_field,"model-init")) {
         for (int j=0; j < sim_lines; ++j) {
-          simulatorModel->GetSimulatorFieldLine(i,j,&sim_value);
-          input->one(sim_value->c_str());
+          KIM_SimulatorModel_GetSimulatorFieldLine(
+              simulatorModel,i,j,&sim_value);
+          input->one(sim_value);
         }
         break;
       }
     }
 
     // reset template map.
-    simulatorModel->OpenAndInitializeTemplateMap();
+    KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
   }
 
   // End output to log file

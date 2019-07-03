@@ -73,9 +73,6 @@
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
-//@@@@@ Need to switch to c-bindings when they are available.
-#include "KIM_SimulatorModel.hpp"
-//@@@@@
 
 #define SNUM(x)                                                \
   static_cast<std::ostringstream const &>(std::ostringstream() \
@@ -122,7 +119,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     error->all(FLERR,"Illegal kim_interactions command");
 
   char *model_name = NULL;
-  KIM::SimulatorModel *simulatorModel(NULL);
+  KIM_SimulatorModel *simulatorModel(NULL);
 
   // check if we had a kim_init command by finding fix STORE/KIM
   // retrieve model name and pointer to simulator model class instance.
@@ -132,7 +129,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   if (ifix >= 0) {
     FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
     model_name = (char *)fix_store->getptr("model_name");
-    simulatorModel = (KIM::SimulatorModel *)fix_store->getptr("simulator_model");
+    simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");
   } else error->all(FLERR,"Must use 'kim_init' before 'kim_interactions'");
 
   // Begin output to log file
@@ -151,9 +148,11 @@ void KimInteractions::do_setup(int narg, char **arg)
       delimiter = " ";
     }
 
-    simulatorModel->AddTemplateMap("atom-type-sym-list",atom_type_sym_list);
-    simulatorModel->AddTemplateMap("atom-type-num-list",atom_type_num_list);
-    simulatorModel->CloseTemplateMap();
+    KIM_SimulatorModel_AddTemplateMap(
+        simulatorModel,"atom-type-sym-list",atom_type_sym_list.c_str());
+    KIM_SimulatorModel_AddTemplateMap(
+        simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
+    KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
 
     int len = strlen(atom_type_sym_list.c_str())+1;
     char *strbuf = new char[len];
@@ -163,16 +162,17 @@ void KimInteractions::do_setup(int narg, char **arg)
 
     int sim_num_species;
     bool species_is_supported;
-    const std::string *sim_species;
-    simulatorModel->GetNumberOfSupportedSpecies(&sim_num_species);
+    char const *sim_species;
+    KIM_SimulatorModel_GetNumberOfSupportedSpecies(
+        simulatorModel,&sim_num_species);
     strcpy(strbuf,atom_type_sym_list.c_str());
     strword = strtok(strbuf," \t");
     while (strword) {
       species_is_supported = false;
       if (strcmp(strword,"NULL") == 0) continue;
       for (int i=0; i < sim_num_species; ++i) {
-        simulatorModel->GetSupportedSpecies(i, &sim_species);
-        if (strcmp(sim_species->c_str(),strword) == 0)
+        KIM_SimulatorModel_GetSupportedSpecies(simulatorModel,i,&sim_species);
+        if (strcmp(sim_species,strword) == 0)
           species_is_supported = true;
       }
       if (!species_is_supported) {
@@ -188,26 +188,29 @@ void KimInteractions::do_setup(int narg, char **arg)
     // check if units are unchanged
 
     int sim_fields, sim_lines;
-    const std::string *sim_field, *sim_value;
-    simulatorModel->GetNumberOfSimulatorFields(&sim_fields);
+    const char *sim_field, *sim_value;
+    KIM_SimulatorModel_GetNumberOfSimulatorFields(simulatorModel, &sim_fields);
     for (int i=0; i < sim_fields; ++i) {
-      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
+      KIM_SimulatorModel_GetSimulatorFieldMetadata(
+          simulatorModel,i,&sim_lines,&sim_field);
 
-      if (*sim_field == "units") {
-        simulatorModel->GetSimulatorFieldLine(i,0,&sim_value);
-        if (*sim_value != update->unit_style)
+      if (0 == strcmp(sim_field,"units")) {
+        KIM_SimulatorModel_GetSimulatorFieldLine(simulatorModel,i,0,&sim_value);
+        if (0 != strcmp(sim_value,update->unit_style))
           error->all(FLERR,"Incompatible units for KIM Simulator Model");
       }
     }
 
     int sim_model_idx=-1;
     for (int i=0; i < sim_fields; ++i) {
-      simulatorModel->GetSimulatorFieldMetadata(i,&sim_lines,&sim_field);
-      if (*sim_field == "model-defn") {
+      KIM_SimulatorModel_GetSimulatorFieldMetadata(
+          simulatorModel,i,&sim_lines,&sim_field);
+      if (0 == strcmp(sim_field,"model-defn")) {
         sim_model_idx = i;
         for (int j=0; j < sim_lines; ++j) {
-          simulatorModel->GetSimulatorFieldLine(sim_model_idx,j,&sim_value);
-          input->one(sim_value->c_str());
+          KIM_SimulatorModel_GetSimulatorFieldLine(
+              simulatorModel,sim_model_idx,j,&sim_value);
+          input->one(sim_value);
         }
       }
     }
@@ -215,7 +218,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     if (sim_model_idx < 0)
       error->all(FLERR,"KIM Simulator Model has no Model definition");
 
-    simulatorModel->OpenAndInitializeTemplateMap();
+    KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
 
   } else {
 

@@ -38,7 +38,7 @@ public:
     void advance_spins();
     double fmnorm_sqr();
     void calc_gradient(double);
-    void calc_search_direction(int);
+    void calc_search_direction();
 
 private:
     // global and spin timesteps
@@ -56,6 +56,7 @@ private:
     double *g_old;  		// gradient vector at previous iteration
     double *g_cur;  		// current gradient vector
     double *p_s;  		// search direction vector
+    int local_iter;  // number of times we call search_direction
 
     void vm3(const double *, const double *, double *);
     void rodrigues_rotation(const double *, double *);

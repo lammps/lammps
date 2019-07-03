@@ -83,7 +83,7 @@ void MinSpinOSO_CG::init()
 {
   alpha_damp = 1.0;
   discrete_factor = 10.0;
-
+  local_iter = 0;
   Min::init();
 
   dts = dt = update->dt;
@@ -164,6 +164,7 @@ int MinSpinOSO_CG::iterate(int maxiter)
   int flag, flagall;
 
   if (nlocal_max < nlocal) {
+    local_iter = 0;
     nlocal_max = nlocal;
     memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
     memory->grow(g_cur,3*nlocal_max,"min/spin/oso/cg:g_cur");
@@ -181,11 +182,11 @@ int MinSpinOSO_CG::iterate(int maxiter)
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
 
-    if (iter == 0) energy_force(0);
+    if (local_iter == 0) energy_force(0);
     dts = evaluate_dt();
   
     calc_gradient(dts);
-    calc_search_direction(iter);
+    calc_search_direction();
     advance_spins();
   
     eprevious = ecurrent;
@@ -319,7 +320,7 @@ void MinSpinOSO_CG::calc_gradient(double dts)
    Optimization' Second Edition, 2006 (p. 121)
 ---------------------------------------------------------------------- */
 
-void MinSpinOSO_CG::calc_search_direction(int iter)
+void MinSpinOSO_CG::calc_search_direction()
 {
   int nlocal = atom->nlocal;
   double g2old = 0.0;
@@ -328,7 +329,7 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
 
   double g2_global = 0.0;
   double g2old_global = 0.0;
-  if (iter == 0 || iter % 5 == 0){ 	// steepest descent direction
+  if (local_iter == 0 || local_iter % 5 == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i];
       g_old[i] = g_cur[i];
@@ -363,6 +364,8 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
 	  g_old[i] = g_cur[i];
     }
   }
+
+  local_iter++;
 }
 
 /* ----------------------------------------------------------------------

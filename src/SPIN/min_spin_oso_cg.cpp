@@ -326,9 +326,8 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
   double g2 = 0.0;
   double beta = 0.0;
 
-  double g2_global= 0.0;
-  double g2old_global= 0.0;
-
+  double g2_global = 0.0;
+  double g2old_global = 0.0;
   if (iter == 0 || iter % 5 == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i];
@@ -347,8 +346,16 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
     MPI_Allreduce(&g2, &g2_global, 1, MPI_DOUBLE, MPI_SUM, world);
     MPI_Allreduce(&g2old, &g2old_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
-    beta = g2_global / g2old_global;
+    // we don't know yet if we need this. Needs to be tested with multiple replica.
+    //      if (update->multireplica == 1) {
+    //        g2 = g2_global;
+    //        g2old = g2old_global;
+    //        MPI_Allreduce(&g2,&g2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    //        MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    //      }
 
+    if (fabs(g2_global) < 1.0e-40) beta = 0.0;
+    else beta = g2_global / g2old_global;
     // calculate conjugate direction
     
     for (int i = 0; i < 3 * nlocal; i++) {

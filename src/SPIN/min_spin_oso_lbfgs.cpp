@@ -376,7 +376,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
     if (update->multireplica == 1) {
       dyds = dyds_global;
-      MPI_Allreduce(&dyds_global,&dyds,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      MPI_Allreduce(&dyds, &dyds_global, 1,MPI_DOUBLE,MPI_SUM,universe->uworld);
     }
 
     if (fabs(dyds_global) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
@@ -403,7 +403,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       MPI_Allreduce(&sq, &sq_global, 1, MPI_DOUBLE, MPI_SUM, world);
       if (update->multireplica == 1) {
         sq = sq_global;
-        MPI_Allreduce(&sq_global,&sq,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+        MPI_Allreduce(&sq,&sq_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       }
 
       // update alpha
@@ -425,7 +425,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     MPI_Allreduce(&yy, &yy_global, 1, MPI_DOUBLE, MPI_SUM, world);
     if (update->multireplica == 1) {
       yy = yy_global;
-      MPI_Allreduce(&yy_global,&yy,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      MPI_Allreduce(&yy,&yy_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
     }
 
     // calculate now search direction
@@ -455,7 +455,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       MPI_Allreduce(&yr, &yr_global, 1, MPI_DOUBLE, MPI_SUM, world);
       if (update->multireplica == 1) {
         yr = yr_global;
-        MPI_Allreduce(&yr_global,&yr,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+        MPI_Allreduce(&yr,&yr_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       }
 
       beta = rho[c_ind] * yr_global;

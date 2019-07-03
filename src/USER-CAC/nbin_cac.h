@@ -35,7 +35,6 @@ class NBinCAC : public NBin {
   virtual void bin_atoms_setup(int);
   
   protected:
-  //int *bin_overlap_buffer;
   int *bin_overlap_limits;
   int first_alloc;
   int max_bin_expansion_count;

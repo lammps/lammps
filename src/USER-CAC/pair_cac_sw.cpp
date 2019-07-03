@@ -203,8 +203,6 @@ void PairCACSW::coeff(int narg, char **arg) {
 double PairCACSW::init_one(int i, int j) {
 
 	if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-
-	
  
 	if (outer_neighflag)
 	return 2*cutmax;
@@ -575,21 +573,14 @@ void PairCACSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
 void PairCACSW::force_densities( int iii, double s,double t, double w, double coefficients,
 	double &force_densityx,double &force_densityy,double &force_densityz){
 
-int internal;
-
 double delx,dely,delz;
 
 double r2inv;
 double r6inv;
 double shape_func;
 double shape_func2;
-double boxmap_matrix[3][3];
-int neighborflag=0;
-int outofbounds=0;
-int timestep=update->ntimestep;
 double unit_cell_mapped[3];
 double scanning_unit_cell[3];
-double box_positions[8][3];
 
 double forcelj,factor_lj,fpair;
 int *type = atom->type;
@@ -600,20 +591,8 @@ double scan_position[3];
 double rcut;
 int current_type = poly_counter;
 
-double cbox_positions[3];
-
-int flagm;
-int neigh_count=0;
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;	
-int inner_neigh_index=0;
-int outer_neigh_index = 0;
-double cds[3];
-double maxds=0;
-double maxdt=0;
-double maxdw=0;
-int neighbor_cell_count[3];
-
 
 //equivalent isoparametric cutoff range for a cube of rcut
 
@@ -622,27 +601,13 @@ unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
 unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 
 
-
-
-
-
 unit_cell[0] = s;
 unit_cell[1] = t;
 unit_cell[2] = w;
 
-
-
-
-
 //scan the surrounding unit cell locations in a cartesian grid
 //of isoparametric space until the cutoff is exceeded
 //for each grid scan
-
-
- scanning_unit_cell[0]=unit_cell[0];
- scanning_unit_cell[1]=unit_cell[1];
- scanning_unit_cell[2]=unit_cell[2];
-
 
 int distanceflag=0;
     current_position[0]=0;
@@ -664,11 +629,8 @@ int distanceflag=0;
 		current_position[2] = w;
 	}
 
-
 	rcut = cut_global_s;
 	int origin_type = type_array[poly_counter];
-	
-
 
 	int listtype;
 	int scan_type, scan_type2;
@@ -875,25 +837,6 @@ int distanceflag=0;
 		}
 
 	}
-
-
-
-
-
 //end of scanning loop
-
-
- //induce segfault to debug
- //segv=force_density[133][209];
-
-
-
-
-
-
-
-
 }
-
-//contribute force density from neighboring elements of surface quadrature point
 //------------------------------------------------------------------------

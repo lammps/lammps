@@ -108,8 +108,6 @@ void DumpCACXYZ::init_style()
 /*------------------------------------------------------------------------*/
 int DumpCACXYZ::count()
 {
-	//if (igroup == 0) return (poly_count[i] + 1)*nodes_per_element*atom->nlocal;
-
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
 	int *poly_count = atom->poly_count;
@@ -198,9 +196,8 @@ if(flag==2){
 
 }
 return shape_function;
-
-
 }
+
 /* ---------------------------------------------------------------------- */
 
 void DumpCACXYZ::pack(tagint *ids)

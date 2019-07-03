@@ -34,6 +34,7 @@ class CommCAC : public CommTiled {
   virtual void init();
   virtual void setup();                        // setup comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
+  virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
 
   virtual void exchange();                     // move atoms to new procs
   virtual void borders();                      // setup list of atoms to comm
@@ -57,8 +58,8 @@ class CommCAC : public CommTiled {
   int **sendproc,**recvproc;    // procs to send/recv to/from per swap
   int **sendbox_flag;           //decide whether this send should add data to sendlist
   int **repeatsend_flag;           //decide whether this send should add data to sendlist
-  int **sendsize,**recvsize; // size of buffer sent by each overlap proc per swap
-  int **sendoffset,**recvoffset; // offset of buffer for each overlap proc per swap
+  int **sendsize,**recvsize, **pair_sendsize, **pair_recvsize; // size of buffer sent by each overlap proc per swap
+  int **sendoffset,**recvoffset, **pair_sendoffset, **pair_recvoffset; // offset of buffer for each overlap proc per swap
   int **overlap_sendsize,**overlap_recvsize; // size of buffer sent by each overlap proc per swap for overlapping elements
   int **overlap_sendoffset,**overlap_recvoffset; // offset of buffer for each overlap proc per swap for overlapping elements
   int **sendnum,**recvnum,**overlap_sendnum,**overlap_recvnum;      // # of atoms to send/recv per swap/proc
@@ -111,6 +112,7 @@ class CommCAC : public CommTiled {
   int **bin_content;
   int *nbin_element_overlap;  //array storing the number of bins this element overlaps
   int **bin_element_overlap;  //set of bins this element overlaps
+  int reset_array_flag;
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
   double ***overlap_sendbox;            // bounding box of atoms to send per swap/proc
@@ -208,6 +210,7 @@ class CommCAC : public CommTiled {
   void grow_swap_send(int, int, int);  // grow swap arrays for send and recv
   void grow_swap_recv(int, int, int);
   void deallocate_swap(int);           // deallocate swap arrays
+  void pair_comm_setup(class Pair *);
 
 };
 

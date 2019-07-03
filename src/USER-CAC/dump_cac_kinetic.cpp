@@ -68,7 +68,6 @@ DumpCAC_Kinetic::~DumpCAC_Kinetic()
 
 void DumpCAC_Kinetic::init_style()
 {
-  //check if CAC atom style is defined
   if(!atom->CAC_flag)
   error->all(FLERR, "CAC dump styles require a CAC atom style");
 
@@ -83,7 +82,6 @@ void DumpCAC_Kinetic::init_style()
   strcat(format,"\n");
   nodes_per_element = atom->nodes_per_element;
   maxpoly = atom->maxpoly;
-  //size_one = 6;
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
 
@@ -139,8 +137,6 @@ int DumpCAC_Kinetic::modify_param(int narg, char **arg)
 /*------------------------------------------------------------------------*/
 int DumpCAC_Kinetic::count()
 {
-	//if (igroup == 0) return (poly_count[i] + 1)*nodes_per_element*atom->nlocal;
-
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
   int *element_type= atom->element_type;
@@ -174,17 +170,9 @@ int DumpCAC_Kinetic::count()
 void DumpCAC_Kinetic::write_header(bigint n)
 {
   if (me == 0) {
-	  /*title="results for ufmae_cac"
-variables="x","y","z","disp1","disp2","disp3","t11","t13","ketemp"
-zone t="load step 0",n=    3200 e=     400 datapacking=point,zonetype=febric*/
-   
-	//fprintf(fp, "zone t=\"load step " BIGINT_FORMAT "\",n= " BIGINT_FORMAT
-	//" e= " BIGINT_FORMAT " datapacking=point,zonetype=febric" "\n",
-	//update->ntimestep, nodes_per_element*atom->nlocal, atom->nlocal);
 	fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
 	" e= " BIGINT_FORMAT " Q4 " "\n",
 	update->ntimestep, (bigint)total_node_count, atom->natoms);
-    
   }
 }
 
@@ -200,7 +188,6 @@ void DumpCAC_Kinetic::pack(tagint *ids)
   double ****nodal_positions = atom->nodal_positions;
   double ****nodal_velocities = atom->nodal_velocities;
   int *nodes_per_element_list = atom->nodes_per_element_list;
-  //double ****initial_nodal_positions = atom->initial_nodal_positions;
   int nlocal = atom->nlocal;
   int *poly_count = atom->poly_count;
   int *element_type = atom->element_type;

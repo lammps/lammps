@@ -49,11 +49,14 @@ PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   manybody_flag = 1;
-
+  pre_force_flag = 0;
   nmax = 0;
   cutoff_skin = 2;
   max_expansion_count_inner = 0;
   max_expansion_count_outer = 0;
+  quadrature_point_max = 0;
+  quadrature_point_data = NULL;
+  quadrature_counts = NULL;
   interior_scales = NULL;
   surface_counts = NULL;
   old_atom_etype = NULL;
@@ -64,15 +67,13 @@ PairCAC::PairCAC(LAMMPS *lmp) : Pair(lmp)
   surface_counts_max_old[0] = 1;
   surface_counts_max_old[1] = 1;
   surface_counts_max_old[2] = 1;
-  local_inner_max=0;
-  local_outer_max=0;
+  local_inner_max = 0;
+  local_outer_max = 0;
+  outer_neighflag = 0;
   one_layer_flag = 0;
   old_quad_minima= NULL;
   old_minima_neighbors= NULL;
   shape_quad_result = NULL;
-  //cgParm=NULL;
-  //asaParm=NULL;
-  //Objective=NULL;
   asa_pointer = NULL;
   densemax=0;
   neighbor->pgsize=10;
@@ -161,12 +162,11 @@ PairCAC::~PairCAC() {
     memory->destroy(old_quad_minima);
     memory->destroy(old_minima_neighbors);
   }
-  /* 
-  memory->destroy(asa_pointer);
-  memory->destroy(asaParm);
-  memory->destroy(Objective);
-  */
   delete asa_pointer;
+  if(quadrature_point_max)
+  memory->destroy(quadrature_point_data);
+  if(nmax)
+  memory->destroy(quadrature_counts);
 
 
 
@@ -176,21 +176,20 @@ PairCAC::~PairCAC() {
 /* ---------------------------------------------------------------------- */
 
 void PairCAC::compute(int eflag, int vflag) {
-    int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  int i,j,ii,jj,inum,jnum,jtype;
+  double delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
-  //int *ilist,*jlist,*numneigh,**firstneigh;
   int mi;
   int mj;
   
-    int singular;
+  int singular;
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
-    double ****nodal_positions= atom->nodal_positions;
+  double ****nodal_positions= atom->nodal_positions;
   double ****nodal_velocities= atom->nodal_velocities;
   double ****nodal_forces= atom->nodal_forces;
   double ****nodal_gradients = atom->nodal_gradients;
@@ -204,163 +203,189 @@ void PairCAC::compute(int eflag, int vflag) {
   int newton_pair = force->newton_pair;
   int nodes_per_element;
 	
-	int *nodes_count_list = atom->nodes_per_element_list;	
+  int *nodes_count_list = atom->nodes_per_element_list;	
   quad_eflag = eflag;
   cutoff_skin = neighbor->skin;
   
   reneighbor_time = neighbor->lastcall;
-	if (update->ntimestep == reneighbor_time||update->whichflag==2){
-	atom->neigh_weight_flag=1;
-	atom->weight_count=atom->nlocal;
-	}
+  if (update->ntimestep == reneighbor_time||update->whichflag==2){
+    atom->neigh_weight_flag=1;
+    atom->weight_count=atom->nlocal;
+  }
  
   // loop over neighbors of my atoms
-    compute_mass_matrix();
-    //cout <<"\n";
-     for ( mi = 0; mi < max_nodes_per_element; mi++) {
-        for (mj = 0; mj < max_nodes_per_element; mj++){
-            //cout<< " " << mass_matrix[mi][mj] << " " ;
-            mass_copy[mi][mj]=mass_matrix[mi][mj];
+  compute_mass_matrix();
+  for ( mi = 0; mi < max_nodes_per_element; mi++) {
+    for (mj = 0; mj < max_nodes_per_element; mj++){
+      mass_copy[mi][mj]=mass_matrix[mi][mj];
+    }      
+  }
 
-            }
-            //cout << "\n";
-    }
-   singular = LUPDecompose(mass_copy, max_nodes_per_element,0.00000000000001,  pivot);
-        if(singular==0){
-        error->one(FLERR,"LU matrix is degenerate");
-    }
-		if (update->ntimestep == reneighbor_time||update->whichflag==2) {
-			//count number of pure atoms in the local domain
-			natomic = 0;
+  singular = LUPDecompose(mass_copy, max_nodes_per_element,0.00000000000001,  pivot);
+  if(singular==0){
+    error->one(FLERR,"LU matrix is degenerate");
+  }
+  if (update->ntimestep == reneighbor_time||update->whichflag==2) {
+  //count number of pure atoms in the local domain
+  natomic = 0;
+  for (i = 0; i < atom->nlocal; i++) {
+    current_element_type = element_type[i];
+  if (current_element_type == 0) natomic += 1;
+  }
+
+  // initialize or grow surface counts array for quadrature scheme
+  // along with interior scaling for the quadrature domain
+  if (atom->nlocal  > nmax) {
+    allocate_surface_counts();
+    memory->grow(atom->neighbor_weights, atom->nlocal,3, "Pair CAC:neighbor_weights");
+	memory->grow(quadrature_counts, atom->nlocal, "Pair CAC:quadrature_counts");
+  }
 			
-			for (i = 0; i < atom->nlocal; i++) {
-				current_element_type = element_type[i];
-				if (current_element_type == 0) natomic += 1;
+  surface_counts_max_old[0] = surface_counts_max[0];
+  surface_counts_max_old[1] = surface_counts_max[1];
+  surface_counts_max_old[2] = surface_counts_max[2];
+  quad_list_counter=0;
+  for (i = 0; i < atom->nlocal; i++) {
 				
-			}
+  current_element_scale = element_scale[i];
+  current_nodal_positions = nodal_positions[i];
+  current_element_type = element_type[i];
+  current_poly_count = poly_count[i];
+  int poly_surface_count[3];
+  if (current_element_type == 0) atomic_counter += 1;
+  if (current_element_type != 0) {
 
-			// initialize or grow surface counts array for quadrature scheme
-			// along with interior scaling for the quadrature domain
-			if (atom->nlocal  > nmax) {
-				allocate_surface_counts();
-				memory->grow(atom->neighbor_weights, atom->nlocal,3, "Pair CAC:neighbor_weights");
-			}
-			
-			surface_counts_max_old[0] = surface_counts_max[0];
-			surface_counts_max_old[1] = surface_counts_max[1];
-			surface_counts_max_old[2] = surface_counts_max[2];
-			//atomic_counter = 0;
-			quad_list_counter=0;
-			for (i = 0; i < atom->nlocal; i++) {
-				
-				current_element_scale = element_scale[i];
-				current_nodal_positions = nodal_positions[i];
-				current_element_type = element_type[i];
-				current_poly_count = poly_count[i];
-				int poly_surface_count[3];
-				if (current_element_type == 0) atomic_counter += 1;
-				if (current_element_type != 0) {
-					for (poly_counter = 0; poly_counter < poly_count[i]; poly_counter++) {
-						int poly_surface_count[3];
-						compute_surface_depths(interior_scale[0], interior_scale[1], interior_scale[2],
-							poly_surface_count[0], poly_surface_count[1], poly_surface_count[2], 1);
-						if(poly_counter==0){
-								surface_counts[i][0]=poly_surface_count[0];
-								surface_counts[i][1]=poly_surface_count[1];
-								surface_counts[i][2]=poly_surface_count[2];
-								interior_scales[i][0]=interior_scale[0];
-								interior_scales[i][1]=interior_scale[1];
-								interior_scales[i][2]=interior_scale[2];
-						}
-						else{
-						if (poly_surface_count[0] > surface_counts[i][0]){ surface_counts[i][0] = poly_surface_count[0];
-																		      interior_scales[i][0]=interior_scale[0]; }
-						if (poly_surface_count[1] > surface_counts[i][1]){ surface_counts[i][1] = poly_surface_count[1];
-																			  interior_scales[i][1]=interior_scale[1]; }
-						if (poly_surface_count[2] > surface_counts[i][2]){ surface_counts[i][2] = poly_surface_count[2];
-						 													  interior_scales[i][2]=interior_scale[2]; }
-						}
-					
-					}
-						if (surface_counts[i][0] > surface_counts_max[0]) surface_counts_max[0] = surface_counts[i][0];
-						if (surface_counts[i][1] > surface_counts_max[1]) surface_counts_max[1] = surface_counts[i][1];
-						if (surface_counts[i][2] > surface_counts_max[2]) surface_counts_max[2] = surface_counts[i][2];
-				}
-			}
+    for (poly_counter = 0; poly_counter < poly_count[i]; poly_counter++) {
+    int poly_surface_count[3];
+    compute_surface_depths(interior_scale[0], interior_scale[1], interior_scale[2],
+    poly_surface_count[0], poly_surface_count[1], poly_surface_count[2], 1);
 
-			// initialize or grow memory for the neighbor list of virtual atoms at quadrature points
+    if(poly_counter==0){
+      surface_counts[i][0]=poly_surface_count[0];
+      surface_counts[i][1]=poly_surface_count[1];
+      surface_counts[i][2]=poly_surface_count[2];
+      interior_scales[i][0]=interior_scale[0];
+      interior_scales[i][1]=interior_scale[1];
+      interior_scales[i][2]=interior_scale[2];
+    }
+    else{
+      if (poly_surface_count[0] > surface_counts[i][0]){ 
+        surface_counts[i][0] = poly_surface_count[0];
+        interior_scales[i][0]=interior_scale[0]; }
+      if (poly_surface_count[1] > surface_counts[i][1]){ 
+        surface_counts[i][1] = poly_surface_count[1];
+        interior_scales[i][1]=interior_scale[1]; }
+      if (poly_surface_count[2] > surface_counts[i][2]){ 
+        surface_counts[i][2] = poly_surface_count[2];
+        interior_scales[i][2]=interior_scale[2]; }
+      }
+      }
 
-			if (atom->nlocal)
-			allocate_quad_neigh_list(surface_counts_max[0], surface_counts_max[1], surface_counts_max[2], quadrature_node_count);
-		}
-		atomic_counter = 0;
-		int **neighbor_weights = atom-> neighbor_weights;
-		for (i = 0; i < atom->nlocal; i++) {
-			
-			atomic_flag = 0;
-			
-			current_list_index = i;
-			xtmp = x[i][0];
-			ytmp = x[i][1];
-			ztmp = x[i][2];
-			itype = type[i];
-			current_element_type = element_type[i];
-			current_element_scale = element_scale[i];
-			current_poly_count = poly_count[i];
-			type_array = node_types[i];
-			current_nodal_positions = nodal_positions[i];
-			current_nodal_gradients = nodal_gradients[i];
-			current_x = x[i];
-			if (update->ntimestep == reneighbor_time||update->whichflag==2){
-	    neighbor_weights[i][0]=0;
-	    neighbor_weights[i][1]=0;
-	    neighbor_weights[i][2]=0;
-	    }
-			if (eflag) {
-				element_energy = 0;
-		
-			}
-			//determine element type
-			if (current_element_type == 0) atomic_counter += 1;
-			
-				nodes_per_element = nodes_count_list[current_element_type];
-				if (current_element_type == 0) {
-					atomic_flag = 1;
-				}
-				neigh_quad_counter = 0;
-				//NOTE:might have to change matrices so they dont have zeros due to maximum node count; ill condition.
-				if(atomic_flag){
-					poly_counter = 0;
-					compute_forcev(i);
-					for (int dim = 0; dim < 3; dim++) {
-						nodal_forces[i][0][0][dim] += force_column[0][dim];
-					}
-				}
-				else{
-					for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
+      if (surface_counts[i][0] > surface_counts_max[0]) surface_counts_max[0] = surface_counts[i][0];
+      if (surface_counts[i][1] > surface_counts_max[1]) surface_counts_max[1] = surface_counts[i][1];
+      if (surface_counts[i][2] > surface_counts_max[2]) surface_counts_max[2] = surface_counts[i][2];
+    }
+  }
 
-						compute_forcev(i);
+  // initialize or grow memory for the neighbor list of virtual atoms at quadrature points
 
-						for (int dim = 0; dim < 3; dim++) {
-							for (mi = 0; mi < nodes_per_element; mi++) {
-								current_force_column[mi] = force_column[mi][dim];
+  if (atom->nlocal)
+  allocate_quad_neigh_list(surface_counts_max[0], surface_counts_max[1], surface_counts_max[2], quadrature_node_count);
+  }
+  atomic_counter = 0;
+  int **neighbor_weights = atom-> neighbor_weights;
 
-							}
-
-							LUPSolve(mass_copy, pivot, current_force_column, nodes_per_element, current_nodal_forces);
-
-							for (mi = 0; mi < nodes_per_element; mi++) {
-
-								nodal_forces[i][mi][poly_counter][dim] += current_nodal_forces[mi];
-
-							}
-
-						}
-					}
-				}
-				if (evflag) ev_tally_full(i,
-					2 * element_energy, 0.0, fpair, delx, dely, delz);
-		}
+  //quadrature point neighbor list construction
+  if (update->ntimestep == reneighbor_time||update->whichflag==2){
+  for (i = 0; i < atom->nlocal; i++) {
+    atomic_flag = 0;
+    current_list_index = i;
+    current_element_type = element_type[i];
+    current_element_scale = element_scale[i];
+    current_poly_count = poly_count[i];
+    type_array = node_types[i];
+    current_nodal_positions = nodal_positions[i];
+    current_nodal_gradients = nodal_gradients[i];
+    current_x = x[i];
+    
+    neighbor_weights[i][0]=0;
+    neighbor_weights[i][1]=0;
+    neighbor_weights[i][2]=0;
+  
+    //determine element type
+    if (current_element_type == 0) atomic_counter += 1;
+    if (current_element_type == 0) {
+      atomic_flag = 1;
+    }
+    neigh_quad_counter = 0;
+    //NOTE:might have to change matrices so they dont have zeros due to maximum node count; ill condition.
+    if(atomic_flag){
+      poly_counter = 0;
+      compute_quad_neighbors(i);
+    }
+    else{
+      for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++) 
+        compute_quad_neighbors(i);
+    }
+	if(!atomic_flag)
+	quadrature_counts[i]=neigh_quad_counter/current_poly_count;
+	else 
+	quadrature_counts[i]=1;
+  }
+  }
+  
+  quad_list_counter=0;
+  //preforce calculations
+  if(pre_force_flag)
+  pre_force_densities();
+ 
+  quad_list_counter=0;
+  //compute forces
+  for (i = 0; i < atom->nlocal; i++) {
+    atomic_flag = 0;
+    current_list_index = i;
+    current_element_type = element_type[i];
+    current_element_scale = element_scale[i];
+    current_poly_count = poly_count[i];
+    type_array = node_types[i];
+    current_nodal_positions = nodal_positions[i];
+    current_nodal_gradients = nodal_gradients[i];
+    current_x = x[i];
+    if (eflag) {
+      element_energy = 0;
+    }
+    //determine element type
+    if (current_element_type == 0) atomic_counter += 1;
+      nodes_per_element = nodes_count_list[current_element_type];
+    if (current_element_type == 0) {
+      atomic_flag = 1;
+    }
+    neigh_quad_counter = 0;
+    //NOTE:might have to change matrices so they dont have zeros due to maximum node count; ill condition.
+    if(atomic_flag){
+      poly_counter = 0;
+      compute_forcev(i);
+      for (int dim = 0; dim < 3; dim++) {
+      nodal_forces[i][0][0][dim] += force_column[0][dim];
+      }
+    }
+    else{
+      for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
+        compute_forcev(i);
+        for (int dim = 0; dim < 3; dim++) {
+          for (mi = 0; mi < nodes_per_element; mi++) {
+            current_force_column[mi] = force_column[mi][dim];
+          }
+          LUPSolve(mass_copy, pivot, current_force_column, nodes_per_element, current_nodal_forces);
+          for (mi = 0; mi < nodes_per_element; mi++) {
+            nodal_forces[i][mi][poly_counter][dim] += current_nodal_forces[mi];
+          }
+        }
+      }
+    }
+    if (evflag) ev_tally_full(i,
+				  2 * element_energy, 0.0, fpair, delx, dely, delz);
+  }
 
   if (vflag_fdotr) virial_fdotr_compute();
   if(update->whichflag==2)
@@ -373,14 +398,9 @@ void PairCAC::compute(int eflag, int vflag) {
 
 void PairCAC::allocate()
 {
-	allocated = 1;
-	int n = atom->ntypes;
-	max_nodes_per_element = atom->nodes_per_element;
-
-
-
-
-
+  allocated = 1;
+  int n = atom->ntypes;
+  max_nodes_per_element = atom->nodes_per_element;
 
   memory->create(mass_matrix, max_nodes_per_element, max_nodes_per_element,"pairCAC:mass_matrix");
   memory->create(mass_copy, max_nodes_per_element, max_nodes_per_element,"pairCAC:copy_mass_matrix");
@@ -403,41 +423,23 @@ void PairCAC::allocate()
 void PairCAC::settings(int narg, char **arg) {
   if (narg>1) error->all(FLERR,"Illegal CAC pair_style command");
  
-  //cutmax = force->numeric(FLERR,arg[0]);
- 
-      if(narg==1){
-	  if (strcmp(arg[0], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
-	  else error->all(FLERR, "Unexpected argument in CAC pair style invocation");
-	  }
+  if(narg==1){
+    if (strcmp(arg[0], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
+    else error->all(FLERR, "Unexpected argument in CAC pair style invocation");
+  }
   
-    //cut_global_s = force->numeric(FLERR,arg[1]);
-	//neighrefresh = force->numeric(FLERR, arg[1]);
-	//maxneigh_setting = force->numeric(FLERR, arg[2]);
-	
-	force->newton_pair=0;
-
-
-  // reset cutoffs that have been explicitly set
- // initialize unit cell vectors
-
-  
+  force->newton_pair=0;
 }
-
-
 
 /* ---------------------------------------------------------------------- */
 
-
 void PairCAC::init_style()
 {
-	// convert read-in file(s) to arrays and spline them
-
   check_existence_flags();
-	maxneigh_quad_inner = MAXNEIGH2;
-	maxneigh_quad_outer = MAXNEIGH1;
-	int irequest = neighbor->request(this, instance_me);
+  maxneigh_quad_inner = MAXNEIGH2;
+  maxneigh_quad_outer = MAXNEIGH1;
+  int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->half = 0;
-  //neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->cac = 1;
   
   //surface selection array 
@@ -485,8 +487,6 @@ void PairCAC::init_style()
   dof_set[5][1] = 5;
   dof_set[5][2] = 6;
   dof_set[5][3] = 7;
-  //minimization algorithm data
-  //init_asa_cg();
 }
 
 //-----------------------------------------------------------------------
@@ -505,58 +505,39 @@ error->all(FLERR,"CAC Pair style requires a CAC comm style");
 }
 
 //-----------------------------------------------------------------------
-/*
-void PairCAC::init_asa_cg(){
-//instance minimization algorithm interface
-  asa_pointer = new Asa_Data();
-}
-*/
-//-----------------------------------------------------------------------
 
 void PairCAC::quadrature_init(int quadrature_rank){
 
-if(quadrature_rank==1){
-atom->quadrature_node_count=quadrature_node_count=1;
-memory->create(quadrature_weights,quadrature_node_count,"pairCAC:quadrature_weights");
-memory->create(quadrature_abcissae,quadrature_node_count,"pairCAC:quadrature_abcissae");
-quadrature_weights[0]=2;
-quadrature_abcissae[0]=0;
-}
-if(quadrature_rank==2){
+  if(quadrature_rank==1){
+  atom->quadrature_node_count=quadrature_node_count=1;
+  memory->create(quadrature_weights,quadrature_node_count,"pairCAC:quadrature_weights");
+  memory->create(quadrature_abcissae,quadrature_node_count,"pairCAC:quadrature_abcissae");
+  quadrature_weights[0]=2;
+  quadrature_abcissae[0]=0;
+  }
+  if(quadrature_rank==2){
+  atom->quadrature_node_count=quadrature_node_count=2;
+  memory->create(quadrature_weights,quadrature_node_count,"pairCAC:quadrature_weights");
+  memory->create(quadrature_abcissae,quadrature_node_count,"pairCAC:quadrature_abcissae");
+  quadrature_weights[0]=1;
+  quadrature_weights[1]=1;
+  quadrature_abcissae[0]=-0.5773502691896258;
+  quadrature_abcissae[1]=0.5773502691896258;
+  }
+  if(quadrature_rank==3)
+  {
 
+  }
+  if(quadrature_rank==4)
+  {
 
+  }
+  if(quadrature_rank==5)
+  {
 
-atom->quadrature_node_count=quadrature_node_count=2;
-memory->create(quadrature_weights,quadrature_node_count,"pairCAC:quadrature_weights");
-memory->create(quadrature_abcissae,quadrature_node_count,"pairCAC:quadrature_abcissae");
-quadrature_weights[0]=1;
-quadrature_weights[1]=1;
-quadrature_abcissae[0]=-0.5773502691896258;
-quadrature_abcissae[1]=0.5773502691896258;
+  }
 
-}
-
-if(quadrature_rank==3)
-{
-
-
-}
-if(quadrature_rank==4)
-{
-
-
-}
-if(quadrature_rank==5)
-{
-
-
-}
-
-
-memory->create(shape_quad_result, max_nodes_per_element, quadrature_node_count*quadrature_node_count*quadrature_node_count, "pairCAC:shape_quad_result");
-
-
-
+  memory->create(shape_quad_result, max_nodes_per_element, quadrature_node_count*quadrature_node_count*quadrature_node_count, "pairCAC:shape_quad_result");
 }
 
 //---------------------------------------------------------------------
@@ -565,100 +546,60 @@ memory->create(shape_quad_result, max_nodes_per_element, quadrature_node_count*q
 
 void PairCAC::compute_mass_matrix()
 {
-int i,j,k;
-
-
-double result=0;
-//precompute shape function quadrature abcissae
-for(int ii=0;ii<max_nodes_per_element;ii++){
-
-      for (int i=0; i< quadrature_node_count;i++){
-        for (int j=0; j< quadrature_node_count;j++){
-            for ( k=0; k< quadrature_node_count;k++){
-shape_quad_result[ii][quadrature_node_count*quadrature_node_count*(i)+quadrature_node_count*(j)+k]=
-shape_function(quadrature_abcissae[i],quadrature_abcissae[j],quadrature_abcissae[k],2,ii+1);
-
-            }
+  int i,j,k;
+  double result=0;
+  //precompute shape function quadrature abcissae
+  for(int ii=0;ii<max_nodes_per_element;ii++){
+    for (int i=0; i< quadrature_node_count;i++){
+      for (int j=0; j< quadrature_node_count;j++){
+        for ( k=0; k< quadrature_node_count;k++){
+          shape_quad_result[ii][quadrature_node_count*quadrature_node_count*(i)+quadrature_node_count*(j)+k]=
+          shape_function(quadrature_abcissae[i],quadrature_abcissae[j],quadrature_abcissae[k],2,ii+1);
         }
-}
-
-
-
-
-}
-
-
+      }
+    }
+  }
 
 //assemble matrix with quadrature array of values
- for ( j=0; j<max_nodes_per_element;j++){
-  for ( k=j; k<max_nodes_per_element;k++){
-    result=shape_product(j,k);
-      //double result=1;
-
-
-    mass_matrix[j][k]= result;
-    if(k>j){
-    mass_matrix[k][j]= result;
+  for ( j=0; j<max_nodes_per_element;j++){
+    for ( k=j; k<max_nodes_per_element;k++){
+      result=shape_product(j,k);
+      mass_matrix[j][k]= result;
+      if(k>j){
+      mass_matrix[k][j]= result;
+      }
     }
-
-
   }
- }
 }
-
 
 double PairCAC::shape_product(int ii, int jj) {
-
-	double result = 0;
-	for (int i = 0; i< quadrature_node_count; i++) {
-		for (int j = 0; j< quadrature_node_count; j++) {
-			for (int k = 0; k< quadrature_node_count; k++) {
-				result += quadrature_weights[i] * quadrature_weights[j] * quadrature_weights[k] *
-					shape_quad_result[ii][quadrature_node_count*quadrature_node_count*(i)+quadrature_node_count*(j)+k] *
-					shape_quad_result[jj][quadrature_node_count*quadrature_node_count*(i)+quadrature_node_count*(j)+k];
-
-			}
-		}
-	}
-	return result;
+  double result = 0;
+  for (int i = 0; i< quadrature_node_count; i++) {
+    for (int j = 0; j< quadrature_node_count; j++) {
+      for (int k = 0; k< quadrature_node_count; k++) {
+        result += quadrature_weights[i] * quadrature_weights[j] * quadrature_weights[k] *
+          shape_quad_result[ii][quadrature_node_count*quadrature_node_count*(i)+quadrature_node_count*(j)+k] *
+          shape_quad_result[jj][quadrature_node_count*quadrature_node_count*(i)+quadrature_node_count*(j)+k];
+      }
+    }
+  }
+  return result;
 }
-//---------------------------------------------------------------
 
 //----------------------------------------------------------------
 
-void PairCAC::compute_forcev(int iii){
-
-	
+void PairCAC::compute_quad_neighbors(int iii){
 	double unit_cell_mapped[3];
-	int nodes_per_element;
-	  
-	int *nodes_count_list = atom->nodes_per_element_list;	
-	//stores neighbor information for computational weight assignment
-	
+	//int nodes_per_element;
+	int *nodes_count_list = atom->nodes_per_element_list;
+	double coefficients;	
 	
 	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-	double iso_volume=unit_cell_mapped[0]*unit_cell_mapped[1]*unit_cell_mapped[2];
-
-	nodes_per_element = nodes_count_list[current_element_type];
-	for (int js = 0; js<nodes_per_element; js++) {
-		for (int jj = 0; jj<3; jj++) {
-
-
-			force_column[js][jj] = 0;
-
-		}
-	}
-
-
-
-	double force_density[3];
-
 
 	double interior_scale[3];
 	
-
 	int isurface_counts[3];
 	interior_scale[0] = interior_scales[iii][0];
 	interior_scale[1] = interior_scales[iii][1];
@@ -670,17 +611,17 @@ void PairCAC::compute_forcev(int iii){
 	double s, t, w;
 	s = t = w = 0;
 	double sq, tq, wq;
-	//compute interior contributions to the equivalent nodal force vector
-
+	//compute interior quadrature point virtual neighbor lists
 	double result = 0;
 	interior_flag = 1;
+	if(quadrature_point_max==0) {
+		quadrature_point_max = 1000*atom->maxpoly;
+		memory->create(quadrature_point_data,quadrature_point_max,7,"pairCAC:quadrature_point_data");
+	}
 	if (!atomic_flag) {
 		for (int i = 0; i < quadrature_node_count; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
-					force_density[0] = 0;
-					force_density[1] = 0;
-					force_density[2] = 0;
 					sq=s = interior_scale[0] * quadrature_abcissae[i];
 					tq=t = interior_scale[1] * quadrature_abcissae[j];
 					wq=w = interior_scale[2] * quadrature_abcissae[k];
@@ -688,13 +629,10 @@ void PairCAC::compute_forcev(int iii){
 					t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
 					w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
 
-
-
 					if (quadrature_abcissae[i] < 0)
 						s = s - 0.5*unit_cell_mapped[0];
 					else
 						s = s + 0.5*unit_cell_mapped[0];
-
 
 					if (quadrature_abcissae[j] < 0)
 						t = t - 0.5*unit_cell_mapped[1];
@@ -706,29 +644,20 @@ void PairCAC::compute_forcev(int iii){
 					else
 						w = w + 0.5*unit_cell_mapped[2];
 
-					double coefficients = interior_scale[0] * interior_scale[1] * interior_scale[2] *
-						quadrature_weights[i] * quadrature_weights[j] * quadrature_weights[k];
-
-					if (update->ntimestep == reneighbor_time||update->whichflag==2)
-						quad_list_build(iii, s, t, w);
-					quadrature_energy = 0;
-					force_densities(iii, s, t, w, coefficients,
-						force_density[0], force_density[1], force_density[2]);
+                    quadrature_point_data[quad_list_counter][0]=s;
+					quadrature_point_data[quad_list_counter][1]=t;
+					quadrature_point_data[quad_list_counter][2]=w;
+					quadrature_point_data[quad_list_counter][3]=sq;
+					quadrature_point_data[quad_list_counter][4]=tq;
+					quadrature_point_data[quad_list_counter][5]=wq;
+					quadrature_point_data[quad_list_counter][6]=
+					  interior_scale[0] * interior_scale[1] * interior_scale[2] *
+					  quadrature_weights[i] * quadrature_weights[j] * quadrature_weights[k];
+					quad_list_build(iii, s, t, w);
 					neigh_quad_counter = neigh_quad_counter + 1;
           			quad_list_counter+=1;
-					for (int js = 0; js < nodes_per_element; js++) {
-						for (int jj = 0; jj < 3; jj++) {
-
-
-							force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] * shape_function(sq, tq, wq, 2, js + 1);
-
-						}
-					}
-					if (quad_eflag) {
-						element_energy += coefficients*quadrature_energy/iso_volume;
-					}
-
-
+					if(quad_list_counter==quadrature_point_max)
+					grow_quad_data();
 				}
 			}
 		}
@@ -747,12 +676,8 @@ void PairCAC::compute_forcev(int iii){
 			for (int i = 0; i < isurface_counts[0]; i++) {
 				for (int j = 0; j < quadrature_node_count; j++) {
 					for (int k = 0; k < quadrature_node_count; k++) {
-						force_density[0] = 0;
-						force_density[1] = 0;
-						force_density[2] = 0;
 						s = sign[sc] - i*unit_cell_mapped[0] * sign[sc];
-
-						s = s - 0.5*unit_cell_mapped[0] * sign[sc];
+						sq = s = s - 0.5*unit_cell_mapped[0] * sign[sc];
 						tq = t = interior_scale[1] * quadrature_abcissae[j];
 						wq = w = interior_scale[2] * quadrature_abcissae[k];
 						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
@@ -768,30 +693,20 @@ void PairCAC::compute_forcev(int iii){
 						else
 							t = t + 0.5*unit_cell_mapped[1];
 
-
-						double coefficients = unit_cell_mapped[0] * interior_scale[1] *
-							interior_scale[2] * quadrature_weights[j] * quadrature_weights[k];
-						if (update->ntimestep == reneighbor_time||update->whichflag==2)
-							quad_list_build(iii, s, t, w);
-						quadrature_energy = 0;
-						force_densities(iii, s, t, w, coefficients,
-							force_density[0], force_density[1], force_density[2]);
+						quadrature_point_data[quad_list_counter][0]=s;
+					    quadrature_point_data[quad_list_counter][1]=t;
+					    quadrature_point_data[quad_list_counter][2]=w;
+						quadrature_point_data[quad_list_counter][3]=sq;
+					    quadrature_point_data[quad_list_counter][4]=tq;
+					    quadrature_point_data[quad_list_counter][5]=wq;
+						quadrature_point_data[quad_list_counter][6]=
+					      unit_cell_mapped[0] * interior_scale[1] *
+						  interior_scale[2] * quadrature_weights[j] * quadrature_weights[k];	
+						quad_list_build(iii, s, t, w);
 						neigh_quad_counter = neigh_quad_counter + 1;
-           				 quad_list_counter+=1;       
-						for (int js = 0; js < nodes_per_element; js++) {
-							for (int jj = 0; jj < 3; jj++) {
-
-
-								force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] *
-									shape_function(s, tq, wq, 2, js + 1);
-
-							}
-						}
-
-						if (quad_eflag) {
-							element_energy += coefficients*quadrature_energy/iso_volume;
-						}
-
+           				quad_list_counter+=1;  
+						if(quad_list_counter==quadrature_point_max)
+					    grow_quad_data();      
 					}
 				}
 			}
@@ -803,15 +718,11 @@ void PairCAC::compute_forcev(int iii){
 			for (int i = 0; i < isurface_counts[1]; i++) {
 				for (int j = 0; j < quadrature_node_count; j++) {
 					for (int k = 0; k < quadrature_node_count; k++) {
-						force_density[0] = 0;
-						force_density[1] = 0;
-						force_density[2] = 0;
-
 						sq = s = interior_scale[0] * quadrature_abcissae[j];
 						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
 						t = sign[sc] - i*unit_cell_mapped[1] * sign[sc];
 
-						t = t - 0.5*unit_cell_mapped[1] * sign[sc];
+						tq=t = t - 0.5*unit_cell_mapped[1] * sign[sc];
 						wq = w = interior_scale[2] * quadrature_abcissae[k];
 						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
 
@@ -824,31 +735,21 @@ void PairCAC::compute_forcev(int iii){
 							w = w - 0.5*unit_cell_mapped[2];
 						else
 							w = w + 0.5*unit_cell_mapped[2];
-
-
-						double coefficients = unit_cell_mapped[1] * interior_scale[0] *
-							interior_scale[2] * quadrature_weights[j] * quadrature_weights[k];
-						if (update->ntimestep == reneighbor_time||update->whichflag==2)
-							quad_list_build(iii, s, t, w);
-						quadrature_energy = 0;
-						force_densities(iii, s, t, w, coefficients,
-							force_density[0], force_density[1], force_density[2]);
+						
+						quadrature_point_data[quad_list_counter][0]=s;
+					    quadrature_point_data[quad_list_counter][1]=t;
+					    quadrature_point_data[quad_list_counter][2]=w;
+						quadrature_point_data[quad_list_counter][3]=sq;
+					    quadrature_point_data[quad_list_counter][4]=tq;
+					    quadrature_point_data[quad_list_counter][5]=wq;
+						quadrature_point_data[quad_list_counter][6]=
+					      unit_cell_mapped[1] * interior_scale[0] *
+						  interior_scale[2] * quadrature_weights[j] * quadrature_weights[k];	
+						quad_list_build(iii, s, t, w);
 						neigh_quad_counter = neigh_quad_counter + 1;
             			quad_list_counter+=1;
-						for (int js = 0; js < nodes_per_element; js++) {
-							for (int jj = 0; jj < 3; jj++) {
-
-
-								force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] *
-									shape_function(sq, t, wq, 2, js + 1);
-
-							}
-						}
-
-						if (quad_eflag) {
-							element_energy += coefficients*quadrature_energy/iso_volume;
-						}
-
+						if(quad_list_counter==quadrature_point_max)
+					    grow_quad_data(); 
 					}
 				}
 			}
@@ -858,9 +759,6 @@ void PairCAC::compute_forcev(int iii){
 			for (int i = 0; i < isurface_counts[2]; i++) {
 				for (int j = 0; j < quadrature_node_count; j++) {
 					for (int k = 0; k < quadrature_node_count; k++) {
-						force_density[0] = 0;
-						force_density[1] = 0;
-						force_density[2] = 0;
 
 						sq = s = interior_scale[0] * quadrature_abcissae[j];
 						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
@@ -868,7 +766,7 @@ void PairCAC::compute_forcev(int iii){
 						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
 						w = sign[sc] - i*unit_cell_mapped[2] * sign[sc];
 
-						w = w - 0.5*unit_cell_mapped[2] * sign[sc];
+						wq = w = w - 0.5*unit_cell_mapped[2] * sign[sc];
 
 						if (quadrature_abcissae[j] < 0)
 							s = s - 0.5*unit_cell_mapped[0];
@@ -880,65 +778,58 @@ void PairCAC::compute_forcev(int iii){
 						else
 							t = t + 0.5*unit_cell_mapped[1];
 
-						double coefficients = unit_cell_mapped[2] * interior_scale[0] *
-							interior_scale[1] * quadrature_weights[j] * quadrature_weights[k];
-						if (update->ntimestep == reneighbor_time||update->whichflag==2)
-							quad_list_build(iii, s, t, w);
-						quadrature_energy = 0;
-						force_densities(iii, s, t, w, coefficients,
-							force_density[0], force_density[1], force_density[2]);
+                        quadrature_point_data[quad_list_counter][0]=s;
+					    quadrature_point_data[quad_list_counter][1]=t;
+					    quadrature_point_data[quad_list_counter][2]=w;
+						quadrature_point_data[quad_list_counter][3]=sq;
+					    quadrature_point_data[quad_list_counter][4]=tq;
+					    quadrature_point_data[quad_list_counter][5]=wq;
+						quadrature_point_data[quad_list_counter][6]=
+					      unit_cell_mapped[2] * interior_scale[1] *
+						  interior_scale[0] * quadrature_weights[j] * quadrature_weights[k];	
+						quad_list_build(iii, s, t, w);
 						neigh_quad_counter = neigh_quad_counter + 1;
             			quad_list_counter+=1;
-						for (int js = 0; js < nodes_per_element; js++) {
-							for (int jj = 0; jj < 3; jj++) {
-
-
-								force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] *
-									shape_function(sq, tq, w, 2, js + 1);
-
-							}
-						}
-
-						if (quad_eflag) {
-							element_energy += coefficients*quadrature_energy/iso_volume;
-						}
-
+						if(quad_list_counter==quadrature_point_max)
+					    grow_quad_data(); 
 					}
 				}
 			}
 		}
 
-
 		int surface_countsx;
 		int surface_countsy;
-
+		double unit_mappedx;
+		double unit_mappedy;
+        double interior_scalez;
 		//compute edge contributions
 
 		for (int sc = 0; sc < 12; sc++) {
 			if (sc == 0 || sc == 1 || sc == 2 || sc == 3) {
-
+                interior_scalez = interior_scale[2];
 				surface_countsx = isurface_counts[0];
 				surface_countsy = isurface_counts[1];
+				unit_mappedx = unit_cell_mapped[0];
+				unit_mappedy = unit_cell_mapped[1];
 			}
 			else if (sc == 4 || sc == 5 || sc == 6 || sc == 7) {
-
+                interior_scalez = interior_scale[0];
 				surface_countsx = isurface_counts[1];
 				surface_countsy = isurface_counts[2];
+				unit_mappedx = unit_cell_mapped[1];
+				unit_mappedy = unit_cell_mapped[2];
 			}
 			else if (sc == 8 || sc == 9 || sc == 10 || sc == 11) {
-
+                interior_scalez = interior_scale[1];
 				surface_countsx = isurface_counts[0];
 				surface_countsy = isurface_counts[2];
+				unit_mappedx = unit_cell_mapped[0];
+				unit_mappedy = unit_cell_mapped[2];
 			}
-
-
-
-			for (int i = 0; i < surface_countsx; i++) {//alter surface counts for specific corner
+           
+			for (int i = 0; i < surface_countsx; i++) {
 				for (int j = 0; j < surface_countsy; j++) {
 					for (int k = 0; k < quadrature_node_count; k++) {
-						force_density[0] = 0;
-						force_density[1] = 0;
-						force_density[2] = 0;
 						if (sc == 0) {
 
 							sq = s = -1 + (i + 0.5)*unit_cell_mapped[0];
@@ -1062,32 +953,21 @@ void PairCAC::compute_forcev(int iii){
 							else
 								t = t + 0.5*unit_cell_mapped[1];
 						}
-
-
-						//alter for variable scale mapped unit cells
-						double coefficients = unit_cell_mapped[0] * unit_cell_mapped[1] * interior_scale[0] *
-							quadrature_weights[k];
-						if (update->ntimestep == reneighbor_time||update->whichflag==2)
-							quad_list_build(iii, s, t, w);
-						quadrature_energy = 0;
-						force_densities(iii, s, t, w, coefficients,
-							force_density[0], force_density[1], force_density[2]);
+                        
+						quadrature_point_data[quad_list_counter][0]=s;
+					    quadrature_point_data[quad_list_counter][1]=t;
+					    quadrature_point_data[quad_list_counter][2]=w;
+						quadrature_point_data[quad_list_counter][3]=sq;
+					    quadrature_point_data[quad_list_counter][4]=tq;
+					    quadrature_point_data[quad_list_counter][5]=wq;
+						quadrature_point_data[quad_list_counter][6]=
+					      coefficients = unit_mappedx * unit_mappedy * interior_scalez *
+						  quadrature_weights[k];	
+						quad_list_build(iii, s, t, w);
 						neigh_quad_counter = neigh_quad_counter + 1;
 						quad_list_counter+=1;
-						for (int js = 0; js < nodes_per_element; js++) {
-							for (int jj = 0; jj < 3; jj++) {
-
-
-								force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] *
-									shape_function(sq, tq, wq, 2, js + 1);
-
-							}
-						}
-
-						if (quad_eflag) {
-							element_energy += coefficients*quadrature_energy/iso_volume;
-						}
-
+						if(quad_list_counter==quadrature_point_max)
+					    grow_quad_data(); 
 					}
 
 				}
@@ -1096,20 +976,15 @@ void PairCAC::compute_forcev(int iii){
 
 
 		//compute corner contributions
-
 		for (int sc = 0; sc < 8; sc++) {
-			for (int i = 0; i < isurface_counts[0]; i++) {//alter surface counts for specific corner
+			for (int i = 0; i < isurface_counts[0]; i++) {
 				for (int j = 0; j < isurface_counts[1]; j++) {
 					for (int k = 0; k < isurface_counts[2]; k++) {
-						force_density[0] = 0;
-						force_density[1] = 0;
-						force_density[2] = 0;
+					
 						if (sc == 0) {
-
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							w = -1 + (k + 0.5)*unit_cell_mapped[2];
-
 						}
 						else if (sc == 1) {
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
@@ -1147,32 +1022,20 @@ void PairCAC::compute_forcev(int iii){
 							t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							w = 1 - (k + 0.5)*unit_cell_mapped[2];
 						}
-
-
-
-						//alter for variable scale mapped unit cells
-						double coefficients = unit_cell_mapped[0] * unit_cell_mapped[1] * unit_cell_mapped[2];
-						if (update->ntimestep == reneighbor_time||update->whichflag==2)
-							quad_list_build(iii, s, t, w);
-						quadrature_energy = 0;
-						force_densities(iii, s, t, w, coefficients,
-							force_density[0], force_density[1], force_density[2]);
+                        
+                        quadrature_point_data[quad_list_counter][0]=s;
+					    quadrature_point_data[quad_list_counter][1]=t;
+					    quadrature_point_data[quad_list_counter][2]=w;
+						quadrature_point_data[quad_list_counter][3]=s;
+					    quadrature_point_data[quad_list_counter][4]=t;
+					    quadrature_point_data[quad_list_counter][5]=w;
+						quadrature_point_data[quad_list_counter][6]=
+					      unit_cell_mapped[0] * unit_cell_mapped[1] * unit_cell_mapped[2];	
+						quad_list_build(iii, s, t, w);
 						neigh_quad_counter = neigh_quad_counter + 1;
 						quad_list_counter+=1;
-						for (int js = 0; js < nodes_per_element; js++) {
-							for (int jj = 0; jj < 3; jj++) {
-
-
-								force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] *
-									shape_function(s, t, w, 2, js + 1);
-
-							}
-						}
-
-						if (quad_eflag) {
-							element_energy += coefficients*quadrature_energy/iso_volume;
-						}
-
+						if(quad_list_counter==quadrature_point_max)
+					    grow_quad_data(); 
 					}
 
 				}
@@ -1180,32 +1043,90 @@ void PairCAC::compute_forcev(int iii){
 		}
 	}
 	else {
-		force_density[0] = 0;
-		force_density[1] = 0;
-		force_density[2] = 0;
-		double coefficients = 1;
-		if (update->ntimestep == reneighbor_time||update->whichflag==2)
-			quad_list_build(iii, current_x[0], current_x[1], current_x[2]);
-		quadrature_energy = 0;
-		force_densities(iii, current_x[0], current_x[1], current_x[2], coefficients,
-			force_density[0], force_density[1], force_density[2]);
-			quad_list_counter+=1;
-		for (int jj = 0; jj < 3; jj++) {
-			force_column[0][jj] = force_density[jj];
-		}
-		if (quad_eflag) {
-			element_energy += coefficients*quadrature_energy;
+		quadrature_point_data[quad_list_counter][0]=current_x[0];
+		quadrature_point_data[quad_list_counter][1]=current_x[1];
+		quadrature_point_data[quad_list_counter][2]=current_x[2];
+		quadrature_point_data[quad_list_counter][3]=current_x[0];
+		quadrature_point_data[quad_list_counter][4]=current_x[1];
+		quadrature_point_data[quad_list_counter][5]=current_x[2];
+		quadrature_point_data[quad_list_counter][6]= 1;
+		
+		quad_list_build(iii, current_x[0], current_x[1], current_x[2]);
+		quad_list_counter+=1;
+		if(quad_list_counter==quadrature_point_max)
+		grow_quad_data(); 
+		neigh_quad_counter = 1;
+	}
+}
+
+//----------------------------------------------------------------
+
+void PairCAC::compute_forcev(int iii){
+	double unit_cell_mapped[3];
+	int *nodes_count_list = atom->nodes_per_element_list;	
+	double coefficients;
+	int nodes_per_element;
+	int init_quad_list_counter = quad_list_counter;
+	//stores neighbor information for computational weight assignment
+	
+	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
+	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
+	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
+	
+	double s, t, w;
+	double sq, tq, wq;
+	//compute interior quadrature point virtual neighbor lists
+	double iso_volume=unit_cell_mapped[0]*unit_cell_mapped[1]*unit_cell_mapped[2];
+    if(atomic_flag) iso_volume=1;
+	nodes_per_element = nodes_count_list[current_element_type];
+	for (int js = 0; js<nodes_per_element; js++) {
+		for (int jj = 0; jj<3; jj++) {
+			force_column[js][jj] = 0;
 		}
 	}
-	/*
-  if (update->ntimestep == reneighbor_time||update->whichflag==2){
+
+	double force_density[3];
 	
+    //sum over quadrature points to compute force density
+	 
+  for (int quad_loop=0; quad_loop < quadrature_counts[iii] ; quad_loop++){
+    quadrature_energy = 0;
+	  force_density[0] = 0;
+	  force_density[1] = 0;
+	  force_density[2] = 0;
+	  if(!atomic_flag){
+	  s = quadrature_point_data[init_quad_list_counter+quad_loop][0];
+	  t = quadrature_point_data[init_quad_list_counter+quad_loop][1];
+	  w = quadrature_point_data[init_quad_list_counter+quad_loop][2];
+	  sq = quadrature_point_data[init_quad_list_counter+quad_loop][3];
+	  tq = quadrature_point_data[init_quad_list_counter+quad_loop][4];
+	  wq = quadrature_point_data[init_quad_list_counter+quad_loop][5];
+	  coefficients = quadrature_point_data[init_quad_list_counter+quad_loop][6];
+	}
+	if(!atomic_flag)
+	force_densities(iii, s, t, w, coefficients,
+	  force_density[0], force_density[1], force_density[2]);
+	else
+	force_densities(iii, current_x[0], current_x[1], current_x[2], coefficients,
+	  force_density[0], force_density[1], force_density[2]);
+	  neigh_quad_counter = neigh_quad_counter + 1;
+	if(!atomic_flag){
+	for (int js = 0; js < nodes_per_element; js++) {
+	  for (int jj = 0; jj < 3; jj++) {
+		force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] * shape_function(sq, tq, wq, 2, js + 1);
+	  }
+	}
 	}
 	else{
-		timer->stamp(Timer::CAC_FD);
+	  for (int jj = 0; jj < 3; jj++) {
+		force_column[0][jj] = force_density[jj];
+	  }	
 	}
-	*/
-
+	if (quad_eflag) {
+	element_energy += coefficients*quadrature_energy/iso_volume;
+	}
+	quad_list_counter++;
+  }
 }
 
 //--------------------------------------------------------------------
@@ -1502,8 +1423,8 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 //------------------------------------------------------------------------
 //this method is designed for 8 node parallelpiped elements; IT IS NOT GENERAL!!.
 void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_neigh_initial, int outer_neigh_initial){
-    int i,j,ii,jj,inum,jnum,itype,jtype;
-    double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+    int i,j,ii,jj,inum,jnum,jtype;
+    double delx,dely,delz,evdwl,fpair;
     double rsq,r2inv,r6inv,forcelj,factor_lj;
     int *ilist,*jlist,*numneigh,**firstneigh;
     double ****nodal_positions= atom->nodal_positions;
@@ -1573,10 +1494,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-
-
-
-    itype = type[iii];
     jlist = firstneigh[quad_list_counter];
     jnum = numneigh[quad_list_counter];
 
@@ -2313,7 +2230,8 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 	}
 }
 
-void PairCAC::neigh_list_cord(double& coordx, double& coordy, double& coordz, int e_index, int p_index, double ucells, double ucellt, double ucellw){
+void PairCAC::neigh_list_cord(double& coordx, double& coordy, double& coordz, int e_index,
+  int p_index, double ucells, double ucellt, double ucellw){
 	coordx = 0;
 	coordy = 0;
 	coordz = 0; 
@@ -2544,28 +2462,6 @@ return shape_function;
 
 }
 
-
-//////////////////////////////////////////////////////////////////////
-
-
-/*
-
-double PairCACSW::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
-                         double &fforce)
-{
-  double r2inv,r6inv,forcelj,philj;
-
-  r2inv = 1.0/rsq;
-  r6inv = r2inv*r2inv*r2inv;
-  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  fforce = factor_lj*forcelj*r2inv;
-
-  philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-    offset[itype][jtype];
-  return factor_lj*philj;
-}
-*/
 //////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2781,9 +2677,6 @@ void PairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 		+2 * n3*quad*quad + 4 * n1*n2*quad + 4 * n3*n2*quad + 4 * n1*n3*quad
 		+ 8 * n1*n2*n3;
 	
-		//(surface_counts_max_old[0] != n1 || surface_counts_max_old[1] != n2 || surface_counts_max_old[2] != n3)
-
-	
 	maxneigh_quad_inner += max_expansion_count_inner*EXPAND;
 	maxneigh_quad_outer += max_expansion_count_outer*EXPAND;
 	max_expansion_count_inner = 0;
@@ -2844,8 +2737,6 @@ void PairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 		
 	
 	}
-	//memory->create(quadrature_neighbor_list, atom->nlocal, quad_count*atom->maxpoly, MAXNEIGH2, "Pair CAC/LJ: quadrature_neighbor_lists");
-	
 	
 		inner_quad_lists_ucell= (double ****) memory->smalloc(sizeof(double ***)*atom->nlocal, "Pair CAC:inner_quad_lists_ucell");
 		inner_quad_lists_index= (int ****) memory->smalloc(sizeof(int ***)*atom->nlocal, "Pair CAC:inner_quad_lists_index");
@@ -2856,11 +2747,7 @@ void PairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 		for (int init = 0; init < atom->nlocal; init++) {
 			
 			if (element_type[init] == 0) {
-				//inner_quad_lists_ucell[init]= (double ***) memory->smalloc(sizeof(double ***), "Pair CAC:inner_quad_lists_ucell");
-		    //inner_quad_lists_index[init]= (int ***) memory->smalloc(sizeof(int ***), "Pair CAC:inner_quad_lists_index");
-		    //inner_quad_lists_counts[init]= (int *) memory->smalloc(sizeof(int *), "Pair CAC:inner_quad_lists_counts");
-				
-				
+	
 				memory->create(inner_quad_lists_counts[init],1, "Pair CAC:inner_quad_lists_counts");
 				inner_quad_lists_ucell[init]= (double ***) memory->smalloc(sizeof(double **), "Pair CAC:inner_quad_lists_ucell");
 		    inner_quad_lists_index[init]= (int ***) memory->smalloc(sizeof(int **), "Pair CAC:inner_quad_lists_index");
@@ -2894,11 +2781,6 @@ void PairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 			}
 		}
 	
-
-
-	
-	
-
 	//initialize counts to zero
 	for (int init = 0; init < atom->nlocal; init++) {
 		if (element_type[init] == 0) {
@@ -2941,6 +2823,15 @@ void PairCAC::allocate_surface_counts() {
 	memory->grow(surface_counts, atom->nlocal , 3, "Pair CAC:surface_counts");
 	memory->grow(interior_scales, atom->nlocal , 3, "Pair CAC:interior_scales");
 	nmax = atom->nlocal;
+}
+
+/* ----------------------------------------------------------------------
+   grow quadrature data arrays
+------------------------------------------------------------------------- */
+
+void PairCAC::grow_quad_data(){
+  quadrature_point_max += 1000*atom->maxpoly;	
+  memory->grow(quadrature_point_data,quadrature_point_max,7,"pairCAC:quadrature_point_data");
 }
 
 /* ----------------------------------------------------------------------
@@ -3046,11 +2937,8 @@ double PairCAC::memory_usage()
 			
 			}
 		}
-
-
 	}
     
-   
   return bytes_used;
 
 }

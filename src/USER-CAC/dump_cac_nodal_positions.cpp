@@ -83,7 +83,6 @@ void DumpCACNodalPositions::init_style()
   strcat(format,"\n");
   nodes_per_element = atom->nodes_per_element;
   maxpoly = atom->maxpoly;
-  //size_one = 6;
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
 
@@ -139,7 +138,6 @@ int DumpCACNodalPositions::modify_param(int narg, char **arg)
 /*------------------------------------------------------------------------*/
 int DumpCACNodalPositions::count()
 {
-	//if (igroup == 0) return (poly_count[i] + 1)*nodes_per_element*atom->nlocal;
   
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
@@ -175,18 +173,9 @@ void DumpCACNodalPositions::write_header(bigint n)
 {
  
   if (me == 0) {
-    
-	  /*title="results for ufmae_cac"
-variables="x","y","z","disp1","disp2","disp3","t11","t13","ketemp"
-zone t="load step 0",n=    3200 e=     400 datapacking=point,zonetype=febric*/
-
-	//fprintf(fp, "zone t=\"load step " BIGINT_FORMAT "\",n= " BIGINT_FORMAT
-	//" e= " BIGINT_FORMAT " datapacking=point,zonetype=febric" "\n",
-	//update->ntimestep, nodes_per_element*atom->nlocal, atom->nlocal);
 	fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
 	" e= " BIGINT_FORMAT " Q4 " "\n",
 	update->ntimestep, (bigint)total_node_count, atom->natoms);
-    
   }
 }
 

@@ -26,9 +26,6 @@
 
 #define QUADSCALE  0 //adhoc scaling used to offset the fact that quadrature points
 #define QUADSCALE2  0 //adhoc scaling used to offset the fact that quadrature points
-#define MAXNEIGH   1000 //used to divide weights so they aren't such large numbers
-//for elements are more expensive due to the tendency to have more nodal interpolation
-//for their neighbors; optimized for a case with a block of atoms inside a block of FE
 
 using namespace LAMMPS_NS;
 
@@ -120,10 +117,8 @@ void ComputeCACQuadCount::compute_peratom()
 	  }
 	}
 	else{
-    //quad_count[i]=neighbor_weights[i][0]+QUADSCALE*neighbor_weights[i][1]+QUADSCALE2*neighbor_weights[i][2];
 		if(atom->outer_neigh_flag)
 		quad_count[i]=neighbor_weights[i][2];
-		//quad_count[i]=neighbor_weights[i][0]+neighbor_weights[i][1];
 		else
 		quad_count[i]=neighbor_weights[i][0]+neighbor_weights[i][1]+QUADSCALE*neighbor_weights[i][1]+QUADSCALE2*neighbor_weights[i][2];
 	}
@@ -138,7 +133,7 @@ surface quadrature location routine used to predict counts
 ------------------------------------------------------------------------- */
 
 void ComputeCACQuadCount::compute_surface_depths(double &scalex, double &scaley, double &scalez,
-	int &countx, int &county, int &countz, int flag) {
+  int &countx, int &county, int &countz, int flag) {
 	int poly = 0;
 	double unit_cell_mapped[3];
 	

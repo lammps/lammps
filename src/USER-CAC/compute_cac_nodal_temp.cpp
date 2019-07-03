@@ -32,9 +32,7 @@ ComputeNodalTemp::ComputeNodalTemp(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all(FLERR,"Illegal compute temp command");
 
   scalar_flag = 1;
-  //size_vector = 6;
   extscalar = 0;
-  //extvector = 1;
   tempflag = 1;
 
   vector = new double[6];

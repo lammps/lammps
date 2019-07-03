@@ -16,11 +16,11 @@
    References: Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
+#include "pair_born_coul_dsf_cs.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_born_coul_dsf_cs.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

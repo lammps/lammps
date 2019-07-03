@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
    ------------------------------------------------------------------------- */
 
+#include "fix_langevin_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "fix_langevin_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"

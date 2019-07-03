@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_nve_tri.h"
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "fix_nve_tri.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_tri.h"

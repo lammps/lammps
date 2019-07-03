@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom_vec_hybrid_kokkos.h"
 #include <cstdlib>
 #include <cstring>
-#include "atom_vec_hybrid_kokkos.h"
 #include "atom_kokkos.h"
 #include "domain.h"
 #include "modify.h"

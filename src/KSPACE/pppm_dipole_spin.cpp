@@ -15,12 +15,12 @@
    Contributing author: Julien Tranchida (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm_dipole_spin.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "pppm_dipole_spin.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"

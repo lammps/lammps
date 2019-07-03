@@ -15,11 +15,11 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_dpd_fdt_energy_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "atom_kokkos.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
@@ -30,7 +30,6 @@
 #include "neigh_request.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-#include "pair_dpd_fdt_energy_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "kokkos.h"

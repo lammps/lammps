@@ -15,11 +15,11 @@
    Contributing author: Ray Shan (SNL) and Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"

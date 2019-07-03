@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "body_nparticle.h"
 #include <cstring>
 #include <cstdlib>
-#include "body_nparticle.h"
 #include "my_pool_chunk.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_cut_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"

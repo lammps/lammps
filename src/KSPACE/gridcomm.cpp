@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "gridcomm.h"
+#include <mpi.h>
 #include "comm.h"
 #include "kspace.h"
 #include "memory.h"

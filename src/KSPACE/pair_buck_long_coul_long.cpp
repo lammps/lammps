@@ -15,11 +15,11 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_buck_long_coul_long.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include "math_vector.h"
-#include "pair_buck_long_coul_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

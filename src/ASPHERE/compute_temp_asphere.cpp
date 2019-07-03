@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_asphere.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

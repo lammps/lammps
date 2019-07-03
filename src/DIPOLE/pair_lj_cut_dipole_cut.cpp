@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_dipole_cut.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_dipole_cut.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

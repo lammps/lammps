@@ -14,11 +14,12 @@
 /* ----------------------------------------------------------------------
    Contributing author: Anders Hafreager (UiO)
 ------------------------------------------------------------------------- */
+
+#include "pair_vashishta_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_vashishta_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"

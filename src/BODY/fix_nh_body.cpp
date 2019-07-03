@@ -16,11 +16,11 @@
    based on FixNHAsphere
 ------------------------------------------------------------------------- */
 
+#include "fix_nh_body.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
 #include "math_extra.h"
-#include "fix_nh_body.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "group.h"

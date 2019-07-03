@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom_vec_dipole.h"
 #include <cmath>
 #include <cstdlib>
-#include "atom_vec_dipole.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

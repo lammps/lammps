@@ -16,11 +16,11 @@
                           Kamesh Arumugam (NVIDIA)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_reax_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_qeq_reax_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
 #include "atom_masks.h"

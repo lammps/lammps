@@ -17,12 +17,12 @@
    University New Orleans)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_long_coul_long.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "math_vector.h"
-#include "pair_lj_long_coul_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

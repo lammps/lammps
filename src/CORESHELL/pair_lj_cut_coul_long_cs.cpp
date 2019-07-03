@@ -15,11 +15,11 @@
    Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_coul_long_cs.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_coul_long_cs.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

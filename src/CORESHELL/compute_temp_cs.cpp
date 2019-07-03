@@ -16,11 +16,11 @@
                         (hendrik.heenen at mytum.com)
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_cs.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "compute_temp_cs.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

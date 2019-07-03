@@ -15,12 +15,12 @@
    Contributing authors: Julien Tranchida (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "ewald_dipole.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include "ewald_dipole.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

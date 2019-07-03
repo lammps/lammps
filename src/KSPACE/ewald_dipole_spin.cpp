@@ -15,12 +15,12 @@
    Contributing authors: Julien Tranchida (SNL)
 ------------------------------------------------------------------------- */
 
+#include "ewald_dipole_spin.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include "ewald_dipole_spin.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

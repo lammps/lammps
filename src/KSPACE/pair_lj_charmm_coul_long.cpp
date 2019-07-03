@@ -15,11 +15,11 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_charmm_coul_long.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_charmm_coul_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

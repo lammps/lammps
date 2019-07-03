@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_gayberne.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_gayberne.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

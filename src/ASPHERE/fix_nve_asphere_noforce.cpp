@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_nve_asphere_noforce.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_nve_asphere_noforce.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

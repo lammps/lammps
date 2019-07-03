@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
+#include "pair_coul_wolf_cs.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_wolf_cs.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

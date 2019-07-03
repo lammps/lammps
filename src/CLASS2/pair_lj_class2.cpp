@@ -9,11 +9,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_class2.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_class2.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

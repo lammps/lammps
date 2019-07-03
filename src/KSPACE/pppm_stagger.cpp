@@ -15,12 +15,12 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pppm_stagger.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "pppm_stagger.h"
 #include "atom.h"
 #include "gridcomm.h"
 #include "force.h"

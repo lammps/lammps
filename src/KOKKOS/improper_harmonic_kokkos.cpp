@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "improper_harmonic_kokkos.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
-#include "improper_harmonic_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"

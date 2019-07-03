@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_buck_coul_long.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_buck_coul_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

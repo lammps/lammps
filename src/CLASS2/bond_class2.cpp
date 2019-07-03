@@ -15,9 +15,9 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "bond_class2.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_class2.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

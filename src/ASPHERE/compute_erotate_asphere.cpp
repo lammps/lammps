@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "compute_erotate_asphere.h"
+#include <mpi.h>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

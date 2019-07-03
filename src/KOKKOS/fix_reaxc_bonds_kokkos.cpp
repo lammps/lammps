@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_atom.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_ave_atom.h"
 #include "fix_reaxc_bonds_kokkos.h"
 #include "atom.h"
 #include "update.h"

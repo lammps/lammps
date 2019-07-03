@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_tune_kspace.h"
 #include <cmath>
 #include <cstring>
 #include <limits>
-#include "fix_tune_kspace.h"
 #include "update.h"
 #include "force.h"
 #include "kspace.h"

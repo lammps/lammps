@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_freeze.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

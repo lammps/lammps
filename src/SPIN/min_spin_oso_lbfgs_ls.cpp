@@ -216,6 +216,9 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
       }
       MPI_Allreduce(&der_e_cur, &der_e_cur_global, 1, MPI_DOUBLE, MPI_SUM, world);
       der_e_cur = der_e_cur_global;
+      if (update->multireplica == 1) {
+        MPI_Allreduce(&der_e_cur_global,&der_e_cur,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      }
     }
 
     if (use_line_search){
@@ -388,7 +391,7 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction(int iter)
 
   // for some reason on a second iteration g_old = 0
   // so we make two iterations as steepest descent
-  
+
   if (iter == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i];
@@ -405,7 +408,12 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction(int iter)
         dyds += ds[m_index][i] * dy[m_index][i];
       }
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
-    if (fabs(dyds) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
+    if (update->multireplica == 1) {
+      dyds = dyds_global;
+      MPI_Allreduce(&dyds_global,&dyds,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
+
+      if (fabs(dyds_global) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
 
     // set the q vector
@@ -427,7 +435,10 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction(int iter)
         sq += ds[c_ind][i] * q[i];
       }
       MPI_Allreduce(&sq, &sq_global, 1, MPI_DOUBLE, MPI_SUM, world);
-
+      if (update->multireplica == 1) {
+        sq = sq_global;
+        MPI_Allreduce(&sq_global,&sq,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      }
       // update alpha
 
       alpha[c_ind] = rho[c_ind] * sq_global;
@@ -445,8 +456,12 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction(int iter)
       yy += dy[m_index][i] * dy[m_index][i];
     }
     MPI_Allreduce(&yy, &yy_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    if (update->multireplica == 1) {
+      yy = yy_global;
+      MPI_Allreduce(&yy_global,&yy,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
 
-      // calculate now search direction
+    // calculate now search direction
 
     if (fabs(yy_global) > 1.0e-60) {
       for (int i = 0; i < 3 * nlocal; i++) {
@@ -470,6 +485,10 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction(int iter)
         yr += dy[c_ind][i] * p_s[i];
       }
       MPI_Allreduce(&yr, &yr_global, 1, MPI_DOUBLE, MPI_SUM, world);
+      if (update->multireplica == 1) {
+        yr = yr_global;
+        MPI_Allreduce(&yr_global,&yr,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      }
 
       beta = rho[c_ind] * yr_global;
       for (int i = 0; i < 3 * nlocal; i++) {
@@ -661,6 +680,9 @@ void MinSpinOSO_LBFGS_LS::make_step(double c, double *energy_and_der)
     }
     MPI_Allreduce(&der_e_cur, &der_e_cur_global, 1, MPI_DOUBLE, MPI_SUM, world);
     der_e_cur = der_e_cur_global;
+    if (update->multireplica == 1) {
+      MPI_Allreduce(&der_e_cur_global,&der_e_cur,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
 
     energy_and_der[0] = ecurrent;
     energy_and_der[1] = der_e_cur;
@@ -685,10 +707,9 @@ int MinSpinOSO_LBFGS_LS::calc_and_make_step(double a, double b, int index)
 
   if (awc(der_e_pr, eprevious, e_and_d[1], e_and_d[0]) || index == 3){
     MPI_Bcast(&b,1,MPI_DOUBLE,0,world);
-
-      for (int i = 0; i < 3 * nlocal; i++) {
-        p_s[i] = b * p_s[i];
-      }
+    for (int i = 0; i < 3 * nlocal; i++) {
+      p_s[i] = b * p_s[i];
+    }
     return 1;
   }
   else{

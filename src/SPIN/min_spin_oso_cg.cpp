@@ -154,14 +154,14 @@ void MinSpinOSO_CG::reset_vectors()
    minimization via damped spin dynamics
 ------------------------------------------------------------------------- */
 
-// g_old g_cur p_s
-
 int MinSpinOSO_CG::iterate(int maxiter)
 {
   int nlocal = atom->nlocal;
   bigint ntimestep;
   double fmdotfm;
   int flag, flagall;
+
+  // grow tables if nlocal increased
 
   if (nlocal_max < nlocal) {
     nlocal_max = nlocal;
@@ -354,8 +354,8 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
     //        MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
     //      }
 
-    if (fabs(g2_global) < 1.0e-40) beta = 0.0;
-    else beta = g2_global / g2old_global;
+    //if (fabs(g2_global) < 1.0e-40) beta = 0.0;
+    //else beta = g2_global / g2old_global;
     // calculate conjugate direction
     
     for (int i = 0; i < 3 * nlocal; i++) {

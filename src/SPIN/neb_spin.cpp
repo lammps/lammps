@@ -252,6 +252,8 @@ void NEBSpin::run()
   timer->init();
   timer->barrier_start();
 
+  // if(ireplica != 0 && ireplica != nreplica -1)
+
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
     print_status();

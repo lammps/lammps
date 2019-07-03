@@ -484,10 +484,9 @@ void KimInit::write_log_cite(char * model_name)
         coll,i,&fileName,NULL,NULL,&availableAsString,&fileString);
     if (err) continue;
 
-    if (0 == strncmp("kimcite-",fileName,8))
+    if (0 == strncmp("kimcite",fileName,7))
     {
       if (lmp->citeme) lmp->citeme->add(fileString);
-      break;
     }
   }
 

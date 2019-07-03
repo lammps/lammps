@@ -48,13 +48,18 @@ effects, smaller timestep inaccuracy, faster equilibration and shorter
 decorrelation time.
 
 HMA should not be used if atoms are expected to diffuse.  It is also
-restricted to simulations in the NVT ensemble.
+restricted to simulations in the NVT ensemble.  While this compute may be
+used with any potential in LAMMPS, it may not provide efficiency improvements
+for potentials that do not go to 0 smoothly at the truncation distance;
+"pair_lj_smooth_linear"_pair_lj_smooth_linear.html and Ewald summation should
+work fine, while "pair_lj"_pair_lj.html will perform poorly unless 
+the cutoff is very large.  Furthermore, computation of the heat capacity with
+this compute is restricted to those that implement the single_hessian method
+in Pair.  This is the list of pair styles that currently implement
+pair_hessian:
 
-Computation of the heat capacity with this compute is presently restricted to
-the "pair_lj_smooth_linear"_pair_lj_smooth_linear.html pair style.  Use with other pair
-styles requires an additional method (single2nd) to be implemented in the
-corresponding Pair class.  Computation of the energy and pressure does not
-have this restriction.
+"lj_smooth_linear"_pair_lj_smooth_linear.html :l
+:ule
 
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble
 averages, which leads to an accurate and precise measurement of the anharmonic contributions without contamination 

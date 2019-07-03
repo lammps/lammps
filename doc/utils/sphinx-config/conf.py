@@ -312,3 +312,6 @@ if spelling_spec:
 
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
+
+    from custom_filters import PathFilter
+    spelling_filters = [PathFilter]

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_respa.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "memory.h"

@@ -17,12 +17,11 @@
      Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_correlate.h"
 #include <mpi.h>
-#include <cstdio>    // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_correlate.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"

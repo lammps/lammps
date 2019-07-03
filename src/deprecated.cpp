@@ -15,8 +15,8 @@
    Contributing authors:  Axel Kohlmeyer (Temple U),
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "deprecated.h"
+#include <cstring>
 #include "comm.h"
 #include "error.h"
 #include "input.h"

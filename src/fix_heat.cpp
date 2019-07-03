@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_heat.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_heat.h"
 #include "atom.h"
 #include "domain.h"
 #include "region.h"

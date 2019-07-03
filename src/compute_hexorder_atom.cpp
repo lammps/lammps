@@ -15,10 +15,10 @@
    Contributing author:  Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_hexorder_atom.h"
 #include <cmath>
 #include <cstring>
 #include <complex>
-#include "compute_hexorder_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

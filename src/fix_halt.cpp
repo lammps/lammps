@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_halt.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_halt.h"
 #include "update.h"
 #include "force.h"
 #include "input.h"

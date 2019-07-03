@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_wall_region.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_wall_region.h"
 #include "atom.h"
 #include "domain.h"
 #include "region.h"

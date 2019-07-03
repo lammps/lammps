@@ -15,8 +15,8 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_movie.h"
+#include <cstring>
 #include "comm.h"
 #include "force.h"
 #include "error.h"

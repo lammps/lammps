@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "compute_angle.h"
+#include <mpi.h>
 #include "angle.h"
 #include "update.h"
 #include "force.h"

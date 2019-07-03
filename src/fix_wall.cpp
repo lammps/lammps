@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_wall.h"
 #include <mpi.h>
 #include <cstring>
-#include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
 #include "domain.h"

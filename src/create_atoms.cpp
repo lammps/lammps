@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "create_atoms.h"
 #include <mpi.h>
 #include <cstring>
-#include "create_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_atom.h"
+#include <cstring>
 #include "domain.h"
 #include "atom.h"
 #include "update.h"

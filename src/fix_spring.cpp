@@ -15,9 +15,9 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_spring.h"
 #include <cmath>
 #include <cstring>
-#include "fix_spring.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"

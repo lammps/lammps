@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_profile.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_profile.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

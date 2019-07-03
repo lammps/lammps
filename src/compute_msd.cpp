@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_msd.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_msd.h"
 #include "atom.h"
 #include "update.h"
 #include "group.h"

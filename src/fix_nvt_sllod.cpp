@@ -15,8 +15,8 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt_sllod.h"
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "domain.h"

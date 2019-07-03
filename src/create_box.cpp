@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "create_box.h"
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_slice.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "compute_slice.h"
 #include "update.h"
 #include "modify.h"
 #include "fix.h"

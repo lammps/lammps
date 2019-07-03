@@ -14,7 +14,7 @@
 #ifndef LMP_ANGLE_H
 #define LMP_ANGLE_H
 
-#include "pointers.h"  // IWYU pragma: export
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

@@ -16,10 +16,10 @@
      support for bond and angle restraints by Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "fix_restrain.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_restrain.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"

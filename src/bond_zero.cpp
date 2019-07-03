@@ -15,9 +15,9 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
+#include "bond_zero.h"
 #include <mpi.h>
 #include <cstring>
-#include "bond_zero.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

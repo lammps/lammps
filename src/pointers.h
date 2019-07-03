@@ -22,7 +22,7 @@
 #define LMP_POINTERS_H
 
 #include "lmptype.h"   // IWYU pragma: export
-#include <mpi.h>
+#include <mpi.h>       // IWYU pragma: export
 #include <cstddef>     // IWYU pragme: export
 #include <cstdio>      // IWYU pragma: export
 #include "lammps.h"    // IWYU pragma: export

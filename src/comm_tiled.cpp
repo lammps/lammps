@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "comm_tiled.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "comm_tiled.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

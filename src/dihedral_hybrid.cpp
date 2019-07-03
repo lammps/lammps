@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "dihedral_hybrid.h"
 #include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "dihedral_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"

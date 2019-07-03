@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom_vec.h"
 #include <cstring>
 #include <cstdlib>
-#include "atom_vec.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

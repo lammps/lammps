@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "dump.h"
 #include <mpi.h>
 #include <cstring>
-#include "dump.h"
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"

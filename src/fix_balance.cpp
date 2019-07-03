@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_balance.h"
+#include <cstring>
 #include "balance.h"
 #include "update.h"
 #include "atom.h"

@@ -15,10 +15,10 @@
    Contributing authors: Aidan P. Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_adf.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "compute_adf.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

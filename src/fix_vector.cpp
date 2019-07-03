@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_vector.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_vector.h"
 #include "update.h"
 #include "force.h"
 #include "modify.h"

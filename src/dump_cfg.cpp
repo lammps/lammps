@@ -16,8 +16,8 @@
         Memory efficiency improved by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_cfg.h"
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "memory.h"

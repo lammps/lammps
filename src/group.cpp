@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "group.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <utility>
-#include "group.h"
 #include "domain.h"
 #include "atom.h"
 #include "force.h"

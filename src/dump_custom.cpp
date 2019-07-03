@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "dump_custom.h"
 #include <cstdlib>
 #include <cstring>
-#include "dump_custom.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

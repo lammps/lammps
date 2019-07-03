@@ -16,10 +16,10 @@
    Based on code by Paolo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
 ------------------------------------------------------------------------- */
 
+#include "fix_temp_csvr.h"
 #include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "fix_temp_csvr.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

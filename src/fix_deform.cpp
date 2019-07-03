@@ -15,9 +15,9 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_deform.h"
 #include <cstring>
 #include <cmath>
-#include "fix_deform.h"
 #include "atom.h"
 #include "update.h"
 #include "comm.h"

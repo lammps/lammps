@@ -2,8 +2,7 @@
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net
 
-#include <cstddef>
-#include <stdint.h>
+#include "hashlittle.h"
 
 // if the system defines the __BYTE_ORDER__ define,
 // we use it instead of guessing the platform
@@ -141,7 +140,7 @@ acceptable.  Do NOT use for cryptographic purposes.
 -------------------------------------------------------------------------------
 */
 
-uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
+uint32_t LAMMPS_NS::hashlittle(const void *key, size_t length, uint32_t initval)
 {
 #ifndef PURIFY_HATES_HASHLITTLE
 

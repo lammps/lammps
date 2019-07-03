@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute.h"
 #include <cstring>
 #include <cctype>
-#include "compute.h"
 #include "domain.h"
 #include "force.h"
 #include "group.h"

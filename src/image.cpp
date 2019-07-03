@@ -15,11 +15,11 @@
    Contributing author: Nathan Fabian (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "image.h"
 #include <mpi.h>
 #include <cmath>
 #include <cctype>
 #include <cstring>
-#include "image.h"
 #include "math_extra.h"
 #include "random_mars.h"
 #include "math_const.h"

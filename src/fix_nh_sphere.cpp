@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_nh_sphere.h"
 #include <cmath>
 #include <cstring>
-#include "fix_nh_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "error.h"

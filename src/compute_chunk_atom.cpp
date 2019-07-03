@@ -13,13 +13,13 @@
 
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
+#include "compute_chunk_atom.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <map>
 #include <utility>
-#include "compute_chunk_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

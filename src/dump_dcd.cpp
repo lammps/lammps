@@ -16,10 +16,10 @@
                         Axel Kohlmeyer (Temple U), support for groups
 ------------------------------------------------------------------------- */
 
+#include "dump_dcd.h"
 #include <cmath>
 #include <ctime>
 #include <cstring>
-#include "dump_dcd.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"

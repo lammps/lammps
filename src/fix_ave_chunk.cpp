@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_chunk.h"
 #include <mpi.h>
-#include <cstdio>    // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_chunk.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

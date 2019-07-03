@@ -18,10 +18,10 @@
 
 //#define BALANCE_DEBUG 1
 
+#include "balance.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "balance.h"
 #include "atom.h"
 #include "comm.h"
 #include "rcb.h"

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_xyz.h"
+#include <cstring>
 #include "atom.h"
 #include "error.h"
 #include "memory.h"

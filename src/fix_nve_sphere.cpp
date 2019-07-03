@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_nve_sphere.h"
 #include <cmath>
 #include <cstring>
-#include "fix_nve_sphere.h"
 #include "atom.h"
 #include "domain.h"
 #include "atom_vec.h"

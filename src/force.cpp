@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "force.h"
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"
 #include "style_dihedral.h"

@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "atom_vec_ellipsoid.h"
 #include <cstdlib>
 #include <cstring>
-#include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "comm.h"

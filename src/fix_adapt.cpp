@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_adapt.h"
+#include <cstring>
 #include "atom.h"
 #include "bond.h"
 #include "update.h"

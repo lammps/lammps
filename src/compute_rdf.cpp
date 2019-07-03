@@ -15,10 +15,10 @@
    Contributing authors: Paul Crozier (SNL), Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_rdf.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "compute_rdf.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

@@ -15,9 +15,9 @@
    Contributing authors: Mark Stevens (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_nh.h"
 #include <cstring>
 #include <cmath>
-#include "fix_nh.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"

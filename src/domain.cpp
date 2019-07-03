@@ -15,10 +15,10 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "domain.h"
 #include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "domain.h"
 #include "style_region.h"
 #include "atom.h"
 #include "atom_vec.h"

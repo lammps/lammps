@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_pair.h"
 #include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "compute_pair.h"
 #include "update.h"
 #include "force.h"
 #include "pair.h"

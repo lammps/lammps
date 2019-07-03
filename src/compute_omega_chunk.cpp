@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_omega_chunk.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_omega_chunk.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

@@ -15,10 +15,10 @@
    Contributing author: Wan Liang (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
+#include "compute_cna_atom.h"
 #include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "compute_cna_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

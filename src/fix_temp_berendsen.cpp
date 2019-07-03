@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_temp_berendsen.h"
 #include <cstring>
 #include <cmath>
-#include "fix_temp_berendsen.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

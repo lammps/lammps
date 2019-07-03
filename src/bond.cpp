@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "bond.h"
+#include <mpi.h>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

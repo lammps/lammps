@@ -15,10 +15,10 @@
    Contributing author: Ravi Agrawal (Northwestern U)
 ------------------------------------------------------------------------- */
 
+#include "fix_indent.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_indent.h"
 #include "atom.h"
 #include "input.h"
 #include "variable.h"

@@ -97,10 +97,10 @@ statements should follow the "include what you use" principle.
 ### Order of Include Statements
 
 Include files should be included in this order:
-* lmptype.h (should only be included if `MPI_LMP_XXX` data types are used)
+* the header matching the implementation (`some_class.h` for file `some_class.cpp`)
 * mpi.h
 * system and library headers (anything that is using angular brackets; C-library headers first, then C++)
-* LAMMPS local headers (first the header matching the implementation file, the rest in mostly alphabetical order)
+* LAMMPS local headers (preferably in alphabetical order)
 
 ### Special Cases and Exceptions
 

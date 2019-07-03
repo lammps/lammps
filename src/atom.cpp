@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom.h"
 #include <mpi.h>
 #include <climits>
 #include <cstdlib>
 #include <cstring>
-#include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"

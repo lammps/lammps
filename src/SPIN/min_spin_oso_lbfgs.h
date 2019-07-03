@@ -41,6 +41,11 @@ public:
     void calc_search_direction(int);
 
 private:
+
+
+    // test
+    int ireplica,nreplica;
+
     // global and spin timesteps
 
     int nlocal_max;		// max value of nlocal (for size of lists)

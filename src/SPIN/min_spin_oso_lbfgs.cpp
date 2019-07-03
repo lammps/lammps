@@ -39,6 +39,8 @@
 #include "math_special.h"
 #include "math_const.h"
 
+#include "universe.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -66,6 +68,13 @@ MinSpinOSO_LBFGS::MinSpinOSO_LBFGS(LAMMPS *lmp) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_lbfgs);
   nlocal_max = 0;
+  
+  // nreplica = number of partitions
+  // ireplica = which world I am in universe
+
+  nreplica = universe->nworlds;
+  ireplica = universe->iworld;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,7 +207,16 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
 
     calc_gradient(dts);
     calc_search_direction(iter);
-    advance_spins();
+
+    // to be checked
+    // if gneb calc., nreplica > 0
+    // then advance spins only if intermediate replica
+    // otherwise (simple minimization), advance spins
+
+    if (nreplica > 0) {
+      if(ireplica != 0 && ireplica != nreplica-1)
+	advance_spins();
+    } else advance_spins();
   
     eprevious = ecurrent;
     ecurrent = energy_force(0);

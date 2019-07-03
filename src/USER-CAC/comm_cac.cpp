@@ -61,6 +61,7 @@ CommCAC::CommCAC(LAMMPS *lmp) : CommTiled(lmp)
   neboxes=0;
   local_neboxes=0;
   nforeign_eboxes=0;
+  reset_array_flag=0;
   foreign_eprocs=NULL;
   foreign_image=NULL;
   foreign_swaps=NULL;
@@ -91,6 +92,7 @@ CommCAC::CommCAC(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp, oldcomm)
   neboxes=0;
   local_neboxes=0;
   nforeign_eboxes=0;
+  reset_array_flag=0;
   foreign_eprocs=NULL;
   foreign_image=NULL;
   foreign_swaps=NULL;
@@ -533,9 +535,6 @@ void CommCAC::setup()
   
   //setup borders for full corner and edge swaps now that exchange has been defined
 
-  
-    
-
       // one = first ghost box in same periodic image
       // two = second ghost box wrapped across periodic boundary
       // either may not exist
@@ -734,23 +733,7 @@ void CommCAC::setup()
       int image_count=0;
       int reduced_image_count=0;
       //compute how many and which images of lo1 to test for overlap
-      /*
-      
-      int dim_image_count=0;
-      for(int idim=0; idim<domain->dimension; idim++){
-        if(current_pbc[idim]) dim_image_count+=1;
-      }
-      
-      if(dim_image_count>=1) image_count=1;
-      if(dim_image_count==2) image_count=3;
-      if(dim_image_count==3) image_count=7;
-
-      if(image_count==1){
-
-      }
-       */
-
-
+  
       if (two) {
         
         for(int pbx=0; pbx<=pbc_loop[0]; pbx++)
@@ -789,8 +772,6 @@ void CommCAC::setup()
       if (nprocs==1) one = 0;
       if (one) {
         for(int idim=0; idim<domain->dimension; idim++){ 
-         //lo1[idim] = MAX(lo1[idim],boxlo[idim]);
-         //hi1[idim] = MIN(hi1[idim],boxhi[idim]);
          
          lo1[idim] = MAX(lo1[idim],boxlo[idim]);
          hi1[idim] = MIN(hi1[idim],boxhi[idim]);
@@ -803,8 +784,6 @@ void CommCAC::setup()
 
         
         for(int idim=0; idim<domain->dimension; idim++){ 
-         //lo1[idim] = MAX(lo1[idim],boxlo[idim]);
-         //hi1[idim] = MIN(hi1[idim],boxhi[idim]);
          
          lo2_set[image_loop][idim] = MAX(lo2_set[image_loop][idim],boxlo[idim]);
          hi2_set[image_loop][idim] = MIN(hi2_set[image_loop][idim],boxhi[idim]);
@@ -819,9 +798,7 @@ void CommCAC::setup()
       // overlap = list of overlapping procs
       // if overlap with self, indexme = index of me in list
       for(int idim=0; idim<domain->dimension; idim++){ 
-         //lo1[idim] = MAX(lo1[idim],boxlo[idim]);
-         //hi1[idim] = MIN(hi1[idim],boxhi[idim]);
-         
+
          if(hi1[idim]==lo1[idim]) one=0; 
          
         }
@@ -837,8 +814,6 @@ void CommCAC::setup()
         current_pbc[1]=current_pbc_set[image_loop][1];
         current_pbc[2]=current_pbc_set[image_loop][2];
         for(int idim=0; idim<domain->dimension; idim++){ 
-         //lo1[idim] = MAX(lo1[idim],boxlo[idim]);
-         //hi1[idim] = MIN(hi1[idim],boxhi[idim]);
          
          if(hi2_set[image_loop][idim]==lo2_set[image_loop][idim]) overlap_find=0; 
          
@@ -849,7 +824,6 @@ void CommCAC::setup()
         
         }
       }
-     
 
       sendself[iswap]=0;
       int tmp[10];
@@ -980,11 +954,8 @@ void CommCAC::setup()
             if(sbox[idim]>=sbox[3+idim])sbox[idim]=sbox[3+idim];
           }
           
-          
         }
          
-      
-
       //determine if sendbox has zero thickness due to a lack of overlap with force cutoff radius
       for(int boxcheck=0; boxcheck<dimension; boxcheck++){
         if(sbox[boxcheck]==sbox[boxcheck+3]) sendbox_flag[iswap][i]=0;
@@ -1003,53 +974,9 @@ void CommCAC::setup()
           pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
 
         (this->*box_other_full)(0,0,overlap[i],oboxlo,oboxhi);
-        /*
-        if (i < noverlap1) {
-          sbox[0] = MAX(oboxlo[0],lo1[0]);
-          sbox[1] = MAX(oboxlo[1],lo1[1]);
-          sbox[2] = MAX(oboxlo[2],lo1[2]);
-          sbox[3] = MIN(oboxhi[0],hi1[0]);
-          sbox[4] = MIN(oboxhi[1],hi1[1]);
-          sbox[5] = MIN(oboxhi[2],hi1[2]);
-        } else {
-          pbc_flag[iswap][i] = 1;
-          if (idir == 0) pbc[iswap][i][idim] = 1;
-          else pbc[iswap][i][idim] = -1;
-          sbox[0] = MAX(oboxlo[0],lo2[0]);
-          sbox[1] = MAX(oboxlo[1],lo2[1]);
-          sbox[2] = MAX(oboxlo[2],lo2[2]);
-          sbox[3] = MIN(oboxhi[0],hi2[0]);
-          sbox[4] = MIN(oboxhi[1],hi2[1]);
-          sbox[5] = MIN(oboxhi[2],hi2[2]);
-        }
-        
-        for (int itype = 1; itype <= atom->ntypes; itype++) {
-          sbox_multi[0] = sbox[0];
-          sbox_multi[1] = sbox[1];
-          sbox_multi[2] = sbox[2];
-          sbox_multi[3] = sbox[3];
-          sbox_multi[4] = sbox[4];
-          sbox_multi[5] = sbox[5];
-        if (idir == 0) {
-          sbox_multi[idim] = sublo[idim];
-          if (i < noverlap1) sbox_multi[3+idim] = MIN(sbox_multi[3+idim]+cutghostmulti[itype][idim],subhi[idim]);
-          else sbox_multi[3+idim] = MIN(sbox_multi[3+idim]-prd[idim]+cutghostmulti[itype][idim],subhi[idim]);
-        } else {
-          if (i < noverlap1) sbox_multi[idim] = MAX(sbox_multi[idim]-cutghostmulti[itype][idim],sublo[idim]);
-          else sbox_multi[idim] = MAX(sbox_multi[idim]+prd[idim]-cutghostmulti[itype][idim],sublo[idim]);
-          sbox_multi[3+idim] = subhi[idim];
-        }
-        */
-       // memcpy(overlap_sendbox[iswap][i],sbox_multi,6*sizeof(double));
-        
-        //memcpy(sendbox_multi[iswap][i][itype],sbox_multi,6*sizeof(double));
         }
       }
       
-     
-    
-  
-
   // reallocate MPI Requests and Statuses as needed
 
   int nmax = 0;
@@ -1087,8 +1014,6 @@ void CommCAC::forward_comm(int /*dummy*/)
      
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++){
-        //if(i>0)
-        //size_offset+=size_difference*recvnum[iswap][i-1];
           MPI_Irecv(&buf_recv[recvoffset[iswap][i]],
                     recvsize[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],9,world,&requests[i]);
@@ -1433,8 +1358,6 @@ int i,j,n,m;
       aug_oboxes[iswap][selfcount][5]=aug_box[5];
     }
  
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1466,10 +1389,7 @@ void CommCAC::overlap_element_comm(int iswap){
   int iswap_old=iswap;
   double* current_ebox;
   double oboxlo[3],oboxhi[3],sbox[6],sbox_multi[6];
- //perform opposite swap direction since sendbox augmentation to the left requires
- //element overlap comms to the right beforehand and vice versa.
- //if(iswap%2==0) iswap+=1;
- //else iswap-=1;
+
   // domain properties used in setup method and methods it calls
   
   dimension = domain->dimension;
@@ -1590,7 +1510,6 @@ void CommCAC::overlap_element_comm(int iswap){
       }
     }
     
-
     // insure send/recv buffers are large enough for this border comm swap
 
     //if (smaxone*size_border > maxsend) grow_send(smaxone*size_border,0);
@@ -1612,12 +1531,9 @@ void CommCAC::overlap_element_comm(int iswap){
           if (send_accumulation+overlap_sendsize[iswap][m] > maxsend) grow_send(send_accumulation+overlap_sendsize[iswap][m],1);
           overlap_sendsize[iswap][m] += pack_eboxes(1,&overlap_sendlist[iswap][m][sendcounter],
                                 &buf_send[overlap_sendoffset[iswap][m]+overlap_sendsize[iswap][m]],pbc_flag[iswap][m],pbc[iswap][m],iswap);
-          
-          
           }
           //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
           send_accumulation+=overlap_sendsize[iswap][m];
-          
         }
       }
       //receive buffer sizes
@@ -1683,10 +1599,6 @@ void CommCAC::overlap_element_comm(int iswap){
                             buf_send);
         }
       }
-      
-      
-   
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1709,6 +1621,9 @@ void CommCAC::borders()
   int max_sendaccumulation=0;
   int max_recvaccumulation=0;
   AtomVec *avec = atom->avec;
+
+  //flag indicating whether to zero out arrays for other comms routines
+  reset_array_flag=1;
   
   // send/recv max one = max # of atoms in single send/recv for any swap
   // send/recv max all = max # of atoms in all sends/recvs within any swap
@@ -1727,7 +1642,6 @@ void CommCAC::borders()
        overlap_sendsize[iswap][m]=0;
       
        overlap_sendoffset[iswap][m]=0;
-    
      }
    
    
@@ -1745,8 +1659,6 @@ void CommCAC::borders()
        
        overlap_recvoffset[iswap][m]=0;
        
-  
-        
      }
   //check if buffer is sized large enough 
   int bufextra_old = bufextra;
@@ -1758,14 +1670,10 @@ void CommCAC::borders()
   nforeign_eboxes=0;
   //communicate all overlapping elements in all 6 swaps first to modify all sendboxes as needed
   compute_eboxes(iswap);
- 
+
   //communicate overlapping elements
   get_aug_oboxes(iswap);
-  //recheck_overlap(iswap);
   overlap_element_comm(iswap);
-  //MPI_Barrier(world);
-  // loop over swaps in all dimensions
-  //update_setup();
   atom->nforeign_eboxes=nforeign_eboxes;
   atom->foreign_eboxes=foreign_eboxes;
   atom->bin_foreign=1;
@@ -1780,8 +1688,7 @@ void CommCAC::borders()
   nbin_element_overlap=bin_pointer->nbin_element_overlap;  //array storing the number of bins this element overlaps
   bin_element_overlap=bin_pointer->bin_element_overlap;  //set of bins this element overlaps
   //received ghosts may change necessary proc overlaps in subsequent swaps
-  //compute_eboxes(iswap);
-
+  
     // find atoms within sendboxes using >= and <
     // hi test with ">" is important b/c don't want to send an atom
     //   in lower dim (on boundary) that a proc will recv again in higher dim
@@ -1796,9 +1703,6 @@ void CommCAC::borders()
     
     ncountall = 0;
     for (m = 0; m < nsendproc[iswap]; m++) {
-        //if(nlast>maxsent[iswap][m]){
-          //grow_sent_list(iswap,m,nlast);
-        //}
         
       if (mode == Comm::SINGLE) {
       ncount = 0; 
@@ -1813,7 +1717,6 @@ void CommCAC::borders()
         for (i = 0; i < nlast; i++) {
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            //sent_flag[iswap][m][i]=iswap;
             sendlist[iswap][m][ncount++] = i;
           }
         }
@@ -1822,14 +1725,12 @@ void CommCAC::borders()
         for (i = 0; i < ngroup; i++) {
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            //sent_flag[iswap][m][i]=iswap;
             sendlist[iswap][m][ncount++] = i;
           }
         }
         for (i = atom->nlocal; i < nlast; i++) {
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            //sent_flag[iswap][m][i]=iswap;
             sendlist[iswap][m][ncount++] = i;
           }
         }
@@ -1852,7 +1753,6 @@ void CommCAC::borders()
           xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            //sent_flag[iswap][m][i]=iswap;
             sendlist[iswap][m][ncount++] = i;
           }
           
@@ -1866,7 +1766,6 @@ void CommCAC::borders()
           xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
           if (sendbox_include(iswap, m, i)) {
            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            //sent_flag[iswap][m][i]=iswap;
             sendlist[iswap][m][ncount++] = i;
           }
         }
@@ -1877,7 +1776,6 @@ void CommCAC::borders()
            xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            //sent_flag[iswap][m][i]=iswap;
             sendlist[iswap][m][ncount++] = i;
           }
         }
@@ -1938,10 +1836,6 @@ void CommCAC::borders()
     rmaxall = MAX(rmaxall,ncountall);
 
     // insure send/recv buffers are large enough for this border comm swap
-
-    //if (smaxone*size_border > maxsend) grow_send(smaxone*size_border,0);
-    //if (rmaxall*size_border > maxrecv) grow_recv(rmaxall*size_border);
-
     // swap atoms with other procs using pack_border(), unpack_border()
     // use Waitall() instead of Waitany() because calls to unpack_border()
     //   must increment per-atom arrays in ascending order
@@ -2078,7 +1972,6 @@ void CommCAC::borders()
   for(int element_index=0; element_index<atom->nlocal+atom->nghost; element_index++){
   	if(element_type[element_index]){
    nodal_positions = atom->nodal_positions[element_index];
-	//int current_poly_count = poly_count[element_index];
     int current_poly_count = poly_count[element_index];
 	int nodes_per_element = nodes_per_element_list[element_type[element_index]];
   if(neboxes == maxebox){
@@ -2129,6 +2022,162 @@ void CommCAC::borders()
 
   if (map_style) atom->map_set();
 }
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Pair
+   nsize used only to set recv buffer limit
+------------------------------------------------------------------------- */
+
+void CommCAC::forward_comm_pair(Pair *pair)
+{
+  int i,irecv,n,nsend,nrecv;
+
+  int nsize = pair->comm_forward;
+
+  int iswap = 0;
+  nsend = nsendproc[iswap] - sendself[iswap];
+  nrecv = nrecvproc[iswap] - sendself[iswap];
+
+  //zero out size and offset arrays
+  if(reset_array_flag) pair_comm_setup(pair);
+  
+  if(!reset_array_flag){
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++)
+        MPI_Irecv(&buf_recv[pair_recvoffset[iswap][i]],
+                  pair_recvsize[iswap][i],
+                  MPI_DOUBLE,recvproc[iswap][i],12,world,&requests[i]);
+    }
+
+    if (sendother[iswap]) {
+      for (i = 0; i < nsend; i++) {
+        n = pair->pack_forward_comm(sendnum[iswap][i],sendlist[iswap][i],
+                                    buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],12,world);
+      }
+    }
+
+    if (sendself[iswap]) {
+        for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
+        pair->pack_forward_comm(sendnum[iswap][selfcount],sendlist[iswap][selfcount],
+                        buf_send,pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
+        pair->unpack_forward_comm(recvnum[iswap][selfcount],firstrecv[iswap][selfcount],
+                          buf_send);
+        }
+    }
+  }
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++) {
+        MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
+        pair->unpack_forward_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
+                                  &buf_recv[pair_recvoffset[iswap][irecv]]);
+      }
+    }
+   reset_array_flag=0;
+}
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Pair
+   nsize used only to set recv buffer limit
+------------------------------------------------------------------------- */
+
+void CommCAC::pair_comm_setup(Pair *pair)
+{
+  int i,irecv,n, m, nsend,nrecv;
+  AtomVec *avec = atom->avec;
+  double **x = atom->x;
+  
+  // exchange data with another set of procs in each swap
+  // post recvs from all procs except self
+  // send data to all procs except self
+  // copy data to self if sendself is set
+  // wait on all procs except self and unpack received data
+  // if comm_x_only set, exchange or copy directly to x, don't unpack
+  //send first set of ghosts
+    int iswap = 0; 
+    nsend = nsendproc[iswap] - sendself[iswap];
+    nrecv = nrecvproc[iswap] - sendself[iswap];
+  for (m = 0; m < nsendproc[iswap]; m++) {
+    pair_sendsize[iswap][m]=0;
+    pair_sendoffset[iswap][m]=0;
+  }
+   
+  for (m = 0; m < nrecvproc[iswap]; m++) {
+    pair_recvsize[iswap][m]=0;
+    pair_recvoffset[iswap][m]=0; 
+  } 
+
+  //compute buffer sizes for each of the nsend communications for this task
+     int send_accumulation=0;
+    
+     if (sendother[iswap]) {
+       for (m = 0; m < nsend; m++) {
+         pair_sendoffset[iswap][m]=send_accumulation;
+           for (int sendcounter = 0; sendcounter < sendnum[iswap][m]; sendcounter++) {
+           if (send_accumulation+pair_sendsize[iswap][m] > maxsend) grow_send(send_accumulation+pair_sendsize[iswap][m],1);
+           pair_sendsize[iswap][m] += pair->pack_forward_comm(1,&sendlist[iswap][m][sendcounter],
+             &buf_send[pair_sendoffset[iswap][m]+pair_sendsize[iswap][m]],pbc_flag[iswap][m],pbc[iswap][m]);
+           }
+          //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
+          send_accumulation+=pair_sendsize[iswap][m];
+        }
+      }
+      //receive buffer sizes
+      
+      if (recvother[iswap]) {
+        for (m = 0; m < nrecv; m++)
+          MPI_Irecv(&pair_recvsize[iswap][m],
+                    1, MPI_INT,recvproc[iswap][m],10,world,&requests[m]);
+      }
+      //send buffer sizes to recv procs
+     if (sendother[iswap]) {
+        for (m = 0; m < nsend; m++) {
+          MPI_Send(&pair_sendsize[iswap][m],1,
+          MPI_INT,sendproc[iswap][m],10,world);
+        }
+      }
+      //wait for sizes to be received and resize recv buffer accordingly
+      int total_recvsize=0;
+      if (recvother[iswap]) {
+        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
+        for (m = 0; m < nrecv; m++){
+          pair_recvoffset[iswap][m]=total_recvsize;
+          total_recvsize+=pair_recvsize[iswap][m];
+          
+        }
+         if (total_recvsize > maxrecv) grow_recv(total_recvsize); 
+      }
+      if (recvother[iswap]) {
+        for (m = 0; m < nrecv; m++)
+          MPI_Irecv(&buf_recv[pair_recvoffset[iswap][m]],
+                    pair_recvsize[iswap][m],
+                    MPI_DOUBLE,recvproc[iswap][m],11,world,&requests[m]);
+      }
+      if (sendother[iswap]) {
+        for (m = 0; m < nsend; m++) {
+          MPI_Send(&buf_send[pair_sendoffset[iswap][m]],pair_sendsize[iswap][m],
+          MPI_DOUBLE,sendproc[iswap][m],11,world);
+        }
+      } 
+
+      if (sendself[iswap]) {
+        
+        for(int selfcount=nsendproc[iswap]-sendself[iswap]; selfcount<nsendproc[iswap]; selfcount++){
+          int self_accumulation=0;
+          for (int sendcounter = 0; sendcounter < sendnum[iswap][selfcount]; sendcounter++) {
+          if (self_accumulation+pair_sendsize[iswap][selfcount] > maxsend) grow_send(self_accumulation+pair_sendsize[iswap][selfcount],1);
+          pair_sendsize[iswap][selfcount] += pair->pack_forward_comm(1,&sendlist[iswap][selfcount][sendcounter],
+                                &buf_send[pair_sendsize[iswap][selfcount]],pbc_flag[iswap][selfcount],pbc[iswap][selfcount]);
+          }
+          //compute offsets in buffer index for each proc to send to; i.e. there is one buffer for all sends
+          self_accumulation+=pair_sendsize[iswap][m];
+          pair->unpack_forward_comm(recvnum[iswap][selfcount],firstrecv[iswap][selfcount],
+                            buf_send);
+        }
+      }
+
+}
+
 /* ----------------------------------------------------------------------
    decides if element or atom should be sent to a neighboring proc in swap
 ------------------------------------------------------------------------- */
@@ -2186,14 +2235,8 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
   eoboxhi[0]=oboxhi[0]+cutghost[0];
   eoboxhi[1]=oboxhi[1]+cutghost[1];
   eoboxhi[2]=oboxhi[2]+cutghost[2];
-
-  //int nall=atom->nlocal+atom->nghost;
- 
       
       //partial test to help make sure eboxes are placed correctly; use max ebox overlap in me
-
-      
-     
 
       //determine if current element ebox or point particle position overlaps or lies cutghost sendbox
       if(!element_type[current_element]){
@@ -2270,9 +2313,6 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
      
  return flag;
 }
-
-
-
 
 /* ----------------------------------------------------------------------
    determine overlap list of Noverlap procs the lo/hi box overlaps
@@ -2617,7 +2657,6 @@ void CommCAC::box_other_brick_full(int idim, int idir,
   hi[1]=proc2box[overlap_counter][4];
   hi[2]=proc2box[overlap_counter][5];
 
-
 }
 
 /* ----------------------------------------------------------------------
@@ -2902,7 +2941,6 @@ int CommCAC::pack_eboxes(int n, int *list, double *buf,
     }
   }
 
-  
   return m;
 }
 
@@ -2939,11 +2977,9 @@ void CommCAC::unpack_eboxes(int n, int first, double *buf)
     foreign_eboxes[i][4] = buf[m++];
     foreign_eboxes[i][5] = buf[m++];
     nforeign_eboxes++;
-    //if (i == nmax) grow(0);
 	
   }
 
- 
 }
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
@@ -3041,6 +3077,10 @@ void CommCAC::allocate_swap(int n)
   overlap_recvsize = new int*[n];
   overlap_sendoffset = new int*[n];
   overlap_recvoffset = new int*[n];
+  pair_sendsize = new int*[n];
+  pair_recvsize = new int*[n];
+  pair_recvoffset = new int*[n];
+  pair_sendoffset = new int*[n];
   recvnum = new int*[n];
   overlap_recvnum = new int*[n];
   size_forward_recv = new int*[n];
@@ -3053,13 +3093,9 @@ void CommCAC::allocate_swap(int n)
 
   pbc_flag = new int*[n];
   pbc = new int**[n];
-   //if(mode == SINGLE){ 
-     sendbox = new double**[n];
-     overlap_sendbox = new double**[n];
-   //}
-   //else{  
-     sendbox_multi = new double***[n];
-     //}
+  sendbox = new double**[n];
+  overlap_sendbox = new double**[n];
+  sendbox_multi = new double***[n];
   maxsendlist = new int*[n];
   overlap_maxsendlist = new int*[n];
   maxsent = new int*[n];
@@ -3067,7 +3103,6 @@ void CommCAC::allocate_swap(int n)
   sendlist = new int**[n];
   overlap_sendlist = new int**[n];
   aug_oboxes = new double**[n];
-  //sent_flag = new int**[n];
 
  
 
@@ -3084,29 +3119,27 @@ void CommCAC::allocate_swap(int n)
     overlap_recvsize[i] = NULL;
     overlap_sendoffset[i] = NULL;
     overlap_recvoffset[i] = NULL;
+    pair_sendsize[i] = NULL;
+    pair_recvsize[i] = NULL;
+    pair_sendoffset[i] = NULL;
+    pair_recvoffset[i] = NULL;
     size_forward_recv[i] = firstrecv[i] = overlap_firstrecv[i] = NULL;
     size_reverse_send[i] = size_reverse_recv[i] = NULL;
     forward_recv_offset[i] = reverse_recv_offset[i] = NULL;
 
     pbc_flag[i] = NULL;
     pbc[i] = NULL;
-    //if(mode == SINGLE){
-      sendbox[i] = NULL;
-      overlap_sendbox[i] = NULL;
-     // }
-    //else{
-      sendbox_multi[i] = NULL;
-      //}
+    sendbox[i] = NULL;
+    overlap_sendbox[i] = NULL;
+    sendbox_multi[i] = NULL;
+  
     maxsendlist[i] = NULL;
     overlap_maxsendlist[i] = NULL;
     maxsent[i] = NULL;
     sendlist[i] = NULL;
     aug_oboxes[i] = NULL;
     overlap_sendlist[i] = NULL;
-    
-    //sent_flag[i] = NULL;
 
-  
   }
 
   maxreqstat = 0;
@@ -3150,16 +3183,16 @@ void CommCAC::grow_swap_send(int i, int n, int nold)
   overlap_sendnum[i] = new int[n];
   delete [] sendsize[i];
   sendsize[i] = new int[n];
-
   delete [] sendoffset[i];
   sendoffset[i] = new int[n];
-
   delete [] overlap_sendsize[i];
   overlap_sendsize[i] = new int[n];
-
   delete [] overlap_sendoffset[i];
   overlap_sendoffset[i] = new int[n];
- 
+  delete [] pair_sendsize[i];
+  pair_sendsize[i] = new int[n];
+  delete [] pair_sendoffset[i];
+  pair_sendoffset[i] = new int[n];
 
   delete [] size_reverse_recv[i];
   size_reverse_recv[i] = new int[n];
@@ -3170,16 +3203,14 @@ void CommCAC::grow_swap_send(int i, int n, int nold)
   pbc_flag[i] = new int[n];
   memory->destroy(pbc[i]);
   memory->create(pbc[i],n,6,"comm:pbc_flag");
-  //if(mode == SINGLE){
   memory->destroy(sendbox[i]);
   memory->create(sendbox[i],n,6,"comm:sendbox");
   memory->destroy(overlap_sendbox[i]);
   memory->create(overlap_sendbox[i],n,6,"comm:sendbox");
-  //}
-  //else {
+ 
   memory->destroy(sendbox_multi[i]);
   memory->create(sendbox_multi[i],n,atom->ntypes+1,6,"comm:sendbox_multi");
-  //}
+  
 
   delete [] maxsendlist[i];
   maxsendlist[i] = new int[n];
@@ -3194,7 +3225,6 @@ void CommCAC::grow_swap_send(int i, int n, int nold)
     memory->destroy(sendlist[i][j]);
     memory->destroy(overlap_sendlist[i][j]);
     memory->destroy(aug_oboxes[i][j]);
-    //memory->destroy(sent_flag[i][j]);
     
     }
   delete [] sendlist[i];
@@ -3203,12 +3233,7 @@ void CommCAC::grow_swap_send(int i, int n, int nold)
   overlap_sendlist[i] = new int*[n];
   delete [] aug_oboxes[i];
   aug_oboxes[i] = new double*[n];
-  //delete [] sent_flag[i];
-  //sent_flag[i] = new int*[n];
   
- 
-
-
   for (int j = 0; j < n; j++) {
     maxsendlist[i][j] = BUFMIN;
     overlap_maxsendlist[i][j] = BUFMIN;
@@ -3217,7 +3242,6 @@ void CommCAC::grow_swap_send(int i, int n, int nold)
     memory->create(sendlist[i][j],BUFMIN,"comm_CAC:sendlist[i][j]");
     memory->create(overlap_sendlist[i][j],BUFMIN,"comm_CAC:sendlist[i][j]");
     memory->create(aug_oboxes[i][j],6,"comm_CAC:aug_oboxes[i][j]");
-    //memory->create(sent_flag[i][j],BUFMIN,"comm:sendlist[i][j]");
     
   }
 }
@@ -3246,12 +3270,13 @@ void CommCAC::grow_swap_recv(int i, int n, int nold)
   overlap_recvsize[i] = new int[n];
   delete [] overlap_recvoffset[i];
   overlap_recvoffset[i] = new int[n];
+  delete [] pair_recvsize[i];
+  pair_recvsize[i] = new int[n];
+  delete [] pair_recvoffset[i];
+  pair_recvoffset[i] = new int[n];
   delete [] size_reverse_send[i];
   size_reverse_send[i] = new int[n];
   
- 
-  
-
 }
 
 /* ----------------------------------------------------------------------
@@ -3281,6 +3306,10 @@ void CommCAC::deallocate_swap(int n)
     delete [] overlap_recvsize[i];
     delete [] overlap_sendoffset[i];
     delete [] overlap_recvoffset[i];
+    delete [] pair_sendsize[i];
+    delete [] pair_recvsize[i];
+    delete [] pair_sendoffset[i];
+    delete [] pair_recvoffset[i];
     delete [] recvnum[i];
     delete [] overlap_recvnum[i];
     delete [] size_forward_recv[i];
@@ -3293,13 +3322,10 @@ void CommCAC::deallocate_swap(int n)
 
     delete [] pbc_flag[i];
     memory->destroy(pbc[i]);
-    //if(mode == Comm::SINGLE){
-      memory->destroy(sendbox[i]);
-      memory->destroy(overlap_sendbox[i]);
-     // }
-    //else{
-      memory->destroy(sendbox_multi[i]);
-     // }
+    memory->destroy(sendbox[i]);
+    memory->destroy(overlap_sendbox[i]);
+    memory->destroy(sendbox_multi[i]);
+ 
     delete [] maxsendlist[i];
     delete [] overlap_maxsendlist[i];
     delete [] maxsent[i];
@@ -3309,13 +3335,11 @@ void CommCAC::deallocate_swap(int n)
       memory->destroy(sendlist[i][j]);
       memory->destroy(overlap_sendlist[i][j]);
       memory->destroy(aug_oboxes[i][j]);
-      //->destroy(sent_flag[i][j]);
   
       }
     delete [] sendlist[i];
     delete [] overlap_sendlist[i];
     delete [] aug_oboxes[i];
-    //delete [] sent_flag[i];
   
   }
 
@@ -3333,6 +3357,10 @@ void CommCAC::deallocate_swap(int n)
   delete [] overlap_recvsize;
   delete [] overlap_sendoffset;
   delete [] overlap_recvoffset;
+  delete [] pair_sendsize;
+  delete [] pair_recvsize;
+  delete [] pair_sendoffset;
+  delete [] pair_recvoffset;
   delete [] recvnum;
   delete [] overlap_recvnum;
   delete [] size_forward_recv;
@@ -3345,20 +3373,16 @@ void CommCAC::deallocate_swap(int n)
 
   delete [] pbc_flag;
   delete [] pbc;
-  //if(mode == SINGLE){
-     delete [] sendbox;
-     delete [] overlap_sendbox;
-    // }
-  //else{ 
-    delete [] sendbox_multi;
-    //}
+  delete [] sendbox;
+  delete [] overlap_sendbox;
+  delete [] sendbox_multi;
+  
   delete [] maxsendlist;
   delete [] overlap_maxsendlist;
   delete [] maxsent;
   delete [] sendlist;
   delete [] overlap_sendlist;
   delete [] aug_oboxes;
-  //delete [] sent_flag;
   
 
 

@@ -53,7 +53,7 @@ class NPairCAC : public NPair {
   
 
 protected:
-	int old_atom_count, old_quad_count;
+  int old_atom_count, old_quad_count;
   int expansion_count, max_expansion_count;
 	int *old_atom_etype;
   int quad_allocated;

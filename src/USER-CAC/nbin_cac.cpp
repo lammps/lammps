@@ -86,6 +86,11 @@ void NBinCAC::bin_atoms_setup(int nall)
 {
 
 }
+
+/* ----------------------------------------------------------------------
+   setup required for CAc binning strategy
+------------------------------------------------------------------------- */
+
 void NBinCAC::CAC_bin_atoms_setup(int nall)
 {
 
@@ -104,7 +109,6 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
   
   if (mbins > maxbin) {
     //compute maximum expansion count used in previous allocations
-    
     
     if(!first_alloc){
 		first_alloc=1;
@@ -150,7 +154,7 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
   }
 
 
-// initialize or grow surface counts array for quadrature scheme
+  // initialize or grow surface counts array for quadrature scheme
 			// along with interior scaling for the quadrature domain
 			if (atom->nlocal  > nmax) {
 				allocate_surface_counts();
@@ -210,12 +214,11 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
     int quadrature_point_count=0;
     int c1,c2,c3;
     int current_quad_count;
-    		for (int init = 0; init < atom->nlocal; init++) {
-			
-			if (element_type[init] == 0){ 
+    	for (int init = 0; init < atom->nlocal; init++) {
+			  if (element_type[init] == 0){ 
 				quadrature_point_count+=1;
-      }
-			else {
+        }
+			  else {
 				c1=surface_counts[init][0];
 				c2=surface_counts[init][1];
 				c3=surface_counts[init][2];
@@ -224,8 +227,8 @@ void NBinCAC::CAC_bin_atoms_setup(int nall)
 		     + 8 * c1*c2*c3;
 				quadrature_point_count+=current_quad_count*poly_count[init];
 				
-			}
-		}
+			  }
+		  }
     memory->grow(quad2bin,quadrature_point_count,"NBinCAC:quad2bin");
 }
 
@@ -300,12 +303,11 @@ void NBinCAC::CAC_setup_bins(int style)
     bsubboxhi[0] += cut_max;
     bsubboxhi[1] += cut_max;
     bsubboxhi[2] += cut_max;
-		//loop through elements to compute bounding boxes and test
+	//loop through elements to compute bounding boxes and test
 	//whether they should stretch the local bounding box
 	for(int element_index=0; element_index < atom->nlocal; element_index++){
 	if(element_type[element_index]){
    nodal_positions = atom->nodal_positions[element_index];
-	//int current_poly_count = poly_count[element_index];
     int current_poly_count = poly_count[element_index];
 	int nodes_per_element = nodes_per_element_list[element_type[element_index]];
  
@@ -338,17 +340,6 @@ void NBinCAC::CAC_setup_bins(int style)
 	//i.e. a local particle being binned where ghosts would normally be binned
 	}
 	}
-	/*
-	else if(element_index>=atom->nlocal){ 
-  //test if this ghost exceeds local sub box
-	for(int dim=0; dim < dimension; dim++){
-	if(x[element_index][dim]>bsubboxhi[dim])
-	bsubboxhi[dim]=x[element_index][dim];
-	if(x[element_index][dim]<bsubboxlo[dim])
-	bsubboxlo[dim]=x[element_index][dim];
-	}
-	}
-	*/
 	}
 	
 
@@ -521,12 +512,8 @@ void NBinCAC::CAC_setup_bins(int style)
   // extend bins by 1 to insure stencil extent is included
   // for 2d, only 1 bin in z
 
-  //mbinxlo = mbinxlo - 1;
-  //mbinxhi = mbinxhi + 1;
   mbinx = nbinx+2;
 
-  //mbinylo = mbinylo - 1;
-  //mbinyhi = mbinyhi + 1;
   mbiny = nbiny+2;
 
   mbinz = nbinz+2;
@@ -750,9 +737,9 @@ void NBinCAC::bin_atoms()
     for (i = 0; i < nall; i++) {
       //computes the quadrature point locations for this ith element and returns the # of points
     int current_element_type = element_type[i];
-	current_element_scale[0] = element_scale[i][0];
-	current_element_scale[1] = element_scale[i][1];
-	current_element_scale[2] = element_scale[i][2];
+	  current_element_scale[0] = element_scale[i][0];
+	  current_element_scale[1] = element_scale[i][1];
+	  current_element_scale[2] = element_scale[i][2];
  
   
 		//find the current quadrature points of this element
@@ -930,7 +917,6 @@ void NBinCAC::bin_atoms()
 	double bounding_boxlo[3];
 	double bounding_boxhi[3];
 	double *cutghost = comm->cutghost;
-  //double CAC_cut= atom->CAC_cut;
   
 	double **eboxes=atom->eboxes;
 	double **foreign_eboxes=atom->foreign_eboxes;
@@ -985,11 +971,7 @@ if (x[2] > bsubboxhi[2])
 
   //calculate the set of bins this element's bounding box overlaps
   if(decision_flag){
-    
-	//int current_poly_count = poly_count[element_index];
-    
- 
-
+  
   double *current_ebox;
   if(!foreign_boxes)
   current_ebox = eboxes[ebox_ref[element_index]];
@@ -1067,9 +1049,6 @@ if (x[2] > bsubboxhi[2])
   bin_overlap_limits[3]=ixh;
   bin_overlap_limits[4]=iyh;
   bin_overlap_limits[5]=izh;
-
-  //return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-
   }
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
 }
@@ -1215,19 +1194,15 @@ int NBinCAC::compute_quad_points(int element_index){
 	sign[0] = -1;
 	sign[1] = 1;
 	
-  	    surface_count[0]=surface_counts[element_index][0];
-		surface_count[1]=surface_counts[element_index][1];
-		surface_count[2]=surface_counts[element_index][2];
-	    interior_scale[0]= interior_scales[element_index][0];
-		interior_scale[1]= interior_scales[element_index][1];
-		interior_scale[2]= interior_scales[element_index][2];
+  surface_count[0]=surface_counts[element_index][0];
+	surface_count[1]=surface_counts[element_index][1];
+	surface_count[2]=surface_counts[element_index][2];
+	interior_scale[0]= interior_scales[element_index][0];
+	interior_scale[1]= interior_scales[element_index][1];
+	interior_scale[2]= interior_scales[element_index][2];
 	for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
-		//current_poly_counter = poly_counter;
-		
-		
+	
 		//interior contributions
-
-
 		for (int i = 0; i < quadrature_node_count; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
@@ -1350,7 +1325,6 @@ int NBinCAC::compute_quad_points(int element_index){
 			}
 		}
 	
-
 	//w axis surface contributions
 	
 	for (int sc = 0; sc < 2; sc++) {
@@ -1398,8 +1372,6 @@ int NBinCAC::compute_quad_points(int element_index){
 			}
 		}
 	
-
-
 	int surface_countx;
 	int surface_county;
 
@@ -1651,8 +1623,6 @@ int NBinCAC::compute_quad_points(int element_index){
 			}
 		}
 	}
-
-
 	return quadrature_counter;
 
 }
@@ -1709,8 +1679,6 @@ double NBinCAC::shape_function(double s, double t, double w, int flag, int index
 		else if (index == 8) {
 			shape_function = (1 - s)*(1 + t)*(1 + w) / 8;
 		}
-
-
 	}
 	return shape_function;
 

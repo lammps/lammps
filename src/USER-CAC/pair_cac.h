@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class PairCAC : public Pair {
  public:
 	double cutmax;                // max cutoff for all elements
+  int pre_force_flag;           // set to 1 if computing something before force
   class Asa_Data *asa_pointer; 
   //variable for Asa_Data to obtain
   int poly_min; 
@@ -69,6 +70,11 @@ class PairCAC : public Pair {
   double mapped_volume;
   int reneighbor_time;
   int max_nodes_per_element, neigh_poly_count;
+
+  //stores quadrature point coordinates and calculation coefficients for all nlocal
+  double ** quadrature_point_data;
+  double quadrature_point_max;
+  double *quadrature_counts;
 	
   double cut_global_s;
   int   quadrature_node_count;
@@ -152,7 +158,9 @@ class PairCAC : public Pair {
   void allocate_quad_neigh_list(int,int,int,int);
   void allocate_surface_counts();
   void compute_mass_matrix();
+  void compute_quad_neighbors(int);
   void compute_forcev(int);
+  void grow_quad_data();
   void neigh_list_cord(double& coordx, double& coordy, double& coordz, int, int, double, double, double);
   void set_shape_functions();
   void compute_surface_depths(double &x, double &y, double &z, 
@@ -162,6 +170,7 @@ class PairCAC : public Pair {
   int LUPDecompose(double **A, int N, double Tol, int *P);
   double shape_product(int,int);
   void quad_list_build(int, double, double, double);
+  virtual void pre_force_densities() {}
   virtual void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz) {}
   int mldivide3(const double mat[3][3], const double *vec, double *ans);

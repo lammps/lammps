@@ -139,8 +139,6 @@ int DumpCACInitialNodes::modify_param(int narg, char **arg)
 /*------------------------------------------------------------------------*/
 int DumpCACInitialNodes::count()
 {
-	//if (igroup == 0) return (poly_count[i] + 1)*nodes_per_element*atom->nlocal;
-
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
   int *element_type= atom->element_type;
@@ -174,17 +172,9 @@ int DumpCACInitialNodes::count()
 void DumpCACInitialNodes::write_header(bigint n)
 {
   if (me == 0) {
-	  /*title="results for ufmae_cac"
-variables="x","y","z","disp1","disp2","disp3","t11","t13","ketemp"
-zone t="load step 0",n=    3200 e=     400 datapacking=point,zonetype=febric*/
-
-	//fprintf(fp, "zone t=\"load step " BIGINT_FORMAT "\",n= " BIGINT_FORMAT
-	//" e= " BIGINT_FORMAT " datapacking=point,zonetype=febric" "\n",
-	//update->ntimestep, nodes_per_element*atom->nlocal, atom->nlocal);
 	fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
 	" e= " BIGINT_FORMAT " Q4 " "\n",
 	update->ntimestep, (bigint)total_node_count, atom->natoms);
-    
   }
 }
 
@@ -199,7 +189,6 @@ void DumpCACInitialNodes::pack(tagint *ids)
   int *mask = atom->mask;
   double ****initial_nodal_positions = atom->initial_nodal_positions;
   int *nodes_per_element_list = atom->nodes_per_element_list;
-  //double ****initial_nodal_positions = atom->initial_nodal_positions;
   int nlocal = atom->nlocal;
   int *poly_count = atom->poly_count;
   int *element_type = atom->element_type;

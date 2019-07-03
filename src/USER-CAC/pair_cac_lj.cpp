@@ -131,13 +131,6 @@ global settings
 void PairCACLJ::settings(int narg, char **arg) {
 	if (narg <1 || narg>2) error->all(FLERR, "Illegal pair_style command");
 
-	//cutmax = force->numeric(FLERR, arg[0]);
-	
-
-	//cut_global_s = force->numeric(FLERR,arg[1]);
-	//neighrefresh = force->numeric(FLERR, arg[1]);
-	//maxneigh_setting = force->numeric(FLERR, arg[2]);
-	
 	force->newton_pair = 0;
 	cut_global_s = force->numeric(FLERR, arg[0]);
 	if (narg == 2) {
@@ -151,10 +144,6 @@ void PairCACLJ::settings(int narg, char **arg) {
 			for (j = i; j <= atom->ntypes; j++)
 				if (setflag[i][j]) cut[i][j] = cut_global_s;
 	}
-	// reset cutoffs that have been explicitly set
-	// initialize unit cell vectors
-
-	
 }
 
 
@@ -321,26 +310,16 @@ void PairCACLJ::init_style()
 
 }
 
-
-
-
-
-
-
 //-----------------------------------------------------------------------
 
 
 void PairCACLJ::force_densities(int iii, double s, double t, double w, double coefficients,
 	double &force_densityx, double &force_densityy, double &force_densityz) {
 
-int internal;
-
 double delx,dely,delz;
-
 double r2inv;
 double r6inv;
 double shape_func;
-
 
 int neighborflag=0;
 int outofbounds=0;
@@ -360,43 +339,19 @@ double rcut;
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;	
 
-
-int flagm;
-
-
-
-
-
-
 //equivalent isoparametric cutoff range for a cube of rcut
-
 
 unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
 unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
 unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 
-
-
-
-
-
 unit_cell[0] = s;
 unit_cell[1] = t;
 unit_cell[2] = w;
 
-
-
-
-
 //scan the surrounding unit cell locations in a cartesian grid
 //of isoparametric space until the cutoff is exceeded
 //for each grid scan
-
-
- scanning_unit_cell[0]=unit_cell[0];
- scanning_unit_cell[1]=unit_cell[1];
- scanning_unit_cell[2]=unit_cell[2];
-
 
   int distanceflag=0;
   current_position[0]=0;
@@ -417,7 +372,6 @@ unit_cell[2] = w;
 		current_position[1] = t;
 		current_position[2] = w;
 	}
-
 
 	rcut = cut_global_s;
 	int origin_type = type_array[poly_counter];
@@ -480,15 +434,12 @@ unit_cell[2] = w;
 				forcelj = r6inv * (lj1[scan_type][origin_type]
 					* r6inv - lj2[scan_type][origin_type]);
 				fpair = factor_lj*forcelj*r2inv;
-
-        //timer->stamp(Timer::CAC_INIT);
 				force_densityx += delx*fpair;
 				force_densityy += dely*fpair;
 				force_densityz += delz*fpair;
 				force_contribution[0] = delx*fpair;
 				force_contribution[1] = dely*fpair;
 				force_contribution[2] = delz*fpair;
-				//timer->stamp(Timer::CAC_FD);
         if (quad_eflag) {
 				scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
 			  scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];

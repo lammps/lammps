@@ -113,12 +113,6 @@ global settings
 void PairCACCoulWolf::settings(int narg, char **arg) {
 	if (narg <2 || narg>3) error->all(FLERR, "Illegal pair_style command");
 
-	//cutmax = force->numeric(FLERR, arg[0]);
-
-	//cut_global_s = force->numeric(FLERR,arg[1]);
-	//neighrefresh = force->numeric(FLERR, arg[1]);
-	//maxneigh_setting = force->numeric(FLERR, arg[2]);
-	
 	force->newton_pair = 0;
 	
 	alf = force->numeric(FLERR, arg[0]);
@@ -128,10 +122,6 @@ void PairCACCoulWolf::settings(int narg, char **arg) {
 		else error->all(FLERR, "Unexpected argument in cac/coul/wolf invocation");
 	}
 	cut_coul = cut_global_s;
-	// reset cutoffs that have been explicitly set
-	// initialize unit cell vectors
-
-	
 }
 
 /* ----------------------------------------------------------------------
@@ -250,84 +240,53 @@ void PairCACCoulWolf::init_style()
 void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, double coefficients,
 	double &force_densityx, double &force_densityy, double &force_densityz) {
 
-int internal;
+  double delx,dely,delz;
 
-double delx,dely,delz;
+  double r2inv;
+  double r6inv;
+  double shape_func;
+  double shape_func2;
+  double unit_cell_mapped[3];
+  double scanning_unit_cell[3];
+  double  fpair, forcecoul, factor_coul;
+  double prefactor;
+  double r;
 
-double r2inv;
-double r6inv;
-double shape_func;
-double shape_func2;
-double boxmap_matrix[3][3];
-int neighborflag=0;
-int outofbounds=0;
-int timestep=update->ntimestep;
-double unit_cell_mapped[3];
-double scanning_unit_cell[3];
-double box_positions[8][3];
-double  fpair, forcecoul, factor_coul;
-double prefactor;
-double r;
+  double erfcc, erfcd, v_sh, dvdrr, e_self, e_shift, f_shift, qisq;
+  double *special_coul = force->special_coul;
+  double qqrd2e = force->qqrd2e;
+  int *type = atom->type;
+  double unit_cell[3];
+  double distancesq;
+  double current_position[3];
+  double scan_position[3];
+  double rcut;
+  int current_type = poly_counter;
+  int *element_type = atom->element_type;
 
-double erfcc, erfcd, v_sh, dvdrr, e_self, e_shift, f_shift, qisq;
-double *special_coul = force->special_coul;
-double qqrd2e = force->qqrd2e;
-int *type = atom->type;
-double unit_cell[3];
-double distancesq;
-double current_position[3];
-double scan_position[3];
-double rcut;
-int current_type = poly_counter;
-int *element_type = atom->element_type;
-double cbox_positions[3];
-
-int flagm;
-int neigh_count=0;
-int neigh_index=0;
-double cds[3];
-double maxds=0;
-double maxdt=0;
-double maxdw=0;
-int neighbor_cell_count[3];
-int nodes_per_element;
-int *nodes_count_list = atom->nodes_per_element_list;	
-int neighbor_nodes_per_element;
+  int nodes_per_element;
+  int *nodes_count_list = atom->nodes_per_element_list;	
+  int neighbor_nodes_per_element;
 
 //equivalent isoparametric cutoff range for a cube of rcut
 
 
-unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
+  unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
+  unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
+  unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 
+  unit_cell[0] = s;
+  unit_cell[1] = t;
+  unit_cell[2] = w;
 
+  //scan the surrounding unit cell locations in a cartesian grid
+  //of isoparametric space until the cutoff is exceeded
+  //for each grid scan
 
-
-
-
-unit_cell[0] = s;
-unit_cell[1] = t;
-unit_cell[2] = w;
-
-
-
-
-
-//scan the surrounding unit cell locations in a cartesian grid
-//of isoparametric space until the cutoff is exceeded
-//for each grid scan
-
-
- scanning_unit_cell[0]=unit_cell[0];
- scanning_unit_cell[1]=unit_cell[1];
- scanning_unit_cell[2]=unit_cell[2];
-
-
-int distanceflag=0;
-    current_position[0]=0;
-    current_position[1]=0;
-    current_position[2]=0;
+  int distanceflag=0;
+  current_position[0]=0;
+  current_position[1]=0;
+  current_position[2]=0;
 
 	if (!atomic_flag) {
 		nodes_per_element = nodes_count_list[current_element_type];
@@ -378,7 +337,7 @@ int distanceflag=0;
 	          local_inner_max=neigh_max;
 	        }      
 			for (int l = 0; l < neigh_max; l++) {
-			scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
+			  scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
 		    scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
 		    scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
 		     //listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
@@ -387,7 +346,7 @@ int distanceflag=0;
 		    element_index = listindex;
 		    element_index &= NEIGHMASK;
 		    inner_neighbor_types[l] = node_types[element_index][poly_index];
-			inner_neighbor_charges[l] = node_charges[element_index][poly_index];
+			  inner_neighbor_charges[l] = node_charges[element_index][poly_index];
 		    neigh_list_cord(inner_neighbor_coords[l][0], inner_neighbor_coords[l][1], inner_neighbor_coords[l][2],
 			  element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
 

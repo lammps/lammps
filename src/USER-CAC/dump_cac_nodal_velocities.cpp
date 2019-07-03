@@ -83,7 +83,6 @@ void DumpCACNodalVelocities::init_style()
   strcat(format,"\n");
   nodes_per_element = atom->nodes_per_element;
   maxpoly = atom->maxpoly;
-  //size_one = 6;
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
 
@@ -139,8 +138,6 @@ int DumpCACNodalVelocities::modify_param(int narg, char **arg)
 /*------------------------------------------------------------------------*/
 int DumpCACNodalVelocities::count()
 {
-	//if (igroup == 0) return (poly_count[i] + 1)*nodes_per_element*atom->nlocal;
-  
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
   int *element_type= atom->element_type;
@@ -175,12 +172,9 @@ void DumpCACNodalVelocities::write_header(bigint n)
 {
  
   if (me == 0) {
-    
-	 
 	fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
 	" e= " BIGINT_FORMAT " Q4 " "\n",
 	update->ntimestep, (bigint)total_node_count, atom->natoms);
-    
   }
 }
 
@@ -195,7 +189,6 @@ void DumpCACNodalVelocities::pack(tagint *ids)
   int *mask = atom->mask;
   double ****nodal_velocities = atom->nodal_velocities;
   int *nodes_per_element_list = atom->nodes_per_element_list;
-  //double ****initial_nodal_positions = atom->initial_nodal_positions;
   int nlocal = atom->nlocal;
   int *poly_count = atom->poly_count;
   int *element_type = atom->element_type;
@@ -224,7 +217,6 @@ void DumpCACNodalVelocities::pack(tagint *ids)
 	  }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    convert mybuf of doubles to one big formatted string in sbuf

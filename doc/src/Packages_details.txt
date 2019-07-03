@@ -1110,7 +1110,8 @@ src/USER-CAC: filenames -> commands
 "pair_style cac/coul/wolf"_pair_cac_coul_wolf.html
 "pair_style cac/buck"_pair_cac_buck.html
 "pair_style cac/sw"_pair_cac_sw.html
-"pair_style cac/eam"_pair_cac_eam.html 
+"pair_style cac/eam"_pair_cac_eam.html
+"pair_style cac/eam/interp"_pair_cac_eam_interp.html
 "min_style cac/cg"_min_style.html
 "min_style cac/fire"_min_style.html
 "fix cac/nve"_fix_cac_nve.html
@@ -1119,12 +1120,13 @@ src/USER-CAC: filenames -> commands
 "fix cac/setforce"_fix_cac_setforce.html
 "fix cac/addforce"_fix_cac_addforce.html
 "fix cac/temp/rescale"_fix_cac_temp_rescale.html
-"compute cac/quad_count"_compute_cac_quad_count.html
-"compute cac/nodal_temp"_compute_cac_nodal_temp.html
-"dump cac/nodal_positions"_dump_cac_nodal_positions.html
-"dump cac/initial_nodes"_dump_cac_initial_nodes.html
-"dump cac/nodal_velocities"_dump_cac_nodal_velocities.html
-"dump cac/kinetic_energy"_dump_cac_kinetic.html
+"compute cac/quad/count"_compute_cac_quad_count.html
+"compute cac/nodal/temp"_compute_cac_nodal_temp.html
+"dump cac/nodal/positions"_dump_cac_nodal_positions.html
+"dump cac/initial/nodes"_dump_cac_initial_nodes.html
+"dump cac/nodal/velocities"_dump_cac_nodal_velocities.html
+"dump cac/nodal/forces"_dump_cac_nodal_forces.html
+"dump cac/kinetic/energy"_dump_cac_kinetic.html
 "dump cac/xyz"_dump_cac_xyz.html :ul
 
 Example inputs are in the examples/USER/CAC folder.

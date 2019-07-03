@@ -28,7 +28,7 @@ dump meshvel all cac/nodal/velocities 1000 CACmeshvel.txt
 Periodically outputs the nodal velocities at the specified interval. The nodal velocities
 of all finite elements for each of their respective internal degrees of freedom will be 
 printed; atom velocities will also be printed and denoted by the 0 element type following
-one line of position data.
+one line of velocity data.
 
 NOTE: Unless the "dump_modify sort"_dump_modify.html option
 is invoked, the atoms and finite elements will be written in an indeterminate 

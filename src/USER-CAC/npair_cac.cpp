@@ -30,18 +30,17 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NPairCAC::NPairCAC(LAMMPS *lmp) : NPair(lmp) {
-	nmax=0;
-	maxneigh_quad = MAXNEIGH;
-	max_expansion_count = 0;
-	bad_bin_flag=0;
+  nmax=0;
+  maxneigh_quad = MAXNEIGH;
+  max_expansion_count = 0;
+  bad_bin_flag=0;
 	
-  //interior_scales = NULL;
   surface_counts = NULL;
-	interior_scales = NULL;
+  interior_scales = NULL;
   old_atom_etype = NULL;
   current_element_quad_points=NULL;
   quad_allocated = 0;
-	scan_flags = NULL;
+  scan_flags = NULL;
   max_quad_alloc=0;
   surface_counts_max[0] = 1;
   surface_counts_max[1] = 1;
@@ -58,35 +57,24 @@ NPairCAC::NPairCAC(LAMMPS *lmp) : NPair(lmp) {
 NPairCAC::~NPairCAC() 
 {
 
-if (quad_allocated) {
-		for (int init = 0; init < old_atom_count; init++) {
-
-			if (old_atom_etype[init] == 0) {
-				memory->destroy(quad_list_container[init][0]);
-				memory->sfree(quad_list_container[init]);
-				
-			}
-			else {
-
-				for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
-					memory->destroy(quad_list_container[init][neigh_loop]);
-				}
-				memory->sfree(quad_list_container[init]);
-				
-			
-			}
+  if (quad_allocated) {
+    for (int init = 0; init < old_atom_count; init++) {
+      if (old_atom_etype[init] == 0) {
+        memory->destroy(quad_list_container[init][0]);
+        memory->sfree(quad_list_container[init]);	
+	  }
+      else {
+        for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
+          memory->destroy(quad_list_container[init][neigh_loop]);
 		}
-
-		memory->sfree(quad_list_container);
-		
-
-	
-    memory->destroy(current_element_quad_points);
-
+		memory->sfree(quad_list_container[init]);		
+	  }
 	}
-
-    memory->destroy(surface_counts);
-	memory->destroy(interior_scales);
+  memory->sfree(quad_list_container);	
+  memory->destroy(current_element_quad_points);
+  }
+  memory->destroy(surface_counts);
+  memory->destroy(interior_scales);
 }
 
 /* ----------------------------------------------------------------------
@@ -153,13 +141,11 @@ void NPairCAC::build(NeighList *list)
 			surface_counts_max_old[0] = surface_counts_max[0];
 			surface_counts_max_old[1] = surface_counts_max[1];
 			surface_counts_max_old[2] = surface_counts_max[2];
-			//atomic_counter = 0;
 			for (i = 0; i < atom->nlocal; i++) {
 			current_nodal_positions = nodal_positions[i];
 			current_element_scale[0] = element_scale[i][0];
 			current_element_scale[1] = element_scale[i][1];
 			current_element_scale[2] = element_scale[i][2];	
-				//if (current_element_type == 0) atomic_counter += 1;
 				if (element_type[i] != 0) {
 					
 					for (current_poly_counter = 0; current_poly_counter < poly_count[i]; current_poly_counter++) {
@@ -210,18 +196,13 @@ void NPairCAC::build(NeighList *list)
 	      firstneigh = list->firstneigh;
 	      							
 		  }
-      //firstneigh[0] = neighptr;
 
   int inum = 0;
   int qi=0;
 	int quadrature_count;
-  //ipage->reset();
  //loop over elements
   for (i = 0; i < nlocal; i++) {
-    
-    //neighptr = ipage->vget();
-		
-    itype = type[i];
+  itype = type[i];
 	current_element_type = element_type[i];
 	current_element_scale[0] = element_scale[i][0];
 	current_element_scale[1] = element_scale[i][1];
@@ -245,10 +226,8 @@ void NPairCAC::build(NeighList *list)
 		current_element_quad_points[0][2]=x[i][2];
 		}
 		
-	// loop over all atoms in surrounding bins in stencil including self
-	// skip i = j
-
-	//ibin = atom2bin[i];
+// loop over all atoms in surrounding bins in stencil including self
+// skip i = j
 //loop over quadrature points of elements, by convention an atom is one quadrature point
 for (int iquad = 0; iquad < quadrature_count; iquad++) {
 	n = 0;
@@ -263,6 +242,7 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 			j = bin_content[ibin + stencil[k]][jj];
 			if (i == j) continue;
       if(neighbor_element_type!=0){
+        //checks for repeat elements
 				if(scan_flags[j]) continue;
 			}
 				
@@ -270,23 +250,6 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 			jtype = type[j];
 			
 			neighbor_element_type = element_type[j];
-		  //check if this element is already in the neighborlist
-			/*
-			
-			*/
-			//check if this element is already in the neighborlist
-			/*
-			if(neighbor_element_type!=0){
-				int repeat_index_flag=0;
-				for(int neighscan=0; neighscan<n; neighscan++){
-					if(quad_list_container[i][iquad][neighscan]==j) {
-						repeat_index_flag=1;
-						break;
-					}
-				}
-				if(repeat_index_flag) continue;
-			}
-      */
 			if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
       
 	    //check if array is large enough; allocate more if needed
@@ -297,7 +260,6 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 						maxneigh_quad + expansion_count*EXPAND, "NPair CAC:cell indexes expand");
 
 			}
-			
 			
 	    current_quad_point[0]=current_element_quad_points[iquad][0];
 			current_quad_point[1]=current_element_quad_points[iquad][1];
@@ -319,21 +281,10 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 				if (rsq <= cutneighmax*cutneighmax)
 			 neighptr[n++] = j;
 			
-					
 			}
-			
-		
-			
-		  
-      
-      
-			
-      
-    
+
 	}
     	
-      
-	
   }
 	numneigh[qi] = n;
 	ilist[qi] = i;
@@ -387,7 +338,6 @@ double NPairCAC::shape_function(double s, double t, double w, int flag, int inde
 
 	}
 	return shape_function;
-
 
 }
 
@@ -486,8 +436,6 @@ void NPairCAC::quadrature_init(int quadrature_rank) {
 	}
 	if (quadrature_rank == 2) {
 
-
-
 		quadrature_node_count = 2;
 
 		memory->create(quadrature_abcissae, quadrature_node_count, "pairCAC:quadrature_abcissae");
@@ -500,16 +448,13 @@ void NPairCAC::quadrature_init(int quadrature_rank) {
 	if (quadrature_rank == 3)
 	{
 
-
 	}
 	if (quadrature_rank == 4)
 	{
 
-
 	}
 	if (quadrature_rank == 5)
 	{
-
 
 	}
 
@@ -520,7 +465,6 @@ void NPairCAC::quadrature_init(int quadrature_rank) {
 //compute and store quad points for the element referred to by element_index
 
 int NPairCAC::compute_quad_points(int element_index){
-
 
 	double unit_cell_mapped[3];
 	double interior_scale[3];
@@ -546,15 +490,7 @@ int NPairCAC::compute_quad_points(int element_index){
 	int current_poly_count = poly_count[element_index];
   int quadrature_counter=0;
 
-
 	//compute quadrature point positions to test for neighboring
-
-
-
-
-
-
-
 	int sign[2];
 	sign[0] = -1;
 	sign[1] = 1;
@@ -566,11 +502,8 @@ int NPairCAC::compute_quad_points(int element_index){
 		interior_scale[1]= interior_scales[element_index][1];
 		interior_scale[2]= interior_scales[element_index][2];
 	for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
-		//current_poly_counter = poly_counter;
-		
 		
 		//interior contributions
-
 
 		for (int i = 0; i < quadrature_node_count; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
@@ -646,7 +579,6 @@ int NPairCAC::compute_quad_points(int element_index){
 			}
 		}
 		
-	
 
 	// t axis contributions
 	
@@ -742,8 +674,6 @@ int NPairCAC::compute_quad_points(int element_index){
 			}
 		}
 	
-
-
 	int surface_countx;
 	int surface_county;
 
@@ -766,9 +696,8 @@ int NPairCAC::compute_quad_points(int element_index){
 			surface_county = surface_count[2];
 		}
 
-
 		
-		for (int i = 0; i < surface_countx; i++) {//alter surface counts for specific corner
+		for (int i = 0; i < surface_countx; i++) {
 			for (int j = 0; j < surface_county; j++) {
 				
 				for (int k = 0; k < quadrature_node_count; k++) {
@@ -897,8 +826,6 @@ int NPairCAC::compute_quad_points(int element_index){
 								t = t + 0.5*unit_cell_mapped[1];
 						}
 
-
-
 						quad_position[0] = 0;
 						quad_position[1] = 0;
 						quad_position[2] = 0;
@@ -920,12 +847,10 @@ int NPairCAC::compute_quad_points(int element_index){
 			}
 		}
 	
-
-
 	//compute corner contributions
 
 	for (int sc = 0; sc < 8; sc++) {
-		for (int i = 0; i < surface_count[0]; i++) {//alter surface counts for specific corner
+		for (int i = 0; i < surface_count[0]; i++) {
 			for (int j = 0; j < surface_count[1]; j++) {
 				for (int k = 0; k < surface_count[2]; k++) {
 					
@@ -996,7 +921,6 @@ int NPairCAC::compute_quad_points(int element_index){
 		}
 	}
 
-
 	return quadrature_counter;
 
 }
@@ -1023,11 +947,8 @@ int NPairCAC::CAC_decide_quad2element(int neighbor_element_index) {
 	double bounding_boxlo[3];
 	double bounding_boxhi[3];
 	int *nodes_per_element_list = atom->nodes_per_element_list;
-	
-	//current_nodal_positions = nodal_positions[element_index];
 	double ***neighbor_nodal_positions=nodal_positions[neighbor_element_index];
-	//int current_poly_count = poly_count[element_index];
-    int neighbor_poly_count = poly_count[neighbor_element_index];
+  int neighbor_poly_count = poly_count[neighbor_element_index];
 	int neighbor_nodes_per_element = nodes_per_element_list[element_type[neighbor_element_index]];
   double *current_ebox;
   
@@ -1039,36 +960,6 @@ int NPairCAC::CAC_decide_quad2element(int neighbor_element_index) {
 	bounding_boxhi[1] = current_ebox[4];
 	bounding_boxhi[2] = current_ebox[5];
 	
-	//initialize bounding box values
-	/*
-	bounding_boxlo[0] = neighbor_nodal_positions[0][0][0];
-	bounding_boxlo[1] = neighbor_nodal_positions[0][0][1];
-	bounding_boxlo[2] = neighbor_nodal_positions[0][0][2];
-	bounding_boxhi[0] = neighbor_nodal_positions[0][0][0];
-	bounding_boxhi[1] = neighbor_nodal_positions[0][0][1];
-	bounding_boxhi[2] = neighbor_nodal_positions[0][0][2];
-     //define the bounding box for the element being considered as a neighbor
-	
-	for (int poly_counter = 0; poly_counter < neighbor_poly_count; poly_counter++) {
-		for (int kkk = 0; kkk < neighbor_nodes_per_element; kkk++) {
-			for (int dim = 0; dim < 3; dim++) {
-				if (neighbor_nodal_positions[kkk][poly_counter][dim] < bounding_boxlo[dim]) {
-					bounding_boxlo[dim] = neighbor_nodal_positions[kkk][poly_counter][dim];
-				}
-				if (neighbor_nodal_positions[kkk][poly_counter][dim] > bounding_boxhi[dim]) {
-					bounding_boxhi[dim] = neighbor_nodal_positions[kkk][poly_counter][dim];
-				}
-			}
-		}
-	}
-
-	bounding_boxlo[0] -= CAC_cut;
-	bounding_boxlo[1] -= CAC_cut;
-	bounding_boxlo[2] -= CAC_cut;
-	bounding_boxhi[0] += CAC_cut;
-	bounding_boxhi[1] += CAC_cut;
-	bounding_boxhi[2] += CAC_cut;
-	*/
 	if(current_quad_point[0]>bounding_boxlo[0]&&current_quad_point[0]<bounding_boxhi[0]&&
 		current_quad_point[1]>bounding_boxlo[1]&&current_quad_point[1]<bounding_boxhi[1]&&
 		current_quad_point[2]>bounding_boxlo[2]&&current_quad_point[2]<bounding_boxhi[2])
@@ -1080,9 +971,7 @@ int NPairCAC::CAC_decide_quad2element(int neighbor_element_index) {
 		return found_flag;
 	}
 	
-
 }
-
 
 //allocate quadrature based neighbor storage
 
@@ -1098,8 +987,6 @@ void NPairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
  int current_quad_count;
  //number of atoms and quadrature points, i.e. atoms are counted as quadrature points.
 	quadrature_point_count=0;
-		//(surface_counts_max_old[0] != n1 || surface_counts_max_old[1] != n2 || surface_counts_max_old[2] != n3)
-
 	
 	maxneigh_quad += max_expansion_count*EXPAND;
 	
@@ -1112,7 +999,6 @@ void NPairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 			if (old_atom_etype[init] == 0) {
 				memory->destroy(quad_list_container[init][0]);
 				memory->sfree(quad_list_container[init]); 
-			
 				
 			}
 			else {
@@ -1121,17 +1007,13 @@ void NPairCAC::allocate_quad_neigh_list(int n1,int n2,int n3,int quad) {
 					memory->destroy(quad_list_container[init][neigh_loop]);
 				}
 				memory->sfree(quad_list_container[init]);
-				
 			
 			}
 		}
 
 		memory->sfree(quad_list_container);
 	
-		
-	
 	}
-	//memory->create(quadrature_neighbor_list, atom->nlocal, quad_count*atom->maxpoly, MAXNEIGH2, "Pair CAC/LJ: quadrature_neighbor_lists");
 	
 	
 		quad_list_container= (int ***) memory->smalloc(atom->nlocal*sizeof(int **), "NPair CAC:quad_list_container");
@@ -1195,7 +1077,6 @@ bigint NPairCAC::memory_usage()
 
 			if (old_atom_etype[init] == 0) {
 				bytes_used +=memory->usage(quad_list_container[init][0], maxneigh_quad);
-				//bytes_used +=memory->usage(quad_list_container[init],1);
 				
 			}
 			else {
@@ -1203,16 +1084,11 @@ bigint NPairCAC::memory_usage()
 				for (int neigh_loop = 0; neigh_loop < old_quad_count; neigh_loop++) {
 					bytes_used +=memory->usage(quad_list_container[init][neigh_loop], maxneigh_quad);
 				}
-				//bytes_used +=memory->usage(quad_list_container[init].list2ucell,1);
 				
 			
 			}
 		}
 
-		//bytes_used +=memory->usage(quad_list_container,old_atom_count);
-		
-
-	
     bytes_used +=memory->usage(current_element_quad_points,max_quad_count);
 
 	}

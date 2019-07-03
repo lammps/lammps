@@ -55,8 +55,10 @@ for potentials that do not go to 0 smoothly at the truncation distance;
 work fine, while "pair_lj"_pair_lj.html will perform poorly unless 
 the cutoff is very large.  Furthermore, computation of the heat capacity with
 this compute is restricted to those that implement the single_hessian method
-in Pair.  This is the list of pair styles that currently implement
-pair_hessian:
+in Pair.  Implementing single_hessian in additional pair styles is simple.
+Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke (kofke at
+buffalo.edu) if your desired pair style does not have this method.  This is
+the list of pair styles that currently implement pair_hessian:
 
 "lj_smooth_linear"_pair_lj_smooth_linear.html :l
 :ule

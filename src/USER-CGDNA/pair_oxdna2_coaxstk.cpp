@@ -62,9 +62,9 @@ PairOxdna2Coaxstk::~PairOxdna2Coaxstk()
     memory->destroy(cut_cxst_hi);
     memory->destroy(cut_cxst_lc);
     memory->destroy(cut_cxst_hc);
+    memory->destroy(cutsq_cxst_hc);
     memory->destroy(b_cxst_lo);
     memory->destroy(b_cxst_hi);
-    memory->destroy(cutsq_cxst_hc);
 
     memory->destroy(a_cxst1);
     memory->destroy(theta_cxst1_0);
@@ -144,8 +144,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   double df2,df4f6t1,df4t4,df4t5,df4t6,rsint;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;

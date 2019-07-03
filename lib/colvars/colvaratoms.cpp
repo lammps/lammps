@@ -22,7 +22,7 @@ cvm::atom::atom()
   index = -1;
   id = -1;
   mass = 1.0;
-  charge = 1.0;
+  charge = 0.0;
   reset_data();
 }
 
@@ -107,6 +107,8 @@ cvm::atom_group::~atom_group()
     delete fitting_group;
     fitting_group = NULL;
   }
+
+  cvm::main()->unregister_named_atom_group(this);
 }
 
 
@@ -183,10 +185,7 @@ int cvm::atom_group::init()
   // These may be overwritten by parse(), if a name is provided
 
   atoms.clear();
-
-  // TODO: check with proxy whether atom forces etc are available
-  init_ag_requires();
-
+  init_dependencies();
   index = -1;
 
   b_dummy = false;
@@ -207,8 +206,67 @@ int cvm::atom_group::init()
 }
 
 
+int cvm::atom_group::init_dependencies() {
+  size_t i;
+  // Initialize static array once and for all
+  if (features().size() == 0) {
+    for (i = 0; i < f_ag_ntot; i++) {
+      modify_features().push_back(new feature);
+    }
+
+    init_feature(f_ag_active, "active", f_type_dynamic);
+    init_feature(f_ag_center, "translational fit", f_type_static);
+    init_feature(f_ag_rotate, "rotational fit", f_type_static);
+    init_feature(f_ag_fitting_group, "fitting group", f_type_static);
+    init_feature(f_ag_explicit_gradient, "explicit atom gradient", f_type_dynamic);
+    init_feature(f_ag_fit_gradients, "fit gradients", f_type_user);
+    require_feature_self(f_ag_fit_gradients, f_ag_explicit_gradient);
+
+    init_feature(f_ag_atom_forces, "atomic forces", f_type_dynamic);
+
+    // parallel calculation implies that we have at least a scalable center of mass,
+    // but f_ag_scalable is kept as a separate feature to deal with future dependencies
+    init_feature(f_ag_scalable, "scalable group calculation", f_type_static);
+    init_feature(f_ag_scalable_com, "scalable group center of mass calculation", f_type_static);
+    require_feature_self(f_ag_scalable, f_ag_scalable_com);
+
+    // check that everything is initialized
+    for (i = 0; i < colvardeps::f_ag_ntot; i++) {
+      if (is_not_set(i)) {
+        cvm::error("Uninitialized feature " + cvm::to_str(i) + " in " + description);
+      }
+    }
+  }
+
+  // Initialize feature_states for each instance
+  // default as unavailable, not enabled
+  feature_states.reserve(f_ag_ntot);
+  for (i = 0; i < colvardeps::f_ag_ntot; i++) {
+    feature_states.push_back(feature_state(false, false));
+  }
+
+  // Features that are implemented (or not) by all atom groups
+  feature_states[f_ag_active].available = true;
+  // f_ag_scalable_com is provided by the CVC iff it is COM-based
+  feature_states[f_ag_scalable_com].available = false;
+  // TODO make f_ag_scalable depend on f_ag_scalable_com (or something else)
+  feature_states[f_ag_scalable].available = true;
+  feature_states[f_ag_fit_gradients].available = true;
+  feature_states[f_ag_fitting_group].available = true;
+  feature_states[f_ag_explicit_gradient].available = true;
+
+  return COLVARS_OK;
+}
+
+
 int cvm::atom_group::setup()
 {
+  if (atoms_ids.size() == 0) {
+    atoms_ids.reserve(atoms.size());
+    for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
+      atoms_ids.push_back(ai->id);
+    }
+  }
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
     ai->update_mass();
     ai->update_charge();
@@ -237,15 +295,6 @@ void cvm::atom_group::update_total_mass()
 }
 
 
-void cvm::atom_group::reset_mass(std::string &name, int i, int j)
-{
-  update_total_mass();
-  cvm::log("Re-initialized atom group "+name+":"+cvm::to_str(i)+"/"+
-           cvm::to_str(j)+". "+ cvm::to_str(atoms_ids.size())+
-           " atoms: total mass = "+cvm::to_str(total_mass)+".\n");
-}
-
-
 void cvm::atom_group::update_total_charge()
 {
   if (b_dummy) {
@@ -260,6 +309,19 @@ void cvm::atom_group::update_total_charge()
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
       total_charge += ai->charge;
     }
+  }
+}
+
+
+void cvm::atom_group::print_properties(std::string const &colvar_name,
+                                       int i, int j)
+{
+  if (cvm::proxy->updated_masses() && cvm::proxy->updated_charges()) {
+    cvm::log("Re-initialized atom group for variable \""+colvar_name+"\":"+
+             cvm::to_str(i)+"/"+
+             cvm::to_str(j)+". "+ cvm::to_str(atoms_ids.size())+
+             " atoms: total mass = "+cvm::to_str(total_mass)+
+             ", total charge = "+cvm::to_str(total_charge)+".\n");
   }
 }
 
@@ -450,10 +512,21 @@ int cvm::atom_group::parse(std::string const &group_conf)
   if (cvm::debug())
     cvm::log("Done initializing atom group \""+key+"\".\n");
 
-  cvm::log("Atom group \""+key+"\" defined, "+
-            cvm::to_str(atoms_ids.size())+" atoms initialized: total mass = "+
-            cvm::to_str(total_mass)+", total charge = "+
-            cvm::to_str(total_charge)+".\n");
+  {
+    std::string init_msg;
+    init_msg.append("Atom group \""+key+"\" defined with "+
+                    cvm::to_str(atoms_ids.size())+" atoms requested");
+    if ((cvm::proxy)->updated_masses()) {
+      init_msg.append(": total mass = "+
+                      cvm::to_str(total_mass));
+      if ((cvm::proxy)->updated_charges()) {
+        init_msg.append(", total charge = "+
+                        cvm::to_str(total_charge));
+      }
+    }
+    init_msg.append(".\n");
+    cvm::log(init_msg);
+  }
 
   if (b_print_atom_ids) {
     cvm::log("Internal definition of the atom group:\n");
@@ -464,7 +537,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
 }
 
 
-int cvm::atom_group::add_atoms_of_group(atom_group const * ag)
+int cvm::atom_group::add_atoms_of_group(atom_group const *ag)
 {
   std::vector<int> const &source_ids = ag->atoms_ids;
 
@@ -696,6 +769,7 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
           return INPUT_ERROR;
         }
       }
+      enable(f_ag_fitting_group);
     }
 
     atom_group *group_for_fit = fitting_group ? fitting_group : this;
@@ -800,24 +874,24 @@ int cvm::atom_group::create_sorted_ids()
 
   // Sort the internal IDs
   std::list<int> sorted_atoms_ids_list;
-  for (size_t i = 0; i < this->size(); i++) {
+  for (size_t i = 0; i < atoms_ids.size(); i++) {
     sorted_atoms_ids_list.push_back(atoms_ids[i]);
   }
   sorted_atoms_ids_list.sort();
   sorted_atoms_ids_list.unique();
-  if (sorted_atoms_ids_list.size() != this->size()) {
+  if (sorted_atoms_ids_list.size() != atoms_ids.size()) {
     return cvm::error("Error: duplicate atom IDs in atom group? (found " +
                       cvm::to_str(sorted_atoms_ids_list.size()) +
                       " unique atom IDs instead of " +
-                      cvm::to_str(this->size()) + ").\n", BUG_ERROR);
+                      cvm::to_str(atoms_ids.size()) + ").\n", BUG_ERROR);
   }
 
   // Compute map between sorted and unsorted elements
-  sorted_atoms_ids.resize(this->size());
-  sorted_atoms_ids_map.resize(this->size());
+  sorted_atoms_ids.resize(atoms_ids.size());
+  sorted_atoms_ids_map.resize(atoms_ids.size());
   std::list<int>::iterator lsii = sorted_atoms_ids_list.begin();
   size_t ii = 0;
-  for ( ; ii < this->size(); lsii++, ii++) {
+  for ( ; ii < atoms_ids.size(); lsii++, ii++) {
     sorted_atoms_ids[ii] = *lsii;
     size_t const pos = std::find(atoms_ids.begin(), atoms_ids.end(), *lsii) -
       atoms_ids.begin();
@@ -1038,15 +1112,15 @@ int cvm::atom_group::calc_center_of_mass()
 }
 
 
-int cvm::atom_group::calc_dipole(cvm::atom_pos const &com)
+int cvm::atom_group::calc_dipole(cvm::atom_pos const &dipole_center)
 {
   if (b_dummy) {
-    cvm::error("Error: trying to compute the dipole of an empty group.\n", INPUT_ERROR);
-    return COLVARS_ERROR;
+    return cvm::error("Error: trying to compute the dipole "
+                      "of a dummy group.\n", INPUT_ERROR);
   }
   dip.reset();
   for (cvm::atom_const_iter ai = this->begin(); ai != this->end(); ai++) {
-    dip += ai->charge * (ai->pos - com);
+    dip += ai->charge * (ai->pos - dipole_center);
   }
   return COLVARS_OK;
 }
@@ -1056,13 +1130,12 @@ void cvm::atom_group::set_weighted_gradient(cvm::rvector const &grad)
 {
   if (b_dummy) return;
 
-  if (is_enabled(f_ag_scalable)) {
-    scalar_com_gradient = grad;
-    return;
-  }
+  scalar_com_gradient = grad;
 
-  for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-    ai->grad = (ai->mass/total_mass) * grad;
+  if (!is_enabled(f_ag_scalable)) {
+    for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
+      ai->grad = (ai->mass/total_mass) * grad;
+    }
   }
 }
 

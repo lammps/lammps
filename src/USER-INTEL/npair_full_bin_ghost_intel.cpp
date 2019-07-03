@@ -194,7 +194,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   flt_t * _noalias const ncachez = buffers->get_ncachez();
   int * _noalias const ncachej = buffers->get_ncachej();
   int * _noalias const ncachejtype = buffers->get_ncachejtype();
-  int * _noalias const ncachetag = buffers->get_ncachetag();
+  tagint * _noalias const ncachetag = buffers->get_ncachetag();
   const int ncache_stride = buffers->ncache_stride();
 
   const int mbinx = this->mbinx;
@@ -304,7 +304,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
       flt_t * _noalias const tz = ncachez + toffs;
       int * _noalias const tj = ncachej + toffs;
       int * _noalias const tjtype = ncachejtype + toffs;
-      int * _noalias const ttag = ncachetag + toffs;
+      tagint * _noalias const ttag = ncachetag + toffs;
 
       // loop over all atoms in other bins in stencil, store every pair
       int ncount, oldbin = -9999999;
@@ -392,7 +392,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           const flt_t dely = ytmp - ty[u];
           const flt_t delz = ztmp - tz[u];
           const int jtype = tjtype[u];
-          const int jtag = ttag[u];
+          const tagint jtag = ttag[u];
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
           if (rsq > cutsq[ioffset + jtype]) addme = 0;
 

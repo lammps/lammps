@@ -96,7 +96,7 @@ group. The argument {maxedge} of the this keyword is the largest number
 of edges on a single Voronoi cell face expected to occur in the
 sample. This keyword adds the generation of a global vector with
 {maxedge}+1 entries. The last entry in the vector contains the number of
-faces with with more than {maxedge} edges. Since the polygon with the
+faces with more than {maxedge} edges. Since the polygon with the
 smallest amount of edges is a triangle, entries 1 and 2 of the vector
 will always be zero.
 

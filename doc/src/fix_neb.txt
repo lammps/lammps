@@ -97,7 +97,7 @@ Note that in this case the specified {Kspring} is in force/distance
 units.
 
 With a value of {ideal}, the spring force is computed as suggested in
-"(WeinenE)"_#WeinenE :
+"(WeinanE)"_#WeinanE :
 
 Fnudge_parallel = -{Kspring} * (RD-RDideal) / (2 * meanDist) :pre
 
@@ -224,8 +224,8 @@ specified (no inter-replica force on the end replicas).
 [(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
-:link(WeinenE)
-[(WeinenE)] E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).
+:link(WeinanE)
+[(WeinanE)] E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).
 
 :link(Jonsson)
 [(Jonsson)] Jonsson, Mills and Jacobsen, in Classical and Quantum

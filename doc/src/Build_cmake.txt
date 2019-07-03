@@ -28,20 +28,29 @@ Makefile(s). Example:
 
 cd lammps                        # change to the LAMMPS distribution directory
 mkdir build; cd build            # create a new directory (folder) for build
-cmake ../cmake \[options ...\]   # configuration with (command-line) cmake
+cmake \[options ...\] ../cmake     # configuration with (command-line) cmake
 make                             # compilation :pre
 
 The cmake command will detect available features, enable selected
-packages and options, and will generate the build environment.  The make
-command will then compile and link LAMMPS, producing (by default) an
-executable called "lmp" and a library called "liblammps.a" in the
-"build" folder.
+packages and options, and will generate the build environment.  By default
+this build environment will be created for "Unix Makefiles" on most
+platforms and particularly on Linux.  However, alternate build tools
+(e.g. Ninja) and support files for Integrated Development Environments
+(IDE) like Eclipse, CodeBlocks, or Kate can be generated, too. This is
+selected via the "-G" command line flag. For the rest of the documentation
+we will assume that the build environment is generated for makefiles
+and thus the make command will be used to compile and link LAMMPS as
+indicated above, producing (by default) an executable called "lmp" and
+a library called "liblammps.a" in the "build" folder.  When generating
+a build environment for the "Ninja" build tool, the build command would
+be "ninja" instead of "make".
 
 If your machine has multiple CPU cores (most do these days), using a
 command like "make -jN" (with N being the number of available local
 CPU cores) can be much faster.  If you plan to do development on
 LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
-ccache (= Compiler Cache) software may speed up compilation even more.
+ccache (= Compiler Cache) software may speed up repeated compilation
+even more.
 
 After compilation, you can optionally copy the LAMMPS executable and
 library into your system folders (by default under $HOME/.local) with:
@@ -108,7 +117,8 @@ command-line options.  Several useful ones are:
 -D CMAKE_BUILD_TYPE=type      # type = Release or Debug
 -G output                     # style of output CMake generates
 -DVARIABLE=value              # setting for a LAMMPS feature to enable
--D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir :pre
+-D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir
+-C path/to/preset/file        # load some CMake settings before configuring :pre
 
 All the LAMMPS-specific -D variables that a LAMMPS build supports are
 described on the pages linked to from the "Build"_Build.html doc page.

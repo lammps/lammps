@@ -49,7 +49,7 @@ For inputs that are computes, they must be a compute that calculates
 per-chunk values.  These are computes whose style names end in
 "/chunk".
 
-For inputs that are fixes, they should be a a fix that calculates
+For inputs that are fixes, they should be a fix that calculates
 per-chunk values.  For example, "fix ave/chunk"_fix_ave_chunk.html or
 "fix ave/time"_fix_ave_time.html (assuming it is time-averaging
 per-chunk data).

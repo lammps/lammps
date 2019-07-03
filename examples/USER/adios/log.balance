@@ -1,0 +1,114 @@
+LAMMPS (4 Jan 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+  using 1 OpenMP thread(s) per MPI task
+# 2d circle of particles inside a box with LJ walls
+
+variable        b index 0
+
+variable	x index 50
+variable	y index 20
+variable	d index 20
+variable	v index 5
+variable	w index 2
+
+units		lj
+dimension       2
+atom_style	atomic
+boundary        f f p
+
+lattice		hex 0.85
+Lattice spacing in x,y,z = 1.16553 2.01877 1.16553
+region		box block 0 $x 0 $y -0.5 0.5
+region		box block 0 50 0 $y -0.5 0.5
+region		box block 0 50 0 20 -0.5 0.5
+create_box	1 box
+Created orthogonal box = (0 0 -0.582767) to (58.2767 40.3753 0.582767)
+  2 by 2 by 1 MPI processor grid
+region		circle sphere $(v_d/2+1) $(v_d/2/sqrt(3.0)+1) 0.0 $(v_d/2)
+region		circle sphere 11 $(v_d/2/sqrt(3.0)+1) 0.0 $(v_d/2)
+region		circle sphere 11 6.7735026918962581988 0.0 $(v_d/2)
+region		circle sphere 11 6.7735026918962581988 0.0 10
+create_atoms	1 region circle
+Created 361 atoms
+  Time spent = 0.00171804 secs
+mass		1 1.0
+
+velocity	all create 0.5 87287 loop geom
+velocity        all set $v $w 0 sum yes
+velocity        all set 5 $w 0 sum yes
+velocity        all set 5 2 0 sum yes
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 10.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+fix             2 all wall/lj93 xlo 0.0 1 1 2.5 xhi $x 1 1 2.5
+fix             2 all wall/lj93 xlo 0.0 1 1 2.5 xhi 50 1 1 2.5
+fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi $y 1 1 2.5
+fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi 20 1 1 2.5
+
+comm_style      tiled
+fix             10 all balance 50 0.9 rcb
+
+compute         1 all property/atom proc
+variable        p atom c_1%10
+dump            2 all custom 50 balance.dump id v_p x y z
+dump            3 all custom/adios 50 balance_custom.bp id v_p x y z
+dump            4 all atom/adios 50 balance_atom.bp
+
+#dump            3 all image 50 image.*.jpg v_p type #                adiam 1.0 view 0 0 zoom 1.8 subbox yes 0.02
+#variable        colors string #                "red green blue yellow white #                purple pink orange lime gray"
+#dump_modify     3 pad 5 amap 0 10 sa 1 10 ${colors}
+
+thermo_style    custom step temp epair press f_10[3] f_10
+thermo          100
+
+run		200
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 42 29 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.926 | 4.933 | 4.944 Mbytes
+Step Temp E_pair Press f_10[3] f_10 
+       0    25.701528   -29.143179   -1.2407285    3.2354571    1.0526316 
+     100    26.269576   -29.713313    7.9052334    1.2742382    1.0304709 
+     200    26.368336   -29.809962    1.6412462    1.2520776    1.0083102 
+Loop time of 0.0992351 on 4 procs for 200 steps with 361 atoms
+
+Performance: 870660.046 tau/day, 2015.417 timesteps/s
+32.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0078368  | 0.0081607  | 0.0085468  |   0.3 |  8.22
+Neigh   | 0.002804   | 0.0045915  | 0.0092173  |   3.9 |  4.63
+Comm    | 0.044407   | 0.05352    | 0.062051   |   3.0 | 53.93
+Output  | 0.011406   | 0.012025   | 0.01342    |   0.7 | 12.12
+Modify  | 0.006305   | 0.0064294  | 0.0066617  |   0.2 |  6.48
+Other   |            | 0.01451    |            |       | 14.62
+
+Nlocal:    90.25 ave 91 max 90 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:    58.25 ave 64 max 51 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Neighs:    730.75 ave 801 max 671 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+
+Total # of neighbors = 2923
+Ave neighs/atom = 8.09695
+Neighbor list builds = 60
+Dangerous builds = 0
+Total wall time: 0:00:00

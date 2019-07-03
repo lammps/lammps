@@ -269,7 +269,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Unknown region style
+E: Unrecognized region style
 
 The choice of region style is unknown.
 

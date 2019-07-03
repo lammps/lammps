@@ -144,8 +144,7 @@ void PairComb::compute(int eflag, int vflag)
   int sht_jnum, *sht_jlist, nj;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Build short range neighbor list
 

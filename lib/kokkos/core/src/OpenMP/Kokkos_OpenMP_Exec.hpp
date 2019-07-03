@@ -185,7 +185,12 @@ int OpenMP::impl_thread_pool_rank() noexcept
 }
 
 inline
+void OpenMP::impl_static_fence( OpenMP const& instance ) noexcept {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+inline
 void OpenMP::fence( OpenMP const& instance ) noexcept {}
+#endif
 
 inline
 bool OpenMP::is_asynchronous( OpenMP const& instance ) noexcept

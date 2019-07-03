@@ -1,0 +1,76 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix neb/spin command :h3
+
+[Syntax:]
+
+fix ID group-ID neb/spin Kspring :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+neb/spin = style name of this fix command :l
+Kspring = spring constant for parallel nudging force
+(force/distance units or force units, see parallel keyword) :pre,ule
+
+[Examples:]
+
+fix 1 active neb/spin 1.0
+
+[Description:]
+
+Add nudging forces to spins in the group for a multi-replica
+simulation run via the "neb/spin"_neb_spin.html command to perform a 
+geodesic nudged elastic band (GNEB) calculation for finding the 
+transition state.
+Hi-level explanations of GNEB are given with the 
+"neb/spin"_neb_spin.html command and on the 
+"Howto replica"_Howto_replica.html doc page.  
+The fix neb/spin command must be used with the "neb/spin" command and 
+defines how inter-replica nudging forces are computed.  A GNEB 
+calculation is divided in two stages. In the first stage n replicas 
+are relaxed toward a MEP until convergence.  In the second stage, the 
+climbing image scheme is enabled, so that the replica having the highest 
+energy relaxes toward the saddle point (i.e. the point of highest energy 
+along the MEP), and a second relaxation is performed.
+
+The nudging forces are calculated as explained in
+"(BessarabB)"_#BessarabB).
+See this reference for more explanation about their expression.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+The forces due to this fix are imposed during an energy minimization,
+as invoked by the "minimize"_minimize.html command via the
+"neb/spin"_neb_spin.html command.
+
+[Restrictions:]
+
+This command can only be used if LAMMPS was built with the SPIN
+package.  See the "Build package"_Build_package.html doc
+page for more info.
+
+[Related commands:]
+
+"neb_spin"_neb_spin.html
+
+[Default:]
+
+none
+
+:line
+
+:link(BessarabB)
+[(BessarabB)] Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
+335-347 (2015).

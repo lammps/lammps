@@ -1,2 +1,5 @@
-# set environment for LAMMPS executables to find potential files
-export LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS-@LAMMPS_POTENTIALS_DIR@}
+# set environment for LAMMPS and msi2lmp executables
+# to find potential and force field files
+LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS-@LAMMPS_POTENTIALS_DIR@}
+MSI2LMP_LIBRARY=${MSI2LMP_LIBRARY-@LAMMPS_FRC_FILES_DIR@}
+export LAMMPS_POTENTIALS MSI2LMP_LIBRARY

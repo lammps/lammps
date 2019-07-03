@@ -63,7 +63,14 @@ class LAMMPS {
 
   class CiteMe *citeme;          // citation info
 
+  const char *match_style(const char *style, const char *name);
   static const char * installed_packages[];
+  static bool is_installed_pkg(const char *pkg);
+
+  static const bool has_git_info;
+  static const char git_commit[];
+  static const char git_branch[];
+  static const char git_descriptor[];
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
@@ -74,6 +81,8 @@ class LAMMPS {
   void print_config(FILE *);    // print compile time settings
 
  private:
+  struct package_styles_lists *pkg_lists;
+  void init_pkg_lists();
   void help();
   LAMMPS() {};                   // prohibit using the default constructor
   LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor

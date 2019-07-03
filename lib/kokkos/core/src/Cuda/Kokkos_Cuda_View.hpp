@@ -241,7 +241,7 @@ class ViewDataHandle< Traits ,
       sizeof(typename Traits::const_value_type) == 16 )
     &&
     // Random access trait
-    ( Traits::memory_traits::RandomAccess != 0 )
+    ( Traits::memory_traits::is_random_access != 0 )
   )>::type >
 {
 public:

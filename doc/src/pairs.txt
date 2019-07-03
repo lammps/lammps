@@ -31,7 +31,9 @@ Pair Styles :h1
    pair_dipole
    pair_dpd
    pair_dpd_fdt
+   pair_drip
    pair_dsmc
+   pair_e3b
    pair_eam
    pair_edip
    pair_eff
@@ -42,6 +44,7 @@ Pair Styles :h1
    pair_gauss
    pair_gayberne
    pair_gran
+   pair_granular
    pair_gromacs
    pair_gw
    pair_hbond_dreiding
@@ -102,6 +105,7 @@ Pair Styles :h1
    pair_sph_rhosum
    pair_sph_taitwater
    pair_sph_taitwater_morris
+   pair_spin_dipole
    pair_spin_dmi
    pair_spin_exchange
    pair_spin_magelec

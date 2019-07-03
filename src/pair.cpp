@@ -72,7 +72,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   single_extra = 0;
   svector = NULL;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  setflag = NULL;
+  cutsq = NULL;
+
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
 
   // pair_modify settings
@@ -99,6 +102,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   num_tally_compute = 0;
   list_tally_compute = NULL;
+
+  nondefault_history_transfer = 0;
+  beyond_contact = 0;
 
   // KOKKOS per-fix data masks
 
@@ -180,6 +186,10 @@ void Pair::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
       else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"nofdotr") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      no_virial_fdotr_compute = 1;
+      ++iarg;
     } else error->all(FLERR,"Illegal pair_modify command");
   }
 }
@@ -688,8 +698,7 @@ double Pair::mix_distance(double sig1, double sig2)
 
 void Pair::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */

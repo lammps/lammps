@@ -70,4 +70,4 @@ package"_Build_package.html doc page for more info.
 
 :link(Tranchida4)
 [(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson,
-Journal of Computational Physics, (2018).
+Journal of Computational Physics, 372, 406-425, (2018).

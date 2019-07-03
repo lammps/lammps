@@ -219,12 +219,6 @@ void PairCoulStreitz::init_style()
       error->all(FLERR,"Pair style requires a KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
-
-  // ptr to QEQ fix
-  //for (i = 0; i < modify->nfix; i++)
-  //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
-  //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -412,8 +406,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
   ci_jfi = ci_fifj = dci_jfi = dci_fifj = 0.0;
   forcecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   inum = list->inum;
   ilist = list->ilist;

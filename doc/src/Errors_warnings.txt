@@ -82,6 +82,15 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch. :dd
 
+{Bond/react: Atom affected by reaction too close to template edge} :dt
+
+This means an atom which changes type or connectivity during the
+reaction is too close to an 'edge' atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom. :dd
+
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
 Self-explanatory. :dd
@@ -177,12 +186,6 @@ reflect the change. :dd
 When using fixes like box/relax, the potential energy used by the minimizer
 is augmented by an additional energy provided by the fix. Thus the printed
 converged energy may be different from the total potential energy. :dd
-
-{Energy tally does not account for 'zero yes'} :dt
-
-The energy removed by using the 'zero yes' flag is not accounted
-for in the energy tally and thus energy conservation cannot be
-monitored in this case. :dd
 
 {Estimated error in splitting of dispersion coeffs is %g} :dt
 

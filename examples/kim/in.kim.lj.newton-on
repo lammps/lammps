@@ -1,0 +1,41 @@
+# 3d Lennard-Jones melt
+#
+# This example requires that the example models provided with
+# the kim-api package are installed.  see the ./lib/kim/README or
+# ./lib/kim/Install.py files for details on how to install these
+# example models.
+#
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	yy equal 20*$y
+variable	zz equal 20*$z
+
+units		metal
+atom_style	atomic
+newton          on
+
+lattice		fcc 4.4300
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+
+#pair_style	lj/cut 8.1500
+#pair_coeff	1 1 0.0104 3.4000
+
+pair_style      kim LennardJones_Ar
+pair_coeff      * * Ar
+
+mass		1 39.95
+velocity	all create 200.0 232345 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+#fix		1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run 		100

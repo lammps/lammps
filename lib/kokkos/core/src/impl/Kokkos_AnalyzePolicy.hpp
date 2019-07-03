@@ -56,11 +56,12 @@ template < typename ExecutionSpace   = void
          , typename IndexType        = void
          , typename IterationPattern = void
          , typename LaunchBounds     = void
+         , typename MyWorkItemProperty = Kokkos::Experimental::WorkItemProperty::None_t
          >
 struct PolicyTraitsBase
 {
   using type = PolicyTraitsBase< ExecutionSpace, Schedule, WorkTag, IndexType, 
-               IterationPattern, LaunchBounds>;
+               IterationPattern, LaunchBounds, MyWorkItemProperty>;
 
   using execution_space   = ExecutionSpace;
   using schedule_type     = Schedule;
@@ -68,8 +69,23 @@ struct PolicyTraitsBase
   using index_type        = IndexType;
   using iteration_pattern = IterationPattern;
   using launch_bounds     = LaunchBounds;
+  using work_item_property = MyWorkItemProperty;
 };
 
+template <typename PolicyBase, typename Property>
+struct SetWorkItemProperty
+{
+  static_assert( std::is_same<typename PolicyBase::work_item_property,Kokkos::Experimental::WorkItemProperty::None_t>::value
+               , "Kokkos Error: More than one work item property given" );
+  using type = PolicyTraitsBase< typename PolicyBase::execution_space
+                               , typename PolicyBase::schedule_type
+                               , typename PolicyBase::work_tag
+                               , typename PolicyBase::index_type
+                               , typename PolicyBase::iteration_pattern
+                               , typename PolicyBase::launch_bounds
+                               , Property
+                               >;
+};
 
 template <typename PolicyBase, typename ExecutionSpace>
 struct SetExecutionSpace
@@ -82,6 +98,7 @@ struct SetExecutionSpace
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
                                , typename PolicyBase::launch_bounds
+                               , typename PolicyBase::work_item_property
                                >;
 };
 
@@ -96,6 +113,7 @@ struct SetSchedule
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
                                , typename PolicyBase::launch_bounds
+                               , typename PolicyBase::work_item_property
                                >;
 };
 
@@ -110,6 +128,7 @@ struct SetWorkTag
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
                                , typename PolicyBase::launch_bounds
+                               , typename PolicyBase::work_item_property
                                >;
 };
 
@@ -124,6 +143,7 @@ struct SetIndexType
                                , IndexType
                                , typename PolicyBase::iteration_pattern
                                , typename PolicyBase::launch_bounds
+                               , typename PolicyBase::work_item_property
                                >;
 };
 
@@ -139,6 +159,7 @@ struct SetIterationPattern
                                , typename PolicyBase::index_type
                                , IterationPattern
                                , typename PolicyBase::launch_bounds
+                               , typename PolicyBase::work_item_property
                                >;
 };
 
@@ -154,6 +175,7 @@ struct SetLaunchBounds
                                , typename PolicyBase::index_type
                                , typename PolicyBase::iteration_pattern
                                , LaunchBounds
+                               , typename PolicyBase::work_item_property
                                >;
 };
 
@@ -170,8 +192,9 @@ struct AnalyzePolicy<Base, T, Traits...> : public
     , typename std::conditional< std::is_integral<T>::value    , SetIndexType<Base, IndexType<T> >
     , typename std::conditional< is_iteration_pattern<T>::value, SetIterationPattern<Base,T>
     , typename std::conditional< is_launch_bounds<T>::value    , SetLaunchBounds<Base,T>
+    , typename std::conditional< Experimental::is_work_item_property<T>::value, SetWorkItemProperty<Base,T>
     , SetWorkTag<Base,T>
-    >::type >::type >::type >::type >::type>::type::type
+    >::type >::type >::type >::type >::type>::type>::type::type
   , Traits...
   >
 {};
@@ -208,13 +231,15 @@ struct AnalyzePolicy<Base>
                                                      , typename Base::launch_bounds
                                                      >::type;
 
+  using work_item_property = typename Base::work_item_property;
+
   using type = PolicyTraitsBase< execution_space
                                , schedule_type
                                , work_tag
                                , index_type
                                , iteration_pattern
                                , launch_bounds
-                               >;
+                               , work_item_property>;
 };
 
 template <typename... Traits>

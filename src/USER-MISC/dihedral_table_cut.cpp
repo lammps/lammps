@@ -425,17 +425,6 @@ DihedralTableCut::DihedralTableCut(LAMMPS *lmp) : Dihedral(lmp)
 DihedralTableCut::~DihedralTableCut()
 {
   if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(setflag_d);
-    memory->destroy(setflag_aat);
-
-    memory->destroy(k1);
-    memory->destroy(k2);
-    memory->destroy(k3);
-    memory->destroy(phi1);
-    memory->destroy(phi2);
-    memory->destroy(phi3);
-
     memory->destroy(aat_k);
     memory->destroy(aat_theta0_1);
     memory->destroy(aat_theta0_2);
@@ -472,8 +461,7 @@ void DihedralTableCut::compute(int eflag, int vflag)
   double fabcd[4][3];
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -761,27 +749,15 @@ void DihedralTableCut::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  memory->create(k1,n+1,"dihedral:k1");
-  memory->create(k2,n+1,"dihedral:k2");
-  memory->create(k3,n+1,"dihedral:k3");
-  memory->create(phi1,n+1,"dihedral:phi1");
-  memory->create(phi2,n+1,"dihedral:phi2");
-  memory->create(phi3,n+1,"dihedral:phi3");
-
   memory->create(aat_k,n+1,"dihedral:aat_k");
   memory->create(aat_theta0_1,n+1,"dihedral:aat_theta0_1");
   memory->create(aat_theta0_2,n+1,"dihedral:aat_theta0_2");
 
-  memory->create(setflag,n+1,"dihedral:setflag");
-  memory->create(setflag_d,n+1,"dihedral:setflag_d");
-  memory->create(setflag_aat,n+1,"dihedral:setflag_aat");
-
   memory->create(tabindex,n+1,"dihedral:tabindex");
-  //memory->create(phi0,n+1,"dihedral:phi0"); <-equilibrium angles not supported
   memory->create(setflag,n+1,"dihedral:setflag");
 
   for (int i = 1; i <= n; i++)
-    setflag[i] = setflag_d[i] = setflag_aat[i] = 0;
+    setflag[i] = 0;
 }
 
 void DihedralTableCut::settings(int narg, char **arg)
@@ -824,9 +800,6 @@ void DihedralTableCut::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
-  int count = 0;
-
-
   double k_one = force->numeric(FLERR,arg[2]);
   double theta0_1_one = force->numeric(FLERR,arg[3]);
   double theta0_2_one = force->numeric(FLERR,arg[4]);
@@ -837,8 +810,6 @@ void DihedralTableCut::coeff(int narg, char **arg)
     aat_k[i] = k_one;
     aat_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
     aat_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
-    setflag_aat[i] = 1;
-    count++;
   }
 
   int me;
@@ -998,8 +969,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
             //  To be nice and report something, I do the same thing here.)
             cyc_splintD(tb->phi, tb->e, tb->e2, tablength, MY_2PI,phi);
           f = -dU_dphi;
-        }
-        else
+        } else
           // Otherwise we calculated the tb->f[] array.  Report its contents.
           f = tb->f[i];
         if (tb->use_degrees) {
@@ -1015,9 +985,8 @@ void DihedralTableCut::coeff(int narg, char **arg)
   } // if (me == 0)
 
   // store ptr to table in tabindex
-  count = 0;
-  for (int i = ilo; i <= ihi; i++)
-  {
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
     tabindex[i] = ntables;
     //phi0[i] = tb->phi0; <- equilibrium dihedral angles not supported
     setflag[i] = 1;
@@ -1025,12 +994,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
   }
   ntables++;
 
-
   if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
-
-  for (int i = ilo; i <= ihi; i++)
-    if (setflag_d[i] == 1 && setflag_aat[i] == 1 )
-      setflag[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1041,16 +1005,6 @@ void DihedralTableCut::write_restart(FILE *fp)
 {
   fwrite(&tabstyle,sizeof(int),1,fp);
   fwrite(&tablength,sizeof(int),1,fp);
-  fwrite(&k1[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&k2[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&k3[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&phi1[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&phi2[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&phi3[1],sizeof(double),atom->ndihedraltypes,fp);
-
-  fwrite(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1064,33 +1018,10 @@ void DihedralTableCut::read_restart(FILE *fp)
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
-    fread(&k1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi3[1],sizeof(double),atom->ndihedraltypes,fp);
-
-    fread(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
   }
 
-  MPI_Bcast(&k1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&k2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&k3[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&phi1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&phi2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&phi3[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-
-  MPI_Bcast(&aat_k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&aat_theta0_1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&aat_theta0_2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
-  for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1474,22 +1405,3 @@ void DihedralTableCut::bcast_table(Table *tb)
 }
 
 
-
-/* ----------------------------------------------------------------------
-   proc 0 writes to data file
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::write_data(FILE *fp)
-{
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g\n",i,
-            k1[i],phi1[i]*180.0/MY_PI,
-            k2[i],phi2[i]*180.0/MY_PI,
-            k3[i],phi3[i]*180.0/MY_PI);
-
-  fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,aat_k[i],
-            aat_theta0_1[i]*180.0/MY_PI,aat_theta0_2[i]*180.0/MY_PI);
-
-}

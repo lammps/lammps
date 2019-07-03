@@ -99,8 +99,8 @@ void FixTuneKspace::init()
     error->all(FLERR,"Cannot use fix tune/kspace with dipole long-range solver");
 
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
-  char old_acc_str[12];
-  sprintf(old_acc_str,"%g",old_acc);
+  char old_acc_str[16];
+  snprintf(old_acc_str,16,"%g",old_acc);
   strcpy(new_acc_str,old_acc_str);
 
   int itmp;
@@ -210,8 +210,8 @@ void FixTuneKspace::store_old_kspace_settings()
   strcpy(old_kspace_style,force->kspace_style);
   strcpy(new_kspace_style,old_kspace_style);
   double old_acc = force->kspace->accuracy_relative;
-  char old_acc_str[12];
-  sprintf(old_acc_str,"%g",old_acc);
+  char old_acc_str[16];
+  snprintf(old_acc_str,16,"%g",old_acc);
   strcpy(new_pair_style,force->pair_style);
   strcpy(base_pair_style,force->pair_style);
   char *trunc;

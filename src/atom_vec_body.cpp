@@ -25,6 +25,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -96,7 +97,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 #undef BodyStyle
 #undef BODY_CLASS
 
-  else error->all(FLERR,"Unknown body style");
+  else error->all(FLERR,utils::check_packages_for_style("body",arg[0],lmp).c_str());
 
   bptr->avec = this;
   icp = bptr->icp;
@@ -1286,7 +1287,7 @@ void AtomVecBody::data_atom(double *coord, imageint imagetmp, char **values)
   body[nlocal] = atoi(values[2]);
   if (body[nlocal] == 0) body[nlocal] = -1;
   else if (body[nlocal] == 1) body[nlocal] = 0;
-  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid bodyflag in Atoms section of data file");
 
   rmass[nlocal] = atof(values[3]);
   if (rmass[nlocal] <= 0.0)

@@ -103,12 +103,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   double* const * const forces = atom->f;
   const int ntypes = atom->ntypes;
 
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else {
-    evflag = vflag_fdotr = eflag_global = 0;
-    vflag_global = eflag_atom = vflag_atom = 0;
-  }
+  ev_init(eflag, vflag);
 
   // Grow per-atom array if necessary
 

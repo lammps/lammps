@@ -61,8 +61,7 @@ void ImproperHarmonic::compute(int eflag, int vflag)
   double sx2,sy2,sz2;
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

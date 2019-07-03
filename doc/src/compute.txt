@@ -54,9 +54,10 @@ local quantities have the word "local" in their style,
 e.g. {bond/local}.  Styles with neither "atom" or "local" in their
 style produce global quantities.
 
-Note that a single compute produces either global or per-atom or local
-quantities, but never more than one of these (with only a few
-exceptions, as documented by individual compute commands).
+Note that a single compute can produce either global or per-atom or
+local quantities, but not both global and per-atom.  It can produce
+local quantities in tandem with global or per-atom quantities.  The
+compute doc page will explain.
 
 Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The

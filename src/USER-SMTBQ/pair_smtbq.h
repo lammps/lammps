@@ -90,7 +90,7 @@ protected:
    double coordOxBulk,coordOxSurf,ROxSurf,coordOxBB,ROxBB;
 
 // Covalent interaction
-   double *ecov, *potmad, *potself, *potcov, *chimet;
+   double *ecov, *potmad, *potself, *potcov; //, *chimet;
    double **tabsmb,**dtabsmb, **tabsmr, **dtabsmr, *sbcov, *sbmet;
    double ncov;
 

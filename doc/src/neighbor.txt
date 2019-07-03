@@ -56,7 +56,7 @@ bin size is set to 1/2 of the shortest cutoff distance and multiple
 sets of bins are defined to search over for different atom types.
 This imposes some extra setup overhead, but the searches themselves
 may be much faster for the short-cutoff cases.  See the "comm_modify
-mode multi"_comm_modify.html command for a communication option option
+mode multi"_comm_modify.html command for a communication option
 that may also be beneficial for simulations of this kind.
 
 The "neigh_modify"_neigh_modify.html command has additional options

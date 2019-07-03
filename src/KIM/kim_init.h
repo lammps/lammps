@@ -78,6 +78,7 @@ class KimInit : protected Pointers {
   bool unit_conversion_mode;
 
   void determine_model_type_and_units(char *, char *, char **);
+  void write_log_cite(char *);
   void do_init(char *, char *, char *);
   void do_variables(char*, char*);
   void kim_init_log_delimiter(std::string const begin_end) const;

@@ -69,6 +69,7 @@
 #include "universe.h"
 #include "input.h"
 #include "variable.h"
+#include "citeme.h"
 #include "fix_store_kim.h"
 #include "kim_units.h"
 
@@ -98,6 +99,8 @@ void KimInit::command(int narg, char **arg)
 
   char *model_units;
   determine_model_type_and_units(model_name, user_units, &model_units);
+
+  write_log_cite(model_name);
 
   do_init(model_name, user_units, model_units);
 }
@@ -440,4 +443,53 @@ void KimInit::do_variables(char *user_units, char *model_units)
     if ((screen) && (input->echo_screen)) fputs("#\n",screen);
     if ((logfile) && (input->echo_log)) fputs("#\n",logfile);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KimInit::write_log_cite(char * model_name)
+{
+  KIM_Collections * coll;
+  int err = KIM_Collections_Create(&coll);
+  if (err) return;
+
+  int extent;
+  if (model_type == MO)
+  {
+    err = KIM_Collections_CacheListOfItemMetadataFiles(
+        coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name,&extent);
+  }
+  else if (model_type == SM)
+  {
+    err = KIM_Collections_CacheListOfItemMetadataFiles(
+        coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
+  }
+  else
+  {
+    error->all(FLERR,"Unknown model type.");
+  }
+
+  if (err)
+  {
+    KIM_Collections_Destroy(&coll);
+    return;
+  }
+
+  for (int i = 0; i < extent;++i)
+  {
+    char const * fileName;
+    int availableAsString;
+    char const * fileString;
+    err = KIM_Collections_GetItemMetadataFile(
+        coll,i,&fileName,NULL,NULL,&availableAsString,&fileString);
+    if (err) continue;
+
+    if (0 == strncmp("kimcite-",fileName,8))
+    {
+      if (lmp->citeme) lmp->citeme->add(fileString);
+      break;
+    }
+  }
+
+  KIM_Collections_Destroy(&coll);
 }

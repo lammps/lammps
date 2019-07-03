@@ -371,7 +371,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       dyds += ds[m_index][i] * dy[m_index][i];
     }
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
-    if (fabs(dyds) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
+    if (fabs(dyds_global) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
 
     // set the q vector

@@ -346,13 +346,13 @@ void MinSpinOSO_CG::calc_search_direction(int iter)
     MPI_Allreduce(&g2, &g2_global, 1, MPI_DOUBLE, MPI_SUM, world);
     MPI_Allreduce(&g2old, &g2old_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
-    // we don't know yet if we need this. Needs to be tested with multiple replica.
-    //      if (update->multireplica == 1) {
-    //        g2 = g2_global;
-    //        g2old = g2old_global;
-    //        MPI_Allreduce(&g2,&g2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-    //        MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-    //      }
+    // Sum over all replicas. Good for GNEB.
+    if (update->multireplica == 1) {
+      g2 = g2_global;
+      g2old = g2old_global;
+      MPI_Allreduce(&g2,&g2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
 
     if (fabs(g2_global) < 1.0e-40) beta = 0.0;
     else beta = g2_global / g2old_global;

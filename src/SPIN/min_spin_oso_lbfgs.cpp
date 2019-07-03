@@ -190,10 +190,13 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
   
-    if (iter == 0) energy_force(0);
-    //  dts = evaluate_dt();
-    //  dts = 1.0;
-    calc_gradient(1.0);
+    if (iter == 0){
+      energy_force(0);
+      dts = evaluate_dt();
+    }
+    else dts = 1.0;
+
+    calc_gradient(dts);
     calc_search_direction(iter);
     advance_spins();
   
@@ -371,6 +374,11 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       dyds += ds[m_index][i] * dy[m_index][i];
     }
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    if (update->multireplica == 1) {
+      dyds = dyds_global;
+      MPI_Allreduce(&dyds_global,&dyds,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
+
     if (fabs(dyds_global) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
 
@@ -393,6 +401,10 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
         sq += ds[c_ind][i] * q[i];
       }
       MPI_Allreduce(&sq, &sq_global, 1, MPI_DOUBLE, MPI_SUM, world);
+      if (update->multireplica == 1) {
+        sq = sq_global;
+        MPI_Allreduce(&sq_global,&sq,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      }
 
       // update alpha
 
@@ -411,6 +423,10 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       yy += dy[m_index][i] * dy[m_index][i];
     }
     MPI_Allreduce(&yy, &yy_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    if (update->multireplica == 1) {
+      yy = yy_global;
+      MPI_Allreduce(&yy_global,&yy,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
 
     // calculate now search direction
 
@@ -435,7 +451,12 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
       for (int i = 0; i < 3 * nlocal; i++) {
         yr += dy[c_ind][i] * p_s[i];
       }
+
       MPI_Allreduce(&yr, &yr_global, 1, MPI_DOUBLE, MPI_SUM, world);
+      if (update->multireplica == 1) {
+        yr = yr_global;
+        MPI_Allreduce(&yr_global,&yr,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      }
 
       beta = rho[c_ind] * yr_global;
       for (int i = 0; i < 3 * nlocal; i++) {

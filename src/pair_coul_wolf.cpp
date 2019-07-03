@@ -15,9 +15,9 @@
    Contributing author: Yongfeng Zhang (INL), yongfeng.zhang@inl.gov
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_wolf.h"
 #include <mpi.h>
 #include <cmath>
-#include "pair_coul_wolf.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

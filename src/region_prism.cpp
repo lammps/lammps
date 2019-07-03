@@ -15,10 +15,10 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "region_prism.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "region_prism.h"
 #include "domain.h"
 #include "force.h"
 #include "math_extra.h"

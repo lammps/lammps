@@ -1,6 +1,6 @@
+#include "math_special.h"
 #include <cmath>
 #include <stdint.h> // IWYU pragma: keep
-#include "math_special.h"
 
 using namespace LAMMPS_NS;
 

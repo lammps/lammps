@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "nbin.h"
+#include <cmath>
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "domain.h"

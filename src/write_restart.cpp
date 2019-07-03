@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"

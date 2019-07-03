@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_lj_cut.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

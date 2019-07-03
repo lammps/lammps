@@ -15,12 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair.h"
 #include <mpi.h>
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
-#include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

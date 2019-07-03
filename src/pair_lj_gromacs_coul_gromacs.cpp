@@ -15,11 +15,11 @@
    Contributing author: Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_gromacs_coul_gromacs.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_gromacs_coul_gromacs.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

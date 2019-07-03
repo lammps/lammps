@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "min_sd.h"
+#include <cmath>
 #include "update.h"
 #include "output.h"
 #include "timer.h"

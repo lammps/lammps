@@ -15,11 +15,11 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
+#include "pair_zero.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_zero.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

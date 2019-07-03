@@ -15,9 +15,9 @@
    Contributing author: Eduardo Bringa (LLNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_buck_coul_cut.h"
 #include <mpi.h>
 #include <cmath>
-#include "pair_buck_coul_cut.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

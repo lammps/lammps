@@ -15,9 +15,9 @@
    Contributing author: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
+#include "pair_dpd.h"
 #include <mpi.h>
 #include <cmath>
-#include "pair_dpd.h"
 #include "atom.h"
 #include "comm.h"
 #include "update.h"

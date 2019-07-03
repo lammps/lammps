@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "irregular.h"
 #include <mpi.h>
 #include <cstring>
-#include "irregular.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

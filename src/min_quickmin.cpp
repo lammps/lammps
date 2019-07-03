@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "min_quickmin.h"
 #include <mpi.h>
 #include <cmath>
-#include "min_quickmin.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"

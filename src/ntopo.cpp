@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ntopo.h"
+#include <mpi.h>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"

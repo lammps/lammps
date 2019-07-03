@@ -15,8 +15,8 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "improper_zero.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "memory.h"

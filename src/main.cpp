@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "lammps.h"
+#include <mpi.h>
 #include "input.h"
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)

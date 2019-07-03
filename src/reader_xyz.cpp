@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "reader_xyz.h"
 #include <cstring>
 #include <cstdlib>
-#include "reader_xyz.h"
 #include "atom.h"
 #include "memory.h"
 #include "error.h"

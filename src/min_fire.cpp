@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "min_fire.h"
 #include <mpi.h>
 #include <cmath>
-#include "min_fire.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "molecule.h"
 #include <mpi.h>
 #include <cctype>
 #include <cmath>
 #include <cstring>
-#include "molecule.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "output.h"
 #include <mpi.h>
 #include <cstring>
-#include "output.h"
 #include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"

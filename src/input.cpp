@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "input.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
@@ -18,7 +19,6 @@
 #include <cctype>
 #include <unistd.h>
 #include <sys/stat.h>
-#include "input.h"
 #include "style_command.h"
 #include "universe.h"
 #include "atom.h"

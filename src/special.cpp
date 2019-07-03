@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "special.h"
 #include <mpi.h>
 #include <cstdio>
-#include "special.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"

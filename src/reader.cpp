@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "reader.h"
 #include <cstdio>
 #include <cstring>
-#include "reader.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

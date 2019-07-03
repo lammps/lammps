@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_debye.h"
 #include <mpi.h>
 #include <cmath>
-#include "pair_coul_debye.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

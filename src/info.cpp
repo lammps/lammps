@@ -16,6 +16,7 @@
                           Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "info.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
@@ -23,7 +24,6 @@
 #include <ctime>
 #include <map>
 #include <string>
-#include "info.h"
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"

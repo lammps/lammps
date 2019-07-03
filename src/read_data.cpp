@@ -15,13 +15,13 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
+#include "read_data.h"
 #include "lmptype.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
-#include "read_data.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"

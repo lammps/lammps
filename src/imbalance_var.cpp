@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "imbalance_var.h"
 #include <mpi.h>
 #include <cstring>
-#include "imbalance_var.h"
 #include "atom.h"
 #include "group.h"
 #include "input.h"

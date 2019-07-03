@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "region_union.h"
 #include <cstdlib>
 #include <cstring>
-#include "region_union.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"

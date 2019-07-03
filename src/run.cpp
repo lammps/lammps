@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "run.h"
 #include <cstdlib>
 #include <cstring>
-#include "run.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"

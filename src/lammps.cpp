@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lammps.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
@@ -18,7 +19,6 @@
 #include <cctype>
 #include <map>
 #include <string>
-#include "lammps.h"
 #include "style_angle.h"     // IWYU pragma: keep
 #include "style_atom.h"      // IWYU pragma: keep
 #include "style_bond.h"      // IWYU pragma: keep

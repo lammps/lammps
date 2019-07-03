@@ -15,10 +15,10 @@
    Contributing author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_gauss.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_gauss.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

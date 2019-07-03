@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "update.h"
 #include <cstring>
 #include <cstdlib>
-#include "update.h"
 #include "integrate.h"
 #include "min.h"
 #include "style_integrate.h"

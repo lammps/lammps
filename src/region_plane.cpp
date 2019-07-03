@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "region_plane.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "region_plane.h"
 #include "error.h"
 #include "force.h"
 

@@ -16,9 +16,9 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cubic.h"
 #include <mpi.h>
 #include <cmath>
-#include "pair_lj_cubic.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

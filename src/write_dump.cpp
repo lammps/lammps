@@ -15,8 +15,8 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "write_dump.h"
+#include <cstring>
 #include "style_dump.h"
 #include "dump.h"
 #include "dump_image.h"

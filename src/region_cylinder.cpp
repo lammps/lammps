@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "region_cylinder.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "region_cylinder.h"
 #include "update.h"
 #include "domain.h"
 #include "input.h"

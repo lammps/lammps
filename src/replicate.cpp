@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "replicate.h"
 #include <cstdlib>
 #include <cstring>
-#include "replicate.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"

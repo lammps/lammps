@@ -15,9 +15,9 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "respa.h"
 #include <cstdlib>
 #include <cstring>
-#include "respa.h"
 #include "neighbor.h"
 #include "atom.h"
 #include "atom_vec.h"

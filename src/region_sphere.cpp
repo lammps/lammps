@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "region_sphere.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "region_sphere.h"
 #include "update.h"
 #include "input.h"
 #include "variable.h"

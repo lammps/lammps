@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_hybrid_overlay.h"
 #include <cstring>
 #include <cctype>
-#include "pair_hybrid_overlay.h"
 #include "atom.h"
 #include "force.h"
 #include "error.h"

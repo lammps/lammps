@@ -14,11 +14,11 @@
 // C or Fortran style library interface to LAMMPS
 // customize by adding new LAMMPS-specific functions
 
+#include "library.h"
 #include <mpi.h>
 #include <cctype>
 #include <cstring>
 #include <cstdlib>
-#include "library.h"
 #include "universe.h"
 #include "atom_vec.h"
 #include "atom.h"

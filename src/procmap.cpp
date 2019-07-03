@@ -15,8 +15,8 @@
    Contributing author (NUMA option) : Mike Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "procmap.h"
+#include <cstring>
 #include "universe.h"
 #include "comm.h"
 #include "domain.h"

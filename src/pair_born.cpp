@@ -15,10 +15,10 @@
    Contributing Author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_born.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_born.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

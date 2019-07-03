@@ -15,10 +15,10 @@
    Contributing author: Craig Maloney (UCSB)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_smooth.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include "pair_lj_smooth.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

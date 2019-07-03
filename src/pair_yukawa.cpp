@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_yukawa.h"
 #include <cmath>
 #include <cstdlib>
-#include "pair_yukawa.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

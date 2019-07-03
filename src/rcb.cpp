@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "rcb.h"
 #include <mpi.h>
 #include <cstring>
-#include "rcb.h"
 #include "irregular.h"
 #include "memory.h"
 #include "error.h"

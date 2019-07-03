@@ -17,11 +17,11 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
+#include "pair_ufm.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_ufm.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

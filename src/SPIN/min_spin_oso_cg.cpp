@@ -355,10 +355,9 @@ void MinSpinOSO_CG::calc_search_direction()
       MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
     }
 
-    //if (fabs(g2_global) < 1.0e-40) beta = 0.0;
-    //else beta = g2_global / g2old_global;
+    if (fabs(g2_global) < 1.0e-60) beta = 0.0;
+    else beta = g2_global / g2old_global;
     // calculate conjugate direction
-    
     for (int i = 0; i < 3 * nlocal; i++) {
   	  p_s[i] = beta * p_s[i] - g_cur[i];
 	  g_old[i] = g_cur[i];

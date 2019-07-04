@@ -96,7 +96,7 @@ void MinSpinOSO_LBFGS::init()
   discrete_factor = 10.0;
   num_mem = 3;
   local_iter = 0;
-  maxepsrot = MY_2PI / (200.0);
+  maxepsrot = MY_2PI / (100.0);
 
   Min::init();
 
@@ -209,7 +209,7 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
       if(ireplica != 0 && ireplica != nreplica-1)
     calc_gradient(1.0);
     } else calc_gradient(1.0);
-    calc_search_direction(iter);
+    calc_search_direction();
 
     // to be checked
     // if gneb calc., nreplica > 1
@@ -351,7 +351,7 @@ void MinSpinOSO_LBFGS::calc_gradient(double dts)
    Optimization' Second Edition, 2006 (p. 177)
 ---------------------------------------------------------------------- */
 
-void MinSpinOSO_LBFGS::calc_search_direction(int iter)
+void MinSpinOSO_LBFGS::calc_search_direction()
 {
   int nlocal = atom->nlocal;
 
@@ -418,12 +418,12 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     if (rho[m_index] < 0.0){
       local_iter = 0;
       for (int k = 0; k < num_mem; k++){
-	for (int i = 0; i < nlocal; i ++){     
+	for (int i = 0; i < nlocal; i ++){
       ds[k][i] = 0.0;
       dy[k][i] = 0.0;
         }
       }
-      return calc_search_direction(0);
+      return calc_search_direction();
     }
 
     // set the q vector
@@ -491,7 +491,7 @@ void MinSpinOSO_LBFGS::calc_search_direction(int iter)
     for (int k = 0; k < num_mem; k++){
       // this loop should run from the oldest memory to the newest one.
 
-      if (iter < num_mem) c_ind = k;
+      if (local_iter < num_mem) c_ind = k;
       else c_ind = (k + m_index + 1) % num_mem;
 
       // dot product between p and da

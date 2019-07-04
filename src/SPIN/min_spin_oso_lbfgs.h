@@ -38,7 +38,7 @@ public:
     void advance_spins();
     double fmnorm_sqr();
     void calc_gradient(double);
-    void calc_search_direction(int); 
+    void calc_search_direction();
     double maximum_rotation(double *);
 private:
 

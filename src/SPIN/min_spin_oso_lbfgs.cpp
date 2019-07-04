@@ -418,7 +418,7 @@ void MinSpinOSO_LBFGS::calc_search_direction()
     if (rho[m_index] < 0.0){
       local_iter = 0;
       for (int k = 0; k < num_mem; k++){
-	for (int i = 0; i < nlocal; i ++){
+	    for (int i = 0; i < nlocal; i ++){
       ds[k][i] = 0.0;
       dy[k][i] = 0.0;
         }

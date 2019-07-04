@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "run.h"
-#include <cstdlib>
 #include <cstring>
 #include "domain.h"
 #include "update.h"

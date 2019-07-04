@@ -16,13 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "respa.h"
-#include <cstdlib>
 #include <cstring>
 #include "neighbor.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "fix.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -33,10 +33,8 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
 #include "fix_respa.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
 #include "utils.h"
 #include "pair_hybrid.h"

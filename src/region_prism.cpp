@@ -16,8 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "region_prism.h"
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "domain.h"
 #include "force.h"

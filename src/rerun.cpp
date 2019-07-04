@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "rerun.h"
-#include <cstdlib>
 #include <cstring>
 #include "read_dump.h"
 #include "domain.h"

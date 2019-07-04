@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "region_intersect.h"
-#include <cstdlib>
 #include <cstring>
 #include "domain.h"
 #include "error.h"

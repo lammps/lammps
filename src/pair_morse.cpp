@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_morse.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

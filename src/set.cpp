@@ -14,8 +14,8 @@
 #include "set.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
+#include <climits>
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -26,9 +26,7 @@
 #include "region.h"
 #include "group.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "force.h"
-#include "pair.h"
 #include "input.h"
 #include "variable.h"
 #include "random_park.h"

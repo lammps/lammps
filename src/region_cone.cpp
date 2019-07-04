@@ -17,7 +17,6 @@
 
 #include "region_cone.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "domain.h"
 #include "error.h"

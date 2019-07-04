@@ -16,7 +16,6 @@
 #include <cstring>
 #include "irregular.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

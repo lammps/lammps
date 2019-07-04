@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_yukawa.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

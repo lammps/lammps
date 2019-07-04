@@ -13,7 +13,6 @@
 
 #include "region_sphere.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "update.h"
 #include "input.h"

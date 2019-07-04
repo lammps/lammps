@@ -16,18 +16,14 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_data.h"
-#include "lmptype.h"
 #include <mpi.h>
-#include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include <cctype>
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "force.h"
 #include "molecule.h"
 #include "group.h"
 #include "comm.h"

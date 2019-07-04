@@ -16,9 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_smooth.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

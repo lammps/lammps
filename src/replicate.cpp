@@ -12,11 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "replicate.h"
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "force.h"
 #include "domain.h"
 #include "comm.h"

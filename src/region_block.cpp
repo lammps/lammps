@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "region_block.h"
-#include <cstdlib>
 #include <cstring>
 #include "force.h"
 #include "domain.h"

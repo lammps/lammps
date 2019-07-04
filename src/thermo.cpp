@@ -16,10 +16,8 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "thermo.h"
-#include "lmptype.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -43,11 +41,8 @@
 #include "kspace.h"
 #include "output.h"
 #include "timer.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "universe.h"
-
 #include "math_const.h"
 
 using namespace LAMMPS_NS;

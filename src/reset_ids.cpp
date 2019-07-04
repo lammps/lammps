@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_ids.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

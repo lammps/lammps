@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "reader.h"
-#include <cstdio>
 #include <cstring>
 #include "error.h"
 

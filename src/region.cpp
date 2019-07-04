@@ -13,7 +13,6 @@
 
 #include "region.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "update.h"
 #include "domain.h"

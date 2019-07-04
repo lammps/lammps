@@ -16,9 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_zero.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

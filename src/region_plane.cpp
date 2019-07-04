@@ -13,8 +13,6 @@
 
 #include "region_plane.h"
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "error.h"
 #include "force.h"
 

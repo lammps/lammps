@@ -16,9 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_xyz.h"
-#include <cstring>
 #include <cstdlib>
-#include "atom.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"

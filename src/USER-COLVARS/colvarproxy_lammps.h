@@ -38,6 +38,12 @@ inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
   return out;
 }
 
+// forward declarations
+namespace LAMMPS_NS {
+  class LAMMPS;
+  class RanPark;
+}
+
 /// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)
 class colvarproxy_lammps : public colvarproxy {
@@ -46,8 +52,8 @@ class colvarproxy_lammps : public colvarproxy {
  protected:
 
   // pointers to LAMMPS class instances
-  class LAMMPS_NS::LAMMPS *_lmp;
-  class LAMMPS_NS::RanPark *_random;
+  LAMMPS_NS::LAMMPS *_lmp;
+  LAMMPS_NS::RanPark *_random;
 
   // state of LAMMPS properties
   double t_target, my_timestep, my_boltzmann, my_angstrom;

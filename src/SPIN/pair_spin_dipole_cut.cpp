@@ -21,10 +21,10 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_dipole_cut.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_spin_dipole_cut.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

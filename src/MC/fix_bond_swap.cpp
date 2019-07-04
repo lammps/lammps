@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_bond_swap.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_bond_swap.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"

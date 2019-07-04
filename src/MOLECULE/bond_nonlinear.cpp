@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "bond_nonlinear.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_nonlinear.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

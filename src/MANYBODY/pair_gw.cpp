@@ -16,11 +16,11 @@
    based on PairTersoff by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_gw.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_gw.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

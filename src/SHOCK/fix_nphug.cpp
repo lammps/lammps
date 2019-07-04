@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_nphug.h"
 #include <cstring>
 #include <cmath>
-#include "fix_nphug.h"
 #include "modify.h"
 #include "error.h"
 #include "update.h"

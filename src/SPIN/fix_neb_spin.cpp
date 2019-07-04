@@ -21,10 +21,10 @@
    Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
+#include "fix_neb_spin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_neb_spin.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"

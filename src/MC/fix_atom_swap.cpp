@@ -16,11 +16,11 @@
                          Alexander Stukowski
 ------------------------------------------------------------------------- */
 
+#include "fix_atom_swap.h"
 #include <cmath>
 #include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include "fix_atom_swap.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"

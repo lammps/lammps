@@ -15,8 +15,8 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_atom_mpiio.h"
+#include <cstring>
 #include "domain.h"
 #include "atom.h"
 #include "update.h"

@@ -24,13 +24,13 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "fix_colvars.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
 
-#include "fix_colvars.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

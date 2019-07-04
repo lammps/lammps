@@ -32,12 +32,12 @@
    Rules"_http://lammps.sandia.gov/open_source.html
 ------------------------------------------------------------------------- */
 
+#include "pair_bop.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <mpi.h>
-#include "pair_bop.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"

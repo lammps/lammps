@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U), akohlmey at gmail.com
 ------------------------------------------------------------------------- */
 
+#include "angle_cosine_delta.h"
 #include <cmath>
 #include <cstdlib>
-#include "angle_cosine_delta.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

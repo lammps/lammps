@@ -15,12 +15,12 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
+#include "neb.h"
 #include "lmptype.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "neb.h"
 #include "universe.h"
 #include "atom.h"
 #include "update.h"

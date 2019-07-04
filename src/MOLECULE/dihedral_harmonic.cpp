@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_harmonic.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

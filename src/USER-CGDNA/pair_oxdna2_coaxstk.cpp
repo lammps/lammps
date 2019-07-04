@@ -14,11 +14,11 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
+#include "pair_oxdna2_coaxstk.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_oxdna2_coaxstk.h"
 #include "mf_oxdna.h"
 #include "atom.h"
 #include "comm.h"

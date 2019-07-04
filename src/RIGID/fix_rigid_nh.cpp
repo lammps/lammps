@@ -17,9 +17,9 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid_nh.h"
 #include <cmath>
 #include <cstring>
-#include "fix_rigid_nh.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "compute.h"

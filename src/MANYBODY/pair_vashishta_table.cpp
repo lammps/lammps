@@ -15,11 +15,11 @@
    Contributing author: Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
+#include "pair_vashishta_table.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_vashishta_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_shake.h"
 #include <mpi.h>
 #include <cmath>
 #include <cctype>
 #include <cstring>
-#include "fix_shake.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"

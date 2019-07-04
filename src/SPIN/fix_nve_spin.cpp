@@ -21,8 +21,8 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nve_spin.h"
+#include <cstring>
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"

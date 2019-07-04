@@ -21,10 +21,10 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "fix_precession_spin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_precession_spin.h"
 #include "atom.h"
 #include "error.h"
 #include "force.h"

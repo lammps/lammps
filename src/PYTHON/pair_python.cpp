@@ -15,10 +15,10 @@
    Contributing authors: Axel Kohlmeyer and Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pair_python.h"
 #include <Python.h>  // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
-#include "pair_python.h"
 #include "atom.h"
 #include "force.h"
 #include "memory.h"

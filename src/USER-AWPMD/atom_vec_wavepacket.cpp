@@ -15,10 +15,10 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
+#include "atom_vec_wavepacket.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "atom_vec_wavepacket.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

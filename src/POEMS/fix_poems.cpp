@@ -17,13 +17,13 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_poems.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include "workspace.h"
-#include "fix_poems.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"

@@ -16,11 +16,11 @@
      Based on fix qeq/reax by H. Metin Aktulga
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_qeq.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

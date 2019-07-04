@@ -15,9 +15,9 @@
    OPT version: Wayne Mitchell (Loyola University New Orleans)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_long_coul_long_opt.h"
 #include <cmath>
 #include <cstring>
-#include "pair_lj_long_coul_long_opt.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"

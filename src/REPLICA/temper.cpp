@@ -15,10 +15,10 @@
    Contributing author: Mark Sears (SNL)
 ------------------------------------------------------------------------- */
 
+#include "temper.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "temper.h"
 #include "universe.h"
 #include "domain.h"
 #include "atom.h"

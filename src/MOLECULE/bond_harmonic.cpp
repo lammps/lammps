@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "bond_harmonic.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "bond_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

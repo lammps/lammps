@@ -15,11 +15,11 @@
    Contributing Author: Julien Devemy (ICCF)
 ------------------------------------------------------------------------- */
 
+#include "pair_nm_cut.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_nm_cut.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

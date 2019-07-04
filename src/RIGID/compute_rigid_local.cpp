@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_rigid_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_rigid_local.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

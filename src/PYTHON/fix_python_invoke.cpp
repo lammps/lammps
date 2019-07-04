@@ -15,9 +15,9 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "fix_python_invoke.h"
 #include <Python.h>   // IWYU pragma: keep
 #include <cstring>
-#include "fix_python_invoke.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"

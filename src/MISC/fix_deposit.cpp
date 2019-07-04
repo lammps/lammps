@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_deposit.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "fix_deposit.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"

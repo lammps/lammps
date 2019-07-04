@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_bond_break.h"
 #include <cmath>
 #include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "fix_bond_break.h"
 #include "update.h"
 #include "respa.h"
 #include "atom.h"

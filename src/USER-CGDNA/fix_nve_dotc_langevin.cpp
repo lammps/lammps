@@ -15,10 +15,10 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
+#include "fix_nve_dotc_langevin.h"
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "fix_nve_dotc_langevin.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

@@ -17,10 +17,10 @@
    see Reed, Fried, Joannopoulos, Phys Rev Lett, 90, 235503 (2003)
 ------------------------------------------------------------------------- */
 
+#include "fix_msst.h"
 #include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "fix_msst.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

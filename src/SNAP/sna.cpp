@@ -15,8 +15,8 @@
    Contributing authors: Aidan Thompson, Christian Trott, SNL
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "sna.h"
+#include <cmath>
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

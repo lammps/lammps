@@ -15,11 +15,11 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_peri_pmb.h"
 #include <cmath>
 #include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include "pair_peri_pmb.h"
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"

@@ -8,7 +8,20 @@
 // Colvars repository at GitHub.
 
 
+#include "colvarproxy_lammps.h"
 #include <mpi.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
+
+#include <iostream>
+#include <sstream>
+#include <string>
+
 #include "lammps.h"
 #include "atom.h"
 #include "error.h"
@@ -22,19 +35,6 @@
 #include "colvarbias.h"
 #include "colvaratoms.h"
 #include "colvarproxy.h"
-#include "colvarproxy_lammps.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
-
-#include <iostream>
-#include <sstream>
-#include <string>
 
 #define HASH_FAIL  -1
 

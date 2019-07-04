@@ -15,9 +15,9 @@
    Contributing author: Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
+#include "bond_morse.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_morse.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

@@ -15,10 +15,10 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "bond_table.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "bond_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

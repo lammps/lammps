@@ -15,10 +15,10 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
+#include "fix_nve_awpmd.h"
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "fix_nve_awpmd.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"

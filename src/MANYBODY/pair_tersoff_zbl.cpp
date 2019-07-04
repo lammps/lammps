@@ -16,11 +16,11 @@
                         David Farrell (NWU) - ZBL addition
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_zbl.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_zbl.h"
 #include "atom.h"
 #include "update.h"
 #include "neighbor.h"

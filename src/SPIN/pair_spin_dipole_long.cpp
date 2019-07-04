@@ -16,10 +16,10 @@
                          Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_dipole_long.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_spin_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

@@ -21,9 +21,9 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "fix_langevin_spin.h"
 #include <cmath>
 #include <cstring>
-#include "fix_langevin_spin.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"

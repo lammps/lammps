@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_hyper_local.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "fix_hyper_local.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

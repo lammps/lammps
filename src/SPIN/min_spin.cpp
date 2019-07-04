@@ -17,10 +17,10 @@
    Please cite the related publication:
 ------------------------------------------------------------------------- */
 
+#include "min_spin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "min_spin.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"

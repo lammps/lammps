@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_gcmc.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_gcmc.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"

@@ -15,9 +15,9 @@
    Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
+#include "pair_tip4p_cut.h"
 #include <cmath>
 #include <cstdlib>
-#include "pair_tip4p_cut.h"
 #include "atom.h"
 #include "force.h"
 #include "neighbor.h"

@@ -21,9 +21,9 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "compute_spin.h"
 #include <mpi.h>
 #include <cmath>
-#include "compute_spin.h"
 #include "atom.h"
 #include "error.h"
 #include "force.h"

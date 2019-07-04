@@ -27,12 +27,12 @@
    - MacKerell et al., J. Comput. Chem. 25(2004):1400-1415.
 ------------------------------------------------------------------------- */
 
+#include "fix_cmap.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-#include "fix_cmap.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"

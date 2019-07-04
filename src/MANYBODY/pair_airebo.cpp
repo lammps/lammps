@@ -20,12 +20,12 @@
      Thomas C. O'Connor (JHU) 2014
 ------------------------------------------------------------------------- */
 
+#include "pair_airebo.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <mpi.h>
-#include "pair_airebo.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "force.h"

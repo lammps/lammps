@@ -21,11 +21,11 @@
    Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
+#include "neb_spin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "neb_spin.h"
 #include "citeme.h"
 #include "force.h"
 #include "universe.h"

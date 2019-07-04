@@ -16,11 +16,11 @@
                         Vitaly Dozhdikov (JIHT of RAS) - MOD addition
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_mod.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_mod.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

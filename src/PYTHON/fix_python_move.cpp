@@ -15,9 +15,9 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "fix_python_move.h"
 #include <Python.h>   // IWYU pragma: keep
 #include <cstring>
-#include "fix_python_move.h"
 #include "lmppython.h"
 #include "error.h"
 #include "python_compat.h"

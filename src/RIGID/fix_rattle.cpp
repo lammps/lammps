@@ -15,10 +15,10 @@
    Contributing author: Peter Wirnsberger (University of Cambridge)
 ------------------------------------------------------------------------- */
 
+#include "fix_rattle.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_rattle.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

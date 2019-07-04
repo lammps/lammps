@@ -15,11 +15,11 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

@@ -21,10 +21,10 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_magelec.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "pair_spin_magelec.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"

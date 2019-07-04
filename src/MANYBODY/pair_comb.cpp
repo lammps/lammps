@@ -18,11 +18,11 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
+#include "pair_comb.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

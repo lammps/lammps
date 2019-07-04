@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_charmm_coul_charmm_implicit.h"
 #include <cmath>
 #include <cstring>
-#include "pair_lj_charmm_coul_charmm_implicit.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"

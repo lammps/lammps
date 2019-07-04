@@ -21,8 +21,8 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "pair_spin.h"
+#include <cstring>
 #include "atom.h"
 #include "error.h"
 #include "fix.h"

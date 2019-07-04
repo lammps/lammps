@@ -22,10 +22,10 @@
    which implements the heat exchange (HEX) algorithm.
 ------------------------------------------------------------------------- */
 
+#include "fix_ehex.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_ehex.h"
 #include "atom.h"
 #include "domain.h"
 #include "region.h"

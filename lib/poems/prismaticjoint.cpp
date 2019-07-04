@@ -25,6 +25,8 @@
 #include "mat3x3.h"
 #include "virtualmatrix.h"
 
+using namespace POEMS;
+
 PrismaticJoint::PrismaticJoint(){
   q.Dim(1);
   qdot.Dim(1);

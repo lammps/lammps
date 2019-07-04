@@ -23,12 +23,14 @@
 #include "virtualcolmatrix.h"
 #include "virtualmatrix.h"
 
+namespace POEMS {
 class Matrix;
 class Vect6;
 class Mat3x3;
 class Vect3;
 
 class ColMatrix : public VirtualColMatrix  {
+protected:
   double* elements;
 public:
   ColMatrix();
@@ -58,28 +60,28 @@ public:
   ColMatrix& operator=(const VirtualMatrix& A); // overloaded =
   ColMatrix& operator*=(double b);
 
-        void Abs();
-        void BasicMax(double& value, int& index);
-        void BasicMin(double& value, int& index);
+  void Abs();
+  void BasicMax(double& value, int& index);
+  void BasicMin(double& value, int& index);
 
   // fast matrix operations
-		  friend void FastQuaternions(ColMatrix& q, Mat3x3& C);
-		  friend void FastInvQuaternions(Mat3x3& C, ColMatrix& q);
-		  friend void FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot);
-		  friend void FastTMult(Matrix& A, Vect6& B, ColMatrix& C);
-		  friend void FastMult(Matrix& A, ColMatrix& B, Vect6& C);
-		  friend void FastAssign(ColMatrix& A, ColMatrix& C);
+  friend void FastQuaternions(ColMatrix& q, Mat3x3& C);
+  friend void FastInvQuaternions(Mat3x3& C, ColMatrix& q);
+  friend void FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot);
+  friend void FastTMult(Matrix& A, Vect6& B, ColMatrix& C);
+  friend void FastMult(Matrix& A, ColMatrix& B, Vect6& C);
+  friend void FastAssign(ColMatrix& A, ColMatrix& C);
 
-		  friend void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C);
-		  friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);
-		  friend void FastAssign(ColMatrix&A, Vect3& C);
-  
-		  friend void EP_Derivatives(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
-		  friend void EP_Transformation(ColMatrix& q, Mat3x3& C);
-		  friend void EP_FromTransformation(ColMatrix& q, Mat3x3& C);
-		  friend void EP_Normalize(ColMatrix& q);
-		  friend void EPdotdot_udot(ColMatrix& Audot, ColMatrix& Aqdot, ColMatrix& Aq,ColMatrix& Aqddot);
-		  friend void qdot_to_u(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
+  friend void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C);
+  friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);
+  friend void FastAssign(ColMatrix&A, Vect3& C);
+
+  friend void EP_Derivatives(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
+  friend void EP_Transformation(ColMatrix& q, Mat3x3& C);
+  friend void EP_FromTransformation(ColMatrix& q, Mat3x3& C);
+  friend void EP_Normalize(ColMatrix& q);
+  friend void EPdotdot_udot(ColMatrix& Audot, ColMatrix& Aqdot, ColMatrix& Aq,ColMatrix& Aqddot);
+  friend void qdot_to_u(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
 };
-
+}
 #endif

@@ -24,6 +24,7 @@
 #include "point.h"
 #include "vect3.h"
 
+namespace POEMS {
 class FixedPoint : public Point  {
 public:
   FixedPoint();
@@ -35,5 +36,5 @@ public:
   bool ReadInPointData(std::istream& in);
   void WriteOutPointData(std::ostream& out);
 };
-
+}
 #endif

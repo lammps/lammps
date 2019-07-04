@@ -21,6 +21,8 @@
 #include <iostream>
 
 using namespace std;
+using namespace POEMS;
+
 
 Vect3::Vect3(){
   numrows = 3; numcols = 1;

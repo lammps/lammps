@@ -26,9 +26,8 @@
 #include "rigidbody.h"
 #include "vect3.h"
 
-class Joint;
-
 using namespace std;
+using namespace POEMS;
 
 Body::Body()
 {
@@ -132,7 +131,7 @@ void Body::AddPoint(Point* point){
 // global body functions
 //
 
-Body* NewBody(int type){
+Body* POEMS::NewBody(int type){
   switch( BodyType(type) )
     {
       case INERTIALFRAME :  // The inertial reference frame

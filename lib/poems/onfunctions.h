@@ -18,6 +18,7 @@
 #ifndef ONFUNCTIONS_H
 #define ONFUNCTIONS_H
 
+namespace POEMS {
 class Mat3x3;
 class Mat6x6;
 class Vect3;
@@ -30,5 +31,5 @@ void OnPopulateSI(Mat3x3& inertia, double mass, Mat6x6& sI);
 
 void Create_Map(int MM);
 int ICELL(int IX,int IY,int IZ, int MM);
-
+}
 #endif

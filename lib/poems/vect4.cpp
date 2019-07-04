@@ -21,6 +21,8 @@
 #include <iostream>
 
 using namespace std;
+using namespace POEMS;
+
 
 Vect4::Vect4(){
   numrows = 4; numcols = 1;

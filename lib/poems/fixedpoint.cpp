@@ -24,6 +24,8 @@
 #include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 FixedPoint::FixedPoint(){
 }

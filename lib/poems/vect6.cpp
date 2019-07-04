@@ -21,6 +21,8 @@
 #include <iostream>
 
 using namespace std;
+using namespace POEMS;
+
 
 Vect6::Vect6(){
   numrows = 6; numcols = 1;

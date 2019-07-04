@@ -21,6 +21,8 @@
 #include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 InertialFrame::InertialFrame(){
   gravity.Zeros();

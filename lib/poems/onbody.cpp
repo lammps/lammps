@@ -30,6 +30,8 @@
 #include "colmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 
 OnBody::OnBody(){

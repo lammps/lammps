@@ -18,6 +18,8 @@
 
 #include "particle.h"
 
+using namespace POEMS;
+
 Particle::Particle(){
 }
 

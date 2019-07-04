@@ -21,6 +21,8 @@
 #include "mat3x3.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 Mat3x3::Mat3x3(){
   numrows = numcols = 3;

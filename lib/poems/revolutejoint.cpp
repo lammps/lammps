@@ -25,6 +25,8 @@
 #include "mat3x3.h"
 #include "virtualmatrix.h"
 
+using namespace POEMS;
+
 RevoluteJoint::RevoluteJoint(){
   DimQandU(1);
   Vect3 axis;

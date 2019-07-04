@@ -33,6 +33,8 @@
 #include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 OnSolver::OnSolver(){
   numbodies = 0;

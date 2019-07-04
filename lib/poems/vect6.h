@@ -23,6 +23,7 @@
 #include "virtualcolmatrix.h"
 #include "virtualmatrix.h"
 
+namespace POEMS {
 class Matrix;
 class Mat6x6;
 class ColMatrix;
@@ -69,5 +70,5 @@ public:
 
   friend void OnPopulateSVect(Vect3& angular, Vect3& linear, Vect6& sV);
 };
-
+}
 #endif

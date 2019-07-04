@@ -23,6 +23,7 @@
 #include "vect3.h"
 #include "matrix.h"
 
+namespace POEMS {
 class VirtualMatrix;
 
 class RevoluteJoint : public Joint  {
@@ -44,5 +45,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-
+}
 #endif

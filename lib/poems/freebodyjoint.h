@@ -23,12 +23,12 @@
 #include "joint.h"
 #include "matrix.h"
 
-
+namespace POEMS {
 class FreeBodyJoint : public Joint{
-public: 
+public:
   FreeBodyJoint();
   ~FreeBodyJoint();
-  
+
   JointType GetType();
   bool ReadInJointData(std::istream& in);
   void WriteOutJointData(std::ostream& out);
@@ -40,5 +40,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-
+}
 #endif

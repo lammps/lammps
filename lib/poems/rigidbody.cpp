@@ -20,6 +20,8 @@
 #include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 RigidBody::RigidBody(){
 }

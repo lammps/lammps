@@ -20,6 +20,8 @@
 #include "system.h"
 #include "onsolver.h"
 
+using namespace POEMS;
+
 Solver::Solver(){
 
 }

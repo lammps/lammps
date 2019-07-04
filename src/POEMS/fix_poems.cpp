@@ -20,7 +20,6 @@
 #include "fix_poems.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include "workspace.h"
@@ -30,7 +29,6 @@
 #include "respa.h"
 #include "modify.h"
 #include "force.h"
-#include "output.h"
 #include "group.h"
 #include "comm.h"
 #include "citeme.h"
@@ -265,7 +263,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   // create POEMS instance
 
-  poems = new Workspace;
+  poems = new POEMS::Workspace;
 
   // compute per body forces and torques inside final_integrate() by default
 

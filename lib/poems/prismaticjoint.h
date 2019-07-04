@@ -24,8 +24,7 @@
 #include "vect3.h"
 #include "matrix.h"
 
-
-
+namespace POEMS {
 class PrismaticJoint : public Joint  {
   Vect3 axis_pk; // unit vector in body1 basis
   Vect3 axis_k;  // unit vector in body2 basis
@@ -45,5 +44,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-
+}
 #endif

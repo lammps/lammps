@@ -24,6 +24,8 @@
 #include "vect4.h"
 #include "vect6.h"
 
+using namespace POEMS;
+
 double Magnitude(ColMatrix& A){
 	double G;
 	G = 0;

@@ -24,7 +24,7 @@
 #include "body.h"
 #include "vect3.h"
 
-
+namespace POEMS {
 class InertialFrame : public Body  {
   Vect3 gravity;
 public:
@@ -36,5 +36,5 @@ public:
   bool ReadInBodyData(std::istream& in);
   void WriteOutBodyData(std::ostream& out);
 };
-
+}
 #endif

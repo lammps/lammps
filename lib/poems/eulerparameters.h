@@ -18,6 +18,7 @@
 #ifndef EULERPARAMETERS_H
 #define EULERPARAMETERS_H
 
+namespace POEMS {
 class ColMatrix;
 class Mat3x3;
 
@@ -32,6 +33,6 @@ void EP_Normalize(ColMatrix& q);
 void EPdotdot_udot(ColMatrix& Audot, ColMatrix& Aqdot, ColMatrix& Aq,ColMatrix& Aqddot);
 
 void qdot_to_u(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
-
+}
 #endif
 

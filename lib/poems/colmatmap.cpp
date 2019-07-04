@@ -21,6 +21,8 @@
 #include <cstdlib>
 
 using namespace std;
+using namespace POEMS;
+
 
 ColMatMap::ColMatMap(){
 	numrows = 0;

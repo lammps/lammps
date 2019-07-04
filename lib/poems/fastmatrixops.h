@@ -18,6 +18,7 @@
 #ifndef FASTMATRIXOPS_H
 #define FASTMATRIXOPS_H
 
+namespace POEMS {
 class ColMatMap;
 class ColMatrix;
 class Mat3x3;
@@ -102,5 +103,5 @@ void FastAssign(ColMatrix&A, Vect3& C);
 void FastAssign(Vect4& A, Vect4& C);          // C = A
 void FastAssignT(Mat3x3& A, Mat3x3& C);       // C = A^T
 void FastAssignT(Mat4x4& A, Mat4x4& C);       // C = A^T
-
+}
 #endif

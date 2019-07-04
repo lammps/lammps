@@ -25,6 +25,7 @@
 #include "matrix.h"
 #include "vect3.h"
 
+namespace POEMS {
 class VirtualMatrix;
 
 enum JointType {
@@ -124,5 +125,5 @@ public:
 
 // global joint functions
 Joint* NewJoint(int type);
-
+}
 #endif

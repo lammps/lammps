@@ -27,6 +27,7 @@
 #include "vect3.h"
 #include "vect6.h"
 
+namespace POEMS {
 class VirtualColMatrix;
 class VirtualMatrix;
 class VirtualRowMatrix;
@@ -55,22 +56,22 @@ Mat4x4 Inverse(Mat4x4& A);
 Mat6x6 Inverse(Mat6x6& A);
 
 // overloaded addition
-Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);	// addition
-//Mat3x3 operator+ (const Mat3x3 &A, const Mat3x3 &B);	// addition
-//Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);	// addition
+Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);      // addition
+//Mat3x3 operator+ (const Mat3x3 &A, const Mat3x3 &B);  // addition
+//Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);    // addition
 
 // overloaded subtraction
-Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B);	// subtraction
+Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B);      // subtraction
 
 // overloaded matrix multiplication
 Matrix operator* (const VirtualMatrix &A, const VirtualMatrix &B);  // multiplication
 
 // overloaded scalar-matrix multiplication
-Matrix operator* (const VirtualMatrix &A, double b);			// overloaded *
-Matrix operator* (double b, const VirtualMatrix &A);			// overloaded *
+Matrix operator* (const VirtualMatrix &A, double b);                    // overloaded *
+Matrix operator* (double b, const VirtualMatrix &A);                    // overloaded *
 
 // overloaded negative
-Matrix operator- (const VirtualMatrix &A);	// negative
+Matrix operator- (const VirtualMatrix &A);      // negative
 
 Vect3 Cross(Vect3& a, Vect3& b);
 Mat3x3 CrossMat(Vect3& a);
@@ -80,5 +81,5 @@ Matrix HStack(VirtualMatrix& A, VirtualMatrix& B);
 
 void Set6DAngularVector(Vect6& v6, Vect3& v3);
 void Set6DLinearVector(Vect6& v6, Vect3& v3);
-
+}
 #endif

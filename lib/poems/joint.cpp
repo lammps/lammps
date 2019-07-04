@@ -36,6 +36,8 @@
 #include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 Joint::Joint(){
   body1 = body2 = 0;
@@ -245,7 +247,7 @@ void Joint::ComputeBackwardGlobalTransform(){
 // global joint functions
 //
 
-Joint* NewJoint(int type){
+Joint* POEMS::NewJoint(int type){
   switch( JointType(type) )
   {
     case FREEBODYJOINT : return new FreeBodyJoint;

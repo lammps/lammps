@@ -25,6 +25,7 @@
 #include "mat3x3.h"
 #include "vect3.h"
 
+namespace POEMS {
 // emumerated type
 enum BodyType {
   INERTIALFRAME = 0,
@@ -75,5 +76,5 @@ public:
 
 // global body functions
 Body* NewBody(int type);
-
+}
 #endif

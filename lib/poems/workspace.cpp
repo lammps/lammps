@@ -38,6 +38,8 @@
 
 
 using namespace std;
+using namespace POEMS;
+
 
 void Workspace::allocateNewSystem() {
   currentIndex++;

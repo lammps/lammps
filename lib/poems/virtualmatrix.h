@@ -20,6 +20,7 @@
 #define VIRTUALMATRIX_H
 #include <iostream>
 
+namespace POEMS {
 enum MatrixType {
 	MATRIX = 0,
 	COLMATRIX = 1,
@@ -83,5 +84,5 @@ protected:
 // overloaded operators
 std::ostream& operator<< (std::ostream& c, const VirtualMatrix& A); // output
 std::istream& operator>> (std::istream& c, VirtualMatrix& A); // input
-
+}
 #endif

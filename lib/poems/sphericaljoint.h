@@ -22,6 +22,7 @@
 #include "joint.h"
 #include "matrix.h"
 
+namespace POEMS {
 class SphericalJoint : public Joint  {
   Matrix const_sP;
 public:
@@ -38,5 +39,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-
+}
 #endif

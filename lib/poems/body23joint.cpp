@@ -27,6 +27,9 @@
 #include "vect3.h"
 #include "virtualmatrix.h"
 
+using namespace std;
+using namespace POEMS;
+
 Body23Joint::Body23Joint(){
   DimQandU(4,2);
 }

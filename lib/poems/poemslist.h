@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: poemslist.h                                             *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -21,8 +21,7 @@
 #include <iostream>
 #include <cstdlib>
 
-using namespace std;
-
+namespace POEMS {
 template<class T> class ListElement{
 public:
   ListElement<T>* prev;
@@ -51,7 +50,7 @@ public:
   S* operator()(int id);
   void Append(List<S> * listToAppend);
   void DeleteValues();
-  void RemoveElementAndDeleteValue(ListElement<S>* ele);  
+  void RemoveElementAndDeleteValue(ListElement<S>* ele);
   void PrintList();
 };
 
@@ -90,9 +89,9 @@ template<class S> List<S>::~List(){
 
 template<class S> void List<S>::Append(List<S> * listToAppend)
 {
-	tail->next = listToAppend->head;
-	listToAppend->head->prev = tail;
-	tail = listToAppend->tail;
+   tail->next = listToAppend->head;
+   listToAppend->head->prev = tail;
+   tail = listToAppend->tail;
 }
 
 template<class S> int List<S>::GetNumElements(){
@@ -104,17 +103,17 @@ template<class S> ListElement<S>* List<S>::GetHeadElement(){
 }
 
 template<class S> ListElement<S>* List<S>::GetTailElement(){
-	return tail;
+   return tail;
 }
 
 
 template<class S> void List<S>::Remove(ListElement<S>* ele){
   if(!ele){
-    cerr << "ERROR: ListElement to be removed not defined" << endl;
+    std::cerr << "ERROR: ListElement to be removed not defined" << std::endl;
     exit(0);
   }
   if(!numelements){
-    cerr << "ERROR: List is empty" << endl;
+    std::cerr << "ERROR: List is empty" << std::endl;
     exit(0);
   }
 
@@ -135,7 +134,7 @@ template<class S> void List<S>::Remove(ListElement<S>* ele){
 
 template<class S> ListElement<S>* List<S>::Append(S* v){
   if(!v){
-    cerr << "ERROR: cannot add null Body to list" << endl;
+    std::cerr << "ERROR: cannot add null Body to list" << std::endl;
     exit(0);
   }
 
@@ -145,22 +144,22 @@ template<class S> ListElement<S>* List<S>::Append(S* v){
   if(numelements==1)
     head = tail = ele;
   else{
-	  /*
+     /*
     tail->next = ele;
     ele->prev = tail;
-	 tail = ele;*/
-	  
-	  ele->prev = tail;
-	  tail = ele;	  
-	  ele->prev->next = ele;	  
-	  
-  }    
+    tail = ele;*/
+
+     ele->prev = tail;
+     tail = ele;
+     ele->prev->next = ele;
+
+  }
   return ele;
 }
 
 template<class S> ListElement<S>* List<S>::Prepend(S* v){
   if(!v){
-    cerr << "ERROR: cannot add null Body to list" << endl;
+    std::cerr << "ERROR: cannot add null Body to list" << std::endl;
     exit(0);
   }
 
@@ -170,9 +169,9 @@ template<class S> ListElement<S>* List<S>::Prepend(S* v){
   if(numelements==1)
     head = tail = ele;
   else{
-	  ele->next = head;
-	  head = ele;
-	  ele->next->prev = ele;
+     ele->next = head;
+     head = ele;
+     ele->next->prev = ele;
   }
   return ele;
 }
@@ -190,15 +189,15 @@ template<class S> S** List<S>::CreateArray(){
 
 template<class S> S* List<S>::operator()(int id){
   if(id >= numelements){
-    cerr << "ERROR: subscript out of bounds" << endl;
+    std::cerr << "ERROR: subscript out of bounds" << std::endl;
     exit(0);
   }
-  
+
   ListElement<S>* ele = head;
   for(int i=0;i<id;i++){
     ele = ele->next;
   }
-  
+
   return ele->value;
 }
 
@@ -214,16 +213,15 @@ template<class S> void List<S>::RemoveElementAndDeleteValue(ListElement<S>* ele)
 }
 
 template<class S> void List<S>::PrintList(){
-	cout<<"Printing List "<<endl;
-	ListElement<S>* ele = head;
-	cout<<*(ele->value)<<" ";
-	ele = ele->next;
-	for(int k =2; k<numelements; k++){
-		cout<<*(ele->value)<<" ";	
-		ele = ele->next;
-	}
-	cout<<*(ele->value)<<endl;
+   std::cout << "Printing List " << std::endl;
+   ListElement<S>* ele = head;
+   std::cout << *(ele->value) << " ";
+   ele = ele->next;
+   for(int k =2; k<numelements; k++){
+     std::cout << *(ele->value) << " ";
+     ele = ele->next;
+   }
+   std::cout << *(ele->value) << std::endl;
 }
-
-
+}
 #endif

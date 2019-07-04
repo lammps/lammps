@@ -17,14 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "ndx_group.h"
-#include <cstdio>
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "group.h"
-#include "memory.h"
-#include "force.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

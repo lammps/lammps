@@ -10,30 +10,19 @@
 
 #include "colvarproxy_lammps.h"
 #include <mpi.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-
 #include <cerrno>
-#include <cstdio>
 #include <cstring>
-
 #include <iostream>
-#include <sstream>
+#include <memory>
 #include <string>
 
 #include "lammps.h"
-#include "atom.h"
 #include "error.h"
 #include "output.h"
 #include "random_park.h"
 
-#include "fix_colvars.h"
-
 #include "colvarmodule.h"
-#include "colvar.h"
-#include "colvarbias.h"
-#include "colvaratoms.h"
 #include "colvarproxy.h"
 
 #define HASH_FAIL  -1

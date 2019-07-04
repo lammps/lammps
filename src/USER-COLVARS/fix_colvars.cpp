@@ -25,26 +25,28 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_colvars.h"
-#include <cmath>
-#include <cstdio>
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include <errno.h>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
 
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "group.h"
+#include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "random_park.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"
 #include "citeme.h"
 
 #include "colvarproxy_lammps.h"
+#include "colvarmodule.h"
 
 static const char colvars_pub[] =
   "fix colvars command:\n\n"
@@ -56,6 +58,19 @@ static const char colvars_pub[] =
   " year =    2013,\n"
   " note =    {doi: 10.1080/00268976.2013.813594}\n"
   "}\n\n";
+
+/* struct for packed data communication of coordinates and forces. */
+struct LAMMPS_NS::commdata {
+  int tag,type;
+  double x,y,z,m,q;
+};
+
+inline std::ostream & operator<< (std::ostream &out, const LAMMPS_NS::commdata &cd)
+{
+  out << " (" << cd.tag << "/" << cd.type << ": "
+      << cd.x << ", " << cd.y << ", " << cd.z << ") ";
+  return out;
+}
 
 /* re-usable integer hash table code with static linkage. */
 

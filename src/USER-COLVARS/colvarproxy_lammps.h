@@ -10,39 +10,22 @@
 #ifndef COLVARPROXY_LAMMPS_H
 #define COLVARPROXY_LAMMPS_H
 
-#include "colvarproxy_lammps_version.h"
+#include "colvarproxy_lammps_version.h"  // IWYU pragma: export
+
+#include <mpi.h>
+#include <cstddef>
+#include <string>
+#include <vector>
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
-#include "colvarvalue.h"
+#include "colvartypes.h"
 
-#include "lammps.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
-
-#include <string>
-#include <vector>
-#include <iostream>
-
-/* struct for packed data communication of coordinates and forces. */
-struct commdata {
-  int tag,type;
-  double x,y,z,m,q;
-};
-
-inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
-{
-  out << " (" << cd.tag << "/" << cd.type << ": "
-      << cd.x << ", " << cd.y << ", " << cd.z << ") ";
-  return out;
-}
-
-// forward declarations
-namespace LAMMPS_NS {
-  class LAMMPS;
-  class RanPark;
-}
+#include "random_park.h"
+#include "lammps.h"  // IWYU pragma: keep
+#include "domain.h"  // IWYU pragma: keep
+#include "force.h"   // IWYU pragma: keep
+#include "update.h"  // IWYU pragma: keep
 
 /// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)

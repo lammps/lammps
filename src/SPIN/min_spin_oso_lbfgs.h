@@ -38,8 +38,8 @@ public:
     void advance_spins();
     double fmnorm_sqr();
     void calc_gradient(double);
-    void calc_search_direction(int);
-
+    void calc_search_direction(int); 
+    double maximum_rotation(double *);
 private:
 
 
@@ -64,11 +64,13 @@ private:
     double **ds;  		// change in rotation matrix between two iterations, da
     double **dy;        // change in gradients between two iterations, dg
     double *rho;        // estimation of curvature
-    int num_mem;  // number of stored steps
+    int num_mem;        // number of stored steps
+    int local_iter;     // number of times we call search_direction
 
+    double maxepsrot;
 
-    void vm3(const double *m, const double *v, double *out);
-    void rodrigues_rotation(const double *upp_tr, double *out);
+    void vm3(const double *, const double *, double *);
+    void rodrigues_rotation(const double *, double *);
 
     bigint last_negative;
 };

@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include "atom_kokkos.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "update.h"

@@ -15,11 +15,11 @@
    Contributing author: Ganga P Purja Pun (George Mason University, Fairfax)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_mod_c.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_mod_c.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

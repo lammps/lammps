@@ -20,6 +20,8 @@
 #include <cstdlib>
 
 using namespace std;
+using namespace POEMS;
+
 
 VirtualColMatrix::VirtualColMatrix(){
   numcols = 1;

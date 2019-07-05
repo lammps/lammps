@@ -15,10 +15,10 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_alloy.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_alloy.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

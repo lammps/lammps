@@ -14,11 +14,11 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
+#include "pair_oxdna2_excv.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_oxdna2_excv.h"
 
 using namespace LAMMPS_NS;
 

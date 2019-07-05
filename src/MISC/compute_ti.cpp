@@ -15,10 +15,10 @@
    Contributing author: Sai Jayaraman (University of Notre Dame)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include "atom.h"
-#include <cstring>
 #include "compute_ti.h"
+#include <mpi.h>
+#include <cstring>
+#include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"

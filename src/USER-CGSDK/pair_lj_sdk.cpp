@@ -16,11 +16,11 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_sdk.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_sdk.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

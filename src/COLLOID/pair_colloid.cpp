@@ -15,11 +15,11 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_colloid.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_colloid.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

@@ -18,9 +18,9 @@
    lj/sdk potential for coarse grained MD simulations.
 ------------------------------------------------------------------------- */
 
+#include "angle_sdk.h"
 #include <cmath>
 #include <cstdlib>
-#include "angle_sdk.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "pair.h"

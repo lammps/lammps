@@ -15,10 +15,10 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
+#include "dump_custom_mpiio.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "dump_custom_mpiio.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

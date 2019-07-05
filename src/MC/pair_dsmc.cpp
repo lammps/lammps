@@ -15,12 +15,12 @@
    Contributing authors: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_dsmc.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <climits>
-#include "pair_dsmc.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

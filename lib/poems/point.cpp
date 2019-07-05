@@ -16,7 +16,11 @@
  *_________________________________________________________________________*/
 
 
-#include "points.h"
+#include "fixedpoint.h"
+#include "point.h"
+#include "vect3.h"
+
+using namespace POEMS;
 
 Point::Point(){
   position.Zeros();
@@ -33,7 +37,7 @@ void Point::WriteOut(std::ostream& out){
   WriteOutPointData(out);
 }
 
-Point* NewPoint(int type){
+Point* POEMS::NewPoint(int type){
   switch( PointType(type) )
   {
     case FIXEDPOINT :  // A Fixed Point

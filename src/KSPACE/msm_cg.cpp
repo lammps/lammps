@@ -15,6 +15,7 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "msm_cg.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
@@ -27,7 +28,6 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "msm_cg.h"
 
 #include "math_const.h"
 

@@ -16,11 +16,11 @@ See the README file in the top-level LAMMPS directory.
    Leo Silbert (SNL), Gary Grest (SNL)
 ----------------------------------------------------------------------- */
 
+#include "pair_granular.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include "pair_granular.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

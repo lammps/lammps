@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_eos_table_rx_kokkos.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_eos_table_rx_kokkos.h"
 #include "atom_kokkos.h"
 #include "error.h"
 #include "force.h"

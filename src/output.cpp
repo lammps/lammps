@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "output.h"
+#include <mpi.h>
+#include <cstring>
 #include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +25,6 @@
 #include "domain.h"
 #include "thermo.h"
 #include "modify.h"
-#include "compute.h"
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"

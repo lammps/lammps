@@ -16,17 +16,25 @@
  *_________________________________________________________________________*/
 
 #include "matrixfun.h"
-#include <cmath>
-#include "fastmatrixops.h"
+
 #include <cstdlib>
+#include <iostream>
+
+#include "fastmatrixops.h"
+#include "vect4.h"
+#include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
+#include "virtualrowmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 //
 //  Create a new matrix
 //
 
-VirtualMatrix* NewMatrix(int type){
+VirtualMatrix* POEMS::NewMatrix(int type){
   switch( MatrixType(type) )
     {
       case MATRIX : return new Matrix;
@@ -44,7 +52,7 @@ VirtualMatrix* NewMatrix(int type){
 // Transpose
 //
 
-Matrix T(const VirtualMatrix& A){
+Matrix POEMS::T(const VirtualMatrix& A){
 	int numrows = A.GetNumRows();
 	int numcols = A.GetNumCols();
 	Matrix C(numcols,numrows);
@@ -54,8 +62,8 @@ Matrix T(const VirtualMatrix& A){
 	return C;
 }
 
-Mat3x3 T(const Mat3x3& A){
-	Mat3x3 C;
+Mat3x3 POEMS::T(const Mat3x3& A){
+        Mat3x3 C;
 	C.elements[0][0] = A.elements[0][0];
 	C.elements[1][1] = A.elements[1][1];
 	C.elements[2][2] = A.elements[2][2];
@@ -70,7 +78,7 @@ Mat3x3 T(const Mat3x3& A){
 	return C;
 }
 
-Mat6x6 T(const Mat6x6& A){
+Mat6x6 POEMS::T(const Mat6x6& A){
 	Mat6x6 C;
 	int i,j;
 	for(i=0;i<6;i++)
@@ -80,7 +88,7 @@ Mat6x6 T(const Mat6x6& A){
 	return C;
 }
 
-Matrix T(const Vect3& A){
+Matrix POEMS::T(const Vect3& A){
 	Matrix C(1,3);
 	C.BasicSet(0,0,A.elements[0]);
 	C.BasicSet(0,1,A.elements[1]);
@@ -89,7 +97,7 @@ Matrix T(const Vect3& A){
 	return C;
 }
 
-Matrix T(const Vect6& A){
+Matrix POEMS::T(const Vect6& A){
 	Matrix C(1,6);
 	C.BasicSet(0,0,A.elements[0]);
 	C.BasicSet(0,1,A.elements[1]);
@@ -101,7 +109,7 @@ Matrix T(const Vect6& A){
 	return C;
 }
 
-RowMatrix T(const VirtualColMatrix &A){
+RowMatrix POEMS::T(const VirtualColMatrix &A){
 	int numele = A.GetNumRows();
 	RowMatrix C(numele);
 	for(int i=0;i<numele;i++)
@@ -109,7 +117,7 @@ RowMatrix T(const VirtualColMatrix &A){
 	return C;
 }
 
-ColMatrix T(const VirtualRowMatrix &A){
+ColMatrix POEMS::T(const VirtualRowMatrix &A){
 	int numele = A.GetNumCols();
 	ColMatrix C(numele);
 	for(int i=0;i<numele;i++)
@@ -121,7 +129,7 @@ ColMatrix T(const VirtualRowMatrix &A){
 // Symmetric Inverse
 //
 
-Matrix SymInverse(Matrix &A){
+Matrix POEMS::SymInverse(Matrix &A){
 	int r = A.GetNumRows();
 	Matrix C(r,r);
 	Matrix LD(r,r);
@@ -133,7 +141,7 @@ Matrix SymInverse(Matrix &A){
 	return C;
 }
 
-Mat6x6 SymInverse(Mat6x6 &A){
+Mat6x6 POEMS::SymInverse(Mat6x6 &A){
 	Mat6x6 C;
 	Mat6x6 LD;
 	Mat6x6 I;
@@ -201,7 +209,7 @@ Mat6x6 Inverse(Mat6x6& A){
 // overloaded addition
 //
 
-Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B){      // addition
+Matrix POEMS::operator+ (const VirtualMatrix &A, const VirtualMatrix &B){      // addition
 	int Arows,Acols,Brows,Bcols;
 	Arows = A.GetNumRows();
 	Acols = A.GetNumCols();
@@ -226,7 +234,7 @@ Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B){      // addit
 // overloaded subtraction
 //
 
-Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B){      // subtraction
+Matrix POEMS::operator- (const VirtualMatrix &A, const VirtualMatrix &B){      // subtraction
 	int Arows,Acols,Brows,Bcols;
 	Arows = A.GetNumRows();
 	Acols = A.GetNumCols();
@@ -251,7 +259,7 @@ Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B){      // subtr
 // overloaded matrix multiplication
 //
 
-Matrix operator* (const VirtualMatrix &A, const VirtualMatrix &B){      // multiplication
+Matrix POEMS::operator* (const VirtualMatrix &A, const VirtualMatrix &B){      // multiplication
 	int Arows,Acols,Brows,Bcols;
 	Arows = A.GetNumRows();
 	Acols = A.GetNumCols();
@@ -278,13 +286,13 @@ Matrix operator* (const VirtualMatrix &A, const VirtualMatrix &B){      // multi
 // overloaded scalar multiplication
 //
 
-Matrix operator* (const VirtualMatrix &A, double b){    // multiplication
+Matrix POEMS::operator* (const VirtualMatrix &A, double b){    // multiplication
 	Matrix C = A;
 	C *= b;
 	return C;
 }
 
-Matrix operator* (double b, const VirtualMatrix &A){    // multiplication
+Matrix POEMS::operator* (double b, const VirtualMatrix &A){    // multiplication
 	Matrix C = A;  
 	C *= b;
 	return C;
@@ -294,7 +302,7 @@ Matrix operator* (double b, const VirtualMatrix &A){    // multiplication
 // overloaded negative
 //
 
-Matrix operator- (const VirtualMatrix& A){  // negative
+Matrix POEMS::operator- (const VirtualMatrix& A){  // negative
 	int r = A.GetNumRows();
 	int c = A.GetNumCols();
 	Matrix C(r,c);
@@ -310,7 +318,7 @@ Matrix operator- (const VirtualMatrix& A){  // negative
 // Cross product (friend of Vect3)
 //
 
-Vect3 Cross(Vect3& a, Vect3& b){
+Vect3 POEMS::Cross(Vect3& a, Vect3& b){
 	return CrossMat(a)*b;
 }
 
@@ -318,7 +326,7 @@ Vect3 Cross(Vect3& a, Vect3& b){
 // Cross Matrix (friend of Vect3 & Mat3x3)
 //
 
-Mat3x3 CrossMat(Vect3& a){
+Mat3x3 POEMS::CrossMat(Vect3& a){
 	Mat3x3 C;
 	C.Zeros();
 	C.elements[0][1] = -a.elements[2];
@@ -335,7 +343,7 @@ Mat3x3 CrossMat(Vect3& a){
 // Stack
 //
 
-Matrix Stack(VirtualMatrix& A, VirtualMatrix& B){
+Matrix POEMS::Stack(VirtualMatrix& A, VirtualMatrix& B){
 	int m,na,nb;
 	m = A.GetNumCols();
 	if( m != B.GetNumCols()){
@@ -364,7 +372,7 @@ Matrix Stack(VirtualMatrix& A, VirtualMatrix& B){
 
 //Hstack
 
-Matrix HStack(VirtualMatrix& A, VirtualMatrix& B){
+Matrix POEMS::HStack(VirtualMatrix& A, VirtualMatrix& B){
 	int m,na,nb;
 	m = A.GetNumRows();
 	if( m != B.GetNumRows()){
@@ -394,13 +402,13 @@ Matrix HStack(VirtualMatrix& A, VirtualMatrix& B){
 //
 //
 
-void Set6DAngularVector(Vect6& v6, Vect3& v3){
+void POEMS::Set6DAngularVector(Vect6& v6, Vect3& v3){
 	v6.elements[0] = v3.elements[0];
 	v6.elements[1] = v3.elements[1];
 	v6.elements[2] = v3.elements[2];
 }
 
-void Set6DLinearVector(Vect6& v6, Vect3& v3){
+void POEMS::Set6DLinearVector(Vect6& v6, Vect3& v3){
 	v6.elements[3] = v3.elements[0];
 	v6.elements[4] = v3.elements[1];
 	v6.elements[5] = v3.elements[2];

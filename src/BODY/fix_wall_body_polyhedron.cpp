@@ -15,10 +15,10 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "fix_wall_body_polyhedron.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "fix_wall_body_polyhedron.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"

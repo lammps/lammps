@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_hybrid_overlay_kokkos.h"
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "pair_hybrid_overlay_kokkos.h"
 #include "atom.h"
 #include "force.h"
 #include "neighbor.h"

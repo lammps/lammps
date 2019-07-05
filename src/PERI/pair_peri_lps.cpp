@@ -15,10 +15,10 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_peri_lps.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_peri_lps.h"
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"

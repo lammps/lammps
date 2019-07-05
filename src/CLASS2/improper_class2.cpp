@@ -15,10 +15,10 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "improper_class2.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "improper_class2.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"

@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "velocity.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "velocity.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

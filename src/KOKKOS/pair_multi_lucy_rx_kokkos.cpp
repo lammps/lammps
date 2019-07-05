@@ -21,12 +21,12 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
+#include "pair_multi_lucy_rx_kokkos.h"
 #include <mpi.h>
 #include <cmath>
-#include "math_const.h"
 #include <cstdlib>
 #include <cstring>
-#include "pair_multi_lucy_rx_kokkos.h"
+#include "math_const.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "comm.h"

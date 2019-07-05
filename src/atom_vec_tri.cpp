@@ -11,16 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom_vec_tri.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "atom_vec_tri.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "math_const.h"
 #include "memory.h"

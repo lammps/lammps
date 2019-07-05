@@ -15,10 +15,10 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "angle_table.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "angle_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

@@ -53,11 +53,9 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
+#include "pair_kim.h"
 #include <cstring>
 #include <cstdlib>
-
-// includes from LAMMPS
-#include "pair_kim.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

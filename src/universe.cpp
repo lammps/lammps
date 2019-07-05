@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "universe.h"
 #include <mpi.h>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-#include "universe.h"
 #include "version.h"
 #include "error.h"
 #include "force.h"

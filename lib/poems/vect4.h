@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: vect4.h                                                 *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,16 +11,19 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
 #ifndef VECT4_H
 #define VECT4_H
 
+#include <iostream>
+
 #include "virtualcolmatrix.h"
+#include "virtualmatrix.h"
 
-
+namespace POEMS {
 class Matrix;
 class Mat4x4;
 
@@ -39,7 +42,7 @@ public:
   void BasicSet_1int(int i, double value);
   void BasicIncrement_1int(int i, double value);
 
-  
+
   void Const(double value);
   MatrixType GetType() const;
   std::ostream& WriteData(std::ostream& c) const;
@@ -67,5 +70,5 @@ public:
   friend void FastAdd(Vect4& A, Vect4& B, Vect4& C);
   friend void FastSubt(Vect4& A, Vect4& B, Vect4& C);
 };
-
+}
 #endif

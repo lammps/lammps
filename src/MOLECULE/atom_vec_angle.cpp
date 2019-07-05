@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_angle.h"
+#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

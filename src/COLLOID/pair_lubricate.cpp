@@ -16,11 +16,11 @@
                          Amit Kumar and Michael Bybee (UIUC)
 ------------------------------------------------------------------------- */
 
+#include "pair_lubricate.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lubricate.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

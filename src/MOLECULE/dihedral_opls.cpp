@@ -15,9 +15,9 @@
    Contributing author: Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_opls.h"
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_opls.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

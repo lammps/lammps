@@ -16,15 +16,25 @@
  *_________________________________________________________________________*/
 
 
+#include <cstdlib>
+#include <iostream>
+
 #include "onsolver.h"
 #include "system.h"
 #include "onbody.h"
 #include "body.h"
-#include "matrixfun.h"
-#include <fstream>
-
+#include "colmatmap.h"
+#include "colmatrix.h"
+#include "defines.h"
+#include "inertialframe.h"
+#include "matrix.h"
+#include "poemslist.h"
+#include "vect3.h"
+#include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 OnSolver::OnSolver(){
   numbodies = 0;

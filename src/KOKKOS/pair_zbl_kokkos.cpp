@@ -15,11 +15,11 @@
    Contributing authors: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_zbl_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_zbl_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "force.h"

@@ -15,12 +15,12 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "msm.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "msm.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"

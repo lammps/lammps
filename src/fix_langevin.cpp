@@ -16,11 +16,10 @@
                          Aidan Thompson (SNL) GJF formulation
 ------------------------------------------------------------------------- */
 
+#include "fix_langevin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_langevin.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -28,8 +27,6 @@
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "input.h"

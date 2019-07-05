@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "region_block_kokkos.h"
 #include <cstdlib>
 #include <cstring>
-#include "region_block_kokkos.h"
 #include "domain.h"
 #include "force.h"
 #include "atom_kokkos.h"

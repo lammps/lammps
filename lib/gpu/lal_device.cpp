@@ -17,6 +17,7 @@
 #include "lal_precision.h"
 #include <map>
 #include <cmath>
+#include <cstdlib>
 #ifdef _OPENMP
 #include <omp.h>
 #endif

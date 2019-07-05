@@ -15,11 +15,11 @@
    Contributing author: Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table_kokkos.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_table_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
 #include "force.h"

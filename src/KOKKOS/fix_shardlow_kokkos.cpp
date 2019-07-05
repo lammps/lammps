@@ -33,10 +33,10 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
+#include "fix_shardlow_kokkos.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_shardlow_kokkos.h"
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"

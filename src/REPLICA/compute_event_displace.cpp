@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_event_displace.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "compute_event_displace.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"

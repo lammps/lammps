@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_charge.h"
+#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

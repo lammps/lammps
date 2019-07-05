@@ -15,9 +15,9 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "angle_cosine_periodic.h"
 #include <cmath>
 #include <cstdlib>
-#include "angle_cosine_periodic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

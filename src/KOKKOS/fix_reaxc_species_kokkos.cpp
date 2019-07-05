@@ -15,12 +15,12 @@
    Contributing authors: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_reaxc_species_kokkos.h"
 #include <cstdlib>
 #include <cmath>
 #include "atom.h"
 #include <cstring>
 #include "fix_ave_atom.h"
-#include "fix_reaxc_species_kokkos.h"
 #include "domain.h"
 #include "update.h"
 #include "pair_reaxc_kokkos.h"

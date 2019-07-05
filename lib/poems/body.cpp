@@ -14,11 +14,20 @@
  *                     110 8th St. Troy NY 12180                           * 
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
- 
-#include "bodies.h"
+
+#include <iostream>
+
+#include "body.h"
+#include "inertialframe.h"
+#include "mat3x3.h"
+#include "particle.h"
+#include "poemslist.h"
 #include "point.h"
+#include "rigidbody.h"
+#include "vect3.h"
 
 using namespace std;
+using namespace POEMS;
 
 Body::Body()
 {
@@ -122,7 +131,7 @@ void Body::AddPoint(Point* point){
 // global body functions
 //
 
-Body* NewBody(int type){
+Body* POEMS::NewBody(int type){
   switch( BodyType(type) )
     {
       case INERTIALFRAME :  // The inertial reference frame

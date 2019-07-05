@@ -17,11 +17,11 @@
                         Germany Department of Materials Science
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_cd.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_cd.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

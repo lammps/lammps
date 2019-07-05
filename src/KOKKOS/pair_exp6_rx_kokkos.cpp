@@ -15,11 +15,11 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_exp6_rx_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

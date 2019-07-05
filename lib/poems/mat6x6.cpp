@@ -16,9 +16,13 @@
  *_________________________________________________________________________*/
 
 #include "mat6x6.h"
+
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
+using namespace POEMS;
+
 
 Mat6x6::Mat6x6(){
   numrows = numcols = 6;

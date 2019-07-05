@@ -17,12 +17,12 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
+#include "pair_lubricateU_poly.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lubricateU_poly.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

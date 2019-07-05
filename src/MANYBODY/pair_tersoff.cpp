@@ -15,11 +15,11 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

@@ -21,7 +21,6 @@ AtomStyle(body,AtomVecBody)
 #define LMP_ATOM_VEC_BODY_H
 
 #include "atom_vec.h"
-#include "my_pool_chunk.h"
 
 namespace LAMMPS_NS {
 
@@ -112,7 +111,6 @@ class AtomVecBody : public AtomVec {
 
   void grow_bonus();
   void copy_bonus(int, int);
-  //void check(int);
 };
 
 }

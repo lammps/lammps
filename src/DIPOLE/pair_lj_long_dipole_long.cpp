@@ -15,13 +15,13 @@
    Contributing author: Pieter J. in 't Veld and Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_long_dipole_long.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "math_const.h"
 #include "math_vector.h"
-#include "pair_lj_long_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

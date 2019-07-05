@@ -15,12 +15,10 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h"
+#include "thermo.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "thermo.h"
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -43,11 +41,8 @@
 #include "kspace.h"
 #include "output.h"
 #include "timer.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "universe.h"
-
 #include "math_const.h"
 
 using namespace LAMMPS_NS;

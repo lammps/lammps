@@ -20,6 +20,7 @@
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include "pair_reaxc.h"
 #include "atom.h"
 #include "update.h"

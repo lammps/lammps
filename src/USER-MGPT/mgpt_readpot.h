@@ -19,7 +19,6 @@
 #ifndef READPOT__
 #define READPOT__
 
-#include <cstdio>
 
 #include "mgpt_splinetab.h"
 

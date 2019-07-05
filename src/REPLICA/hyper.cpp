@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "hyper.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "hyper.h"
 #include "update.h"
 #include "atom.h"
 #include "domain.h"

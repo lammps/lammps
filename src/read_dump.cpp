@@ -19,25 +19,19 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h"
+#include "read_dump.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "read_dump.h"
+#include <string>
 #include "reader.h"
 #include "style_reader.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "irregular.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
 #include "memory.h"
 #include "utils.h"

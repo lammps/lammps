@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_setforce_kokkos.h"
 #include <cstring>
 #include <cstdlib>
-#include "fix_setforce_kokkos.h"
 #include "atom_kokkos.h"
 #include "update.h"
 #include "modify.h"

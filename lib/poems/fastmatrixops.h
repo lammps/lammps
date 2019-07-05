@@ -17,7 +17,17 @@
 
 #ifndef FASTMATRIXOPS_H
 #define FASTMATRIXOPS_H
-#include "matrices.h"
+
+namespace POEMS {
+class ColMatMap;
+class ColMatrix;
+class Mat3x3;
+class Mat4x4;
+class Mat6x6;
+class Matrix;
+class Vect3;
+class Vect4;
+class Vect6;
 
 void FastCross(Vect3& a, Vect3& b, Vect3& c);
 void FastSimpleRotation(Vect3& v, double q, Mat3x3& C);
@@ -93,5 +103,5 @@ void FastAssign(ColMatrix&A, Vect3& C);
 void FastAssign(Vect4& A, Vect4& C);          // C = A
 void FastAssignT(Mat3x3& A, Mat3x3& C);       // C = A^T
 void FastAssignT(Mat4x4& A, Mat4x4& C);       // C = A^T
-
+}
 #endif

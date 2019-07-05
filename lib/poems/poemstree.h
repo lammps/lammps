@@ -21,7 +21,7 @@
 #include "poemstreenode.h"
 #include "poemsnodelib.h"
 
-
+namespace POEMS {
 // constants to indicate the balance factor of a node
 const int leftheavy = -1;
 const int balanced = 0;
@@ -609,5 +609,5 @@ void Tree::ClearList(void)
 	delete current;
 	size = 0;
 }
-
+}
 #endif

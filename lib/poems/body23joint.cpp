@@ -14,18 +14,21 @@
  *                     110 8th St. Troy NY 12180                           * 
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
- 
 
+#include <iostream>
 #include "body23joint.h"
-#include "point.h"
-#include "matrixfun.h"
 #include "body.h"
-#include "fastmatrixops.h"
-#include "norm.h"
+#include "colmatrix.h"
 #include "eulerparameters.h"
-#include "matrices.h"
-#include <iomanip>
+#include "fastmatrixops.h"
+#include "mat3x3.h"
+#include "matrixfun.h"
+#include "point.h"
+#include "vect3.h"
+#include "virtualmatrix.h"
 
+using namespace std;
+using namespace POEMS;
 
 Body23Joint::Body23Joint(){
   DimQandU(4,2);

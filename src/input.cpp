@@ -11,15 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "input.h"
 #include <mpi.h>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
 #include <cctype>
 #include <unistd.h>
 #include <sys/stat.h>
-#include "input.h"
 #include "style_command.h"
 #include "universe.h"
 #include "atom.h"
@@ -51,10 +50,6 @@
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #ifdef _WIN32
 #include <direct.h>
@@ -1818,11 +1813,11 @@ void Input::pair_style()
     if (!match && lmp->suffix_enable) {
       char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
     }

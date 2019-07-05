@@ -19,12 +19,12 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
+#include "tad.h"
 #include "lmptype.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "tad.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"

@@ -15,11 +15,11 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_charmm_coul_charmm_implicit_kokkos.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_charmm_coul_charmm_implicit_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"

@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "region_intersect.h"
+#include <cstring>
 #include "domain.h"
 #include "error.h"
 #include "force.h"

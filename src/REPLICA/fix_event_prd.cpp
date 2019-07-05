@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_event_prd.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_event_prd.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

@@ -24,6 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include <cstring>
 #include "pair_reaxc.h"
 #include "update.h"
 #include "reaxc_io_tools.h"
@@ -85,7 +86,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
 
 
 /************************ close output files ************************/
-int Close_Output_Files( reax_system *system, control_params *control,
+int Close_Output_Files( reax_system *system, control_params * /* control */,
                         output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
 {
   if (out_control->write_steps > 0)

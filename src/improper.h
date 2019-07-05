@@ -14,8 +14,7 @@
 #ifndef LMP_IMPROPER_H
 #define LMP_IMPROPER_H
 
-#include <cstdio>
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

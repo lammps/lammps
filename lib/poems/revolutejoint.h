@@ -18,11 +18,13 @@
 #ifndef REVOLUTEJOINT_H
 #define REVOLUTEJOINT_H
 
+#include <iostream>
 #include "joint.h"
 #include "vect3.h"
-#include "mat3x3.h"
+#include "matrix.h"
 
-
+namespace POEMS {
+class VirtualMatrix;
 
 class RevoluteJoint : public Joint  {
   Vect3 axis_pk; // unit vector in body1 basis
@@ -43,5 +45,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-
+}
 #endif

@@ -15,10 +15,10 @@
    Contributing authors: Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_wall_gran_region.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "fix_wall_gran_region.h"
 #include "region.h"
 #include "atom.h"
 #include "domain.h"

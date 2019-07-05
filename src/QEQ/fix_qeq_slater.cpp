@@ -15,11 +15,11 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_slater.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_qeq_slater.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

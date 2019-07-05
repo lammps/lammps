@@ -32,7 +32,6 @@ PairStyle(mgpt,PairMGPT)
 
 #include <new>
 #include <cmath>
-#include <cstdio>
 #include <cassert>
 
 #include "pair.h"

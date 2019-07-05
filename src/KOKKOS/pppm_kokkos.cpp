@@ -15,12 +15,12 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm_kokkos.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "pppm_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "gridcomm_kokkos.h"

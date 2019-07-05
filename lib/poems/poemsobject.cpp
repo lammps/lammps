@@ -19,6 +19,8 @@
 #include "poemsobject.h"
 #include <cstring>
 
+using namespace POEMS;
+
 POEMSObject::POEMSObject(){
   name = 0;
   ChangeName((const char*)"unnamed");

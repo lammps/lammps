@@ -15,10 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "bond_gromos.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "bond_gromos.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

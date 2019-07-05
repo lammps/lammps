@@ -14,9 +14,9 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
+#include "bond_oxdna_fene.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_oxdna_fene.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

@@ -15,11 +15,11 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "pair_hbond_dreiding_morse.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_hbond_dreiding_morse.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"

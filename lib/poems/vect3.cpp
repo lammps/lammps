@@ -16,9 +16,13 @@
  *_________________________________________________________________________*/
 
 #include "vect3.h"
+
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
+using namespace POEMS;
+
 
 Vect3::Vect3(){
   numrows = 3; numcols = 1;
@@ -138,6 +142,13 @@ Vect3& Vect3::operator+=(const Vect3& A){
   elements[0] += A.elements[0];
   elements[1] += A.elements[1];
   elements[2] += A.elements[2];
+  return *this;
+}
+
+Vect3& Vect3::operator-(){
+  elements[0] = -elements[0];
+  elements[1] = -elements[1];
+  elements[2] = -elements[2];
   return *this;
 }
 

@@ -15,9 +15,9 @@
 #define LMP_DOMAIN_H
 
 #include <cmath>
-#include "pointers.h"
 #include <map>
 #include <string>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

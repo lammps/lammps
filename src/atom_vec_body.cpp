@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "atom_vec_body.h"
 #include <cstdlib>
 #include <cstring>
-#include "atom_vec_body.h"
+#include <string>
+#include "my_pool_chunk.h"
 #include "style_body.h"
 #include "body.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "memory.h"
 #include "error.h"

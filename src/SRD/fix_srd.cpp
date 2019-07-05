@@ -15,10 +15,10 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
+#include "fix_srd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,7 +27,6 @@
 #include "group.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"

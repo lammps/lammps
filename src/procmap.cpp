@@ -16,15 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "procmap.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <string>
+#include <utility>
 #include "universe.h"
 #include "comm.h"
 #include "domain.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
-#include <string>
 
 using namespace LAMMPS_NS;
 

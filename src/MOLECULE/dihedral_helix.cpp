@@ -16,10 +16,10 @@
                          Mark Stevens (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_helix.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_helix.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

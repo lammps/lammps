@@ -24,6 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include <cstring>
 #include "pair_reaxc.h"
 #include "reaxc_forces.h"
 #include "reaxc_bond_orders.h"

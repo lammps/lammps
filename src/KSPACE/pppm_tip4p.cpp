@@ -15,8 +15,8 @@
    Contributing authors: Amalie Frischknecht and Ahmed Ismail (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pppm_tip4p.h"
+#include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"

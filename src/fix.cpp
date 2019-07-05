@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix.h"
 #include <cstring>
 #include <cctype>
-#include "fix.h"
 #include "atom.h"
 #include "group.h"
 #include "force.h"
-#include "comm.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"

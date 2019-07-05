@@ -16,11 +16,11 @@
    This modifies from pair_tersoff.cpp by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_polymorphic.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_polymorphic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

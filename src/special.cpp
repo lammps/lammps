@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdio>
 #include "special.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -23,7 +22,6 @@
 #include "accelerator_kokkos.h"
 #include "atom_masks.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

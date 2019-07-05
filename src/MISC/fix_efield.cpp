@@ -16,10 +16,10 @@
                         Stan Moore (Sandia) for dipole terms
 ------------------------------------------------------------------------- */
 
+#include "fix_efield.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_efield.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

@@ -16,8 +16,8 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pppm_disp_tip4p.h"
+#include <cmath>
 #include "pppm_disp.h"
 #include "atom.h"
 #include "domain.h"

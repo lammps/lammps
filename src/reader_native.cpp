@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "reader_native.h"
 #include <cstring>
 #include <cstdlib>
-#include "reader_native.h"
 #include "atom.h"
 #include "memory.h"
 #include "error.h"

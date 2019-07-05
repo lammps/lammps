@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_charge_kokkos.h"
+#include <cstdlib>
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
 #include "domain.h"

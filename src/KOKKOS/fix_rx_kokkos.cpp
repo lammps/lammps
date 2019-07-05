@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_rx_kokkos.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_rx_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"

@@ -15,11 +15,11 @@
    Contributing author: Ahmed Ismail (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_born_coul_long.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_born_coul_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

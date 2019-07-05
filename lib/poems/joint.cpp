@@ -16,15 +16,28 @@
  *_________________________________________________________________________*/
 
 
-#include "joints.h"
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+
 #include "body.h"
 #include "point.h"
-#include <string>
-#include "matrixfun.h"
 #include "fastmatrixops.h"
-#include <iomanip>
+#include "body23joint.h"
+#include "colmatrix.h"
+#include "freebodyjoint.h"
+#include "joint.h"
+#include "mat3x3.h"
+#include "matrix.h"
+#include "mixedjoint.h"
+#include "prismaticjoint.h"
+#include "revolutejoint.h"
+#include "sphericaljoint.h"
+#include "virtualmatrix.h"
 
 using namespace std;
+using namespace POEMS;
+
 
 Joint::Joint(){
   body1 = body2 = 0;
@@ -234,7 +247,7 @@ void Joint::ComputeBackwardGlobalTransform(){
 // global joint functions
 //
 
-Joint* NewJoint(int type){
+Joint* POEMS::NewJoint(int type){
   switch( JointType(type) )
   {
     case FREEBODYJOINT : return new FreeBodyJoint;

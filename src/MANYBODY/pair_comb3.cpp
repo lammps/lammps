@@ -17,11 +17,11 @@
                       Dundar Yilmaz (dundar.yilmaz@zirve.edu.tr)
 ------------------------------------------------------------------------- */
 
+#include "pair_comb3.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb3.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

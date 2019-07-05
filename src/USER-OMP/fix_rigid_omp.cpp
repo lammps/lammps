@@ -15,6 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cstring>
+
 #include "fix_rigid_omp.h"
 
 #include "atom.h"
@@ -23,8 +26,7 @@
 #include "atom_vec_tri.h"
 #include "comm.h"
 #include "domain.h"
-
-#include <cstring>
+#include "error.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

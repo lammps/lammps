@@ -16,7 +16,6 @@
 
 #include "pointers.h"
 #include "atom_vec_body.h"
-#include "my_pool_chunk.h"
 
 namespace LAMMPS_NS {
 

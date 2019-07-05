@@ -15,12 +15,12 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_ellipsoid.h"
+#include <cstdlib>
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"

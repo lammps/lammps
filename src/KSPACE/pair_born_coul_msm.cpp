@@ -15,11 +15,11 @@
    Contributing author: Stan Moore (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_born_coul_msm.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_born_coul_msm.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

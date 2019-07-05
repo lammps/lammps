@@ -16,12 +16,12 @@
                          Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm_disp.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "pppm_disp.h"
 #include "math_const.h"
 #include "atom.h"
 #include "comm.h"

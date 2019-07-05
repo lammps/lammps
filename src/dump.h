@@ -15,8 +15,7 @@
 #define LMP_DUMP_H
 
 #include <mpi.h>
-#include <cstdio>
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

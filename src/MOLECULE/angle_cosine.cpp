@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "angle_cosine.h"
 #include <cmath>
 #include <cstdlib>
-#include "angle_cosine.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

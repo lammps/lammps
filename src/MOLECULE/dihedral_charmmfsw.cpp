@@ -18,11 +18,11 @@
      with additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
+#include "dihedral_charmmfsw.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "dihedral_charmmfsw.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

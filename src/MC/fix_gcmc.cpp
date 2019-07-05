@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_gcmc.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"
@@ -43,10 +43,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "thermo.h"
-#include "output.h"
 #include "neighbor.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -371,7 +368,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngrouptypesmax*sizeof(char *),
                            "fix_gcmc:grouptypestrings");
       }
-      grouptypes[ngrouptypes] = atoi(arg[iarg+1]);
+      grouptypes[ngrouptypes] = force->inumeric(FLERR,arg[iarg+1]);
       int n = strlen(arg[iarg+2]) + 1;
       grouptypestrings[ngrouptypes] = new char[n];
       strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);

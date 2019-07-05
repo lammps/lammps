@@ -11,23 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_snap.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_snap.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "domain.h"
 #include "memory.h"
 #include "error.h"
-
-#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +49,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   beta_max = 0;
   beta = NULL;
   bispectrum = NULL;
+  snaptr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

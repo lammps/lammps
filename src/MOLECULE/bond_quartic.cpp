@@ -15,9 +15,9 @@
    Contributing authors: Chris Lorenz and Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
+#include "bond_quartic.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_quartic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

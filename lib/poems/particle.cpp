@@ -17,7 +17,8 @@
 
 
 #include "particle.h"
-#include "fixedpoint.h"
+
+using namespace POEMS;
 
 Particle::Particle(){
 }

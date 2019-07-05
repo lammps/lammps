@@ -19,11 +19,11 @@
      with additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_charmmfsw_coul_charmmfsh.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_charmmfsw_coul_charmmfsh.h"
 #include "atom.h"
 #include "update.h"
 #include "comm.h"

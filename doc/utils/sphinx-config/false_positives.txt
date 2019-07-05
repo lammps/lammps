@@ -101,6 +101,7 @@ api
 Appl
 Apu
 arccos
+Archlinux
 arcsin
 arg
 args
@@ -1527,6 +1528,7 @@ Makefile
 makefiles
 Makefiles
 makelist
+makepkg
 Makse
 malloc
 Malolepsza

@@ -15,9 +15,9 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
+#include "angle_cosine_squared.h"
 #include <cmath>
 #include <cstdlib>
-#include "angle_cosine_squared.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

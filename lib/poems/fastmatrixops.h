@@ -32,6 +32,7 @@ class Vect6;
 void FastCross(Vect3& a, Vect3& b, Vect3& c);
 void FastSimpleRotation(Vect3& v, double q, Mat3x3& C);
 void FastQuaternions(ColMatrix& q, Mat3x3& C);
+void FastInvQuaternions(Mat3x3& C, ColMatrix& q);
 void FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot);
 void FastLDLT(Matrix& A, Matrix& LD); // C is the LDL^T decomposition of A (SPD)
 void FastLDLT(Mat6x6& A, Mat6x6& LD); // C is the LDL^T decomposition of A (SPD)
@@ -54,6 +55,7 @@ void FastTripleSumPPM(Vect3& a, Vect3& b, Vect3& c, Vect3& d); // d = a+b-c
 
 void FastMult(Matrix& A, Matrix& B, Matrix& C);  // C = A*B
 void FastTMult(Matrix& A, Matrix& B, Matrix& C);  // C = A^T*B
+void FastTMult(Mat3x3& A, Vect3& B, Vect3& C);
 
 void FastMult(Mat3x3& A, Vect3& B, Vect3& C);  // C = A*B
 void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C); // C = A*B
@@ -90,6 +92,7 @@ void FastAdd(Vect3& A, Vect3& B, Vect3& C);     // C = A+B
 void FastAdd(Vect4& A, Vect4& B, Vect3& C);     // C = A+B
 void FastAdd(Mat6x6& A, Mat6x6& B, Mat6x6& C);  // C = A+B
 void FastAdd(Vect6& A, Vect6& B, Vect6& C);     // C = A+B
+void FastAdd(Vect4& A, Vect4& B, Vect4& C);
 
 void FastSubt(Vect3& A, Vect3& B, Vect3& C);    // C = A-B
 void FastSubt(Vect4& A, Vect4& B, Vect4& C);    // C = A-B

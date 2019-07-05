@@ -12,9 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_line.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_line.h"
 #include "domain.h"

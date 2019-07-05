@@ -12,15 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_asphere_noforce.h"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "group.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

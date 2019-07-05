@@ -20,7 +20,6 @@
 #include "atom_vec_tri.h"
 #include "update.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

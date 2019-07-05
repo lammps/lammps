@@ -12,9 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_tri.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_tri.h"

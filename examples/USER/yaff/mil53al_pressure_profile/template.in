@@ -23,7 +23,7 @@ box tilt large
 read_data       __nptdir__/lammps.data       # Data file location
 kspace_style    pppm 0.0000001      # Ewald accuracy
 neighbor        2.0 multi
-neigh_modify    every 2 delay 4 check yes
+neigh_modify    every 1 delay 0 check no
 
 read_dump __nptdir__/positions.dat __step__ x y z
 change_box all x scale __scale__ y scale __scale__ z scale __scale__

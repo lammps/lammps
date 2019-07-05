@@ -1525,6 +1525,7 @@ double FixNH::compute_scalar()
     // extra contributions from thermostat chain for barostat
 
     if (mpchain) {
+      if (fix_volume) lkt_press -= kt;
       energy += lkt_press * etap[0] + 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
       for (ich = 1; ich < mpchain; ich++)
         energy += kt * etap[ich] +
@@ -1898,6 +1899,9 @@ void FixNH::nhc_press_integrate()
         pdof++;
       }
   }
+
+  // Keeping the volume fixed removes one degree of freedom from the cell tensor
+  if (fix_volume) pdof--;
 
   if (pstyle == ISO) lkt_press = kt;
   else lkt_press = pdof * kt;

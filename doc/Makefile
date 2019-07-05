@@ -96,7 +96,7 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	)
 	@echo "Spell check finished."
 
-epub: $(OBJECTS)
+epub: $(OBJECTS) $(ANCHORCHECK)
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/

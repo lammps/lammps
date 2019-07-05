@@ -134,6 +134,8 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   nmax = 0;
   idxz = NULL;
   idxb = NULL;
+  ulist_r_ij = NULL;
+  ulist_i_ij = NULL;
 
   build_indexlist();
   create_twojmax_arrays();
@@ -154,6 +156,8 @@ SNA::~SNA()
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
+  memory->destroy(ulist_r_ij);
+  memory->destroy(ulist_i_ij);
   delete[] idxz;
   delete[] idxb;
   destroy_twojmax_arrays();
@@ -299,10 +303,14 @@ void SNA::grow_rij(int newnmax)
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
+  memory->destroy(ulist_r_ij);
+  memory->destroy(ulist_i_ij);
   memory->create(rij, nmax, 3, "pair:rij");
   memory->create(inside, nmax, "pair:inside");
   memory->create(wj, nmax, "pair:wj");
   memory->create(rcutij, nmax, "pair:rcutij");
+  memory->create(ulist_r_ij, nmax, idxu_max, "sna:ulist_ij");
+  memory->create(ulist_i_ij, nmax, idxu_max, "sna:ulist_ij");
 }
 
 /* ----------------------------------------------------------------------
@@ -333,8 +341,8 @@ void SNA::compute_ui(int jnum)
     //    theta0 = (r - rmin0) * rscale0;
     z0 = r / tan(theta0);
 
-    compute_uarray(x, y, z, z0, r);
-    add_uarraytot(r, wj[j], rcutij[j]);
+    compute_uarray(x, y, z, z0, r, j);
+    add_uarraytot(r, wj[j], rcutij[j], j);
   }
 
 }
@@ -610,8 +618,6 @@ void SNA::compute_bi()
 
       sumzu += 0.5*(ulisttot_r[jju]*zlist_r[jjz] + 
                    ulisttot_i[jju]*zlist_i[jjz]);
-      jjz++;
-      jju++;
     } // end if jeven
 
     blist[jjb] = 2.0*sumzu;
@@ -828,7 +834,7 @@ void SNA::compute_dbidrj()
    calculate derivative of Ui w.r.t. atom j
 ------------------------------------------------------------------------- */
 
-void SNA::compute_duidrj(double* rij, double wj, double rcut)
+void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj)
 {
   double rsq, r, x, y, z, z0, theta0, cs, sn;
   double dz0dr;
@@ -845,7 +851,7 @@ void SNA::compute_duidrj(double* rij, double wj, double rcut)
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut);
+  compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut, jj);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -881,13 +887,16 @@ void SNA::addself_uarraytot(double wself_in)
    add Wigner U-functions for one neighbor to the total
 ------------------------------------------------------------------------- */
 
-void SNA::add_uarraytot(double r, double wj, double rcut)
+void SNA::add_uarraytot(double r, double wj, double rcut, int jj)
 {
   double sfac;
 
   sfac = compute_sfac(r, rcut);
 
   sfac *= wj;
+
+  double* ulist_r = ulist_r_ij[jj];
+  double* ulist_i = ulist_i_ij[jj];
 
   for (int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];
@@ -907,7 +916,7 @@ void SNA::add_uarraytot(double r, double wj, double rcut)
 ------------------------------------------------------------------------- */
 
 void SNA::compute_uarray(double x, double y, double z,
-                         double z0, double r)
+                         double z0, double r, int jj)
 {
   double r0inv;
   double a_r, b_r, a_i, b_i;
@@ -922,6 +931,10 @@ void SNA::compute_uarray(double x, double y, double z,
   b_i = -r0inv * x;
 
   // VMK Section 4.8.2
+
+
+  double* ulist_r = ulist_r_ij[jj];
+  double* ulist_i = ulist_i_ij[jj];
 
   ulist_r[0] = 1.0;
   ulist_i[0] = 0.0;
@@ -994,7 +1007,7 @@ void SNA::compute_uarray(double x, double y, double z,
 
 void SNA::compute_duarray(double x, double y, double z,
                           double z0, double r, double dz0dr,
-                          double wj, double rcut)
+                          double wj, double rcut, int jj)
 {
   double r0inv;
   double a_r, a_i, b_r, b_i;
@@ -1038,11 +1051,12 @@ void SNA::compute_duarray(double x, double y, double z,
   db_i[0] += -r0inv;
   db_r[1] += r0inv;
 
-  ulist_r[0] = 1.0;
+  double* ulist_r = ulist_r_ij[jj];
+  double* ulist_i = ulist_i_ij[jj];
+
   dulist_r[0][0] = 0.0;
   dulist_r[0][1] = 0.0;
   dulist_r[0][2] = 0.0;
-  ulist_i[0] = 0.0;
   dulist_i[0][0] = 0.0;
   dulist_i[0][1] = 0.0;
   dulist_i[0][2] = 0.0;
@@ -1051,24 +1065,15 @@ void SNA::compute_duarray(double x, double y, double z,
     int jju = idxu_block[j];
     int jjup = idxu_block[j-1];
     for (int mb = 0; 2*mb <= j; mb++) {
-      ulist_r[jju] = 0.0;
       dulist_r[jju][0] = 0.0;
       dulist_r[jju][1] = 0.0;
       dulist_r[jju][2] = 0.0;
-      ulist_i[jju] = 0.0;
       dulist_i[jju][0] = 0.0;
       dulist_i[jju][1] = 0.0;
       dulist_i[jju][2] = 0.0;
 
       for (int ma = 0; ma < j; ma++) {
         rootpq = rootpqarray[j - ma][j - mb];
-        ulist_r[jju] += rootpq *
-                               (a_r *  ulist_r[jjup] +
-                                a_i *  ulist_i[jjup]);
-        ulist_i[jju] += rootpq *
-                               (a_r *  ulist_i[jjup] -
-                                a_i *  ulist_r[jjup]);
-
         for (int k = 0; k < 3; k++) {
           dulist_r[jju][k] +=
             rootpq * (da_r[k] * ulist_r[jjup] +
@@ -1083,13 +1088,6 @@ void SNA::compute_duarray(double x, double y, double z,
         }
 
         rootpq = rootpqarray[ma + 1][j - mb];
-        ulist_r[jju+1] =
-          -rootpq * (b_r *  ulist_r[jjup] +
-                     b_i *  ulist_i[jjup]);
-        ulist_i[jju+1] =
-          -rootpq * (b_r *  ulist_i[jjup] -
-                     b_i *  ulist_r[jjup]);
-
         for (int k = 0; k < 3; k++) {
           dulist_r[jju+1][k] =
             -rootpq * (db_r[k] * ulist_r[jjup] +
@@ -1118,15 +1116,11 @@ void SNA::compute_duarray(double x, double y, double z,
       int mapar = mbpar;
       for (int ma = 0; ma <= j; ma++) {
         if (mapar == 1) {
-          ulist_r[jjup] = ulist_r[jju];
-          ulist_i[jjup] = -ulist_i[jju];
           for (int k = 0; k < 3; k++) {
             dulist_r[jjup][k] = dulist_r[jju][k];
             dulist_i[jjup][k] = -dulist_i[jju][k];
           }
         } else {
-          ulist_r[jjup] = -ulist_r[jju];
-          ulist_i[jjup] = ulist_i[jju];
           for (int k = 0; k < 3; k++) {
             dulist_r[jjup][k] = -dulist_r[jju][k];
             dulist_i[jjup][k] = dulist_i[jju][k];
@@ -1181,7 +1175,7 @@ double SNA::memory_usage()
   bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
   bytes += idxcg_max * sizeof(double);                   // cglist
 
-  bytes += idxu_max * sizeof(double) * 2;                // ulist
+  bytes += nmax * idxu_max * sizeof(double) * 2;         // ulist_ij
   bytes += idxu_max * sizeof(double) * 2;                // ulisttot
   bytes += idxu_max * 3 * sizeof(double) * 2;            // dulist
 
@@ -1215,8 +1209,6 @@ void SNA::create_twojmax_arrays()
   memory->create(rootpqarray, jdimpq, jdimpq,
                  "sna:rootpqarray");
   memory->create(cglist, idxcg_max, "sna:cglist");
-  memory->create(ulist_r, idxu_max, "sna:ulist");
-  memory->create(ulist_i, idxu_max, "sna:ulist");
   memory->create(ulisttot_r, idxu_max, "sna:ulisttot");
   memory->create(ulisttot_i, idxu_max, "sna:ulisttot");
   memory->create(dulist_r, idxu_max, 3, "sna:dulist");
@@ -1241,8 +1233,6 @@ void SNA::destroy_twojmax_arrays()
 {
   memory->destroy(rootpqarray);
   memory->destroy(cglist);
-  memory->destroy(ulist_r);
-  memory->destroy(ulist_i);
   memory->destroy(ulisttot_r);
   memory->destroy(ulisttot_i);
   memory->destroy(dulist_r);

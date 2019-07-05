@@ -437,9 +437,9 @@ public:
   {
     bool result = !erasable();
     if (is_insertable_map && result) {
-      execution_space::fence();
+      execution_space().fence();
       set_flag(erasable_idx);
-      execution_space::fence();
+      execution_space().fence();
     }
     return result;
   }
@@ -448,10 +448,10 @@ public:
   {
     bool result = erasable();
     if (is_insertable_map && result) {
-      execution_space::fence();
+      execution_space().fence();
       Impl::UnorderedMapErase<declared_map_type> f(*this);
       f.apply();
-      execution_space::fence();
+      execution_space().fence();
       reset_flag(erasable_idx);
     }
     return result;

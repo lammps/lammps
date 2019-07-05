@@ -107,22 +107,20 @@ public:
     }
   }
 
-  /// assignment
-  Bitset<Device> & operator = (Bitset<Device> const & rhs)
-  {
-    this->m_size = rhs.m_size;
-    this->m_last_block_mask = rhs.m_last_block_mask;
-    this->m_blocks = rhs.m_blocks;
+  KOKKOS_INLINE_FUNCTION
+  Bitset (const Bitset<Device>&) = default;
 
-    return *this;
-  }
+  KOKKOS_INLINE_FUNCTION
+  Bitset& operator= (const Bitset<Device>&) = default;
 
-  /// copy constructor
-  Bitset( Bitset<Device> const & rhs)
-    : m_size( rhs.m_size )
-    , m_last_block_mask( rhs.m_last_block_mask )
-    , m_blocks( rhs.m_blocks )
-  {}
+  KOKKOS_INLINE_FUNCTION
+  Bitset (Bitset<Device>&&) = default;
+
+  KOKKOS_INLINE_FUNCTION
+  Bitset& operator= (Bitset<Device>&&) = default;
+  
+  KOKKOS_INLINE_FUNCTION
+  ~Bitset () = default;
 
   /// number of bits in the set
   /// can be call from the host or the device

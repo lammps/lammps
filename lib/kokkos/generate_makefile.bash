@@ -15,12 +15,15 @@ do
     --qthreads-path*)
       QTHREADS_PATH="${key#*=}"
       ;;
+    --hpx-path*)
+      HPX_PATH="${key#*=}"
+      ;;
     --prefix*)
       PREFIX="${key#*=}"
       ;;
     --with-cuda)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Cuda"
-      CUDA_PATH_NVCC=`which nvcc`
+      CUDA_PATH_NVCC=$(command -v nvcc)
       CUDA_PATH=${CUDA_PATH_NVCC%/bin/nvcc}
       ;;
     # Catch this before '--with-cuda*'
@@ -47,6 +50,15 @@ do
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Qthreads"
       if [ -z "$QTHREADS_PATH" ]; then
         QTHREADS_PATH="${key#*=}"
+      fi
+      ;;
+    --with-hpx-options*)
+      KOKKOS_HPX_OPT="${key#*=}"
+      ;;
+    --with-hpx*)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},HPX"
+      if [ -z "$HPX_PATH" ]; then
+        HPX_PATH="${key#*=}"
       fi
       ;;
     --with-devices*)
@@ -86,7 +98,7 @@ do
       ;;
     --compiler*)
       COMPILER="${key#*=}"
-      CNUM=`which ${COMPILER} 2>&1 >/dev/null | grep "no ${COMPILER}" | wc -l`
+      CNUM=$(command -v ${COMPILER} 2>&1 >/dev/null | grep "no ${COMPILER}" | wc -l)
       if [ ${CNUM} -gt 0 ]; then
         echo "Invalid compiler by --compiler command: '${COMPILER}'"
         exit
@@ -95,15 +107,15 @@ do
         echo "Empty compiler specified by --compiler command."
         exit
       fi
-      CNUM=`which ${COMPILER} | grep ${COMPILER} | wc -l`
+      CNUM=$(command -v ${COMPILER} | grep ${COMPILER} | wc -l)
       if [ ${CNUM} -eq 0 ]; then
         echo "Invalid compiler by --compiler command: '${COMPILER}'"
         exit
       fi
       # ... valid compiler, ensure absolute path set 
-      WCOMPATH=`which $COMPILER`
-      COMPDIR=`dirname $WCOMPATH`
-      COMPNAME=`basename $WCOMPATH`
+      WCOMPATH=$(command -v $COMPILER)
+      COMPDIR=$(dirname $WCOMPATH)
+      COMPNAME=$(basename $WCOMPATH)
       COMPILER=${COMPDIR}/${COMPNAME}
       ;;
     --with-options*)
@@ -186,6 +198,8 @@ do
       echo "                                "
       echo "--with-cuda-options=[OPT]:    Additional options to CUDA:"
       echo "                                force_uvm, use_ldg, enable_lambda, rdc"
+      echo "--with-hpx-options=[OPT]:     Additional options to HPX:"
+      echo "                                enable_async_dispatch"
       echo "--gcc-toolchain=/Path/To/GccRoot:  Set the gcc toolchain to use with clang (e.g. /usr)" 
       echo "--make-j=[NUM]:               DEPRECATED: call make with appropriate"
       echo "                                -j flag"
@@ -282,12 +296,20 @@ if [ ${#QTHREADS_PATH} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} QTHREADS_PATH=${QTHREADS_PATH}"
 fi
 
+if [ ${#HPX_PATH} -gt 0 ]; then
+    KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HPX_PATH=${HPX_PATH}"
+fi
+
 if [ ${#KOKKOS_OPT} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_OPTIONS=${KOKKOS_OPT}"
 fi
 
 if [ ${#KOKKOS_CUDA_OPT} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_CUDA_OPTIONS=${KOKKOS_CUDA_OPT}"
+fi
+
+if [ ${#KOKKOS_HPX_OPT} -gt 0 ]; then
+    KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_HPX_OPTIONS=${KOKKOS_HPX_OPT}"
 fi
 
 if [ ${#KOKKOS_GCC_TOOLCHAIN} -gt 0 ]; then
@@ -485,6 +507,7 @@ echo -e "\t\$(MAKE) -C containers/unit_tests" >> Makefile
 echo -e "\t\$(MAKE) -C containers/performance_tests" >> Makefile
 echo -e "\t\$(MAKE) -C algorithms/unit_tests" >> Makefile
 if [ ${KOKKOS_DO_EXAMPLES} -gt 0 ]; then
+$()
 echo -e "\t\$(MAKE) -C example/fixture" >> Makefile
 echo -e "\t\$(MAKE) -C example/feint" >> Makefile
 echo -e "\t\$(MAKE) -C example/fenl" >> Makefile

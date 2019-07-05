@@ -476,6 +476,9 @@ private:
   void test_run_time_parameters_type() {
     int league_size = 131;
     int team_size = 4 < policy_t::execution_space::concurrency() ? 4 : policy_t::execution_space::concurrency();
+#ifdef KOKKOS_ENABLE_HPX
+    team_size = 1;
+#endif
     int chunk_size = 4;
     int per_team_scratch = 1024;
     int per_thread_scratch = 16;

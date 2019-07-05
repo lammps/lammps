@@ -484,8 +484,8 @@ public:
       }
     }
     if(std::is_same<typename t_host::memory_space,typename t_dev::memory_space>::value) {
-      t_dev::execution_space::fence();
-      t_host::execution_space::fence();
+      typename t_dev::execution_space().fence();
+      typename t_host::execution_space().fence();
     }
   }
 

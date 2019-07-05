@@ -48,6 +48,86 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <type_traits>
+
+// TODO @refactoring move this to somewhere common
+
+//------------------------------------------------------------------------------
+
+template <class...>
+struct _kokkos____________________static_test_failure_____;
+
+template <class...>
+struct static_predicate_message {};
+
+//------------------------------------------------------------------------------
+
+template <class, template <class...> class, class...>
+struct static_assert_predicate_true_impl;
+
+template <template <class...> class predicate, class... message, class... args>
+struct static_assert_predicate_true_impl<
+  typename std::enable_if<predicate<args...>::type::value>::type,
+  predicate,
+  static_predicate_message<message...>,
+  args...
+> {
+  using type = int;
+};
+
+template <template <class...> class predicate, class... message, class... args>
+struct static_assert_predicate_true_impl<
+  typename std::enable_if<!predicate<args...>::type::value>::type,
+  predicate,
+  static_predicate_message<message...>,
+  args...
+>
+{
+  using type = typename _kokkos____________________static_test_failure_____<message...>::type;
+};
+
+template <template <class...> class predicate, class... args>
+struct static_assert_predicate_true
+  : static_assert_predicate_true_impl<void,
+      predicate, static_predicate_message<>,
+      args...
+    >
+{ };
+
+template <template <class...> class predicate, class... message, class... args>
+struct static_assert_predicate_true<
+  predicate, static_predicate_message<message...>,
+  args...
+>
+  : static_assert_predicate_true_impl<void,
+      predicate, static_predicate_message<message...>,
+      args...
+    >
+{ };
+
+//------------------------------------------------------------------------------
+
+// error "messages"
+struct _kokkos__________types_should_be_the_same_____expected_type__ {};
+struct _kokkos__________actual_type_was__ {};
+template <class Expected, class Actual>
+struct static_expect_same
+{
+  using type =
+    typename static_assert_predicate_true<
+      std::is_same,
+      static_predicate_message<
+        _kokkos__________types_should_be_the_same_____expected_type__,
+        Expected,
+        _kokkos__________actual_type_was__,
+        Actual
+      >,
+      Expected, Actual
+    >::type;
+};
+
+//------------------------------------------------------------------------------
+
 
 namespace TestViewSubview {
 
@@ -1220,6 +1300,7 @@ void test_layoutleft_to_layoutleft() {
     check.offset_0 = 16;
     check.offset_2 = 0;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename Space::execution_space >( 0, b.extent( 0 ) * b.extent( 1 ) * b.extent( 2 ) ), check );
+    Kokkos::fence();
   }
 
   {
@@ -1236,6 +1317,7 @@ void test_layoutleft_to_layoutleft() {
     check.offset_0 = 16;
     check.offset_2 = 1;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename Space::execution_space >( 0, b.extent( 0 ) * b.extent( 1 ) * b.extent( 2 ) ), check );
+    Kokkos::fence();
   }
 
   {
@@ -1253,6 +1335,7 @@ void test_layoutleft_to_layoutleft() {
     check.offset_2 = 1;
     check.index = 1;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename Space::execution_space >( 0, b.extent( 0 ) * b.extent( 1 ) * b.extent( 2 ) ), check );
+    Kokkos::fence();
   }
 }
 
@@ -1274,6 +1357,7 @@ void test_layoutright_to_layoutright() {
     check.offset_0 = 16;
     check.offset_2 = 0;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename Space::execution_space >( 0, b.extent( 0 ) * b.extent( 1 ) * b.extent( 2 ) ), check );
+    Kokkos::fence();
   }
 
   {
@@ -1291,6 +1375,7 @@ void test_layoutright_to_layoutright() {
     check.offset_2 = 0;
     check.index = 1;
     Kokkos::parallel_for( Kokkos::RangePolicy< typename Space::execution_space >( 0, b.extent( 0 ) * b.extent( 1 ) * b.extent( 2 ) ), check );
+    Kokkos::fence();
   }
 }
 
@@ -1327,6 +1412,125 @@ void test_unmanaged_subview_reset()
     , TestUnmanagedSubviewReset<Space>()
     );
 }
+
+//----------------------------------------------------------------------------
+
+template <class T>
+struct get_view_type;
+
+template <class T, class... Args>
+struct get_view_type<
+  Kokkos::View<T, Args...>
+> {
+  using type = T;
+};
+
+template <class T>
+struct ___________________________________TYPE_DISPLAY________________________________________;
+#define TYPE_DISPLAY(...) typename ___________________________________TYPE_DISPLAY________________________________________<__VA_ARGS__>::type notdefined;
+
+template <class Space, class Layout>
+struct TestSubviewStaticSizes
+{
+  Kokkos::View<int*[10][5][2], Layout, Space> a;
+
+  KOKKOS_INLINE_FUNCTION
+  int operator()() const noexcept
+  {
+    /* Doesn't actually do anything; just static assertions */
+
+    auto sub_a = Kokkos::subview(a, 0, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
+    typename static_expect_same<
+      /* expected */ int[10][5][2],
+      /*  actual  */ typename get_view_type<decltype(sub_a)>::type
+    >::type test_1 = 0;
+
+    auto sub_a_2 = Kokkos::subview(a, 0, 0, Kokkos::ALL, Kokkos::ALL);
+    typename static_expect_same<
+      /* expected */ int[5][2],
+      /*  actual  */ typename get_view_type<decltype(sub_a_2)>::type
+    >::type test_2 = 0;
+
+    auto sub_a_3 = Kokkos::subview(a, 0, 0, Kokkos::ALL, 0);
+    typename static_expect_same<
+      /* expected */ int[5],
+      /*  actual  */ typename get_view_type<decltype(sub_a_3)>::type
+    >::type test_3 = 0;
+
+    auto sub_a_4 = Kokkos::subview(a, Kokkos::ALL, 0, Kokkos::ALL, Kokkos::ALL);
+    typename static_expect_same<
+      /* expected */ int*[5][2],
+      /*  actual  */ typename get_view_type<decltype(sub_a_4)>::type
+    >::type test_4 = 0;
+
+    // TODO we'll need to update this test once we allow interleaving of static and dynamic
+    auto sub_a_5 = Kokkos::subview(a, Kokkos::ALL, 0, Kokkos::ALL, Kokkos::make_pair(0, 1));
+    typename static_expect_same<
+      /* expected */ int***,
+      /*  actual  */ typename get_view_type<decltype(sub_a_5)>::type
+    >::type test_5 = 0;
+
+    auto sub_a_sub = Kokkos::subview(sub_a_5, 0, Kokkos::ALL, 0);
+    typename static_expect_same<
+      /* expected */ int*,
+      /*  actual  */ typename get_view_type<decltype(sub_a_sub)>::type
+    >::type test_sub = 0;
+
+    auto sub_a_7 = Kokkos::subview(a, Kokkos::ALL, 0, Kokkos::make_pair(0, 1), Kokkos::ALL);
+    typename static_expect_same<
+      /* expected */ int**[2],
+      /*  actual  */ typename get_view_type<decltype(sub_a_7)>::type
+    >::type test_7 = 0;
+
+
+    return test_1 + test_2 + test_3 + test_4 + test_5 + test_sub + test_7;
+  }
+
+  TestSubviewStaticSizes()
+    : a( Kokkos::view_alloc() , 20 )
+  {}
+};
+
+
+template <class Space>
+struct TestExtentsStaticTests {
+
+  using test1 = typename
+    static_expect_same<
+      /* expected */
+      Kokkos::Experimental::Extents<
+        Kokkos::Experimental::dynamic_extent,
+        Kokkos::Experimental::dynamic_extent,
+        1, 2, 3
+      >,
+      /* actual */
+      typename Kokkos::Impl::ParseViewExtents<double**[1][2][3]>::type
+    >::type;
+
+  using test2 = typename
+    static_expect_same<
+      /* expected */
+      Kokkos::Experimental::Extents<1, 2, 3>,
+      /* actual */
+      typename Kokkos::Impl::ParseViewExtents<double[1][2][3]>::type
+    >::type;
+
+  using test3 = typename
+    static_expect_same<
+      /* expected */
+      Kokkos::Experimental::Extents<3>,
+      /* actual */
+      typename Kokkos::Impl::ParseViewExtents<double[3]>::type
+    >::type;
+
+  using test4 = typename
+    static_expect_same<
+      /* expected */
+      Kokkos::Experimental::Extents<>,
+      /* actual */
+      typename Kokkos::Impl::ParseViewExtents<double>::type
+    >::type;
+};
 
 } // namespace TestViewSubview
 

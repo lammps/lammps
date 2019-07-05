@@ -29,7 +29,7 @@ commonly referred to as a classic inversion and used in the
 where K is the force constant and omega is the angle between the IL
 axis and the IJK plane:
 
-:c,image(Eqs/umbrella.jpg)
+:c,image(JPG/umbrella.jpg)
 
 If omega0 = 0 the potential term has a minimum for the planar
 structure.  Otherwise it has two minima at +/- omega0, with a barrier

@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "utils.h"
-#include <mpi.h>
 #include <cstring>
 #include "lammps.h"
 #include "error.h"

@@ -14,6 +14,7 @@
 #include "write_coeff.h"
 #include <cstring>
 #include <cstdlib>
+#include <cctype>
 #include <unistd.h>
 #include "pair.h"
 #include "bond.h"

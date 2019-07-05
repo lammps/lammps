@@ -12,13 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "velocity.h"
-#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
 #include "lattice.h"
 #include "input.h"

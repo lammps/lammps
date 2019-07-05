@@ -16,7 +16,6 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
 #include "version.h"
 #include "error.h"
 #include "force.h"

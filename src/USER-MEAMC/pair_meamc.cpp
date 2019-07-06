@@ -56,6 +56,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
   elements = NULL;
   mass = NULL;
   meam_inst = new MEAM(memory);
+  scale = NULL;
 
   // set comm size needed by this Pair
 
@@ -79,6 +80,7 @@ PairMEAMC::~PairMEAMC()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(scale);
     delete [] map;
   }
 }
@@ -143,7 +145,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   comm->reverse_comm_pair(this);
 
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
-                   &eng_vdwl,eatom,ntype,type,map,errorflag);
+                   &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag) {
     char str[128];
     sprintf(str,"MEAM library error %d",errorflag);
@@ -164,7 +166,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_force(i,eflag_either,eflag_global,eflag_atom,
-                vflag_atom,&eng_vdwl,eatom,ntype,type,map,x,
+                vflag_atom,&eng_vdwl,eatom,ntype,type,map,scale,x,
                 numneigh_half[i],firstneigh_half[i],
                 numneigh_full[i],firstneigh_full[i],
                 offset,f,vptr);
@@ -183,6 +185,7 @@ void PairMEAMC::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(scale,n+1,n+1,"pair:scale");
 
   map = new int[n+1];
 }
@@ -267,13 +270,16 @@ void PairMEAMC::coeff(int narg, char **arg)
   // set mass for i,i in atom class
 
   int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  for (int i = 1; i <= n; i++) {
+    for (int j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
         if (i == j) atom->set_mass(FLERR,i,mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
+    }
+  }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -312,8 +318,10 @@ void PairMEAMC::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMEAMC::init_one(int /*i*/, int /*j*/)
+double PairMEAMC::init_one(int i, int j)
 {
+  if (setflag[i][j] == 0) scale[i][j] = 1.0;
+  scale[j][i] = scale[i][j];
   return cutmax;
 }
 
@@ -772,4 +780,13 @@ void PairMEAMC::neigh_strip(int inum, int *ilist,
     jnum = numneigh[i];
     for (j = 0; j < jnum; j++) jlist[j] &= NEIGHMASK;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairMEAMC::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+  return NULL;
 }

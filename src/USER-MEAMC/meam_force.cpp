@@ -8,7 +8,7 @@ using namespace LAMMPS_NS;
 
 void
 MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
-                 double* eatom, int /*ntype*/, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                 double* eatom, int /*ntype*/, int* type, int* fmap, double** scale, double** x, int numneigh, int* firstneigh,
                  int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom)
 {
   int j, jn, k, kn, kk, m, n, p, q;
@@ -42,6 +42,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   double arg1i1, arg1j1, arg1i2, arg1j2, arg1i3, arg1j3, arg3i3, arg3j3;
   double dsij1, dsij2, force1, force2;
   double t1i, t2i, t3i, t1j, t2j, t3j;
+  double scaleij;
 
   third = 1.0 / 3.0;
   sixth = 1.0 / 6.0;
@@ -59,6 +60,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   for (jn = 0; jn < numneigh; jn++) {
     j = firstneigh[jn];
     eltj = fmap[type[j]];
+    scaleij = scale[type[i]][type[j]];
 
     if (!iszero(scrfcn[fnoffset + jn]) && eltj >= 0) {
 
@@ -84,11 +86,12 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         recip = 1.0 / r;
 
         if (eflag_either != 0) {
+          double phi_sc = phi * scaleij;
           if (eflag_global != 0)
-            *eng_vdwl = *eng_vdwl + phi * sij;
+            *eng_vdwl = *eng_vdwl + phi_sc * sij;
           if (eflag_atom != 0) {
-            eatom[i] = eatom[i] + 0.5 * phi * sij;
-            eatom[j] = eatom[j] + 0.5 * phi * sij;
+            eatom[i] = eatom[i] + 0.5 * phi_sc * sij;
+            eatom[j] = eatom[j] + 0.5 * phi_sc * sij;
           }
         }
 
@@ -378,6 +381,13 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         }
         for (m = 0; m < 3; m++) {
           dUdrijm[m] = frhop[i] * drhodrm1[m] + frhop[j] * drhodrm2[m];
+        }
+        if (!isone(scaleij)) {
+          dUdrij *= scaleij;
+          dUdsij *= scaleij;
+          dUdrijm[0] *= scaleij;
+          dUdrijm[1] *= scaleij;
+          dUdrijm[2] *= scaleij;
         }
 
         //     Add the part of the force due to dUdrij and dUdsij

@@ -18,8 +18,6 @@
 #include "msm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "gridcomm.h"
@@ -29,10 +27,7 @@
 #include "neighbor.h"
 #include "memory.h"
 
-#include "math_const.h"
-
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define OFFSET 16384
 #define SMALLQ 0.00001

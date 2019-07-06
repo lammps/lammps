@@ -18,8 +18,6 @@
 #include "msm.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"

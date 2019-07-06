@@ -19,8 +19,6 @@
 #include "pppm_disp.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include "math_const.h"
 #include "atom.h"

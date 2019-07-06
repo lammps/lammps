@@ -20,9 +20,6 @@
 
 #include "ewald.h"
 #include <mpi.h>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"

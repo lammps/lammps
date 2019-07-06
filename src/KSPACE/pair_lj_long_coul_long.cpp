@@ -18,9 +18,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_long_coul_long.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_vector.h"
 #include "atom.h"
@@ -31,7 +30,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"

@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "math_const.h"
 

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "remap.h"
+#include <mpi.h>
 #include <cstdio>
 #include <cstdlib>
 

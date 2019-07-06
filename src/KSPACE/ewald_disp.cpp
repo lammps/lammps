@@ -18,8 +18,6 @@
 #include "ewald_disp.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include "math_vector.h"
 #include "math_const.h"

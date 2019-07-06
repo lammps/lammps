@@ -18,17 +18,12 @@
 #include "pppm_dipole.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
-#include "neighbor.h"
 #include "force.h"
 #include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "remap_wrap.h"

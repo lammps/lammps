@@ -17,8 +17,6 @@
 
 #include "pair_born_coul_long.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

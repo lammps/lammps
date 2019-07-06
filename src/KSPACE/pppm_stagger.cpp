@@ -18,12 +18,9 @@
 #include "pppm_stagger.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include "atom.h"
 #include "gridcomm.h"
-#include "force.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"

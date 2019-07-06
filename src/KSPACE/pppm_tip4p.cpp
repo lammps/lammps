@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_tip4p.h"
+#include <mpi.h>
 #include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "math_const.h"
 

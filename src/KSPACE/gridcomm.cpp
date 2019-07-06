@@ -13,10 +13,8 @@
 
 #include "gridcomm.h"
 #include <mpi.h>
-#include "comm.h"
 #include "kspace.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

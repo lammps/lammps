@@ -17,18 +17,11 @@
 
 #include "pair_coul_msm.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
 

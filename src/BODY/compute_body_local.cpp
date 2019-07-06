@@ -12,15 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_body_local.h"
-#include <cmath>
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body.h"
 #include "update.h"
-#include "domain.h"
 #include "force.h"
-#include "bond.h"
 #include "memory.h"
 #include "error.h"
 

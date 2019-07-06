@@ -13,8 +13,6 @@
 
 #include "pair_body_nparticle.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

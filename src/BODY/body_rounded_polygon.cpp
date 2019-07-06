@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "body_rounded_polygon.h"
+#include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "my_pool_chunk.h"
 #include "atom_vec_body.h"
 #include "atom.h"

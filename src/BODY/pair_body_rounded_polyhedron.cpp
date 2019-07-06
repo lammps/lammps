@@ -21,11 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_body_rounded_polyhedron.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
@@ -41,7 +39,6 @@
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
-using namespace MathExtra;
 using namespace MathConst;
 
 #define DELTA 10000

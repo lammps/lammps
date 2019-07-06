@@ -19,9 +19,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_body_rounded_polygon.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

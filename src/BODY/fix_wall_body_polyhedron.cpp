@@ -17,7 +17,6 @@
 
 #include "fix_wall_body_polyhedron.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
@@ -25,9 +24,6 @@
 #include "domain.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
-#include "modify.h"
-#include "respa.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"

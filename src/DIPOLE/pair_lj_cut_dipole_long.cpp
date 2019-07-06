@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_dipole_long.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

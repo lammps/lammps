@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_freeze.h"
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
-#include "comm.h"
 #include "respa.h"
 #include "error.h"
 

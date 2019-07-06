@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_pour.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"

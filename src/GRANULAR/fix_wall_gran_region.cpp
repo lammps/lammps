@@ -16,18 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran_region.h"
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "region.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
-#include "force.h"
 #include "pair.h"
-#include "modify.h"
-#include "respa.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "comm.h"
@@ -35,7 +29,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
 
 // same as FixWallGran
 

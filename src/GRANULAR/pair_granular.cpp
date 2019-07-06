@@ -17,13 +17,10 @@ See the README file in the top-level LAMMPS directory.
 ----------------------------------------------------------------------- */
 
 #include "pair_granular.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include <cstdio>
 #include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"

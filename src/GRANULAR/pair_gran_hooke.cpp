@@ -17,8 +17,6 @@
 
 #include "pair_gran_hooke.h"
 #include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "fix.h"

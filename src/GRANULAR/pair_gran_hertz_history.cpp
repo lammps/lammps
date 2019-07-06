@@ -17,8 +17,6 @@
 
 #include "pair_gran_hertz_history.h"
 #include <cmath>
-#include <cstdlib>
-#include <cstdio>
 #include <cstring>
 #include "atom.h"
 #include "update.h"

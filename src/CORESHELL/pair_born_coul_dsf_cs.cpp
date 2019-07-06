@@ -18,17 +18,11 @@
 
 #include "pair_born_coul_dsf_cs.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "math_const.h"
-#include "memory.h"
-#include "error.h"
 #include "math_special.h"
 
 using namespace LAMMPS_NS;

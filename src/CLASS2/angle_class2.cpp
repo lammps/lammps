@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_class2.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

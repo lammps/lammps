@@ -16,13 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_class2.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"

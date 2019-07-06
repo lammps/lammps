@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_class2_coul_cut.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

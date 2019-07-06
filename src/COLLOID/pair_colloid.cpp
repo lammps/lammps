@@ -16,14 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_colloid.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "math_special.h"
 #include "memory.h"

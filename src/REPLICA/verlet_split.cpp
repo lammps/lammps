@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "verlet_split.h"
-#include <cstring>
 #include "universe.h"
 #include "neighbor.h"
 #include "domain.h"

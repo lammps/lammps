@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_ke_rigid.h"
-#include <mpi.h>
 #include <cstring>
 #include "update.h"
 #include "force.h"

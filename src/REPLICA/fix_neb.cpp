@@ -19,7 +19,6 @@
 #include "fix_neb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "universe.h"
 #include "update.h"

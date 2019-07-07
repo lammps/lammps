@@ -12,11 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "hyper.h"
-#include <cmath>
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "update.h"
-#include "atom.h"
 #include "domain.h"
 #include "region.h"
 #include "integrate.h"

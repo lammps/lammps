@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_erotate_rigid.h"
-#include <mpi.h>
 #include <cstring>
 #include "update.h"
 #include "force.h"

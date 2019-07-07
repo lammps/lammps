@@ -14,7 +14,6 @@
 #include "fix_hyper_global.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -24,7 +23,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "modify.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"

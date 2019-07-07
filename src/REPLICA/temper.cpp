@@ -17,7 +17,6 @@
 
 #include "temper.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "universe.h"
 #include "domain.h"
@@ -27,13 +26,10 @@
 #include "modify.h"
 #include "compute.h"
 #include "force.h"
-#include "output.h"
-#include "thermo.h"
 #include "fix.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

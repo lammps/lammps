@@ -17,14 +17,11 @@
 
 #include "compute_event_displace.h"
 #include <mpi.h>
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix_event.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
 #include "update.h"

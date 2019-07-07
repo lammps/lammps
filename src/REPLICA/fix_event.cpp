@@ -16,16 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_event.h"
-#include <cstdlib>
-#include <cstring>
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "universe.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

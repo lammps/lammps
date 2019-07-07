@@ -18,7 +18,6 @@
 #include "pair_peri_ves.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "domain.h"

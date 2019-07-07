@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_rigid_local.h"
-#include <cmath>
 #include <cstring>
 #include "atom.h"
 #include "update.h"

@@ -16,23 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_mod_c.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
 
-#include "math_const.h"
-
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4

@@ -34,22 +34,17 @@
 
 #include "pair_bop.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
+#include <cctype>
 #include <mpi.h>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <cctype>
 
 using namespace LAMMPS_NS;
 

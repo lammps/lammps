@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"

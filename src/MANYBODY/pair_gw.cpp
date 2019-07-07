@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gw.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"

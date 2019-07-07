@@ -21,7 +21,6 @@ PairStyle(lcbop,PairLCBOP)
 #define LMP_PAIR_LCBOP_H
 
 #include "pair.h"
-#include "my_page.h"
 #include <cmath>
 #include "math_const.h"
 

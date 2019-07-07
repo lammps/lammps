@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"

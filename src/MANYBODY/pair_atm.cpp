@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_atm.h"
+#include <mpi.h>
 #include <cmath>
 #include "atom.h"
 #include "citeme.h"

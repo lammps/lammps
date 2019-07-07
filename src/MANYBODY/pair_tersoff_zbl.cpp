@@ -17,21 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_zbl.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "update.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-
 #include "math_const.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

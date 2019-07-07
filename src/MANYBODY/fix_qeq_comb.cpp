@@ -18,13 +18,10 @@
 #include "fix_qeq_comb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

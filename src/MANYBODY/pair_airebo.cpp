@@ -22,26 +22,21 @@
 
 #include "pair_airebo.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <mpi.h>
 #include "atom.h"
 #include "neighbor.h"
 #include "force.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "my_page.h"
-#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecial;
 
 #define MAXLINE 1024

@@ -19,8 +19,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
@@ -30,7 +30,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "my_page.h"
 #include "math_const.h"
 #include "memory.h"

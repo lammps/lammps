@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_nb3b_harmonic.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
@@ -26,8 +26,6 @@
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"

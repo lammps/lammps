@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_polymorphic.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
@@ -30,10 +30,7 @@
 #include "memory.h"
 #include "error.h"
 
-#include "math_const.h"
-
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4

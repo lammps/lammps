@@ -18,18 +18,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb3.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

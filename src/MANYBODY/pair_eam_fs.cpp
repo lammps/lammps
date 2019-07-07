@@ -16,8 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_fs.h"
-#include <cstdio>
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

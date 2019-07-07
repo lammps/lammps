@@ -16,14 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_lps.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_peri_neigh.h"
@@ -32,7 +31,6 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "update.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;

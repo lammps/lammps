@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_tip4p_cut.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "force.h"

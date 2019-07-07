@@ -20,9 +20,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "update.h"

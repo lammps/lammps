@@ -21,8 +21,6 @@
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
-#include "pair_peri_pmb.h"
 #include "fix_peri_neigh.h"
 #include "memory.h"
 #include "error.h"

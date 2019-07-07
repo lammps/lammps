@@ -17,13 +17,10 @@
 
 #include "pair_hbond_dreiding_morse.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_request.h"

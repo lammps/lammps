@@ -32,15 +32,11 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "respa.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "group.h"
 #include "comm.h"
 #include "math_const.h"
 #include "memory.h"

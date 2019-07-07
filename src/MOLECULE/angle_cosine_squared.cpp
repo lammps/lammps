@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cosine_squared.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

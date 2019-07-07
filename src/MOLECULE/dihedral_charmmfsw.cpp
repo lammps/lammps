@@ -21,12 +21,10 @@
 #include "dihedral_charmmfsw.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "pair.h"
 #include "update.h"

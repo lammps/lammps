@@ -16,12 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_gromos.h"
-#include <cmath>
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"

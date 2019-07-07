@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_table.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>

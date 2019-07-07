@@ -16,13 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_quartic.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
-#include "update.h"
 #include "force.h"
 #include "pair.h"
 #include "memory.h"

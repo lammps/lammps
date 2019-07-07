@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
+#include "force.h"
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"

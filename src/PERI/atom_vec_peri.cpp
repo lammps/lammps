@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "citeme.h"

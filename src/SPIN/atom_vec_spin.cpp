@@ -32,6 +32,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "force.h"
 #include "memory.h"
 #include "modify.h"
 

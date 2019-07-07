@@ -16,6 +16,7 @@
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"

@@ -16,13 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_msd_nongauss.h"
-#include <cstring>
+#include <mpi.h>
 #include "atom.h"
 #include "update.h"
 #include "group.h"
 #include "domain.h"
 #include "fix_store.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

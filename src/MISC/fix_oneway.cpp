@@ -22,7 +22,6 @@
 #include "error.h"
 #include "force.h"
 #include "region.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

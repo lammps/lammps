@@ -21,7 +21,6 @@
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "molecule.h"
 #include "update.h"
 #include "modify.h"

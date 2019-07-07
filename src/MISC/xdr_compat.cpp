@@ -1,6 +1,5 @@
 #include "xdr_compat.h"
 #include <cstdlib>
-#include <climits>
 #include <cstring>
 
 /* This file is needed for systems, that do not provide XDR support

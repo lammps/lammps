@@ -16,9 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_nm_cut_coul_cut.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

@@ -17,10 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_viscosity.h"
-#include <cmath>
 #include <mpi.h>
+#include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"

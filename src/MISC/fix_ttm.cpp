@@ -20,12 +20,10 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "random_mars.h"

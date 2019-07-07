@@ -20,7 +20,6 @@
 #include <cstring>
 #include "atom.h"
 #include "update.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
 #include "pair.h"

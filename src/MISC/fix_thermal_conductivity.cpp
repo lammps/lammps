@@ -17,10 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_thermal_conductivity.h"
-#include <cmath>
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

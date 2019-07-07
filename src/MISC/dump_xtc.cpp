@@ -24,7 +24,6 @@
 
 #include "dump_xtc.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <climits>

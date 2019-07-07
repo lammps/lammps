@@ -17,9 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_efield.h"
-#include <cmath>
+#include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

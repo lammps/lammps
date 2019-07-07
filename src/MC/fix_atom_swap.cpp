@@ -17,13 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_atom_swap.h"
+#include <mpi.h>
 #include <cmath>
+#include <cctype>
 #include <cfloat>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
@@ -40,18 +39,12 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "thermo.h"
-#include "output.h"
 #include "neighbor.h"
-#include <iostream>
 
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 

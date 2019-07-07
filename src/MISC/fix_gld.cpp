@@ -17,17 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gld.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include "math_extra.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"

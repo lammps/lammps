@@ -12,14 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_create.h"
-#include <cmath>
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "update.h"
 #include "respa.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"

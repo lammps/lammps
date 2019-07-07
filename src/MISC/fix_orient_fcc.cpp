@@ -27,7 +27,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
-#include "output.h"
 #include "force.h"
 #include "math_const.h"
 #include "citeme.h"

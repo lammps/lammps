@@ -812,7 +812,7 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -820,10 +820,10 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
 
-  sp[nlocal][3] = atof(values[2]);
-  sp[nlocal][0] = atof(values[6]);
-  sp[nlocal][1] = atof(values[7]);
-  sp[nlocal][2] = atof(values[8]);
+  sp[nlocal][3] = force->numeric(FLERR,values[2]);
+  sp[nlocal][0] = force->numeric(FLERR,values[6]);
+  sp[nlocal][1] = force->numeric(FLERR,values[7]);
+  sp[nlocal][2] = force->numeric(FLERR,values[8]);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
@@ -849,16 +849,16 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
 int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
 {
 
-  sp[nlocal][0] = atof(values[0]);
-  sp[nlocal][1] = atof(values[1]);
-  sp[nlocal][2] = atof(values[2]);
+  sp[nlocal][0] = force->numeric(FLERR,values[0]);
+  sp[nlocal][1] = force->numeric(FLERR,values[1]);
+  sp[nlocal][2] = force->numeric(FLERR,values[2]);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
   sp[nlocal][0] *= inorm;
   sp[nlocal][1] *= inorm;
   sp[nlocal][2] *= inorm;
-  sp[nlocal][3] = atof(values[3]);
+  sp[nlocal][3] = force->numeric(FLERR,values[3]);
 
   return 4;
 }

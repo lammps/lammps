@@ -799,15 +799,15 @@ void AtomVecElectron::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[2]);
-  spin[nlocal] = atoi(values[3]);
+  q[nlocal] = force->numeric(FLERR,values[2]);
+  spin[nlocal] = force->inumeric(FLERR,values[3]);
   if (spin[nlocal] == 3) atom->ecp_flag = 1;
 
-  eradius[nlocal] = atof(values[4]);
+  eradius[nlocal] = force->numeric(FLERR,values[4]);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -831,9 +831,9 @@ void AtomVecElectron::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = atof(values[0]);
-  spin[nlocal] = atoi(values[1]);
-  eradius[nlocal] = atof(values[2]);
+  q[nlocal] = force->numeric(FLERR,values[0]);
+  spin[nlocal] = force->inumeric(FLERR,values[1]);
+  eradius[nlocal] = force->numeric(FLERR,values[2]);
   if (eradius[nlocal] < 0.0)
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
@@ -851,10 +851,10 @@ int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
 
 void AtomVecElectron::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  ervel[m] = atof(values[3]);
+  v[m][0] = force->numeric(FLERR,values[0]);
+  v[m][1] = force->numeric(FLERR,values[1]);
+  v[m][2] = force->numeric(FLERR,values[2]);
+  ervel[m] = force->numeric(FLERR,values[3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -863,7 +863,7 @@ void AtomVecElectron::data_vel(int m, char **values)
 
 int AtomVecElectron::data_vel_hybrid(int m, char **values)
 {
-  ervel[m] = atof(values[0]);
+  ervel[m] = force->numeric(FLERR,values[0]);
   return 1;
 }
 

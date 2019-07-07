@@ -843,13 +843,13 @@ void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  rho[nlocal] = atof(values[2]);
-  e[nlocal] = atof(values[3]);
-  cv[nlocal] = atof(values[4]);
+  rho[nlocal] = force->numeric(FLERR,values[2]);
+  e[nlocal] = force->numeric(FLERR,values[3]);
+  cv[nlocal] = force->numeric(FLERR,values[4]);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -881,9 +881,9 @@ void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
 
 int AtomVecMeso::data_atom_hybrid(int nlocal, char **values) {
 
-  rho[nlocal] = atof(values[0]);
-  e[nlocal] = atof(values[1]);
-  cv[nlocal] = atof(values[2]);
+  rho[nlocal] = force->numeric(FLERR,values[0]);
+  e[nlocal] = force->numeric(FLERR,values[1]);
+  cv[nlocal] = force->numeric(FLERR,values[2]);
 
   return 3;
 }

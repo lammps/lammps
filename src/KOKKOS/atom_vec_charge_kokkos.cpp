@@ -959,12 +959,12 @@ void AtomVecChargeKokkos::data_atom(double *coord, imageint imagetmp,
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = atoi(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_tag[nlocal] = force->inumeric(FLERR,values[0]);
+  h_type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  h_q[nlocal] = atof(values[2]);
+  h_q[nlocal] = force->numeric(FLERR,values[2]);
 
   h_x(nlocal,0) = coord[0];
   h_x(nlocal,1) = coord[1];
@@ -988,7 +988,7 @@ void AtomVecChargeKokkos::data_atom(double *coord, imageint imagetmp,
 
 int AtomVecChargeKokkos::data_atom_hybrid(int nlocal, char **values)
 {
-  h_q[nlocal] = atof(values[0]);
+  h_q[nlocal] = force->numeric(FLERR,values[0]);
 
   return 1;
 }

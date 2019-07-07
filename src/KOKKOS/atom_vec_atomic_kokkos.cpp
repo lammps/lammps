@@ -823,8 +823,8 @@ void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp,
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = atoi(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_tag[nlocal] = force->inumeric(FLERR,values[0]);
+  h_type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

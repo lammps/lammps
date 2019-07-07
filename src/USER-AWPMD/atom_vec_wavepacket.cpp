@@ -916,19 +916,19 @@ void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[2]);
-  spin[nlocal] = atoi(values[3]);
-  eradius[nlocal] = atof(values[4]);
+  q[nlocal] = force->numeric(FLERR,values[2]);
+  spin[nlocal] = force->inumeric(FLERR,values[3]);
+  eradius[nlocal] = force->numeric(FLERR,values[4]);
   if (eradius[nlocal] < 0.0)
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
-  etag[nlocal] = atoi(values[5]);
-  cs[2*nlocal] = atoi(values[6]);
-  cs[2*nlocal+1] = atof(values[7]);
+  etag[nlocal] = force->inumeric(FLERR,values[5]);
+  cs[2*nlocal] = force->inumeric(FLERR,values[6]);
+  cs[2*nlocal+1] = force->numeric(FLERR,values[7]);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -952,15 +952,15 @@ void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
 
 int AtomVecWavepacket::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = atof(values[0]);
-  spin[nlocal] = atoi(values[1]);
-  eradius[nlocal] = atof(values[2]);
+  q[nlocal] = force->numeric(FLERR,values[0]);
+  spin[nlocal] = force->inumeric(FLERR,values[1]);
+  eradius[nlocal] = force->numeric(FLERR,values[2]);
   if (eradius[nlocal] < 0.0)
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
-  etag[nlocal] = atoi(values[3]);
-  cs[2*nlocal] = atoi(values[4]);
-  cs[2*nlocal+1] = atof(values[5]);
+  etag[nlocal] = force->inumeric(FLERR,values[3]);
+  cs[2*nlocal] = force->inumeric(FLERR,values[4]);
+  cs[2*nlocal+1] = force->numeric(FLERR,values[5]);
 
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
@@ -976,10 +976,10 @@ int AtomVecWavepacket::data_atom_hybrid(int nlocal, char **values)
 
 void AtomVecWavepacket::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  ervel[m] = atof(values[3]);
+  v[m][0] = force->numeric(FLERR,values[0]);
+  v[m][1] = force->numeric(FLERR,values[1]);
+  v[m][2] = force->numeric(FLERR,values[2]);
+  ervel[m] = force->numeric(FLERR,values[3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -988,7 +988,7 @@ void AtomVecWavepacket::data_vel(int m, char **values)
 
 int AtomVecWavepacket::data_vel_hybrid(int m, char **values)
 {
-  ervel[m] = atof(values[0]);
+  ervel[m] = force->numeric(FLERR,values[0]);
   return 1;
 }
 

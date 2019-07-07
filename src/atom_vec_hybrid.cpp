@@ -863,7 +863,7 @@ void AtomVecHybrid::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -903,9 +903,9 @@ void AtomVecHybrid::data_atom(double *coord, imageint imagetmp, char **values)
 
 void AtomVecHybrid::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
+  v[m][0] = force->numeric(FLERR,values[0]);
+  v[m][1] = force->numeric(FLERR,values[1]);
+  v[m][2] = force->numeric(FLERR,values[2]);
 
   // each sub-style parses sub-style specific values
 

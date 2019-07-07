@@ -975,7 +975,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
   if (nlocal == nmax) grow(0);
 
   h_tag[nlocal] = ATOTAGINT(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_type[nlocal] = force->inumeric(FLERR,values[1]);
   if (h_type[nlocal] <= 0 || h_type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom h_type in Atoms section of data file");
 
@@ -1019,9 +1019,9 @@ void AtomVecHybridKokkos::data_vel(int m, char **values)
 {
   atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = atof(values[0]);
-  h_v(m,1) = atof(values[1]);
-  h_v(m,2) = atof(values[2]);
+  h_v(m,0) = force->numeric(FLERR,values[0]);
+  h_v(m,1) = force->numeric(FLERR,values[1]);
+  h_v(m,2) = force->numeric(FLERR,values[2]);
 
   atomKK->modified(Host,V_MASK);
 

@@ -745,8 +745,8 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
     error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   molecule[nlocal] = ATOTAGINT(values[1]);
-  molindex[nlocal] = atoi(values[2]) - 1;
-  molatom[nlocal] = atoi(values[3]) - 1;
+  molindex[nlocal] = force->inumeric(FLERR,values[2]) - 1;
+  molatom[nlocal] = force->inumeric(FLERR,values[3]) - 1;
 
   if (molindex[nlocal] < 0 || molindex[nlocal] >= nset)
     error->one(FLERR,"Invalid template index in Atoms section of data file");
@@ -754,7 +754,7 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
       molatom[nlocal] >= onemols[molindex[nlocal]]->natoms)
     error->one(FLERR,"Invalid template atom in Atoms section of data file");
 
-  type[nlocal] = atoi(values[4]);
+  type[nlocal] = force->inumeric(FLERR,values[4]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -780,8 +780,8 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
 int AtomVecTemplate::data_atom_hybrid(int nlocal, char **values)
 {
   molecule[nlocal] = ATOTAGINT(values[0]);
-  molindex[nlocal] = atoi(values[1]) - 1;
-  molatom[nlocal] = atoi(values[2]) - 1;
+  molindex[nlocal] = force->inumeric(FLERR,values[1]) - 1;
+  molatom[nlocal] = force->inumeric(FLERR,values[2]) - 1;
   return 3;
 }
 

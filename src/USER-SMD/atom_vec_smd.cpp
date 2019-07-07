@@ -1029,7 +1029,7 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
 
         tag[nlocal] = ATOTAGINT(values[0]);
 
-        type[nlocal] = atoi(values[1]);
+        type[nlocal] = force->inumeric(FLERR,values[1]);
         if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
                 error->one(FLERR, "Invalid atom type in Atoms section of data file");
 
@@ -1037,27 +1037,27 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
         if (molecule[nlocal] <= 0)
                 error->one(FLERR, "Invalid molecule in Atoms section of data file");
 
-        vfrac[nlocal] = atof(values[3]);
+        vfrac[nlocal] = force->numeric(FLERR,values[3]);
         if (vfrac[nlocal] < 0.0)
                 error->one(FLERR, "Invalid volume in Atoms section of data file");
 
-        rmass[nlocal] = atof(values[4]);
+        rmass[nlocal] = force->numeric(FLERR,values[4]);
         if (rmass[nlocal] == 0.0)
                 error->one(FLERR, "Invalid mass in Atoms section of data file");
 
-        radius[nlocal] = atof(values[5]);
+        radius[nlocal] = force->numeric(FLERR,values[5]);
         if (radius[nlocal] < 0.0)
                 error->one(FLERR, "Invalid radius in Atoms section of data file");
 
-        contact_radius[nlocal] = atof(values[6]);
+        contact_radius[nlocal] = force->numeric(FLERR,values[6]);
         if (contact_radius[nlocal] < 0.0)
                 error->one(FLERR, "Invalid contact radius in Atoms section of data file");
 
         e[nlocal] = 0.0;
 
-        x0[nlocal][0] = atof(values[7]);
-        x0[nlocal][1] = atof(values[8]);
-        x0[nlocal][2] = atof(values[9]);
+        x0[nlocal][0] = force->numeric(FLERR,values[7]);
+        x0[nlocal][1] = force->numeric(FLERR,values[8]);
+        x0[nlocal][2] = force->numeric(FLERR,values[9]);
 
         x[nlocal][0] = coord[0];
         x[nlocal][1] = coord[1];
@@ -1108,12 +1108,12 @@ int AtomVecSMD::data_atom_hybrid(int /*nlocal*/, char **/*values*/) {
  ------------------------------------------------------------------------- */
 
 void AtomVecSMD::data_vel(int m, char **values) {
-        v[m][0] = atof(values[0]);
-        v[m][1] = atof(values[1]);
-        v[m][2] = atof(values[2]);
-        vest[m][0] = atof(values[0]);
-        vest[m][1] = atof(values[1]);
-        vest[m][2] = atof(values[2]);
+        v[m][0] = force->numeric(FLERR,values[0]);
+        v[m][1] = force->numeric(FLERR,values[1]);
+        v[m][2] = force->numeric(FLERR,values[2]);
+        vest[m][0] = force->numeric(FLERR,values[0]);
+        vest[m][1] = force->numeric(FLERR,values[1]);
+        vest[m][2] = force->numeric(FLERR,values[2]);
 }
 
 /* ----------------------------------------------------------------------

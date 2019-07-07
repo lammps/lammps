@@ -113,9 +113,9 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 void AtomVec::data_vel(int m, char **values)
 {
   double **v = atom->v;
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
+  v[m][0] = force->numeric(FLERR,values[0]);
+  v[m][1] = force->numeric(FLERR,values[1]);
+  v[m][2] = force->numeric(FLERR,values[2]);
 }
 
 /* ----------------------------------------------------------------------

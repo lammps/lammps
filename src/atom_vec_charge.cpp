@@ -663,11 +663,11 @@ void AtomVecCharge::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = force->inumeric(FLERR,values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[2]);
+  q[nlocal] = force->numeric(FLERR,values[2]);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -690,7 +690,7 @@ void AtomVecCharge::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecCharge::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = atof(values[0]);
+  q[nlocal] = force->numeric(FLERR,values[0]);
 
   return 1;
 }

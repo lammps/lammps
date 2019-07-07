@@ -1891,9 +1891,9 @@ void AtomVecMolecularKokkos::data_atom(double *coord, imageint imagetmp,
   if (nlocal == nmax) grow(0);
   atomKK->modified(Host,ALL_MASK);
 
-  h_tag(nlocal) = atoi(values[0]);
-  h_molecule(nlocal) = atoi(values[1]);
-  h_type(nlocal) = atoi(values[2]);
+  h_tag(nlocal) = force->inumeric(FLERR,values[0]);
+  h_molecule(nlocal) = force->inumeric(FLERR,values[1]);
+  h_type(nlocal) = force->inumeric(FLERR,values[2]);
   if (h_type(nlocal) <= 0 || h_type(nlocal) > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -1922,7 +1922,7 @@ void AtomVecMolecularKokkos::data_atom(double *coord, imageint imagetmp,
 
 int AtomVecMolecularKokkos::data_atom_hybrid(int nlocal, char **values)
 {
-  h_molecule(nlocal) = atoi(values[0]);
+  h_molecule(nlocal) = force->inumeric(FLERR,values[0]);
   h_num_bond(nlocal) = 0;
   h_num_angle(nlocal) = 0;
   h_num_dihedral(nlocal) = 0;

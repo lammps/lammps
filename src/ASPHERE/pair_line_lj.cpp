@@ -13,9 +13,6 @@
 
 #include "pair_line_lj.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_line.h"
 #include "force.h"

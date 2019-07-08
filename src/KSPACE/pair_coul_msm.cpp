@@ -22,7 +22,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

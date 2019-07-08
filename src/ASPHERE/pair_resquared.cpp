@@ -16,10 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_resquared.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,7 +25,6 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "integrate.h"
 #include "memory.h"
 #include "error.h"
 

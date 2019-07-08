@@ -21,7 +21,6 @@
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
-#include "pair.h"
 #include "memory.h"
 #include "error.h"
 #include "comm.h"

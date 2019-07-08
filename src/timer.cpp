@@ -18,7 +18,6 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
 
 #ifdef _WIN32
 #include <windows.h>

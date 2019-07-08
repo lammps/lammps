@@ -17,7 +17,6 @@
 
 #include "pair_born_coul_long_cs.h"
 #include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"

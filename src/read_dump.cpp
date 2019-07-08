@@ -507,7 +507,10 @@ void ReadDump::header(int fieldinfo)
   yhi = box[1][1];
   zlo = box[2][0];
   zhi = box[2][1];
-  if (triclinic_snap) {
+
+  // value of 1 indicates possible change in tilt factors
+
+  if (triclinic_snap == 1) {
     xy = box[0][2];
     xz = box[1][2];
     yz = box[2][2];
@@ -546,7 +549,7 @@ void ReadDump::header(int fieldinfo)
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
   }
 
-  // error check on requested fields exisiting in dump file
+  // error check on requested fields existing in dump file
 
   if (fieldflag < 0)
     error->one(FLERR,"Read_dump field not found in dump file");

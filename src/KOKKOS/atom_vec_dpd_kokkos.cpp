@@ -22,6 +22,7 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -1724,11 +1725,11 @@ void AtomVecDPDKokkos::data_atom(double *coord, tagint imagetmp,
   if (nlocal == nmax) grow(0);
 
   h_tag[nlocal] = ATOTAGINT(values[0]);
-  h_type[nlocal] = force->inumeric(FLERR,values[1]);
+  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  h_dpdTheta[nlocal] = force->numeric(FLERR,values[2]);
+  h_dpdTheta[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (h_dpdTheta[nlocal] <= 0)
     error->one(FLERR,"Internal temperature in Atoms section of date file must be > zero");
 
@@ -1762,7 +1763,7 @@ void AtomVecDPDKokkos::data_atom(double *coord, tagint imagetmp,
 
 int AtomVecDPDKokkos::data_atom_hybrid(int nlocal, char **values)
 {
-  h_dpdTheta(nlocal) = force->numeric(FLERR,values[0]);
+  h_dpdTheta(nlocal) = utils::numeric(FLERR,values[0],true,lmp);
 
   atomKK->modified(Host,DPDTHETA_MASK);
 

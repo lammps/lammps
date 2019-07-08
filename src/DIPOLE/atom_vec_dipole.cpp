@@ -22,6 +22,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -781,19 +782,19 @@ void AtomVecDipole::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = force->inumeric(FLERR,values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = force->numeric(FLERR,values[2]);
+  q[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
 
-  mu[nlocal][0] = force->numeric(FLERR,values[6]);
-  mu[nlocal][1] = force->numeric(FLERR,values[7]);
-  mu[nlocal][2] = force->numeric(FLERR,values[8]);
+  mu[nlocal][0] = utils::numeric(FLERR,values[6],true,lmp);
+  mu[nlocal][1] = utils::numeric(FLERR,values[7],true,lmp);
+  mu[nlocal][2] = utils::numeric(FLERR,values[8],true,lmp);
   mu[nlocal][3] = sqrt(mu[nlocal][0]*mu[nlocal][0] +
                        mu[nlocal][1]*mu[nlocal][1] +
                        mu[nlocal][2]*mu[nlocal][2]);
@@ -815,10 +816,10 @@ void AtomVecDipole::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecDipole::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = force->numeric(FLERR,values[0]);
-  mu[nlocal][0] = force->numeric(FLERR,values[1]);
-  mu[nlocal][1] = force->numeric(FLERR,values[2]);
-  mu[nlocal][2] = force->numeric(FLERR,values[3]);
+  q[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
+  mu[nlocal][0] = utils::numeric(FLERR,values[1],true,lmp);
+  mu[nlocal][1] = utils::numeric(FLERR,values[2],true,lmp);
+  mu[nlocal][2] = utils::numeric(FLERR,values[3],true,lmp);
   mu[nlocal][3] = sqrt(mu[nlocal][0]*mu[nlocal][0] +
                        mu[nlocal][1]*mu[nlocal][1] +
                        mu[nlocal][2]*mu[nlocal][2]);

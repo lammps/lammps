@@ -23,6 +23,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -799,7 +800,7 @@ void AtomVecMDPD::data_atom(double *coord, imageint imagetmp, char **values) {
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = force->inumeric(FLERR,values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -818,7 +819,7 @@ void AtomVecMDPD::data_atom(double *coord, imageint imagetmp, char **values) {
   vest[nlocal][1] = 0.0;
   vest[nlocal][2] = 0.0;
 
-  rho[nlocal] = force->numeric(FLERR,values[2]);
+  rho[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   drho[nlocal] = 0.0;
 
   atom->nlocal++;
@@ -831,7 +832,7 @@ void AtomVecMDPD::data_atom(double *coord, imageint imagetmp, char **values) {
 
 int AtomVecMDPD::data_atom_hybrid(int nlocal, char **values)
 {
-  rho[nlocal] = force->numeric(FLERR,values[0]);
+  rho[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
   return 3;
 }
 

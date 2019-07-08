@@ -25,6 +25,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -965,15 +966,15 @@ void AtomVecSphere::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = force->inumeric(FLERR,values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  radius[nlocal] = 0.5 * force->numeric(FLERR,values[2]);
+  radius[nlocal] = 0.5 * utils::numeric(FLERR,values[2],true,lmp);
   if (radius[nlocal] < 0.0)
     error->one(FLERR,"Invalid radius in Atoms section of data file");
 
-  double density = force->numeric(FLERR,values[3]);
+  double density = utils::numeric(FLERR,values[3],true,lmp);
   if (density <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1006,11 +1007,11 @@ void AtomVecSphere::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecSphere::data_atom_hybrid(int nlocal, char **values)
 {
-  radius[nlocal] = 0.5 * force->numeric(FLERR,values[0]);
+  radius[nlocal] = 0.5 * utils::numeric(FLERR,values[0],true,lmp);
   if (radius[nlocal] < 0.0)
     error->one(FLERR,"Invalid radius in Atoms section of data file");
 
-  double density = force->numeric(FLERR,values[1]);
+  double density = utils::numeric(FLERR,values[1],true,lmp);
   if (density <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1028,12 +1029,12 @@ int AtomVecSphere::data_atom_hybrid(int nlocal, char **values)
 
 void AtomVecSphere::data_vel(int m, char **values)
 {
-  v[m][0] = force->numeric(FLERR,values[0]);
-  v[m][1] = force->numeric(FLERR,values[1]);
-  v[m][2] = force->numeric(FLERR,values[2]);
-  omega[m][0] = force->numeric(FLERR,values[3]);
-  omega[m][1] = force->numeric(FLERR,values[4]);
-  omega[m][2] = force->numeric(FLERR,values[5]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  omega[m][0] = utils::numeric(FLERR,values[3],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[4],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[5],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1042,9 +1043,9 @@ void AtomVecSphere::data_vel(int m, char **values)
 
 int AtomVecSphere::data_vel_hybrid(int m, char **values)
 {
-  omega[m][0] = force->numeric(FLERR,values[0]);
-  omega[m][1] = force->numeric(FLERR,values[1]);
-  omega[m][2] = force->numeric(FLERR,values[2]);
+  omega[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[2],true,lmp);
   return 3;
 }
 

@@ -21,6 +21,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -740,7 +741,7 @@ void AtomVecBond::data_atom(double *coord, imageint imagetmp, char **values)
 
   tag[nlocal] = ATOTAGINT(values[0]);
   molecule[nlocal] = ATOTAGINT(values[1]);
-  type[nlocal] = force->inumeric(FLERR,values[2]);
+  type[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

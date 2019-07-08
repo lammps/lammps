@@ -22,6 +22,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -976,7 +977,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
   if (nlocal == nmax) grow(0);
 
   h_tag[nlocal] = ATOTAGINT(values[0]);
-  h_type[nlocal] = force->inumeric(FLERR,values[1]);
+  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (h_type[nlocal] <= 0 || h_type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom h_type in Atoms section of data file");
 
@@ -1020,9 +1021,9 @@ void AtomVecHybridKokkos::data_vel(int m, char **values)
 {
   atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = force->numeric(FLERR,values[0]);
-  h_v(m,1) = force->numeric(FLERR,values[1]);
-  h_v(m,2) = force->numeric(FLERR,values[2]);
+  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
 
   atomKK->modified(Host,V_MASK);
 

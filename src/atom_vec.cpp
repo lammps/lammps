@@ -18,6 +18,7 @@
 #include "force.h"
 #include "domain.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -113,9 +114,9 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 void AtomVec::data_vel(int m, char **values)
 {
   double **v = atom->v;
-  v[m][0] = force->numeric(FLERR,values[0]);
-  v[m][1] = force->numeric(FLERR,values[1]);
-  v[m][2] = force->numeric(FLERR,values[2]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
 }
 
 /* ----------------------------------------------------------------------

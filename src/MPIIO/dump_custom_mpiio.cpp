@@ -19,16 +19,11 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
 #include "fix.h"
 #include "memory.h"
 #include "error.h"

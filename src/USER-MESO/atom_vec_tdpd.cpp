@@ -23,7 +23,6 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "input.h"
 
 using namespace LAMMPS_NS;
 

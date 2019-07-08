@@ -21,7 +21,6 @@
 #include "atom.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"

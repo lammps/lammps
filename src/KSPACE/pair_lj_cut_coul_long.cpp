@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_long.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include "atom.h"

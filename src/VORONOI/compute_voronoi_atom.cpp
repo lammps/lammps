@@ -19,7 +19,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "voro++.hh"
+#include <voro++.hh>
 #include "atom.h"
 #include "group.h"
 #include "update.h"

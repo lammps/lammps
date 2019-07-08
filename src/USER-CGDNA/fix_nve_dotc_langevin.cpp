@@ -17,7 +17,6 @@
 
 #include "fix_nve_dotc_langevin.h"
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"
@@ -26,7 +25,6 @@
 #include "update.h"
 #include "comm.h"
 #include "random_mars.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

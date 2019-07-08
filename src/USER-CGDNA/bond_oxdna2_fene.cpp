@@ -15,8 +15,6 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_oxdna2_fene.h"
-#include <cmath>
-#include <cstdlib>
 
 using namespace LAMMPS_NS;
 

@@ -18,7 +18,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "math_extra.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"

@@ -21,12 +21,6 @@
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "comm.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "fix.h"
-#include "variable.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"

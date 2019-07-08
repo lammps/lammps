@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_atom_mpiio.h"
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include "domain.h"
-#include "atom.h"
 #include "update.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 

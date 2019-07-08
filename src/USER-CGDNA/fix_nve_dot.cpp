@@ -15,15 +15,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_dot.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "force.h"
 #include "update.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

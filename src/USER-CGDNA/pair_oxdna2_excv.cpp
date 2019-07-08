@@ -15,10 +15,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_excv.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 

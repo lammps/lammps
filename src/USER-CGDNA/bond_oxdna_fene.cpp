@@ -16,10 +16,8 @@
 
 #include "bond_oxdna_fene.h"
 #include <cmath>
-#include <cstdlib>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"

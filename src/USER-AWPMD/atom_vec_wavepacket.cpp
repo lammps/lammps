@@ -928,7 +928,7 @@ void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
   etag[nlocal] = utils::inumeric(FLERR,values[5],true,lmp);
-  cs[2*nlocal] = utils::inumeric(FLERR,values[6],true,lmp);
+  cs[2*nlocal] = utils::numeric(FLERR,values[6],true,lmp);
   cs[2*nlocal+1] = utils::numeric(FLERR,values[7],true,lmp);
 
   x[nlocal][0] = coord[0];

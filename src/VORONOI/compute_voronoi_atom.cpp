@@ -15,16 +15,14 @@
    Contributing author: Daniel Schwen
 ------------------------------------------------------------------------- */
 
+#include "compute_voronoi_atom.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 #include "voro++.hh"
-#include "compute_voronoi_atom.h"
 #include "atom.h"
 #include "group.h"
 #include "update.h"
-#include "modify.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"

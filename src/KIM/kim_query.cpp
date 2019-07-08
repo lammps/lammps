@@ -57,6 +57,7 @@
 #include <mpi.h>
 #include <cstring>
 #include <string>
+#include <sstream>
 #include "kim_query.h"
 #include "comm.h"
 #include "error.h"
@@ -104,6 +105,13 @@ void KimQuery::command(int narg, char **arg)
 
 
   varname = arg[0];
+  bool split = false;
+  if (0 == strcmp("split",arg[1])) {
+    if (narg == 2) error->all(FLERR,"Illegal kim_query command");
+    split = true;
+    arg++;
+    narg--;
+  }
   function = arg[1];
 
 #if defined(LMP_KIM_CURL)
@@ -123,11 +131,27 @@ void KimQuery::command(int narg, char **arg)
   }
 
   char **varcmd = new char*[3];
-  varcmd[0] = varname;
-  varcmd[1] = (char *) "string";
-  varcmd[2] = value;
+  if (split) {
+    int counter = 1;
+    std::stringstream ss(value);
+    std::string token;
+    varcmd[1] = (char *) "string";
 
-  input->variable->set(3,varcmd);
+    while(std::getline(ss, token, ',')) {
+      std::stringstream splitname;
+      splitname << varname << "_" << counter++;
+      varcmd[0] = const_cast<char *>(splitname.str().c_str());
+      varcmd[2] = const_cast<char *>(token.c_str());
+      input->variable->set(3,varcmd);
+    }
+  }
+  else {
+    varcmd[0] = varname;
+    varcmd[1] = (char *) "string";
+    varcmd[2] = value;
+
+    input->variable->set(3,varcmd);
+  }
 
   delete[] varcmd;
   delete[] value;

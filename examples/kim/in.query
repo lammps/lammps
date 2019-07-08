@@ -4,8 +4,9 @@
 # lattice constant for a specific test used for a specific model and then
 # assigns it to the variable 'latconst'
 
-units metal
+kim_init EAM_CubicNaturalSpline_ErcolessiAdams_1994_Al__MO_800509458712_002 metal
 info variables out log
-kim_query latconst get_test_result test=TE_156715955670 species=["Al"] model=MO_800509458712 prop=structure-cubic-crystal-npt keys=["a"] units=["angstrom"]
+kim_query latconst split get_test_result test=TE_156715955670 species=["Al"] prop=structure-cubic-crystal-npt keys=["a","a"] units=["angstrom","angstrom"]
 info variables out log
-lattice fcc ${latconst}
+lattice fcc ${latconst_1}
+lattice fcc ${latconst_2}

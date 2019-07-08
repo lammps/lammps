@@ -115,8 +115,16 @@ void KimInteractions::kim_interactions_log_delimiter(
 
 void KimInteractions::do_setup(int narg, char **arg)
 {
-  if (narg != atom->ntypes)
+  bool fixed_types;
+  if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
+    fixed_types = true;
+  }
+  else if (narg != atom->ntypes) {
     error->all(FLERR,"Illegal kim_interactions command");
+  }
+  else {
+    fixed_types = false;
+  }
 
   char *model_name = NULL;
   KIM_SimulatorModel *simulatorModel(NULL);
@@ -137,53 +145,59 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   if (simulatorModel) {
 
-    std::string delimiter("");
-    std::string atom_type_sym_list;
-    std::string atom_type_num_list;
+    if (!fixed_types) {
+      std::string delimiter("");
+      std::string atom_type_sym_list;
+      std::string atom_type_num_list;
 
-    for (int i = 0; i < narg; i++)
+      for (int i = 0; i < narg; i++)
+      {
+        atom_type_sym_list += delimiter + arg[i];
+        atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
+        delimiter = " ";
+      }
+
+      KIM_SimulatorModel_AddTemplateMap(
+          simulatorModel,"atom-type-sym-list",atom_type_sym_list.c_str());
+      KIM_SimulatorModel_AddTemplateMap(
+          simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
+      KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
+
+      int len = strlen(atom_type_sym_list.c_str())+1;
+      char *strbuf = new char[len];
+      char *strword;
+
+      // validate species selection
+
+      int sim_num_species;
+      bool species_is_supported;
+      char const *sim_species;
+      KIM_SimulatorModel_GetNumberOfSupportedSpecies(
+          simulatorModel,&sim_num_species);
+      strcpy(strbuf,atom_type_sym_list.c_str());
+      strword = strtok(strbuf," \t");
+      while (strword) {
+        species_is_supported = false;
+        if (strcmp(strword,"NULL") == 0) continue;
+        for (int i=0; i < sim_num_species; ++i) {
+          KIM_SimulatorModel_GetSupportedSpecies(simulatorModel,i,&sim_species);
+          if (strcmp(sim_species,strword) == 0)
+            species_is_supported = true;
+        }
+        if (!species_is_supported) {
+          std::string msg("Species '");
+          msg += strword;
+          msg += "' is not supported by this KIM Simulator Model";
+          error->all(FLERR,msg.c_str());
+        }
+        strword = strtok(NULL," \t");
+      }
+      delete[] strbuf;
+    }
+    else
     {
-      atom_type_sym_list += delimiter + arg[i];
-      atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
-      delimiter = " ";
+      KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
     }
-
-    KIM_SimulatorModel_AddTemplateMap(
-        simulatorModel,"atom-type-sym-list",atom_type_sym_list.c_str());
-    KIM_SimulatorModel_AddTemplateMap(
-        simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
-    KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
-
-    int len = strlen(atom_type_sym_list.c_str())+1;
-    char *strbuf = new char[len];
-    char *strword;
-
-    // validate species selection
-
-    int sim_num_species;
-    bool species_is_supported;
-    char const *sim_species;
-    KIM_SimulatorModel_GetNumberOfSupportedSpecies(
-        simulatorModel,&sim_num_species);
-    strcpy(strbuf,atom_type_sym_list.c_str());
-    strword = strtok(strbuf," \t");
-    while (strword) {
-      species_is_supported = false;
-      if (strcmp(strword,"NULL") == 0) continue;
-      for (int i=0; i < sim_num_species; ++i) {
-        KIM_SimulatorModel_GetSupportedSpecies(simulatorModel,i,&sim_species);
-        if (strcmp(sim_species,strword) == 0)
-          species_is_supported = true;
-      }
-      if (!species_is_supported) {
-        std::string msg("Species '");
-        msg += strword;
-        msg += "' is not supported by this KIM Simulator Model";
-        error->all(FLERR,msg.c_str());
-      }
-      strword = strtok(NULL," \t");
-    }
-    delete[] strbuf;
 
     // check if units are unchanged
 
@@ -223,6 +237,10 @@ void KimInteractions::do_setup(int narg, char **arg)
   } else {
 
     // not a simulator model. issue pair_style and pair_coeff commands.
+
+    if (fixed_types)
+      error->all(FLERR,"fixed_types cannot be used with a KIM Portable Model");
+
     // NOTE: all references to arg must appear before calls to input->one()
     // as that will reset the argument vector.
 

@@ -32,8 +32,10 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -812,7 +814,7 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -820,10 +822,10 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
 
-  sp[nlocal][3] = atof(values[2]);
-  sp[nlocal][0] = atof(values[6]);
-  sp[nlocal][1] = atof(values[7]);
-  sp[nlocal][2] = atof(values[8]);
+  sp[nlocal][3] = utils::numeric(FLERR,values[2],true,lmp);
+  sp[nlocal][0] = utils::numeric(FLERR,values[6],true,lmp);
+  sp[nlocal][1] = utils::numeric(FLERR,values[7],true,lmp);
+  sp[nlocal][2] = utils::numeric(FLERR,values[8],true,lmp);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
@@ -849,16 +851,16 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
 int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
 {
 
-  sp[nlocal][0] = atof(values[0]);
-  sp[nlocal][1] = atof(values[1]);
-  sp[nlocal][2] = atof(values[2]);
+  sp[nlocal][0] = utils::numeric(FLERR,values[0],true,lmp);
+  sp[nlocal][1] = utils::numeric(FLERR,values[1],true,lmp);
+  sp[nlocal][2] = utils::numeric(FLERR,values[2],true,lmp);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
   sp[nlocal][0] *= inorm;
   sp[nlocal][1] *= inorm;
   sp[nlocal][2] *= inorm;
-  sp[nlocal][3] = atof(values[3]);
+  sp[nlocal][3] = utils::numeric(FLERR,values[3],true,lmp);
 
   return 4;
 }

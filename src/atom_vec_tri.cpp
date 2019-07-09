@@ -25,6 +25,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1436,16 +1437,16 @@ void AtomVecTri::data_atom(double *coord, imageint imagetmp, char **values)
 
   tag[nlocal] = ATOTAGINT(values[0]);
   molecule[nlocal] = ATOTAGINT(values[1]);
-  type[nlocal] = atoi(values[2]);
+  type[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  tri[nlocal] = atoi(values[3]);
+  tri[nlocal] = utils::inumeric(FLERR,values[3],true,lmp);
   if (tri[nlocal] == 0) tri[nlocal] = -1;
   else if (tri[nlocal] == 1) tri[nlocal] = 0;
   else error->one(FLERR,"Invalid triflag in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[4]);
+  rmass[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1484,12 +1485,12 @@ int AtomVecTri::data_atom_hybrid(int nlocal, char **values)
 {
   molecule[nlocal] = ATOTAGINT(values[0]);
 
-  tri[nlocal] = atoi(values[1]);
+  tri[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (tri[nlocal] == 0) tri[nlocal] = -1;
   else if (tri[nlocal] == 1) tri[nlocal] = 0;
   else error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[2]);
+  rmass[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1513,15 +1514,15 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
   double c1[3],c2[3],c3[3];
-  c1[0] = atof(values[0]);
-  c1[1] = atof(values[1]);
-  c1[2] = atof(values[2]);
-  c2[0] = atof(values[3]);
-  c2[1] = atof(values[4]);
-  c2[2] = atof(values[5]);
-  c3[0] = atof(values[6]);
-  c3[1] = atof(values[7]);
-  c3[2] = atof(values[8]);
+  c1[0] = utils::numeric(FLERR,values[0],true,lmp);
+  c1[1] = utils::numeric(FLERR,values[1],true,lmp);
+  c1[2] = utils::numeric(FLERR,values[2],true,lmp);
+  c2[0] = utils::numeric(FLERR,values[3],true,lmp);
+  c2[1] = utils::numeric(FLERR,values[4],true,lmp);
+  c2[2] = utils::numeric(FLERR,values[5],true,lmp);
+  c3[0] = utils::numeric(FLERR,values[6],true,lmp);
+  c3[1] = utils::numeric(FLERR,values[7],true,lmp);
+  c3[2] = utils::numeric(FLERR,values[8],true,lmp);
 
   // check for duplicate points
 
@@ -1641,15 +1642,15 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
 
 void AtomVecTri::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  omega[m][0] = atof(values[3]);
-  omega[m][1] = atof(values[4]);
-  omega[m][2] = atof(values[5]);
-  angmom[m][0] = atof(values[6]);
-  angmom[m][1] = atof(values[7]);
-  angmom[m][2] = atof(values[8]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  omega[m][0] = utils::numeric(FLERR,values[3],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[4],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[5],true,lmp);
+  angmom[m][0] = utils::numeric(FLERR,values[6],true,lmp);
+  angmom[m][1] = utils::numeric(FLERR,values[7],true,lmp);
+  angmom[m][2] = utils::numeric(FLERR,values[8],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1658,12 +1659,12 @@ void AtomVecTri::data_vel(int m, char **values)
 
 int AtomVecTri::data_vel_hybrid(int m, char **values)
 {
-  omega[m][0] = atof(values[0]);
-  omega[m][1] = atof(values[1]);
-  omega[m][2] = atof(values[2]);
-  angmom[m][0] = atof(values[3]);
-  angmom[m][1] = atof(values[4]);
-  angmom[m][2] = atof(values[5]);
+  omega[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  angmom[m][0] = utils::numeric(FLERR,values[3],true,lmp);
+  angmom[m][1] = utils::numeric(FLERR,values[4],true,lmp);
+  angmom[m][2] = utils::numeric(FLERR,values[5],true,lmp);
   return 6;
 }
 

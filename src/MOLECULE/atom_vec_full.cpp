@@ -16,10 +16,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -942,11 +944,11 @@ void AtomVecFull::data_atom(double *coord, imageint imagetmp, char **values)
 
   tag[nlocal] = ATOTAGINT(values[0]);
   molecule[nlocal] = ATOTAGINT(values[1]);
-  type[nlocal] = atoi(values[2]);
+  type[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[3]);
+  q[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -974,7 +976,7 @@ void AtomVecFull::data_atom(double *coord, imageint imagetmp, char **values)
 int AtomVecFull::data_atom_hybrid(int nlocal, char **values)
 {
   molecule[nlocal] = ATOTAGINT(values[0]);
-  q[nlocal] = atof(values[1]);
+  q[nlocal] = utils::numeric(FLERR,values[1],true,lmp);
 
   num_bond[nlocal] = 0;
   num_angle[nlocal] = 0;

@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "error.h"
 #include "input.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -792,7 +793,7 @@ void AtomVecTDPD::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

@@ -24,6 +24,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1037,16 +1038,16 @@ void AtomVecLine::data_atom(double *coord, imageint imagetmp, char **values)
 
   tag[nlocal] = ATOTAGINT(values[0]);
   molecule[nlocal] = ATOTAGINT(values[1]);
-  type[nlocal] = atoi(values[2]);
+  type[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  line[nlocal] = atoi(values[3]);
+  line[nlocal] = utils::inumeric(FLERR,values[3],true,lmp);
   if (line[nlocal] == 0) line[nlocal] = -1;
   else if (line[nlocal] == 1) line[nlocal] = 0;
   else error->one(FLERR,"Invalid lineflag in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[4]);
+  rmass[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1082,12 +1083,12 @@ int AtomVecLine::data_atom_hybrid(int nlocal, char **values)
 {
   molecule[nlocal] = ATOTAGINT(values[0]);
 
-  line[nlocal] = atoi(values[1]);
+  line[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (line[nlocal] == 0) line[nlocal] = -1;
   else if (line[nlocal] == 1) line[nlocal] = 0;
   else error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[2]);
+  rmass[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1110,10 +1111,10 @@ void AtomVecLine::data_atom_bonus(int m, char **values)
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
-  double x1 = atof(values[0]);
-  double y1 = atof(values[1]);
-  double x2 = atof(values[2]);
-  double y2 = atof(values[3]);
+  double x1 = utils::numeric(FLERR,values[0],true,lmp);
+  double y1 = utils::numeric(FLERR,values[1],true,lmp);
+  double x2 = utils::numeric(FLERR,values[2],true,lmp);
+  double y2 = utils::numeric(FLERR,values[3],true,lmp);
   double dx = x2 - x1;
   double dy = y2 - y1;
   double length = sqrt(dx*dx + dy*dy);
@@ -1150,12 +1151,12 @@ void AtomVecLine::data_atom_bonus(int m, char **values)
 
 void AtomVecLine::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  omega[m][0] = atof(values[3]);
-  omega[m][1] = atof(values[4]);
-  omega[m][2] = atof(values[5]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  omega[m][0] = utils::numeric(FLERR,values[3],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[4],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[5],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1164,9 +1165,9 @@ void AtomVecLine::data_vel(int m, char **values)
 
 int AtomVecLine::data_vel_hybrid(int m, char **values)
 {
-  omega[m][0] = atof(values[0]);
-  omega[m][1] = atof(values[1]);
-  omega[m][2] = atof(values[2]);
+  omega[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[2],true,lmp);
   return 3;
 }
 

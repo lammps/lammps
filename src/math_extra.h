@@ -77,9 +77,14 @@ namespace MathExtra {
 
   void write3(const double mat[3][3]);
   int mldivide3(const double mat[3][3], const double *vec, double *ans);
+
   int jacobi(double matrix[3][3], double *evalues, double evectors[3][3]);
-  void rotate(double matrix[3][3], int i, int j, int k, int l,
-              double s, double tau);
+  int jacobi(double **matrix, double *evalues, double **evectors);
+  void rotate(double &matrix_kl, double &matrix_ij, 
+              const double c, const double s);
+  void update_eigenvalue(double &eigenvalue, bool &changed, int &state, 
+                         const double t, const double threshold);
+
   void richardson(double *q, double *m, double *w, double *moments, double dtq);
   void no_squish_rotate(int k, double *p, double *q, double *inertia,
                         double dt);

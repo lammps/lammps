@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Mike Brown (SNL)
+                        Arno Mayrhofer (DCS Computing), jacobi() functions
 ------------------------------------------------------------------------- */
 
 #include <cstdio>
@@ -95,83 +96,189 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
 /* ----------------------------------------------------------------------
    compute evalues and evectors of 3x3 real symmetric matrix
    based on Jacobi rotations
-   adapted from Numerical Recipes jacobi() function
+   two variants for passing in matrix
+
+   procedure jacobi(S ∈ Rn×n; out e ∈ Rn; out E ∈ Rn×n)
+     var
+       i, k, l, m, state ∈ N
+       s, c, t, p, y, d, r ∈ R
+       ind ∈ Nn
+       changed ∈ Ln
+     ! init e, E, and arrays ind, changed
+     E := I; state := n
+     for k := 1 to n do indk := maxind(k); ek := Skk; changedk := true endfor
+     while state≠0 do ! next rotation
+       m := 1 ! find index (k,l) of pivot p
+       for k := 2 to n−1 do
+         if │Sk indk│ > │Sm indm│ then m := k endif
+       endfor
+       k := m; l := indm; p := Skl
+       ! calculate c = cos φ, s = sin φ
+       y := (el−ek)/2; d := │y│+√(p2+y2)
+       r := √(p2+d2); c := d/r; s := p/r; t := p2/d
+       if y<0 then s := −s; t := −t endif
+       Skl := 0.0; update(k,−t); update(l,t)
+       ! rotate rows and columns k and l
+       for i := 1 to k−1 do rotate(i,k,i,l) endfor
+       for i := k+1 to l−1 do rotate(k,i,i,l) endfor
+       for i := l+1 to n do rotate(k,i,l,i) endfor
+       ! rotate eigenvectors
+       for i := 1 to n do
+         ┌   ┐    ┌     ┐┌   ┐
+         │Eik│    │c  −s││Eik│
+         │   │ := │     ││   │
+         │Eil│    │s   c││Eil│
+         └   ┘    └     ┘└   ┘
+       endfor
+       ! rows k, l have changed, update rows indk, indl
+       indk := maxind(k); indl := maxind(l)
+     loop
+   endproc
 ------------------------------------------------------------------------- */
 
 int jacobi(double matrix[3][3], double *evalues, double evectors[3][3])
 {
-  int i,j,k;
-  double tresh,theta,tau,t,sm,s,h,g,c,b[3],z[3];
+  evectors[0][0] = 1.0; evectors[0][1] = 0.0; evectors[0][2] = 0.0;
+  evectors[1][0] = 0.0; evectors[1][1] = 1.0; evectors[1][2] = 0.0;
+  evectors[2][0] = 0.0; evectors[2][1] = 0.0; evectors[2][2] = 1.0;
+  evalues[0] = 0.0; evalues[1] = 0.0; evalues[2] = 0.0;
+  double threshold = 0.0;
 
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++) evectors[i][j] = 0.0;
-    evectors[i][i] = 1.0;
-  }
-  for (i = 0; i < 3; i++) {
-    b[i] = evalues[i] = matrix[i][i];
-    z[i] = 0.0;
-  }
+  for (int i = 0; i < 3; i++)
+    for (int j = i; j < 3; j++)
+      threshold += fabs(matrix[i][j]);
 
-  for (int iter = 1; iter <= MAXJACOBI; iter++) {
-    sm = 0.0;
-    for (i = 0; i < 2; i++)
-      for (j = i+1; j < 3; j++)
-        sm += fabs(matrix[i][j]);
-    if (sm == 0.0) return 0;
+  if (threshold < 1.0e-200) return 0;
+  threshold *= 1.0e-12;
+  int state = 2;
+  bool changed[3] = {true, true, true};
 
-    if (iter < 4) tresh = 0.2*sm/(3*3);
-    else tresh = 0.0;
-
-    for (i = 0; i < 2; i++) {
-      for (j = i+1; j < 3; j++) {
-        g = 100.0*fabs(matrix[i][j]);
-        if (iter > 4 && fabs(evalues[i])+g == fabs(evalues[i])
-            && fabs(evalues[j])+g == fabs(evalues[j]))
-          matrix[i][j] = 0.0;
-        else if (fabs(matrix[i][j]) > tresh) {
-          h = evalues[j]-evalues[i];
-          if (fabs(h)+g == fabs(h)) t = (matrix[i][j])/h;
-          else {
-            theta = 0.5*h/(matrix[i][j]);
-            t = 1.0/(fabs(theta)+sqrt(1.0+theta*theta));
-            if (theta < 0.0) t = -t;
-          }
-          c = 1.0/sqrt(1.0+t*t);
-          s = t*c;
-          tau = s/(1.0+c);
-          h = t*matrix[i][j];
-          z[i] -= h;
-          z[j] += h;
-          evalues[i] -= h;
-          evalues[j] += h;
-          matrix[i][j] = 0.0;
-          for (k = 0; k < i; k++) rotate(matrix,k,i,k,j,s,tau);
-          for (k = i+1; k < j; k++) rotate(matrix,i,k,k,j,s,tau);
-          for (k = j+1; k < 3; k++) rotate(matrix,i,k,j,k,s,tau);
-          for (k = 0; k < 3; k++) rotate(evectors,k,i,k,j,s,tau);
+  int iteration = 0;
+  while (state > 0 && iteration < MAXJACOBI) {
+    for (int k = 0; k < 2; k++) {
+      for (int l = k+1; l < 3; l++) {
+        const double p = matrix[k][l];
+        const double y = (matrix[l][l]-matrix[k][k])*0.5;
+        const double d = fabs(y)+sqrt(p*p + y*y);
+        const double r = sqrt(p*p + d*d);
+        const double c = r > threshold ? d/r : 1.0;
+        double s = r > threshold ? p/r : 0.0;
+        double t = d > threshold ? p*p/d : 0.0;
+        if (y < 0.0) {
+          s *= -1.0;
+          t *= -1.0;
         }
+        matrix[k][l] = 0.0;
+        update_eigenvalue(matrix[k][k], changed[k], state, -t, threshold);
+        update_eigenvalue(matrix[l][l], changed[l], state,  t, threshold);
+        for (int i = 0; i < k; i++)
+          rotate(matrix[i][k], matrix[i][l],c,s);
+        for (int i = k+1; i < l; i++)
+          rotate(matrix[k][i], matrix[i][l],c,s);
+        for (int i = l+1; i < 3; i++)
+          rotate(matrix[k][i], matrix[l][i],c,s);
+        for (int i = 0; i < 3; i++)
+          rotate(evectors[i][k], evectors[i][l],c,s);
       }
     }
-
-    for (i = 0; i < 3; i++) {
-      evalues[i] = b[i] += z[i];
-      z[i] = 0.0;
-    }
+    iteration++;
   }
-  return 1;
+
+  for (int i = 0; i < 3; i++)
+    evalues[i] = matrix[i][i];
+
+  if (iteration == MAXJACOBI) return 1;
+  return 0;
+}
+
+int jacobi(double **matrix, double *evalues, double **evectors)
+{
+  evectors[0][0] = 1.0; evectors[0][1] = 0.0; evectors[0][2] = 0.0;
+  evectors[1][0] = 0.0; evectors[1][1] = 1.0; evectors[1][2] = 0.0;
+  evectors[2][0] = 0.0; evectors[2][1] = 0.0; evectors[2][2] = 1.0;
+  evalues[0] = 0.0; evalues[1] = 0.0; evalues[2] = 0.0;
+  double threshold = 0.0;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = i; j < 3; j++)
+      threshold += fabs(matrix[i][j]);
+
+  if (threshold < 1.0e-200) return 0;
+  threshold *= 1.0e-12;
+  int state = 2;
+  bool changed[3] = {true, true, true};
+
+  int iteration = 0;
+  while (state > 0 && iteration < MAXJACOBI) {
+    for (int k = 0; k < 2; k++) {
+      for (int l = k+1; l < 3; l++) {
+        const double p = matrix[k][l];
+        const double y = (matrix[l][l]-matrix[k][k])*0.5;
+        const double d = fabs(y)+sqrt(p*p + y*y);
+        const double r = sqrt(p*p + d*d);
+        const double c = r > threshold ? d/r : 1.0;
+        double s = r > threshold ? p/r : 0.0;
+        double t = d > threshold ? p*p/d : 0.0;
+        if (y < 0.0) {
+          s *= -1.0;
+          t *= -1.0;
+        }
+        matrix[k][l] = 0.0;
+        update_eigenvalue(matrix[k][k], changed[k], state, -t, threshold);
+        update_eigenvalue(matrix[l][l], changed[l], state,  t, threshold);
+        for (int i = 0; i < k; i++)
+          rotate(matrix[i][k], matrix[i][l],c,s);
+        for (int i = k+1; i < l; i++)
+          rotate(matrix[k][i], matrix[i][l],c,s);
+        for (int i = l+1; i < 3; i++)
+          rotate(matrix[k][i], matrix[l][i],c,s);
+        for (int i = 0; i < 3; i++)
+          rotate(evectors[i][k], evectors[i][l],c,s);
+      }
+    }
+    iteration++;
+  }
+
+  for (int i = 0; i < 3; i++)
+    evalues[i] = matrix[i][i];
+
+  if (iteration == MAXJACOBI) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
-   perform a single Jacobi rotation
+   perform a single Jacobi rotation of Sij, Skl
+    ┌   ┐    ┌     ┐┌   ┐
+    │Skl│    │c  −s││Skl│
+    │   │ := │     ││   │
+    │Sij│    │s   c││Sij│
+    └   ┘    └     ┘└   ┘
 ------------------------------------------------------------------------- */
 
-void rotate(double matrix[3][3], int i, int j, int k, int l,
-            double s, double tau)
+void rotate(double &matrix_kl, double &matrix_ij, 
+            const double c, const double s)
 {
-  double g = matrix[i][j];
-  double h = matrix[k][l];
-  matrix[i][j] = g-s*(h+g*tau);
-  matrix[k][l] = h+s*(g-h*tau);
+  const double tmp_kl = matrix_kl;
+  matrix_kl = c*matrix_kl - s*matrix_ij;
+  matrix_ij = s*tmp_kl    + c*matrix_ij;
+}
+
+/* ----------------------------------------------------------------------
+   update eigenvalue and its status
+------------------------------------------------------------------------- */
+
+void update_eigenvalue(double &eigenvalue, bool &changed, int &state, 
+                       const double t, const double threshold)
+{
+  eigenvalue += t;
+
+  if (changed && fabs(t) < threshold) {
+    changed = false;
+    state--;
+  } else if (!changed && fabs(t) > threshold) {
+    changed = true;
+    state++;
+  }
 }
 
 /* ----------------------------------------------------------------------

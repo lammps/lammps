@@ -61,6 +61,7 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   icp = new MyPoolChunk<int>(1,3);
   dcp = new MyPoolChunk<double>(3*nmin+2+1+1,
                                 3*nmax+2*nmax+MAX_FACE_SIZE*nmax+1+1);
+  maxexchange = 3 + 3*nmax+2*nmax+MAX_FACE_SIZE*nmax+1+1;  // icp max + dcp max
 
   memory->create(imflag,2*nmax,"body/rounded/polyhedron:imflag");
   memory->create(imdata,2*nmax,7,"body/polyhedron:imdata");

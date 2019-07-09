@@ -61,6 +61,7 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
 
   icp = new MyPoolChunk<int>(1,1);
   dcp = new MyPoolChunk<double>(3*nmin+2*nmin+1+1,3*nmax+2*nmax+1+1);
+  maxexchange = 1 + 3*nmax+2*nmax+1+1;      // icp max + dcp max
 
   memory->create(imflag,nmax,"body/rounded/polygon:imflag");
   memory->create(imdata,nmax,7,"body/nparticle:imdata");

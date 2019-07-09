@@ -39,6 +39,8 @@ class AtomVec : protected Pointers {
   int size_data_vel;                   // number of values in Velocity line
   int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
+  int maxexchange;                     // max size of exchanged atom
+                                       // only needs to be set if size > BUFEXTRA
 
   class Molecule **onemols;            // list of molecules for style template
   int nset;                            // # of molecules in list

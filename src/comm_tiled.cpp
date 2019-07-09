@@ -32,8 +32,7 @@ using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
 #define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
+#define BUFMIN 1024
 #define EPSILON 1.0e-6
 
 #define DELTA_PROCS 16
@@ -80,14 +79,6 @@ CommTiled::~CommTiled()
 
 void CommTiled::init_buffers()
 {
-  // bufextra = max size of one exchanged atom
-  //          = allowed overflow of sendbuf in exchange()
-  // atomvec, fix reset these 2 maxexchange values if needed
-  // only necessary if their size > BUFEXTRA
-
-  maxexchange = maxexchange_atom + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
-
   maxsend = BUFMIN;
   memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
   maxrecv = BUFMIN;
@@ -107,6 +98,10 @@ void CommTiled::init_buffers()
 void CommTiled::init()
 {
   Comm::init();
+
+  int bufextra_old = bufextra;
+  init_exchange();
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,0);
 
   // temporary restrictions
 
@@ -644,15 +639,14 @@ void CommTiled::exchange()
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // insure send buf is large enough for single atom
-  // bufextra = max size of one atom = allowed overflow of sendbuf
-  // fixes can change per-atom size requirement on-the-fly
+  // insure send buf has extra space for a single atom
+  // only need to reset if a fix can dynamically add to size of single atom
 
-  int bufextra_old = bufextra;
-  maxexchange = maxexchange_atom + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
-  if (bufextra > bufextra_old)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  if (maxexchange_fix_dynamic) {
+    int bufextra_old = bufextra;
+    init_exchange();
+    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,1);
+  }
 
   // domain properties used in exchange method and methods it calls
   // subbox bounds for orthogonal or triclinic

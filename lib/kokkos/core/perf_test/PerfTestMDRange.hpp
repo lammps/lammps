@@ -125,15 +125,15 @@ struct MultiDimRangePerf3D
       Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy(point_type{{0,0,0}},point_type{{icount,jcount,kcount}},tile_type{{Ti,Tj,Tk}} );
 
       Kokkos::parallel_for( policy_initA, Init(Atest, icount, jcount, kcount) );
-      execution_space::fence();
+      execution_space().fence();
       Kokkos::parallel_for( policy_initB, Init(Btest, icount+2, jcount+2, kcount+2) );
-      execution_space::fence();
+      execution_space().fence();
 
     for (int i = 0; i < iter; ++i)
     {
       Kokkos::Timer timer;
       Kokkos::parallel_for( policy, FunctorType(Atest, Btest, icount, jcount, kcount) );
-      execution_space::fence();
+      execution_space().fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
       else dt_min = dt < dt_min ? dt : dt_min ;
@@ -189,15 +189,15 @@ struct MultiDimRangePerf3D
       Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > policy({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}} ); 
 
       Kokkos::parallel_for( policy_initA, Init(Atest, icount, jcount, kcount) );
-      execution_space::fence();
+      execution_space().fence();
       Kokkos::parallel_for( policy_initB, Init(Btest, icount+2, jcount+2, kcount+2) );
-      execution_space::fence();
+      execution_space().fence();
 
     for (int i = 0; i < iter; ++i)
     {
       Kokkos::Timer timer;
       Kokkos::parallel_for( policy, FunctorType(Atest, Btest, icount, jcount, kcount) );
-      execution_space::fence();
+      execution_space().fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
       else dt_min = dt < dt_min ? dt : dt_min ;
@@ -368,15 +368,15 @@ struct RangePolicyCollapseTwo
     double dt_min = 0;
 
     Kokkos::parallel_for( policy, Init(Atest,icount,jcount,kcount) );
-    execution_space::fence();
+    execution_space().fence();
     Kokkos::parallel_for( policy_initB, Init(Btest,icount+2,jcount+2,kcount+2) );
-    execution_space::fence();
+    execution_space().fence();
 
     for (int i = 0; i < iter; ++i)
     {
       Kokkos::Timer timer;
       Kokkos::parallel_for(policy, FunctorType(Atest, Btest, icount, jcount, kcount));
-      execution_space::fence();
+      execution_space().fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
       else dt_min = dt < dt_min ? dt : dt_min ;
@@ -513,15 +513,15 @@ struct RangePolicyCollapseAll
     double dt_min = 0;
 
     Kokkos::parallel_for( policy, Init(Atest,icount,jcount,kcount) );
-    execution_space::fence();
+    execution_space().fence();
     Kokkos::parallel_for( policy_initB, Init(Btest,icount+2,jcount+2,kcount+2) );
-    execution_space::fence();
+    execution_space().fence();
 
     for (int i = 0; i < iter; ++i)
     {
       Kokkos::Timer timer;
       Kokkos::parallel_for(policy, FunctorType(Atest, Btest, icount, jcount, kcount));
-      execution_space::fence();
+      execution_space().fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
       else dt_min = dt < dt_min ? dt : dt_min ;

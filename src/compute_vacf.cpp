@@ -76,7 +76,7 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
 
   // displacement vector
 
-  vector = new double[4];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

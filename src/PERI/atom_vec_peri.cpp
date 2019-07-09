@@ -22,11 +22,13 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -792,12 +794,12 @@ void AtomVecPeri::data_atom(double *coord, imageint imagetmp, char **values)
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  vfrac[nlocal] = atof(values[2]);
-  rmass[nlocal] = atof(values[3]);
+  vfrac[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
+  rmass[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
   if (rmass[nlocal] <= 0.0) error->one(FLERR,"Invalid mass value");
 
   x[nlocal][0] = coord[0];
@@ -826,8 +828,8 @@ void AtomVecPeri::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecPeri::data_atom_hybrid(int nlocal, char **values)
 {
-  vfrac[nlocal] = atof(values[0]);
-  rmass[nlocal] = atof(values[1]);
+  vfrac[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
+  rmass[nlocal] = utils::numeric(FLERR,values[1],true,lmp);
   if (rmass[nlocal] <= 0.0) error->one(FLERR,"Invalid mass value");
 
   s0[nlocal] = DBL_MAX;

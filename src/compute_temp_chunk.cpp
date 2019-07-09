@@ -126,7 +126,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // vector data
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
   // chunk-based data
 

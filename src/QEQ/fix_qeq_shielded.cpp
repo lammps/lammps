@@ -77,7 +77,7 @@ void FixQEqShielded::init()
 
 void FixQEqShielded::extract_reax()
 {
-  Pair *pair = force->pair_match("reax/c",1);
+  Pair *pair = force->pair_match("^reax/c",0);
   if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);

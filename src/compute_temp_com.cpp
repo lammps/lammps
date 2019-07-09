@@ -36,7 +36,7 @@ ComputeTempCOM::ComputeTempCOM(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

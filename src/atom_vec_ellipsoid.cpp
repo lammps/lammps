@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1141,16 +1142,16 @@ void AtomVecEllipsoid::data_atom(double *coord, imageint imagetmp,
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  ellipsoid[nlocal] = atoi(values[2]);
+  ellipsoid[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
   else if (ellipsoid[nlocal] == 1) ellipsoid[nlocal] = 0;
   else error->one(FLERR,"Invalid ellipsoidflag in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[3]);
+  rmass[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1178,12 +1179,12 @@ void AtomVecEllipsoid::data_atom(double *coord, imageint imagetmp,
 
 int AtomVecEllipsoid::data_atom_hybrid(int nlocal, char **values)
 {
-  ellipsoid[nlocal] = atoi(values[0]);
+  ellipsoid[nlocal] = utils::inumeric(FLERR,values[0],true,lmp);
   if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
   else if (ellipsoid[nlocal] == 1) ellipsoid[nlocal] = 0;
   else error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[1]);
+  rmass[nlocal] = utils::numeric(FLERR,values[1],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1202,17 +1203,17 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
   double *shape = bonus[nlocal_bonus].shape;
-  shape[0] = 0.5 * atof(values[0]);
-  shape[1] = 0.5 * atof(values[1]);
-  shape[2] = 0.5 * atof(values[2]);
+  shape[0] = 0.5 * utils::numeric(FLERR,values[0],true,lmp);
+  shape[1] = 0.5 * utils::numeric(FLERR,values[1],true,lmp);
+  shape[2] = 0.5 * utils::numeric(FLERR,values[2],true,lmp);
   if (shape[0] <= 0.0 || shape[1] <= 0.0 || shape[2] <= 0.0)
     error->one(FLERR,"Invalid shape in Ellipsoids section of data file");
 
   double *quat = bonus[nlocal_bonus].quat;
-  quat[0] = atof(values[3]);
-  quat[1] = atof(values[4]);
-  quat[2] = atof(values[5]);
-  quat[3] = atof(values[6]);
+  quat[0] = utils::numeric(FLERR,values[3],true,lmp);
+  quat[1] = utils::numeric(FLERR,values[4],true,lmp);
+  quat[2] = utils::numeric(FLERR,values[5],true,lmp);
+  quat[3] = utils::numeric(FLERR,values[6],true,lmp);
   MathExtra::qnormalize(quat);
 
   // reset ellipsoid mass
@@ -1230,12 +1231,12 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
 
 void AtomVecEllipsoid::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  angmom[m][0] = atof(values[3]);
-  angmom[m][1] = atof(values[4]);
-  angmom[m][2] = atof(values[5]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  angmom[m][0] = utils::numeric(FLERR,values[3],true,lmp);
+  angmom[m][1] = utils::numeric(FLERR,values[4],true,lmp);
+  angmom[m][2] = utils::numeric(FLERR,values[5],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1244,9 +1245,9 @@ void AtomVecEllipsoid::data_vel(int m, char **values)
 
 int AtomVecEllipsoid::data_vel_hybrid(int m, char **values)
 {
-  angmom[m][0] = atof(values[0]);
-  angmom[m][1] = atof(values[1]);
-  angmom[m][2] = atof(values[2]);
+  angmom[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  angmom[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  angmom[m][2] = utils::numeric(FLERR,values[2],true,lmp);
   return 3;
 }
 

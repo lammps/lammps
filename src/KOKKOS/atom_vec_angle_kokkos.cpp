@@ -16,11 +16,13 @@
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -1632,9 +1634,9 @@ void AtomVecAngleKokkos::data_atom(double *coord, imageint imagetmp,
   if (nlocal == nmax) grow(0);
   atomKK->modified(Host,ALL_MASK);
 
-  h_tag(nlocal) = atoi(values[0]);
-  h_molecule(nlocal) = atoi(values[1]);
-  h_type(nlocal) = atoi(values[2]);
+  h_tag(nlocal) = utils::inumeric(FLERR,values[0],true,lmp);
+  h_molecule(nlocal) = utils::inumeric(FLERR,values[1],true,lmp);
+  h_type(nlocal) = utils::inumeric(FLERR,values[2],true,lmp);
   if (h_type(nlocal) <= 0 || h_type(nlocal) > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -1661,7 +1663,7 @@ void AtomVecAngleKokkos::data_atom(double *coord, imageint imagetmp,
 
 int AtomVecAngleKokkos::data_atom_hybrid(int nlocal, char **values)
 {
-  h_molecule(nlocal) = atoi(values[0]);
+  h_molecule(nlocal) = utils::inumeric(FLERR,values[0],true,lmp);
   h_num_bond(nlocal) = 0;
   h_num_angle(nlocal) = 0;
   return 1;

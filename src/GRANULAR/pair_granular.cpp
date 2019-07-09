@@ -472,16 +472,12 @@ void PairGranular::compute(int eflag, int vflag)
           fs3 = -Ft*vtr3;
         }
 
-        //****************************************
-        // rolling resistance
-        //****************************************
-
-        if (roll_model[itype][jtype] != ROLL_NONE) {
+	if (roll_model[itype][jtype] != ROLL_NONE ||
+	    twist_model[itype][jtype] != TWIST_NONE){
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
-
-          // rolling velocity,
+	  // rolling velocity,
           // see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
           // this is different from the Marshall papers,
           // which use the Bagi/Kuhn formulation
@@ -489,7 +485,12 @@ void PairGranular::compute(int eflag, int vflag)
           // - 0.5*((radj-radi)/radsum)*vtr1;
           // - 0.5*((radj-radi)/radsum)*vtr2;
           // - 0.5*((radj-radi)/radsum)*vtr3;
+	}
+        //****************************************
+        // rolling resistance
+        //****************************************
 
+        if (roll_model[itype][jtype] != ROLL_NONE) {
           vrl1 = Reff*(relrot2*nz - relrot3*ny);
           vrl2 = Reff*(relrot3*nx - relrot1*nz);
           vrl3 = Reff*(relrot1*ny - relrot2*nx);
@@ -887,6 +888,7 @@ void PairGranular::coeff(int narg, char **arg)
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       cutoff_one = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR, "Illegal pair coeff command");
   }
 
@@ -1227,11 +1229,11 @@ void PairGranular::write_restart(FILE *fp)
         fwrite(&tangential_model[i][j],sizeof(int),1,fp);
         fwrite(&roll_model[i][j],sizeof(int),1,fp);
         fwrite(&twist_model[i][j],sizeof(int),1,fp);
-        fwrite(&normal_coeffs[i][j],sizeof(double),4,fp);
-        fwrite(&tangential_coeffs[i][j],sizeof(double),3,fp);
-        fwrite(&roll_coeffs[i][j],sizeof(double),3,fp);
-        fwrite(&twist_coeffs[i][j],sizeof(double),3,fp);
-        fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(normal_coeffs[i][j],sizeof(double),4,fp);
+        fwrite(tangential_coeffs[i][j],sizeof(double),3,fp);
+        fwrite(roll_coeffs[i][j],sizeof(double),3,fp);
+        fwrite(twist_coeffs[i][j],sizeof(double),3,fp);
+        fwrite(&cutoff_type[i][j],sizeof(double),1,fp);
       }
     }
   }
@@ -1257,22 +1259,22 @@ void PairGranular::read_restart(FILE *fp)
           fread(&tangential_model[i][j],sizeof(int),1,fp);
           fread(&roll_model[i][j],sizeof(int),1,fp);
           fread(&twist_model[i][j],sizeof(int),1,fp);
-          fread(&normal_coeffs[i][j],sizeof(double),4,fp);
-          fread(&tangential_coeffs[i][j],sizeof(double),3,fp);
-          fread(&roll_coeffs[i][j],sizeof(double),3,fp);
-          fread(&twist_coeffs[i][j],sizeof(double),3,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          fread(normal_coeffs[i][j],sizeof(double),4,fp);
+          fread(tangential_coeffs[i][j],sizeof(double),3,fp);
+          fread(roll_coeffs[i][j],sizeof(double),3,fp);
+          fread(twist_coeffs[i][j],sizeof(double),3,fp);
+          fread(&cutoff_type[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&tangential_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&roll_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&twist_model[i][j],1,MPI_INT,0,world);
-        MPI_Bcast(&normal_coeffs[i][j],4,MPI_DOUBLE,0,world);
-        MPI_Bcast(&tangential_coeffs[i][j],3,MPI_DOUBLE,0,world);
-        MPI_Bcast(&roll_coeffs[i][j],3,MPI_DOUBLE,0,world);
-        MPI_Bcast(&twist_coeffs[i][j],3,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(normal_coeffs[i][j],4,MPI_DOUBLE,0,world);
+        MPI_Bcast(tangential_coeffs[i][j],3,MPI_DOUBLE,0,world);
+        MPI_Bcast(roll_coeffs[i][j],3,MPI_DOUBLE,0,world);
+        MPI_Bcast(twist_coeffs[i][j],3,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cutoff_type[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }

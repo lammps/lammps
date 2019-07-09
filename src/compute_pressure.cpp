@@ -100,7 +100,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute pressure requires temperature ID "
                "to include kinetic energy");
 
-  vector = new double[6];
+  vector = new double[size_vector];
   nvirial = 0;
   vptr = NULL;
 }

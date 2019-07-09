@@ -124,7 +124,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxc = NULL;
-  reaxc = (PairReaxC *) force->pair_match("reax/c",0);
+  reaxc = (PairReaxC *) force->pair_match("^reax/c",0);
 
   s_hist = t_hist = NULL;
   grow_arrays(atom->nmax);

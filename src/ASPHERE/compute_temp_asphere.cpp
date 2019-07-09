@@ -77,7 +77,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == ROTATE) extra_dof = 0;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
 }
 

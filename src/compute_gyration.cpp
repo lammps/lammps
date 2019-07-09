@@ -33,7 +33,7 @@ ComputeGyration::ComputeGyration(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 0;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

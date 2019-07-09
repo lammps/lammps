@@ -66,7 +66,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
     fprintf(screen, "\n");
   }
 
-  // args: fix ID all active magnitude prop1 prop2 prop3
+  // args: fix ID all propel/self magnitude prop1 prop2 prop3
   // Optional args are
   magnitude = force->numeric( FLERR, argv[3] );
 }

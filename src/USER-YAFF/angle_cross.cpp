@@ -15,10 +15,8 @@
    Contributing author: Steven Vandenbrande
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
 #include "angle_cross.h"
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

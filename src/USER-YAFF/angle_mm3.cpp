@@ -15,10 +15,9 @@
    Contributing author: Steven Vandenbrande
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
 #include "angle_mm3.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

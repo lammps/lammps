@@ -26,6 +26,12 @@ namespace LAMMPS_NS {
 
 class FixPropelSelf : public Fix {
  public:
+
+  enum operation_modes {
+    VELOCITY = 0,
+    QUATERNION = 1
+  };
+	
   FixPropelSelf(class LAMMPS *, int, char **);
   virtual ~FixPropelSelf();
   virtual int setmask();
@@ -34,9 +40,16 @@ class FixPropelSelf : public Fix {
 
   double memory_usage();
 
-protected:
+private:
   double magnitude;
   int thermostat_orient;
+  int mode;
+
+  int verify_atoms_have_quaternion();
+  void post_force_velocity(int);
+  void post_force_quaternion(int);
+	
+	
 };
 
 }

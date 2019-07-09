@@ -77,8 +77,8 @@ void AtomVecCAC::process_args(int narg, char **arg)
   if (narg != 2) error->all(FLERR,"Invalid atom_style cac command");
  
  
- nodes_per_element=force->numeric(FLERR,arg[0]);
- maxpoly = force->numeric(FLERR, arg[1]);
+ nodes_per_element=force->inumeric(FLERR,arg[0]);
+ maxpoly = force->inumeric(FLERR, arg[1]);
  atom->nodes_per_element=nodes_per_element;
  atom-> words_per_node = 6;
  atom->maxpoly = maxpoly;
@@ -1463,7 +1463,7 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
 	element_type_read = values[1];
 	type[nlocal] = 1;
 
-	npoly = atoi(values[2]);
+	npoly = force->inumeric(FLERR,values[2]);
 	if (npoly > maxpoly)
 		error->one(FLERR, "poly count declared in data file was greater than maxpoly in input file");
 		
@@ -1475,9 +1475,9 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
 		element_type[nlocal] = string_check;
 		nodetotal = nodes_count_list[string_check];
 		poly_count[nlocal] = npoly;
-		element_scale[nlocal][0] = atoi(values[3]);
-		element_scale[nlocal][1] = atoi(values[4]);
-		element_scale[nlocal][2] = atoi(values[5]);
+		element_scale[nlocal][0] = force->inumeric(FLERR,values[3]);
+		element_scale[nlocal][1] = force->inumeric(FLERR,values[4]);
+		element_scale[nlocal][2] = force->inumeric(FLERR,values[5]);
 		}
 	}
 	//if (strcmp(element_type_read, "Eight_Node") == 0) {//add a control block for new types of elements
@@ -1514,15 +1514,15 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
 		for (int polycount = 0; polycount < npoly;polycount++) {
 
 
-		node_index = atoi(values[m++]);
+		node_index = force->inumeric(FLERR,values[m++]);
 		if (node_index < 1 ||node_index > nodetotal)
 			error->one(FLERR, "Invalid node index in CAC_Elements section of data file");
-		poly_index = atoi(values[m++]);
+		poly_index = force->inumeric(FLERR,values[m++]);
 		if (poly_index < 1 || poly_index > npoly)
 			error->one(FLERR, "Invalid poly index in CAC_Elements section of data file");
 		node_index = node_index - 1;
 		poly_index = poly_index - 1;
-		node_type = atoi(values[m++]);
+		node_type = force->inumeric(FLERR,values[m++]);
 		node_count_per_poly[poly_index]++;
 		if (node_type <= 0 || node_type > atom->ntypes)
 			error->one(FLERR, "Invalid atom type in CAC_Elements section of data file");
@@ -1538,9 +1538,9 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
     if(node_count_per_poly[poly_index]>nodetotal)
 		error->one(FLERR, "there are more nodes for one internal DOF than the element type admits");
 
-		nodal_positions[nlocal][node_index][poly_index][0] = atof(values[m++]);
-		nodal_positions[nlocal][node_index][poly_index][1] = atof(values[m++]);
-		nodal_positions[nlocal][node_index][poly_index][2] = atof(values[m++]);
+		nodal_positions[nlocal][node_index][poly_index][0] = force->numeric(FLERR,values[m++]);
+		nodal_positions[nlocal][node_index][poly_index][1] = force->numeric(FLERR,values[m++]);
+		nodal_positions[nlocal][node_index][poly_index][2] = force->numeric(FLERR,values[m++]);
 		initial_nodal_positions[nlocal][node_index][poly_index][0] = nodal_positions[nlocal][node_index][poly_index][0];
 		initial_nodal_positions[nlocal][node_index][poly_index][1] = nodal_positions[nlocal][node_index][poly_index][1];
 		initial_nodal_positions[nlocal][node_index][poly_index][2] = nodal_positions[nlocal][node_index][poly_index][2];

@@ -1648,7 +1648,7 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
 
     if (values[2] == NULL)
       error->one(FLERR, "Incorrect atom format in data file");
-    npoly = atoi(values[2]);
+    npoly = force->inumeric(FLERR,values[2]);
     if (npoly < 1)
       error->one(FLERR, "poly_count less than one in data file");
 
@@ -1676,7 +1676,7 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
       values[3+dimcheck] = strtok(NULL, " \t\n\r\f");
       if (values[3+dimcheck] == NULL)
         error->one(FLERR, "Incorrect atom format in data file");
-      escale=atoi(values[3+dimcheck]);
+      escale=force->inumeric(FLERR,values[3+dimcheck]);
       if (escale<1)
         error->one(FLERR, "negative element scale in data file");
     }
@@ -1692,9 +1692,9 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
     int imageflag = 0;
 
     if (imageflag)
-      imagedata = ((imageint)(atoi(values[iptr]) + IMGMAX) & IMGMASK) |
-        (((imageint)(atoi(values[iptr + 1]) + IMGMAX) & IMGMASK) << IMGBITS) |
-        (((imageint)(atoi(values[iptr + 2]) + IMGMAX) & IMGMASK) << IMG2BITS);
+      imagedata = ((imageint)(force->inumeric(FLERR,values[iptr]) + IMGMAX) & IMGMASK) |
+        (((imageint)(force->inumeric(FLERR,values[iptr + 1]) + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint)(force->inumeric(FLERR,values[iptr + 2]) + IMGMAX) & IMGMASK) << IMG2BITS);
     else
       imagedata = ((imageint)IMGMAX << IMG2BITS) |
         ((imageint)IMGMAX << IMGBITS) | IMGMAX;
@@ -1702,9 +1702,9 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
     xdata[0] = xdata[1] = xdata[2] = 0;
     xptr = avec->xcol_data;
     for (int mm = 0; mm < nodecount*npoly; mm++) {
-      xdata[0] += atof(values[decline + xptr + mm*words_per_node]);
-      xdata[1] += atof(values[decline + xptr + 1 + mm*words_per_node]);
-      xdata[2] += atof(values[decline + xptr + 2 + mm*words_per_node]);
+      xdata[0] += force->numeric(FLERR,values[decline + xptr + mm*words_per_node]);
+      xdata[1] += force->numeric(FLERR,values[decline + xptr + 1 + mm*words_per_node]);
+      xdata[2] += force->numeric(FLERR,values[decline + xptr + 2 + mm*words_per_node]);
     }
     xdata[0] = xdata[0] / nodecount / npoly;
     xdata[1] = xdata[1] / nodecount / npoly;

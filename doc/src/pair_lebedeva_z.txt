@@ -19,8 +19,8 @@ pair_coeff * * none
 pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C :pre
 
 pair_style hybrid/overlay rebo lebedeva/z 14.0
-pair_coeff * * rebo                 CH.airebo  C C
-pair_coeff 1 2 lebedeva/z  CC.Lebedeva      C C :pre
+pair_coeff * * rebo        CH.rebo       C C
+pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C :pre
 
 [Description:]
 
@@ -53,6 +53,7 @@ package"_Build_package.html doc page for more info.
 "pair_coeff"_pair_coeff.html,
 "pair_style none"_pair_none.html,
 "pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style drip"_pair_drip.html,
 "pair_style ilp/graphene/hbd"_pair_ilp_graphene_hbn.html,
 "pair_style kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "pair_style kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html.

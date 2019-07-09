@@ -642,7 +642,7 @@ void ComputeVoronoi::compute_local()
 /* ---------------------------------------------------------------------- */
 
 int ComputeVoronoi::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                  int /* pbc_flag */, int * /* pbc */)
 {
   int i,m=0;
   for (i = 0; i < n; ++i) buf[m++] = rfield[list[i]];

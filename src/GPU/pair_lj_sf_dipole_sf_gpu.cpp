@@ -88,8 +88,7 @@ PairLJSFDipoleSFGPU::~PairLJSFDipoleSFGPU()
 
 void PairLJSFDipoleSFGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -202,8 +201,7 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   int *jlist;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

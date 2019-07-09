@@ -18,7 +18,7 @@ group adsorbate type 2
 ######################## Potential defition ########################
 pair_style  hybrid/overlay  rebo  kolmogorov/crespi/full 16.0
 ####################################################################
-pair_coeff  * * rebo                     CH.airebo      NULL C  # chemical
+pair_coeff  * * rebo                     CH.rebo      NULL C  # chemical
 pair_coeff  * * kolmogorov/crespi/full   CC.KC-full     C    C  # long range
 ####################################################################
 # Neighbor update settings

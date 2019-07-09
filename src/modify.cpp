@@ -28,6 +28,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -80,6 +81,11 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   ncompute = maxcompute = 0;
   compute = NULL;
 
+  create_factories();
+}
+
+void _noopt Modify::create_factories()
+{
   // fill map with fixes listed in style_fix.h
 
   fix_map = new FixCreatorMap();
@@ -892,11 +898,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) {
-    char str[128];
-    snprintf(str,128,"Unknown fix style %s",arg[2]);
-    error->all(FLERR,str);
-  }
+  if (fix[ifix] == NULL)
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -1058,7 +1061,7 @@ int Modify::check_rigid_group_overlap(int groupbit)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
@@ -1194,11 +1197,8 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) {
-    char str[128];
-    snprintf(str,128,"Unknown compute style %s",arg[2]);
-    error->all(FLERR,str);
-  }
+  if (compute[ncompute] == NULL)
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
 
   ncompute++;
 }

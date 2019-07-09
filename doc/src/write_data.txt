@@ -106,7 +106,7 @@ written for all I,J pairs where I <= J.  These coefficients will
 include any specific settings made in the input script up to that
 point.  The presence of these I != J coefficients in the data file
 will effectively turn off the default mixing rule for the pair style.
-Again, the coefficient values in the data file can can be overridden
+Again, the coefficient values in the data file can be overridden
 in the input script after reading the data file, by specifying
 additional "pair_coeff"_pair_coeff.html commands for any desired I,J
 pairs.

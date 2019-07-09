@@ -41,7 +41,7 @@ FixReaxC::FixReaxC(LAMMPS *lmp,int narg, char **arg) :
 {
   // perform initial allocation of atom-based arrays
   // register with atom class
-  
+
   oldnmax = 0;
   num_bonds = NULL;
   num_hbonds = NULL;

@@ -25,6 +25,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -96,7 +97,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 #undef BodyStyle
 #undef BODY_CLASS
 
-  else error->all(FLERR,"Unknown body style");
+  else error->all(FLERR,utils::check_packages_for_style("body",arg[0],lmp).c_str());
 
   bptr->avec = this;
   icp = bptr->icp;

@@ -148,12 +148,20 @@ int MPI_Finalize()
 
 double MPI_Wtime()
 {
+#if defined(_MSC_VER)
+  double t;
+
+  t = GetTickCount();
+  t /= 1000.0;
+  return t;
+#else
   double time;
   struct timeval tv;
 
   gettimeofday(&tv,NULL);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,7 +208,11 @@ int MPI_Request_free(MPI_Request *request)
 int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm)
 {
-  printf("MPI Stub WARNING: Should not send message to self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not send message to self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -209,7 +221,11 @@ int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
 int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
               int source, int tag, MPI_Comm comm, MPI_Request *request)
 {
-  printf("MPI Stub WARNING: Should not send message to self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not send message to self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -218,7 +234,11 @@ int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
 int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm)
 {
-  printf("MPI Stub WARNING: Should not rsend message to self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not rsend message to self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -227,7 +247,11 @@ int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
 int MPI_Recv(void *buf, int count, MPI_Datatype datatype,
              int source, int tag, MPI_Comm comm, MPI_Status *status)
 {
-  printf("MPI Stub WARNING: Should not recv message from self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not recv message from self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -236,7 +260,11 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype,
 int MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
               int source, int tag, MPI_Comm comm, MPI_Request *request)
 {
-  printf("MPI Stub WARNING: Should not recv message from self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not recv message from self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -244,7 +272,11 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
 
 int MPI_Wait(MPI_Request *request, MPI_Status *status)
 {
-  printf("MPI Stub WARNING: Should not wait on message from self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not wait on message from self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -252,7 +284,11 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
 
 int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status)
 {
-  printf("MPI Stub WARNING: Should not wait on message from self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not wait on message from self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -261,7 +297,11 @@ int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status)
 int MPI_Waitany(int count, MPI_Request *request, int *index,
                 MPI_Status *status)
 {
-  printf("MPI Stub WARNING: Should not wait on message from self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not wait on message from self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -272,7 +312,11 @@ int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
                  MPI_Datatype rdatatype, int source, int rtag,
                  MPI_Comm comm, MPI_Status *status)
 {
-  printf("MPI Stub WARNING: Should not send message to self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not send message to self\n");
+    ++callcount;
+  }
   return 0;
 }
 
@@ -280,7 +324,11 @@ int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
 
 int MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 {
-  printf("MPI Stub WARNING: Should not get count of message to self\n");
+  static int callcount=0;
+  if (callcount == 0) {
+    printf("MPI Stub WARNING: Should not get count of message to self\n");
+    ++callcount;
+  }
   return 0;
 }
 

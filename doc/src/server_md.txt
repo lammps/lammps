@@ -65,7 +65,7 @@ in this pseudo code is a pointer to an instance of the CSlib.
 See the src/MESSAGE/server_md.cpp and src/MESSAGE/fix_client_md.cpp
 files for details on how LAMMPS uses these messages.  See the
 examples/COUPLE/lammps_vasp/vasp_wrapper.py file for an example of how
-a quantum code (VASP) can use use these messages.
+a quantum code (VASP) can use these messages.
 
 The following pseudo-code uses these values, defined as enums.
 

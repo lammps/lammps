@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 #define MAX_GROUP 32
 #define EPSILON 1.0e-6
 
-enum{TYPE,MOLECULE,ID};
+enum{NONE,TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
@@ -202,7 +202,7 @@ void Group::assign(int narg, char **arg)
 
     if (narg < 3) error->all(FLERR,"Illegal group command");
 
-    int category;
+    int category=NONE;
     if (strcmp(arg[1],"type") == 0) category = TYPE;
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;

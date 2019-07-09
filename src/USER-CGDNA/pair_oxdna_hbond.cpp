@@ -40,7 +40,7 @@ using namespace MFOxdna;
 
 // sequence-specific base-pairing strength
 // A:0 C:1 G:2 T:3, 5'- (i,j) -3'
-static const double alpha[4][4] =
+static const double alpha_hb[4][4] = 
 {{1.00000,1.00000,1.00000,0.82915},
  {1.00000,1.00000,1.15413,1.00000},
  {1.00000,1.15413,1.00000,1.00000},
@@ -71,10 +71,10 @@ PairOxdnaHbond::~PairOxdnaHbond()
     memory->destroy(cut_hb_hi);
     memory->destroy(cut_hb_lc);
     memory->destroy(cut_hb_hc);
+    memory->destroy(cutsq_hb_hc);
     memory->destroy(b_hb_lo);
     memory->destroy(b_hb_hi);
     memory->destroy(shift_hb);
-    memory->destroy(cutsq_hb_hc);
 
     memory->destroy(a_hb1);
     memory->destroy(theta_hb1_0);
@@ -161,8 +161,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   double df1,df4t1,df4t4,df4t2,df4t3,df4t7,df4t8;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;
@@ -733,7 +732,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
     for (int j = MAX(jlo,i); j <= jhi; j++) {
 
       epsilon_hb[i][j] = epsilon_hb_one;
-      if (seqdepflag) epsilon_hb[i][j] *= alpha[i-1][j-1];
+      if (seqdepflag) epsilon_hb[i][j] *= alpha_hb[i-1][j-1];
       a_hb[i][j] = a_hb_one;
       cut_hb_0[i][j] = cut_hb_0_one;
       cut_hb_c[i][j] = cut_hb_c_one;
@@ -744,7 +743,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
       b_hb_lo[i][j] = b_hb_lo_one;
       b_hb_hi[i][j] = b_hb_hi_one;
       shift_hb[i][j] = shift_hb_one;
-      if (seqdepflag) shift_hb[i][j] *= alpha[i-1][j-1];
+      if (seqdepflag) shift_hb[i][j] *= alpha_hb[i-1][j-1];
 
       a_hb1[i][j] = a_hb1_one;
       theta_hb1_0[i][j] = theta_hb1_0_one;
@@ -832,7 +831,7 @@ double PairOxdnaHbond::init_one(int i, int j)
   }
 
   if (seqdepflag) {
-    epsilon_hb[j][i] = epsilon_hb[i][j] / alpha[i-1][j-1] * alpha[j-1][i-1];
+    epsilon_hb[j][i] = epsilon_hb[i][j] / alpha_hb[i-1][j-1] * alpha_hb[j-1][i-1];
   }
   else {
     epsilon_hb[j][i] = epsilon_hb[i][j];
@@ -847,7 +846,7 @@ double PairOxdnaHbond::init_one(int i, int j)
   cut_hb_lc[j][i] = cut_hb_lc[i][j];
   cut_hb_hc[j][i] = cut_hb_hc[i][j];
   if (seqdepflag) {
-    shift_hb[j][i] = shift_hb[i][j] / alpha[i-1][j-1] * alpha[j-1][i-1];
+    shift_hb[j][i] = shift_hb[i][j] / alpha_hb[i-1][j-1] * alpha_hb[j-1][i-1];
   }
   else {
     shift_hb[j][i] = shift_hb[i][j];

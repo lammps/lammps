@@ -201,7 +201,7 @@ model. The usage of the TIP4P pair style is documented in the
 "pair_lj"_pair_lj.html styles. In the soft version the parameters n, alpha_LJ
 and alpha_C are set in the "pair_style"_pair_style.html command, after the
 specific parameters of the TIP4P water model and before the cutoffs. The
-activation parameter lambda is supplied as an argument of the the
+activation parameter lambda is supplied as an argument of the
 "pair_coeff"_pair_coeff.html command, after epsilon and sigma and before the
 optional cutoffs.
 
@@ -210,7 +210,7 @@ Style {lj/charmm/coul/long/soft} implements a soft-core version of the modified
 "pair_lj_charmm"_pair_charmm.html style. In the soft version the parameters n,
 alpha_LJ and alpha_C are set in the "pair_style"_pair_style.html command, before
 the global cutoffs. The activation parameter lambda is introduced as an argument
-of the the "pair_coeff"_pair_coeff.html command, after epsilon and sigma and
+of the "pair_coeff"_pair_coeff.html command, after epsilon and sigma and
 before the optional eps14 and sigma14.
 
 Style {lj/class2/soft} implements a soft-core version of the 9-6 potential in

@@ -105,7 +105,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute group/group command");
   }
 
-  vector = new double[3];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

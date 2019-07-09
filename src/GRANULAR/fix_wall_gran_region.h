@@ -54,7 +54,7 @@ class FixWallGranRegion : public FixWallGran {
   int tmax;              // max # of region walls one particle can touch
   int *ncontact;         // # of shear contacts per particle
   int **walls;           // which wall each contact is with
-  double ***shearmany;   // shear history per particle per contact
+  double ***history_many;   // history per particle per contact
   int *c2r;              // contact to region mapping
                          // c2r[i] = index of Ith contact in
                          //   region-contact[] list of contacts

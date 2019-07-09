@@ -7,22 +7,24 @@
 :line
 
 fix wall/gran command :h3
-fix wall/gran/omp command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/gran fstyle Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ... :pre
+fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/gran = style name of this fix command :l
 fstyle = style of force interactions between particles and wall :l
-  possible choices: hooke, hooke/history, hertz/history :pre
-Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below) :l
-Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below) :l
-gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) :l
-gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) :l
-xmu = static yield criterion (unitless value between 0.0 and 1.0e4) :l
-dampflag = 0 or 1 if tangential damping force is excluded or included :l
+  possible choices: hooke, hooke/history, hertz/history, granular :pre
+fstyle_params = parameters associated with force interaction style :l
+  For {hooke}, {hooke/history}, and {hertz/history}, {fstyle_params} are:
+        Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
+        Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
+        gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
+        gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
+        xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
+        dampflag = 0 or 1 if tangential damping force is excluded or included :pre
+  For {granular}, {fstyle_params} are set using the same syntax as for the {pair_coeff} command of "pair_style granular"_pair_granular.html :pre
 wallstyle = {xplane} or {yplane} or {zplane} or {zcylinder} :l
 args = list of arguments for a particular style :l
   {xplane} or {yplane} or {zplane} args = lo hi
@@ -44,7 +46,10 @@ keyword = {wiggle} or {shear} :l
 
 fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
 fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
-fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0 :pre
+fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
+fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
+fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
+fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone :pre
 
 [Description:]
 
@@ -54,31 +59,40 @@ close enough to touch it.
 
 The nature of the wall/particle interactions are determined by the
 {fstyle} setting.  It can be any of the styles defined by the
-"pair_style granular"_pair_gran.html commands.  Currently this is
-{hooke}, {hooke/history}, or {hertz/history}.  The equation for the
-force between the wall and particles touching it is the same as the
-corresponding equation on the "pair_style granular"_pair_gran.html doc
-page, in the limit of one of the two particles going to infinite
-radius and mass (flat wall).  Specifically, delta = radius - r =
-overlap of particle with wall, m_eff = mass of particle, and the
-effective radius of contact = RiRj/Ri+Rj is just the radius of the
-particle.
+"pair_style gran/*"_pair_gran.html or the more general "pair_style
+granular"_pair_granular.html" commands.  Currently the options are
+{hooke}, {hooke/history}, or {hertz/history} for the former, and
+{granular} with all the possible options of the associated
+{pair_coeff} command for the latter.  The equation for the force
+between the wall and particles touching it is the same as the
+corresponding equation on the "pair_style gran/*"_pair_gran.html and
+"pair_style_granular"_pair_granular.html doc pages, in the limit of
+one of the two particles going to infinite radius and mass (flat
+wall).  Specifically, delta = radius - r = overlap of particle with
+wall, m_eff = mass of particle, and the effective radius of contact =
+RiRj/Ri+Rj is set to the radius of the particle.
 
 The parameters {Kn}, {Kt}, {gamma_n}, {gamma_t}, {xmu} and {dampflag}
 have the same meaning and units as those specified with the
-"pair_style granular"_pair_gran.html commands.  This means a NULL can
-be used for either {Kt} or {gamma_t} as described on that page.  If a
+"pair_style gran/*"_pair_gran.html commands.  This means a NULL can be
+used for either {Kt} or {gamma_t} as described on that page.  If a
 NULL is used for {Kt}, then a default value is used where {Kt} = 2/7
 {Kn}.  If a NULL is used for {gamma_t}, then a default value is used
 where {gamma_t} = 1/2 {gamma_n}.
 
+All the model choices for cohesion, tangential friction, rolling
+friction and twisting friction supported by the "pair_style
+granular"_pair_granular.html through its {pair_coeff} command are also
+supported for walls. These are discussed in greater detail on the doc
+page for "pair_style granular"_pair_granular.html.
+
 Note that you can choose a different force styles and/or different
-values for the 6 wall/particle coefficients than for particle/particle
+values for the wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
 
 NOTE: As discussed on the doc page for "pair_style
-granular"_pair_gran.html, versions of LAMMPS before 9Jan09 used a
+gran/*"_pair_gran.html, versions of LAMMPS before 9Jan09 used a
 different equation for Hertzian interactions.  This means Hertizian
 wall/particle interactions have also changed.  They now include a
 sqrt(radius) term which was not present before.  Also the previous
@@ -108,14 +122,14 @@ Optionally, the wall can be moving, if the {wiggle} or {shear}
 keywords are appended.  Both keywords cannot be used together.
 
 For the {wiggle} keyword, the wall oscillates sinusoidally, similar to
-the oscillations of particles which can be specified by the
-"fix move"_fix_move.html command.  This is useful in packing
-simulations of granular particles.  The arguments to the {wiggle}
-keyword specify a dimension for the motion, as well as it's
-{amplitude} and {period}.  Note that if the dimension is in the plane
-of the wall, this is effectively a shearing motion.  If the dimension
-is perpendicular to the wall, it is more of a shaking motion.  A
-{zcylinder} wall can only be wiggled in the z dimension.
+the oscillations of particles which can be specified by the "fix
+move"_fix_move.html command.  This is useful in packing simulations of
+granular particles.  The arguments to the {wiggle} keyword specify a
+dimension for the motion, as well as it's {amplitude} and {period}.
+Note that if the dimension is in the plane of the wall, this is
+effectively a shearing motion.  If the dimension is perpendicular to
+the wall, it is more of a shaking motion.  A {zcylinder} wall can only
+be wiggled in the z dimension.
 
 Each timestep, the position of a wiggled wall in the appropriate {dim}
 is set according to this equation:
@@ -136,28 +150,6 @@ cylinder is moving in the z-direction along it's axis.  A dimension of
 the clockwise direction for {vshear} > 0 or counter-clockwise for
 {vshear} < 0.  In this case, {vshear} is the tangential velocity of
 the wall at whatever {radius} has been defined.
-
-:line
-
-Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the "Speed packages"_Speed_packages.html doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Build
-package"_Build_package.html doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the "-suffix command-line
-switch"_Run_options.html when you invoke LAMMPS, or you can use the
-"suffix"_suffix.html command in your input script.
-
-See the "Speed packages"_Speed_packages.html doc page for more
-instructions on how to use the accelerated styles effectively.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -188,6 +180,7 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 
 "fix move"_fix_move.html,
 "fix wall/gran/region"_fix_wall_gran_region.html,
-"pair_style granular"_pair_gran.html
+"pair_style gran/*"_pair_gran.html
+"pair_style granular"_pair_granular.html
 
 [Default:] none

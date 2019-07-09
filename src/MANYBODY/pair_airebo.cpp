@@ -50,7 +50,8 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
+PairAIREBO::PairAIREBO(LAMMPS *lmp)
+  : Pair(lmp), variant(AIREBO)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -108,8 +109,7 @@ PairAIREBO::~PairAIREBO()
 
 void PairAIREBO::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();
@@ -169,10 +169,6 @@ void PairAIREBO::settings(int narg, char **arg)
     sigwid = sigcut - sigmin;
   }
 
-  // this one parameter for C-C interactions is different in AIREBO vs REBO
-  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-
-  PCCf_2_0 = -0.0276030;
 }
 
 /* ----------------------------------------------------------------------
@@ -3377,14 +3373,38 @@ void PairAIREBO::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      if (morseflag)
-        snprintf(str,128,"Cannot open AIREBO-M potential file %s",filename);
-      else
+      switch (variant) {
+
+      case AIREBO:
         snprintf(str,128,"Cannot open AIREBO potential file %s",filename);
+        break;
+
+      case REBO_2:
+        snprintf(str,128,"Cannot open REBO2 potential file %s",filename);
+        break;
+
+      case AIREBO_M:
+        snprintf(str,128,"Cannot open AIREBO-M potential file %s",filename);
+        break;
+
+      default:
+        snprintf(str,128,"Unknown REBO style variant %d",variant);
+      }
       error->one(FLERR,str);
     }
 
-    // skip initial comment lines
+    // skip initial comment line and check for potential file style identifier comment
+
+    fgets(s,MAXLINE,fp);
+    fgets(s,MAXLINE,fp);
+
+    if (((variant == AIREBO) && (strncmp(s,"# AIREBO ",9) != 0))
+        || ((variant == REBO_2) && (strncmp(s,"# REBO2 ",8) != 0))
+        || ((variant == AIREBO_M) && (strncmp(s,"# AIREBO-M ",11) != 0))) {
+      error->one(FLERR,"Potential file does not match AIREBO/REBO style variant");
+    }
+
+    // skip remaining comments
 
     while (1) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
@@ -4503,19 +4523,18 @@ void PairAIREBO::spline_init()
   // this one parameter for C-C interactions is different in REBO vs AIREBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
 
-  PCCf[2][0] = PCCf_2_0;
-
+  PCCf[2][0] = -0.0276030;
   PCCf[2][1] = 0.00317953083;
 
-  PCHf[0][1] = 0.209336733;
-  PCHf[0][2] = -0.0644496154;
-  PCHf[0][3] = -0.303927546;
+  PCHf[0][1] = 0.2093367328250380;
+  PCHf[0][2] = -0.064449615432525;
+  PCHf[0][3] = -0.303927546346162;
   PCHf[1][0] = 0.010;
-  PCHf[1][1] = -0.125123401;
-  PCHf[1][2] = -0.298905246;
-  PCHf[2][0] = -0.122042146;
-  PCHf[2][1] = -0.300529172;
-  PCHf[3][0] = -0.307584705;
+  PCHf[1][1] = -0.1251234006287090;
+  PCHf[1][2] = -0.298905245783;
+  PCHf[2][0] = -0.1220421462782555;
+  PCHf[2][1] = -0.3005291724067579;
+  PCHf[3][0] = -0.307584705066;
 
   for (int nH = 0; nH < 4; nH++) {
     for (int nC = 0; nC < 4; nC++) {

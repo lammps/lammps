@@ -61,6 +61,7 @@ class Pair : protected Pointers {
   int dispersionflag;            // 1 if compatible with LJ/dispersion solver
   int tip4pflag;                 // 1 if compatible with TIP4P solver
   int dipoleflag;                // 1 if compatible with dipole solver
+  int spinflag;			 // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
@@ -97,6 +98,8 @@ class Pair : protected Pointers {
   int compute_flag;              // 0 if skip compute()
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
+
+  int beyond_contact, nondefault_history_transfer;   // for granular styles
 
   // KOKKOS host/device flag and data masks
 
@@ -180,6 +183,7 @@ class Pair : protected Pointers {
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
+  virtual void transfer_history(double *, double*) {}
 
   // management of callbacks to be run from ev_tally()
 
@@ -202,6 +206,7 @@ class Pair : protected Pointers {
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
 
+
  public:
   // custom data type for accessing Coulomb tables
 
@@ -218,6 +223,10 @@ class Pair : protected Pointers {
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else ev_unset();
+  }
   virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
   void ev_tally_full(int, double, double, double, double, double, double);

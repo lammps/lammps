@@ -42,6 +42,7 @@
 #include "variable.h"
 #include "update.h"
 #include "error.h"
+#include "utils.h"
 
 #include <ctime>
 #include <map>
@@ -66,7 +67,7 @@
 namespace LAMMPS_NS {
 // same as in variable.cpp
 enum {INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,PYTHON};
+      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 
 enum {COMPUTES=1<<0,
       DUMPS=1<<1,
@@ -105,7 +106,7 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
 
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
-  "file", "atomfile", "format", "equal", "atom", "python", "(unknown)"};
+  "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash" };
 
@@ -397,7 +398,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
             atom->natoms, atom->ntypes, force->pair_style);
 
-    if (force->pair && strstr(force->pair_style,"hybrid")) {
+    if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       PairHybrid *hybrid = (PairHybrid *)force->pair;
       fprintf(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
@@ -598,6 +599,10 @@ void Info::command(int narg, char **arg)
       int ndata = 1;
       fprintf(out,"Variable[%3d]: %-10s,  style = %-10s,  def =",
               i,names[i],varstyles[style[i]]);
+      if (style[i] == INTERNAL) {
+        fprintf(out,"%g\n",input->variable->dvalue[i]);
+        continue;
+      }
       if ((style[i] != LOOP) && (style[i] != ULOOP))
         ndata = input->variable->num[i];
       for (int j=0; j < ndata; ++j)

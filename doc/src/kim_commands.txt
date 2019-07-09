@@ -19,7 +19,7 @@ kim_query variable formatarg query_function queryargs :pre
 model = name of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
 user_units = the LAMMPS "units"_units.html style assumed in the LAMMPS input script
 unitarg = {unit_conversion_mode} (optional)
-typeargs = atom type to species mapping (one entry per atom type)
+typeargs = atom type to species mapping (one entry per atom type) or {fixed_types} for models with a preset fixed mapping
 variable = name of a (string style) variable where the result of the query is stored
 formatarg = {split} (optional)
 query_function = name of the OpenKIM web API query function to be used
@@ -33,6 +33,8 @@ kim_interactions Si
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 metal unit_conversion_mode
 kim_interactions C H O
+kim_init Sim_LAMMPS_IFF_OtherInfo_AuthorList_Year_Species__SM_064312669787_000 real
+kim_interactions fixed_types
 kim_query a0 get_lattice_constant_fcc species=\["Al"] units=\["angstrom"\] :pre
 
 
@@ -272,14 +274,24 @@ The second and final step in using an OpenKIM IM is to execute the
 command and a "create_box"_create_box.html command,
 which defines the number of atom types {N}.
 The {kim_interactions} command has one argument {typeargs}. This argument
-contains a list of {N} chemical species, which defines a mapping between
-atom types in LAMMPS to the available species in the OpenKIM IM.
+contains either a list of {N} chemical species, which defines a mapping between
+atom types in LAMMPS to the available species in the OpenKIM IM, or the
+keyword {fixed_types} for models that have a preset fixed mapping (i.e.
+the mapping between LAMMPS atom types and chemical species is defined by
+the model and cannot be changed). In the latter case, the user must consult
+the model documentation to see how many atom types there are and how they
+map to the chemcial species.
 
 For example, consider an OpenKIM IM that supports Si and C species.
 If the LAMMPS simulation has four atom types, where the first three are Si,
 and the fourth is C, the following {kim_interactions} command would be used:
 
 kim_interactions Si Si Si C
+:pre
+
+Alternatively, for a model with a fixed mapping the command would be:
+
+kim_interactions fixed_types
 :pre
 
 The {kim_interactions} command performs all the necessary steps to set up

@@ -175,7 +175,7 @@ double const nanometer_per_nanosecond_si =
              nanometer_si/nanosecond_si;      // [m/s] nanometer/nanosecond
 double const centimeter_per_second_si =
              centimeter_si;                  // [m/s] centimeter/second
-double const bohr_per_atu_si =
+double const bohr_per_atu_electron_si =
              bohr_si/atu_electron_si;        // [m/s] bohr/atu
 
 /*----------------------
@@ -803,7 +803,7 @@ double get_velocity_conversion_factor(units from_unit_enum, units to_unit_enum)
   conv[meter_per_second][angstrom_per_femtosecond]             = 1.0/angstrom_per_femtosecond_si;
   conv[meter_per_second][angstrom_per_picosecond]              = 1.0/angstrom_per_picosecond_si;
   conv[meter_per_second][centimeter_per_second]                = 1.0/centimeter_per_second_si;
-  conv[meter_per_second][bohr_per_atu]                         = 1.0/bohr_per_atu_si;
+  conv[meter_per_second][bohr_per_atu]                         = 1.0/bohr_per_atu_electron_si;
   conv[meter_per_second][micrometer_per_microsecond]           = 1.0/micrometer_per_microsecond_si;
   conv[meter_per_second][nanometer_per_nanosecond]             = 1.0/nanometer_per_nanosecond_si;
 

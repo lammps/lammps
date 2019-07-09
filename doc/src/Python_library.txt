@@ -180,7 +180,7 @@ doubles is returned, one value per atom, which you can use via normal
 Python subscripting. The values will be zero for atoms not in the
 specified group.
 
-The get_thermo() method returns returns the current value of a thermo
+The get_thermo() method returns the current value of a thermo
 keyword as a float.
 
 The get_natoms() method returns the total number of atoms in the

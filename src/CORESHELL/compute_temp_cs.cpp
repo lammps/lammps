@@ -101,7 +101,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory
 
-  vector = new double[6];
+  vector = new double[size_vector];
   maxatom = 0;
   vint = NULL;
 

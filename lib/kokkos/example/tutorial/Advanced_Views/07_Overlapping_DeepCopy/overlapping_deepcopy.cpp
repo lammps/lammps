@@ -129,7 +129,7 @@ int main(int argc, char * argv[]) {
     h_a(i) = 0.0;
   });
   Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::OpenMP>(0,size),ComputeAHost(h_a,h_b));
-  Kokkos::OpenMP::fence();
+  Kokkos::OpenMP().fence();
   if(synch==1)
     Kokkos::deep_copy(Kokkos::OpenMP(), d_tmp,h_a);
   if(synch==2)

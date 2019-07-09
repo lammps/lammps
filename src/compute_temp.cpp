@@ -37,7 +37,7 @@ ComputeTemp::ComputeTemp(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   tempflag = 1;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

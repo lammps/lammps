@@ -40,7 +40,7 @@ using namespace MFOxdna;
 
 // sequence-specific stacking strength
 // A:0 C:1 G:2 T:3, 5'- (i,j) -3'
-static const double alpha[4][4] =
+static const double eta_st[4][4] =
 {{1.11960,1.00852,0.96950,0.99632},
  {1.01889,0.97804,1.02681,0.96950},
  {0.98169,1.05913,0.97804,1.00852},
@@ -154,10 +154,9 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   double tptofp;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
-  // loop over stacking interaction neighours using bond topology
+  // loop over stacking interaction neighbors using bond topology
 
   for (in = 0; in < nbondlist; in++) {
 
@@ -775,7 +774,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
     for (int j = MAX(jlo,i); j <= jhi; j++) {
 
       epsilon_st[i][j] = epsilon_st_one;
-      if (seqdepflag) epsilon_st[i][j] *= alpha[i-1][j-1];
+      if (seqdepflag) epsilon_st[i][j] *= eta_st[i-1][j-1];
       a_st[i][j] = a_st_one;
       cut_st_0[i][j] = cut_st_0_one;
       cut_st_c[i][j] = cut_st_c_one;
@@ -786,7 +785,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
       b_st_lo[i][j] = b_st_lo_one;
       b_st_hi[i][j] = b_st_hi_one;
       shift_st[i][j] = shift_st_one;
-      if (seqdepflag) shift_st[i][j] *= alpha[i-1][j-1];
+      if (seqdepflag) shift_st[i][j] *= eta_st[i-1][j-1];
 
       a_st4[i][j] = a_st4_one;
       theta_st4_0[i][j] = theta_st4_0_one;
@@ -866,7 +865,7 @@ double PairOxdnaStk::init_one(int i, int j)
   }
 
   if (seqdepflag) {
-    epsilon_st[j][i] = epsilon_st[i][j]  / alpha[i-1][j-1] * alpha[j-1][i-1];
+    epsilon_st[j][i] = epsilon_st[i][j]  / eta_st[i-1][j-1] * eta_st[j-1][i-1];
   }
   else {
     epsilon_st[j][i] = epsilon_st[i][j];
@@ -881,7 +880,7 @@ double PairOxdnaStk::init_one(int i, int j)
   cut_st_lc[j][i] = cut_st_lc[i][j];
   cut_st_hc[j][i] = cut_st_hc[i][j];
   if (seqdepflag) {
-    shift_st[j][i] = shift_st[i][j] / alpha[i-1][j-1] * alpha[j-1][i-1];
+    shift_st[j][i] = shift_st[i][j] / eta_st[i-1][j-1] * eta_st[j-1][i-1];
   }
   else {
     shift_st[j][i] = shift_st[i][j];

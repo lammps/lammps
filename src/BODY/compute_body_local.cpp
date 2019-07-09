@@ -39,8 +39,6 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   local_flag = 1;
   nvalues = narg - 3;
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
 
   which = new int[nvalues];
   index = new int[nvalues];
@@ -65,6 +63,9 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == INDEX && (index[i] < 0 || index[i] >= indexmax))
       error->all(FLERR,"Invalid index in compute body/local command");
   }
+
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
 
   nmax = 0;
   vector = NULL;

@@ -615,8 +615,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = evflag_atom = eflag_global = vflag_global =
+  ev_init(eflag,vflag,0);
          eflag_atom = vflag_atom = 0;
 
   // reallocate per-atom arrays if necessary
@@ -1657,7 +1656,7 @@ void PPPMKokkos<DeviceType>::make_rho()
   iy = nyhi_out-nylo_out + 1;
 
   copymode = 1;
-  Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->num_threads,1);
+  Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->nthreads,1);
   Kokkos::parallel_for(config,*this);
   copymode = 0;
 #endif

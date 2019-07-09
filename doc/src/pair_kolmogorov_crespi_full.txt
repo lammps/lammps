@@ -22,7 +22,7 @@ pair_coeff * * none
 pair_coeff * * kolmogorov/crespi/full  CH.KC   C C :pre
 
 pair_style hybrid/overlay rebo kolmogorov/crespi/full 16.0 1
-pair_coeff * * rebo                    CH.airebo    C H
+pair_coeff * * rebo                    CH.rebo      C H
 pair_coeff * * kolmogorov/crespi/full  CH_taper.KC  C H :pre
 
 [Description:]
@@ -42,10 +42,16 @@ the last term in the equation for {Vij} above. This is essential only
 when the tapper function is turned off. The formula of taper function
 can be found in pair style "ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
 
-NOTE: This potential is intended for interactions between two different
-graphene layers. Therefore, to avoid interaction within the same layers,
-each layer should have a separate molecule id and is recommended to use
-"full" atom style in the data file.
+NOTE: This potential (ILP) is intended for interlayer interactions between two
+different layers of graphene. To perform a realistic simulation, this potential 
+must be used in combination with intralayer potential, such as 
+"AIREBO"_pair_airebo.html or "Tersoff"_pair_tersoff.html potential.
+To keep the intralayer properties unaffected, the interlayer interaction
+within the same layers should be avoided. Hence, each atom has to have a layer
+identifier such that atoms residing on the same layer interact via the
+appropriate intralayer potential and atoms residing on different layers
+interact via the ILP. Here, the molecule id is chosen as the layer identifier,
+thus a data file with the "full" atom style is required to use this potential.
 
 The parameter file (e.g. CH.KC), is intended for use with {metal}
 "units"_units.html, with energies in meV. Two additional parameters, {S},
@@ -100,6 +106,7 @@ units.
 "pair_coeff"_pair_coeff.html,
 "pair_none"_pair_none.html,
 "pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style drip"_pair_drip.html,
 "pair_style pair_lebedeva_z"_pair_lebedeva_z.html,
 "pair_style kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "pair_style ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.

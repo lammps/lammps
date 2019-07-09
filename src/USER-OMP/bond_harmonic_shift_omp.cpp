@@ -39,10 +39,7 @@ BondHarmonicShiftOMP::BondHarmonicShiftOMP(class LAMMPS *lmp)
 
 void BondHarmonicShiftOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

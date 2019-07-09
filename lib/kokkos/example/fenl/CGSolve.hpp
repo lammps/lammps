@@ -259,7 +259,7 @@ void cgsolve( const ImportType & import
     timer.reset();
     /* import p    */  import( pAll );
     /* Ap = A * p  */  multiply( count_owned , Ap , A , pAll );
-    Space::fence();
+    Space().fence();
     matvec_time += timer.seconds();
 
     const double pAp_dot = Kokkos::Example::all_reduce( dot( count_owned , p , Ap ) , import.comm );
@@ -278,7 +278,7 @@ void cgsolve( const ImportType & import
     ++iteration ;
   }
 
-  Space::fence();
+  Space().fence();
   iter_time = wall_clock.seconds();
 
   if ( 0 != result ) {

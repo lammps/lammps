@@ -84,8 +84,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
   double d_ij,delta,stretch;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **f = atom->f;
   double **x = atom->x;

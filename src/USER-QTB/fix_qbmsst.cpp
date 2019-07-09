@@ -41,6 +41,7 @@
 #include "group.h"
 #include "kspace.h"
 #include "thermo.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -410,14 +411,14 @@ void FixQBMSST::init()
   // rfix[] = indices to each fix rigid
   nrigid = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-        strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
-  if (nrigid) {
+    if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
+        (strcmp(modify->fix[i]->style,"poems") == 0)) nrigid++;
+  if (nrigid > 0) {
     rfix = new int[nrigid];
     nrigid = 0;
     for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-          strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
+      if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
+          (strcmp(modify->fix[i]->style,"poems") == 0)) rfix[nrigid++] = i;
   }
 }
 

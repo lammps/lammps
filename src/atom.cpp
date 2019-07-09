@@ -39,6 +39,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"
@@ -99,7 +100,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // SPIN package
 
-  sp = fm = NULL;
+  sp = fm = fm_long = NULL;
 
   // USER-DPD
 
@@ -278,6 +279,7 @@ Atom::~Atom()
 
   memory->destroy(sp);
   memory->destroy(fm);
+  memory->destroy(fm_long);
 
   memory->destroy(vfrac);
   memory->destroy(s0);
@@ -453,8 +455,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   if (sflag) {
     char estyle[256];
-    if (sflag == 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
-    else sprintf(estyle,"%s/%s",style,lmp->suffix2);
+    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
     int n = strlen(estyle) + 1;
     atom_style = new char[n];
     strcpy(atom_style,estyle);
@@ -485,7 +487,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -495,7 +497,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -509,7 +511,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown atom style");
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
   return NULL;
 }
 

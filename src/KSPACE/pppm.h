@@ -42,7 +42,7 @@ class PPPM : public KSpace {
   virtual void settings(int, char **);
   virtual void init();
   virtual void setup();
-  void setup_grid();
+  virtual void setup_grid();
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);
@@ -106,10 +106,10 @@ class PPPM : public KSpace {
   double qdist;                // distance from O site to negative charge
   double alpha;                // geometric factor
 
-  void set_grid_global();
+  virtual void set_grid_global();
   void set_grid_local();
   void adjust_gewald();
-  double newton_raphson_f();
+  virtual double newton_raphson_f();
   double derivf();
   double final_accuracy();
 
@@ -146,7 +146,7 @@ class PPPM : public KSpace {
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
   void compute_rho_coeff();
-  void slabcorr();
+  virtual void slabcorr();
 
   // grid communication
 

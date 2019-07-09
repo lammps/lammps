@@ -69,7 +69,7 @@ typedef Kokkos::DefaultExecutionSpace exec_space;
 #define	WHITE		8
 
 void textcolor(int attr, int fg, int bg)
-{	char command[13];
+{	char command[40];
 
 	/* Command is the control command to the terminal */
 	sprintf(command, "%c[%d;%d;%dm", 0x1B, attr, fg + 30, bg + 40);
@@ -85,7 +85,7 @@ struct ZeroFunctor{
   typedef typename Kokkos::View<T,execution_space>::HostMirror h_type;
   type data;
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const {
+  void operator()(int) const {
     data() = 0;
   }
 };
@@ -101,7 +101,7 @@ struct AddFunctor{
   type data;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const {
+  void operator()(int) const {
     Kokkos::atomic_fetch_add(&data(),(T)1);
   }
 };
@@ -113,12 +113,12 @@ T AddLoop(int loop) {
   typename ZeroFunctor<T,exec_space>::h_type h_data("HData");
   f_zero.data = data;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   struct AddFunctor<T,exec_space> f_add;
   f_add.data = data;
   Kokkos::parallel_for(loop,f_add);
-  exec_space::fence();
+  exec_space().fence();
 
   Kokkos::deep_copy(h_data,data);
   T val = h_data();
@@ -132,7 +132,7 @@ struct AddNonAtomicFunctor{
   type data;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const {
+  void operator()(int) const {
     data()+=(T)1;
   }
 };
@@ -145,12 +145,12 @@ T AddLoopNonAtomic(int loop) {
 
   f_zero.data = data;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   struct AddNonAtomicFunctor<T,exec_space> f_add;
   f_add.data = data;
   Kokkos::parallel_for(loop,f_add);
-  exec_space::fence();
+  exec_space().fence();
 
   Kokkos::deep_copy(h_data,data);
   T val = h_data();
@@ -178,7 +178,7 @@ struct CASFunctor{
   type data;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const {
+  void operator()(int) const {
 	  T old = data();
 	  T newval, assumed;
 	  do {
@@ -197,12 +197,12 @@ T CASLoop(int loop) {
   typename ZeroFunctor<T,exec_space>::h_type h_data("HData");
   f_zero.data = data;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   struct CASFunctor<T,exec_space> f_cas;
   f_cas.data = data;
   Kokkos::parallel_for(loop,f_cas);
-  exec_space::fence();
+  exec_space().fence();
 
   Kokkos::deep_copy(h_data,data);
   T val = h_data();
@@ -217,7 +217,7 @@ struct CASNonAtomicFunctor{
   type data;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const {
+  void operator()(int) const {
 	  volatile T assumed;
 	  volatile T newval;
 	  bool fail=1;
@@ -240,12 +240,12 @@ T CASLoopNonAtomic(int loop) {
   typename ZeroFunctor<T,exec_space>::h_type h_data("HData");
   f_zero.data = data;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   struct CASNonAtomicFunctor<T,exec_space> f_cas;
   f_cas.data = data;
   Kokkos::parallel_for(loop,f_cas);
-  exec_space::fence();
+  exec_space().fence();
 
   Kokkos::deep_copy(h_data,data);
   T val = h_data();
@@ -296,19 +296,19 @@ T ExchLoop(int loop) {
   typename ZeroFunctor<T,exec_space>::h_type h_data("HData");
   f_zero.data = data;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   typename ZeroFunctor<T,exec_space>::type data2("Data");
   typename ZeroFunctor<T,exec_space>::h_type h_data2("HData");
   f_zero.data = data2;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   struct ExchFunctor<T,exec_space> f_exch;
   f_exch.data = data;
   f_exch.data2 = data2;
   Kokkos::parallel_for(loop,f_exch);
-  exec_space::fence();
+  exec_space().fence();
 
   Kokkos::deep_copy(h_data,data);
   Kokkos::deep_copy(h_data2,data2);
@@ -339,19 +339,19 @@ T ExchLoopNonAtomic(int loop) {
   typename ZeroFunctor<T,exec_space>::h_type h_data("HData");
   f_zero.data = data;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   typename ZeroFunctor<T,exec_space>::type data2("Data");
   typename ZeroFunctor<T,exec_space>::h_type h_data2("HData");
   f_zero.data = data2;
   Kokkos::parallel_for(1,f_zero);
-  exec_space::fence();
+  exec_space().fence();
 
   struct ExchNonAtomicFunctor<T,exec_space> f_exch;
   f_exch.data = data;
   f_exch.data2 = data2;
   Kokkos::parallel_for(loop,f_exch);
-  exec_space::fence();
+  exec_space().fence();
 
   Kokkos::deep_copy(h_data,data);
   Kokkos::deep_copy(h_data2,data2);

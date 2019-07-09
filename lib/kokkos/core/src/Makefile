@@ -40,6 +40,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
   CONDITIONAL_COPIES += copy-openmp
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+  CONDITIONAL_COPIES += copy-hpx
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
   CONDITIONAL_COPIES += copy-rocm
 endif
@@ -90,6 +94,10 @@ copy-qthreads: mkdir
 copy-openmp: mkdir
 	mkdir -p $(PREFIX)/include/OpenMP
 	$(CP) $(COPY_FLAG) $(KOKKOS_HEADERS_OPENMP) $(PREFIX)/include/OpenMP
+
+copy-hpx: mkdir
+	mkdir -p $(PREFIX)/include/HPX
+	$(CP) $(COPY_FLAG) $(KOKKOS_HEADERS_HPX) $(PREFIX)/include/HPX
 
 copy-rocm: mkdir
 	mkdir -p $(PREFIX)/include/ROCm

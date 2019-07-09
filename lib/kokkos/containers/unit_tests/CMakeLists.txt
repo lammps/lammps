@@ -86,6 +86,31 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   )
 ENDIF()
 
+IF(Kokkos_ENABLE_HPX)
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_HPX
+  SOURCES
+    UnitTestMain.cpp
+    hpx/TestHPX_BitSet.cpp
+    hpx/TestHPX_DualView.cpp
+    hpx/TestHPX_DynamicView.cpp
+    hpx/TestHPX_DynRankViewAPI_generic.cpp
+    hpx/TestHPX_DynRankViewAPI_rank12345.cpp
+    hpx/TestHPX_DynRankViewAPI_rank67.cpp
+    hpx/TestHPX_ErrorReporter.cpp
+    hpx/TestHPX_OffsetView.cpp
+    hpx/TestHPX_ScatterView.cpp
+    hpx/TestHPX_StaticCrsGraph.cpp
+    hpx/TestHPX_UnorderedMap.cpp
+    hpx/TestHPX_Vector.cpp
+    hpx/TestHPX_ViewCtorPropEmbeddedDim.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+  TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
+  )
+ENDIF()
+
 IF(Kokkos_ENABLE_Cuda)
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   UnitTest_Cuda

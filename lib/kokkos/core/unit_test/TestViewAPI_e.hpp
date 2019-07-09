@@ -194,11 +194,53 @@ inline void test_anonymous_space() {
       d_anon_dyn_view(j) += 42;
     }
   });
+  Kokkos::fence();
 #endif
 }
 
 TEST_F( TEST_CATEGORY, anonymous_space )
 {
   test_anonymous_space();
+}
+
+template<class ExecSpace>
+struct TestViewOverloadResolution {
+  // Overload based on value_type and rank
+  static int foo(Kokkos::View<const double**,ExecSpace> a) {
+    return 1;
+  }
+  static int foo(Kokkos::View<const int**,ExecSpace> a) {
+    return 2;
+  }
+  static int foo(Kokkos::View<const double***,ExecSpace> a) {
+    return 3;
+  }
+
+  // Overload based on compile time dimensions
+  static int bar(Kokkos::View<double*[3],ExecSpace> a) {
+    return 4;
+  }
+  static int bar(Kokkos::View<double*[4],ExecSpace> a) {
+    return 5;
+  }
+
+  static void test_function_overload() {
+    Kokkos::View<double**, typename ExecSpace::execution_space::array_layout, ExecSpace> a("A",10,3);
+    int data_type_1 = foo(a);
+    int data_type_3 = foo(Kokkos::View<const double**, typename ExecSpace::execution_space::array_layout, ExecSpace>(a));
+    Kokkos::View<double***, typename ExecSpace::execution_space::array_layout, ExecSpace> b("B",10,3,4);
+    int data_type_2 = foo(b);
+    Kokkos::View<double*[3], typename ExecSpace::execution_space::array_layout, ExecSpace> c(a);
+    int static_extent = bar(c);
+    ASSERT_EQ(1,data_type_1);
+    ASSERT_EQ(3,data_type_2);
+    ASSERT_EQ(1,data_type_3);
+    ASSERT_EQ(4,static_extent);
+  }
+};
+
+TEST_F( TEST_CATEGORY, view_overload_resolution )
+{
+  TestViewOverloadResolution<TEST_EXECSPACE>::test_function_overload();
 }
 }

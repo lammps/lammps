@@ -51,6 +51,10 @@
 #include <Cuda/Kokkos_Cuda_abort.hpp>
 #endif
 
+#ifndef KOKKOS_ABORT_MESSAGE_BUFFER_SIZE
+#  define KOKKOS_ABORT_MESSAGE_BUFFER_SIZE 2048
+#endif // ifndef KOKKOS_ABORT_MESSAGE_BUFFER_SIZE
+
 namespace Kokkos {
 namespace Impl {
 
@@ -82,6 +86,50 @@ void abort( const char * const message ) {
 }
 
 }
+
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+
+#if !defined(NDEBUG) || defined(KOKKOS_ENFORCE_CONTRACTS) || defined(KOKKOS_DEBUG)
+#  define KOKKOS_EXPECTS(...) \
+  { \
+    if(!bool(__VA_ARGS__)) { \
+      ::Kokkos::abort( \
+        "Kokkos contract violation:\n  " \
+        "  Expected precondition `" #__VA_ARGS__ "` evaluated false." \
+      ); \
+    } \
+  }
+#  define KOKKOS_ENSURES(...) \
+  { \
+    if(!bool(__VA_ARGS__)) { \
+      ::Kokkos::abort( \
+        "Kokkos contract violation:\n  " \
+        "  Ensured postcondition `" #__VA_ARGS__ "` evaluated false." \
+      ); \
+    } \
+  }
+// some projects already define this for themselves, so don't mess them up
+#  ifndef KOKKOS_ASSERT
+#    define KOKKOS_ASSERT(...) \
+  { \
+    if(!bool(__VA_ARGS__)) { \
+      ::Kokkos::abort( \
+        "Kokkos contract violation:\n  " \
+        "  Asserted condition `" #__VA_ARGS__ "` evaluated false." \
+      ); \
+    } \
+  }
+#  endif // ifndef KOKKOS_ASSERT
+#else // not debug mode
+#  define KOKKOS_EXPECTS(...)
+#  define KOKKOS_ENSURES(...)
+#  ifndef KOKKOS_ASSERT
+#    define KOKKOS_ASSERT(...)
+#  endif // ifndef KOKKOS_ASSERT
+#endif // end debug mode ifdefs
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

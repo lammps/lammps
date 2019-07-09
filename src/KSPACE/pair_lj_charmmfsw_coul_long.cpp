@@ -77,27 +77,6 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
-
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(eps14);
-      memory->destroy(sigma14);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(lj14_1);
-      memory->destroy(lj14_2);
-      memory->destroy(lj14_3);
-      memory->destroy(lj14_4);
-    }
-    if (ftable) free_tables();
-  }
-
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
@@ -106,6 +85,27 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
                      " conversion constant");
     force->qqr2e = force->qqr2e_lammps_real;
   }
+
+  if (copymode) return;
+
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
+  }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,8 +121,7 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -452,8 +451,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
   double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -503,6 +501,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
 
       if (rsq < cut_bothsq) {
         r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
@@ -543,7 +542,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq && rsq > cut_in_off_sq) {
-          r6inv = r2inv*r2inv*r2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
@@ -584,11 +582,10 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq) {
-            r6inv = r2inv*r2inv*r2inv;
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
-              rinv = 1.0/r;
-              r3inv = rinv*rinv*rinv;
+              rinv = sqrt(r2inv);
+              r3inv = r2inv*rinv;
               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
@@ -622,7 +619,6 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           } else forcecoul = 0.0;
 
           if (rsq <= cut_in_off_sq) {
-            r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

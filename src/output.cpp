@@ -32,6 +32,7 @@
 #include "write_restart.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -585,8 +586,7 @@ void Output::add_dump(int narg, char **arg)
   if (dump_map->find(arg[2]) != dump_map->end()) {
     DumpCreator dump_creator = (*dump_map)[arg[2]];
     dump[ndump] = dump_creator(lmp, narg, arg);
-  }
-  else error->all(FLERR,"Unknown dump style");
+  } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp).c_str());
 
   every_dump[ndump] = force->inumeric(FLERR,arg[3]);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
@@ -675,8 +675,13 @@ void Output::set_thermo(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal thermo command");
 
+  // always reset var_thermo, so it is possible to switch back from
+  // variable spaced thermo outputs to constant spaced ones.
+
+  delete [] var_thermo;
+  var_thermo = NULL;
+
   if (strstr(arg[0],"v_") == arg[0]) {
-    delete [] var_thermo;
     int n = strlen(&arg[0][2]) + 1;
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);

@@ -154,7 +154,6 @@ help:
 
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
-	@echo 'Gathering installed package information (may take a little while)'
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
@@ -204,7 +203,9 @@ gitversion:
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
+	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh packages
 	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
@@ -275,7 +276,8 @@ mpi-stubs:
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
-	@$(PYTHON) ../python/install.py
+	@$(PYTHON) ../python/install.py -v ../src/version.h \
+		-m ../python/lammps.py -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 

@@ -174,9 +174,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
   int i;
   // convert atoms from box to lamda coords
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

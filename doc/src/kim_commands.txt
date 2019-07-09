@@ -14,13 +14,14 @@ kim_query command :h3
 
 kim_init model user_units unitarg
 kim_interactions typeargs
-kim_query variable query_function queryargs :pre
+kim_query variable formatarg query_function queryargs :pre
 
 model = name of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
 user_units = the LAMMPS "units"_units.html style assumed in the LAMMPS input script
 unitarg = {unit_conversion_mode} (optional)
 typeargs = atom type to species mapping (one entry per atom type)
 variable = name of a (string style) variable where the result of the query is stored
+formatarg = {split} (optional)
 query_function = name of the OpenKIM web API query function to be used
 queryargs = a series of {keyword=value} pairs that represent the web query; supported keywords depend on the query function :ul
 
@@ -377,7 +378,7 @@ changed to: "lattice fcc $\{a0\}*$\{_u_distance\}".
 
 kim_init         EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal
 boundary         p p p
-kim_query        latconst get_lattice_constant_hcp species=\["Zr"\] units=\["angstrom"\]
+kim_query        latconst split get_lattice_constant_hcp species=\["Zr"\] units=\["angstrom"\]
 variable         a0 equal latconst_1
 variable         c0 equal latconst_2
 variable         c_to_a equal $\{c0\}/$\{a0\}
@@ -387,6 +388,13 @@ lattice          custom $\{a0\} a1 0.5 -0.866025 0 a2 0.5 0.866025 0 a3 0 0 $\{c
 
 In this case the {kim_query} returns two arguments (since the hexagonal
 close packed (hcp) structure has two independent lattice constants).
+The default behavior of {kim_query} returns the result as a string
+with the values separated by commas. The optional keyword {split}
+separates the result values into individual variables of the form
+{prefix_I}, where {prefix} is set to the the {kim_query} {variable} argument
+and {I} ranges from 1 to the number of returned values. The number and order of
+the returned values is determined by the type of query performed.
+
 In the case where a query returns multiple results, the default behavior
 for {kim_query} is to split these into individual variables of the form
 {prefix_I}, where {prefix} is set to the the {kim_query} {variable} argument

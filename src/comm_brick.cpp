@@ -109,9 +109,9 @@ void CommBrick::init_buffers()
   multilo = multihi = NULL;
   cutghostmulti = NULL;
 
-  maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
-  maxrecv = BUFMIN;
+  buf_send = buf_recv = NULL;
+  maxsend = maxrecv = BUFMIN;
+  grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   nswap = 0;
@@ -134,7 +134,7 @@ void CommBrick::init()
 
   int bufextra_old = bufextra;
   init_exchange();
-  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,0);
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
   // memory for multi-style communication
 
@@ -604,7 +604,7 @@ void CommBrick::exchange()
   if (maxexchange_fix_dynamic) {
     int bufextra_old = bufextra;
     init_exchange();
-    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,0);
+    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
   }
 
   // subbox bounds for orthogonal or triclinic
@@ -1346,18 +1346,23 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
 
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
-   if flag = 1, realloc
-   if flag = 0, don't need to realloc with copy, just free/malloc
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void CommBrick::grow_send(int n, int flag)
 {
-  maxsend = static_cast<int> (BUFFACTOR * n);
-  if (flag)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
-  else {
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send);
     memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else {
+    memory->destroy(buf_send);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 

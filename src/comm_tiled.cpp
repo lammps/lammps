@@ -79,9 +79,9 @@ CommTiled::~CommTiled()
 
 void CommTiled::init_buffers()
 {
-  maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
-  maxrecv = BUFMIN;
+  buf_send = buf_recv = NULL;
+  maxsend = maxrecv = BUFMIN;
+  grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   maxoverlap = 0;
@@ -1804,18 +1804,23 @@ int CommTiled::coord2proc(double *x, int &igx, int &igy, int &igz)
 
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
-   if flag = 1, realloc
-   if flag = 0, don't need to realloc with copy, just free/malloc
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void CommTiled::grow_send(int n, int flag)
 {
-  maxsend = static_cast<int> (BUFFACTOR * n);
-  if (flag)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
-  else {
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send);
     memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else {
+    memory->destroy(buf_send);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 

@@ -134,7 +134,7 @@ class Comm : protected Pointers {
   int maxexchange_atom;         // contribution to maxexchange from AtomVec
   int maxexchange_fix;          // static contribution to maxexchange from Fixes
   int maxexchange_fix_dynamic;  // 1 if a fix has a dynamic contribution
-  int bufextra;                 // augment size of send buf for an exchange atom
+  int bufextra;                 // augment send buf size for an exchange atom
 
 
   int gridflag;                     // option for creating 3d grid

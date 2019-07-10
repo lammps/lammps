@@ -101,7 +101,7 @@ void CommTiled::init()
 
   int bufextra_old = bufextra;
   init_exchange();
-  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,0);
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
   // temporary restrictions
 
@@ -645,7 +645,7 @@ void CommTiled::exchange()
   if (maxexchange_fix_dynamic) {
     int bufextra_old = bufextra;
     init_exchange();
-    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,1);
+    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
   }
 
   // domain properties used in exchange method and methods it calls

@@ -3735,6 +3735,9 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
           if(sigma_f[iij]==0.5&&sigma_k[iij]==0.0) {
             sigB=dsigB1;
             pp1=2.0*betaS_ij;
+            xtmp[0]=x[bt_j][0]-x[bt_i][0];
+            xtmp[1]=x[bt_j][1]-x[bt_i][1];
+            xtmp[2]=x[bt_j][2]-x[bt_i][2];
             for(pp=0;pp<3;pp++) {
               bt_sg[m].dSigB[pp]=dsigB2*bt_sg[m].dSigB1[pp];
             }

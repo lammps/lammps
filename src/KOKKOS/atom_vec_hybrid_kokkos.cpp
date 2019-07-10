@@ -974,7 +974,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = ATOTAGINT(values[0]);
+  h_tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
   h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (h_type[nlocal] <= 0 || h_type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom h_type in Atoms section of data file");

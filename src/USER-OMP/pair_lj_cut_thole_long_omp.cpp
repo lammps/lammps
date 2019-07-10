@@ -15,13 +15,14 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_thole_long_omp.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_thole_long_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "fix_drude.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"

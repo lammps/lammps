@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_ellipsoid.h"
-#include <cstdlib>
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

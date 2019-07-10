@@ -25,14 +25,12 @@
 
 #include "atom_vec_spin.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "utils.h"

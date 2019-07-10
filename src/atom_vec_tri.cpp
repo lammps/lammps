@@ -13,7 +13,6 @@
 
 #include "atom_vec_tri.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

@@ -13,7 +13,6 @@
 
 #include "atom_vec.h"
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

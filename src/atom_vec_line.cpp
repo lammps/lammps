@@ -13,7 +13,6 @@
 
 #include "atom_vec_line.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

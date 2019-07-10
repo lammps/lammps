@@ -12,11 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_hybrid.h"
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"

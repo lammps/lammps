@@ -12,10 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_template.h"
-#include <cstdlib>
 #include "atom.h"
 #include "molecule.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"

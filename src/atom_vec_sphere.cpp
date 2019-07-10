@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_sphere.h"
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

@@ -15,9 +15,8 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_electron.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include <cstdlib>
 #include <cstring>
 #include <string>
 #include "my_pool_chunk.h"

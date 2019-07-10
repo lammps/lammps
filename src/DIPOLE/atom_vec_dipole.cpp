@@ -13,11 +13,9 @@
 
 #include "atom_vec_dipole.h"
 #include <cmath>
-#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"

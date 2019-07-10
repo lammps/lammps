@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "atom_vec_tdpd.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -65,7 +63,7 @@ void AtomVecTDPD::process_args(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Invalid atom_style tdpd command");
 
-  atom->cc_species = force->inumeric(FLERR,arg[0]);
+  atom->cc_species = utils::inumeric(FLERR,arg[0],false,lmp);
   cc_species = atom->cc_species;
 
   // reset sizes that depend on cc_species
@@ -801,7 +799,7 @@ void AtomVecTDPD::data_atom(double *coord, imageint imagetmp, char **values)
   x[nlocal][2] = coord[2];
 
   for(int k = 0; k < cc_species; k++)
-    cc[nlocal][k] = atof( values[5+k] );
+    cc[nlocal][k] = utils::numeric(FLERR,values[5+k],true,lmp);
 
   image[nlocal] = imagetmp;
 

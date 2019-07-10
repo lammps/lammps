@@ -12,13 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_molecular_kokkos.h"
-#include <cstdlib>
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
-#include "force.h"
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"

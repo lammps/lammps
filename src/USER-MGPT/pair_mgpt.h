@@ -32,6 +32,7 @@ PairStyle(mgpt,PairMGPT)
 
 #include <new>
 #include <cmath>
+#include <cstdlib>
 #include <cassert>
 
 #include "pair.h"
@@ -77,29 +78,29 @@ public:
       Link(const K &k,Link *n) : next(n),key(k),hits(1) {}
 
       static void *operator new(std::size_t sz) {
-	const size_t align = 32;
-	size_t x = (size_t) (void *) ::operator new(sz+align);
-	size_t y = (x + align) - ((x+align)&(align-1));
-	assert(sizeof(void *) <= align);
-	assert((x & (sizeof(void *)-1)) == 0);
-	((void **) y)[-1] = (void *) x;
-	return (void *) y;
+        const size_t align = 32;
+        size_t x = (size_t) (void *) ::operator new(sz+align);
+        size_t y = (x + align) - ((x+align)&(align-1));
+        assert(sizeof(void *) <= align);
+        assert((x & (sizeof(void *)-1)) == 0);
+        ((void **) y)[-1] = (void *) x;
+        return (void *) y;
       }
       static void operator delete(void *ptr) {
-	::operator delete(((void **) ptr)[-1]);
+        ::operator delete(((void **) ptr)[-1]);
       }
     };
 
     int isprime(int x) {
       if(x%2 == 0)
-	return 0;
+        return 0;
       else {
-	int k = 3;
-	while(k*k <= x) {
-	  if(x%k == 0) return 0;
-	  k = k+2;
-	}
-	return 1;
+        int k = 3;
+        while(k*k <= x) {
+          if(x%k == 0) return 0;
+          k = k+2;
+        }
+        return 1;
     }
   }
 
@@ -117,25 +118,25 @@ public:
       Iterator(Hash &HH) : H(HH),idx(-1),p(0) { next(); }
       Iterator(Hash &HH,int iidx,Link *pp) : H(HH),idx(iidx),p(pp) {}
       void next() {
-	if(idx >= H.Size()) return;
-	if(p != 0) p = p->next;
-	if(p == 0) {
-	  do {
-	    idx = idx+1;
-	    if(idx >= H.Size()) return;
-	    p = H.table[idx];
-	  } while(p == 0);
-	}
+        if(idx >= H.Size()) return;
+        if(p != 0) p = p->next;
+        if(p == 0) {
+          do {
+            idx = idx+1;
+            if(idx >= H.Size()) return;
+            p = H.table[idx];
+          } while(p == 0);
+        }
       }
       K *key() { return &p->key; }
       T *data() { return &p->data; }
       Link *link() { return p; }
 
       int operator==(const Iterator &a) {
-	return idx==a.idx && p==a.p;
+        return idx==a.idx && p==a.p;
       }
       int operator!=(const Iterator &a) {
-	return !(*this == a);
+        return !(*this == a);
       }
     };
 
@@ -147,7 +148,7 @@ public:
 
       table = new Link *[size];
       for(int i = 0; i<size; i++)
-	table[i] = 0;
+        table[i] = 0;
 
       /* Counters for statistics */
       maxlength = 0;
@@ -157,12 +158,12 @@ public:
 
     ~Hash() {
       for(int i = 0; i<size; i++) {
-	Link *p = table[i];
-	while(p != 0) {
-	  Link *q = p->next;
-	delete p;
-	p = q;
-	}
+        Link *p = table[i];
+        while(p != 0) {
+          Link *q = p->next;
+        delete p;
+        p = q;
+        }
       }
       delete[] table;
     }
@@ -179,24 +180,24 @@ public:
       int idx = key.hash() % size;
       if(idx < 0) idx = idx + size;
       if(idx >= size || idx < 0) {
-	printf("(1) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
-	exit(1);
+        printf("(1) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
+        exit(1);
       }
 
       used = used + 1;
       if(1) {
-	table[idx] = new Link(key,table[idx]);
-	return &table[idx]->data;
+        table[idx] = new Link(key,table[idx]);
+        return &table[idx]->data;
       } else { /* This is for threading... and incomplete */
-	typedef Link *LinkPtr;
-	LinkPtr ptr = table[idx],last = 0,dataptr = new Link(key,0);
+        typedef Link *LinkPtr;
+        LinkPtr ptr = table[idx],last = 0,dataptr = new Link(key,0);
 
-	while(ptr != 0) {
-	  last = ptr;
-	  ptr = ptr->next;
-	}
-	*((volatile LinkPtr *) &(last->next)) = dataptr;
-	return &(dataptr->data);
+        while(ptr != 0) {
+          last = ptr;
+          ptr = ptr->next;
+        }
+        *((volatile LinkPtr *) &(last->next)) = dataptr;
+        return &(dataptr->data);
       }
     }
     void Remove(const K &key) {
@@ -205,28 +206,28 @@ public:
       int count = 1;
       if(idx < 0) idx = idx + size;
       if(idx >= size || idx < 0) {
-	printf("(2) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
-	exit(1);
+        printf("(2) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
+        exit(1);
       }
 
       p = table[idx];
       while(p != 0 && !(p->key == key)) {
-	last = p;
-	p = p->next;
-	count = count + 1;
+        last = p;
+        p = p->next;
+        count = count + 1;
       }
 
       if(p != 0) {
-	used = used - 1;
-	if(last == 0)
-	  table[idx] = p->next;
-	else
-	  last->next = p->next;
-	delete p;
+        used = used - 1;
+        if(last == 0)
+          table[idx] = p->next;
+        else
+          last->next = p->next;
+        delete p;
       }
 
       if(count > maxlength)
-	maxlength = count;
+        maxlength = count;
       nsearch = nsearch + 1;
       nstep = nstep + count;
     }
@@ -236,19 +237,19 @@ public:
       int count = 1;
       if(idx < 0) idx = idx + size;
       if(idx >= size || idx < 0) {
-	printf("(3) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
-	exit(1);
+        printf("(3) Damn... key = %d, idx = %d, size = %d\n",key.hash(),idx,size);
+        exit(1);
       }
 
 
       p = table[idx];
       while(p != 0 && !(p->key == key)) {
-	p = p->next;
-	count = count + 1;
+        p = p->next;
+        count = count + 1;
       }
 
       if(count > maxlength)
-	maxlength = count;
+        maxlength = count;
       nsearch = nsearch + 1;
       nstep = nstep + count;
 
@@ -283,46 +284,46 @@ public:
     }
     void zero() {
       for(int i = 0; i<8; i++)
-	for(int j = 0; j<8; j++)
-	  m[i][j] = 0.0;
+        for(int j = 0; j<8; j++)
+          m[i][j] = 0.0;
     }
 
     void operator=(const Matrix &A) {
       for(int i = 1; i<=sz; i++)
-	for(int j = 1; j<=sz; j++)
-	  m[i][j] = A.m[i][j];
+        for(int j = 1; j<=sz; j++)
+          m[i][j] = A.m[i][j];
     }
     void operator=(double x) {
       for(int i = 1; i<=sz; i++)
-	for(int j = 1; j<=sz; j++)
-	  m[i][j] = x;
+        for(int j = 1; j<=sz; j++)
+          m[i][j] = x;
     }
     Matrix operator+(const Matrix &B) const {
       Matrix s;
       for(int i = 1; i<=sz; i++)
-	for(int j = 1; j<=sz; j++)
-	  s.m[i][j] = m[i][j] + B.m[i][j];
+        for(int j = 1; j<=sz; j++)
+          s.m[i][j] = m[i][j] + B.m[i][j];
       return s;
     }
     Matrix operator-(const Matrix &B) const {
       Matrix s;
       for(int i = 1; i<=sz; i++)
-	for(int j = 1; j<=sz; j++)
-	  s.m[i][j] = m[i][j] - B.m[i][j];
+        for(int j = 1; j<=sz; j++)
+          s.m[i][j] = m[i][j] - B.m[i][j];
       return s;
     }
     Matrix operator-() const {
       Matrix s;
       for(int i = 1; i<=sz; i++)
-	for(int j = 1; j<=sz; j++)
-	  s.m[i][j] =  -m[i][j];
+        for(int j = 1; j<=sz; j++)
+          s.m[i][j] =  -m[i][j];
       return s;
     }
     Matrix operator*(double x) const {
       Matrix P;
       for(int i = 1; i<=sz; i++)
-	for(int j = 0; j<=sz; j++)
-	  P.m[i][j] = m[i][j] * x;
+        for(int j = 0; j<=sz; j++)
+          P.m[i][j] = m[i][j] * x;
       return P;
     }
     Matrix operator/(double x) const {
@@ -331,8 +332,8 @@ public:
     Matrix transpose() const {
       Matrix T;
       for(int i = 1; i<=sz; i++)
-	for(int j = 1; j<=sz; j++)
-	  T.m[j][i] = m[i][j];
+        for(int j = 1; j<=sz; j++)
+          T.m[j][i] = m[i][j];
       return T;
     }
   };
@@ -374,13 +375,13 @@ public:
 
     int align_check() {
       return
-	(H1H2.align_check()  << 0) |
-	(H1xH2.align_check() << 1) |
-	(H1yH2.align_check() << 2) |
-	(H1zH2.align_check() << 3) |
-	(H1H2x.align_check() << 4) |
-	(H1H2y.align_check() << 5) |
-	(H1H2z.align_check() << 6) ;
+        (H1H2.align_check()  << 0) |
+        (H1xH2.align_check() << 1) |
+        (H1yH2.align_check() << 2) |
+        (H1zH2.align_check() << 3) |
+        (H1H2x.align_check() << 4) |
+        (H1H2y.align_check() << 5) |
+        (H1H2z.align_check() << 6) ;
     }
 
     void zero() {
@@ -396,18 +397,18 @@ public:
   void make_bond(const double xx[][3],int i,int j,bond_data *bptr);
   void make_triplet(bond_data *ij_bond,bond_data *ik_bond,triplet_data *triptr);
   triplet_data *get_triplet(const double xx[][3],int i,int j,int k,
-			    Hash<bond_data,Doublet> *bhash,triplet_data *twork,
-			    double *dvir_ij_p,double *dvir_ik_p);
+                            Hash<bond_data,Doublet> *bhash,triplet_data *twork,
+                            double *dvir_ij_p,double *dvir_ik_p);
 
   int c1_outside(const double a[3],
-		 int triclinic,const double alpha[3]) {
+                 int triclinic,const double alpha[3]) {
     const double stol = 1e-5;
 
     if(triclinic) {
       for(int p = 0; p<3; p++) {
-	double cog = a[p];
-	if(cog < domain->sublo_lamda[p]-0.5*rmax*alpha[p]-stol) return 1;
-	if(cog > domain->subhi_lamda[p]+0.5*rmax*alpha[p]+stol) return 1;
+        double cog = a[p];
+        if(cog < domain->sublo_lamda[p]-0.5*rmax*alpha[p]-stol) return 1;
+        if(cog > domain->subhi_lamda[p]+0.5*rmax*alpha[p]+stol) return 1;
       }
 
     } else {
@@ -415,63 +416,63 @@ public:
 
 
       for(int p = 0; p<3; p++) {
-	double cog = a[p];
-	if(cog < domain->sublo[p]-0.5*rmax-stol) return 1;
-	if(cog > domain->subhi[p]+0.5*rmax+stol) return 1;
+        double cog = a[p];
+        if(cog < domain->sublo[p]-0.5*rmax-stol) return 1;
+        if(cog > domain->subhi[p]+0.5*rmax+stol) return 1;
 
-	if(cog < domain->sublo[p]-stol) {
-	  double t = cog - (domain->sublo[p]-stol);
-	  rout = rout + t*t;
-	} else if(cog > domain->subhi[p]+stol) {
-	  double t = cog - (domain->subhi[p]+stol);
-	  rout = rout + t*t;
-	}
+        if(cog < domain->sublo[p]-stol) {
+          double t = cog - (domain->sublo[p]-stol);
+          rout = rout + t*t;
+        } else if(cog > domain->subhi[p]+stol) {
+          double t = cog - (domain->subhi[p]+stol);
+          rout = rout + t*t;
+        }
 
       }
 
       if(rout > 0.25*rmax*rmax)
-	return 1;
+        return 1;
     }
 
     return 0;
   }
   int c2_outside(const double a[3],const double b[3],
-		 int triclinic,const double alpha[3]) {
+                 int triclinic,const double alpha[3]) {
     const double stol = 1e-5;
 
     if(triclinic) {
       for(int p = 0; p<3; p++) {
-	double cog = 0.5*(a[p] + b[p]);
-	if(cog < domain->sublo_lamda[p]-0.5*rcrit*alpha[p]-stol) return 1;
-	if(cog > domain->subhi_lamda[p]+0.5*rcrit*alpha[p]+stol) return 1;
+        double cog = 0.5*(a[p] + b[p]);
+        if(cog < domain->sublo_lamda[p]-0.5*rcrit*alpha[p]-stol) return 1;
+        if(cog > domain->subhi_lamda[p]+0.5*rcrit*alpha[p]+stol) return 1;
       }
     } else {
       double rout = 0.0;
 
       for(int p = 0; p<3; p++) {
-	double cog = 0.5*(a[p] + b[p]);
-	if(cog < domain->sublo[p]-0.5*rcrit-stol) return 1;
-	if(cog > domain->subhi[p]+0.5*rcrit+stol) return 1;
+        double cog = 0.5*(a[p] + b[p]);
+        if(cog < domain->sublo[p]-0.5*rcrit-stol) return 1;
+        if(cog > domain->subhi[p]+0.5*rcrit+stol) return 1;
 
-	if(cog < domain->sublo[p]-stol) {
-	  double t = cog - (domain->sublo[p]-stol);
-	  rout = rout + t*t;
-	} else if(cog > domain->subhi[p]+stol) {
-	  double t = cog - (domain->subhi[p]+stol);
-	  rout = rout + t*t;
-	}
+        if(cog < domain->sublo[p]-stol) {
+          double t = cog - (domain->sublo[p]-stol);
+          rout = rout + t*t;
+        } else if(cog > domain->subhi[p]+stol) {
+          double t = cog - (domain->subhi[p]+stol);
+          rout = rout + t*t;
+        }
 
       }
 
       if(rout > 0.25*rcrit*rcrit)
-	return 1;
+        return 1;
     }
 
     return 0;
   }
   double get_weight(const int triclinic,
-		    const double a[3] = 0,const double b[3] = 0,
-		    const double c[3] = 0,const double d[3] = 0) {
+                    const double a[3] = 0,const double b[3] = 0,
+                    const double c[3] = 0,const double d[3] = 0) {
     const double
       *s0 = triclinic ? domain->sublo_lamda : domain->sublo,
       *s1 = triclinic ? domain->subhi_lamda : domain->subhi;
@@ -498,46 +499,46 @@ public:
   }
 
   void force_debug_3t(double xx[][3],
-		      int i0,int j0,int k0,
-		      int i ,int j ,int k ,
-		      double dfix,double dfiy,double dfiz,
-		      double dfjx,double dfjy,double dfjz,
-		      double dfkx,double dfky,double dfkz);
+                      int i0,int j0,int k0,
+                      int i ,int j ,int k ,
+                      double dfix,double dfiy,double dfiz,
+                      double dfjx,double dfjy,double dfjz,
+                      double dfkx,double dfky,double dfkz);
 
   void force_debug_3v(double xx[][3],
-		      int i0,int j0,int k0,
-		      int i ,int j ,int k ,
-		      double dfix,double dfiy,double dfiz,
-		      double dfjx,double dfjy,double dfjz,
-		      double dfkx,double dfky,double dfkz);
+                      int i0,int j0,int k0,
+                      int i ,int j ,int k ,
+                      double dfix,double dfiy,double dfiz,
+                      double dfjx,double dfjy,double dfjz,
+                      double dfkx,double dfky,double dfkz);
 
   void force_debug_4(double xx[][3],
-		     int i0,int j0,int k0,int m0,
-		     int i ,int j ,int k ,int m ,
-		     double dfix,double dfiy,double dfiz,
-		     double dfjx,double dfjy,double dfjz,
-		     double dfkx,double dfky,double dfkz,
-		     double dfmx,double dfmy,double dfmz);
+                     int i0,int j0,int k0,int m0,
+                     int i ,int j ,int k ,int m ,
+                     double dfix,double dfiy,double dfiz,
+                     double dfjx,double dfjy,double dfjz,
+                     double dfkx,double dfky,double dfkz,
+                     double dfmx,double dfmy,double dfmz);
 
   double numderiv3t(double xx[][3],int i,int j,int k,int p);
   double numderiv3v(double xx[][3],int i,int j,int k,int p,int ipert);
   double numderiv4(double xx[][3],int i,int j,int k,int m,int p);
   void compute_x(const int *nnei,const int * const *nlist,
-		 double *e_s,double *e_p,double *e_t,double *e_q,
-		 int evflag,int newton_pair);
+                 double *e_s,double *e_p,double *e_t,double *e_q,
+                 int evflag,int newton_pair);
 
   /* Reimplementation of bond matrix computation */
   void fl_deriv_new(double r,double ri,double xhat,double yhat,double zhat,
-		    double &fl_0,double &fl_x,double &fl_y,double &fl_z,
-		    double &fl_rp,double &fl_p1,double &fl_r0,double &fl_al);
+                    double &fl_0,double &fl_x,double &fl_y,double &fl_z,
+                    double &fl_rp,double &fl_p1,double &fl_r0,double &fl_al);
   void hamltn_5_raw(const double xin,const double yin,const double zin,
-		    double M [8][8],double Mx[8][8],
-		    double My[8][8],double Mz[8][8],
-		    double *fl_deriv_sum_p);
+                    double M [8][8],double Mx[8][8],
+                    double My[8][8],double Mz[8][8],
+                    double *fl_deriv_sum_p);
   void hamltn_7_raw(const double xin,const double yin,const double zin,
-		    double M [8][8],double Mx[8][8],
-		    double My[8][8],double Mz[8][8],
-		    double *fl_deriv_sum_p);
+                    double M [8][8],double Mx[8][8],
+                    double My[8][8],double Mz[8][8],
+                    double *fl_deriv_sum_p);
   /* * */
   // Old matrix routines, only used in force debug routines.
 
@@ -546,9 +547,9 @@ public:
     Matrix h;
     for(int l = 1; l <= lmax; l++) {
       for(int n = 1; n <= lmax; n++) {
-	h.m[l][n] = 0.0;
-	for(int m = 1; m <= lmax; m++)
-	  h.m[l][n] += ha.m[l][m] * hb.m[m][n];
+        h.m[l][n] = 0.0;
+        for(int m = 1; m <= lmax; m++)
+          h.m[l][n] += ha.m[l][m] * hb.m[m][n];
       }
     }
     return h;
@@ -560,7 +561,7 @@ public:
     for(int n = 1; n <= lmax; n++) {
       double cquan = 0.0;
       for(int m = 1; m <= lmax; m++)
-	cquan += ha.m[n][m] * hb.m[m][n];
+        cquan += ha.m[n][m] * hb.m[m][n];
       zquan += cquan;
     }
     return zquan;
@@ -572,32 +573,32 @@ public:
       int i,j,k;
 
       if(lmax == 5) {
-	const int n = 5;
-	for(i = 1; i<=n; i++)
-	  for(j = 1; j<=n; j++) {
-	    double s = 0.0;
-	    for(k = 1; k<=n; k++)
-	      s = s + a.m[i][k]*b.m[j][k];
-	    c.m[i][j] = s;
-	      }
+        const int n = 5;
+        for(i = 1; i<=n; i++)
+          for(j = 1; j<=n; j++) {
+            double s = 0.0;
+            for(k = 1; k<=n; k++)
+              s = s + a.m[i][k]*b.m[j][k];
+            c.m[i][j] = s;
+              }
       } else if(lmax == 7) {
-	const int n = 7;
-	for(i = 1; i<=n; i++)
-	  for(j = 1; j<=n; j++) {
-	    double s = 0.0;
-	    for(k = 1; k<=n; k++)
-	      s = s + a.m[i][k]*b.m[j][k];
-	    c.m[i][j] = s;
-	  }
+        const int n = 7;
+        for(i = 1; i<=n; i++)
+          for(j = 1; j<=n; j++) {
+            double s = 0.0;
+            for(k = 1; k<=n; k++)
+              s = s + a.m[i][k]*b.m[j][k];
+            c.m[i][j] = s;
+          }
       } else {
-	const int n = lmax;
-	for(i = 1; i<=n; i++)
-	  for(j = 1; j<=n; j++) {
-	    double s = 0.0;
-	    for(k = 1; k<=n; k++)
-	      s = s + a.m[i][k]*b.m[j][k];
-	    c.m[i][j] = s;
-	  }
+        const int n = lmax;
+        for(i = 1; i<=n; i++)
+          for(j = 1; j<=n; j++) {
+            double s = 0.0;
+            for(k = 1; k<=n; k++)
+              s = s + a.m[i][k]*b.m[j][k];
+            c.m[i][j] = s;
+          }
       }
     }
 
@@ -608,7 +609,7 @@ public:
 
     for(i = 0; i<n; i++)
       for(j = 1; j<=n; j++)
-	s = s + A[i][j]*B[i][j];
+        s = s + A[i][j]*B[i][j];
     return s;
   }
   inline double transtrace(const Matrix& a,const Matrix& b) const
@@ -617,25 +618,25 @@ public:
       double s = 0.0;
 
       if(linalg.single)
-	return transtrace_s((const float (*)[8]) &a.m[1][0],(const float (*)[8]) &b.m[1][0]);
+        return transtrace_s((const float (*)[8]) &a.m[1][0],(const float (*)[8]) &b.m[1][0]);
 
       //printf("Calling transtrace... That is shit\n");
 
       if(lmax == 5) {
-	const int n = 5;
-	for(i = 1; i<=n; i++)
-	  for(k = 1; k<=n; k++)
-	    s = s + a.m[i][k]*b.m[i][k];
+        const int n = 5;
+        for(i = 1; i<=n; i++)
+          for(k = 1; k<=n; k++)
+            s = s + a.m[i][k]*b.m[i][k];
       } else if(lmax == 7) {
-	const int n = 7;
-	for(i = 1; i<=n; i++)
-	  for(k = 1; k<=n; k++)
-	    s = s + a.m[i][k]*b.m[i][k];
+        const int n = 7;
+        for(i = 1; i<=n; i++)
+          for(k = 1; k<=n; k++)
+            s = s + a.m[i][k]*b.m[i][k];
       } else {
-	const int n = lmax;
-	for(i = 1; i<=n; i++)
-	  for(k = 1; k<=n; k++)
-	    s = s + a.m[i][k]*b.m[i][k];
+        const int n = lmax;
+        for(i = 1; i<=n; i++)
+          for(k = 1; k<=n; k++)
+            s = s + a.m[i][k]*b.m[i][k];
       }
       return s;
     }

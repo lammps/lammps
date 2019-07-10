@@ -1,5 +1,4 @@
 #include "meam.h"
-#include "math_special.h"
 
 using namespace LAMMPS_NS;
 

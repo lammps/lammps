@@ -15,11 +15,10 @@ See the README file in the top-level LAMMPS directory.
 Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_bond_react.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_bond_react.h"
 #include "update.h"
 #include "modify.h"
 #include "respa.h"

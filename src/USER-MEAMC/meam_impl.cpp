@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "meam.h"
+#include <cstddef>
 #include "memory.h"
 
 using namespace LAMMPS_NS;

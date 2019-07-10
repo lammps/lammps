@@ -4,12 +4,10 @@
 #include "manifold.h"
 #include <vector>
 
-#include "manifold_thylakoid_shared.h"
-
 namespace LAMMPS_NS {
 
 namespace user_manifold {
-
+  struct thyla_part;
 
   class manifold_thylakoid : public manifold {
    public:

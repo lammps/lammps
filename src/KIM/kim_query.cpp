@@ -138,6 +138,8 @@ void KimQuery::command(int narg, char **arg)
     varcmd[1] = (char *) "string";
 
     while(std::getline(ss, token, ',')) {
+      token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
+      token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
       std::stringstream splitname;
       splitname << varname << "_" << counter++;
       varcmd[0] = const_cast<char *>(splitname.str().c_str());

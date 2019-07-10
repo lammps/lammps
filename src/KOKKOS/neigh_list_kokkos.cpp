@@ -35,6 +35,7 @@ template<class Device>
 void NeighListKokkos<Device>::grow(int nmax)
 {
   // skip if this list is already long enough to store nmax atoms
+  //  and maxneighs neighbors
 
   if (nmax <= maxatoms && d_neighbors.extent(1) >= maxneighs) return;
   maxatoms = nmax;

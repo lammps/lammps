@@ -15,6 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_oxdna_fene.h"
+#include <mpi.h>
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"

@@ -22,7 +22,6 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_setforce_spin.h"
-#include <cstdlib>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

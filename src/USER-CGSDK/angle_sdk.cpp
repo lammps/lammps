@@ -19,8 +19,8 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_sdk.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include "atom.h"
 #include "neighbor.h"
 #include "pair.h"

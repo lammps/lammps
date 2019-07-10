@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 /** Fix Drude Transform ******************************************************/
+#include "fix_drude_transform.h"
 #include <cmath>
 #include <cstring>
-#include "fix_drude_transform.h"
+#include "fix_drude.h"
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
 #include "error.h"
 #include "modify.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

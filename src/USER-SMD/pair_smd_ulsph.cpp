@@ -22,19 +22,13 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
 #include "pair_smd_ulsph.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"

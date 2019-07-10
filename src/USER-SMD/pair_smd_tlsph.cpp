@@ -22,15 +22,13 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <map>
-#include <Eigen/Eigen>
 #include "pair_smd_tlsph.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <Eigen/Eigen>
 #include "fix_smd_tlsph_reference_configuration.h"
 #include "atom.h"
 #include "domain.h"
@@ -41,12 +39,9 @@
 #include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "math_special.h"
-#include "update.h"
 #include "smd_material_models.h"
 #include "smd_kernels.h"
 #include "smd_math.h"

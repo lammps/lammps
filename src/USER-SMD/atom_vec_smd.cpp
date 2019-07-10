@@ -23,21 +23,18 @@
  ------------------------------------------------------------------------- */
 
 #include "atom_vec_smd.h"
-#include <cmath>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_adapt.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+
 #define NMAT_FULL 9
 #define NMAT_SYMM 6
 

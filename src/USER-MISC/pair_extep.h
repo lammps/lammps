@@ -21,7 +21,6 @@ PairStyle(extep,PairExTeP)
 #define LMP_PAIR_EXTEP_H
 
 #include "pair.h"
-#include "my_page.h"
 
 #define MAXTYPES 8
 #define NSPLINE 5

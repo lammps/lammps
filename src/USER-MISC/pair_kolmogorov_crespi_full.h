@@ -21,8 +21,6 @@ PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull)
 #define LMP_PAIR_KolmogorovCrespi_FULL_H
 
 #include "pair.h"
-#include "my_page.h"
-#include <cmath>
 
 namespace LAMMPS_NS {
 

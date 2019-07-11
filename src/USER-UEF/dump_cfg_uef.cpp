@@ -14,7 +14,6 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_cfg.h"
-#include <cmath>
 #include <cstring>
 #include "atom.h"
 #include "modify.h"

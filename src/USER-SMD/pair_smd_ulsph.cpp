@@ -23,8 +23,11 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_smd_ulsph.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
+#include <utility>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"

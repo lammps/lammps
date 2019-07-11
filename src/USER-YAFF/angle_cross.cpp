@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cross.h"
+#include <mpi.h>
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"

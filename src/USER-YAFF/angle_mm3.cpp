@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_mm3.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

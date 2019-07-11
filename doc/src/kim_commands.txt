@@ -58,7 +58,7 @@ Reliability :h5
 
 All content archived in OpenKIM is reviewed by the "KIM Editor"_https://openkim.org/governance/ for quality.
 IMs in OpenKIM are archived with full provenance control. Each is associated with a maintainer responsible for the integrity of the content. All changes are tracked and recorded.
-IMs in OpenKIM are exhaustively tested using "KIM Tests"_https://openkim.org/getting-started/kim-tests/ that compute a host of material properties, and "KIM Verification Checks"_https://openkim.org/about-verification-checks/ that provide the user with information on various aspects of the IM behavior and coding correctness. This information is displayed on the IM's page on "OpenKIM"_https://openkim.org. :ul
+IMs in OpenKIM are exhaustively tested using "KIM Tests"_https://openkim.org/getting-started/kim-tests/ that compute a host of material properties, and "KIM Verification Checks"_https://openkim.org/about-verification-checks/ that provide the user with information on various aspects of the IM behavior and coding correctness. This information is displayed on the IM's page accessible through the  "OpenKIM browse interface"_https://openkim.org/browse. :ul
 
 Reproducibility :h5
 
@@ -403,12 +403,6 @@ close packed (hcp) structure has two independent lattice constants).
 The default behavior of {kim_query} returns the result as a string
 with the values separated by commas. The optional keyword {split}
 separates the result values into individual variables of the form
-{prefix_I}, where {prefix} is set to the the {kim_query} {variable} argument
-and {I} ranges from 1 to the number of returned values. The number and order of
-the returned values is determined by the type of query performed.
-
-In the case where a query returns multiple results, the default behavior
-for {kim_query} is to split these into individual variables of the form
 {prefix_I}, where {prefix} is set to the the {kim_query} {variable} argument
 and {I} ranges from 1 to the number of returned values. The number and order of
 the returned values is determined by the type of query performed.

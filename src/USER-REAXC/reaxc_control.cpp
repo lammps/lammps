@@ -24,10 +24,10 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "reaxc_control.h"
 #include <cstdlib>
 #include <cstring>
-#include "pair_reaxc.h"
-#include "reaxc_control.h"
+#include "reaxc_defs.h"
 #include "reaxc_tool_box.h"
 
 #include "error.h"

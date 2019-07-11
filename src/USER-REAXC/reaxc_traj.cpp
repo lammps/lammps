@@ -24,11 +24,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include <cstring>
-#include "pair_reaxc.h"
 #include "reaxc_traj.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
-#include "reaxc_tool_box.h"
 
 #include "error.h"
 

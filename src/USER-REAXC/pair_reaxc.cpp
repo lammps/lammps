@@ -20,8 +20,12 @@
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "pair_reaxc.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <strings.h>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -36,6 +40,7 @@
 #include "memory.h"
 #include "error.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
 #include "reaxc_control.h"
@@ -46,9 +51,7 @@
 #include "reaxc_list.h"
 #include "reaxc_lookup.h"
 #include "reaxc_reset_tools.h"
-#include "reaxc_traj.h"
 #include "reaxc_vector.h"
-#include "fix_reaxc_bonds.h"
 
 using namespace LAMMPS_NS;
 

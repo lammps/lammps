@@ -24,18 +24,19 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include <cstring>
-#include "pair_reaxc.h"
 #include "reaxc_init_md.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_allocate.h"
 #include "reaxc_forces.h"
 #include "reaxc_io_tools.h"
 #include "reaxc_list.h"
 #include "reaxc_lookup.h"
 #include "reaxc_reset_tools.h"
-#include "reaxc_system_props.h"
 #include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
 
 #include "error.h"
 

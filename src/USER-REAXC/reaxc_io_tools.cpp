@@ -24,16 +24,12 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include <cstring>
-#include "pair_reaxc.h"
-#include "update.h"
 #include "reaxc_io_tools.h"
-#include "reaxc_list.h"
-#include "reaxc_reset_tools.h"
+#include <cstdio>
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_system_props.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_traj.h"
-#include "reaxc_vector.h"
 
 int Init_Output_Files( reax_system *system, control_params *control,
                        output_controls *out_control, mpi_datatypes *mpi_data,

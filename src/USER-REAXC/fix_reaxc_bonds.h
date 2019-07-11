@@ -21,7 +21,6 @@ FixStyle(reax/c/bonds,FixReaxCBonds)
 #define LMP_FIX_REAXC_BONDS_H
 
 #include "fix.h"
-#include "pointers.h"
 
 namespace LAMMPS_NS {
 

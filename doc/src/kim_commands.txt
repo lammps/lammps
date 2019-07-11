@@ -35,7 +35,7 @@ kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657
 kim_interactions C H O
 kim_init Sim_LAMMPS_IFF_OtherInfo_AuthorList_Year_Species__SM_064312669787_000 real
 kim_interactions fixed_types
-kim_query a0 get_lattice_constant_fcc species=\["Al"] units=\["angstrom"\] :pre
+kim_query a0 get_lattice_constant_fcc species=\["Al"\] units=\["angstrom"\] :pre
 
 
 [Description:]
@@ -105,12 +105,16 @@ The URL for such a page is constructed from the
 "extended KIM ID"_https://openkim.org/about-kim-ids/ of the IM:
 
 https://openkim.org/id/extended_KIM_ID
+or
+https://openkim.org/id/short_KIM_ID
 :pre
 
 For example for the Stillinger-Weber potential
 listed above the Model Page is located at:
 
 "https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005"_https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005
+or
+"https://openkim.org/id/MO_405512056662_005"_https://openkim.org/id/MO_405512056662_005
 :pre
 
 See the "current list of KIM PMs and SMs archived in OpenKIM"_https://openkim.org/browse/models/by-species.
@@ -271,8 +275,8 @@ OpenKIM IM Execution ({kim_interactions}) :h5
 
 The second and final step in using an OpenKIM IM is to execute the
 {kim_interactions} command. This command must be preceded by a {kim_init}
-command and a "create_box"_create_box.html command,
-which defines the number of atom types {N}.
+command and a command that creates the simulation box (such as
+"create_box"_create_box.html), which defines the number of atom types {N}.
 The {kim_interactions} command has one argument {typeargs}. This argument
 contains either a list of {N} chemical species, which defines a mapping between
 atom types in LAMMPS to the available species in the OpenKIM IM, or the
@@ -338,7 +342,7 @@ Note also that parameters like cutoff radii and charge tolerances,
 which have an effect on IM predictions, are also included in the
 SM definition ensuring reproducibility.
 
-NOTE: When using using {kim_init} and {kim_interactions} to select
+NOTE: When using {kim_init} and {kim_interactions} to select
 and set up an OpenKIM IM, other LAMMPS commands
 for the same functions (such as pair_style, pair_coeff, bond_style,
 bond_coeff, fixes related to charge equilibration, etc.) should normally
@@ -356,7 +360,7 @@ argument of the {kim_query command}.  The second required argument
 (e.g. {get_lattice_constant_fcc}).
 All following arguments are parameters handed over to the web query
 in the format {keyword=value}.  The list of supported keywords and
-and the type and format of their values depend on the query function
+the type and format of their values depend on the query function
 used.
 
 NOTE: The current list of supported query functions is available on the OpenKIM

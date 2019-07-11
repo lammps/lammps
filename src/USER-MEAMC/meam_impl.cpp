@@ -44,7 +44,7 @@ MEAM::MEAM(Memory* mem)
       rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] = 0.0;
     for (int j = 0; j < maxelt; j++) {
       lattce_meam[i][j] = FCC;
-      Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = Ec_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
+      Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
       nn2_meam[i][j] = zbl_meam[i][j] = eltind[i][j] = 0;
     }
   }

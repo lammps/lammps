@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "msm_omp.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -23,8 +24,8 @@
 #include "force.h"
 #include "memory.h"
 #include "math_const.h"
+#include "timer.h"
 
-#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

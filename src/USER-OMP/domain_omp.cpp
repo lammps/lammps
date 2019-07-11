@@ -15,7 +15,6 @@
    Contributing author : Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "domain.h"
 #include "accelerator_omp.h"
 #include "atom.h"
 

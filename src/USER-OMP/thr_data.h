@@ -18,10 +18,6 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 #include "timer.h"
 
 namespace LAMMPS_NS {
@@ -35,7 +31,7 @@ class ThrData {
 
  public:
   ThrData(int tid, class Timer *t);
-  ~ThrData() { delete _timer; _timer = NULL; };
+  ~ThrData() { delete _timer; _timer = nullptr; };
 
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
@@ -140,7 +136,7 @@ class ThrData {
 
  // disabled default methods
  private:
-  ThrData() : _tid(-1), _timer(NULL) {};
+  ThrData() : _tid(-1), _timer(nullptr) {};
 };
 
 ////////////////////////////////////////////////////////////////////////

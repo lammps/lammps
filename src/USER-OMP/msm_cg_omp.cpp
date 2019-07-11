@@ -16,6 +16,7 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "msm_cg_omp.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
@@ -29,9 +30,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "msm_cg_omp.h"
-
 #include "math_const.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

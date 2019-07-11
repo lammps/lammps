@@ -25,6 +25,7 @@
 #include "atom_vec_tri.h"
 #include "comm.h"
 #include "domain.h"
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

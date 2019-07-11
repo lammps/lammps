@@ -15,18 +15,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid_omp.h"
 #include <mpi.h>
 #include <cstring>
-
-#include "fix_rigid_omp.h"
-
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
+#include "domain.h"
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

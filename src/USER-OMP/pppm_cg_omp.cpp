@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_cg_omp.h"
 #include <cstring>
 #include <cmath>
-#include "pppm_cg_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

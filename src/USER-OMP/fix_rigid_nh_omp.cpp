@@ -15,11 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid_nh_omp.h"
 #include <mpi.h>
 #include <cstring>
-
-#include "fix_rigid_nh_omp.h"
-
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -32,6 +30,7 @@
 #include "kspace.h"
 #include "modify.h"
 #include "update.h"
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

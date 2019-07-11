@@ -19,7 +19,7 @@
 
 #include <cstring>
 #include "fix_rigid_nph_omp.h"
-#include "domain.h"
+#include "timer.h"
 #include "modify.h"
 #include "error.h"
 

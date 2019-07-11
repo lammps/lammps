@@ -22,7 +22,7 @@
 #include "fix_gravity_omp.h"
 #include "atom.h"
 #include "update.h"
-#include "domain.h"
+#include "timer.h"
 #include "input.h"
 #include "modify.h"
 #include "respa.h"

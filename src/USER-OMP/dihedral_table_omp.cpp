@@ -22,11 +22,12 @@
 #include "dihedral_table_omp.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "domain.h"
+#include "neighbor.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
+#include "timer.h"
 
 #include "math_const.h"
 #include "math_extra.h"

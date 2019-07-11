@@ -39,7 +39,7 @@
 #include "pair_reaxc_omp.h"
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
+#include "timer.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

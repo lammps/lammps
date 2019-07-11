@@ -15,12 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_nh_sphere_omp.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "compute.h"
-#include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

@@ -38,9 +38,12 @@ public:
     void advance_spins();
     double fmnorm_sqr();
     void calc_gradient(double);
-    void calc_search_direction(int);
+    void calc_search_direction();
 
 private:
+    // test
+    int ireplica,nreplica;
+
     // global and spin timesteps
 
     int nlocal_max;		// max value of nlocal (for size of lists)
@@ -62,6 +65,7 @@ private:
     double **sp_copy;   // copy of the spins
 
     int num_mem;        // number of stored steps
+    int local_iter;
 
     double der_e_cur;   // current derivative along search dir.
     double der_e_pr;    // previous derivative along search dir.

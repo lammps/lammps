@@ -23,6 +23,7 @@
 #include "fix_ave_atom.h"
 #include "domain.h"
 #include "update.h"
+#include "reaxc_defs.h"
 #include "pair_reaxc_kokkos.h"
 #include "modify.h"
 #include "neighbor.h"

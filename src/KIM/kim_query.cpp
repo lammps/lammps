@@ -124,7 +124,7 @@ void KimQuery::command(int narg, char **arg)
   // that was returned by the web server
 
   if (0 == strlen(value)) {
-    char errmsg[512];
+    char errmsg[1024];
 
     sprintf(errmsg,"OpenKIM query failed: %s",value+1);
         error->all(FLERR,errmsg);
@@ -138,6 +138,8 @@ void KimQuery::command(int narg, char **arg)
     varcmd[1] = (char *) "string";
 
     while(std::getline(ss, token, ',')) {
+      token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
+      token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
       std::stringstream splitname;
       splitname << varname << "_" << counter++;
       varcmd[0] = const_cast<char *>(splitname.str().c_str());
@@ -256,9 +258,15 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 
   if (value[0] == '[') {
     int len = strlen(value)-1;
-    retval = new char[len];
-    value[len] = '\0';
-    strcpy(retval,value+1);
+    if (value[len-1] == ']') {
+      retval = new char[len];
+      value[len-1] = '\0';
+      strcpy(retval,value+1);
+    } else {
+      retval = new char[len+2];
+      retval[0] = '\0';
+      strcpy(retval+1,value);
+    }
   } else if (value[0] == '\0') {
     int len = strlen(value+1)+2;
     retval = new char[len];
@@ -266,10 +274,11 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
     strcpy(retval+1,value+1);
   } else {
     // unknown response type. we should not get here.
-    // copy response without modifications.
-    int len = strlen(value)+1;
+    // we return an "empty" string but add error message after it
+    int len = strlen(value)+2;
     retval = new char[len];
-    strcpy(retval,value);
+    retval[0] = '\0';
+    strcpy(retval+1,value);
   }
   return retval;
 }

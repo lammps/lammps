@@ -64,7 +64,7 @@ static const char cite_minstyle_spin_oso_lbfgs_ls[] =
 /* ---------------------------------------------------------------------- */
 
 MinSpinOSO_LBFGS_LS::MinSpinOSO_LBFGS_LS(LAMMPS *lmp) :
-  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), ds(NULL), dy(NULL), rho(NULL)
+  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), ds(NULL), dy(NULL), rho(NULL), sp_copy(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_lbfgs_ls);
   nlocal_max = 0;

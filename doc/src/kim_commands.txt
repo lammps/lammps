@@ -274,8 +274,8 @@ OpenKIM IM Execution ({kim_interactions}) :h5
 
 The second and final step in using an OpenKIM IM is to execute the
 {kim_interactions} command. This command must be preceded by a {kim_init}
-command and a command that creates the simulation box (such as
-"create_box"_create_box.html), which defines the number of atom types {N}.
+command and a command that defines the number of atom types {N} (such as
+"create_box"_create_box.html).
 The {kim_interactions} command has one argument {typeargs}. This argument
 contains either a list of {N} chemical species, which defines a mapping between
 atom types in LAMMPS to the available species in the OpenKIM IM, or the

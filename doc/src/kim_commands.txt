@@ -95,13 +95,12 @@ By convention SM prefixes begin with {Sim_} to readily identify them.
 SW_StillingerWeber_1985_Si__MO_405512056662_005
 Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 :pre
 
-Each OpenKIM IM has a dedicated page on "OpenKIM"_https://openkim.org
+Each OpenKIM IM has a dedicated "Model Page" on "OpenKIM"_https://openkim.org
 providing all the information on the IM including a title, description,
 authorship and citation information, test and verification check results,
 visualizations of results, a wiki with documentation and user comments, and
 access to raw files, and other information.
-This is referred to as the "PM Page" or "SM Page".
-The URL for such a page is constructed from the
+The URL for the Model Page is constructed from the
 "extended KIM ID"_https://openkim.org/about-kim-ids/ of the IM:
 
 https://openkim.org/id/extended_KIM_ID

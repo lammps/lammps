@@ -26,9 +26,9 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-
 #include "reaxc_hydrogen_bonds_omp.h"
+#include "pair_reaxc_omp.h"
+#include "reaxc_defs.h"
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_valence_angles.h"     // To access Calculate_Theta()

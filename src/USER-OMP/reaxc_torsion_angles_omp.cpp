@@ -26,11 +26,12 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "reaxc_torsion_angles_omp.h"
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
-#include "reaxc_torsion_angles_omp.h"
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"

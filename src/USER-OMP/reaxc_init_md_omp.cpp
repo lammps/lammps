@@ -26,8 +26,9 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
 #include "reaxc_init_md_omp.h"
+#include "pair_reaxc_omp.h"
+#include "reaxc_defs.h"
 #include "reaxc_allocate.h"
 #include "reaxc_forces.h"
 #include "reaxc_forces_omp.h"

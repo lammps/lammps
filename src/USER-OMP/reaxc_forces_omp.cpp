@@ -26,10 +26,11 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "reaxc_forces_omp.h"
+#include "reaxc_defs.h"
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 
-#include "reaxc_forces_omp.h"
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_bonds_omp.h"
 #include "reaxc_hydrogen_bonds_omp.h"

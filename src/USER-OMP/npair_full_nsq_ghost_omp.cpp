@@ -13,7 +13,6 @@
 
 #include "npair_full_nsq_ghost_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"

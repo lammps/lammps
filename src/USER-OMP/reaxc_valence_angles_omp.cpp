@@ -27,13 +27,15 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxc_valence_angles_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "pair_reaxc_omp.h"
-#include "thr_data.h"
+#include "fix_omp.h"
+#include "error.h"
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_valence_angles.h"
-#include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 

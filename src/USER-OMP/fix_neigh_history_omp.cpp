@@ -11,19 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdio>
 #include "fix_neigh_history_omp.h"
+#include <cstring>
 #include "my_page.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "force.h"
 #include "pair.h"
-#include "update.h"
 #include "memory.h"
-#include "modify.h"
 #include "error.h"
 
 #if defined(_OPENMP)

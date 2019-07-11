@@ -19,7 +19,7 @@
 #include "comm.h"
 #include "modify.h"
 #include "fix.h"
-#include "accelerator_kokkos.h"
+#include "accelerator_kokkos.h"  // IWYU pragma: export
 #include "atom_masks.h"
 #include "memory.h"
 

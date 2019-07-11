@@ -1776,9 +1776,8 @@ void PairTlsph::init_style() {
  optional granular history list
  ------------------------------------------------------------------------- */
 
-void PairTlsph::init_list(int id, NeighList *ptr) {
-        if (id == 0)
-                list = ptr;
+void PairTlsph::init_list(int id, class NeighList *ptr) {
+  if (id == 0) list = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1786,8 +1785,7 @@ void PairTlsph::init_list(int id, NeighList *ptr) {
  ------------------------------------------------------------------------- */
 
 double PairTlsph::memory_usage() {
-
-        return 118 * nmax * sizeof(double);
+  return 118.0 * nmax * sizeof(double);
 }
 
 /* ----------------------------------------------------------------------

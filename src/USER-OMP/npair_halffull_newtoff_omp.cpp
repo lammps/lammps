@@ -13,12 +13,8 @@
 
 #include "npair_halffull_newtoff_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "timer.h"
 #include "my_page.h"
 #include "error.h"
 

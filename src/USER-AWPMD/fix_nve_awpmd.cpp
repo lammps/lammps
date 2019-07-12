@@ -16,14 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_awpmd.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
+#include "pair_awpmd_cut.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "utils.h"
 
 #include "TCP/wpmd_split.h"
 
@@ -62,7 +61,7 @@ void FixNVEAwpmd::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   awpmd_pair=(PairAWPMDCut *)force->pair;

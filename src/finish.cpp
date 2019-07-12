@@ -16,8 +16,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "timer.h"
-#include "universe.h"
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,6 +30,8 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "timer.h"
+#include "universe.h"
 
 #ifdef LMP_USER_OMP
 #include "modify.h"

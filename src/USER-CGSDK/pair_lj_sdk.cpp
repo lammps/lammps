@@ -24,7 +24,6 @@
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
@@ -32,7 +31,6 @@
 #include "lj_sdk_common.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace LJSDKParms;
 
 /* ---------------------------------------------------------------------- */

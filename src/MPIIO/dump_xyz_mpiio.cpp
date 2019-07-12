@@ -21,7 +21,6 @@
 #include <cstring>
 #include "domain.h"
 #include "update.h"
-#include "modify.h"
 #include "compute.h"
 #include "memory.h"
 #include "error.h"

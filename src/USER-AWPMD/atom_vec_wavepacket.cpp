@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_wavepacket.h"
-#include <cmath>
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

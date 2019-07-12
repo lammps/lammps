@@ -16,6 +16,7 @@
 
 #include "compute_pressure_bocs.h"
 #include <mpi.h>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include "atom.h"

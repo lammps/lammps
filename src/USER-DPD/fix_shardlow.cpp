@@ -37,15 +37,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <stdint.h>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "npair.h"
 #include "memory.h"
 #include "domain.h"
 #include "modify.h"

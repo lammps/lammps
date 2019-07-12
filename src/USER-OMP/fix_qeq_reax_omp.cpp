@@ -42,6 +42,7 @@
 #include "memory.h"
 #include "error.h"
 #include "reaxc_defs.h"
+#include "reaxc_types.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

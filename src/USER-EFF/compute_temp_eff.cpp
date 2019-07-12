@@ -17,6 +17,7 @@
 
 #include "compute_temp_eff.h"
 #include <mpi.h>
+#include <cstdlib>
 #include "atom.h"
 #include "update.h"
 #include "force.h"

@@ -27,6 +27,9 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxc_bond_orders_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
 #include "reaxc_defs.h"
 #include "pair_reaxc_omp.h"
 #include "reaxc_types.h"

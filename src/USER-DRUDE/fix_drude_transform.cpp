@@ -13,6 +13,7 @@
 
 /** Fix Drude Transform ******************************************************/
 #include "fix_drude_transform.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include "fix_drude.h"

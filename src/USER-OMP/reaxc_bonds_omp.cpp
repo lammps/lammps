@@ -27,13 +27,12 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxc_bonds_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
 #include "reaxc_defs.h"
-#include "reaxc_bond_orders_omp.h"
 #include "pair_reaxc_omp.h"
-
 #include "reaxc_list.h"
-#include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
 
 #if defined(_OPENMP)
 #include  <omp.h>

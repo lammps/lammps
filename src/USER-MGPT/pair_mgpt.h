@@ -30,8 +30,6 @@ PairStyle(mgpt,PairMGPT)
 #ifndef LMP_PAIR_MGPT_H
 #define LMP_PAIR_MGPT_H
 
-#include <new>
-#include <cmath>
 #include <cstdlib>
 #include <cassert>
 

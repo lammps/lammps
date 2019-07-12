@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <stdint.h>
 
 static double calculate_interatomic_distance(int type, double scale) {
         assert(type >= 1 && type <= 8);

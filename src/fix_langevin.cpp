@@ -301,7 +301,6 @@ void FixLangevin::post_force(int /*vflag*/)
   // this avoids testing them inside inner loop:
   // TSTYLEATOM, GJF, TALLY, BIAS, RMASS, ZERO
 
-#ifdef TEMPLATED_FIX_LANGEVIN
   if (tstyle == ATOM)
     if (gjfflag)
       if (tallyflag)
@@ -428,10 +427,6 @@ void FixLangevin::post_force(int /*vflag*/)
           else
             if (zeroflag) post_force_templated<0,0,0,0,0,1>();
             else          post_force_templated<0,0,0,0,0,0>();
-#else
-  post_force_untemplated(int(tstyle==ATOM), gjfflag, tallyflag,
-                         int(tbiasflag==BIAS), int(rmass!=NULL), zeroflag);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -445,15 +440,9 @@ void FixLangevin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
    modify forces using one of the many Langevin styles
 ------------------------------------------------------------------------- */
 
-#ifdef TEMPLATED_FIX_LANGEVIN
 template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
            int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
 void FixLangevin::post_force_templated()
-#else
-void FixLangevin::post_force_untemplated
-  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
-   int Tp_BIAS, int Tp_RMASS, int Tp_ZERO)
-#endif
 {
   double gamma1,gamma2;
 

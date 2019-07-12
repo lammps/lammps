@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 #include "lal_base_dpd.h"
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BaseDPDT BaseDPD<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -308,4 +308,4 @@ void BaseDPDT::compile_kernels(UCL_Device &dev, const void *pair_str,
 }
 
 template class BaseDPD<PRECISION,ACC_PRECISION>;
-
+}

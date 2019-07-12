@@ -23,7 +23,7 @@ const char *sw=0;
 
 #include "lal_sw.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define SWT SW<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -262,4 +262,4 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
 }
 
 template class SW<PRECISION,ACC_PRECISION>;
-
+}

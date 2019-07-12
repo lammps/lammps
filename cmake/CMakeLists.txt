@@ -4,6 +4,16 @@
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 2.8.12)
 
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    option(ENABLE_CCACHE "Speed up compilation with ccache" ON)
+else()
+    option(ENABLE_CCACHE "Speed up compilation with ccache" OFF)
+endif()
+if(ENABLE_CCACHE)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 project(lammps CXX)
 set(SOVERSION 0)
 get_filename_component(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src ABSOLUTE)

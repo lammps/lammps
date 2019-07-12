@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "my_page.h"
 #include "error.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;

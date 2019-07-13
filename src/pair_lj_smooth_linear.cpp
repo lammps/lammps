@@ -368,6 +368,6 @@ double PairLJSmoothLinear::single_hessian(int /*i*/, int /*j*/, int itype, int j
                 + (r-cut[itype][jtype])*dljcut[itype][jtype];
 
   double d2r = factor_lj * r6inv * (13.0*lj1[itype][jtype]*r6inv - 7.0*lj2[itype][jtype])/rsq;
-  pairTensor(fforce, -(fforce + d2r) / rsq, delr, d2u);
+  hessian_twobody(fforce, -(fforce + d2r) / rsq, delr, d2u);
   return factor_lj*philj;
 }

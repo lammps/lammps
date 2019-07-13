@@ -1746,7 +1746,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
 /* ---------------------------------------------------------------------- */
 
-void Pair::pairTensor(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]) {
   int m = 0;
   for (int k=0; k<3; k++) {
     phiTensor[m] = fforce;

@@ -159,7 +159,7 @@ scalar value will be in energy "units"_units.html.
 
 [Restrictions:]
 
-This compute is distributed as the USER-HMA package.  It is only
+This compute is part of the USER-MISC package.  It is only
 enabled if LAMMPS was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
@@ -168,6 +168,10 @@ Usage restricted to canonical (NVT) ensemble simulation only.
 [Related commands:]
 
 "compute pe"_compute_pe.html, "compute pressure"_compute_pressure.html
+
+"dynamical matrix"_dynamical_matrix.html provides a finite difference
+formulation of the hessian provided by Pair's single_hessian, which is used by
+this compute.
 
 [Default:] none
 

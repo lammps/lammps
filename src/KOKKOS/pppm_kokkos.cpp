@@ -17,9 +17,6 @@
 
 #include "pppm_kokkos.h"
 #include <mpi.h>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -27,8 +24,6 @@
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "remap_wrap.h"

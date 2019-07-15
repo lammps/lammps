@@ -22,9 +22,7 @@
 ------------------------------------------------------------------------------------------- */
 
 #include "pair_multi_lucy_rx_kokkos.h"
-#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "math_const.h"
 #include "atom_kokkos.h"
@@ -33,9 +31,6 @@
 #include "neigh_list.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "citeme.h"
-#include "modify.h"
-#include "fix.h"
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "kokkos.h"

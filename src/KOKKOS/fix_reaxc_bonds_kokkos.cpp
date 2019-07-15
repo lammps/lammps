@@ -15,26 +15,13 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "fix_ave_atom.h"
-#include <cstdlib>
-#include <cstring>
 #include "fix_reaxc_bonds_kokkos.h"
 #include "atom.h"
-#include "update.h"
 #include "pair_reaxc_kokkos.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "comm.h"
 #include "force.h"
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "reaxc_list.h"
-#include "reaxc_types.h"
 #include "reaxc_defs.h"
 #include "atom_masks.h"
 

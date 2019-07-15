@@ -12,13 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid_overlay_kokkos.h"
-#include <cstdlib>
 #include <cstring>
 #include <cctype>
 #include "atom.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

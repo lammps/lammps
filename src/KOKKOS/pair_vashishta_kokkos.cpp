@@ -17,8 +17,6 @@
 
 #include "pair_vashishta_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "kokkos.h"
 #include "pair_kokkos.h"
@@ -28,9 +26,7 @@
 #include "force.h"
 #include "comm.h"
 #include "memory_kokkos.h"
-#include "neighbor.h"
 #include "neigh_list_kokkos.h"
-#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "math_const.h"

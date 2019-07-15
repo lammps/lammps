@@ -17,9 +17,6 @@
 
 #include "pair_eam_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "kokkos.h"
 #include "pair_kokkos.h"
 #include "atom_kokkos.h"

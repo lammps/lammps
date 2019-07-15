@@ -12,11 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "verlet_kokkos.h"
-#include <cstring>
 #include "neighbor.h"
 #include "domain.h"
 #include "comm.h"
-#include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "force.h"
@@ -29,14 +27,9 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
-#include "fix.h"
 #include "timer.h"
 #include "memory_kokkos.h"
-#include "error.h"
 #include "kokkos.h"
-
-#include <ctime>
 
 using namespace LAMMPS_NS;
 

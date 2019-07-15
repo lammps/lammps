@@ -13,8 +13,6 @@
 
 #include "pair_lj_class2_coul_cut_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -24,15 +22,12 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define KOKKOS_CUDA_MAX_THREADS 256
 #define KOKKOS_CUDA_MIN_BLOCKS 8

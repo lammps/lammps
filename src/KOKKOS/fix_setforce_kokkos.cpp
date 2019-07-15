@@ -13,20 +13,18 @@
 
 #include "fix_setforce_kokkos.h"
 #include <cstring>
-#include <cstdlib>
 #include "atom_kokkos.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
 #include "region.h"
-#include "respa.h"
 #include "input.h"
 #include "variable.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "force.h"
 #include "atom_masks.h"
 #include "kokkos_base.h"
+#include "region.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

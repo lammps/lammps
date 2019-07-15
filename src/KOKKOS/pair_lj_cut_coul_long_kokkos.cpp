@@ -13,18 +13,14 @@
 
 #include "pair_lj_cut_coul_long_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "kokkos.h"
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "math_const.h"
 #include "memory_kokkos.h"

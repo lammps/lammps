@@ -12,14 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_dpd_energy_kokkos.h"
-#include <cstdio>
-#include <cstring>
 #include "atom_masks.h"
 #include "atom_kokkos.h"
-#include "force.h"
 #include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

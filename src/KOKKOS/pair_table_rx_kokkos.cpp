@@ -18,7 +18,6 @@
 #include "pair_table_rx_kokkos.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "kokkos.h"
 #include "atom.h"

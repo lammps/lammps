@@ -17,20 +17,13 @@
 
 #include "pair_coul_dsf_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "kokkos.h"
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "memory_kokkos.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
 #include "error.h"
 #include "atom_masks.h"

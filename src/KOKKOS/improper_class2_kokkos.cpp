@@ -16,22 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_class2_kokkos.h"
-#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "neighbor_kokkos.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001

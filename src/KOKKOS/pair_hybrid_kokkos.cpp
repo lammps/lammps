@@ -12,19 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid_kokkos.h"
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include <cctype>
 #include "atom_kokkos.h"
 #include "force.h"
 #include "pair.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "comm.h"
 #include "memory_kokkos.h"
-#include "error.h"
 #include "respa.h"
 #include "atom_masks.h"
 #include "kokkos.h"

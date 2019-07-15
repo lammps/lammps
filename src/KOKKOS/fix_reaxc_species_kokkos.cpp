@@ -16,27 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_species_kokkos.h"
-#include <cstdlib>
-#include <cmath>
 #include "atom.h"
-#include <cstring>
 #include "fix_ave_atom.h"
-#include "domain.h"
-#include "update.h"
 #include "reaxc_defs.h"
 #include "pair_reaxc_kokkos.h"
-#include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
 #include "force.h"
-#include "compute.h"
 #include "input.h"
-#include "variable.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "reaxc_list.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;

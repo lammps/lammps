@@ -113,6 +113,13 @@ void KimQuery::command(int narg, char **arg)
     narg--;
   }
   function = arg[1];
+  for (int i = 2; i < narg; ++i)
+  {
+    if (0 == strncmp("model=",arg[i], 6)) {
+      error->all(FLERR,"Illegal 'model' key in kim_query command");
+    }
+  }
+
 
 #if defined(LMP_KIM_CURL)
 
@@ -258,9 +265,9 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 
   if (value[0] == '[') {
     int len = strlen(value)-1;
-    if (value[len-1] == ']') {
+    if (value[len] == ']') {
       retval = new char[len];
-      value[len-1] = '\0';
+      value[len] = '\0';
       strcpy(retval,value+1);
     } else {
       retval = new char[len+2];

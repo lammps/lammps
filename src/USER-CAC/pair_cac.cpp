@@ -1101,8 +1101,8 @@ void PairCAC::compute_forcev(int iii){
 	  sq = quadrature_point_data[init_quad_list_counter+quad_loop][3];
 	  tq = quadrature_point_data[init_quad_list_counter+quad_loop][4];
 	  wq = quadrature_point_data[init_quad_list_counter+quad_loop][5];
-	  coefficients = quadrature_point_data[init_quad_list_counter+quad_loop][6];
 	}
+	coefficients = quadrature_point_data[init_quad_list_counter+quad_loop][6];
 	if(!atomic_flag)
 	force_densities(iii, s, t, w, coefficients,
 	  force_density[0], force_density[1], force_density[2]);

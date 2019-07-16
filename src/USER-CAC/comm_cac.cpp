@@ -1062,8 +1062,64 @@ void CommCAC::exchange()
 {
   int i,m,nexch,nsend,nrecv,nlocal,proc,offset;
   double lo,hi,value,lo_ep,hi_ep;
-  double **x;
+  double **x = atom->x;
+  double ****nodal_positions = atom->nodal_positions;
+  double ****initial_nodal_positions = atom->initial_nodal_positions;
+  int *element_type = atom->element_type;
+  int *poly_count = atom->poly_count;
+  int *nodes_count_list = atom->nodes_per_element_list;	
+  int nodes_per_element;
+  double xcom[3];
+  double dx[3];
+  nlocal = atom->nlocal;
+  int pbc_sign;
   AtomVec *avec = atom->avec;
+  // domain properties used in exchange method and methods it calls
+  // subbox bounds for orthogonal or triclinic
+
+  prd = domain->prd;
+  boxlo = domain->boxlo;
+  boxhi = domain->boxhi;
+
+  //check for pbc remaps and set nodal positions
+  for(i=0; i<nlocal; i++){
+  //compute finite element centroid
+  nodes_per_element = nodes_count_list[element_type[i]];
+  	xcom[0] = 0;
+		xcom[1] = 0;
+		xcom[2] = 0;
+    for(int k=0; k<nodes_per_element; k++){
+		  for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {
+			
+				xcom[0] += nodal_positions[i][k][poly_counter][0];
+				xcom[1] += nodal_positions[i][k][poly_counter][1];
+				xcom[2] += nodal_positions[i][k][poly_counter][2];
+
+			}
+		}
+	xcom[0] = xcom[0] / nodes_per_element / poly_count[i];
+	xcom[1] = xcom[1] / nodes_per_element / poly_count[i];
+	xcom[2] = xcom[2] / nodes_per_element / poly_count[i];
+
+  //test the difference 
+  for(int dim=0; dim < dimension; dim++){
+  dx[dim] = x[i][dim]-xcom[dim];
+  if(dx[dim]>0) pbc_sign = 1;
+  else pbc_sign = -1;
+  //if the difference exceeds the skin it was almost certainly remapped
+  if(dx[dim]>neighbor->skin||dx[dim]<-neighbor->skin){
+    for(int k=0; k<nodes_per_element; k++){
+		  for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {
+		   nodal_positions[i][k][poly_counter][dim] += pbc_sign*prd[dim];
+       initial_nodal_positions[i][k][poly_counter][dim] += pbc_sign*prd[dim];
+			}
+		}
+  }
+  
+  }
+  }
+
+  //end of pbc corrections
 
   // clear global->local map for owned and ghost atoms
   // b/c atoms migrate to new procs in exchange() and
@@ -1085,13 +1141,6 @@ void CommCAC::exchange()
   if (bufextra > bufextra_old)
     memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
 
-  // domain properties used in exchange method and methods it calls
-  // subbox bounds for orthogonal or triclinic
-
-  prd = domain->prd;
-  boxlo = domain->boxlo;
-  boxhi = domain->boxhi;
-
   if (triclinic == 0) {
     sublo = domain->sublo;
     subhi = domain->subhi;
@@ -1108,7 +1157,6 @@ void CommCAC::exchange()
 
     // fill buffer with atoms leaving my box, using < and >=
     // when atom is deleted, fill it in with last atom
-
     x = atom->x;
     lo = sublo[dim];
     hi = subhi[dim];

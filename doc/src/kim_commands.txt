@@ -57,17 +57,17 @@ Reliability :h5
 
 All content archived in OpenKIM is reviewed by the "KIM Editor"_https://openkim.org/governance/ for quality.
 IMs in OpenKIM are archived with full provenance control. Each is associated with a maintainer responsible for the integrity of the content. All changes are tracked and recorded.
-IMs in OpenKIM are exhaustively tested using "KIM Tests"_https://openkim.org/getting-started/kim-tests/ that compute a host of material properties, and "KIM Verification Checks"_https://openkim.org/about-verification-checks/ that provide the user with information on various aspects of the IM behavior and coding correctness. This information is displayed on the IM's page accessible through the  "OpenKIM browse interface"_https://openkim.org/browse. :ul
+IMs in OpenKIM are exhaustively tested using "KIM Tests"_https://openkim.org/doc/evaluation/kim-tests/ that compute a host of material properties, and "KIM Verification Checks"_https://openkim.org/doc/evaluation/kim-verification-checks/ that provide the user with information on various aspects of the IM behavior and coding correctness. This information is displayed on the IM's page accessible through the  "OpenKIM browse interface"_https://openkim.org/browse. :ul
 
 Reproducibility :h5
 
-Each IM in OpenKIM is issued a unique identifier ("KIM ID"_https://openkim.org/about-kim-ids/), which includes a version number (last three digits).  Any changes that can result in different numerical values lead to a version increment in the KIM ID. This makes it possible to reproduce simulations since the specific version of a specific IM used can be retrieved using its KIM ID.
+Each IM in OpenKIM is issued a unique identifier ("KIM ID"_https://openkim.org/doc/schema/kim-ids/), which includes a version number (last three digits).  Any changes that can result in different numerical values lead to a version increment in the KIM ID. This makes it possible to reproduce simulations since the specific version of a specific IM used can be retrieved using its KIM ID.
 OpenKIM is a member organization of "DataCite"_https://datacite.org/ and issues digital object identifiers (DOIs) to all IMs archived in OpenKIM. This makes it possible to cite the IM code used in a simulation in a publications to give credit to the developers and further facilitate reproducibility. :ul
 
 Convenience :h5
 
 IMs in OpenKIM are distributed in binary form along with LAMMPS and can be used in a LAMMPS input script simply by providing their KIM ID in the {kim_init} command documented on this page.
-The {kim_query} web query tool provides the ability to use the predictions of IMs for supported material properties (computed via "KIM Tests"_https://openkim.org/getting-started/kim-tests/) as part of a LAMMPS input script setup and analysis.
+The {kim_query} web query tool provides the ability to use the predictions of IMs for supported material properties (computed via "KIM Tests"_https://openkim.org/doc/evaluation/kim-tests/) as part of a LAMMPS input script setup and analysis.
 Support is provided for unit conversion between the "unit style"_units.html used in the LAMMPS input script and the units required by the OpenKIM IM. This makes it possible to use a single input script with IMs using different units without change and minimizes the likelihood of errors due to incompatible units.  :ul
 
 :link(IM_types)
@@ -80,10 +80,11 @@ The second type is called a {KIM Simulator Model} (SM). A KIM SM is an IM that i
 
 With these two IM types, OpenKIM can archive and test almost all IMs that
 can be used by LAMMPS. (It is easy to contribute new IMs to OpenKIM, see
-the "upload instructions"_https://openkim.org/getting-started/adding-content/.)
+the "upload instructions"_https://openkim.org/doc/repository/adding-content/.)
 
 OpenKIM IMs are uniquely identified by a
-"KIM ID"_https://openkim.org/about-kim-ids/. The extended KIM ID consists of
+"KIM ID"_https://openkim.org/doc/schema/kim-ids/.
+The extended KIM ID consists of
 a human-readable prefix identifying the type of IM, authors, publication year,
 and supported species, separated by two underscores from the KIM ID itself,
 which begins with an IM code
@@ -100,7 +101,7 @@ authorship and citation information, test and verification check results,
 visualizations of results, a wiki with documentation and user comments, and
 access to raw files, and other information.
 The URL for the Model Page is constructed from the
-"extended KIM ID"_https://openkim.org/about-kim-ids/ of the IM:
+"extended KIM ID"_https://openkim.org/doc/schema/kim-ids/ of the IM:
 
 https://openkim.org/id/extended_KIM_ID
 :pre
@@ -141,7 +142,7 @@ would not include {units} and {atom_style} commands.
 
 The required arguments of {kim_init} are the {model} name of the
 IM to be used in the simulation (for an IM archived in OpenKIM this is
-its "extended KIM ID"_https://openkim.org/about-kim-ids/), and
+its "extended KIM ID"_https://openkim.org/doc/schema/kim-ids/, and
 the {user_units}, which are the LAMMPS "units style"_units.html used
 in the input script.  (Any dimensioned numerical values in the input
 script and values read in from files are expected to be in the
@@ -219,7 +220,7 @@ _u_density :pre
 If desired, the input script can be designed to work with these conversion
 factors so that the script will work without change with any OpenKIM IM.
 (This approach is used in the
-"OpenKIM Testing Framework"_https://openkim.org/getting-started/kim-tests/.)
+"OpenKIM Testing Framework"_https://openkim.org/doc/evaluation/kim-tests/.)
 For example, the script given above for the cohesive energy of fcc Al
 can be rewritten to work with any IM regardless of units. The following
 script constructs an fcc lattice with a lattice parameter defined in
@@ -369,7 +370,7 @@ generated by {kim_query} based on the IM set in {kim_init} and must not
 be specified as an argument to {kim_query}.
 
 NOTE: Each {query_function} is associated with a default method (implemented
-as a "KIM Test"_https://openkim.org/getting-started/kim-tests/)
+as a "KIM Test"_https://openkim.org/doc/evaluation/kim-tests/)
 used to compute this property. In cases where there are multiple
 methods in OpenKIM for computing a property, a {method} keyword can
 be provided to select the method of choice.  See the

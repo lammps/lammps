@@ -240,6 +240,7 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 			if(ibin + stencil[k]<0) error->one(FLERR," negative bin index");
 			if(ibin + stencil[k]>=mbins) error->one(FLERR," excessive bin index");
 			j = bin_content[ibin + stencil[k]][jj];
+			neighbor_element_type = element_type[j];
 			if (i == j) continue;
       if(neighbor_element_type!=0){
         //checks for repeat elements
@@ -249,7 +250,7 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 			
 			jtype = type[j];
 			
-			neighbor_element_type = element_type[j];
+			
 			if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
       
 	    //check if array is large enough; allocate more if needed

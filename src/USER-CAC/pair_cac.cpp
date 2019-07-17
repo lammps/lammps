@@ -2047,14 +2047,12 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 					+ c_orth[2] * c_orth[2]);
 
 				int w_span = int(rcut / norm_c_orth) + 1;
-				int scan_type;
 				int origin_type = type_array[poly_counter];
 				int t_upper_limit;
 				int t_lower_limit;
 				int s_upper_limit;
 				int s_lower_limit;
 
-				scan_type = type_array[polyscan];
 				for (int wcount = -w_span; wcount < w_span + 1; wcount++) {
 					t_lower_limit = -int((rcut + proj_c2b_orth*wcount) / norm_b_orth) - 1;
 					t_upper_limit = int((rcut - proj_c2b_orth*wcount) / norm_b_orth) + 1;

@@ -201,8 +201,6 @@ void PairCACEAM::allocate()
   memory->create(dof_set, 6, 4, "pairCAC:surf_set");
   memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
   memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
-  memory->create(sort_surf_set, 6, 2, "pairCAC:surf_set");
-  memory->create(sort_dof_set, 6, 4, "pairCAC:surf_set");
   quadrature_init(2);
 }
 

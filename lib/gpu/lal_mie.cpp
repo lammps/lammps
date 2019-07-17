@@ -23,7 +23,7 @@ const char *mie=0;
 
 #include "lal_mie.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define MieT Mie<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -150,3 +150,4 @@ void MieT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Mie<PRECISION,ACC_PRECISION>;
+}

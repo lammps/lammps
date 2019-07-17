@@ -129,6 +129,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   // initialize the magnetic interaction flags
 
   pair_spin_flag = 0;
+  long_spin_flag = 0;
   precession_spin_flag = 0;
   maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
@@ -213,7 +214,15 @@ void FixNVESpin::init()
   if (count != npairspin)
     error->all(FLERR,"Incorrect number of spin pairs");
 
+  // set pair/spin and long/spin flags
+
   if (npairspin >= 1) pair_spin_flag = 1;
+
+  for (int i = 0; i<npairs; i++) {
+    if (force->pair_match("spin/long",0,i)) {
+      long_spin_flag = 1;
+    }
+  }
 
   // ptrs FixPrecessionSpin classes
 

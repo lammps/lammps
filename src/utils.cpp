@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstring>
 #include "utils.h"
+#include "lammps.h"
 #include "error.h"
 
 /*! \file utils.cpp */
@@ -120,6 +122,168 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
   }
   return;
 }
+
+/* ------------------------------------------------------------------ */
+
+std::string utils::check_packages_for_style(std::string style,
+                                            std::string name, LAMMPS *lmp)
+{
+  std::string errmsg = "Unrecognized " + style + " style '" + name + "'";
+  const char *pkg = lmp->match_style(style.c_str(),name.c_str());
+
+  if (pkg) {
+    errmsg += " is part of the " + std::string(pkg) + " package";
+    if (lmp->is_installed_pkg(pkg))
+      errmsg += ", but seems to be missing because of a dependency";
+    else
+      errmsg += " which is not enabled in this LAMMPS binary.";
+  }
+  return errmsg;
+}
+
+
+/* ----------------------------------------------------------------------
+   read a floating point value from a string
+   generate an error if not a legitimate floating point value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+double utils::numeric(const char *file, int line, const char *str,
+                      bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected floating point parameter instead of"
+                      " NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected floating point parameter instead of"
+                      " NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i])) continue;
+    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
+    if (str[i] == 'e' || str[i] == 'E') continue;
+    std::string msg("Expected floating point parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return atof(str);
+}
+
+/* ----------------------------------------------------------------------
+   read an integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int utils::inumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return atoi(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a big integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+bigint utils::bnumeric(const char *file, int line, const char *str,
+                       bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return ATOBIGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a tag integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+tagint utils::tnumeric(const char *file, int line, const char *str,
+                       bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return ATOTAGINT(str);
+}
+
 
 /* ------------------------------------------------------------------ */
 

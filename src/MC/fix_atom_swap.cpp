@@ -771,10 +771,13 @@ double FixAtomSwap::memory_usage()
 void FixAtomSwap::write_restart(FILE *fp)
 {
   int n = 0;
-  double list[4];
+  double list[6];
   list[n++] = random_equal->state();
   list[n++] = random_unequal->state();
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = nswap_attempts;
+  list[n++] = nswap_successes;
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -798,5 +801,12 @@ void FixAtomSwap::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   random_unequal->reset(seed);
 
-  next_reneighbor = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+
+  nswap_attempts = static_cast<int>(list[n++]);
+  nswap_successes = static_cast<int>(list[n++]);
+
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix atom/swap");
 }

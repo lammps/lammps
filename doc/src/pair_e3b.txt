@@ -99,7 +99,7 @@ This pair style does not support the "pair_modify"_pair_modify.html
 shift, table, and tail options.
 
 This pair style does not write its information to "binary restart
-files"_restart.html, since it is stored in potential files.  Thus, you
+files"_restart.html.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 

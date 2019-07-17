@@ -121,6 +121,7 @@ void run_allocateview_tests(int N, int R) {
       Kokkos::parallel_for(N8, KOKKOS_LAMBDA (const int& i) {
         a_ptr[i] = 0.0;
       });
+      Kokkos::fence();
       Kokkos::kokkos_free(a_ptr);
     }
     time_raw = timer.seconds()/R;

@@ -113,9 +113,11 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   if (strcmp(style,"one") == 0) {
     line = new char[256+6*64];
+    memset(line,0,256+6*64);
     strcpy(line,ONE);
   } else if (strcmp(style,"multi") == 0) {
     line = new char[256+12*64];
+    memset(line,0,256+12*64);
     strcpy(line,MULTI);
     lineflag = MULTILINE;
 
@@ -404,8 +406,9 @@ void Thermo::compute(int flag)
    call function to compute property
 ------------------------------------------------------------------------- */
 
-void Thermo::call_vfunc(int ifield)
+void Thermo::call_vfunc(int ifield_in)
 {
+  ifield = ifield_in;
   (this->*vfunc[ifield])();
 }
 

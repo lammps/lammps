@@ -148,6 +148,7 @@ struct TestWorkGraph {
 
   void test_for() {
     Kokkos::parallel_for(Policy(m_graph), *this);
+    Kokkos::fence();
     auto h_values = Kokkos::create_mirror_view(m_values);
     Kokkos::deep_copy(h_values, m_values);
     ASSERT_EQ( h_values(0), full_fibonacci(m_input) );

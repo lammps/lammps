@@ -25,6 +25,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -96,7 +97,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 #undef BodyStyle
 #undef BODY_CLASS
 
-  else error->all(FLERR,"Unknown body style");
+  else error->all(FLERR,utils::check_packages_for_style("body",arg[0],lmp).c_str());
 
   bptr->avec = this;
   icp = bptr->icp;
@@ -1278,17 +1279,17 @@ void AtomVecBody::data_atom(double *coord, imageint imagetmp, char **values)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  body[nlocal] = atoi(values[2]);
+  body[nlocal] = utils::inumeric(FLERR,values[2],true,lmp);
   if (body[nlocal] == 0) body[nlocal] = -1;
   else if (body[nlocal] == 1) body[nlocal] = 0;
   else error->one(FLERR,"Invalid bodyflag in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[3]);
+  rmass[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1317,12 +1318,12 @@ void AtomVecBody::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecBody::data_atom_hybrid(int nlocal, char **values)
 {
-  body[nlocal] = atoi(values[0]);
+  body[nlocal] = utils::inumeric(FLERR,values[0],true,lmp);
   if (body[nlocal] == 0) body[nlocal] = -1;
   else if (body[nlocal] == 1) body[nlocal] = 0;
   else error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  rmass[nlocal] = atof(values[1]);
+  rmass[nlocal] = utils::numeric(FLERR,values[1],true,lmp);
   if (rmass[nlocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -1349,12 +1350,12 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
 
 void AtomVecBody::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  angmom[m][0] = atof(values[3]);
-  angmom[m][1] = atof(values[4]);
-  angmom[m][2] = atof(values[5]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  angmom[m][0] = utils::numeric(FLERR,values[3],true,lmp);
+  angmom[m][1] = utils::numeric(FLERR,values[4],true,lmp);
+  angmom[m][2] = utils::numeric(FLERR,values[5],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1363,9 +1364,9 @@ void AtomVecBody::data_vel(int m, char **values)
 
 int AtomVecBody::data_vel_hybrid(int m, char **values)
 {
-  angmom[m][0] = atof(values[0]);
-  angmom[m][1] = atof(values[1]);
-  angmom[m][2] = atof(values[2]);
+  angmom[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  angmom[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  angmom[m][2] = utils::numeric(FLERR,values[2],true,lmp);
   return 3;
 }
 

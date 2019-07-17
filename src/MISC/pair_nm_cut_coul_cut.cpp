@@ -487,9 +487,8 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
 
 void *PairNMCutCoulCut::extract(const char *str, int &dim)
 {
-  dim = 0;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   dim = 2;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   if (strcmp(str,"e0") == 0) return (void *) e0;
   if (strcmp(str,"r0") == 0) return (void *) r0;
   if (strcmp(str,"nn") == 0) return (void *) nn;

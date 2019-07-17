@@ -23,7 +23,7 @@ const char *dipole_lj_sf=0;
 
 #include "lal_dipole_lj_sf.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define DipoleLJSFT DipoleLJSF<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -168,3 +168,4 @@ void DipoleLJSFT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class DipoleLJSF<PRECISION,ACC_PRECISION>;
+}

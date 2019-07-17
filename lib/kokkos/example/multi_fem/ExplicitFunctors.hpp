@@ -526,7 +526,7 @@ struct grad
     const int X = 0 ;
     const int Y = 1 ;
     const int Z = 2 ;
-    const Scalar dt_scale = -0.5 * *dt;
+    const Scalar dt_scale = -0.5 * dt();
 
     //  declare and reuse local data for frequently accessed data to
     //  reduce global memory reads and writes.
@@ -674,7 +674,7 @@ struct decomp_rotate
   KOKKOS_INLINE_FUNCTION
   void polar_decomp(int ielem, Scalar * v_gr, Scalar * str_ten, Scalar * str, Scalar * vort, Scalar * rot_old, Scalar * rot_new)const
   {
-    const Scalar dt = *dt_value;
+    const Scalar dt = dt_value();
     const Scalar dt_half = 0.5 * dt;
 
     //  Skew Symmetric part
@@ -958,8 +958,8 @@ struct internal_force
   KOKKOS_INLINE_FUNCTION
   void final( value_type & result ) const
   {
-    *prev_dt = *dt ;
-    *dt = result ;
+    prev_dt() = dt() ;
+    dt() = result ;
   };
 
   //--------------------------------------------------------------------------
@@ -1121,13 +1121,13 @@ struct internal_force
 
       const Scalar e = (rot_stretch(ielem,kxx)+rot_stretch(ielem,kyy)+rot_stretch(ielem,kzz))/3.0;
 
-      s_n[kxx] = stress_new(ielem,kxx) += *dt * (two_mu * (rot_stretch(ielem,kxx)-e)+3*bulk_modulus*e);
-      s_n[kyy] = stress_new(ielem,kyy) += *dt * (two_mu * (rot_stretch(ielem,kyy)-e)+3*bulk_modulus*e);
-      s_n[kzz] = stress_new(ielem,kzz) += *dt * (two_mu * (rot_stretch(ielem,kzz)-e)+3*bulk_modulus*e);
+      s_n[kxx] = stress_new(ielem,kxx) += dt() * (two_mu * (rot_stretch(ielem,kxx)-e)+3*bulk_modulus*e);
+      s_n[kyy] = stress_new(ielem,kyy) += dt() * (two_mu * (rot_stretch(ielem,kyy)-e)+3*bulk_modulus*e);
+      s_n[kzz] = stress_new(ielem,kzz) += dt() * (two_mu * (rot_stretch(ielem,kzz)-e)+3*bulk_modulus*e);
 
-      s_n[kxy] = stress_new(ielem,kxy) += *dt * two_mu * rot_stretch(ielem,kxy);
-      s_n[kyz] = stress_new(ielem,kyz) += *dt * two_mu * rot_stretch(ielem,kyz);
-      s_n[kzx] = stress_new(ielem,kzx) += *dt * two_mu * rot_stretch(ielem,kzx);
+      s_n[kxy] = stress_new(ielem,kxy) += dt() * two_mu * rot_stretch(ielem,kxy);
+      s_n[kyz] = stress_new(ielem,kyz) += dt() * two_mu * rot_stretch(ielem,kyz);
+      s_n[kzx] = stress_new(ielem,kzx) += dt() * two_mu * rot_stretch(ielem,kzx);
     }
 
   //----------------------------------------------------------------------------
@@ -1325,8 +1325,8 @@ struct nodal_step
 
       // Central difference time integration:
 
-      const Scalar dt_disp = *dt ;
-      const Scalar dt_vel = ( *dt + *prev_dt ) / 2.0 ;
+      const Scalar dt_disp = dt() ;
+      const Scalar dt_vel = ( dt() + prev_dt() ) / 2.0 ;
 
       velocity(inode,0,next_state) = v_new[0] =
         velocity(inode,0,current_state) + dt_vel * a_current[0];

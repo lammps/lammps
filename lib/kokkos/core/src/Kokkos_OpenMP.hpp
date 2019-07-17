@@ -107,8 +107,14 @@ public:
   /// \brief Wait until all dispatched functors complete on the given instance
   ///
   ///  This is a no-op on OpenMP
-  inline
+  static void impl_static_fence( OpenMP const& = OpenMP() ) noexcept;
+
+  #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   static void fence( OpenMP const& = OpenMP() ) noexcept;
+  #else
+  void fence() const;
+  #endif
+
 
   /// \brief Does the given instance return immediately after launching
   /// a parallel algorithm

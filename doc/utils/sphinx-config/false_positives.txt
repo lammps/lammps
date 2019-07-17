@@ -101,6 +101,7 @@ api
 Appl
 Apu
 arccos
+Archlinux
 arcsin
 arg
 args
@@ -1405,6 +1406,7 @@ Lenart
 lennard
 Lennard
 Lenosky
+Lenz
 Lett
 Leuven
 Leven
@@ -1526,6 +1528,7 @@ Makefile
 makefiles
 Makefiles
 makelist
+makepkg
 Makse
 malloc
 Malolepsza
@@ -2844,6 +2847,7 @@ unoptimized
 unpadded
 unphysical
 unphysically
+unreacted
 unscaled
 unsets
 unsmoothed

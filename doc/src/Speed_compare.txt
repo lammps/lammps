@@ -104,7 +104,7 @@ code (with a performance penalty due to having data transfers between
 host and GPU). :ulb,l
 
 The GPU package requires neighbor lists to be built on the CPU when using
-exclusion lists, hybrid pair styles, or a triclinic simulation box. :l
+exclusion lists, or a triclinic simulation box. :l
 
 The GPU package can be compiled for CUDA or OpenCL and thus supports
 both, Nvidia and AMD GPUs well. On Nvidia hardware, using CUDA is typically

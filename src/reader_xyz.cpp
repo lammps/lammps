@@ -117,7 +117,7 @@ void ReaderXYZ::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderXYZ::read_header(double /*box*/[3][3], int &triclinic,
+bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclinic*/,
                               int fieldinfo, int nfield,
                               int *fieldtype, char **/*fieldlabel*/,
                               int scaleflag, int wrapflag, int &fieldflag,
@@ -128,7 +128,7 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &triclinic,
 
   // signal that we have no box info at all
 
-  triclinic = -1;
+  boxinfo = 0;
 
   // if no field info requested, just return
 

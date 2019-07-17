@@ -16,11 +16,13 @@
 #include "atom_vec_hybrid_kokkos.h"
 #include "atom_kokkos.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -307,7 +309,7 @@ int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
 int AtomVecHybridKokkos::pack_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK);
+  atomKK->sync(Host,X_MASK);
 
   int i,j,k,m;
   double dx,dy,dz;
@@ -351,7 +353,7 @@ int AtomVecHybridKokkos::pack_comm(int n, int *list, double *buf,
 int AtomVecHybridKokkos::pack_comm_vel(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->sync(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   int i,j,k,m;
   double dx,dy,dz,dvx,dvy,dvz;
@@ -463,7 +465,7 @@ void AtomVecHybridKokkos::unpack_comm(int n, int first, double *buf)
     h_x(i,2) = buf[m++];
   }
 
-  modified(Host,X_MASK);
+  atomKK->modified(Host,X_MASK);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -500,7 +502,7 @@ void AtomVecHybridKokkos::unpack_comm_vel(int n, int first, double *buf)
     }
   }
 
-  modified(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->modified(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -512,7 +514,7 @@ void AtomVecHybridKokkos::unpack_comm_vel(int n, int first, double *buf)
 
 int AtomVecHybridKokkos::pack_reverse(int n, int first, double *buf)
 {
-  sync(Host,F_MASK);
+  atomKK->sync(Host,F_MASK);
 
   int i,k,m,last;
 
@@ -546,7 +548,7 @@ void AtomVecHybridKokkos::unpack_reverse(int n, int *list, double *buf)
     h_f(j,2) += buf[m++];
   }
 
-  modified(Host,F_MASK);
+  atomKK->modified(Host,F_MASK);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -559,7 +561,7 @@ void AtomVecHybridKokkos::unpack_reverse(int n, int *list, double *buf)
 int AtomVecHybridKokkos::pack_border(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
+  atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
 
   int i,j,k,m;
   double dx,dy,dz;
@@ -613,7 +615,7 @@ int AtomVecHybridKokkos::pack_border(int n, int *list, double *buf,
 int AtomVecHybridKokkos::pack_border_vel(int n, int *list, double *buf,
                                    int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
   int i,j,k,m;
   double dx,dy,dz,dvx,dvy,dvz;
   int omega_flag = atom->omega_flag;
@@ -741,7 +743,7 @@ void AtomVecHybridKokkos::unpack_border(int n, int first, double *buf)
     h_mask[i] = (int) ubuf(buf[m++]).i;
   }
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -787,7 +789,7 @@ void AtomVecHybridKokkos::unpack_border_vel(int n, int first, double *buf)
     }
   }
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -969,13 +971,13 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
 
 void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **values)
 {
-  sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = ATOTAGINT(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (h_type[nlocal] <= 0 || h_type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom h_type in Atoms section of data file");
 
@@ -1000,7 +1002,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
     h_angmom(nlocal,2) = 0.0;
   }
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   // each sub-style parses sub-style specific values
 
@@ -1017,13 +1019,13 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
 void AtomVecHybridKokkos::data_vel(int m, char **values)
 {
-  sync(Host,V_MASK);
+  atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = atof(values[0]);
-  h_v(m,1) = atof(values[1]);
-  h_v(m,2) = atof(values[2]);
+  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
 
-  modified(Host,V_MASK);
+  atomKK->modified(Host,V_MASK);
 
   // each sub-style parses sub-style specific values
 
@@ -1038,7 +1040,7 @@ void AtomVecHybridKokkos::data_vel(int m, char **values)
 
 void AtomVecHybridKokkos::pack_data(double **buf)
 {
-  sync(Host,TAG_MASK|TYPE_MASK|X_MASK);
+  atomKK->sync(Host,TAG_MASK|TYPE_MASK|X_MASK);
 
   int k,m;
 
@@ -1089,7 +1091,7 @@ void AtomVecHybridKokkos::write_data(FILE *fp, int n, double **buf)
 
 void AtomVecHybridKokkos::pack_vel(double **buf)
 {
-  sync(Host,V_MASK);
+  atomKK->sync(Host,V_MASK);
 
   int k,m;
 

@@ -75,7 +75,7 @@ struct DynRankDimTraits {
                            , const size_t N4
                            , const size_t N5
                            , const size_t N6
-                           , const size_t N7 )
+                           , const size_t /* N7 */)
   {
     return
       (   (N6 == unspecified && N5 == unspecified && N4 == unspecified && N3 == unspecified && N2 == unspecified && N1 == unspecified && N0 == unspecified) ? 0
@@ -106,7 +106,7 @@ struct DynRankDimTraits {
   // Extra overload to match that for specialize types v2
   template <typename Layout, typename ... P>
   KOKKOS_INLINE_FUNCTION
-  static size_t computeRank( const Kokkos::Impl::ViewCtorProp<P...>& prop, const Layout& layout )
+  static size_t computeRank( const Kokkos::Impl::ViewCtorProp<P...>& /* prop */, const Layout& layout )
   {
     return computeRank(layout);
   }
@@ -155,7 +155,7 @@ struct DynRankDimTraits {
   // Extra overload to match that for specialize types
   template <typename Traits, typename ... P>
   KOKKOS_INLINE_FUNCTION
-  static typename std::enable_if< (std::is_same<typename Traits::array_layout , Kokkos::LayoutRight>::value || std::is_same<typename Traits::array_layout , Kokkos::LayoutLeft>::value || std::is_same<typename Traits::array_layout , Kokkos::LayoutStride>::value) , typename Traits::array_layout >::type createLayout( const Kokkos::Impl::ViewCtorProp<P...>& prop, const typename Traits::array_layout& layout )
+  static typename std::enable_if< (std::is_same<typename Traits::array_layout , Kokkos::LayoutRight>::value || std::is_same<typename Traits::array_layout , Kokkos::LayoutLeft>::value || std::is_same<typename Traits::array_layout , Kokkos::LayoutStride>::value) , typename Traits::array_layout >::type createLayout( const Kokkos::Impl::ViewCtorProp<P...>& /* prop */, const typename Traits::array_layout& layout )
   {
     return createLayout( layout );
   }
@@ -655,7 +655,7 @@ public:
       const size_t dim_scalar = m_map.dimension_scalar();
       const size_t bytes = this->span() / dim_scalar;
 
-      typedef Kokkos::View<DataType*, typename traits::array_layout, typename traits::device_type, Kokkos::MemoryTraits<Kokkos::Unmanaged | traits::memory_traits::RandomAccess | traits::memory_traits::Atomic> > tmp_view_type;
+      typedef Kokkos::View<DataType*, typename traits::array_layout, typename traits::device_type, Kokkos::MemoryTraits<traits::memory_traits::is_unmanaged | traits::memory_traits::is_random_access | traits::memory_traits::is_atomic> > tmp_view_type;
       tmp_view_type rankone_view(this->data(), bytes, dim_scalar);
       return rankone_view(i0);
     }
@@ -1060,7 +1060,7 @@ public:
       }
 
       // Copy the input allocation properties with possibly defaulted properties
-      alloc_prop prop( arg_prop );
+      alloc_prop prop_copy( arg_prop );
 
 //------------------------------------------------------------
 #if defined( KOKKOS_ENABLE_CUDA )
@@ -1070,18 +1070,18 @@ public:
       // Fence using the trait's executon space (which will be Kokkos::Cuda)
       // to avoid incomplete type errors from usng Kokkos::Cuda directly.
       if ( std::is_same< Kokkos::CudaUVMSpace , typename traits::device_type::memory_space >::value ) {
-        traits::device_type::memory_space::execution_space::fence();
+        typename traits::device_type::memory_space::execution_space().fence();
       }
 #endif
 //------------------------------------------------------------
 
       Kokkos::Impl::SharedAllocationRecord<> *
-        record = m_map.allocate_shared( prop , Impl::DynRankDimTraits<typename traits::specialize>::template createLayout<traits, P...>(arg_prop, arg_layout) );
+        record = m_map.allocate_shared( prop_copy, Impl::DynRankDimTraits<typename traits::specialize>::template createLayout<traits, P...>(arg_prop, arg_layout) );
 
 //------------------------------------------------------------
 #if defined( KOKKOS_ENABLE_CUDA )
       if ( std::is_same< Kokkos::CudaUVMSpace , typename traits::device_type::memory_space >::value ) {
-        traits::device_type::memory_space::execution_space::fence();
+        typename traits::device_type::memory_space::execution_space().fence();
       }
 #endif
 //------------------------------------------------------------
@@ -1609,7 +1609,7 @@ struct DynRankViewFill {
 
       closure.execute();
 
-      execution_space::fence();
+      execution_space().fence();
     }
 };
 
@@ -1650,6 +1650,7 @@ struct DynRankViewRemap {
       typedef Kokkos::RangePolicy< ExecSpace > Policy ;
       const Kokkos::Impl::ParallelFor< DynRankViewRemap , Policy > closure( *this , Policy( 0 , n0 ) );
       closure.execute();
+      // Kokkos::fence(); // ??
     }
 
   KOKKOS_INLINE_FUNCTION

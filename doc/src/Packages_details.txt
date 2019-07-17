@@ -208,7 +208,7 @@ available on your system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#compress on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -358,7 +358,7 @@ developed the pair style.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#kim on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -404,7 +404,7 @@ lib/kokkos.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#kokkos on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -477,7 +477,7 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#latte on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -654,7 +654,7 @@ University of Chicago.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#mscg on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -686,7 +686,7 @@ and Vincent Natoli (Stone Ridge Technolgy).
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#opt on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -743,7 +743,7 @@ connections at hinge points.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#poems on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -775,7 +775,7 @@ lib/python/README for more details.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#python on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -911,6 +911,8 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 
 src/SPIN: filenames -> commands
 "Howto spins"_Howto_spins.html
+"pair_style spin/dipole/cut"_pair_spin_dipole.html
+"pair_style spin/dipole/long"_pair_spin_dipole.html
 "pair_style spin/dmi"_pair_spin_dmi.html
 "pair_style spin/exchange"_pair_spin_exchange.html
 "pair_style spin/magelec"_pair_spin_magelec.html
@@ -965,7 +967,7 @@ and LBNL.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#voronoi on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1017,7 +1019,7 @@ atomic information to continuum fields.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-atc on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1044,7 +1046,7 @@ model.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-awpmd on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1184,7 +1186,7 @@ Tribello.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-plumed on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1362,7 +1364,7 @@ H5MD format.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-h5md on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1400,7 +1402,7 @@ NOTE: the USER-INTEL package contains styles that require using the
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-intel on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1620,7 +1622,7 @@ at
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-molfile on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1660,7 +1662,7 @@ tools:
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-netcdf on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1704,7 +1706,7 @@ install/un-install the package and build LAMMPS in the usual manner:
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-omp on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1788,7 +1790,7 @@ without changes to LAMMPS itself.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-qmmm on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1846,7 +1848,7 @@ on your system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-quip on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1964,7 +1966,7 @@ Dynamics, Ernst Mach Institute, Germany).
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-smd on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -2090,7 +2092,7 @@ system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-vtk on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]

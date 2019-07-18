@@ -343,6 +343,11 @@ void FixDeposit::pre_exchange()
 
     // choose random position for new particle within region
     if (distflag == DIST_UNIFORM) {
+      // throw away the first few numbers to avoid the unexpected correlations 
+      double tmp_rand;
+      for (int ii=0; ii < 30; ii++) {
+        tmp_rand = random->uniform();      
+      }
       do {
         coord[0] = xlo + random->uniform() * (xhi-xlo);
         coord[1] = ylo + random->uniform() * (yhi-ylo);

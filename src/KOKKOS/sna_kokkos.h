@@ -25,6 +25,9 @@
 
 namespace LAMMPS_NS {
 
+typedef double SNAreal;
+typedef struct { SNAreal re, im; } SNAcomplex;
+
 struct SNAKK_ZINDICES {
   int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
 };
@@ -39,12 +42,22 @@ class SNAKokkos {
 public:
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
   typedef Kokkos::View<double*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<double*, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType> t_sna_2d;
-  typedef Kokkos::View<double***, Kokkos::LayoutRight, DeviceType> t_sna_3d;
-  typedef Kokkos::View<double***[3], Kokkos::LayoutRight, DeviceType> t_sna_4d;
-  typedef Kokkos::View<double**[3], Kokkos::LayoutRight, DeviceType> t_sna_3d3;
-  typedef Kokkos::View<double*****, Kokkos::LayoutRight, DeviceType> t_sna_5d;
+  typedef Kokkos::View<double*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<int**, DeviceType> t_sna_2i;
+  typedef Kokkos::View<double**, DeviceType> t_sna_2d;
+  typedef Kokkos::View<double***, DeviceType> t_sna_3d;
+  typedef Kokkos::View<double***[3], DeviceType> t_sna_4d;
+  typedef Kokkos::View<double**[3], DeviceType> t_sna_3d3;
+  typedef Kokkos::View<double*****, DeviceType> t_sna_5d;
+
+  typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
+  typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
+  typedef Kokkos::View<SNAcomplex**, DeviceType> t_sna_2c;
+  typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_cpu;
+  typedef Kokkos::View<SNAcomplex***, DeviceType> t_sna_3c;
+  typedef Kokkos::View<SNAcomplex***[3], DeviceType> t_sna_4c;
+  typedef Kokkos::View<SNAcomplex**[3], DeviceType> t_sna_3c3;
+  typedef Kokkos::View<SNAcomplex*****, DeviceType> t_sna_5c;
 
 inline
   SNAKokkos() {};
@@ -63,36 +76,31 @@ inline
 inline
   void init();            //
 
-inline
-  T_INT size_team_scratch_arrays();
-
-inline
-  T_INT size_thread_scratch_arrays();
-
   double memory_usage();
 
   int ncoeff;
 
   // functions for bispectrum coefficients
-
   KOKKOS_INLINE_FUNCTION
-  void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int); // ForceSNAP
+  void pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_zi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);    // ForceSNAP
+  void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_yi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
-   const Kokkos::View<F_FLOAT**, DeviceType> &beta, const int ii); // ForceSNAP
+  void compute_ui_orig(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_bi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);    // ForceSNAP
+  void compute_zi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
+  KOKKOS_INLINE_FUNCTION
+  void compute_yi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int,
+   const Kokkos::View<F_FLOAT**, DeviceType> &beta); // ForceSNAP
+  KOKKOS_INLINE_FUNCTION
+  void compute_bi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
 
   // functions for derivatives
 
   KOKKOS_INLINE_FUNCTION
-  void compute_duidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double*, double, double, int); //ForceSNAP
+  void compute_duidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); //ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_dbidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); //ForceSNAP
-  KOKKOS_INLINE_FUNCTION
-  void compute_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double *); // ForceSNAP
+  void compute_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   double compute_sfac(double, double); // add_uarraytot, compute_duarray
   KOKKOS_INLINE_FUNCTION
@@ -109,29 +117,26 @@ inline
 
 
   // Per InFlight Particle
-  t_sna_2d rij;
-  t_sna_1i inside;
-  t_sna_1d wj;
-  t_sna_1d rcutij;
-  int nmax;
+  t_sna_3d rij;
+  t_sna_2i inside;
+  t_sna_2d wj;
+  t_sna_2d rcutij;
+  t_sna_3d dedr;
+  int natom, nmax;
 
-  void grow_rij(int);
+  void grow_rij(int, int);
 
   int twojmax, diagonalstyle;
-  // Per InFlight Particle
-  t_sna_1d blist;
-  t_sna_1d ulisttot_r, ulisttot_i;
-  t_sna_1d_atomic ulisttot_r_a, ulisttot_i_a;
-  t_sna_1d zlist_r, zlist_i;
-  t_sna_2d ulist_r_ij, ulist_i_ij;
+  
+  t_sna_2d blist;
+  t_sna_2c_cpu ulisttot;
+  t_sna_2c zlist;
 
-  // Per InFlight Interaction
-  t_sna_1d ulist_r, ulist_i;
-  t_sna_1d_atomic ylist_r, ylist_i;
+  t_sna_3c ulist;
+  t_sna_2c ylist;
 
   // derivatives of data
-  t_sna_2d dulist_r, dulist_i;
-  t_sna_2d dblist;
+  t_sna_4c dulist;
 
 private:
   double rmin0, rfac0;
@@ -168,14 +173,14 @@ inline
 inline
   void init_rootpqarray();    // init()
   KOKKOS_INLINE_FUNCTION
-  void zero_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);      // compute_ui
+  void zero_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);      // compute_ui
   KOKKOS_INLINE_FUNCTION
-  void addself_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double); // compute_ui
+  void addself_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, double); // compute_ui
   KOKKOS_INLINE_FUNCTION
-  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, double, double, double, int); // compute_ui
+  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, double, double, double); // compute_ui
 
   KOKKOS_INLINE_FUNCTION
-  void compute_uarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
+  void compute_uarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
                       double, double, double,
                       double, double); // compute_ui
   inline
@@ -184,9 +189,9 @@ inline
 inline
   int compute_ncoeff();           // SNAKokkos()
   KOKKOS_INLINE_FUNCTION
-  void compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
+  void compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
                        double, double, double, // compute_duidrj
-                       double, double, double, double, double, int);
+                       double, double, double, double, double);
 
   // Sets the style for the switching function
   // 0 = none
@@ -197,7 +202,7 @@ inline
   double wself;
 
   int bzero_flag; // 1 if bzero subtracted from barray
-  Kokkos::View<double*, Kokkos::LayoutRight, DeviceType> bzero; // array of B values for isolated atoms
+  Kokkos::View<double*, DeviceType> bzero; // array of B values for isolated atoms
 };
 
 }

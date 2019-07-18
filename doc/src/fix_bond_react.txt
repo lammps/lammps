@@ -52,7 +52,7 @@ react = mandatory argument indicating new reaction specification :l
 
 [Examples:]
 
-For unabridged example scripts and files, see \examples\USER\misc\bond_react.
+For unabridged example scripts and files, see examples/USER/misc/bond_react.
 
 molecule mol1 pre_reacted_topology.txt
 molecule mol2 post_reacted_topology.txt

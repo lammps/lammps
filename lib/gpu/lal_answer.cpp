@@ -15,7 +15,7 @@
 
 #include "lal_answer.h"
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define AnswerT Answer<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
@@ -311,4 +311,4 @@ void AnswerT::cq(const int cq_index) {
 }
 
 template class Answer<PRECISION,ACC_PRECISION>;
-
+}

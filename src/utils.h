@@ -16,6 +16,7 @@
 
 /*! \file utils.h */
 
+#include "lmptype.h"
 #include <string>
 #include <cstdio>
 
@@ -75,7 +76,60 @@ namespace LAMMPS_NS {
      *  \param lmp   pointer to top-level LAMMPS class instance
      *  \return string usable for error messages
      */
-    std::string check_packages_for_style(std::string style, std::string name, LAMMPS *lmp);
+    std::string check_packages_for_style(std::string style,
+                                         std::string name, LAMMPS *lmp);
+
+    /** \brief Convert a string to a floating point number while checking
+        if it is a valid floating point or integer number
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return double precision floating point number
+     */
+    double numeric(const char *file, int line, const char *str,
+                   bool do_abort, LAMMPS *lmp);
+
+    /** \brief Convert a string to an integer number while checking
+        if it is a valid integer number (regular int)
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return integer number (regular int)
+     */
+    int inumeric(const char *file, int line, const char *str,
+                 bool do_abort, LAMMPS *lmp);
+
+    /** \brief Convert a string to an integer number while checking
+        if it is a valid integer number (bigint)
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return integer number (bigint)
+     */
+    bigint bnumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp);
+
+    /** \brief Convert a string to an integer number while checking
+        if it is a valid integer number (tagint)
+     *
+     *  \param file name of source file for error message
+     *  \param line in source file for error message
+     *  \param str  string to be converted to number
+     *  \param do_abort determines whether to call Error::one() or Error::all()
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return integer number (tagint)
+     */
+    tagint tnumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp);
   }
 }
 

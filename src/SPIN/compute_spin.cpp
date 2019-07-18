@@ -149,6 +149,6 @@ void ComputeSpin::compute_vector()
 
 void ComputeSpin::allocate()
 {
-  memory->create(vector,6,"compute/spin:vector");
+  memory->create(vector,size_vector,"compute/spin:vector");
 }
 

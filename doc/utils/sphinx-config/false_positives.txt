@@ -1521,6 +1521,7 @@ Magdeburg
 magelec
 Maginn
 magneton
+magnetons
 mainboard
 mainboards
 makefile

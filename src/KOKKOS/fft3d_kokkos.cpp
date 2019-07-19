@@ -597,8 +597,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 
   #if defined(FFT_FFTW_THREADS)
   if (nthreads > 1) {
-    fftw_init_threads();
-    fftw_plan_with_nthreads(nthreads);
+    FFTW_API(init_threads)();
+    FFTW_API(plan_with_nthreads)(nthreads);
   }
   #endif
 
@@ -710,7 +710,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   delete remapKK;
 
 #if defined (FFT_FFTW_THREADS)
-  fftw_cleanup_threads();
+  FFTW_API(cleanup_threads)();
 #elif defined (FFT_KISSFFT)
   delete kissfftKK;
 #endif

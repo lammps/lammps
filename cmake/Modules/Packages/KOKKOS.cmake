@@ -27,7 +27,9 @@ if(PKG_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
   if(PKG_KSPACE)
-    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp)
+    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
+                                   ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
+                                   ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
   endif()
 
   set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")

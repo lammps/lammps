@@ -25,6 +25,9 @@
 #include <cmath>
 #include "fft3d.h"
 #include "remap.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 #ifdef FFT_KISS
 /* include kissfft implementation */
@@ -266,7 +269,7 @@ struct fft_plan_3d *fft_3d_create_plan(
        int scaled, int permute, int *nbuf, int usecollective)
 {
   struct fft_plan_3d *plan;
-  int me,nprocs;
+  int me,nprocs,nthreads;
   int flag,remapflag;
   int first_ilo,first_ihi,first_jlo,first_jhi,first_klo,first_khi;
   int second_ilo,second_ihi,second_jlo,second_jhi,second_klo,second_khi;
@@ -278,6 +281,14 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
+
+#if defined(_OPENMP)
+  // query OpenMP info.
+  // should have been initialized systemwide in Comm class constructor
+  nthreads = omp_get_max_threads();
+#else
+  nthreads = 1;
+#endif
 
   // compute division of procs in 2 dimensions not on-processor
 
@@ -571,6 +582,13 @@ struct fft_plan_3d *fft_3d_create_plan(
   */
 
 #elif defined(FFT_FFTW3)
+#if defined(FFT_FFTW_THREADS)
+  if (nthreads > 1) {
+    FFTW_API(init_threads)();
+    FFTW_API(plan_with_nthreads)(nthreads);
+  }
+#endif
+
   plan->plan_fast_forward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
                             NULL,&nfast,1,plan->length1,
@@ -689,6 +707,9 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   FFTW_API(destroy_plan)(plan->plan_mid_backward);
   FFTW_API(destroy_plan)(plan->plan_fast_forward);
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
+#if defined(FFT_FFTW_THREADS)
+  FFTW_API(cleanup_threads)();
+#endif
 #else
   if (plan->cfg_slow_forward != plan->cfg_fast_forward &&
       plan->cfg_slow_forward != plan->cfg_mid_forward) {

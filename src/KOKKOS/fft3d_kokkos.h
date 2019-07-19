@@ -26,7 +26,9 @@
 #endif
 
 #ifdef FFT_FFTW_THREADS
-#define FFT_FFTW3
+#if !defined(FFT_FFTW3)
+#error "Must use -DFFT_FFTW3 with -DFFT_FFTW_THREADS"
+#endif
 #endif
 
 #if defined(FFT_MKL)

@@ -45,7 +45,6 @@ class MinSpinOSO_LBFGS: public Min {
     int nlocal_max;		// max value of nlocal (for size of lists)
 
     void advance_spins();
-    double fmnorm2();
     void calc_gradient();
     void calc_search_direction();
     double maximum_rotation(double *);
@@ -54,6 +53,7 @@ class MinSpinOSO_LBFGS: public Min {
     int calc_and_make_step(double, double, int);
     int awc(double, double, double, double);
     void make_step(double, double *);
+    double max_torque();
     double der_e_cur;   // current derivative along search dir.
     double der_e_pr;    // previous derivative along search dir.
     int use_line_search; // use line search or not.

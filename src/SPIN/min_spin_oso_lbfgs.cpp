@@ -212,25 +212,25 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
 
-    if (local_iter == 0)
-      ecurrent = energy_force(0);
-
     if (use_line_search) {
 
       // here we need to do line search
+      if (local_iter == 0)
+        calc_gradient();
+
       calc_search_direction();
       der_e_cur = 0.0;
-      for (int i = 0; i < 3 * nlocal; i++) {
+      for (int i = 0; i < 3 * nlocal; i++)
         der_e_cur += g_cur[i] * p_s[i];
-      }
       MPI_Allreduce(&der_e_cur,&der_e_cur_tmp,1,MPI_DOUBLE,MPI_SUM,world);
       der_e_cur = der_e_cur_tmp;
       if (update->multireplica == 1) {
         MPI_Allreduce(&der_e_cur_tmp,&der_e_cur,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       }
-      for (int i = 0; i < nlocal; i++) {
-        for (int j = 0; j < 3; j++) sp_copy[i][j] = sp[i][j];
-      }
+      for (int i = 0; i < nlocal; i++)
+        for (int j = 0; j < 3; j++)
+      sp_copy[i][j] = sp[i][j];
+
       eprevious = ecurrent;
       der_e_pr = der_e_cur;
       calc_and_make_step(0.0, 1.0, 0);
@@ -253,7 +253,6 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
       calc_search_direction();
       advance_spins();
       }
-      neval++;
       eprevious = ecurrent;
       ecurrent = energy_force(0);
       neval++;
@@ -282,7 +281,7 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      fmdotfm = fmnorm2();
+      fmdotfm = max_torque();
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -314,8 +313,7 @@ void MinSpinOSO_LBFGS::calc_gradient()
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double tdampx, tdampy, tdampz;
-  
+
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
@@ -542,21 +540,39 @@ void MinSpinOSO_LBFGS::advance_spins()
 }
 
 /* ----------------------------------------------------------------------
-   compute and return ||mag. torque||_2^2 / N
+   compute and return  max_i||mag. torque_i||_2
 ------------------------------------------------------------------------- */
 
-double MinSpinOSO_LBFGS::fmnorm2() {
-  double norm2, norm2_global;
+double MinSpinOSO_LBFGS::max_torque()
+{
+  double fmsq,fmaxsqone,fmaxsqloc,fmaxsqall;
   int nlocal = atom->nlocal;
-  int ntotal = 0;
 
-  norm2 = 0.0;
-  for (int i = 0; i < 3 * nlocal; i++) norm2 += g_cur[i] * g_cur[i];
-  MPI_Allreduce(&norm2, &norm2_global, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&nlocal, &ntotal, 1, MPI_INT, MPI_SUM, world);
-  double ans = norm2_global / (double) ntotal;
-  MPI_Bcast(&ans, 1, MPI_DOUBLE, 0, world);
-  return ans;
+  // finding max fm on this proc.
+
+  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    fmsq = 0.0;
+    for (int j = 0; j < 3; j++)
+      fmsq += g_cur[3 * i + j] * g_cur[3 * i + j];
+    fmaxsqone = MAX(fmaxsqone,fmsq);
+  }
+
+  // finding max fm on this replica
+
+  fmaxsqloc = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
+
+  // finding max fm over all replicas, if necessary
+  // this communicator would be invalid for multiprocess replicas
+
+  fmaxsqall = fmaxsqloc;
+  if (update->multireplica == 1) {
+    fmaxsqall = fmaxsqloc;
+    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+  }
+
+  return sqrt(fmaxsqall);
 }
 
 /* ----------------------------------------------------------------------

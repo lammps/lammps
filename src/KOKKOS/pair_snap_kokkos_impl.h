@@ -332,7 +332,7 @@ KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPBeta,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPBeta>::member_type& team) const {
 
   // TODO: use RangePolicy instead, or thread over ncoeff?
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type[i];
   const int ielem = d_map[itype];
@@ -437,7 +437,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeNeigh>::member_type& team) const {
 
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
   SNAKokkos<DeviceType> my_sna = snaKK;
   const double xtmp = x(i,0);
@@ -505,7 +505,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeNeigh,const typen
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPPreUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUi>::member_type& team) const {
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   SNAKokkos<DeviceType> my_sna = snaKK;
   my_sna.pre_ui(team,ii);
 }
@@ -516,7 +516,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUi,const typename
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
-  const int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
+  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
   if (ii >= inum) return;
 
   // Extract the neighbor number
@@ -530,7 +530,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUi,const typename
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeYi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeYi>::member_type& team) const {
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   SNAKokkos<DeviceType> my_sna = snaKK;
   my_sna.compute_yi(team,ii,d_beta);
 }
@@ -538,7 +538,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeYi,const typename
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeZi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeZi>::member_type& team) const {
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   SNAKokkos<DeviceType> my_sna = snaKK;
   my_sna.compute_zi(team,ii);
 }
@@ -546,7 +546,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeZi,const typename
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeBi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBi>::member_type& team) const {
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   SNAKokkos<DeviceType> my_sna = snaKK;
   my_sna.compute_bi(team,ii);
 }
@@ -557,7 +557,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDuidrj,const type
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
-  const int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
+  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
   if (ii >= inum) return;
 
   // Extract the neighbor number
@@ -574,7 +574,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDeidrj,const type
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   // Extract the atom number
-  const int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
+  int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((inum+team.team_size()-1)/team.team_size()));
   if (ii >= inum) return;
 
   // Extract the neighbor number
@@ -595,7 +595,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  const int ii = team.league_rank();
+  int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
   SNAKokkos<DeviceType> my_sna = snaKK;
   const int ninside = d_ninside(ii);

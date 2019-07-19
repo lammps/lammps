@@ -208,7 +208,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_ninside = Kokkos::View<int*, DeviceType>("PairSNAPKokkos:ninside",inum);
   }
 
-  int chunk_size = 2000;
+  int chunk_size = MIN(2000,inum);
   chunk_offset = 0;
 
   snaKK.grow_rij(chunk_size,max_neighs);

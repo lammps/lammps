@@ -91,8 +91,8 @@ PairOxdnaExcv::~PairOxdnaExcv()
 /* ----------------------------------------------------------------------
     compute vector COM-excluded volume interaction sites in oxDNA
 ------------------------------------------------------------------------- */
-void PairOxdnaExcv::compute_interaction_sites(double e1[3],
-  double /*e2*/[3], double rs[3], double rb[3])
+void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3], 
+    double /*e3*/[3], double rs[3], double rb[3])
 {
   double d_cs=-0.4, d_cb=+0.4;
 
@@ -162,7 +162,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
     // vector COM - backbone and base site a
-    compute_interaction_sites(ax,ay,ra_cs,ra_cb);
+    compute_interaction_sites(ax,ay,az,ra_cs,ra_cb);
 
     rtmp_s[0] = x[a][0] + ra_cs[0];
     rtmp_s[1] = x[a][1] + ra_cs[1];
@@ -187,7 +187,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
       // vector COM - backbone and base site b
-      compute_interaction_sites(bx,by,rb_cs,rb_cb);
+      compute_interaction_sites(bx,by,bz,rb_cs,rb_cb);
 
       // vector backbone site b to a
       delr_ss[0] = rtmp_s[0] - (x[b][0] + rb_cs[0]);
@@ -225,13 +225,16 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         fpair *= factor_lj;
         evdwl *= factor_lj;
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_ss[0],delr_ss[1],delr_ss[2]);
-
         delf[0] = delr_ss[0]*fpair;
         delf[1] = delr_ss[1]*fpair;
         delf[2] = delr_ss[2]*fpair;
+
+        // increment energy and virial
+        // NOTE: The virial is calculated on the 'molecular' basis.
+        // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -259,20 +262,19 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
       }
 
-
       // backbone-base
       if (rsq_sb < cutsq_sb_c[atype][btype]) {
 
         evdwl = F3(rsq_sb,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
                         lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_sb[0],delr_sb[1],delr_sb[2]);
-
         delf[0] = delr_sb[0]*fpair;
         delf[1] = delr_sb[1]*fpair;
         delf[2] = delr_sb[2]*fpair;
+
+        // increment energy and virial
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -306,13 +308,13 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         evdwl = F3(rsq_bs,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
                         lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_bs[0],delr_bs[1],delr_bs[2]);
-
         delf[0] = delr_bs[0]*fpair;
         delf[1] = delr_bs[1]*fpair;
         delf[2] = delr_bs[2]*fpair;
+
+        // increment energy and virial
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -346,13 +348,13 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         evdwl = F3(rsq_bb,cutsq_bb_ast[atype][btype],cut_bb_c[atype][btype],lj1_bb[atype][btype],
                         lj2_bb[atype][btype],epsilon_bb[atype][btype],b_bb[atype][btype],fpair);
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_bb[0],delr_bb[1],delr_bb[2]);
-
         delf[0] = delr_bb[0]*fpair;
         delf[1] = delr_bb[1]*fpair;
         delf[2] = delr_bb[2]*fpair;
+
+        // increment energy and virial
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];

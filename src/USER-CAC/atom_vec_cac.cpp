@@ -74,6 +74,7 @@ for(int element_index=0; element_index < alloc_counter; element_index++){
   memory->destroy(nodal_velocities[element_index]);
   memory->destroy(nodal_forces[element_index]);
 }
+memory->sfree(hold_nodal_positions);
 }
 
 /* ----------------------------------------------------------------------

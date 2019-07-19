@@ -31,6 +31,8 @@ class FixLangevin : public Fix {
   int setmask();
   void init();
   void setup(int);
+  //virtual void initial_integrate(int);
+  virtual void post_integrate();
   virtual void post_force(int);
   void post_force_respa(int, int, int);
   virtual void end_of_step();
@@ -46,7 +48,7 @@ class FixLangevin : public Fix {
   int unpack_exchange(int, double *);
 
  protected:
-  int gjfflag,oflag,tallyflag,zeroflag,tbiasflag;
+  int gjfflag,oflag,tallyflag,zeroflag,tbiasflag,hsflag;
   int flangevin_allocated;
   double ascale;
   double t_start,t_stop,t_period,t_target;
@@ -63,6 +65,9 @@ class FixLangevin : public Fix {
   double **flangevin;
   double *tforce;
   double **franprev;
+  double **lv;  //lucas velocity or half-step velocity
+  double **wildcard;
+
   int nvalues;
 
   char *id_temp;

@@ -25,8 +25,7 @@ MinimizeStyle(spin/oso_lbfgs, MinSpinOSO_LBFGS)
 namespace LAMMPS_NS {
 
 class MinSpinOSO_LBFGS: public Min {
-
-public:
+  public:
     MinSpinOSO_LBFGS(class LAMMPS *);
     virtual ~MinSpinOSO_LBFGS();
     void init();
@@ -34,42 +33,36 @@ public:
     int modify_param(int, char **);
     void reset_vectors();
     int iterate(int);
+  private:
+    int ireplica,nreplica; // for neb
+    double *spvec;		// variables for atomic dof, as 1d vector
+    double *fmvec;		// variables for atomic dof, as 1d vector
+    double *g_cur;  	// current gradient vector
+    double *g_old;  	// gradient vector at previous step
+    double *p_s;  		// search direction vector
+    double **sp_copy;   // copy of the spins
+    int local_iter;     // for neb
+    int nlocal_max;		// max value of nlocal (for size of lists)
+
     void advance_spins();
     double fmnorm2();
     void calc_gradient();
     void calc_search_direction();
     double maximum_rotation(double *);
-private:
-    int ireplica,nreplica; // for neb
-
-    int nlocal_max;		// max value of nlocal (for size of lists)
-
-    double *spvec;		// variables for atomic dof, as 1d vector
-    double *fmvec;		// variables for atomic dof, as 1d vector
-
-    double *g_cur;  	// current gradient vector
-    double *g_old;  	// gradient vector at previous step
-    double *p_s;  		// search direction vector
-    double **ds;  		// change in rotation matrix between two iterations, da
-    double **dy;        // change in gradients between two iterations, dg
-    double *rho;        // estimation of curvature
-    double **sp_copy;   // copy of the spins
-
-    int num_mem;        // number of stored steps
-    int local_iter;     // for neb
-
-    double der_e_cur;   // current derivative along search dir.
-    double der_e_pr;    // previous derivative along search dir.
-
-    int use_line_search; // use line search or not.
-    double maxepsrot;
-
     void vm3(const double *, const double *, double *);
     void rodrigues_rotation(const double *, double *);
     int calc_and_make_step(double, double, int);
     int awc(double, double, double, double);
     void make_step(double, double *);
+    double der_e_cur;   // current derivative along search dir.
+    double der_e_pr;    // previous derivative along search dir.
+    int use_line_search; // use line search or not.
+    double maxepsrot;
 
+    double **ds;  		// change in rotation matrix between two iterations, da
+    double **dy;        // change in gradients between two iterations, dg
+    double *rho;        // estimation of curvature
+    int num_mem;        // number of stored steps
     bigint last_negative;
 };
 

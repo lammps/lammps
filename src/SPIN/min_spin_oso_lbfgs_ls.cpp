@@ -76,6 +76,7 @@ MinSpinOSO_LBFGS_LS::MinSpinOSO_LBFGS_LS(LAMMPS *lmp) :
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
   use_line_search = 1;
+  maxepsrot = MY_2PI / (100.0);
 
 }
 
@@ -146,6 +147,13 @@ int MinSpinOSO_LBFGS_LS::modify_param(int narg, char **arg)
     use_line_search = force->numeric(FLERR,arg[1]);
     return 2;
   }
+  if (strcmp(arg[0],"discrete_factor") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    double discrete_factor;
+    discrete_factor = force->numeric(FLERR,arg[1]);
+    maxepsrot = MY_2PI / discrete_factor;
+    return 2;
+  }
   return 0;
 }
 
@@ -184,6 +192,7 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
 
   if (nlocal_max < nlocal) {
     nlocal_max = nlocal;
+    local_iter = 0;
     memory->grow(g_old,3*nlocal_max,"min/spin/oso/lbfgs_ls:g_old");
     memory->grow(g_cur,3*nlocal_max,"min/spin/oso/lbfgs_ls:g_cur");
     memory->grow(p_s,3*nlocal_max,"min/spin/oso/lbfgs_ls:p_s");
@@ -195,7 +204,7 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
   }
 
   for (int iter = 0; iter < maxiter; iter++) {
-    
+
     if (timer->check_timeout(niter))
       return TIMEOUT;
   
@@ -205,17 +214,13 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
 
-    if (local_iter == 0){
-        ecurrent = energy_force(0);
-        calc_gradient();
-        neval++;
-    }
-    calc_search_direction();
+    if (local_iter == 0)
+      ecurrent = energy_force(0);
 
     if (use_line_search) {
 
       // here we need to do line search
-
+      calc_search_direction();
       der_e_cur = 0.0;
       for (int i = 0; i < 3 * nlocal; i++) {
         der_e_cur += g_cur[i] * p_s[i];
@@ -235,8 +240,22 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
     else{
 
       // here we don't do line search
+      // but use cutoff rotation angle
+      // if gneb calc., nreplica > 1
+      // then calculate gradients and advance spins
+      // of intermediate replicas only
 
+      if (nreplica > 1) {
+      if(ireplica != 0 && ireplica != nreplica-1)
+      calc_gradient();
+      calc_search_direction();
       advance_spins();
+      } else{
+      calc_gradient();
+      calc_search_direction();
+      advance_spins();
+      }
+      neval++;
       eprevious = ecurrent;
       ecurrent = energy_force(0);
       neval++;
@@ -265,7 +284,7 @@ int MinSpinOSO_LBFGS_LS::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      fmdotfm = fmnorm_sqr();
+      fmdotfm = fmnorm2();
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -340,7 +359,9 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction()
   double *alpha;
 
   double factor;
+  double scaling = 1.0;
 
+  // for multiple replica do not move end points
   if (nreplica > 1) {
     if (ireplica == 0 || ireplica == nreplica - 1) {
       factor = 0.0;
@@ -354,9 +375,14 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction()
   alpha = (double *) calloc(num_mem, sizeof(double));
 
   if (local_iter == 0){ 	// steepest descent direction
+
+    //if no line search then calculate maximum rotation
+    if (use_line_search == 0)
+      scaling = maximum_rotation(g_cur);
+
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = -g_cur[i];
-      g_old[i] = g_cur[i];
+      p_s[i] = -g_cur[i] * factor * scaling;;
+      g_old[i] = g_cur[i]  * factor;
       for (int k = 0; k < num_mem; k++){
         ds[k][i] = 0.0;
         dy[k][i] = 0.0;
@@ -478,9 +504,11 @@ void MinSpinOSO_LBFGS_LS::calc_search_direction()
         p_s[i] += ds[c_ind][i] * (alpha[c_ind] - beta);
       }
     }
+    if (use_line_search == 0)
+      scaling = maximum_rotation(p_s);
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = - factor * p_s[i];
-      g_old[i] = g_cur[i];
+      p_s[i] = - factor * p_s[i] * scaling;
+      g_old[i] = g_cur[i] * factor;
     }
   }
 
@@ -516,32 +544,21 @@ void MinSpinOSO_LBFGS_LS::advance_spins()
 }
 
 /* ----------------------------------------------------------------------
-   compute and return ||mag. torque||_2^2
+   compute and return ||mag. torque||_2^2 / N
 ------------------------------------------------------------------------- */
 
-double MinSpinOSO_LBFGS_LS::fmnorm_sqr()
-{
+double MinSpinOSO_LBFGS_LS::fmnorm2() {
+  double norm2, norm2_global;
   int nlocal = atom->nlocal;
-  double tx,ty,tz;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
+  int ntotal = 0;
 
-  // calc. magnetic torques norm
-
-  double local_norm2_sqr = 0.0;
-  for (int i = 0; i < 3 * nlocal; i++) {
-    local_norm2_sqr += g_cur[i]*g_cur[i];
-  }
-
-  // no extra atom calc. for spins
-
-  if (nextra_atom)
-    error->all(FLERR,"extra atom option not available yet");
-
-  double norm2_sqr = 0.0;
-  MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
-
-  return norm2_sqr;
+  norm2 = 0.0;
+  for (int i = 0; i < 3 * nlocal; i++) norm2 += g_cur[i] * g_cur[i];
+  MPI_Allreduce(&norm2, &norm2_global, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&nlocal, &ntotal, 1, MPI_INT, MPI_SUM, world);
+  double ans = norm2_global / (double) ntotal;
+  MPI_Bcast(&ans, 1, MPI_DOUBLE, 0, world);
+  return ans;
 }
 
 /* ----------------------------------------------------------------------
@@ -737,4 +754,32 @@ int MinSpinOSO_LBFGS_LS::awc(double der_phi_0, double phi_0, double der_phi_j, d
     return 1;
   else
     return 0;
+}
+
+double MinSpinOSO_LBFGS_LS::maximum_rotation(double *p)
+{
+  double norm2,norm2_global,scaling,alpha;
+  int nlocal = atom->nlocal;
+  int ntotal = 0;
+
+  norm2 = 0.0;
+  for (int i = 0; i < 3 * nlocal; i++) norm2 += p[i] * p[i];
+
+  MPI_Allreduce(&norm2,&norm2_global,1,MPI_DOUBLE,MPI_SUM,world);
+  if (update->multireplica == 1) {
+    norm2 = norm2_global;
+    MPI_Allreduce(&norm2,&norm2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+  }
+  MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
+  if (update->multireplica == 1) {
+    nlocal = ntotal;
+    MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,universe->uworld);
+  }
+
+  scaling = (maxepsrot * sqrt((double) ntotal / norm2_global));
+
+  if (scaling < 1.0) alpha = scaling;
+  else alpha = 1.0;
+
+  return alpha;
 }

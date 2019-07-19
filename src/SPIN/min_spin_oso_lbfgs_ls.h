@@ -35,10 +35,10 @@ public:
     void reset_vectors();
     int iterate(int);
     void advance_spins();
-    double fmnorm_sqr();
+    double fmnorm2();
     void calc_gradient();
     void calc_search_direction();
-
+    double maximum_rotation(double *);
 private:
     int ireplica,nreplica; // for neb
 
@@ -62,7 +62,7 @@ private:
     double der_e_pr;    // previous derivative along search dir.
 
     int use_line_search; // use line search or not.
-
+    double maxepsrot;
 
     void vm3(const double *, const double *, double *);
     void rodrigues_rotation(const double *, double *);

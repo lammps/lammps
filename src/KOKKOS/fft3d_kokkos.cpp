@@ -761,10 +761,10 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   FFTW_API(destroy_plan)(plan->plan_fast_forward);
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
 
-
-
-
+#if defined (FFT_FFTW_THREADS)
   FFTW_API(cleanup_threads)();
+#endif
+
 #elif defined (FFT_KISSFFT)
   delete kissfftKK;
 #endif

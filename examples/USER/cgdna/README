@@ -23,12 +23,15 @@ A - C - G - T - A - C - G - T
 T - G - C - A   T - G - C - A
 
 /examples/duplex3:
-This is basically the duplex1 run with both nucleotide mass and moment
-of inertia set to the values of the standalone implementation of oxDNA, 
-which are M=I=1. To achieve this, the masses were set directly, whereas
-the diameter of the ellipsoid in the data file was changed to 3.16227766.
-This allows direct comparision of e.g. trajectory data or energies on a
-per-timestep basis until numerical noise leads eventually to deviations. 
+This is basically the duplex1 run with sequence-dependent stacking
+and hydrogen-bonding strengths enabled and both nucleotide mass and 
+moment of inertia set to the value of the standalone implementation 
+of oxDNA (M = I = 1). To achieve this, the masses can be set directly 
+in the input and data file, whereas the moment of inertia is set via 
+the diameter of the ellipsoid in the data file and has a value of 3.16227766.
+The change of mass and moment of inertia allows direct comparision of 
+e.g. trajectory data, energies or time-dependent observables on a per-timestep 
+basis until numerical noise causes deviations at later simulation times. 
 
 /util:
 This directory contains a simple python setup tool which creates 

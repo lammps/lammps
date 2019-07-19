@@ -1066,7 +1066,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
                       int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1074,8 +1074,10 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2);
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2);
+    if (rv != 4)
+      error->one(FLERR,"Incorrect format of Bonds section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1119,7 +1121,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
                        int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2,atom3;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1127,8 +1129,10 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3);
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2,&atom3);
+    if (rv != 5)
+      error->one(FLERR,"Incorrect format of Angles section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1189,7 +1193,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
                           int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1197,9 +1201,11 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d "
-           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
+                " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (rv != 6)
+      error->one(FLERR,"Incorrect format of Dihedrals section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1278,7 +1284,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
                           int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1286,9 +1292,11 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d "
-           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    rv = sscanf(buf,"%d %d "
+                TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (rv != 6)
+      error->one(FLERR,"Incorrect format of Impropers section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;

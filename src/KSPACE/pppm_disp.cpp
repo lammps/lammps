@@ -472,12 +472,6 @@ void PPPMDisp::init()
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-    #ifdef FFT_SINGLE
-      const char fft_prec[] = "single";
-    #else
-      const char fft_prec[] = "double";
-    #endif
-
       if (screen) {
         fprintf(screen,"  Coulomb G vector (1/distance)= %g\n",g_ewald);
         fprintf(screen,"  Coulomb grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
@@ -486,7 +480,7 @@ void PPPMDisp::init()
                 acc);
         fprintf(screen,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
-        fprintf(screen,"  using %s precision FFTs\n",fft_prec);
+        fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
         fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
                 ngrid_max, nfft_both_max);
       }
@@ -499,7 +493,7 @@ void PPPMDisp::init()
                 acc);
         fprintf(logfile,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
-        fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
+        fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
         fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
                 ngrid_max, nfft_both_max);
       }

@@ -22,11 +22,21 @@ KSpaceStyle(pppm/disp,PPPMDisp)
 
 #include "kspace.h"
 
+#if defined(FFT_FFTW3)
+#define LMP_FFT_LIB "FFTW3"
+#elif defined(FFT_MKL)
+#define LMP_FFT_LIB "MKL FFT"
+#else
+#define LMP_FFT_LIB "KISS FFT"
+#endif
+
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
+#define LMP_FFT_PREC "single"
 #define MPI_FFT_SCALAR MPI_FLOAT
 #else
 typedef double FFT_SCALAR;
+#define LMP_FFT_PREC "double"
 #define MPI_FFT_SCALAR MPI_DOUBLE
 #endif
 

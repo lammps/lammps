@@ -40,7 +40,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   comm_x_only = comm_f_only = 0;
   size_forward = 7;
   size_reverse = 6;
-  size_border = 14;
+  size_border = 15;
   size_velocity = 6;
   size_data_atom = 7;
   size_data_vel = 7;
@@ -543,6 +543,7 @@ int AtomVecEllipsoid::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = rmass[j];
       if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -575,6 +576,7 @@ int AtomVecEllipsoid::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = rmass[j];
       if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -617,6 +619,7 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = rmass[j];
       if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -656,6 +659,7 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
+        buf[m++] = rmass[j];
         if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -688,6 +692,7 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
+        buf[m++] = rmass[j];
         if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -734,6 +739,7 @@ int AtomVecEllipsoid::pack_border_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = rmass[j];
     if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
@@ -768,6 +774,7 @@ void AtomVecEllipsoid::unpack_border(int n, int first, double *buf)
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
+    rmass[i] = buf[m++];
     ellipsoid[i] = (int) ubuf(buf[m++]).i;
     if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
@@ -811,6 +818,7 @@ void AtomVecEllipsoid::unpack_border_vel(int n, int first, double *buf)
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
+    rmass[i] = buf[m++];
     ellipsoid[i] = (int) ubuf(buf[m++]).i;
     if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
@@ -853,6 +861,7 @@ int AtomVecEllipsoid::unpack_border_hybrid(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
+    rmass[i] = buf[m++];
     ellipsoid[i] = (int) ubuf(buf[m++]).i;
     if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {

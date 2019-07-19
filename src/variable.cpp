@@ -5163,8 +5163,8 @@ int VarReader::read_peratom()
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
-      if (tag <= 0 || tag > map_tag_max)
+      int rv = sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
+      if (tag <= 0 || tag > map_tag_max || rv != 2)
         error->one(FLERR,"Invalid atom ID in variable file");
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
       buf = next + 1;

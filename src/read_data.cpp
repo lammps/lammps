@@ -41,6 +41,7 @@
 #include "irregular.h"
 #include "error.h"
 #include "memory.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -995,74 +996,115 @@ void ReadData::header(int firstpass)
     // customize for new header lines
     // check for triangles before angles so "triangles" not matched as "angles"
     int extra_flag_value = 0;
+    int rv;
 
-    if (strstr(line,"atoms")) {
-      sscanf(line,BIGINT_FORMAT,&natoms);
+    if (utils::strmatch(line,"^\\s*\\d+\\s+atoms\\s")) {
+      rv = sscanf(line,BIGINT_FORMAT,&natoms);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'atoms' line in data file header");
       if (addflag == NONE) atom->natoms = natoms;
       else if (firstpass) atom->natoms += natoms;
 
-    } else if (strstr(line,"ellipsoids")) {
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+ellipsoids\\s")) {
       if (!avec_ellipsoid)
         error->all(FLERR,"No ellipsoids allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nellipsoids);
+      rv = sscanf(line,BIGINT_FORMAT,&nellipsoids);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'ellipsoids' line in data file header");
       if (addflag == NONE) atom->nellipsoids = nellipsoids;
       else if (firstpass) atom->nellipsoids += nellipsoids;
 
-    } else if (strstr(line,"lines")) {
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+lines\\s")) {
       if (!avec_line)
         error->all(FLERR,"No lines allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nlines);
+      rv =  sscanf(line,BIGINT_FORMAT,&nlines);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'lines' line in data file header");
       if (addflag == NONE) atom->nlines = nlines;
       else if (firstpass) atom->nlines += nlines;
 
-    } else if (strstr(line,"triangles")) {
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+triangles\\s")) {
       if (!avec_tri)
         error->all(FLERR,"No triangles allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&ntris);
+      rv = sscanf(line,BIGINT_FORMAT,&ntris);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'triangles' line in data file header");
       if (addflag == NONE) atom->ntris = ntris;
       else if (firstpass) atom->ntris += ntris;
 
-    } else if (strstr(line,"bodies")) {
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+bodies\\s")) {
       if (!avec_body)
         error->all(FLERR,"No bodies allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nbodies);
+      rv = sscanf(line,BIGINT_FORMAT,&nbodies);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'bodies' line in data file header");
       if (addflag == NONE) atom->nbodies = nbodies;
       else if (firstpass) atom->nbodies += nbodies;
 
-    } else if (strstr(line,"bonds")) {
-      sscanf(line,BIGINT_FORMAT,&nbonds);
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+bonds\\s")) {
+      rv = sscanf(line,BIGINT_FORMAT,&nbonds);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'bonds' line in data file header");
       if (addflag == NONE) atom->nbonds = nbonds;
       else if (firstpass) atom->nbonds += nbonds;
-    } else if (strstr(line,"angles")) {
-      sscanf(line,BIGINT_FORMAT,&nangles);
+
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+angles\\s")) {
+      rv = sscanf(line,BIGINT_FORMAT,&nangles);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'angles' line in data file header");
       if (addflag == NONE) atom->nangles = nangles;
       else if (firstpass) atom->nangles += nangles;
-    } else if (strstr(line,"dihedrals")) {
-      sscanf(line,BIGINT_FORMAT,&ndihedrals);
+
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+dihedrals\\s")) {
+      rv = sscanf(line,BIGINT_FORMAT,&ndihedrals);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'dihedrals' line in data file header");
       if (addflag == NONE) atom->ndihedrals = ndihedrals;
       else if (firstpass) atom->ndihedrals += ndihedrals;
-    } else if (strstr(line,"impropers")) {
-      sscanf(line,BIGINT_FORMAT,&nimpropers);
+
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+impropers\\s")) {
+      rv = sscanf(line,BIGINT_FORMAT,&nimpropers);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'impropers' line in data file header");
       if (addflag == NONE) atom->nimpropers = nimpropers;
       else if (firstpass) atom->nimpropers += nimpropers;
 
     // Atom class type settings are only set by first data file
 
-    } else if (strstr(line,"atom types")) {
-      sscanf(line,"%d",&ntypes);
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+atom\\s+types\\s")) {
+      rv = sscanf(line,"%d",&ntypes);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'atom types' line "
+                   "in data file header");
       if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
-    } else if (strstr(line,"bond types")) {
-      sscanf(line,"%d",&nbondtypes);
+
+    } else if (utils::strmatch(line,"\\s*\\d+\\s+bond\\s+types\\s")) {
+      rv = sscanf(line,"%d",&nbondtypes);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'bond types' line "
+                   "in data file header");
       if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
-    } else if (strstr(line,"angle types")) {
-      sscanf(line,"%d",&nangletypes);
+
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+angle\\s+types\\s")) {
+      rv = sscanf(line,"%d",&nangletypes);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'angle types' line "
+                   "in data file header");
       if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
-    } else if (strstr(line,"dihedral types")) {
-      sscanf(line,"%d",&ndihedraltypes);
+
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+dihedral\\s+types\\s")) {
+      rv = sscanf(line,"%d",&ndihedraltypes);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'dihedral types' line "
+                   "in data file header");
       if (addflag == NONE)
         atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
-    } else if (strstr(line,"improper types")) {
-      sscanf(line,"%d",&nimpropertypes);
+
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+improper\\s+types\\s")) {
+      rv = sscanf(line,"%d",&nimpropertypes);
+      if (rv != 1)
+        error->all(FLERR,"Could not parse 'improper types' line "
+                   "in data file header");
       if (addflag == NONE)
         atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
@@ -1091,15 +1133,27 @@ void ReadData::header(int firstpass)
     // local copy of box info
     // so can treat differently for first vs subsequent data files
 
-    } else if (strstr(line,"xlo xhi")) {
-      sscanf(line,"%lg %lg",&boxlo[0],&boxhi[0]);
-    } else if (strstr(line,"ylo yhi")) {
-      sscanf(line,"%lg %lg",&boxlo[1],&boxhi[1]);
-    } else if (strstr(line,"zlo zhi")) {
-      sscanf(line,"%lg %lg",&boxlo[2],&boxhi[2]);
-    } else if (strstr(line,"xy xz yz")) {
+    } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi\\s")) {
+      rv = sscanf(line,"%lg %lg",&boxlo[0],&boxhi[0]);
+      if (rv != 2)
+        error->all(FLERR,"Could not parse 'xlo xhi' line in data file header");
+
+    } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi\\s")) {
+      rv = sscanf(line,"%lg %lg",&boxlo[1],&boxhi[1]);
+      if (rv != 2)
+        error->all(FLERR,"Could not parse 'ylo yhi' line in data file header");
+
+    } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi\\s")) {
+      rv = sscanf(line,"%lg %lg",&boxlo[2],&boxhi[2]);
+      if (rv != 2)
+        error->all(FLERR,"Could not parse 'zlo zhi' line in data file header");
+
+    } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+\\f+"
+                               "\\s+xy\\s+xz\\s+yz\\s")) {
       triclinic = 1;
-      sscanf(line,"%lg %lg %lg",&xy,&xz,&yz);
+      rv = sscanf(line,"%lg %lg %lg",&xy,&xz,&yz);
+      if (rv != 3)
+        error->all(FLERR,"Could not parse 'xy xz yz' line in data file header");
 
     } else break;
   }
@@ -1634,7 +1688,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 
 void ReadData::bodies(int firstpass)
 {
-  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp;
+  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp,rv;
   char *eof;
 
   int mapflag = 0;
@@ -1662,7 +1716,9 @@ void ReadData::bodies(int firstpass)
       while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
         eof = fgets(&buffer[m],MAXLINE,fp);
         if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
+        rv = sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
+        if (rv != 3)
+          error->one(FLERR,"Incorrect format in Bodies section of data file");
         m += strlen(&buffer[m]);
 
         // read lines one at a time into buffer and count words

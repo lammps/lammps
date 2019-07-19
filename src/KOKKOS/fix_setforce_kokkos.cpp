@@ -45,6 +45,7 @@ FixSetForceKokkos<DeviceType>::FixSetForceKokkos(LAMMPS *lmp, int narg, char **a
 
   memory->destroy(sforce);
   memoryKK->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
+  d_sforce = k_sforce.view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,6 +102,7 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     maxatom = atom->nmax;
     memoryKK->destroy_kokkos(k_sforce,sforce);
     memoryKK->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
+    d_sforce = k_sforce.view<DeviceType>();
   }
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;

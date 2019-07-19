@@ -446,7 +446,11 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       }
 
       // increment energy and virial
-      if (evflag) ev_tally(a,b,nlocal,newton_pair,evdwl,0.0,fpair,delr_st[0],delr_st[1],delr_st[2]);
+      // NOTE: The virial is calculated on the 'molecular' basis.
+      // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+      if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+          delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
       // pure torques not expressible as r x f
 

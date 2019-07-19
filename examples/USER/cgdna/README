@@ -22,6 +22,14 @@ A - C - G - T - A - C - G - T
 |   |   |   |   |   |   |   |
 T - G - C - A   T - G - C - A
 
+/examples/duplex3:
+This is basically the duplex1 run with both nucleotide mass and moment
+of inertia set to the values of the standalone implementation of oxDNA, 
+which are M=I=1. To achieve this, the masses were set directly, whereas
+the diameter of the ellipsoid in the data file was changed to 3.16227766.
+This allows direct comparision of e.g. trajectory data or energies on a
+per-timestep basis until numerical noise leads eventually to deviations. 
+
 /util:
 This directory contains a simple python setup tool which creates 
 single straight or helical DNA strands, DNA duplexes or arrays of DNA 

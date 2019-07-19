@@ -182,7 +182,7 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
     ++nid;
     rv = sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
     if (rv != 3)
-      error->one("Dump file is incorrectly formatted");
+      error->one(FLERR,"Dump file is incorrectly formatted");
 
     // XXX: we could insert an element2type translation here
     // XXX: for now we flag unrecognized types as type 0,

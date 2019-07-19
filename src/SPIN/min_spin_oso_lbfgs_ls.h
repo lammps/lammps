@@ -34,24 +34,15 @@ public:
     int modify_param(int, char **);
     void reset_vectors();
     int iterate(int);
-    double evaluate_dt();
     void advance_spins();
     double fmnorm_sqr();
-    void calc_gradient(double);
+    void calc_gradient();
     void calc_search_direction();
 
 private:
-    // test
-    int ireplica,nreplica;
-
-    // global and spin timesteps
+    int ireplica,nreplica; // for neb
 
     int nlocal_max;		// max value of nlocal (for size of lists)
-    double dt;
-    double dts;
-
-    double alpha_damp;		// damping for spin minimization
-    double discrete_factor;	// factor for spin timestep evaluation
 
     double *spvec;		// variables for atomic dof, as 1d vector
     double *fmvec;		// variables for atomic dof, as 1d vector
@@ -65,7 +56,7 @@ private:
     double **sp_copy;   // copy of the spins
 
     int num_mem;        // number of stored steps
-    int local_iter;
+    int local_iter;     // for neb
 
     double der_e_cur;   // current derivative along search dir.
     double der_e_pr;    // previous derivative along search dir.

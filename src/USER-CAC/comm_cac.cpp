@@ -1081,6 +1081,10 @@ void CommCAC::exchange()
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
 
+  //resize avec arrays if they're much larger than nlocal
+  if(atom->nmax > 1.4*nlocal)
+  avec->shrink_array(1.4*nlocal);
+
   //check for pbc remaps and set nodal positions
   for(i=0; i<nlocal; i++){
   //compute finite element centroid

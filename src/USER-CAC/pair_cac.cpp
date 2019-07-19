@@ -192,7 +192,6 @@ void PairCAC::compute(int eflag, int vflag) {
   double ****nodal_positions= atom->nodal_positions;
   double ****nodal_velocities= atom->nodal_velocities;
   double ****nodal_forces= atom->nodal_forces;
-  double ****nodal_gradients = atom->nodal_gradients;
   int *element_type = atom->element_type;
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
@@ -305,7 +304,6 @@ void PairCAC::compute(int eflag, int vflag) {
     current_poly_count = poly_count[i];
     type_array = node_types[i];
     current_nodal_positions = nodal_positions[i];
-    current_nodal_gradients = nodal_gradients[i];
     current_x = x[i];
     
     neighbor_weights[i][0]=0;
@@ -349,7 +347,6 @@ void PairCAC::compute(int eflag, int vflag) {
     current_poly_count = poly_count[i];
     type_array = node_types[i];
     current_nodal_positions = nodal_positions[i];
-    current_nodal_gradients = nodal_gradients[i];
     current_x = x[i];
     if (eflag) {
       element_energy = 0;

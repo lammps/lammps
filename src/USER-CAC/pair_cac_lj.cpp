@@ -326,7 +326,6 @@ int outofbounds=0;
 int timestep=update->ntimestep;
 double unit_cell_mapped[3];
 double scanning_unit_cell[3];
-double ****nodal_gradients=atom->nodal_gradients;
 double *special_lj = force->special_lj;
 double forcelj,factor_lj,fpair;
 int *type = atom->type;

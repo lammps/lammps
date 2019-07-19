@@ -737,7 +737,6 @@ double shape_func;
 double shape_func2;
 double unit_cell_mapped[3];
 double scanning_unit_cell[3];
-double ****nodal_gradients=atom->nodal_gradients;
 double forcelj,factor_lj,fpair;
 int *type = atom->type;
 double unit_cell[3];

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class AtomVecCAC_Charge : public AtomVecCAC {
  public:
   AtomVecCAC_Charge(class LAMMPS *);
-  virtual ~AtomVecCAC_Charge() {}
+  virtual ~AtomVecCAC_Charge();
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
@@ -52,7 +52,7 @@ class AtomVecCAC_Charge : public AtomVecCAC {
   void pack_data(double **);
   void write_data(FILE *, int, double **);
   bigint memory_usage();
-  virtual void force_clear(int, size_t);
+  virtual void shrink_array(int);
   
  protected:
   tagint *tag;
@@ -68,6 +68,9 @@ class AtomVecCAC_Charge : public AtomVecCAC {
   int search_range_max;
   int initial_size;
   char **element_names;
+
+  
+  virtual void allocate_element(int,int,int);
 };
 
 }

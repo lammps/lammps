@@ -61,6 +61,7 @@ class AtomVec : protected Pointers {
   virtual void copy(int, int, int) = 0;
   virtual void clear_bonus() {}
   virtual void force_clear(int, size_t) {}
+  virtual void shrink_array(int) {}
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;

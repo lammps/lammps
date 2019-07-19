@@ -333,13 +333,13 @@ Atom::~Atom()
   memory->destroy(etag);
   
   //delete USER-CAC arrays
-  memory->destroy(nodal_positions);
-  memory->destroy(initial_nodal_positions);
-  memory->destroy(nodal_gradients);
-  memory->destroy(nodal_velocities);
-  memory->destroy(nodal_forces);
+  memory->sfree(nodal_positions);
+  memory->sfree(initial_nodal_positions);
+  memory->sfree(nodal_velocities);
+  memory->sfree(nodal_forces);
   memory->destroy(poly_count);
-  memory->destroy(node_types);
+  memory->sfree(node_types);
+  memory->sfree(node_charges);
   memory->destroy(element_scale);
   memory->destroy(element_type);
   memory->destroy(nodes_per_element_list);

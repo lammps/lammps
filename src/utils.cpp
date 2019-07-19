@@ -13,6 +13,7 @@
 
 #include <mpi.h>
 #include <cstring>
+#include <cstdlib>
 #include "utils.h"
 #include "lammps.h"
 #include "error.h"

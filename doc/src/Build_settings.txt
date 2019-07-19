@@ -33,8 +33,9 @@ LAMMPS can use them if they are available on your system.
 
 [CMake variables]:
 
--D FFT=value              # FFTW3 or MKL or KISS or CUFFT, default is FFTW3 if found, else KISS
+-D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
 -D FFT_SINGLE=value       # yes or no (default), no = double precision
+-D FFT_THREADS=value      # yes or no, default is yes if FFT=FFTW3 and OpenMP FFT lib found, else no
 -D FFT_PACK=value         # array (default) or pointer or memcpy :pre
 
 NOTE: The values for the FFT variable must be in upper-case.  This is
@@ -51,9 +52,10 @@ the FFT library, you can set these variables:
 
 [Makefile.machine settings]:
 
-FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, -DFFT_FFTW_THREADS, -DFFT_CUFFT, or -DFFT_KISS
+FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
                               # default is KISS if not specified
 FFT_INC = -DFFT_SINGLE        # do not specify for double precision
+FFT_INC = -DFFT_FFTW_THREADS  # use threaded FFTW3. requires -DFFT_FFTW3 (or -DFFT_FFTW)
 FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY :pre
                               # default is FFT_PACK_ARRAY if not specified
 
@@ -61,7 +63,7 @@ FFT_INC =       -I/usr/local/include
 FFT_PATH =      -L/usr/local/lib
 FFT_LIB =       -lfftw3             # FFTW3 double precision
 FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
-FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision, OpenMP threaded using the KOKKOS package
+FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision, OpenMP threaded
 FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  # MKL with Intel compiler
 FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core     # MKL with GNU compiler
 FFT_LIB =       -lcufft             # cuFFT (for GPUs using the KOKKOS package) :pre
@@ -118,6 +120,9 @@ library libfftw3f.a
 
 make clean
 ./configure --enable-single; make; make install :pre
+
+When using -DFFT_FFTW_THREADS you need to also have the FFTW3
+OpenMP thread interface libraries available.
 
 Performing 3d FFTs requires communication to transpose the 3d FFT
 grid.  The data packing/unpacking for this can be done in one of 3

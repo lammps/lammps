@@ -174,11 +174,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // no need to set peratom_flag, b/c data is for internal use only
 
   if (gjfflag) {
-    int mem = 6*atom->nmax*sizeof(double);
-    if (hsflag) mem += 3*atom->nmax*sizeof(double);
-
-    comm->maxexchange_fix = MAX(comm->maxexchange_fix, 0);
-    comm->maxexchange_fix += MAX(1000, mem);
+    //int mem = 6*atom->nmax*sizeof(double);
+    //if (hsflag) mem += 3*atom->nmax*sizeof(double);
+//
+    //comm->maxexchange_fix = MAX(comm->maxexchange_fix, 0);
+    //comm->maxexchange_fix += MAX(1000, mem);
 
     nvalues = 3;
     grow_arrays(atom->nmax);
@@ -230,7 +230,6 @@ FixLangevin::~FixLangevin()
 int FixLangevin::setmask()
 {
   int mask = 0;
-  //if (gjfflag) mask |= INITIAL_INTEGRATE;
   if (gjfflag) mask |= POST_INTEGRATE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
@@ -319,35 +318,19 @@ void FixLangevin::setup(int vflag)
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  if (gjfflag && hsflag) {
+  if (gjfflag) {
 
-    double dt = update->dt;
 
     // update v of atoms in group
-
-    double **v = atom->v;
-    double *rmass = atom->rmass;
-    int *type = atom->type;
+    double ** v = atom->v;
+    double **f = atom->f;
     int nlocal = atom->nlocal;
     if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-    double boltz = force->boltz;
-    double mvv2e = force->mvv2e;
-    double ftm2v = force->ftm2v;
-
-    double gamma2;
-
     for (int i = 0; i < nlocal; i++) {
-      if (rmass) {
-        gamma2 = sqrt(rmass[i]) * sqrt(2.0*boltz/t_period/dt/mvv2e) / ftm2v;
-        gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
-      } else {
-        gamma2 = gfactor2[type[i]] * tsqrt;
-      }
-
-      franprev[i][0] = gamma2*random->gaussian();
-      franprev[i][1] = gamma2*random->gaussian();
-      franprev[i][2] = gamma2*random->gaussian();
+      f[i][0] = wildcard[i][0];
+      f[i][1] = wildcard[i][1];
+      f[i][2] = wildcard[i][2];
       wildcard[i][0] = v[i][0];
       wildcard[i][1] = v[i][1];
       wildcard[i][2] = v[i][2];

@@ -65,7 +65,7 @@ class FixLangevin : public Fix {
   double **flangevin;
   double *tforce;
   double **franprev;
-  double **lv;  //lucas velocity or half-step velocity
+  double **lv;  //2GJ velocity or half-step velocity
   double **wildcard;
 
   int nvalues;

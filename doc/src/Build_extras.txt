@@ -176,19 +176,13 @@ use with LAMMPS. If you want to use the "kim_query"_kim_commands.html
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-Note that in LAMMPS jargon, a KIM model driver is a pair style
-(e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
-element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.  Also note that when downloading and
-installing from source
+See "Obtaining KIM Models"_http://openkim.org/doc/usage/obtaining-models to
+learn how to install a pre-build binary of the OpenKIM Repository of Models.
+See the list of all KIM models here: https://openkim.org/browse/models
+
+(Also note that when downloading and installing from source
 the KIM API library with all its models, may take a long time (tens of
-minutes to hours) to build.  Of course you only need to do that once.
-
-See the list of KIM model drivers here:
-https://openkim.org/browse/model-drivers/alphabetical
-
-See the list of all KIM models here:
-https://openkim.org/browse/models/by-model-drivers
+minutes to hours) to build.  Of course you only need to do that once.)
 
 [CMake build]:
 

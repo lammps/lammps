@@ -75,6 +75,7 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
       x[i] += dtv * v[i];
     }
   } else if (igroup == 0) {
+    if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)
     #pragma vector aligned
     #pragma simd
@@ -84,6 +85,7 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
       x[i] += dtv * v[i];
     }
   } else {
+    if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)
     #pragma vector aligned
     #pragma simd
@@ -114,6 +116,15 @@ void FixNVEIntel::final_integrate()
     #endif
     for (int i = 0; i < _nlocal3; i++)
       v[i] += dtfm * f[i];
+  } else if (igroup == 0) {
+    if (neighbor->ago == 0) reset_dt();
+    #if defined(LMP_SIMD_COMPILER)
+    #pragma vector aligned
+    #pragma simd
+    #endif
+    for (int i = 0; i < _nlocal3; i++) {
+      v[i] += _dtfm[i] * f[i];
+    }
   } else {
     if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)

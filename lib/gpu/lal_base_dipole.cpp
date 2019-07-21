@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 #include "lal_base_dipole.h"
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BaseDipoleT BaseDipole<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -311,4 +311,4 @@ void BaseDipoleT::compile_kernels(UCL_Device &dev, const void *pair_str,
 }
 
 template class BaseDipole<PRECISION,ACC_PRECISION>;
-
+}

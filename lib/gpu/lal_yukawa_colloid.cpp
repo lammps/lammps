@@ -23,7 +23,7 @@ const char *yukawa_colloid=0;
 
 #include "lal_yukawa_colloid.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define YukawaColloidT YukawaColloid<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -289,3 +289,4 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class YukawaColloid<PRECISION,ACC_PRECISION>;
+}

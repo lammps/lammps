@@ -30,7 +30,7 @@ const char *device=0;
 #include "device_cubin.h"
 #endif
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define DeviceT Device<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
@@ -762,7 +762,9 @@ double DeviceT::host_memory_usage() const {
 
 template class Device<PRECISION,ACC_PRECISION>;
 Device<PRECISION,ACC_PRECISION> global_device;
+}
 
+using namespace LAMMPS_AL;
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                     const int last_gpu, const int gpu_mode,
                     const double particle_split, const int nthreads,
@@ -781,4 +783,3 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
-

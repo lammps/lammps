@@ -306,12 +306,6 @@ void PPPMKokkos<DeviceType>::init()
 
   if (me == 0) {
 
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
@@ -320,7 +314,7 @@ void PPPMKokkos<DeviceType>::init()
               estimated_accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
+      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -332,7 +326,7 @@ void PPPMKokkos<DeviceType>::init()
               estimated_accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
+      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }

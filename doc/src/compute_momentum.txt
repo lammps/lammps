@@ -29,7 +29,7 @@ the mass and velocity of the particle.
 
 [Output info:]
 
-This compute calculates a global vector (the summed momentum) on
+This compute calculates a global vector (the summed momentum) of
 length 3. This value can be used by any command that uses a global
 vector value from a compute as input. See the "Howto
 output"_Howto_output.html doc page for an overview of LAMMPS output

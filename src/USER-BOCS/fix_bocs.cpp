@@ -635,6 +635,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   char * line = (char *) calloc(200,sizeof(char));
 
   bool badInput = false;
+  char badDataMsg[MAX_MESSAGE_LENGTH];
   fpi = fopen(filename,"r");
   if (fpi)
   {
@@ -672,7 +673,6 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
         else if (n_entries > 2) {
           currVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
           if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
-            char badDataMsg[MAX_MESSAGE_LENGTH];
             snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
                      "BAD VOLUME INTERVAL: spline analysis requires uniform"
                      " volume distribution, found inconsistent volume"
@@ -686,7 +686,6 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       }
       else
       {
-        char badDataMsg[MAX_MESSAGE_LENGTH];
         snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
                  "BAD INPUT FORMAT: did not find 2 comma separated numeric"
                  " values in line %d of file %s\n\tline: %s",

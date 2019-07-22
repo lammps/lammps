@@ -10,7 +10,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
   int i, elti;
   int m;
   double rhob, G, dG, Gbar, dGbar, gam, shp[3], Z;
-  double B, denom, rho_bkgd;
+  double denom, rho_bkgd, Fl;
 
   //     Complete the calculation of density
 
@@ -111,35 +111,14 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         dgamma3[i] = 0.0;
       }
 
-      B = this->A_meam[elti] * this->Ec_meam[elti][elti];
+      Fl = embedding(this->A_meam[elti], this->Ec_meam[elti][elti], rhob, frhop[i]);
 
-      if (!iszero(rhob)) {
-        if (this->emb_lin_neg == 1 && rhob <= 0) {
-          frhop[i] = -B;
-        } else {
-          frhop[i] = B * (log(rhob) + 1.0);
+      if (eflag_either != 0) {
+        if (eflag_global != 0) {
+          *eng_vdwl = *eng_vdwl + Fl;
         }
-        if (eflag_either != 0) {
-          if (eflag_global != 0) {
-            if (this->emb_lin_neg == 1 && rhob <= 0) {
-              *eng_vdwl = *eng_vdwl - B * rhob;
-            } else {
-              *eng_vdwl = *eng_vdwl + B * rhob * log(rhob);
-            }
-          }
-          if (eflag_atom != 0) {
-            if (this->emb_lin_neg == 1 && rhob <= 0) {
-              eatom[i] = eatom[i] - B * rhob;
-            } else {
-              eatom[i] = eatom[i] + B * rhob * log(rhob);
-            }
-          }
-        }
-      } else {
-        if (this->emb_lin_neg == 1) {
-          frhop[i] = -B;
-        } else {
-          frhop[i] = B;
+        if (eflag_atom != 0) {
+          eatom[i] = eatom[i] + Fl;
         }
       }
     }

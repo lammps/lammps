@@ -56,7 +56,6 @@ class Input : protected Pointers {
   int label_active;            // 0 = no label, 1 = looking for label
   char *labelstr;              // label string being looked for
   int jump_skip;               // 1 if skipping next jump, 0 otherwise
-  int ifthenelse_flag;         // 1 if executing commands inside an if-then-else
 
   FILE **infiles;              // list of open input files
 

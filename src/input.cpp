@@ -82,7 +82,6 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   label_active = 0;
   labelstr = NULL;
   jump_skip = 0;
-  ifthenelse_flag = 0;
 
   if (me == 0) {
     nfile = 1;
@@ -959,11 +958,10 @@ void Input::ifthenelse()
       ncommands++;
     }
 
-    ifthenelse_flag = 1;
-    for (int i = 0; i < ncommands; i++) one(commands[i]);
-    ifthenelse_flag = 0;
-
-    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    for (int i = 0; i < ncommands; i++) {
+      one(commands[i]);
+      delete [] commands[i];
+    }
     delete [] commands;
 
     return;
@@ -1015,13 +1013,10 @@ void Input::ifthenelse()
 
     // execute the list of commands
 
-    ifthenelse_flag = 1;
-    for (int i = 0; i < ncommands; i++) one(commands[i]);
-    ifthenelse_flag = 0;
-
-    // clean up
-
-    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    for (int i = 0; i < ncommands; i++) {
+      one(commands[i]);
+      delete [] commands[i];
+    }
     delete [] commands;
 
     return;
@@ -1033,13 +1028,6 @@ void Input::ifthenelse()
 void Input::include()
 {
   if (narg != 1) error->all(FLERR,"Illegal include command");
-
-  // do not allow include inside an if command
-  // NOTE: this check will fail if a 2nd if command was inside the if command
-  //       and came before the include
-
-  if (ifthenelse_flag)
-    error->all(FLERR,"Cannot use include command within an if command");
 
   if (me == 0) {
     if (nfile == maxfile)

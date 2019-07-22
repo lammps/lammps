@@ -116,6 +116,9 @@ See the "current list of KIM PMs and SMs archived in OpenKIM"_https://openkim.or
 This list is sorted by species and can be filtered to display only
 IMs for certain species combinations.
 
+See "Obtaining KIM Models"_http://openkim.org/doc/usage/obtaining-models to
+learn how to install a pre-build binary of the OpenKIM Repository of Models.
+
 NOTE: It is also possible to locally install IMs not archived in OpenKIM,
 in which case their names do not have to conform to the KIM ID format.
 

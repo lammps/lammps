@@ -57,8 +57,7 @@ Boolean expression is FALSE, then no commands are executed.
 The syntax for Boolean expressions is described below.
 
 Each command (t1, f1, e1, etc) can be any valid LAMMPS input script
-command, except an "include"_include.html command, which is not
-allowed.  If the command is more than one word, it must enclosed in
+command.  If the command is more than one word, it must enclosed in
 quotes, so it will be treated as a single argument, as in the examples
 above.
 

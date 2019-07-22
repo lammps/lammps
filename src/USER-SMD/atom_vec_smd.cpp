@@ -36,6 +36,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1027,37 +1028,37 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
         if (nlocal == nmax)
                 grow(0);
 
-        tag[nlocal] = ATOTAGINT(values[0]);
+        tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
 
-        type[nlocal] = atoi(values[1]);
+        type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
         if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
                 error->one(FLERR, "Invalid atom type in Atoms section of data file");
 
-        molecule[nlocal] = ATOTAGINT(values[2]);
+        molecule[nlocal] = utils::tnumeric(FLERR,values[2],true,lmp);
         if (molecule[nlocal] <= 0)
                 error->one(FLERR, "Invalid molecule in Atoms section of data file");
 
-        vfrac[nlocal] = atof(values[3]);
+        vfrac[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
         if (vfrac[nlocal] < 0.0)
                 error->one(FLERR, "Invalid volume in Atoms section of data file");
 
-        rmass[nlocal] = atof(values[4]);
+        rmass[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
         if (rmass[nlocal] == 0.0)
                 error->one(FLERR, "Invalid mass in Atoms section of data file");
 
-        radius[nlocal] = atof(values[5]);
+        radius[nlocal] = utils::numeric(FLERR,values[5],true,lmp);
         if (radius[nlocal] < 0.0)
                 error->one(FLERR, "Invalid radius in Atoms section of data file");
 
-        contact_radius[nlocal] = atof(values[6]);
+        contact_radius[nlocal] = utils::numeric(FLERR,values[6],true,lmp);
         if (contact_radius[nlocal] < 0.0)
                 error->one(FLERR, "Invalid contact radius in Atoms section of data file");
 
         e[nlocal] = 0.0;
 
-        x0[nlocal][0] = atof(values[7]);
-        x0[nlocal][1] = atof(values[8]);
-        x0[nlocal][2] = atof(values[9]);
+        x0[nlocal][0] = utils::numeric(FLERR,values[7],true,lmp);
+        x0[nlocal][1] = utils::numeric(FLERR,values[8],true,lmp);
+        x0[nlocal][2] = utils::numeric(FLERR,values[9],true,lmp);
 
         x[nlocal][0] = coord[0];
         x[nlocal][1] = coord[1];
@@ -1108,12 +1109,12 @@ int AtomVecSMD::data_atom_hybrid(int /*nlocal*/, char **/*values*/) {
  ------------------------------------------------------------------------- */
 
 void AtomVecSMD::data_vel(int m, char **values) {
-        v[m][0] = atof(values[0]);
-        v[m][1] = atof(values[1]);
-        v[m][2] = atof(values[2]);
-        vest[m][0] = atof(values[0]);
-        vest[m][1] = atof(values[1]);
-        vest[m][2] = atof(values[2]);
+        v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+        v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+        v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+        vest[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+        vest[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+        vest[m][2] = utils::numeric(FLERR,values[2],true,lmp);
 }
 
 /* ----------------------------------------------------------------------

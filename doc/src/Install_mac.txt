@@ -10,47 +10,34 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 Download an executable for Mac :h3
 
 LAMMPS can be downloaded, built, and configured for OS X on a Mac with
-"Homebrew"_homebrew.  Only four of the LAMMPS packages are unavailable
-at this time because of additional needs not yet met: KIM, GPU,
-USER-INTEL, USER-ATC.
+"Homebrew"_homebrew.  The following LAMMPS packages are unavailable at this
+time because of additional needs not yet met: GPU, KOKKOS, LATTE, MSCG,
+MESSAGE, MPIIO POEMS VORONOI.
 
 After installing Homebrew, you can install LAMMPS on your system with
 the following commands:
 
-% brew tap homebrew/science
-% brew install lammps              # serial version
-% brew install lammps --with-mpi   # mpi support :pre
+% brew install lammps :pre
 
-This will install the executable "lammps", a python module named
-"lammps", and additional resources with all the standard packages.  To
-get the location of the additional resources type this:
-
-% brew info lammps :pre
-
-This command also tells you additional installation options available.
-The user-packages are available as options, just install them like
-this example for the USER-OMP package:
-
-% brew install lammps --enable-user-omp :pre
-
-It is usually best to install LAMMPS with the most up to date source
-files, which can be done with the "--HEAD" option:
-
-% brew install lammps --HEAD :pre
-
-To re-install the LAMMPS HEAD, run this command occasionally (make sure
-to use the desired options).
-
-% brew install --force lammps --HEAD $\{options\} :pre
+This will install the executables "lammps_serial" and "lammps_mpi", as well as
+the LAMMPS "doc", "potentials", "tools", "bench", and "examples" directories.
 
 Once LAMMPS is installed, you can test the installation with the
 Lennard-Jones benchmark file:
 
 % brew test lammps -v :pre
 
+The LAMMPS binary is built with the "KIM package"_Build_extras#kim which
+results in homebrew also installing the `kim-api` binaries when LAMMPS is
+installed.  In order to use potentials from "openkim.org"_openkim, you can
+install the `openkim-models` package
+
+% brew install openkim-models :pre
+
 If you have problems with the installation you can post issues to
 "this link"_homebrew.
 
 Thanks to Derek Thomas (derekt at cello.t.u-tokyo.ac.jp) for setting
 up the Homebrew capability.
-:link(homebrew,https://github.com/Homebrew/homebrew-science/issues)
+:link(homebrew,https://github.com/Homebrew/homebrew-core/issues)
+:link(openkim,https://openkim.org)

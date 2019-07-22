@@ -17,10 +17,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -842,14 +844,14 @@ void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  rho[nlocal] = atof(values[2]);
-  e[nlocal] = atof(values[3]);
-  cv[nlocal] = atof(values[4]);
+  rho[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
+  e[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
+  cv[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -881,9 +883,9 @@ void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
 
 int AtomVecMeso::data_atom_hybrid(int nlocal, char **values) {
 
-  rho[nlocal] = atof(values[0]);
-  e[nlocal] = atof(values[1]);
-  cv[nlocal] = atof(values[2]);
+  rho[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
+  e[nlocal] = utils::numeric(FLERR,values[1],true,lmp);
+  cv[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
 
   return 3;
 }

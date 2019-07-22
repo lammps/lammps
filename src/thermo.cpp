@@ -406,8 +406,9 @@ void Thermo::compute(int flag)
    call function to compute property
 ------------------------------------------------------------------------- */
 
-void Thermo::call_vfunc(int ifield)
+void Thermo::call_vfunc(int ifield_in)
 {
+  ifield = ifield_in;
   (this->*vfunc[ifield])();
 }
 

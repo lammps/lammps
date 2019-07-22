@@ -14,7 +14,8 @@
  ***************************************************************************/
 
 #include "lal_base_atomic.h"
-using namespace LAMMPS_AL;
+
+namespace LAMMPS_AL {
 #define BaseAtomicT BaseAtomic<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -285,4 +286,4 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
 }
 
 template class BaseAtomic<PRECISION,ACC_PRECISION>;
-
+}

@@ -75,3 +75,13 @@ void Reader::close_file()
   else fclose(fp);
   fp = NULL;
 }
+
+/* ----------------------------------------------------------------------
+   detect unused arguments
+------------------------------------------------------------------------- */
+
+void Reader::settings(int narg, char** /*args*/)
+{
+  if (narg > 0)
+    error->all(FLERR,"Illegal read_dump command");
+}

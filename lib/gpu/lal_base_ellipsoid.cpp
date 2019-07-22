@@ -15,7 +15,7 @@
 
 #include "lal_base_ellipsoid.h"
 #include <cstdlib>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #if defined(USE_OPENCL)
 #include "ellipsoid_nbor_cl.h"
@@ -488,4 +488,4 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 }
 
 template class BaseEllipsoid<PRECISION,ACC_PRECISION>;
-
+}

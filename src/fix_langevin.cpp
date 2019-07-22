@@ -659,10 +659,15 @@ void FixLangevin::post_force_templated()
       f[i][2] += fdrag[2] + fran[2];
 
       if (Tp_TALLY) {
-        if (Tp_GJF){
+        if (Tp_GJF && update->ntimestep != update->beginstep){
           fdrag[0] = gamma1*gjffac*v[i][0];
           fdrag[1] = gamma1*gjffac*v[i][1];
           fdrag[2] = gamma1*gjffac*v[i][2];
+        }
+        else if (Tp_GJF && update->ntimestep == update->beginstep){
+          fdrag[0] = 0.0;
+          fdrag[1] = 0.0;
+          fdrag[2] = 0.0;
         }
         flangevin[i][0] = fdrag[0] + fran[0];
         flangevin[i][1] = fdrag[1] + fran[1];

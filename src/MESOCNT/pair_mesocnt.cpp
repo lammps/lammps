@@ -59,13 +59,9 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(phi_data);
     memory->destroy(gamma_coeff);
     memory->destroy(uinf_coeff);
-    memory->destroy(dzeta_phi_data);
-    memory->destroy(dh_phi_data);
     
     memory->destroy(usemi_coeff);
     memory->destroy(phi_coeff);
-    memory->destroy(dzeta_phi_coeff);
-    memory->destroy(dh_phi_coeff);
  
     memory->destroy(redlist);
     memory->destroy(chain);
@@ -326,11 +322,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
       scale3(sumwreq,p1);
       scale3(sumwreq,p2);
      
-	geominf(r1,r2,p1,p2,param,m,basis);
-        if(param[0] > cutoff) continue;
-        finf(param,r1,r2,p1,p2,m,flocal);
-
-      /*
       if(end[i] == 0){
         geominf(r1,r2,p1,p2,param,m,basis);
         if(param[0] > cutoff) continue;
@@ -346,7 +337,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	if(param[0] > cutoff) continue;
 	fsemi(param,r1,r2,p1,p2,m,flocal);
       }
-      */
       
       scale3(-sumwreq,sumdw1);
       scale3(-sumwreq,sumdw2);
@@ -412,276 +402,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	vatom[i2][4] += f[i2][2]*x[i2][0];
 	vatom[i2][5] += f[i2][2]*x[i2][1];
       }
-
-      if(tag[i1] == 164){
- 	std::ofstream outFile1;
-	std::ofstream outFile2;
-	std::ofstream outFile3;
-	std::ofstream outFile4;
-	std::ofstream outFile5;
-	std::ofstream outFile6;
-	std::ofstream outFile7;
-	std::ofstream outFile8;
-	std::ofstream outFile9;
-	std::ofstream outFile10;
-	std::ofstream outFile11;
-	std::ofstream outFile12;
-	std::ofstream outFile13;
-	std::ofstream outFile14;
-	std::ofstream outFile15;
-	std::ofstream outFile16;
-	std::ofstream outFile17;
-	std::ofstream outFile18;
-	std::ofstream outFile19;
-	std::ofstream outFile20;
-	std::ofstream outFile21;
-	std::ofstream outFile22;
-	std::ofstream outFile23;
-	std::ofstream outFile24;
-	std::ofstream outFile25;
-	std::ofstream outFile26;
-	std::ofstream outFile27;
-	std::ofstream outFile28;
-	std::ofstream outFile29;
-	std::ofstream outFile30;
-	std::ofstream outFile31;
-	std::ofstream outFile32;
-	std::ofstream outFile33;
-	std::ofstream outFile34;
-	std::ofstream outFile35;
-	std::ofstream outFile36;
-	std::ofstream outFile37;
-	std::ofstream outFile38;
-	std::ofstream outFile39;
-	std::ofstream outFile40;
-	std::ofstream outFile41;
-	std::ofstream outFile42;
-	std::ofstream outFile43;
-
-  	outFile1.open("h.txt",std::ios_base::app);
-  	outFile2.open("alpha.txt",std::ios_base::app);
-  	outFile3.open("xi1.txt",std::ios_base::app);
-  	outFile4.open("xi2.txt",std::ios_base::app);
-  	outFile5.open("eta1.txt",std::ios_base::app);
-  	outFile6.open("eta2.txt",std::ios_base::app);
-	outFile7.open("f1x.txt",std::ios_base::app);
-  	outFile8.open("f1y.txt",std::ios_base::app);
-  	outFile9.open("f1z.txt",std::ios_base::app);
-  	outFile10.open("f2x.txt",std::ios_base::app);
-  	outFile11.open("f2y.txt",std::ios_base::app);
-  	outFile12.open("f2z.txt",std::ios_base::app);
-  	outFile13.open("u.txt",std::ios_base::app);
-	outFile14.open("diff.txt",std::ios_base::app);
-	outFile15.open("phi1.txt",std::ios_base::app);
-	outFile16.open("phi2.txt",std::ios_base::app);
-	outFile17.open("dzeta_phi1.txt",std::ios_base::app);
-	outFile18.open("dzeta_phi2.txt",std::ios_base::app);
-	outFile19.open("dh_phi1.txt",std::ios_base::app);
-	outFile20.open("dh_phi2.txt",std::ios_base::app);
-	outFile21.open("zeta1.txt",std::ios_base::app);
-	outFile22.open("zeta2.txt",std::ios_base::app);
-	outFile23.open("dh_gamma.txt",std::ios_base::app);
-	outFile24.open("omega.txt",std::ios_base::app);
-	outFile25.open("s5arg.txt",std::ios_base::app);
-	outFile26.open("sin_alpha.txt",std::ios_base::app);
-	outFile27.open("s5.txt",std::ios_base::app);
-	outFile28.open("zetamax.txt",std::ios_base::app);
-	outFile29.open("zetamin.txt",std::ios_base::app);
-	outFile30.open("psi1.txt",std::ios_base::app);
-	outFile31.open("psi2.txt",std::ios_base::app);
-	outFile32.open("delphi.txt",std::ios_base::app);
-	outFile33.open("delhphi.txt",std::ios_base::app);
-	outFile34.open("delzetaphi.txt",std::ios_base::app);
-	outFile35.open("chainend1.txt",std::ios_base::app);
-	outFile36.open("chainend2.txt",std::ios_base::app);
-	outFile37.open("hpsi1.txt",std::ios_base::app);
-	outFile38.open("hpsi2.txt",std::ios_base::app);
-	outFile39.open("delpsi.txt",std::ios_base::app);
-	outFile40.open("dh_phibar1.txt",std::ios_base::app);
-	outFile41.open("dh_phibar2.txt",std::ios_base::app);
-	outFile42.open("deldh_phibar.txt",std::ios_base::app);
-	outFile43.open("delxi.txt",std::ios_base::app);
-
-	outFile1 << std::setprecision(15) << update->ntimestep << " " << param[0] << std::endl;
-        outFile2 << std::setprecision(15) << update->ntimestep << " " << param[1] << std::endl;
-	outFile3 << std::setprecision(15) << update->ntimestep << " " << param[2] << std::endl;
-	outFile4 << std::setprecision(15) << update->ntimestep << " " << param[3] << std::endl;
-	outFile43 << std::setprecision(15) << update->ntimestep << " " << param[3] - param[2] << std::endl;
-	outFile5 << std::setprecision(15) << update->ntimestep << " " << param[4] << std::endl;
-	outFile6 << std::setprecision(15) << update->ntimestep << " " << param[5] << std::endl;
-	outFile7 << std::setprecision(15) << update->ntimestep << " " << flocal[0][0] << std::endl;
-        outFile8 << std::setprecision(15) << update->ntimestep << " " << flocal[0][1] << std::endl;
-	outFile9 << std::setprecision(15) << update->ntimestep << " " << flocal[0][2] << std::endl;
-	outFile10 << std::setprecision(15) << update->ntimestep << " " << flocal[1][0] << std::endl;
-	outFile11 << std::setprecision(15) << update->ntimestep << " " << flocal[1][1] << std::endl;
-	outFile12 << std::setprecision(15) << update->ntimestep << " " << flocal[1][2] << std::endl;
-	outFile13 << std::setprecision(15) << update->ntimestep << " " << uinf(param) << std::endl;
-	outFile14 << std::setprecision(15) << update->ntimestep << " " << 0.5*(flocal[1][0] + flocal[0][0]) << std::endl;
-      
-  double h = param[0] * angstromrec;
-  double alpha = param[1];
-  double xi1 = param[2] * angstromrec;
-  double xi2 = param[3] * angstromrec;
-  double eta1 = param[4];
-  double eta2 = param[5];
-
-  double sin_alpha = sin(alpha);
-  double sin_alphasq = sin_alpha*sin_alpha;
-  double sin_alphasqrec = 1.0 / sin_alphasq;
-
-  double omega = 1.0 / (1.0 - comega*sin_alphasq);
-  double a1 = omega * sin_alpha;
-  
-  double zeta1 = xi1 * a1;
-  double zeta2 = xi2 * a1;
-
-  double g = diameter_angstrom + DELTA2;
-  double zetamin;
-  double zetabarmin, s5arg, s5value;
-  if(h >= g) zetamin = 0;
-  else{ 
-    zetabarmin = sqrt(g*g - h*h);
-    s5arg = (h - diameter_angstrom - DELTA1) * DELTAREC;
-    s5value = s5(s5arg);
-    zetamin = zetabarmin * s5value;
-  }
-  double zetamax = sqrt(cutoffsq_angstrom - h*h);
-  double dzetamin;
-  if(h >= g) dzetamin = 0;
-  else dzetamin = -h / zetabarmin * s5value 
-    + zetabarmin * DELTAREC * ds5(s5arg);
-  double dzetamax = -h / zetamax;
-  double diff_zetarec = 1.0 / (zetamax - zetamin);
-  double diff_zeta1 = fabs(zeta1) - zetamin;
-  double diff_zeta2 = fabs(zeta2) - zetamin;
-
-  double psi1 = diff_zeta1 * diff_zetarec;
-  double psi2 = diff_zeta2 * diff_zetarec;
-  
-  double phi1 = spline(psi1,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dpsi_phibar1 = dxspline(psi1,h,startzeta_phi[0],starth_phi,
-	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dh_phibar1 = dyspline(psi1,h,startzeta_phi[0],starth_phi,
-  	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-
-  double phi2 = spline(psi2,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dpsi_phibar2 = dxspline(psi2,h,startzeta_phi[0],starth_phi,
-	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dh_phibar2 = dyspline(psi2,h,startzeta_phi[0],starth_phi,
-  	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-
-  double dzeta_phi1 = dpsi_phibar1 * diff_zetarec;
-  double dzeta_phi2 = dpsi_phibar2 * diff_zetarec;
-
-  double b1 = -diff_zetarec * dzetamin;
-  double b2 = -diff_zetarec * (dzetamax - dzetamin);
-  double dh_psi1 = b1 + b2*psi1;
-  double dh_psi2 = b1 + b2*psi2;
-
-  double dh_phi1 = dh_phibar1 + dpsi_phibar1*dh_psi1;
-  double dh_phi2 = dh_phibar2 + dpsi_phibar2*dh_psi2;
-
-  if(zeta1 < 0){ 
-    phi1 *= -1;
-    dh_phi1 *= -1;
-  }
-  if(zeta2 < 0){ 
-    phi2 *= -1;
-    dh_phi2 *= -1;
-  }
-
-  double gamma_orth = spline(h,start_gamma,del_gamma,
-		  gamma_coeff,gamma_points);
-  double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
-  double dh_gamma = dspline(h,start_gamma,del_gamma,
-		  gamma_coeff,gamma_points) * sin_alphasq;
-
-        outFile15 << std::setprecision(15) << update->ntimestep << " " << phi1 << std::endl;
-	outFile16 << std::setprecision(15) << update->ntimestep << " " << phi2 << std::endl;
-	outFile17 << std::setprecision(15) << update->ntimestep << " " << dzeta_phi1 << std::endl;
-	outFile18 << std::setprecision(15) << update->ntimestep << " " << dzeta_phi2 << std::endl;
-	outFile19 << std::setprecision(15) << update->ntimestep << " " << dh_phi1 << std::endl;
-	outFile20 << std::setprecision(15) << update->ntimestep << " " << dh_phi2 << std::endl;
-	outFile21 << std::setprecision(15) << update->ntimestep << " " << zeta1 << std::endl;
-	outFile22 << std::setprecision(15) << update->ntimestep << " " << zeta2 << std::endl;
-	outFile23 << std::setprecision(15) << update->ntimestep << " " << dh_gamma << std::endl;
-	outFile24 << std::setprecision(15) << update->ntimestep << " " << omega << std::endl;
-	outFile25 << std::setprecision(15) << update->ntimestep << " " << s5arg << std::endl;
-	outFile26 << std::setprecision(15) << update->ntimestep << " " << sin_alpha << std::endl;
-	outFile27 << std::setprecision(15) << update->ntimestep << " " << s5value << std::endl;
-	outFile28 << std::setprecision(15) << update->ntimestep << " " << zetamax << std::endl;
-	outFile29 << std::setprecision(15) << update->ntimestep << " " << zetamin << std::endl;
-	outFile30 << std::setprecision(15) << update->ntimestep << " " << psi1 << std::endl;
-	outFile31 << std::setprecision(15) << update->ntimestep << " " << psi2 << std::endl;
-	outFile32 << std::setprecision(15) << update->ntimestep << " " << phi1 - phi2 << std::endl;
-	outFile33 << std::setprecision(15) << update->ntimestep << " " << dh_phi1 - dh_phi2 << std::endl;
-        outFile34 << std::setprecision(15) << update->ntimestep << " " << dzeta_phi1 - dzeta_phi2 << std::endl;
-	outFile35 << std::setprecision(15) << update->ntimestep << " " << chainEnd1 << std::endl;
-	outFile36 << std::setprecision(15) << update->ntimestep << " " << chainEnd2 << std::endl;
-	if(fabs(flocal[0][0]) > 1.0e-9 && update->ntimestep > 3000){
-          outFile37 << std::setprecision(15) << psi1 << " " << h << std::endl;
-	  outFile38 << std::setprecision(15) << psi2 << " " << h << std::endl;
-	}
-	outFile39 << std::setprecision(15) << update->ntimestep << " " << psi2 - psi1 << std::endl;
-	outFile40 << std::setprecision(15) << update->ntimestep << " " << dh_phibar1 << std::endl;
-	outFile41 << std::setprecision(15) << update->ntimestep << " " << dh_phibar2 << std::endl;
-	outFile42 << std::setprecision(15) << update->ntimestep << " " << dh_phibar1 - dh_phibar2 << std::endl;
-      }
-
-       /* 
-        printf("Timestep: %d\n",update->ntimestep);
-        printf("Current atom 1 (local, global, mol, type): %d %d %d %d\n",i1,tag[i1],mol[i1],atom->type[i1]);
-        printf("Current atom 2 (local, global, mol, type): %d %d %d %d\n",i2,tag[i2],mol[i2],atom->type[i2]);
-        printf("Parameters: %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4]);
-	printf("ex: %e %e %e\n",basis[0][0],basis[0][1],basis[0][2]);
-	printf("ey: %e %e %e\n",basis[1][0],basis[1][1],basis[1][2]);
-        printf("ez: %e %e %e\n",basis[2][0],basis[2][1],basis[2][2]);
-	printf("r1: %e %e %e\n",r1[0],r1[1],r1[2]);
-        printf("r2: %e %e %e\n",r2[0],r2[1],r2[2]);
-        printf("p1: %e %e %e\n",p1[0],p1[1],p1[2]);
-        printf("p2: %e %e %e\n",p2[0],p2[1],p2[2]);
-        printf("Force local 1: %e %e %e\n",flocal[0][0],flocal[0][1],flocal[0][2]);
-        printf("Force local 2: %e %e %e\n",flocal[1][0],flocal[1][1],flocal[1][2]);
-        printf("Force local 3: %e %e %e\n",flocal[2][0],flocal[2][1],flocal[2][2]);
-        printf("Force local 4: %e %e %e\n",flocal[3][0],flocal[3][1],flocal[3][2]);
-	printf("Force chain 1: %e %e %e\n",fchain1[0],fchain1[1],fchain1[2]);
-        printf("Force chain 2: %e %e %e\n",fchain2[0],fchain2[1],fchain2[2]);
-	printf("Local indices of chain: \n");
-        for(int j = 0; j < nchain[i]; j++){
-          printf("%d ",chain[i][j]);
-        }
-        printf("\nGlobal indices of chain:\n ");
-        for(int j = 0; j < nchain[i]; j++){
-          printf("%d ",tag[chain[i][j]]);
-        }
-        printf("\nMolecule:\n");
-        for(int j = 0; j < nchain[i]; j++){
-          printf("%d ",mol[chain[i][j]]);
-        }
-        printf("\nType:\n");
-        for(int j = 0; j < nchain[i]; j++){
-          printf("%d ",atom->type[chain[i][j]]);
-        }
-        printf("\n");
-        printf("End index: %d\n",end[i]);
-        fflush(stdout);
-       */	
-        
-
-      /*
-      if(end[i] != 0){
-	printf("End index: %d\n",end[i]);
-	printf("Parameters: %e %e %e %e %e\n",param[0],param[1],param[2],param[3],param[4]);
-        printf("p1: %e %e %e\n",p1[0],p1[1],p1[2]);
-	printf("p2: %e %e %e\n",p2[0],p2[1],p2[2]);
-	printf("qe: %e %e %e\n",qe[0],qe[1],qe[2]);
-	printf("Force local 1: %e %e %e\n",flocal[0][0],flocal[0][1],flocal[0][2]);
-	printf("Force local 2: %e %e %e\n",flocal[1][0],flocal[1][1],flocal[1][2]);
-	printf("Distance p1, qe: %e, distance p2, qe: %e\n", MathExtra::distsq3(p1,qe), MathExtra::distsq3(p2,qe));
-      }
-      */
     }
   }
 
@@ -735,13 +455,9 @@ void PairMesoCNT::allocate()
   memory->create(phi_data,phi_points,phi_points,"pair:phi_data");
   memory->create(gamma_coeff,gamma_points,4,"pair:gamma_coeff");
   memory->create(uinf_coeff,uinf_points,4,"pair:uinf_coeff");
-  memory->create(dzeta_phi_data,phi_points,phi_points,"pair:dzeta_phi_data");
-  memory->create(dh_phi_data,phi_points,phi_points,"pair:dh_phi_data");
   
-  memory->create(usemi_coeff,usemi_points,usemi_points,4,4,"pair:usemi_coeff");
+  memory->create(usemi_coeff,usemi_points,usemi_points,4,"pair:usemi_coeff");
   memory->create(phi_coeff,phi_points,phi_points,4,4,"pair:phi_coeff");
-  memory->create(dzeta_phi_coeff,phi_points,phi_points,4,4,"pair:dzeta_phi_coeff");
-  memory->create(dh_phi_coeff,phi_points,phi_points,4,4,"pair:dh_phi_coeff");
 
   memory->create(redlist,redlist_size,"pair:redlist");
   memory->create(chain,chain_size,chain_size,"pair:chain");
@@ -798,7 +514,7 @@ void PairMesoCNT::settings(int narg, char **arg)
   gamma_points = force->inumeric(FLERR,arg[0]);
   pot_points = force->inumeric(FLERR,arg[1]);
 
-  uinf_points = 5001;
+  uinf_points = 2001;
   usemi_points = 1001;
   phi_points = 2001;
 }
@@ -871,125 +587,8 @@ void PairMesoCNT::coeff(int narg, char **arg)
   spline_coeff(gamma_data,gamma_coeff,gamma_points);
   spline_coeff(uinf_data,uinf_coeff,uinf_points);
   spline_coeff(usemi_data,usemi_coeff,usemi_points);
-  spline_coeff(phi_data,phi_coeff,phi_points);
-
-  std::ofstream outFile;
-  /*
-  outFile.open("phi.test");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1000; j++){
-      psi = i*1.0/1000;
-      h = j*25.0/1000;
-      phi = spline(psi,h,startzeta_phi,starth_phi,
-   	delzeta_phi,delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
- 
-  outFile.open("dxphi.test");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1000; j++){
-      psi = i*1.0/1000;
-      h = j*25.0/1000;
-      phi = dxspline(psi,h,startzeta_phi,starth_phi,
-   	delzeta_phi,delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-  outFile.open("dyphi.test");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1000; j++){
-      psi = i*1.0/1000;
-      h = j*25.0/1000;
-      phi = dyspline(psi,h,startzeta_phi,starth_phi,
-   	delzeta_phi,delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-  outFile.open("dxyphi.test");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1000; j++){
-      psi = i*1.0/1000;
-      h = j*25.0/1000;
-      phi = dxyspline(psi,h,startzeta_phi,starth_phi,
-   	delzeta_phi,delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-  */
   spline_coeff(phi_data,phi_coeff,delzeta_phi[0],delh_phi,phi_points);
   printf("Coefficients computed\n");
-
-  /*
-  outFile.open("phi.spl");
-  for(int i = 0; i < 1001; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1001; j++){
-      psi = i*delzeta_phi[0];
-      h = j*delh_phi;
-      phi = spline(psi,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-
-  outFile.open("dxphi.spl");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1000; j++){
-      psi = i*1.0/1000;
-      h = j*25.0/1000;
-      phi = dxspline(psi,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-  
-  outFile.open("dyphi.spl");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 5000; j++){
-      psi = i*1.0/5000;
-      h = j*25.0/5000;
-      phi = dyspline(psi,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-  
-  outFile.open("dxyphi.spl");
-  for(int i = 0; i < 1000; i++){
-    double psi,h,phi;
-    for(int j = 0; j < 1000; j++){
-      psi = i*1.0/1000;
-      h = j*25.0/1000;
-      phi = dxyspline(psi,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-      outFile << psi << " " << h << " " << phi << std::endl;
-    }
-    //outFile << psi << " " << phi << std::endl;
-  }
-  outFile.close();
-  */
-
 
   int n = atom->ntypes;
 
@@ -1006,321 +605,6 @@ void PairMesoCNT::coeff(int narg, char **arg)
       cutsq[i][j] = cutoffsq;
     }
   }
-
-  /*
-  std::ofstream outFile1;
-  std::ofstream outFile2;
-  std::ofstream outFile3;
-  outFile1.open("phi.txt");
-  outFile2.open("dzeta_phi.txt");
-  outFile3.open("dh_phi.txt");
-  for(int i = 0; i < 1000; i++){
-  for(int j = 0; j < 1000; j++){
-
-    double zeta = i * (cutoff_angstrom + 5)/1000.0;
-    double h = j * (cutoff_angstrom + 5)/1000.0;
-
-    double g = diameter_angstrom + DELTA2;
-    double zetamin;
-    if(h >= g) zetamin = 0;
-    else zetamin = sqrt(g*g - h*h) 
-      * s5((h - diameter_angstrom - DELTA1) * DELTAREC);
-    double zetamax = sqrt(cutoffsq_angstrom - h*h);
-    double diff_zetarec = 1.0 / (zetamax - zetamin);
-    double psi = (zeta - zetamin) * diff_zetarec;
-
-    double phi = spline(psi,h,startzeta_phi,starth_phi,
-	delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double dzeta_phi = dxspline(psi,h,startzeta_phi,starth_phi,
-	delzeta_phi,delh_phi,phi_coeff,pot_points);
-    double dh_phi = dyspline(psi,h,startzeta_phi,starth_phi,
-  	delzeta_phi,delh_phi,phi_coeff,pot_points);
-    
-    outFile1 << zeta << " " << h << " " << phi << std::endl;
-    outFile2 << zeta << " " << h << " " << dzeta_phi << std::endl;
-    outFile3 << zeta << " " << h << " " << dh_phi << std::endl;
-  }
-  }
-  */ 
-  /*
-	  std::ofstream outFile1;
-	  std::ofstream outFile2;
-	  std::ofstream outFile3;
-	  std::ofstream outFile4;
-	  std::ofstream outFile5;
-	  std::ofstream outFile6;
-	  std::ofstream outFile7;
-	  std::ofstream outFile8;
-	  std::ofstream outFile9;
-	  std::ofstream outFile10;
-	  std::ofstream outFile11;
-	  std::ofstream outFile12;
-	  std::ofstream outFile13;
-	  std::ofstream outFile14;
-	  std::ofstream outFile15;
-	  std::ofstream outFile16;
-	  std::ofstream outFile17;
-	  std::ofstream outFile18;
-	  std::ofstream outFile19;
-	  std::ofstream outFile20;
-	  std::ofstream outFile21;
-	  std::ofstream outFile22;
-	  std::ofstream outFile23;
-	  std::ofstream outFile24;
-	  std::ofstream outFile25;
-	  std::ofstream outFile26;
-	  std::ofstream outFile27;
-	  std::ofstream outFile28;
-	  std::ofstream outFile29;
-	  std::ofstream outFile30;
-	  std::ofstream outFile31;
-	  std::ofstream outFile32;
-	  std::ofstream outFile33;
-	  std::ofstream outFile34;
-
-	outFile1.open("h.txt");
-	outFile2.open("alpha.txt");
-	outFile3.open("xi1.txt");
-	outFile4.open("xi2.txt");
-	outFile6.open("f1x.txt");
-	outFile7.open("f1y.txt");
-	outFile8.open("f1z.txt");
-	outFile9.open("f2x.txt");
-	outFile10.open("f2y.txt");
-	outFile11.open("f2z.txt");
-	outFile12.open("u.txt");
-  	outFile15.open("phi1.txt");
-	outFile16.open("phi2.txt");
-	outFile17.open("dzeta_phi1.txt");
-	outFile18.open("dzeta_phi2.txt");
-	outFile19.open("dh_phi1.txt");
-	outFile20.open("dh_phi2.txt");
-	outFile21.open("zeta1.txt");
-	outFile22.open("zeta2.txt");
-	outFile26.open("sin_alpha.txt");
-	outFile28.open("zetamax.txt");
-	outFile29.open("zetamin.txt");
-	outFile30.open("psi1.txt");
-	outFile31.open("psi2.txt");
-	outFile32.open("delphi.txt");
-	outFile33.open("delhphi.txt");
-	outFile34.open("delzetaphi.txt");
-
-  double p1[3] = {-1.0e-9,0,0};
-  double p2[3] = {1.0e-9,0,0};
-  double param[7];
-  double **f,**basis;
-  memory->create(f,4,5,"pair:f");
-  memory->create(basis,3,3,"pair:basis");
-  for(int i = 0; i < 10000; i++){
-    double angle = i* MY_PI / 100000;
-    double x1 = -1.0e-9*cos(angle);
-    double y1 = -1.0e-9*sin(angle);
-    double z1 = 2*6.785e-10 + 2.45e-10;
-    
-    double x2 = 1.0e-9*cos(angle);
-    double y2 = 1.0e-9*sin(angle);
-    double z2 = z1 + 1.0e-10;
-
-    double r1[3] = {x1,y1,z1};
-    double r2[3] = {x2,y2,z2};
-    double m[3];
-
-  geominf(r1,r2,p1,p2,param,m,basis);
-
-  double h = param[0] * angstromrec;
-  double alpha = param[1];
-  double xi1 = param[2] * angstromrec;
-  double xi2 = param[3] * angstromrec;
-  double eta1 = param[4];
-  double eta2 = param[5];
-
-  double sin_alpha = sin(alpha);
-  double sin_alphasq = sin_alpha*sin_alpha;
-  
-  if(sin_alphasq < HIGH){
-    f[0][0] = 0.5 * (xi2 - xi1) * dspline(h,start_uinf,del_uinf,
-        uinf_coeff,uinf_points) * forceunit;
-    f[1][0] = f[0][0];
-    f[0][1] = 0;
-    f[1][1] = 0;
-    f[0][2] = spline(h,start_uinf,del_uinf,uinf_coeff,uinf_points)
-	    * forceunit;
-    f[1][2] = -f[0][2];
-  }
-
-  if(sin_alphasq > LOW){ 
-  double sin_alpharec = 1.0 / sin_alpha;
-  double sin_alpharecsq = sin_alpharec * sin_alpharec;
-  double cos_alpha = cos(alpha);
-  double cot_alpha = cos_alpha * sin_alpharec;
-
-  double omega = 1.0 / (1.0 - comega*sin_alphasq);
-  double a1 = omega * sin_alpha;
-  double a1rec = 1.0 / a1;
-  double domega = 2 * comega * cos_alpha * a1 * omega;
-    
-  double gamma_orth = spline(h,start_gamma,del_gamma,
-		  gamma_coeff,gamma_points);
-  double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
-  double gammarec = 1.0 / gamma;
-  double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
-  double dh_gamma = dspline(h,start_gamma,del_gamma,
-		  gamma_coeff,gamma_points) * sin_alphasq;
-
-  double zeta1 = xi1 * a1;
-  double zeta2 = xi2 * a1;
-     
-  double g = diameter_angstrom + DELTA2;
-  double zetamin;
-  double zetabarmin, s5arg, s5value;
-  if(h >= g) zetamin = 0;
-  else{ 
-    zetabarmin = sqrt(g*g - h*h);
-    s5arg = (h - diameter_angstrom - DELTA1) * DELTAREC;
-    s5value = s5(s5arg);
-    zetamin = zetabarmin * s5value;
-  }
-  double zetamax = sqrt(cutoffsq_angstrom - h*h);
-  double dzetamin;
-  if(h >= g) dzetamin = 0;
-  else dzetamin = -h / zetabarmin * s5value 
-    + zetabarmin * DELTAREC * ds5(s5arg);
-  double dzetamax = -h / zetamax;
-  double diff_zetarec = 1.0 / (zetamax - zetamin);
-  double diff_zeta1 = fabs(zeta1) - zetamin;
-  double diff_zeta2 = fabs(zeta2) - zetamin;
-
-  double psi1 = diff_zeta1 * diff_zetarec;
-  double psi2 = diff_zeta2 * diff_zetarec;
-  
-  double phi1 = spline(psi1,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dpsi_phibar1 = dxspline(psi1,h,startzeta_phi[0],starth_phi,
-	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dh_phibar1 = dyspline(psi1,h,startzeta_phi[0],starth_phi,
-  	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-
-  double phi2 = spline(psi2,h,startzeta_phi[0],starth_phi,
-   	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dpsi_phibar2 = dxspline(psi2,h,startzeta_phi[0],starth_phi,
-	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-  double dh_phibar2 = dyspline(psi2,h,startzeta_phi[0],starth_phi,
-  	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
-
-  double dzeta_phi1 = dpsi_phibar1 * diff_zetarec;
-  double dzeta_phi2 = dpsi_phibar2 * diff_zetarec;
-
-  double b1 = -diff_zetarec * dzetamin;
-  double b2 = -diff_zetarec * (dzetamax - dzetamin);
-  double dh_psi1 = b1 + b2*psi1;
-  double dh_psi2 = b1 + b2*psi2;
-
-  double dh_phi1 = dh_phibar1 + dpsi_phibar1*dh_psi1;
-  double dh_phi2 = dh_phibar2 + dpsi_phibar2*dh_psi2;
-
-  if(zeta1 < 0){ 
-    phi1 *= -1;
-    dh_phi1 *= -1;
-  }
-  if(zeta2 < 0){ 
-    phi2 *= -1;
-    dh_phi2 *= -1;
-  }
-   
-  double diff_dzeta_phi = dzeta_phi2 - dzeta_phi1;
-    
-  double a2 = gamma * a1rec;
-  double u = a2 * (phi2 - phi1);
-  double a3 = u * gammarec;
-  
-  double dh_u = dh_gamma * a3 + a2 * (dh_phi2 - dh_phi1);
-  double dalpha_u = dalpha_gamma * a3
-	+ a1rec * (domega*sin_alpha + omega*cos_alpha)
-	* (gamma*(xi2*dzeta_phi2 - xi1*dzeta_phi1) - u);
-
-  double lrec = 1.0 / (xi2 - xi1);
-  double cx = h * gamma * sin_alpharecsq * diff_dzeta_phi;
-  double cy = gamma * cot_alpha * diff_dzeta_phi;
-
-  if(sin_alphasq < HIGH && HIGH != LOW){
-    double weight = s((sin_alphasq - LOW) / (HIGH - LOW));
-    f[0][0] = weight * f[0][0] 
-	    + (1-weight) * lrec * (xi2*dh_u - cx) * forceunit;
-    f[1][0] = weight * f[1][0] 
-	    + (1-weight) * lrec * (-xi1*dh_u + cx) * forceunit;
-    f[0][1] = (1-weight) * lrec * (dalpha_u - xi2*cy) * forceunit;
-    f[1][1] = (1-weight) * lrec * (-dalpha_u + xi1*cy) * forceunit;
-    f[0][2] = weight * f[0][2] 
-	    + (1-weight) * gamma * dzeta_phi1 * forceunit;
-    f[1][2] = weight * f[1][2] 
-	    - (1-weight) * gamma * dzeta_phi2 * forceunit;
-  }
-  else{
-    f[0][0] = lrec * (xi2*dh_u - cx) * forceunit;
-    f[1][0] = lrec * (-xi1*dh_u + cx) * forceunit;
-    f[0][1] = lrec * (dalpha_u - xi2*cy) * forceunit;
-    f[1][1] = lrec * (-dalpha_u + xi1*cy) * forceunit;
-    f[0][2] = gamma * dzeta_phi1 * forceunit;
-    f[1][2] = -gamma * dzeta_phi2 * forceunit;
-  }
-
-
-    //printf("%d\n",i);
-    outFile1 << i << " " << param[0] << std::endl;
-    outFile2 << i << " " << param[1] << std::endl;
-    outFile3 << i << " " << param[2] << std::endl;
-    outFile4 << i << " " << param[3] << std::endl;
-    outFile5 << i << " " << param[4] << std::endl;
-    outFile6 << i << " " << f[0][0] << std::endl;
-    outFile7 << i << " " << f[0][1] << std::endl;
-    outFile8 << i << " " << f[0][2] << std::endl;
-    outFile9 << i << " " << f[1][0] << std::endl;
-    outFile10 << i << " " << f[1][1] << std::endl;
-    outFile11 << i << " " << f[1][2] << std::endl;
-    outFile12 << i << " " << uinf(param) << std::endl;
-    outFile15 << i << " " << phi1 << std::endl;
-    outFile16 << i << " " << phi2 << std::endl;
-    outFile17 << i << " " << dzeta_phi1 << std::endl;
-    outFile18 << i << " " << dzeta_phi2 << std::endl;
-    outFile19 << i << " " << dh_phi1 << std::endl;
-    outFile20 << i << " " << dh_phi2 << std::endl;
-    outFile21 << i << " " << zeta1 << std::endl;
-    outFile22 << i << " " << zeta2 << std::endl;
-    outFile26 << i << " " << sin_alpha << std::endl;
-    outFile28 << i << " " << zetamax << std::endl;
-    outFile29 << i << " " << zetamin << std::endl;
-    outFile30 << i << " " << psi1 << std::endl;
-    outFile31 << i << " " << psi2 << std::endl;
-    outFile32 << i << " " << phi1 - phi2 << std::endl;
-    outFile33 << i << " " << dh_phi1 - dh_phi2 << std::endl;
-    outFile34 << i << " " << dzeta_phi1 - dzeta_phi2 << std::endl;
-  }
-  }
-  memory->destroy(f);
-  memory->destroy(basis);
-  */
-  /*
-  outFile.open("coeff.txt");
-  for(int i = 1; i < phi_points; i++){
-    for(int j = 1; j < phi_points; j++){
-      outFile << (i-1)*delzeta_phi[0] << " " << (j-1)*delh_phi << " " << phi_coeff[i][j][0][0] << std::endl;
-    }
-  }
-  outFile.close();
-  */
-
-  for(int i = 1; i < phi_points; i++){
-    for(int j = 1; j < phi_points; j++){
-      for(int k = 0; k < 4; k++){
-        for(int l = 0; l < 4; l++){
-          //printf("%e ", phi_coeff[i][j][k][l]);
-	}
-	//printf("\n");
-      }
-    }
-  }
- 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1346,18 +630,18 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
 }
 
 /* ---------------------------------------------------------------------- */
-/*
+
 double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ***coeff, int coeff_size)
+                double *dx, double dy, double ***coeff, int coeff_size)
 {
   int i = floor((y - ystart)/dy);
   if(i < 0){
     i = 0;
     y = ystart;
   }
-  else if(i > coeff_size-2){
-    i = coeff_size - 2;
-    y = ystart + (coeff_size-1)*dy;
+  else if(i > coeff_size-3){
+    i = coeff_size - 3;
+    y = ystart + (coeff_size - 2)*dy;
   }
   
   double ylo = ystart + i*dy;
@@ -1376,26 +660,16 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
   if(i == 0){
     p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
 
-    a1 = 0.25*(-p3 + 6*p2 - 5*p1);
-    a2 = 0;
-    a3 = 0.25*(p3 - 2*p2 + p1);
-    *
     a1 = p2 - p1;
     a3 = 0.5*(p3 - 2*p2 + p1);
     a2 = -a3;
-    *
   }
   else if(i == coeff_size-2){
     p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
     
     a1 = 0.5*(p2 - p0);
-    a3 = 0.25*(-p2 + 2*p1 - p0);
-    a2 = -3*a3;
-    *
-    a1 = 0.5*(p2 - p0);
     a3 = 0.5*(p2 - 2*p1 + p0);
     a2 = -2*a3;
-    *
   }
   else{
     p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
@@ -1408,57 +682,9 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
 
   return a0 + ybar*(a1 + ybar*(a2 + a3*ybar));
 }
-*/
 
 /* ---------------------------------------------------------------------- */
 
-double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ****coeff, int coeff_size)
-{
-  int j = floor((y - ystart)/dy);
-  if(j < 0){
-    j = 0;
-    y = ystart;
-  }
-  else if(j > coeff_size-2){
-    j = coeff_size - 2;
-    y = ystart + (coeff_size-1)*dy;
-  }
-
-  int i = floor((x - xstart[j])/dx[j]);
-  if(i < 0){
-    i = 0;
-    x = xstart[j];
-  }
-  else if(i > coeff_size-2){
-    i = coeff_size - 2;
-    x = xstart[j] + (coeff_size-1)*dx[j];
-  }
-  
-  double xlo = xstart[j] + i*dx[j];
-  double xbar = (x - xlo)/dx[j];
-  double ylo = ystart + j*dy;
-  double ybar = (y - ylo)/dy;
-
-  double y0 = coeff[i][j][0][0] 
-	  + ybar*(coeff[i][j][0][1] 
-	  + ybar*(coeff[i][j][0][2]
-	  + ybar*(coeff[i][j][0][3])));
-  double y1 = coeff[i][j][1][0] 
-	  + ybar*(coeff[i][j][1][1] 
-	  + ybar*(coeff[i][j][1][2]
-	  + ybar*(coeff[i][j][1][3])));
-  double y2 = coeff[i][j][2][0] 
-	  + ybar*(coeff[i][j][2][1] 
-	  + ybar*(coeff[i][j][2][2]
-	  + ybar*(coeff[i][j][2][3])));
-  double y3 = coeff[i][j][3][0] 
-	  + ybar*(coeff[i][j][3][1] 
-	  + ybar*(coeff[i][j][3][2]
-	  + ybar*(coeff[i][j][3][3])));
-
-  return y0 + xbar*(y1 + xbar*(y2 + xbar*y3));
-}
 
 double PairMesoCNT::spline(double x, double y, double xstart, double ystart,
 		double dx, double dy, double ****coeff, int coeff_size)
@@ -1488,13 +714,6 @@ double PairMesoCNT::spline(double x, double y, double xstart, double ystart,
   double ylo = ystart + (j-1)*dy;
   double ybar = y - ylo;
 
-  /*
-  printf("Spacings: %e %e\n",dx,dy);
-  printf("Starts: %e %e\n",xstart,ystart);
-  printf("Values: %e %e\n",xbar,ybar);
-  printf("Rectangle: %d %d\n",i,j);
-  */
-
   double y0 = coeff[i][j][0][0] 
 	  + ybar*(coeff[i][j][0][1] 
 	  + ybar*(coeff[i][j][0][2]
@@ -1512,13 +731,86 @@ double PairMesoCNT::spline(double x, double y, double xstart, double ystart,
 	  + ybar*(coeff[i][j][3][2]
 	  + ybar*(coeff[i][j][3][3])));
 
-  //printf("%e %e %e %e\n",coeff[i][j][0][0],coeff[i][j][0][1],coeff[i][j][0][2],coeff[i][j][0][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][1][0],coeff[i][j][1][1],coeff[i][j][1][2],coeff[i][j][1][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][2][0],coeff[i][j][2][1],coeff[i][j][2][2],coeff[i][j][2][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][3][0],coeff[i][j][3][1],coeff[i][j][3][2],coeff[i][j][3][3]);
-
   return y0 + xbar*(y1 + xbar*(y2 + xbar*y3));
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairMesoCNT::dspline(double x, double xstart, double dx, 
+		double **coeff, int coeff_size)
+{
+  int i = floor((x - xstart)/dx);
+  if(i < 0){
+    i = 0;
+    x = xstart;
+  }
+  else if(i > coeff_size-2){
+    i = coeff_size - 2;
+    x = xstart + (coeff_size - 1)*dx;
+  }
+ 
+  double xlo = xstart + i*dx;
+  double xbar = (x - xlo)/dx;
+
+  return (coeff[i][1] + xbar*(2*coeff[i][2] + 3*xbar*coeff[i][3])) / dx;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
+                double *dx, double dy, double ***coeff, int coeff_size)
+{
+  int i = floor((y - ystart)/dy);
+  if(i < 0){
+    i = 0;
+    y = ystart;
+  }
+  if(i > coeff_size-3){
+    i = coeff_size - 3;
+    y = ystart + (coeff_size - 2)*dy;
+  }
+
+  double ylo = ystart + i*dy;
+  double ybar = (y - ylo)/dy;
+
+  // compute coefficients in y
+
+  double a0, a1, a2, a3;
+  double p0, p1, p2, p3;
+
+  p1 = dspline(x,xstart[i],dx[i],coeff[i],coeff_size);
+  p2 = dspline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
+
+  a0 = p1;
+
+  if(i == 0){
+    p3 = dspline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
+
+    a1 = p2 - p1;
+    a3 = 0.5*(p3 - 2*p2 + p1);
+    a2 = -a3;
+  }
+  else if(i == coeff_size-2){
+    p0 = dspline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
+
+    a1 = 0.5*(p2 - p0);
+    a3 = 0.5*(p2 - 2*p1 + p0);
+    a2 = -2*a3;
+  }
+  else{
+    p0 = dspline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
+    p3 = dspline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
+
+    a1 = 0.5*(p2 - p0);
+    a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);
+    a3 = 0.5*(p3 - 3*p2 + 3*p1 - p0);
+  }
+
+  return a0 + ybar*(a1 + ybar*(a2 + a3*ybar));
+}
+
+
+/* ---------------------------------------------------------------------- */
 
 double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart,
 		double dx, double dy, double ****coeff, int coeff_size)
@@ -1548,13 +840,6 @@ double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart,
   double ylo = ystart + (j-1)*dy;
   double ybar = y - ylo;
 
-  /*
-  printf("Spacings: %e %e\n",dx,dy);
-  printf("Starts: %e %e\n",xstart,ystart);
-  printf("Values: %e %e\n",xbar,ybar);
-  printf("Rectangle: %d %d\n",i,j);
-  */
-
   double y0 = coeff[i][j][0][0] 
 	  + ybar*(coeff[i][j][0][1] 
 	  + ybar*(coeff[i][j][0][2]
@@ -1572,13 +857,64 @@ double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart,
 	  + ybar*(coeff[i][j][3][2]
 	  + ybar*(coeff[i][j][3][3])));
 
-  //printf("%e %e %e %e\n",coeff[i][j][0][0],coeff[i][j][0][1],coeff[i][j][0][2],coeff[i][j][0][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][1][0],coeff[i][j][1][1],coeff[i][j][1][2],coeff[i][j][1][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][2][0],coeff[i][j][2][1],coeff[i][j][2][2],coeff[i][j][2][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][3][0],coeff[i][j][3][1],coeff[i][j][3][2],coeff[i][j][3][3]);
-
   return y1 + xbar*(2*y2 + 3*xbar*y3);
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
+                double *dx, double dy, double ***coeff, int coeff_size)
+{
+  int i = floor((y - ystart)/dy);
+  if(i < 0){
+    i = 0;
+    y = ystart;
+  }
+  if(i > coeff_size-3){
+    i = coeff_size - 3;
+    y = ystart + (coeff_size - 2)*dy;
+  }
+
+  double ylo = ystart + i*dy;
+  double ybar = (y - ylo)/dy;
+
+  // compute coefficients in y
+
+  double a0, a1, a2, a3;
+  double p0, p1, p2, p3;
+
+  p1 = spline(x,xstart[i],dx[i],coeff[i],coeff_size);
+  p2 = spline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
+
+  a0 = p1;
+
+  if(i == 0){
+    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
+
+    a1 = p2 - p1;
+    a3 = 0.5*(p3 - 2*p2 + p1);
+    a2 = -a3;
+  }
+  else if(i == coeff_size-2){
+    p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
+
+    a1 = 0.5*(p2 - p0);
+    a3 = 0.5*(p2 - 2*p1 + p0);
+    a2 = -2*a3;
+  }
+  else{
+    p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
+    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
+
+    a1 = 0.5*(p2 - p0);
+    a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);
+    a3 = 0.5*(p3 - 3*p2 + 3*p1 - p0);
+  }
+
+  return (a1 + ybar*(2*a2 + 3*a3*ybar)) / dy;
+}
+
+/* ---------------------------------------------------------------------- */
 
 double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart,
 		double dx, double dy, double ****coeff, int coeff_size)
@@ -1608,13 +944,6 @@ double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart,
   double ylo = ystart + (j-1)*dy;
   double ybar = y - ylo;
 
-  /*
-  printf("Spacings: %e %e\n",dx,dy);
-  printf("Starts: %e %e\n",xstart,ystart);
-  printf("Values: %e %e\n",xbar,ybar);
-  printf("Rectangle: %d %d\n",i,j);
-  */
-
   double y0 = coeff[i][j][0][1] 
 	  + ybar*(2*coeff[i][j][0][2]
 	  + 3*ybar*coeff[i][j][0][3]);
@@ -1627,369 +956,8 @@ double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart,
   double y3 = coeff[i][j][3][1] 
 	  + ybar*(2*coeff[i][j][3][2]
 	  + 3*ybar*coeff[i][j][3][3]);
-
-  //printf("%e %e %e %e\n",coeff[i][j][0][0],coeff[i][j][0][1],coeff[i][j][0][2],coeff[i][j][0][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][1][0],coeff[i][j][1][1],coeff[i][j][1][2],coeff[i][j][1][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][2][0],coeff[i][j][2][1],coeff[i][j][2][2],coeff[i][j][2][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][3][0],coeff[i][j][3][1],coeff[i][j][3][2],coeff[i][j][3][3]);
 
   return y0 + xbar*(y1 + xbar*(y2 + xbar*y3));
-}
-
-double PairMesoCNT::dxyspline(double x, double y, double xstart, double ystart,
-		double dx, double dy, double ****coeff, int coeff_size)
-{
-  int j = ceil((y - ystart)/dy);
-  if(j < 1){
-    j = 1;
-    y = ystart;
-  }
-  else if(j > coeff_size-1){
-    j = coeff_size - 1;
-    y = ystart + (coeff_size-1)*dy;
-  }
-
-  int i = ceil((x - xstart)/dx);
-  if(i < 1){
-    i = 1;
-    x = xstart;
-  }
-  else if(i > coeff_size-1){
-    i = coeff_size - 1;
-    x = xstart + (coeff_size-1)*dx;
-  }
-  
-  double xlo = xstart + (i-1)*dx;
-  double xbar = x - xlo;
-  double ylo = ystart + (j-1)*dy;
-  double ybar = y - ylo;
-
-  /*
-  printf("Spacings: %e %e\n",dx,dy);
-  printf("Starts: %e %e\n",xstart,ystart);
-  printf("Values: %e %e\n",xbar,ybar);
-  printf("Rectangle: %d %d\n",i,j);
-  */
-
-  double y0 = coeff[i][j][0][1] 
-	  + ybar*(2*coeff[i][j][0][2]
-	  + 3*ybar*coeff[i][j][0][3]);
-  double y1 = coeff[i][j][1][1] 
-	  + ybar*(2*coeff[i][j][1][2]
-	  + 3*ybar*coeff[i][j][1][3]);
-  double y2 = coeff[i][j][2][1] 
-	  + ybar*(2*coeff[i][j][2][2]
-	  + 3*ybar*coeff[i][j][2][3]);
-  double y3 = coeff[i][j][3][1] 
-	  + ybar*(2*coeff[i][j][3][2]
-	  + 3*ybar*coeff[i][j][3][3]);
-
-  //printf("%e %e %e %e\n",coeff[i][j][0][0],coeff[i][j][0][1],coeff[i][j][0][2],coeff[i][j][0][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][1][0],coeff[i][j][1][1],coeff[i][j][1][2],coeff[i][j][1][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][2][0],coeff[i][j][2][1],coeff[i][j][2][2],coeff[i][j][2][3]);
-  //printf("%e %e %e %e\n",coeff[i][j][3][0],coeff[i][j][3][1],coeff[i][j][3][2],coeff[i][j][3][3]);
-
-  return y1 + xbar*(2*y2 + 3*xbar*y3);
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-double PairMesoCNT::dspline(double x, double xstart, double dx, 
-		double **coeff, int coeff_size)
-{
-  int i = floor((x - xstart)/dx);
-  if(i < 0){
-    i = 0;
-    x = xstart;
-  }
-  else if(i > coeff_size-2){
-    i = coeff_size - 2;
-    x = xstart + (coeff_size - 1)*dx;
-  }
- 
-  double xlo = xstart + i*dx;
-  double xbar = (x - xlo)/dx;
-
-  return (coeff[i][1] + xbar*(2*coeff[i][2] + 3*xbar*coeff[i][3])) / dx;
-  //return (coeff[i][1] + xbar*(3*coeff[i][3] + 2*coeff[i][2])) / dx;
-}
-
-/* ---------------------------------------------------------------------- */
-/*
-double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ***coeff, int coeff_size)
-{
-  int i = floor((y - ystart)/dy);
-  if(i < 0){
-    i = 0;
-    y = ystart;
-  }
-  if(i > coeff_size-2){ 
-    i = coeff_size - 2;
-    y = ystart + (coeff_size - 1)*dy;
-  }
-
-  double ylo = ystart + i*dy;
-  double ybar = (y - ylo)/dy;
-
-  // compute coefficients in y
-  
-  double a0, a1, a2, a3;
-  double p0, p1, p2, p3;
-  
-  p1 = dspline(x,xstart[i],dx[i],coeff[i],coeff_size);
-  p2 = dspline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
-  
-  a0 = p1;
-
-  if(i == 0){
-    p3 = dspline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
-
-    a1 = 0.25*(-p3 + 6*p2 - 5*p1);
-    a2 = 0;
-    a3 = 0.25*(p3 - 2*p2 + p1);
- 
-    *
-    a1 = p2 - p1;
-    a3 = 0.5*(p3 - 2*p2 + p1);
-    a2 = -a3;
-    *
-  }
-  else if(i == coeff_size-2){
-    p0 = dspline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    
-    a1 = 0.5*(p2 - p0);
-    a3 = 0.25*(-p2 + 2*p1 - p0);
-    a2 = -3*a3;
-    
-    *
-    a1 = 0.5*(p2 - p0);
-    a3 = 0.5*(p2 - 2*p1 + p0);
-    a2 = -2*a3;
-    *
-  }
-  else{
-    p0 = dspline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    p3 = dspline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
-
-    a1 = 0.5*(p2 - p0);
-    a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);
-    a3 = 0.5*(p3 - 3*p2 + 3*p1 - p0);
-  }
-
-  return a0 + ybar*(a1 + ybar*(a2 + a3*ybar));
-  //return a0 + ybar * (a1 + a2 + a3);
-}
-
-* ---------------------------------------------------------------------- *
-
-double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ***coeff, int coeff_size)
-{
-  int i = floor((y - ystart)/dy);
-  if(i < 0){
-    i = 0;
-    y = ystart;
-  }
-  if(i > coeff_size-2){
-    i = coeff_size - 2;
-    y = ystart + (coeff_size - 1)*dy;
-  }
- 
-  double ylo = ystart + i*dy;
-  double ybar = (y - ylo)/dy;
-
-  // compute coefficients in y
-  
-  double a0, a1, a2, a3;
-  double p0, p1, p2, p3;
-  
-  p1 = spline(x,xstart[i],dx[i],coeff[i],coeff_size);
-  p2 = spline(x,xstart[i+1],dx[i+1],coeff[i+1],coeff_size);
-  
-  a0 = p1;
-
-  if(i == 0){
-    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
-
-    a1 = 0.25*(-p3 + 6*p2 - 5*p1);
-    a2 = 0;
-    a3 = 0.25*(p3 - 2*p2 + p1);
- 
-    *
-    a1 = p2 - p1;
-    a3 = 0.5*(p3 - 2*p2 + p1);
-    a2 = -a3;
-    *
-  }
-  else if(i == coeff_size-2){
-    p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    
-    a1 = 0.5*(p2 - p0);
-    a3 = 0.25*(-p2 + 2*p1 - p0);
-    a2 = -3*a3;
-    
-    *
-    a1 = 0.5*(p2 - p0);
-    a3 = 0.5*(p2 - 2*p1 + p0);
-    a2 = -2*a3;
-    *
-  }
-  else{
-    p0 = spline(x,xstart[i-1],dx[i-1],coeff[i-1],coeff_size);
-    p3 = spline(x,xstart[i+2],dx[i+2],coeff[i+2],coeff_size);
-
-    a1 = 0.5*(p2 - p0);
-    a2 = 0.5*(-p3 + 4*p2 - 5*p1 + 2*p0);
-    a3 = 0.5*(p3 - 3*p2 + 3*p1 - p0);
-  }
-
-  return (a1 + ybar*(2*a2 + 3*a3*ybar)) / dy;
-  //return (a1 + ybar*(3*a3 + 2*a2)) / dy;
-}
-*/
-
-/* ---------------------------------------------------------------------- */
-
-double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ****coeff, int coeff_size)
-{
-  int j = floor((y - ystart)/dy);
-  if(j < 0){
-    j = 0;
-    y = ystart;
-  }
-  else if(j > coeff_size-2){
-    j = coeff_size - 2;
-    y = ystart + (coeff_size-1)*dy;
-  }
-
-  int i = floor((x - xstart[j])/dx[j]);
-  if(i < 0){
-    i = 0;
-    x = xstart[j];
-  }
-  else if(i > coeff_size-2){
-    i = coeff_size - 2;
-    x = xstart[j] + (coeff_size-1)*dx[j];
-  }
-  
-  double xlo = xstart[j] + i*dx[j];
-  double xbar = (x - xlo)/dx[j];
-  double ylo = ystart + j*dy;
-  double ybar = (y - ylo)/dy;
-
-  double y0 = coeff[i][j][0][1] 
-	  + ybar*(2*coeff[i][j][0][2]
-	  + 3*ybar*(coeff[i][j][0][3]));
-  double y1 = coeff[i][j][1][1] 
-	  + ybar*(2*coeff[i][j][1][2]
-	  + 3*ybar*(coeff[i][j][1][3]));
-  double y2 = coeff[i][j][2][1] 
-	  + ybar*(2*coeff[i][j][2][2]
-	  + 3*ybar*(coeff[i][j][2][3]));
-  double y3 = coeff[i][j][3][1] 
-	  + ybar*(2*coeff[i][j][3][2]
-	  + 3*ybar*(coeff[i][j][3][3]));
-
-  return (y0 + xbar*(y1 + xbar*(y2 + xbar*y3))) / dy;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ****coeff, int coeff_size)
-{
-  int j = floor((y - ystart)/dy);
-  if(j < 0){
-    j = 0;
-    y = ystart;
-  }
-  else if(j > coeff_size-2){
-    j = coeff_size - 2;
-    y = ystart + (coeff_size-1)*dy;
-  }
-
-  int i = floor((x - xstart[j])/dx[j]);
-  if(i < 0){
-    i = 0;
-    x = xstart[j];
-  }
-  else if(i > coeff_size-2){
-    i = coeff_size - 2;
-    x = xstart[j] + (coeff_size-1)*dx[j];
-  }
-  
-  double xlo = xstart[j] + i*dx[j];
-  double xbar = (x - xlo)/dx[j];
-  double ylo = ystart + j*dy;
-  double ybar = (y - ylo)/dy;
-
-  double y0 = coeff[i][j][0][0] 
-	  + ybar*(coeff[i][j][0][1] 
-	  + ybar*(coeff[i][j][0][2]
-	  + ybar*(coeff[i][j][0][3])));
-  double y1 = coeff[i][j][1][0] 
-	  + ybar*(coeff[i][j][1][1] 
-	  + ybar*(coeff[i][j][1][2]
-	  + ybar*(coeff[i][j][1][3])));
-  double y2 = coeff[i][j][2][0] 
-	  + ybar*(coeff[i][j][2][1] 
-	  + ybar*(coeff[i][j][2][2]
-	  + ybar*(coeff[i][j][2][3])));
-  double y3 = coeff[i][j][3][0] 
-	  + ybar*(coeff[i][j][3][1] 
-	  + ybar*(coeff[i][j][3][2]
-	  + ybar*(coeff[i][j][3][3])));
-
-  return (y1 + xbar*(2*y2 + 3*xbar*y3)) / dx[j];
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairMesoCNT::dxyspline(double x, double y, double *xstart, double ystart,
-		double *dx, double dy, double ****coeff, int coeff_size)
-{
-  int j = floor((y - ystart)/dy);
-  if(j < 0){
-    j = 0;
-    y = ystart;
-  }
-  else if(j > coeff_size-2){
-    j = coeff_size - 2;
-    y = ystart + (coeff_size-1)*dy;
-  }
-
-  int i = floor((x - xstart[j])/dx[j]);
-  if(i < 0){
-    i = 0;
-    x = xstart[j];
-  }
-  else if(i > coeff_size-2){
-    i = coeff_size - 2;
-    x = xstart[j] + (coeff_size-1)*dx[j];
-  }
-  
-  double xlo = xstart[j] + i*dx[j];
-  double xbar = (x - xlo)/dx[j];
-  double ylo = ystart + j*dy;
-  double ybar = (y - ylo)/dy;
-
-  double y0 = coeff[i][j][0][1] 
-	  + ybar*(2*coeff[i][j][0][2]
-	  + 3*ybar*(coeff[i][j][0][3]));
-  double y1 = coeff[i][j][1][1] 
-	  + ybar*(2*coeff[i][j][1][2]
-	  + 3*ybar*(coeff[i][j][1][3]));
-  double y2 = coeff[i][j][2][1] 
-	  + ybar*(2*coeff[i][j][2][2]
-	  + 3*ybar*(coeff[i][j][2][3]));
-  double y3 = coeff[i][j][3][1] 
-	  + ybar*(2*coeff[i][j][3][2]
-	  + 3*ybar*(coeff[i][j][3][3]));
-
-  return (y1 + xbar*(2*y2 + 3*xbar*y3)) / dy / dx[j];
 }
 
 
@@ -2010,20 +978,6 @@ void PairMesoCNT::spline_coeff(double *data, double **coeff, int data_size)
       coeff[i][3] = 0.25*(-data[i+1] + 2*data[i] - data[i-1]);
       coeff[i][2] = -3*coeff[i][3];
     }
-    /*
-    if(i == 0){
-      coeff[i][0] = data[i];
-      coeff[i][1] = data[i+1] - data[i];
-      coeff[i][3] = 0.5*(data[i+2] - 2*data[i+1] + data[i]);
-      coeff[i][2] = -coeff[i][3];
-    }
-    else if(i == data_size-2){
-      coeff[i][0] = data[i];
-      coeff[i][1] = 0.5*(data[i+1] - data[i-1]);
-      coeff[i][3] = 0.5*(-data[i+1] + 2*data[i] - data[i-1]);
-      coeff[i][2] = -2*coeff[i][3];
-    }
-    */
     else{
       coeff[i][0] = data[i];
       coeff[i][1] = 0.5*(data[i+1] - data[i-1]);
@@ -2034,24 +988,11 @@ void PairMesoCNT::spline_coeff(double *data, double **coeff, int data_size)
 }
 
 /* ---------------------------------------------------------------------- */
-/*
+
 void PairMesoCNT::spline_coeff(double **data, double ***coeff, int data_size)
 {
   for(int i = 0; i < data_size; i++){
     for(int j = 0; j < data_size-1; j++){
-      if(j == 0){
-        coeff[i][j][0] = data[j][i];
-        coeff[i][j][1] = 0.25*(-data[j+2][i] + 6*data[j+1][i] - 5*data[j][i]);
-        coeff[i][j][2] = 0;
-        coeff[i][j][3] = 0.25*(data[j+2][i] - 2*data[j+1][i] + data[j][i]);
-      }
-      else if(j == data_size-2){
-        coeff[i][j][0] = data[j][i];
-        coeff[i][j][1] = 0.5*(data[j+1][i] - data[j-1][i]);
-        coeff[i][j][3] = 0.25*(-data[j+1][i] + 2*data[j][i] - data[j-1][i]);
-        coeff[i][j][2] = -3*coeff[i][j][3];
-      }
-      *
       if(j == 0){
         coeff[i][j][0] = data[j][i];
         coeff[i][j][1] = data[j+1][i] - data[j][i];
@@ -2064,19 +1005,18 @@ void PairMesoCNT::spline_coeff(double **data, double ***coeff, int data_size)
         coeff[i][j][3] = 0.5*(-data[j+1][i] + 2*data[j][i] - data[j-1][i]);
         coeff[i][j][2] = -2*coeff[i][j][3];
       }
-      *
       else{
         coeff[i][j][0] = data[j][i];
         coeff[i][j][1] = 0.5*(data[j+1][i] - data[j-1][i]);
-        coeff[i][j][2] = 0.5*(-data[j+2][i] + 4*data[j+1][i] 
-			- 5*data[j][i] + 2*data[j-1][i]);
-        coeff[i][j][3] = 0.5*(data[j+2][i] - 3*data[j+1][i] 
-			+ 3*data[j][i] - data[j-1][i]);
+        coeff[i][j][2] = 0.5*(-data[j+2][i] + 4*data[j+1][i]
+                        - 5*data[j][i] + 2*data[j-1][i]);
+        coeff[i][j][3] = 0.5*(data[j+2][i] - 3*data[j+1][i]
+                        + 3*data[j][i] - data[j-1][i]);
       }
     }
   }
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 void PairMesoCNT::spline_coeff(double **data, double ****coeff, 
@@ -2169,17 +1109,6 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
     }
   }
 
-  /*
-  std::ofstream outFile;
-  outFile.open("dx.txt");
-  for(int i = 0; i < n; i++){
-    for(int j = 0; j < n; j++){
-      outFile << i*dx << " " << j*dy << " " << p[i][j] << std::endl;
-    }
-  }
-  outFile.close();
-  */
-
   //Compute s
 
   for(int j = 0; j < n; j += n-1){
@@ -2226,17 +1155,6 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
     }
   }
 
-  /*
-  outFile.open("dy.txt");
-  for(int i = 0; i < n; i++){
-    for(int j = 0; j < n; j++){
-      outFile << i*dx << " " << j*dy << " " << q[i][j] << std::endl;
-    }
-  }
-  outFile.close();
-  */
-
-
   //Compute s
 
   for(int i = 0; i < n; i++){
@@ -2253,16 +1171,6 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
       s[i][j] = (dprime[j] - b[j][j+1]*s[i][j+1]) / bprime[j];
     }
   }
-
-  /*
-  outFile.open("dxy.txt");
-  for(int i = 0; i < n; i++){
-    for(int j = 0; j < n; j++){
-      outFile << i*dx << " " << j*dy << " " << s[i][j] << std::endl;
-    }
-  }
-  outFile.close();
-  */
 
   //Compute spline coefficients
 
@@ -2296,8 +1204,6 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
 	  }
 	}
       }
-      //printf("u[i-1][j-1]: %e\n",u[i-1][j-1]);
-      //printf("coeff[i][j][0][0]: %e\n",coeff[i][j][0][0]);
     }
   }
 
@@ -2308,397 +1214,6 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
 
   memory->destroy(bprime);
   memory->destroy(dprime);
-}
-
-void PairMesoCNT::spline_coeff(double **data, double ****coeff, int data_size){
-  double f00,f01,f10,f11;
-  double fx00,fx01,fx10,fx11;
-  double fy00,fy01,fy10,fy11;
-  double fxy00,fxy01,fxy10,fxy11;
-  double dx0,dx1,dx2,dx3;
-      
-for(int i = 0; i < data_size-1; i++){
-    for(int j = 0; j < data_size-1; j++){
-      f00 = data[i][j];
-      f01 = data[i][j+1];
-      f10 = data[i+1][j];
-      f11 = data[i+1][j+1];
-      if(i == 0){
-        if(j == 0){
-	  fx10 = 0.5 * (data[i+2][j] - data[i][j]);
-	  fx11 = 0.5 * (data[i+2][j+1] - data[i][j+1]);
-	  fy01 = 0.5 * (data[i][j+2] - data[i][j]);
-	  fy11 = 0.5 * (data[i+1][j+2] - data[i+1][j]);
-	  fxy11 = 0.25 * (data[i+2][j+2] + data[i][j]
-			  - data[i][j+2] - data[i+2][j]);
-
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = 0.5 * (-3*f00 + 3*f01 - fy01);
-	  coeff[i][j][0][2] = 0;
-	  coeff[i][j][0][3] = 0.5 * (f00 - f01 + fy01);
-	  coeff[i][j][1][0] = 0.5 * (-3*f00 + 3*f10 - fx10);
-	  coeff[i][j][1][1] = 0.25 * (9*f00 - 9*f01 - 9*f10 + 9*f11 + 3*fx10
-			  - 3*fx11 + fxy11 + 3*fy01 - 3*fy11);
-	  coeff[i][j][1][2] = 0;
-	  coeff[i][j][1][3] = 0.25 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 
-			  - fx10 + fx11 - fxy11 - 3*fy01 + 3*fy11);
-	  coeff[i][j][2][0] = 0;
-	  coeff[i][j][2][1] = 0;
-	  coeff[i][j][2][2] = 0;
-	  coeff[i][j][2][3] = 0;
-	  coeff[i][j][3][0] = 0.5 * (f00 - f10 + fx10);
-	  coeff[i][j][3][1] = 0.25 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 
-			  - 3*fx10 + 3*fx11 - fxy11 - fy01 + fy11);
-	  coeff[i][j][3][2] = 0;
-	  coeff[i][j][3][3] = 0.25 * (f00 - f01 - f10 + f11 + fx10 - fx11 
-			  + fxy11 + fy01 - fy11);
-	}
-	else if(j == data_size-2){
-	  fx10 = 0.5 * (data[i+2][j] - data[i][j]);
-	  fx11 = 0.5 * (data[i+2][j+1] - data[i][j+1]);
-	  fy00 = 0.5 * (data[i][j+1] - data[i][j-1]);
-	  fy10 = 0.5 * (data[i+1][j+1] - data[i+1][j-1]);
-	  fxy10 = 0.25 * (data[i+2][j+1] + data[i][j-1]
-			  - data[i][j+1] - data[i+2][j-1]);
-	  
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = fy00;
-	  coeff[i][j][0][2] = -1.5 * (f00 - f01 + fy00);
-	  coeff[i][j][0][3] = 0.5 * (f00 - f01 + fy00);
-	  coeff[i][j][1][0] = 0.5 * (-3*f00 + 3*f10 - fx10);
-	  coeff[i][j][1][1] = 0.5 * (-fxy10 - 3*fy00 + 3*fy10);
-	  coeff[i][j][1][2] = 0.75 * (3*f00 - 3*f01 - 3*f10 + 3*f11 + fx10 - fx11 + fxy10 + 3*fy00 - 3*fy10);
-	  coeff[i][j][1][3] = 0.25 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 - fx10 + fx11 - fxy10 - 3*fy00 + 3*fy10);
-	  coeff[i][j][2][0] = 0;
-	  coeff[i][j][2][1] = 0;
-	  coeff[i][j][2][2] = 0;
-	  coeff[i][j][2][3] = 0;
-	  coeff[i][j][3][0] = 0.5 * (f00 - f10 + fx10);
-	  coeff[i][j][3][1] = 0.5 * (fxy10 + fy00 - fy10);
-	  coeff[i][j][3][2] = -0.75 * (f00 - f01 - f10 + f11 + fx10 - fx11 + fxy10 + fy00 - fy10);
-	  coeff[i][j][3][3] = 0.25 * (f00 - f01 - f10 + f11 + fx10 -fx11 + fxy10 + fy00 - fy10);
-	}
-	else{
-          fx10 = 0.5 * (data[i+2][j] - data[i][j]);
-	  fx11 = 0.5 * (data[i+2][j+1] - data[i][j+1]);
-	  fy00 = 0.5 * (data[i][j+1] - data[i][j-1]);
-	  fy01 = 0.5 * (data[i][j+2] - data[i][j]);
-	  fy10 = 0.5 * (data[i+1][j+1] - data[i+1][j-1]);
-	  fy11 = 0.5 * (data[i+1][j+2] - data[i+1][j]);
-	  fxy10 = 0.25 * (data[i+2][j+1] + data[i][j-1]
-			  - data[i][j+1] - data[i+2][j-1]);
-	  fxy11 = 0.25 * (data[i+2][j+2] + data[i][j]
-			  - data[i][j+2] - data[i+2][j]);
-	  
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = fy00;
-	  coeff[i][j][0][2] = -3*f00 + 3*f01 - 2*fy00 - fy01;
-	  coeff[i][j][0][3] = 2*f00 - 2*f01 + fy00 + fy01;
-	  coeff[i][j][1][0] = 0.5 * (-3*f00 + 3*f10 - fx10);
-	  coeff[i][j][1][1] = 0.5 * (-fxy10 - 3*fy00 + 3*fy10);
-	  coeff[i][j][1][2] = 0.5 * (9*f00 - 9*f01 - 9*f10 + 9*f11 + 3*fx10 
-			  - 3*fx11 + 2*fxy10 + fxy11 + 6*fy00 + 3*fy01 
-			  - 6*fy10 -3*fy11);
-	  coeff[i][j][1][3] = 0.5 * (-6*f00 + 6*f01 + 6*f10 -6*f11 - 2*fx10 
-			  + 2*fx11 - fxy10 - fxy11 - 3*fy00 - 3*fy01 
-			  + 3*fy10 + 3*fy11);
-	  coeff[i][j][2][0] = 0;
-	  coeff[i][j][2][1] = 0;
-	  coeff[i][j][2][2] = 0;
-	  coeff[i][j][2][3] = 0;
-	  coeff[i][j][3][0] = 0.5 * (f00 - f10 + fx10);
-	  coeff[i][j][3][1] = 0.5 * (fxy10 + fy00 - fy10);
-	  coeff[i][j][3][2] = 0.5 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 - 3*fx10 
-			  + 3*fx11 - 2*fxy10 - fxy11 - 2*fy00 - fy01 
-			  + 2*fy10 + fy11);
-	  coeff[i][j][3][3] = 0.5 * (2*f00 - 2*f01 - 2*f10 + 2*f11 + 2*fx10 
-			  - 2*fx11 + fxy10 + fxy11 + fy00 + fy01 
-			  - fy10 - fy11);
-	}
-      }
-      else if(i == data_size-2){
-        if(j == 0){
-          fx00 = 0.5 * (data[i+1][j] - data[i-1][j]);
-	  fx01 = 0.5 * (data[i+1][j+1] - data[i-1][j+1]);
-	  fy01 = 0.5 * (data[i][j+2] - data[i][j]);
-	  fy11 = 0.5 * (data[i+1][j+2] - data[i+1][j]);
-          fxy01 = 0.25 * (data[i+1][j+2] + data[i-1][j]
-			  - data[i-1][j+2] - data[i+1][j]);
-	  
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = 0.5 * (-3*f00 + 3*f01 - fy01);
-	  coeff[i][j][0][2] = 0;
-	  coeff[i][j][0][3] = 0.5 * (f00 - f01 + fy01);
-	  coeff[i][j][1][0] = fx00;
-	  coeff[i][j][1][1] = 0.5 * (-3*fx00 + 3*fx01 - fxy01);
-	  coeff[i][j][1][2] = 0;
-	  coeff[i][j][1][3] = 0.5 * (fx00 -fx01 + fxy01);
-	  coeff[i][j][2][0] = -1.5 * (f00 - f10 + fx00);
-	  coeff[i][j][2][1] = 0.75 * (3*f00 - 3*f01 - 3*f10 + 3*f11 
-			  + 3*fx00 - 3*fx01 + fxy01 + fy01 - fy11);
-	  coeff[i][j][2][2] = 0;
-	  coeff[i][j][2][3] = -0.75 * (f00 - f01 - f10 + f11 + fx00 
-			  - fx01 + fxy01 + fy01 - fy11);
-	  coeff[i][j][3][0] = 0.5 * (f00 - f10 + fx00);
-	  coeff[i][j][3][1] = 0.25 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 
-			  - 3*fx00 + 3*fx01 - fxy01 - fy01 + fy11);
-	  coeff[i][j][3][2] = 0;
-	  coeff[i][j][3][3] = 0.25 * (f00 - f01 - f10 + f11 + fx00 
-			  - fx01 + fxy01 + fy01 - fy11);
-        }
-	else if(j == data_size-2){
-          fx00 = 0.5 * (data[i+1][j] - data[i-1][j]);
-	  fx01 = 0.5 * (data[i+1][j+1] - data[i-1][j+1]);
-          fy00 = 0.5 * (data[i][j+1] - data[i][j-1]);
-	  fy10 = 0.5 * (data[i+1][j+1] - data[i+1][j-1]);
-	  fxy00 = 0.25 * (data[i+1][j+1] + data[i-1][j-1]
-			  - data[i-1][j+1] - data[i+1][j-1]);
-	  
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = fy00;
-	  coeff[i][j][0][2] = -1.5 * (f00 - f01 + fy00);
-	  coeff[i][j][0][3] = 0.5 * (f00 - f01 + fy00);
-	  coeff[i][j][1][0] = fx00;
-	  coeff[i][j][1][1] = fxy00;
-	  coeff[i][j][1][2] = -1.5 * (fx00 - fx01 + fxy00);
-	  coeff[i][j][1][3] = 0.5 * (fx00 - fx01 + fxy00);
-	  coeff[i][j][2][0] = -1.5 * (f00 - f10 + fx00);
-	  coeff[i][j][2][1] = -1.5 * (fxy00 + fy00 - fy10);
-	  coeff[i][j][2][2] = 2.25 * (f00 - f01 - f10 + f11 + fx00 
-			  - fx01 + fxy00 + fy00 - fy10);
-	  coeff[i][j][2][3] = -0.75 * (f00 - f01 - f10 + f11 + fx00 
-			  - fx01 + fxy00 + fy00 - fy10);
-	  coeff[i][j][3][0] = 0.5 * (f00 - f10 + fx00);
-	  coeff[i][j][3][1] = 0.5 * (fxy00 + fy00 - fy10);
-	  coeff[i][j][3][2] = -0.75 * (f00 - f01 - f10 + f11 + fx00 
-			  - fx01 + fxy00 + fy00 - fy10);
-	  coeff[i][j][3][3] = 0.25 * (f00 - f01 - f10 + f11 + fx00 
-			  - fx01 + fxy00 + fy00 - fy10);
-	}
-	else{
-          fx00 = 0.5 * (data[i+1][j] - data[i-1][j]);
-	  fx01 = 0.5 * (data[i+1][j+1] - data[i-1][j+1]);
-          fy00 = 0.5 * (data[i][j+1] - data[i][j-1]);
-	  fy01 = 0.5 * (data[i][j+2] - data[i][j]);
-	  fy10 = 0.5 * (data[i+1][j+1] - data[i+1][j-1]);
-	  fy11 = 0.5 * (data[i+1][j+2] - data[i+1][j]);
-	  fxy00 = 0.25 * (data[i+1][j+1] + data[i-1][j-1]
-			  - data[i-1][j+1] - data[i+1][j-1]);
-	  fxy01 = 0.25 * (data[i+1][j+2] + data[i-1][j]
-			  - data[i-1][j+2] - data[i+1][j]);
-	
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = fy00;
-	  coeff[i][j][0][2] = -3*f00 + 3*f01 - 2*fy00 - fy01;
-	  coeff[i][j][0][3] = 2*f00 - 2*f01 + fy00 + fy01;
-	  coeff[i][j][1][0] = fx00;
-	  coeff[i][j][1][1] = fxy00;
-	  coeff[i][j][1][2] = -3*fx00 + 3*fx01 - 2*fxy00 - fxy01;
-	  coeff[i][j][1][3] = 2*fx00 - 2*fx01 + fxy00 + fxy01;
-	  coeff[i][j][2][0] = -1.5 * (f00 - f10 + fx00);
-	  coeff[i][j][2][1] = -1.5 * (fxy00 + fy00 - fy10);
-	  coeff[i][j][2][2] = 1.5 * (3*f00 - 3*f01 - 3*f10 + 3*f11 + 3*fx00 
-			  - 3*fx01 + 2*fxy00 + fxy01 + 2*fy00 + fy01 
-			  - 2*fy10 - fy11);
-	  coeff[i][j][2][3] = -1.5 * (2*f00 - 2*f01 - 2*f10 + 2*f11 + 2*fx00 
-			  - 2*fx01 + fxy00 + fxy01 + fy00 + fy01 
-			  - fy10 - fy11);
-	  coeff[i][j][3][0] = 0.5 * (f00 - f10 + fx00);
-	  coeff[i][j][3][1] = 0.5 * (fxy00 + fy00 - fy10);
-	  coeff[i][j][3][2] = 0.5 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 - 3*fx00 
-			  + 3*fx01 - 2*fxy00 - fxy01 - 2*fy00 - fy01 
-			  + 2*fy10 + fy11);
-	  coeff[i][j][3][3] = 0.5 * (2*f00 - 2*f01 - 2*f10 + 2*f11 + 2*fx00 
-			  - 2*fx01 + fxy00 + fxy01 + fy00 + fy01 
-			  - fy10 - fy11);
-	}
-      }
-      else{
-        if(j == 0){
-          fx00 = 0.5 * (data[i+1][j] - data[i-1][j]);
-	  fx01 = 0.5 * (data[i+1][j+1] - data[i-1][j+1]);
-	  fx10 = 0.5 * (data[i+2][j] - data[i][j]);
-	  fx11 = 0.5 * (data[i+2][j+1] - data[i][j+1]);
-	  fy01 = 0.5 * (data[i][j+2] - data[i][j]);
-	  fy11 = 0.5 * (data[i+1][j+2] - data[i+1][j]);
-	  fxy01 = 0.25 * (data[i+1][j+2] + data[i-1][j]
-			  - data[i-1][j+2] - data[i+1][j]);
-	  fxy11 = 0.25 * (data[i+2][j+2] + data[i][j]
-			  - data[i][j+2] - data[i+2][j]);
-	
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = 0.5 * (-3*f00 + 3*f01 -fy01);
-	  coeff[i][j][0][2] = 0;
-	  coeff[i][j][0][3] = 0.5 * (f00 - f01 + fy01);
-	  coeff[i][j][1][0] = fx00;
-	  coeff[i][j][1][1] = 0.5 * (-3*fx00 + 3*fx01 - fxy01);
-	  coeff[i][j][1][2] = 0;
-	  coeff[i][j][1][3] = 0.5 * (fx00 - fx01 + fxy01);
-	  coeff[i][j][2][0] = -3*f00 + 3*f10 - 2*fx00 -fx10;
-	  coeff[i][j][2][1] = 0.5 * (9*f00 - 9*f01 - 9*f10 + 9*f11 + 6*fx00 
-			  - 6*fx01 + 3*fx10 - 3*fx11 + 2*fxy01 + fxy11 
-			  + 3*fy01 - 3*fy11);
-	  coeff[i][j][2][2] = 0;
-	  coeff[i][j][2][3] = 0.5 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 - 2*fx00 
-			  + 2*fx01 - fx10 + fx11 - 2*fxy01 - fxy11 
-			  - 3*fy01 + 3*fy11);
-	  coeff[i][j][3][0] = 2*f00 - 2*f10 + fx00 + fx10;
-	  coeff[i][j][3][1] = 0.5 * (-6*f00 + 6*f01 + 6*f10 - 6*f11 - 3*fx00 
-			  + 3*fx01 - 3*fx10 + 3*fx11 - fxy01 - fxy11 
-			  - 2*fy01 + 2*fy11);
-	  coeff[i][j][3][2] = 0;
-	  coeff[i][j][3][3] = 0.5 * (2*f00 - 2*f01 - 2*f10 + 2*f11 + fx00 
-			  - fx01 + fx10 - fx11 + fxy01 + fxy11 
-			  + 2*fy01 - 2*fy11);
-	}
-	else if(j == data_size-2){
-          fx00 = 0.5 * (data[i+1][j] - data[i-1][j]);
-	  fx01 = 0.5 * (data[i+1][j+1] - data[i-1][j+1]);
-	  fx10 = 0.5 * (data[i+2][j] - data[i][j]);
-	  fx11 = 0.5 * (data[i+2][j+1] - data[i][j+1]);
-	  fy00 = 0.5 * (data[i][j+1] - data[i][j-1]);
-	  fy10 = 0.5 * (data[i+1][j+1] - data[i+1][j-1]);
-	  fxy00 = 0.25 * (data[i+1][j+1] + data[i-1][j-1]
-			  - data[i-1][j+1] - data[i+1][j-1]);
-          fxy10 = 0.25 * (data[i+2][j+1] + data[i][j-1]
-			  - data[i][j+1] - data[i+2][j-1]);
-	 
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = fy00;
-	  coeff[i][j][0][2] = -1.5 * (f00 - f01 + fy00);
-	  coeff[i][j][0][3] = 0.5 * (f00 - f01 + fy00);
-	  coeff[i][j][1][0] = fx00;
-	  coeff[i][j][1][1] = fxy00;
-	  coeff[i][j][1][2] = -1.5 * (fx00 - fx01 + fxy00);
-	  coeff[i][j][1][3] = 0.5 * (fx00 - fx01 + fxy00);
-	  coeff[i][j][2][0] = -3*f00 + 3*f10 - 2*fx00 - fx10;
-	  coeff[i][j][2][1] = -2*fxy00 - fxy10 - 3*fy00 + 3*fy10;
-	  coeff[i][j][2][2] = 1.5 * (3*f00 - 3*f01 - 3*f10 + 3*f11 
-			  + 2*fx00 - 2*fx01 + fx10 - fx11 
-			  + 2*fxy00 + fxy10 + 3*fy00 - 3*fy10);
-	  coeff[i][j][2][3] = 0.5 * (-3*f00 + 3*f01 + 3*f10 - 3*f11 
-			  - 2*fx00 + 2*fx01 - fx10 + fx11 - 2*fxy00 
-			  - fxy10 - 3*fy00 + 3*fy10);
-	  coeff[i][j][3][0] = 2*f00 - 2*f10 + fx00 + fx10;
-	  coeff[i][j][3][1] = fxy00 + fxy10 + 2*fy00 - 2*fy10;
-	  coeff[i][j][3][2] = -1.5 * (2*f00 - 2*f01 - 2*f10 + 2*f11 
-			  + fx00 - fx01 + fx10 - fx11 + fxy00 
-			  + fxy10 + 2*fy00 - 2*fy10);
-	  coeff[i][j][3][3] = 0.5 * (2*f00 - 2*f01 - 2*f10 + 2*f11 
-			  + fx00 - fx01 + fx10 - fx11 + fxy00 
-			  + fxy10 + 2*fy00 - 2*fy10);
-	}
-	else{
-	  if(i == 1 || i == data_size-3){
-            fx00 = 0.5 * (data[i+1][j] - data[i-1][j]);
-	    fx01 = 0.5 * (data[i+1][j+1] - data[i-1][j+1]);
-	    fx10 = 0.5 * (data[i+2][j] - data[i][j]);
-	    fx11 = 0.5 * (data[i+2][j+1] - data[i][j+1]);
-	  }
-	  else{
-            fx00 = 0.25 * MathConst::THIRD * (-data[i+2][j] + 8*data[i+1][j] 
-			    - 8*data[i-1][j] + data[i-2][j]);
-	    fx01 = 0.25 * MathConst::THIRD * (-data[i+2][j+1] + 8*data[i+1][j+1] 
-			    - 8*data[i-1][j+1] + data[i-2][j+1]);
-	    fx10 = 0.25 * MathConst::THIRD * (-data[i+3][j] + 8*data[i+2][j] 
-			    - 8*data[i][j] + data[i-1][j]);
-	    fx11 = 0.25 * MathConst::THIRD * (-data[i+3][j+1] + 8*data[i+2][j+1] 
-			    - 8*data[i][j+1] + data[i-1][j+1]);
-	  }
-	  if(j == 1 || j == data_size-3){
-	    fy00 = 0.5 * (data[i][j+1] - data[i][j-1]);
-	    fy01 = 0.5 * (data[i][j+2] - data[i][j]);
-	    fy10 = 0.5 * (data[i+1][j+1] - data[i+1][j-1]);
-	    fy11 = 0.5 * (data[i+1][j+2] - data[i+1][j]);
-	  }
-	  else{
-            fy00 = 0.25 * MathConst::THIRD * (-data[i][j+2] + 8*data[i][j+1] 
-			    - 8*data[i][j-1] + data[i][j-2]);
-            fy01 = 0.25 * MathConst::THIRD * (-data[i][j+3] + 8*data[i][j+2] 
-			    - 8*data[i][j] + data[i][j-1]);
-	    fy10 = 0.25 * MathConst::THIRD * (-data[i+1][j+2] + 8*data[i+1][j+1] 
-			    - 8*data[i+1][j-1] + data[i+1][j-2]);
-            fy11 = 0.25 * MathConst::THIRD * (-data[i+1][j+3] + 8*data[i+1][j+2] 
-			    - 8*data[i+1][j] + data[i+1][j-1]);
-	  }
-	  if(i == 1 || i == data_size-3 || j == 1 || j == data_size-3){
-	    fxy00 = 0.25 * (data[i+1][j+1] + data[i-1][j-1]
-			  - data[i-1][j+1] - data[i+1][j-1]);
-	    fxy01 = 0.25 * (data[i+1][j+2] + data[i-1][j]
-			  - data[i-1][j+2] - data[i+1][j]);
-	    fxy10 = 0.25 * (data[i+2][j+1] + data[i][j-1]
-			  - data[i][j+1] - data[i+2][j-1]);
-	    fxy11 = 0.25 * (data[i+2][j+2] + data[i][j]
-			  - data[i][j+2] - data[i+2][j]);
-	  }
-	  else{
-             dx0 = 0.25 * MathConst::THIRD * (-data[i+2][j-2] + 8*data[i+1][j-2] 
-			    - 8*data[i-1][j-2] + data[i-2][j-2]);
-	     dx1 = 0.25 * MathConst::THIRD * (-data[i+2][j-1] + 8*data[i+1][j-1] 
-			    - 8*data[i-1][j-1] + data[i-2][j-1]);
-	     dx2 = fx01;
-	     dx3 = 0.25 * MathConst::THIRD * (-data[i+2][j+2] + 8*data[i+1][j+2] 
-			    - 8*data[i-1][j+2] + data[i-2][j+2]);
-	     fxy00 = 0.25 * (dx0 - 8*dx1 + 8*dx2 - dx3);
-
-	     dx0 = 0.25 * MathConst::THIRD * (-data[i+2][j-1] + 8*data[i+1][j-1] 
-			    - 8*data[i-1][j-1] + data[i-2][j-1]);
-	     dx1 = fx00;
-	     dx2 = 0.25 * MathConst::THIRD * (-data[i+2][j+2] + 8*data[i+1][j+2] 
-			    - 8*data[i-1][j+2] + data[i-2][j+2]);
-
-	     dx3 = 0.25 * MathConst::THIRD * (-data[i+2][j+3] + 8*data[i+1][j+3] 
-			    - 8*data[i-1][j+3] + data[i-2][j+3]);
-	     fxy01 = 0.25 * (dx0 - 8*dx1 + 8*dx2 - dx3);
-
-             dx0 = 0.25 * MathConst::THIRD * (-data[i+3][j-2] + 8*data[i+2][j-2] 
-			    - 8*data[i][j-2] + data[i-1][j-2]);
-	     dx1 = 0.25 * MathConst::THIRD * (-data[i+3][j-1] + 8*data[i+2][j-1] 
-			    - 8*data[i][j-1] + data[i-1][j-1]);
-	     dx2 = fx11;
-	     dx3 = 0.25 * MathConst::THIRD * (-data[i+3][j+2] + 8*data[i+2][j+2] 
-			    - 8*data[i][j+2] + data[i-1][j+2]);
-	     fxy10 = 0.25 * (dx0 - 8*dx1 + 8*dx2 - dx3);
-
-	     dx0 = 0.25 * MathConst::THIRD * (-data[i+3][j-1] + 8*data[i+2][j-1] 
-			    - 8*data[i][j-1] + data[i-1][j-1]);
-	     dx1 = fx10;
-	     dx2 = 0.25 * MathConst::THIRD * (-data[i+3][j+2] + 8*data[i+2][j+2] 
-			    - 8*data[i][j+2] + data[i-1][j+2]);
-	     dx3 = 0.25 * MathConst::THIRD * (-data[i+3][j+3] + 8*data[i+2][j+3] 
-			    - 8*data[i][j+3] + data[i-1][j+3]);
-	     fxy11 = 0.25 * (dx0 - 8*dx1 + 8*dx2 - dx3);
-          }
-
-	  coeff[i][j][0][0] = f00;
-	  coeff[i][j][0][1] = fy00;
-	  coeff[i][j][0][2] = -3*f00 + 3*f01 - 2*fy00 - fy01;
-	  coeff[i][j][0][3] = 2*f00 - 2*f01 + fy00 + fy01;
-	  coeff[i][j][1][0] = fx00;
-	  coeff[i][j][1][1] = fxy00;
-	  coeff[i][j][1][2] = -3*fx00 + 3*fx01 - 2*fxy00 - fxy01;
-	  coeff[i][j][1][3] = 2*fx00 - 2*fx01 + fxy00 + fxy01;
-	  coeff[i][j][2][0] = -3*f00 + 3*f10 - 2*fx00 - fx10;
-	  coeff[i][j][2][1] = -2*fxy00 - fxy10 - 3*fy00 + 3*fy10;
-	  coeff[i][j][2][2] = 9*f00 - 9*f01 - 9*f10 + 9*f11 + 6*fx00 - 6*fx01 
-		  + 3*fx10 - 3*fx11 + 4*fxy00 + 2*fxy01 + 2*fxy10 
-		  + fxy11 + 6*fy00 + 3*fy01 - 6*fy10 - 3*fy11;
-	  coeff[i][j][2][3] = -6*f00 + 6*f01 + 6*f10 - 6*f11 - 4*fx00 
-		  + 4*fx01 - 2*fx10 + 2*fx11 - 2*fxy00 - 2*fxy01 
-		  - fxy10 - fxy11 - 3*fy00 - 3*fy01 + 3*fy10 + 3*fy11;
-	  coeff[i][j][3][0] = 2*f00 - 2*f10 + fx00 + fx10;
-	  coeff[i][j][3][1] = fxy00 + fxy10 + 2*fy00 - 2*fy10;
-	  coeff[i][j][3][2] = -6*f00 + 6*f01 + 6*f10 - 6*f11 - 3*fx00 
-		  + 3*fx01 - 3*fx10 + 3*fx11 - 2*fxy00 - fxy01 - 2*fxy10 - fxy11 
-		  - 4*fy00 - 2*fy01 + 4*fy10 + 2*fy11;
-	  coeff[i][j][3][3] = 4*f00 - 4*f01 - 4*f10 + 4*f11 
-		  + 2*fx00 - 2*fx01 + 2*fx10 - 2*fx11 + fxy00 
-		  + fxy01 + fxy10 + fxy11 + 2*fy00 + 2*fy01 
-		  - 2*fy10 - 2*fy11;
-	}
-      }
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2865,23 +1380,23 @@ double PairMesoCNT::uinf(double *param)
     double psi1, psi2, phi1, phi2;
     if(zeta1 < 0){ 
       psi1 = -(zeta1 + zetamin) * diff_zetarec;
-      phi1 = -spline(psi1,h,startzeta_phi,starth_phi,
-        delzeta_phi,delh_phi,phi_coeff,phi_points);
+      phi1 = -spline(psi1,h,startzeta_phi[0],starth_phi,
+        delzeta_phi[0],delh_phi,phi_coeff,phi_points);
     }
     else{
       psi1 = (zeta1 - zetamin) * diff_zetarec; 
-      phi1 = spline(psi1,h,startzeta_phi,starth_phi,
-        delzeta_phi,delh_phi,phi_coeff,phi_points);
+      phi1 = spline(psi1,h,startzeta_phi[0],starth_phi,
+        delzeta_phi[0],delh_phi,phi_coeff,phi_points);
     }
     if(zeta2 < 0){ 
       psi2 = -(zeta2 + zetamin) * diff_zetarec;
-      phi2 = -spline(psi2,h,startzeta_phi,starth_phi,
-        delzeta_phi,delh_phi,phi_coeff,phi_points);
+      phi2 = -spline(psi2,h,startzeta_phi[0],starth_phi,
+        delzeta_phi[0],delh_phi,phi_coeff,phi_points);
     }
     else{
       psi2 = (zeta2 - zetamin) * diff_zetarec; 
-      phi2 = spline(psi2,h,startzeta_phi,starth_phi,
-        delzeta_phi,delh_phi,phi_coeff,phi_points);
+      phi2 = spline(psi2,h,startzeta_phi[0],starth_phi,
+        delzeta_phi[0],delh_phi,phi_coeff,phi_points);
     }
     
     double gamma_orth = spline(h,start_gamma,del_gamma,
@@ -3040,50 +1555,6 @@ void PairMesoCNT::finf(double *param, double *r1, double *r2,
     phi2 *= -1;
     dh_phi2 *= -1;
   }
-
-  /*
-  double hsq = h*h;
-  double g = diameter_angstrom + DELTA2;
-  double zetamin;
-  double zetabarmin, s5arg, s5value;
-  if(h >= g) zetamin = 0;
-  else{ 
-    zetabarmin = sqrt(g*g - h*h);
-    s5arg = (h - diameter_angstrom - DELTA1) * DELTAREC;
-    s5value = s5(s5arg);
-    zetamin = zetabarmin * s5value;
-  }
-  double zetamax = sqrt(cutoffsq_angstrom - h*h);
-  double dzetamin;
-  if(h >= g) dzetamin = 0;
-  else dzetamin = -h / zetabarmin * s5value 
-    + zetabarmin * DELTAREC * ds5(s5arg);
-  double dzetamax = -h / zetamax;
-  double diff_zetarec = 1.0 / (zetamax - zetamin);
-  double diff_zeta1 = fabs(zeta1) - zetamin;
-  double diff_zeta2 = fabs(zeta2) - zetamin;
-
-  double psi1 = diff_zeta1 * diff_zetarec;
-  double psi2 = diff_zeta2 * diff_zetarec;
-  
-  double phi1 = spline(psi1,h,startzeta_phi,starth_phi,
-   	delzeta_phi,delh_phi,phi_coeff,phi_points);
-  double phi2 = spline(psi2,h,startzeta_phi,starth_phi,
-   	delzeta_phi,delh_phi,phi_coeff,phi_points);
-
-  double g1 = sqrt(hsq + zeta1*zeta1);
-  double g2 = sqrt(hsq + zeta2*zeta2);
-  double gmin = sqrt(hsq + zetamin*zetamin);
-  double uinfmin = spline(gmin,start_uinf,del_uinf,uinf_coeff,uinf_points);
-
-  double dzeta_phi1 = spline(g1,start_uinf,del_uinf,uinf_coeff,uinf_points);
-  double dzeta_phi2 = spline(g2,start_uinf,del_uinf,uinf_coeff,uinf_points);
-
-  double dh_phi1 = (1 - dzetamin)*dzeta_phi1 + uinfmin;
-  double dh_phi2 = (1 - dzetamin)*dzeta_phi2 + uinfmin;
-  if(zeta1 < 0) dh_phi1 *= -1;
-  if(zeta2 < 0) dh_phi2 *= -1;
-  */
 
   double diff_dzeta_phi = dzeta_phi2 - dzeta_phi1;
     
@@ -3342,8 +1813,6 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
   eta1 = dot3(delp1,m);
   eta2 = dot3(delp2,m);
 
-  //if(h*angstromrec < SMALL) h = 0;
-
   param[0] = h;
   param[1] = alpha;
   param[2] = xi1;
@@ -3444,8 +1913,6 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   xi2 = dot3(delr2,l);
   eta1 = dot3(delp1,m);
   eta2 = dot3(delp2,m);
-
-  //if(h*angstromrec < SMALL) h = 0;
 
   param[0] = h;
   param[1] = alpha;
@@ -3644,45 +2111,4 @@ void PairMesoCNT::trans_matrix_vector(
   ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::coeff_to_derivative(
-  double ****coeff, double **xderiv_data, double **yderiv_data, 
-  double *dx, double dy, int data_size)
-{
-  for(int i = 0; i < data_size-1; i++){
-    for(int j = 0; j < data_size-1; j++){
-      xderiv_data[i][j] = coeff[i][j][1][0] / dx[i];
-      yderiv_data[i][j] = coeff[i][j][0][1] / dy;
-      
-      if(i == data_size-2){
-        xderiv_data[i+1][j] = (coeff[i][j][1][0] + 2*coeff[i][j][2][0]
-		+ 3*coeff[i][j][3][0]) / dx[i];
-	yderiv_data[i+1][j] = (coeff[i][j][0][1] + coeff[i][j][1][1]
-	      + coeff[i][j][2][1] + coeff[i][j][3][1]) / dy;
-      }
-
-      if(j == data_size-2){
-        xderiv_data[i][j+1] = (coeff[i][j][1][0] + coeff[i][j][1][1]
-	      + coeff[i][j][1][2] + coeff[i][j][1][3]) / dx[i];
-	yderiv_data[i][j+1] = (coeff[i][j][0][1] + 2*coeff[i][j][0][2]
-		+ 3*coeff[i][j][0][3]) / dy;
-      }
-
-      if(i == data_size-2 && j == data_size-2){
-        xderiv_data[i+1][j+1] = (coeff[i][j][1][0] + coeff[i][j][1][1]
-		+ coeff[i][j][1][2] + coeff[i][j][1][3]
-		+ 2*(coeff[i][j][2][0] + coeff[i][j][2][1]
-		+ coeff[i][j][2][2] + coeff[i][j][2][3])
-		+ 3*(coeff[i][j][3][0] + coeff[i][j][3][1]
-		+ coeff[i][j][3][2] + coeff[i][j][3][3])) / dx[i];
-	yderiv_data[i+1][j+1] = (coeff[i][j][0][1] + 2*coeff[i][j][0][2]
-		+ 3*coeff[i][j][0][3] + coeff[i][j][1][1] + 2*coeff[i][j][1][2]
-		+ 3*coeff[i][j][1][3] + coeff[i][j][2][1] + 2*coeff[i][j][2][2]
-		+ 3*coeff[i][j][2][3] + coeff[i][j][3][1] + 2*coeff[i][j][3][2]
-		+ 3*coeff[i][j][3][3]) / dy;
-      }
-    }
-  }
-}
 

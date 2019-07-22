@@ -9,7 +9,6 @@ PairStyle(mesocnt, PairMesoCNT)
 
 #include "pair.h"
 #include <vector>
-#include <boost/math/interpolators/cubic_b_spline.hpp>
 
 namespace LAMMPS_NS {
 
@@ -47,35 +46,29 @@ class PairMesoCNT : public Pair {
   double **dp1_dr1, **dp2_dr1, **dp1_dr2, **dp2_dr2;
   double **usemi_data, **phi_data;
   double **gamma_coeff, **uinf_coeff;
-  double **dzeta_phi_data, **dh_phi_data;
   double **flocal,**fglobal,**basis;
-  double ****usemi_coeff, ****phi_coeff, ****dzeta_phi_coeff, ****dh_phi_coeff;
+  double ***usemi_coeff, ****phi_coeff;
   char *gamma_file, *uinf_file, *usemi_file, *phi_file;
 
   void allocate();
   
   double spline(double, double, double, double **, int);
   double spline(double, double, double *, double, double *, 
-		  double, double ****, int);
+		  double, double ***, int);
   double spline(double, double, double, double, double, 
 		  double, double ****, int);
   double dspline(double, double, double, double **, int);
   double dxspline(double, double, double *, double, double *, 
-		  double, double ****, int);
+		  double, double ***, int);
   double dyspline(double, double, double *, double, double *, 
-		  double, double ****, int);
+		  double, double ***, int);
   double dxspline(double, double, double, double, double, 
 		  double, double ****, int);
   double dyspline(double, double, double, double, double, 
 		  double, double ****, int);
-  double dxyspline(double, double, double *, double, double *, 
-		  double, double ****, int);
-  double dxyspline(double, double, double, double, double, 
-		  double, double ****, int);
-
 
   void spline_coeff(double *, double **, int);
-  void spline_coeff(double **, double ****, int);
+  void spline_coeff(double **, double ***, int);
   void spline_coeff(double **, double ****, double, double, int);
   
   void read_file(char *, double *, double *, double *, int);
@@ -106,7 +99,6 @@ class PairMesoCNT : public Pair {
   void outer(const double *, const double *, double **);
   void matrix_vector(const double * const *, const double *, double *);
   void trans_matrix_vector(const double * const *, const double *, double *);
-  void coeff_to_derivative(double ****, double **, double **, double*, double, int);
 };
 
 }

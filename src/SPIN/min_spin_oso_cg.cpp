@@ -66,6 +66,8 @@ MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_cg);
   nlocal_max = 0;
+  alpha_damp = 1.0;
+  discrete_factor = 10.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,11 +83,9 @@ MinSpinOSO_CG::~MinSpinOSO_CG()
 
 void MinSpinOSO_CG::init()
 {
-  alpha_damp = 1.0;
-  discrete_factor = 10.0;
+
   local_iter = 0;
   Min::init();
-
   dts = dt = update->dt;
   last_negative = update->ntimestep;
   
@@ -216,7 +216,7 @@ int MinSpinOSO_CG::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      fmdotfm = fmnorm_sqr();
+      fmdotfm = max_torque();
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -393,38 +393,41 @@ void MinSpinOSO_CG::advance_spins()
 }
 
 /* ----------------------------------------------------------------------
-   compute and return ||mag. torque||_2^2
+   compute and return  max_i||mag. torque_i||_2
 ------------------------------------------------------------------------- */
 
-double MinSpinOSO_CG::fmnorm_sqr()
+double MinSpinOSO_CG::max_torque()
 {
+  double fmsq,fmaxsqone,fmaxsqloc,fmaxsqall;
   int nlocal = atom->nlocal;
-  double tx,ty,tz;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
+  double hbar = force->hplanck/MY_2PI;
 
-  // calc. magnetic torques
+  // finding max fm on this proc.
 
-  double local_norm2_sqr = 0.0;
+  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    tx = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-    ty = (fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-    tz = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-
-    local_norm2_sqr += tx*tx + ty*ty + tz*tz;
+    fmsq = 0.0;
+    for (int j = 0; j < 3; j++)
+      fmsq += g_cur[3 * i + j] * g_cur[3 * i + j];
+    fmaxsqone = MAX(fmaxsqone,fmsq);
   }
 
-  // no extra atom calc. for spins
+  // finding max fm on this replica
 
-  if (nextra_atom)
-    error->all(FLERR,"extra atom option not available yet");
+  fmaxsqloc = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
 
-  double norm2_sqr = 0.0;
-  MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
+  // finding max fm over all replicas, if necessary
+  // this communicator would be invalid for multiprocess replicas
 
-  return norm2_sqr;
+  fmaxsqall = fmaxsqloc;
+  if (update->multireplica == 1) {
+    fmaxsqall = fmaxsqloc;
+    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+  }
+
+  return sqrt(fmaxsqall) * hbar;
 }
-
 /* ----------------------------------------------------------------------
   calculate 3x3 matrix exponential using Rodrigues' formula
   (R. Murray, Z. Li, and S. Shankar Sastry,

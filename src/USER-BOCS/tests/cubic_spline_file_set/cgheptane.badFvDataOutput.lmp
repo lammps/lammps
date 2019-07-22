@@ -1,0 +1,71 @@
+LAMMPS (18 Jun 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 0) to (66.6884 66.6884 66.6884)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3600 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  2400 bonds
+  reading angles ...
+  1200 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:   0          0          0
+  special bond factors coul: 0          0          0
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+  special bonds CPU = 0.008138 secs
+  read_data CPU = 0.038568 secs
+WARNING: 1 of 300 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:482)
+WARNING: 1 of 300 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:482)
+WARNING: did not find 2 comma separated values in line 6 of file delta_Fv_badbad.dat
+        line: 250600.000000,
+WARNING: did not find 2 comma separated values in line 7 of file delta_Fv_badbad.dat
+        line: , -1403.793767
+WARNING: did not find 2 comma separated values in line 8 of file delta_Fv_badbad.dat
+        line:
+WARNING: did not find 2 comma separated values in line 10 of file delta_Fv_badbad.dat
+        line: 250900.000000 -1405.454148
+WARNING: did not find 2 comma separated values in line 11 of file delta_Fv_badbad.dat
+        line: 25oooo.ooooo,
+WARNING: did not find 2 comma separated values in line 12 of file delta_Fv_badbad.dat
+        line: 251000.000000, -llll.lllll
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 24
+  ghost atom cutoff = 24
+  binsize = 12, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 1
+grid 0: 250000.000000
+grid 1: 250100.000000
+grid 2: 250200.000000
+grid 3: 250400.000000
+grid 4: 250500.000000
+grid 5: 0.000000
+grid 6: 0.000000
+grid 7: 0.000000
+grid 8: 250800.000000
+grid 9: 0.000000
+grid 10: 0.000000
+ERROR: Value 296586.168552 does not fall within spline grid.
+ (src/USER-BOCS/compute_pressure_bocs.cpp:220)
+Last command: run 1000

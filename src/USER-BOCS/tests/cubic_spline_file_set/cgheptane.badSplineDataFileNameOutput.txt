@@ -1,0 +1,32 @@
+LAMMPS (18 Jun 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 0) to (66.6884 66.6884 66.6884)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3600 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  2400 bonds
+  reading angles ...
+  1200 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:   0          0          0
+  special bond factors coul: 0          0          0
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+  special bonds CPU = 0.003373 secs
+  read_data CPU = 0.028979 secs
+WARNING: 1 of 300 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:482)
+WARNING: 1 of 300 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:482)
+ERROR: Unable to open file: bad_file_name.dat
+ (src/USER-BOCS/fix_bocs.cpp:646)
+Last command: fix             1 all bocs temp 303.0 303.0 100.0 cgiso 0.986 0.986 1000.0 cubic_spline bad_file_name.dat

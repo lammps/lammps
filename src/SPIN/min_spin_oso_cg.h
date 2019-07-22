@@ -25,8 +25,7 @@ MinimizeStyle(spin/oso_cg, MinSpinOSO_CG)
 namespace LAMMPS_NS {
 
 class MinSpinOSO_CG : public Min {
-
-public:
+  public:
     MinSpinOSO_CG(class LAMMPS *);
     virtual ~MinSpinOSO_CG();
     void init();
@@ -34,18 +33,19 @@ public:
     int modify_param(int, char **);
     void reset_vectors();
     int iterate(int);
+
+  private:
     double evaluate_dt();
     void advance_spins();
-    double fmnorm_sqr();
+    double max_torque();
     void calc_gradient(double);
     void calc_search_direction();
 
-private:
     // global and spin timesteps
 
-    int nlocal_max;		// max value of nlocal (for size of lists)
     double dt;
     double dts;
+    int nlocal_max;		// max value of nlocal (for size of lists)
 
     double alpha_damp;		// damping for spin minimization
     double discrete_factor;	// factor for spin timestep evaluation

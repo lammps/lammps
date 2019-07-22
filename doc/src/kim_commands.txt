@@ -33,7 +33,7 @@ kim_interactions Si
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
 kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 metal unit_conversion_mode
 kim_interactions C H O
-kim_init Sim_LAMMPS_IFF_OtherInfo_AuthorList_Year_Species__SM_064312669787_000 real
+Sim_LAMMPS_IFF_PCFF_HeinzMishraLinEmami_2015Ver1v5_FccmetalsMineralsSolvents Polymers__SM_064312669787_000 real
 kim_interactions fixed_types
 kim_query a0 get_lattice_constant_cubic crystal=\["fcc"\] species=\["Al"\] units=\["angstrom"\] :pre
 

@@ -52,6 +52,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   beta_max = 0;
   beta = NULL;
   bispectrum = NULL;
+  snaptr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,7 +176,7 @@ void PairSNAP::compute(int eflag, int vflag)
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
-                             snaptr->wj[jj],snaptr->rcutij[jj]);
+                             snaptr->wj[jj],snaptr->rcutij[jj],jj);
 
       snaptr->compute_deidrj(fij);
 

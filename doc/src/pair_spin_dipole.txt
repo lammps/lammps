@@ -81,9 +81,3 @@ currently supported.
 "fix nve/spin"_fix_nve_spin.html
 
 [Default:] none
-
-:line
-
-:link(Allen2)
-[(Allen)] Allen and Tildesley, Computer Simulation of Liquids,
-Clarendon Press, Oxford, 1987.

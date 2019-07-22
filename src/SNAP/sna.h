@@ -53,7 +53,7 @@ public:
 
   // functions for derivatives
 
-  void compute_duidrj(double*, double, double);
+  void compute_duidrj(double*, double, double, int);
   void compute_dbidrj();
   void compute_deidrj(double*);
   double compute_sfac(double, double);
@@ -85,7 +85,7 @@ private:
   int*** idxcg_block; 
 
   double* ulisttot_r, * ulisttot_i;
-  double* ulist_r, * ulist_i;
+  double** ulist_r_ij, ** ulist_i_ij;
   int* idxu_block;
 
   double* zlist_r, * zlist_i;
@@ -106,13 +106,13 @@ private:
   void init_rootpqarray();
   void zero_uarraytot();
   void addself_uarraytot(double);
-  void add_uarraytot(double, double, double);
+  void add_uarraytot(double, double, double, int);
   void compute_uarray(double, double, double,
-                      double, double);
+                      double, double, int);
   double deltacg(int, int, int);
   int compute_ncoeff();
   void compute_duarray(double, double, double,
-                       double, double, double, double, double);
+                       double, double, double, double, double, int);
 
   // Sets the style for the switching function
   // 0 = none

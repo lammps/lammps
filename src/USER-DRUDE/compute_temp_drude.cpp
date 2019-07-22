@@ -46,7 +46,7 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
   extlist[2] = extlist[3] = extlist[4] = extlist[5] = 1;
   tempflag = 0; // because does not compute a single temperature (scalar and vector)
 
-  vector = new double[6];
+  vector = new double[size_vector];
   fix_drude = NULL;
   id_temp = NULL;
   temperature = NULL;

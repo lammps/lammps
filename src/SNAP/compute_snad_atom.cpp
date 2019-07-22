@@ -263,7 +263,7 @@ void ComputeSNADAtom::compute_peratom()
         const int j = snaptr->inside[jj];
         snaptr->compute_duidrj(snaptr->rij[jj],
                                     snaptr->wj[jj],
-                                    snaptr->rcutij[jj]);
+                                    snaptr->rcutij[jj],jj);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi, -dBi/dRj

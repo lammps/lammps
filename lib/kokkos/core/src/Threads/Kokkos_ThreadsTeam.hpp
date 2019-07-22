@@ -72,9 +72,12 @@ private:
 
   enum { TEAM_REDUCE_SIZE = 512 };
 
+public:
   typedef Kokkos::Threads execution_space ;
-  typedef execution_space::scratch_memory_space space ;
+  typedef execution_space::scratch_memory_space scratch_memory_space ;
 
+private:
+  typedef execution_space::scratch_memory_space space ;
   ThreadsExec * const   m_exec ;
   ThreadsExec * const * m_team_base ; ///< Base for team fan-in
   space                 m_team_shared ;
@@ -230,12 +233,18 @@ public:
 
     template< typename ReducerType >
     KOKKOS_INLINE_FUNCTION
+    typename std::enable_if< is_reducer< ReducerType >::value >::type
+    team_reduce( ReducerType const & reducer ) const noexcept
+    { team_reduce(reducer,reducer.reference()); }
+
+    template< typename ReducerType >
+    KOKKOS_INLINE_FUNCTION
     typename std::enable_if< Kokkos::is_reducer< ReducerType >::value >::type
   #if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    team_reduce( const ReducerType & ) const
+    team_reduce( const ReducerType &, const typename ReducerType::value_type ) const
       {}
   #else
-    team_reduce( const ReducerType & reducer ) const
+    team_reduce( const ReducerType & reducer, const typename ReducerType::value_type contribution  ) const
     {
       typedef typename ReducerType::value_type value_type;
       // Make sure there is enough scratch space:
@@ -247,7 +256,7 @@ public:
       type * const local_value = ((type*) m_exec->scratch_memory());
 
       // Set this thread's contribution
-      *local_value = reducer.reference() ;
+      *local_value = contribution ;
 
       // Fence to make sure the base team member has access:
       memory_fence();
@@ -277,58 +286,7 @@ public:
     }
   #endif
 
-  template< class ValueType, class JoinOp >
-  KOKKOS_INLINE_FUNCTION ValueType
-    team_reduce( const ValueType & value
-               , const JoinOp & op_in ) const
-  #if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    { return ValueType(); }
-  #else
-    {
-      typedef ValueType value_type;
-      const JoinLambdaAdapter<value_type,JoinOp> op(op_in);
-  #endif
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-      // Make sure there is enough scratch space:
-      typedef typename if_c< sizeof(value_type) < TEAM_REDUCE_SIZE
-                           , value_type , void >::type type ;
-
-      if ( 0 == m_exec ) return value ;
-
-      type * const local_value = ((type*) m_exec->scratch_memory());
-
-      // Set this thread's contribution
-      *local_value = value ;
-
-      // Fence to make sure the base team member has access:
-      memory_fence();
-
-      if ( team_fan_in() ) {
-        // The last thread to synchronize returns true, all other threads wait for team_fan_out()
-        type * const team_value = ((type*) m_team_base[0]->scratch_memory());
-
-        // Join to the team value:
-        for ( int i = 1 ; i < m_team_size ; ++i ) {
-          op.join( *team_value , *((type*) m_team_base[i]->scratch_memory()) );
-        }
-
-        // Team base thread may "lap" member threads so copy out to their local value.
-        for ( int i = 1 ; i < m_team_size ; ++i ) {
-          *((type*) m_team_base[i]->scratch_memory()) = *team_value ;
-        }
-
-        // Fence to make sure all team members have access
-        memory_fence();
-      }
-
-      team_fan_out();
-
-      // Value was changed by the team base
-      return *((type volatile const *) local_value);
-    }
-#endif
-
-  /** \brief  Intra-team exclusive prefix sum with team_rank() ordering
+   /** \brief  Intra-team exclusive prefix sum with team_rank() ordering
    *          with intra-team non-deterministic ordering accumulation.
    *
    *  The global inter-team accumulation value will, at the end of the
@@ -645,6 +603,22 @@ public:
     return *this;
   }
 
+  template<class ExecSpace, class ... OtherProperties >
+  friend class TeamPolicyInternal;
+
+  template< class ... OtherProperties >
+  TeamPolicyInternal(const TeamPolicyInternal<Kokkos::Threads,OtherProperties...>& p) {
+    m_league_size = p.m_league_size;
+    m_team_size = p.m_team_size;
+    m_team_alloc = p.m_team_alloc;
+    m_team_iter = p.m_team_iter;
+    m_team_scratch_size[0] = p.m_team_scratch_size[0];
+    m_thread_scratch_size[0] = p.m_thread_scratch_size[0];
+    m_team_scratch_size[1] = p.m_team_scratch_size[1];
+    m_thread_scratch_size[1] = p.m_thread_scratch_size[1];
+    m_chunk_size = p.m_chunk_size;
+  }
+
   //----------------------------------------
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
@@ -734,7 +708,7 @@ public:
   inline int team_iter() const { return m_team_iter ; }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal( typename traits::execution_space &
+  TeamPolicyInternal( const typename traits::execution_space &
             , int league_size_request
             , int team_size_request
             , int vector_length_request = 1 )
@@ -747,7 +721,7 @@ public:
     { init(league_size_request,team_size_request); (void) vector_length_request; }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal( typename traits::execution_space &
+  TeamPolicyInternal( const typename traits::execution_space &
             , int league_size_request
             , const Kokkos::AUTO_t & /* team_size_request */
             , int /* vector_length_request */ = 1 )
@@ -757,7 +731,11 @@ public:
     , m_team_scratch_size { 0 , 0 }
     , m_thread_scratch_size { 0 , 0 }
     , m_chunk_size(0)
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     { init(league_size_request,traits::execution_space::thread_pool_size(2)); }
+#else
+    { init(league_size_request,traits::execution_space::impl_thread_pool_size(2)); }
+#endif
 
   TeamPolicyInternal( int league_size_request
             , int team_size_request
@@ -924,6 +902,23 @@ TeamThreadRange( const Impl::ThreadsExecTeamMember& thread, const iType1 & begin
   return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >( thread, iType(begin), iType(end) );
 }
 
+template< typename iType >
+KOKKOS_INLINE_FUNCTION
+Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >
+TeamVectorRange( const Impl::ThreadsExecTeamMember& thread, const iType& count )
+{
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >( thread, count );
+}
+
+template< typename iType1, typename iType2 >
+KOKKOS_INLINE_FUNCTION
+Impl::TeamThreadRangeBoundariesStruct< typename std::common_type< iType1, iType2 >::type,
+                                       Impl::ThreadsExecTeamMember>
+TeamVectorRange( const Impl::ThreadsExecTeamMember& thread, const iType1 & begin, const iType2 & end )
+{
+  typedef typename std::common_type< iType1, iType2 >::type iType;
+  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::ThreadsExecTeamMember >( thread, iType(begin), iType(end) );
+}
 
 template<typename iType>
 KOKKOS_INLINE_FUNCTION
@@ -974,15 +969,18 @@ typename std::enable_if< !Kokkos::is_reducer< ValueType >::value >::type
 parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>& loop_boundaries,
                      const Lambda & lambda, ValueType& result) {
 
-  result = ValueType();
+  ValueType intermediate;
+  Sum<ValueType> sum(intermediate);
+  sum.init(intermediate);
 
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
     ValueType tmp = ValueType();
     lambda(i,tmp);
-    result+=tmp;
+    intermediate+=tmp;
   }
 
-  result = loop_boundaries.thread.team_reduce(result,Impl::JoinAdd<ValueType>());
+  loop_boundaries.thread.team_reduce(sum,intermediate);
+  result = sum.reference();
 }
 
 template< typename iType, class Lambda, typename ReducerType >
@@ -991,36 +989,14 @@ typename std::enable_if< Kokkos::is_reducer< ReducerType >::value >::type
 parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>& loop_boundaries,
                      const Lambda & lambda, const ReducerType& reducer) {
 
-  reducer.init(reducer.reference());
+  typename ReducerType::value_type value;
+  reducer.init(value);
 
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    lambda(i,reducer.reference());
+    lambda(i,value);
   }
 
-  loop_boundaries.thread.team_reduce(reducer);
-}
-
-/** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
- *
- * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a reduction of
- * val is performed using JoinType(ValueType& val, const ValueType& update) and put into init_result.
- * The input value of init_result is used as initializer for temporary variables of ValueType. Therefore
- * the input value should be the neutral element with respect to the join operation (e.g. '0 for +-' or
- * '1 for *'). This functionality requires C++11 support.*/
-template< typename iType, class Lambda, typename ValueType, class JoinType >
-KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember>& loop_boundaries,
-                     const Lambda & lambda, const JoinType& join, ValueType& init_result) {
-
-  ValueType result = init_result;
-
-  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    ValueType tmp = ValueType();
-    lambda(i,tmp);
-    join(result,tmp);
-  }
-
-  init_result = loop_boundaries.thread.team_reduce(result,Impl::JoinLambdaAdapter<ValueType,JoinType>(join));
+  loop_boundaries.thread.team_reduce(reducer,value);
 }
 
 } //namespace Kokkos
@@ -1068,25 +1044,6 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::Thread
   }
 }
 
-/** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
- *
- * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a reduction of
- * val is performed using JoinType(ValueType& val, const ValueType& update) and put into init_result.
- * The input value of init_result is used as initializer for temporary variables of ValueType. Therefore
- * the input value should be the neutral element with respect to the join operation (e.g. '0 for +-' or
- * '1 for *'). This functionality requires C++11 support.*/
-template< typename iType, class Lambda, typename ValueType, class JoinType >
-KOKKOS_INLINE_FUNCTION
-void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ThreadsExecTeamMember >&
-      loop_boundaries, const Lambda & lambda, const JoinType& join, ValueType& result ) {
-
-#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
-#pragma ivdep
-#endif
-  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    lambda(i,result);
-  }
-}
 
 /** \brief  Intra-thread vector parallel exclusive prefix sum. Executes lambda(iType i, ValueType & val, bool final)
  *          for each i=0..N-1.

@@ -648,6 +648,7 @@ pair_sph_lj.html
 pair_sph_rhosum.html
 pair_sph_taitwater.html
 pair_sph_taitwater_morris.html
+pair_spin_dipole.html
 pair_spin_dmi.html
 pair_spin_exchange.html
 pair_spin_magelec.html

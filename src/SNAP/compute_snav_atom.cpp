@@ -258,7 +258,7 @@ void ComputeSNAVAtom::compute_peratom()
 
         snaptr->compute_duidrj(snaptr->rij[jj],
                                     snaptr->wj[jj],
-                                    snaptr->rcutij[jj]);
+                                    snaptr->rcutij[jj],jj);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj

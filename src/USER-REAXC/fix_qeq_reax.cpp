@@ -124,7 +124,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxc = NULL;
-  reaxc = (PairReaxC *) force->pair_match("reax/c",0);
+  reaxc = (PairReaxC *) force->pair_match("^reax/c",0);
 
   s_hist = t_hist = NULL;
   grow_arrays(atom->nmax);
@@ -200,7 +200,7 @@ void FixQEqReax::pertype_parameters(char *arg)
     return;
   }
 
-  int i,itype,ntypes;
+  int i,itype,ntypes,rv;
   double v1,v2,v3;
   FILE *pf;
 
@@ -216,9 +216,11 @@ void FixQEqReax::pertype_parameters(char *arg)
       error->one(FLERR,"Fix qeq/reax parameter file could not be found");
 
     for (i = 1; i <= ntypes && !feof(pf); i++) {
-      fscanf(pf,"%d %lg %lg %lg",&itype,&v1,&v2,&v3);
+      rv = fscanf(pf,"%d %lg %lg %lg",&itype,&v1,&v2,&v3);
+      if (rv != 4)
+        error->one(FLERR,"Fix qeq/reax: Incorrect format of param file");
       if (itype < 1 || itype > ntypes)
-        error->one(FLERR,"Fix qeq/reax invalid atom type in param file");
+        error->one(FLERR,"Fix qeq/reax: invalid atom type in param file");
       chi[itype] = v1;
       eta[itype] = v2;
       gamma[itype] = v3;

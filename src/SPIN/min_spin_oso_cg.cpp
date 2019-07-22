@@ -73,10 +73,7 @@ MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) :
 
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
-  if (nreplica > 1)
-    use_line_search = 0;  // no line search for NEB
-  else
-    use_line_search = 1;
+  use_line_search = 0;  // no line search as default option for CG
 
   discrete_factor = 10.0;
 }

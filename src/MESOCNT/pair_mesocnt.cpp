@@ -1225,7 +1225,7 @@ void PairMesoCNT::read_file(char *file, double *data,
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = fopen(file,"r");
   if (fp == NULL) {
     std::string str("Cannot open file ");
     str += file;
@@ -1271,6 +1271,7 @@ void PairMesoCNT::read_file(char *file, double *data,
     error->warning(FLERR,str);
   }
 
+  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1283,7 +1284,7 @@ void PairMesoCNT::read_file(char *file, double **data,
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = fopen(file,"r");
   if (fp == NULL) {
     std::string str("Cannot open file ");
     str += file;
@@ -1345,7 +1346,8 @@ void PairMesoCNT::read_file(char *file, double **data,
 	    "  from first entry",syerror);
     error->warning(FLERR,str);
   }
-
+  
+  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

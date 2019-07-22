@@ -34,6 +34,8 @@ class MinSpinOSO_CG2: public Min {
     void reset_vectors();
     int iterate(int);
   private:
+    double dt;        // global timestep
+    double dts;       // spin timestep
     int ireplica,nreplica; // for neb
     double *spvec;		// variables for atomic dof, as 1d vector
     double *fmvec;		// variables for atomic dof, as 1d vector
@@ -43,7 +45,9 @@ class MinSpinOSO_CG2: public Min {
     double **sp_copy;   // copy of the spins
     int local_iter;     // for neb
     int nlocal_max;		// max value of nlocal (for size of lists)
+    double discrete_factor;	// factor for spin timestep evaluation
 
+    double evaluate_dt();
     void advance_spins();
     void calc_gradient();
     void calc_search_direction();

@@ -151,7 +151,7 @@ void MinSpinOSO_CG::reset_vectors()
 }
 
 /* ----------------------------------------------------------------------
-   minimization via damped spin dynamics
+   minimization via orthogonal spin optimisation
 ------------------------------------------------------------------------- */
 
 int MinSpinOSO_CG::iterate(int maxiter)
@@ -428,6 +428,7 @@ double MinSpinOSO_CG::max_torque()
 
   return sqrt(fmaxsqall) * hbar;
 }
+
 /* ----------------------------------------------------------------------
   calculate 3x3 matrix exponential using Rodrigues' formula
   (R. Murray, Z. Li, and S. Shankar Sastry,

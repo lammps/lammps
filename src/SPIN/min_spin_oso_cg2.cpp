@@ -75,7 +75,7 @@ MinSpinOSO_CG2::MinSpinOSO_CG2(LAMMPS *lmp) :
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
   use_line_search = 1;
-  maxepsrot = MY_2PI / (100.0);
+  discrete_factor = 10.0;
 
 }
 
@@ -100,6 +100,7 @@ void MinSpinOSO_CG2::init()
 
   Min::init();
 
+  dts = dt = update->dt;
   last_negative = update->ntimestep;
 
   // allocate tables
@@ -140,9 +141,7 @@ int MinSpinOSO_CG2::modify_param(int narg, char **arg)
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    double discrete_factor;
     discrete_factor = force->numeric(FLERR,arg[1]);
-    maxepsrot = MY_2PI / discrete_factor;
     return 2;
   }
   return 0;
@@ -169,7 +168,7 @@ void MinSpinOSO_CG2::reset_vectors()
 }
 
 /* ----------------------------------------------------------------------
-   minimization via damped spin dynamics
+   minimization via orthogonal spin optimisation
 ------------------------------------------------------------------------- */
 
 int MinSpinOSO_CG2::iterate(int maxiter)
@@ -305,19 +304,20 @@ void MinSpinOSO_CG2::calc_gradient()
   double **sp = atom->sp;
   double **fm = atom->fm;
   double hbar = force->hplanck/MY_2PI;
+  double factor;
+
+  if (use_line_search)
+    factor = hbar;
+  else factor = evaluate_dt();
 
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
-    
-    // calculate gradients
-    
-    g_cur[3 * i + 0] = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]) * hbar;
-    g_cur[3 * i + 1] = -(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]) * hbar;
-    g_cur[3 * i + 2] = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]) * hbar;
+    g_cur[3 * i + 0] = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]) * factor;
+    g_cur[3 * i + 1] = -(fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]) * factor;
+    g_cur[3 * i + 2] = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]) * factor;
   }
 }
-
 
 /* ----------------------------------------------------------------------
    search direction:
@@ -335,14 +335,10 @@ void MinSpinOSO_CG2::calc_search_direction()
 
   double g2_global = 0.0;
   double g2old_global = 0.0;
-  double scaling = 1.0;
-
-  if (use_line_search == 0)
-    scaling = maximum_rotation(g_cur);
 
   if (local_iter == 0 || local_iter % 5 == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = -g_cur[i] * scaling;
+      p_s[i] = -g_cur[i];
       g_old[i] = g_cur[i];
     }
   } else { 				// conjugate direction
@@ -352,11 +348,10 @@ void MinSpinOSO_CG2::calc_search_direction()
     }
 
     // now we need to collect/broadcast beta on this replica
-    // different replica can have different beta for now.
     // need to check what is beta for GNEB
 
-    MPI_Allreduce(&g2, &g2_global, 1, MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(&g2old, &g2old_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&g2,&g2_global,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,world);
 
     // Sum over all replicas. Good for GNEB.
     if (update->multireplica == 1) {
@@ -365,12 +360,11 @@ void MinSpinOSO_CG2::calc_search_direction()
       MPI_Allreduce(&g2,&g2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
     }
-
     if (fabs(g2_global) < 1.0e-60) beta = 0.0;
     else beta = g2_global / g2old_global;
     // calculate conjugate direction
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = (beta * p_s[i] - g_cur[i])*scaling;
+      p_s[i] = (beta * p_s[i] - g_cur[i]);
       g_old[i] = g_cur[i];
     }
   }
@@ -411,6 +405,11 @@ double MinSpinOSO_CG2::max_torque()
 {
   double fmsq,fmaxsqone,fmaxsqloc,fmaxsqall;
   int nlocal = atom->nlocal;
+  double factor;
+  double hbar = force->hplanck/MY_2PI;
+
+  if (use_line_search) factor = 1.0;
+  else factor = hbar;
 
   // finding max fm on this proc.
 
@@ -436,7 +435,7 @@ double MinSpinOSO_CG2::max_torque()
     MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
   }
 
-  return sqrt(fmaxsqall);
+  return sqrt(fmaxsqall) * factor;
 }
 
 /* ----------------------------------------------------------------------
@@ -607,8 +606,6 @@ int MinSpinOSO_CG2::calc_and_make_step(double a, double b, int index)
 
     if (alpha < 0.0) alpha = r/2.0;
 
-    std::cout << alpha << "\n";
-
     for (int i = 0; i < nlocal; i++) {
       for (int j = 0; j < 3; j++) sp[i][j] = sp_copy[i][j];
     }
@@ -636,30 +633,47 @@ int MinSpinOSO_CG2::awc(double der_phi_0, double phi_0, double der_phi_j, double
     return 0;
 }
 
-double MinSpinOSO_CG2::maximum_rotation(double *p)
+/* ----------------------------------------------------------------------
+   evaluate max timestep
+---------------------------------------------------------------------- */
+
+double MinSpinOSO_CG2::evaluate_dt()
 {
-  double norm2,norm2_global,scaling,alpha;
+  double dtmax;
+  double fmsq;
+  double fmaxsqone,fmaxsqloc,fmaxsqall;
   int nlocal = atom->nlocal;
-  int ntotal = 0;
+  double **fm = atom->fm;
 
-  norm2 = 0.0;
-  for (int i = 0; i < 3 * nlocal; i++) norm2 += p[i] * p[i];
+  // finding max fm on this proc.
 
-  MPI_Allreduce(&norm2,&norm2_global,1,MPI_DOUBLE,MPI_SUM,world);
-  if (update->multireplica == 1) {
-    norm2 = norm2_global;
-    MPI_Allreduce(&norm2,&norm2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-  }
-  MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
-  if (update->multireplica == 1) {
-    nlocal = ntotal;
-    MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,universe->uworld);
+  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
+    fmaxsqone = MAX(fmaxsqone,fmsq);
   }
 
-  scaling = (maxepsrot * sqrt((double) ntotal / norm2_global));
+  // finding max fm on this replica
 
-  if (scaling < 1.0) alpha = scaling;
-  else alpha = 1.0;
+  fmaxsqloc = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
 
-  return alpha;
+  // finding max fm over all replicas, if necessary
+  // this communicator would be invalid for multiprocess replicas
+
+  fmaxsqall = fmaxsqloc;
+  if (update->multireplica == 1) {
+    fmaxsqall = fmaxsqloc;
+    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+  }
+
+  if (fmaxsqall == 0.0)
+    error->all(FLERR,"Incorrect fmaxsqall calculation");
+
+  // define max timestep by dividing by the
+  // inverse of max frequency by discrete_factor
+
+  dtmax = MY_2PI/(discrete_factor*sqrt(fmaxsqall));
+
+  return dtmax;
 }

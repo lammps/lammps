@@ -73,7 +73,11 @@ MinSpinOSO_LBFGS::MinSpinOSO_LBFGS(LAMMPS *lmp) :
 
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
-  use_line_search = 1;
+  if (nreplica > 1)
+    use_line_search = 0;  // no line search for NEB
+  else
+    use_line_search = 1;
+
   maxepsrot = MY_2PI / (100.0);
 
 }
@@ -143,13 +147,17 @@ int MinSpinOSO_LBFGS::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"line_search") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     use_line_search = force->numeric(FLERR,arg[1]);
+
+    if (nreplica > 1 && use_line_search)
+      error->all(FLERR,"Illegal fix_modify command, cannot use NEB and line search together");
+
     return 2;
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     double discrete_factor;
     discrete_factor = force->numeric(FLERR,arg[1]);
-    maxepsrot = MY_2PI / discrete_factor;
+    maxepsrot = MY_2PI / (10 * discrete_factor);
     return 2;
   }
   return 0;

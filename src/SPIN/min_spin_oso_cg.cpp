@@ -73,7 +73,11 @@ MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) :
 
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
-  use_line_search = 1;
+  if (nreplica > 1)
+    use_line_search = 0;  // no line search for NEB
+  else
+    use_line_search = 1;
+
   discrete_factor = 10.0;
 }
 
@@ -134,6 +138,10 @@ int MinSpinOSO_CG::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"line_search") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     use_line_search = force->numeric(FLERR,arg[1]);
+
+    if (nreplica > 1 && use_line_search)
+      error->all(FLERR,"Illegal fix_modify command, cannot use NEB and line search together");
+
     return 2;
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {

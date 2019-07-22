@@ -36,6 +36,7 @@ class MinSpin : public Min {
   double evaluate_dt();
   void advance_spins(double);
   double fmnorm_sqr();
+  double max_torque();
 
  private:
 

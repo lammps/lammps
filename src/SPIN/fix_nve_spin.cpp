@@ -312,29 +312,37 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       comm->forward_comm();
       int i = stack_foot[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = forward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = forward_stacks[i];
+	}
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = backward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = backward_stacks[i];
+	}
       }
     }
   } else if (sector_flag == 0) {                // serial seq. update
     comm->forward_comm();                       // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++){           // advance quarter s for nlocal
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
     for (int i = nlocal-1; i >= 0; i--){        // advance quarter s for nlocal
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
   } else error->all(FLERR,"Illegal fix NVE/spin command");
 
@@ -357,29 +365,37 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       comm->forward_comm();
       int i = stack_foot[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = forward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = forward_stacks[i];
+	}
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = backward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = backward_stacks[i];
+	}
       }
     }
   } else if (sector_flag == 0) {                // serial seq. update
     comm->forward_comm();                       // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++){           // advance quarter s for nlocal-1
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
     for (int i = nlocal-1; i >= 0; i--){        // advance quarter s for nlocal-1
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
   } else error->all(FLERR,"Illegal fix NVE/spin command");
 
@@ -613,11 +629,11 @@ void FixNVESpin::AdvanceSingleSpin(int i)
 
   // renormalization (check if necessary)
 
-  //msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-  //scale = 1.0/sqrt(msq);
-  //sp[i][0] *= scale;
-  //sp[i][1] *= scale;
-  //sp[i][2] *= scale;
+  // msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+  // scale = 1.0/sqrt(msq);
+  // sp[i][0] *= scale;
+  // sp[i][1] *= scale;
+  // sp[i][2] *= scale;
 
   // comm. sp[i] to atoms with same tag (for serial algo)
 

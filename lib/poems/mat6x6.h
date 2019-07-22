@@ -17,11 +17,9 @@
 
 #ifndef MAT6X6_H
 #define MAT6X6_H
-#include <iostream>
-
 #include "virtualmatrix.h"
 
-namespace POEMS {
+
 class Matrix;
 class Mat3x3;
 class Vect6;
@@ -74,5 +72,5 @@ public:
   friend void OnPopulateSC(Vect3& gamma, Mat3x3& C, Mat6x6& SC);
   friend void OnPopulateSI(Mat3x3& inertia, double mass, Mat6x6& sI);
 };
-}
+
 #endif

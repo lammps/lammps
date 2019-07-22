@@ -15,12 +15,9 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
-#include <cstddef>
 #include "solver.h"
 #include "system.h"
-#include "onsolver.h"
-
-using namespace POEMS;
+#include "matrices.h"
 
 Solver::Solver(){
 

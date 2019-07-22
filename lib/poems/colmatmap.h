@@ -19,12 +19,8 @@
 #ifndef COLMATMAP_H
 #define COLMATMAP_H
 
-#include <iostream>
-
 #include "virtualcolmatrix.h"
-#include "virtualmatrix.h"
 
-namespace POEMS {
 class ColMatrix;
 
 class ColMatMap : public VirtualColMatrix  {
@@ -65,5 +61,5 @@ public:
         friend void FastCKRK5(ColMatMap& X, ColMatrix& Xi, ColMatrix* f, double* c, double dt);
         friend void FastFRK5(ColMatMap& X, ColMatrix& Xi, ColMatrix* f, double* c, double dt);
 };
-}
+
 #endif

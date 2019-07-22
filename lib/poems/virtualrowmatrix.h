@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: virtualrowmatrix.h                                      *
- *      AUTHORS: See Author List                                           *
+ *      AUTHORS: See Author List                                           * 
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           *
+ *                     110 8th St. Troy NY 12180                           * 
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -21,9 +21,8 @@
 
 #include "virtualmatrix.h"
 
-namespace POEMS {
 class VirtualRowMatrix : public VirtualMatrix  {
-public:
+public: 
   VirtualRowMatrix();
   ~VirtualRowMatrix();
   double& operator_2int (int i, int j); // array access
@@ -32,7 +31,7 @@ public:
   double BasicGet_2int(int i, int j) const;
   void BasicSet_2int(int i, int j, double value);
   void BasicIncrement_2int(int i, int j, double value);
-
+  
   virtual double& operator_1int (int i) = 0; // array access
   virtual double Get_1int(int i) const = 0;
   virtual void Set_1int(int i, double value) = 0;
@@ -40,5 +39,5 @@ public:
   virtual void BasicSet_1int(int i, double value) = 0;
   virtual void BasicIncrement_1int(int i, double value) = 0;
 };
-}
+
 #endif

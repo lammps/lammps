@@ -18,15 +18,9 @@
 #ifndef JOINT_H
 #define JOINT_H
 
-#include <iostream>
 #include "poemsobject.h"
-#include "colmatrix.h"
-#include "mat3x3.h"
-#include "matrix.h"
-#include "vect3.h"
-
-namespace POEMS {
-class VirtualMatrix;
+#include <iostream>
+#include "matrices.h"
 
 enum JointType {
   XYZJOINT = 0,
@@ -125,5 +119,5 @@ public:
 
 // global joint functions
 Joint* NewJoint(int type);
-}
+
 #endif

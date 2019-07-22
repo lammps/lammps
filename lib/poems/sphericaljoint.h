@@ -18,11 +18,12 @@
 #ifndef SPHERICALJOINT_H
 #define SPHERICALJOINT_H
 
-#include <iostream>
 #include "joint.h"
-#include "matrix.h"
+#include "vect3.h"
+#include "mat3x3.h"
 
-namespace POEMS {
+
+
 class SphericalJoint : public Joint  {
   Matrix const_sP;
 public:
@@ -39,5 +40,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-}
+
 #endif

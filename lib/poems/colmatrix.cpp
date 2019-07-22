@@ -16,13 +16,12 @@
  *_________________________________________________________________________*/
 
 #include "colmatrix.h"
-
+#include "rowmatrix.h"
 #include <iostream>
+#include <cmath>
 #include <cstdlib>
 
 using namespace std;
-using namespace POEMS;
-
 
 ColMatrix::ColMatrix(){
 	numrows = 0;

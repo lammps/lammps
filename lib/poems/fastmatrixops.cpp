@@ -15,28 +15,17 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
+#include <iostream>
+#include "fastmatrixops.h"
 #include <cmath>
 
-#include "fastmatrixops.h"
-#include "colmatmap.h"
-#include "colmatrix.h"
-#include "mat3x3.h"
-#include "mat4x4.h"
-#include "mat6x6.h"
-#include "matrix.h"
-#include "vect3.h"
-#include "vect4.h"
-#include "vect6.h"
-
 using namespace std;
-using namespace POEMS;
-
 
 //
 // Cross Product (friend of Vect3)
 //
 
-void POEMS::FastCross(Vect3& a, Vect3& b, Vect3& c){
+void FastCross(Vect3& a, Vect3& b, Vect3& c){
   c.elements[0] = a.elements[1]*b.elements[2] - a.elements[2]*b.elements[1];
   c.elements[1] = a.elements[2]*b.elements[0] - a.elements[0]*b.elements[2];
   c.elements[2] = a.elements[0]*b.elements[1] - a.elements[1]*b.elements[0];
@@ -46,7 +35,7 @@ void POEMS::FastCross(Vect3& a, Vect3& b, Vect3& c){
 //  Simple Rotation (friend of Vect3 and Mat3x3)
 //
 
-void POEMS::FastSimpleRotation(Vect3& v, double q, Mat3x3& C){
+void FastSimpleRotation(Vect3& v, double q, Mat3x3& C){
   // intermediate quantities
   double cq = cos(q);
   double sq = sin(q);
@@ -71,7 +60,7 @@ void POEMS::FastSimpleRotation(Vect3& v, double q, Mat3x3& C){
 // Quaternion Functions
 //
 
-void POEMS::FastQuaternions(ColMatrix& q, Mat3x3& C){
+void FastQuaternions(ColMatrix& q, Mat3x3& C){
   double* e = q.elements;
 
   // normalize the quaternions
@@ -96,7 +85,7 @@ void POEMS::FastQuaternions(ColMatrix& q, Mat3x3& C){
   C.elements[2][1] = 2 * (e[2]*e[3] + e[0]*e[1]);
 }
 
-void POEMS::FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot){
+void FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot){
   double* w = omega.elements;
   double* e = q.elements;
 
@@ -106,7 +95,7 @@ void POEMS::FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix&
   qdot.elements[3] = 0.5 * ( w[2]*e[0] + w[1]*e[1] - w[0]*e[2]);
 }
 
-void POEMS::FastInvQuaternions(Mat3x3& C, ColMatrix& q){
+void FastInvQuaternions(Mat3x3& C, ColMatrix& q){
 }
 
 //
@@ -123,7 +112,7 @@ void POEMS::FastInvQuaternions(Mat3x3& C, ColMatrix& q){
 //
 
 // friend of Matrix
-void POEMS::FastLDLT(Matrix& A, Matrix& C){ // C is the LD of the LDL^T decomposition of A (SPD)
+void FastLDLT(Matrix& A, Matrix& C){ // C is the LD of the LDL^T decomposition of A (SPD)
   double Lv;
   int n = A.numrows;
 
@@ -145,7 +134,7 @@ void POEMS::FastLDLT(Matrix& A, Matrix& C){ // C is the LD of the LDL^T decompos
 
 
 // friend of Mat6x6
-void POEMS::FastLDLT(Mat6x6& A, Mat6x6& C){ // C is the LD of the LDL^T decomposition of A (SPD)
+void FastLDLT(Mat6x6& A, Mat6x6& C){ // C is the LD of the LDL^T decomposition of A (SPD)
   double v[6];
   double Lv;
 
@@ -167,7 +156,7 @@ void POEMS::FastLDLT(Mat6x6& A, Mat6x6& C){ // C is the LD of the LDL^T decompos
 }
 
 // friend of Matrix
-void POEMS::FastLDLTSubs(Matrix& LD, Matrix& B, Matrix& C){
+void FastLDLTSubs(Matrix& LD, Matrix& B, Matrix& C){
   int n = B.numrows;
   int c = B.numcols;
   double temp;
@@ -192,7 +181,7 @@ void POEMS::FastLDLTSubs(Matrix& LD, Matrix& B, Matrix& C){
 }
 
 // friend of Matrix
-void POEMS::FastLDLTSubsLH(Matrix& B, Matrix& LD, Matrix& C){
+void FastLDLTSubsLH(Matrix& B, Matrix& LD, Matrix& C){
   int n = B.numcols;
   int c = B.numrows;
   double temp;
@@ -217,7 +206,7 @@ void POEMS::FastLDLTSubsLH(Matrix& B, Matrix& LD, Matrix& C){
 }
 
 // friend of Mat6x6
-void POEMS::FastLDLTSubs(Mat6x6& LD, Mat6x6& B, Mat6x6& C){
+void FastLDLTSubs(Mat6x6& LD, Mat6x6& B, Mat6x6& C){
   double temp;
 
   for(int k=0;k<6;k++){
@@ -240,7 +229,7 @@ void POEMS::FastLDLTSubs(Mat6x6& LD, Mat6x6& B, Mat6x6& C){
 }
 
 // friend of Mat6x6 & Vect6
-void POEMS::FastLDLTSubs(Mat6x6& LD, Vect6& B, Vect6& C){
+void FastLDLTSubs(Mat6x6& LD, Vect6& B, Vect6& C){
   double temp;
 
   for(int i=0;i<6;i++){
@@ -261,7 +250,7 @@ void POEMS::FastLDLTSubs(Mat6x6& LD, Vect6& B, Vect6& C){
 }
 
 // friend of Matrix
-void POEMS::FastLU(Matrix& A, Matrix& LU, int *indx){ // LU is the LU decomposition of A
+void FastLU(Matrix& A, Matrix& LU, int *indx){ // LU is the LU decomposition of A
   int i,imax=0,j,k;
   int n = A.numrows;
   double big, dum, sum, temp;
@@ -311,7 +300,7 @@ void POEMS::FastLU(Matrix& A, Matrix& LU, int *indx){ // LU is the LU decomposit
 }
 
 // friend of Mat3x3
-void POEMS::FastLU(Mat3x3& A, Mat3x3& LU, int *indx){ // LU is the LU decomposition of A
+void FastLU(Mat3x3& A, Mat3x3& LU, int *indx){ // LU is the LU decomposition of A
   int i,imax=0,j,k;
   double big, dum, sum, temp;
   double vv[10000];
@@ -359,7 +348,7 @@ void POEMS::FastLU(Mat3x3& A, Mat3x3& LU, int *indx){ // LU is the LU decomposit
 }
 
 // friend of Mat4x4
-void POEMS::FastLU(Mat4x4& A, Mat4x4& LU, int *indx){ // LU is the LU decomposition of A
+void FastLU(Mat4x4& A, Mat4x4& LU, int *indx){ // LU is the LU decomposition of A
   int i,imax=0,j,k;
   double big, dum, sum, temp;
   double vv[10000];
@@ -407,7 +396,7 @@ void POEMS::FastLU(Mat4x4& A, Mat4x4& LU, int *indx){ // LU is the LU decomposit
 }
 
 // friend of Mat6x6
-void POEMS::FastLU(Mat6x6& A, Mat6x6& LU, int *indx){ // LU is the LU decomposition of A
+void FastLU(Mat6x6& A, Mat6x6& LU, int *indx){ // LU is the LU decomposition of A
   int i,imax=0,j,k;
   double big, dum, sum, temp;
   double vv[10000];
@@ -455,7 +444,7 @@ void POEMS::FastLU(Mat6x6& A, Mat6x6& LU, int *indx){ // LU is the LU decomposit
 }
 
 // friend of Matrix
-void POEMS::FastLUSubs(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubs(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
@@ -479,7 +468,7 @@ void POEMS::FastLUSubs(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropri
 }
 
 // friend of Matrix and Mat3x3
-void POEMS::FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
@@ -503,7 +492,7 @@ void POEMS::FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx){ // Appropri
 }
 
 // friend of Matrix and Mat4x4
-void POEMS::FastLUSubs(Mat4x4& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution
+void FastLUSubs(Mat4x4& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
@@ -527,7 +516,7 @@ void POEMS::FastLUSubs(Mat4x4& LU, Matrix& B, Matrix& C, int *indx){ // Appropri
 }
 
 // friend of Matrix and Mat6x6
-void POEMS::FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
@@ -553,7 +542,7 @@ void POEMS::FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx){ // Appropri
 
 // The following LUSubsLH routine is incomplete at the moment.
 // friend of Matrix
-void POEMS::FastLUSubsLH(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubsLH(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
   int i,ip,j,k;
   int n = B.numcols;
   int c = B.numrows;
@@ -584,13 +573,13 @@ void POEMS::FastLUSubsLH(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Approp
 // Triple sum
 //
 
-void POEMS::FastTripleSum(Vect3& a, Vect3& b, Vect3& c, Vect3& d){ // d = a+b+c
+void FastTripleSum(Vect3& a, Vect3& b, Vect3& c, Vect3& d){ // d = a+b+c
   d.elements[0] = a.elements[0]+b.elements[0]+c.elements[0];
   d.elements[1] = a.elements[1]+b.elements[1]+c.elements[1];
   d.elements[2] = a.elements[2]+b.elements[2]+c.elements[2];
 }
 
-void POEMS::FastTripleSumPPM(Vect3& a, Vect3& b, Vect3& c, Vect3& d){ // d = a+b-c
+void FastTripleSumPPM(Vect3& a, Vect3& b, Vect3& c, Vect3& d){ // d = a+b-c
   d.elements[0] = a.elements[0]+b.elements[0]-c.elements[0];
   d.elements[1] = a.elements[1]+b.elements[1]-c.elements[1];
   d.elements[2] = a.elements[2]+b.elements[2]-c.elements[2];
@@ -601,7 +590,7 @@ void POEMS::FastTripleSumPPM(Vect3& a, Vect3& b, Vect3& c, Vect3& d){ // d = a+b
 //
 
 // friend of matrix
-void POEMS::FastMult(Matrix& A, Matrix& B, Matrix& C){  // C = A*B
+void FastMult(Matrix& A, Matrix& B, Matrix& C){  // C = A*B
   // assumes dimensions are already correct!
   int r = A.numrows;
   int ca = A.numcols;
@@ -617,7 +606,7 @@ void POEMS::FastMult(Matrix& A, Matrix& B, Matrix& C){  // C = A*B
 }
 
 // friend of matrix
-void POEMS::FastTMult(Matrix& A, Matrix& B, Matrix& C){  // C = A*B
+void FastTMult(Matrix& A, Matrix& B, Matrix& C){  // C = A*B
   // assumes dimensions are already correct!
   int r = A.numcols;
   int ca = A.numrows;
@@ -633,14 +622,14 @@ void POEMS::FastTMult(Matrix& A, Matrix& B, Matrix& C){  // C = A*B
 }
 
 // friend of Mat3x3 & Vect3
-void POEMS::FastMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = A*B
+void FastMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = A*B
   C.elements[0] = A.elements[0][0]*B.elements[0] + A.elements[0][1]*B.elements[1] + A.elements[0][2]*B.elements[2];
   C.elements[1] = A.elements[1][0]*B.elements[0] + A.elements[1][1]*B.elements[1] + A.elements[1][2]*B.elements[2];
   C.elements[2] = A.elements[2][0]*B.elements[0] + A.elements[2][1]*B.elements[1] + A.elements[2][2]*B.elements[2];
 }
 
 // friend of Mat3x3, ColMatrix, & Vect3
-void POEMS::FastMult(Mat3x3& A, ColMatrix& B, Vect3& C){  // C = A*B
+void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C){  // C = A*B
   C.elements[0] = A.elements[0][0]*B.elements[0] + A.elements[0][1]*B.elements[1] + A.elements[0][2]*B.elements[2];
   C.elements[1] = A.elements[1][0]*B.elements[0] + A.elements[1][1]*B.elements[1] + A.elements[1][2]*B.elements[2];
   C.elements[2] = A.elements[2][0]*B.elements[0] + A.elements[2][1]*B.elements[1] + A.elements[2][2]*B.elements[2];
@@ -648,42 +637,42 @@ void POEMS::FastMult(Mat3x3& A, ColMatrix& B, Vect3& C){  // C = A*B
 
 
 // friend of Mat3x3, ColMatrix, & Vect3
-void POEMS::FastMult(Mat3x3& A, Vect3& B, ColMatrix& C){  // C = A*B
+void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C){  // C = A*B
   C.elements[0] = A.elements[0][0]*B.elements[0] + A.elements[0][1]*B.elements[1] + A.elements[0][2]*B.elements[2];
   C.elements[1] = A.elements[1][0]*B.elements[0] + A.elements[1][1]*B.elements[1] + A.elements[1][2]*B.elements[2];
   C.elements[2] = A.elements[2][0]*B.elements[0] + A.elements[2][1]*B.elements[1] + A.elements[2][2]*B.elements[2];
 }
 
 // friend of Mat3x3 & Vect3
-void POEMS::FastTMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = A^T*B
+void FastTMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = A^T*B
   C.elements[0] = A.elements[0][0]*B.elements[0] + A.elements[1][0]*B.elements[1] + A.elements[2][0]*B.elements[2];
   C.elements[1] = A.elements[0][1]*B.elements[0] + A.elements[1][1]*B.elements[1] + A.elements[2][1]*B.elements[2];
   C.elements[2] = A.elements[0][2]*B.elements[0] + A.elements[1][2]*B.elements[1] + A.elements[2][2]*B.elements[2];
 }
 
 // friend of Mat3x3 & Vect3
-void POEMS::FastNegMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = -A*B
+void FastNegMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = -A*B
   C.elements[0] = -A.elements[0][0]*B.elements[0] - A.elements[0][1]*B.elements[1] - A.elements[0][2]*B.elements[2];
   C.elements[1] = -A.elements[1][0]*B.elements[0] - A.elements[1][1]*B.elements[1] - A.elements[1][2]*B.elements[2];
   C.elements[2] = -A.elements[2][0]*B.elements[0] - A.elements[2][1]*B.elements[1] - A.elements[2][2]*B.elements[2];
 }
 
 // friend of Mat3x3 & Vect3
-void POEMS::FastNegTMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = -A^T*B
+void FastNegTMult(Mat3x3& A, Vect3& B, Vect3& C){  // C = -A^T*B
   C.elements[0] = -A.elements[0][0]*B.elements[0] - A.elements[1][0]*B.elements[1] - A.elements[2][0]*B.elements[2];
   C.elements[1] = -A.elements[0][1]*B.elements[0] - A.elements[1][1]*B.elements[1] - A.elements[2][1]*B.elements[2];
   C.elements[2] = -A.elements[0][2]*B.elements[0] - A.elements[1][2]*B.elements[1] - A.elements[2][2]*B.elements[2];
 }
 
 // friend of Vect3
-void POEMS::FastMult(double a, Vect3& B, Vect3& C){  // C = a*B
+void FastMult(double a, Vect3& B, Vect3& C){  // C = a*B
   C.elements[0] = a*B.elements[0];
   C.elements[1] = a*B.elements[1];
   C.elements[2] = a*B.elements[2];
 }
 
 // friend of Mat4x4 & Vect4
-void POEMS::FastMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = A*B
+void FastMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = A*B
   C.elements[0] = A.elements[0][0]*B.elements[0] + A.elements[0][1]*B.elements[1] + A.elements[0][2]*B.elements[2] + A.elements[0][3]*B.elements[3];
   C.elements[1] = A.elements[1][0]*B.elements[0] + A.elements[1][1]*B.elements[1] + A.elements[1][2]*B.elements[2] + A.elements[1][3]*B.elements[3];
   C.elements[2] = A.elements[2][0]*B.elements[0] + A.elements[2][1]*B.elements[1] + A.elements[2][2]*B.elements[2] + A.elements[2][3]*B.elements[3];
@@ -691,7 +680,7 @@ void POEMS::FastMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = A*B
 }
 
 // friend of Mat4x4 & Vect4
-void POEMS::FastTMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = A^T*B
+void FastTMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = A^T*B
   C.elements[0] = A.elements[0][0]*B.elements[0] + A.elements[1][0]*B.elements[1] + A.elements[2][0]*B.elements[2] + A.elements[3][0]*B.elements[3];
   C.elements[1] = A.elements[0][1]*B.elements[0] + A.elements[1][1]*B.elements[1] + A.elements[2][1]*B.elements[2] + A.elements[3][1]*B.elements[3];
   C.elements[2] = A.elements[0][2]*B.elements[0] + A.elements[1][2]*B.elements[1] + A.elements[2][2]*B.elements[2] + A.elements[3][2]*B.elements[3];
@@ -699,7 +688,7 @@ void POEMS::FastTMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = A^T*B
 }
 
 // friend of Mat4x4 & Vect4
-void POEMS::FastNegMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = -A*B
+void FastNegMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = -A*B
   C.elements[0] = -A.elements[0][0]*B.elements[0] - A.elements[0][1]*B.elements[1] - A.elements[0][2]*B.elements[2] - A.elements[0][3]*B.elements[3];
   C.elements[1] = -A.elements[1][0]*B.elements[0] - A.elements[1][1]*B.elements[1] - A.elements[1][2]*B.elements[2] - A.elements[1][3]*B.elements[3];
   C.elements[2] = -A.elements[2][0]*B.elements[0] - A.elements[2][1]*B.elements[1] - A.elements[2][2]*B.elements[2] - A.elements[2][3]*B.elements[3];
@@ -707,7 +696,7 @@ void POEMS::FastNegMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = -A*B
 }
 
 // friend of Mat4x4 & Vect4
-void POEMS::FastNegTMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = -A^T*B
+void FastNegTMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = -A^T*B
   C.elements[0] = -A.elements[0][0]*B.elements[0] - A.elements[1][0]*B.elements[1] - A.elements[2][0]*B.elements[2] - A.elements[3][0]*B.elements[3];
   C.elements[1] = -A.elements[0][1]*B.elements[0] - A.elements[1][1]*B.elements[1] - A.elements[2][1]*B.elements[2] - A.elements[3][1]*B.elements[3];
   C.elements[2] = -A.elements[0][2]*B.elements[0] - A.elements[1][2]*B.elements[1] - A.elements[2][2]*B.elements[2] - A.elements[3][2]*B.elements[3];
@@ -715,7 +704,7 @@ void POEMS::FastNegTMult(Mat4x4& A, Vect4& B, Vect4& C){  // C = -A^T*B
 }
 
 // friend of Vect4
-void POEMS::FastMult(double a, Vect4& B, Vect4& C){  // C = a*B
+void FastMult(double a, Vect4& B, Vect4& C){  // C = a*B
   C.elements[0] = a*B.elements[0];
   C.elements[1] = a*B.elements[1];
   C.elements[2] = a*B.elements[2];
@@ -723,7 +712,7 @@ void POEMS::FastMult(double a, Vect4& B, Vect4& C){  // C = a*B
 }
 
 // friend of Matrix & Mat6x6
-void POEMS::FastMultT(Matrix& A, Matrix& B, Mat6x6& C){  // C = A*B^T
+void FastMultT(Matrix& A, Matrix& B, Mat6x6& C){  // C = A*B^T
   int i,j,k,n;
   n = A.numcols;
 
@@ -736,7 +725,7 @@ void POEMS::FastMultT(Matrix& A, Matrix& B, Mat6x6& C){  // C = A*B^T
 }
 
 // friend Matrix, Vect6, ColMatrix
-void POEMS::FastMult(Matrix& A, ColMatrix& B, Vect6& C){
+void FastMult(Matrix& A, ColMatrix& B, Vect6& C){
   int ca = A.numcols;
 
   int i,k;
@@ -748,7 +737,7 @@ void POEMS::FastMult(Matrix& A, ColMatrix& B, Vect6& C){
 }
 
 // friend of Matrix & Mat6x6
-void POEMS::FastMult(Mat6x6& A, Matrix& B, Matrix& C){  // C = A*B
+void FastMult(Mat6x6& A, Matrix& B, Matrix& C){  // C = A*B
   // assumes dimensions are already correct!
   int cb = B.numcols;
 
@@ -762,7 +751,7 @@ void POEMS::FastMult(Mat6x6& A, Matrix& B, Matrix& C){  // C = A*B
 }
 
 // friend Matrix, Vect6, ColMatrix
-void POEMS::FastTMult(Matrix& A, Vect6& B, ColMatrix& C){  // C = A^T*B
+void FastTMult(Matrix& A, Vect6& B, ColMatrix& C){  // C = A^T*B
   int n = C.numrows;
   int i,k;
   for(i=0;i<n;i++){
@@ -773,7 +762,7 @@ void POEMS::FastTMult(Matrix& A, Vect6& B, ColMatrix& C){  // C = A^T*B
 }
 
 // friend of Mat3x3
-void POEMS::FastMult(Mat3x3& A, Mat3x3& B, Mat3x3& C){  // C = A*B
+void FastMult(Mat3x3& A, Mat3x3& B, Mat3x3& C){  // C = A*B
   C.elements[0][0] = A.elements[0][0]*B.elements[0][0] + A.elements[0][1]*B.elements[1][0] + A.elements[0][2]*B.elements[2][0];
   C.elements[0][1] = A.elements[0][0]*B.elements[0][1] + A.elements[0][1]*B.elements[1][1] + A.elements[0][2]*B.elements[2][1];
   C.elements[0][2] = A.elements[0][0]*B.elements[0][2] + A.elements[0][1]*B.elements[1][2] + A.elements[0][2]*B.elements[2][2];
@@ -788,7 +777,7 @@ void POEMS::FastMult(Mat3x3& A, Mat3x3& B, Mat3x3& C){  // C = A*B
 }
 
 // friend of Mat3x3
-void POEMS::FastMultT(Mat3x3& A, Mat3x3& B, Mat3x3& C){  // C = A*B^T
+void FastMultT(Mat3x3& A, Mat3x3& B, Mat3x3& C){  // C = A*B^T
   C.elements[0][0] = A.elements[0][0]*B.elements[0][0] + A.elements[0][1]*B.elements[0][1] + A.elements[0][2]*B.elements[0][2];
   C.elements[0][1] = A.elements[0][0]*B.elements[1][0] + A.elements[0][1]*B.elements[1][1] + A.elements[0][2]*B.elements[1][2];
   C.elements[0][2] = A.elements[0][0]*B.elements[2][0] + A.elements[0][1]*B.elements[2][1] + A.elements[0][2]*B.elements[2][2];
@@ -803,7 +792,7 @@ void POEMS::FastMultT(Mat3x3& A, Mat3x3& B, Mat3x3& C){  // C = A*B^T
 }
 
 // friend of Mat4x4
-void POEMS::FastMult(Mat4x4& A, Mat4x4& B, Mat4x4& C){  // C = A*B
+void FastMult(Mat4x4& A, Mat4x4& B, Mat4x4& C){  // C = A*B
   C.elements[0][0] = A.elements[0][0]*B.elements[0][0] + A.elements[0][1]*B.elements[1][0] + A.elements[0][2]*B.elements[2][0] + A.elements[0][3]*B.elements[3][0];
   C.elements[0][1] = A.elements[0][0]*B.elements[0][1] + A.elements[0][1]*B.elements[1][1] + A.elements[0][2]*B.elements[2][1] + A.elements[0][3]*B.elements[3][1];
   C.elements[0][2] = A.elements[0][0]*B.elements[0][2] + A.elements[0][1]*B.elements[1][2] + A.elements[0][2]*B.elements[2][2] + A.elements[0][3]*B.elements[3][2];
@@ -826,7 +815,7 @@ void POEMS::FastMult(Mat4x4& A, Mat4x4& B, Mat4x4& C){  // C = A*B
 }
 
 // friend of Mat4x4
-void POEMS::FastMultT(Mat4x4& A, Mat4x4& B, Mat4x4& C){  // C = A*B^T
+void FastMultT(Mat4x4& A, Mat4x4& B, Mat4x4& C){  // C = A*B^T
   C.elements[0][0] = A.elements[0][0]*B.elements[0][0] + A.elements[0][1]*B.elements[0][1] + A.elements[0][2]*B.elements[0][2] + A.elements[0][3]*B.elements[0][3];
   C.elements[0][1] = A.elements[0][0]*B.elements[1][0] + A.elements[0][1]*B.elements[1][1] + A.elements[0][2]*B.elements[1][2] + A.elements[0][3]*B.elements[1][3];
   C.elements[0][2] = A.elements[0][0]*B.elements[2][0] + A.elements[0][1]*B.elements[2][1] + A.elements[0][2]*B.elements[2][2] + A.elements[0][3]*B.elements[2][3];
@@ -850,7 +839,7 @@ void POEMS::FastMultT(Mat4x4& A, Mat4x4& B, Mat4x4& C){  // C = A*B^T
 }
 
 // friend of Mat6x6
-void POEMS::FastMult(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A*B
+void FastMult(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A*B
   int i,j,k;
   for(i=0;i<6;i++)
     for(j=0;j<6;j++){
@@ -861,7 +850,7 @@ void POEMS::FastMult(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A*B
 }
 
 // friend of Mat6x6
-void POEMS::FastMultT(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A*B
+void FastMultT(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A*B
   int i,j,k;
   for(i=0;i<6;i++)
     for(j=0;j<6;j++){
@@ -872,7 +861,7 @@ void POEMS::FastMultT(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A*B
 }
 
 // friend of Mat6x6
-void POEMS::FastTMult(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A^T*B
+void FastTMult(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A^T*B
   int i,j,k;
   for(i=0;i<6;i++)
     for(j=0;j<6;j++){
@@ -883,13 +872,13 @@ void POEMS::FastTMult(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A^T*B
 }
 
 // friend of Mat6x6 & Vect6
-void POEMS::FastMult(Mat6x6& A, Vect6& B, Vect6& C){  // C = A*B
+void FastMult(Mat6x6& A, Vect6& B, Vect6& C){  // C = A*B
   for(int i=0;i<6;i++)
     C.elements[i] = A.elements[i][0]*B.elements[0] + A.elements[i][1]*B.elements[1] + A.elements[i][2]*B.elements[2] + A.elements[i][3]*B.elements[3] + A.elements[i][4]*B.elements[4] + A.elements[i][5]*B.elements[5];
 }
 
 // friend of Mat6x6 & Vect6
-void POEMS::FastTMult(Mat6x6& A, Vect6& B, Vect6& C){  // C = A^T*B
+void FastTMult(Mat6x6& A, Vect6& B, Vect6& C){  // C = A^T*B
   for(int i=0;i<6;i++)
     C.elements[i] = A.elements[0][i]*B.elements[0] + A.elements[1][i]*B.elements[1] + A.elements[2][i]*B.elements[2] + A.elements[3][i]*B.elements[3] + A.elements[4][i]*B.elements[4] + A.elements[5][i]*B.elements[5];
 }
@@ -899,21 +888,21 @@ void POEMS::FastTMult(Mat6x6& A, Vect6& B, Vect6& C){  // C = A^T*B
 //
 
 // friend of Vect3
-void POEMS::FastAdd(Vect3& A, Vect3& B, Vect3& C){ // C = A+B
+void FastAdd(Vect3& A, Vect3& B, Vect3& C){ // C = A+B
   C.elements[0] = A.elements[0] + B.elements[0];
   C.elements[1] = A.elements[1] + B.elements[1];
   C.elements[2] = A.elements[2] + B.elements[2];
 }
 
 // friend of Vect4
-void POEMS::FastAdd(Vect4& A, Vect4& B, Vect4& C){ // C = A+B
+void FastAdd(Vect4& A, Vect4& B, Vect4& C){ // C = A+B
   C.elements[0] = A.elements[0] + B.elements[0];
   C.elements[1] = A.elements[1] + B.elements[1];
   C.elements[2] = A.elements[2] + B.elements[2];
   C.elements[3] = A.elements[3] + B.elements[3];
 }
 
-void POEMS::FastAdd(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A+B
+void FastAdd(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A+B
   int i,j;
   for(i=0;i<6;i++)
     for(j=0;j<6;j++)
@@ -921,7 +910,7 @@ void POEMS::FastAdd(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A+B
 }
 
 // friend of Vect6
-void POEMS::FastAdd(Vect6& A, Vect6& B, Vect6& C){ // C = A-B
+void FastAdd(Vect6& A, Vect6& B, Vect6& C){ // C = A-B
   C.elements[0] = A.elements[0] + B.elements[0];
   C.elements[1] = A.elements[1] + B.elements[1];
   C.elements[2] = A.elements[2] + B.elements[2];
@@ -935,21 +924,21 @@ void POEMS::FastAdd(Vect6& A, Vect6& B, Vect6& C){ // C = A-B
 //
 
 // friend of Vect3
-void POEMS::FastSubt(Vect3& A, Vect3& B, Vect3& C){ // C = A-B
+void FastSubt(Vect3& A, Vect3& B, Vect3& C){ // C = A-B
   C.elements[0] = A.elements[0] - B.elements[0];
   C.elements[1] = A.elements[1] - B.elements[1];
   C.elements[2] = A.elements[2] - B.elements[2];
 }
 
 // friend of Vect4
-void POEMS::FastSubt(Vect4& A, Vect4& B, Vect4& C){ // C = A-B
+void FastSubt(Vect4& A, Vect4& B, Vect4& C){ // C = A-B
   C.elements[0] = A.elements[0] - B.elements[0];
   C.elements[1] = A.elements[1] - B.elements[1];
   C.elements[2] = A.elements[2] - B.elements[2];
   C.elements[3] = A.elements[3] - B.elements[3];
 }
 
-void POEMS::FastSubt(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A-B
+void FastSubt(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A-B
   int i,j;
   for(i=0;i<6;i++)
     for(j=0;j<6;j++)
@@ -957,7 +946,7 @@ void POEMS::FastSubt(Mat6x6& A, Mat6x6& B, Mat6x6& C){  // C = A-B
 }
 
 // friend of Vect6
-void POEMS::FastSubt(Vect6& A, Vect6& B, Vect6& C){ // C = A-B
+void FastSubt(Vect6& A, Vect6& B, Vect6& C){ // C = A-B
   C.elements[0] = A.elements[0] - B.elements[0];
   C.elements[1] = A.elements[1] - B.elements[1];
   C.elements[2] = A.elements[2] - B.elements[2];
@@ -967,33 +956,33 @@ void POEMS::FastSubt(Vect6& A, Vect6& B, Vect6& C){ // C = A-B
 }
 
 // friend of ColMatMap
-void POEMS::FastAssign(ColMatMap& A, ColMatMap& C){
+void FastAssign(ColMatMap& A, ColMatMap& C){
   for(int i=0;i<C.numrows;i++)
     *(C.elements[i]) = *(A.elements[i]);
 }
 
 // friend of ColMatrix
-void POEMS::FastAssign(ColMatrix& A, ColMatrix& C){ //C = A
+void FastAssign(ColMatrix& A, ColMatrix& C){ //C = A
   for(int i=0;i<C.numrows;i++)
     C.elements[i] = A.elements[i];
 }
 
 // friend of Vect3
-void POEMS::FastAssign(Vect3& A, Vect3& C){ //C = A
+void FastAssign(Vect3& A, Vect3& C){ //C = A
     C.elements[0] = A.elements[0];
     C.elements[1] = A.elements[1];
     C.elements[2] = A.elements[2];
 }
 
 // friend of Vect3 & ColMatrix
-void POEMS::FastAssign(ColMatrix& A, Vect3& C){ //C = A
+void FastAssign(ColMatrix& A, Vect3& C){ //C = A
     C.elements[0] = A.elements[0];
     C.elements[1] = A.elements[1];
     C.elements[2] = A.elements[2];
 }
 
 // friend of Vect4
-void POEMS::FastAssign(Vect4& A, Vect4& C){ //C = A
+void FastAssign(Vect4& A, Vect4& C){ //C = A
     C.elements[0] = A.elements[0];
     C.elements[1] = A.elements[1];
     C.elements[2] = A.elements[2];
@@ -1001,7 +990,7 @@ void POEMS::FastAssign(Vect4& A, Vect4& C){ //C = A
 }
 
 // friend of Mat3x3
-void POEMS::FastAssignT(Mat3x3& A, Mat3x3& C){
+void FastAssignT(Mat3x3& A, Mat3x3& C){
   C.elements[0][0] = A.elements[0][0];
   C.elements[1][1] = A.elements[1][1];
   C.elements[2][2] = A.elements[2][2];
@@ -1017,7 +1006,7 @@ void POEMS::FastAssignT(Mat3x3& A, Mat3x3& C){
 }
 
 // friend of Mat4x4
-void POEMS::FastAssignT(Mat4x4& A, Mat4x4& C){
+void FastAssignT(Mat4x4& A, Mat4x4& C){
   C.elements[0][0] = A.elements[0][0];
   C.elements[1][1] = A.elements[1][1];
   C.elements[2][2] = A.elements[2][2];

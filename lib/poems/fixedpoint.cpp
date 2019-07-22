@@ -17,15 +17,10 @@
 
 
 #include "fixedpoint.h"
-
 #include <iostream>
 #include <iomanip>
 
-#include "virtualmatrix.h"
-
 using namespace std;
-using namespace POEMS;
-
 
 FixedPoint::FixedPoint(){
 }

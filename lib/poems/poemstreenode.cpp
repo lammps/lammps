@@ -17,8 +17,6 @@
 
 #include "poemstreenode.h"
 
-using namespace POEMS;
-
 // constructor; initialize the data and pointer fields
 // The pointer value NULL assigns a empty subtree
 TreeNode::TreeNode (const int & item, TreeNode *lptr,TreeNode *rptr,

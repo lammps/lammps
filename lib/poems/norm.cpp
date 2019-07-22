@@ -16,15 +16,7 @@
  *_________________________________________________________________________*/
 
 #include <cmath>
-
 #include "norm.h"
-#include "colmatrix.h"
-#include "rowmatrix.h"
-#include "vect3.h"
-#include "vect4.h"
-#include "vect6.h"
-
-using namespace POEMS;
 
 double Magnitude(ColMatrix& A){
 	double G;

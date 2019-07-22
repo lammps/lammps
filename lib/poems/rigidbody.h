@@ -18,11 +18,8 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include <iostream>
-
 #include "body.h"
 
-namespace POEMS {
 class RigidBody : public Body  {
 public: 
   RigidBody();
@@ -31,5 +28,5 @@ public:
   bool ReadInBodyData(std::istream& in);
   void WriteOutBodyData(std::ostream& out);
 };
-}
+
 #endif

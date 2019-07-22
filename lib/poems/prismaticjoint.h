@@ -18,13 +18,12 @@
 #ifndef PRISMATICJOINT_H
 #define PRISMATICJOINT_H
 
-#include <iostream>
-
 #include "joint.h"
 #include "vect3.h"
-#include "matrix.h"
+#include "mat3x3.h"
 
-namespace POEMS {
+
+
 class PrismaticJoint : public Joint  {
   Vect3 axis_pk; // unit vector in body1 basis
   Vect3 axis_k;  // unit vector in body2 basis
@@ -44,5 +43,5 @@ public:
   void ForwardKinematics();
   void BackwardKinematics();
 };
-}
+
 #endif

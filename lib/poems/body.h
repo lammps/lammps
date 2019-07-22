@@ -19,29 +19,30 @@
 #ifndef BODY_H
 #define BODY_H
 
-#include <iostream>
 #include "poemslist.h"
+#include <iostream>
 #include "poemsobject.h"
-#include "mat3x3.h"
-#include "vect3.h"
 
-namespace POEMS {
+#include "matrices.h"
+
+
+
 // emumerated type
 enum BodyType {
   INERTIALFRAME = 0,
   PARTICLE = 1,
   RIGIDBODY = 2
 };
-
+  
 class Point;
 class Joint;
-
+class CompBody;
 
 class Body : public POEMSObject {
 public:
   double mass;
   Mat3x3 inertia;
-
+  
   Vect3 r;
   Vect3 v;
   Vect3 v_k;
@@ -53,13 +54,13 @@ public:
   Vect3 alpha;
   Vect3 alpha_t;
   double KE;
-
+  
 
   List<Joint> joints;
   List<Point> points;
 
   Body();
-
+  
   bool ReadIn(std::istream& in);
   void WriteOut(std::ostream& out);
   bool ReadInPoints(std::istream& in);
@@ -67,7 +68,7 @@ public:
   Point* GetPoint(int p);
   void AddJoint(Joint* joint);
   void AddPoint(Point* point);
-
+  
   virtual bool ReadInBodyData(std::istream& in) = 0;
   virtual void WriteOutBodyData(std::ostream& out) = 0;
   virtual ~Body();
@@ -76,5 +77,5 @@ public:
 
 // global body functions
 Body* NewBody(int type);
-}
+
 #endif

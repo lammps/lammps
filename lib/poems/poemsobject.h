@@ -19,7 +19,7 @@
 #ifndef POEMSOBJECT_H
 #define POEMSOBJECT_H
 
-namespace POEMS {
+
 class POEMSObject {
   char* name;
   int ID;
@@ -31,5 +31,5 @@ public:
   int GetID();
   void SetID(int id);
 };
-}
+
 #endif

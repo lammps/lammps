@@ -15,14 +15,13 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
-#ifndef POEMS_DEFINES_H
-#define POEMS_DEFINES_H
+#ifndef _DEFINES_H_
+#define _DEFINES_H_
 
-namespace POEMS {
 enum SolverType {
   ONSOLVER = 0,
   PARTICLESOLVER = 1
 };
-}
+
 #endif
 

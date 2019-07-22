@@ -16,13 +16,9 @@
  *_________________________________________________________________________*/
 
 #include "inertialframe.h"
-
-#include "mat3x3.h"
-#include "virtualmatrix.h"
+#include "fixedpoint.h"
 
 using namespace std;
-using namespace POEMS;
-
 
 InertialFrame::InertialFrame(){
   gravity.Zeros();

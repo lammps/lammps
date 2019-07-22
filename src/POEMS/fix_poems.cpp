@@ -263,7 +263,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   // create POEMS instance
 
-  poems = new POEMS::Workspace;
+  poems = new Workspace;
 
   // compute per body forces and torques inside final_integrate() by default
 

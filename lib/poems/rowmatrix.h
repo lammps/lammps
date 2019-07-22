@@ -19,12 +19,8 @@
 #ifndef ROWMATRIX_H
 #define ROWMATRIX_H
 
-#include <iostream>
-
 #include "virtualrowmatrix.h"
-#include "virtualmatrix.h"
 
-namespace POEMS {
 class RowMatrix : public VirtualRowMatrix  {
   double* elements;
 public:
@@ -53,5 +49,5 @@ public:
   RowMatrix& operator=(const VirtualMatrix& A); // overloaded =
   RowMatrix& operator*=(double b);
 };
-}
+
 #endif

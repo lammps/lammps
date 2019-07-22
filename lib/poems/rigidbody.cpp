@@ -16,12 +16,9 @@
  *_________________________________________________________________________*/
 
 #include "rigidbody.h"
-#include "mat3x3.h"
-#include "virtualmatrix.h"
+#include "fixedpoint.h"
 
 using namespace std;
-using namespace POEMS;
-
 
 RigidBody::RigidBody(){
 }

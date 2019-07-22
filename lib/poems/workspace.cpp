@@ -15,31 +15,18 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
-#include <iostream>
-#include <fstream>   // IWYU pragma: keep
-#include <cstddef>
 
 #include "workspace.h"
 #include "system.h"
 #include "solver.h"
 #include "SystemProcessor.h"
-#include "POEMSChain.h"
-#include "body.h"
-#include "colmatmap.h"
-#include "colmatrix.h"
-#include "defines.h"
-#include "joint.h"
-#include "mat3x3.h"
-#include "matrix.h"
-#include "matrixfun.h"
-#include "poemslist.h"
-#include "vect3.h"
-#include "virtualmatrix.h"
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
 
 
 using namespace std;
-using namespace POEMS;
-
 
 void Workspace::allocateNewSystem() {
   currentIndex++;

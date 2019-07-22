@@ -16,16 +16,10 @@
  *_________________________________________________________________________*/
 
 #include "prismaticjoint.h"
-
 #include "point.h"
 #include "matrixfun.h"
 #include "body.h"
 #include "fastmatrixops.h"
-#include "colmatrix.h"
-#include "mat3x3.h"
-#include "virtualmatrix.h"
-
-using namespace POEMS;
 
 PrismaticJoint::PrismaticJoint(){
   q.Dim(1);

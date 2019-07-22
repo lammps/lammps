@@ -21,8 +21,6 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace POEMS;
-
 
 VirtualRowMatrix::VirtualRowMatrix(){
   numrows = 1;

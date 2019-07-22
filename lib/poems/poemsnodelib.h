@@ -20,7 +20,9 @@
 
 #include <iostream>
 
-namespace POEMS {
+using namespace std;
+
+
 TreeNode *GetTreeNode(int item,TreeNode *lptr = NULL,TreeNode *rptr =NULL); 
 
 void FreeTreeNode(TreeNode *p);
@@ -79,7 +81,7 @@ TreeNode *GetTreeNode(int item,TreeNode *lptr,TreeNode *rptr)
 	// if insufficient memory, terminatewith an error message
 	if (p == NULL)
 	{
-                std::cerr << "Memory allocation failure!\n";
+		cerr << "Memory allocation failure!\n";
 		exit(1);
 	}
 
@@ -138,7 +140,7 @@ void IndentBlanks(int num)
 //	const int indentblock = 6;
 
 	for(int i = 0; i < num; i++)
-		std::cout << " ";
+		cout << " ";
 }
 
 void PrintTree (TreeNode *t, int level)
@@ -151,11 +153,10 @@ void PrintTree (TreeNode *t, int level)
 		PrintTree(t->Right(),level + 1);
 		// indent to current level; output node data
 		IndentBlanks(indentUnit*level);
-		std::cout << t->GetData() << std::endl;
+		cout << t->GetData() << endl;
 		// print left branch of tree t
 		PrintTree(t->Left(),level + 1);
 	}
-}
 }
 #endif
 

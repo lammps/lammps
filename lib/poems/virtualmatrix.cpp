@@ -21,8 +21,6 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace POEMS;
-
 
 VirtualMatrix::VirtualMatrix(){
   numrows = numcols = 0;
@@ -142,14 +140,14 @@ istream& VirtualMatrix::ReadData(istream& c){
 // operators and functions
 //
 
-ostream& POEMS::operator<< (ostream& c, const VirtualMatrix& A){  //output
+ostream& operator<< (ostream& c, const VirtualMatrix& A){  //output
   c << A.GetType() << ' ';
   A.WriteData(c);
   c << endl;
   return c;
 }
 
-istream& POEMS::operator>> (istream& c, VirtualMatrix& A){  //input
+istream& operator>> (istream& c, VirtualMatrix& A){  //input
   VirtualMatrix* vm;
   int matrixtype;
   c >> matrixtype;

@@ -21,8 +21,6 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace POEMS;
-
 
 Matrix::Matrix(){
   numrows = numcols = 0;

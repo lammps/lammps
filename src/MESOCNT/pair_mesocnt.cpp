@@ -639,9 +639,9 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
     i = 0;
     y = ystart;
   }
-  else if(i > coeff_size-3){
-    i = coeff_size - 3;
-    y = ystart + (coeff_size - 2)*dy;
+  else if(i > coeff_size-2){
+    i = coeff_size - 2;
+    y = ystart + (coeff_size - 1)*dy;
   }
   
   double ylo = ystart + i*dy;
@@ -765,9 +765,9 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
     i = 0;
     y = ystart;
   }
-  if(i > coeff_size-3){
-    i = coeff_size - 3;
-    y = ystart + (coeff_size - 2)*dy;
+  if(i > coeff_size-2){
+    i = coeff_size - 2;
+    y = ystart + (coeff_size - 1)*dy;
   }
 
   double ylo = ystart + i*dy;
@@ -870,9 +870,9 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
     i = 0;
     y = ystart;
   }
-  if(i > coeff_size-3){
-    i = coeff_size - 3;
-    y = ystart + (coeff_size - 2)*dy;
+  if(i > coeff_size-2){
+    i = coeff_size - 2;
+    y = ystart + (coeff_size - 1)*dy;
   }
 
   double ylo = ystart + i*dy;

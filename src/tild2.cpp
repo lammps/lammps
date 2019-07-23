@@ -64,8 +64,10 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   density_B_fft(NULL), fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),
   part2grid(NULL), boxlo(NULL)
  {
-    if (screen) fprintf(screen,"TILD construction...\n");
-    if (logfile) fprintf(logfile,"TILD construction...\n");
+  if (me == 0) {
+    if (screen) fprintf(screen, "TILD construction...\n");
+    if (logfile) fprintf(logfile, "TILD construction...\n");
+  }
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
 

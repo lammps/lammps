@@ -482,6 +482,14 @@ class Atom {
   CUDPPConfiguration sort_config;
   CUDPPHandle sort_plan;
   #endif
+
+  #ifdef USE_HIP_DEVICE_SORT
+  unsigned* sort_out_keys = nullptr;
+  int* sort_out_values = nullptr;
+  void* sort_temp_storage = nullptr;
+  size_t sort_temp_storage_size = 0;
+  size_t sort_out_size = 0;
+  #endif
 };
 
 }

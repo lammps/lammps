@@ -6,14 +6,19 @@
 :line
 
 min_style spin command :h3
+min_style spin_oso_cg command :h3
+min_style spin_oso_lbfgs command :h3
 
 [Syntax:]
 
-min_style spin :pre
+min_style spin 
+min_style spin_oso_cg 
+min_style spin_oso_lbfgs :pre
 
 [Examples:]
 
-min_style 	spin :pre 
+min_style 	spin_oso_lbfgs 
+min_modify      discrete_factor 10.0 line_search 0 :pre 
 
 [Description:]
 
@@ -46,8 +51,28 @@ definition of this timestep.
 {discrete_factor} can be defined with the "min_modify"_min_modify.html
 command.
 
-NOTE: The {spin} style replaces the force tolerance by a torque
+Style {spin_oso_cg} defines an orthogonal spin optimization
+(OSO) combined to a conjugate gradient (CG) algorithm. 
+The "min_modify"_min_modify.html command can be used to
+couple the {spin_oso_cg} to a line search procedure, and to modify the 
+discretization factor {discrete_factor}. 
+
+Style {spin_oso_lbfgs} defines an orthogonal spin optimization
+(OSO) combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno 
+(LBFGS) algorithm. 
+By default, style {spin_oso_lbfgs} uses a line search procedure.
+The "min_modify"_min_modify.html command can be used to
+deactivate the line search procedure. 
+
+For more information about styles {spin_oso_cg} and {spin_oso_lbfgs}, 
+see their implementation reported in "(Ivanov)"_#Ivanov1.
+
+NOTE: All the {spin} styles replace the force tolerance by a torque
 tolerance. See "minimize"_minimize.html for more explanation. 
+
+NOTE: The {spin_oso_cg} and {spin_oso_lbfgs} styles can be used
+for magnetic NEB calculations only if the line search procedure
+is deactivated. See "neb/spin"_neb_spin.html for more explanation. 
 
 [Restrictions:] 
 
@@ -63,3 +88,8 @@ freedom for a frozen lattice configuration.
 
 The option defaults are {alpha_damp} = 1.0 and {discrete_factor} =
 10.0.
+
+:line
+
+:link(Ivanov1)
+[(Ivanov)] Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).

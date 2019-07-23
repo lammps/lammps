@@ -25,9 +25,8 @@ pair_coeff * * 10.0
 pair_coeff 2 3 8.0 :pre
 
 pair_style spin/dipole/long 9.0
-pair_coeff * * 1.0 1.0
-pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
-pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
+pair_coeff * * 10.0
+pair_coeff 2 3 6.0 :pre
 
 [Description:]
 

@@ -133,12 +133,10 @@ void MinSpinOSO_CG::setup_style()
 int MinSpinOSO_CG::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"line_search") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     use_line_search = force->numeric(FLERR,arg[1]);
-
     if (nreplica > 1 && use_line_search)
       error->all(FLERR,"Illegal fix_modify command, cannot use NEB and line search together");
-
     return 2;
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {
@@ -250,9 +248,9 @@ int MinSpinOSO_CG::iterate(int maxiter)
       neval++;
     }
 
-    //// energy tolerance criterion
-    //// only check after DELAYSTEP elapsed since velocties reset to 0
-    //// sync across replicas if running multi-replica minimization
+    // energy tolerance criterion
+    // only check after DELAYSTEP elapsed since velocties reset to 0
+    // sync across replicas if running multi-replica minimization
   
     if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {

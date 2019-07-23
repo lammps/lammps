@@ -13,7 +13,7 @@ min_modify command :h3
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor} or {spin_cubic} or {spin_none}
+keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero} or {spin_cubic} or {spin_none}
@@ -81,9 +81,9 @@ quantities.
 Default values are {alpha_damp} = 1.0 and {discrete_factor} = 10.0.
 
 The choice of a line search algorithm for the {spin_oso_cg} and
-{spin_oso_lbfgs} can be specified via the {line} keyword.
-The {spin_cubic} and  {spin_none} only make sense when those two
-when one of those two minimization styles is declared.
+{spin_oso_lbfgs} styles can be specified via the {line} keyword.
+The {spin_cubic} and  {spin_none} only make sense when one of those 
+two minimization styles is declared.
 
 The {spin_cubic} keyword activates the line search procedure when 
 the {spin_oso_cg} algorithm is used.
@@ -93,7 +93,7 @@ the {spin_oso_lbfgs} algorithm is used.
 
 [Restrictions:] The line search procedure of styles
 {spin_oso_cg} and {spin_oso_lbfgs} cannot be used for magnetic
-NEB calculations. See "neb/spin"_neb_spin.html for more
+GNEB calculations. See "neb/spin"_neb_spin.html for more
 explanation.
 
 [Related commands:]

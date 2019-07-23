@@ -60,8 +60,8 @@ processors per replica.  See the "Howto replica"_Howto_replica.html
 doc page for further discussion.
 
 NOTE: As explained below, a GNEB calculation performs a damped dynamics
-minimization across all the replicas.  The "spin"_min_spin.html
-style minimizer has to be defined in your input script. 
+minimization across all the replicas. One of the "spin"_min_spin.html
+style minimizers has to be defined in your input script. 
 
 When a GNEB calculation is performed, it is assumed that each replica
 is running the same system, though LAMMPS does not check for this.

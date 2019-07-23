@@ -18,7 +18,7 @@ min_style spin_oso_lbfgs :pre
 [Examples:]
 
 min_style 	spin_oso_lbfgs 
-min_modify      discrete_factor 10.0 line_search 0 :pre 
+min_modify      discrete_factor 10.0 line spin_none :pre 
 
 [Description:]
 
@@ -62,7 +62,8 @@ Style {spin_oso_lbfgs} defines an orthogonal spin optimization
 (LBFGS) algorithm. 
 By default, style {spin_oso_lbfgs} uses a line search procedure.
 The "min_modify"_min_modify.html command can be used to
-deactivate the line search procedure. 
+deactivate the line search procedure, and to modify the
+discretization factor {discrete_factor}. 
 
 For more information about styles {spin_oso_cg} and {spin_oso_lbfgs}, 
 see their implementation reported in "(Ivanov)"_#Ivanov1.

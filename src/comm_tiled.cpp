@@ -158,6 +158,10 @@ void CommTiled::setup()
   // check that cutoff < any periodic box length
 
   double cut = MAX(neighbor->cutneighmax,cutghostuser);
+  if ((cut == 0.0) && (me == 0))
+    error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
+                   "will be generated. Atoms may get lost.");
+
   cutghost[0] = cutghost[1] = cutghost[2] = cut;
 
   if ((periodicity[0] && cut > prd[0]) ||

@@ -176,6 +176,9 @@ void CommBrick::setup()
   double *prd,*sublo,*subhi;
 
   double cut = MAX(neighbor->cutneighmax,cutghostuser);
+  if ((cut == 0.0) && (me == 0))
+    error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
+                   "will be generated. Atoms may get lost.");
 
   if (triclinic == 0) {
     prd = domain->prd;

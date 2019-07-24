@@ -107,7 +107,11 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // whereas if partitions are not defined then world is equal to
   // MPI_COMM_WORLD.
 
+#if !defined(MPI_STUBS)
+  // plumed does not know about LAMMPS using the MPI STUBS library and will
+  // fail if this is called under these circumstances
   p->cmd("setMPIComm",&world);
+#endif
 
   // Set up units
   // LAMMPS units wrt kj/mol - nm - ps

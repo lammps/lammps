@@ -184,8 +184,14 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   if (idnext) find_maxid();
 
   // random number generator, same for all procs
+  // warm-up the generator 30x to avoid correlations in first-particle 
+  // positions if runs are repeated with consecutive seeds
 
   random = new RanPark(lmp,seed);
+  double tmp_rand;
+  for (int ii=0; ii < 30; ii++) {
+    tmp_rand = random->uniform();      
+  }
 
   // set up reneighboring
 
@@ -193,14 +199,6 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
   nfirst = next_reneighbor;
   ninserted = 0;
-
-  // throw away the first few numbers to avoid the unexpected correlations 
-
-  double tmp_rand;
-  for (int ii=0; ii < 30; ii++) {
-    tmp_rand = random->uniform();      
-  }
-
 }
 
 /* ---------------------------------------------------------------------- */

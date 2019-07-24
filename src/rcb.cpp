@@ -467,43 +467,29 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       }
     }
 
-    //check if zero box width is the result due to dots being on box vertices
-    //select half of the box in this case along the best dim
-    //the best dim is chosen according to the optimum volume (to minimize surface area)
-
-    if(largest==0.0){
-      double best_volume=0;
-      double current_volume;
-      int dim1o,dim2o;
-      for (dim = 0; dim < dimension; dim++){
-        if(dim==0){
-          dim1o=1;
-          dim2o=2;
-        }
-        if(dim==1){
-          dim1o=0;
-          dim2o=2;
-        }
-        if(dim==2){
-          dim1o=0;
-          dim2o=1;
-        }
-        valuehalf = 0.5*(lo[dim] + hi[dim]);
-        current_volume = (hi[dim1o]-lo[dim1o])
-            *(hi[dim2o]-lo[dim2o])*(valuehalf-lo[dim]);
-        //chose cut that minimizes surface area by maximizing volume;
-        if(current_volume>best_volume){ best_volume = current_volume;
-        valuehalf_select = valuehalf;
-        dim_select = dim;
-        }
-      }
-    }
-
     // copy results for best dim cut into dim,valuehalf,dotmark
 
     dim = dim_select;
     valuehalf = valuehalf_select;
     if (ndot > 0) memcpy(dotmark,dotmark_select,ndot*sizeof(int));
+
+    // special case for zero box width
+    // can occur when all dots are on corner vertices of this sub-box
+    // split box on longest dimension
+    // reset dotmark for that cut
+
+    if (largest == 0.0) {
+      dim = 0;
+      if (hi[1]-lo[1] > hi[0]-lo[0]) dim = 1;
+      if (dimension == 3 && hi[2]-lo[2] > hi[dim]-lo[dim]) dim = 2;
+      valuehalf = 0.5* (lo[dim] + hi[dim]);
+
+      for (j = 0; j < nlist; j++) {
+        i = dotlist[j];
+        if (dots[i].x[dim] <= valuehalf) dotmark[i] = 0;
+        else dotmark[i] = 1;
+      }
+    }
 
     // found median
     // store cut info only if I am procmid

@@ -107,6 +107,13 @@ void MinSpinOSO_LBFGS::init()
 
   Min::init();
 
+  if (linestyle != 4 && nreplica == 1){
+    use_line_search = 1;
+  }
+  else{
+    use_line_search = 0;
+  }
+
   last_negative = update->ntimestep;
 
   // allocate tables
@@ -143,14 +150,6 @@ void MinSpinOSO_LBFGS::setup_style()
 
 int MinSpinOSO_LBFGS::modify_param(int narg, char **arg)
 {
-
-  if (strcmp(arg[0],"line_search") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal min_modify command");
-    use_line_search = force->numeric(FLERR,arg[1]);
-    if (nreplica > 1 && use_line_search)
-      error->all(FLERR,"Illegal min_modify command, cannot use NEB and line search together");
-    return 2;
-  }
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     double discrete_factor;
@@ -221,8 +220,11 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
     if (use_line_search) {
 
       // here we need to do line search
-      if (local_iter == 0)
+      if (local_iter == 0){
+        eprevious = ecurrent;
+        ecurrent = energy_force(0);
         calc_gradient();
+      }
 
       calc_search_direction();
       der_e_cur = 0.0;
@@ -248,19 +250,11 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
       // if gneb calc., nreplica > 1
       // then calculate gradients and advance spins
       // of intermediate replicas only
-
-      if (nreplica > 1) {
-      if(ireplica != 0 && ireplica != nreplica-1)
-      calc_gradient();
-      calc_search_direction();
-      advance_spins();
-      } else{
-      calc_gradient();
-      calc_search_direction();
-      advance_spins();
-      }
       eprevious = ecurrent;
       ecurrent = energy_force(0);
+      calc_gradient();
+      calc_search_direction();
+      advance_spins();
       neval++;
     }
 
@@ -398,7 +392,7 @@ void MinSpinOSO_LBFGS::calc_search_direction()
     }
     MPI_Allreduce(&dyds, &dyds_global, 1, MPI_DOUBLE, MPI_SUM, world);
 
-    if (update->multireplica == 1) {
+    if (nreplica > 1) {
       dyds_global *= factor;
       dyds = dyds_global;
       MPI_Allreduce(&dyds, &dyds_global, 1,MPI_DOUBLE,MPI_SUM,universe->uworld);
@@ -437,7 +431,7 @@ void MinSpinOSO_LBFGS::calc_search_direction()
         sq += ds[c_ind][i] * q[i];
       }
       MPI_Allreduce(&sq,&sq_global,1,MPI_DOUBLE,MPI_SUM,world);
-      if (update->multireplica == 1) {
+      if (nreplica > 1) {
         sq_global *= factor;
         sq = sq_global;
         MPI_Allreduce(&sq,&sq_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
@@ -460,7 +454,7 @@ void MinSpinOSO_LBFGS::calc_search_direction()
       yy += dy[m_index][i] * dy[m_index][i];
     }
     MPI_Allreduce(&yy,&yy_global,1,MPI_DOUBLE,MPI_SUM,world);
-    if (update->multireplica == 1) {
+    if (nreplica > 1) {
       yy_global *= factor;
       yy = yy_global;
       MPI_Allreduce(&yy,&yy_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
@@ -493,7 +487,7 @@ void MinSpinOSO_LBFGS::calc_search_direction()
       }
 
       MPI_Allreduce(&yr,&yr_global,1,MPI_DOUBLE,MPI_SUM,world);
-      if (update->multireplica == 1) {
+      if (nreplica > 1) {
         yr_global *= factor;
         yr = yr_global;
         MPI_Allreduce(&yr,&yr_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
@@ -668,7 +662,7 @@ void MinSpinOSO_LBFGS::make_step(double c, double *energy_and_der)
   double rot_mat[9]; // exponential of matrix made of search direction
   double s_new[3];
   double **sp = atom->sp;
-  double der_e_cur_tmp = 0.0;;
+  double der_e_cur_tmp = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
 
@@ -784,12 +778,12 @@ double MinSpinOSO_LBFGS::maximum_rotation(double *p)
   for (int i = 0; i < 3 * nlocal; i++) norm2 += p[i] * p[i];
 
   MPI_Allreduce(&norm2,&norm2_global,1,MPI_DOUBLE,MPI_SUM,world);
-  if (update->multireplica == 1) {
+  if (nreplica > 1) {
     norm2 = norm2_global;
     MPI_Allreduce(&norm2,&norm2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
   }
   MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
-  if (update->multireplica == 1) {
+  if (nreplica > 1) {
     nlocal = ntotal;
     MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,universe->uworld);
   }

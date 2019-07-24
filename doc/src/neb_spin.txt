@@ -59,7 +59,7 @@ performance speed-up you would see with one or more physical
 processors per replica.  See the "Howto replica"_Howto_replica.html
 doc page for further discussion.
 
-NOTE: As explained below, a GNEB calculation performs a damped dynamics
+NOTE: As explained below, a GNEB calculation performs a
 minimization across all the replicas. One of the "spin"_min_spin.html
 style minimizers has to be defined in your input script. 
 
@@ -170,8 +170,8 @@ command is issued.
 :line
 
 A NEB calculation proceeds in two stages, each of which is a
-minimization procedure, performed via damped dynamics.  To enable
-this, you must first define a damped spin dynamics
+minimization procedure.  To enable
+this, you must first define a
 "min_style"_min_style.html, using either the {spin},
 {spin_oso_cg}, or {spin_oso_lbfgs} style (see
 "min_spin"_min_spin.html for more information).  

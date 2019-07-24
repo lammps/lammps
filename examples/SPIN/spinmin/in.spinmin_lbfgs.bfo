@@ -49,6 +49,6 @@ thermo_modify   format float %20.15g
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 		1 all custom 50 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
-min_style	spin/oso_lbfgs
-min_modify 	discrete_factor 10.0 line spin_none
-minimize        1.0e-15 1.0e-10 10000 1000
+min_style	spin_oso_lbfgs
+min_modify 	line spin_cubic discrete_factor 10.0
+minimize        1.0e-15 1.0e-7 10000 1000

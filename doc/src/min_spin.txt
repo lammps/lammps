@@ -18,7 +18,7 @@ min_style spin_oso_lbfgs :pre
 [Examples:]
 
 min_style 	spin_oso_lbfgs 
-min_modify      discrete_factor 10.0 line spin_none :pre 
+min_modify      line spin_none discrete_factor 10.0 :pre
 
 [Description:]
 
@@ -55,12 +55,21 @@ Style {spin_oso_cg} defines an orthogonal spin optimization
 (OSO) combined to a conjugate gradient (CG) algorithm. 
 The "min_modify"_min_modify.html command can be used to
 couple the {spin_oso_cg} to a line search procedure, and to modify the 
-discretization factor {discrete_factor}. 
+discretization factor {discrete_factor}.
+By defualt, the style {spin_oso_cg} does not employ line search procedure and
+and uses the adaptive time-step technique in the same way as style {spin}.
 
 Style {spin_oso_lbfgs} defines an orthogonal spin optimization
 (OSO) combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno 
-(LBFGS) algorithm. 
-By default, style {spin_oso_lbfgs} uses a line search procedure.
+(L-BFGS) algorithm.
+By default, style {spin_oso_lbfgs} uses a line search procedure
+based on cubic interpolation for
+a single-replica calculation, and it does not use line search procedure
+for a multireplica calculation (such as in case of GNEB calculation).
+If the line search procedure is not used then the discrete factor defines
+the maximum root mean squared rotation angle of spins by equation {pi/(5*Kappa)}.
+The default value for Kappa is 10.
+
 The "min_modify"_min_modify.html command can be used to
 deactivate the line search procedure, and to modify the
 discretization factor {discrete_factor}. 

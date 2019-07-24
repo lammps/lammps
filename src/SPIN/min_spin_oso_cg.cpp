@@ -63,7 +63,7 @@ static const char cite_minstyle_spin_oso_cg[] =
 /* ---------------------------------------------------------------------- */
 
 MinSpinOSO_CG::MinSpinOSO_CG(LAMMPS *lmp) :
-  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL)
+  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), sp_copy(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_oso_cg);
   nlocal_max = 0;
@@ -99,6 +99,13 @@ void MinSpinOSO_CG::init()
 
   Min::init();
 
+  if (linestyle == 3 && nreplica == 1){
+    use_line_search = 1;
+  }
+  else{
+    use_line_search = 0;
+  }
+
   dts = dt = update->dt;
   last_negative = update->ntimestep;
 
@@ -132,13 +139,6 @@ void MinSpinOSO_CG::setup_style()
 
 int MinSpinOSO_CG::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0],"line_search") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal min_modify command");
-    use_line_search = force->numeric(FLERR,arg[1]);
-    if (nreplica > 1 && use_line_search)
-      error->all(FLERR,"Illegal fix_modify command, cannot use NEB and line search together");
-    return 2;
-  }
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     discrete_factor = force->numeric(FLERR,arg[1]);
@@ -181,7 +181,6 @@ int MinSpinOSO_CG::iterate(int maxiter)
   double der_e_cur_tmp = 0.0;
 
   if (nlocal_max < nlocal) {
-    nlocal_max = nlocal;
     local_iter = 0;
     nlocal_max = nlocal;
     memory->grow(g_old,3*nlocal_max,"min/spin/oso/cg:g_old");
@@ -205,8 +204,9 @@ int MinSpinOSO_CG::iterate(int maxiter)
     if (use_line_search) {
 
       // here we need to do line search
-      if (local_iter == 0)
+      if (local_iter == 0){
         calc_gradient();
+      }
 
       calc_search_direction();
       der_e_cur = 0.0;
@@ -219,7 +219,7 @@ int MinSpinOSO_CG::iterate(int maxiter)
       }
       for (int i = 0; i < nlocal; i++)
         for (int j = 0; j < 3; j++)
-      sp_copy[i][j] = sp[i][j];
+          sp_copy[i][j] = sp[i][j];
 
       eprevious = ecurrent;
       der_e_pr = der_e_cur;
@@ -228,24 +228,15 @@ int MinSpinOSO_CG::iterate(int maxiter)
     else{
 
       // here we don't do line search
-      // but use cutoff rotation angle
       // if gneb calc., nreplica > 1
       // then calculate gradients and advance spins
       // of intermediate replicas only
-
-      if (nreplica > 1) {
-      if(ireplica != 0 && ireplica != nreplica-1)
       calc_gradient();
       calc_search_direction();
       advance_spins();
-      } else{
-      calc_gradient();
-      calc_search_direction();
-      advance_spins();
-      }
+      neval++;
       eprevious = ecurrent;
       ecurrent = energy_force(0);
-      neval++;
     }
 
     // energy tolerance criterion
@@ -336,10 +327,18 @@ void MinSpinOSO_CG::calc_search_direction()
   double g2_global = 0.0;
   double g2old_global = 0.0;
 
+  double factor = 1.0;
+
+  // for multiple replica do not move end points
+  if (nreplica > 1)
+    if (ireplica == 0 || ireplica == nreplica - 1)
+      factor = 0.0;
+
+
   if (local_iter == 0 || local_iter % 5 == 0){ 	// steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = -g_cur[i];
-      g_old[i] = g_cur[i];
+      p_s[i] = -g_cur[i] * factor;
+      g_old[i] = g_cur[i] * factor;
     }
   } else { 				// conjugate direction
     for (int i = 0; i < 3 * nlocal; i++) {
@@ -354,9 +353,9 @@ void MinSpinOSO_CG::calc_search_direction()
     MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,world);
 
     // Sum over all replicas. Good for GNEB.
-    if (update->multireplica == 1) {
-      g2 = g2_global;
-      g2old = g2old_global;
+    if (nreplica > 1) {
+      g2 = g2_global * factor;
+      g2old = g2old_global * factor;
       MPI_Allreduce(&g2,&g2_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
     }
@@ -364,8 +363,8 @@ void MinSpinOSO_CG::calc_search_direction()
     else beta = g2_global / g2old_global;
     // calculate conjugate direction
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = (beta * p_s[i] - g_cur[i]);
-      g_old[i] = g_cur[i];
+      p_s[i] = (beta * p_s[i] - g_cur[i]) * factor;
+      g_old[i] = g_cur[i] * factor;
     }
   }
 
@@ -380,8 +379,6 @@ void MinSpinOSO_CG::advance_spins()
 {
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
-  double **fm = atom->fm;
-  double tdampx, tdampy, tdampz;
   double rot_mat[9]; // exponential of matrix made of search direction
   double s_new[3];
 
@@ -477,7 +474,7 @@ void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
 
   A = cos(theta);
   B = sin(theta);
-  D = 1 - A;
+  D = 1.0 - A;
   x = upp_tr[0]/theta;
   y = upp_tr[1]/theta;
   z = upp_tr[2]/theta;
@@ -529,7 +526,7 @@ void MinSpinOSO_CG::make_step(double c, double *energy_and_der)
   double rot_mat[9]; // exponential of matrix made of search direction
   double s_new[3];
   double **sp = atom->sp;
-  double der_e_cur_tmp = 0.0;;
+  double der_e_cur_tmp = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
 
@@ -629,7 +626,8 @@ int MinSpinOSO_CG::awc(double der_phi_0, double phi_0, double der_phi_j, double 
   double delta = 0.1;
   double sigma = 0.9;
 
-  if ((phi_j<=phi_0+eps*fabs(phi_0)) && ((2.0*delta-1.0) * der_phi_0>=der_phi_j>=sigma*der_phi_0))
+  if ((phi_j<=phi_0+eps*fabs(phi_0)) &&
+      ((2.0*delta-1.0) * der_phi_0>=der_phi_j>=sigma*der_phi_0))
     return 1;
   else
     return 0;

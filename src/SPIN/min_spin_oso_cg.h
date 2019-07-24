@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(spin/oso_cg, MinSpinOSO_CG)
+MinimizeStyle(spin_oso_cg, MinSpinOSO_CG)
 
 #else
 
@@ -39,8 +39,8 @@ class MinSpinOSO_CG: public Min {
     int ireplica,nreplica; // for neb
     double *spvec;		// variables for atomic dof, as 1d vector
     double *fmvec;		// variables for atomic dof, as 1d vector
-    double *g_cur;  	// current gradient vector
     double *g_old;  	// gradient vector at previous step
+    double *g_cur;  	// current gradient vector
     double *p_s;  		// search direction vector
     double **sp_copy;   // copy of the spins
     int local_iter;     // for neb

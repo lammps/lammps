@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(spin/oso_lbfgs, MinSpinOSO_LBFGS)
+MinimizeStyle(spin_oso_lbfgs, MinSpinOSO_LBFGS)
 
 #else
 

@@ -84,12 +84,12 @@ The choice of a line search algorithm for the {spin_oso_cg} and
 {spin_oso_lbfgs} styles can be specified via the {line} keyword.
 The {spin_cubic} and  {spin_none} only make sense when one of those 
 two minimization styles is declared.
-
-The {spin_cubic} keyword activates the line search procedure when 
-the {spin_oso_cg} algorithm is used.
-
-The {spin_none} keyword deactivates the line search procedure when 
-the {spin_oso_lbfgs} algorithm is used.
+The {spin_cubic} performs the line search based on a cubic interpolation
+of the energy along the search direction. The {spin_none} keyword
+deactivates the line search procedure.
+The {spin_none} is a default value for {line} keyword apart from the case when
+single-replica calculations are performed with {spin_oso_lbfgs} that
+uses {spin_cubic} line search.
 
 [Restrictions:] The line search procedure of styles
 {spin_oso_cg} and {spin_oso_lbfgs} cannot be used for magnetic

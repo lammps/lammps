@@ -826,7 +826,7 @@ void PairKIM::set_argument_pointers()
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
                                         KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
-      pargs, KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy, &(vatom[0][0]));
+      pargs, KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial, &(vatom[0][0]));
   }
 
   if (kimerror) error->all(FLERR,"Unable to set KIM argument pointers");

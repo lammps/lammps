@@ -28,31 +28,33 @@
 
 #ifdef KOKKOS_ENABLE_CUDA
 
-// for detecting GPU-direct support:
-// the function  int have_gpu_direct()
-// - returns -1 if GPU-direct support is unknown
-// - returns  0 if no GPU-direct support available
-// - returns  1 if GPU-direct support is available
+// for detecting CUDA-aware MPI support:
+// the variable int have_cuda_aware
+// - is -1 if CUDA-aware MPI support is unknown
+// - is  0 if no CUDA-aware MPI support available
+// - is  1 if CUDA-aware MPI support is available
 
-#define GPU_DIRECT_UNKNOWN static int have_gpu_direct() {return -1;}
+#define CUDA_AWARE_UNKNOWN static int have_cuda_aware = -1;
 
-// OpenMPI supports detecting GPU-direct as of version 2.0.0
+// OpenMPI supports detecting CUDA-aware MPI as of version 2.0.0
 #if OPEN_MPI
 
 #if (OMPI_MAJOR_VERSION >= 2)
 #include <mpi-ext.h>
-#if defined(MPIX_CUDA_AWARE_SUPPORT)
-static int have_gpu_direct() { return MPIX_Query_cuda_support(); }
+#if defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT
+static int have_cuda_aware = 1;
+#elif defined(MPIX_CUDA_AWARE_SUPPORT) && !MPIX_CUDA_AWARE_SUPPORT
+static int have_cuda_aware = 0;
 #else
-GPU_DIRECT_UNKNOWN
+CUDA_AWARE_UNKNOWN
 #endif
 
 #else // old OpenMPI
-GPU_DIRECT_UNKNOWN
+CUDA_AWARE_UNKNOWN
 #endif
 
 #else // unknown MPI library
-GPU_DIRECT_UNKNOWN
+CUDA_AWARE_UNKNOWN
 #endif
 
 #endif // KOKKOS_ENABLE_CUDA
@@ -146,20 +148,20 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (ngpus <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
 
-  // check and warn about GPU-direct availability when using multiple MPI tasks
+  // check and warn about CUDA-aware MPI availability when using multiple MPI tasks
 
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
   if ((nmpi > 1) && (me == 0)) {
-    if ( 1 == have_gpu_direct() ) {
+    if ( 1 == have_cuda_aware ) {
       ; // all good, nothing to warn about
-    } else if (-1 == have_gpu_direct() ) {
-      error->warning(FLERR,"Kokkos with CUDA assumes GPU-direct is available,"
+    } else if ( -1 == have_cuda_aware ) {
+      error->warning(FLERR,"Kokkos with CUDA assumes CUDA-aware MPI is available,"
                      " but cannot determine if this is the case\n         try"
-                     " '-pk kokkos gpu/direct off' when getting segmentation faults");
-    } else if ( 0 == have_gpu_direct() ) {
-      error->warning(FLERR,"GPU-direct is NOT available, "
-                     "using '-pk kokkos gpu/direct off' by default");
+                     " '-pk kokkos cuda/aware off' when getting segmentation faults");
+    } else if ( 0 == have_cuda_aware ) {
+      error->warning(FLERR,"CUDA-aware MPI is NOT available, "
+                     "using '-pk kokkos cuda/aware off' by default");
     } else {
       ; // should never get here
     }
@@ -183,7 +185,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // default settings for package kokkos command
 
   binsize = 0.0;
-  gpu_direct_flag = 1;
+  cuda_aware_flag = 1;
   neigh_thread = 0;
   neigh_thread_set = 0;
   neighflag_qeq_set = 0;
@@ -207,8 +209,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   }
 
 #if KOKKOS_USE_CUDA
-  // only if we can safely detect, that GPU-direct is not available, change default
-  if (0 == have_gpu_direct()) gpu_direct_flag = 0;
+  // change default only if we can safely detect that CUDA-aware MPI is not available
+  if (0 == have_cuda_aware()) cuda_aware_flag = 0;
 #endif
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
@@ -313,10 +315,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
         reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"gpu/direct") == 0) {
+    } else if (strcmp(arg[iarg],"cuda/aware") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) gpu_direct_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct_flag = 1;
+      if (strcmp(arg[iarg+1],"off") == 0) cuda_aware_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) cuda_aware_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
@@ -329,9 +331,9 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
-  // if "gpu/direct off" and "comm device", change to "comm host"
+  // if "cuda/aware off" and "comm device", change to "comm host"
 
-  if (!gpu_direct_flag) {
+  if (!cuda_aware_flag) {
    if (exchange_comm_classic == 0 && exchange_comm_on_host == 0)
      exchange_comm_on_host = 1;
    if (forward_comm_classic == 0 && forward_comm_on_host == 0)

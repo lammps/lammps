@@ -433,7 +433,7 @@ the returned values is determined by the type of query performed.
 kim_init         EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
 boundary         p p p
 kim_query        a0 get_lattice_constant_cubic crystal=\["fcc"\] species=\["Al"\] units=\["angstrom"\]
-kim_query        alpha get_linear_thermal_expansion_constant_cubic  crystal=\["fcc"\] species=\["Al"\] units=\{"1/K"\} temperature=[293.15] temperature_units=["K"]
+kim_query        alpha get_linear_thermal_expansion_coefficient_cubic  crystal=\["fcc"\] species=\["Al"\] units=\["1/K"\] temperature=\[293.15\] temperature_units=\["K"\]
 variable         DeltaT equal 300
 lattice          fcc $\{a0\}*$\{alpha\}*$\{DeltaT\}
 ... :pre

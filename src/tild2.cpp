@@ -2277,7 +2277,7 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
   memory->destroy2d_offset(a,-ord);
 }
 
-void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
+inline void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
   out[n] = (in1[n] * in2[n] - in1[n + 1] * in2[n + 1]);
   out[n + 1] = (in1[n + 1] * in2[n] + in1[n] * in2[n + 1]);
 }

@@ -127,6 +127,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   cg_peratom = NULL;
 
   nmax = 0;
+  subtract_rho0 = 1;
+  normalize_by_rho0 = 1;
   part2grid = NULL;
 
   // define acons coefficients for estimation of kspace errors
@@ -1309,6 +1311,18 @@ int TILD::modify_param(int narg, char** arg)
     if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
     a_squared = atof(arg[1]);
 
+  } else if (strcmp(arg[0], "subtract_rho0") == 0) {
+      if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
+      if (strcmp(arg[1], "yes") == 0) subtract_rho0 = 1;
+      else if (strcmp(arg[1], "no") == 0) subtract_rho0 = 0;
+      else error->all(FLERR, "Illegal kspace_modify tild subtract_rho0 argument");
+  } else if (strcmp(arg[0], "normalize_by_rho0") == 0) {
+      if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
+      if (strcmp(arg[1], "yes") == 0) normalize_by_rho0 = 1;
+      else if (strcmp(arg[1], "no") == 0) normalize_by_rho0 = 0;
+      else 
+        error->all(FLERR, "Illegal kspace_modify tild normalize_by_rho0 argument");
+
   } else
     error->all(FLERR, "Illegal kspace_modify tild command");
 
@@ -2068,6 +2082,7 @@ void TILD::accumulate_gradient() {
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
   bool do_fft = false;
+  double temp_param;
 
   for (int k = 0; k < group->ngroup; k++)
     for (int i = 0; i < Dim; i++)
@@ -2119,6 +2134,8 @@ void TILD::accumulate_gradient() {
         // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
           if (fabs(param[i][i2]) >= 1e-10) {
+            if (normalize_by_rho0) temp_param = param[i][i2] / rho0;
+            else temp_param = param[i][i2];
             n = 0;
             for (int k = nzlo_in; k <= nzhi_in; k++)
               for (int m = nylo_in; m <= nyhi_in; m++)
@@ -2127,7 +2144,7 @@ void TILD::accumulate_gradient() {
                     std::cout << rho0 << std::endl;
                     error->all(FLERR, "WEIRD DENSITY");
                   }
-                  gradWgroup[i2][j][k][m][o] += ktmp[n] * param[i][i2] / rho0;
+                  gradWgroup[i2][j][k][m][o] += ktmp[n] * temp_param;
                   n += 2;
                 }
           }
@@ -2268,51 +2285,81 @@ void TILD::complex_multiply(double *in1,double  *in2,double  *out, int n){
 void TILD::ev_calculation(int den_group) {
   int n = 0;
   double rho0;
-  double *dummy;
+  double *dummy, *wk2;
+  double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   output->thermo->evaluate_keyword("density", &rho0);
+
+  int igroup1 = group->find("all");
+
+  // Determine if working with the all group
+  if (den_group == igroup1 && subtract_rho0 == 1){
+    n=0;
+      for (int k = 0; k < nfft; k++) {
+        work2[n++] = tmp[k] = density_fft_types[den_group][k] - rho0;
+        work2[n++] = ZEROF;
+      }
+    fft1->compute(work2,work2,1);
+
+    n=0;
+    for (int k = 0; k < nfft; k++) {
+      work2[n++] *= scale_inv;
+      work2[n++] *= scale_inv;
+    }
+
+    wk2 = work2;
+  } else { // Else not the all group
+    wk2 = work1;
+  }
+
 
   // Convolve uG_hat with fft(den_group)
   n = 0;
   for (int k = 0; k < nfft; k++) {
-    complex_multiply(uG_hat, work1, ktmp2, n);
+    complex_multiply(uG_hat, wk2, ktmp2, n);
     n += 2;
   }
   // IFFT the convolution
   fft1->compute(ktmp2, ktmp2, -1);
 
   
-  double same_group_factor, off_diag_factor;
+  double same_group_factor, off_diag_factor, factor, factor2;
   for (int i2 = den_group; i2 < group->ngroup; i2++) {
     if (fabs(param[den_group][i2]) >= 1e-10) {
       if (den_group == i2 ) {
         same_group_factor = 1.0;
+        if (den_group == igroup1 && subtract_rho0 ==1 ) dummy = tmp;
+        else dummy = density_fft_types[i2];
       } else {
         same_group_factor = 2.0;
+        dummy = density_fft_types[i2];
       }
 
-      dummy = density_fft_types[i2];
+      if (normalize_by_rho0 == 1) {
+        factor = param[den_group][i2] / rho0 / delvolinv * same_group_factor * 0.5;
+      } else {
+        factor = param[den_group][i2] / delvolinv * same_group_factor * 0.5;
+      }
+
       if (eflag_global) {
         n = 0;
         for (int k = 0; k < nfft; k++) {
-          energy += ktmp2[n] * dummy[k] * param[den_group][i2] / rho0 /delvolinv
-                    * same_group_factor * 0.5;
+          energy += ktmp2[n] * dummy[k] *factor;
           n += 2;
         }
       }
 
       if (vflag_global) {
         for (int i = 0; i < 6; i++) {
-          off_diag_factor = ( i/3 ? 2.0 : 1.0);
+          factor2 = factor * ( i/3 ? 2.0 : 1.0);
           n = 0;
           for (int k = 0; k < nfft; k++) {
-            complex_multiply(vg_hat[i], work1, ktmp, n);
+            complex_multiply(vg_hat[i], wk2, ktmp, n);
             n += 2;
           }
           fft1->compute(ktmp, ktmp, -1);
           n=0;
           for (int k = 0; k < nfft; k++) {
-            virial[i] += ktmp[n] * dummy[k] * param[den_group][i2]/rho0 
-                /delvolinv *same_group_factor*0.5 * off_diag_factor;
+            virial[i] += ktmp[n] * dummy[k] * factor2;
             n+=2;
           }
         }

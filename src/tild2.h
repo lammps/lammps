@@ -102,6 +102,7 @@ class TILD : public KSpace{
   int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
   int nlower,nupper;
   int ngrid,nfft,nfft_both;
+  int subtract_rho0, normalize_by_rho0;
 
   FFT_SCALAR ***density_brick;
   FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;

@@ -127,7 +127,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   cg_peratom = NULL;
 
   nmax = 0;
-  subtract_rho0 = 1;
+  subtract_rho0 = 0;
   normalize_by_rho0 = 1;
   part2grid = NULL;
 

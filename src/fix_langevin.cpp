@@ -660,9 +660,12 @@ void FixLangevin::post_force_templated()
 
       if (Tp_TALLY) {
         if (Tp_GJF && update->ntimestep != update->beginstep){
-          fdrag[0] = gamma1*gjffac*v[i][0];
-          fdrag[1] = gamma1*gjffac*v[i][1];
-          fdrag[2] = gamma1*gjffac*v[i][2];
+          fdrag[0] = gamma1*gjffac*gjffac*v[i][0];
+          fdrag[1] = gamma1*gjffac*gjffac*v[i][1];
+          fdrag[2] = gamma1*gjffac*gjffac*v[i][2];
+          fran[0] *= gjffac;
+          fran[1] *= gjffac;
+          fran[2] *= gjffac;
         }
         else if (Tp_GJF && update->ntimestep == update->beginstep){
           fdrag[0] = 0.0;
@@ -894,14 +897,8 @@ void FixLangevin::end_of_step()
           v[i][2] = lv[i][2];
         }
       }
-      if (tallyflag && hsflag){
-          energy_onestep += gjffac*(flangevin[i][0] * lv[i][0] +
-                                    flangevin[i][1] * lv[i][1] + flangevin[i][2] * lv[i][2]);
-      }
-      else if (tallyflag){
-        energy_onestep += flangevin[i][0] * v[i][0] + flangevin[i][1] * v[i][1] +
-                          flangevin[i][2] * v[i][2];
-      }
+      energy_onestep += flangevin[i][0] * v[i][0] + flangevin[i][1] * v[i][1] +
+                        flangevin[i][2] * v[i][2];
     }
   if (tallyflag) {
     energy += energy_onestep * update->dt;
@@ -977,8 +974,11 @@ double FixLangevin::compute_scalar()
   }
 
   // convert midstep energy back to previous fullstep energy
-
-  double energy_me = energy - 0.5*energy_onestep*update->dt;
+  double energy_me;
+  if (gjfflag)
+    energy_me = energy - energy_onestep*update->dt;
+  else
+    energy_me = energy - 0.5*energy_onestep*update->dt;
 
   double energy_all;
   MPI_Allreduce(&energy_me,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);

@@ -617,6 +617,11 @@ double Comm::get_comm_cutoff()
   }
   maxcommcutoff = MAX(maxcommcutoff,neighbor->cutneighmax);
   maxcommcutoff = MAX(maxcommcutoff,cutghostuser);
+  if ((me == 0) && (cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
+    char mesg[128];
+    snprintf(mesg,128,"Communication cutoff is changed to %g",maxcommcutoff);
+    error->warning(FLERR,mesg);
+  }
 
   return maxcommcutoff;
 }

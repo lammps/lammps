@@ -1313,13 +1313,13 @@ int TILD::modify_param(int narg, char** arg)
 
   } else if (strcmp(arg[0], "subtract_rho0") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
-      if (strcmp(arg[1], "yes") == 0) subtract_rho0 = 1;
-      else if (strcmp(arg[1], "no") == 0) subtract_rho0 = 0;
+      if (strcmp(arg[1], "yes") == 0) sub_flag = 1;
+      else if (strcmp(arg[1], "no") == 0) sub_flag = 0;
       else error->all(FLERR, "Illegal kspace_modify tild subtract_rho0 argument");
   } else if (strcmp(arg[0], "normalize_by_rho0") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
-      if (strcmp(arg[1], "yes") == 0) normalize_by_rho0 = 1;
-      else if (strcmp(arg[1], "no") == 0) normalize_by_rho0 = 0;
+      if (strcmp(arg[1], "yes") == 0) norm_flag = 1;
+      else if (strcmp(arg[1], "no") == 0) norm_flag = 0;
       else 
         error->all(FLERR, "Illegal kspace_modify tild normalize_by_rho0 argument");
 
@@ -2134,7 +2134,7 @@ void TILD::accumulate_gradient() {
         // Gradient calculation and application
         for (int i2 = 0; i2 < group->ngroup; i2++) {
           if (fabs(param[i][i2]) >= 1e-10) {
-            if (normalize_by_rho0) temp_param = param[i][i2] / rho0;
+            if (normalize_by_rho0 == 1 ) temp_param = param[i][i2] / rho0;
             else temp_param = param[i][i2];
             n = 0;
             for (int k = nzlo_in; k <= nzhi_in; k++)

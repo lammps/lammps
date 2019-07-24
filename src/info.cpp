@@ -366,7 +366,7 @@ void Info::command(int narg, char **arg)
     if (comm->mode == 0) {
       fprintf(out,"Communication mode = single\n");
       fprintf(out,"Communication cutoff = %g\n",
-              MAX(comm->cutghostuser,neighbor->cutneighmax));
+              comm->get_comm_cutoff());
     }
 
     if (comm->mode == 1) {

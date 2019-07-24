@@ -35,7 +35,6 @@
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
-#include "bond.h"
 #include "domain.h"
 #include "group.h"
 #include "modify.h"
@@ -277,31 +276,6 @@ void Neighbor::init()
   // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
   // cutneighghost = pair cutghost if it requests it, else same as cutneigh
 
-  // also consider bonded interactions for estimating the the neighborlist
-  // and communication cutoff. we use the 1.5x the bond equilibrium distance
-  // as cutoff, if only a bond style exists. if also an angle style exists we
-  // multiply by 2.5, for dihedral or improper we multiply by 3.5. (1,2, or 3
-  // bonds plus half a bond length total stretch).
-  // this plus "skin" will become the default communication cutoff, if no
-  // pair style is defined. otherwise the maximum of the largest pairwise
-  // cutoff of this is used.
-
-  double maxbondcutoff = 0.0;
-  if (force->bond) {
-    n = atom->nbondtypes;
-    for (i = 1; i <= n; ++i) {
-       double bondcutoff = force->bond->equilibrium_distance(i);
-       maxbondcutoff = MAX(bondcutoff,maxbondcutoff);
-    }
-    if (force->dihedral || force->improper) {
-      maxbondcutoff *= 3.5;
-    } else if (force->angle) {
-      maxbondcutoff *=2.5;
-    } else {
-      maxbondcutoff *=1.5;
-    }
-  }
-
   triggersq = 0.25*skin*skin;
   boxcheck = 0;
   if (domain->box_change && (domain->xperiodic || domain->yperiodic ||
@@ -319,7 +293,7 @@ void Neighbor::init()
 
   double cutoff,delta,cut;
   cutneighmin = BIG;
-  cutneighmax = maxbondcutoff;
+  cutneighmax = 0.0;
 
   for (i = 1; i <= n; i++) {
     cuttype[i] = cuttypesq[i] = 0.0;

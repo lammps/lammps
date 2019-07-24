@@ -70,6 +70,8 @@ class Comm : protected Pointers {
   void set_processors(int, char **);      // set 3d processor grid attributes
   virtual void set_proc_grid(int outflag = 1); // setup 3d grid of procs
 
+  double get_comm_cutoff();     // determine communication cutoff
+
   virtual void setup() = 0;                      // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0) = 0;  // forward comm of atom coords
   virtual void reverse_comm() = 0;               // reverse comm of forces

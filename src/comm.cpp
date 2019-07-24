@@ -20,6 +20,7 @@
 #include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
+#include "bond.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
@@ -586,6 +587,41 @@ void Comm::set_proc_grid(int outflag)
 }
 
 /* ----------------------------------------------------------------------
+   determine suitable communication cutoff.
+   it is the maximum of the user specified value and estimates based on
+   the maximum neighbor list cutoff and largest bond equilibrium length.
+   we use the 1.5x the bond equilibrium distance as cutoff, if only a
+   bond style exists or only bond and angle styles exists.  If dihedrals
+   or impropers are present we multiply by 2.0. This plus the
+   "neighbor list skin" will become the default communication cutoff, if
+   no pair style is defined and thus avoids all kinds of unexpected behavior
+   for such systems.  If a pair style exists, the result is the maximum of
+   the bond based cutoff and the largest pair cutoff and the user
+   specified communication cutoff.
+------------------------------------------------------------------------- */
+
+double Comm::get_comm_cutoff()
+{
+  double maxcommcutoff = 0.0;
+  if (force->bond) {
+    int n = atom->nbondtypes;
+    for (int i = 1; i <= n; ++i)
+      maxcommcutoff = MAX(maxcommcutoff,force->bond->equilibrium_distance(i));
+
+    if (force->dihedral || force->improper) {
+      maxcommcutoff *= 2.0;
+    } else {
+      maxcommcutoff *=1.5;
+    }
+    maxcommcutoff += neighbor->skin;
+  }
+  maxcommcutoff = MAX(maxcommcutoff,neighbor->cutneighmax);
+  maxcommcutoff = MAX(maxcommcutoff,cutghostuser);
+
+  return maxcommcutoff;
+}
+
+/* ----------------------------------------------------------------------
    determine which proc owns atom with coord x[3] based on current decomp
    x will be in box (orthogonal) or lamda coords (triclinic)
    if layout = UNIFORM, calculate owning proc directly
@@ -962,11 +998,6 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                                    4*nprocs*sizeof(int) + all2all1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
-
-
-
-
-
 
   // create procs and outbuf for All2all if necesary
 

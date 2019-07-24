@@ -208,9 +208,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   }
 
-#if KOKKOS_USE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   // change default only if we can safely detect that CUDA-aware MPI is not available
-  if (0 == have_cuda_aware()) cuda_aware_flag = 0;
+  if (0 == have_cuda_aware) cuda_aware_flag = 0;
 #endif
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV

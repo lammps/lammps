@@ -174,11 +174,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // no need to set peratom_flag, b/c data is for internal use only
 
   if (gjfflag) {
-    //int mem = 6*atom->nmax*sizeof(double);
-    //if (hsflag) mem += 3*atom->nmax*sizeof(double);
-//
-    //comm->maxexchange_fix = MAX(comm->maxexchange_fix, 0);
-    //comm->maxexchange_fix += MAX(1000, mem);
 
     nvalues = 3;
     grow_arrays(atom->nmax);

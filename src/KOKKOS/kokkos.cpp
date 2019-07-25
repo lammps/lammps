@@ -74,6 +74,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   kokkos_exists = 1;
   lmp->kokkos = this;
 
+  exchange_comm_changed = 0;
+  forward_comm_changed = 0;
+  reverse_comm_changed = 0;
+
   delete memory;
   memory = new MemoryKokkos(lmp);
   memoryKK = (MemoryKokkos*) memory;
@@ -209,8 +213,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (nmpi > 0) {
     if (have_cuda_aware == 0) {
       if (me == 0)
-        error->warning(FLERR,"CUDA-aware MPI is NOT available, "
-                       "using '-pk kokkos cuda/aware off'");
+        error->warning(FLERR,"Turning off CUDA-aware MPI since it is not detected, "
+                       "use '-pk kokkos cuda/aware on' to override");
       cuda_aware_flag = 0;
     } else if (have_cuda_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
     // MVAPICH2
@@ -320,6 +324,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
         exchange_comm_classic = 0;
         exchange_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
+      exchange_comm_changed = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/forward") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -331,6 +336,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
         forward_comm_classic = 0;
         forward_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
+      forward_comm_changed = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/reverse") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -342,6 +348,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
         reverse_comm_classic = 0;
         reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
+      reverse_comm_changed = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"cuda/aware") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -362,12 +369,35 @@ void KokkosLMP::accelerator(int narg, char **arg)
   // if "cuda/aware off" and "comm device", change to "comm host"
 
   if (!cuda_aware_flag) {
-   if (exchange_comm_classic == 0 && exchange_comm_on_host == 0)
-     exchange_comm_on_host = 1;
-   if (forward_comm_classic == 0 && forward_comm_on_host == 0)
-     forward_comm_on_host = 1;
-   if (reverse_comm_classic == 0 && reverse_comm_on_host == 0)
-     reverse_comm_on_host = 1;
+    if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
+      exchange_comm_on_host = 1;
+      exchange_comm_changed = 1;
+    }
+    if (forward_comm_classic == 0 && forward_comm_on_host == 0) {
+      forward_comm_on_host = 1;
+      forward_comm_changed = 1;
+    }
+    if (reverse_comm_classic == 0 && reverse_comm_on_host == 0) {
+      reverse_comm_on_host = 1;
+      reverse_comm_changed = 1;
+    }
+  }
+
+  // if "cuda/aware on" and comm flags were changed previously, change them back
+
+  if (cuda_aware_flag) {
+    if (exchange_comm_changed) {
+      exchange_comm_on_host = 0;
+      exchange_comm_changed = 0;
+    }
+    if (forward_comm_changed) {
+      forward_comm_on_host = 0;
+      forward_comm_changed = 0;
+    }
+    if (reverse_comm_changed) {
+      reverse_comm_on_host = 0;
+      reverse_comm_changed = 0;
+    }
   }
 
   // set newton flags

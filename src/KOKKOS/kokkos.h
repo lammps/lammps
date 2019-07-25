@@ -32,6 +32,9 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
+  int exchange_comm_changed;
+  int forward_comm_changed;
+  int reverse_comm_changed;
   int nthreads,ngpus;
   int numa;
   int auto_sync;

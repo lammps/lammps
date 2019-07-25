@@ -588,30 +588,42 @@ void Comm::set_proc_grid(int outflag)
 
 /* ----------------------------------------------------------------------
    determine suitable communication cutoff.
-   use the larger of the user specified value and the cutoff required
-   by the neighborlist build for pair styles.
-   if bonded interactions exist, apply a heuristic based on the equilibrium
-   bond length (use 1.5x r_bond if no dihedral or improper style exists
-   otherwise 2x r_bond) plus neighbor list skin.
-   if no user specified communication cutoff is given include this
-   heuristic, otherwise ignore it.
+   this uses three inputs: 1) maximum neighborlist cutoff, 2) an estimate
+   based on bond lengths and bonded interaction styles present, and 3) a
+   user supplied communication cutoff.
+   the neighbor list cutoff (1) is *always* used, since it is a requirement
+   for neighborlists working correctly. the bond length based cutoff is
+   *only* used, if no pair style is defined and no user cutoff is provided.
+   otherwise, a warning is printed. if the bond length based estimate is
+   larger than what is used.
    print a warning, if a user specified communication cutoff is overridden.
 ------------------------------------------------------------------------- */
 
 double Comm::get_comm_cutoff()
 {
-  double maxcommcutoff = 0.0;
-  double maxbondcutoff = 0.0;
+  double maxcommcutoff, maxbondcutoff = 0.0;
 
   if (force->bond) {
     int n = atom->nbondtypes;
     for (int i = 1; i <= n; ++i)
       maxbondcutoff = MAX(maxbondcutoff,force->bond->equilibrium_distance(i));
 
-    if (force->dihedral || force->improper) {
-      maxbondcutoff *= 2.0;
+    // apply bond length based heuristics.
+
+    if (force->newton_bond) {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
     } else {
-      maxbondcutoff *=1.5;
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 3.125;
+      } else if (force->angle) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
     }
     maxbondcutoff += neighbor->skin;
   }
@@ -620,16 +632,27 @@ double Comm::get_comm_cutoff()
 
   maxcommcutoff = MAX(cutghostuser,neighbor->cutneighmax);
 
-  // consider cutoff estimate from bond length only if no user specified cutoff
+  // use cutoff estimate from bond length only if no user specified
+  // cutoff was given and no pair style present. Otherwise print a
+  // warning, if the estimated bond based cutoff is larger than what
+  // is currently used.
   
-  if (cutghostuser == 0.0) maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
+  if (!force->pair && (cutghostuser == 0.0)) {
+    maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
+  } else {
+    if ((me == 0) && (maxbondcutoff > maxcommcutoff)) {
+      char mesg[256];
+      snprintf(mesg,256,"Communication cutoff %g is shorter than a bond "
+               "length based estimate of %g. This may lead to errors.",
+               maxcommcutoff,maxbondcutoff);
+      error->warning(FLERR,mesg);
+    }
+  }
 
-  // print warning if neighborlist cutoff overrides user cutoff or
-  // applied bond based cutoff is larger than neighbor cutoff.
+  // print warning if neighborlist cutoff overrides user cutoff
 
   if (me == 0) {
-    if ( ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser))
-         || ((cutghostuser == 0.0) && (maxcommcutoff == maxbondcutoff)) ) {
+    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
       char mesg[128];
       snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
       error->warning(FLERR,mesg);

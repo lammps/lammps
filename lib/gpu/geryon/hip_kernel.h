@@ -1,19 +1,3 @@
-/***************************************************************************
-                                nvd_kernel.h
-                             -------------------
-                               W. Michael Brown
-
-  Utilities for dealing with CUDA Driver kernels
-
- __________________________________________________________________________
-    This file is part of the Geryon Unified Coprocessor Library (UCL)
- __________________________________________________________________________
-
-    begin                : Tue Feb 9 2010
-    copyright            : (C) 2010 by W. Michael Brown
-    email                : brownw@ornl.gov
- ***************************************************************************/
-
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,13 +5,17 @@
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
-#ifndef NVD_KERNEL
-#define NVD_KERNEL
+#ifndef HIP_KERNEL
+#define HIP_KERNEL
 
-#include "nvd_device.h"
+
+#include <hip/hip_runtime.h>
+#include "hip_device.h"
 #include <fstream>
+#include <string>
+#include <iostream>
 
-namespace ucl_cudadr {
+namespace ucl_hip {
 
 class UCL_Texture;
 template <class numtyp> class UCL_D_Vec;
@@ -38,11 +26,12 @@ template <class hosttype, class devtype> class UCL_Matrix;
 
 /// Class storing 1 or more kernel functions from a single string or file
 class UCL_Program {
+  UCL_Device* _device_ptr;
  public:
-  inline UCL_Program(UCL_Device &device) { _cq=device.cq(); }
+  inline UCL_Program(UCL_Device &device) { _device_ptr = &device; _cq=device.cq(); }
   inline UCL_Program(UCL_Device &device, const void *program,
                      const char *flags="", std::string *log=NULL) {
-    _cq=device.cq();
+    _device_ptr = &device; _cq=device.cq();
     init(device);
     load_string(program,flags,log);
   }
@@ -50,15 +39,14 @@ class UCL_Program {
   inline ~UCL_Program() {}
 
   /// Initialize the program with a device
-  inline void init(UCL_Device &device) { _cq=device.cq(); }
+  inline void init(UCL_Device &device) { _device_ptr = &device; _cq=device.cq(); }
 
   /// Clear any data associated with program
   /** \note Must call init() after each clear **/
   inline void clear() { }
 
   /// Load a program from a file and compile with flags
-  inline int load(const char *filename, const char *flags="",
-                  std::string *log=NULL) {
+  inline int load(const char *filename, const char *flags="", std::string *log=NULL) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -76,73 +64,14 @@ class UCL_Program {
   }
 
   /// Load a program from a string and compile with flags
-  inline int load_string(const void *program, const char *flags="",
-                         std::string *log=NULL) {
-    if (std::string(flags)=="BINARY")
-      return load_binary((const char *)program);
-    const unsigned int num_opts=2;
-    CUjit_option options[num_opts];
-    void *values[num_opts];
-
-    // set up size of compilation log buffer
-    options[0] = CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES;
-    values[0] = (void *)(int)10240;
-    // set up pointer to the compilation log buffer
-    options[1] = CU_JIT_INFO_LOG_BUFFER;
-    char clog[10240];
-    values[1] = clog;
-
-    CUresult err=cuModuleLoadDataEx(&_module,program,num_opts,
-                                    options,(void **)values);
-
-    if (log!=NULL)
-      *log=std::string(clog);
-
-    if (err != CUDA_SUCCESS) {
-      #ifndef UCL_NO_EXIT
-      std::cerr << std::endl
-                << "----------------------------------------------------------\n"
-                << " UCL Error: Error compiling PTX Program...\n"
-                << "----------------------------------------------------------\n";
-      std::cerr << log << std::endl;
-      #endif
-      return UCL_COMPILE_ERROR;
-    }
-
-    return UCL_SUCCESS;
-  }
-
-  /// Load a precompiled program from a file
-  inline int load_binary(const char *filename) {
-    CUmodule _module;
-    CUresult err = cuModuleLoad(&_module,filename);
-    if (err==301) {
-      #ifndef UCL_NO_EXIT
-      std::cerr << "UCL Error: Could not open binary kernel file: "
-                << filename << std::endl;
-      UCL_GERYON_EXIT;
-      #endif
-      return UCL_FILE_NOT_FOUND;
-    } else if (err!=CUDA_SUCCESS) {
-      #ifndef UCL_NO_EXIT
-      std::cerr << "UCL Error: Error loading binary kernel file: "
-                << filename << std::endl;
-      UCL_GERYON_EXIT;
-      #endif
-      return UCL_FILE_NOT_FOUND;
-    }
-    //int ucl_error=UCL_SUCCESS;
-    //if (err==301)
-    //  return UCL_FILE_NOT_FOUND;
-    //else if (err!=CUDA_SUCCESS)
-    //  return UCL_ERROR;
-    return UCL_SUCCESS;
+  inline int load_string(const void *program, const char *flags="", std::string *log=NULL) {
+    return _device_ptr->load_module(program, _module, log);
   }
 
   friend class UCL_Kernel;
  private:
-  CUmodule _module;
-  CUstream _cq;
+  hipModule_t _module;
+  hipStream_t _cq;
   friend class UCL_Texture;
 };
 
@@ -150,17 +79,11 @@ class UCL_Program {
 class UCL_Kernel {
  public:
   UCL_Kernel() : _dimensions(1), _num_args(0) {
-    #if CUDA_VERSION < 4000
-    _param_size=0;
-    #endif
     _num_blocks[0]=0;
   }
 
   UCL_Kernel(UCL_Program &program, const char *function) :
     _dimensions(1), _num_args(0) {
-    #if CUDA_VERSION < 4000
-    _param_size=0;
-    #endif
     _num_blocks[0]=0;
     set_function(program,function);
     _cq=program._cq;
@@ -174,8 +97,8 @@ class UCL_Kernel {
   /// Get the kernel function from a program
   /** \ret UCL_ERROR_FLAG (UCL_SUCCESS, UCL_FILE_NOT_FOUND, UCL_ERROR) **/
   inline int set_function(UCL_Program &program, const char *function) {
-    CUresult err=cuModuleGetFunction(&_kernel,program._module,function);
-    if (err!=CUDA_SUCCESS) {
+    hipError_t err=hipModuleGetFunction(&_kernel,program._module,function);
+    if (err!=hipSuccess) {
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not find function: " << function
                 << " in program.\n";
@@ -195,12 +118,9 @@ class UCL_Kernel {
   inline void set_arg(const unsigned index, const dtype * const arg) {
     if (index==_num_args)
       add_arg(arg);
-    else if (index<_num_args)
-      #if CUDA_VERSION >= 4000
-      _kernel_args[index]=arg;
-      #else
-      CU_SAFE_CALL(cuParamSetv(_kernel, _offsets[index], arg, sizeof(dtype)));
-      #endif
+    else if (index<_num_args){
+      assert(0==1); // not implemented
+    }
     else
       assert(0==1); // Must add kernel parameters in sequential order
   }
@@ -226,31 +146,18 @@ class UCL_Kernel {
     { set_arg(&arg->device.begin()); }
 
   /// Add a kernel argument.
-  inline void add_arg(const CUdeviceptr* const arg) {
-    #if CUDA_VERSION >= 4000
-    _kernel_args[_num_args]=(void *)arg;
-    #else
-    void* ptr = (void*)(size_t)(*arg);
-    _param_size = (_param_size + __alignof(ptr) - 1) & ~(__alignof(ptr) - 1);
-    CU_SAFE_CALL(cuParamSetv(_kernel, _param_size, &ptr, sizeof(ptr)));
-    _offsets.push_back(_param_size);
-    _param_size+=sizeof(ptr);
-    #endif
-    _num_args++;
-    if (_num_args>UCL_MAX_KERNEL_ARGS) assert(0==1);
+  inline void add_arg(const hipDeviceptr_t* const arg) {
+    add_arg<void*>((void**)arg);
   }
 
   /// Add a kernel argument.
   template <class dtype>
   inline void add_arg(const dtype* const arg) {
-    #if CUDA_VERSION >= 4000
-    _kernel_args[_num_args]=const_cast<dtype * const>(arg);
-    #else
-    _param_size = (_param_size+__alignof(dtype)-1) & ~(__alignof(dtype)-1);
-    CU_SAFE_CALL(cuParamSetv(_kernel,_param_size,(void*)arg,sizeof(dtype)));
-    _offsets.push_back(_param_size);
-    _param_size+=sizeof(dtype);
-    #endif
+    const auto old_size = _hip_kernel_args.size();
+    const auto aligned_size = (old_size+alignof(dtype)-1) & ~(alignof(dtype)-1);
+    const auto arg_size = sizeof(dtype);
+    _hip_kernel_args.resize(aligned_size + arg_size);
+    *((dtype*)(&_hip_kernel_args[aligned_size])) = *arg; 
     _num_args++;
     if (_num_args>UCL_MAX_KERNEL_ARGS) assert(0==1);
   }
@@ -283,13 +190,10 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks;
     _num_blocks[1]=1;
     _num_blocks[2]=1;
-    #if CUDA_VERSION >= 4000
+    
     _block_size[0]=block_size;
     _block_size[1]=1;
     _block_size[2]=1;
-    #else
-    CU_SAFE_CALL(cuFuncSetBlockShape(_kernel,block_size,1,1));
-    #endif
   }
 
   /// Set the number of thread blocks and the number of threads in each block
@@ -308,13 +212,10 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks_x;
     _num_blocks[1]=num_blocks_y;
     _num_blocks[2]=1;
-    #if CUDA_VERSION >= 4000
+
     _block_size[0]=block_size_x;
     _block_size[1]=block_size_y;
     _block_size[2]=1;
-    #else
-    CU_SAFE_CALL(cuFuncSetBlockShape(_kernel,block_size_x,block_size_y,1));
-    #endif
   }
 
   /// Set the number of thread blocks and the number of threads in each block
@@ -335,14 +236,10 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks_x;
     _num_blocks[1]=num_blocks_y;
     _num_blocks[2]=1;
-    #if CUDA_VERSION >= 4000
+
     _block_size[0]=block_size_x;
     _block_size[1]=block_size_y;
     _block_size[2]=block_size_z;
-    #else
-    CU_SAFE_CALL(cuFuncSetBlockShape(_kernel,block_size_x,block_size_y,
-                                     block_size_z));
-    #endif
   }
 
   /// Set the number of thread blocks and the number of threads in each block
@@ -358,23 +255,23 @@ class UCL_Kernel {
 
   /// Run the kernel in the default command queue
   inline void run() {
-    #if CUDA_VERSION >= 4000
-    CU_SAFE_CALL(cuLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
+    size_t args_size = _hip_kernel_args.size();
+    void *config[] = {
+            HIP_LAUNCH_PARAM_BUFFER_POINTER, (void*)_hip_kernel_args.data(),
+            HIP_LAUNCH_PARAM_BUFFER_SIZE,    &args_size,
+            HIP_LAUNCH_PARAM_END
+    };
+    const auto res = hipModuleLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
-                                _block_size[2],0,_cq,_kernel_args,NULL));
-    #else
-    CU_SAFE_CALL(cuParamSetSize(_kernel,_param_size));
-    CU_SAFE_CALL(cuLaunchGridAsync(_kernel,_num_blocks[0],_num_blocks[1],_cq));
-    #endif
+                                _block_size[2],0,_cq, NULL, config);
+    CU_SAFE_CALL(res);
+//#endif
   }
 
   /// Clear any arguments associated with the kernel
   inline void clear_args() {
     _num_args=0;
-    #if CUDA_VERSION < 4000
-    _offsets.clear();
-    _param_size=0;
-    #endif
+    _hip_kernel_args.clear();
   }
 
   /// Return the default command queue/stream associated with this data
@@ -384,20 +281,15 @@ class UCL_Kernel {
   #include "ucl_arg_kludge.h"
 
  private:
-  CUfunction _kernel;
-  CUstream _cq;
+  hipFunction_t _kernel;
+  hipStream_t _cq;
   unsigned _dimensions;
   unsigned _num_blocks[3];
   unsigned _num_args;
   friend class UCL_Texture;
 
-  #if CUDA_VERSION >= 4000
   unsigned _block_size[3];
-  void * _kernel_args[UCL_MAX_KERNEL_ARGS];
-  #else
-  std::vector<unsigned> _offsets;
-  unsigned _param_size;
-  #endif
+  std::vector<char> _hip_kernel_args;
 };
 
 } // namespace

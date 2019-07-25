@@ -1,19 +1,3 @@
-/***************************************************************************
-                                  nvd_mat.h
-                             -------------------
-                               W. Michael Brown
-
-  CUDA Driver Specific Vector/Matrix Containers, Memory Management, and I/O
-
- __________________________________________________________________________
-    This file is part of the Geryon Unified Coprocessor Library (UCL)
- __________________________________________________________________________
-
-    begin                : Thu Jan 21 2010
-    copyright            : (C) 2010 by W. Michael Brown
-    email                : brownw@ornl.gov
- ***************************************************************************/
-
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,13 +7,15 @@
 
 /*! \file */
 
-#ifndef NVD_MAT_H
-#define NVD_MAT_H
+#ifndef HIP_MAT_H
+#define HIP_MAT_H
 
-#include "nvd_memory.h"
+
+#include <hip/hip_runtime.h>
+#include "hip_memory.h"
 
 /// Namespace for CUDA Driver routines
-namespace ucl_cudadr {
+namespace ucl_hip {
 
 #define _UCL_MAT_ALLOW
 #define _UCL_DEVICE_PTR_MAT

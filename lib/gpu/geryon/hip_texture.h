@@ -1,19 +1,3 @@
-/***************************************************************************
-                                nvd_texture.h
-                             -------------------
-                               W. Michael Brown
-
-  Utilities for dealing with CUDA Driver textures
-
- __________________________________________________________________________
-    This file is part of the Geryon Unified Coprocessor Library (UCL)
- __________________________________________________________________________
-
-    begin                : Fri Jul 2 2010
-    copyright            : (C) 2010 by W. Michael Brown
-    email                : brownw@ornl.gov
- ***************************************************************************/
-
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,13 +5,27 @@
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
-#ifndef NVD_TEXTURE
-#define NVD_TEXTURE
+#ifndef HIP_TEXTURE
+#define HIP_TEXTURE
 
-#include "nvd_kernel.h"
-#include "nvd_mat.h"
 
-namespace ucl_cudadr {
+#include <hip/hip_runtime.h>
+#include "hip_kernel.h"
+#include "hip_mat.h"
+
+namespace ucl_hip {
+
+#ifdef __HIP_PLATFORM_NVCC__
+inline hipError_t hipModuleGetTexRef(CUtexref* texRef, hipModule_t hmod, const char* name){
+  return hipCUResultTohipError(cuModuleGetTexRef(texRef, hmod, name)); 
+}
+inline hipError_t hipTexRefSetFormat(CUtexref tex, hipArray_Format fmt, int NumPackedComponents) {
+    return hipCUResultTohipError(cuTexRefSetFormat(tex, (CUarray_format)fmt, NumPackedComponents ));
+}
+inline hipError_t hipTexRefSetAddress(size_t* offset, CUtexref tex, hipDeviceptr_t devPtr, size_t size) {
+    return hipCUResultTohipError(cuTexRefSetAddress(offset, tex, devPtr, size));
+}
+#endif
 
 /// Class storing a texture reference
 class UCL_Texture {
@@ -39,7 +37,14 @@ class UCL_Texture {
     { get_texture(prog,texture_name); }
   /// Set the texture reference for this object
   inline void get_texture(UCL_Program &prog, const char *texture_name)
-    { CU_SAFE_CALL(cuModuleGetTexRef(&_tex, prog._module, texture_name)); }
+    { 
+  #ifdef __HIP_PLATFORM_NVCC__
+      CU_SAFE_CALL(hipModuleGetTexRef(&_tex, prog._module, texture_name)); 
+  #else
+      size_t _global_var_size;
+      CU_SAFE_CALL(hipModuleGetGlobal(&_device_ptr_to_global_var, &_global_var_size, prog._module, texture_name));
+  #endif
+    }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class numtyp>
@@ -66,13 +71,17 @@ class UCL_Texture {
 
   /// Make a texture reference available to kernel
   inline void allow(UCL_Kernel &kernel) {
-    #if CUDA_VERSION < 4000
-    CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex));
-    #endif
+    //#if CUDA_VERSION < 4000
+    //CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex));
+    //#endif
   }
 
  private:
+#ifdef __HIP_PLATFORM_NVCC__
   CUtexref _tex;
+#else
+  void* _device_ptr_to_global_var;
+#endif
   friend class UCL_Kernel;
 
   template<class mat_typ>
@@ -80,18 +89,22 @@ class UCL_Texture {
     #ifdef UCL_DEBUG
     assert(numel!=0 && numel<5);
     #endif
-    CU_SAFE_CALL(cuTexRefSetAddress(NULL, _tex, vec.cbegin(),
-                 vec.numel()*vec.element_size()));
+
+#ifdef __HIP_PLATFORM_NVCC__
     if (vec.element_size()==sizeof(float))
-      CU_SAFE_CALL(cuTexRefSetFormat(_tex, CU_AD_FORMAT_FLOAT, numel));
+      CU_SAFE_CALL(hipTexRefSetFormat(_tex, HIP_AD_FORMAT_FLOAT, numel));
     else {
       if (numel>2)
-        CU_SAFE_CALL(cuTexRefSetFormat(_tex, CU_AD_FORMAT_SIGNED_INT32, numel));
+        CU_SAFE_CALL(hipTexRefSetFormat(_tex, HIP_AD_FORMAT_SIGNED_INT32, numel));
       else
-        CU_SAFE_CALL(cuTexRefSetFormat(_tex,CU_AD_FORMAT_SIGNED_INT32,numel*2));
+        CU_SAFE_CALL(hipTexRefSetFormat(_tex,HIP_AD_FORMAT_SIGNED_INT32,numel*2));
     }
+    CU_SAFE_CALL(hipTexRefSetAddress(NULL, _tex, vec.cbegin(), vec.numel()*vec.element_size()));
+#else
+    void* data_ptr = (void*)vec.cbegin();
+    CU_SAFE_CALL(hipMemcpyHtoD(hipDeviceptr_t(_device_ptr_to_global_var), &data_ptr, sizeof(void*)));
+#endif
   }
-
 };
 
 } // namespace

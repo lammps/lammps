@@ -1,15 +1,15 @@
-#ifndef NVD_MACROS_H
-#define NVD_MACROS_H
+#ifndef HIP_MACROS_H
+#define HIP_MACROS_H
 
 #include <cstdio>
 #include <cassert>
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 
-#if CUDA_VERSION >= 3020
+//#if CUDA_VERSION >= 3020
 #define CUDA_INT_TYPE size_t
-#else
-#define CUDA_INT_TYPE unsigned
-#endif
+//#else
+//#define CUDA_INT_TYPE unsigned
+//#endif
 
 #ifdef MPI_GERYON
 #include "mpi.h"
@@ -35,9 +35,9 @@
 #ifndef UCL_NO_API_CHECK
 
 #define CU_SAFE_CALL_NS( call ) do {                                         \
-    CUresult err = call;                                                     \
-    if( CUDA_SUCCESS != err) {                                               \
-        fprintf(stderr, "Cuda driver error %d in call at file '%s' in line %i.\n",   \
+    hipError_t err = call;                                                     \
+    if( hipSuccess != err) {                                               \
+        fprintf(stderr, "HIP runtime error %d in call at file '%s' in line %i.\n",   \
                 err, __FILE__, __LINE__ );                                   \
         NVD_GERYON_EXIT;                                                     \
     } } while (0)
@@ -46,9 +46,9 @@
 
 #define CU_SAFE_CALL( call ) do {                                            \
     CU_SAFE_CALL_NS( call );                                                 \
-    CUresult err=cuCtxSynchronize();                                                  \
-    if( CUDA_SUCCESS != err) {                                               \
-        fprintf(stderr, "Cuda driver error %d in file '%s' in line %i.\n",   \
+    hipError_t err=hipCtxSynchronize();                                                  \
+    if( hipSuccess != err) {                                               \
+        fprintf(stderr, "HIP runtime error %d in file '%s' in line %i.\n",   \
                 err, __FILE__, __LINE__ );                                   \
         NVD_GERYON_EXIT;                                                     \
     } } while (0)

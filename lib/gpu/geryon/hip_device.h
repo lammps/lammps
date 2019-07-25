@@ -1,19 +1,3 @@
-/***************************************************************************
-                                nvd_device.h
-                             -------------------
-                               W. Michael Brown
-
-  Utilities for dealing with cuda devices
-
- __________________________________________________________________________
-    This file is part of the Geryon Unified Coprocessor Library (UCL)
- __________________________________________________________________________
-
-    begin                : Thu Jan 21 2010
-    copyright            : (C) 2010 by W. Michael Brown
-    email                : brownw@ornl.gov
- ***************************************************************************/
-
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,24 +5,27 @@
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
-#ifndef NVD_DEVICE
-#define NVD_DEVICE
+#ifndef HIP_DEVICE
+#define HIP_DEVICE
 
+
+#include <hip/hip_runtime.h>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include <iostream>
-#include "nvd_macros.h"
+#include "hip_macros.h"
 #include "ucl_types.h"
 
-namespace ucl_cudadr {
+namespace ucl_hip {
 
 // --------------------------------------------------------------------------
 // - COMMAND QUEUE STUFF
 // --------------------------------------------------------------------------
-typedef CUstream command_queue;
+typedef hipStream_t command_queue;
 
-inline void ucl_sync(CUstream &stream) {
-  CU_SAFE_CALL(cuStreamSynchronize(stream));
+inline void ucl_sync(hipStream_t &stream) {
+  CU_SAFE_CALL(hipStreamSynchronize(stream));
 }
 
 struct NVDProperties {
@@ -85,7 +72,7 @@ class UCL_Device {
 
   /// Return a string with name and info of the current platform
   inline std::string platform_name()
-    { return "NVIDIA Corporation NVIDIA CUDA Driver"; }
+    { return "HIP platform"; }
 
   /// Delete any contexts/data and set the platform number to be used
   inline int set_platform(const int pid);
@@ -124,15 +111,15 @@ class UCL_Device {
 
   /// Add a stream for device computations
   inline void push_command_queue() {
-    _cq.push_back(CUstream());
-    CU_SAFE_CALL(cuStreamCreate(&_cq.back(),0));
+    _cq.push_back(hipStream_t());
+    CU_SAFE_CALL(hipStreamCreateWithFlags(&_cq.back(),0));
   }
 
   /// Remove a stream for device computations
   /** \note You cannot delete the default stream **/
   inline void pop_command_queue() {
     if (_cq.size()<2) return;
-    CU_SAFE_CALL_NS(cuStreamDestroy(_cq.back()));
+    CU_SAFE_CALL_NS(hipStreamDestroy(_cq.back()));
     _cq.pop_back();
   }
 
@@ -207,7 +194,7 @@ class UCL_Device {
   // Get the bytes of free memory
   inline size_t free_bytes(const int i) {
     CUDA_INT_TYPE dfree, dtotal;
-    CU_SAFE_CALL_NS(cuMemGetInfo(&dfree, &dtotal));
+    CU_SAFE_CALL_NS(hipMemGetInfo(&dfree, &dtotal));
     return static_cast<size_t>(dfree);
   }
 
@@ -240,7 +227,7 @@ class UCL_Device {
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
   inline bool sharing_supported(const int i)
-    { return (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT); }
+    { return (_properties[i].computeMode == hipComputeModeDefault); }
 
   /// True if splitting device into equal subdevices supported
   inline bool fission_equal()
@@ -274,24 +261,61 @@ class UCL_Device {
   /// Select the platform that has accelerators (for compatibility with OpenCL)
   inline int set_platform_accelerator(int pid=-1) { return UCL_SUCCESS; }
 
+  inline int load_module(const void* program, hipModule_t& module, std::string *log=NULL){
+    auto it = _loaded_modules.emplace(program, hipModule_t());
+    if(!it.second){
+      module = it.first->second;
+      return UCL_SUCCESS;
+    }
+    const unsigned int num_opts=2;
+    hipJitOption options[num_opts];
+    void *values[num_opts];
+
+    // set up size of compilation log buffer
+    options[0] = hipJitOptionInfoLogBufferSizeBytes;
+    values[0] = (void *)(int)10240;
+    // set up pointer to the compilation log buffer
+    options[1] = hipJitOptionInfoLogBuffer;
+    char clog[10240] = { 0 };
+    values[1] = clog;
+
+    hipError_t err=hipModuleLoadDataEx(&module,program,num_opts, options,(void **)values);
+
+    if (log!=NULL)
+      *log=std::string(clog);
+
+    if (err != hipSuccess) {
+      #ifndef UCL_NO_EXIT
+      std::cerr << std::endl
+                << "----------------------------------------------------------\n"
+                << " UCL Error: Error compiling PTX Program...\n"
+                << "----------------------------------------------------------\n";
+      std::cerr << log << std::endl;
+      #endif
+      _loaded_modules.erase(it.first);
+      return UCL_COMPILE_ERROR;
+    }
+    it.first->second = module;
+    return UCL_SUCCESS;
+  }
  private:
+  std::unordered_map<const void*, hipModule_t> _loaded_modules;
   int _device, _num_devices;
   std::vector<NVDProperties> _properties;
-  std::vector<CUstream> _cq;
-  CUdevice _cu_device;
-  CUcontext _context;
+  std::vector<hipStream_t> _cq;
+  hipDevice_t _cu_device;
 };
 
 // Grabs the properties for all devices
 UCL_Device::UCL_Device() {
-  CU_SAFE_CALL_NS(cuInit(0));
-  CU_SAFE_CALL_NS(cuDeviceGetCount(&_num_devices));
+  CU_SAFE_CALL_NS(hipInit(0));
+  CU_SAFE_CALL_NS(hipGetDeviceCount(&_num_devices));
   for (int i=0; i<_num_devices; ++i) {
-    CUdevice dev;
-    CU_SAFE_CALL_NS(cuDeviceGet(&dev,i));
+    hipDevice_t dev;
+    CU_SAFE_CALL_NS(hipDeviceGet(&dev,i));
     int major, minor;
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, dev));
     if (major==9999)
       continue;
 
@@ -301,42 +325,42 @@ UCL_Device::UCL_Device() {
     prop.minor=minor;
 
     char namecstr[1024];
-    CU_SAFE_CALL_NS(cuDeviceGetName(namecstr,1024,dev));
+    CU_SAFE_CALL_NS(hipDeviceGetName(namecstr,1024,dev));
     prop.name=namecstr;
 
-    CU_SAFE_CALL_NS(cuDeviceTotalMem(&prop.totalGlobalMem,dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.multiProcessorCount, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, dev));
+    CU_SAFE_CALL_NS(hipDeviceTotalMem(&prop.totalGlobalMem,dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.multiProcessorCount, hipDeviceAttributeMultiprocessorCount, dev));
 
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsPerBlock, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsDim[0], CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsDim[1], CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsDim[2], CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxGridSize[0], CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxGridSize[1], CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxGridSize[2], CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.sharedMemPerBlock, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.totalConstantMemory, CU_DEVICE_ATTRIBUTE_TOTAL_CONSTANT_MEMORY, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.SIMDWidth, CU_DEVICE_ATTRIBUTE_WARP_SIZE, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.memPitch, CU_DEVICE_ATTRIBUTE_MAX_PITCH, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.regsPerBlock, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.clockRate, CU_DEVICE_ATTRIBUTE_CLOCK_RATE, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.textureAlign, CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsPerBlock, hipDeviceAttributeMaxThreadsPerBlock, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[0], hipDeviceAttributeMaxBlockDimX, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[1], hipDeviceAttributeMaxBlockDimY, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[2], hipDeviceAttributeMaxBlockDimZ, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[0], hipDeviceAttributeMaxGridDimX, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[1], hipDeviceAttributeMaxGridDimY, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[2], hipDeviceAttributeMaxGridDimZ, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.sharedMemPerBlock, hipDeviceAttributeMaxSharedMemoryPerBlock, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.totalConstantMemory, hipDeviceAttributeTotalConstantMemory, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.SIMDWidth, hipDeviceAttributeWarpSize, dev));
+    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.memPitch, CU_DEVICE_ATTRIBUTE_MAX_PITCH, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.regsPerBlock, hipDeviceAttributeMaxRegistersPerBlock, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.clockRate, hipDeviceAttributeClockRate, dev));
+    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.textureAlign, CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT, dev));
 
-    #if CUDA_VERSION >= 2020
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.kernelExecTimeoutEnabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.integrated, CU_DEVICE_ATTRIBUTE_INTEGRATED, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.canMapHostMemory, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.computeMode, CU_DEVICE_ATTRIBUTE_COMPUTE_MODE,dev));
-    #endif
-    #if CUDA_VERSION >= 3010
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.concurrentKernels, CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.ECCEnabled, CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
-    #endif
+    //#if CUDA_VERSION >= 2020
+    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.kernelExecTimeoutEnabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.integrated, hipDeviceAttributeIntegrated, dev));
+    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.canMapHostMemory, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.computeMode, hipDeviceAttributeComputeMode,dev));
+    //#endif
+    //#if CUDA_VERSION >= 3010
+    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.concurrentKernels, hipDeviceAttributeConcurrentKernels, dev));
+    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.ECCEnabled, CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
+    //#endif
 
     _properties.push_back(prop);
   }
   _device=-1;
-  _cq.push_back(CUstream());
+  _cq.push_back(hipStream_t());
   _cq.back()=0;
 }
 
@@ -356,11 +380,20 @@ int UCL_Device::set_platform(const int pid) {
 int UCL_Device::set(int num) {
   clear();
   _device=_properties[num].device_id;
-  CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
-  CUresult err=cuCtxCreate(&_context,0,_cu_device);
-  if (err!=CUDA_SUCCESS) {
+  hipError_t err=hipDeviceGet(&_cu_device,_device);
+  if (err!=hipSuccess) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << num
+              << " for use.\n";
+    UCL_GERYON_EXIT;
+    #endif
+    return UCL_ERROR;
+  }
+  //hipError_t err=hipCtxCreate(&_context,0,_cu_device); deprecated and unnecessary
+  err=hipSetDevice(_device);
+  if (err!=hipSuccess) {
+    #ifndef UCL_NO_EXIT
+    std::cerr << "UCL Error: Could not set accelerator number " << num
               << " for use.\n";
     UCL_GERYON_EXIT;
     #endif
@@ -372,23 +405,23 @@ int UCL_Device::set(int num) {
 void UCL_Device::clear() {
   if (_device>-1) {
     for (int i=1; i<num_queues(); i++) pop_command_queue();
-    cuCtxDestroy(_context);
+    CU_SAFE_CALL_NS(hipDeviceReset());
   }
   _device=-1;
 }
 
 // List all devices along with all properties
 void UCL_Device::print_all(std::ostream &out) {
-  #if CUDA_VERSION >= 2020
+  //#if CUDA_VERSION >= 2020
   int driver_version;
-  cuDriverGetVersion(&driver_version);
-  out << "CUDA Driver Version:                           "
+  hipDriverGetVersion(&driver_version);
+  out << "Driver Version:                           "
       << driver_version/1000 << "." << driver_version%100
                   << std::endl;
-  #endif
+  //#endif
 
   if (num_devices() == 0)
-    out << "There is no device supporting CUDA\n";
+    out << "There is no device supporting HIP\n";
   for (int i=0; i<num_devices(); ++i) {
     out << "\nDevice " << i << ": \"" << name(i) << "\"\n";
     out << "  Type of device:                                "
@@ -402,12 +435,12 @@ void UCL_Device::print_all(std::ostream &out) {
       out << "No\n";
     out << "  Total amount of global memory:                 "
         << gigabytes(i) << " GB\n";
-    #if CUDA_VERSION >= 2000
+    //#if CUDA_VERSION >= 2000
     out << "  Number of compute units/multiprocessors:       "
         << _properties[i].multiProcessorCount << std::endl;
     out << "  Number of cores:                               "
         << cores(i) << std::endl;
-    #endif
+    //#endif
     out << "  Total amount of constant memory:               "
         << _properties[i].totalConstantMemory << " bytes\n";
     out << "  Total amount of local/shared memory per block: "
@@ -426,58 +459,58 @@ void UCL_Device::print_all(std::ostream &out) {
         << _properties[i].maxGridSize[0] << " x "
         << _properties[i].maxGridSize[1] << " x "
         << _properties[i].maxGridSize[2] << std::endl;
-    out << "  Maximum memory pitch:                          "
-        << max_pitch(i) << " bytes\n";
-    out << "  Texture alignment:                             "
-        << _properties[i].textureAlign << " bytes\n";
+    //out << "  Maximum memory pitch:                          "
+    //    << max_pitch(i) << " bytes\n";
+    //out << "  Texture alignment:                             "
+    //    << _properties[i].textureAlign << " bytes\n";
     out << "  Clock rate:                                    "
         << clock_rate(i) << " GHz\n";
-    #if CUDA_VERSION >= 2020
-    out << "  Run time limit on kernels:                     ";
-    if (_properties[i].kernelExecTimeoutEnabled)
-      out << "Yes\n";
-    else
-      out << "No\n";
+    //#if CUDA_VERSION >= 2020
+    //out << "  Run time limit on kernels:                     ";
+    //if (_properties[i].kernelExecTimeoutEnabled)
+    //  out << "Yes\n";
+    //else
+    //  out << "No\n";
     out << "  Integrated:                                    ";
     if (_properties[i].integrated)
       out << "Yes\n";
     else
       out << "No\n";
-    out << "  Support host page-locked memory mapping:       ";
-    if (_properties[i].canMapHostMemory)
-      out << "Yes\n";
-    else
-      out << "No\n";
+    //out << "  Support host page-locked memory mapping:       ";
+    //if (_properties[i].canMapHostMemory)
+    //  out << "Yes\n";
+    //else
+    //  out << "No\n";
     out << "  Compute mode:                                  ";
-    if (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT)
+    if (_properties[i].computeMode == hipComputeModeDefault)
       out << "Default\n"; // multiple threads can use device
-#if CUDA_VERSION >= 8000
-    else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE_PROCESS)
-#else
-    else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE)
-#endif
+//#if CUDA_VERSION >= 8000
+//    else if (_properties[i].computeMode == hipComputeModeExclusiveProcess)
+//#else
+    else if (_properties[i].computeMode == hipComputeModeExclusive)
+//#endif
       out << "Exclusive\n"; // only thread can use device
-    else if (_properties[i].computeMode == CU_COMPUTEMODE_PROHIBITED)
+    else if (_properties[i].computeMode == hipComputeModeProhibited)
       out << "Prohibited\n"; // no thread can use device
-    #if CUDART_VERSION >= 4000
-    else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE_PROCESS)
+    //#if CUDART_VERSION >= 4000
+    else if (_properties[i].computeMode == hipComputeModeExclusiveProcess)
       out << "Exclusive Process\n"; // multiple threads 1 process
-    #endif
+    //#endif
     else
       out << "Unknown\n";
-    #endif
-    #if CUDA_VERSION >= 3010
+    //#endif
+    //#if CUDA_VERSION >= 3010
     out << "  Concurrent kernel execution:                   ";
     if (_properties[i].concurrentKernels)
       out << "Yes\n";
     else
       out << "No\n";
-    out << "  Device has ECC support enabled:                ";
-    if (_properties[i].ECCEnabled)
-      out << "Yes\n";
-    else
-      out << "No\n";
-    #endif
+    //out << "  Device has ECC support enabled:                ";
+    //if (_properties[i].ECCEnabled)
+    //  out << "Yes\n";
+    //else
+    //  out << "No\n";
+    //#endif
   }
 }
 

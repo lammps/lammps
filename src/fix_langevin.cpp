@@ -14,6 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Carolyn Phillips (U Mich), reservoir energy tally
                          Aidan Thompson (SNL) GJF formulation
+                         Charles Sievers (UC Davis) GJF-2GJ Implementation
+			 Niels Gronbech-Jensen (UC Davis) GJF-2GJ Formulation
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>

@@ -1,9 +1,10 @@
 # 3d Lennard-Jones melt
 #
-# This example requires that the example models provided with
-# the kim-api package are installed.  see the ./lib/kim/README or
-# ./lib/kim/Install.py files for details on how to install these
-# example models.
+# This example requires that the KIM Portable Model (PM)
+# SW_StillingerWeber_1985_Si__MO_405512056662_005
+# is installed.  This can be done with the command
+#   kim-api-collections-management install user SW_StillingerWeber_1985_Si__MO_405512056662_005
+# Or, see https://openkim.org/doc/obtaining-models for alternative options.
 #
 
 variable	x index 1
@@ -14,20 +15,14 @@ variable	xx equal 20*$x
 variable	yy equal 20*$y
 variable	zz equal 20*$z
 
-units		metal
-atom_style	atomic
-newton          off
+kim_init	SW_StillingerWeber_1985_Si__MO_405512056662_005 real
 
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
 create_atoms	1 box
 
-#pair_style	lj/cut 8.1500
-#pair_coeff	1 1 0.0104 3.4000
-
-pair_style      kim LennardJones_Ar
-pair_coeff      * * Ar
+kim_interactions Si
 
 mass		1 39.95
 velocity	all create 200.0 232345 loop geom

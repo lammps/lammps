@@ -220,8 +220,9 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
       url += qfunction;
 
       std::string query(arg[0]);
-      query += "&model=";
+      query += "&model=[\"";
       query += model_name;
+      query += "\"]";
       for (int i=1; i < narg; ++i) {
         query += '&';
         query += arg[i];

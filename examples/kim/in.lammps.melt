@@ -8,9 +8,7 @@ variable	xx equal 20*$x
 variable	yy equal 20*$y
 variable	zz equal 20*$z
 
-units		metal
-atom_style	atomic
-newton          off
+units		real
 
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}

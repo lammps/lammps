@@ -127,8 +127,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   cg_peratom = NULL;
 
   nmax = 0;
-  subtract_rho0 = 0;
-  normalize_by_rho0 = 1;
+  sub_flag  = 1;
+  norm_flag = 1;
   part2grid = NULL;
 
   // define acons coefficients for estimation of kspace errors
@@ -270,6 +270,8 @@ void TILD::setup(){
   init_gauss();
   vir_func_init();
 
+  if (sub_flag == 1) subtract_rho0 = 1;
+  if (norm_flag == 1) normalize_by_rho0 = 1;
   return;
 }
 

@@ -176,7 +176,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // default settings for package kokkos command
 
   binsize = 0.0;
-#if KOKKOS_USE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   cuda_aware_flag = 1; 
 #else
   cuda_aware_flag = 0;
@@ -243,7 +243,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #endif
     } // if (-1 == have_cuda_aware)
   } // nmpi > 0
-#endif // KOKKOS_USE_CUDA
+#endif // KOKKOS_ENABLE_CUDA
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);

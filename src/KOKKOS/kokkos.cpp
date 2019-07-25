@@ -30,32 +30,38 @@
 
 // for detecting CUDA-aware MPI support:
 // the variable int have_cuda_aware
-// - is -1 if CUDA-aware MPI support is unknown
-// - is  0 if no CUDA-aware MPI support available
 // - is  1 if CUDA-aware MPI support is available
+// - is  0 if CUDA-aware MPI support is unavailable
+// - is -1 if CUDA-aware MPI support is unknown
 
 #define CUDA_AWARE_UNKNOWN static int have_cuda_aware = -1;
 
 // OpenMPI supports detecting CUDA-aware MPI as of version 2.0.0
-#if OPEN_MPI
 
+// IBM Spectrum MPI looks like OpenMPI but defines MPIX_CUDA_AWARE_SUPPORT=0
+//  even when CUDA-aware MPI is available, and also has a runtime option
+//  to turn CUDA-aware MPI on/off, so support is unknown
+
+#if (defined OPEN_MPI) && !(defined SPECTRUM_MPI)
 #if (OMPI_MAJOR_VERSION >= 2)
+
 #include <mpi-ext.h>
+
 #if defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT
 static int have_cuda_aware = 1;
 #elif defined(MPIX_CUDA_AWARE_SUPPORT) && !MPIX_CUDA_AWARE_SUPPORT
 static int have_cuda_aware = 0;
 #else
 CUDA_AWARE_UNKNOWN
-#endif
+#endif // defined(MPIX_CUDA_AWARE_SUPPORT)
 
 #else // old OpenMPI
 CUDA_AWARE_UNKNOWN
-#endif
+#endif // (OMPI_MAJOR_VERSION >=2)
 
 #else // unknown MPI library
 CUDA_AWARE_UNKNOWN
-#endif
+#endif // OPEN_MPI
 
 #endif // KOKKOS_ENABLE_CUDA
 
@@ -147,29 +153,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef KOKKOS_ENABLE_CUDA
   if (ngpus <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
-
-  // check and warn about CUDA-aware MPI availability when using multiple MPI tasks
-
-  int nmpi = 0;
-  MPI_Comm_size(world,&nmpi);
-  if ((nmpi > 1) && (me == 0)) {
-    if ( 1 == have_cuda_aware ) {
-      ; // all good, nothing to warn about
-    } else if ( -1 == have_cuda_aware ) {
-      error->warning(FLERR,"Kokkos with CUDA assumes CUDA-aware MPI is available,"
-                     " but cannot determine if this is the case\n         try"
-                     " '-pk kokkos cuda/aware off' when getting segmentation faults");
-    } else if ( 0 == have_cuda_aware ) {
-      error->warning(FLERR,"CUDA-aware MPI is NOT available, "
-                     "using '-pk kokkos cuda/aware off' by default");
-    } else {
-      ; // should never get here
-    }
-  }
 #endif
 
 #ifndef KOKKOS_ENABLE_SERIAL
-  if (nthreads == 1)
+  if (nthreads == 1 && me == 0)
     error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
                          "(i.e. Makefile.kokkos_mpi_only) gives better performance "
                          "than the OpenMP backend");
@@ -185,7 +172,11 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // default settings for package kokkos command
 
   binsize = 0.0;
-  cuda_aware_flag = 1;
+#if KOKKOS_USE_CUDA
+  cuda_aware_flag = 1; 
+#else
+  cuda_aware_flag = 0;
+#endif
   neigh_thread = 0;
   neigh_thread_set = 0;
   neighflag_qeq_set = 0;
@@ -209,9 +200,46 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   }
 
 #ifdef KOKKOS_ENABLE_CUDA
+
+  // check and warn about CUDA-aware MPI availability when using multiple MPI tasks
   // change default only if we can safely detect that CUDA-aware MPI is not available
-  if (0 == have_cuda_aware) cuda_aware_flag = 0;
+
+  int nmpi = 0;
+  MPI_Comm_size(world,&nmpi);
+  if (nmpi > 0) {
+    if (have_cuda_aware == 0) {
+      if (me == 0)
+        error->warning(FLERR,"CUDA-aware MPI is NOT available, "
+                       "using '-pk kokkos cuda/aware off'");
+      cuda_aware_flag = 0;
+    } else if (have_cuda_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
+    // MVAPICH2
+#if (defined MPICH) && (defined MVAPICH2_VERSION)
+      char* str;
+      if (!(str = getenv("MV2_ENABLE_CUDA") && (!(strcmp(str,"1") == 0))) {
+        if (me == 0)
+          error->warning(FLERR,"MVAPICH2 'MV2_ENABLE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
+        cuda_aware_flag = 0;
+      }
+    // pure MPICH or some unsupported MPICH derivative
+#elif (defined MPICH) && !(defined MVAPICH2_VERSION)
+      if (me == 0)
+        error->warning(FLERR,"Detected MPICH. Disabling CUDA-aware MPI");
+      cuda_aware_flag = 0;
+#elif (defined SPECTRUM_MPI)
+  if (me == 0)
+    error->warning(FLERR,"Must use the '-gpu' flag with Spectrum MPI to enable "
+                          "CUDA-aware MPI support");
+#else
+  if (me == 0)
+    error->warning(FLERR,"Kokkos with CUDA assumes CUDA-aware MPI is available,"
+                   " but cannot determine if this is the case\n         try"
+                   " '-pk kokkos cuda/aware off' if getting segmentation faults");
+
 #endif
+    } // if (-1 == have_cuda_aware)
+  } // nmpi > 0
+#endif // KOKKOS_USE_CUDA
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);

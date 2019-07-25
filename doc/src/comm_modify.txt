@@ -72,6 +72,15 @@ greater than the neighbor cutoff, then extra ghost atoms will be acquired.
 If the provided cutoff is smaller, the provided value will be ignored
 and the ghost cutoff is set to the neighbor cutoff. Specifying a
 cutoff value of 0.0 will reset any previous value to the default.
+If bonded interactions exist and equilibrium bond length information is
+available, then also a heuristic based on that bond length (2.0x {r_eq}
+for systems with dihedrals or improper, 1.5x {r_eq} without) plus
+neighbor skin is applied if the communication cutoff is set to its
+default value of 0.0.  This avoids problems for systems without a pair
+style or where the non-bonded cutoff is (much) shorter than the largest
+bond lengths.  A warning message is printed, if a specified
+communication cutoff > 0.0 is overridden or the bond length heuristics
+lead to a larger communication cutoff.
 
 The {cutoff/multi} option is equivalent to {cutoff}, but applies to
 communication mode {multi} instead. Since in this case the communication

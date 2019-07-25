@@ -42,7 +42,7 @@
 //  even when CUDA-aware MPI is available, and also has a runtime option
 //  to turn CUDA-aware MPI on/off, so support is unknown
 
-#if (defined OPEN_MPI) && !(defined SPECTRUM_MPI)
+#if (OPEN_MPI) && !(defined SPECTRUM_MPI)
 #if (OMPI_MAJOR_VERSION >= 2)
 
 #include <mpi-ext.h>

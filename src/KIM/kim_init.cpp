@@ -486,7 +486,7 @@ void KimInit::write_log_cite(char * model_name)
 
     if (0 == strncmp("kimcite",fileName,7))
     {
-      if (lmp->citeme) lmp->citeme->add(fileString);
+      if ((lmp->citeme) && (availableAsString)) lmp->citeme->add(fileString);
     }
   }
 

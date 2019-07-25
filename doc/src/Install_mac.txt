@@ -28,7 +28,7 @@ Lennard-Jones benchmark file:
 % brew test lammps -v :pre
 
 The LAMMPS binary is built with the "KIM package"_Build_extras#kim which
-results in homebrew also installing the `kim-api` binaries when LAMMPS is
+results in Homebrew also installing the `kim-api` binaries when LAMMPS is
 installed.  In order to use potentials from "openkim.org"_openkim, you can
 install the `openkim-models` package
 

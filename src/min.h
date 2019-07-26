@@ -42,6 +42,10 @@ class Min : protected Pointers {
   double fnorm_sqr();
   double fnorm_inf();
 
+  // methods for spin minimizers
+  double max_torque(); 
+  double total_torque();
+
   virtual void init_style() {}
   virtual void setup_style() = 0;
   virtual void reset_vectors() = 0;
@@ -56,8 +60,11 @@ class Min : protected Pointers {
   int virial_style;           // compute virial explicitly or implicitly
   int external_force_clear;   // clear forces locally or externally
 
-  double dmax;                // max dist to move any atom in one step
-  int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
+  double dmax;			// max dist to move any atom in one step
+  int linestyle;		// 0 = backtrack, 1 = quadratic, 2 = forcezero 
+  				// 3 = spin_cubic, 4 = spin_none
+
+  int normstyle;		// 0 = Euclidean norm, 1 = inf. norm
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;
@@ -101,9 +108,6 @@ class Min : protected Pointers {
 
   double energy_force(int);
   void force_clear();
-
-  double compute_force_norm_sqr();
-  double compute_force_norm_inf();
 
   void ev_setup();
   void ev_set(bigint);

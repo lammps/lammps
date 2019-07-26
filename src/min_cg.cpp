@@ -37,7 +37,7 @@ MinCG::MinCG(LAMMPS *lmp) : MinLineSearch(lmp) {}
 int MinCG::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
-  double beta,gg,dot[2],dotall[2];
+  double beta,gg,dot[2],dotall[2],fmax,fmaxall;
   double *fatom,*gatom,*hatom;
 
   // nlimit = max # of CG iterations before restarting
@@ -87,10 +87,12 @@ int MinCG::iterate(int maxiter)
 
     // force tolerance criterion
 
+    fmax = fmaxall = 0.0;
     dot[0] = dot[1] = 0.0;
     for (i = 0; i < nvec; i++) {
       dot[0] += fvec[i]*fvec[i];
       dot[1] += fvec[i]*g[i];
+      fmax = MAX(fmax,fvec[i]*fvec[i]);
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
@@ -100,16 +102,22 @@ int MinCG::iterate(int maxiter)
         for (i = 0; i < n; i++) {
           dot[0] += fatom[i]*fatom[i];
           dot[1] += fatom[i]*gatom[i];
+	  fmax = MAX(fmax,fatom[i]*fatom[i]);
         }
       }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&fmax,&fmaxall,2,MPI_DOUBLE,MPI_MAX,world);
     if (nextra_global)
       for (i = 0; i < nextra_global; i++) {
         dotall[0] += fextra[i]*fextra[i];
         dotall[1] += fextra[i]*gextra[i];
       }
 
-    if (dotall[0] < update->ftol*update->ftol) return FTOL;
+    if (normstyle == 1) {	// max force norm
+      if (fmax < update->ftol*update->ftol) return FTOL;
+    } else {			// Euclidean force norm
+      if (dotall[0] < update->ftol*update->ftol) return FTOL;
+    }
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

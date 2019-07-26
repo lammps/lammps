@@ -79,7 +79,8 @@ int MinSD::iterate(int maxiter)
 
     // force tolerance criterion
 
-    fdotf = fnorm_sqr();
+    if (normstyle == 1) fdotf = fnorm_inf();	// max force norm
+    else fdotf = fnorm_sqr();			// Euclidean force norm
     if (fdotf < update->ftol*update->ftol) return FTOL;
 
     // set new search direction h to f = -Grad(x)

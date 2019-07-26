@@ -42,10 +42,12 @@
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,6 +56,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   dmax = 0.1;
   searchflag = 0;
   linestyle = 1;
+  normstyle = 0;
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -653,6 +656,14 @@ void Min::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
       else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
       else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = 2;
+      else if (strcmp(arg[iarg+1],"spin_cubic") == 0) linestyle = 3;
+      else if (strcmp(arg[iarg+1],"spin_none") == 0) linestyle = 4;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"norm") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"euclidean") == 0) normstyle = 0;
+      else if (strcmp(arg[iarg+1],"max") == 0) normstyle = 1;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else {
@@ -814,6 +825,69 @@ double Min::fnorm_inf()
       norm_inf = MAX(fabs(fextra[i]),norm_inf);
 
   return norm_inf;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return  sum_i||mag. torque_i||_2 (in eV)
+------------------------------------------------------------------------- */
+
+double Min::total_torque()
+{
+  double fmsq,ftotsqone,ftotsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmsq = ftotsqone = ftotsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
+    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
+    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
+    fmsq = tx * tx + ty * ty + tz * tz;
+    ftotsqone += fmsq;
+  }
+
+  // summing all fmsqtot on this replica
+
+  MPI_Allreduce(&ftotsqone,&ftotsqall,1,MPI_DOUBLE,MPI_SUM,world);
+
+  // multiply it by hbar so that units are in eV
+  
+  return sqrt(ftotsqall) * hbar;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return max_i ||mag. torque_i|| (in eV)
+------------------------------------------------------------------------- */
+
+double Min::max_torque()
+{
+  double fmsq,fmaxsqone,fmaxsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
+    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
+    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
+    fmsq = tx * tx + ty * ty + tz * tz;
+    fmaxsqone = MAX(fmaxsqone,fmsq);
+  }
+
+  // finding max fm on this replica
+
+  fmaxsqall = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  // multiply it by hbar so that units are in eV
+
+  return sqrt(fmaxsqall) * hbar;
 }
 
 /* ----------------------------------------------------------------------

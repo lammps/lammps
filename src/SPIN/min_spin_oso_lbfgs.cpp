@@ -26,9 +26,9 @@
 #include <cstdlib>
 #include <cstring>
 #include "min_spin_oso_lbfgs.h"
-#include "universe.h"
 #include "atom.h"
 #include "citeme.h"
+#include "comm.h"
 #include "force.h"
 #include "update.h"
 #include "output.h"
@@ -106,6 +106,13 @@ void MinSpinOSO_LBFGS::init()
   der_e_pr = 0.0;
 
   Min::init();
+
+  // warning if line_search combined to gneb
+
+  if ((nreplica >= 1) && (linestyle != 4) && (comm->me == 0))
+    error->warning(FLERR,"Line search incompatible gneb");
+
+  // set back use_line_search to 0 if more than one replica
 
   if (linestyle != 4 && nreplica == 1){
     use_line_search = 1;
@@ -188,7 +195,7 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
 {
   int nlocal = atom->nlocal;
   bigint ntimestep;
-  double fmdotfm;
+  double fmdotfm,fmsq,fmsqall;
   int flag, flagall;
   double **sp = atom->sp;
   double der_e_cur_tmp = 0.0;
@@ -280,8 +287,20 @@ int MinSpinOSO_LBFGS::iterate(int maxiter)
     // magnetic torque tolerance criterion
     // sync across replicas if running multi-replica minimization
 
+    fmdotfm = fmsq = fmsqall = 0.0;
     if (update->ftol > 0.0) {
-      fmdotfm = max_torque();
+      if (normstyle == 1) {		// max torque norm
+	fmsq = max_torque();
+	fmsqall = fmsq;
+	if (update->multireplica == 0)
+	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_MAX,universe->uworld);
+      } else {				// Euclidean torque norm
+	fmsq = total_torque();
+	fmsqall = fmsq;
+	if (update->multireplica == 0)
+	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_SUM,universe->uworld);
+      }
+      fmdotfm = fmsqall*fmsqall;
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -532,42 +551,6 @@ void MinSpinOSO_LBFGS::advance_spins()
     vm3(rot_mat, sp[i], s_new);
     for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
   }
-}
-
-/* ----------------------------------------------------------------------
-   compute and return  max_i||mag. torque_i||_2
-------------------------------------------------------------------------- */
-
-double MinSpinOSO_LBFGS::max_torque()
-{
-  double fmsq,fmaxsqone,fmaxsqloc,fmaxsqall;
-  int nlocal = atom->nlocal;
-
-  // finding max fm on this proc.
-
-  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    fmsq = 0.0;
-    for (int j = 0; j < 3; j++)
-      fmsq += g_cur[3 * i + j] * g_cur[3 * i + j];
-    fmaxsqone = MAX(fmaxsqone,fmsq);
-  }
-
-  // finding max fm on this replica
-
-  fmaxsqloc = fmaxsqone;
-  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
-
-  // finding max fm over all replicas, if necessary
-  // this communicator would be invalid for multiprocess replicas
-
-  fmaxsqall = fmaxsqloc;
-  if (update->multireplica == 1) {
-    fmaxsqall = fmaxsqloc;
-    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
-  }
-
-  return sqrt(fmaxsqall);
 }
 
 /* ----------------------------------------------------------------------

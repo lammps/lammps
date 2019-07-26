@@ -29,6 +29,7 @@
 #include "universe.h"
 #include "atom.h"
 #include "citeme.h"
+#include "comm.h"
 #include "force.h"
 #include "update.h"
 #include "output.h"
@@ -99,6 +100,13 @@ void MinSpinOSO_CG::init()
 
   Min::init();
 
+  // warning if line_search combined to gneb
+
+  if ((nreplica >= 1) && (linestyle != 4) && (comm->me == 0))
+    error->warning(FLERR,"Line search incompatible gneb");
+
+  // set back use_line_search to 0 if more than one replica
+  
   if (linestyle == 3 && nreplica == 1){
     use_line_search = 1;
   }
@@ -175,7 +183,7 @@ int MinSpinOSO_CG::iterate(int maxiter)
 {
   int nlocal = atom->nlocal;
   bigint ntimestep;
-  double fmdotfm;
+  double fmdotfm,fmsq,fmsqall;
   int flag, flagall;
   double **sp = atom->sp;
   double der_e_cur_tmp = 0.0;
@@ -261,8 +269,20 @@ int MinSpinOSO_CG::iterate(int maxiter)
     // magnetic torque tolerance criterion
     // sync across replicas if running multi-replica minimization
 
+    fmdotfm = fmsq = fmsqall = 0.0;
     if (update->ftol > 0.0) {
-      fmdotfm = max_torque();
+      if (normstyle == 1) {		// max torque norm
+	fmsq = max_torque();
+	fmsqall = fmsq;
+	if (update->multireplica == 0)
+	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_MAX,universe->uworld);
+      } else {				// Euclidean torque norm
+	fmsq = total_torque();
+	fmsqall = fmsq;
+	if (update->multireplica == 0)
+	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_SUM,universe->uworld);
+      }
+      fmdotfm = fmsqall*fmsqall;
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -353,6 +373,7 @@ void MinSpinOSO_CG::calc_search_direction()
     MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,world);
 
     // Sum over all replicas. Good for GNEB.
+    
     if (nreplica > 1) {
       g2 = g2_global * factor;
       g2old = g2old_global * factor;
@@ -361,7 +382,9 @@ void MinSpinOSO_CG::calc_search_direction()
     }
     if (fabs(g2_global) < 1.0e-60) beta = 0.0;
     else beta = g2_global / g2old_global;
+    
     // calculate conjugate direction
+    
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = (beta * p_s[i] - g_cur[i]) * factor;
       g_old[i] = g_cur[i] * factor;
@@ -379,7 +402,7 @@ void MinSpinOSO_CG::advance_spins()
 {
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
-  double rot_mat[9]; // exponential of matrix made of search direction
+  double rot_mat[9];	// exponential of matrix made of search direction
   double s_new[3];
 
   // loop on all spins on proc.
@@ -392,47 +415,6 @@ void MinSpinOSO_CG::advance_spins()
     vm3(rot_mat, sp[i], s_new);
     for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
   }
-}
-
-/* ----------------------------------------------------------------------
-   compute and return  max_i||mag. torque_i||_2
-------------------------------------------------------------------------- */
-
-double MinSpinOSO_CG::max_torque()
-{
-  double fmsq,fmaxsqone,fmaxsqloc,fmaxsqall;
-  int nlocal = atom->nlocal;
-  double factor;
-  double hbar = force->hplanck/MY_2PI;
-
-  if (use_line_search) factor = 1.0;
-  else factor = hbar;
-
-  // finding max fm on this proc.
-
-  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    fmsq = 0.0;
-    for (int j = 0; j < 3; j++)
-      fmsq += g_cur[3 * i + j] * g_cur[3 * i + j];
-    fmaxsqone = MAX(fmaxsqone,fmsq);
-  }
-
-  // finding max fm on this replica
-
-  fmaxsqloc = fmaxsqone;
-  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
-
-  // finding max fm over all replicas, if necessary
-  // this communicator would be invalid for multiprocess replicas
-
-  fmaxsqall = fmaxsqloc;
-  if (update->multireplica == 1) {
-    fmaxsqall = fmaxsqloc;
-    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
-  }
-
-  return sqrt(fmaxsqall) * factor;
 }
 
 /* ----------------------------------------------------------------------
@@ -456,15 +438,14 @@ void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
       fabs(upp_tr[1]) < 1.0e-40 &&
       fabs(upp_tr[2]) < 1.0e-40){
 
-  // if upp_tr is zero, return unity matrix
-  for(int k = 0; k < 3; k++){
-    for(int m = 0; m < 3; m++){
-      if (m == k)
-        out[3 * k + m] = 1.0;
-      else
-        out[3 * k + m] = 0.0;
+    // if upp_tr is zero, return unity matrix
+    
+    for(int k = 0; k < 3; k++){
+      for(int m = 0; m < 3; m++){
+        if (m == k) out[3 * k + m] = 1.0;
+        else out[3 * k + m] = 0.0;
+      }
     }
-  }
     return;
   }
 
@@ -512,13 +493,14 @@ void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
 void MinSpinOSO_CG::vm3(const double *m, const double *v, double *out)
 {
   for(int i = 0; i < 3; i++){
-    //out[i] *= 0.0;
     out[i] = 0.0;
-    for(int j = 0; j < 3; j++)
-    out[i] += *(m + 3 * j + i) * v[j];
+    for(int j = 0; j < 3; j++) out[i] += *(m + 3 * j + i) * v[j];
   }
 }
 
+/* ----------------------------------------------------------------------
+  advance spins
+------------------------------------------------------------------------- */
 
 void MinSpinOSO_CG::make_step(double c, double *energy_and_der)
 {
@@ -586,7 +568,7 @@ int MinSpinOSO_CG::calc_and_make_step(double a, double b, int index)
     }
     return 1;
   }
-  else{
+  else {
     double r,f0,f1,df0,df1;
     r = b - a;
     f0 = eprevious;

@@ -80,7 +80,7 @@ void MinFire::reset_vectors()
 int MinFire::iterate(int maxiter)
 {
   bigint ntimestep;
-  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
+  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfloc,fdotfall;
   double scale1,scale2;
   double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
@@ -250,7 +250,15 @@ int MinFire::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      fdotf = fnorm_sqr();
+      if (normstyle == 1) {		// max force norm
+	fdotf = fnorm_inf();
+	fdotfloc = fdotf;
+	MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_INT,MPI_MAX,universe->uworld);
+      } else {			// Euclidean force norm
+	fdotf = fnorm_sqr();
+	fdotfloc = fdotf;
+	MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_INT,MPI_SUM,universe->uworld);
+      }
       if (update->multireplica == 0) {
         if (fdotf < update->ftol*update->ftol) return FTOL;
       } else {

@@ -119,7 +119,7 @@ void MinSpin::reset_vectors()
 int MinSpin::iterate(int maxiter)
 {
   bigint ntimestep;
-  double fmdotfm;
+  double fmdotfm,fmsq,fmsqall;
   int flag,flagall;
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -166,8 +166,20 @@ int MinSpin::iterate(int maxiter)
     // magnetic torque tolerance criterion
     // sync across replicas if running multi-replica minimization
 
+    fmdotfm = fmsq = fmsqall = 0.0;
     if (update->ftol > 0.0) {
-      fmdotfm = max_torque();
+      if (normstyle == 1) {		// max torque norm
+	fmsq = max_torque();
+	fmsqall = fmsq;
+	if (update->multireplica == 0)
+	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_MAX,universe->uworld);
+      } else {				// Euclidean torque norm
+	fmsq = total_torque();
+	fmsqall = fmsq;
+	if (update->multireplica == 0)
+	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_SUM,universe->uworld);
+      }
+      fmdotfm = fmsqall*fmsqall;
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -296,78 +308,4 @@ void MinSpin::advance_spins(double dts)
     // no comm. to atoms with same tag
     // because no need for simplecticity
   }
-}
-
-/* ----------------------------------------------------------------------
-   compute and return ||mag. torque||_2^2
-------------------------------------------------------------------------- */
-
-double MinSpin::fmnorm_sqr()
-{
-  int nlocal = atom->nlocal;
-  double tx,ty,tz;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
-
-  // calc. magnetic torques
-
-  double local_norm2_sqr = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    tx = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-    ty = (fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-    tz = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-
-    local_norm2_sqr += tx*tx + ty*ty + tz*tz;
-  }
-
-  // no extra atom calc. for spins
-
-  if (nextra_atom)
-    error->all(FLERR,"extra atom option not available yet");
-
-  double norm2_sqr = 0.0;
-  MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
-
-  return norm2_sqr;
-}
-
-/* ----------------------------------------------------------------------
-   compute and return  max_i||mag. torque_i||_2
-------------------------------------------------------------------------- */
-
-double MinSpin::max_torque()
-{
-  double fmsq,fmaxsqone,fmaxsqloc,fmaxsqall;
-  int nlocal = atom->nlocal;
-  double hbar = force->hplanck/MY_2PI;
-  double tx,ty,tz;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
-
-  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
-    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
-    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
-    fmsq = tx * tx + ty * ty + tz * tz;
-    fmaxsqone = MAX(fmaxsqone,fmsq);
-  }
-
-  // finding max fm on this replica
-
-  fmaxsqloc = fmaxsqone;
-  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world);
-
-  // finding max fm over all replicas, if necessary
-  // this communicator would be invalid for multiprocess replicas
-
-  fmaxsqall = fmaxsqloc;
-  if (update->multireplica == 1) {
-    fmaxsqall = fmaxsqloc;
-    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
-  }
-
-  // multiply it by hbar so that units are in eV
-
-  return sqrt(fmaxsqall) * hbar;
 }

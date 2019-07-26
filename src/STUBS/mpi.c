@@ -78,7 +78,7 @@ int MPI_Finalized(int *flag)
 
 /* return "LAMMPS MPI STUBS" as name of the library */
 
-int MPI_Get_library_version(char *verison, int *resultlen)
+int MPI_Get_library_version(char *version, int *resultlen)
 {
   const char string[] = "LAMMPS MPI STUBS";
   int len;

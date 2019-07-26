@@ -38,11 +38,7 @@
 
 // OpenMPI supports detecting CUDA-aware MPI as of version 2.0.0
 
-// IBM Spectrum MPI looks like OpenMPI but defines MPIX_CUDA_AWARE_SUPPORT=0
-//  even when CUDA-aware MPI is available, and also has a runtime option
-//  to turn CUDA-aware MPI on/off, so support is unknown
-
-#if (OPEN_MPI) && !(defined SPECTRUM_MPI)
+#if (OPEN_MPI)
 #if (OMPI_MAJOR_VERSION >= 2)
 
 #include <mpi-ext.h>
@@ -211,7 +207,30 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
   if (nmpi > 0) {
-    if (have_cuda_aware == 0) {
+
+    // Check for IBM Spectrum MPI
+
+    int len;
+    char mpi_version[MPI_MAX_LIBRARY_VERSION_STRING];
+    MPI_Get_library_version(mpi_version, &len);
+    if (strstr(&mpi_version[0], "Spectrum") != NULL) {
+      int gpu_flag = 0;
+      char* str;
+      if (str = getenv("OMPI_MCA_pml_pami_enable_cuda")) {
+        if(!(strcmp(str,"1") == 0)) {
+          cuda_aware_flag = 1;
+          gpu_flag = 1;
+        }
+      }
+
+      if (!gpu_flag) {
+        if (me == 0)
+          error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling CUDA-aware MPI");
+        cuda_aware_flag = 0;
+      }
+    }
+
+    if (cuda_aware_flag == 1 && have_cuda_aware == 0) {
       if (me == 0)
         error->warning(FLERR,"Turning off CUDA-aware MPI since it is not detected, "
                        "use '-pk kokkos cuda/aware on' to override");
@@ -220,7 +239,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     // MVAPICH2
 #if (defined MPICH) && (defined MVAPICH2_VERSION)
       char* str;
-      if (!(str = getenv("MV2_ENABLE_CUDA") && (!(strcmp(str,"1") == 0))) {
+      int gpu_flag = 0;
+      if (str = getenv("MV2_ENABLE_CUDA")
+        if (!(strcmp(str,"1") == 0))
+          gpu_flag = 1;
+
+      if (!gpu_flag) {
         if (me == 0)
           error->warning(FLERR,"MVAPICH2 'MV2_ENABLE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
         cuda_aware_flag = 0;
@@ -230,10 +254,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (me == 0)
         error->warning(FLERR,"Detected MPICH. Disabling CUDA-aware MPI");
       cuda_aware_flag = 0;
-#elif (defined SPECTRUM_MPI)
-  if (me == 0)
-    error->warning(FLERR,"Must use the '-gpu' flag with Spectrum MPI to enable "
-                          "CUDA-aware MPI support");
 #else
   if (me == 0)
     error->warning(FLERR,"Kokkos with CUDA assumes CUDA-aware MPI is available,"

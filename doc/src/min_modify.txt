@@ -18,6 +18,8 @@ keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero} or {spin_cubic} or {spin_none}
     backtrack,quadratic,forcezero,spin_cubic,spin_none = style of linesearch to use 
+  {norm} value = {euclidean} or {max}
+    euclidean,max = style of norm to use 
   {alpha_damp} value = damping
     damping = fictitious Gilbert damping for spin minimization (adim)
   {discrete_factor} value = factor
@@ -68,6 +70,14 @@ desired at this point, because the energy change is measured as the
 difference of two large values (energy before and energy after) and
 that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
+
+The choice of a norm can be modified for the min styles {fire}, 
+{quickmin}, {sd}, {spin}, {spin_oso_cg} and {spin_oso_lbfgs} 
+using the {norm} keyword.
+The default {euclidean} norm computes the 2-norm (length) of the
+global force vector. The {max} norm computes the maximum value
+of the 2-norms of all forces in the system.  
+
 
 Keywords {alpha_damp} and {discrete_factor} only make sense when
 a "min_spin"_min_spin.html command is declared. 

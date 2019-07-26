@@ -34,6 +34,8 @@ class BondTable : public Bond {
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   double single(int, double, int, int, double &);
 
  protected:

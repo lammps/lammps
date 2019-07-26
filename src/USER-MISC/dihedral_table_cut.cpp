@@ -999,8 +999,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
 
 void DihedralTableCut::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1009,8 +1008,26 @@ void DihedralTableCut::write_restart(FILE *fp)
 
 void DihedralTableCut::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
   allocate();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 writes out coeffs to restart file
+------------------------------------------------------------------------- */
+
+void DihedralTableCut::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+void DihedralTableCut::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);

@@ -164,21 +164,39 @@ void KimInit::determine_model_type_and_units(char * model_name,
   KIM_TemperatureUnit temperatureUnit;
   KIM_TimeUnit timeUnit;
   int units_accepted;
-  KIM_Model * kim_MO;
+  KIM_Collections * kim_Coll;
+  KIM_CollectionItemType itemType;
 
-  get_kim_unit_names(user_units, lengthUnit, energyUnit,
-                     chargeUnit, temperatureUnit, timeUnit, error);
-  int kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
-                                   lengthUnit,
-                                   energyUnit,
-                                   chargeUnit,
-                                   temperatureUnit,
-                                   timeUnit,
-                                   model_name,
-                                   &units_accepted,
-                                   &kim_MO);
+  int kim_error = KIM_Collections_Create(&kim_Coll);
+  if (kim_error) {
+    error->all(FLERR,"Unable to access KIM Collections to find Model.");
+  }
 
-  if (!kim_error) { // model is an MO
+  kim_error = KIM_Collections_GetItemType(kim_Coll, model_name, &itemType);
+  if (kim_error) {
+    error->all(FLERR,"KIM Model name not found.");
+  }
+  KIM_Collections_Destroy(&kim_Coll);
+
+  if (KIM_CollectionItemType_Equal(itemType,
+                                   KIM_COLLECTION_ITEM_TYPE_portableModel))
+  {
+    get_kim_unit_names(user_units, lengthUnit, energyUnit,
+                       chargeUnit, temperatureUnit, timeUnit, error);
+    KIM_Model * kim_MO;
+    int kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
+                                     lengthUnit,
+                                     energyUnit,
+                                     chargeUnit,
+                                     temperatureUnit,
+                                     timeUnit,
+                                     model_name,
+                                     &units_accepted,
+                                     &kim_MO);
+
+    if (kim_error)
+      error->all(FLERR,"Unable to load KIM Simulator Model.");
+
     model_type = MO;
     KIM_Model_Destroy(&kim_MO);
 
@@ -213,37 +231,39 @@ void KimInit::determine_model_type_and_units(char * model_name,
       error->all(FLERR,"KIM Model does not support the requested unit system");
     }
   }
+  else if (KIM_CollectionItemType_Equal(
+               itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
+    KIM_SimulatorModel * kim_SM;
+    kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
+    if (kim_error)
+      error->all(FLERR,"Unable to load KIM Simulator Model.");
+    model_type = SM;
 
-  KIM_SimulatorModel * kim_SM;
-  kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
-  if (kim_error)
-    error->all(FLERR,"KIM model name not found");
-  model_type = SM;
+    int sim_fields;
+    int sim_lines;
+    char const * sim_field;
+    char const * sim_value;
+    KIM_SimulatorModel_GetNumberOfSimulatorFields(kim_SM, &sim_fields);
+    KIM_SimulatorModel_CloseTemplateMap(kim_SM);
+    for (int i=0; i < sim_fields; ++i) {
+      KIM_SimulatorModel_GetSimulatorFieldMetadata(
+          kim_SM,i,&sim_lines,&sim_field);
 
-  int sim_fields;
-  int sim_lines;
-  char const * sim_field;
-  char const * sim_value;
-  KIM_SimulatorModel_GetNumberOfSimulatorFields(kim_SM, &sim_fields);
-  KIM_SimulatorModel_CloseTemplateMap(kim_SM);
-  for (int i=0; i < sim_fields; ++i) {
-    KIM_SimulatorModel_GetSimulatorFieldMetadata(
-        kim_SM,i,&sim_lines,&sim_field);
-
-    if (0 == strcmp(sim_field,"units")) {
-      KIM_SimulatorModel_GetSimulatorFieldLine(kim_SM,i,0,&sim_value);
-      int len=strlen(sim_value)+1;
-      *model_units = new char[len]; strcpy(*model_units,sim_value);
-      break;
+      if (0 == strcmp(sim_field,"units")) {
+        KIM_SimulatorModel_GetSimulatorFieldLine(kim_SM,i,0,&sim_value);
+        int len=strlen(sim_value)+1;
+        *model_units = new char[len]; strcpy(*model_units,sim_value);
+        break;
+      }
     }
-  }
-  KIM_SimulatorModel_Destroy(&kim_SM);
+    KIM_SimulatorModel_Destroy(&kim_SM);
 
-  if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
-    std::string mesg("Incompatible units for KIM Simulator Model, "
-                    "required units = ");
-    mesg += *model_units;
-    error->all(FLERR,mesg.c_str());
+    if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
+      std::string mesg("Incompatible units for KIM Simulator Model, "
+                       "required units = ");
+      mesg += *model_units;
+      error->all(FLERR,mesg.c_str());
+    }
   }
 }
 

@@ -512,7 +512,6 @@ void MinSpinOSO_CG::rodrigues_rotation(const double *upp_tr, double *out)
 void MinSpinOSO_CG::vm3(const double *m, const double *v, double *out)
 {
   for(int i = 0; i < 3; i++){
-    //out[i] *= 0.0;
     out[i] = 0.0;
     for(int j = 0; j < 3; j++)
     out[i] += *(m + 3 * j + i) * v[j];

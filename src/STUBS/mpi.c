@@ -76,6 +76,23 @@ int MPI_Finalized(int *flag)
 
 /* ---------------------------------------------------------------------- */
 
+/* return "LAMMPS MPI STUBS" as name of the library */
+
+int MPI_Get_library_version(char *verison, int *resultlen)
+{
+  const char string[] = "LAMMPS MPI STUBS";
+  int len;
+
+  if (!version || !resultlen) return MPI_ERR_ARG;
+
+  len = strlen(string);
+  memcpy(version,string,len+1);
+  *resultlen = len;
+  return MPI_SUCCESS;
+}
+
+/* ---------------------------------------------------------------------- */
+
 /* return "localhost" as name of the processor */
 
 int MPI_Get_processor_name(char *name, int *resultlen)

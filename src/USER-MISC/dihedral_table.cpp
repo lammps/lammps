@@ -1012,8 +1012,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
 void DihedralTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1022,6 +1021,27 @@ void DihedralTable::write_restart(FILE *fp)
 
 void DihedralTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void DihedralTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void DihedralTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
@@ -1029,8 +1049,6 @@ void DihedralTable::read_restart(FILE *fp)
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 

@@ -55,10 +55,10 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
+#include "kim_interactions.h"
 #include <cstring>
 #include <string>
 #include <sstream>
-#include "kim_interactions.h"
 #include "error.h"
 #include "atom.h"
 #include "comm.h"

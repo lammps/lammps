@@ -54,11 +54,11 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
+#include "kim_query.h"
 #include <mpi.h>
 #include <cstring>
 #include <string>
 #include <sstream>
-#include "kim_query.h"
 #include "comm.h"
 #include "error.h"
 #include "input.h"

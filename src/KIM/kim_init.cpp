@@ -55,11 +55,11 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
+#include "kim_init.h"
 #include <cstring>
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include "kim_init.h"
 #include "error.h"
 #include "atom.h"
 #include "comm.h"

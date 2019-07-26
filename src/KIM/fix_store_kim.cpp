@@ -54,8 +54,8 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_store_kim.h"
+#include <cstring>
 extern "C" {
 #include "KIM_SimulatorModel.h"
 }

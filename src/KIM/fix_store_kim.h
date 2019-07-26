@@ -63,7 +63,6 @@ FixStyle(STORE/KIM,FixStoreKIM)
 #ifndef LMP_FIX_STORE_KIM_H
 #define LMP_FIX_STORE_KIM_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

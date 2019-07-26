@@ -1062,17 +1062,23 @@ void CommCAC::exchange()
 {
   int i,m,nexch,nsend,nrecv,nlocal,proc,offset;
   double lo,hi,value,lo_ep,hi_ep;
+  int nodes_per_element;
+  double xcom[3];
+  double dx[3];
+  nlocal = atom->nlocal;
+  //resize avec arrays if they're much larger than nlocal
+
+  if(atom->nmax > 2*nlocal)
+  avec->shrink_array(2*nlocal);
+
   double **x = atom->x;
   double ****nodal_positions = atom->nodal_positions;
   double ****initial_nodal_positions = atom->initial_nodal_positions;
   int *element_type = atom->element_type;
   int *poly_count = atom->poly_count;
   int *nodes_count_list = atom->nodes_per_element_list;	
-  int nodes_per_element;
-  double xcom[3];
-  double dx[3];
-  nlocal = atom->nlocal;
   int pbc_sign;
+
   AtomVec *avec = atom->avec;
   // domain properties used in exchange method and methods it calls
   // subbox bounds for orthogonal or triclinic
@@ -1081,9 +1087,6 @@ void CommCAC::exchange()
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
 
-  //resize avec arrays if they're much larger than nlocal
-  if(atom->nmax > 1.4*nlocal)
-  avec->shrink_array(1.4*nlocal);
 
   //check for pbc remaps and set nodal positions
   for(i=0; i<nlocal; i++){

@@ -884,6 +884,7 @@ Fogarty
 Foiles
 fopenmp
 forestgreen
+formatarg
 formulae
 Forschungszentrum
 Fortran

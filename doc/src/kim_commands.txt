@@ -282,7 +282,7 @@ keyword {fixed_types} for models that have a preset fixed mapping (i.e.
 the mapping between LAMMPS atom types and chemical species is defined by
 the model and cannot be changed). In the latter case, the user must consult
 the model documentation to see how many atom types there are and how they
-map to the chemcial species.
+map to the chemical species.
 
 For example, consider an OpenKIM IM that supports Si and C species.
 If the LAMMPS simulation has four atom types, where the first three are Si,
@@ -488,7 +488,7 @@ The citation format for an IM is displayed on its page on
 "OpenKIM"_https://openkim.org along with the corresponding BibTex file,
 and is automatically added to the LAMMPS {log.cite} file.
 
-Citing the IM software (KIM infrastucture and specific PM or SM codes)
+Citing the IM software (KIM infrastructure and specific PM or SM codes)
 used in the simulation gives credit to the researchers who developed them
 and enables open source efforts like OpenKIM to function.
 

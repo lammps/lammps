@@ -44,7 +44,7 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC = -DSPECTRUM_MPI -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-7.3.1/include
+MPI_INC = -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-7.3.1/include
 MPI_PATH = 
 MPI_LIB = -L/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-7.3.1/lib -lmpi_ibm
 

@@ -214,20 +214,17 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     char mpi_version[MPI_MAX_LIBRARY_VERSION_STRING];
     MPI_Get_library_version(mpi_version, &len);
     if (strstr(&mpi_version[0], "Spectrum") != NULL) {
-      int gpu_flag = 0;
+      cuda_aware_flag = 0;
       char* str;
-      if (str = getenv("OMPI_MCA_pml_pami_enable_cuda")) {
-        if(!(strcmp(str,"1") == 0)) {
+      if (str = getenv("OMPI_MCA_pml_pami_enable_cuda"))
+        if((strcmp(str,"1") == 0)) {
+          have_cuda_aware = 1;
           cuda_aware_flag = 1;
-          gpu_flag = 1;
         }
-      }
 
-      if (!gpu_flag) {
+      if (!cuda_aware_flag)
         if (me == 0)
           error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling CUDA-aware MPI");
-        cuda_aware_flag = 0;
-      }
     }
 
     if (cuda_aware_flag == 1 && have_cuda_aware == 0) {
@@ -239,16 +236,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     // MVAPICH2
 #if (defined MPICH) && (defined MVAPICH2_VERSION)
       char* str;
-      int gpu_flag = 0;
+      cuda_aware_flag = 0;
       if (str = getenv("MV2_ENABLE_CUDA")
-        if (!(strcmp(str,"1") == 0))
-          gpu_flag = 1;
+        if ((strcmp(str,"1") == 0))
+          cuda_aware_flag = 1;
 
-      if (!gpu_flag) {
+      if (!cuda_aware_flag)
         if (me == 0)
           error->warning(FLERR,"MVAPICH2 'MV2_ENABLE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
-        cuda_aware_flag = 0;
-      }
     // pure MPICH or some unsupported MPICH derivative
 #elif (defined MPICH) && !(defined MVAPICH2_VERSION)
       if (me == 0)

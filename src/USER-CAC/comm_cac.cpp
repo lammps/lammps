@@ -1067,7 +1067,7 @@ void CommCAC::exchange()
   double dx[3];
   nlocal = atom->nlocal;
   //resize avec arrays if they're much larger than nlocal
-
+  AtomVec *avec = atom->avec;
   if(atom->nmax > 2*nlocal)
   avec->shrink_array(2*nlocal);
 
@@ -1079,7 +1079,7 @@ void CommCAC::exchange()
   int *nodes_count_list = atom->nodes_per_element_list;	
   int pbc_sign;
 
-  AtomVec *avec = atom->avec;
+  
   // domain properties used in exchange method and methods it calls
   // subbox bounds for orthogonal or triclinic
 

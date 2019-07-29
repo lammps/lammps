@@ -1539,6 +1539,7 @@ Mandelli
 Manh
 manifoldforce
 Manolopoulos
+manpages
 manybody
 MANYBODY
 Maras

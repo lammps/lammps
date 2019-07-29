@@ -2438,6 +2438,14 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Compute gyration ID does not exist for compute gyration/shape} :dt
+
+Self-explanatory. Provide a valid compute ID. :dd
+
+{Compute gyration/shape compute ID does not point to a gyration compute} :dt
+
+Self-explanatory. Provide and ID of a compute gyration command. :dd
+
 {Compute ID for compute reduce does not exist} :dt
 
 Self-explanatory. :dd

@@ -315,6 +315,17 @@ char *Input::one(const char *single)
 }
 
 /* ----------------------------------------------------------------------
+   Send text to active echo file pointers
+------------------------------------------------------------------------- */
+void Input::write_echo(const char *txt)
+{
+  if (me == 0) {
+    if (echo_screen && screen) fputs(txt,screen);
+    if (echo_log && logfile) fputs(txt,logfile);
+  }
+}
+
+/* ----------------------------------------------------------------------
    parse copy of command line by inserting string terminators
    strip comment = all chars from # on
    replace all $ via variable substitution except within quotes

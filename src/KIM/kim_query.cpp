@@ -306,7 +306,6 @@ void KimQuery::echo_var_assign(std::string const & name,
   if (comm->me == 0) {
     std::string mesg;
     mesg = name + " = " + value + "\n";
-    if ((screen) && (input->echo_screen)) fputs(mesg.c_str(),screen);
-    if ((logfile) && (input->echo_log)) fputs(mesg.c_str(),logfile);
+    input->write_echo(mesg.c_str());
   }
 }

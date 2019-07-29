@@ -587,7 +587,9 @@ include(Documentation)
 ###############################################################################
 set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps)
 install(DIRECTORY ${LAMMPS_POTENTIALS_DIR} DESTINATION ${LAMMPS_INSTALL_DATADIR})
-install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files DESTINATION ${LAMMPS_INSTALL_DATADIR})
+if(BUILD_TOOLS)
+  install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files DESTINATION ${LAMMPS_INSTALL_DATADIR})
+endif()
 
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)

@@ -52,6 +52,17 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
 #elif defined(FFT_CUFFT)
   if (ngpus > 0 && execution_space == Host)
     lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos CUDA on the host CPUs");
+#elif defined(FFT_KISSFFT)
+  // The compiler can't statically determine the stack size needed for
+  //  recursive function calls in KISS FFT and the default per-thread
+  //  stack size on GPUs needs to be increased to prevent stack overflows
+  //  for reasonably sized FFTs
+  #if defined (KOKKOS_ENABLE_CUDA)
+    size_t stack_size;
+    cudaDeviceGetLimit(&stack_size,cudaLimitStackSize);
+    if (stack_size < 2048)
+      cudaDeviceSetLimit(cudaLimitStackSize,2048);
+  #endif
 #endif
 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,

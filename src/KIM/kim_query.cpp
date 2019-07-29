@@ -139,6 +139,7 @@ void KimQuery::command(int narg, char **arg)
     error->all(FLERR,errmsg);
   }
 
+  kim_query_log_delimiter("begin");
   char **varcmd = new char*[3];
   if (split) {
     int counter = 1;
@@ -165,6 +166,7 @@ void KimQuery::command(int narg, char **arg)
 
     echo_var_assign(varname, value);
   }
+  kim_query_log_delimiter("end");
 
   delete[] varcmd;
   delete[] value;
@@ -300,14 +302,31 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 }
 #endif
 
+/* ---------------------------------------------------------------------- */
+
+void KimQuery::kim_query_log_delimiter(std::string const begin_end) const
+{
+  if (comm->me == 0) {
+    std::string mesg;
+    if (begin_end == "begin")
+      mesg =
+          "#=== BEGIN kim-query =========================================\n";
+    else if (begin_end == "end")
+      mesg =
+          "#=== END kim-query ===========================================\n\n";
+
+    input->write_echo(mesg.c_str());
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void KimQuery::echo_var_assign(std::string const & name,
                                std::string const & value) const
 {
   if (comm->me == 0) {
     std::string mesg;
-    mesg = "#=== BEGIN kim_query =========================================\n";
     mesg += "variable " + name + " string " + value + "\n";
-    mesg += "#=== END kim_query ===========================================\n";
     input->write_echo(mesg.c_str());
   }
 }

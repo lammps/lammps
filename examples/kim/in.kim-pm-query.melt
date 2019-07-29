@@ -4,6 +4,15 @@
 # SW_StillingerWeber_1985_Si__MO_405512056662_005
 # is installed.  This can be done with the command
 #   kim-api-collections-management install user SW_StillingerWeber_1985_Si__MO_405512056662_005
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
 # Or, see https://openkim.org/doc/obtaining-models for alternative options.
 #
 

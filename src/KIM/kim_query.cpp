@@ -130,11 +130,13 @@ void KimQuery::command(int narg, char **arg)
   // as the first element, and then the error message
   // that was returned by the web server
 
+  char errmsg[1024];
   if (0 == strlen(value)) {
-    char errmsg[1024];
-
     sprintf(errmsg,"OpenKIM query failed: %s",value+1);
-        error->all(FLERR,errmsg);
+    error->all(FLERR,errmsg);
+  } else if (0 == strcmp(value,"EMPTY")) {
+    sprintf(errmsg,"OpenKIM query returned no results");
+    error->all(FLERR,errmsg);
   }
 
   char **varcmd = new char*[3];
@@ -269,7 +271,11 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
     if (value[len] == ']') {
       retval = new char[len];
       value[len] = '\0';
-      strcpy(retval,value+1);
+      if (0 == strcmp(value+1, "")) {
+        strcpy(retval,"EMPTY");
+      }
+      else
+        strcpy(retval,value+1);
     } else {
       retval = new char[len+2];
       retval[0] = '\0';

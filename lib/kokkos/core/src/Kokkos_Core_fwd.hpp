@@ -100,6 +100,12 @@ class Serial;    ///< Execution space main process on CPU.
 class Qthreads;  ///< Execution space with Qthreads back-end.
 #endif
 
+#if defined( KOKKOS_ENABLE_HPX )
+namespace Experimental {
+class HPX;  ///< Execution space with HPX back-end.
+}
+#endif
+
 #if defined( KOKKOS_ENABLE_THREADS )
 class Threads;   ///< Execution space with pthreads back-end.
 #endif
@@ -156,6 +162,8 @@ namespace Kokkos {
   typedef Threads DefaultExecutionSpace;
 //#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
 //  typedef Qthreads DefaultExecutionSpace;
+#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX )
+  typedef Kokkos::Experimental::HPX DefaultExecutionSpace;
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
   typedef Serial DefaultExecutionSpace;
 #else
@@ -176,6 +184,8 @@ namespace Kokkos {
   typedef Threads DefaultHostExecutionSpace;
 //#elif defined( KOKKOS_ENABLE_QTHREADS )
 //  typedef Qthreads DefaultHostExecutionSpace;
+#elif defined( KOKKOS_ENABLE_HPX )
+  typedef Kokkos::Experimental::HPX DefaultHostExecutionSpace;
 #elif defined( KOKKOS_ENABLE_SERIAL )
   typedef Serial DefaultHostExecutionSpace;
 #else

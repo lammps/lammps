@@ -82,11 +82,11 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   label_active = 0;
   labelstr = NULL;
   jump_skip = 0;
-  ifthenelse_flag = 0;
 
   if (me == 0) {
-    nfile = maxfile = 1;
-    infiles = (FILE **) memory->smalloc(sizeof(FILE *),"input:infiles");
+    nfile = 1;
+    maxfile = 16;
+    infiles = new FILE *[maxfile];
     infiles[0] = infile;
   } else infiles = NULL;
 
@@ -138,7 +138,7 @@ Input::~Input()
   memory->sfree(work);
   if (labelstr) delete [] labelstr;
   memory->sfree(arg);
-  memory->sfree(infiles);
+  delete [] infiles;
   delete variable;
 
   delete command_map;
@@ -206,17 +206,7 @@ void Input::file()
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n == 0) {
       if (label_active) error->all(FLERR,"Label wasn't found in input script");
-      if (me == 0) {
-        if (infile != stdin) {
-          fclose(infile);
-          infile = NULL;
-        }
-        nfile--;
-      }
-      MPI_Bcast(&nfile,1,MPI_INT,0,world);
-      if (nfile == 0) break;
-      if (me == 0) infile = infiles[nfile-1];
-      continue;
+      break;
     }
 
     if (n > maxline) reallocate(line,maxline,n);
@@ -250,8 +240,8 @@ void Input::file()
 }
 
 /* ----------------------------------------------------------------------
-   process all input from filename
-   called from library interface
+   process all input from file at filename
+   mostly called from library interface
 ------------------------------------------------------------------------- */
 
 void Input::file(const char *filename)
@@ -261,21 +251,27 @@ void Input::file(const char *filename)
   // call to file() will close filename and decrement nfile
 
   if (me == 0) {
-    if (nfile > 1)
-      error->one(FLERR,"Invalid use of library file() function");
+    if (nfile == maxfile)
+      error->one(FLERR,"Too many nested levels of input scripts");
 
-    if (infile && infile != stdin) fclose(infile);
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open input script %s",filename);
       error->one(FLERR,str);
     }
-    infiles[0] = infile;
-    nfile = 1;
+    infiles[nfile++] = infile;
   }
 
+  // process contents of file
+
   file();
+
+  if (me == 0) {
+    fclose(infile);
+    nfile--;
+    infile = infiles[nfile-1];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -962,11 +958,10 @@ void Input::ifthenelse()
       ncommands++;
     }
 
-    ifthenelse_flag = 1;
-    for (int i = 0; i < ncommands; i++) one(commands[i]);
-    ifthenelse_flag = 0;
-
-    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    for (int i = 0; i < ncommands; i++) {
+      one(commands[i]);
+      delete [] commands[i];
+    }
     delete [] commands;
 
     return;
@@ -1018,13 +1013,10 @@ void Input::ifthenelse()
 
     // execute the list of commands
 
-    ifthenelse_flag = 1;
-    for (int i = 0; i < ncommands; i++) one(commands[i]);
-    ifthenelse_flag = 0;
-
-    // clean up
-
-    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    for (int i = 0; i < ncommands; i++) {
+      one(commands[i]);
+      delete [] commands[i];
+    }
     delete [] commands;
 
     return;
@@ -1037,19 +1029,10 @@ void Input::include()
 {
   if (narg != 1) error->all(FLERR,"Illegal include command");
 
-  // do not allow include inside an if command
-  // NOTE: this check will fail if a 2nd if command was inside the if command
-  //       and came before the include
-
-  if (ifthenelse_flag)
-    error->all(FLERR,"Cannot use include command within an if command");
-
   if (me == 0) {
-    if (nfile == maxfile) {
-      maxfile++;
-      infiles = (FILE **)
-        memory->srealloc(infiles,maxfile*sizeof(FILE *),"input:infiles");
-    }
+    if (nfile == maxfile)
+      error->one(FLERR,"Too many nested levels of input scripts");
+
     infile = fopen(arg[0],"r");
     if (infile == NULL) {
       char str[128];
@@ -1057,6 +1040,16 @@ void Input::include()
       error->one(FLERR,str);
     }
     infiles[nfile++] = infile;
+  }
+
+  // process contents of file
+
+  file();
+
+  if (me == 0) {
+    fclose(infile);
+    nfile--;
+    infile = infiles[nfile-1];
   }
 }
 
@@ -1818,11 +1811,11 @@ void Input::pair_style()
     if (!match && lmp->suffix_enable) {
       char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
+        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
         if (strcmp(estyle,force->pair_style) == 0) match = 1;
       }
     }

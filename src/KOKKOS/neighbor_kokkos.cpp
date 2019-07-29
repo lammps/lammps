@@ -301,6 +301,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   if (style != Neighbor::NSQ) {
     for (int i = 0; i < nbin; i++) {
+      if (!neigh_bin[i]->kokkos) atomKK->sync(Host,ALL_MASK);
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();
     }

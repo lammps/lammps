@@ -47,6 +47,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
   OBJ_EXAMPLE_FEINT += feint_openmp.o
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+  OBJ_EXAMPLE_FEINT += feint_hpx.o
+endif
+
 TARGETS = $(EXE_EXAMPLE_FEINT)
 
 #TEST_TARGETS =

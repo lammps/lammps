@@ -71,7 +71,7 @@ ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute temp/body command");
   }
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
 }
 

@@ -35,6 +35,8 @@ class AngleTable : public Angle {
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   double single(int, int, int, int);
 
  protected:

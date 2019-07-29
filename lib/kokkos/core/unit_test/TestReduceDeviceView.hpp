@@ -30,7 +30,7 @@ void test_reduce_device_view(int64_t N, PolicyType policy, ReduceFunctor functor
        TestIsAsynchFunctor(atomic_test));
      double time0 = timer.seconds();
      timer.reset();
-     ExecSpace::execution_space::fence();
+     typename ExecSpace::execution_space().fence();
      double time_fence0 = timer.seconds(); 
      Kokkos::deep_copy(result,0);
      timer.reset();
@@ -42,7 +42,7 @@ void test_reduce_device_view(int64_t N, PolicyType policy, ReduceFunctor functor
      double time1 = timer.seconds();
      // Check whether it was asyncronous
      timer.reset();
-     ExecSpace::execution_space::fence();
+     typename ExecSpace::execution_space().fence();
      double time_fence1 = timer.seconds();    
      Kokkos::deep_copy(reducer_result,result);    
      Kokkos::deep_copy(result,0);
@@ -55,7 +55,7 @@ void test_reduce_device_view(int64_t N, PolicyType policy, ReduceFunctor functor
      double time2 = timer.seconds();
      // Check whether it was asyncronous
      timer.reset();
-     ExecSpace::execution_space::fence();
+     typename ExecSpace::execution_space().fence();
      double time_fence2 = timer.seconds();    
      Kokkos::deep_copy(view_result,result);    
      Kokkos::deep_copy(result,0);
@@ -69,7 +69,7 @@ void test_reduce_device_view(int64_t N, PolicyType policy, ReduceFunctor functor
 
      // Check whether it was asyncronous
      timer.reset();
-     ExecSpace::execution_space::fence();
+     typename ExecSpace::execution_space().fence();
      double time_fence3 = timer.seconds();
 
      ASSERT_EQ(N,scalar_result); 

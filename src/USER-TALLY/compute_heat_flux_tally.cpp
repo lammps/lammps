@@ -38,6 +38,7 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
 
   vector_flag = 1;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   comm_reverse = 7;
   extvector = 1;

@@ -5890,6 +5890,11 @@ The element names in the ADP file do not match those requested. :dd
 
 The element names in the EAM file do not match those requested. :dd
 
+{Incorrect format of ... section in data file} :dt
+
+Number or type of values per line in the given section of the data file
+is not consistent with the requirements for this section. :dd
+
 {Incorrect format in COMB potential file} :dt
 
 Incorrect number of words per line in the potential file. :dd

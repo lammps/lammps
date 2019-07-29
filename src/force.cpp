@@ -238,7 +238,7 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (pair_map->find(estyle) != pair_map->end()) {
         PairCreator pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
@@ -247,7 +247,7 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (pair_map->find(estyle) != pair_map->end()) {
         PairCreator pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
@@ -350,7 +350,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (bond_map->find(estyle) != bond_map->end()) {
         BondCreator bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
@@ -360,7 +360,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (bond_map->find(estyle) != bond_map->end()) {
         BondCreator bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
@@ -429,7 +429,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -439,7 +439,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -509,7 +509,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
         DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
@@ -519,7 +519,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
         DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
@@ -588,7 +588,7 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (improper_map->find(estyle) != improper_map->end()) {
         ImproperCreator improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
@@ -598,7 +598,7 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (improper_map->find(estyle) != improper_map->end()) {
         ImproperCreator improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
@@ -671,7 +671,7 @@ KSpace *Force::new_kspace(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
@@ -681,7 +681,7 @@ KSpace *Force::new_kspace(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
@@ -735,8 +735,8 @@ void Force::store_style(char *&str, const char *style, int sflag)
 {
   if (sflag) {
     char estyle[256];
-    if (sflag == 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
-    else sprintf(estyle,"%s/%s",style,lmp->suffix2);
+    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
     int n = strlen(estyle) + 1;
     str = new char[n];
     strcpy(str,estyle);

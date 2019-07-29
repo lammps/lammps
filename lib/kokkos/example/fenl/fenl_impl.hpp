@@ -345,7 +345,7 @@ Perf fenl(
 
     SparseMatrixType jacobian( mesh_to_graph.graph );
 
-    Space::fence();
+    Space().fence();
 
     perf.create_sparse_matrix = maximum( comm , wall_clock.seconds() );
 
@@ -440,7 +440,7 @@ Perf fenl(
         gatherfill.apply();
       }
 
-      Space::fence();
+      Space().fence();
       perf.fill_time = maximum( comm , wall_clock.seconds() );
 
       //--------------------------------
@@ -450,7 +450,7 @@ Perf fenl(
 
       dirichlet.apply();
 
-      Space::fence();
+      Space().fence();
       perf.bc_time = maximum( comm , wall_clock.seconds() );
 
       //--------------------------------

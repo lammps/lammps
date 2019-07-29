@@ -305,7 +305,9 @@ void KimQuery::echo_var_assign(std::string const & name,
 {
   if (comm->me == 0) {
     std::string mesg;
-    mesg = name + " = " + value + "\n";
+    mesg = "#=== BEGIN kim_query =========================================\n";
+    mesg += "variable " + name + " string " + value + "\n";
+    mesg += "#=== END kim_query ===========================================\n";
     input->write_echo(mesg.c_str());
   }
 }

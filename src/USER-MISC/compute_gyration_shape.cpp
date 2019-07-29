@@ -16,17 +16,14 @@
  * ------------------------------------------------------------------------- */
 
 
+#include "compute_gyration_shape.h"
 #include <cmath>
 #include <cstring>
-#include "compute_gyration_shape.h"
-#include "math_extra.h"
-#include "update.h"
-#include "atom.h"
-#include "group.h"
-#include "domain.h"
 #include "error.h"
+#include "math_extra.h"
+#include "math_special.h"
 #include "modify.h"
-#include "compute.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -67,27 +64,26 @@ void ComputeGyrationShape::init()
   // check that the compute gyration command exist
   int icompute = modify->find_compute(id_gyration);
   if (icompute < 0)
-    error->all(FLERR,"Compute gyration does not exist for compute gyration/shape");
+    error->all(FLERR,"Compute gyration ID does not exist for "
+               "compute gyration/shape");
 
   // check the id_gyration corresponds really to a compute gyration command
   c_gyration = (Compute *) modify->compute[icompute];
   if (strcmp(c_gyration->style,"gyration") != 0)
-    error->all(FLERR,"Compute gyration/shape does not use gyration compute");
+    error->all(FLERR,"Compute gyration compute ID does not point to "
+               "gyration compute for compute gyration/shape");
 }
 
 /* ----------------------------------------------------------------------
-   compute shape parameters based on the eigenvalues of the gyration tensor of group of atoms
+   compute shape parameters based on the eigenvalues of the
+   gyration tensor of group of atoms
 ------------------------------------------------------------------------- */
 
 void ComputeGyrationShape::compute_vector()
 {
   invoked_vector = update->ntimestep;
-
-  // get the gyration tensor from the compute gyration
-  int icompute = modify->find_compute(id_gyration);
-  Compute *compute = modify->compute[icompute];
-  compute->compute_vector();
-  double *gyration_tensor = compute->vector;
+  c_gyration->compute_vector();
+  double *gyration_tensor = c_gyration->vector;
 
   // call the function for the calculation of the eigenvalues
   double ione[3][3], evalues[3], evectors[3][3];
@@ -100,7 +96,8 @@ void ComputeGyrationShape::compute_vector()
   ione[0][2] = ione[2][0] = gyration_tensor[5];
 
   int ierror = MathExtra::jacobi(ione,evalues,evectors);
-  if (ierror) error->all(FLERR, "Insufficient Jacobi rotations for gyration/shape");
+  if (ierror) error->all(FLERR, "Insufficient Jacobi rotations "
+                         "for gyration/shape");
 
   // sort the eigenvalues according to their size with bubble sort
   double t;
@@ -115,19 +112,19 @@ void ComputeGyrationShape::compute_vector()
   }
 
   // compute the shape parameters of the gyration tensor
-  double sq_eigen_x = pow(evalues[0], 2);
-  double sq_eigen_y = pow(evalues[1], 2);
-  double sq_eigen_z = pow(evalues[2], 2);
+  double sq_eigen_x = MathSpecial::square(evalues[0]);
+  double sq_eigen_y = MathSpecial::square(evalues[1]);
+  double sq_eigen_z = MathSpecial::square(evalues[2]);
 
-  double nominator = pow(sq_eigen_x, 2) + pow(sq_eigen_y, 2) + pow(sq_eigen_z, 2);
-  double denominator = pow(sq_eigen_x+sq_eigen_y+sq_eigen_z, 2);
+  double nominator = MathSpecial::square(sq_eigen_x)
+    + MathSpecial::square(sq_eigen_y)
+    + MathSpecial::square(sq_eigen_z);
+  double denominator = MathSpecial::square(sq_eigen_x+sq_eigen_y+sq_eigen_z);
 
   vector[0] = evalues[0];
   vector[1] = evalues[1];
   vector[2] = evalues[2];
   vector[3] = sq_eigen_z - 0.5*(sq_eigen_x + sq_eigen_y);
   vector[4] = sq_eigen_y - sq_eigen_x;
-  vector[5] = 0.5*(3*nominator/denominator -1);
-
+  vector[5] = 0.5*(3*nominator/denominator - 1.0);
 }
-

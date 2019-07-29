@@ -473,6 +473,24 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     valuehalf = valuehalf_select;
     if (ndot > 0) memcpy(dotmark,dotmark_select,ndot*sizeof(int));
 
+    // special case for zero box width
+    // can occur when all dots are on corner vertices of this sub-box
+    // split box on longest dimension
+    // reset dotmark for that cut
+
+    if (largest == 0.0) {
+      dim = 0;
+      if (hi[1]-lo[1] > hi[0]-lo[0]) dim = 1;
+      if (dimension == 3 && hi[2]-lo[2] > hi[dim]-lo[dim]) dim = 2;
+      valuehalf = 0.5* (lo[dim] + hi[dim]);
+
+      for (j = 0; j < nlist; j++) {
+        i = dotlist[j];
+        if (dots[i].x[dim] <= valuehalf) dotmark[i] = 0;
+        else dotmark[i] = 1;
+      }
+    }
+
     // found median
     // store cut info only if I am procmid
 

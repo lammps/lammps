@@ -154,14 +154,16 @@ void KimQuery::command(int narg, char **arg)
       varcmd[0] = const_cast<char *>(splitname.str().c_str());
       varcmd[2] = const_cast<char *>(token.c_str());
       input->variable->set(3,varcmd);
+      echo_var_assign(splitname.str(), varcmd[2]);
     }
   }
   else {
     varcmd[0] = varname;
     varcmd[1] = (char *) "string";
     varcmd[2] = value;
-
     input->variable->set(3,varcmd);
+
+    echo_var_assign(varname, value);
   }
 
   delete[] varcmd;
@@ -297,3 +299,14 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
   return retval;
 }
 #endif
+
+void KimQuery::echo_var_assign(std::string const & name,
+                               std::string const & value) const
+{
+  if (comm->me == 0) {
+    std::string mesg;
+    mesg = name + " = " + value + "\n";
+    if ((screen) && (input->echo_screen)) fputs(mesg.c_str(),screen);
+    if ((logfile) && (input->echo_log)) fputs(mesg.c_str(),logfile);
+  }
+}

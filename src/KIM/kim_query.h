@@ -64,6 +64,7 @@ CommandStyle(kim_query,KimQuery)
 #define LMP_KIM_QUERY_H
 
 #include "pointers.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -71,6 +72,9 @@ class KimQuery : protected Pointers {
  public:
   KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
+ private:
+  void echo_var_assign(std::string const & name, std::string const & value)
+  const;
 };
 
 }

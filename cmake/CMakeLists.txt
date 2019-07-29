@@ -497,10 +497,44 @@ if(BUILD_LIB)
   if(LAMMPS_DEPS)
     add_dependencies(lammps ${LAMMPS_DEPS})
   endif()
+  set(LAMMPS_CXX_HEADERS
+    angle.h
+    atom.h
+    bond.h
+    citeme.h
+    comm.h
+    compute.h
+    dihedral.h
+    domain.h
+    error.h
+    fix.h
+    force.h
+    group.h
+    improper.h
+    input.h
+    kspace.h
+    lammps.h
+    lattice.h
+    lmppython.h
+    memory.h
+    modify.h
+    neighbor.h
+    neigh_list.h
+    output.h
+    pair.h
+    pointers.h
+    region.h
+    timer.h
+    universe.h
+    update.h
+    variable.h)
+  list(TRANSFORM LAMMPS_CXX_HEADERS PREPEND ${LAMMPS_SOURCE_DIR}/)
+
   set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
   install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
+  install(FILES ${LAMMPS_CXX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   configure_file(FindLAMMPS.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/FindLAMMPS${LAMMPS_LIB_SUFFIX}.cmake @ONLY)

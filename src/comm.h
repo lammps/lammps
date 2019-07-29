@@ -70,6 +70,8 @@ class Comm : protected Pointers {
   void set_processors(int, char **);      // set 3d processor grid attributes
   virtual void set_proc_grid(int outflag = 1); // setup 3d grid of procs
 
+  double get_comm_cutoff();     // determine communication cutoff
+
   virtual void setup() = 0;                      // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0) = 0;  // forward comm of atom coords
   virtual void reverse_comm() = 0;               // reverse comm of forces
@@ -236,6 +238,15 @@ E: Processor count in z must be 1 for 2d simulation
 Self-explanatory.
 
 E: Cannot put data on ring from NULL pointer
+
+W: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost.
+
+The communication cutoff defaults to the maximum of what is inferred from pair and
+bond styles (will be zero, if none are defined) and what is specified via
+"comm_modify cutoff" (defaults to 0.0).  If this results to 0.0, no ghost atoms will
+be generated and LAMMPS may lose atoms or use incorrect periodic images of atoms in
+interaction lists.  To avoid, either define pair style zero with a suitable cutoff
+or use comm_modify cutoff.
 
 UNDOCUMENTED
 

@@ -110,8 +110,7 @@ explanation.
 
 [Default:]
 
-The option defaults are dmax = 0.1, line = quadratic and norm =
-euclidean.
+The option defaults are dmax = 0.1, line = quadratic and norm = euclidean.
 
 For the {spin}, {spin_oso_cg} and {spin_oso_lbfgs} styles, the
 option defaults are alpha_damp = 1.0, discrete_factor = 10.0,

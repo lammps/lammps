@@ -234,21 +234,6 @@ static inline bool iszero(const double f) {
   return fabs(f) < 1e-20;
 }
 
-template <typename TYPE, size_t maxi, size_t maxj>
-static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v) {
-  for (size_t i = 0; i < maxi; i++)
-    for (size_t j = 0; j < maxj; j++)
-      arr[i][j] = v;
-}
-
-template <typename TYPE, size_t maxi, size_t maxj, size_t maxk>
-static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
-  for (size_t i = 0; i < maxi; i++)
-    for (size_t j = 0; j < maxj; j++)
-      for (size_t k = 0; k < maxk; k++)
-        arr[i][j][k] = v;
-}
-
 // Helper functions
 
 static inline double fdiv_zero(const double n, const double d) {

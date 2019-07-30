@@ -103,7 +103,7 @@ void AtomVecCAC::process_args(int narg, char **arg)
   size_data_vel = 9*nodes_per_element*maxpoly +9+ maxpoly;
   xcol_data = 3;
 
-  comm->maxexchange_atom=size_border;
+  maxexchange=size_border;
   
   
   //define element node counts and names

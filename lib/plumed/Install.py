@@ -130,7 +130,7 @@ if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")
   plumedinc = os.path.join('liblink', 'plumed', 'src', 'lib', 'Plumed.inc.' + mode)
   lines1 = open(plumedinc, 'r').readlines()
-  if (platform.system() == 'Darwin' and os.path.isfile("Makefile.lammps.%s.macosx")):
+  if (platform.system() == 'Darwin' and os.path.isfile("Makefile.lammps.%s.macosx" % mode)):
     lines2 = open("Makefile.lammps.%s.macosx" % mode, 'r').readlines()
   else:
     lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()

@@ -1,12 +1,9 @@
 
-#include <mpi.h>
 #include "compute_momentum.h"
+#include <mpi.h>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "domain.h"
-#include "group.h"
 #include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,14 +42,14 @@ void ComputeMomentum::compute_vector()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	for(int j = 0; j < 3; ++j)
-	  mom[j] += rmass[i] * v[i][j];
+        for(int j = 0; j < 3; ++j)
+          mom[j] += rmass[i] * v[i][j];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	for(int j = 0; j < 3; ++j)
-	  mom[j] += mass[type[i]] * v[i][j];    
+        for(int j = 0; j < 3; ++j)
+          mom[j] += mass[type[i]] * v[i][j];
   }
 
   MPI_Allreduce(&mom, vector, 3, MPI_DOUBLE, MPI_SUM, world);

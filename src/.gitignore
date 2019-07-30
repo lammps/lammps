@@ -162,6 +162,10 @@
 /comm_cac.h
 /compute_cac_nodal_temp.cpp
 /compute_cac_nodal_temp.h
+/compute_cac_ke.cpp
+/compute_cac_ke.h
+/compute_cac_ke_atom.cpp
+/compute_cac_ke_atom.h
 /compute_cac_quad_count.cpp
 /compute_cac_quad_count.h
 /dump_cac_initial_nodes.cpp
@@ -174,6 +178,8 @@
 /dump_cac_nodal_velocities.h
 /dump_cac_nodal_forces.cpp
 /dump_cac_nodal_forces.h
+/dump_cac_nodal_virial.cpp
+/dump_cac_nodal_virial.h
 /dump_cac_xyz.cpp
 /dump_cac_xyz.h
 /fix_cac_addforce.cpp

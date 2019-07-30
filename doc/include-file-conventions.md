@@ -107,7 +107,7 @@ Include files should be included in this order:
 #### pointers.h
 
 The `pointer.h` header file also includes `cstdio` and `lmptype.h`
-(and through it `stdint.h`, `intttypes.h`, and `climits`).
+(and through it `stdint.h`, `intttypes.h`, cstdlib, and `climits`).
 This means any header including `pointers.h` can assume that `FILE`,
 `NULL`, `INT_MAX` are defined.
 

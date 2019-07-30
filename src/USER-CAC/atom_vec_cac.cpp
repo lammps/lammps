@@ -73,6 +73,7 @@ for(int element_index=0; element_index < alloc_counter; element_index++){
   memory->destroy(initial_nodal_positions[element_index]);
   memory->destroy(nodal_velocities[element_index]);
   memory->destroy(nodal_forces[element_index]);
+  memory->destroy(nodal_virial[element_index]);
 }
 memory->sfree(hold_nodal_positions);
 }
@@ -191,6 +192,8 @@ void AtomVecCAC::grow(int n)
     (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_velocities");
   atom->nodal_forces = nodal_forces =
     (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_forces");
+  atom->nodal_virial = nodal_virial =
+    (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_virial");  
   CAC_nmax = nmax;
   }
   else{
@@ -205,6 +208,8 @@ void AtomVecCAC::grow(int n)
     (double ****) memory->srealloc(nodal_velocities,sizeof(double ***)*nmax, "atom:nodal_velocities");
   atom->nodal_forces = nodal_forces =
     (double ****) memory->srealloc(nodal_forces,sizeof(double ***)*nmax, "atom:nodal_forces");
+  atom->nodal_virial = nodal_virial =
+    (double ****) memory->srealloc(nodal_virial,sizeof(double ***)*nmax, "atom:nodal_virial");
   CAC_nmax = nmax;  
   }
 
@@ -241,6 +246,7 @@ void AtomVecCAC::shrink_array(int n)
   memory->destroy(initial_nodal_positions[element_index]);
   memory->destroy(nodal_velocities[element_index]);
   memory->destroy(nodal_forces[element_index]);
+  memory->destroy(nodal_virial[element_index]);
   }
   if(alloc_counter>n)
   alloc_counter = n;
@@ -257,6 +263,8 @@ void AtomVecCAC::shrink_array(int n)
     (double ****) memory->srealloc(nodal_velocities,sizeof(double ***)*nmax, "atom:nodal_velocities");
   atom->nodal_forces = nodal_forces =
     (double ****) memory->srealloc(nodal_forces,sizeof(double ***)*nmax, "atom:nodal_forces");
+  atom->nodal_virial = nodal_virial =
+    (double ****) memory->srealloc(nodal_virial,sizeof(double ***)*nmax, "atom:nodal_virial");
   CAC_nmax = n;  
   
   if (atom->nextra_grow)
@@ -278,6 +286,7 @@ void AtomVecCAC::allocate_element(int element_index, int node_count, int poly_co
   memory->destroy(initial_nodal_positions[element_index]);
   memory->destroy(nodal_velocities[element_index]);
   memory->destroy(nodal_forces[element_index]);
+  memory->destroy(nodal_virial[element_index]);
   }
   else
   alloc_counter++;
@@ -288,6 +297,8 @@ void AtomVecCAC::allocate_element(int element_index, int node_count, int poly_co
   memory->create(initial_nodal_positions[element_index],node_count, poly_count, 3, "atom:initial_nodal_positions");
   memory->create(nodal_velocities[element_index],node_count, poly_count, 3, "atom:nodal_velocities");
   memory->create(nodal_forces[element_index],node_count, poly_count, 3, "atom:nodal_forces");
+  memory->create(nodal_virial[element_index],node_count, poly_count, 6, "atom:nodal_virial");
+
 
 }
 
@@ -300,10 +311,11 @@ void AtomVecCAC::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-    nodal_positions = atom->nodal_positions;
+  nodal_positions = atom->nodal_positions;
 	initial_nodal_positions = atom->initial_nodal_positions;
   nodal_velocities = atom->nodal_velocities;
   nodal_forces = atom->nodal_forces;
+  nodal_virial = atom->nodal_virial;
   poly_count = atom->poly_count;
   element_type = atom->element_type;
   element_scale = atom->element_scale;
@@ -345,6 +357,7 @@ void AtomVecCAC::copy(int i, int j, int delflag)
   memory->destroy(initial_nodal_positions[j]);
   memory->destroy(nodal_velocities[j]);
   memory->destroy(nodal_forces[j]);
+  memory->destroy(nodal_virial[j]);
   }
   else
   alloc_counter++;
@@ -356,6 +369,7 @@ void AtomVecCAC::copy(int i, int j, int delflag)
   memory->create(initial_nodal_positions[j],node_count, poly_count[j], 3, "atom:initial_nodal_positions");
   memory->create(nodal_velocities[j],node_count, poly_count[j], 3, "atom:nodal_velocities");
   memory->create(nodal_forces[j],node_count, poly_count[j], 3, "atom:nodal_forces");
+  memory->create(nodal_virial[j],node_count, poly_count[j], 6, "atom:nodal_virial");
 
   for (int type_map = 0; type_map < poly_count[j]; type_map++) {
 	  node_types[j][type_map] = node_types[i][type_map];
@@ -1727,6 +1741,7 @@ bigint AtomVecCAC::memory_usage()
   if (atom->memcheck("initial_nodal_positions")) bytes += memory->usage(initial_nodal_positions[usage_index], node_count, current_poly_count, 3);
   if (atom->memcheck("nodal_velocities")) bytes += memory->usage(nodal_velocities[usage_index],node_count, current_poly_count,3);
   if (atom->memcheck("nodal_forces")) bytes += memory->usage(nodal_forces[usage_index],node_count, current_poly_count,3);
+  if (atom->memcheck("nodal_virial")) bytes += memory->usage(nodal_virial[usage_index],node_count, current_poly_count,6);
   }
 
   return bytes;
@@ -1742,10 +1757,15 @@ void AtomVecCAC::force_clear(int a, size_t) {
 		for (int nodecount = 0; nodecount < nodes_count_list[element_type[i]]; nodecount++) {
 			for (int poly_index = 0; poly_index < poly_count[i]; poly_index++)
 			{
-
 				nodal_forces[i][nodecount][poly_index][0] = 0;
 				nodal_forces[i][nodecount][poly_index][1] = 0;
 				nodal_forces[i][nodecount][poly_index][2] = 0;
+        nodal_virial[i][nodecount][poly_index][0] = 0;
+				nodal_virial[i][nodecount][poly_index][1] = 0;
+				nodal_virial[i][nodecount][poly_index][2] = 0;
+        nodal_virial[i][nodecount][poly_index][3] = 0;
+				nodal_virial[i][nodecount][poly_index][4] = 0;
+				nodal_virial[i][nodecount][poly_index][5] = 0;
 			}
 		}
 	}

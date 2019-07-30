@@ -1,0 +1,57 @@
+ "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+dump cac/nodal/virial command :h3
+
+[Syntax:]
+
+dump ID group-ID cac/nodal/virial N file args :pre
+
+ID = user-assigned name for the dump
+group-ID = ID of the group of atoms/elements to be dumped
+cac/nodal/virial = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page)
+N = dump every this many timesteps
+file = name of file to write dump info to
+args = same as arguments for "dump_style custom"_dump.html :ul
+
+[Examples:]
+
+dump mesh all cac/nodal/virial 1000 CACmesh.txt
+
+[Description:]
+
+Periodically outputs the equivalent nodal values of the virial stress. The nodal virial
+of all finite elements for each of their respective internal degrees of freedom will be 
+printed; atom positions will also be printed and denoted by the 0 element type following
+one line of position data.
+
+NOTE: The element header for each atom or finite element possesses three additional
+dummy zeroes after the element scales due to implementation constraints. Make sure
+to read these in first in any post-processing script to avoid erroneous nodal info.
+The six vector of stress components is output in the following order: xx, yy, zz,
+xy, xz, yz
+
+NOTE: Unless the "dump_modify sort"_dump_modify.html option
+is invoked, the atoms and finite elements will be written in an indeterminate 
+order for each snapshot; nodes and internal degrees of freedom will belong to 
+their respective finite element however.  
+:line
+
+[Restrictions:]
+
+This dump style requires a CAC "atom style"_atom_style.html
+
+[Related commands:]
+
+"dump"_dump.html, "dump cac/nodal/positions"_dump_cac_initial_nodes.html,
+"dump cac/kinetic/energy"_dump_cac_kinetic.html, "dump cac/xyz"_dump_cac_xyz.html,
+"dump cac/nodal/velocities"_dump_cac_nodal_velocities.html,
+"dump_modify"_dump_modify.html, "undump"_undump.html
+
+
+

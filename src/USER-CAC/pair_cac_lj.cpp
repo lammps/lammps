@@ -436,9 +436,14 @@ unit_cell[2] = w;
 				force_densityx += delx*fpair;
 				force_densityy += dely*fpair;
 				force_densityz += delz*fpair;
-				force_contribution[0] = delx*fpair;
-				force_contribution[1] = dely*fpair;
-				force_contribution[2] = delz*fpair;
+        if(atom->CAC_virial){
+		    virial_density[0] +=delx*delx*fpair;
+		    virial_density[1] +=dely*dely*fpair;
+		    virial_density[2] +=delz*delz*fpair;
+		    virial_density[3] +=delx*dely*fpair;
+		    virial_density[4] +=delx*delz*fpair;
+		    virial_density[5] +=dely*delz*fpair;
+		    }
         if (quad_eflag) {
 				scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
 			  scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];

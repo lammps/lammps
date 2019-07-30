@@ -97,7 +97,6 @@ class CommCAC : public CommTiled {
   int **maxsent;
   int maxall;
   int *overlap_repeat;           //stores flags for each proc to determine if overlap array has repeats in O(P)
-  int *work1,*work2;                // work vectors
   int foreign_swap;             //stores swap index in which a foreign ebox was sent
   double element_overlap_range[6]; //upper bound on range than an element can overlap into another task's subbox
   double aug_box[6];             //subbox of me expanded by element overlap of local elements

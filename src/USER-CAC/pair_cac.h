@@ -70,6 +70,7 @@ class PairCAC : public Pair {
   double mapped_volume;
   int reneighbor_time;
   int max_nodes_per_element, neigh_poly_count;
+  double virial_density[6];
 
   //stores quadrature point coordinates and calculation coefficients for all nlocal
   double ** quadrature_point_data;

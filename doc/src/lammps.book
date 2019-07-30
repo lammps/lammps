@@ -156,6 +156,8 @@ dump_cac_initial_nodes.html
 dump_cac_kinetic.html
 dump_cac_nodal_positions.html
 dump_cac_nodal_velocities.html
+dump_cac_nodal_forces.html
+dump_cac_nodal_virial.html
 dump_cac_xyz.html
 dump_h5md.html
 dump_image.html
@@ -439,6 +441,8 @@ compute_bond.html
 compute_bond_local.html
 compute_cac_quad_count.html
 compute_cac_nodal_temp.html
+compute_cac_ke.html
+compute_cac_ke_atom.html
 compute_centro_atom.html
 compute_chunk_atom.html
 compute_chunk_spread_atom.html

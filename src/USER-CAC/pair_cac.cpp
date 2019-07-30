@@ -184,8 +184,7 @@ void PairCAC::compute(int eflag, int vflag) {
   
   int singular;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -1064,6 +1063,8 @@ void PairCAC::compute_forcev(int iii){
 	double coefficients;
 	int nodes_per_element;
 	int init_quad_list_counter = quad_list_counter;
+	double ****nodal_virial = atom->nodal_virial;
+	double shape_func;
 	//stores neighbor information for computational weight assignment
 	
 	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
@@ -1091,6 +1092,14 @@ void PairCAC::compute_forcev(int iii){
 	  force_density[0] = 0;
 	  force_density[1] = 0;
 	  force_density[2] = 0;
+		if(atom->CAC_virial){
+    virial_density[0] = 0;
+		virial_density[1] = 0;
+		virial_density[2] = 0;
+		virial_density[3] = 0;
+		virial_density[4] = 0;
+		virial_density[5] = 0;
+		}
 	  if(!atomic_flag){
 	  s = quadrature_point_data[init_quad_list_counter+quad_loop][0];
 	  t = quadrature_point_data[init_quad_list_counter+quad_loop][1];
@@ -1109,15 +1118,26 @@ void PairCAC::compute_forcev(int iii){
 	  neigh_quad_counter = neigh_quad_counter + 1;
 	if(!atomic_flag){
 	for (int js = 0; js < nodes_per_element; js++) {
+		shape_func = shape_function(sq, tq, wq, 2, js + 1);
 	  for (int jj = 0; jj < 3; jj++) {
-		force_column[js][jj] = force_column[js][jj] + coefficients*force_density[jj] * shape_function(sq, tq, wq, 2, js + 1);
+		force_column[js][jj] += coefficients*force_density[jj] * shape_func;
 	  }
+		if(atom->CAC_virial){
+		for (int jj = 0; jj < 6; jj++) {
+		nodal_virial[iii][js][poly_counter][jj] += coefficients*virial_density[jj] * shape_func;
+		}
+		}
 	}
 	}
 	else{
 	  for (int jj = 0; jj < 3; jj++) {
 		force_column[0][jj] = force_density[jj];
 	  }	
+	  if(atom->CAC_virial){
+		for (int jj = 0; jj < 6; jj++) {
+		nodal_virial[iii][0][0][jj] += virial_density[jj];
+		}
+	  }
 	}
 	if (quad_eflag) {
 	element_energy += coefficients*quadrature_energy/iso_volume;

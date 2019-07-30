@@ -65,8 +65,6 @@ CommCAC::CommCAC(LAMMPS *lmp) : CommTiled(lmp)
   foreign_eprocs=NULL;
   foreign_image=NULL;
   foreign_swaps=NULL;
-  work1=NULL;
-  work2=NULL;
   overlap_repeat=NULL;
   proc2box=NULL;
   init_buffers();
@@ -96,8 +94,6 @@ CommCAC::CommCAC(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp, oldcomm)
   foreign_eprocs=NULL;
   foreign_image=NULL;
   foreign_swaps=NULL;
-  work1=NULL;
-  work2=NULL;
   overlap_repeat=NULL;
   proc2box=NULL;
   comm_style = (const char *) "cac";
@@ -118,8 +114,6 @@ CommCAC::~CommCAC()
    if (mode == Comm::MULTI) {
     memory->destroy(cutghostmulti);
   }
-  memory->destroy(work1);
-  memory->destroy(work2);
   atom->CAC_comm_flag=0;
 }
 
@@ -153,8 +147,6 @@ void CommCAC::init_buffers()
   maxoverlap_box = 0;
   overlap = NULL;
   overlap_pbc = NULL;
-  memory->grow(work1,nprocs,"commCAC:work1");
-  memory->grow(work2,nprocs,"commCAC:work2");
   memory->grow(overlap_repeat,nprocs,"commCAC:overlap_repeat");
   if(domain->dimension==2) nswap_border=8;
   if(domain->dimension==3) nswap_border=26;

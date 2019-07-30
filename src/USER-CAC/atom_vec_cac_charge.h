@@ -62,6 +62,7 @@ class AtomVecCAC_Charge : public AtomVecCAC {
   double **x,**v,**f;
   double ****nodal_positions,****nodal_velocities,****nodal_forces,
     ****nodal_gradients, **node_charges, ****initial_nodal_positions, *scale_search_range;
+  double ****nodal_virial;
   int *poly_count, **node_types, *element_type,
 	  **element_scale, scale_count, oneflag, *scale_list;
   int element_type_count;

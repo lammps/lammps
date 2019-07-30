@@ -80,6 +80,7 @@ class AtomVecCAC : public AtomVec {
   double **x,**v,**f;
   double ****nodal_positions,****nodal_velocities,****nodal_forces,
     ****nodal_gradients, ****initial_nodal_positions, *scale_search_range;
+  double ****nodal_virial;
   int *poly_count, **node_types, *element_type,
 	  **element_scale, scale_count, oneflag, *scale_list;
   char **element_names;  

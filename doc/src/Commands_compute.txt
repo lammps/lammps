@@ -35,6 +35,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "bond"_compute_bond.html,
 "bond/local"_compute_bond_local.html,
 "cac/nodal/temp"_compute_cac_nodal_temp.html,
+"cac/ke"_compute_cac_ke.html,
+"cac/ke/atom"_compute_cac_ke_atom.html,
 "cac/quad/count"_compute_cac_quad_count.html,
 "centro/atom"_compute_centro_atom.html,
 "chunk/atom"_compute_chunk_atom.html,

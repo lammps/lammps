@@ -716,6 +716,14 @@ int distanceflag=0;
 		force_densityx += delx*fpair;
 		force_densityy += dely*fpair;
 		force_densityz += delz*fpair;
+		if(atom->CAC_virial){
+		virial_density[0] +=delx*delx*fpair;
+		virial_density[1] +=dely*dely*fpair;
+		virial_density[2] +=delz*delz*fpair;
+		virial_density[3] +=delx*dely*fpair;
+		virial_density[4] +=delx*delz*fpair;
+		virial_density[5] +=dely*delz*fpair;
+		}
 
 
 	}
@@ -761,6 +769,15 @@ int distanceflag=0;
 			force_densityx -= fj[0] + fk[0];
 			force_densityy -= fj[1] + fk[1];
 			force_densityz -= fj[2] + fk[2];
+      if(atom->CAC_virial){
+	   	virial_density[0] += delr1[0]*fj[0] + delr2[0]*fk[0];
+		  virial_density[1] += delr1[1]*fj[1] + delr2[1]*fk[1];
+		  virial_density[2] += delr1[2]*fj[2] + delr2[2]*fk[2];
+		  virial_density[3] += delr1[0]*fj[1] + delr2[0]*fk[1];
+		  virial_density[4] += delr1[0]*fj[2] + delr2[0]*fk[2];
+		  virial_density[5] += delr1[1]*fj[2] + delr2[1]*fk[2];
+		  }
+
 		}
 
 	}
@@ -808,6 +825,14 @@ int distanceflag=0;
 			force_densityx += fj[0];
 			force_densityy += fj[1];
 			force_densityz += fj[2];
+			if(atom->CAC_virial){
+	   	virial_density[0] += delr1[0]*fj[0] + delr2[0]*fk[0];
+		  virial_density[1] += delr1[1]*fj[1] + delr2[1]*fk[1];
+		  virial_density[2] += delr1[2]*fj[2] + delr2[2]*fk[2];
+		  virial_density[3] += delr1[0]*fj[1] + delr2[0]*fk[1];
+		  virial_density[4] += delr1[0]*fj[2] + delr2[0]*fk[2];
+		  virial_density[5] += delr1[1]*fj[2] + delr2[1]*fk[2];
+		  }
 		}
 		for (int k = 0; k < neigh_max_outer; k++) {
 			//add contributions that come from outer neighbor band (farther particle triplets connected to i)
@@ -834,9 +859,26 @@ int distanceflag=0;
 			force_densityx += fj[0];
 			force_densityy += fj[1];
 			force_densityz += fj[2];
+			if(atom->CAC_virial){
+	   	virial_density[0] += delr1[0]*fj[0] + delr2[0]*fk[0];
+		  virial_density[1] += delr1[1]*fj[1] + delr2[1]*fk[1];
+		  virial_density[2] += delr1[2]*fj[2] + delr2[2]*fk[2];
+		  virial_density[3] += delr1[0]*fj[1] + delr2[0]*fk[1];
+		  virial_density[4] += delr1[0]*fj[2] + delr2[0]*fk[2];
+		  virial_density[5] += delr1[1]*fj[2] + delr2[1]*fk[2];
+		  }
 		}
 
 	}
+
+	if(atom->CAC_virial){
+	   	virial_density[0] *= 0.3333333;
+		  virial_density[1] *= 0.3333333;
+		  virial_density[2] *= 0.3333333;
+		  virial_density[3] *= 0.3333333;
+		  virial_density[4] *= 0.3333333;
+		  virial_density[5] *= 0.3333333;
+		  }
 //end of scanning loop
 }
 //------------------------------------------------------------------------

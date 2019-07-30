@@ -116,6 +116,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   element_scale = NULL;
   element_type = NULL;
   nodal_gradients = NULL;
+  nodal_virial = NULL;
   nodes_per_element_list = NULL;
   eboxes = NULL;
   ebox_ref = NULL;
@@ -136,6 +137,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   element_type_count=0;
   dense_count=0;
   outer_neigh_flag=0;
+  CAC_virial=0;
 
   // USER-DPD
 
@@ -340,6 +342,7 @@ Atom::~Atom()
   memory->destroy(poly_count);
   memory->sfree(node_types);
   memory->sfree(node_charges);
+  memory->sfree(nodal_virial);
   memory->destroy(element_scale);
   memory->destroy(element_type);
   memory->destroy(nodes_per_element_list);

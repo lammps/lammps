@@ -37,6 +37,7 @@
 #endif
 
 #include <climits>
+#include <cstdlib>
 #include <stdint.h>   // <cstdint> requires C++-11
 #include <inttypes.h> // <cinttypes> requires C++-11
 

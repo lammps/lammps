@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_print.h"
+#include <mpi.h>
+#include <cstring>
 #include "update.h"
 #include "input.h"
 #include "modify.h"

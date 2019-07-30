@@ -351,6 +351,7 @@ struct TestMDRange_2D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 );
@@ -931,6 +932,7 @@ struct TestMDRange_3D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 );
@@ -1502,6 +1504,7 @@ struct TestMDRange_4D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 );
@@ -2089,6 +2092,7 @@ struct TestMDRange_5D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 );
@@ -2607,6 +2611,7 @@ struct TestMDRange_6D {
       Kokkos::Sum< value_type > reducer_view( sum_view );
 
       parallel_reduce( range, functor, reducer_view);
+      Kokkos::fence();
       sum = sum_view();
 
       ASSERT_EQ( sum, 2 * N0 * N1 * N2 * N3 * N4 * N5 );

@@ -16,18 +16,15 @@
                          Amit Kumar and Michael Bybee (UIUC)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lubricate.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -35,7 +32,6 @@
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
-#include "random_mars.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

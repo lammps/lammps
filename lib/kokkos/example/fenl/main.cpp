@@ -69,6 +69,7 @@ enum { CMD_USE_THREADS = 0
      , CMD_USE_CUDA
      , CMD_USE_ROCM
      , CMD_USE_OPENMP
+     , CMD_USE_HPX
      , CMD_USE_CUDA_DEV
      , CMD_USE_FIXTURE_X
      , CMD_USE_FIXTURE_Y
@@ -96,6 +97,10 @@ void print_cmdline( std::ostream & s , const int cmd[] )
     s << " OpenMP(" << cmd[ CMD_USE_OPENMP ]
       << ") NUMA(" << cmd[ CMD_USE_NUMA ]
       << ") CORE_PER_NUMA(" << cmd[ CMD_USE_CORE_PER_NUMA ]
+      << ")" ;
+  }
+  if ( cmd[ CMD_USE_HPX ] ) {
+    s << " HPX(" << cmd[ CMD_USE_HPX ]
       << ")" ;
   }
   if ( cmd[ CMD_USE_FIXTURE_X ] ) {
@@ -170,6 +175,7 @@ void run( MPI_Comm comm , const int cmd[] )
   if ( 0 == comm_rank ) {
     if ( cmd[ CMD_USE_THREADS ] ) { std::cout << "THREADS , " << cmd[ CMD_USE_THREADS ] ; }
     else if ( cmd[ CMD_USE_OPENMP ] ) { std::cout << "OPENMP , " << cmd[ CMD_USE_OPENMP ] ; }
+    else if ( cmd[ CMD_USE_HPX ] ) { std::cout << "HPX , " << cmd[ CMD_USE_HPX ] ; }
     else if ( cmd[ CMD_USE_CUDA ] ) { std::cout << "CUDA" ; }
     else if ( cmd[ CMD_USE_ROCM ] ) { std::cout << "ROCM" ; }
 
@@ -331,8 +337,10 @@ int main( int argc , char ** argv )
         << " -target-pid " << my_os_pid << " &";
     if (p_rank == 0)
       std::cout << cmd.str() << std::endl;
-    system(cmd.str().c_str());
-    system("sleep 10");
+    int error = system(cmd.str().c_str());
+    if(error) printf("System Call Result: %i\n",error);
+    error = system("sleep 10");
+    if(error) printf("System Call Result: %i\n",error);
   }
 
   if ( ! cmdline[ CMD_ERROR ] && ! cmdline[ CMD_ECHO ] ) {

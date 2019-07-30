@@ -17,11 +17,10 @@
    Please cite the related publication:
 ------------------------------------------------------------------------- */
 
+#include "min_spin.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "min_spin.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
@@ -29,8 +28,6 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
-#include "modify.h"
-#include "math_special.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -257,7 +254,7 @@ void MinSpin::advance_spins(double dts)
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tdampx,tdampy,tdampz;
-  double msq,scale,fm2,energy,dts2;
+  double fm2,energy,dts2;
   double cp[3],g[3];
 
   dts2 = dts*dts;
@@ -298,12 +295,6 @@ void MinSpin::advance_spins(double dts)
     sp[i][2] = g[2];
 
     // renormalization (check if necessary)
-
-    msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-    scale = 1.0/sqrt(msq);
-    sp[i][0] *= scale;
-    sp[i][1] *= scale;
-    sp[i][2] *= scale;
 
     // no comm. to atoms with same tag
     // because no need for simplecticity

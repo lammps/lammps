@@ -15,8 +15,8 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "pair_eff_cut.h"
@@ -31,7 +31,6 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "atom_vec_electron.h"
 
 using namespace LAMMPS_NS;
 

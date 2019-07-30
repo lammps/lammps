@@ -90,6 +90,7 @@
 #if ! defined( KOKKOS_ENABLE_GNU_ATOMICS ) && \
     ! defined( KOKKOS_ENABLE_INTEL_ATOMICS ) && \
     ! defined( KOKKOS_ENABLE_OPENMP_ATOMICS ) && \
+    ! defined( KOKKOS_ENABLE_STD_ATOMICS ) && \
     ! defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
 
 // Compiling for non-Cuda atomic implementation has not been pre-selected.
@@ -167,6 +168,12 @@ const char * atomic_query_version()
 }
 
 } // namespace Kokkos
+
+//----------------------------------------------------------------------------
+// Atomic Memory Orders
+//
+// Implements Strongly-typed analogs of C++ standard memory orders
+#include "impl/Kokkos_Atomic_Memory_Order.hpp"
 
 #if defined( KOKKOS_ENABLE_ROCM )
 namespace Kokkos {
@@ -287,6 +294,14 @@ void unlock_address_rocm_space(void* ptr);
 #ifndef _WIN32
 #include "impl/Kokkos_Atomic_Generic.hpp"
 #endif
+
+//----------------------------------------------------------------------------
+// Provide atomic loads and stores with memory order semantics
+
+#include "impl/Kokkos_Atomic_Load.hpp"
+#include "impl/Kokkos_Atomic_Store.hpp"
+
+
 //----------------------------------------------------------------------------
 // This atomic-style macro should be an inlined function, not a macro
 

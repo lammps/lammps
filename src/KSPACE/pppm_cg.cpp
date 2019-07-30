@@ -15,11 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -27,9 +26,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "pppm_cg.h"
-
 #include "math_const.h"
+#include "remap.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

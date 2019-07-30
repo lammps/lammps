@@ -15,19 +15,17 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_electron.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -798,16 +796,16 @@ void AtomVecElectron::data_atom(double *coord, imageint imagetmp, char **values)
 
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  q[nlocal] = atof(values[2]);
-  spin[nlocal] = atoi(values[3]);
+  q[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
+  spin[nlocal] = utils::inumeric(FLERR,values[3],true,lmp);
   if (spin[nlocal] == 3) atom->ecp_flag = 1;
 
-  eradius[nlocal] = atof(values[4]);
+  eradius[nlocal] = utils::numeric(FLERR,values[4],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -831,9 +829,9 @@ void AtomVecElectron::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
 {
-  q[nlocal] = atof(values[0]);
-  spin[nlocal] = atoi(values[1]);
-  eradius[nlocal] = atof(values[2]);
+  q[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
+  spin[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
+  eradius[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (eradius[nlocal] < 0.0)
     error->one(FLERR,"Invalid eradius in Atoms section of data file");
 
@@ -851,10 +849,10 @@ int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
 
 void AtomVecElectron::data_vel(int m, char **values)
 {
-  v[m][0] = atof(values[0]);
-  v[m][1] = atof(values[1]);
-  v[m][2] = atof(values[2]);
-  ervel[m] = atof(values[3]);
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  ervel[m] = utils::numeric(FLERR,values[3],true,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -863,7 +861,7 @@ void AtomVecElectron::data_vel(int m, char **values)
 
 int AtomVecElectron::data_vel_hybrid(int m, char **values)
 {
-  ervel[m] = atof(values[0]);
+  ervel[m] = utils::numeric(FLERR,values[0],true,lmp);
   return 1;
 }
 

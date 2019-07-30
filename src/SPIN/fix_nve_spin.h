@@ -21,8 +21,6 @@ FixStyle(nve/spin,FixNVESpin)
 #define LMP_FIX_NVE_SPIN_H
 
 #include "fix.h"
-#include "pair.h"
-#include "pair_spin.h"
 
 namespace LAMMPS_NS {
 

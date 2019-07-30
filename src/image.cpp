@@ -15,12 +15,11 @@
    Contributing author: Nathan Fabian (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "image.h"
 #include <mpi.h>
 #include <cmath>
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
-#include "image.h"
 #include "math_extra.h"
 #include "random_mars.h"
 #include "math_const.h"
@@ -29,7 +28,7 @@
 #include "memory.h"
 
 #ifdef LAMMPS_JPEG
-#include "jpeglib.h"
+#include <jpeglib.h>
 #endif
 
 #ifdef LAMMPS_PNG

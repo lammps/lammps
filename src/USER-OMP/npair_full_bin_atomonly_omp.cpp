@@ -13,16 +13,13 @@
 
 #include "npair_full_bin_atomonly_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 

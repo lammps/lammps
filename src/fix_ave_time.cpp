@@ -15,10 +15,11 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_time.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_time.h"
 #include "update.h"
 #include "force.h"
 #include "modify.h"

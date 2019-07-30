@@ -21,11 +21,12 @@
    see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_correlate_long.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_correlate_long.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"

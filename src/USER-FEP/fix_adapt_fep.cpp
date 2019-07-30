@@ -15,10 +15,8 @@
    Charges by type and after option: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "fix_adapt_fep.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "group.h"

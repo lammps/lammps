@@ -132,11 +132,17 @@ private:
 
 public:
 
+  using memory_space = typename DeviceType::memory_space;
+
   /**\brief  The maximum size of a superblock and block */
   enum : uint32_t { max_superblock_size      = 1LU << 31 /* 2 gigabytes */ };
   enum : uint32_t { max_block_per_superblock = max_bit_count };
 
   //--------------------------------------------------------------------------
+
+  KOKKOS_INLINE_FUNCTION
+  bool operator==(MemoryPool const& other) const
+    { return m_sb_state_array == other.m_sb_state_array; }
 
   KOKKOS_INLINE_FUNCTION
   size_t capacity() const noexcept

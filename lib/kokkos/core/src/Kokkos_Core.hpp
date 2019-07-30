@@ -66,6 +66,10 @@
 #include <Kokkos_Qthreads.hpp>
 #endif
 
+#if defined( KOKKOS_ENABLE_HPX )
+#include <Kokkos_HPX.hpp>
+#endif
+
 #if defined( KOKKOS_ENABLE_THREADS )
 #include <Kokkos_Threads.hpp>
 #endif
@@ -87,6 +91,7 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_hwloc.hpp>
 #include <Kokkos_Timer.hpp>
+#include <Kokkos_TaskScheduler.hpp>
 
 #include <Kokkos_Complex.hpp>
 

@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_custom_adios.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
@@ -30,8 +32,6 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
-#include <cmath>
-#include <cstring>
 
 #include "adios2.h"
 

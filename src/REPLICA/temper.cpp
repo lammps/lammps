@@ -15,10 +15,9 @@
    Contributing author: Mark Sears (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "temper.h"
+#include <cmath>
+#include <cstring>
 #include "universe.h"
 #include "domain.h"
 #include "atom.h"
@@ -27,13 +26,10 @@
 #include "modify.h"
 #include "compute.h"
 #include "force.h"
-#include "output.h"
-#include "thermo.h"
 #include "fix.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

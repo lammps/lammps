@@ -20,7 +20,6 @@ FixStyle(gcmc,FixGCMC)
 #ifndef LMP_FIX_GCMC_H
 #define LMP_FIX_GCMC_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

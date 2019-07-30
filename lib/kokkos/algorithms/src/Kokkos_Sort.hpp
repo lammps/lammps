@@ -328,6 +328,8 @@ public:
 
       parallel_for("Kokkos::Sort::Copy", Kokkos::RangePolicy<execution_space>(0,len),functor);
     }
+
+    Kokkos::fence();
   }
 
   template<class ValuesViewType>

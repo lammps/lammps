@@ -15,10 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_temp_csld.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "memory.h"

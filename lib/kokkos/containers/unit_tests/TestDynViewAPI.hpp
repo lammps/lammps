@@ -1276,6 +1276,7 @@ public:
       Kokkos::deep_copy( dx , hx );
       Kokkos::deep_copy( dy , dx );
       Kokkos::deep_copy( hy , dy );
+      Kokkos::fence();
 
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
       for ( size_t i1 = 0 ; i1 < N1 ; ++i1 ) {
@@ -1286,6 +1287,7 @@ public:
 
       Kokkos::deep_copy( dx , T(0) );
       Kokkos::deep_copy( hx , dx );
+      Kokkos::fence();
 
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
       for ( size_t i1 = 0 ; i1 < N1 ; ++i1 ) {

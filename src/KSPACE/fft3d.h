@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+
 // User-settable FFT precision
 
 // FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)

@@ -42,6 +42,7 @@ Commands_compute.html
 Commands_pair.html
 Commands_bond.html
 Commands_kspace.html
+Commands_removed.html
 Packages.html
 Packages_standard.html
 Packages_user.html
@@ -167,7 +168,7 @@ if.html
 include.html
 info.html
 jump.html
-kim_query.html
+kim_commands.html
 label.html
 lattice.html
 log.html
@@ -455,6 +456,7 @@ compute_global_atom.html
 compute_group_group.html
 compute_gyration.html
 compute_gyration_chunk.html
+compute_gyration_shape.html
 compute_heat_flux.html
 compute_hexorder_atom.html
 compute_improper.html
@@ -468,6 +470,7 @@ compute_ke_rigid.html
 compute_meso_e_atom.html
 compute_meso_rho_atom.html
 compute_meso_t_atom.html
+compute_momentum.html
 compute_msd.html
 compute_msd_chunk.html
 compute_msd_nongauss.html

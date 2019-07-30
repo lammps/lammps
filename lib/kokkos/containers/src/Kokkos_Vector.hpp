@@ -121,12 +121,12 @@ public:
     if( DV::template need_sync<typename DV::t_dev::device_type>() ) {
       set_functor_host f(DV::h_view,val);
       parallel_for(n,f);
-      DV::t_host::execution_space::fence();
+      typename DV::t_host::execution_space().fence();
       DV::template modify<typename DV::t_host::device_type>();
     } else {
       set_functor f(DV::d_view,val);
       parallel_for(n,f);
-      DV::t_dev::execution_space::fence();
+      typename DV::t_dev::execution_space().fence();
       DV::template modify<typename DV::t_dev::device_type>();
     }
   }

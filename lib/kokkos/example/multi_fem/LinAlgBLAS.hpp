@@ -103,17 +103,17 @@ namespace Kokkos {
 
 template< typename ScalarX /* Allow mix of const and non-const */ ,
           typename ScalarY /* Allow mix of const and non-const */ ,
-          class L , class D ,
-          class MX /* Allow any management type */ ,
-          class MY /* Allow any management type */ >
+          class D>
 inline
 double dot( const size_t n ,
-            const View< ScalarX * , L , D , MX > & x ,
-            const View< ScalarY * , L , D , MY > & y ,
+            const View< ScalarX * , D > & x ,
+            const View< ScalarY * , D > & y ,
             comm::Machine machine )
 {
   double global_result = 0 ;
   double local_result = 0 ;
+  using x_type = View<ScalarX*, D>;
+  using L = typename x_type::array_layout;
 
   Impl::Dot< ScalarX , L , D >( n , x , y , local_result );
 
@@ -127,16 +127,16 @@ double dot( const size_t n ,
 
 template< typename ScalarX /* Allow mix of const and non-const */ ,
           typename ScalarY /* Allow mix of const and non-const */ ,
-          class L , class D ,
-          class MX /* Allow any management type */ ,
-          class MY /* Allow any management type */ >
+          class D >
 inline
 double dot( const size_t n ,
-            const View< ScalarX * , L , D , MX > & x ,
-            const View< ScalarY * , L , D , MY > & y ,
+            const View< ScalarX * , D > & x ,
+            const View< ScalarY * , D > & y ,
             comm::Machine )
 {
   double global_result = 0 ;
+  using x_type = View<ScalarX*, D>;
+  using L = typename x_type::array_layout;
 
   Impl::Dot< ScalarX , L , D >( n , x , y , global_result );
 
@@ -171,14 +171,15 @@ double dot( const size_t n ,
 #else
 
 template< typename ScalarX /* Allow mix of const and non-const */ ,
-          class L , class D ,
-          class MX /* Allow any management type */ >
+          class D>
 inline
 double dot( const size_t n ,
-            const View< ScalarX * , L , D , MX > & x ,
+            const View< ScalarX * , D> & x ,
             comm::Machine )
 {
   double global_result = 0 ;
+  using x_type = View<ScalarX*, D>;
+  using L = typename x_type::array_layout;
 
   Impl::Dot1< ScalarX , L , D >( n , x , global_result );
 
@@ -190,11 +191,10 @@ double dot( const size_t n ,
 //----------------------------------------------------------------------------
 
 template< typename ScalarX /* Allow mix of const and non-const */ ,
-          class L , class D ,
-          class MX /* Allow any management type */ >
+          class D >
 inline
 double norm2( const size_t n ,
-              const View< ScalarX * , L , D , MX > & x ,
+              const View< ScalarX * , D > & x ,
               comm::Machine machine )
 {
   return std::sqrt( dot( n , x , machine ) );
@@ -216,13 +216,13 @@ void scale( const size_t n ,
 
 template< typename ScalarA ,
           typename ScalarX ,
-          class L ,
-          class D ,
-          class MX >
+          class D >
 void fill( const size_t n ,
            const ScalarA & alpha ,
-           const View< ScalarX * , L , D , MX > & x )
+           const View< ScalarX * , D > & x )
 {
+  using x_type = View<ScalarX*, D>;
+  using L = typename x_type::array_layout;
   Impl::Fill< ScalarA , ScalarX , L , D >( n , alpha , x );
 }
 
@@ -231,15 +231,14 @@ void fill( const size_t n ,
 template< typename ScalarA ,
           typename ScalarX ,
           typename ScalarY ,
-          class L ,
-          class D ,
-          class MX ,
-          class MY >
+          class D >
 void axpy( const size_t n ,
            const ScalarA & alpha ,
-           const View< ScalarX *, L , D , MX > & x ,
-           const View< ScalarY *, L , D , MY > & y )
+           const View< ScalarX *, D > & x ,
+           const View< ScalarY *, D > & y )
 {
+  using x_type = View<ScalarX*, D>;
+  using L = typename x_type::array_layout;
   Impl::AXPY< ScalarA, ScalarX, ScalarY , L , D >( n, alpha, x, y );
 }
 
@@ -248,15 +247,14 @@ void axpy( const size_t n ,
 template< typename ScalarX ,
           typename ScalarB ,
           typename ScalarY ,
-          class L ,
-          class D ,
-          class MX ,
-          class MY >
+          class D >
 void xpby( const size_t n ,
-           const View< ScalarX *, L , D , MX > & x ,
+           const View< ScalarX *, D > & x ,
            const ScalarB & beta ,
-           const View< ScalarY *, L , D , MY > & y )
+           const View< ScalarY *, D > & y )
 {
+  using x_type = View<ScalarX*, D>;
+  using L = typename x_type::array_layout;
   Impl::XPBY< ScalarX, ScalarB, ScalarY , L , D >( n, x, beta, y );
 }
 
@@ -268,15 +266,17 @@ template< typename ScalarA ,
           typename ScalarB ,
           typename ScalarY ,
           typename ScalarW ,
-          class L , class D ,
-          class MX , class MY , class MW >
+          class D
+          >
 void waxpby( const size_t n ,
              const ScalarA & alpha ,
-             const View< ScalarX * , L , D , MX > & x ,
+             const View< ScalarX * , D > & x ,
              const ScalarB & beta ,
-             const View< ScalarY * , L , D , MY > & y ,
-             const View< ScalarW * , L , D , MW > & w )
+             const View< ScalarY * , D > & y ,
+             const View< ScalarW * , D > & w )
 {
+  using x_type = typename std::decay<decltype(x)>::type;
+  using L = typename x_type::array_layout;
   Impl::WAXPBY<ScalarA,ScalarX,ScalarB,ScalarY,ScalarW,L,D>
     ( n , alpha , x , beta , y , w );
 }

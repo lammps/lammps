@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_store.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

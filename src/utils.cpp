@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "utils.h"
+#include <cstring>
+#include <cstdlib>
 #include "lammps.h"
 #include "error.h"
 
@@ -39,6 +39,10 @@
  *   '\W'       Non-alphanumeric
  *   '\d'       Digits, [0-9]
  *   '\D'       Non-digits
+ *   '\i'       Integer chars, [0-9], '+' and '-'
+ *   '\I'       Non-integers
+ *   '\f'       Floating point number chars, [0-9], '.', 'e', 'E', '+' and '-'
+ *   '\F'       Non-floats
  *
  * *NOT* supported:
  *   '[^abc]'   Inverted class
@@ -141,6 +145,150 @@ std::string utils::check_packages_for_style(std::string style,
   return errmsg;
 }
 
+
+/* ----------------------------------------------------------------------
+   read a floating point value from a string
+   generate an error if not a legitimate floating point value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+double utils::numeric(const char *file, int line, const char *str,
+                      bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected floating point parameter instead of"
+                      " NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected floating point parameter instead of"
+                      " NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i])) continue;
+    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
+    if (str[i] == 'e' || str[i] == 'E') continue;
+    std::string msg("Expected floating point parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return atof(str);
+}
+
+/* ----------------------------------------------------------------------
+   read an integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int utils::inumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return atoi(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a big integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+bigint utils::bnumeric(const char *file, int line, const char *str,
+                       bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return ATOBIGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a tag integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+tagint utils::tnumeric(const char *file, int line, const char *str,
+                       bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg.c_str());
+    else
+      lmp->error->all(file,line,msg.c_str());
+  }
+
+  return ATOTAGINT(str);
+}
+
+
 /* ------------------------------------------------------------------ */
 
 extern "C" {
@@ -163,6 +311,7 @@ extern "C" {
 
   enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS,
          CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT,
+         INTEGER, NOT_INTEGER, FLOAT, NOT_FLOAT,
          ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE /*, BRANCH */ };
 
   typedef struct regex_t {
@@ -180,6 +329,8 @@ extern "C" {
   static int matchplus(regex_t p, regex_t *pattern, const char *text);
   static int matchone(regex_t p, char c);
   static int matchdigit(char c);
+  static int matchint(char c);
+  static int matchfloat(char c);
   static int matchalpha(char c);
   static int matchwhitespace(char c);
   static int matchmetachar(char c, const char *str);
@@ -251,6 +402,10 @@ extern "C" {
             /* Meta-character: */
           case 'd': {    re_compiled[j].type = DIGIT;            } break;
           case 'D': {    re_compiled[j].type = NOT_DIGIT;        } break;
+          case 'i': {    re_compiled[j].type = INTEGER;          } break;
+          case 'I': {    re_compiled[j].type = NOT_INTEGER;      } break;
+          case 'f': {    re_compiled[j].type = FLOAT;            } break;
+          case 'F': {    re_compiled[j].type = NOT_FLOAT;        } break;
           case 'w': {    re_compiled[j].type = ALPHA;            } break;
           case 'W': {    re_compiled[j].type = NOT_ALPHA;        } break;
           case 's': {    re_compiled[j].type = WHITESPACE;       } break;
@@ -323,6 +478,16 @@ extern "C" {
     return ((c >= '0') && (c <= '9'));
   }
 
+  static int matchint(char c)
+  {
+    return (matchdigit(c) || (c == '-') || (c == '+'));
+  }
+
+  static int matchfloat(char c)
+  {
+    return (matchint(c) || (c == '.') || (c == 'e') || (c == 'E'));
+  }
+
   static int matchalpha(char c)
   {
     return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
@@ -358,6 +523,10 @@ extern "C" {
     switch (str[0]) {
     case 'd': return  matchdigit(c);
     case 'D': return !matchdigit(c);
+    case 'i': return  matchint(c);
+    case 'I': return !matchint(c);
+    case 'f': return  matchfloat(c);
+    case 'F': return !matchfloat(c);
     case 'w': return  matchalphanum(c);
     case 'W': return !matchalphanum(c);
     case 's': return  matchwhitespace(c);
@@ -400,6 +569,10 @@ extern "C" {
     case INV_CHAR_CLASS: return !matchcharclass(c, (const char *)p.ccl);
     case DIGIT:          return  matchdigit(c);
     case NOT_DIGIT:      return !matchdigit(c);
+    case INTEGER:        return  matchint(c);
+    case NOT_INTEGER:    return !matchint(c);
+    case FLOAT:          return  matchfloat(c);
+    case NOT_FLOAT:      return !matchfloat(c);
     case ALPHA:          return  matchalphanum(c);
     case NOT_ALPHA:      return !matchalphanum(c);
     case WHITESPACE:     return  matchwhitespace(c);

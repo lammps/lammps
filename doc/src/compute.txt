@@ -177,7 +177,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "angle"_compute_angle.html - energy of each angle sub-style
 "angle/local"_compute_angle_local.html - theta and energy of each angle
 "angmom/chunk"_compute_angmom_chunk.html - angular momentum for each chunk
-"basal/atom"_compute_basal_atom.html - calculates the hexagonal close-packed “c” lattice vector of each atom
+"basal/atom"_compute_basal_atom.html - calculates the hexagonal close-packed "c" lattice vector of each atom
 "body/local"_compute_body_local.html - attributes of body sub-particles
 "bond"_compute_bond.html - energy of each bond sub-style
 "bond/local"_compute_bond_local.html - distance and energy of each bond

@@ -18,7 +18,7 @@ min_style spin_oso_lbfgs :pre
 [Examples:]
 
 min_style 	spin_oso_lbfgs 
-min_modify      line spin_none discrete_factor 10.0 :pre
+min_modify      line spin_cubic discrete_factor 10.0 :pre
 
 [Description:]
 
@@ -62,16 +62,15 @@ and uses the adaptive time-step technique in the same way as style {spin}.
 Style {spin_oso_lbfgs} defines an orthogonal spin optimization
 (OSO) combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno 
 (L-BFGS) algorithm.
-By default, style {spin_oso_lbfgs} uses a line search procedure
-based on cubic interpolation for
-a single-replica calculation, and it does not use line search procedure
-for a multireplica calculation (such as in case of GNEB calculation).
+By default, style {spin_oso_lbfgs} does not employ line search procedure.
 If the line search procedure is not used then the discrete factor defines
 the maximum root mean squared rotation angle of spins by equation {pi/(5*Kappa)}.
 The default value for Kappa is 10.
+The {spin_cubic} line search can improve
+the convergence of the {spin_oso_lbfgs} algorithm.
 
 The "min_modify"_min_modify.html command can be used to
-deactivate the line search procedure, and to modify the
+activate the line search procedure, and to modify the
 discretization factor {discrete_factor}. 
 
 For more information about styles {spin_oso_cg} and {spin_oso_lbfgs}, 

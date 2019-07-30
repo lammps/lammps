@@ -97,9 +97,9 @@ two minimization styles is declared.
 The {spin_cubic} performs the line search based on a cubic interpolation
 of the energy along the search direction. The {spin_none} keyword
 deactivates the line search procedure.
-The {spin_none} is a default value for {line} keyword apart from the case when
-single-replica calculations are performed with {spin_oso_lbfgs} that
-uses {spin_cubic} line search.
+The {spin_none} is a default value for {line} keyword for both {spin_oso_lbfgs}
+and {spin_oso_cg}. Convergence of {spin_oso_lbfgs} can be more robust if
+{spin_cubic} line search is used.
 
 [Restrictions:] The line search procedure of styles
 {spin_oso_cg} and {spin_oso_lbfgs} cannot be used for magnetic

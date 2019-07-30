@@ -182,7 +182,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (utils:strmatch(modify->fix[ifix]->style,"^gravity")) break;
+    if (utils::strmatch(modify->fix[ifix]->style,"^gravity")) break;
 
   if (ifix == modify->nfix)
     error->all(FLERR,"No fix gravity defined for fix pour");

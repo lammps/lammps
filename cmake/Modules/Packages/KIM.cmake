@@ -9,7 +9,9 @@ if(PKG_KIM)
   if(KIM-API_FOUND)
     set(DOWNLOAD_KIM_DEFAULT OFF)
   else()
-    message(WARNING "KIM-API package not found.  We will download and build our own")
+    if (NOT DOWNLOAD_KIM)
+      message(WARNING "KIM-API package not found.  We will download and build our own")
+    endif()
     set(DOWNLOAD_KIM_DEFAULT ON)
   endif()
   option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" ${DOWNLOAD_KIM_DEFAULT})
@@ -22,8 +24,8 @@ if(PKG_KIM)
     enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-2.1.1.txz
-      URL_MD5 ae0ee413e026c6e93d35692db5966fb4
+      URL https://s3.openkim.org/kim-api/kim-api-2.1.2.txz
+      URL_MD5 6ac52e14ef52967fc7858220b208cba5
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

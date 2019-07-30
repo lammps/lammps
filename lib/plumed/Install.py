@@ -6,7 +6,7 @@ used to automate the steps described in the README file in this dir
 """
 
 from __future__ import print_function
-import sys, os, subprocess, shutil
+import sys, os, platform, subprocess, shutil
 from argparse import ArgumentParser
 
 sys.path.append('..')
@@ -130,7 +130,10 @@ if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")
   plumedinc = os.path.join('liblink', 'plumed', 'src', 'lib', 'Plumed.inc.' + mode)
   lines1 = open(plumedinc, 'r').readlines()
-  lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
+  if (platform.system() == 'Darwin' and os.path.isfile("Makefile.lammps.%s.macosx")):
+    lines2 = open("Makefile.lammps.%s.macosx" % mode, 'r').readlines()
+  else:
+    lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
   fp = open("Makefile.lammps", 'w')
   fp.write("PLUMED_LIBDIR=" + os.path.join(homedir, "lib\n"))
   for line in lines1:

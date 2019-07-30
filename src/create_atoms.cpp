@@ -173,8 +173,6 @@ void CreateAtoms::command(int narg, char **arg)
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (style != SINGLE)
-        error->all(FLERR,"Cannot use create_atoms rotate unless single style");
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
@@ -675,7 +673,9 @@ void CreateAtoms::add_random()
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       if (mode == ATOM) atom->avec->create_atom(ntype,xone);
-      else add_molecule(xone);
+      else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+        add_molecule(xone);
+      else add_molecule(xone, quatone);
     }
   }
 
@@ -829,7 +829,9 @@ void CreateAtoms::add_lattice()
           // add the atom or entire molecule to my list of atoms
 
           if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
-          else add_molecule(x);
+          else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            add_molecule(x);
+          else add_molecule(x,quatone);
         }
       }
     }

@@ -13,7 +13,7 @@ min_modify command :h3
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
+keyword = {dmax} or {line} or {norm} or {alpha_damp} or {discrete_factor}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero} or {spin_cubic} or {spin_none}
@@ -71,13 +71,12 @@ difference of two large values (energy before and energy after) and
 that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
-The choice of a norm can be modified for the min styles {fire}, 
-{quickmin}, {sd}, {spin}, {spin_oso_cg} and {spin_oso_lbfgs} 
-using the {norm} keyword.
+The choice of a norm can be modified for the min styles {cg}, {sd}, 
+{quickmin}, {fire}, {spin}, {spin_oso_cg} and {spin_oso_lbfgs} using 
+the {norm} keyword.
 The default {euclidean} norm computes the 2-norm (length) of the
 global force vector. The {max} norm computes the maximum value
-of the 2-norms of all forces in the system.  
-
+of the 2-norms across all forces in the system.  
 
 Keywords {alpha_damp} and {discrete_factor} only make sense when
 a "min_spin"_min_spin.html command is declared. 
@@ -88,7 +87,6 @@ Keyword {discrete_factor} defines a discretization factor for the
 adaptive timestep used in the {spin} minimization. 
 See "min_spin"_min_spin.html for more information about those
 quantities. 
-Default values are {alpha_damp} = 1.0 and {discrete_factor} = 10.0.
 
 The choice of a line search algorithm for the {spin_oso_cg} and
 {spin_oso_lbfgs} styles can be specified via the {line} keyword.
@@ -112,4 +110,9 @@ explanation.
 
 [Default:]
 
-The option defaults are dmax = 0.1 and line = quadratic.
+The option defaults are dmax = 0.1, line = quadratic and norm =
+euclidean.
+
+For the {spin}, {spin_oso_cg} and {spin_oso_lbfgs} styles, the
+option defaults are alpha_damp = 1.0, discrete_factor = 10.0,
+line = spin_none, and norm = euclidean.

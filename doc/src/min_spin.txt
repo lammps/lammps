@@ -56,7 +56,7 @@ Style {spin_oso_cg} defines an orthogonal spin optimization
 The "min_modify"_min_modify.html command can be used to
 couple the {spin_oso_cg} to a line search procedure, and to modify the 
 discretization factor {discrete_factor}.
-By defualt, the style {spin_oso_cg} does not employ line search procedure and
+By default, style {spin_oso_cg} does not employ the line search procedure 
 and uses the adaptive time-step technique in the same way as style {spin}.
 
 Style {spin_oso_lbfgs} defines an orthogonal spin optimization
@@ -66,8 +66,8 @@ By default, style {spin_oso_lbfgs} does not employ line search procedure.
 If the line search procedure is not used then the discrete factor defines
 the maximum root mean squared rotation angle of spins by equation {pi/(5*Kappa)}.
 The default value for Kappa is 10.
-The {spin_cubic} line search can improve
-the convergence of the {spin_oso_lbfgs} algorithm.
+The {spin_cubic} line search can improve the convergence of the 
+{spin_oso_lbfgs} algorithm.
 
 The "min_modify"_min_modify.html command can be used to
 activate the line search procedure, and to modify the
@@ -95,8 +95,8 @@ freedom for a frozen lattice configuration.
 
 [Default:]
 
-The option defaults are {alpha_damp} = 1.0 and {discrete_factor} =
-10.0.
+The option defaults are {alpha_damp} = 1.0, {discrete_factor} =
+10.0, {line} = spin_none and {norm} = euclidean.
 
 :line
 

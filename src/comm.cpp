@@ -41,7 +41,7 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFMIN 1000             // also in comm styles
+#define BUFEXTRA 1024
 
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
@@ -67,7 +67,10 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   outfile = NULL;
   recv_from_partition = send_to_partition = -1;
   otherflag = 0;
-  maxexchange_atom = maxexchange_fix = 0;
+
+  maxexchange = maxexchange_atom = maxexchange_fix = 0;
+  maxexchange_fix_dynamic = 0;
+  bufextra = BUFEXTRA;
 
   grid2proc = NULL;
   xsplit = ysplit = zsplit = NULL;
@@ -227,6 +230,39 @@ void Comm::init()
 
   if (force->newton == 0) maxreverse = 0;
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
+
+  // maxexchange_atom = size of an exchanged atom, set by AtomVec
+  //   only needs to be set if size > BUFEXTRA
+  // maxexchange_fix_dynamic = 1 if any fix sets its maxexchange dynamically
+
+  maxexchange_atom = atom->avec->maxexchange;
+
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
+  maxexchange_fix_dynamic = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+}
+
+/* ----------------------------------------------------------------------
+   set maxexchange based on AtomVec and fixes
+------------------------------------------------------------------------- */
+
+void Comm::init_exchange()
+{
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
+  int onefix;
+  maxexchange_fix = 0;
+  for (int i = 0; i < nfix; i++) {
+    onefix = fix[i]->maxexchange;
+    maxexchange_fix = MAX(maxexchange_fix,onefix);
+  }
+
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
 }
 
 /* ----------------------------------------------------------------------

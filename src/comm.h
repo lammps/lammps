@@ -38,9 +38,8 @@ class Comm : protected Pointers {
                                     // -1 if no recv or send
   int other_partition_style;        // 0 = recv layout dims must be multiple of
                                     //     my layout dims
-  int maxexchange_atom;             // max contribution to exchange from AtomVec
-  int maxexchange_fix;              // max contribution to exchange from Fixes
-  int nthreads;                     // OpenMP threads per MPI process
+
+  int nthreads;                // OpenMP threads per MPI process
 
   // public settings specific to layout = UNIFORM, NONUNIFORM
 
@@ -132,8 +131,13 @@ class Comm : protected Pointers {
   int size_reverse;                 // # of datums in reverse comm
   int size_border;                  // # of datums in forward border comm
 
-  int maxforward,maxreverse;        // max # of datums in forward/reverse comm
-  int maxexchange;                  // max # of datums/atom in exchange comm
+  int maxforward,maxreverse;    // max # of datums in forward/reverse comm
+  int maxexchange;              // max size of one exchanged atom
+  int maxexchange_atom;         // contribution to maxexchange from AtomVec
+  int maxexchange_fix;          // static contribution to maxexchange from Fixes
+  int maxexchange_fix_dynamic;  // 1 if a fix has a dynamic contribution
+  int bufextra;                 // augment send buf size for an exchange atom
+
 
   int gridflag;                     // option for creating 3d grid
   int mapflag;                      // option for mapping procs to 3d grid
@@ -149,6 +153,7 @@ class Comm : protected Pointers {
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
 
+  void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,
                            int (*)(int, char *, int &, int *&, char *&, void *),
                            int, char *&, int, void *, int);

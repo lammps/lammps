@@ -171,6 +171,8 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
     }
 
     // set maxpartner = max # of partners of any owned atom
+    // maxexchange = max # of values for any Comm::exchange() atom
+
     maxpartner = m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
@@ -180,7 +182,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix =MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+      maxexchange = (dnum+1)*maxpartner+1;
     }
   }
 
@@ -343,6 +345,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 
     // set maxpartner = max # of partners of any owned atom
+    // maxexchange = max # of values for any Comm::exchange() atom
     m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
@@ -352,7 +355,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+      maxexchange = (dnum+1)*maxpartner+1;
     }
   }
 
@@ -481,6 +484,8 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
     }
 
     // set maxpartner = max # of partners of any owned atom
+    // maxexchange = max # of values for any Comm::exchange() atom
+
     m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
@@ -490,7 +495,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
 #endif
     {
       maxpartner = MAX(m,maxpartner);
-      comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+      maxexchange = (dnum+1)*maxpartner+1;
     }
   }
 }

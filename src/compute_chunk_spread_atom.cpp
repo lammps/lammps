@@ -117,7 +117,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute ID for compute chunk/spread/atom "
                    "does not exist");
 
-      if (!utils::strmatch(modify->compute[icompute]->style,"/chunk$")
+      if (!utils::strmatch(modify->compute[icompute]->style,"/chunk$"))
         error->all(FLERR,"Compute for compute chunk/spread/atom "
                    "does not calculate per-chunk values");
 

@@ -66,6 +66,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "group/group"_compute_group_group.html,
 "gyration"_compute_gyration.html,
 "gyration/chunk"_compute_gyration_chunk.html,
+"gyration/shape"_compute_gyration_shape.html,
 "heat/flux"_compute_heat_flux.html,
 "heat/flux/tally"_compute_tally.html,
 "hexorder/atom"_compute_hexorder_atom.html,

@@ -213,6 +213,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
 "gyration"_compute_gyration.html - radius of gyration of group of atoms
 "gyration/chunk"_compute_gyration_chunk.html - radius of gyration for each chunk
+"gyration/shape"_compute_gyration_shape.html - compute shape parameters from radius of gyration tensor
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "heat/flux/tally"_compute_tally.html -
 "hexorder/atom"_compute_hexorder_atom.html - bond orientational order parameter q6

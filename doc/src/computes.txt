@@ -58,6 +58,7 @@ Computes :h1
    compute_meso_e_atom
    compute_meso_rho_atom
    compute_meso_t_atom
+   compute_momentum
    compute_msd
    compute_msd_chunk
    compute_msd_nongauss

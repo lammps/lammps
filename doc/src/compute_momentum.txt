@@ -1,0 +1,49 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+compute momentum command :h3
+
+[Syntax:]
+
+compute ID group-ID momentum :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+momentum = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all momentum :pre
+
+[Description:]
+
+Define a computation that calculates the translational momentum
+of a group of particles.
+
+The momentum of each particles is computed as m v, where m and v are
+the mass and velocity of the particle.
+
+[Output info:]
+
+This compute calculates a global vector (the summed momentum) of
+length 3. This value can be used by any command that uses a global
+vector value from a compute as input. See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
+options.
+
+The vector value calculated by this compute is "extensive". The vector
+value will be in mass*velocity "units"_units.html.
+
+[Restrictions:]
+
+This compute is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
+
+[Related commands:]
+
+[Default:] none

@@ -81,6 +81,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "meso/e/atom"_compute_meso_e_atom.html,
 "meso/rho/atom"_compute_meso_rho_atom.html,
 "meso/t/atom"_compute_meso_t_atom.html,
+"momentum"_compute_momentum.html,
 "msd"_compute_msd.html,
 "msd/chunk"_compute_msd_chunk.html,
 "msd/nongauss"_compute_msd_nongauss.html,

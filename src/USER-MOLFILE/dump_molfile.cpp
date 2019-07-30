@@ -15,15 +15,14 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
+#include "dump_molfile.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "dump_molfile.h"
 #include "domain.h"
 #include "atom.h"
 #include "comm.h"
 #include "update.h"
-#include "output.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "comm.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "comm.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -22,6 +22,7 @@
 #include "pair.h"
 #include "bond.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "fix.h"
 #include "compute.h"
 #include "domain.h"

@@ -16,15 +16,14 @@ under
          Contributing author: PM Larsen (MIT)
 ------------------------------------------------------------------------- */
 
+#include "compute_ptm_atom.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <vector>
 
 #include "atom.h"
 #include "comm.h"
-#include "compute_ptm_atom.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -32,7 +31,6 @@ under
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair.h"
 #include "update.h"
 
 #include "ptm_functions.h"

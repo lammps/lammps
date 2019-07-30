@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_pressure.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "compute_pressure.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

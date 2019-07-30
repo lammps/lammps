@@ -23,7 +23,7 @@
 #error "The MPIIO package cannot be compiled in serial with MPI STUBS"
 #endif
 
-#include "restart_mpiio.h"
+#include "restart_mpiio.h"  // IWYU pragma: export
 
 #else
 

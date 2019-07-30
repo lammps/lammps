@@ -17,21 +17,20 @@
                           the "tridiag.c" written by Gerard Jungman for GSL
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <sstream>  // IWYU pragma: keep
+#include <fstream>  // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 #include "dihedral_table.h"

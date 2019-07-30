@@ -10,10 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#include "sna.h"
+
+#include "compute_snad_atom.h"
 #include <cstring>
 #include <cstdlib>
-#include "compute_snad_atom.h"
+#include "sna.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

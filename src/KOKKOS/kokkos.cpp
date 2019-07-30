@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "kokkos.h"
 #include <mpi.h>
 #include <cstdio>
 #include <cstring>
@@ -18,7 +19,6 @@
 #include <cctype>
 #include <csignal>
 #include <unistd.h>
-#include "kokkos.h"
 #include "lammps.h"
 #include "force.h"
 #include "neighbor_kokkos.h"

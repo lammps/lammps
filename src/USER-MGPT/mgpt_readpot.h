@@ -20,7 +20,8 @@
 #define READPOT__
 
 #include <cstdio>
-
+#include <cstdlib>
+#include <cstring>
 #include "mgpt_splinetab.h"
 
 struct potdata {

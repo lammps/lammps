@@ -15,10 +15,9 @@
    Contributing authors: Tim Lau (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_fs.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

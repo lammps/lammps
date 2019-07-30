@@ -15,12 +15,12 @@
    Contributing authors: Mike Brown (ORNL), Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
+#include "pppm_gpu.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "pppm_gpu.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"

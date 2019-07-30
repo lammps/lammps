@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "create_atoms.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -23,8 +22,6 @@
 #include "modify.h"
 #include "force.h"
 #include "special.h"
-#include "fix.h"
-#include "compute.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"

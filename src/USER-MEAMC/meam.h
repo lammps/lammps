@@ -1,13 +1,12 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
-#include "memory.h"
 #include <cmath>
-#include <cstdlib>
 
 #define maxelt 5
 
 namespace LAMMPS_NS {
+class Memory;
 
 typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 

@@ -12,8 +12,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_tip4p_long_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"

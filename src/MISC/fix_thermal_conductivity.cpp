@@ -16,11 +16,9 @@
                         for swapping atoms of different masses
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "fix_thermal_conductivity.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "fix_thermal_conductivity.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

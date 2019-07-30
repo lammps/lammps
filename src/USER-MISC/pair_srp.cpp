@@ -25,9 +25,11 @@ There is an example script for this package in examples/USER/srp.
 Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
+#include "pair_srp.h"
+#include <mpi.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_srp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

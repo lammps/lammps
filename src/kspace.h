@@ -14,7 +14,7 @@
 #ifndef LMP_KSPACE_H
 #define LMP_KSPACE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;

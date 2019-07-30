@@ -14,6 +14,7 @@
 #ifndef LMP_IRREGULAR_H
 #define LMP_IRREGULAR_H
 
+#include <mpi.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

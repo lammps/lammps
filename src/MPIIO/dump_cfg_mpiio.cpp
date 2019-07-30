@@ -15,18 +15,12 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
+#include "dump_cfg_mpiio.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "dump_cfg_mpiio.h"
 #include "atom.h"
 #include "domain.h"
-#include "comm.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "fix.h"
-#include "variable.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"

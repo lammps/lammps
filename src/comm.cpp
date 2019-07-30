@@ -11,16 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "comm.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "comm.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
+#include "bond.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "fix.h"
 #include "compute.h"
 #include "domain.h"
@@ -586,6 +588,82 @@ void Comm::set_proc_grid(int outflag)
 }
 
 /* ----------------------------------------------------------------------
+   determine suitable communication cutoff.
+   this uses three inputs: 1) maximum neighborlist cutoff, 2) an estimate
+   based on bond lengths and bonded interaction styles present, and 3) a
+   user supplied communication cutoff.
+   the neighbor list cutoff (1) is *always* used, since it is a requirement
+   for neighborlists working correctly. the bond length based cutoff is
+   *only* used, if no pair style is defined and no user cutoff is provided.
+   otherwise, a warning is printed. if the bond length based estimate is
+   larger than what is used.
+   print a warning, if a user specified communication cutoff is overridden.
+------------------------------------------------------------------------- */
+
+double Comm::get_comm_cutoff()
+{
+  double maxcommcutoff, maxbondcutoff = 0.0;
+
+  if (force->bond) {
+    int n = atom->nbondtypes;
+    for (int i = 1; i <= n; ++i)
+      maxbondcutoff = MAX(maxbondcutoff,force->bond->equilibrium_distance(i));
+
+    // apply bond length based heuristics.
+
+    if (force->newton_bond) {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
+    } else {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 3.125;
+      } else if (force->angle) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
+    }
+    maxbondcutoff += neighbor->skin;
+  }
+
+  // always take the larger of max neighbor list and user specified cutoff
+
+  maxcommcutoff = MAX(cutghostuser,neighbor->cutneighmax);
+
+  // use cutoff estimate from bond length only if no user specified
+  // cutoff was given and no pair style present. Otherwise print a
+  // warning, if the estimated bond based cutoff is larger than what
+  // is currently used.
+  
+  if (!force->pair && (cutghostuser == 0.0)) {
+    maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
+  } else {
+    if ((me == 0) && (maxbondcutoff > maxcommcutoff)) {
+      char mesg[256];
+      snprintf(mesg,256,"Communication cutoff %g is shorter than a bond "
+               "length based estimate of %g. This may lead to errors.",
+               maxcommcutoff,maxbondcutoff);
+      error->warning(FLERR,mesg);
+    }
+  }
+
+  // print warning if neighborlist cutoff overrides user cutoff
+
+  if (me == 0) {
+    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
+      char mesg[128];
+      snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
+      error->warning(FLERR,mesg);
+    }
+  }
+
+  return maxcommcutoff;
+}
+
+/* ----------------------------------------------------------------------
    determine which proc owns atom with coord x[3] based on current decomp
    x will be in box (orthogonal) or lamda coords (triclinic)
    if layout = UNIFORM, calculate owning proc directly
@@ -962,11 +1040,6 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                                    4*nprocs*sizeof(int) + all2all1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
-
-
-
-
-
 
   // create procs and outbuf for All2all if necesary
 

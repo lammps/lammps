@@ -16,15 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "msm_omp.h"
-#include "atom.h"
+#include <cstring>
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "memory.h"
-#include "math_const.h"
-
-#include <cstring>
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

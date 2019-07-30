@@ -11,17 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "force.h"
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"
 #include "style_dihedral.h"
 #include "style_improper.h"
 #include "style_pair.h"
 #include "style_kspace.h"
-#include "atom.h"
 #include "comm.h"
 #include "pair.h"
 #include "pair_hybrid.h"
@@ -32,8 +31,6 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
 #include "utils.h"
 

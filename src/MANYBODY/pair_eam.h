@@ -20,7 +20,6 @@ PairStyle(eam,PairEAM)
 #ifndef LMP_PAIR_EAM_H
 #define LMP_PAIR_EAM_H
 
-#include <cstdio>
 #include "pair.h"
 
 namespace LAMMPS_NS {

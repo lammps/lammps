@@ -3,7 +3,6 @@
 
 #include <climits>
 #include <cstdio>
-#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {

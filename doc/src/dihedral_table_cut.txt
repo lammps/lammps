@@ -189,6 +189,16 @@ Note that one file can contain many sections, each with a tabulated
 potential. LAMMPS reads the file section by section until it finds one
 that matches the specified keyword.
 
+[Restart info:]
+
+This dihedral style writes the settings for the "dihedral_style table/cut"
+command to "binary restart files"_restart.html, so a dihedral_style
+command does not need to specified in an input script that reads a
+restart file.  However, the coefficient information is not stored in
+the restart file, since it is tabulated in the potential files.  Thus,
+dihedral_coeff commands do need to be specified in the restart input
+script.
+
 [Restrictions:]
 
 This dihedral style can only be used if LAMMPS was built with the

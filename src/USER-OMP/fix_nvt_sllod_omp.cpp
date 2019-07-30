@@ -15,18 +15,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "fix_nvt_sllod_omp.h"
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
-#include "domain.h"
 #include "group.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_deform.h"
 #include "compute.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

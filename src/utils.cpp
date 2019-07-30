@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "utils.h"
 #include <cstring>
 #include <cstdlib>
-#include "utils.h"
 #include "lammps.h"
 #include "error.h"
 

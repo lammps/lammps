@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_full_multi_3d.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "atom.h"
 
 using namespace LAMMPS_NS;

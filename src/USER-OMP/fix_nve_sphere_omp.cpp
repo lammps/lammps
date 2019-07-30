@@ -11,16 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_sphere_omp.h"
+#include <cmath>
 #include "atom.h"
-#include "atom_vec.h"
-#include "update.h"
-#include "respa.h"
 #include "force.h"
-#include "error.h"
 #include "math_vector.h"
 #include "math_extra.h"
 

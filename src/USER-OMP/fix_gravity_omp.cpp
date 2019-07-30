@@ -15,19 +15,12 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_gravity_omp.h"
 #include "atom.h"
 #include "update.h"
-#include "domain.h"
 #include "input.h"
 #include "modify.h"
-#include "respa.h"
 #include "variable.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

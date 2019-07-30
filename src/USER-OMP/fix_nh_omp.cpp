@@ -16,14 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "modify.h"
-
-#include <cmath>
-#include <cstdio>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -11,19 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_drude.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
-#include "group.h"
 #include "modify.h"
-#include "fix.h"
+#include "fix_drude.h"
 #include "domain.h"
-#include "lattice.h"
-#include "memory.h"
 #include "error.h"
 #include "comm.h"
 

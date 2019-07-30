@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_nsq_ghost.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"

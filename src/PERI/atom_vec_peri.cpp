@@ -15,14 +15,12 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_peri.h"
+#include <cfloat>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "citeme.h"

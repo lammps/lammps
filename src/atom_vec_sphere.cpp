@@ -11,15 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_sphere.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"

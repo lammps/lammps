@@ -21,7 +21,6 @@ PairStyle(lj/cut/thole/long,PairLJCutTholeLong)
 #define LMP_PAIR_LJ_CUT_THOLE_LONG_H
 
 #include "pair.h"
-#include "fix_drude.h"
 
 namespace LAMMPS_NS {
 
@@ -58,7 +57,7 @@ class PairLJCutTholeLong : public Pair {
   double cut_global;
   double **cut,**scale;
   double **polar,**thole,**ascreen;
-  FixDrude *fix_drude;
+  class FixDrude *fix_drude;
 
   virtual void allocate();
 };

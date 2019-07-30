@@ -15,23 +15,20 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
+#include "pair_dpd_fdt.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
 #include "fix.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_dpd_fdt.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

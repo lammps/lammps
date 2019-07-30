@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cfloat>
 #include <cstring>
 #include <cassert>
-#include <algorithm>
 #include "ptm_convex_hull_incremental.h"
 #include "ptm_constants.h"
 

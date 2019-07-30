@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ndtrung@umich.edu)
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_debye_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_debye_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

@@ -16,25 +16,23 @@
    Based on tabulated dihedral (dihedral_table.cpp) by Andrew Jewett
 ------------------------------------------------------------------------- */
 
+#include "dihedral_table_cut.h"
+#include <mpi.h>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <fstream>  // IWYU pragma: keep
+#include <sstream>  // IWYU pragma: keep
 
-#include "dihedral_table_cut.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "citeme.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
@@ -42,8 +40,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
-using namespace MathExtra;
-
 
 static const char cite_dihedral_tablecut[] =
   "dihedral_style  table/cut  command:\n\n"
@@ -1003,8 +999,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
 
 void DihedralTableCut::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1013,8 +1008,26 @@ void DihedralTableCut::write_restart(FILE *fp)
 
 void DihedralTableCut::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
   allocate();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 writes out coeffs to restart file
+------------------------------------------------------------------------- */
+
+void DihedralTableCut::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+void DihedralTableCut::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);

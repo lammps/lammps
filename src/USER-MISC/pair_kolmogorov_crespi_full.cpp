@@ -20,12 +20,11 @@
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */
 
+#include "pair_kolmogorov_crespi_full.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <mpi.h>
-#include "pair_kolmogorov_crespi_full.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

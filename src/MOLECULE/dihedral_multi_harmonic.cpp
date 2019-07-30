@@ -15,12 +15,11 @@
    Contributing author: Mathias Puetz (SNL) and friends
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "dihedral_multi_harmonic.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "update.h"

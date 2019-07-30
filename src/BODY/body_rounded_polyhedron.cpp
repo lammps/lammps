@@ -15,12 +15,14 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "body_rounded_polyhedron.h"
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include "my_pool_chunk.h"
 #include "atom_vec_body.h"
 #include "atom.h"
 #include "force.h"
-#include "domain.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"

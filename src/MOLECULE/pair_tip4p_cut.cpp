@@ -15,9 +15,9 @@
    Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_tip4p_cut.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "neighbor.h"
@@ -26,12 +26,10 @@
 #include "angle.h"
 #include "bond.h"
 #include "comm.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 

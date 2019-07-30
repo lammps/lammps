@@ -43,9 +43,9 @@ FixStyle(manifoldforce,FixManifoldForce)
 #define LMP_FIX_MANIFOLDFORCE_H
 
 #include "fix.h"
-#include "manifold.h"
 
 namespace LAMMPS_NS {
+namespace user_manifold { class manifold; }
 
 class FixManifoldForce : public Fix {
  public:

@@ -16,21 +16,17 @@
                         Vitaly Dozhdikov (JIHT of RAS) - MOD addition
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_mod.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_mod.h"
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

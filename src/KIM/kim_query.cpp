@@ -157,8 +157,7 @@ void KimQuery::command(int narg, char **arg)
       input->variable->set(3,varcmd);
       echo_var_assign(splitname.str(), varcmd[2]);
     }
-  }
-  else {
+  } else {
     varcmd[0] = varname;
     varcmd[1] = (char *) "string";
     varcmd[2] = value;

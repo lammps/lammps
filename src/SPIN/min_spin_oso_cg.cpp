@@ -561,7 +561,7 @@ int MinSpinOSO_CG::calc_and_make_step(double a, double b, int index)
   der_e_cur = e_and_d[1];
   index++;
 
-  if (awc(der_e_pr,eprevious,e_and_d[1],e_and_d[0]) || index == 10){
+  if (adescent(eprevious,e_and_d[0]) || index == 5){
     MPI_Bcast(&b,1,MPI_DOUBLE,0,world);
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = b * p_s[i];
@@ -598,20 +598,14 @@ int MinSpinOSO_CG::calc_and_make_step(double a, double b, int index)
 }
 
 /* ----------------------------------------------------------------------
-  Approximate Wolfe conditions:
-  William W. Hager and Hongchao Zhang
-  SIAM J. optim., 16(1), 170-192. (23 pages)
+  Approximate descent
 ------------------------------------------------------------------------- */
 
-int MinSpinOSO_CG::awc(double der_phi_0, double phi_0, double der_phi_j, double phi_j){
+int MinSpinOSO_CG::adescent(double phi_0, double phi_j){
 
   double eps = 1.0e-6;
-  double delta = 0.1;
-  double sigma = 0.9;
 
-  if ((phi_j<=phi_0+eps*fabs(phi_0)) &&
-      ((2.0*delta-1.0) * der_phi_0>=der_phi_j) &&
-      (der_phi_j>=sigma*der_phi_0))
+  if (phi_j<=phi_0+eps*fabs(phi_0))
     return 1;
   else
     return 0;

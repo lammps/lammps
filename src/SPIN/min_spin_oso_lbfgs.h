@@ -55,7 +55,7 @@ class MinSpinOSO_LBFGS: public Min {
   void rodrigues_rotation(const double *, double *);
   void make_step(double, double *);
   int calc_and_make_step(double, double, int);
-  int awc(double, double, double, double);
+  int adescent(double, double);
   double maximum_rotation(double *);
 
   double *rho;		// estimation of curvature

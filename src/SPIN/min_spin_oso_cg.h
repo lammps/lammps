@@ -58,7 +58,7 @@ class MinSpinOSO_CG: public Min {
   void rodrigues_rotation(const double *, double *);
   void make_step(double, double *);
   int calc_and_make_step(double, double, int);
-  int awc(double, double, double, double);
+  int adescent(double, double);
   double evaluate_dt();
   double maximum_rotation(double *);
 

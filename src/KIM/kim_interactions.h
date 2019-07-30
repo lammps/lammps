@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
                          Ryan S. Elliott (UMN)
+                         Ellad B. Tadmor (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -56,26 +57,26 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(kim_query,KimQuery)
+CommandStyle(kim_interactions,KimInteractions)
 
 #else
 
-#ifndef LMP_KIM_QUERY_H
-#define LMP_KIM_QUERY_H
+#ifndef LMP_KIM_INTERACTIONS_H
+#define LMP_KIM_INTERACTIONS_H
 
 #include "pointers.h"
 #include <string>
 
 namespace LAMMPS_NS {
 
-class KimQuery : protected Pointers {
+class KimInteractions : protected Pointers {
  public:
-  KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
+  KimInteractions(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
  private:
-  void kim_query_log_delimiter(std::string const begin_end) const;
-  void echo_var_assign(std::string const & name, std::string const & value)
-  const;
+  void do_setup(int, char **);
+  int species_to_atomic_no(std::string const species) const;
+  void kim_interactions_log_delimiter(std::string const begin_end) const;
 };
 
 }
@@ -85,5 +86,32 @@ class KimQuery : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Illegal kim_interactions command
+
+Incorrect number or kind of arguments to kim_interactions.
+
+E: Must use 'kim_interactions' command after simulation box is defined
+
+Self-explanatory.
+
+E: Must use 'kim_init' command before 'kim_interactions'
+
+Self-explanatory.
+
+E: Species XXX is not supported by this KIM Simulator Model
+
+The kim_interactions command was referencing a species that is not
+present in the requested KIM Simulator Model.
+
+E: Incompatible units for KIM Simulator Model
+
+The selected unit style is not compatible with the requested KIM
+Simulator Model.
+
+E: KIM Simulator Model has no Model definition
+
+There is no model definition (key: model-defn) in the KIM Simulator
+Model.  Please contact the OpenKIM database maintainers to verify
+and potentially correct this.
 
 */

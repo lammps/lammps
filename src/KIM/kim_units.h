@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+   Contributing authors: Ellad B. Tadmor (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -51,39 +50,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.1.0 (and newer) package
+   Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_query,KimQuery)
-
-#else
-
-#ifndef LMP_KIM_QUERY_H
-#define LMP_KIM_QUERY_H
-
-#include "pointers.h"
-#include <string>
-
-namespace LAMMPS_NS {
-
-class KimQuery : protected Pointers {
- public:
-  KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
-  void command(int, char **);
- private:
-  void kim_query_log_delimiter(std::string const begin_end) const;
-  void echo_var_assign(std::string const & name, std::string const & value)
-  const;
-};
-
-}
-
-#endif
-#endif
-
-/* ERROR/WARNING messages:
-
-
-*/
+int lammps_unit_conversion(std::string const &unit_type_str,
+                           std::string const &from_system_str,
+                           std::string const &to_system_str,
+                           double &conversion_factor);

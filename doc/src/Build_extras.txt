@@ -172,22 +172,17 @@ KIM package :h4,link(kim)
 
 To build with this package, the KIM library with API v2 must be downloaded
 and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the "kim_query"_kim_query.html
+use with LAMMPS. If you want to use the "kim_query"_kim_commands.html
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-Note that in LAMMPS lingo, a KIM model driver is a pair style
-(e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
-element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.  Also note that downloading and installing
-the KIM API library with all its models, may take a long time (10s of
-minutes to hours) to build.  Of course you only need to do that once.
+See "Obtaining KIM Models"_http://openkim.org/doc/usage/obtaining-models to
+learn how to install a pre-build binary of the OpenKIM Repository of Models.
+See the list of all KIM models here: https://openkim.org/browse/models
 
-See the list of KIM model drivers here:
-https://openkim.org/browse/model-drivers/alphabetical
-
-See the list of all KIM models here:
-https://openkim.org/browse/models/by-model-drivers
+(Also note that when downloading and installing from source
+the KIM API library with all its models, may take a long time (tens of
+minutes to hours) to build.  Of course you only need to do that once.)
 
 [CMake build]:
 

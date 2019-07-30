@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
                          Ryan S. Elliott (UMN)
@@ -52,17 +51,20 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.0.2 (and newer) package
+   Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include "kim_query.h"
 #include <mpi.h>
 #include <cstring>
 #include <string>
+#include <sstream>
 #include "comm.h"
 #include "error.h"
 #include "input.h"
+#include "modify.h"
 #include "variable.h"
+#include "fix_store_kim.h"
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
@@ -78,7 +80,7 @@ struct WriteBuf {
   size_t sizeleft;
 };
 
-static char *do_query(char *, int, char **, int, MPI_Comm);
+static char *do_query(char *, char *, int, char **, int, MPI_Comm);
 static size_t write_callback(void *, size_t, size_t, void *);
 
 #endif
@@ -91,31 +93,79 @@ void KimQuery::command(int narg, char **arg)
 
   if (narg < 2) error->all(FLERR,"Illegal kim_query command");
 
+  // check if we had a kim_init command by finding fix STORE/KIM
+  // retrieve model name.
+  char * model_name;
+
+  int ifix = modify->find_fix("KIM_MODEL_STORE");
+  if (ifix >= 0) {
+    FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
+    model_name = (char *)fix_store->getptr("model_name");
+  } else error->all(FLERR,"Must use 'kim_init' before 'kim_query'");
+
+
   varname = arg[0];
+  bool split = false;
+  if (0 == strcmp("split",arg[1])) {
+    if (narg == 2) error->all(FLERR,"Illegal kim_query command");
+    split = true;
+    arg++;
+    narg--;
+  }
   function = arg[1];
+  for (int i = 2; i < narg; ++i)
+  {
+    if (0 == strncmp("model=",arg[i], 6)) {
+      error->all(FLERR,"Illegal 'model' key in kim_query command");
+    }
+  }
+
 
 #if defined(LMP_KIM_CURL)
 
-  value = do_query(function, narg-2, arg+2, comm->me, world);
+  value = do_query(function, model_name, narg-2, arg+2, comm->me, world);
 
   // check for valid result
   // on error the content of "value" is a '\0' byte
   // as the first element, and then the error message
   // that was returned by the web server
 
+  char errmsg[1024];
   if (0 == strlen(value)) {
-    char errmsg[512];
-
     sprintf(errmsg,"OpenKIM query failed: %s",value+1);
-        error->all(FLERR,errmsg);
+    error->all(FLERR,errmsg);
+  } else if (0 == strcmp(value,"EMPTY")) {
+    sprintf(errmsg,"OpenKIM query returned no results");
+    error->all(FLERR,errmsg);
   }
 
+  kim_query_log_delimiter("begin");
   char **varcmd = new char*[3];
-  varcmd[0] = varname;
-  varcmd[1] = (char *) "string";
-  varcmd[2] = value;
+  if (split) {
+    int counter = 1;
+    std::stringstream ss(value);
+    std::string token;
+    varcmd[1] = (char *) "string";
 
-  input->variable->set(3,varcmd);
+    while(std::getline(ss, token, ',')) {
+      token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
+      token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
+      std::stringstream splitname;
+      splitname << varname << "_" << counter++;
+      varcmd[0] = const_cast<char *>(splitname.str().c_str());
+      varcmd[2] = const_cast<char *>(token.c_str());
+      input->variable->set(3,varcmd);
+      echo_var_assign(splitname.str(), varcmd[2]);
+    }
+  } else {
+    varcmd[0] = varname;
+    varcmd[1] = (char *) "string";
+    varcmd[2] = value;
+    input->variable->set(3,varcmd);
+
+    echo_var_assign(varname, value);
+  }
+  kim_query_log_delimiter("end");
 
   delete[] varcmd;
   delete[] value;
@@ -148,7 +198,8 @@ size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
   return 0; // done
 }
 
-char *do_query(char *qfunction, int narg, char **arg, int rank, MPI_Comm comm)
+char *do_query(char *qfunction, char * model_name, int narg, char **arg,
+               int rank, MPI_Comm comm)
 {
   char value[512], *retval;
 
@@ -174,6 +225,9 @@ char *do_query(char *qfunction, int narg, char **arg, int rank, MPI_Comm comm)
       url += qfunction;
 
       std::string query(arg[0]);
+      query += "&model=[\"";
+      query += model_name;
+      query += "\"]";
       for (int i=1; i < narg; ++i) {
         query += '&';
         query += arg[i];
@@ -217,9 +271,19 @@ char *do_query(char *qfunction, int narg, char **arg, int rank, MPI_Comm comm)
 
   if (value[0] == '[') {
     int len = strlen(value)-1;
-    retval = new char[len];
-    value[len] = '\0';
-    strcpy(retval,value+1);
+    if (value[len] == ']') {
+      retval = new char[len];
+      value[len] = '\0';
+      if (0 == strcmp(value+1, "")) {
+        strcpy(retval,"EMPTY");
+      }
+      else
+        strcpy(retval,value+1);
+    } else {
+      retval = new char[len+2];
+      retval[0] = '\0';
+      strcpy(retval+1,value);
+    }
   } else if (value[0] == '\0') {
     int len = strlen(value+1)+2;
     retval = new char[len];
@@ -227,11 +291,41 @@ char *do_query(char *qfunction, int narg, char **arg, int rank, MPI_Comm comm)
     strcpy(retval+1,value+1);
   } else {
     // unknown response type. we should not get here.
-    // copy response without modifications.
-    int len = strlen(value)+1;
+    // we return an "empty" string but add error message after it
+    int len = strlen(value)+2;
     retval = new char[len];
-    strcpy(retval,value);
+    retval[0] = '\0';
+    strcpy(retval+1,value);
   }
   return retval;
 }
 #endif
+
+/* ---------------------------------------------------------------------- */
+
+void KimQuery::kim_query_log_delimiter(std::string const begin_end) const
+{
+  if (comm->me == 0) {
+    std::string mesg;
+    if (begin_end == "begin")
+      mesg =
+          "#=== BEGIN kim-query =========================================\n";
+    else if (begin_end == "end")
+      mesg =
+          "#=== END kim-query ===========================================\n\n";
+
+    input->write_echo(mesg.c_str());
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KimQuery::echo_var_assign(std::string const & name,
+                               std::string const & value) const
+{
+  if (comm->me == 0) {
+    std::string mesg;
+    mesg += "variable " + name + " string " + value + "\n";
+    input->write_echo(mesg.c_str());
+  }
+}

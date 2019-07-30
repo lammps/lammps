@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -51,39 +51,105 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.1.0 (and newer) package
+   Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
+#include "fix_store_kim.h"
+#include <cstring>
+extern "C" {
+#include "KIM_SimulatorModel.h"
+}
+#include "error.h"
 
-CommandStyle(kim_query,KimQuery)
+using namespace LAMMPS_NS;
+using namespace FixConst;
 
-#else
+/* ---------------------------------------------------------------------- */
 
-#ifndef LMP_KIM_QUERY_H
-#define LMP_KIM_QUERY_H
-
-#include "pointers.h"
-#include <string>
-
-namespace LAMMPS_NS {
-
-class KimQuery : protected Pointers {
- public:
-  KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
-  void command(int, char **);
- private:
-  void kim_query_log_delimiter(std::string const begin_end) const;
-  void echo_var_assign(std::string const & name, std::string const & value)
-  const;
-};
-
+FixStoreKIM::FixStoreKIM(LAMMPS *lmp, int narg, char **arg)
+  : Fix(lmp, narg, arg), simulator_model(NULL), model_name(NULL),
+    model_units(NULL), user_units(NULL)
+{
+  if (narg != 3) error->all(FLERR,"Illegal fix STORE/KIM command");
 }
 
-#endif
-#endif
+/* ---------------------------------------------------------------------- */
 
-/* ERROR/WARNING messages:
+FixStoreKIM::~FixStoreKIM()
+{
+  // free associated storage
+
+  if (simulator_model) {
+    KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
+    KIM_SimulatorModel_Destroy(&sm);
+    simulator_model = NULL;
+  }
+
+  if (model_name) {
+    char *mn = (char *)model_name;
+    delete[] mn;
+    model_name = NULL;
+  }
+
+  if (model_units) {
+    char *mu = (char *)model_units;
+    delete[] mu;
+    model_units = NULL;
+  }
+  if (user_units) {
+    char *uu = (char *)user_units;
+    delete[] uu;
+    user_units = NULL;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixStoreKIM::setmask()
+{
+  int mask = 0;
+  return mask;
+}
 
 
-*/
+/* ---------------------------------------------------------------------- */
+
+void FixStoreKIM::setptr(const char *name, void *ptr)
+{
+  if (strcmp(name,"simulator_model") == 0) {
+    if (simulator_model) {
+      KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
+      KIM_SimulatorModel_Destroy(&sm);
+    }
+    simulator_model = ptr;
+  } else if (strcmp(name,"model_name") == 0) {
+    if (model_name) {
+      char *mn = (char *)model_name;
+      delete[] mn;
+    }
+    model_name = ptr;
+  } else if (strcmp(name,"model_units") == 0) {
+    if (model_units) {
+      char *mu = (char *)model_units;
+      delete[] mu;
+    }
+    model_units = ptr;
+  } else if (strcmp(name,"user_units") == 0) {
+    if (user_units) {
+      char *uu = (char *)user_units;
+      delete[] uu;
+    }
+    user_units = ptr;
+  } else error->all(FLERR,"Unknown property in fix STORE/KIM");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *FixStoreKIM::getptr(const char *name)
+{
+  if (strcmp(name,"simulator_model") == 0) return simulator_model;
+  else if (strcmp(name,"model_name") == 0) return model_name;
+  else if (strcmp(name,"model_units") == 0) return model_units;
+  else if (strcmp(name,"user_units") == 0) return user_units;
+  else return NULL;
+}

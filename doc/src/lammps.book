@@ -42,6 +42,7 @@ Commands_compute.html
 Commands_pair.html
 Commands_bond.html
 Commands_kspace.html
+Commands_removed.html
 Packages.html
 Packages_standard.html
 Packages_user.html
@@ -167,7 +168,7 @@ if.html
 include.html
 info.html
 jump.html
-kim_query.html
+kim_commands.html
 label.html
 lattice.html
 log.html

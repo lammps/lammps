@@ -51,31 +51,36 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-2.1.0 (and newer) package
+   Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
+#ifdef FIX_CLASS
 
-CommandStyle(kim_query,KimQuery)
+FixStyle(STORE/KIM,FixStoreKIM)
 
 #else
 
-#ifndef LMP_KIM_QUERY_H
-#define LMP_KIM_QUERY_H
+#ifndef LMP_FIX_STORE_KIM_H
+#define LMP_FIX_STORE_KIM_H
 
-#include "pointers.h"
-#include <string>
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class KimQuery : protected Pointers {
+class FixStoreKIM : public Fix {
  public:
-  KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
-  void command(int, char **);
+  FixStoreKIM(class LAMMPS *, int, char **);
+  ~FixStoreKIM();
+  int setmask();
+
+  void  setptr(const char *, void *);
+  void *getptr(const char *);
+
  private:
-  void kim_query_log_delimiter(std::string const begin_end) const;
-  void echo_var_assign(std::string const & name, std::string const & value)
-  const;
+  void *simulator_model;        // pointer to KIM simulator model class
+  void *model_name;             // string of KIM model name
+  void *model_units;            // string of unit conversion origin or NULL
+  void *user_units;             // string of unit conversion target or NULL
 };
 
 }
@@ -85,5 +90,10 @@ class KimQuery : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 */

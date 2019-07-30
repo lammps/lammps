@@ -14,20 +14,14 @@ variable	xx equal 20*$x
 variable	yy equal 20*$y
 variable	zz equal 20*$z
 
-units		metal
-atom_style	atomic
-newton          on
+kim_init	LennardJones_Ar real
 
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
 create_atoms	1 box
 
-#pair_style	lj/cut 8.1500
-#pair_coeff	1 1 0.0104 3.4000
-
-pair_style      kim LennardJones_Ar
-pair_coeff      * * Ar
+kim_interactions Ar
 
 mass		1 39.95
 velocity	all create 200.0 232345 loop geom

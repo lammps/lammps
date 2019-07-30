@@ -11,19 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "comm_tiled.h"
-#include "comm_brick.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
-#include "force.h"
 #include "pair.h"
 #include "neighbor.h"
-#include "modify.h"
 #include "fix.h"
 #include "compute.h"
-#include "output.h"
 #include "dump.h"
 #include "memory.h"
 #include "error.h"
@@ -157,7 +155,11 @@ void CommTiled::setup()
   // set cutoff for comm forward and comm reverse
   // check that cutoff < any periodic box length
 
-  double cut = MAX(neighbor->cutneighmax,cutghostuser);
+  double cut = get_comm_cutoff();
+  if ((cut == 0.0) && (me == 0))
+    error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
+                   "will be generated. Atoms may get lost.");
+
   cutghost[0] = cutghost[1] = cutghost[2] = cut;
 
   if ((periodicity[0] && cut > prd[0]) ||

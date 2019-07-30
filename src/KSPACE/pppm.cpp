@@ -18,12 +18,10 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "pppm.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"

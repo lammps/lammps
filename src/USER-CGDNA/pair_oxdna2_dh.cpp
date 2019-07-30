@@ -14,29 +14,21 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna2_dh.h"
-#include "mf_oxdna.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 

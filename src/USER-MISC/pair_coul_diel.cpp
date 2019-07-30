@@ -14,11 +14,9 @@
    Contributiong authors: Arben Jusufi, Axel Kohlmeyer (Temple U.)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_diel.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

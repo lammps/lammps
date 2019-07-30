@@ -20,7 +20,6 @@ BondStyle(table,BondTable)
 #ifndef LMP_BOND_TABLE_H
 #define LMP_BOND_TABLE_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

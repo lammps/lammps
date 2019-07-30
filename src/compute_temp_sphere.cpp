@@ -11,16 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_sphere.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_sphere.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 

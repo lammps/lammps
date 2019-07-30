@@ -15,12 +15,12 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_zbl_gpu.h"
 #include "lmptype.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_zbl_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

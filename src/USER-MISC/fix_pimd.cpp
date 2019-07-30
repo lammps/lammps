@@ -21,10 +21,11 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
+#include "fix_pimd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_pimd.h"
 #include "universe.h"
 #include "comm.h"
 #include "force.h"

@@ -15,27 +15,18 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "comm_brick.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include "comm_brick.h"
-#include "comm_tiled.h"
-#include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
 #include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
-#include "group.h"
-#include "modify.h"
 #include "fix.h"
 #include "compute.h"
-#include "output.h"
 #include "dump.h"
-#include "math_extra.h"
 #include "error.h"
 #include "memory.h"
 
@@ -175,7 +166,10 @@ void CommBrick::setup()
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
 
-  double cut = MAX(neighbor->cutneighmax,cutghostuser);
+  double cut = get_comm_cutoff();
+  if ((cut == 0.0) && (me == 0))
+    error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
+                   "will be generated. Atoms may get lost.");
 
   if (triclinic == 0) {
     prd = domain->prd;

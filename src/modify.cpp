@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "modify.h"
+#include <cstring>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -798,7 +797,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", NULL};
+     "deprecated", "STORE/KIM", NULL};
 
   if (domain->box_exist == 0) {
     int m;

@@ -15,29 +15,22 @@
    Contributing authors: Julien Tranchida (SNL)
 ------------------------------------------------------------------------- */
 
+#include "ewald_dipole_spin.h"
 #include <mpi.h>
-#include <cstdlib>
-#include <cstdio>
 #include <cstring>
 #include <cmath>
-#include "ewald_dipole_spin.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "update.h"
 
-#include "math_const.h"
-#include "math_special.h"
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.00001
 

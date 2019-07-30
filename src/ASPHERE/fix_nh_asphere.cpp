@@ -15,15 +15,10 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "math_extra.h"
 #include "fix_nh_asphere.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

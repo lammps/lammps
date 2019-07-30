@@ -56,9 +56,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define PTM_VOROPP_CELL_HH
 
 #include <vector>
-#include <cstdio>
-
-#include "ptm_voronoi_config.h"
 
 namespace ptm_voro {
 

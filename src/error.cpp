@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "error.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "error.h"
 #include "universe.h"
-#include "update.h"
 #include "output.h"
 #include "input.h"
 

@@ -15,11 +15,11 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_streitz.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_streitz.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -27,8 +27,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

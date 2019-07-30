@@ -1,6 +1,6 @@
 #include "manifold_thylakoid.h"
 #include <cmath>
-
+#include "manifold_thylakoid_shared.h"
 #include "comm.h"
 #include "domain.h" // For some checks regarding the simulation box.
 #include "error.h"

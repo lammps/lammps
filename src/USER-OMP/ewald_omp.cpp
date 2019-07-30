@@ -15,15 +15,14 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ewald_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
-
-#include <cmath>
-
+#include "timer.h"
 #include "math_const.h"
 
 #include "suffix.h"

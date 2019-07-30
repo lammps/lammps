@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_thole.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,7 +23,7 @@
 #include "memory.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_drude.h"
 #include "domain.h"
 #include "modify.h"
 

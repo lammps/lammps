@@ -18,15 +18,13 @@
      Hybrid and sub-group capabilities: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_reax.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -39,6 +37,7 @@
 #include "citeme.h"
 #include "error.h"
 #include "reaxc_defs.h"
+#include "reaxc_types.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

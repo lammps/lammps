@@ -32,6 +32,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -180,11 +181,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // assume grav = -magnitude at this point, enforce in init()
 
   int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++) {
-    if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
-    if (strcmp(modify->fix[ifix]->style,"gravity/omp") == 0) break;
-    if (strstr(modify->fix[ifix]->style,"gravity/kk") != NULL) break;
-  }
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (utils::strmatch(modify->fix[ifix]->style,"^gravity")) break;
+
   if (ifix == modify->nfix)
     error->all(FLERR,"No fix gravity defined for fix pour");
   grav = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;

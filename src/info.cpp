@@ -353,11 +353,19 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & COMM) {
-    int major,minor;
+    int major,minor,len;
+    char version[MPI_MAX_LIBRARY_VERSION_STRING];
+
     MPI_Get_version(&major,&minor);
+    MPI_Get_library_version(version,&len);
+    if (len > 80) {
+      char *ptr = strchr(version+80,'\n');
+      if (ptr) *ptr = '\0';
+    }
 
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out,"MPI version: %s\n",version);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",

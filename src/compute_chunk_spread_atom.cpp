@@ -23,6 +23,7 @@
 #include "input.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -116,9 +117,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute ID for compute chunk/spread/atom "
                    "does not exist");
 
-      char *ptr = strstr(modify->compute[icompute]->style,"/chunk");
-      if (!ptr || (ptr !=  modify->compute[icompute]->style +
-                   strlen(modify->compute[icompute]->style) - strlen("/chunk")))
+      if (!utils::strmatch(modify->compute[icompute]->style,"/chunk$"))
         error->all(FLERR,"Compute for compute chunk/spread/atom "
                    "does not calculate per-chunk values");
 

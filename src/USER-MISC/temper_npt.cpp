@@ -33,6 +33,7 @@
 #include "finish.h"
 #include "timer.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -97,8 +98,8 @@ void TemperNPT::command(int narg, char **arg)
   // change the volume. This currently only applies to fix npt and
   // fix rigid/npt variants
 
-  if ((strncmp(modify->fix[whichfix]->style,"npt",3) != 0)
-      && (strncmp(modify->fix[whichfix]->style,"rigid/npt",9) != 0))
+  if ( (!utils::strmatch(modify->fix[whichfix]->style,"^npt")) &&
+       (!utils::strmatch(modify->fix[whichfix]->style,"^rigid/npt")) )
     error->universe_all(FLERR,"Tempering temperature and pressure fix is not supported");
 
   // setup for long tempering run

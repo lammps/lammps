@@ -18,6 +18,7 @@
 #include "error.h"
 #include "memory.h"
 #include "update.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -194,6 +195,7 @@ void DumpCAC_Kinetic::pack(tagint *ids)
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
   double *mass = atom->mass;
+  double mvv2e = force->mvv2e;
   m = n = 0;
   for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
@@ -209,9 +211,9 @@ void DumpCAC_Kinetic::pack(tagint *ids)
 			  buf[m++] = double(j + 1);
 			  buf[m++] = double(k + 1);
 			  buf[m++] = double(node_types[i][k]);
-			  buf[m++] = mass[node_types[i][k]]*nodal_velocities[i][j][k][0]* nodal_velocities[i][j][k][0];
-			  buf[m++] = mass[node_types[i][k]] * nodal_velocities[i][j][k][1]* nodal_velocities[i][j][k][1];
-			  buf[m++] = mass[node_types[i][k]] * nodal_velocities[i][j][k][2]* nodal_velocities[i][j][k][2];
+			  buf[m++] = mvv2e * mass[node_types[i][k]] * nodal_velocities[i][j][k][0] * nodal_velocities[i][j][k][0];
+			  buf[m++] = mvv2e * mass[node_types[i][k]] * nodal_velocities[i][j][k][1] * nodal_velocities[i][j][k][1];
+			  buf[m++] = mvv2e * mass[node_types[i][k]] * nodal_velocities[i][j][k][2] * nodal_velocities[i][j][k][2];
 		  }
 		  }
 	  }

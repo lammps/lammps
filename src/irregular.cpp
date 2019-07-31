@@ -11,14 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "irregular.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "modify.h"
+#include "fix.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -35,8 +36,8 @@ static int compare_standalone(const int, const int, void *);
 #endif
 
 #define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
+#define BUFMIN 1024
+#define BUFEXTRA 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,9 +70,10 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // initialize buffers for migrate atoms, not used for datum comm
   // these can persist for multiple irregular operations
 
-  maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
-  maxrecv = BUFMIN;
+  buf_send = buf_recv = NULL;
+  maxsend = maxrecv = BUFMIN;
+  bufextra = BUFEXTRA;
+  grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 }
 
@@ -103,10 +105,12 @@ Irregular::~Irregular()
 
 void Irregular::migrate_atoms(int sortflag, int preassign, int *procassign)
 {
-  //ensure initial send buf is big enough in case maxexchange variables in comm are non-zero
-  if(comm->maxexchange_atom||comm->maxexchange_fix){
-   memory->grow(buf_send,maxsend+BUFEXTRA+comm->maxexchange_atom+comm->maxexchange_fix,"comm:buf_send"); 
-  }
+  // check if buf_send needs to be extended due to atom style or per-atom fixes
+  // same as in Comm::exchange()
+
+  int bufextra_old = bufextra;
+  init_exchange();
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
   // clear global->local map since atoms move to new procs
   // clear old ghosts so map_set() at end will operate only on local atoms
@@ -988,24 +992,52 @@ void Irregular::destroy_data()
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA
-   if flag = 1, realloc
-   if flag = 0, don't need to realloc with copy, just free/malloc
+   set bufextra based on AtomVec and fixes
+   similar to Comm::init_exchange()
+------------------------------------------------------------------------- */
+
+void Irregular::init_exchange()
+{
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
+  int onefix;
+  int maxexchange_fix = 0;
+  for (int i = 0; i < nfix; i++) {
+    onefix = fix[i]->maxexchange;
+    maxexchange_fix = MAX(maxexchange_fix,onefix);
+  }
+
+  int maxexchange = atom->avec->maxexchange + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+}
+
+/* ----------------------------------------------------------------------
+   realloc the size of the send buffer as needed with BUFFACTOR and bufextra
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
+   same as Comm::grow_send()
 ------------------------------------------------------------------------- */
 
 void Irregular::grow_send(int n, int flag)
 {
-  maxsend = static_cast<int> (BUFFACTOR * n);
-  if (flag)
-    memory->grow(buf_send,maxsend+BUFEXTRA+comm->maxexchange_atom+comm->maxexchange_fix,"comm:buf_send");
-  else {
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send);
-    memory->create(buf_send,maxsend+BUFEXTRA+comm->maxexchange_atom+comm->maxexchange_fix,"comm:buf_send");
+    memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else {
+    memory->destroy(buf_send);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 
 /* ----------------------------------------------------------------------
    free/malloc the size of the recv buffer as needed with BUFFACTOR
+   same as Comm::grow_recv()
 ------------------------------------------------------------------------- */
 
 void Irregular::grow_recv(int n)

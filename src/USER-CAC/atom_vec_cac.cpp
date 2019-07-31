@@ -1352,7 +1352,7 @@ int AtomVecCAC::size_restart()
   int n=0;
   for (i=0; i < nlocal; i++){
   current_node_count=nodes_count_list[element_type[i]];
-   n += (16+12*current_node_count*poly_count[i]+poly_count[i]);
+   n += (16+9*current_node_count*poly_count[i]+poly_count[i]);
   }
   
 

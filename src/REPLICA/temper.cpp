@@ -71,6 +71,10 @@ void Temper::command(int narg, char **arg)
   nevery = force->inumeric(FLERR,arg[1]);
   double temp = force->numeric(FLERR,arg[2]);
 
+  // ignore temper command, if walltime limit was already reached
+
+  if (timer->is_timeout()) return;
+
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix)

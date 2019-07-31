@@ -74,6 +74,10 @@ void TemperNPT::command(int narg, char **arg)
   double temp = force->numeric(FLERR,arg[2]);
   double press_set = force->numeric(FLERR,arg[6]);
 
+  // ignore temper command, if walltime limit was already reached
+
+  if (timer->is_timeout()) return;
+
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix)

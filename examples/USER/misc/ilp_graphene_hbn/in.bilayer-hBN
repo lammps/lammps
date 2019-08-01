@@ -49,9 +49,8 @@ variable 	Erep     equal c_2[2]  # repulsive  energy
 
 ############# Output ###############
 thermo          100
-thermo_style    custom step cpu etotal pe ke v_Evdw v_Tersoff v_EILP v_Erep v_Evdw v_Ecoul temp
-thermo_modify   line one format float %.10f
-thermo_modify   flush yes norm no lost error
+thermo_style    custom step etotal pe ke v_Evdw v_Tersoff v_EILP v_Erep v_Evdw v_Ecoul temp
+thermo_modify   lost warn
 
 ###### Run molecular dynamics ######
 run 		1000

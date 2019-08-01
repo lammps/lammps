@@ -50,8 +50,7 @@ variable  	Ecoul    equal  c_3
 
 ############# Output ##############
 thermo          100
-thermo_style    custom step etotal pe ke v_Evdw v_Tersoff v_REBO v_EILP v_Erep v_Evdw v_Ecoul temp 
-thermo_modify   line one format float %.10f
+thermo_style    custom step etotal pe ke v_Evdw v_Tersoff v_REBO v_EILP v_Erep v_Evdw v_Ecoul temp
 
 ###### Run molecular dynamics ######
 run 		1000

@@ -130,6 +130,8 @@ void TemperGrem::command(int narg, char **arg)
   // setup for long tempering run
 
   update->whichflag = 1;
+  timer->init_timeout();
+
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
@@ -234,6 +236,9 @@ void TemperGrem::command(int narg, char **arg)
   timer->barrier_start();
 
   for (int iswap = 0; iswap < nswaps; iswap++) {
+
+    if (timer->is_timeout()) break;
+    timer->init_timeout();
 
     // run for nevery timesteps
 

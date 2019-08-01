@@ -38,6 +38,10 @@
 #include "force.h"
 #include "info.h"
 
+#if defined(LAMMPS_EXCEPTIONS)
+#include "exceptions.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 // ----------------------------------------------------------------------

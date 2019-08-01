@@ -236,7 +236,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       cuda_aware_flag = 0;
     } else if (have_cuda_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
     // MVAPICH2
-#if (defined MPICH) && (defined MVAPICH2_VERSION)
+#if defined(MPICH) && defined(MVAPICH2_VERSION)
       char* str;
       cuda_aware_flag = 0;
       if (str = getenv("MV2_ENABLE_CUDA")
@@ -247,7 +247,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         if (me == 0)
           error->warning(FLERR,"MVAPICH2 'MV2_ENABLE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
     // pure MPICH or some unsupported MPICH derivative
-#elif (defined MPICH) && !(defined MVAPICH2_VERSION)
+#elif defined(MPICH) && !defined(MVAPICH2_VERSION)
       if (me == 0)
         error->warning(FLERR,"Detected MPICH. Disabling CUDA-aware MPI");
       cuda_aware_flag = 0;

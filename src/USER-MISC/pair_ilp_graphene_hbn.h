@@ -21,8 +21,6 @@ PairStyle(ilp/graphene/hbn,PairILPGrapheneHBN)
 #define LMP_PAIR_ILP_GRAPHENE_HBN_H
 
 #include "pair.h"
-#include "my_page.h"
-#include <cmath>
 
 namespace LAMMPS_NS {
 

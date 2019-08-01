@@ -20,12 +20,11 @@
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */
 
+#include "pair_ilp_graphene_hbn.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_ilp_graphene_hbn.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

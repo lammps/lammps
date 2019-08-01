@@ -13,17 +13,17 @@ pair_style ilp/graphene/hbn command :h3
 pair_style \[hybrid/overlay ...\] ilp/graphene/hbn cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function
+tap_flag = 0/1 to turn off/on the taper function :ul
 
 [Examples:]
 
-pair_style hybrid/overlay ilp/graphene/hbn 16.0 1
-pair_coeff * * ilp/graphene/hbn  BNCH.ILP B N C :pre
+pair_style  hybrid/overlay ilp/graphene/hbn 16.0 1
+pair_coeff  * * ilp/graphene/hbn  ../potentials/BNCH.ILP B N C :pre
 
 pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
-pair_coeff  * * rebo                 CH.rebo     NULL NULL C
-pair_coeff  * * tersoff              BNC.tersoff B    N    NULL
-pair_coeff  * * ilp/graphene/hbn     BNCH.ILP    B    N    C
+pair_coeff  * * rebo              ../potentials/CH.rebo     NULL NULL C
+pair_coeff  * * tersoff           ../potentials/BNC.tersoff B    N    NULL
+pair_coeff  * * ilp/graphene/hbn  ../potentials/BNCH.ILP    B    N    C
 pair_coeff  1 1 coul/shield 0.70
 pair_coeff  1 2 coul/shield 0.695
 pair_coeff  2 2 coul/shield 0.69 :pre
@@ -84,6 +84,22 @@ be found in "(Ouyang)"_#Ouyang.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
+
+This pair style tallies a breakdown of the total interlayer potential
+energy into sub-categories, which can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 2.
+The 2 values correspond to the following sub-categories:
+
+{E_vdW} = vdW (attractive) energy
+{E_Rep} = Repulsive energy :ol
+
+To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+
+compute 0 all pair ilp/graphene/hbn
+variable Evdw  equal c_0\[1\]
+variable Erep  equal c_0\[2\]
+thermo_style custom step temp epair v_Erep v_Evdw :pre
 
 :line
 

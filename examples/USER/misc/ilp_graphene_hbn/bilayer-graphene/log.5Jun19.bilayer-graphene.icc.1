@@ -1,0 +1,128 @@
+LAMMPS (5 Jun 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use 2 molecule ids so that inter- and intra-layer
+# interactions can be specified separately
+# read lammps data file
+read_data       Bi_gr_AB_stack_2L_noH.data
+  orthogonal box = (0 0 0) to (42.6 41.8117 100)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1360 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.00018123 secs
+  read_data CPU = 0.00179349 secs
+mass            1 12.0107   # carbon mass (g/mole) | membrane
+mass            2 12.0107   # carbon mass (g/mole) | adsorbate
+# Separate atom groups
+group		layer1 molecule 1
+680 atoms in group layer1
+group		layer2 molecule 2
+680 atoms in group layer2
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay  rebo  ilp/graphene/hbn 16.0
+####################################################################
+pair_coeff  * * rebo               CH.rebo   C  C  # chemical
+Reading potential file CH.rebo with DATE: 2018-7-3
+pair_coeff  * * ilp/graphene/hbn   BNCH.ILP  C  C  # long range
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+#### Simulation settings ####
+timestep	0.001
+velocity	all create 300.0 12345
+
+compute   	0 all pair rebo
+compute  	1 all pair ilp/graphene/hbn
+variable  	REBO  equal c_0     # REBO energy
+variable  	ILP   equal c_1     # total interlayer energy
+variable  	Evdw  equal c_1[1]  # attractive energy
+variable 	Erep  equal c_1[2]  # repulsive  energy
+
+############################
+
+# Output
+thermo          100
+thermo_style    custom step cpu etotal pe ke v_REBO v_ILP v_Erep v_Evdw temp
+thermo_modify   line one format float %.16f
+thermo_modify   flush yes norm no lost warn
+
+###### Run molecular dynamics ######
+fix       	thermostat all nve
+run 	  	1000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 5 5 12
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair rebo, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) pair ilp/graphene/hbn, perpetual, copy from (1)
+      attributes: full, newton on, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 20.52 | 20.52 | 20.52 Mbytes
+Step CPU TotEng PotEng KinEng v_REBO v_ILP v_Erep v_Evdw Temp 
+       0 0.0000000000000000 -10037.2853168513975106 -10089.9846779678973689 52.6993611164999436 -10057.1894932863488066 -32.7951846815484842 43.6401037466550932 -76.4352884281863538 299.9999999999996589 
+     100 5.4714687280356884 -10037.0338552868142870 -10064.7651651140276954 27.7313098272134866 -10032.1809546658514591 -32.5842104481769326 34.7308676709731401 -67.3150781191208409 157.8651576016785896 
+     200 10.9391297820257023 -10036.9626863095945737 -10061.1437965401473775 24.1811102305520329 -10028.8556641958457476 -32.2881323443021699 28.1799358234288526 -60.4680681676962450 137.6550477173489071 
+     300 16.5882020250428468 -10037.0034097789539373 -10063.5001355365984637 26.4967257576440751 -10030.8230306457862753 -32.6771048908121244 34.9238490632189666 -67.6009539540019659 150.8370795942042264 
+     400 22.1194989730138332 -10037.0320901258455706 -10064.3886163746337843 27.3565262487876240 -10031.8532011416427849 -32.5354152329904451 44.2423469839209460 -76.7777622168925546 155.7316388806602561 
+     500 27.6722563949879259 -10037.0233394483148004 -10064.1136184894730832 27.0902790411580163 -10031.4312007416901906 -32.6824177477829565 37.2292320482101289 -69.9116497959676906 154.2159817531989177 
+     600 33.2032995349727571 -10037.0033561502987141 -10063.6570740290953836 26.6537178787960869 -10031.3274097829344100 -32.3296642461602843 28.5090732059975061 -60.8387374521216842 151.7307837178934449 
+     700 38.6685221369843930 -10037.0041655805853225 -10063.3498627390818001 26.3456971584966979 -10030.8006321783104795 -32.5492305607709014 32.5646861904578486 -65.1139167511948074 149.9773238251721921 
+     800 44.2185375869739801 -10037.0245724491269357 -10064.2193369538654224 27.1947645047377584 -10031.7656842933574808 -32.4536526605085243 43.3815569718683705 -75.8352096323569498 154.8107828743098082 
+     900 49.6989215560024604 -10037.0283918584391358 -10064.6675188165245345 27.6391269580851500 -10032.1673975747289660 -32.5001212417962648 39.9934500237055133 -72.4935712654787778 157.3403910741040761 
+    1000 55.1455117090372369 -10037.0033475406326033 -10063.6621727186211501 26.6588251779885006 -10031.3371200905367004 -32.3250526280852100 29.5735783776502288 -61.8986310057011480 151.7598578798047697 
+Loop time of 55.1456 on 1 procs for 1000 steps with 1360 atoms
+
+Performance: 1.567 ns/day, 15.318 hours/ns, 18.134 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 55.092     | 55.092     | 55.092     |   0.0 | 99.90
+Bond    | 0.00050265 | 0.00050265 | 0.00050265 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.032649   | 0.032649   | 0.032649   |   0.0 |  0.06
+Output  | 0.00060948 | 0.00060948 | 0.00060948 |   0.0 |  0.00
+Modify  | 0.0093351  | 0.0093351  | 0.0093351  |   0.0 |  0.02
+Other   |            | 0.01008    |            |       |  0.02
+
+Nlocal:    1360 ave 1360 max 1360 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    7964 ave 7964 max 7964 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.037e+06 ave 1.037e+06 max 1.037e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1037000
+Ave neighs/atom = 762.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:55

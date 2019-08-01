@@ -215,12 +215,11 @@ void Temper::command(int narg, char **arg)
 
   for (int iswap = 0; iswap < nswaps; iswap++) {
 
-    if (timer->is_timeout()) break;
-    timer->init_timeout();
-
     // run for nevery timesteps
 
+    timer->init_timeout();
     update->integrate->run(nevery);
+    if (timer->is_timeout()) break;
 
     // compute PE
     // notify compute it will be called at next swap

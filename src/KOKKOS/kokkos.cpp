@@ -208,6 +208,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   MPI_Comm_size(world,&nmpi);
   if (nmpi > 0) {
 
+#if defined(MPI_VERSION) && (MPI_VERSION > 2)
     // Check for IBM Spectrum MPI
 
     int len;
@@ -226,6 +227,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         if (me == 0)
           error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling CUDA-aware MPI");
     }
+#endif
 
     if (cuda_aware_flag == 1 && have_cuda_aware == 0) {
       if (me == 0)

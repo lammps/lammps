@@ -18,12 +18,12 @@ tap_flag = 0/1 to turn off/on the taper function :ul
 [Examples:]
 
 pair_style  hybrid/overlay ilp/graphene/hbn 16.0 1
-pair_coeff  * * ilp/graphene/hbn  ../potentials/BNCH.ILP B N C :pre
+pair_coeff  * * ilp/graphene/hbn  BNCH.ILP B N C :pre
 
 pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
-pair_coeff  * * rebo              ../potentials/CH.rebo     NULL NULL C
-pair_coeff  * * tersoff           ../potentials/BNC.tersoff B    N    NULL
-pair_coeff  * * ilp/graphene/hbn  ../potentials/BNCH.ILP    B    N    C
+pair_coeff  * * rebo              CH.rebo     NULL NULL C
+pair_coeff  * * tersoff           BNC.tersoff B    N    NULL
+pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
 pair_coeff  1 1 coul/shield 0.70
 pair_coeff  1 2 coul/shield 0.695
 pair_coeff  2 2 coul/shield 0.69 :pre

@@ -810,7 +810,9 @@ void lammps_gather_atoms(void *ptr, char * /*name */,
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
-  lmp->error->all(FLERR,"Library function lammps_gather_atoms() not compatible with -DLAMMPS_BIGBIG");
+  {
+    lmp->error->all(FLERR,"Library function lammps_gather_atoms() not compatible with -DLAMMPS_BIGBIG");
+  }
   END_CAPTURE
 }
 #else

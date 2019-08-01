@@ -19,6 +19,10 @@
 #include "output.h"
 #include "input.h"
 
+#if defined(LAMMPS_EXCEPTIONS)
+#include "update.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 // helper function to truncate a string to a segment starting with "src/";

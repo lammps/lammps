@@ -497,37 +497,36 @@ if(BUILD_LIB)
     add_dependencies(lammps ${LAMMPS_DEPS})
   endif()
   set(LAMMPS_CXX_HEADERS
-    angle.h
-    atom.h
-    bond.h
-    citeme.h
-    comm.h
-    compute.h
-    dihedral.h
-    domain.h
-    error.h
-    fix.h
-    force.h
-    group.h
-    improper.h
-    input.h
-    kspace.h
-    lammps.h
-    lattice.h
-    lmppython.h
-    memory.h
-    modify.h
-    neighbor.h
-    neigh_list.h
-    output.h
-    pair.h
-    pointers.h
-    region.h
-    timer.h
-    universe.h
-    update.h
-    variable.h)
-  list(TRANSFORM LAMMPS_CXX_HEADERS PREPEND ${LAMMPS_SOURCE_DIR}/)
+    ${LAMMPS_SOURCE_DIR}/angle.h
+    ${LAMMPS_SOURCE_DIR}/atom.h
+    ${LAMMPS_SOURCE_DIR}/bond.h
+    ${LAMMPS_SOURCE_DIR}/citeme.h
+    ${LAMMPS_SOURCE_DIR}/comm.h
+    ${LAMMPS_SOURCE_DIR}/compute.h
+    ${LAMMPS_SOURCE_DIR}/dihedral.h
+    ${LAMMPS_SOURCE_DIR}/domain.h
+    ${LAMMPS_SOURCE_DIR}/error.h
+    ${LAMMPS_SOURCE_DIR}/fix.h
+    ${LAMMPS_SOURCE_DIR}/force.h
+    ${LAMMPS_SOURCE_DIR}/group.h
+    ${LAMMPS_SOURCE_DIR}/improper.h
+    ${LAMMPS_SOURCE_DIR}/input.h
+    ${LAMMPS_SOURCE_DIR}/kspace.h
+    ${LAMMPS_SOURCE_DIR}/lammps.h
+    ${LAMMPS_SOURCE_DIR}/lattice.h
+    ${LAMMPS_SOURCE_DIR}/lmppython.h
+    ${LAMMPS_SOURCE_DIR}/memory.h
+    ${LAMMPS_SOURCE_DIR}/modify.h
+    ${LAMMPS_SOURCE_DIR}/neighbor.h
+    ${LAMMPS_SOURCE_DIR}/neigh_list.h
+    ${LAMMPS_SOURCE_DIR}/output.h
+    ${LAMMPS_SOURCE_DIR}/pair.h
+    ${LAMMPS_SOURCE_DIR}/pointers.h
+    ${LAMMPS_SOURCE_DIR}/region.h
+    ${LAMMPS_SOURCE_DIR}/timer.h
+    ${LAMMPS_SOURCE_DIR}/universe.h
+    ${LAMMPS_SOURCE_DIR}/update.h
+    ${LAMMPS_SOURCE_DIR}/variable.h)
 
   set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})

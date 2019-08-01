@@ -43,9 +43,8 @@ variable 	Erep  equal c_1[2]  # repulsive  energy
 
 # Output
 thermo          100
-thermo_style    custom step cpu etotal pe ke v_REBO v_ILP v_Erep v_Evdw temp
-thermo_modify   line one format float %.16f
-thermo_modify   flush yes norm no lost warn
+thermo_style    custom step etotal pe ke v_REBO v_ILP v_Erep v_Evdw temp
+thermo_modify   lost warn
 
 ###### Run molecular dynamics ######
 fix       	thermostat all nve

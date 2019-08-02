@@ -71,6 +71,9 @@ void TemperGrem::command(int narg, char **arg)
   nevery = force->inumeric(FLERR,arg[1]);
   double lambda = force->numeric(FLERR,arg[2]);
 
+  // ignore temper command, if walltime limit was already reached
+  if (timer->is_timeout()) return;
+
   // Get and check if gREM fix exists
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
@@ -127,6 +130,8 @@ void TemperGrem::command(int narg, char **arg)
   // setup for long tempering run
 
   update->whichflag = 1;
+  timer->init_timeout();
+
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
@@ -234,14 +239,15 @@ void TemperGrem::command(int narg, char **arg)
 
     // run for nevery timesteps
 
+    timer->init_timeout();
     update->integrate->run(nevery);
+    if (timer->is_timeout()) break;
 
     // compute PE
     // notify compute it will be called at next swap
 
     pe = pe_compute->compute_scalar();
     pe_compute->addstep(update->ntimestep + nevery);
-
 
     // which = which of 2 kinds of swaps to do (0,1)
 

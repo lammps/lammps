@@ -239,7 +239,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #if defined(MPICH) && defined(MVAPICH2_VERSION)
       char* str;
       cuda_aware_flag = 0;
-      if (str = getenv("MV2_ENABLE_CUDA")
+      if ((str = getenv("MV2_ENABLE_CUDA")))
         if ((strcmp(str,"1") == 0))
           cuda_aware_flag = 1;
 

@@ -1,4 +1,4 @@
-tion"_Packages.html - "LAMMPS WWW Site"_lws - "LAMMPS
+"Higher level section"_Packages.html - "LAMMPS WWW Site"_lws - "LAMMPS
 Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)

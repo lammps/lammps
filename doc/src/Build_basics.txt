@@ -310,6 +310,30 @@ current LAMMPS version (HTML and PDF files), from the website
 
 :line
 
+Build LAMMPS tools :h4,link(tools)
+
+Some tools described in "Auxiliary tools"_Tools.html can be built directly
+using CMake or Make.
+
+[CMake variable]:
+
+-D BUILD_TOOLS=value       # yes or no (default) :pre
+
+The generated binaries will also become part of the LAMMPS installation (see below)
+
+[Traditional make]:
+
+cd lammps/tools
+make all              # build all binaries of tools
+make binary2txt       # build only binary2txt tool
+make chain            # build only chain tool
+make micelle2d        # build only micelle2d tool
+make thermo_extract   # build only thermo_extract tool
+:pre
+
+:line
+
+
 Install LAMMPS after a build :h4,link(install)
 
 After building LAMMPS, you may wish to copy the LAMMPS executable of

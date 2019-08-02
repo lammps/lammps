@@ -1,4 +1,4 @@
-"Higher level section"_Packages.html - "LAMMPS WWW Site"_lws - "LAMMPS
+tion"_Packages.html - "LAMMPS WWW Site"_lws - "LAMMPS
 Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
@@ -1191,7 +1191,7 @@ USER-PLUMED package :link(PKG-USER-PLUMED),h4
 The fix plumed command allows you to use the PLUMED free energy plugin
 for molecular dynamics to analyze and bias your LAMMPS trajectory on
 the fly.  The PLUMED library is called from within the LAMMPS input
-script by using the "fix plumed _fix_plumed.html command.
+script by using the "fix plumed"_fix_plumed.html command.
 
 [Authors:] The "PLUMED library"_#PLUMED is written and maintained by
 Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth

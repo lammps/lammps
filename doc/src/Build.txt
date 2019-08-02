@@ -29,6 +29,7 @@ as described on the "Install"_Install.html doc page.
    Build_package
    Build_extras
    Build_windows
+   Build_development
 
 END_RST -->
 

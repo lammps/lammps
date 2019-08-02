@@ -169,7 +169,7 @@ accelerated styles exist.
 "addforce"_fix_addforce.html - add a force to each atom
 "addtorque"_fix_addtorque.html -
 "append/atoms"_fix_append_atoms.html - append atoms to a running simulation
-"atc"_fix_atc.html -
+"atc"_fix_atc.html - initiates a coupled MD/FE simulation
 "atom/swap"_fix_atom_swap.html - Monte Carlo atom type swapping
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
 "ave/chunk"_fix_ave_chunk.html - compute per-chunk time-averaged quantities
@@ -187,12 +187,12 @@ accelerated styles exist.
 "bond/swap"_fix_bond_swap.html - Monte Carlo bond swapping
 "box/relax"_fix_box_relax.html - relax box size during energy minimization
 "client/md"_fix_client_md.html -
-"cmap"_fix_cmap.html -
-"colvars"_fix_colvars.html -
-"controller"_fix_controller.html -
+"cmap"_fix_cmap.html - enables CMAP cross-terms of the CHARMM force field
+"colvars"_fix_colvars.html - interface to the collective variables “Colvars” library
+"controller"_fix_controller.html - 
 "deform"_fix_deform.html - change the simulation box size/shape
 "deposit"_fix_deposit.html - add new atoms above a surface
-"dpd/energy"_fix_dpd_energy.html -
+"dpd/energy"_fix_dpd_energy.html - constant energy dissipative particle dynamics
 "drag"_fix_drag.html - drag atoms towards a defined coordinate
 "drude"_fix_drude.html -
 "drude/transform/direct"_fix_drude_transform.html -
@@ -208,27 +208,26 @@ accelerated styles exist.
 "eos/table/rx"_fix_eos_table_rx.html -
 "evaporate"_fix_evaporate.html - remove atoms from simulation periodically
 "external"_fix_external.html - callback to an external driver program
-"ffl"_fix_ffl.html -
+"ffl"_fix_ffl.html - apply a Fast-Forward Langevin equation thermostat
 "filter/corotate"_fix_filter_corotate.html -
 "flow/gauss"_fix_flow_gauss.html -
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gcmc"_fix_gcmc.html - grand canonical insertions/deletions
-"gld"_fix_gcmc.html - generalized Langevin dynamics integrator
-"gld"_fix_gld.html -
-"gle"_fix_gle.html -
+"gld"_fix_gld.html - generalized Langevin dynamics integrator
+"gle"_fix_gle.html - generalized Langevin equation thermostat
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
-"grem"_fix_grem.html -
+"grem"_fix_grem.html - implements the generalized replica exchange method
 "halt"_fix_halt.html - terminate a dynamics run or minimization
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "hyper/global"_fix_hyper_global.html - global hyperdynamics
 "hyper/local"_fix_hyper_local.html - local hyperdynamics
-"imd"_fix_imd.html -
+"imd"_fix_imd.html - implements the “Interactive MD” (IMD) protocol 
 "indent"_fix_indent.html - impose force due to an indenter
 "ipi"_fix_ipi.html -
 "langevin"_fix_langevin.html - Langevin temperature control
-"langevin/drude"_fix_langevin_drude.html -
-"langevin/eff"_fix_langevin_eff.html -
-"langevin/spin"_fix_langevin_spin.html -
+"langevin/drude"_fix_langevin_drude.html - Langevin temperature control of Drude oscillators
+"langevin/eff"_fix_langevin_eff.html - Langevin temperature control for the electron force field model
+"langevin/spin"_fix_langevin_spin.html - Langevin temperature control for a spin or spin-lattice system
 "latte"_fix_latte.html - wrapper on LATTE density-functional tight-binding code
 "lb/fluid"_fix_lb_fluid.html -
 "lb/momentum"_fix_lb_momentum.html -
@@ -238,62 +237,58 @@ accelerated styles exist.
 "lineforce"_fix_lineforce.html - constrain atoms to move in a line
 "manifoldforce"_fix_manifoldforce.html -
 "meso"_fix_meso.html -
-"meso"_fix_meso_move.html - move mesoscopic SPH/SDPD particles in a prescribed fashion
-"meso/move"_fix_meso_move.html -
+"meso/move"_fix_meso_move.html - move mesoscopic SPH/SDPD particles in a prescribed fashion
 "meso/stationary"_fix_meso_stationary.html -
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms
 "move"_fix_move.html - move atoms in a prescribed fashion
 "mscg"_fix_mscg.html -
 "msst"_fix_msst.html - multi-scale shock technique (MSST) integration
-"mvv/dpd"_fix_mvv_dpd.html -
-"mvv/edpd"_fix_mvv_dpd.html -
-"mvv/tdpd"_fix_mvv_dpd.html -
+"mvv/dpd"_fix_mvv_dpd.html - DPD using the modified velocity-Verlet integration algorithm
+"mvv/edpd"_fix_mvv_dpd.html - constant energy DPD using the modified velocity-Verlet algrithm
+"mvv/tdpd"_fix_mvv_dpd.html - constant temperature DPD using the modified velocity-Verlet algorithm
 "neb"_fix_neb.html - nudged elastic band (NEB) spring forces
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
-"nph/body"_fix_nph_body.html -
-"nph/body"_fix_nve_body.html - NPH for body particles
-"nph/eff"_fix_nh_eff.html -
+"nph/body"_fix_nph_body.html - NPH for body particles
+"nph/eff"_fix_nh_eff.html - NPH for  nuclei and electrons in the electron force field model
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
 "nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "npt"_fix_nh.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
-"npt/body"_fix_npt_body.html -
-"npt/body"_fix_nve_body.html - NPT for body particles
-"npt/eff"_fix_nh_eff.html -
+"npt/body"_fix_npt_body.html - NPT for body particles
+"npt/eff"_fix_nh_eff.html - NPT for  nuclei and electrons in the electron force field model
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
 "npt/uef"_fix_nh_uef.html -
 "nve"_fix_nve.html - constant NVE time integration
 "nve/asphere"_fix_nve_asphere.html - NVE for aspherical particles
-"nve/asphere/noforce"_fix_nve_asphere_noforce.html - NVE for aspherical particles without forces"
-"nve/awpmd"_fix_nve_awpmd.html -
+"nve/asphere/noforce"_fix_nve_asphere_noforce.html - NVE for aspherical particles without forces
+"nve/awpmd"_fix_nve_awpmd.html - NVE for the Antisymmetrized Wave Packet Molecular Dynamics model
 "nve/body"_fix_nve_body.html - NVE for body particles
 "nve/dot"_fix_nve_dot.html -
 "nve/dotc/langevin"_fix_nve_dotc_langevin.html -
-"nve/eff"_fix_nve_eff.html -
+"nve/eff"_fix_nve_eff.html - NVE for  nuclei and electrons in the electron force field model
 "nve/limit"_fix_nve_limit.html - NVE with limited step length
 "nve/line"_fix_nve_line.html - NVE for line segments
 "nve/manifold/rattle"_fix_nve_manifold_rattle.html -
 "nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
 "nve/sphere"_fix_nve_sphere.html - NVE for spherical particles
-"nve/spin"_fix_nve_spin.html -
+"nve/spin"_fix_nve_spin.html - NVE for a spin or spin-lattice system
 "nve/tri"_fix_nve_tri.html - NVE for triangles
-"nvk"_fix_nvk.html -
-"nvt"_fix_nh.html - constant NVT time integration via Nose/Hoover
+"nvk"_fix_nvk.html - constant kinetic energy time integration
+"nvt"_fix_nh.html - NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
-"nvt/body"_fix_nve_body.html - NVT for body particles
-"nvt/body"_fix_nvt_body.html -
-"nvt/eff"_fix_nh_eff.html -
+"nvt/body"_fix_nvt_body.html - NVT for body particles
+"nvt/eff"_fix_nh_eff.html - NVE for  nuclei and electrons in the electron force field model
 "nvt/manifold/rattle"_fix_nvt_manifold_rattle.html -
 "nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
-"nvt/sllod/eff"_fix_nvt_sllod_eff.html -
+"nvt/sllod/eff"_fix_nvt_sllod_eff.html - NVT for NEMD with SLLOD equations for the electron force field model
 "nvt/sphere"_fix_nvt_sphere.html - NVT for spherical particles
 "nvt/uef"_fix_nh_uef.html -
 "oneway"_fix_oneway.html - constrain particles on move in one direction
 "orient/bcc"_fix_orient.html - add grain boundary migration force for BCC
 "orient/fcc"_fix_orient.html - add grain boundary migration force for FCC
 "phonon"_fix_phonon.html -
-"pimd"_fix_pimd.html -
+"pimd"_fix_pimd.html - Feynman path integral molecular dynamics
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "plumed"_fix_plumed.html - wrapper on PLUMED free energy library
 "poems"_fix_poems.html - constrain clusters of atoms to move as coupled rigid bodies
@@ -303,16 +298,16 @@ accelerated styles exist.
 "print"_fix_print.html - print text and variables during a simulation
 "property/atom"_fix_property_atom.html - add customized per-atom values
 "python/invoke"_fix_python_invoke.html -
-"python/move"_fix_python_move.html -
+"python/move"_fix_python_move.html -  call a Python function during a simulation run
 "qbmsst"_fix_qbmsst.html -
 "qeq/comb"_fix_qeq_comb.html - charge equilibration for COMB potential
 "qeq/dynamic"_fix_qeq.html - charge equilibration via dynamic method
 "qeq/fire"_fix_qeq.html - charge equilibration via FIRE minimizer
 "qeq/point"_fix_qeq.html - charge equilibration via point method
-"qeq/reax"_fix_qeq_reax.html -
+"qeq/reax"_fix_qeq_reax.html - charge equilibration for ReaxFF potential
 "qeq/shielded"_fix_qeq.html - charge equilibration via shielded method
 "qeq/slater"_fix_qeq.html - charge equilibration via Slater method
-"qmmm"_fix_qmmm.html -
+"qmmm"_fix_qmmm.html - functionality to enable a quantum mechanics/molecular mechanics coupling
 "qtb"_fix_qtb.html -
 "rattle"_fix_shake.html - RATTLE constraints on bonds and/or angles
 "reax/c/bonds"_fix_reaxc_bonds.html - write out ReaxFF bond information
@@ -335,7 +330,7 @@ accelerated styles exist.
 "saed/vtk"_fix_saed_vtk.html -
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
-"shardlow"_fix_shardlow.html -
+"shardlow"_fix_shardlow.html - integration of DPD equations of motion using the Shardlow splitting
 "smd"_fix_smd.html -
 "smd/adjust_dt"_fix_smd_adjust_dt.html -
 "smd/integrate_tlsph"_fix_smd_integrate_tlsph.html -
@@ -355,7 +350,7 @@ accelerated styles exist.
 "temp/csld"_fix_temp_csvr.html - canonical sampling thermostat with Langevin dynamics
 "temp/csvr"_fix_temp_csvr.html - canonical sampling thermostat with Hamiltonian dynamics
 "temp/rescale"_fix_temp_rescale.html - temperature control by velocity rescaling
-"temp/rescale/eff"_fix_temp_rescale_eff.html -
+"temp/rescale/eff"_fix_temp_rescale_eff.html - temperature control by velocity rescaling in the electron force field model
 "tfmc"_fix_tfmc.html - perform force-bias Monte Carlo with time-stamped method
 "thermal/conductivity"_fix_thermal_conductivity.html - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
 "ti/spring"_fix_ti_spring.html -

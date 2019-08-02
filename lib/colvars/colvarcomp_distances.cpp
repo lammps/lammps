@@ -1013,8 +1013,7 @@ colvar::rmsd::rmsd(std::string const &conf)
                   cvm::to_str(atoms->size())+").\n");
       return;
     }
-  }
-  {
+  } else { // Only look for ref pos file if ref positions not already provided
     std::string ref_pos_file;
     if (get_keyval(conf, "refPositionsFile", ref_pos_file, std::string(""))) {
 
@@ -1041,12 +1040,15 @@ colvar::rmsd::rmsd(std::string const &conf)
 
       cvm::load_coords(ref_pos_file.c_str(), &ref_pos, atoms,
                        ref_pos_col, ref_pos_col_value);
+    } else {
+      cvm::error("Error: no reference positions for RMSD; use either refPositions of refPositionsFile.");
+      return;
     }
   }
 
   if (ref_pos.size() != atoms->size()) {
     cvm::error("Error: found " + cvm::to_str(ref_pos.size()) +
-                    " reference positions; expected " + cvm::to_str(atoms->size()));
+                    " reference positions for RMSD; expected " + cvm::to_str(atoms->size()));
     return;
   }
 

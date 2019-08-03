@@ -60,7 +60,7 @@
 #include <sys/utsname.h>
 #endif
 
-#if defined __linux
+#if defined(__linux)
 #include <malloc.h>
 #endif
 

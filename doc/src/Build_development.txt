@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Development options (CMake only) :h3
+Development build options (CMake only) :h3
 
 The CMake build of LAMMPS has a few extra options which are useful during
 development,  testing or debugging.

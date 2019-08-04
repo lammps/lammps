@@ -120,7 +120,7 @@ The argument can be preceeded or followed by various CMake
 command-line options.  Several useful ones are:
 
 -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
--D CMAKE_BUILD_TYPE=type      # type = Release or Debug
+-D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
 -G output                     # style of output CMake generates
 -DVARIABLE=value              # setting for a LAMMPS feature to enable
 -D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir

@@ -88,7 +88,7 @@ which GPU hardware to build for.
                           # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
 -D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
                           # value = sm_XX, see below
-                          # default is Cuda-compiler dependent, but typically sm_20
+                          # default is sm_30
 -D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
                           # enables CUDA Performance Primitives Optimizations
                           # value = yes (default) or no
@@ -354,6 +354,9 @@ be installed on your system.
 [CMake build]:
 
 -D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+-D ZMQ_LIBRARY=path     # ZMQ library file (only needed if a custom location)
+-D ZMQ_INCLUDE_DIR=path # ZMQ include directory (only needed if a custom location)
+:pre
 
 [Traditional make]:
 
@@ -366,6 +369,7 @@ simply invoke the lib/message/Install.py script with the specified args:
 make lib-message               # print help message
 make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
 make lib-message args="-s"     # build as serial lib with no ZMQ support
+:pre
 
 The build should produce two files: lib/message/cslib/src/libmessage.a
 and lib/message/Makefile.lammps.  The latter is copied from an

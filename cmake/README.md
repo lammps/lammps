@@ -286,7 +286,16 @@ cmake -C ../cmake/presets/all_on.cmake -C ../cmake/presets/nolib.cmake -D PKG_GP
 </tr>
 <tr>
   <td><code>LAMMPS_MACHINE</code></td>
-  <td>allows appending a machine suffix to the generate LAMMPS binary</td>
+  <td>allows appending a machine suffix to the generated LAMMPS binary</td>
+  <td>
+  <dl>
+    <dt>*none*  (default)</dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>LAMMPS_LIB_SUFFIX</code></td>
+  <td>allows appending a suffix to the generated LAMMPS library</td>
   <td>
   <dl>
     <dt>*none*  (default)</dt>

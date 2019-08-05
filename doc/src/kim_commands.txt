@@ -365,7 +365,7 @@ an array of one or more comma-separated items in brackets.
 The list of supported keywords and the type and format of their values
 depend on the query function used. The current list of query functions
 is available on the OpenKIM webpage at
-"https://openkim.org/doc/repository/kim-query"_https://openkim.org/doc/repository/kim-query.
+"https://openkim.org/doc/usage/kim-query"_https://openkim.org/doc/usage/kim-query.
 
 NOTE: All query functions require the {model} keyword, which identifies
 the IM whose predictions are being queried. This keyword is automatically

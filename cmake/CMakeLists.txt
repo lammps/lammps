@@ -134,6 +134,24 @@ foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
 endforeach()
 
 ######################################################
+# download and unpack support binaries for compilation
+# of windows binaries.
+######################################################
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(LAMMPS_THIRDPARTY_URL "http://download.lammps.org/thirdparty")
+  file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
+          EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
+    set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
+  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")
+  endif()
+  set(OpenCL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/include")
+endif()
+
+######################################################
+######################################################
 # packages with special compiler needs or external libs
 ######################################################
 include_directories(${LAMMPS_SOURCE_DIR})
@@ -148,6 +166,7 @@ if(PKG_USER-ADIOS)
 endif()
 
 # do MPI detection after language activation, if MPI for these language is required
+set(MPI_CXX_SKIP_MPICXX TRUE)
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
@@ -175,11 +194,13 @@ add_definitions(-DLAMMPS_${LAMMPS_SIZES})
 set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_${LAMMPS_SIZES}")
 
 # posix_memalign is not available on Windows
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
+else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
-  if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
-    add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
-  endif()
+endif()
+if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
+  add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 endif()
 
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
@@ -229,6 +250,7 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
+    set(BLAS_LIBRARIES linalg)
     set(LAPACK_LIBRARIES linalg)
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})

@@ -944,7 +944,7 @@ public:
   template<int flags> int compute_coordnum();
 
   /// Workhorse function
-  template<int flags> void main_loop(bool *pairlist_elem);
+  template<int flags> void main_loop(bool **pairlist_elem);
 
 };
 

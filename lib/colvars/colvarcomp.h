@@ -887,9 +887,8 @@ protected:
   /// Integer exponent of the function denominator
   int ed;
 
-  /// \brief If true, group2 will be treated as a single atom, stored in this
-  /// accessory group
-  cvm::atom_group *group2_center;
+  /// If true, group2 will be treated as a single atom
+  bool b_group2_center_only;
 
   /// Tolerance for the pair list
   cvm::real tolerance;
@@ -941,8 +940,11 @@ public:
                                       bool **pairlist_elem,
                                       cvm::real tolerance);
 
-  /// Main workhorse function
+  /// Workhorse function
   template<int flags> int compute_coordnum();
+
+  /// Workhorse function
+  template<int flags> void main_loop(bool **pairlist_elem);
 
 };
 

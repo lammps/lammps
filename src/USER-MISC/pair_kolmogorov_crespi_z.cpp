@@ -21,11 +21,11 @@
    The simplification is that all normals are taken along the z-direction
 ------------------------------------------------------------------------- */
 
+#include "pair_kolmogorov_crespi_z.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_kolmogorov_crespi_z.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

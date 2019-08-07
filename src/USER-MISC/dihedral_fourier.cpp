@@ -16,16 +16,13 @@
    [ based on dihedral_charmm.cpp Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
+#include "dihedral_fourier.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "dihedral_fourier.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "pair.h"
 #include "update.h"
 #include "math_const.h"
 #include "memory.h"

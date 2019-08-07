@@ -16,10 +16,10 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
+#include "angle_class2_p6.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "angle_class2_p6.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

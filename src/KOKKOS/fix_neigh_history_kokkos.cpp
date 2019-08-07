@@ -99,7 +99,7 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 
   copymode = 0;
 
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+  maxexchange = (dnum+1)*maxpartner+1;
 }
 
 /* ---------------------------------------------------------------------- */

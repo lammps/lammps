@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "dump_local.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "dump_local.h"
-#include "atom.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"

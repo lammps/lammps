@@ -1,10 +1,22 @@
 if(PKG_USER-PLUMED)
-  find_package(GSL REQUIRED)
   set(PLUMED_MODE "static" CACHE STRING "Linkage mode for Plumed2 library")
   set(PLUMED_MODE_VALUES static shared runtime)
   set_property(CACHE PLUMED_MODE PROPERTY STRINGS ${PLUMED_MODE_VALUES})
   validate_option(PLUMED_MODE PLUMED_MODE_VALUES)
   string(TOUPPER ${PLUMED_MODE} PLUMED_MODE)
+
+  set(PLUMED_LINK_LIBS "")
+  if(PLUMED_MODE STREQUAL "STATIC")
+    find_package(LAPACK REQUIRED)
+    find_package(BLAS REQUIRED)
+    find_package(GSL REQUIRED)
+    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
+    list(APPEND PLUMED_LINK_LIBS ${LAPACK_LIBRARIES} ${GSL_LIBRARIES})
+    find_package(ZLIB QUIET)
+    if(ZLIB_FOUND)
+      list(APPEND PLUMED_LINK_LIBS ${ZLIB_LIBRARIES})
+    endif()
+  endif()
 
   find_package(PkgConfig QUIET)
   set(DOWNLOAD_PLUMED_DEFAULT ON)
@@ -37,8 +49,8 @@ if(PKG_USER-PLUMED)
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.5.1/plumed-src-2.5.1.tgz
-      URL_MD5 c2a7b519e32197a120cdf47e0f194f81
+      URL https://github.com/plumed/plumed2/releases/download/v2.5.2/plumed-src-2.5.2.tgz
+      URL_MD5 bd2f18346c788eb54e1e52f4f6acf41a
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                                ${CONFIGURE_REQUEST_PIC}
@@ -53,11 +65,11 @@ if(PKG_USER-PLUMED)
     list(APPEND LAMMPS_DEPS plumed_build)
     if(PLUMED_MODE STREQUAL "STATIC")
       add_definitions(-D__PLUMED_WRAPPER_CXX=1)
-      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.a ${GSL_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_DL_LIBS})
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.a ${PLUMED_LINK_LIBS} ${CMAKE_DL_LIBS})
     elseif(PLUMED_MODE STREQUAL "SHARED")
-      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.so ${PLUMED_INSTALL_DIR}/lib/libplumedKernel.so ${CMAKE_DL_LIBS})
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed${CMAKE_SHARED_LIBRARY_SUFFIX} ${PLUMED_INSTALL_DIR}/lib/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX} ${CMAKE_DL_LIBS})
     elseif(PLUMED_MODE STREQUAL "RUNTIME")
-      add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_INSTALL_DIR}/lib/libplumedKernel.so)
+      add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_INSTALL_DIR}/lib/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX})
       list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumedWrapper.a -rdynamic ${CMAKE_DL_LIBS})
     endif()
     set(PLUMED_INCLUDE_DIRS "${PLUMED_INSTALL_DIR}/include")
@@ -70,7 +82,7 @@ if(PKG_USER-PLUMED)
     elseif(PLUMED_MODE STREQUAL "SHARED")
       include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.shared)
     elseif(PLUMED_MODE STREQUAL "RUNTIME")
-      add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/libplumedKernel.so)
+      add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX})
       include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.runtime)
     endif()
     list(APPEND LAMMPS_LINK_LIBS ${PLUMED_LOAD})

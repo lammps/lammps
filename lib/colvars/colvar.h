@@ -569,6 +569,14 @@ public:
   class alpha_dihedrals;
   class alpha_angles;
   class dihedPC;
+  class componentDisabled;
+  class CartesianBasedPath;
+  class gspath;
+  class gzpath;
+  class linearCombination;
+  class CVBasedPath;
+  class gspathCV;
+  class gzpathCV;
 
   // non-scalar components
   class distance_vec;

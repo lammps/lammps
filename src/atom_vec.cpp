@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "atom_vec.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -34,6 +33,8 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   mass_type = dipole_type = 0;
   forceclearflag = 0;
   size_data_bonus = 0;
+  maxexchange = 0;
+
   kokkosable = 0;
 
   nargcopy = 0;

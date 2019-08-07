@@ -15,19 +15,17 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_dilatation_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
+#include "fix.h"
 #include "force.h"
-#include "pair.h"
 #include "pair_peri_lps.h"
-#include "pair_peri_pmb.h"
 #include "pair_peri_ves.h"
 #include "pair_peri_eps.h"
-#include "fix_peri_neigh.h"
 #include "memory.h"
 #include "error.h"
 

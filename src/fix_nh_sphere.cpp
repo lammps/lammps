@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_nh_sphere.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
 #include "error.h"
 #include "force.h"
 #include "domain.h"

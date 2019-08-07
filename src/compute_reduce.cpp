@@ -11,17 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_reduce.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "compute_reduce.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
-#include "force.h"
-#include "comm.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"

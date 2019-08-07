@@ -114,5 +114,5 @@ The default options are plumedfile = NULL and outfile = NULL
 :link(PLUMED)
 [(PLUMED)] G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
-:link(plumeddocs,http://www.plumed.org/documentation)
+:link(plumeddocs,http://www.plumed.org/doc.html)
 :link(plumedhome,http://www.plumed.org/)

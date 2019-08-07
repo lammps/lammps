@@ -24,20 +24,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdio>
-#include <Eigen/Eigen>
 #include "fix_smd_tlsph_reference_configuration.h"
+#include <mpi.h>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "lattice.h"
 #include "force.h"
 #include "pair.h"
 #include "update.h"
-#include "modify.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"

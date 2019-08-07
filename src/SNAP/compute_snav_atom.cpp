@@ -10,10 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#include "sna.h"
+
+#include "compute_snav_atom.h"
 #include <cstring>
 #include <cstdlib>
-#include "compute_snav_atom.h"
+#include "sna.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -21,7 +22,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "force.h"
-#include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -258,7 +258,7 @@ void ComputeSNAVAtom::compute_peratom()
 
         snaptr->compute_duidrj(snaptr->rij[jj],
                                     snaptr->wj[jj],
-                                    snaptr->rcutij[jj]);
+                                    snaptr->rcutij[jj],jj);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj

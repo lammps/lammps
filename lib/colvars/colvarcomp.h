@@ -24,6 +24,13 @@
 #include "colvar.h"
 #include "colvaratoms.h"
 
+#if (__cplusplus >= 201103L)
+#include "colvar_geometricpath.h"
+#include <functional>
+#endif // C++11 checking
+
+#include <map>
+
 
 /// \brief Colvar component (base class for collective variables)
 ///
@@ -688,9 +695,6 @@ protected:
   /// Reference coordinates
   std::vector<cvm::atom_pos>  ref_pos;
 
-  /// Geometric center of the reference coordinates
-  cvm::atom_pos                ref_pos_center;
-
   /// Eigenvector (of a normal or essential mode): will always have zero center
   std::vector<cvm::rvector>   eigenvec;
 
@@ -883,9 +887,8 @@ protected:
   /// Integer exponent of the function denominator
   int ed;
 
-  /// \brief If true, group2 will be treated as a single atom, stored in this
-  /// accessory group
-  cvm::atom_group *group2_center;
+  /// If true, group2 will be treated as a single atom
+  bool b_group2_center_only;
 
   /// Tolerance for the pair list
   cvm::real tolerance;
@@ -937,8 +940,11 @@ public:
                                       bool **pairlist_elem,
                                       cvm::real tolerance);
 
-  /// Main workhorse function
+  /// Workhorse function
   template<int flags> int compute_coordnum();
+
+  /// Workhorse function
+  template<int flags> void main_loop(bool **pairlist_elem);
 
 };
 
@@ -1382,6 +1388,222 @@ public:
   virtual void apply_force(colvarvalue const &force);
 };
 
+
+
+class colvar::componentDisabled
+  : public colvar::cvc
+{
+public:
+    componentDisabled(std::string const &conf) {
+        cvm::error("Error: this component is not enabled in the current build; please see https://colvars.github.io/README-c++11.html");
+    }
+    virtual ~componentDisabled() {}
+    virtual void calc_value() {}
+    virtual void calc_gradients() {}
+    virtual void apply_force(colvarvalue const &force) {}
+};
+
+
+
+#if (__cplusplus >= 201103L)
+class colvar::CartesianBasedPath
+  : public colvar::cvc
+{
+protected:
+    virtual void computeReferenceDistance(std::vector<cvm::real>& result);
+    /// Selected atoms
+    cvm::atom_group *atoms;
+    /// Fitting options
+    bool has_user_defined_fitting;
+    /// Reference frames
+    std::vector<std::vector<cvm::atom_pos>> reference_frames;
+    std::vector<std::vector<cvm::atom_pos>> reference_fitting_frames;
+    /// Atom groups for RMSD calculation together with reference frames
+    std::vector<cvm::atom_group*> comp_atoms;
+    /// Total number of reference frames
+    size_t total_reference_frames;
+public:
+    CartesianBasedPath(std::string const &conf);
+    virtual ~CartesianBasedPath();
+    virtual void calc_value() = 0;
+    virtual void apply_force(colvarvalue const &force) = 0;
+};
+
+/// \brief Colvar component: alternative path collective variable using geometry, variable s
+/// For more information see https://plumed.github.io/doc-v2.5/user-doc/html/_p_a_t_h.html
+/// Díaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
+class colvar::gspath
+  : public colvar::CartesianBasedPath, public GeometricPathCV::GeometricPathBase<cvm::atom_pos, cvm::real, GeometricPathCV::path_sz::S>
+{
+private:
+    // Optimal rotation for compute v3
+    cvm::rotation rot_v3;
+protected:
+    virtual void prepareVectors();
+    virtual void updateReferenceDistances();
+public:
+    gspath(std::string const &conf);
+    virtual ~gspath() {}
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+
+
+/// \brief Colvar component: alternative path collective variable using geometry, variable z
+/// This should be merged with gspath in the same class by class inheritance or something else
+class colvar::gzpath
+  : public colvar::CartesianBasedPath, public GeometricPathCV::GeometricPathBase<cvm::atom_pos, cvm::real, GeometricPathCV::path_sz::Z>
+{
+private:
+    // Optimal rotation for compute v3, v4
+    cvm::rotation rot_v3;
+    cvm::rotation rot_v4;
+protected:
+    virtual void prepareVectors();
+    virtual void updateReferenceDistances();
+public:
+    gzpath(std::string const &conf);
+    virtual ~gzpath() {}
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+/// Current only linear combination of sub-CVCs is available
+class colvar::linearCombination
+  : public colvar::cvc
+{
+protected:
+    /// Map from string to the types of colvar components
+    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
+    /// Sub-colvar components
+    std::vector<colvar::cvc*> cv;
+    /// If all sub-cvs use explicit gradients then we also use it
+    bool use_explicit_gradients;
+protected:
+    cvm::real getPolynomialFactorOfCVGradient(size_t i_cv) const;
+public:
+    linearCombination(std::string const &conf);
+    virtual ~linearCombination();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+
+class colvar::CVBasedPath
+  : public colvar::cvc
+{
+protected:
+    /// Map from string to the types of colvar components
+    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
+    /// Sub-colvar components
+    std::vector<colvar::cvc*> cv;
+    /// Refernce colvar values from path
+    std::vector<std::vector<colvarvalue>> ref_cv;
+    /// If all sub-cvs use explicit gradients then we also use it
+    bool use_explicit_gradients;
+    /// Total number of reference frames
+    size_t total_reference_frames;
+protected:
+    virtual void computeReferenceDistance(std::vector<cvm::real>& result);
+    cvm::real getPolynomialFactorOfCVGradient(size_t i_cv) const;
+public:
+    CVBasedPath(std::string const &conf);
+    virtual ~CVBasedPath();
+    virtual void calc_value() = 0;
+    virtual void apply_force(colvarvalue const &force) = 0;
+};
+
+
+/// \brief Colvar component: alternative path collective variable using geometry, variable s
+/// Allow any combination of existing (scalar) CVs
+/// For more information see https://plumed.github.io/doc-v2.5/user-doc/html/_p_a_t_h.html
+/// Díaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
+class colvar::gspathCV
+  : public colvar::CVBasedPath, public GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::S>
+{
+protected:
+    virtual void updateReferenceDistances();
+    virtual void prepareVectors();
+public:
+    gspathCV(std::string const &conf);
+    virtual ~gspathCV();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+
+
+class colvar::gzpathCV
+  : public colvar::CVBasedPath, public GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::Z>
+{
+protected:
+    virtual void updateReferenceDistances();
+    virtual void prepareVectors();
+public:
+    gzpathCV(std::string const &conf);
+    virtual ~gzpathCV();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+#else // if the compiler doesn't support C++11
+
+class colvar::linearCombination
+  : public colvar::componentDisabled
+{
+public:
+    linearCombination(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::CartesianBasedPath
+  : public colvar::componentDisabled
+{
+public:
+    CartesianBasedPath(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::CVBasedPath
+  : public colvar::componentDisabled
+{
+public:
+    CVBasedPath(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::gspath
+  : public colvar::componentDisabled
+{
+public:
+    gspath(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::gzpath
+  : public colvar::componentDisabled
+{
+public:
+    gzpath(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::gspathCV
+  : public colvar::componentDisabled
+{
+public:
+    gspathCV(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::gzpathCV
+  : public colvar::componentDisabled
+{
+public:
+    gzpathCV(std::string const &conf) : componentDisabled(conf) {}
+};
+
+#endif // C++11 checking
 
 // metrics functions for cvc implementations
 

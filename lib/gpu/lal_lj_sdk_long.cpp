@@ -23,7 +23,7 @@ const char *lj_sdk_long=0;
 
 #include "lal_lj_sdk_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CGCMMLongT CGCMMLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -164,3 +164,4 @@ void CGCMMLongT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class CGCMMLong<PRECISION,ACC_PRECISION>;
+}

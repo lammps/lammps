@@ -153,6 +153,7 @@ struct TestFunctor {
       typedef Kokkos::RangePolicy< ExecSpace , TagDel > policy ;
 
       Kokkos::parallel_for( policy(0,range_iter), *this );
+      Kokkos::fence();
     }
 
   //----------------------------------------

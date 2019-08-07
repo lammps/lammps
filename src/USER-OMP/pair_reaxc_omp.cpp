@@ -34,6 +34,8 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -42,32 +44,27 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_reaxc.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
 #include "timer.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
-#include "reaxc_control.h"
-#include "reaxc_ffield.h"
 #include "reaxc_forces_omp.h"
 #include "reaxc_init_md_omp.h"
 #include "reaxc_io_tools.h"
 #include "reaxc_list.h"
-#include "reaxc_lookup.h"
 #include "reaxc_reset_tools.h"
 #include "reaxc_tool_box.h"
-#include "reaxc_traj.h"
-#include "reaxc_vector.h"
-#include "fix_reaxc_bonds.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #ifdef OMP_TIMING

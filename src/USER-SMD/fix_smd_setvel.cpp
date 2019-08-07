@@ -23,9 +23,9 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_smd_setvel.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

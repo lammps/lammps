@@ -16,20 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_sdk_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "comm.h"
 #include "force.h"
-#include "math_const.h"
-
-#include <cmath>
-
 #include "lj_sdk_common.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace LJSDKParms;
 
 #define SMALL 0.001

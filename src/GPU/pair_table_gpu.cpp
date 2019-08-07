@@ -15,11 +15,11 @@
    Contributing authors: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_table_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "kim-api-2.0.2"
+version = "kim-api-2.1.2"
 
 # help message
 
@@ -39,11 +39,8 @@ make lib-kim args="-b -a EAM_ErcolessiAdams_1994_Al__MO_324507536345_002" # Ditt
 make lib-kim args="-b -a everything"   # install KIM API lib with all models
 make lib-kim args="-n -a EAM_Dynamo_Ackland_2003_W__MO_141627196590_005"    # only add one model or model driver
 
-See the list of KIM model drivers here:
-https://openkim.org/browse/model-drivers/alphabetical
-
 See the list of all KIM models here:
-https://openkim.org/browse/models/by-model-drivers
+https://openkim.org/browse/models
 """
 
 pgroup = parser.add_mutually_exclusive_group()
@@ -132,7 +129,7 @@ if buildflag:
 
   # build kim-api
   print("Building kim-api ...")
-  cmd = 'cd "%s/%s/build" && make' % (thisdir, version)
+  cmd = 'cd "%s/%s/build" && make -j2' % (thisdir, version)
   txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
   if verboseflag:
     print(txt.decode("UTF-8"))
@@ -140,7 +137,7 @@ if buildflag:
   # install kim-api
 
   print("Installing kim-api ...")
-  cmd = 'cd "%s/%s/build" && make install' % (thisdir, version)
+  cmd = 'cd "%s/%s/build" && make -j2 install' % (thisdir, version)
   txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
   if verboseflag:
     print(txt.decode("UTF-8"))

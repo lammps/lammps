@@ -11,23 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_snap.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_snap.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "domain.h"
 #include "memory.h"
 #include "error.h"
-
-#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -176,7 +173,7 @@ void PairSNAP::compute(int eflag, int vflag)
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
-                             snaptr->wj[jj],snaptr->rcutij[jj]);
+                             snaptr->wj[jj],snaptr->rcutij[jj],jj);
 
       snaptr->compute_deidrj(fij);
 

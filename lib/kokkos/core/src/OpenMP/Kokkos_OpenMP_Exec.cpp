@@ -472,6 +472,10 @@ int OpenMP::concurrency() {
   return Impl::g_openmp_hardware_max_threads;
 }
 
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
+void OpenMP::fence() const {}
+#endif
+
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 
 void OpenMP::initialize( int thread_count , int, int )

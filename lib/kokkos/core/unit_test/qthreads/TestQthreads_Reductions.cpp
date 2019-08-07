@@ -102,7 +102,7 @@ TEST_F( qthreads, scan )
   TestScan< Kokkos::Qthreads >( 0 );
   TestScan< Kokkos::Qthreads >( 100000 );
   TestScan< Kokkos::Qthreads >( 10000000 );
-  Kokkos::Qthreads::fence();
+  Kokkos::Qthreads().fence();
 #endif
 }
 
@@ -118,7 +118,7 @@ TEST_F( qthreads, scan_small )
   TestScanFunctor( 1000000 );
   TestScanFunctor( 10000000 );
 
-  Kokkos::Qthreads::fence();
+  Kokkos::Qthreads().fence();
 #endif
 }
 

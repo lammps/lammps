@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_data.h"
 #include <mpi.h>
 #include <cstring>
-#include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"

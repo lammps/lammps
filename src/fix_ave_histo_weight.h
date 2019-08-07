@@ -20,7 +20,6 @@ FixStyle(ave/histo/weight,FixAveHistoWeight)
 #ifndef LMP_FIX_AVE_HISTO_WEIGHT_H
 #define LMP_FIX_AVE_HISTO_WEIGHT_H
 
-#include <cstdio>
 #include "fix_ave_histo.h"
 
 namespace LAMMPS_NS {

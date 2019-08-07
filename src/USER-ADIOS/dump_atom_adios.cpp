@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_atom_adios.h"
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
@@ -23,7 +24,6 @@
 #include "memory.h"
 #include "universe.h"
 #include "update.h"
-#include <cstring>
 
 #include "adios2.h"
 

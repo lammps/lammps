@@ -20,7 +20,6 @@ AngleStyle(cross,AngleCross)
 #ifndef LMP_ANGLE_CROSS_H
 #define LMP_ANGLE_CROSS_H
 
-#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {

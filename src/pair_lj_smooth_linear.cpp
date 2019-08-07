@@ -15,10 +15,9 @@
    Contributing author: Jonathan Zimmerman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_lj_smooth_linear.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

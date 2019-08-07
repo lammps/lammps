@@ -52,7 +52,6 @@
 
 #include <Kokkos_Parallel.hpp>
 
-#include <impl/Kokkos_StaticAssert.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <KokkosExp_MDRangePolicy.hpp>

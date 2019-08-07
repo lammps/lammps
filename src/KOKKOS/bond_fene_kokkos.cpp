@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "bond_fene_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_fene_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "domain.h"

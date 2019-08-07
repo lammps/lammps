@@ -11,16 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_sphere.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_sphere.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 
@@ -72,7 +70,7 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == ROTATE) extra_dof = 0;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
   // error checks
 

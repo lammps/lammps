@@ -24,7 +24,6 @@ PairStyle(meam,PairMEAMC)
 #include "pair.h"
 
 namespace LAMMPS_NS {
-class MEAM;
 
 class PairMEAMC : public Pair {
  public:

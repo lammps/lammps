@@ -31,7 +31,17 @@ PairStyle(snap/kk/host,PairSNAPKokkos<LMPHostType>)
 namespace LAMMPS_NS {
 
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSNAP{};
+struct TagPairSNAPComputeForce{};
+
+struct TagPairSNAPBeta{};
+struct TagPairSNAPComputeNeigh{};
+struct TagPairSNAPPreUi{};
+struct TagPairSNAPComputeUi{};
+struct TagPairSNAPComputeZi{};
+struct TagPairSNAPComputeBi{};
+struct TagPairSNAPComputeYi{};
+struct TagPairSNAPComputeDuidrj{};
+struct TagPairSNAPComputeDeidrj{};
 
 template<class DeviceType>
 class PairSNAPKokkos : public PairSNAP {
@@ -53,11 +63,38 @@ public:
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAP<NEIGHFLAG,EVFLAG> >::member_type& team) const;
+  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAP<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT&) const;
+  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeNeigh>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPPreUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUi>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeZi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeZi>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeBi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBi>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeYi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeYi>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeDuidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrj>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeDeidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrj>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPBeta,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPBeta>::member_type& team) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -81,8 +118,7 @@ protected:
   t_dbvec dbvec;
   SNAKokkos<DeviceType> snaKK;
 
-  // How much parallelism to use within an interaction
-  int vector_length;
+  int inum,max_neighs,chunk_offset;
 
   int eflag,vflag;
 
@@ -117,7 +153,10 @@ inline double dist2(double* x,double* y);
   Kokkos::View<F_FLOAT*, DeviceType> d_radelem;              // element radii
   Kokkos::View<F_FLOAT*, DeviceType> d_wjelem;               // elements weights
   Kokkos::View<F_FLOAT**, Kokkos::LayoutRight, DeviceType> d_coeffelem;           // element bispectrum coefficients
-  Kokkos::View<T_INT*, DeviceType> d_map;                     // mapping from atom types to elements
+  Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
+  Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
+  Kokkos::View<F_FLOAT**, DeviceType> d_beta;                // betas for all atoms in list
+  Kokkos::View<F_FLOAT**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
 
   typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;

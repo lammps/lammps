@@ -17,9 +17,9 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
+#include "pair_ufm_opt.h"
 #include <cstdlib>
 #include <cmath>
-#include "pair_ufm_opt.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"

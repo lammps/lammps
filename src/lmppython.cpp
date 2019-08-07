@@ -12,7 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "lmppython.h"
+#if LMP_PYTHON
+#include "python_impl.h"
+#else
 #include "error.h"
+#endif
 
 using namespace LAMMPS_NS;
 

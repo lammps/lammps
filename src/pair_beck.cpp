@@ -15,10 +15,9 @@
    Contributing author: Jonathan Zimmerman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_beck.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

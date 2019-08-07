@@ -18,10 +18,6 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 #include "timer.h"
 
 namespace LAMMPS_NS {

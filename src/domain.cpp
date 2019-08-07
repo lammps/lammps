@@ -15,12 +15,10 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include "domain.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "style_region.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,13 +35,11 @@
 #include "output.h"
 #include "thermo.h"
 #include "universe.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4

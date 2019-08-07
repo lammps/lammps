@@ -31,15 +31,13 @@
                        conform with pairing, updated to LAMMPS style
 ------------------------------------------------------------------------- */
 
+#include "pair_meam_spline.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_meam_spline.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

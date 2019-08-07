@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "comm.h"
 #include "rand_pool_wrap_kokkos.h"
+#include "comm.h"
 #include "lammps.h"
 #include "kokkos.h"
 #include "random_mars.h"

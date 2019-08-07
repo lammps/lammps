@@ -17,22 +17,19 @@
      and Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
+#include "dihedral_spherical.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cassert>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "pair.h"
-#include "update.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-#include "dihedral_spherical.h"
 
 using namespace std;
 using namespace LAMMPS_NS;

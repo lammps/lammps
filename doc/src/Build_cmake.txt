@@ -52,10 +52,16 @@ LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
 ccache (= Compiler Cache) software may speed up repeated compilation
 even more.
 
-After compilation, you can optionally copy the LAMMPS executable and
-library into your system folders (by default under $HOME/.local) with:
+After compilation, you may optionally install the LAMMPS executable into
+your system with:
 
 make install    # optional, copy LAMMPS executable & library elsewhere :pre
+
+This will install the lammps executable and library (if requested), some
+tools (if configured) and additional files like library API headers,
+manpages, potential and force field files. The location of the installation
+tree is set by the CMake variable "CMAKE_INSTALL_PREFIX" which defaults
+to $\{HOME\}/.local
 
 :line
 
@@ -114,7 +120,7 @@ The argument can be preceeded or followed by various CMake
 command-line options.  Several useful ones are:
 
 -D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
--D CMAKE_BUILD_TYPE=type      # type = Release or Debug
+-D CMAKE_BUILD_TYPE=type      # type = RelWithDebInfo (default), Release, MinSizeRel, or Debug
 -G output                     # style of output CMake generates
 -DVARIABLE=value              # setting for a LAMMPS feature to enable
 -D VARIABLE=value             # ditto, but cannot come after CMakeLists.txt dir

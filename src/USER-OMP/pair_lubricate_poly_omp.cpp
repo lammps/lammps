@@ -12,8 +12,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lubricate_poly_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

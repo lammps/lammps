@@ -20,7 +20,6 @@ CommandStyle(neb/spin,NEBSpin)
 #ifndef LMP_NEB_SPIN_H
 #define LMP_NEB_SPIN_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

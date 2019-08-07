@@ -18,9 +18,9 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
+#include "pair_morse_opt.h"
 #include <cmath>
 #include <cstdlib>
-#include "pair_morse_opt.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"

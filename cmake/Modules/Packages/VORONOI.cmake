@@ -18,8 +18,12 @@ if(PKG_VORONOI)
     else()
       set(VORO_BUILD_CFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
     endif()
-    string(APPEND VORO_BUILD_CFLAGS ${CMAKE_CXX_FLAGS})
-    set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
+    if(APPLE)
+      get_filename_component(VORO_CXX ${CMAKE_CXX_COMPILER} NAME_WE)
+      set(VORO_BUILD_OPTIONS CXX=${VORO_CXX} CFLAGS=${VORO_BUILD_CFLAGS})
+    else()
+      set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
+    endif()
 
     ExternalProject_Add(voro_build
       URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz

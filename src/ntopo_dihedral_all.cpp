@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ntopo_dihedral_all.h"
+#include <mpi.h>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"

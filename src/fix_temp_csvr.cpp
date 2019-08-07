@@ -16,13 +16,12 @@
    Based on code by Paolo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_temp_csvr.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "memory.h"
 #include "comm.h"
 #include "input.h"
 #include "variable.h"

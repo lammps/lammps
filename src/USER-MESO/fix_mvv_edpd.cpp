@@ -29,13 +29,11 @@
    Communications, 2015, 51: 11038-11040.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_mvv_edpd.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

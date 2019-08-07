@@ -15,9 +15,9 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
+#include "restart_mpiio.h"
 #include <mpi.h>
 #include <climits>
-#include "restart_mpiio.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

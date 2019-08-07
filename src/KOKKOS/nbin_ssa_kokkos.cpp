@@ -19,11 +19,8 @@
 #include "nbin_ssa_kokkos.h"
 #include "neighbor.h"
 #include "atom_kokkos.h"
-#include "group.h"
 #include "domain.h"
-#include "comm.h"
 #include "update.h"
-#include "error.h"
 #include "atom_masks.h"
 
 // #include "memory_kokkos.h"

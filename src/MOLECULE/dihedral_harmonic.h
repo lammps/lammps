@@ -20,7 +20,6 @@ DihedralStyle(harmonic,DihedralHarmonic)
 #ifndef LMP_DIHEDRAL_HARMONIC_H
 #define LMP_DIHEDRAL_HARMONIC_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

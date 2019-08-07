@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_hybrid.h"
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
@@ -95,6 +93,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   size_data_atom = 5;
   size_data_vel = 4;
   xcol_data = 3;
+  maxexchange = 0;
 
   for (int k = 0; k < nstyles; k++) {
     if ((styles[k]->molecular == 1 && molecular == 2) ||
@@ -120,6 +119,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     size_border += styles[k]->size_border - 6;
     size_data_atom += styles[k]->size_data_atom - 5;
     size_data_vel += styles[k]->size_data_vel - 4;
+
+    maxexchange += styles[k]->maxexchange;
   }
 
   size_velocity = 3;

@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
+#include "pair_born_coul_long_cs_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_born_coul_long_cs_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

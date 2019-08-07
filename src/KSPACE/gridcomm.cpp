@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "gridcomm.h"
-#include "comm.h"
+#include <mpi.h>
 #include "kspace.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

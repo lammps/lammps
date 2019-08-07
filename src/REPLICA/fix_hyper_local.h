@@ -21,7 +21,6 @@ FixStyle(hyper/local,FixHyperLocal)
 #define LMP_FIX_HYPER_LOCAL_H
 
 #include "fix_hyper.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 

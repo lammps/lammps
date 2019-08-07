@@ -15,11 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
+#include "reader_molfile.h"
 #include <cstdlib>
 #include <cmath>
-#include "reader_molfile.h"
-#include "atom.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"

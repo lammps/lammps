@@ -11,8 +11,6 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_rhosum.h"
 #include "atom.h"
 #include "force.h"

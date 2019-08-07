@@ -102,18 +102,20 @@ void VerletLRTIntel::setup(int flag)
   }
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
+  #if defined(__linux)
   if (comm->me == 0) {
     cpu_set_t cpuset;
     sched_getaffinity(0, sizeof(cpuset), &cpuset);
     int my_cpu_count = CPU_COUNT(&cpuset);
     if (my_cpu_count < comm->nthreads + 1) {
       char str[128];
-      sprintf(str,"Using %d threads per MPI, but only %d core(s) allocated"
-                  " per MPI",
+      sprintf(str,"Using %d threads per MPI rank, but only %d core(s)"
+                  " allocated for each MPI rank",
               comm->nthreads + 1, my_cpu_count);
       error->warning(FLERR, str);
     }
   }
+  #endif
 
   _kspace_ready = 0;
   _kspace_done = 0;

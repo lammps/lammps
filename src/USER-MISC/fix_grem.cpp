@@ -22,19 +22,14 @@
                          Tom Keyes (Boston University)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "comm.h"
 #include "fix_grem.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
-#include "input.h"
 #include "compute.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

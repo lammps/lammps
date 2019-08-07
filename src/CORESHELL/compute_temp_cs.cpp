@@ -16,11 +16,9 @@
                         (hendrik.heenen at mytum.com)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
 #include "compute_temp_cs.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -28,7 +26,6 @@
 #include "force.h"
 #include "group.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_store.h"
 #include "comm.h"
 #include "memory.h"

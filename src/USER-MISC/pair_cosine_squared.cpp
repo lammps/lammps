@@ -154,10 +154,10 @@ void PairCosineSquared::coeff(int narg, char **arg)
   }
 
   if (cut_one < sigma_one) {
-    error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff < sigma)");
+    error->all(FLERR, "Incorrect args for pair coefficients (cutoff < sigma)");
   } else if (cut_one == sigma_one) {
     if (wca_one == 0) {
-      error->all(FLERR, "Incorrect args for cosine/squared pair coeffs (cutoff = sigma w/o wca)");
+      error->all(FLERR, "Incorrect args for pair coefficients (cutoff = sigma w/o wca)");
     } else {
       error->warning(FLERR, "Cosine/squared set to WCA only (cutoff = sigma)");
     }

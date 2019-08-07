@@ -91,5 +91,10 @@ W: pair_modify shift/tail is meaningless for pair_style cosine/squared
 This style by definition gets to zero at cutoff distance, so there is nothing
 to shift and there is no tail contribution
 
+W: Cosine/squared set to WCA only (cutoff = sigma)
+
+If cutoff is equal to sigma (minimum) then this pair style basically
+degenerates/reverts to only WCA. This is for convenience.
+
 */
 

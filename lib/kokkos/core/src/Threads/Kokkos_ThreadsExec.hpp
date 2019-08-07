@@ -649,8 +649,12 @@ inline bool Threads::wake()
 { return Impl::ThreadsExec::wake() ; }
 #endif
 
+inline void Threads::impl_static_fence()
+{ Impl::ThreadsExec::fence() ; }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 inline void Threads::fence()
 { Impl::ThreadsExec::fence() ; }
+#endif
 
 } /* namespace Kokkos */
 

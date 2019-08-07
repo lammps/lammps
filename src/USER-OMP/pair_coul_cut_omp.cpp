@@ -12,13 +12,13 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_coul_cut_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -36,9 +36,7 @@ PairCoulCutOMP::PairCoulCutOMP(LAMMPS *lmp) :
 
 void PairCoulCutOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

@@ -211,13 +211,13 @@ T AddLoop( int loop ) {
   f_zero.data = data;
 
   Kokkos::parallel_for( 1, f_zero );
-  execution_space::fence();
+  execution_space().fence();
 
   struct AddFunctor< T, execution_space > f_add;
 
   f_add.data = data;
   Kokkos::parallel_for( loop, f_add );
-  execution_space::fence();
+  execution_space().fence();
 
   Kokkos::deep_copy( h_data, data );
   T val = h_data();
@@ -226,7 +226,7 @@ T AddLoop( int loop ) {
   f_add_red.data = data;
   int dummy_result;
   Kokkos::parallel_reduce( loop, f_add_red , dummy_result );
-  execution_space::fence();
+  execution_space().fence();
 
   return val;
 }
@@ -298,12 +298,12 @@ T CASLoop( int loop ) {
 
   f_zero.data = data;
   Kokkos::parallel_for( 1, f_zero );
-  execution_space::fence();
+  execution_space().fence();
 
   struct CASFunctor< T, execution_space > f_cas;
   f_cas.data = data;
   Kokkos::parallel_for( loop, f_cas );
-  execution_space::fence();
+  execution_space().fence();
 
   Kokkos::deep_copy( h_data, data );
   T val = h_data();
@@ -312,7 +312,7 @@ T CASLoop( int loop ) {
   f_cas_red.data = data;
   int dummy_result;
   Kokkos::parallel_reduce( loop, f_cas_red , dummy_result );
-  execution_space::fence();
+  execution_space().fence();
 
   return val;
 }
@@ -381,20 +381,20 @@ T ExchLoop( int loop ) {
 
   f_zero.data = data;
   Kokkos::parallel_for( 1, f_zero );
-  execution_space::fence();
+  execution_space().fence();
 
   typename ZeroFunctor< T, execution_space >::type data2( "Data" );
   typename ZeroFunctor< T, execution_space >::h_type h_data2( "HData" );
 
   f_zero.data = data2;
   Kokkos::parallel_for( 1, f_zero );
-  execution_space::fence();
+  execution_space().fence();
 
   struct ExchFunctor< T, execution_space > f_exch;
   f_exch.data = data;
   f_exch.data2 = data2;
   Kokkos::parallel_for( loop, f_exch );
-  execution_space::fence();
+  execution_space().fence();
 
   Kokkos::deep_copy( h_data, data );
   Kokkos::deep_copy( h_data2, data2 );
@@ -405,7 +405,7 @@ T ExchLoop( int loop ) {
   f_exch_red.data2 = data2;
   int dummy_result;
   Kokkos::parallel_reduce( loop, f_exch_red , dummy_result );
-  execution_space::fence();
+  execution_space().fence();
 
   return val;
 }

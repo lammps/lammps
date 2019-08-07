@@ -62,7 +62,7 @@ results at a specified lower temperature.  A good overview of
 accelerated dynamics methods for such systems is given in "this review
 paper"_#Voter2002 from the same group. In general, these methods assume
 that the long-time dynamics is dominated by infrequent events i.e. the
-system is is confined to low energy basins for long periods,
+system is confined to low energy basins for long periods,
 punctuated by brief, randomly-occurring transitions to adjacent
 basins.  TAD is suitable for infrequent-event systems, where in
 addition, the transition kinetics are well-approximated by harmonic

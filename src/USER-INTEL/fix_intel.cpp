@@ -34,10 +34,6 @@
 #include <cstdio>
 #include <cmath>
 
-#ifdef LAMMPS_BIGBIG
-#error "The USER-INTEL package is not compatible with -DLAMMPS_BIGBIG"
-#endif
-
 #ifdef _LMP_INTEL_OFFLOAD
 #ifndef INTEL_OFFLOAD_NOAFFINITY
 #include <unistd.h>
@@ -356,15 +352,15 @@ void FixIntel::init()
   if (_offload_balance != 0.0) off_mode = 1;
   if (_precision_mode == PREC_MODE_SINGLE) {
     _single_buffers->zero_ev();
-    _single_buffers->grow_ncache(off_mode,_nthreads);
+    _single_buffers->grow_ncache(off_mode, comm->nthreads);
     _single_buffers->free_list_ptrs();
   } else if (_precision_mode == PREC_MODE_MIXED) {
     _mixed_buffers->zero_ev();
-    _mixed_buffers->grow_ncache(off_mode,_nthreads);
+    _mixed_buffers->grow_ncache(off_mode, comm->nthreads);
     _mixed_buffers->free_list_ptrs();
   } else {
     _double_buffers->zero_ev();
-    _double_buffers->grow_ncache(off_mode,_nthreads);
+    _double_buffers->grow_ncache(off_mode, comm->nthreads);
     _double_buffers->free_list_ptrs();
   }
 
@@ -378,13 +374,13 @@ void FixIntel::setup(int vflag)
   if (neighbor->style != Neighbor::BIN)
     error->all(FLERR,
             "Currently, neighbor style BIN must be used with Intel package.");
-  if (neighbor->exclude_setting() != 0)
-    error->all(FLERR,
-            "Currently, cannot use neigh_modify exclude with Intel package.");
-  if (vflag_atom)
+  if (vflag > 3)
    error->all(FLERR,
                "Cannot currently get per-atom virials with Intel package.");
   #ifdef _LMP_INTEL_OFFLOAD
+  if (neighbor->exclude_setting() != 0)
+    error->all(FLERR,
+     "Currently, cannot use neigh_modify exclude with Intel package offload.");
   post_force(vflag);
   #endif
 }

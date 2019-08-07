@@ -26,13 +26,16 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "reaxc_valence_angles_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "pair_reaxc_omp.h"
-#include "thr_data.h"
+#include "fix_omp.h"
+#include "error.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_valence_angles.h"
-#include "reaxc_valence_angles_omp.h"
-#include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
@@ -237,12 +240,12 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
       // Confirm that thb_intrs->num_intrs / nthreads is enough to hold all angles from a single atom
       if(my_offset >= (tid+1)*per_thread) {
-        int me;
-        MPI_Comm_rank(MPI_COMM_WORLD,&me);
-        fprintf( stderr, "step%d-ran out of space on angle_list on proc %i for atom %i:", data->step, me, j);
-        fprintf( stderr, " nthreads= %d, tid=%d, my_offset=%d, per_thread=%d\n", nthreads, tid, my_offset, per_thread);
-        fprintf( stderr, " num_intrs= %i  N= %i\n",thb_intrs->num_intrs , system->N);
-        MPI_Abort( MPI_COMM_WORLD, INSUFFICIENT_MEMORY );
+        char errmsg[512];
+        snprintf( errmsg, 512, "step%d-ran out of space on angle_list for atom %i:\n"
+        " nthreads= %d, tid=%d, my_offset=%d, per_thread=%d\n"
+        " num_intrs= %i  N= %i\n"
+        , data->step, j, nthreads, tid, my_offset, per_thread,thb_intrs->num_intrs , system->N);
+        control->error_ptr->one(FLERR, errmsg);
       }
 
       // Number of angles owned by this atom
@@ -601,9 +604,10 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   if (num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE) {
     workspace->realloc.num_3body = num_thb_intrs * TWICE;
     if (num_thb_intrs > thb_intrs->num_intrs) {
-      fprintf( stderr, "step%d-ran out of space on angle_list: top=%d, max=%d",
-               data->step, num_thb_intrs, thb_intrs->num_intrs );
-      MPI_Abort( MPI_COMM_WORLD, INSUFFICIENT_MEMORY );
+      char errmsg[128];
+      snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
+               data->step, num_thb_intrs, thb_intrs->num_intrs);
+      control->error_ptr->one(FLERR, errmsg);
     }
   }
 

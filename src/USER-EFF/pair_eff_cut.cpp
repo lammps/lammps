@@ -15,8 +15,8 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "pair_eff_cut.h"
@@ -31,7 +31,6 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "atom_vec_electron.h"
 
 using namespace LAMMPS_NS;
 
@@ -81,8 +80,7 @@ void PairEffCut::compute(int eflag, int vflag)
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (i=0; i<4; i++) pvector[i] = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

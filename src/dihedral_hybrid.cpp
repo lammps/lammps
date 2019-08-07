@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "dihedral_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "dihedral_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -104,8 +103,7 @@ void DihedralHybrid::compute(int eflag, int vflag)
   // set neighbor->dihedrallist to sub-style dihedrallist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->ndihedrallist = ndihedrallist[m];
@@ -310,6 +308,7 @@ void DihedralHybrid::write_restart(FILE *fp)
     n = strlen(keywords[m]) + 1;
     fwrite(&n,sizeof(int),1,fp);
     fwrite(keywords[m],sizeof(char),n,fp);
+    styles[m]->write_restart_settings(fp);
   }
 }
 
@@ -335,6 +334,7 @@ void DihedralHybrid::read_restart(FILE *fp)
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_dihedral(keywords[m],0,dummy);
+    styles[m]->read_restart_settings(fp);
   }
 }
 

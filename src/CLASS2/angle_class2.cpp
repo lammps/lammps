@@ -15,10 +15,10 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "angle_class2.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "angle_class2.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -78,8 +78,7 @@ void AngleClass2::compute(int eflag, int vflag)
   double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

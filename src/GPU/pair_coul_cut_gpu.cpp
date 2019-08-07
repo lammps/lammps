@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_cut_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_cut_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -85,8 +85,7 @@ PairCoulCutGPU::~PairCoulCutGPU()
 
 void PairCoulCutGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;

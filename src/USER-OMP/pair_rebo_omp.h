@@ -28,6 +28,8 @@ class PairREBOOMP : public PairAIREBOOMP {
  public:
   PairREBOOMP(class LAMMPS *);
   virtual void settings(int, char **);
+ protected:
+  void spline_init();
 };
 
 }

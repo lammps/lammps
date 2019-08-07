@@ -99,7 +99,7 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 
   copymode = 0;
 
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+  maxexchange = (dnum+1)*maxpartner+1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -329,7 +329,7 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixNeighHistoryKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNeighHistoryKokkos<LMPHostType>;
 #endif
 }

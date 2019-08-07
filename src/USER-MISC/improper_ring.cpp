@@ -36,16 +36,13 @@
                   of j.
 ------------------------------------------------------------------------- */
 
+#include "improper_ring.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_ring.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -95,8 +92,7 @@ void ImproperRing::compute(int eflag, int vflag)
    double   cjiji, ckjji, ckjkj, fix, fiy, fiz, fjx, fjy, fjz, fkx, fky, fkz;
 
    eimproper = 0.0;
-   if (eflag || vflag) ev_setup(eflag,vflag);
-   else evflag = 0;
+   ev_init(eflag,vflag);
 
    /* References to simulation data. */
    double **x = atom->x;

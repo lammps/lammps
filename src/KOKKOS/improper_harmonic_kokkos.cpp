@@ -15,23 +15,17 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
 #include "improper_harmonic_kokkos.h"
+#include <cmath>
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -71,8 +65,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -484,7 +477,7 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
 namespace LAMMPS_NS {
 template class ImproperHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class ImproperHarmonicKokkos<LMPHostType>;
 #endif
 }

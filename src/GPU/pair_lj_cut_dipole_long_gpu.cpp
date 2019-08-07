@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_dipole_long_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_dipole_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -100,8 +100,7 @@ PairLJCutDipoleLongGPU::~PairLJCutDipoleLongGPU()
 
 void PairLJCutDipoleLongGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -228,8 +227,7 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
   int *jlist;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

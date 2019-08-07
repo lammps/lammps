@@ -11,7 +11,6 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
 #include <algorithm>
 
 // used to set the absolute path of a replica file
@@ -38,7 +37,8 @@ colvarbias_meta::colvarbias_meta(char const *key)
 {
   new_hills_begin = hills.end();
   hills_traj_os = NULL;
-  replica_hills_os = NULL;
+
+  ebmeta_equil_steps = 0L;
 }
 
 
@@ -61,7 +61,7 @@ int colvarbias_meta::init(std::string const &conf)
     enable(f_cvb_history_dependent);
   }
 
-  get_keyval(conf, "hillWidth", hill_width, std::sqrt(2.0 * PI) / 2.0);
+  get_keyval(conf, "hillWidth", hill_width, cvm::sqrt(2.0 * PI) / 2.0);
   cvm::log("Half-widths of the Gaussian hills (sigma's):\n");
   for (size_t i = 0; i < num_variables(); i++) {
     cvm::log(variables(i)->name+std::string(": ")+
@@ -201,29 +201,44 @@ int colvarbias_meta::init_ebmeta_params(std::string const &conf)
     }
     target_dist = new colvar_grid_scalar();
     target_dist->init_from_colvars(colvars);
-    get_keyval(conf, "targetdistfile", target_dist_file);
+    std::string target_dist_file;
+    get_keyval(conf, "targetDistFile", target_dist_file);
     std::ifstream targetdiststream(target_dist_file.c_str());
     target_dist->read_multicol(targetdiststream);
     cvm::real min_val = target_dist->minimum_value();
+    cvm::real max_val = target_dist->maximum_value();
     if(min_val<0){
-      cvm::error("Error: Target distribution of ebMeta "
+      cvm::error("Error: Target distribution of EBMetaD "
                  "has negative values!.\n", INPUT_ERROR);
     }
-    cvm::real min_pos_val = target_dist->minimum_pos_value();
-    if(min_pos_val<=0){
-      cvm::error("Error: Target distribution of ebMeta has negative "
-                 "or zero minimum positive value!.\n", INPUT_ERROR);
-    }
-    if(min_val==0){
-      cvm::log("WARNING: Target distribution has zero values.\n");
-      cvm::log("Zeros will be converted to the minimum positive value.\n");
-      target_dist->remove_zeros(min_pos_val);
+    cvm::real target_dist_min_val;
+    get_keyval(conf, "targetDistMinVal", target_dist_min_val, 1/1000000.0);
+    if(target_dist_min_val>0 && target_dist_min_val<1){
+      target_dist_min_val=max_val*target_dist_min_val;
+      target_dist->remove_small_values(target_dist_min_val);
+    } else {
+      if (target_dist_min_val==0) {
+        cvm::log("NOTE: targetDistMinVal is set to zero, the minimum value of the target \n");
+        cvm::log(" distribution will be set as the minimum positive value.\n");
+        cvm::real min_pos_val = target_dist->minimum_pos_value();
+        if(min_pos_val<=0){
+          cvm::error("Error: Target distribution of EBMetaD has negative "
+                     "or zero minimum positive value!.\n", INPUT_ERROR);
+        }
+        if(min_val==0){
+          cvm::log("WARNING: Target distribution has zero values.\n");
+          cvm::log("Zeros will be converted to the minimum positive value.\n");
+          target_dist->remove_small_values(min_pos_val);
+        }
+      } else {
+          cvm::error("Error: targetDistMinVal must be a value between 0 and 1!.\n", INPUT_ERROR);
+      }
     }
     // normalize target distribution and multiply by effective volume = exp(differential entropy)
     target_dist->multiply_constant(1.0/target_dist->integral());
-    cvm::real volume = std::exp(target_dist->entropy());
+    cvm::real volume = cvm::exp(target_dist->entropy());
     target_dist->multiply_constant(volume);
-    get_keyval(conf, "ebMetaEquilSteps", ebmeta_equil_steps, 0);
+    get_keyval(conf, "ebMetaEquilSteps", ebmeta_equil_steps, ebmeta_equil_steps);
   }
 
   return COLVARS_OK;
@@ -233,14 +248,14 @@ int colvarbias_meta::init_ebmeta_params(std::string const &conf)
 colvarbias_meta::~colvarbias_meta()
 {
   colvarbias_meta::clear_state_data();
+  colvarproxy *proxy = cvm::proxy;
 
-  if (replica_hills_os) {
-    cvm::proxy->close_output_stream(replica_hills_file);
-    replica_hills_os = NULL;
+  if (proxy->get_output_stream(replica_hills_file)) {
+    proxy->close_output_stream(replica_hills_file);
   }
 
   if (hills_traj_os) {
-    cvm::proxy->close_output_stream(hills_traj_file_name());
+    proxy->close_output_stream(hills_traj_file_name());
     hills_traj_os = NULL;
   }
 
@@ -291,7 +306,7 @@ colvarbias_meta::create_hill(colvarbias_meta::hill const &h)
     // need to be computed analytically when the colvar returns
     // off-grid
     cvm::real const min_dist = hills_energy->bin_distance_from_boundaries(h.centers, true);
-    if (min_dist < (3.0 * std::floor(hill_width)) + 1.0) {
+    if (min_dist < (3.0 * cvm::floor(hill_width)) + 1.0) {
       hills_off_grid.push_back(h);
     }
   }
@@ -387,7 +402,7 @@ int colvarbias_meta::update_grid_params()
       // first of all, expand the grids, if specified
       bool changed_grids = false;
       int const min_buffer =
-        (3 * (size_t) std::floor(hill_width)) + 1;
+        (3 * (size_t) cvm::floor(hill_width)) + 1;
 
       std::vector<int>         new_sizes(hills_energy->sizes());
       std::vector<colvarvalue> new_lower_boundaries(hills_energy->lower_boundaries);
@@ -492,9 +507,9 @@ int colvarbias_meta::update_bias()
 
     if (ebmeta) {
       hills_scale *= 1.0/target_dist->value(target_dist->get_colvars_index());
-      if(cvm::step_absolute() <= long(ebmeta_equil_steps)) {
+      if(cvm::step_absolute() <= ebmeta_equil_steps) {
         cvm::real const hills_lambda =
-          (cvm::real(long(ebmeta_equil_steps) - cvm::step_absolute())) /
+          (cvm::real(ebmeta_equil_steps - cvm::step_absolute())) /
           (cvm::real(ebmeta_equil_steps));
         hills_scale = hills_lambda + (1-hills_lambda)*hills_scale;
       }
@@ -508,7 +523,7 @@ int colvarbias_meta::update_bias()
       } else {
         calc_hills(new_hills_begin, hills.end(), hills_energy_sum_here);
       }
-      hills_scale *= std::exp(-1.0*hills_energy_sum_here/(bias_temperature*cvm::boltzmann()));
+      hills_scale *= cvm::exp(-1.0*hills_energy_sum_here/(bias_temperature*cvm::boltzmann()));
     }
 
     switch (comm) {
@@ -521,6 +536,8 @@ int colvarbias_meta::update_bias()
 
     case multiple_replicas:
       create_hill(hill(hill_weight*hills_scale, colvars, hill_width, replica_id));
+      std::ostream *replica_hills_os =
+        cvm::proxy->get_output_stream(replica_hills_file);
       if (replica_hills_os) {
         *replica_hills_os << hills.back();
       } else {
@@ -710,7 +727,7 @@ void colvarbias_meta::calc_hills(colvarbias_meta::hill_iter      h_first,
       // set it to zero if the exponent is more negative than log(1.0E-05)
       h->value(0.0);
     } else {
-      h->value(std::exp(-0.5*cv_sqdev));
+      h->value(cvm::exp(-0.5*cv_sqdev));
     }
     energy += h->energy();
   }
@@ -904,7 +921,7 @@ void colvarbias_meta::recount_hills_off_grid(colvarbias_meta::hill_iter  h_first
 
   for (hill_iter h = h_first; h != h_last; h++) {
     cvm::real const min_dist = hills_energy->bin_distance_from_boundaries(h->centers, true);
-    if (min_dist < (3.0 * std::floor(hill_width)) + 1.0) {
+    if (min_dist < (3.0 * cvm::floor(hill_width)) + 1.0) {
       hills_off_grid.push_back(*h);
     }
   }
@@ -919,13 +936,16 @@ void colvarbias_meta::recount_hills_off_grid(colvarbias_meta::hill_iter  h_first
 
 int colvarbias_meta::replica_share()
 {
+  colvarproxy *proxy = cvm::proxy;
   // sync with the other replicas (if needed)
   if (comm == multiple_replicas) {
     // reread the replicas registry
     update_replicas_registry();
     // empty the output buffer
+    std::ostream *replica_hills_os =
+      proxy->get_output_stream(replica_hills_file);
     if (replica_hills_os) {
-      cvm::proxy->flush_output_stream(replica_hills_os);
+      proxy->flush_output_stream(replica_hills_os);
     }
     read_replica_files();
   }
@@ -1087,11 +1107,7 @@ void colvarbias_meta::read_replica_files()
                (replicas[ir])->replica_state_file+"\".\n");
 
       std::ifstream is((replicas[ir])->replica_state_file.c_str());
-      if (! (replicas[ir])->read_state(is)) {
-        cvm::log("Reading from file \""+(replicas[ir])->replica_state_file+
-                 "\" failed or incomplete: will try again in "+
-                 cvm::to_str(replica_update_freq)+" steps.\n");
-      } else {
+      if ((replicas[ir])->read_state(is)) {
         // state file has been read successfully
         (replicas[ir])->replica_state_file_in_sync = true;
         (replicas[ir])->update_status = 0;
@@ -1427,8 +1443,8 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
     return is;
   }
 
-  size_t h_it;
-  get_keyval(data, "step", h_it, 0, parse_silent);
+  cvm::step_number h_it;
+  get_keyval(data, "step", h_it, 0L, parse_silent);
   if (h_it <= state_file_step) {
     if (cvm::debug())
       cvm::log("Skipping a hill older than the state file for metadynamics bias \""+
@@ -1457,7 +1473,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
 
   std::vector<cvm::real> h_widths(num_variables());
   get_keyval(data, "widths", h_widths,
-             std::vector<cvm::real>(num_variables(), (std::sqrt(2.0 * PI) / 2.0)),
+             std::vector<cvm::real>(num_variables(), (cvm::sqrt(2.0 * PI) / 2.0)),
              parse_silent);
 
   std::string h_replica = "";
@@ -1482,7 +1498,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
     // be computed analytically
     cvm::real const min_dist =
       hills_energy->bin_distance_from_boundaries((hills.back()).centers, true);
-    if (min_dist < (3.0 * std::floor(hill_width)) + 1.0) {
+    if (min_dist < (3.0 * cvm::floor(hill_width)) + 1.0) {
       hills_off_grid.push_back(hills.back());
     }
   }
@@ -1548,15 +1564,11 @@ int colvarbias_meta::setup_output()
     // for the others to read
 
     // open the "hills" buffer file
-    if (!replica_hills_os) {
-      cvm::proxy->backup_file(replica_hills_file);
-      replica_hills_os = cvm::proxy->output_stream(replica_hills_file);
-      if (!replica_hills_os) return cvm::get_error();
-      replica_hills_os->setf(std::ios::scientific, std::ios::floatfield);
-    }
+    reopen_replica_buffer_file();
 
     // write the state file (so that there is always one available)
     write_replica_state_file();
+
     // schedule to read the state files of the other replicas
     for (size_t ir = 0; ir < replicas.size(); ir++) {
       (replicas[ir])->replica_state_file_in_sync = false;
@@ -1659,15 +1671,16 @@ std::ostream & colvarbias_meta::write_state_data(std::ostream& os)
 
 int colvarbias_meta::write_state_to_replicas()
 {
+  int error_code = COLVARS_OK;
   if (comm != single_replica) {
-    write_replica_state_file();
-    // schedule to reread the state files of the other replicas (they
-    // have also rewritten them)
+    error_code |= write_replica_state_file();
+    error_code |= reopen_replica_buffer_file();
+    // schedule to reread the state files of the other replicas
     for (size_t ir = 0; ir < replicas.size(); ir++) {
       (replicas[ir])->replica_state_file_in_sync = false;
     }
   }
-  return COLVARS_OK;
+  return error_code;
 }
 
 
@@ -1691,6 +1704,20 @@ void colvarbias_meta::write_pmf()
     // output the PMF from this instance or replica
     pmf->reset();
     pmf->add_grid(*hills_energy);
+
+    if (ebmeta) {
+      int nt_points=pmf->number_of_points();
+      for (int i = 0; i < nt_points; i++) {
+         cvm:: real pmf_val=0.0;
+         cvm:: real target_val=target_dist->value(i);
+         if (target_val>0) {
+           pmf_val=pmf->value(i);
+           pmf_val=pmf_val+cvm::temperature() * cvm::boltzmann() * std::log(target_val);
+         }
+         pmf->set_value(i,pmf_val);
+      }
+    }
+
     cvm::real const max = pmf->maximum_value();
     pmf->add_constant(-1.0 * max);
     pmf->multiply_constant(-1.0);
@@ -1714,10 +1741,24 @@ void colvarbias_meta::write_pmf()
   if (comm != single_replica) {
     // output the combined PMF from all replicas
     pmf->reset();
-    pmf->add_grid(*hills_energy);
+    // current replica already included in the pools of replicas
     for (size_t ir = 0; ir < replicas.size(); ir++) {
       pmf->add_grid(*(replicas[ir]->hills_energy));
     }
+
+    if (ebmeta) {
+      int nt_points=pmf->number_of_points();
+      for (int i = 0; i < nt_points; i++) {
+         cvm:: real pmf_val=0.0;
+         cvm:: real target_val=target_dist->value(i);
+         if (target_val>0) {
+           pmf_val=pmf->value(i);
+           pmf_val=pmf_val+cvm::temperature() * cvm::boltzmann() * std::log(target_val);
+         }
+         pmf->set_value(i,pmf_val);
+      }
+    }
+
     cvm::real const max = pmf->maximum_value();
     pmf->add_constant(-1.0 * max);
     pmf->multiply_constant(-1.0);
@@ -1742,74 +1783,47 @@ void colvarbias_meta::write_pmf()
 
 int colvarbias_meta::write_replica_state_file()
 {
+  colvarproxy *proxy = cvm::proxy;
+
   if (cvm::debug()) {
     cvm::log("Writing replica state file for bias \""+name+"\"\n");
   }
-  // write down also the restart for the other replicas
-  cvm::backup_file(replica_state_file.c_str());
-  std::ostream *rep_state_os = cvm::proxy->output_stream(replica_state_file);
-  if (rep_state_os == NULL) {
-    cvm::error("Error: in opening file \""+
-               replica_state_file+"\" for writing.\n", FILE_ERROR);
-    return FILE_ERROR;
+
+  int error_code = COLVARS_OK;
+
+  // Write to temporary state file
+  std::string const tmp_state_file(replica_state_file+".tmp");
+  error_code |= proxy->remove_file(tmp_state_file);
+  std::ostream *rep_state_os = cvm::proxy->output_stream(tmp_state_file);
+  if (rep_state_os) {
+    if (!write_state(*rep_state_os)) {
+      error_code |= cvm::error("Error: in writing to temporary file \""+
+                               tmp_state_file+"\".\n", FILE_ERROR);
+    }
   }
+  error_code |= proxy->close_output_stream(tmp_state_file);
 
-  rep_state_os->setf(std::ios::scientific, std::ios::floatfield);
+  error_code |= proxy->rename_file(tmp_state_file, replica_state_file);
 
-  if (!write_state(*rep_state_os)) {
-    cvm::error("Error: in writing to file \""+
-               replica_state_file+"\".\n", FILE_ERROR);
-    cvm::proxy->close_output_stream(replica_state_file);
-    return FILE_ERROR;
+  return error_code;
+}
+
+
+int colvarbias_meta::reopen_replica_buffer_file()
+{
+  int error_code = COLVARS_OK;
+  colvarproxy *proxy = cvm::proxy;
+  if (proxy->get_output_stream(replica_hills_file) != NULL) {
+    error_code |= proxy->close_output_stream(replica_hills_file);
   }
-
-  cvm::proxy->close_output_stream(replica_state_file);
-
-  // rep_state_os.setf(std::ios::scientific, std::ios::floatfield);
-  // rep_state_os << "\n"
-  //              << "metadynamics {\n"
-  //              << "  configuration {\n"
-  //              << "    name " << this->name << "\n"
-  //              << "    step " << cvm::step_absolute() << "\n";
-  // if (this->comm != single_replica) {
-  //   rep_state_os << "    replicaID " << this->replica_id << "\n";
-  // }
-  // rep_state_os << "  }\n\n";
-  // rep_state_os << "  hills_energy\n";
-  // rep_state_os << std::setprecision(cvm::cv_prec)
-  //              << std::setw(cvm::cv_width);
-  // hills_energy->write_restart(rep_state_os);
-  // rep_state_os << "  hills_energy_gradients\n";
-  // rep_state_os << std::setprecision(cvm::cv_prec)
-  //              << std::setw(cvm::cv_width);
-  // hills_energy_gradients->write_restart(rep_state_os);
-
-  // if ( (!use_grids) || keep_hills ) {
-  //   // write all hills currently in memory
-  //   for (std::list<hill>::const_iterator h = this->hills.begin();
-  //        h != this->hills.end();
-  //        h++) {
-  //     rep_state_os << *h;
-  //   }
-  // } else {
-  //   // write just those that are near the grid boundaries
-  //   for (std::list<hill>::const_iterator h = this->hills_off_grid.begin();
-  //        h != this->hills_off_grid.end();
-  //        h++) {
-  //     rep_state_os << *h;
-  //   }
-  // }
-  // rep_state_os << "}\n\n";
-  // rep_state_os.close();
-
-  // reopen the hills file
-  cvm::proxy->close_output_stream(replica_hills_file);
-  cvm::proxy->backup_file(replica_hills_file);
-  replica_hills_os = cvm::proxy->output_stream(replica_hills_file);
-  if (!replica_hills_os) return cvm::get_error();
-  replica_hills_os->setf(std::ios::scientific, std::ios::floatfield);
-
-  return COLVARS_OK;
+  error_code |= proxy->remove_file(replica_hills_file);
+  std::ostream *replica_hills_os = proxy->output_stream(replica_hills_file);
+  if (replica_hills_os) {
+    replica_hills_os->setf(std::ios::scientific, std::ios::floatfield);
+  } else {
+    error_code |= FILE_ERROR;
+  }
+  return error_code;
 }
 
 
@@ -1881,5 +1895,3 @@ std::ostream & operator << (std::ostream &os, colvarbias_meta::hill const &h)
 
   return os;
 }
-
-

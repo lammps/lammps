@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_improper.h"
+#include <mpi.h>
 #include "update.h"
 #include "force.h"
+#include "improper.h"
 #include "improper_hybrid.h"
 #include "error.h"
 

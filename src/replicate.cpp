@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "replicate.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "force.h"
 #include "domain.h"
 #include "comm.h"
@@ -76,7 +75,7 @@ void Replicate::command(int narg, char **arg)
   if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store atom quantities");
 
-  // Record wall time for atom replication
+  // record wall time for atom replication
 
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
@@ -762,15 +761,15 @@ void Replicate::command(int narg, char **arg)
     special.build();
   }
 
-  // Wall time
+  // total time
 
   MPI_Barrier(world);
   double time2 = MPI_Wtime();
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
+      fprintf(screen,"  replicate CPU = %g secs\n",time2-time1);
     if (logfile)
-      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
+      fprintf(logfile,"  replicate CPU = %g secs\n",time2-time1);
   }
 }

@@ -95,7 +95,7 @@ function(set_kokkos_cxx_compiler)
         message(FATAL_ERROR "Compiling CUDA code directly with Clang requires version 4.0.0 or higher.")
       endif()
     elseif(NOT INTERNAL_CXX_COMPILER_ID STREQUAL NVIDIA)
-      message(FATAL_ERROR "Invalid compiler for CUDA.  The compiler must be nvcc_wrapper or Clang.")
+      message(FATAL_ERROR "Invalid compiler for CUDA.  The compiler must be nvcc_wrapper or Clang, but compiler ID was ${INTERNAL_CXX_COMPILER_ID}")
     endif()
   endif()
 

@@ -40,3 +40,5 @@ fi
 
 action fix_phonon.cpp fft3d_wrap.h
 action fix_phonon.h fft3d_wrap.h
+action dynamical_matrix.cpp
+action dynamical_matrix.h

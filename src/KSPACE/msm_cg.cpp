@@ -15,10 +15,9 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "msm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "gridcomm.h"
@@ -27,12 +26,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "msm_cg.h"
-
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define OFFSET 16384
 #define SMALLQ 0.00001
@@ -90,9 +85,7 @@ void MSMCG::compute(int eflag, int vflag)
 
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-    eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
+  ev_init(eflag,vflag);
 
   // invoke allocate_peratom() if needed for first time
 

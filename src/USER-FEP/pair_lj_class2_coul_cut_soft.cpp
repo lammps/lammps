@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_class2_coul_cut_soft.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -39,24 +38,24 @@ PairLJClass2CoulCutSoft::PairLJClass2CoulCutSoft(LAMMPS *lmp) : Pair(lmp)
 
 PairLJClass2CoulCutSoft::~PairLJClass2CoulCutSoft()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(cut_coul);
-      memory->destroy(cut_coulsq);
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(lambda);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lambda);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
 }
 
@@ -72,8 +71,7 @@ void PairLJClass2CoulCutSoft::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

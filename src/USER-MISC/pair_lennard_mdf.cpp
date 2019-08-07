@@ -16,15 +16,13 @@
    Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lennard_mdf.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -65,8 +63,7 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -252,13 +249,7 @@ void PairLJ_AB_MDF::coeff(int narg, char **arg)
 
 double PairLJ_AB_MDF::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-    aparm[i][j] = mix_energy(aparm[i][i],aparm[j][j],
-                               bparm[i][i],bparm[j][j]);
-    bparm[i][j] = mix_distance(bparm[i][i],bparm[j][j]);
-    cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-  }
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
 

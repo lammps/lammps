@@ -15,14 +15,12 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "improper_umbrella.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_umbrella.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "math_const.h"
@@ -65,8 +63,7 @@ void ImproperUmbrella::compute(int eflag, int vflag)
   double ax,ay,az,ra2,rh2,ra,rh,rar,rhr,arx,ary,arz,hrx,hry,hrz;
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

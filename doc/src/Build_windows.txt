@@ -51,11 +51,10 @@ provides a unix/linux interface to low-level Windows functions, so LAMMPS
 can be compiled on Windows. The necessary (minor) modifications to LAMMPS
 are included, but may not always up-to-date for recently added functionality
 and the corresponding new code. A machine makefile for using cygwin for
-the old build system is provided. The CMake build system is untested
-for this; you will have to request that makefiles are generated and
-manually set the compiler.
+the old build system is provided. Using CMake for this mode of compilation
+is untested and not likely to work.
 
-When compiling for Windows [not] set the -DLAMMPS_MEMALIGN define
+When compiling for Windows do [not] set the -DLAMMPS_MEMALIGN define
 in the LMP_INC makefile variable and add -lwsock32 -lpsapi to the linker
 flags in LIB makefile variable. Try adding -static-libgcc or -static or
 both to the linker flags when your resulting LAMMPS Windows executable
@@ -79,7 +78,13 @@ probably the currently best tested and supported way to build LAMMPS
 executables for Windows.  There are makefiles provided for the
 traditional build system, but CMake has also been successfully tested
 using the mingw32-cmake and mingw64-cmake wrappers that are bundled
-with the cross-compiler environment on Fedora machines.
+with the cross-compiler environment on Fedora machines. A CMake preset
+selecting all packages compatible with this cross-compilation build
+is provided. You likely need to disable the GPU package unless you
+download and install the contents of the pre-compiled "OpenCL ICD loader
+library"_https://download.lammps.org/thirdparty/opencl-win-devel.tar.gz
+into your MinGW64 cross-compiler environment. The cross-compilation
+currently will only produce non-MPI serial binaries.
 
 Please keep in mind, though, that this only applies to compiling LAMMPS.
 Whether the resulting binaries do work correctly is no tested by the

@@ -16,15 +16,13 @@
    Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_mdf.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -33,7 +31,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,8 +65,7 @@ void PairLJMDF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -348,6 +347,29 @@ void PairLJMDF::read_restart_settings(FILE *fp)
     fread(&mix_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLJMDF::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJMDF::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",
+              i,j,epsilon[i][j],sigma[i][j],
+              cut_inner[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

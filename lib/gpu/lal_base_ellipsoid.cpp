@@ -15,7 +15,7 @@
 
 #include "lal_base_ellipsoid.h"
 #include <cstdlib>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #if defined(USE_OPENCL)
 #include "ellipsoid_nbor_cl.h"
@@ -71,12 +71,15 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  int success=device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,true,
-                           1);
+  int success=device->init(*ans,false,true,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,true,1);
+  if (success!=0)
+    return success;
+  
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -485,4 +488,4 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 }
 
 template class BaseEllipsoid<PRECISION,ACC_PRECISION>;
-
+}

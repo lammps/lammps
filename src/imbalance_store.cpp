@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "imbalance_store.h"
+#include <cstring>
 #include "atom.h"
-#include "input.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

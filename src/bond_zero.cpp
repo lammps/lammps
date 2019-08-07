@@ -15,10 +15,9 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_zero.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -45,8 +44,7 @@ BondZero::~BondZero()
 
 void BondZero::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -16,11 +16,10 @@
                          Aidan Thompson (SNL) GJF formulation
 ------------------------------------------------------------------------- */
 
+#include "fix_langevin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_langevin.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -28,8 +27,6 @@
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "input.h"
@@ -177,8 +174,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (tallyflag && zeroflag && comm->me == 0)
-    error->warning(FLERR,"Energy tally does not account for 'zero yes'");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -306,7 +301,6 @@ void FixLangevin::post_force(int /*vflag*/)
   // this avoids testing them inside inner loop:
   // TSTYLEATOM, GJF, TALLY, BIAS, RMASS, ZERO
 
-#ifdef TEMPLATED_FIX_LANGEVIN
   if (tstyle == ATOM)
     if (gjfflag)
       if (tallyflag)
@@ -433,10 +427,6 @@ void FixLangevin::post_force(int /*vflag*/)
           else
             if (zeroflag) post_force_templated<0,0,0,0,0,1>();
             else          post_force_templated<0,0,0,0,0,0>();
-#else
-  post_force_untemplated(int(tstyle==ATOM), gjfflag, tallyflag,
-                         int(tbiasflag==BIAS), int(rmass!=NULL), zeroflag);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -450,15 +440,9 @@ void FixLangevin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
    modify forces using one of the many Langevin styles
 ------------------------------------------------------------------------- */
 
-#ifdef TEMPLATED_FIX_LANGEVIN
 template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
            int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
 void FixLangevin::post_force_templated()
-#else
-void FixLangevin::post_force_untemplated
-  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
-   int Tp_BIAS, int Tp_RMASS, int Tp_ZERO)
-#endif
 {
   double gamma1,gamma2;
 
@@ -605,6 +589,11 @@ void FixLangevin::post_force_untemplated
         f[i][0] -= fsumall[0];
         f[i][1] -= fsumall[1];
         f[i][2] -= fsumall[2];
+        if (Tp_TALLY) {
+          flangevin[i][0] -= fsumall[0];
+          flangevin[i][1] -= fsumall[1];
+          flangevin[i][2] -= fsumall[2];
+        }
       }
     }
   }

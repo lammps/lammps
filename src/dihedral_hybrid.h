@@ -20,7 +20,6 @@ DihedralStyle(hybrid,DihedralHybrid)
 #ifndef LMP_DIHEDRAL_HYBRID_H
 #define LMP_DIHEDRAL_HYBRID_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

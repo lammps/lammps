@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_balance.h"
+#include <cstring>
 #include "balance.h"
 #include "update.h"
 #include "atom.h"
@@ -26,7 +25,6 @@
 #include "modify.h"
 #include "fix_store.h"
 #include "rcb.h"
-#include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -274,10 +272,6 @@ void FixBalance::rebalance()
     comm->layout = Comm::LAYOUT_TILED;
   }
 
-  // output of new decomposition
-
-  if (balance->outflag) balance->dumpout(update->ntimestep);
-
   // reset proc sub-domains
   // check and warn if any proc's subbox is smaller than neigh skin
   //   since may lead to lost atoms in comm->exchange()
@@ -286,12 +280,17 @@ void FixBalance::rebalance()
   domain->set_local_box();
   domain->subbox_too_small_check(neighbor->skin);
 
+  // output of new decomposition
+
+  if (balance->outflag) balance->dumpout(update->ntimestep);
+
   // move atoms to new processors via irregular()
   // for non-RCB only needed if migrate_check() says an atom moves too far
   // else allow caller's comm->exchange() to do it
   // set disable = 0, so weights migrate with atoms
   //   important to delay disable = 1 until after pre_neighbor imbfinal calc
   //   b/c atoms may migrate again in comm->exchange()
+  // NOTE: for reproducible debug runs, set 1st arg of migrate_atoms() to 1
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (wtflag) balance->fixstore->disable = 0;

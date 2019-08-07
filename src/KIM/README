@@ -1,30 +1,30 @@
-This package provides a pair_style kim command which is a wrapper on
-the Knowledge Base for Interatomic Models (KIM) repository of
-interatomic potentials, so that they can be used by LAMMPS scripts.
+This package provides the kim_init, kim_query, kim_interactions, and
+the pair_style kim command which are wrappers on the Knowledgebase of
+Interatomic Models (KIM) repository of interatomic potentials, so that
+they can be used by LAMMPS scripts.
 
 Information about the KIM project can be found at https://openkim.org.
-The KIM project is lead by Ellad Tadmor and Ryan Elliott (U Minn) and
-James Sethna (Cornell U).  Ryan Elliott is the main developer for the
-KIM API and he also maintains the code that implements the pair_style
-kim command.
+The KIM project is lead by Ellad B. Tadmor and Ryan S. Elliott (UMN).
+Ryan Elliott is the main developer for the KIM API and he also
+maintains the code that implements these commands.
 
-Using this package requires the KIM library and its models
+Using this package requires the KIM-API library and its models
 (interatomic potentials) to be downloaded and installed on your
 system.  The library can be downloaded and built in lib/kim or
 elsewhere on your system, which must be done before bulding LAMMPS
 with this package.  Details of the download, build, and install
-process for KIM are given in the lib/kim/README file, and scripts will
-soon be provided to help automate the process.  Also see the LAMMPS
-manual for general information on building LAMMPS with external
+process for the KIM-API are given in the lib/kim/README file, and
+scripts are provided to help automate the process.  Also see the
+LAMMPS manual for general information on building LAMMPS with external
 libraries.  The settings in the Makefile.lammps file in lib/kim must
 be correct for LAMMPS to build correctly with this package installed.
 However, the default settings should be correct in most cases and the
 Makefile.lammps file usually will not need to be changed.
 
 Once you have successfully built LAMMPS with this package and the KIM
-library you can test it using an input file from the examples dir:
+library you can test it using an input files in the examples dir:
 
-./lmp_serial < lammps/examples/kim/in.kim.lj
+./lmp_serial -in lammps/examples/kim/in.kim.lj
 
-This pair_style was written by Valeriu Smirichinski and Ryan
-S. Elliott (U Minn).
+These commands were written by Ryan S. Elliott (UMN), Ellad B. Tadmor
+(UMN) and Axel Kohlmeyer (Temple U).

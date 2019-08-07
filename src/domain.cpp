@@ -15,12 +15,10 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include "domain.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "style_region.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,12 +35,11 @@
 #include "output.h"
 #include "thermo.h"
 #include "universe.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4
@@ -57,6 +54,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
   box_change = 0;
+  deform_flag = deform_vremap = deform_groupbit = 0;
 
   dimension = 3;
   nonperiodic = 0;
@@ -763,9 +761,9 @@ void Domain::image_check()
         continue;
       }
 
-      delx = unwrap[i][0] - unwrap[k][0];
-      dely = unwrap[i][1] - unwrap[k][1];
-      delz = unwrap[i][2] - unwrap[k][2];
+      delx = fabs(unwrap[i][0] - unwrap[k][0]);
+      dely = fabs(unwrap[i][1] - unwrap[k][1]);
+      delz = fabs(unwrap[i][2] - unwrap[k][2]);
 
       if (xperiodic && delx > xprd_half) flag = 1;
       if (yperiodic && dely > yprd_half) flag = 1;
@@ -1714,6 +1712,9 @@ void Domain::add_region(int narg, char **arg)
     return;
   }
 
+  if (strcmp(arg[1],"none") == 0)
+    error->all(FLERR,"Unrecognized region style 'none'");
+
   if (find_region(arg[0]) >= 0) error->all(FLERR,"Reuse of region ID");
 
   // extend Region list if necessary
@@ -1729,7 +1730,7 @@ void Domain::add_region(int narg, char **arg)
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
       char estyle[256];
-      sprintf(estyle,"%s/%s",arg[1],lmp->suffix);
+      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix);
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1741,7 +1742,7 @@ void Domain::add_region(int narg, char **arg)
 
     if (lmp->suffix2) {
       char estyle[256];
-      sprintf(estyle,"%s/%s",arg[1],lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix2);
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1752,12 +1753,10 @@ void Domain::add_region(int narg, char **arg)
     }
   }
 
-  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
   if (region_map->find(arg[1]) != region_map->end()) {
     RegionCreator region_creator = (*region_map)[arg[1]];
     regions[nregion] = region_creator(lmp, narg, arg);
-  }
-  else error->all(FLERR,"Unknown region style");
+  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp).c_str());
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable

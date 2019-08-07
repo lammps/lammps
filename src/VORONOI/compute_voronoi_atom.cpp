@@ -15,16 +15,14 @@
    Contributing author: Daniel Schwen
 ------------------------------------------------------------------------- */
 
+#include "compute_voronoi_atom.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "voro++.hh"
-#include "compute_voronoi_atom.h"
+#include <voro++.hh>
 #include "atom.h"
 #include "group.h"
 #include "update.h"
-#include "modify.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
@@ -642,7 +640,7 @@ void ComputeVoronoi::compute_local()
 /* ---------------------------------------------------------------------- */
 
 int ComputeVoronoi::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                  int /* pbc_flag */, int * /* pbc */)
 {
   int i,m=0;
   for (i = 0; i < n; ++i) buf[m++] = rfield[list[i]];

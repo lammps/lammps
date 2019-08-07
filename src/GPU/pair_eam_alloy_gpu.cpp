@@ -15,10 +15,10 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_alloy_gpu.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_alloy_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -94,8 +94,7 @@ double PairEAMAlloyGPU::memory_usage()
 
 void PairEAMAlloyGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute density on each atom on GPU
 

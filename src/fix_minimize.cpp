@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "fix_minimize.h"
 #include "atom.h"
 #include "domain.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

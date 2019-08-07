@@ -15,14 +15,12 @@
    Contributing authors: Chris Lorenz and Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_quartic.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
-#include "update.h"
 #include "force.h"
 #include "pair.h"
 #include "memory.h"
@@ -60,8 +58,7 @@ void BondQuartic::compute(int eflag, int vflag)
   double r,rsq,dr,r2,ra,rb,sr2,sr6;
 
   ebond = evdwl = sr6 = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 

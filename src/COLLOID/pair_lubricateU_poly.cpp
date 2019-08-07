@@ -17,24 +17,19 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
+#include "pair_lubricateU_poly.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include "pair_lubricateU_poly.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_deform.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
@@ -78,8 +73,7 @@ void PairLubricateUPoly::compute(int eflag, int vflag)
   double **f = atom->f;
   double **torque = atom->torque;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // grow per-atom arrays if necessary
   // need to be atom->nmax in length

@@ -26,19 +26,19 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-#include "thr_data.h"
-
 #include "reaxc_forces_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
+#include "reaxc_defs.h"
+#include "pair_reaxc_omp.h"
+
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_bonds_omp.h"
 #include "reaxc_hydrogen_bonds_omp.h"
-#include "reaxc_io_tools.h"
 #include "reaxc_list.h"
-#include "reaxc_lookup.h"
 #include "reaxc_multi_body_omp.h"
 #include "reaxc_nonbonded_omp.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_torsion_angles_omp.h"
 #include "reaxc_valence_angles_omp.h"
 #include "reaxc_vector.h"
@@ -262,8 +262,8 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 
 /* ---------------------------------------------------------------------- */
 
-void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list **lists,
-                     int step, int n, int N, int numH, MPI_Comm comm )
+void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list **lists,
+                       int step, int n, int N, int numH, MPI_Comm /*comm*/)
 {
   int i, comp, Hindex;
   reax_list *bonds, *hbonds;
@@ -289,9 +289,10 @@ void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list
       else comp = bonds->num_intrs;
 
       if (End_Index(i, bonds) > comp) {
-        fprintf( stderr, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
-                 step, i, End_Index(i,bonds), comp );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        char errmsg[256];
+        snprintf(errmsg, 256, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
+                  step, i, End_Index(i,bonds), comp );
+        system->error_ptr->one(FLERR,errmsg);
       }
     }
   }
@@ -315,9 +316,10 @@ void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list
         else comp = hbonds->num_intrs;
 
         if (End_Index(Hindex, hbonds) > comp) {
-          fprintf(stderr,"step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
+          char errmsg[256];
+          snprintf(errmsg, 256, "step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
                   step, Hindex, End_Index(Hindex,hbonds), comp );
-          MPI_Abort( comm, INSUFFICIENT_MEMORY );
+          system->error_ptr->one(FLERR, errmsg);
         }
       }
     }

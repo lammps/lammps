@@ -28,7 +28,7 @@ where K is the force constant and omega is the angle evaluated for
 all three axis-plane combinations centered around the atom I.  For
 the IL axis and the IJK plane omega looks as follows:
 
-:c,image(Eqs/umbrella.jpg)
+:c,image(JPG/umbrella.jpg)
 
 Note that the {inversion/harmonic} angle term evaluation differs to
 the "improper_umbrella"_improper_umbrella.html due to the cyclic

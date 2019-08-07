@@ -18,9 +18,6 @@
 
 namespace LAMMPS_NS {
 
-class DumpNetCDF;
-class DumpNetCDFMPIIO;
-
 class Thermo : protected Pointers {
   friend class MinCG;                  // accesses compute_pe
   friend class DumpNetCDF;             // accesses thermo properties

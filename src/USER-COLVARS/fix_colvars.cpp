@@ -24,27 +24,29 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
+#include "fix_colvars.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include <errno.h>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
 
-#include "fix_colvars.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "group.h"
+#include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "random_park.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"
 #include "citeme.h"
 
 #include "colvarproxy_lammps.h"
+#include "colvarmodule.h"
 
 static const char colvars_pub[] =
   "fix colvars command:\n\n"
@@ -56,6 +58,19 @@ static const char colvars_pub[] =
   " year =    2013,\n"
   " note =    {doi: 10.1080/00268976.2013.813594}\n"
   "}\n\n";
+
+/* struct for packed data communication of coordinates and forces. */
+struct LAMMPS_NS::commdata {
+  int tag,type;
+  double x,y,z,m,q;
+};
+
+inline std::ostream & operator<< (std::ostream &out, const LAMMPS_NS::commdata &cd)
+{
+  out << " (" << cd.tag << "/" << cd.type << ": "
+      << cd.x << ", " << cd.y << ", " << cd.z << ") ";
+  return out;
+}
 
 /* re-usable integer hash table code with static linkage. */
 
@@ -480,6 +495,31 @@ void FixColvars::one_time_init()
 
 /* ---------------------------------------------------------------------- */
 
+int FixColvars::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"configfile") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (me == 0) {
+      if (! proxy)
+        error->one(FLERR,"Cannot use fix_modify before initialization");
+      proxy->add_config_file(arg[1]);
+    }
+    return 2;
+  } else if (strcmp(arg[0],"config") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (me == 0) {
+      if (! proxy)
+        error->one(FLERR,"Cannot use fix_modify before initialization");
+      std::string conf(arg[1]);
+      proxy->add_config_string(conf);
+    }
+    return 2;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixColvars::setup(int vflag)
 {
   const tagint * const tag  = atom->tag;
@@ -645,7 +685,7 @@ void FixColvars::setup(int vflag)
 /* ---------------------------------------------------------------------- */
 /* Main colvars handler:
  * Send coodinates and add colvar forces to atoms. */
-void FixColvars::post_force(int vflag)
+void FixColvars::post_force(int /*vflag*/)
 {
   // some housekeeping: update status of the proxy as needed.
   if (me == 0) {
@@ -816,7 +856,7 @@ void FixColvars::min_post_force(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void FixColvars::post_force_respa(int vflag, int ilevel, int iloop)
+void FixColvars::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process colvar forces on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);

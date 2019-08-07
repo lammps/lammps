@@ -24,6 +24,10 @@ IF(Kokkos_ENABLE_OpenMP)
   LIST( APPEND SOURCES TestOpenMP.cpp)
 ENDIF()
 
+IF(Kokkos_ENABLE_HPX)
+  LIST( APPEND SOURCES TestHPX.cpp)
+ENDIF()
+
 # Per #374, we always want to build this test, but we only want to run
 # it as a PERFORMANCE test.  That's why we separate building the test
 # from running the test.

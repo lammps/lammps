@@ -15,11 +15,10 @@
    Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "neighbor.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "nbin.h"
@@ -46,8 +45,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
@@ -470,6 +468,9 @@ void Neighbor::init()
   if (exclude && force->kspace && me == 0)
     error->warning(FLERR,"Neighbor exclusions used with KSpace solver "
                    "may give inconsistent Coulombic energies");
+
+  if (lmp->kokkos)
+    set_binsize_kokkos();
 
   // ------------------------------------------------------------------
   // create pairwise lists
@@ -1279,8 +1280,8 @@ void Neighbor::init_topology()
   int bond_off = 0;
   int angle_off = 0;
   for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0))
+    if (utils::strmatch(modify->fix[i]->style,"^shake")
+        || utils::strmatch(modify->fix[i]->style,"^rattle"))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 

@@ -21,28 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_exchange.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_exchange.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,7 +71,7 @@ PairSpinExchange::~PairSpinExchange()
 
 void PairSpinExchange::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2)
+  if (narg < 1 || narg > 7) 
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
 
   if (strcmp(update->unit_style,"metal") != 0)
@@ -97,7 +93,7 @@ void PairSpinExchange::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type spin pairs (only one for now)
+   set coeffs for one or more type spin pairs
 ------------------------------------------------------------------------- */
 
 void PairSpinExchange::coeff(int narg, char **arg)
@@ -153,15 +149,16 @@ void PairSpinExchange::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
-  // checking if nve/spin is a listed fix
+  // checking if nve/spin or neb/spin are a listed fix
 
   int ifix = 0;
   while (ifix < modify->nfix) {
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
+    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+  if ((ifix == modify->nfix) && (comm->me == 0))
+    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
 
   // get the lattice_flag from nve/spin
 
@@ -218,13 +215,12 @@ void PairSpinExchange::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -279,32 +275,32 @@ void PairSpinExchange::compute(int eflag, int vflag)
       // compute exchange interaction
 
       if (rsq <= local_cut2) {
-	compute_exchange(i,j,rsq,fmi,spj);
+        compute_exchange(i,j,rsq,fmi,spj);
         if (lattice_flag) {
-	  compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
-	}
+          compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
+        }
       }
 
-      f[i][0] += fi[0];	
-      f[i][1] += fi[1];	  	
+      f[i][0] += fi[0];
+      f[i][1] += fi[1];
       f[i][2] += fi[2];
-      fm[i][0] += fmi[0];	
-      fm[i][1] += fmi[1];	  	
+      fm[i][0] += fmi[0];
+      fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fi[0];	
-        f[j][1] -= fi[1];	  	
+        f[j][0] -= fi[0];
+        f[j][1] -= fi[1];
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
-	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	evdwl *= hbar;
+        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        evdwl *= hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-	  evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
+          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
@@ -318,7 +314,6 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
 void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
 {
-
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
@@ -327,46 +322,70 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // check if interaction applies to type of ii
 
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-    local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    delx = xi[0] - x[j][0];
-    dely = xi[1] - x[j][1];
-    delz = xi[2] - x[j][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-
-    if (rsq <= local_cut2) {
-      compute_exchange(i,j,rsq,fmi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
+  // if interaction applies to type ii,
+  // locflag = 1 and compute pair interaction
+
+  if (locflag == 1) {
+
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+      local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq <= local_cut2) {
+        compute_exchange(ii,j,rsq,fmi,spj);
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -440,8 +459,6 @@ void PairSpinExchange::allocate()
   memory->create(J3,n+1,n+1,"pair/spin/exchange:J3");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 }
-
-
 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
@@ -527,4 +544,3 @@ void PairSpinExchange::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
-

@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "group.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include <cstdlib>
-#include "group.h"
+#include <utility>
 #include "domain.h"
 #include "atom.h"
 #include "force.h"
@@ -40,7 +39,7 @@ using namespace LAMMPS_NS;
 #define MAX_GROUP 32
 #define EPSILON 1.0e-6
 
-enum{TYPE,MOLECULE,ID};
+enum{NONE,TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
@@ -202,10 +201,16 @@ void Group::assign(int narg, char **arg)
 
     if (narg < 3) error->all(FLERR,"Illegal group command");
 
-    int category;
+    int category=NONE;
     if (strcmp(arg[1],"type") == 0) category = TYPE;
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
+
+    if ((category == MOLECULE) && (!atom->molecular))
+      error->all(FLERR,"Group command requires atom attribute molecule");
+
+    if ((category == ID) && (!atom->tag_enable))
+      error->all(FLERR,"Group command requires atom IDs");
 
     // args = logical condition
 
@@ -362,10 +367,13 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"include") == 0) {
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[2],"molecule") != 0)
-      error->all(FLERR,"Illegal group command");
+    if (strcmp(arg[2],"molecule") == 0) {
+      if (!atom->molecular)
+        error->all(FLERR,"Group command requires atom attribute molecule");
 
-    add_molecules(igroup,bit);
+      add_molecules(igroup,bit);
+
+    } else error->all(FLERR,"Illegal group command");
 
   // style = subtract
 

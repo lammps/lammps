@@ -11,14 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "improper_cvff.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_cvff.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
@@ -61,8 +59,7 @@ void ImproperCvff::compute(int eflag, int vflag)
   double a33,a12,a13,a23,sx2,sy2,sz2;
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -15,10 +15,11 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
+#include "fix_eos_table_rx.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "fix_eos_table_rx.h"
 #include "atom.h"
 #include "error.h"
 #include "force.h"

@@ -20,12 +20,10 @@
          the contact history for friction forces.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_body_rounded_polyhedron.h"
-#include "math_extra.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
@@ -41,7 +39,6 @@
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
-using namespace MathExtra;
 using namespace MathConst;
 
 #define DELTA 10000
@@ -127,8 +124,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;

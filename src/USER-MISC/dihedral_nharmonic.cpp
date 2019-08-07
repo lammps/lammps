@@ -16,12 +16,11 @@
    [ based on dihedral_multi_harmonic.cpp Mathias Puetz (SNL) and friends ]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "dihedral_nharmonic.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "update.h"
@@ -35,7 +34,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp) {
+DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
+{
   writedata = 1;
 }
 
@@ -66,8 +66,7 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
   double s2,sin2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

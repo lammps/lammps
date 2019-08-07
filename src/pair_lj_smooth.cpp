@@ -15,10 +15,9 @@
    Contributing author: Craig Maloney (UCSB)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_lj_smooth.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -72,8 +71,7 @@ void PairLJSmooth::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

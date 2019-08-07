@@ -92,10 +92,6 @@ pairs from the neighbor list. This needs to be very carefully tested,
 because it may remove pairs from the neighbor list that are still
 required.
 
-Pair style {quip} cannot be used with pair style {hybrid}, only
-with {hybrid/overlay} and only the {quip} sub-style is applied to
-all atom types.
-
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

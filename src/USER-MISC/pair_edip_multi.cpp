@@ -17,12 +17,11 @@
    Contributing author: Chao Jiang
 ------------------------------------------------------------------------- */
 
+#include "pair_edip_multi.h"
+#include <mpi.h>
 #include <cmath>
-#include <cfloat>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_edip_multi.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -118,8 +117,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
  // vflag != 0 means compute virial contributions in this step
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

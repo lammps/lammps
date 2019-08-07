@@ -19,7 +19,7 @@ OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
 SRC =	$(wildcard *.cpp)
-INC =	$(filter-out lmpinstalledpkgs.h,$(wildcard *.h))
+INC =	$(filter-out lmpinstalledpkgs.h lmpgitversion.h,$(wildcard *.h))
 OBJ = 	$(SRC:.cpp=.o)
 
 SRCLIB = $(filter-out main.cpp,$(SRC))
@@ -58,7 +58,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  molecule mpiio mscg opt peri poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
+PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
 	   user-mgpt user-misc user-mofff user-molfile \
@@ -68,7 +68,7 @@ PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
 	  python voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
 	  user-smd user-vtk
 
@@ -77,7 +77,7 @@ PACKSYS = compress mpiio python user-lb
 PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
 
 PACKEXT = kim latte mscg voronoi \
-	  user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
+	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
 	  user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
@@ -154,7 +154,6 @@ help:
 
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
-	@echo 'Gathering installed package information (may take a little while)'
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
@@ -167,6 +166,31 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	        mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h || rm ${TMPNAME}.lmpinstalled ; \
         else mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h ; fi
 
+gitversion:
+	@echo 'Gathering git version information'
+	@echo '#ifndef LMP_GIT_VERSION_H' >  ${TMPNAME}.lmpgitversion
+	@echo '#define LMP_GIT_VERSION_H' >> ${TMPNAME}.lmpgitversion
+	@if (type git && test -e ../.git ) >> /dev/null 2>> /dev/null ; then \
+	  git='true';					\
+	  commit=$$(git rev-parse HEAD);		\
+	  branch=$$(git rev-parse --abbrev-ref HEAD);	\
+	  describe=$$(git describe --dirty=-modified);	\
+	else \
+	  git='false' ;					\
+	  commit='(unknown)' ;				\
+	  branch='(unknown)' ;				\
+	  describe='(unknown)' ;			\
+	fi ; \
+	echo "const bool LAMMPS_NS::LAMMPS::has_git_info = $${git};"        >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_commit[] = \"$${commit}\";" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_branch[] = \"$${branch}\";" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"$${describe}\";" >> ${TMPNAME}.lmpgitversion
+	@echo '#endif' >> ${TMPNAME}.lmpgitversion
+	@if [ -f lmpgitversion.h ]; \
+          then test "`diff --brief ${TMPNAME}.lmpgitversion lmpgitversion.h`" != "" && \
+	        mv ${TMPNAME}.lmpgitversion lmpgitversion.h || rm ${TMPNAME}.lmpgitversion ; \
+        else mv ${TMPNAME}.lmpgitversion lmpgitversion.h ; fi
+
 # Build LAMMPS in one of 4 modes
 # exe =   exe with static compile in Obj_machine (default)
 # shexe = exe with shared compile in Obj_shared_machine
@@ -174,13 +198,15 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 # shlib = shared lib in Obj_shared_machine
 
 .DEFAULT:
-	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
-	  then $(MAKE) mpi-stubs; fi
+	@if [ $@ = "serial" ]; \
+	  then cd STUBS; $(MAKE); cd ..; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
+	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
-	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h
+	@$(SHELL) Make.sh packages
+	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
@@ -230,7 +256,10 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+
 clean-%:
+	@if [ $@ = "clean-serial" ]; \
+		then cd STUBS; $(MAKE) clean; cd ..; fi
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
 # Create Makefile.list
@@ -250,7 +279,8 @@ mpi-stubs:
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
-	@$(PYTHON) ../python/install.py
+	@$(PYTHON) ../python/install.py -v ../src/version.h \
+		-m ../python/lammps.py -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 

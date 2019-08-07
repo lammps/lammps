@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_pair_local.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "compute_pair_local.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -22,7 +22,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 
@@ -43,9 +42,6 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   local_flag = 1;
   nvalues = narg - 3;
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
-
   pstyle = new int[nvalues];
   pindex = new int[nvalues];
 
@@ -95,6 +91,9 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   singleflag = 0;
   for (int i = 0; i < nvalues; i++)
     if (pstyle[i] != DIST) singleflag = 1;
+
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
 
   nmax = 0;
   vlocal = NULL;

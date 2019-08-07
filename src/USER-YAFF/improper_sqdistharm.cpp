@@ -16,16 +16,14 @@
    improper_distance code by Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
 #include "improper_sqdistharm.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 
@@ -67,8 +65,7 @@ void ImproperSQDistHarm::compute(int eflag, int vflag)
   double domega,a;
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

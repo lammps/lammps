@@ -16,11 +16,9 @@
    References: Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_born_coul_dsf.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -77,8 +75,7 @@ void PairBornCoulDSF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

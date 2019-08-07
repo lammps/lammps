@@ -15,9 +15,9 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_charmm.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -61,8 +61,7 @@ void AngleCharmm::compute(int eflag, int vflag)
   double delxUB,delyUB,delzUB,rsqUB,rUB,dr,rk,forceUB;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dihedral_deprecated.h"
+#include <cstring>
 #include "dihedral_hybrid.h"
 #include "comm.h"
 #include "force.h"

@@ -36,10 +36,10 @@ class PairSpinNeel : public PairSpin {
 
   void compute(int, int);
   void compute_single_pair(int, double *);
+  double compute_neel_energy(int, int, double, double *, double *, double *);
 
   void compute_neel(int, int, double, double *, double *, double *, double *);
   void compute_neel_mech(int, int, double, double *, double *, double *, double *);
-  double compute_neel_energy(int, int, double, double *, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -52,12 +52,11 @@ class PairSpinNeel : public PairSpin {
 
   // pseudo-dipolar and pseudo-quadrupolar coeff.
 
-  double **r0;
-  double **g1,**g2,**g3,**g4,**g5;
-  double **q1,**q2,**q3,**q4,**q5;
-  double **gm1,**gm2,**gm3,**gm4,**gm5;
-  double **qm1,**qm2,**qm3,**qm4,**qm5;
-  double **rs,**rl,**dr;		// short-, long- cuts, and delta switch 
+  double **g1, **g1_mech; 		// neel coeffs gij
+  double **g2, **g3; 			// g1 in eV, g2 adim, g3 in Ang
+  double **q1, **q1_mech; 		// neel coeffs qij
+  double **q2, **q3; 			// q1 in eV, q2 adim, q3 in Ang
+  double **cut_spin_neel;		// cutoff distance exchange
 
   int lattice_flag;			// flag for mech force computation
   class FixNVESpin *lockfixnvespin;	// ptr to FixNVESpin for setups

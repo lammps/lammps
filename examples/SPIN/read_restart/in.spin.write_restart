@@ -48,7 +48,7 @@ thermo_style    custom step time v_magnorm v_emag temp etotal
 thermo          100
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+dump 		1 all custom 10 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
 run 		1000
 write_restart 	restart_hcp_cobalt.equil

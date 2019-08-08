@@ -2,17 +2,31 @@ This directory contains examples and applications of the SPIN package
 =====================================================================
 
 - the iron, cobalt_hcp, cobalt_fcc and nickel directories provide 
-examples of spin-lattice calculations.
+  examples of spin-lattice calculations.
 
-- the bfo repository provides an example of spin dynamics calculation
-performed on a fixed lattice, and applied to the multiferroic 
-material bismuth-oxide. 
+- the bfo repository provides an example of spin dynamics 
+  calculation performed on a fixed lattice, and applied to the 
+  multiferroic material bismuth-oxide. 
 
-- the read_restart directory provides examples allowing to write or 
-read data files, and restart magneto-mechanical simulations.  
+- the read_restart directory provides examples allowing to write 
+  or read data files, and restart magneto-mechanical simulations.  
+
+- the setforce_spin repository contains examples showing how the
+  magnetic force can be imposed of a cell domain.
+
+- the spinmin repository contains examples using the different
+  spin minimizers implemented (damped dynamics, cg and lbfgs).
+
+- the gneb repository contains two examples using the geodesic
+  nudged elestic band methodology, that calculates the energy
+  barrier separating two energy minima.
+
+- the dipole_spin repository contains examples using the Ewald
+  and P3M methodologies to compute the long-range dipolar
+  fields.
 
 - vizualization of the dump files can be achieved using Ovito or 
-VMD. See the vmd repository for help vizualizing results with VMD. 
+  VMD. See the vmd repository for help vizualizing results with VMD. 
 
 ** Note, the aim of this repository is mainly to provide users with
 examples. Better values and tuning of the magnetic and mechanical 

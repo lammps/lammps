@@ -428,9 +428,9 @@ void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double
   dmiy = eij[2]*v_dmx[itype][jtype] - eij[0]*v_dmz[itype][jtype];
   dmiz = eij[0]*v_dmy[itype][jtype] - eij[1]*v_dmx[itype][jtype];
 
-  fmi[0] -= (dmiy*spj[2] - dmiz*spj[1]);
-  fmi[1] -= (dmiz*spj[0] - dmix*spj[2]);
-  fmi[2] -= (dmix*spj[1] - dmiy*spj[0]);
+  fmi[0] -= 2.0*(dmiy*spj[2] - dmiz*spj[1]);
+  fmi[1] -= 2.0*(dmiz*spj[0] - dmix*spj[2]);
+  fmi[2] -= 2.0*(dmix*spj[1] - dmiy*spj[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -461,9 +461,9 @@ void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3],
   cdmy = (dmiz*csx - dmix*csz);
   cdmz = (dmix*csy - dmiy*csz);
 
-  fi[0] += irij*cdmx;
-  fi[1] += irij*cdmy;
-  fi[2] += irij*cdmz;
+  fi[0] += 2.0*irij*cdmx;
+  fi[1] += 2.0*irij*cdmy;
+  fi[2] += 2.0*irij*cdmz;
 }
 
 /* ----------------------------------------------------------------------

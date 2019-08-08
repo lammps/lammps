@@ -317,7 +317,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -431,9 +431,9 @@ void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double
   dmiy = eij[2]*v_dmx[itype][jtype] - eij[0]*v_dmz[itype][jtype];
   dmiz = eij[0]*v_dmy[itype][jtype] - eij[1]*v_dmx[itype][jtype];
 
-  fmi[0] -= (dmiy*spj[2] - dmiz*spj[1]);
-  fmi[1] -= (dmiz*spj[0] - dmix*spj[2]);
-  fmi[2] -= (dmix*spj[1] - dmiy*spj[0]);
+  fmi[0] -= 2.0*(dmiy*spj[2] - dmiz*spj[1]);
+  fmi[1] -= 2.0*(dmiz*spj[0] - dmix*spj[2]);
+  fmi[2] -= 2.0*(dmix*spj[1] - dmiy*spj[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -460,9 +460,9 @@ void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3],
   csy = (spi[2]*spj[0] - spi[0]*spj[2]);
   csz = (spi[0]*spj[1] - spi[1]*spj[0]);
 
-  cdmx = (dmiy*csz - dmiz*csy);
-  cdmy = (dmiz*csx - dmix*csz);
-  cdmz = (dmix*csy - dmiy*csz);
+  cdmx = 2.0*(dmiy*csz - dmiz*csy);
+  cdmy = 2.0*(dmiz*csx - dmix*csz);
+  cdmz = 2.0*(dmix*csy - dmiy*csz);
 
   fi[0] += irij*cdmx;
   fi[1] += irij*cdmy;

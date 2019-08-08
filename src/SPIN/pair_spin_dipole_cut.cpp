@@ -305,7 +305,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
       if (eflag) {
 	if (rsq <= local_cut2) {
 	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	  evdwl *= hbar;
+	  evdwl *= 0.5*hbar;
 	}
       } else evdwl = 0.0;
 
@@ -420,9 +420,9 @@ void PairSpinDipoleCut::compute_dipolar(int i, int j, double eij[3],
   gigjiri3 = (spi[3] * spj[3])*r3inv;
   pre = mub2mu0hbinv * gigjiri3;
 
-  fmi[0] += pre * (3.0 * sjdotr *eij[0] - spj[0]);
-  fmi[1] += pre * (3.0 * sjdotr *eij[1] - spj[1]);
-  fmi[2] += pre * (3.0 * sjdotr *eij[2] - spj[2]);
+  fmi[0] += 2.0*pre*(3.0*sjdotr*eij[0] - spj[0]);
+  fmi[1] += 2.0*pre*(3.0*sjdotr*eij[1] - spj[1]);
+  fmi[2] += 2.0*pre*(3.0*sjdotr*eij[2] - spj[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -444,9 +444,9 @@ void PairSpinDipoleCut::compute_dipolar_mech(int i, int j, double eij[3],
   bij = sisj - 5.0*sieij*sjeij;
   pre = 3.0*mub2mu0*gigjri4;
 
-  fi[0] -= pre * (eij[0] * bij + (sjeij*spi[0] + sieij*spj[0]));
-  fi[1] -= pre * (eij[1] * bij + (sjeij*spi[1] + sieij*spj[1]));
-  fi[2] -= pre * (eij[2] * bij + (sjeij*spi[2] + sieij*spj[2]));
+  fi[0] -= 2.0*pre*(eij[0]*bij + (sjeij*spi[0] + sieij*spj[0]));
+  fi[1] -= 2.0*pre*(eij[1]*bij + (sjeij*spi[1] + sieij*spj[1]));
+  fi[2] -= 2.0*pre*(eij[2]*bij + (sjeij*spi[2] + sieij*spj[2]));
 }
 
 /* ----------------------------------------------------------------------

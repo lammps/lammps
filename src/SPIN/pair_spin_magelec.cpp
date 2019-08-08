@@ -306,8 +306,8 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl += (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        evdwl *= 0.5*hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -426,9 +426,9 @@ void PairSpinMagelec::compute_magelec(int i, int j, double eij[3], double fmi[3]
   meiy *= ME[itype][jtype];
   meiz *= ME[itype][jtype];
 
-  fmi[0] += spj[1]*meiz - spj[2]*meiy;
-  fmi[1] += spj[2]*meix - spj[0]*meiz;
-  fmi[2] += spj[0]*meiy - spj[1]*meix;
+  fmi[0] += 2.0*(spj[1]*meiz - spj[2]*meiy);
+  fmi[1] += 2.0*(spj[2]*meix - spj[0]*meiz);
+  fmi[2] += 2.0*(spj[0]*meiy - spj[1]*meix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -455,9 +455,9 @@ void PairSpinMagelec::compute_magelec_mech(int i, int j, double fi[3], double sp
   meiy *= ME_mech[itype][jtype];
   meiz *= ME_mech[itype][jtype];
 
-  fi[0] += meiy*vz - meiz*vy;
-  fi[1] += meiz*vx - meix*vz;
-  fi[2] += meix*vy - meiy*vx;
+  fi[0] += 2.0*(meiy*vz - meiz*vy);
+  fi[1] += 2.0*(meiz*vx - meix*vz);
+  fi[2] += 2.0*(meix*vy - meiy*vx);
 
 }
 

@@ -300,7 +300,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -409,9 +409,9 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
   Jex *= (1.0-J2[itype][jtype]*ra);
   Jex *= exp(-ra);
 
-  fmi[0] += Jex*spj[0];
-  fmi[1] += Jex*spj[1];
-  fmi[2] += Jex*spj[2];
+  fmi[0] += 2.0*Jex*spj[0];
+  fmi[1] += 2.0*Jex*spj[1];
+  fmi[2] += 2.0*Jex*spj[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -437,9 +437,9 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double ei
   Jex_mech *= 8.0*Jex*rr*exp(-ra);
   Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fi[0] -= Jex_mech*eij[0];
-  fi[1] -= Jex_mech*eij[1];
-  fi[2] -= Jex_mech*eij[2];
+  fi[0] -= 2.0*Jex_mech*eij[0];
+  fi[1] -= 2.0*Jex_mech*eij[1];
+  fi[2] -= 2.0*Jex_mech*eij[2];
 }
 
 /* ----------------------------------------------------------------------

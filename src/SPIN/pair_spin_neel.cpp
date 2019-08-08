@@ -318,7 +318,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       if (eflag) {
         evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -485,9 +485,9 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double 
 
   // adding three contributions
 
-  fmi[0] += (pdx + pq1x + pq2x);
-  fmi[1] += (pdy + pq1y + pq2y);
-  fmi[2] += (pdz + pq1z + pq2z);
+  fmi[0] += 2.0*(pdx + pq1x + pq2x);
+  fmi[1] += 2.0*(pdy + pq1y + pq2y);
+  fmi[2] += 2.0*(pdz + pq1z + pq2z);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -616,9 +616,9 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
 
   // adding three contributions
 
-  fi[0] = pdx + pq1x + pq2x;
-  fi[1] = pdy + pq1y + pq2y;
-  fi[2] = pdz + pq1z + pq2z;
+  fi[0] = 2.0*(pdx + pq1x + pq2x);
+  fi[1] = 2.0*(pdy + pq1y + pq2y);
+  fi[2] = 2.0*(pdz + pq1z + pq2z);
 }
 
 /* ----------------------------------------------------------------------

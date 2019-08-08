@@ -1,0 +1,186 @@
+/*
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 2.0
+//              Copyright (2019) Sandia Corporation
+//
+// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// the U.S. Government retains certain rights in this software.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// 1. Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright
+// notice, this list of conditions and the following disclaimer in the
+// documentation and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the Corporation nor the names of the
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
+// ************************************************************************
+//@HEADER
+*/
+
+#ifndef KOKKOS_KOKKOS_EXTENTS_HPP
+#define KOKKOS_KOKKOS_EXTENTS_HPP
+
+#include <cstddef>
+
+namespace Kokkos {
+namespace Experimental {
+
+constexpr ptrdiff_t dynamic_extent = -1;
+
+template <ptrdiff_t... ExtentSpecs>
+struct Extents {
+  /* TODO @enhancement flesh this out more */
+};
+
+template <class Exts, ptrdiff_t NewExtent>
+struct PrependExtent;
+
+template <ptrdiff_t... Exts, ptrdiff_t NewExtent>
+struct PrependExtent<
+  Extents<Exts...>, NewExtent
+> {
+  using type = Extents<NewExtent, Exts...>;
+};
+
+template <class Exts, ptrdiff_t NewExtent>
+struct AppendExtent;
+
+template <ptrdiff_t... Exts, ptrdiff_t NewExtent>
+struct AppendExtent<
+  Extents<Exts...>, NewExtent
+> {
+  using type = Extents<Exts..., NewExtent>;
+};
+
+} // end namespace Experimental
+
+namespace Impl {
+
+namespace _parse_view_extents_impl {
+
+template <class T>
+struct _all_remaining_extents_dynamic : std::true_type { };
+
+template <class T>
+struct _all_remaining_extents_dynamic<T*>
+  : _all_remaining_extents_dynamic<T>
+{ };
+
+template <class T, unsigned N>
+struct _all_remaining_extents_dynamic<T[N]>
+  : std::false_type
+{ };
+
+template <class T, class Result, class=void>
+struct _parse_impl {
+  using type = Result;
+};
+
+// We have to treat the case of int**[x] specially, since it *doesn't* go backwards
+template <class T, ptrdiff_t... ExtentSpec>
+struct _parse_impl<
+  T*, Experimental::Extents<ExtentSpec...>,
+  typename std::enable_if<_all_remaining_extents_dynamic<T>::value>::type
+>
+  : _parse_impl<
+      T, Experimental::Extents<Experimental::dynamic_extent, ExtentSpec...>
+    >
+{ };
+
+// int*(*[x])[y] should still work also (meaning int[][x][][y])
+template <class T, ptrdiff_t... ExtentSpec>
+struct _parse_impl<
+  T*, Experimental::Extents<ExtentSpec...>,
+  typename std::enable_if<not _all_remaining_extents_dynamic<T>::value>::type
+>
+{
+  using _next = Kokkos::Experimental::AppendExtent<
+    typename _parse_impl<T, Experimental::Extents<ExtentSpec...>, void>::type,
+    Experimental::dynamic_extent
+  >;
+  using type = typename _next::type;
+};
+
+template <class T, ptrdiff_t... ExtentSpec, unsigned N>
+struct _parse_impl<
+  T[N], Experimental::Extents<ExtentSpec...>, void
+>
+  : _parse_impl<
+      T, Experimental::Extents<ExtentSpec..., ptrdiff_t(N)> // TODO @pedantic this could be a narrowing cast
+    >
+{ };
+
+} // end namespace _parse_view_extents_impl
+
+template <class DataType>
+struct ParseViewExtents {
+  using type =
+    typename _parse_view_extents_impl
+      ::_parse_impl<DataType, Experimental::Extents<>>::type;
+};
+
+template <class ValueType, ptrdiff_t Ext>
+struct ApplyExtent
+{
+  using type = ValueType[Ext];
+};
+
+template <class ValueType>
+struct ApplyExtent<ValueType, Experimental::dynamic_extent>
+{
+  using type = ValueType*;
+};
+
+template <class ValueType, unsigned N, ptrdiff_t Ext>
+struct ApplyExtent<ValueType[N], Ext>
+{
+  using type = typename ApplyExtent<ValueType, Ext>::type[N];
+};
+
+template <class ValueType, ptrdiff_t Ext>
+struct ApplyExtent<ValueType*, Ext>
+{
+  using type = ValueType*[Ext];
+};
+
+template <class ValueType>
+struct ApplyExtent<ValueType*, Experimental::dynamic_extent>
+{
+  using type = typename ApplyExtent<ValueType, Experimental::dynamic_extent>::type*;
+};
+
+template <class ValueType, unsigned N>
+struct ApplyExtent<ValueType[N], Experimental::dynamic_extent>
+{
+  using type = typename ApplyExtent<ValueType, Experimental::dynamic_extent>::type[N];
+};
+
+} // end namespace Impl
+
+} // end namespace Kokkos
+
+#endif //KOKKOS_KOKKOS_EXTENTS_HPP

@@ -242,7 +242,7 @@ processors.
 
 Running with multiple partitions can be useful for running
 "multi-replica simulations"_Howto_replica.html, where each replica
-runs on on one or a few processors.  Note that with MPI installed on a
+runs on one or a few processors.  Note that with MPI installed on a
 machine (e.g. your desktop), you can run on more (virtual) processors
 than you have physical processors.
 

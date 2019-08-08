@@ -70,6 +70,7 @@ class Atom : protected Pointers {
   double *emag;
   double **sp;
   double **fm;
+  double **fm_long;
 
   // PERI package
 
@@ -287,6 +288,7 @@ class Atom : protected Pointers {
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
+  inline int get_map_maxarray() {return map_maxarray+1;};
 
   bigint memory_usage();
   int memcheck(const char *);
@@ -362,7 +364,7 @@ E: Atom IDs must be used for molecular systems
 
 Atom IDs are used to identify and find partner atoms in bonds.
 
-E: Unknown atom style
+E: Unrecognized atom style
 
 The choice of atom style is unknown.
 
@@ -424,6 +426,11 @@ E: Incorrect atom format in data file
 
 Number of values per atom line in the data file is not consistent with
 the atom style.
+
+E: Incorrect format of ... section in data file
+
+Number or type of values per line in the given section of the data file
+is not consistent with the requirements for this section.
 
 E: Invalid atom type in Atoms section of data file
 

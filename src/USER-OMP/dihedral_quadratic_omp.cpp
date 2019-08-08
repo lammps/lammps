@@ -20,10 +20,10 @@
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

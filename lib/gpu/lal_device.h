@@ -53,11 +53,43 @@ class Device {
                   const int t_per_atom, const double cell_size,
                   char *vendor_string, const int block_pair);
 
-  /// Initialize the device for Atom and Neighbor storage
-  /** \param rot True if quaternions need to be stored
+  /// Initialize the device for Atom storage
+  /** \param charge True if charges need to be stored 
+    * \param rot True if quaternions need to be stored
+    * \param nlocal Total number of local particles to allocate memory for
+    * \param nall Total number of local+ghost particles
+    * \param maxspecial Maximum mumber of special bonded atoms per atom
+    * \param vel True if velocities need to be stored
+    *
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(Answer<numtyp,acctyp> &ans, const bool charge, const bool rot,
+           const int nlocal, const int nall, const int maxspecial,
+           const bool vel=false);
+
+  /// Initialize the device for Atom storage only
+  /** \param nlocal Total number of local particles to allocate memory for
+    * \param nall Total number of local+ghost particles
+    *
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
+
+  /// Initialize the neighbor list storage
+  /** \param charge True if charges need to be stored
+    * \param rot True if quaternions need to be stored
     * \param nlocal Total number of local particles to allocate memory for
     * \param host_nlocal Initial number of host particles to allocate memory for
     * \param nall Total number of local+ghost particles
+    * \param maxspecial Maximum mumber of special bonded atoms per atom
     * \param gpu_host 0 if host will not perform force calculations,
     *                 1 if gpu_nbor is true, and host needs a half nbor list,
     *                 2 if gpu_nbor is true, and host needs a full nbor list
@@ -73,23 +105,11 @@ class Device {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(Answer<numtyp,acctyp> &a, const bool charge, const bool rot,
-           const int nlocal, const int host_nlocal, const int nall,
-           Neighbor *nbor, const int maxspecial, const int gpu_host,
-           const int max_nbors, const double cell_size, const bool pre_cut,
-           const int threads_per_atom, const bool vel=false);
-
-  /// Initialize the device for Atom storage only
-  /** \param nlocal Total number of local particles to allocate memory for
-    * \param nall Total number of local+ghost particles
-    *
-    * Returns:
-    * -  0 if successfull
-    * - -1 if fix gpu not found
-    * - -3 if there is an out of memory error
-    * - -4 if the GPU library was not compiled for GPU
-    * - -5 Double precision is not supported on card **/
-  int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
+  int init_nbor(Neighbor *nbor, const int nlocal,
+                const int host_nlocal, const int nall,
+                const int maxspecial, const int gpu_host,
+                const int max_nbors, const double cell_size,
+                const bool pre_cut, const int threads_per_atom);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
@@ -173,7 +193,7 @@ class Device {
   /// Return host memory usage in bytes
   double host_memory_usage() const;
 
-  /// Return the number of procs sharing a device (size of device commincator)
+  /// Return the number of procs sharing a device (size of device communicator)
   inline int procs_per_gpu() const { return _procs_per_gpu; }
   /// Return the number of threads per proc
   inline int num_threads() const { return _nthreads; }
@@ -260,12 +280,12 @@ class Device {
   /// Atom Data
   Atom<numtyp,acctyp> atom;
 
-  // --------------------------- NBOR DATA ----------------------------
+  // --------------------------- NBOR SHARED KERNELS ----------------
 
-  /// Neighbor Data
+  /// Shared kernels for neighbor lists
   NeighborShared _neighbor_shared;
 
-  // ------------------------ LONG RANGE DATA -------------------------
+  // ------------------------ LONG RANGE DATA -----------------------
 
   // Long Range Data
   int _long_range_precompute;

@@ -21,25 +21,22 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_neel.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_neel.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -574,13 +571,8 @@ void PairSpinNeel::compute_neel(int i, int j, double rij, double eij[3],
 
   g1r = gr + 12.0*qr/35.0;
   q1r = 9.0*qr/5.0;
-  //q1r = 0.0;
   q2r = -2.0*qr/5.0;
-  //q2r = 0.0;
 
-  //printf("test g1r: %g, q1r: %g \n",g1r,q1r);
-  //printf("test %g %g %g | %g \n",g1r,q1r,q2r,rij);
-  
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
   si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
@@ -750,24 +742,15 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rij, double eij[3]
 
   g1r = gr + 12.0*qr/35.0;
   q1r = 9.0*qr/5.0;
-  //q1r = 0.0;
   q2r = -2.0*qr/5.0;
-  //q2r = 0.0;
-
-  //printf("test energy g1r: %g, q1r: %g, q2r: %g\n",g1r,q1r,q2r);
-  //printf("test gi %g %g %g %g %g \n",ga,gb,gc,gd,ge);
-  //printf("test %g %g %g | %g \n",g1r,q1r,q2r,rij);
  
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
   si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
   
   energy = g1r*(si_sj*ri3 - eij_si*eij_sj);
-  //printf("test energy1: %g\n",energy);
   energy -= q1r*(eij_si*eij_si - si_sj*ri3)*(eij_sj*eij_sj - si_sj*ri3);
-  //printf("test energy2: %g\n",energy);
   energy -= q2r*eij_sj*eij_si*(eij_si*eij_si + eij_sj*eij_sj);
-  //printf("test energy3: %g\n",energy);
   
   return energy;
 }

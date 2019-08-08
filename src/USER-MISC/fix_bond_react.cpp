@@ -15,11 +15,10 @@ See the README file in the top-level LAMMPS directory.
 Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_bond_react.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_bond_react.h"
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -157,6 +156,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // this looks excessive
   // the price of vectorization (all reactions in one command)?
+  memory->create(rxn_name,nreacts,MAXLINE,"bond/react:rxn_name");
   memory->create(nevery,nreacts,"bond/react:nevery");
   memory->create(cutsq,nreacts,2,"bond/react:cutsq");
   memory->create(unreacted_mol,nreacts,"bond/react:unreacted_mol");
@@ -207,8 +207,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     iarg++;
 
-    iarg++; // read in reaction name here
-    //for example, rxn_name[rxn] = ...
+    rxn_name[rxn] = arg[iarg++];
 
     int igroup = group->find(arg[iarg++]);
     if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
@@ -308,8 +307,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     onemol->check_attributes(0);
     twomol->check_attributes(0);
     if (onemol->natoms != twomol->natoms)
-      error->all(FLERR,"Post-reacted template must contain the same "
-                       "number of atoms as the pre-reacted template");
+      error->all(FLERR,"Bond/react: Reaction templates must contain the same number of atoms");
     get_molxspecials();
     read(i);
     fclose(fp);
@@ -324,7 +322,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   delete [] files;
 
   if (atom->molecular != 1)
-    error->all(FLERR,"Cannot use fix bond/react with non-molecular systems");
+    error->all(FLERR,"Bond/react: Cannot use fix bond/react with non-molecular systems");
 
   // check if bonding atoms are 1-2, 1-3, or 1-4 bonded neighbors
   // if so, we don't need non-bonded neighbor list
@@ -472,17 +470,19 @@ FixBondReact::~FixBondReact()
   delete [] guess_branch;
   delete [] pioneer_count;
 
-  char **newarg;
-  newarg = new char*[2];
-  newarg[0] = master_group;
-  newarg[1] = (char *) "delete";
-  group->assign(2,newarg);
-  if (stabilization_flag == 1) {
-    newarg[0] = exclude_group;
+  if (group) {
+    char **newarg;
+    newarg = new char*[2];
+    newarg[0] = master_group;
+    newarg[1] = (char *) "delete";
     group->assign(2,newarg);
-    delete [] exclude_group;
+    if (stabilization_flag == 1) {
+      newarg[0] = exclude_group;
+      group->assign(2,newarg);
+      delete [] exclude_group;
+    }
+    delete [] newarg;
   }
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -663,7 +663,7 @@ void FixBondReact::init()
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {
     if (force->pair == NULL || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
-      error->all(FLERR,"Fix bond/react cutoff is longer than pairwise cutoff");
+      error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
   }
 
   // need a half neighbor list, built every Nevery steps
@@ -1172,7 +1172,7 @@ void FixBondReact::superimpose_algorithm()
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)
         if (hang_catch > atom->nlocal*30) {
-          error->one(FLERR,"Excessive iteration of superimpose algorithm");
+          error->one(FLERR,"Bond/react: Excessive iteration of superimpose algorithm");
         }
       }
     }
@@ -1285,7 +1285,7 @@ void FixBondReact::make_a_guess()
 
   for (int i = 0; i < nxspecial[atom->map(glove[pion][1])][0]; i++) {
     if (atom->map(xspecial[atom->map(glove[pion][1])][i]) < 0) {
-      error->all(FLERR,"Fix bond/react needs ghost atoms from further away1"); // parallel issues.
+      error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away"); // parallel issues.
     }
     if (i_limit_tags[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] != 0) {
       status = GUESSFAIL;
@@ -1396,7 +1396,7 @@ void FixBondReact::check_a_neighbor()
 
             //another check for ghost atoms. perhaps remove the one in make_a_guess
             if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-              error->all(FLERR,"Fix bond/react needs ghost atoms from further away2");
+              error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
             }
 
             for (int j = 0; j < onemol_nxspecial[onemol_xspecial[pion][neigh]-1][0]; j++) {
@@ -1448,7 +1448,7 @@ void FixBondReact::check_a_neighbor()
 
         //another check for ghost atoms. perhaps remove the one in make_a_guess
         if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-          error->all(FLERR,"Fix bond/react needs ghost atoms from further away3");
+          error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
         }
 
         for (int ii = 0; ii < onemol_nxspecial[onemol_xspecial[pion][neigh]-1][0]; ii++) {
@@ -1490,7 +1490,7 @@ void FixBondReact::crosscheck_the_neighbor()
         glove[onemol_xspecial[pion][trace]-1][0] == 0) {
 
       if (avail_guesses == MAXGUESS) {
-        error->warning(FLERR,"Fix bond/react failed because MAXGUESS set too small. ask developer for info");
+        error->warning(FLERR,"Bond/react: Fix bond/react failed because MAXGUESS set too small. ask developer for info");
         status = GUESSFAIL;
         return;
       }
@@ -1559,7 +1559,7 @@ void FixBondReact::inner_crosscheck_loop()
 
   //another check for ghost atoms. perhaps remove the one in make_a_guess
   if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-    error->all(FLERR,"Fix bond/react needs ghost atoms from further away4");
+    error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
   }
 
   if (guess_branch[avail_guesses-1] == 0) avail_guesses--;
@@ -1719,8 +1719,11 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // bad molecule templates check
   // if atoms change types, but aren't landlocked, that's bad
   for (int i = 0; i < twomol->natoms; i++) {
-    if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0)
-      error->one(FLERR,"Atom affected by reaction too close to template edge");
+    if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
+      char str[128];
+      snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+      error->all(FLERR,str);
+    }
   }
 
   // additionally, if a bond changes type, but neither involved atom is landlocked, bad
@@ -1736,7 +1739,9 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
             onemol_batom = onemol->bond_atom[onemol_atomi-1][m];
             if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
               if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
-                error->one(FLERR,"Bond type affected by reaction too close to template edge");
+                char str[128];
+                snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                error->all(FLERR,str);
               }
             }
           }
@@ -1746,7 +1751,9 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
               onemol_batom = onemol->bond_atom[onemol_atomj-1][m];
               if (onemol_batom == equivalences[i][1][myrxn]) {
                 if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
-                  error->one(FLERR,"Bond type affected by reaction too close to template edge");
+                  char str[128];
+                  snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                  error->all(FLERR,str);
                 }
               }
             }
@@ -1762,7 +1769,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
       int ii = reverse_equiv[i][1][myrxn] - 1;
       for (int j = 0; j < twomol_nxspecial[ii][0]; j++) {
         if (delete_atoms[equivalences[twomol_xspecial[ii][j]-1][1][myrxn]-1][myrxn] == 0) {
-         error->one(FLERR,"A deleted atom cannot remain bonded to an atom that is not deleted");
+         error->all(FLERR,"Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted");
         }
       }
     }
@@ -1773,7 +1780,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
     for (int i = 0; i < twomol->natoms; i++) {
       if (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0] && landlocked_atoms[i][myrxn] == 0) {
         char str[128];
-        sprintf(str,"An atom in 'react #%d' changes bond connectivity but not atom type",myrxn+1);
+        snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
         error->warning(FLERR,str);
         break;
       }
@@ -2261,7 +2268,7 @@ void FixBondReact::update_everything()
           if (landlocked_atoms[j][rxnID] == 1) {
             for (int k = 0; k < nspecial[atom->map(update_mega_glove[jj+1][i])][2]; k++) {
               if (atom->map(special[atom->map(update_mega_glove[jj+1][i])][k]) < 0) {
-                error->all(FLERR,"Fix bond/react needs ghost atoms from further away - most likely too many processors");
+                error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away - most likely too many processors");
               }
             }
           }
@@ -2322,6 +2329,8 @@ void FixBondReact::update_everything()
                   nspecial[atom->map(update_mega_glove[jj+1][i])][1]++;
                   nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
                 }
+                if (nspecial[atom->map(update_mega_glove[jj+1][i])][2] > atom->maxspecial)
+                  error->one(FLERR,"Bond/react special bond generation overflow");
                 for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n > insert_num; n--) {
                   special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n-1];
                 }
@@ -2383,6 +2392,8 @@ void FixBondReact::update_everything()
                 bond_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->bond_type[j][p];
                 bond_atom[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->bond_atom[j][p]-1][1][rxnID]][i];
                 num_bond[atom->map(update_mega_glove[jj+1][i])]++;
+                if (num_bond[atom->map(update_mega_glove[jj+1][i])] > atom->bond_per_atom)
+                  error->one(FLERR,"Bond/react topology/atom exceed system topology/atom");
                 delta_bonds++;
               }
             }
@@ -2457,6 +2468,8 @@ void FixBondReact::update_everything()
                   angle_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom2[j][p]-1][1][rxnID]][i];
                   angle_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom3[j][p]-1][1][rxnID]][i];
                   num_angle[atom->map(update_mega_glove[jj+1][i])]++;
+                  if (num_angle[atom->map(update_mega_glove[jj+1][i])] > atom->angle_per_atom)
+                    error->one(FLERR,"Bond/react topology/atom exceed system topology/atom");
                   delta_angle++;
                 }
               }
@@ -2538,6 +2551,8 @@ void FixBondReact::update_everything()
                   dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom3[j][p]-1][1][rxnID]][i];
                   dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom4[j][p]-1][1][rxnID]][i];
                   num_dihedral[atom->map(update_mega_glove[jj+1][i])]++;
+                  if (num_dihedral[atom->map(update_mega_glove[jj+1][i])] > atom->dihedral_per_atom)
+                    error->one(FLERR,"Bond/react topology/atom exceed system topology/atom");
                   delta_dihed++;
                 }
               }
@@ -2619,6 +2634,8 @@ void FixBondReact::update_everything()
                   improper_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom3[j][p]-1][1][rxnID]][i];
                   improper_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom4[j][p]-1][1][rxnID]][i];
                   num_improper[atom->map(update_mega_glove[jj+1][i])]++;
+                  if (num_improper[atom->map(update_mega_glove[jj+1][i])] > atom->improper_per_atom)
+                    error->one(FLERR,"Bond/react topology/atom exceed system topology/atom");
                   delta_imprp++;
                 }
               }
@@ -2716,7 +2733,7 @@ void FixBondReact::read(int myrxn)
 
   // skip 1st line of file
   eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one(FLERR,"Unexpected end of superimpose file");
+  if (eof == NULL) error->one(FLERR,"Bond/react: Unexpected end of superimpose file");
 
   // read header lines
   // skip blank lines or lines that start with "#"
@@ -2770,7 +2787,7 @@ void FixBondReact::read(int myrxn)
       DeleteAtoms(line, myrxn);
     } else if (strcmp(keyword,"Constraints") == 0) {
       Constraints(line, myrxn);
-    } else error->one(FLERR,"Unknown section in superimpose file");
+    } else error->one(FLERR,"Bond/react: Unknown section in map file");
 
     parse_keyword(1,line,keyword);
 
@@ -2778,13 +2795,13 @@ void FixBondReact::read(int myrxn)
 
   // error check
   if (bondflag == 0 || equivflag == 0)
-    error->all(FLERR,"Superimpose file missing BondingIDs or Equivalences section\n");
+    error->all(FLERR,"Bond/react: Map file missing BondingIDs or Equivalences section\n");
 
   if (update_edges_flag[myrxn] == 2 && customedgesflag == 0)
-    error->all(FLERR,"Map file must have a Custom Edges section when using 'update_edges custom'\n");
+    error->all(FLERR,"Bond/react: Map file must have a Custom Edges section when using 'update_edges custom'\n");
 
   if (update_edges_flag[myrxn] != 2 && customedgesflag == 1)
-    error->all(FLERR,"Specify 'update_edges custom' to include Custom Edges section in map file\n");
+    error->all(FLERR,"Bond/react: Specify 'update_edges custom' to include Custom Edges section in map file\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)
@@ -2830,7 +2847,7 @@ void FixBondReact::CustomEdges(char *line, int myrxn)
     else if (strcmp(edgemode,"charges") == 0)
       custom_edges[tmp-1][myrxn] = 1;
     else
-      error->one(FLERR,"Illegal value in 'Custom Edges' section of map file");
+      error->one(FLERR,"Bond/react: Illegal value in 'Custom Edges' section of map file");
   }
   delete [] edgemode;
 }
@@ -2861,7 +2878,7 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[myrxn][3] = tmp[2]*tmp[2]; // using square of distance
       constraints[myrxn][4] = tmp[3]*tmp[3];
     } else
-      error->one(FLERR,"Illegal constraint type in 'Constraints' section of map file");
+      error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
   }
   delete [] constraint_type;
 }
@@ -2871,7 +2888,7 @@ void FixBondReact::open(char *file)
   fp = fopen(file,"r");
   if (fp == NULL) {
     char str[128];
-    snprintf(str,128,"Cannot open superimpose file %s",file);
+    snprintf(str,128,"Bond/react: Cannot open map file %s",file);
     error->one(FLERR,str);
   }
 }
@@ -2884,7 +2901,7 @@ void FixBondReact::readline(char *line)
     else n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
-  if (n == 0) error->all(FLERR,"Unexpected end of superimpose file");
+  if (n == 0) error->all(FLERR,"Bond/react: Unexpected end of map file");
   MPI_Bcast(line,n,MPI_CHAR,0,world);
 }
 

@@ -64,13 +64,16 @@ args = arguments specific to the style :l
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse} or {gpu/direct}
+    keywords = {neigh} or {neigh/qeq} or {neigh/thread} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse} or {cuda/aware}
       {neigh} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
       {neigh/qeq} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
+      {neigh/thread} value = {off} or {on}
+        off = thread only over atoms
+        on = thread over both atoms and neighbors
       {newton} = {off} or {on}
         off = set Newton pairwise and bonded flags off
         on = set Newton pairwise and bonded flags on
@@ -84,9 +87,9 @@ args = arguments specific to the style :l
         no = perform communication pack/unpack in non-KOKKOS mode
         host = perform pack/unpack on host (e.g. with OpenMP threading)
         device = perform pack/unpack on device (e.g. on GPU)
-      {gpu/direct} = {off} or {on}
-        off = do not use GPU-direct
-        on = use GPU-direct (default)
+      {cuda/aware} = {off} or {on}
+        off = do not use CUDA-aware MPI
+        on = use CUDA-aware MPI (default)
   {omp} args = Nthreads keyword value ...
     Nthread = # of OpenMP threads to associate with each MPI process
     zero or more keyword/value pairs may be appended
@@ -173,12 +176,10 @@ computation will be built.  If {neigh} is {yes}, which is the default,
 neighbor list building is performed on the GPU.  If {neigh} is {no},
 neighbor list building is performed on the CPU.  GPU neighbor list
 building currently cannot be used with a triclinic box.  GPU neighbor
-list calculation currently cannot be used with
-"hybrid"_pair_hybrid.html pair styles.  GPU neighbor lists are not
-compatible with commands that are not GPU-enabled.  When a non-GPU
-enabled command requires a neighbor list, it will also be built on the
-CPU.  In these cases, it will typically be more efficient to only use
-CPU neighbor list builds.
+lists are not compatible with commands that are not GPU-enabled.  When
+a non-GPU enabled command requires a neighbor list, it will also be
+built on the CPU.  In these cases, it will typically be more efficient
+to only use CPU neighbor list builds.
 
 The {newton} keyword sets the Newton flags for pairwise (not bonded)
 interactions to {off} or {on}, the same as the "newton"_newton.html
@@ -442,7 +443,19 @@ running on CPUs, a {half} neighbor list is the default because it are
 often faster, just as it is for non-accelerated pair styles. Similarly, 
 the {neigh/qeq} keyword determines how neighbor lists are built for "fix 
 qeq/reax/kk"_fix_qeq_reax.html. If not explicitly set, the value of 
-{neigh/qeq} will match {neigh}. 
+{neigh/qeq} will match {neigh}.
+
+If the {neigh/thread} keyword is set to {off}, then the KOKKOS package 
+threads only over atoms. However, for small systems, this may not expose 
+enough parallelism to keep a GPU busy. When this keyword is set to {on}, 
+the KOKKOS package threads over both atoms and neighbors of atoms. When 
+using {neigh/thread} {on}, a full neighbor list must also be used. Using 
+{neigh/thread} {on} may be slower for large systems, so this this option 
+is turned on by default only when there are 16K atoms or less owned by 
+an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled 
+potentials support this keyword yet, and only thread over atoms. Many 
+simple pair-wise potentials such as Lennard-Jones do support threading 
+over both atoms and neighbors.
 
 The {newton} keyword sets the Newton flags for pairwise and bonded 
 interactions to {off} or {on}, the same as the "newton"_newton.html 
@@ -475,10 +488,10 @@ are rebuilt. The data is only for atoms that migrate to new processors.
 "Forward" communication happens every timestep. "Reverse" communication 
 happens every timestep if the {newton} option is on. The data is for 
 atom coordinates and any other atom properties that needs to be updated 
-for ghost atoms owned by each processor. 
+for ghost atoms owned by each processor.
 
 The {comm} keyword is simply a short-cut to set the same value for both 
-the {comm/exchange} and {comm/forward} and {comm/reverse} keywords. 
+the {comm/exchange} and {comm/forward} and {comm/reverse} keywords.
 
 The value options for all 3 keywords are {no} or {host} or {device}. A 
 value of {no} means to use the standard non-KOKKOS method of 
@@ -486,39 +499,42 @@ packing/unpacking data for the communication. A value of {host} means to
 use the host, typically a multi-core CPU, and perform the 
 packing/unpacking in parallel with threads. A value of {device} means to 
 use the device, typically a GPU, to perform the packing/unpacking 
-operation. 
+operation.
 
 The optimal choice for these keywords depends on the input script and 
 the hardware used. The {no} value is useful for verifying that the 
 Kokkos-based {host} and {device} values are working correctly. It is the 
-default when running on CPUs since it is usually the fastest. 
+default when running on CPUs since it is usually the fastest.
 
 When running on CPUs or Xeon Phi, the {host} and {device} values work 
 identically. When using GPUs, the {device} value is the default since it 
 will typically be optimal if all of your styles used in your input 
 script are supported by the KOKKOS package. In this case data can stay 
 on the GPU for many timesteps without being moved between the host and 
-GPU, if you use the {device} value. This requires that your MPI is able 
-to access GPU memory directly. Currently that is true for OpenMPI 1.8 
-(or later versions), Mvapich2 1.9 (or later), and CrayMPI. If your 
-script uses styles (e.g. fixes) which are not yet supported by the 
-KOKKOS package, then data has to be move between the host and device 
-anyway, so it is typically faster to let the host handle communication, 
-by using the {host} value. Using {host} instead of {no} will enable use 
-of multiple threads to pack/unpack communicated data. 
+GPU, if you use the {device} value. If your script uses styles (e.g. 
+fixes) which are not yet supported by the KOKKOS package, then data has 
+to be move between the host and device anyway, so it is typically faster 
+to let the host handle communication, by using the {host} value. Using 
+{host} instead of {no} will enable use of multiple threads to 
+pack/unpack communicated data. When running small systems on a GPU, 
+performing the exchange pack/unpack on the host CPU can give speedup 
+since it reduces the number of CUDA kernel launches.
 
-The {gpu/direct} keyword chooses whether GPU-direct will be used. When 
+The {cuda/aware} keyword chooses whether CUDA-aware MPI will be used. When 
 this keyword is set to {on}, buffers in GPU memory are passed directly 
 through MPI send/receive calls. This reduces overhead of first copying 
-the data to the host CPU. However GPU-direct is not supported on all 
+the data to the host CPU. However CUDA-aware MPI is not supported on all 
 systems, which can lead to segmentation faults and would require using a 
-value of {off}. If LAMMPS can safely detect that GPU-direct is not 
+value of {off}. If LAMMPS can safely detect that CUDA-aware MPI is not 
 available (currently only possible with OpenMPI v2.0.0 or later), then 
-the {gpu/direct} keyword is automatically set to {off} by default. When 
-the {gpu/direct} keyword is set to {off} while any of the {comm} 
+the {cuda/aware} keyword is automatically set to {off} by default. When 
+the {cuda/aware} keyword is set to {off} while any of the {comm} 
 keywords are set to {device}, the value for these {comm} keywords will 
 be automatically changed to {host}. This setting has no effect if not 
-running on GPUs.
+running on GPUs. CUDA-aware MPI is available for OpenMPI 1.8 (or later 
+versions), Mvapich2 1.9 (or later) when the "MV2_USE_CUDA" environment
+variable is set to "1", CrayMPI, and IBM Spectrum MPI when the "-gpu"
+flag is used.
 
 :line
 
@@ -622,19 +638,20 @@ except "omp" and "mode", are ignored if LAMMPS was not built with Xeon
 Phi co-processor support.  These settings are made automatically if the
 "-sf intel" "command-line switch"_Run_options.html is used.  If it is
 not used, you must invoke the package intel command in your input
-script or or via the "-pk intel" "command-line
+script or via the "-pk intel" "command-line
 switch"_Run_options.html.
 
 For the KOKKOS package, the option defaults for GPUs are neigh = full, 
 neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default 
-value, comm = device, gpu/direct = on. When LAMMPS can safely detect 
-that GPU-direct is not available, the default value of gpu/direct 
+value, comm = device, cuda/aware = on. When LAMMPS can safely detect 
+that CUDA-aware MPI is not available, the default value of cuda/aware 
 becomes "off". For CPUs or Xeon Phis, the option defaults are neigh = 
-half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. These 
-settings are made automatically by the required "-k on" "command-line 
-switch"_Run_options.html. You can change them by using the package 
-kokkos command in your input script or via the "-pk kokkos command-line 
-switch"_Run_options.html.
+half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The 
+option neigh/thread = on when there are 16K atoms or less on an MPI 
+rank, otherwise it is "off". These settings are made automatically by 
+the required "-k on" "command-line switch"_Run_options.html. You can 
+change them by using the package kokkos command in your input script or 
+via the "-pk kokkos command-line switch"_Run_options.html.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

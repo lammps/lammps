@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "comm_tiled_kokkos.h"
+#include <cstring>
 #include "comm_brick.h"
 #include "atom_kokkos.h"
 #include "atom_vec.h"

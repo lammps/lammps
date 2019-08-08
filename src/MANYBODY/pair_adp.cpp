@@ -16,11 +16,11 @@
                          Chandra Veer Singh (Cornell)
 ------------------------------------------------------------------------- */
 
+#include "pair_adp.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_adp.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

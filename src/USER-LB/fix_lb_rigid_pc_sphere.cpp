@@ -16,21 +16,18 @@
    Based on fix_rigid (version from 2008).
 ------------------------------------------------------------------------- */
 
+#include "fix_lb_rigid_pc_sphere.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_lb_rigid_pc_sphere.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
 #include "update.h"
-#include "respa.h"
 #include "modify.h"
 #include "group.h"
 #include "comm.h"
 #include "force.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
 #include "fix_lb_fluid.h"

@@ -17,13 +17,11 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lubricate_poly.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -33,8 +31,6 @@
 #include "modify.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "memory.h"
-#include "random_mars.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"

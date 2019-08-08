@@ -162,6 +162,7 @@ struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType>
   void execute(int reporter_capacity, int test_size)
   {
     Kokkos::parallel_for(Kokkos::RangePolicy<execution_space>(0,test_size), *this);
+    Kokkos::fence();
     driver_base::check_expectations(reporter_capacity, test_size);
   }
 
@@ -194,6 +195,7 @@ struct ErrorReporterDriverUseLambda : public ErrorReporterDriverBase<DeviceType>
         driver_base::m_errorReporter.add_report(work_idx, report);
       }
     });
+    Kokkos::fence();
     driver_base::check_expectations(reporter_capacity, test_size);
   }
 

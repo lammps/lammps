@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 #include "lal_base_dipole.h"
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BaseDipoleT BaseDipole<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -66,9 +66,12 @@ int BaseDipoleT::init_atomic(const int nlocal, const int nall,
   } else
     _nbor_data=&(nbor->dev_nbor);
 
-  int success=device->init(*ans,true,true,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,false,
-                           _threads_per_atom);
+  int success=device->init(*ans,true,true,nlocal,nall,maxspecial);
+  if (success!=0)
+    return success;
+
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
 
@@ -308,4 +311,4 @@ void BaseDipoleT::compile_kernels(UCL_Device &dev, const void *pair_str,
 }
 
 template class BaseDipole<PRECISION,ACC_PRECISION>;
-
+}

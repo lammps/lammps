@@ -55,7 +55,7 @@
 #include <Kokkos_Cuda.hpp>
 #include <Kokkos_CudaSpace.hpp>
 
-#include <Cuda/Kokkos_Cuda_Internal.hpp>
+//#include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <impl/Kokkos_Error.hpp>
 
 #if defined(KOKKOS_ENABLE_PROFILING)
@@ -183,7 +183,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
   enum { max_uvm_allocations = 65536 };
 
-  Cuda::fence();
+  Cuda::impl_static_fence();
   if ( arg_alloc_size > 0 )
   {
     Kokkos::Impl::num_uvm_allocations++;
@@ -194,7 +194,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
     CUDA_SAFE_CALL( cudaMallocManaged( &ptr, arg_alloc_size , cudaMemAttachGlobal ) );
   }
-  Cuda::fence();
+  Cuda::impl_static_fence();
 
   return ptr ;
 }
@@ -217,14 +217,14 @@ void CudaSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_all
 
 void CudaUVMSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_alloc_size */ ) const
 {
-  Cuda::fence();
+  Cuda::impl_static_fence();
   try {
     if ( arg_alloc_ptr != nullptr ) {
       Kokkos::Impl::num_uvm_allocations--;
       CUDA_SAFE_CALL( cudaFree( arg_alloc_ptr ) );
     }
   } catch(...) {}
-  Cuda::fence();
+  Cuda::impl_static_fence();
 }
 
 void CudaHostPinnedSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_alloc_size */ ) const
@@ -390,7 +390,7 @@ SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
 {
   #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
-    Cuda::fence(); //Make sure I can access the label ...
+    Cuda::impl_static_fence(); //Make sure I can access the label ...
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaUVMSpace::name()),RecordBase::m_alloc_ptr->m_label,
       data(),size());

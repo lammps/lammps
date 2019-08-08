@@ -15,11 +15,11 @@
    Contributing authors: Stefan Paquay & Matthew Peterson (Brandeis University)
 ------------------------------------------------------------------------- */
 
+#include "fix_enforce2d_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "error.h"
-#include "fix_enforce2d_kokkos.h"
 
 
 using namespace LAMMPS_NS;

@@ -30,7 +30,6 @@ This is the list of packages that may require additional steps.
 "KIM"_#kim,
 "KOKKOS"_#kokkos,
 "LATTE"_#latte,
-"MEAM"_#meam,
 "MESSAGE"_#message,
 "MSCG"_#mscg,
 "OPT"_#opt,
@@ -89,7 +88,7 @@ which GPU hardware to build for.
                           # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
 -D GPU_ARCH=value         # primary GPU hardware choice for GPU_API=cuda
                           # value = sm_XX, see below
-                          # default is Cuda-compiler dependent, but typically sm_20
+                          # default is sm_30
 -D CUDPP_OPT=value        # optimization setting for GPU_API=cuda
                           # enables CUDA Performance Primitives Optimizations
                           # value = yes (default) or no
@@ -173,22 +172,17 @@ KIM package :h4,link(kim)
 
 To build with this package, the KIM library with API v2 must be downloaded
 and built on your system.  It must include the KIM models that you want to
-use with LAMMPS. If you want to use the "kim_query"_kim_query.html
+use with LAMMPS. If you want to use the "kim_query"_kim_commands.html
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-Note that in LAMMPS lingo, a KIM model driver is a pair style
-(e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
-element or alloy and set of parameters, e.g. EAM for Cu with a
-specific EAM potential file.  Also note that downloading and installing
-the KIM API library with all its models, may take a long time (10s of
-minutes to hours) to build.  Of course you only need to do that once.
+See "Obtaining KIM Models"_http://openkim.org/doc/usage/obtaining-models to
+learn how to install a pre-build binary of the OpenKIM Repository of Models.
+See the list of all KIM models here: https://openkim.org/browse/models
 
-See the list of KIM model drivers here:
-https://openkim.org/browse/model-drivers/alphabetical
-
-See the list of all KIM models here:
-https://openkim.org/browse/models/by-model-drivers
+(Also note that when downloading and installing from source
+the KIM API library with all its models, may take a long time (tens of
+minutes to hours) to build.  Of course you only need to do that once.)
 
 [CMake build]:
 
@@ -351,49 +345,6 @@ the compiler you use on your system to build LATTE.
 
 :line
 
-MEAM package :h4,link(meam)
-
-NOTE: the use of the MEAM package is discouraged, as it has been
-superseded by the USER-MEAMC package, which is a direct translation of
-the Fortran code in the MEAM library to C++. The code in USER-MEAMC
-should be functionally equivalent to the MEAM package, fully supports
-use of "pair_style hybrid"_pair_hybrid.html (the MEAM package does
-not), and has optimizations that make it significantly faster than the
-MEAM package.
-
-[CMake build]:
-
-No additional settings are needed besides "-D PKG_MEAM=yes".
-
-[Traditional make]:
-
-Before building LAMMPS, you must build the MEAM library in lib/meam.
-You can build the MEAM library manually if you prefer; follow the
-instructions in lib/meam/README.  You can also do it in one step from
-the lammps/src dir, using a command like these, which simply invoke
-the lib/meam/Install.py script with the specified args:
-
-make lib-meam                  # print help message
-make lib-meam args="-m mpi"    # build with default Fortran compiler compatible with your MPI library
-make lib-meam args="-m serial" # build with compiler compatible with "make serial" (GNU Fortran)
-make lib-meam args="-m ifort"  # build with Intel Fortran compiler using Makefile.ifort :pre
-
-NOTE: You should test building the MEAM library with both the Intel
-and GNU compilers to see if a simulation runs faster with one versus
-the other on your system.
-
-The build should produce two files: lib/meam/libmeam.a and
-lib/meam/Makefile.lammps.  The latter is copied from an existing
-Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
-Fortran (MEAM library).  Typically the two compilers used for LAMMPS
-and the MEAM library need to be consistent (e.g. both Intel or both
-GNU compilers).  If necessary, you can edit/create a new
-lib/meam/Makefile.machine file for your system, which should define an
-EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
-file.
-
-:line
-
 MESSAGE package :h4,link(message)
 
 This package can optionally include support for messaging via sockets,
@@ -403,6 +354,9 @@ be installed on your system.
 [CMake build]:
 
 -D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+-D ZMQ_LIBRARY=path     # ZMQ library file (only needed if a custom location)
+-D ZMQ_INCLUDE_DIR=path # ZMQ include directory (only needed if a custom location)
+:pre
 
 [Traditional make]:
 
@@ -415,6 +369,7 @@ simply invoke the lib/message/Install.py script with the specified args:
 make lib-message               # print help message
 make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
 make lib-message args="-s"     # build as serial lib with no ZMQ support
+:pre
 
 The build should produce two files: lib/message/cslib/src/libmessage.a
 and lib/message/Makefile.lammps.  The latter is copied from an

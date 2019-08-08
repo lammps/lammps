@@ -19,11 +19,11 @@
                          Paul Coffman (IBM) added MPI collectives remap
 ------------------------------------------------------------------------- */
 
+#include "fft3d.h"
 #include <mpi.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "fft3d.h"
 #include "remap.h"
 
 #ifdef FFT_KISS

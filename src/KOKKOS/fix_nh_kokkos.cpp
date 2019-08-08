@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_nh_kokkos.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_nh_kokkos.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"

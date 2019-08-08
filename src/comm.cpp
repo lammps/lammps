@@ -11,16 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "comm.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "comm.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
+#include "bond.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "fix.h"
 #include "compute.h"
 #include "domain.h"
@@ -39,7 +41,7 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFMIN 1000             // also in comm styles
+#define BUFEXTRA 1024
 
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
@@ -65,7 +67,10 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   outfile = NULL;
   recv_from_partition = send_to_partition = -1;
   otherflag = 0;
-  maxexchange_atom = maxexchange_fix = 0;
+
+  maxexchange = maxexchange_atom = maxexchange_fix = 0;
+  maxexchange_fix_dynamic = 0;
+  bufextra = BUFEXTRA;
 
   grid2proc = NULL;
   xsplit = ysplit = zsplit = NULL;
@@ -81,7 +86,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   nthreads = 1;
 #ifdef _OPENMP
   if (lmp->kokkos) {
-    nthreads = lmp->kokkos->num_threads * lmp->kokkos->numa;
+    nthreads = lmp->kokkos->nthreads * lmp->kokkos->numa;
   } else if (getenv("OMP_NUM_THREADS") == NULL) {
     nthreads = 1;
     if (me == 0)
@@ -225,6 +230,39 @@ void Comm::init()
 
   if (force->newton == 0) maxreverse = 0;
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
+
+  // maxexchange_atom = size of an exchanged atom, set by AtomVec
+  //   only needs to be set if size > BUFEXTRA
+  // maxexchange_fix_dynamic = 1 if any fix sets its maxexchange dynamically
+
+  maxexchange_atom = atom->avec->maxexchange;
+
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
+  maxexchange_fix_dynamic = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+}
+
+/* ----------------------------------------------------------------------
+   set maxexchange based on AtomVec and fixes
+------------------------------------------------------------------------- */
+
+void Comm::init_exchange()
+{
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
+  int onefix;
+  maxexchange_fix = 0;
+  for (int i = 0; i < nfix; i++) {
+    onefix = fix[i]->maxexchange;
+    maxexchange_fix = MAX(maxexchange_fix,onefix);
+  }
+
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
 }
 
 /* ----------------------------------------------------------------------
@@ -583,6 +621,82 @@ void Comm::set_proc_grid(int outflag)
                universe->uworld);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   determine suitable communication cutoff.
+   this uses three inputs: 1) maximum neighborlist cutoff, 2) an estimate
+   based on bond lengths and bonded interaction styles present, and 3) a
+   user supplied communication cutoff.
+   the neighbor list cutoff (1) is *always* used, since it is a requirement
+   for neighborlists working correctly. the bond length based cutoff is
+   *only* used, if no pair style is defined and no user cutoff is provided.
+   otherwise, a warning is printed. if the bond length based estimate is
+   larger than what is used.
+   print a warning, if a user specified communication cutoff is overridden.
+------------------------------------------------------------------------- */
+
+double Comm::get_comm_cutoff()
+{
+  double maxcommcutoff, maxbondcutoff = 0.0;
+
+  if (force->bond) {
+    int n = atom->nbondtypes;
+    for (int i = 1; i <= n; ++i)
+      maxbondcutoff = MAX(maxbondcutoff,force->bond->equilibrium_distance(i));
+
+    // apply bond length based heuristics.
+
+    if (force->newton_bond) {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
+    } else {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 3.125;
+      } else if (force->angle) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
+    }
+    maxbondcutoff += neighbor->skin;
+  }
+
+  // always take the larger of max neighbor list and user specified cutoff
+
+  maxcommcutoff = MAX(cutghostuser,neighbor->cutneighmax);
+
+  // use cutoff estimate from bond length only if no user specified
+  // cutoff was given and no pair style present. Otherwise print a
+  // warning, if the estimated bond based cutoff is larger than what
+  // is currently used.
+  
+  if (!force->pair && (cutghostuser == 0.0)) {
+    maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
+  } else {
+    if ((me == 0) && (maxbondcutoff > maxcommcutoff)) {
+      char mesg[256];
+      snprintf(mesg,256,"Communication cutoff %g is shorter than a bond "
+               "length based estimate of %g. This may lead to errors.",
+               maxcommcutoff,maxbondcutoff);
+      error->warning(FLERR,mesg);
+    }
+  }
+
+  // print warning if neighborlist cutoff overrides user cutoff
+
+  if (me == 0) {
+    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
+      char mesg[128];
+      snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
+      error->warning(FLERR,mesg);
+    }
+  }
+
+  return maxcommcutoff;
 }
 
 /* ----------------------------------------------------------------------
@@ -962,11 +1076,6 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                                    4*nprocs*sizeof(int) + all2all1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
-
-
-
-
-
 
   // create procs and outbuf for All2all if necesary
 

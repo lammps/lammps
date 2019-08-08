@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "verlet.h"
+#include <cstring>
 #include "neighbor.h"
 #include "domain.h"
 #include "comm.h"
@@ -28,10 +28,7 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
-#include "fix.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

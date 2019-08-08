@@ -20,7 +20,6 @@ PairStyle(eim,PairEIM)
 #ifndef LMP_PAIR_EIM_H
 #define LMP_PAIR_EIM_H
 
-#include <cstdio>
 #include "pair.h"
 
 namespace LAMMPS_NS {

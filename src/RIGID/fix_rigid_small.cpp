@@ -11,11 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid_small.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_rigid_small.h"
+#include <utility>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -31,7 +32,6 @@
 #include "neighbor.h"
 #include "force.h"
 #include "input.h"
-#include "output.h"
 #include "variable.h"
 #include "random_mars.h"
 #include "math_const.h"
@@ -70,7 +70,7 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 
 FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), step_respa(NULL),
-  infile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL),
+  inpfile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL),
   xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL),
   avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL),
   itensor(NULL), mass_body(NULL), langextra(NULL), random(NULL),
@@ -191,7 +191,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   int seed;
   langflag = 0;
-  infile = NULL;
+  inpfile = NULL;
   onemols = NULL;
   reinitflag = 1;
 
@@ -232,12 +232,12 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"infile") == 0) {
+    } else if (strcmp(arg[iarg],"inpfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      delete [] infile;
+      delete [] inpfile;
       int n = strlen(arg[iarg+1]) + 1;
-      infile = new char[n];
-      strcpy(infile,arg[iarg+1]);
+      inpfile = new char[n];
+      strcpy(inpfile,arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
@@ -546,7 +546,7 @@ FixRigidSmall::~FixRigidSmall()
   memory->destroy(dorient);
 
   delete random;
-  delete [] infile;
+  delete [] inpfile;
 
   memory->destroy(langextra);
   memory->destroy(mass_body);
@@ -622,10 +622,10 @@ void FixRigidSmall::init()
    if reinitflag is not set, do the initialization only once, b/c properties
    may not be re-computable especially if overlapping particles or bodies
    are inserted from mol template.
-     do not do dynamic init if read body properties from infile. this
-   is b/c the infile defines the static and dynamic properties and may not
+     do not do dynamic init if read body properties from inpfile. this
+   is b/c the inpfile defines the static and dynamic properties and may not
    be computable if contain overlapping particles setup_bodies_static()
-   reads infile itself.
+   reads inpfile itself.
      cannot do this until now, b/c requires comm->setup() to have setup stencil
    invoke pre_neighbor() to insure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
@@ -638,7 +638,7 @@ void FixRigidSmall::setup_pre_neighbor()
     setup_bodies_static();
   else pre_neighbor();
 
-  if ((reinitflag || !setupflag) && !infile)
+  if ((reinitflag || !setupflag) && !inpfile)
     setup_bodies_dynamic();
 
   setupflag = 1;
@@ -1775,7 +1775,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
    sets extended flags, masstotal, center-of-mass
    sets Cartesian and diagonalized inertia tensor
    sets body image flags
-   may read some properties from infile
+   may read some properties from inpfile
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_bodies_static()
@@ -1932,7 +1932,7 @@ void FixRigidSmall::setup_bodies_static()
     xcm[2] /= body[ibody].mass;
   }
 
-  // set vcm, angmom = 0.0 in case infile is used
+  // set vcm, angmom = 0.0 in case inpfile is used
   // and doesn't overwrite all body's values
   // since setup_bodies_dynamic() will not be called
 
@@ -1955,7 +1955,7 @@ void FixRigidSmall::setup_bodies_static()
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
   int *inbody;
-  if (infile) {
+  if (inpfile) {
     memory->create(inbody,nlocal_body,"rigid/small:inbody");
     for (ibody = 0; ibody < nlocal_body; ibody++) inbody[ibody] = 0;
     readfile(0,NULL,inbody);
@@ -2058,7 +2058,7 @@ void FixRigidSmall::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (infile) readfile(1,itensor,inbody);
+  if (inpfile) readfile(1,itensor,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -2257,11 +2257,11 @@ void FixRigidSmall::setup_bodies_static()
   comm->reverse_comm_fix(this,6);
 
   // error check that re-computed moments of inertia match diagonalized ones
-  // do not do test for bodies with params read from infile
+  // do not do test for bodies with params read from inpfile
 
   double norm;
   for (ibody = 0; ibody < nlocal_body; ibody++) {
-    if (infile && inbody[ibody]) continue;
+    if (inpfile && inbody[ibody]) continue;
     inertia = body[ibody].inertia;
 
     if (inertia[0] == 0.0) {
@@ -2295,7 +2295,7 @@ void FixRigidSmall::setup_bodies_static()
   // clean up
 
   memory->destroy(itensor);
-  if (infile) memory->destroy(inbody);
+  if (inpfile) memory->destroy(inbody);
 }
 
 /* ----------------------------------------------------------------------
@@ -2437,10 +2437,10 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   // open file and read header
 
   if (me == 0) {
-    fp = fopen(infile,"r");
+    fp = fopen(inpfile,"r");
     if (fp == NULL) {
       char str[128];
-      snprintf(str,128,"Cannot open fix rigid/small infile %s",infile);
+      snprintf(str,128,"Cannot open fix rigid/small inpfile %s",inpfile);
       error->one(FLERR,str);
     }
 
@@ -2538,7 +2538,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
 /* ----------------------------------------------------------------------
    write out restart info for mass, COM, inertia tensor to file
-   identical format to infile option, so info can be read in when restarting
+   identical format to inpfile option, so info can be read in when restarting
    each proc contributes info for rigid bodies it owns
 ------------------------------------------------------------------------- */
 

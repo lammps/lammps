@@ -1,0 +1,6 @@
+if(PKG_PYTHON)
+  find_package(PythonLibs REQUIRED)
+  add_definitions(-DLMP_PYTHON)
+  include_directories(${PYTHON_INCLUDE_DIR})
+  list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
+endif()

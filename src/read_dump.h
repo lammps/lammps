@@ -23,7 +23,6 @@ CommandStyle(read_dump,ReadDump)
 #define LMP_READ_DUMP_H
 
 #include <mpi.h>
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -134,7 +133,7 @@ E: Dump file does not contain requested snapshot
 
 Self-explanatory.
 
-E: Unknown dump reader style
+E: Unrecognized dump reader style
 
 The choice of dump reader style via the format keyword is unknown.
 

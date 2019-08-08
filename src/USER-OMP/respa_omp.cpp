@@ -15,13 +15,11 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "respa_omp.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "atom.h"
+#include "domain.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -32,11 +30,8 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
-#include "fix_respa.h"
-#include "timer.h"
-#include "memory.h"
 #include "error.h"
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

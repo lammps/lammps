@@ -15,8 +15,9 @@
    Contributing author: Sergey Lishchuk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_atm.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"

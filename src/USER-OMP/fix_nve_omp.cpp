@@ -13,7 +13,6 @@
 
 #include "fix_nve_omp.h"
 #include "atom.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

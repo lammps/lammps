@@ -21,28 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_magelec.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_magelec.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 

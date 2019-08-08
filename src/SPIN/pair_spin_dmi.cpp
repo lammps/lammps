@@ -457,9 +457,9 @@ void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3],
   csy = (spi[2]*spj[0] - spi[0]*spj[2]);
   csz = (spi[0]*spj[1] - spi[1]*spj[0]);
 
-  cdmx = (dmiy*csz - dmiz*csy);
-  cdmy = (dmiz*csx - dmix*csz);
-  cdmz = (dmix*csy - dmiy*csz);
+  cdmx = 2.0*(dmiy*csz - dmiz*csy);
+  cdmy = 2.0*(dmiz*csx - dmix*csz);
+  cdmz = 2.0*(dmix*csy - dmiy*csz);
 
   fi[0] += 2.0*irij*cdmx;
   fi[1] += 2.0*irij*cdmy;

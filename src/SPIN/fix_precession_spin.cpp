@@ -21,21 +21,16 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "fix_precession_spin.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "error.h"
-#include "domain.h"
-#include "error.h"
-#include "fix_precession_spin.h"
 #include "force.h"
 #include "input.h"
 #include "math_const.h"
-#include "memory.h"
 #include "modify.h"
-#include "neigh_list.h"
 #include "respa.h"
 #include "update.h"
 #include "variable.h"
@@ -178,9 +173,9 @@ int FixPrecessionSpin::setmask()
 
 void FixPrecessionSpin::init()
 {
-  const double hbar = force->hplanck/MY_2PI;    // eV/(rad.THz)
-  const double mub = 5.78901e-5;                // in eV/T
-  const double gyro = mub/hbar;                 // in rad.THz/T
+  const double hbar = force->hplanck/MY_2PI;	// eV/(rad.THz)
+  const double mub = 5.78901e-5;		// in eV/T
+  const double gyro = 2.0*mub/hbar;		// in rad.THz/T
 
   // convert field quantities to rad.THz
 

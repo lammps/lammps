@@ -15,19 +15,14 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-
 #include "dihedral_table_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "domain.h"
+#include "neighbor.h"
 #include "force.h"
-#include "update.h"
-#include "error.h"
-
+#include "timer.h"
 #include "math_const.h"
 #include "math_extra.h"
 

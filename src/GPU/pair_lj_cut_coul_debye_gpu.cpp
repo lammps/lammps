@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_coul_debye_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_coul_debye_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

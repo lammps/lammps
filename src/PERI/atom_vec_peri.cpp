@@ -15,14 +15,12 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_peri.h"
+#include <cfloat>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "citeme.h"
@@ -55,7 +53,7 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
   comm_f_only = 1;
   size_forward = 4;
   size_reverse = 3;
-  size_border = 11;
+  size_border = 12;
   size_velocity = 3;
   size_data_atom = 7;
   size_data_vel = 4;
@@ -357,6 +355,7 @@ int AtomVecPeri::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = vfrac[j];
+      buf[m++] = rmass[j];
       buf[m++] = s0[j];
       buf[m++] = x0[j][0];
       buf[m++] = x0[j][1];
@@ -381,6 +380,7 @@ int AtomVecPeri::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = vfrac[j];
+      buf[m++] = rmass[j];
       buf[m++] = s0[j];
       buf[m++] = x0[j][0];
       buf[m++] = x0[j][1];
@@ -414,6 +414,7 @@ int AtomVecPeri::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = vfrac[j];
+      buf[m++] = rmass[j];
       buf[m++] = s0[j];
       buf[m++] = x0[j][0];
       buf[m++] = x0[j][1];
@@ -442,6 +443,7 @@ int AtomVecPeri::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         buf[m++] = vfrac[j];
+        buf[m++] = rmass[j];
         buf[m++] = s0[j];
         buf[m++] = x0[j][0];
         buf[m++] = x0[j][1];
@@ -463,6 +465,7 @@ int AtomVecPeri::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
         buf[m++] = vfrac[j];
+        buf[m++] = rmass[j];
         buf[m++] = s0[j];
         buf[m++] = x0[j][0];
         buf[m++] = x0[j][1];
@@ -497,6 +500,7 @@ int AtomVecPeri::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = vfrac[j];
+    buf[m++] = rmass[j];
     buf[m++] = s0[j];
     buf[m++] = x0[j][0];
     buf[m++] = x0[j][1];
@@ -522,6 +526,7 @@ void AtomVecPeri::unpack_border(int n, int first, double *buf)
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     vfrac[i] = buf[m++];
+    rmass[i] = buf[m++];
     s0[i] = buf[m++];
     x0[i][0] = buf[m++];
     x0[i][1] = buf[m++];
@@ -551,6 +556,7 @@ void AtomVecPeri::unpack_border_vel(int n, int first, double *buf)
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     vfrac[i] = buf[m++];
+    rmass[i] = buf[m++];
     s0[i] = buf[m++];
     x0[i][0] = buf[m++];
     x0[i][1] = buf[m++];
@@ -576,6 +582,7 @@ int AtomVecPeri::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     vfrac[i] = buf[m++];
+    rmass[i] = buf[m++];
     s0[i] = buf[m++];
     x0[i][0] = buf[m++];
     x0[i][1] = buf[m++];

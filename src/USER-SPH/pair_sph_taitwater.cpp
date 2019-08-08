@@ -11,9 +11,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_taitwater.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

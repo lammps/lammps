@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_respa_bin_newton_omp.h"
-#include "neighbor.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"

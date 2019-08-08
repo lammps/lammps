@@ -14,20 +14,16 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna_xstk.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "mf_oxdna.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

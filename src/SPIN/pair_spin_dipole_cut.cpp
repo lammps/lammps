@@ -21,16 +21,16 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_spin_dipole_cut.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
 #include "math_const.h"

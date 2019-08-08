@@ -352,15 +352,15 @@ void FixIntel::init()
   if (_offload_balance != 0.0) off_mode = 1;
   if (_precision_mode == PREC_MODE_SINGLE) {
     _single_buffers->zero_ev();
-    _single_buffers->grow_ncache(off_mode,_nthreads);
+    _single_buffers->grow_ncache(off_mode, comm->nthreads);
     _single_buffers->free_list_ptrs();
   } else if (_precision_mode == PREC_MODE_MIXED) {
     _mixed_buffers->zero_ev();
-    _mixed_buffers->grow_ncache(off_mode,_nthreads);
+    _mixed_buffers->grow_ncache(off_mode, comm->nthreads);
     _mixed_buffers->free_list_ptrs();
   } else {
     _double_buffers->zero_ev();
-    _double_buffers->grow_ncache(off_mode,_nthreads);
+    _double_buffers->grow_ncache(off_mode, comm->nthreads);
     _double_buffers->free_list_ptrs();
   }
 

@@ -11,16 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_sphere_kokkos.h"
+#include <cmath>
+#include <cstring>
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"

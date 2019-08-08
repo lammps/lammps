@@ -20,7 +20,6 @@ BondStyle(gromos,BondGromos)
 #ifndef LMP_BOND_GROMOS_H
 #define LMP_BOND_GROMOS_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

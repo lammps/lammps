@@ -11,15 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
+#include "compute.h"
 #include <cstring>
 #include <cctype>
-#include "compute.h"
-#include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "comm.h"
 #include "group.h"
 #include "modify.h"
 #include "fix.h"

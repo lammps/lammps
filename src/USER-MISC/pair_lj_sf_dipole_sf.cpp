@@ -16,10 +16,10 @@
                          Samuel Genheden (University of Southampton)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_sf_dipole_sf.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

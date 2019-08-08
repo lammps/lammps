@@ -17,9 +17,8 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_rigid_nph_omp.h"
-#include "domain.h"
+#include <cstring>
 #include "modify.h"
 #include "error.h"
 

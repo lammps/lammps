@@ -16,27 +16,21 @@
      based on pair_airebo by Ase Henry (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
 #include "pair_lcbop.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "my_page.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
@@ -1098,19 +1092,6 @@ void PairLCBOP::read_file(char *filename)
 /* ----------------------------------------------------------------------
    init coefficients for TF_conj
 ------------------------------------------------------------------------- */
-
-#include <iostream>
-#include <fstream>
-#include <functional>
-template< class function > void print_function( double x_0, double x_1, size_t n, function f, std::ostream &stream ) {
-  double dx = (x_1-x_0)/n;
-  for( double x=x_0; x<=x_1+0.0001; x+=dx ) {
-    double f_val, df;
-    f_val = f(x, &df);
-    stream << x << " " << f_val << "   " << df << std::endl;
-  }
-  stream << std::endl;
-}
 
 void PairLCBOP::spline_init() {
   for( size_t N_conj_ij=0; N_conj_ij<2; N_conj_ij++ ) // N_conj_ij

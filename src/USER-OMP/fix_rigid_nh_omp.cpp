@@ -16,7 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh_omp.h"
-
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -24,12 +25,12 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "modify.h"
 #include "update.h"
-
-#include <cstring>
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

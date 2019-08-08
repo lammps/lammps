@@ -11,12 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "variable.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
 #include <unistd.h>
-#include "variable.h"
 #include "universe.h"
 #include "atom.h"
 #include "update.h"
@@ -26,6 +27,7 @@
 #include "region.h"
 #include "modify.h"
 #include "compute.h"
+#include "input.h"
 #include "fix.h"
 #include "fix_store.h"
 #include "force.h"
@@ -33,7 +35,6 @@
 #include "thermo.h"
 #include "random_mars.h"
 #include "math_const.h"
-#include "atom_masks.h"
 #include "lmppython.h"
 #include "memory.h"
 #include "info.h"
@@ -5162,8 +5163,8 @@ int VarReader::read_peratom()
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
-      if (tag <= 0 || tag > map_tag_max)
+      int rv = sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
+      if (tag <= 0 || tag > map_tag_max || rv != 2)
         error->one(FLERR,"Invalid atom ID in variable file");
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
       buf = next + 1;

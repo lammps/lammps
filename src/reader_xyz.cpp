@@ -15,10 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "reader_xyz.h"
-#include "atom.h"
+#include <cstdlib>
 #include "memory.h"
 #include "error.h"
 #include "force.h"
@@ -170,7 +168,7 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclin
 
 void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 {
-  int i,m;
+  int i,m,rv;
   char *eof;
   int mytype;
   double myx, myy, myz;
@@ -180,7 +178,9 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
     if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 
     ++nid;
-    sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
+    rv = sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
+    if (rv != 3)
+      error->one(FLERR,"Dump file is incorrectly formatted");
 
     // XXX: we could insert an element2type translation here
     // XXX: for now we flag unrecognized types as type 0,

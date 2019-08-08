@@ -16,9 +16,9 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_buck6d.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,13 +26,11 @@
 #include "force.h"
 #include "pair.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.001
 

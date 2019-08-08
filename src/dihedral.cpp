@@ -11,13 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "dihedral.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "pair.h"
-#include "suffix.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"

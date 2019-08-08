@@ -791,6 +791,11 @@ int colvar::init_components(std::string const &conf)
     "inertia", "inertia");
   error_code |= init_components_type<inertia_z>(conf, "moment of inertia around an axis", "inertiaZ");
   error_code |= init_components_type<eigenvector>(conf, "eigenvector", "eigenvector");
+  error_code |= init_components_type<gspath>(conf, "geometrical path collective variables (s)", "gspath");
+  error_code |= init_components_type<gzpath>(conf, "geometrical path collective variables (z)", "gzpath");
+  error_code |= init_components_type<linearCombination>(conf, "linear combination of other collective variables", "subColvar");
+  error_code |= init_components_type<gspathCV>(conf, "geometrical path collective variables (s) for other CVs", "gspathCV");
+  error_code |= init_components_type<gzpathCV>(conf, "geometrical path collective variables (z) for other CVs", "gzpathCV");
 
   if (!cvcs.size() || (error_code != COLVARS_OK)) {
     cvm::error("Error: no valid components were provided "
@@ -1495,6 +1500,8 @@ int colvar::calc_colvar_properties()
     // calculate the velocity by finite differences
     if (cvm::step_relative() == 0) {
       x_old = x;
+      v_fdiff.reset(); // Do not pretend we know anything about the actual velocity
+      // eg. upon restarting. That would require saving v_fdiff or x_old to the state file
     } else {
       v_fdiff = fdiff_velocity(x_old, x);
       v_reported = v_fdiff;
@@ -1516,8 +1523,9 @@ int colvar::calc_colvar_properties()
       x_ext = prev_x_ext;
       v_ext = prev_v_ext;
     }
-
     // report the restraint center as "value"
+    // These position and velocities come from integration at the _previous timestep_ in update_forces_energy()
+    // But we report values at the beginning of the timestep (value at t=0 on the first timestep)
     x_reported = x_ext;
     v_reported = v_ext;
     // the "total force" with the extended Lagrangian is
@@ -1651,8 +1659,6 @@ cvm::real colvar::update_forces_energy()
       // is equal to the actual coordinate
       x_ext = x;
     }
-    // Report extended value
-    x_reported = x_ext;
   }
 
   // Now adding the force on the actual colvar (for those biases that
@@ -1975,9 +1981,8 @@ std::istream & colvar::read_restart(std::istream &is)
   }
 
   if (is_enabled(f_cv_extended_Lagrangian)) {
-
     if ( !(get_keyval(conf, "extended_x", x_ext,
-                      colvarvalue(x.type()), colvarparse::parse_silent)) &&
+                      colvarvalue(x.type()), colvarparse::parse_silent)) ||
          !(get_keyval(conf, "extended_v", v_ext,
                       colvarvalue(x.type()), colvarparse::parse_silent)) ) {
       cvm::log("Error: restart file does not contain "
@@ -2079,11 +2084,11 @@ std::ostream & colvar::write_restart(std::ostream &os) {
     os << "  extended_x "
        << std::setprecision(cvm::cv_prec)
        << std::setw(cvm::cv_width)
-       << x_ext << "\n"
+       << x_reported << "\n"
        << "  extended_v "
        << std::setprecision(cvm::cv_prec)
        << std::setw(cvm::cv_width)
-       << v_ext << "\n";
+       << v_reported << "\n";
   }
 
   os << "}\n\n";
@@ -2150,7 +2155,6 @@ std::ostream & colvar::write_traj_label(std::ostream & os)
 std::ostream & colvar::write_traj(std::ostream &os)
 {
   os << " ";
-
   if (is_enabled(f_cv_output_value)) {
 
     if (is_enabled(f_cv_extended_Lagrangian)) {

@@ -20,7 +20,6 @@ PairStyle(eam/gpu,PairEAMGPU)
 #ifndef LMP_PAIR_EAM_GPU_H
 #define LMP_PAIR_EAM_GPU_H
 
-#include <cstdio>
 #include "pair_eam.h"
 
 namespace LAMMPS_NS {

@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_zbl_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_zbl_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"

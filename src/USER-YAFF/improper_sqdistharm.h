@@ -20,7 +20,6 @@ ImproperStyle(sqdistharm,ImproperSQDistHarm)
 #ifndef LMP_IMPROPER_SQDISTHARM_H
 #define LMP_IMPROPER_SQDISTHARM_H
 
-#include <stdio.h>
 #include "improper.h"
 
 namespace LAMMPS_NS {

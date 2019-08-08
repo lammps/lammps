@@ -20,19 +20,17 @@
    Phys. Rev. B, 98, 235404 (2018).
 ------------------------------------------------------------------------- */
 
+#include "pair_drip.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <mpi.h>
-#include "pair_drip.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "my_page.h"
 #include "memory.h"
 #include "error.h"
 

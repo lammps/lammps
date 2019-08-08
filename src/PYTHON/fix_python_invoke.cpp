@@ -15,14 +15,11 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include <cstdio>
-#include <cstring>
 #include "fix_python_invoke.h"
-#include "atom.h"
+#include <Python.h>   // IWYU pragma: keep
+#include <cstring>
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"

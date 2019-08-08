@@ -935,8 +935,12 @@ src/SPIN: filenames -> commands
 "pair_style spin/neel"_pair_spin_neel.html
 "fix nve/spin"_fix_nve_spin.html
 "fix precession/spin"_fix_precession_spin.html
+"fix langevin/spin.cpp"_fix_langevin_spin.html
+"fix setforce/spin.cpp"_fix_setforce_spin.html
 "compute spin"_compute_spin.html
+"min/spin"_min_spin.html
 "neb/spin"_neb_spin.html
+tools/spin
 examples/SPIN :ul
 
 :line

@@ -85,6 +85,7 @@ void AtomVecSpin::grow(int n)
 
   // allocating mag. quantities
 
+  emag = memory->grow(atom->emag,nmax,"atom:emag");
   sp = memory->grow(atom->sp,nmax,4,"atom:sp");
   fm = memory->grow(atom->fm,nmax*comm->nthreads,3,"atom:fm");
   fm_long = memory->grow(atom->fm_long,nmax*comm->nthreads,3,"atom:fm_long");
@@ -103,7 +104,8 @@ void AtomVecSpin::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  sp = atom->sp; fm = atom->fm; fm_long = atom->fm_long;
+  emag = atom->emag; sp = atom->sp; 
+  fm = atom->fm; fm_long = atom->fm_long;
 }
 
 /* ----------------------------------------------------------------------
@@ -942,6 +944,7 @@ bigint AtomVecSpin::memory_usage()
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
+  if (atom->memcheck("emag")) bytes += memory->usage(emag,nmax);
   if (atom->memcheck("sp")) bytes += memory->usage(sp,nmax,4);
   if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
   if (atom->memcheck("fm_long")) bytes += memory->usage(fm_long,nmax*comm->nthreads,3);
@@ -955,6 +958,7 @@ bigint AtomVecSpin::memory_usage()
 
 void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
 {
+  memset(&atom->emag[0],0,nbytes);
   memset(&atom->f[0][0],0,3*nbytes);
   memset(&atom->fm[0][0],0,3*nbytes);
   memset(&atom->fm_long[0][0],0,3*nbytes);

@@ -141,7 +141,12 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_mu;
-    } else if (strcmp(arg[iarg],"spx") == 0) {          // pack magnetic variables
+    } else if (strcmp(arg[iarg],"emag") == 0) {		// pack magnetic variables
+      if (!atom->sp_flag)
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_emag;
+    } else if (strcmp(arg[iarg],"spx") == 0) {
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
@@ -1027,6 +1032,21 @@ void ComputePropertyAtom::pack_mu(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = mu[i][3];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_emag(int n)
+{
+  double *emag = atom->emag;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = emag[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

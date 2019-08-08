@@ -30,7 +30,8 @@ pair_coeff 	* * spin/exchange exchange 4.0 0.50 0.2280246862 1.229983475
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
-fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix 		1 all precession/spin cubic -0.0001
+zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21
 
 fix 		3 all nve/spin lattice yes

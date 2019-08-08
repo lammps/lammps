@@ -219,6 +219,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
+  double *emag = atom->emag;
   double **fm = atom->fm;
   double **sp = atom->sp;
   int *type = atom->type;
@@ -295,8 +296,9 @@ void PairSpinExchange::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+	evdwl *= hbar;
+	emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -353,7 +355,7 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
     } else error->all(FLERR,"Wrong type number");
   }
 
-  // if interaction applies to type ii,
+  // if interaction applies to type of ii,
   // locflag = 1 and compute pair interaction
 
   if (locflag == 1) {

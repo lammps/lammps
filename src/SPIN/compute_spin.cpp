@@ -89,6 +89,7 @@ void ComputeSpin::compute_vector()
   spintemperature = 0.0;
 
   int *mask = atom->mask;
+  double *emag = atom->emag;
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tx,ty,tz;
@@ -101,10 +102,11 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
-        mag[0] += sp[i][0];
-        mag[1] += sp[i][1];
-        mag[2] += sp[i][2];
-        magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+	mag[0] += sp[i][0];
+	mag[1] += sp[i][1];
+	mag[2] += sp[i][2];
+	//magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+	magenergy += emag[i];
         tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
         ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
         tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
@@ -134,7 +136,8 @@ void ComputeSpin::compute_vector()
   vector[1] = magtot[1];
   vector[2] = magtot[2];
   vector[3] = magtot[3];
-  vector[4] = magenergytot*hbar;
+  //vector[4] = magenergytot*hbar;
+  vector[4] = magenergytot;
   vector[5] = spintemperature;
 
 }

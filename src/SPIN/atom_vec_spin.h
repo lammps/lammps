@@ -68,8 +68,9 @@ class AtomVecSpin : public AtomVec {
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;		// lattice quantities
-  
+
   				// spin quantities
+  double *emag;			// per-atom mag. energy
   double **sp;			// sp[i][0-2] direction of the spin i
 				// sp[i][3] atomic magnetic moment of the spin i
   double **fm;			// fm[i][0-2] direction of magnetic precession

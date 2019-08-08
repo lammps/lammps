@@ -84,8 +84,7 @@ class ComputePropertyAtom : public Compute {
   void pack_radius(int);
   void pack_diameter(int);
 
-  // pack magnetic variables
-
+  void pack_emag(int);		// pack magnetic variables
   void pack_spx(int);
   void pack_spy(int);
   void pack_spz(int);

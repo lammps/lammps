@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(spin/neel,PairSpinNeel)
+PairStyle(spin/cubic,PairSpinCubic)
 
 #else
 
-#ifndef LMP_PAIR_SPIN_NEEL_H
-#define LMP_PAIR_SPIN_NEEL_H
+#ifndef LMP_PAIR_SPIN_CUBIC_H
+#define LMP_PAIR_SPIN_CUBIC_H
 
 #include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
-class PairSpinNeel : public PairSpin {
+class PairSpinCubic : public PairSpin {
  public:
-  PairSpinNeel(class LAMMPS *);
-  virtual ~PairSpinNeel();
+  PairSpinCubic(class LAMMPS *);
+  virtual ~PairSpinCubic();
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -37,31 +37,30 @@ class PairSpinNeel : public PairSpin {
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_neel(int, int, double, double *, double *, double *, double *);
-  void compute_neel_mech(int, int, double, double *, double *, double *, double *);
-  double compute_neel_energy(int, int, double, double *, double *, double *);
+  void compute_cubic(int, double *, double *, double *, double *, double *);
+  void compute_cubic_mech(int, double *, double *, double *, double *, double *, double *);
+  double compute_cubic_energy(int, double *, double *, double *, double *);
+
+  void set_axis(int, double *, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_neel_global;		// global neel cutoff distance
+  double cut_spin_cubic_global;		// global cutoff distance
 
  protected:
+  double **K1_mag;			// cubic aniso coeffs in eV
+  double **K2_mag;			
+  double **K1_mech;			// mech coeffs coeffs in
+  double **K2_mech;			
+  double **cut_spin_cubic;		// cutoff distance
 
-  // pseudo-dipolar and pseudo-quadrupolar coeff.
+  //double *ea1, *ea2, *ea3;
 
-  double **r0;
-  double **g1,**g2,**g3,**g4,**g5;
-  double **q1,**q2,**q3,**q4,**q5;
-  double **gm1,**gm2,**gm3,**gm4,**gm5;
-  double **qm1,**qm2,**qm3,**qm4,**qm5;
-  double **rs,**rl,**dr;		// short-, long- cuts, and delta switch 
-
-  int lattice_flag;			// flag for mech force computation
+  int lattice_flag; 			// flag for mech force computation
   class FixNVESpin *lockfixnvespin;	// ptr to FixNVESpin for setups
-
 
   void allocate();
 };

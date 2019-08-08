@@ -2236,6 +2236,7 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
 	int *poly_count = atom->poly_count;
 	double ebounding_boxlo[3];
 	double ebounding_boxhi[3];
+  dimension = domain->dimension;
 	int *nodes_per_element_list = atom->nodes_per_element_list;
   //double max_search_range= atom->max_search_range;
   double box_limit;

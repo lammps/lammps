@@ -34,11 +34,9 @@
 
 #define MAXNEIGH1  50
 #define MAXNEIGH2  10
-
+#define EXPAND 10
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -398,7 +396,7 @@ unit_cell[2] = w;
 			memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_lj:inner_neighbor_coords");
 
 			memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_lj:inner_neighbor_types");
-	     local_inner_max=neigh_max;
+	     local_inner_max=neigh_max+EXPAND;
 	     }
       
 			for (int l = 0; l < neigh_max; l++) {

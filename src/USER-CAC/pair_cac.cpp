@@ -39,8 +39,6 @@
 #define MAXLINE 1024
 #define DELTA 4
 using namespace LAMMPS_NS;
-using namespace MathConst;
-using namespace std;
 
 
 /* ---------------------------------------------------------------------- */
@@ -176,29 +174,22 @@ PairCAC::~PairCAC() {
 /* ---------------------------------------------------------------------- */
 
 void PairCAC::compute(int eflag, int vflag) {
-  int i,j,ii,jj,inum,jnum,jtype;
-  double delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  int i;
+  double delx,dely,delz,fpair;
   int mi;
   int mj;
   
   int singular;
-  evdwl = 0.0;
   ev_init(eflag,vflag);
 
   double **x = atom->x;
-  double **f = atom->f;
   double ****nodal_positions= atom->nodal_positions;
-  double ****nodal_velocities= atom->nodal_velocities;
   double ****nodal_forces= atom->nodal_forces;
   int *element_type = atom->element_type;
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   int nodes_per_element;
 	
   int *nodes_count_list = atom->nodes_per_element_list;	
@@ -208,7 +199,7 @@ void PairCAC::compute(int eflag, int vflag) {
   reneighbor_time = neighbor->lastcall;
   if (update->ntimestep == reneighbor_time||update->whichflag==2){
     atom->neigh_weight_flag=1;
-    atom->weight_count=atom->nlocal;
+    atom->weight_count=nlocal;
   }
  
   // loop over neighbors of my atoms
@@ -226,30 +217,29 @@ void PairCAC::compute(int eflag, int vflag) {
   if (update->ntimestep == reneighbor_time||update->whichflag==2) {
   //count number of pure atoms in the local domain
   natomic = 0;
-  for (i = 0; i < atom->nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
     current_element_type = element_type[i];
   if (current_element_type == 0) natomic += 1;
   }
 
   // initialize or grow surface counts array for quadrature scheme
   // along with interior scaling for the quadrature domain
-  if (atom->nlocal  > nmax) {
+  if (nlocal  > nmax) {
     allocate_surface_counts();
-    memory->grow(atom->neighbor_weights, atom->nlocal,3, "Pair CAC:neighbor_weights");
-	memory->grow(quadrature_counts, atom->nlocal, "Pair CAC:quadrature_counts");
+    memory->grow(atom->neighbor_weights, nlocal,3, "Pair CAC:neighbor_weights");
+	memory->grow(quadrature_counts, nlocal, "Pair CAC:quadrature_counts");
   }
 			
   surface_counts_max_old[0] = surface_counts_max[0];
   surface_counts_max_old[1] = surface_counts_max[1];
   surface_counts_max_old[2] = surface_counts_max[2];
   quad_list_counter=0;
-  for (i = 0; i < atom->nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
 				
   current_element_scale = element_scale[i];
   current_nodal_positions = nodal_positions[i];
   current_element_type = element_type[i];
   current_poly_count = poly_count[i];
-  int poly_surface_count[3];
   if (current_element_type == 0) atomic_counter += 1;
   if (current_element_type != 0) {
 
@@ -287,7 +277,7 @@ void PairCAC::compute(int eflag, int vflag) {
 
   // initialize or grow memory for the neighbor list of virtual atoms at quadrature points
 
-  if (atom->nlocal)
+  if (nlocal)
   allocate_quad_neigh_list(surface_counts_max[0], surface_counts_max[1], surface_counts_max[2], quadrature_node_count);
   }
   atomic_counter = 0;
@@ -295,7 +285,7 @@ void PairCAC::compute(int eflag, int vflag) {
 
   //quadrature point neighbor list construction
   if (update->ntimestep == reneighbor_time||update->whichflag==2){
-  for (i = 0; i < atom->nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
     atomic_flag = 0;
     current_list_index = i;
     current_element_type = element_type[i];
@@ -338,7 +328,7 @@ void PairCAC::compute(int eflag, int vflag) {
  
   quad_list_counter=0;
   //compute forces
-  for (i = 0; i < atom->nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
     atomic_flag = 0;
     current_list_index = i;
     current_element_type = element_type[i];
@@ -395,7 +385,6 @@ void PairCAC::compute(int eflag, int vflag) {
 void PairCAC::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
   max_nodes_per_element = atom->nodes_per_element;
 
   memory->create(mass_matrix, max_nodes_per_element, max_nodes_per_element,"pairCAC:mass_matrix");
@@ -542,7 +531,7 @@ void PairCAC::quadrature_init(int quadrature_rank){
 
 void PairCAC::compute_mass_matrix()
 {
-  int i,j,k;
+  int j,k;
   double result=0;
   //precompute shape function quadrature abcissae
   for(int ii=0;ii<max_nodes_per_element;ii++){
@@ -587,7 +576,6 @@ double PairCAC::shape_product(int ii, int jj) {
 void PairCAC::compute_quad_neighbors(int iii){
 	double unit_cell_mapped[3];
 	//int nodes_per_element;
-	int *nodes_count_list = atom->nodes_per_element_list;
 	double coefficients;	
 	
 	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
@@ -608,7 +596,6 @@ void PairCAC::compute_quad_neighbors(int iii){
 	s = t = w = 0;
 	double sq, tq, wq;
 	//compute interior quadrature point virtual neighbor lists
-	double result = 0;
 	interior_flag = 1;
 	if(quadrature_point_max==0) {
 		quadrature_point_max = 1000*atom->maxpoly;
@@ -1149,42 +1136,25 @@ void PairCAC::compute_forcev(int iii){
 //--------------------------------------------------------------------
 
 void PairCAC::quad_list_build(int iii, double s, double t, double w) {
-	int internal;
 
-	double delx, dely, delz;
-	
-	double r2inv;
-	double r6inv;
+  double delx, dely, delz;
 	double shape_func;
 	double shape_func2;
 	double boxmap_matrix[3][3];
 	int neighborflag = 0;
 	int outofbounds = 0;
-	int timestep = update->ntimestep;
 	double unit_cell_mapped[3];
 	double scanning_unit_cell[3];
-	double box_positions[8][3];
-
-	double forcelj, factor_lj, fpair;
-	int *type = atom->type;
 	double unit_cell[3];
 	double distancesq;
 	double current_position[3];
 	double scan_position[3];
 	double rcut;
-	int current_type = poly_counter;
   int **neighbor_weights = atom-> neighbor_weights;
-	double cbox_positions[3];
 
-	int flagm;
-	int neigh_count = 0;
+	
 	int inner_neigh_index = 0;
 	int outer_neigh_index = 0;
-	double cds[3];
-	double maxds = 0;
-	double maxdt = 0;
-	double maxdw = 0;
-	int neighbor_cell_count[3];
 	int nodes_per_element;
 	int *nodes_count_list = atom->nodes_per_element_list;	
 	expansion_count_inner = 0;
@@ -1205,21 +1175,14 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 		unit_cell[1] = t;
 		unit_cell[2] = w;
 
-		// initialize number of expansions from previous quad list build for this quadrature point
-
-
-
 		//scan the surrounding unit cell locations in a cartesian grid
 		//of isoparametric space until the cutoff is exceeded
 		//for each grid scan
-
 
 		scanning_unit_cell[0] = unit_cell[0];
 		scanning_unit_cell[1] = unit_cell[1];
 		scanning_unit_cell[2] = unit_cell[2];
 
-
-		int distanceflag = 0;
 		current_position[0] = 0;
 		current_position[1] = 0;
 		current_position[2] = 0;
@@ -1235,8 +1198,6 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 
 		if (outer_neighflag) { rcut = 2 * cut_global_s + cutoff_skin; }
 		else { rcut = cut_global_s + cutoff_skin; }
-
-		int origin_type = type_array[poly_counter];
 
 		//try making a boxmap matrix for every type later
 		for (int id = 0; id < 3; id++) {
@@ -1272,7 +1233,6 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 		//perform gram schmidt orthogonalization of the three vectors
 		double norm_a = sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 		double norm_b = sqrt(b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
-		double norm_c = sqrt(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]);
 
 		double proj_b2a = (b[0] * a[0] + b[1] * a[1] + b[2] * a[2]) / norm_a;
 
@@ -1283,7 +1243,6 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 		b_orth[2] = b[2] - proj_b2a*a[2] / norm_a;
 
 		double proj_c2a = (c[0] * a[0] + c[1] * a[1] + c[2] * a[2]) / norm_a;
-		double proj_c2b = (b[0] * c[0] + b[1] * c[1] + b[2] * c[2]) / norm_b;
 		double norm_b_orth = sqrt(b_orth[0] * b_orth[0] + b_orth[1] * b_orth[1]
 			+ b_orth[2] * b_orth[2]);
 		double proj_c2b_orth = (b_orth[0] * c[0] + b_orth[1] * c[1] + b_orth[2] * c[2]) / norm_b_orth;
@@ -1298,14 +1257,12 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 			+ c_orth[2] * c_orth[2]);
 
 		int w_span = int(rcut / norm_c_orth) + 1;
-		int scan_type;
 
 		int t_upper_limit;
 		int t_lower_limit;
 		int s_upper_limit;
 		int s_lower_limit;
 		for (int polyscan = 0; polyscan < current_poly_count; polyscan++) {
-			scan_type = type_array[polyscan];
 			for (int wcount = -w_span; wcount < w_span + 1; wcount++) {
 				t_lower_limit = -int((rcut + proj_c2b_orth*wcount) / norm_b_orth) - 1;
 				t_upper_limit = int((rcut - proj_c2b_orth*wcount) / norm_b_orth) + 1;
@@ -1440,74 +1397,47 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 //------------------------------------------------------------------------
 //this method is designed for 8 node parallelpiped elements; IT IS NOT GENERAL!!.
 void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_neigh_initial, int outer_neigh_initial){
-    int i,j,ii,jj,inum,jnum,jtype;
-    double delx,dely,delz,evdwl,fpair;
-    double rsq,r2inv,r6inv,forcelj,factor_lj;
-    int *ilist,*jlist,*numneigh,**firstneigh;
-    double ****nodal_positions= atom->nodal_positions;
-	  int *element_type = atom->element_type;
-	  int **element_scale = atom->element_scale;
-	  int *poly_count = atom->poly_count;
-		int *nodes_count_list = atom->nodes_per_element_list;	
-    double distancesq;
-    double distance;
-    //double surface_normal[3];
-    double min_point[3];
-    int timestep=update->ntimestep;
-    double boxmap_matrix[3][3];
-    int outofbounds=0;
-    int **neighbor_weights = atom-> neighbor_weights;
-    double unit_cell_mapped[3];
-    double scanning_unit_cell[3];
-    double box_positions[8][3];
+  int i,j,jj,jnum;
+  double delx,dely,delz;
+  int *jlist,*numneigh,**firstneigh;
+  double ****nodal_positions= atom->nodal_positions;
+	int *element_type = atom->element_type;
+	int **element_scale = atom->element_scale;
+	int *poly_count = atom->poly_count;
+	int *nodes_count_list = atom->nodes_per_element_list;	
+  double distancesq;
+  //double surface_normal[3];
+  double min_point[3];
+  double boxmap_matrix[3][3];
+  int outofbounds=0;
+  int **neighbor_weights = atom-> neighbor_weights;
+  double unit_cell_mapped[3];
+  double scanning_unit_cell[3];
 	int complete = 0;
-    double vector_a[3];//first vector used to determine the planar section
-    double vector_b[3];//second vector used to determine the planar section
-    double map_matrix[2][2];
 	// asa_cg work arrays
 	double Work[100];
 	double **coords = atom->x;
 	long iWork[2];
 	double min_distance;
-
-    double shape_func2;
-      int *type = atom->type;
-  int nlocal = atom->nlocal;
-  
- 
-
+  double shape_func2;
   double scan_position[3];
-    double rcut;
+  double rcut;
 
-	
 	int inner_neigh_index = inner_neigh_initial;
 	int outer_neigh_index = outer_neigh_initial;
-    double cbox_positions[3];
 
-    int flagm;
+  //initialize quadrature position vector
+  quad_r[0]=x;
+  quad_r[1]=y;
+  quad_r[2]=z;
 
-    double cds[3];
-    double maxds=0;
-    double maxdt=0;
-    double maxdw=0;
-    int neighbor_cell_count[3];
-	int distancesq_scan;
-    //initialize quadrature position vector
-    quad_r[0]=x;
-    quad_r[1]=y;
-    quad_r[2]=z;
-
-    ASA_INT n ;
-    n = 2 ; /* problem dimension */
-    double xm[2], lo[2], hi[2] ;
+  ASA_INT n ;
+  n = 2 ; /* problem dimension */
+  double xm[2], lo[2], hi[2] ;
 	int swap_dof_set[6];
 	double swap_distancesq;
 	double swap_distancesq_set[6];
 
-
-
-  inum = list->inum;
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
@@ -1535,9 +1465,7 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 
 			xm[0] = 0;
 			xm[1] = 0;
-			
-			//double current_minpoint[3];
-			double current_distancesq_min = 100000000;
+
 		//preliminary sorting of surfaces according to initial distances of starting point 0,0
 			for (int si = 0; si < 6; si++) {
 				dof_surf_list[0] = sort_dof_set[si][0];
@@ -1626,7 +1554,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 					}
 				}
 				if (swap_min) {
-					current_distancesq_min = swap_distancesq_set[si];
 					for (int swap_surface = si-scan_found; swap_surface > 0; swap_surface--) {
 						    swap_distancesq = swap_distancesq_set[si - swap_surface];
 							swap_dof_set[0] = sort_dof_set[si - swap_surface][0];
@@ -2039,7 +1966,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 				//perform gram schmidt orthogonalization of the three vectors
 				double norm_a = sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 				double norm_b = sqrt(b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
-				double norm_c = sqrt(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]);
 
 				double proj_b2a = (b[0] * a[0] + b[1] * a[1] + b[2] * a[2]) / norm_a;
 
@@ -2050,7 +1976,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 				b_orth[2] = b[2] - proj_b2a*a[2] / norm_a;
 
 				double proj_c2a = (b[0] * a[0] + b[1] * a[1] + b[2] * a[2]) / norm_a;
-				double proj_c2b = (b[0] * c[0] + b[1] * c[1] + b[2] * c[2]) / norm_b;
 				double norm_b_orth = sqrt(b_orth[0] * b_orth[0] + b_orth[1] * b_orth[1]
 					+ b_orth[2] * b_orth[2]);
 				double proj_c2b_orth = (b_orth[0] * c[0] + b_orth[1] * c[1] + b_orth[2] * c[2]) / norm_b_orth;
@@ -2064,7 +1989,6 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 					+ c_orth[2] * c_orth[2]);
 
 				int w_span = int(rcut / norm_c_orth) + 1;
-				int origin_type = type_array[poly_counter];
 				int t_upper_limit;
 				int t_lower_limit;
 				int s_upper_limit;
@@ -2247,9 +2171,7 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 
 void PairCAC::neigh_list_cord(double& coordx, double& coordy, double& coordz, int e_index,
   int p_index, double ucells, double ucellt, double ucellw){
-	coordx = 0;
-	coordy = 0;
-	coordz = 0; 
+	
 	double shape_func;
 	double ****nodal_positions = atom->nodal_positions;
 	int *element_type = atom->element_type;
@@ -2257,6 +2179,9 @@ void PairCAC::neigh_list_cord(double& coordx, double& coordy, double& coordz, in
 	int *nodes_count_list = atom->nodes_per_element_list;	
 	int list_nodes_per_element;
 		if (etype != 0) {
+			coordx = 0;
+	        coordy = 0;
+	        coordz = 0; 
 			list_nodes_per_element = nodes_count_list[etype];
 			for (int kk = 0; kk < list_nodes_per_element; kk++) {
 				shape_func = shape_function(ucells, ucellt, ucellw, 2, kk + 1);
@@ -2344,9 +2269,8 @@ shape_functions[7]=&PairCAC::quad_shape_eight;
 //-------------------------------------------------------------------------
 
 double PairCAC::shape_function(double s, double t, double w, int flag, int index){
-double shape_function=0;
+double shape_function;
 if(flag==2){
-
     if(index==1){
     shape_function=(1-s)*(1-t)*(1-w)/8;
     }
@@ -2379,10 +2303,10 @@ return shape_function;
 
 }
 
-
+//-------------------------------------------------------------------------
 
 double PairCAC::shape_function_derivative(double s, double t, double w, int flag, int index, int derivative){
-double shape_function=0;
+double shape_function;
 //flag determines the element type and corresponding basis/shape functions
 if(flag==2){
 
@@ -2440,8 +2364,6 @@ if(flag==2){
 
  }
  else if(derivative==3){
-
-
         if(index==1){
     shape_function=-(1-s)*(1-t)/8;
     }
@@ -2466,11 +2388,7 @@ if(flag==2){
     else if(index==8){
     shape_function=(1-s)*(1+t)/8;
     }
-
-
  }
-    
-
 }
 
 return shape_function;
@@ -2672,6 +2590,12 @@ unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 	scalex = 1 - ds_surf;
 	scaley = 1 - dt_surf;
 	scalez = 1 - dw_surf;
+	if(ds_surf==1)
+	scalex = 0.0;
+	if(dt_surf==1)
+	scaley = 0.0;
+	if(dw_surf==1)
+	scalez = 0.0;
 
 	countx = (int)(ds_surf / unit_cell_mapped[0]);
 	county = (int)(dt_surf / unit_cell_mapped[1]);
@@ -2919,10 +2843,7 @@ int *npoly = atom->poly_count;
 //memory usage due to quadrature point list memory structure
 double PairCAC::memory_usage()
 {
-	  int quad= quadrature_node_count;
-		int n1=surface_counts_max[0];
-		int n2=surface_counts_max[1];
-		int n3=surface_counts_max[2];
+	
     double bytes_used = 0;
     if (quad_allocated) {
 		for (int init = 0; init < old_atom_count; init++) {

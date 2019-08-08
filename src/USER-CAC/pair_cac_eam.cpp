@@ -38,9 +38,8 @@
 #define MAXNEIGH2  30
 #define MAXLINE 1024
 #define DELTA 4
+#define EXPAND 10
 using namespace LAMMPS_NS;
-using namespace MathConst;
-using namespace std;
 
 
 /* ---------------------------------------------------------------------- */
@@ -807,12 +806,12 @@ int distanceflag=0;
 	memory->grow(fp, neigh_max_inner + 1, "Pair_CAC_eam:fp");
 	memory->grow(inner_neighbor_types, neigh_max_inner, "Pair_CAC_eam:inner_neighbor_types");
 	memory->grow(inner_neighbor_coords, neigh_max_inner, 3, "Pair_CAC_eam:inner_neighbor_coords");
-	local_inner_max=neigh_max_inner;
+	local_inner_max=neigh_max_inner+EXPAND;
 	}
 	if(neigh_max_outer>local_outer_max){
 	memory->grow(outer_neighbor_coords, neigh_max_outer, 3, "Pair_CAC_eam:outer_neighbor_coords");
 	memory->grow(outer_neighbor_types, neigh_max_outer, "Pair_CAC_eam:outer_neighbor_types");
-	local_outer_max=neigh_max_outer;
+	local_outer_max=neigh_max_outer+EXPAND;
 	}
   
 	for (int l = 0; l < neigh_max_inner+1; l++) {

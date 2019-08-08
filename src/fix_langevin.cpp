@@ -18,11 +18,10 @@
 			 Niels Gronbech-Jensen (UC Davis) GJF-2GJ Formulation
 ------------------------------------------------------------------------- */
 
+#include "fix_langevin.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_langevin.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -30,8 +29,6 @@
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "input.h"
@@ -55,7 +52,8 @@ enum{CONSTANT,EQUAL,ATOM};
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
-  flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL)
+  flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL),
+  lv(NULL), wildcard(NULL), bias(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -112,7 +110,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) gjfflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) gjfflag = 1;
+      else if (strcmp(arg[iarg+1],"yes") == 0)
+        error->all(FLERR,"GJF yes keyword is deprecated.\nPlease use vhalf or vfull.");
+      else if (strcmp(arg[iarg+1],"vfull") == 0) {gjfflag = 1; hsflag = 0;}
+      else if (strcmp(arg[iarg+1],"vhalf") == 0) {gjfflag = 1; hsflag = 1;}
       else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {
@@ -141,14 +142,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) zeroflag = 1;
       else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"halfstep") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (gjfflag == 0) error->all(FLERR,"GJF must be set");
-      if (tallyflag == 0) error->warning(FLERR,"Careful, tally is untested");
-      if (strcmp(arg[iarg+1],"no") == 0) hsflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) hsflag = 1;
-      else error->all(FLERR,"Illegal fix langevin command");
-      iarg += 2;
     } else error->all(FLERR,"Illegal fix langevin command");
   }
 
@@ -168,6 +161,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   franprev = NULL;
   wildcard = NULL;
   lv = NULL;
+  bias = NULL;
   tforce = NULL;
   maxatom1 = maxatom2 = 0;
 
@@ -218,6 +212,7 @@ FixLangevin::~FixLangevin()
     memory->destroy(franprev);
     memory->destroy(wildcard);
     if (hsflag) memory->destroy(lv);
+    if (temperature && temperature->tempbias) memory->destroy(bias);
     atom->delete_callback(id,0);
   }
 }
@@ -300,6 +295,9 @@ void FixLangevin::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
+  if (strstr(update->integrate_style,"respa"))
+    error->one(FLERR,"Fix langevin gjf not implemented with respa capabilities");
+
   if (gjfflag) gjffac = 1.0/sqrt(1.0+update->dt/2.0/t_period);
 
 }
@@ -331,6 +329,11 @@ void FixLangevin::setup(int vflag)
       wildcard[i][0] = v[i][0];
       wildcard[i][1] = v[i][1];
       wildcard[i][2] = v[i][2];
+      if (tbiasflag == BIAS) {
+        bias[i][0] = 0.0;
+        bias[i][1] = 0.0;
+        bias[i][2] = 0.0;
+      }
     }
   }
 }
@@ -357,34 +360,95 @@ void FixLangevin::post_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
+  if (tbiasflag == BIAS) {
+    double b[3] = {0.0, 0.0, 0.0};
+    for (int i = 0; i < nlocal; i++) {
+      bias[i][0] = v[i][0];
+      bias[i][1] = v[i][1];
+      bias[i][2] = v[i][2];
+      v[i][0] = wildcard[i][0];
+      v[i][1] = wildcard[i][1];
+      v[i][2] = wildcard[i][2];
+    }
+    temperature->compute_scalar();
+    for (int i = 0; i < nlocal; i++) {
+      temperature->remove_bias(i, v[i]);
+      wildcard[i][0] = v[i][0];
+      wildcard[i][1] = v[i][1];
+      wildcard[i][2] = v[i][2];
+      if (wildcard[i][0] == 0.0) franprev[i][0] = 0.0;
+      if (wildcard[i][1] == 0.0) franprev[i][1] = 0.0;
+      if (wildcard[i][2] == 0.0) franprev[i][2] = 0.0;
+      temperature->restore_bias(i, v[i]);
+      b[0] = v[i][0] - wildcard[i][0];
+      b[1] = v[i][1] - wildcard[i][1];
+      b[2] = v[i][2] - wildcard[i][2];
+      v[i][0] = bias[i][0];
+      v[i][1] = bias[i][1];
+      v[i][2] = bias[i][2];
+      bias[i][0] = b[0];
+      bias[i][1] = b[1];
+      bias[i][2] = b[2];
+    }
+  }
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         dtfm = dtf / rmass[i];
-        x[i][0] += -dt * v[i][0];
-        x[i][1] += -dt * v[i][1];
-        x[i][2] += -dt * v[i][2];
+        x[i][0] -= dt * v[i][0];
+        x[i][1] -= dt * v[i][1];
+        x[i][2] -= dt * v[i][2];
         v[i][0] = gjffac * (wildcard[i][0] + dtfm * franprev[i][0] + dtfm * f[i][0]);
         v[i][1] = gjffac * (wildcard[i][1] + dtfm * franprev[i][1] + dtfm * f[i][1]);
         v[i][2] = gjffac * (wildcard[i][2] + dtfm * franprev[i][2] + dtfm * f[i][2]);
+        if (tbiasflag == BIAS)
+          for (int j = 0; j < 3; j++) {
+            if (wildcard[i][j] == 0) {
+              v[i][j] /= gjffac;
+            }
+            v[i][j] += bias[i][j];
+            if (wildcard[i][j] == 0){
+              v[i][j] /= gjffac;
+            }
+          }
         x[i][0] += gjffac * dt * v[i][0];
         x[i][1] += gjffac * dt * v[i][1];
         x[i][2] += gjffac * dt * v[i][2];
+        if (tbiasflag == BIAS)
+          for (int j = 0; j < 3; j++) {
+            if (wildcard[i][j] == 0)
+              v[i][j] *= gjffac;
+          }
       }
 
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         dtfm = dtf / mass[type[i]];
-        x[i][0] += -dt * v[i][0];
-        x[i][1] += -dt * v[i][1];
-        x[i][2] += -dt * v[i][2];
+        x[i][0] -= dt * v[i][0];
+        x[i][1] -= dt * v[i][1];
+        x[i][2] -= dt * v[i][2];
         v[i][0] = gjffac * (wildcard[i][0] + dtfm * franprev[i][0] + dtfm * f[i][0]);
         v[i][1] = gjffac * (wildcard[i][1] + dtfm * franprev[i][1] + dtfm * f[i][1]);
         v[i][2] = gjffac * (wildcard[i][2] + dtfm * franprev[i][2] + dtfm * f[i][2]);
+        if (tbiasflag == BIAS)
+          for (int j = 0; j < 3; j++) {
+            if (wildcard[i][j] == 0) {
+              v[i][j] /= gjffac;
+            }
+            v[i][j] += bias[i][j];
+            if (wildcard[i][j] == 0){
+              v[i][j] /= gjffac;
+            }
+          }
         x[i][0] += gjffac * dt * v[i][0];
         x[i][1] += gjffac * dt * v[i][1];
         x[i][2] += gjffac * dt * v[i][2];
+        if (tbiasflag == BIAS)
+          for (int j = 0; j < 3; j++) {
+            if (wildcard[i][j] == 0)
+              v[i][j] *= gjffac;
+          }
       }
   }
 }
@@ -657,9 +721,17 @@ void FixLangevin::post_force_templated()
 
       if (Tp_TALLY) {
         if (Tp_GJF && update->ntimestep != update->beginstep){
-          fdrag[0] = gamma1*gjffac*gjffac*v[i][0];
-          fdrag[1] = gamma1*gjffac*gjffac*v[i][1];
-          fdrag[2] = gamma1*gjffac*gjffac*v[i][2];
+          if (Tp_BIAS) {
+            temperature->remove_bias(i,v[i]);
+            fdrag[0] = gamma1*gjffac*gjffac*v[i][0];
+            fdrag[1] = gamma1*gjffac*gjffac*v[i][1];
+            fdrag[2] = gamma1*gjffac*gjffac*v[i][2];
+            temperature->restore_bias(i,v[i]);
+          } else {
+            fdrag[0] = gamma1*gjffac*gjffac*v[i][0];
+            fdrag[1] = gamma1*gjffac*gjffac*v[i][1];
+            fdrag[2] = gamma1*gjffac*gjffac*v[i][2];
+          }
           fran[0] *= gjffac;
           fran[1] *= gjffac;
           fran[2] *= gjffac;
@@ -894,8 +966,9 @@ void FixLangevin::end_of_step()
           v[i][2] = lv[i][2];
         }
       }
-      energy_onestep += flangevin[i][0] * v[i][0] + flangevin[i][1] * v[i][1] +
-                        flangevin[i][2] * v[i][2];
+      if (tallyflag)
+        energy_onestep += flangevin[i][0] * v[i][0] + flangevin[i][1] * v[i][1] +
+                          flangevin[i][2] * v[i][2];
     }
   if (tallyflag) {
     energy += energy_onestep * update->dt;
@@ -953,7 +1026,7 @@ int FixLangevin::modify_param(int narg, char **arg)
 
 double FixLangevin::compute_scalar()
 {
-  if (!tallyflag || !flangevin_allocated) return 0.0;
+  if (!tallyflag && !flangevin_allocated) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 
@@ -1004,6 +1077,7 @@ double FixLangevin::memory_usage()
   double bytes = 0.0;
   if (gjfflag) bytes += atom->nmax*3*2 * sizeof(double);
   if (gjfflag) if (hsflag) bytes += atom->nmax*3 * sizeof(double);
+  if (gjfflag && tbiasflag == BIAS) bytes += atom->nmax*3 * sizeof(double);
   if (tallyflag) bytes += atom->nmax*3 * sizeof(double);
   if (tforce) bytes += atom->nmax * sizeof(double);
   return bytes;
@@ -1018,6 +1092,7 @@ void FixLangevin::grow_arrays(int nmax)
   memory->grow(franprev,nmax,3,"fix_langevin:franprev");
   memory->grow(wildcard,nmax,3,"fix_langevin:wildcard");
   if (hsflag) memory->grow(lv,nmax,3,"fix_langevin:lv");
+  if (tbiasflag == BIAS) memory->grow(bias,nmax,3,"fix_langevin:bias");
 }
 
 /* ----------------------------------------------------------------------
@@ -1036,6 +1111,11 @@ void FixLangevin::copy_arrays(int i, int j, int /*delflag*/)
     lv[j][0] = lv[i][0];
     lv[j][1] = lv[i][1];
     lv[j][2] = lv[i][2];
+  }
+  if (tbiasflag == BIAS){
+    bias[j][0] = bias[i][0];
+    bias[j][1] = bias[i][1];
+    bias[j][2] = bias[i][2];
   }
 }
 
@@ -1057,6 +1137,11 @@ int FixLangevin::pack_exchange(int i, double *buf)
     buf[n++] = lv[i][1];
     buf[n++] = lv[i][2];
   }
+  if (tbiasflag == BIAS){
+    buf[n++] = bias[i][0];
+    buf[n++] = bias[i][1];
+    buf[n++] = bias[i][2];
+  }
   return n;
 }
 
@@ -1077,6 +1162,11 @@ int FixLangevin::unpack_exchange(int nlocal, double *buf)
     lv[nlocal][0] = buf[n++];
     lv[nlocal][1] = buf[n++];
     lv[nlocal][2] = buf[n++];
+  }
+  if (tbiasflag == BIAS){
+    bias[nlocal][0] = buf[n++];
+    bias[nlocal][1] = buf[n++];
+    bias[nlocal][2] = buf[n++];
   }
   return n;
 }

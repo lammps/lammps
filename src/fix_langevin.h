@@ -67,6 +67,7 @@ class FixLangevin : public Fix {
   double **franprev;
   double **lv;  //2GJ velocity or half-step velocity
   double **wildcard;
+  double **bias;
 
   int nvalues;
 

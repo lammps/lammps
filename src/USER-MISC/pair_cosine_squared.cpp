@@ -453,8 +453,8 @@ void PairCosineSquared::compute(int eflag, int vflag)
    it is called only if rsq < cutsq[itype][jtype], no need to check that
 ------------------------------------------------------------------------- */
 
-double PairCosineSquared::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+double PairCosineSquared::single(int /* i */, int /* j */, int itype, int jtype, double rsq,
+                         double /* factor_coul */, double factor_lj,
                          double &fforce)
 {
   double r, r2inv, r6inv, cosone, force, energy;

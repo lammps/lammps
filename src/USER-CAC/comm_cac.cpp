@@ -418,12 +418,15 @@ void CommCAC::setup()
         while (nprocmax[iswap] < noverlap) nprocmax[iswap] += DELTA_PROCS;
         grow_swap_send(iswap,nprocmax[iswap],oldmax);
         if (idir == 0) {
+          if(nprocmax[iswap]>nrecv_procmax[iswap+1]){
           nrecv_procmax[iswap+1]=nprocmax[iswap];
           grow_swap_recv(iswap+1,nprocmax[iswap],oldmax);}
+        }
         else {
+          if(nprocmax[iswap]>nrecv_procmax[iswap-1]){
           nrecv_procmax[iswap-1]=nprocmax[iswap];
           grow_swap_recv(iswap-1,nprocmax[iswap],oldmax);}
-        
+        }
       }
 
       // overlap how has list of noverlap procs
@@ -861,16 +864,18 @@ void CommCAC::setup()
       }
 
       // reallocate 2nd dimensions of all send/recv arrays, based on noverlap
-      // # of sends of this swap = # of recvs of iswap +/- 1
-      
+      // grow swap send if needed
       if (noverlap > nprocmax[iswap]) {
         int oldmax = nprocmax[iswap];
         while (nprocmax[iswap] < noverlap) nprocmax[iswap] += DELTA_PROCS;
         grow_swap_send(iswap,nprocmax[iswap],oldmax);
-        nrecv_procmax[iswap]=nprocmax[iswap];
-        grow_swap_recv(iswap,nprocmax[iswap],oldmax);
-     
-        
+      }
+      
+      //grow swap recv if needed
+      if (noverlap > nrecv_procmax[iswap]) {
+        int oldmax = nrecv_procmax[iswap];
+        while (nrecv_procmax[iswap] < noverlap) nrecv_procmax[iswap] += DELTA_PROCS;
+        grow_swap_recv(iswap,nrecv_procmax[iswap],oldmax);
       }
 
       // overlap how has list of noverlap procs

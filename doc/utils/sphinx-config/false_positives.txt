@@ -421,6 +421,7 @@ coreshell
 cornflowerblue
 cornsilk
 corotate
+corotation
 corotational
 correlator
 cosineshifted
@@ -2991,6 +2992,7 @@ Waltham
 wavepacket
 wB
 Wbody
+wca
 webpage
 Weckner
 WeinanE

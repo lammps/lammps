@@ -39,24 +39,36 @@ Style {cosine/squared} computes a potential of the form
 
 :c,image(Eqs/pair_cosine_squared.jpg)
 
-between two point particles, where (sigma, -epsilon) is the location of the (rightmost) minimum of the potential, as explained in the syntax section above.
+between two point particles, where (sigma, -epsilon) is the location of
+the (rightmost) minimum of the potential, as explained in the syntax
+section above.
 
-This potential was first used in \[1\] for a coarse-grained lipid membrane model.
-It is generally very useful as a non-specific interaction potential because it is fully adjustable in depth and width while joining the minimum at (sigma, -epsilon) and zero at (cutoff, 0) smoothly, requiring no shifting and causing no related artifacts, tail energy calculations etc. This evidently requires {cutoff} to be larger than {sigma}.
+This potential was first used in (Cooke)_#CKD for a coarse-grained lipid
+membrane model.  It is generally very useful as a non-specific
+interaction potential because it is fully adjustable in depth and width
+while joining the minimum at (sigma, -epsilon) and zero at (cutoff, 0)
+smoothly, requiring no shifting and causing no related artifacts, tail
+energy calculations etc. This evidently requires {cutoff} to be larger
+than {sigma}.
 
-If the {wca} option is used then a Weeks-Chandler-Andersen potential \[2\] is added to the above specified cosine-squared potential, specifically the following:
+If the {wca} option is used then a Weeks-Chandler-Andersen potential
+(Weeks)_#WCA is added to the above specified cosine-squared potential,
+specifically the following:
 
 :c,image(Eqs/pair_cosine_squared_wca.jpg)
 
-In this case, and this case only, the {sigma} parameter can be equal to {cutoff} (sigma = cutoff) which will result in ONLY the WCA potential being used (and print a warning), so the minimum will be attained at (sigma, 0). This is a convenience feature that enables a purely repulsive potential to be used without a need to define an additional pair style and use the hybrid styles.
+In this case, and this case only, the {sigma} parameter can be equal to
+{cutoff} (sigma = cutoff) which will result in ONLY the WCA potential
+being used (and print a warning), so the minimum will be attained at
+(sigma, 0). This is a convenience feature that enables a purely
+repulsive potential to be used without a need to define an additional
+pair style and use the hybrid styles.
 
-The energy and force of this pair style for parameters epsilon = 1.0, sigma = 1.0, cutoff = 2.5, with and without the WCA potential, are shown in the graphs below:
+The energy and force of this pair style for parameters epsilon = 1.0,
+sigma = 1.0, cutoff = 2.5, with and without the WCA potential, are shown
+in the graphs below:
 
 :c,image(JPG/pair_cosine_squared_graphs.jpg)
-
-:line
-
-There are currently no accelerated versions of this potential, although this should be relatively easy to implement on the basis of the code for the accelerated versions of similar styles (e.g. lj/cut) and anyone needing them is encouraged to do so.
 
 :line
 
@@ -89,7 +101,8 @@ package"_Build_package.html doc page for more info.
 
 [Default:] none
 
-:link(CKD,http://doi.org/10.1103/PhysRevE.72.011506)
-\[1\] "Cooke, Kremer and Deserno, Phys. Rev. E, 72, 011506 (2005)"_CKD
-:link(WCA,http://doi.org/10.1063/1.1674820)
-\[2\] "Weeks, Chandler and Andersen, J. Chem. Phys., 54, 5237 (1971)"_WCA
+:link(CKD)
+[(Cooke)] "Cooke, Kremer and Deserno, Phys. Rev. E, 72, 011506 (2005)"
+
+:link(WCA)
+[(Weeks)] "Weeks, Chandler and Andersen, J. Chem. Phys., 54, 5237 (1971)"

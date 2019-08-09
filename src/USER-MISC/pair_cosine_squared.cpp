@@ -14,11 +14,10 @@
    Contributing authors: Eugen Rozic (University College London)
 ------------------------------------------------------------------------- */
 
+#include "pair_cosine_squared.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_cosine_squared.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

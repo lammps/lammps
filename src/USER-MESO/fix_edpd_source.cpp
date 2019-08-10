@@ -11,17 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_edpd_source.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
 #include "force.h"
 

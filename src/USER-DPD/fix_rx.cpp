@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
+#include "fix_rx.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
 #include <cfloat> // DBL_EPSILON
-#include "fix_rx.h"
 #include "atom.h"
 #include "error.h"
 #include "group.h"

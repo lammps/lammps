@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_gpu.h"
 #include <cstring>
 #include <cstdlib>
-#include "fix_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -218,17 +218,6 @@ void FixGPU::init()
   if (atom->molecular == 2)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
-
-  // hybrid cannot be used with force/neigh option
-
-  if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
-    if (force->pair_match("^hybrid",0) != NULL)
-      error->all(FLERR,"Cannot use pair hybrid with GPU neighbor list builds");
-
-  if (_particle_split < 0)
-    if (force->pair_match("^hybrid",0) != NULL)
-      error->all(FLERR,"GPU split param must be positive "
-                 "for hybrid pair styles");
 
   // neighbor list builds on the GPU with triclinic box is not yet supported
 

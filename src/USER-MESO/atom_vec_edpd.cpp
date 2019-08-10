@@ -10,9 +10,8 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#include <cstring>
-#include <cstdlib>
 #include "atom_vec_edpd.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -21,6 +20,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -758,13 +758,13 @@ void AtomVecEDPD::data_atom(double *coord, imageint imagetmp, char **values)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  edpd_temp[nlocal] = atof(values[2]);
-  edpd_cv[nlocal] = atof(values[3]);
+  edpd_temp[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
+  edpd_cv[nlocal] = utils::numeric(FLERR,values[3],true,lmp);
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];

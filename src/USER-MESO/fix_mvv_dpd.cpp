@@ -20,13 +20,11 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_mvv_dpd.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

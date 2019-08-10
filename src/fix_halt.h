@@ -20,7 +20,6 @@ FixStyle(halt,FixHalt)
 #ifndef LMP_FIX_HALT_H
 #define LMP_FIX_HALT_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

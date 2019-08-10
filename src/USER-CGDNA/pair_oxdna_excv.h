@@ -28,7 +28,7 @@ class PairOxdnaExcv : public Pair {
  public:
   PairOxdnaExcv(class LAMMPS *);
   virtual ~PairOxdnaExcv();
-  virtual void compute_interaction_sites(double *, double *,
+  virtual void compute_interaction_sites(double *, double *, double *,
     double *, double *);
   virtual void compute(int, int);
   void settings(int, char **);

@@ -69,6 +69,7 @@ class Atom : protected Pointers {
 
   double **sp;
   double **fm;
+  double **fm_long;
 
   // PERI package
 
@@ -443,6 +444,11 @@ E: Incorrect atom format in data file
 
 Number of values per atom line in the data file is not consistent with
 the atom style.
+
+E: Incorrect format of ... section in data file
+
+Number or type of values per line in the given section of the data file
+is not consistent with the requirements for this section.
 
 E: Invalid atom type in Atoms section of data file
 

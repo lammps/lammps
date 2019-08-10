@@ -15,16 +15,14 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
+#include "pair_meamc.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include "meam.h"
-#include "pair_meamc.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -459,6 +457,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     t3[i] = atof(words[16]);
     rozero[i] = atof(words[17]);
     ibar[i] = atoi(words[18]);
+
+    if (!iszero(t0[i]-1.0))
+      error->all(FLERR,"Unsupported parameter in MEAM potential file");
 
     nset++;
   }

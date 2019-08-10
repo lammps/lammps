@@ -571,7 +571,10 @@ public:
   /// if this is not open already, then open it
   virtual std::ostream *output_stream(std::string const &output_name,
                                       std::ios_base::openmode mode =
-                                        std::ios_base::out);
+                                      std::ios_base::out);
+
+  /// Returns a reference to output_name if it exists, NULL otherwise
+  virtual std::ostream *get_output_stream(std::string const &output_name);
 
   /// \brief Flushes the given output channel
   virtual int flush_output_stream(std::ostream *os);
@@ -586,6 +589,25 @@ public:
   inline int backup_file(std::string const &filename)
   {
     return backup_file(filename.c_str());
+  }
+
+  /// Remove the given file
+  int remove_file(char const *filename);
+
+  /// Remove the given file
+  inline int remove_file(std::string const &filename)
+  {
+    return remove_file(filename.c_str());
+  }
+
+  /// Rename the given file
+  int rename_file(char const *filename, char const *newfilename);
+
+  /// Rename the given file
+  inline int rename_file(std::string const &filename,
+                         std::string const &newfilename)
+  {
+    return rename_file(filename.c_str(), newfilename.c_str());
   }
 
   /// \brief Prefix of the input state file

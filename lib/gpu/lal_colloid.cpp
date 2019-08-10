@@ -23,7 +23,7 @@ const char *colloid=0;
 
 #include "lal_colloid.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define ColloidT Colloid<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -179,3 +179,4 @@ void ColloidT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Colloid<PRECISION,ACC_PRECISION>;
+}

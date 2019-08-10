@@ -15,7 +15,6 @@
 #define LMP_NEIGHBOR_H
 
 #include "pointers.h"
-#include <map>
 
 namespace LAMMPS_NS {
 

@@ -215,8 +215,11 @@ protected:
   /// \brief Read new data from replicas' files
   virtual void read_replica_files();
 
-  /// \brief Write data to other replicas
+  /// Write full state information to be read by other replicas
   virtual int write_replica_state_file();
+
+  /// Call this after write_replica_state_file()
+  virtual int reopen_replica_buffer_file();
 
   /// \brief Additional, "mirror" metadynamics biases, to collect info
   /// from the other replicas
@@ -250,9 +253,6 @@ protected:
   ///
   /// This file becomes empty after replica_state_file is rewritten
   std::string            replica_hills_file;
-
-  /// \brief Output stream corresponding to replica_hills_file
-  std::ostream          *replica_hills_os;
 
   /// Position within replica_hills_file (when reading it)
   int                    replica_hills_file_pos;

@@ -21,8 +21,6 @@ FixStyle(nve/spin,FixNVESpin)
 #define LMP_FIX_NVE_SPIN_H
 
 #include "fix.h"
-#include "pair.h"
-#include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
@@ -48,7 +46,6 @@ friend class PairSpin;
   int lattice_flag; 			// lattice_flag = 0 if spins only
   					// lattice_flag = 1 if spin-lattice calc.
 
-
  protected:
   int sector_flag;			// sector_flag = 0  if serial algorithm
   					// sector_flag = 1  if parallel algorithm
@@ -58,6 +55,7 @@ friend class PairSpin;
   int nlocal_max;			// max value of nlocal (for lists size)
 
   int pair_spin_flag;			// magnetic pair flags
+  int long_spin_flag;			// magnetic long-range flag
   int precession_spin_flag;		// magnetic precession flags
   int maglangevin_flag;			// magnetic langevin flags
   int tdamp_flag, temp_flag;

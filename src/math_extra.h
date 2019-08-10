@@ -19,9 +19,6 @@
 #define LMP_MATH_EXTRA_H
 
 #include <cmath>
-#include <cstdio>
-#include <cstring>
-#include "error.h"
 
 namespace MathExtra {
 

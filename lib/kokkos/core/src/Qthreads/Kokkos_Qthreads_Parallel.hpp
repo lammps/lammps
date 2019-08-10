@@ -51,7 +51,6 @@
 
 #include <Kokkos_Parallel.hpp>
 
-#include <impl/Kokkos_StaticAssert.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <Qthreads/Kokkos_QthreadsExec.hpp>

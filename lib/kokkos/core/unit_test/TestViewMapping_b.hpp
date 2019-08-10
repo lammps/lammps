@@ -173,12 +173,12 @@ void test_view_mapping_class_value()
 {
   typedef typename Space::execution_space ExecSpace;
 
-  ExecSpace::fence();
+  ExecSpace().fence();
   {
     Kokkos::View< MappingClassValueType, ExecSpace > a( "a" );
-    ExecSpace::fence();
+    ExecSpace().fence();
   }
-  ExecSpace::fence();
+  ExecSpace().fence();
 }
 
 TEST_F( TEST_CATEGORY , view_mapping_class_value )

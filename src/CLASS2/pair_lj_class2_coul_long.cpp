@@ -11,17 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_class2_coul_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
+#include "update.h"
+#include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -42,6 +44,7 @@ using namespace MathConst;
 PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  respa_enable = 1;
   writedata = 1;
   ftable = NULL;
 }
@@ -196,6 +199,377 @@ void PairLJClass2CoulLong::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairLJClass2CoulLong::compute_inner()
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  double rsq,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double *q = atom->q;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  inum = list->inum_inner;
+  ilist = list->ilist_inner;
+  numneigh = list->numneigh_inner;
+  firstneigh = list->firstneigh_inner;
+
+  double cut_out_on = cut_respa[0];
+  double cut_out_off = cut_respa[1];
+
+  double cut_out_diff = cut_out_off - cut_out_on;
+  double cut_out_on_sq = cut_out_on*cut_out_on;
+  double cut_out_off_sq = cut_out_off*cut_out_off;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    qtmp = q[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cut_out_off_sq) {
+        r2inv = 1.0/rsq;
+        forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*forcecoul;
+
+        jtype = type[j];
+        if (rsq < cut_ljsq[itype][jtype]) {
+		  rinv = sqrt(r2inv);
+		  r3inv = r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        } else forcelj = 0.0;
+
+        fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+        if (rsq > cut_out_on_sq) {
+          rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
+          fpair  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
+        }
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJClass2CoulLong::compute_middle()
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  double rsq,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double *q = atom->q;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  inum = list->inum_middle;
+  ilist = list->ilist_middle;
+  numneigh = list->numneigh_middle;
+  firstneigh = list->firstneigh_middle;
+
+  double cut_in_off = cut_respa[0];
+  double cut_in_on = cut_respa[1];
+  double cut_out_on = cut_respa[2];
+  double cut_out_off = cut_respa[3];
+
+  double cut_in_diff = cut_in_on - cut_in_off;
+  double cut_out_diff = cut_out_off - cut_out_on;
+  double cut_in_off_sq = cut_in_off*cut_in_off;
+  double cut_in_on_sq = cut_in_on*cut_in_on;
+  double cut_out_on_sq = cut_out_on*cut_out_on;
+  double cut_out_off_sq = cut_out_off*cut_out_off;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    qtmp = q[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
+        r2inv = 1.0/rsq;
+        forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*forcecoul;
+
+        jtype = type[j];
+        if (rsq < cut_ljsq[itype][jtype]) {
+		  rinv = sqrt(r2inv);
+		  r3inv = r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        } else forcelj = 0.0;
+
+        fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+        if (rsq < cut_in_on_sq) {
+          rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
+          fpair *= rsw*rsw*(3.0 - 2.0*rsw);
+        }
+        if (rsq > cut_out_on_sq) {
+          rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
+          fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
+        }
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
+  double r,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double grij,expm2,prefactor,t,erfc;
+  double rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  double rsq;
+
+  evdwl = ecoul = 0.0;
+  ev_init(eflag,vflag);
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double *q = atom->q;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  double cut_in_off = cut_respa[2];
+  double cut_in_on = cut_respa[3];
+
+  double cut_in_diff = cut_in_on - cut_in_off;
+  double cut_in_off_sq = cut_in_off*cut_in_off;
+  double cut_in_on_sq = cut_in_on*cut_in_on;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    qtmp = q[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+
+      if (rsq < cutsq[itype][jtype]) {
+        r2inv = 1.0/rsq;
+
+        if (rsq < cut_coulsq) {
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            r = sqrt(rsq);
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+            if (rsq > cut_in_off_sq) {
+              if (rsq < cut_in_on_sq) {
+                rsw = (r - cut_in_off)/cut_in_diff;
+                forcecoul += prefactor*rsw*rsw*(3.0 - 2.0*rsw);
+                if (factor_coul < 1.0)
+                  forcecoul -=
+                    (1.0-factor_coul)*prefactor*rsw*rsw*(3.0 - 2.0*rsw);
+              } else {
+                forcecoul += prefactor;
+                if (factor_coul < 1.0)
+                  forcecoul -= (1.0-factor_coul)*prefactor;
+              }
+            }
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
+        } else forcecoul = 0.0;
+
+        if (rsq < cut_ljsq[itype][jtype] && rsq > cut_in_off_sq) {
+		  rinv = sqrt(r2inv);
+		  r3inv = r2inv*rinv;
+		  r6inv = r3inv*r3inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+          if (rsq < cut_in_on_sq) {
+            rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
+            forcelj *= rsw*rsw*(3.0 - 2.0*rsw);
+          }
+        } else forcelj = 0.0;
+
+        fpair = (forcecoul + forcelj) * r2inv;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            if (!ncoultablebits || rsq <= tabinnersq) {
+              ecoul = prefactor*erfc;
+              if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+            } else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+              if (factor_coul < 1.0) {
+                table = ptable[itable] + fraction*dptable[itable];
+                prefactor = qtmp*q[j] * table;
+                ecoul -= (1.0-factor_coul)*prefactor;
+              }
+            }
+          } else ecoul = 0.0;
+
+          if (rsq < cut_ljsq[itype][jtype]) {
+			rinv = sqrt(r2inv);
+			r3inv = r2inv*rinv;
+			r6inv = r3inv*r3inv;
+            evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
+
+        if (vflag) {
+          if (rsq < cut_coulsq) {
+            if (!ncoultablebits || rsq <= tabinnersq) {
+              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+              if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            } else {
+              table = vtable[itable] + fraction*dvtable[itable];
+              forcecoul = qtmp*q[j] * table;
+              if (factor_coul < 1.0) {
+                table = ptable[itable] + fraction*dptable[itable];
+                prefactor = qtmp*q[j] * table;
+                forcecoul -= (1.0-factor_coul)*prefactor;
+              }
+            }
+          } else forcecoul = 0.0;
+
+          if (rsq <= cut_in_off_sq) {
+            rinv = sqrt(r2inv);
+			r3inv = r2inv*rinv;
+			r6inv = r3inv*r3inv;
+            forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+          } else if (rsq <= cut_in_on_sq) {
+			rinv = sqrt(r2inv);
+			r3inv = r2inv*rinv;
+			r6inv = r3inv*r3inv;
+            forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+          }
+          fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+        }
+
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
+      }
+    }
+  }
+}
+
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
@@ -289,10 +663,33 @@ void PairLJClass2CoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
                "Pair style lj/class2/coul/long requires atom attribute q");
-
-  neighbor->request(this,instance_me);
+  
+  // request regular or rRESPA neighbor list
+  
+  int irequest;
+  int respa = 0;
+  
+  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+	if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
+  
+  irequest = neighbor->request(this,instance_me);
+  
+  if (respa >= 1) {
+    neighbor->requests[irequest]->respaouter = 1;
+	neighbor->requests[irequest]->respainner = 1;
+  }
+  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   cut_coulsq = cut_coul * cut_coul;
+  
+  // set rRESPA cutoffs
+  
+  if (strstr(update->integrate_style,"respa") &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;	
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -301,7 +698,7 @@ void PairLJClass2CoulLong::init_style()
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
-  if (ncoultablebits) init_tables(cut_coul,NULL);
+  if (ncoultablebits) init_tables(cut_coul,cut_respa);
 }
 
 /* ----------------------------------------------------------------------
@@ -341,6 +738,11 @@ double PairLJClass2CoulLong::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
+  
+  // check interior rRESPA cutoff
+  
+  if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

@@ -16,11 +16,10 @@
                          Christian Burisch (Bochum Univeristy, Germany)
 ------------------------------------------------------------------------- */
 
+#include "fix_tmd.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_tmd.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -30,6 +29,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -164,7 +164,7 @@ void FixTMD::init()
 
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 
@@ -423,21 +423,27 @@ void FixTMD::readfile(char *file)
       *next = '\0';
 
       if (firstline) {
-        if (strstr(bufptr,"xlo xhi")) {
+        if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi")) {
           double lo,hi;
-          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          n = sscanf(bufptr,"%lg %lg",&lo,&hi);
+          if (n != 2)
+            error->all(FLERR,"Incorrect format in TMD target file");
           xprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (strstr(bufptr,"ylo yhi")) {
+        } else if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi")) {
           double lo,hi;
-          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          n = sscanf(bufptr,"%lg %lg",&lo,&hi);
+          if (n != 2)
+            error->all(FLERR,"Incorrect format in TMD target file");
           yprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (strstr(bufptr,"zlo zhi")) {
+        } else if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi")) {
           double lo,hi;
-          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          n = sscanf(bufptr,"%lg %lg",&lo,&hi);
+          if (n != 2)
+            error->all(FLERR,"Incorrect format in TMD target file");
           zprd = hi - lo;
           bufptr = next + 1;
           continue;
@@ -455,14 +461,13 @@ void FixTMD::readfile(char *file)
       }
 
       if (imageflag)
-        n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg %d %d %d",
-                   &itag,&x,&y,&z,&ix,&iy,&iz);
+        n = 7 - sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg %d %d %d",
+                       &itag,&x,&y,&z,&ix,&iy,&iz);
       else
-        n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
+        n = 4 - sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
 
-      if (n < 0) {
-        if (me == 0) error->warning(FLERR,"Ignoring empty or incorrectly"
-                                    " formatted line in target file");
+      if (n != 0) {
+        error->all(FLERR,"Incorrectly formatted line in TMD target file");
         bufptr = next + 1;
         continue;
       }

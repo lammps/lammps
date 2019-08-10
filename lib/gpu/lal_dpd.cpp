@@ -23,7 +23,7 @@ const char *dpd=0;
 
 #include "lal_dpd.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define DPDT DPD<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -168,3 +168,4 @@ void DPDT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
 }
 
 template class DPD<PRECISION,ACC_PRECISION>;
+}

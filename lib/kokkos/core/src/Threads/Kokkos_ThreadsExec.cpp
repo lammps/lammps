@@ -804,6 +804,10 @@ int Threads::concurrency() {
   return impl_thread_pool_size(0);
 #endif
 }
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
+void Threads::fence() const
+{ Impl::ThreadsExec::fence() ; }
+#endif
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 Threads & Threads::instance(int)

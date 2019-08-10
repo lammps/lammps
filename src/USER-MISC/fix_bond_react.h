@@ -67,6 +67,7 @@ class FixBondReact : public Fix {
   int *groupbits;
 
   int rxnID; // integer ID for identifying current bond/react
+  char **rxn_name; // name of reaction
   int *reaction_count;
   int *reaction_count_total;
   int nmax; // max num local atoms
@@ -213,14 +214,14 @@ E: Bond/react: Unknown section in map file
 
 Please ensure reaction map files are properly formatted.
 
-E: Bond/react: Atom affected by reaction too close to template edge
+E or W: Bond/react: Atom affected by reaction %s too close to template edge
 
-This means an atom which changes type during the reaction is too close
-to an 'edge' atom defined in the superimpose file. This could cause
-incorrect assignment of bonds, angle, etc. Generally, this means you
-must include more atoms in your templates, such that there are at
-least two atoms between each atom involved in the reaction and an edge
-atom.
+This means an atom which changes type or connectivity during the
+reaction is too close to an 'edge' atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom.
 
 E: Bond/react: Fix bond/react needs ghost atoms from farther away
 
@@ -232,11 +233,6 @@ range.
 E: Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted
 
 Self-explanatory.
-
-W: Bond/react: An atom in 'react #%d' changes bond connectivity but not atom type
-
-You may want to double-check that all atom types are properly assigned
-in the post-reaction template.
 
 E: Bond/react special bond generation overflow
 

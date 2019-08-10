@@ -111,6 +111,7 @@ Pair Styles :h1
    pair_sph_rhosum
    pair_sph_taitwater
    pair_sph_taitwater_morris
+   pair_spin_dipole
    pair_spin_dmi
    pair_spin_exchange
    pair_spin_magelec

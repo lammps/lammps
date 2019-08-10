@@ -15,15 +15,14 @@
    Contributing authors: Rezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "pair_peri_ves.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_peri_neigh.h"
@@ -428,13 +427,13 @@ void PairPeriVES::coeff(int narg, char **arg)
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  double bulkmodulus_one = atof(arg[2]);
-  double shearmodulus_one = atof(arg[3]);
-  double cut_one = atof(arg[4]);
-  double s00_one = atof(arg[5]);
-  double alpha_one = atof(arg[6]);
-  double mlambdai_one = atof(arg[7]);
-  double mtaui_one = atof(arg[8]);
+  double bulkmodulus_one = force->numeric(FLERR,arg[2]);
+  double shearmodulus_one = force->numeric(FLERR,arg[3]);
+  double cut_one = force->numeric(FLERR,arg[4]);
+  double s00_one = force->numeric(FLERR,arg[5]);
+  double alpha_one = force->numeric(FLERR,arg[6]);
+  double mlambdai_one = force->numeric(FLERR,arg[7]);
+  double mtaui_one = force->numeric(FLERR,arg[8]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

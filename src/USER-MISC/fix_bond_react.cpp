@@ -15,11 +15,10 @@ See the README file in the top-level LAMMPS directory.
 Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_bond_react.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_bond_react.h"
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -157,6 +156,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // this looks excessive
   // the price of vectorization (all reactions in one command)?
+  memory->create(rxn_name,nreacts,MAXLINE,"bond/react:rxn_name");
   memory->create(nevery,nreacts,"bond/react:nevery");
   memory->create(cutsq,nreacts,2,"bond/react:cutsq");
   memory->create(unreacted_mol,nreacts,"bond/react:unreacted_mol");
@@ -207,8 +207,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     iarg++;
 
-    iarg++; // read in reaction name here
-    //for example, rxn_name[rxn] = ...
+    rxn_name[rxn] = arg[iarg++];
 
     int igroup = group->find(arg[iarg++]);
     if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
@@ -1286,7 +1285,7 @@ void FixBondReact::make_a_guess()
 
   for (int i = 0; i < nxspecial[atom->map(glove[pion][1])][0]; i++) {
     if (atom->map(xspecial[atom->map(glove[pion][1])][i]) < 0) {
-      error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away1"); // parallel issues.
+      error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away"); // parallel issues.
     }
     if (i_limit_tags[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] != 0) {
       status = GUESSFAIL;
@@ -1397,7 +1396,7 @@ void FixBondReact::check_a_neighbor()
 
             //another check for ghost atoms. perhaps remove the one in make_a_guess
             if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-              error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away2");
+              error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
             }
 
             for (int j = 0; j < onemol_nxspecial[onemol_xspecial[pion][neigh]-1][0]; j++) {
@@ -1449,7 +1448,7 @@ void FixBondReact::check_a_neighbor()
 
         //another check for ghost atoms. perhaps remove the one in make_a_guess
         if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-          error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away3");
+          error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
         }
 
         for (int ii = 0; ii < onemol_nxspecial[onemol_xspecial[pion][neigh]-1][0]; ii++) {
@@ -1560,7 +1559,7 @@ void FixBondReact::inner_crosscheck_loop()
 
   //another check for ghost atoms. perhaps remove the one in make_a_guess
   if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-    error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away4");
+    error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
   }
 
   if (guess_branch[avail_guesses-1] == 0) avail_guesses--;
@@ -1720,8 +1719,11 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // bad molecule templates check
   // if atoms change types, but aren't landlocked, that's bad
   for (int i = 0; i < twomol->natoms; i++) {
-    if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0)
-      error->one(FLERR,"Bond/react: Atom affected by reaction too close to template edge");
+    if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
+      char str[128];
+      snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+      error->all(FLERR,str);
+    }
   }
 
   // additionally, if a bond changes type, but neither involved atom is landlocked, bad
@@ -1737,7 +1739,9 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
             onemol_batom = onemol->bond_atom[onemol_atomi-1][m];
             if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
               if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
-                error->one(FLERR,"Bond/react: Bond type affected by reaction too close to template edge");
+                char str[128];
+                snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                error->all(FLERR,str);
               }
             }
           }
@@ -1747,7 +1751,9 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
               onemol_batom = onemol->bond_atom[onemol_atomj-1][m];
               if (onemol_batom == equivalences[i][1][myrxn]) {
                 if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
-                  error->one(FLERR,"Bond/react: Bond type affected by reaction too close to template edge");
+                  char str[128];
+                  snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                  error->all(FLERR,str);
                 }
               }
             }
@@ -1763,7 +1769,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
       int ii = reverse_equiv[i][1][myrxn] - 1;
       for (int j = 0; j < twomol_nxspecial[ii][0]; j++) {
         if (delete_atoms[equivalences[twomol_xspecial[ii][j]-1][1][myrxn]-1][myrxn] == 0) {
-         error->one(FLERR,"Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted");
+         error->all(FLERR,"Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted");
         }
       }
     }
@@ -1774,7 +1780,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
     for (int i = 0; i < twomol->natoms; i++) {
       if (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0] && landlocked_atoms[i][myrxn] == 0) {
         char str[128];
-        sprintf(str,"Bond/react: An atom in 'react #%d' changes bond connectivity but not atom type",myrxn+1);
+        snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
         error->warning(FLERR,str);
         break;
       }

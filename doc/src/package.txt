@@ -64,7 +64,7 @@ args = arguments specific to the style :l
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {neigh/qeq} or {neigh/thread} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse} or {gpu/direct}
+    keywords = {neigh} or {neigh/qeq} or {neigh/thread} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse} or {cuda/aware}
       {neigh} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
@@ -87,9 +87,9 @@ args = arguments specific to the style :l
         no = perform communication pack/unpack in non-KOKKOS mode
         host = perform pack/unpack on host (e.g. with OpenMP threading)
         device = perform pack/unpack on device (e.g. on GPU)
-      {gpu/direct} = {off} or {on}
-        off = do not use GPU-direct
-        on = use GPU-direct (default)
+      {cuda/aware} = {off} or {on}
+        off = do not use CUDA-aware MPI
+        on = use CUDA-aware MPI (default)
   {omp} args = Nthreads keyword value ...
     Nthread = # of OpenMP threads to associate with each MPI process
     zero or more keyword/value pairs may be appended
@@ -176,12 +176,10 @@ computation will be built.  If {neigh} is {yes}, which is the default,
 neighbor list building is performed on the GPU.  If {neigh} is {no},
 neighbor list building is performed on the CPU.  GPU neighbor list
 building currently cannot be used with a triclinic box.  GPU neighbor
-list calculation currently cannot be used with
-"hybrid"_pair_hybrid.html pair styles.  GPU neighbor lists are not
-compatible with commands that are not GPU-enabled.  When a non-GPU
-enabled command requires a neighbor list, it will also be built on the
-CPU.  In these cases, it will typically be more efficient to only use
-CPU neighbor list builds.
+lists are not compatible with commands that are not GPU-enabled.  When
+a non-GPU enabled command requires a neighbor list, it will also be
+built on the CPU.  In these cases, it will typically be more efficient
+to only use CPU neighbor list builds.
 
 The {newton} keyword sets the Newton flags for pairwise (not bonded)
 interactions to {off} or {on}, the same as the "newton"_newton.html
@@ -522,19 +520,21 @@ pack/unpack communicated data. When running small systems on a GPU,
 performing the exchange pack/unpack on the host CPU can give speedup 
 since it reduces the number of CUDA kernel launches.
 
-The {gpu/direct} keyword chooses whether GPU-direct will be used. When 
+The {cuda/aware} keyword chooses whether CUDA-aware MPI will be used. When 
 this keyword is set to {on}, buffers in GPU memory are passed directly 
 through MPI send/receive calls. This reduces overhead of first copying 
-the data to the host CPU. However GPU-direct is not supported on all 
+the data to the host CPU. However CUDA-aware MPI is not supported on all 
 systems, which can lead to segmentation faults and would require using a 
-value of {off}. If LAMMPS can safely detect that GPU-direct is not 
+value of {off}. If LAMMPS can safely detect that CUDA-aware MPI is not 
 available (currently only possible with OpenMPI v2.0.0 or later), then 
-the {gpu/direct} keyword is automatically set to {off} by default. When 
-the {gpu/direct} keyword is set to {off} while any of the {comm} 
+the {cuda/aware} keyword is automatically set to {off} by default. When 
+the {cuda/aware} keyword is set to {off} while any of the {comm} 
 keywords are set to {device}, the value for these {comm} keywords will 
 be automatically changed to {host}. This setting has no effect if not 
-running on GPUs. GPU-direct is available for OpenMPI 1.8 (or later 
-versions), Mvapich2 1.9 (or later), and CrayMPI.
+running on GPUs. CUDA-aware MPI is available for OpenMPI 1.8 (or later 
+versions), Mvapich2 1.9 (or later) when the "MV2_USE_CUDA" environment
+variable is set to "1", CrayMPI, and IBM Spectrum MPI when the "-gpu"
+flag is used.
 
 :line
 
@@ -643,8 +643,8 @@ switch"_Run_options.html.
 
 For the KOKKOS package, the option defaults for GPUs are neigh = full, 
 neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default 
-value, comm = device, gpu/direct = on. When LAMMPS can safely detect 
-that GPU-direct is not available, the default value of gpu/direct 
+value, comm = device, cuda/aware = on. When LAMMPS can safely detect 
+that CUDA-aware MPI is not available, the default value of cuda/aware 
 becomes "off". For CPUs or Xeon Phis, the option defaults are neigh = 
 half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The 
 option neigh/thread = on when there are 16K atoms or less on an MPI 

@@ -16,15 +16,13 @@
                          Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_gran.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "modify.h"
 #include "respa.h"
 #include "math_const.h"

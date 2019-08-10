@@ -525,7 +525,7 @@ void parallel_scan( const ExecutionPolicy & policy
     Kokkos::Profiling::endParallelScan(kpID);
   }
 #endif
-
+  Kokkos::fence();
 }
 
 template< class FunctorType, class ReturnType >
@@ -560,7 +560,7 @@ void parallel_scan( const size_t        work_count
     Kokkos::Profiling::endParallelScan(kpID);
   }
 #endif
-
+  Kokkos::fence();
 }
 
 template< class ExecutionPolicy, class FunctorType, class ReturnType >

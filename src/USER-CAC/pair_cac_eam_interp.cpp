@@ -721,17 +721,12 @@ void *PairCACEAMInterp::extract(const char *str, int &dim)
 void PairCACEAMInterp::pre_force_densities() {
   
   double **x = atom->x;
-  double **f = atom->f;
   double ****nodal_positions= atom->nodal_positions;
-  double ****nodal_velocities= atom->nodal_velocities;
-  double ****nodal_forces= atom->nodal_forces;
   int *element_type = atom->element_type;
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
    //grow nodal electron densities array as needed
@@ -775,17 +770,10 @@ void PairCACEAMInterp::pre_force_densities() {
 
 void PairCACEAMInterp::compute_electron_densities(int i) {
 
-  double unit_cell_mapped[3];
 	int *nodes_count_list = atom->nodes_per_element_list;	
 	double coefficients;
 	int nodes_per_element;
 	int init_quad_list_counter = quad_list_counter;
-	//stores neighbor information for computational weight assignment
-	
-	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-	
 	double s, t, w;
 	double sq, tq, wq;
 
@@ -834,22 +822,17 @@ void PairCACEAMInterp::compute_electron_densities(int i) {
 void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w, double &edensity) 
 { 
   double delx,dely,delz;
+  double shape_func;
+  double scanning_unit_cell[3];
+  int *type = atom->type;
+  double unit_cell[3];
+  double distancesq;
+  double current_position[3];
+  double scan_position[3];
+  double rcut;
 
-double r2inv;
-double r6inv;
-double shape_func;
-double shape_func2;
-double unit_cell_mapped[3];
-double scanning_unit_cell[3];
-int *type = atom->type;
-double unit_cell[3];
-double distancesq;
-double current_position[3];
-double scan_position[3];
-double rcut;
-
-int nodes_per_element;
-int *nodes_count_list = atom->nodes_per_element_list;	
+  int nodes_per_element;
+  int *nodes_count_list = atom->nodes_per_element_list;	
 
   unit_cell[0] = s;
   unit_cell[1] = t;
@@ -883,7 +866,6 @@ int *nodes_count_list = atom->nodes_per_element_list;
   int listindex;
   int poly_index;
   int element_index;
-  int *ilist, *jlist, *numneigh, **firstneigh;
   int neigh_max_inner = inner_quad_lists_counts[i][neigh_quad_counter];
   int jtype, ktype;
   double rsq, r, p, rhoip, rhojp, z2, z2p, recip, phip, psip, phi;
@@ -903,13 +885,7 @@ int *nodes_count_list = atom->nodes_per_element_list;
         rho[l] = 0;
         fp[l] = 0;
   }
-  tagint itag, jtag;
-  double  rsq1, rsq2;
-  double delr1[3], delr2[3], fj[3], fk[3];
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  jlist = firstneigh[i];
+  
   double ****nodal_positions = atom->nodal_positions;
   int **node_types = atom->node_types;
   origin_type = type_array[poly_counter];
@@ -992,10 +968,8 @@ double delx,dely,delz;
 double r2inv;
 double r6inv;
 double shape_func;
-double shape_func2;
-double unit_cell_mapped[3];
 double scanning_unit_cell[3];
-double forcelj,factor_lj,fpair;
+double fpair;
 int *type = atom->type;
 double unit_cell[3];
 double distancesq;
@@ -1006,12 +980,6 @@ double rcut;
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;	
 
-
-//equivalent isoparametric cutoff range for a cube of rcut
-
-unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 
 unit_cell[0] = s;
 unit_cell[1] = t;
@@ -1051,7 +1019,6 @@ int distanceflag=0;
     int poly_index;
     double force_contribution[3];
     int element_index;
-    int *ilist, *jlist, *numneigh, **firstneigh;
     int neigh_max_inner = inner_quad_lists_counts[iii][neigh_quad_counter];
     int jtype, ktype;
     double rsq, r, p, rhoip, rhojp, z2, z2p, recip, phip, psip, phi;
@@ -1069,13 +1036,7 @@ int distanceflag=0;
         rho[l] = 0;
         fp[l] = 0;
     }
-    tagint itag, jtag;
-    double  rsq1, rsq2;
-    double delr1[3], delr2[3], fj[3], fk[3];
-    ilist = list->ilist;
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
-    jlist = firstneigh[iii];
+    
     double ****nodal_positions = atom->nodal_positions;
     int **node_types = atom->node_types;
     origin_type = type_array[poly_counter];

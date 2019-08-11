@@ -124,9 +124,8 @@ void Asa_Data::mygrad(asa_objective *asa)
 
 double Asa_Data::myvalue_surfmin(asa_objective *asa)
 {   
-	double f, xi, t, *g, *x;
+	double f, t, *x;
 	double px, py, pz;
-	double px1, px2, py1, py2, pz1, pz2;
   
 	double unit_cell_mapped[3];
 	double shape_func2;
@@ -143,19 +142,12 @@ double Asa_Data::myvalue_surfmin(asa_objective *asa)
 	unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(neighbor_element_scale[2]);
-	ASA_INT i, n;
+	ASA_INT i;
 	x = asa->x;
-	g = asa->g;
-	n = asa->n;
 	f = 0;
 	
 	double r[3] = { quad_r[0]  ,quad_r[1]  , quad_r[2] };
-	int n1, n2, n3, n4;
-	
-	n1 = dof_surf_list[0];
-	n2 = dof_surf_list[1];
-	n3 = dof_surf_list[2];
-	n4 = dof_surf_list[3];
+
 	if (surf_select[0] == 1 && surf_select[1] == -1) {
 		surf_args[0] = -1 + unit_cell_mapped[0] / 2;
 		surf_args[1] = x[0];
@@ -211,7 +203,7 @@ double Asa_Data::myvalue_surfmin(asa_objective *asa)
 
 void Asa_Data::mygrad_surfmin(asa_objective *asa)
 {
-	double f, xi, t, *g, *x;
+	double  t, *g, *x;
 	double px, py, pz;
 	double px1, px2, py1, py2, pz1, pz2;
 	double unit_cell_mapped[3];
@@ -230,18 +222,12 @@ void Asa_Data::mygrad_surfmin(asa_objective *asa)
 	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(neighbor_element_scale[2]);
 
-	ASA_INT i, n;
+	ASA_INT i;
 	x = asa->x;
 	g = asa->g;
-	n = asa->n;
-	f = 0;
 	double r[3] = { quad_r[0]  ,quad_r[1]  , quad_r[2] };
 	int deriv_select[2];
-	int n1, n2, n3, n4;
-	n1 = dof_surf_list[0];
-	n2 = dof_surf_list[1];
-	n3 = dof_surf_list[2];
-	n4 = dof_surf_list[3];
+
 	if (surf_select[0] == 1 && surf_select[1] == -1) {
 		surf_args[0] = -1 + unit_cell_mapped[0] / 2;
 		surf_args[1] = x[0];
@@ -323,11 +309,9 @@ void Asa_Data::mygrad_surfmin(asa_objective *asa)
 /* ---------------------------------------------------------------------- */
 double Asa_Data::myvalue_neigh_check(asa_objective *asa)
 {
-	double f, xi, t, *g, *x;
+	double f, t, *x;
 	double px, py, pz;
-	double px1, px2, py1, py2, pz1, pz2;
     
-	double unit_cell_mapped[3];
 	double shape_func2;
     //get class data for current element
 	int min_element_index = avec_pointer->min_element_index;
@@ -336,13 +320,8 @@ double Asa_Data::myvalue_neigh_check(asa_objective *asa)
     int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
 	int min_nodes_per_element = avec_pointer->min_nodes_per_element;
 	int poly_min = avec_pointer->poly_min;
-	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-	ASA_INT i, n;
+	ASA_INT i;
 	x = asa->x;
-	g = asa->g;
-	n = asa->n;
 	f = 0;
 
 	px = 0;
@@ -366,10 +345,9 @@ double Asa_Data::myvalue_neigh_check(asa_objective *asa)
 /* ---------------------------------------------------------------------- */
 void Asa_Data::mygrad_neigh_check(asa_objective *asa)
 {
-	double f, xi, t, *g, *x;
+	double t, *g, *x;
 	double px, py, pz;
 	double px1, px2, px3, py1, py2, py3, pz1, pz2, pz3;
-	double unit_cell_mapped[3];
 	double shape_func3,shape_func2, shape_func1;
     //get class data for current element
 	int min_element_index = avec_pointer->min_element_index;
@@ -378,15 +356,10 @@ void Asa_Data::mygrad_neigh_check(asa_objective *asa)
     int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
 	int min_nodes_per_element = avec_pointer->min_nodes_per_element;
 	int poly_min = avec_pointer->poly_min;
-	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
 
-	ASA_INT i, n;
+	ASA_INT i;
 	x = asa->x;
 	g = asa->g;
-	n = asa->n;
-	f = 0;
 
 
 	px = 0;

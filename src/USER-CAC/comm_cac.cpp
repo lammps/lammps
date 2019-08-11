@@ -170,7 +170,6 @@ void CommCAC::init()
   if (mode == Comm::MULTI)
     error->all(FLERR,"Cannot yet use comm_style cac with multi comm option");
   // memory for multi-style communication
- int maxswap = 26;
   if (mode == Comm::MULTI) {
     memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
   }
@@ -199,16 +198,12 @@ void CommCAC::setup()
 {
   int i,j,n;
   int ntypes = atom->ntypes;
-  double lamda_temp[3];
-  double nodal_temp[3];
 	double ****nodal_positions=atom->nodal_positions;
 	double current_distancesq;
   double search_radius;
   double dx,dy,dz;
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
-	double ebounding_boxlo[3];
-	double ebounding_boxhi[3];
 	int *nodes_per_element_list = atom->nodes_per_element_list;
   double max_distancesq;
   int nodetotal;
@@ -1241,8 +1236,6 @@ void CommCAC::exchange()
 void CommCAC::compute_eboxes(int iswap){
 int i,j,n,m;
   int ntypes = atom->ntypes;
-  double lamda_temp[3];
-  double nodal_temp[3];
 	double ***nodal_positions;
 	int idir, idim;
 	int *element_type = atom->element_type;
@@ -1261,7 +1254,6 @@ int i,j,n,m;
   sublo = domain->sublo;
   subhi = domain->subhi;
   elimit=atom->nlocal+atom->nghost;
-  int *periodicity = domain->periodicity;
  
 
   //grow bounding boxes if needed
@@ -1340,13 +1332,10 @@ void CommCAC::get_aug_oboxes(int iswap){
 //compute expanded subbox for me
 int i,j,n,m;
   int ntypes = atom->ntypes;
-  double lamda_temp[3];
-  double nodal_temp[3];
 	double ***nodal_positions;
 	int idir, idim;
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
-	int *nodes_per_element_list = atom->nodes_per_element_list;
   //double max_search_range= atom->max_search_range;
   double* current_ebox;
   //double  expanded_subbox[6];
@@ -1364,7 +1353,6 @@ int i,j,n,m;
   boxhi = domain->boxhi;
   sublo = domain->sublo;
   subhi = domain->subhi;
-  int *periodicity = domain->periodicity;
 
   // send sendnum counts to procs who recv from me except self
  // copy data to self if sendself is set
@@ -1420,27 +1408,17 @@ int i,j,n,m;
 ------------------------------------------------------------------------- */
 
 void CommCAC::overlap_element_comm(int iswap){
-  double lamda_temp[3];
-  double nodal_temp[3];
 	double ***nodal_positions;
 	
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
-	double ebounding_boxlo[3];
-	double ebounding_boxhi[3];
-	int *nodes_per_element_list = atom->nodes_per_element_list;
   //double max_search_range= atom->max_search_range;
   double box_limit;
-  int i,m,n,nlast,nsend,nrecv,ngroup,ncount;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  int i,m,n,nlast,nsend,nrecv;
   double *bbox;
-  
-  double **x;
   int box_overlap_flag[3];
-  
-  int iswap_old=iswap;
   double* current_ebox;
-  double oboxlo[3],oboxhi[3],sbox[6],sbox_multi[6];
+  double oboxlo[3],oboxhi[3];
 
   // domain properties used in setup method and methods it calls
   
@@ -1666,7 +1644,6 @@ void CommCAC::overlap_element_comm(int iswap){
 void CommCAC::borders()
 {
   int i,m,n,nlast,nsend,nrecv,ngroup,ncount,ncountall;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
   
@@ -1760,8 +1737,6 @@ void CommCAC::borders()
       ncount = 0; 
       if((!sendbox_flag[iswap][m]&&overlap_recvnum[iswap][m]==0)&&overlap_sendnum==0) continue;
       bbox = sendbox[iswap][m];
-      xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-      xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
 
       
 
@@ -1801,8 +1776,6 @@ void CommCAC::borders()
         for (i = 0; i < nlast; i++) {
           itype=type[i];    
           bbox = sendbox_multi[iswap][m][itype];
-          xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-          xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
             sendlist[iswap][m][ncount++] = i;
@@ -1814,8 +1787,6 @@ void CommCAC::borders()
         for (i = 0; i < ngroup; i++) {
           itype=type[i];    
           bbox = sendbox_multi[iswap][m][itype];
-          xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-          xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
           if (sendbox_include(iswap, m, i)) {
            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
             sendlist[iswap][m][ncount++] = i;
@@ -1824,8 +1795,6 @@ void CommCAC::borders()
         for (i = atom->nlocal; i < nlast; i++) {
            itype=type[i];    
            bbox = sendbox_multi[iswap][m][itype];
-           xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
-           xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
           if (sendbox_include(iswap, m, i)) {
             if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
             sendlist[iswap][m][ncount++] = i;
@@ -1982,7 +1951,6 @@ void CommCAC::borders()
 
     n = nrecvproc[iswap];
     if (n){
-      int old_nghost=atom->nghost;
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
       if(atom->nlocal + atom->nghost>maxall){ 
        maxall = atom->nlocal + atom->nghost+BUFEXTRA;
@@ -2005,9 +1973,6 @@ void CommCAC::borders()
   max = MAX(maxrecv,max_recvaccumulation);
   if (max > maxrecv) grow_recv(max);
 
-  
-  double lamda_temp[3];
-  double nodal_temp[3];
 	double ***nodal_positions;
 
 	int *element_type = atom->element_type;
@@ -2077,14 +2042,11 @@ void CommCAC::borders()
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
-   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommCAC::forward_comm_pair(Pair *pair)
 {
   int i,irecv,n,nsend,nrecv;
-
-  int nsize = pair->comm_forward;
 
   int iswap = 0;
   nsend = nsendproc[iswap] - sendself[iswap];
@@ -2130,12 +2092,11 @@ void CommCAC::forward_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
-   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommCAC::pair_comm_setup(Pair *pair)
 {
-  int i,irecv,n, m, nsend,nrecv;
+  int i,n, m, nsend,nrecv;
   AtomVec *avec = atom->avec;
   double **x = atom->x;
   
@@ -2239,27 +2200,20 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
 	int flag=0;
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
-	double ebounding_boxlo[3];
-	double ebounding_boxhi[3];
   dimension = domain->dimension;
-	int *nodes_per_element_list = atom->nodes_per_element_list;
-  //double max_search_range= atom->max_search_range;
   double box_limit;
-  int i,n,nlast,nsend,nrecv,ngroup,ncount,ncountall;
+  int i,n,nlast,nsend,nrecv;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x=atom->x;
   int box_overlap_flag[3];
   double exp_ebox[6];
   double reduced_ebox[6];
-  double contained_ebox[6];
   double oboxlo[3],oboxhi[3];
   double eoboxlo[3],eoboxhi[3];
-  double x_send[3];
   int lo[3],hi[3];
   int ebox_id;
   int iebox;
-  int swapdim=iswap/2;
   overlap_counter=m;
   
   if(element_type[current_element]!=0){
@@ -2447,26 +2401,15 @@ void CommCAC::box_drop_brick_full(int idim, double *lo, double *hi, int &indexme
   // NOTE: these error messages are internal sanity checks
   //       should not occur, can be removed at some point
 
-  int index=-1,dir;
   int pbc_bit;
-  int dim_range[6];
   double subbox_size[3];
   double procbox_lo[3];
   double procbox_hi[3];
-  int other1,other2,proc;
-  double lower,upper;
-  double *split;
+  int proc;
   double *split_array[3];
-  int index_init[3];
   subbox_size[0]=subhi[0]-sublo[0];
   subbox_size[1]=subhi[1]-sublo[1];
   subbox_size[2]=subhi[2]-sublo[2];
-  dim_range[0]=0;
-  dim_range[1]=0;
-  dim_range[2]=0;
-  dim_range[3]=0;
-  dim_range[4]=0;
-  dim_range[5]=0;
   int xi[3],xf[3];
   split_array[0]=xsplit;
   split_array[1]=ysplit;
@@ -3002,7 +2945,6 @@ int CommCAC::pack_eboxes(int n, int *list, double *buf,
 void CommCAC::unpack_eboxes(int n, int first, double *buf)
 {
   int i,m,last;
-  int *nodes_count_list = atom->nodes_per_element_list;
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {

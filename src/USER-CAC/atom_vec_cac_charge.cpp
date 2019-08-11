@@ -55,10 +55,9 @@ AtomVecCAC_Charge::AtomVecCAC_Charge(LAMMPS *lmp) : AtomVecCAC(lmp)
 //--------------------------------------------------------------------------
 
 AtomVecCAC_Charge::~AtomVecCAC_Charge() {
-delete asa_pointer;
-for(int element_index=0; element_index < alloc_counter; element_index++){
-  memory->destroy(node_charges[element_index]);
-}
+  for(int element_index=0; element_index < alloc_counter; element_index++){
+    memory->destroy(node_charges[element_index]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -72,11 +71,11 @@ void AtomVecCAC_Charge::process_args(int narg, char **arg)
   if (narg != 2) error->all(FLERR,"Invalid atom_style cac command");
 
 
- nodes_per_element=force->inumeric(FLERR,arg[0]);
- maxpoly = force->inumeric(FLERR, arg[1]);
- atom->nodes_per_element=nodes_per_element;
- atom-> words_per_node = 7;
- atom->maxpoly = maxpoly;
+  nodes_per_element=force->inumeric(FLERR,arg[0]);
+  maxpoly = force->inumeric(FLERR, arg[1]);
+  atom->nodes_per_element=nodes_per_element;
+  atom-> words_per_node = 7;
+  atom->maxpoly = maxpoly;
 
 
 
@@ -129,37 +128,37 @@ void AtomVecCAC_Charge::grow(int n)
 
   //grow pointers for a ragged allocation strategy since atoms allocate far less memory
   if(CAC_nmax==0){
-  atom->node_types = node_types = (int **) memory->smalloc(sizeof(int *)*nmax, "atom:node_types");
-  atom->node_charges = node_charges = (double **) memory->smalloc(sizeof(double *)*nmax, "atom:node_charges");
-  atom->nodal_positions = nodal_positions =
-    (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_positions");
-	hold_nodal_positions = (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:hold_nodal_positions");	
-  atom->initial_nodal_positions = initial_nodal_positions =
-    (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:initial_nodal_positions");
-  atom->nodal_velocities = nodal_velocities =
-    (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_velocities");
-  atom->nodal_forces = nodal_forces =
-    (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_forces");
-  atom->nodal_virial = nodal_virial =
-    (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_virial");  
-  CAC_nmax = nmax;
+    atom->node_types = node_types = (int **) memory->smalloc(sizeof(int *)*nmax, "atom:node_types");
+    atom->node_charges = node_charges = (double **) memory->smalloc(sizeof(double *)*nmax, "atom:node_charges");
+    atom->nodal_positions = nodal_positions =
+      (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_positions");
+	  hold_nodal_positions = (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:hold_nodal_positions");	
+    atom->initial_nodal_positions = initial_nodal_positions =
+      (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:initial_nodal_positions");
+    atom->nodal_velocities = nodal_velocities =
+      (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_velocities");
+    atom->nodal_forces = nodal_forces =
+      (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_forces");
+    atom->nodal_virial = nodal_virial =
+      (double ****) memory->smalloc(sizeof(double ***)*nmax, "atom:nodal_virial");  
+    CAC_nmax = nmax;
   }
   else{
-  atom->node_types = node_types = (int **) memory->srealloc(node_types,sizeof(int *)*nmax, "atom:node_types");
-  atom->node_charges = node_charges = (double **) memory->srealloc(node_charges,sizeof(double *)*nmax, "atom:node_charges");
-  atom->nodal_positions = nodal_positions =
-    (double ****) memory->srealloc(nodal_positions,sizeof(double ***)*nmax, "atom:nodal_positions");
-	hold_nodal_positions =
-  (double ****) memory->srealloc(hold_nodal_positions,sizeof(double ***)*nmax, "atom:hold_nodal_positions");	
-  atom->initial_nodal_positions = initial_nodal_positions =
-    (double ****) memory->srealloc(initial_nodal_positions,sizeof(double ***)*nmax, "atom:initial_nodal_positions");
-  atom->nodal_velocities = nodal_velocities =
-    (double ****) memory->srealloc(nodal_velocities,sizeof(double ***)*nmax, "atom:nodal_velocities");
-  atom->nodal_forces = nodal_forces =
-    (double ****) memory->srealloc(nodal_forces,sizeof(double ***)*nmax, "atom:nodal_forces");
-  atom->nodal_virial = nodal_virial =
-    (double ****) memory->srealloc(nodal_virial,sizeof(double ***)*nmax, "atom:nodal_virial");
-  CAC_nmax = nmax;  
+    atom->node_types = node_types = (int **) memory->srealloc(node_types,sizeof(int *)*nmax, "atom:node_types");
+    atom->node_charges = node_charges = (double **) memory->srealloc(node_charges,sizeof(double *)*nmax, "atom:node_charges");
+    atom->nodal_positions = nodal_positions =
+      (double ****) memory->srealloc(nodal_positions,sizeof(double ***)*nmax, "atom:nodal_positions");
+	  hold_nodal_positions =
+      (double ****) memory->srealloc(hold_nodal_positions,sizeof(double ***)*nmax, "atom:hold_nodal_positions");	
+    atom->initial_nodal_positions = initial_nodal_positions =
+      (double ****) memory->srealloc(initial_nodal_positions,sizeof(double ***)*nmax, "atom:initial_nodal_positions");
+    atom->nodal_velocities = nodal_velocities =
+      (double ****) memory->srealloc(nodal_velocities,sizeof(double ***)*nmax, "atom:nodal_velocities");
+    atom->nodal_forces = nodal_forces =
+      (double ****) memory->srealloc(nodal_forces,sizeof(double ***)*nmax, "atom:nodal_forces");
+    atom->nodal_virial = nodal_virial =
+      (double ****) memory->srealloc(nodal_virial,sizeof(double ***)*nmax, "atom:nodal_virial");
+    CAC_nmax = nmax;  
   }
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)

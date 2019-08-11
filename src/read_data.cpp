@@ -571,11 +571,11 @@ void ReadData::command(int narg, char **arg)
         bodies(firstpass);
 
       } else if (strcmp(keyword, "CAC Elements") == 0) {
-		  CACflag = 1;
-		  if (me == 0 && !style_match("CAC", atom->atom_style))
+		    CACflag = 1;
+		    if (me == 0 && !style_match("CAC", atom->atom_style))
 			  error->warning(FLERR, "Atom style in data file (CAC) differs "
 				  "from currently defined atom style");
-		  CAC_elements();
+		    CAC_elements();
 
 	    }else if (strcmp(keyword,"Masses") == 0) {
         if (firstpass) mass();

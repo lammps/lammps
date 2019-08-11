@@ -93,11 +93,11 @@ certain dynamic simulations.
 
 The header of the data file for all CAC atom styles remains very much
 the same as that found in typical "LAMMPS use cases"_read_data.html. One
-only needs to replace the word "atoms" with "CAC_elements" in the
+only needs to replace the word "atoms" with "cac elements" in the
 declaration of how many elements and atoms to be read. The denotation of
 the number of atom types, box limits, and atom masses remains
 standard. The section header for the finite elements and atoms to be
-read in is then also "CAC_Elements". The declaration of atoms and finite
+read in is then also "CAC Elements". The declaration of atoms and finite
 elements can then commence according to the format to be discussed.
 
 When declaring a CAC element or atom you must begin with the element header

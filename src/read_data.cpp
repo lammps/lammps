@@ -570,7 +570,7 @@ void ReadData::command(int narg, char **arg)
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bodies");
         bodies(firstpass);
 
-      } else if (strcmp(keyword, "CAC_Elements") == 0) {
+      } else if (strcmp(keyword, "CAC Elements") == 0) {
 		  CACflag = 1;
 		  if (me == 0 && !style_match("CAC", atom->atom_style))
 			  error->warning(FLERR, "Atom style in data file (CAC) differs "
@@ -946,7 +946,7 @@ void ReadData::header(int firstpass)
 
   const char *section_keywords[NSECTIONS] =
     {"Atoms","Velocities","Ellipsoids","Lines","Triangles","Bodies",
-     "Bonds","Angles","Dihedrals","Impropers", "CAC_Elements",
+     "Bonds","Angles","Dihedrals","Impropers", "CAC Elements",
      "Masses","Pair Coeffs","PairIJ Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
@@ -1048,10 +1048,10 @@ void ReadData::header(int firstpass)
       if (addflag == NONE) atom->nbodies = nbodies;
       else if (firstpass) atom->nbodies += nbodies;
 
-    } else if (strstr(line, "CAC_elements")) {  // FIXME:
-		sscanf(line, BIGINT_FORMAT, &nCAC_elements);
-		if (addflag == NONE) atom->natoms = nCAC_elements;
-		else if (firstpass) atom->natoms += nCAC_elements;
+    } else if (utils::strmatch(line,"^\\s*\\d+\\s+cac\\s+elements\\s")) { 
+		  sscanf(line, BIGINT_FORMAT, &nCAC_elements);
+		  if (addflag == NONE) atom->natoms = nCAC_elements;
+		  else if (firstpass) atom->natoms += nCAC_elements;
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+bonds\\s")) {
       rv = sscanf(line,BIGINT_FORMAT,&nbonds);
       if (rv != 1)

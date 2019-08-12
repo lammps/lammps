@@ -22,6 +22,7 @@ cutoff = distance from wall at which wall-particle interaction is cut off (dista
 args = :l
   alpha (width parameter), if style = {morse}
   {none}, if style = {lj93/lj126/lj1043/colloid/harmonic} :pre
+:ule
 
 [Examples:]
 
@@ -120,7 +121,7 @@ For style {wall/lj1043}, the energy E is given by the 10/4/3 potential:
 
 :c,image(Eqs/fix_wall_lj1043.jpg)
 
-for style {wall/morse}, the energy E is given by the Morse potential:
+For style {wall/morse}, the energy E is given by the Morse potential:
 
 :c,image(Eqs/pair_morse.jpg)
 

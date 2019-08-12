@@ -10,19 +10,23 @@ fix wall/region command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/region region-ID style epsilon sigma cutoff :pre
+fix ID group-ID wall/region region-ID style epsilon sigma cutoff args ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-wall/region = style name of this fix command
-region-ID = region whose boundary will act as wall
-style = {lj93} or {lj126} or {lj1043} or {colloid} or {harmonic}
-epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
-sigma = size factor for wall-particle interaction (distance units)
-cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+wall/region = style name of this fix command :l
+region-ID = region whose boundary will act as wall :l
+style = {lj93} or {lj126} or {lj1043} or {morse} or {colloid} or {harmonic} :l
+epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units) :l
+sigma = size factor for wall-particle interaction (distance units) :l
+cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :l
+args = :l
+  alpha (width parameter), if style = {morse}
+  {none}, if style = {lj93/lj126/lj1043/colloid/harmonic} :pre
 
 [Examples:]
 
-fix wall all wall/region mySphere lj93 1.0 1.0 2.5 :pre
+fix wall all wall/region mySphere lj93 1.0 1.0 2.5
+fix wall all wall/region box_top morse 1.0 1.0 3.0 1.5 :pre
 
 [Description:]
 
@@ -116,6 +120,12 @@ For style {wall/lj1043}, the energy E is given by the 10/4/3 potential:
 
 :c,image(Eqs/fix_wall_lj1043.jpg)
 
+for style {wall/morse}, the energy E is given by the Morse potential:
+
+:c,image(Eqs/pair_morse.jpg)
+
+where {r_0 = sigma} and {D_0 = epsilon}.
+
 For style {colloid}, the energy E is given by an integrated form of
 the "pair_style colloid"_pair_colloid.html potential:
 
@@ -179,7 +189,9 @@ option for this fix.
 
 "fix wall/lj93"_fix_wall.html,
 "fix wall/lj126"_fix_wall.html,
+"fix wall/lj1043"_fix_wall.html,
 "fix wall/colloid"_fix_wall.html,
+"fix wall/harmonic"_fix_wall.html,
 "fix wall/gran"_fix_wall_gran.html
 
 [Default:] none

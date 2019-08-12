@@ -15,20 +15,15 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_kokkos.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "gridcomm_kokkos.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "remap_wrap.h"
@@ -306,12 +301,6 @@ void PPPMKokkos<DeviceType>::init()
 
   if (me == 0) {
 
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
@@ -320,7 +309,7 @@ void PPPMKokkos<DeviceType>::init()
               estimated_accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
+      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -332,7 +321,7 @@ void PPPMKokkos<DeviceType>::init()
               estimated_accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
+      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -615,8 +604,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = evflag_atom = eflag_global = vflag_global =
+  ev_init(eflag,vflag,0);
          eflag_atom = vflag_atom = 0;
 
   // reallocate per-atom arrays if necessary
@@ -1648,7 +1636,7 @@ void PPPMKokkos<DeviceType>::make_rho()
 
   nlocal = atomKK->nlocal;
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_make_rho_atomic>(0,nlocal),*this);
   copymode = 0;
@@ -1657,7 +1645,7 @@ void PPPMKokkos<DeviceType>::make_rho()
   iy = nyhi_out-nylo_out + 1;
 
   copymode = 1;
-  Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->num_threads,1);
+  Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho> config(lmp->kokkos->nthreads,1);
   Kokkos::parallel_for(config,*this);
   copymode = 0;
 #endif
@@ -3121,7 +3109,7 @@ double PPPMKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class PPPMKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PPPMKokkos<LMPHostType>;
 #endif
 }

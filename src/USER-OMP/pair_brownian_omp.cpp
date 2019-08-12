@@ -12,8 +12,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_brownian_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -26,6 +26,7 @@
 #include "random_mars.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "timer.h"
 
 #include "fix_wall.h"
 
@@ -68,9 +69,7 @@ PairBrownianOMP::~PairBrownianOMP()
 
 void PairBrownianOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int inum = list->inum;

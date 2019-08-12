@@ -8,33 +8,22 @@
 // Colvars repository at GitHub.
 
 
+#include "colvarproxy_lammps.h"
 #include <mpi.h>
+#include <sys/stat.h>
+#include <cerrno>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include "lammps.h"
-#include "atom.h"
 #include "error.h"
 #include "output.h"
 #include "random_park.h"
 
-#include "fix_colvars.h"
-
 #include "colvarmodule.h"
-#include "colvar.h"
-#include "colvarbias.h"
-#include "colvaratoms.h"
 #include "colvarproxy.h"
-#include "colvarproxy_lammps.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
-
-#include <iostream>
-#include <sstream>
-#include <string>
 
 #define HASH_FAIL  -1
 
@@ -153,16 +142,27 @@ void colvarproxy_lammps::init(const char *conf_file)
   if (_lmp->update->ntimestep != 0) {
     cvm::log("Setting initial step number from LAMMPS: "+
              cvm::to_str(_lmp->update->ntimestep)+"\n");
-    colvars->it = colvars->it_restart = _lmp->update->ntimestep;
+    colvars->it = colvars->it_restart =
+      static_cast<cvm::step_number>(_lmp->update->ntimestep);
   }
 
   if (cvm::debug()) {
-    log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
-    log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log(cvm::line_marker);
-    log("Info: done initializing the colvars proxy object.\n");
+    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
+    cvm::log(cvm::line_marker);
+    cvm::log("Info: done initializing the colvars proxy object.\n");
   }
+}
+
+void colvarproxy_lammps::add_config_file(const char *conf_file)
+{
+  colvars->read_config_file(conf_file);
+}
+
+void colvarproxy_lammps::add_config_string(const std::string &conf)
+{
+  colvars->read_config_string(conf);
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
@@ -185,7 +185,7 @@ int colvarproxy_lammps::setup()
 double colvarproxy_lammps::compute()
 {
   if (cvm::debug()) {
-    log(std::string(cvm::line_marker)+
+    cvm::log(std::string(cvm::line_marker)+
         "colvarproxy_lammps step no. "+
         cvm::to_str(_lmp->update->ntimestep)+" [first - last = "+
         cvm::to_str(_lmp->update->beginstep)+" - "+
@@ -238,20 +238,20 @@ double colvarproxy_lammps::compute()
   bias_energy = 0.0;
 
   if (cvm::debug()) {
-    log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
-    log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
+    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
+    cvm::log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
   }
 
   // call the collective variable module
   colvars->calc();
 
   if (cvm::debug()) {
-    log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
-    log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
+    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
+    cvm::log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
   }
 
   return bias_energy;

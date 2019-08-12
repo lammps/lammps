@@ -33,24 +33,24 @@ namespace UIestimator {
 
     public:
         n_matrix() {}
-        n_matrix(const std::vector<double> & lowerboundary,   // lowerboundary of x
-            const std::vector<double> & upperboundary,   // upperboundary of
-            const std::vector<double> & width,           // width of x
-            const int y_size) {          // size of y, for example, ysize=7, then when x=1, the distribution of y in [-2,4] is considered
+        n_matrix(const std::vector<double> & lowerboundary_input,   // lowerboundary of x
+            const std::vector<double> & upperboundary_input,   // upperboundary of
+            const std::vector<double> & width_input,           // width of x
+            const int y_size_input) {          // size of y, for example, ysize=7, then when x=1, the distribution of y in [-2,4] is considered
 
             int i;
 
-            this->lowerboundary = lowerboundary;
-            this->upperboundary = upperboundary;
-            this->width = width;
-            this->dimension = lowerboundary.size();
-            this->y_size = y_size;     // keep in mind the internal (spare) matrix is stored in diagonal form
-            this->y_total_size = int(std::pow(double(y_size), double(dimension)) + EPSILON);
+            this->lowerboundary = lowerboundary_input;
+            this->upperboundary = upperboundary_input;
+            this->width = width_input;
+            this->dimension = lowerboundary_input.size();
+            this->y_size = y_size_input;     // keep in mind the internal (spare) matrix is stored in diagonal form
+            this->y_total_size = int(cvm::pow(double(y_size_input), double(dimension)) + EPSILON);
 
             // the range of the matrix is [lowerboundary, upperboundary]
             x_total_size = 1;
             for (i = 0; i < dimension; i++) {
-                x_size.push_back(int((upperboundary[i] - lowerboundary[i]) / width[i] + EPSILON));
+                x_size.push_back(int((upperboundary_input[i] - lowerboundary_input[i]) / width_input[i] + EPSILON));
                 x_total_size *= x_size[i];
             }
 
@@ -89,9 +89,10 @@ namespace UIestimator {
 
         std::vector<int> temp;         // this vector is used in convert_x and convert_y to save computational resource
 
-        int i, j;
-
         int convert_x(const std::vector<double> & x) {       // convert real x value to its interal index
+
+            int i, j;
+
             for (i = 0; i < dimension; i++) {
                 temp[i] = int((x[i] - lowerboundary[i]) / width[i] + EPSILON);
             }
@@ -121,7 +122,7 @@ namespace UIestimator {
             int index = 0;
             for (i = 0; i < dimension; i++) {
                 if (i + 1 < dimension)
-                    index += temp[i] * int(std::pow(double(y_size), double(dimension - i - 1)) + EPSILON);
+                    index += temp[i] * int(cvm::pow(double(y_size), double(dimension - i - 1)) + EPSILON);
                 else
                     index += temp[i];
             }
@@ -139,19 +140,19 @@ namespace UIestimator {
 
     public:
         n_vector() {}
-        n_vector(const std::vector<double> & lowerboundary,   // lowerboundary of x
-            const std::vector<double> & upperboundary,   // upperboundary of
-            const std::vector<double> & width,                // width of x
-            const int y_size,           // size of y, for example, ysize=7, then when x=1, the distribution of y in [-2,4] is considered
+        n_vector(const std::vector<double> & lowerboundary_input,   // lowerboundary of x
+            const std::vector<double> & upperboundary_input,   // upperboundary of
+            const std::vector<double> & width_input,                // width of x
+            const int y_size_input,           // size of y, for example, ysize=7, then when x=1, the distribution of y in [-2,4] is considered
             const T & default_value) {         //   the default value of T
 
-            this->width = width;
-            this->dimension = lowerboundary.size();
+            this->width = width_input;
+            this->dimension = lowerboundary_input.size();
 
             x_total_size = 1;
             for (int i = 0; i < dimension; i++) {
-                this->lowerboundary.push_back(lowerboundary[i] - (y_size - 1) / 2 * width[i] - EPSILON);
-                this->upperboundary.push_back(upperboundary[i] + (y_size - 1) / 2 * width[i] + EPSILON);
+                this->lowerboundary.push_back(lowerboundary_input[i] - (y_size_input - 1) / 2 * width_input[i] - EPSILON);
+                this->upperboundary.push_back(upperboundary_input[i] + (y_size_input - 1) / 2 * width_input[i] + EPSILON);
 
                 x_size.push_back(int((this->upperboundary[i] - this->lowerboundary[i]) / this->width[i] + EPSILON));
                 x_total_size *= x_size[i];
@@ -215,26 +216,26 @@ namespace UIestimator {
         UIestimator() {}
 
         //called when (re)start an eabf simulation
-        UIestimator(const std::vector<double> & lowerboundary,
-            const std::vector<double> & upperboundary,
-            const std::vector<double> & width,
-            const std::vector<double> & krestr,                // force constant in eABF
-            const std::string & output_filename,              // the prefix of output files
-            const int output_freq,
-            const bool restart,                              // whether restart from a .count and a .grad file
-            const std::vector<std::string> & input_filename,   // the prefixes of input files
-            const double temperature) {
+        UIestimator(const std::vector<double> & lowerboundary_input,
+            const std::vector<double> & upperboundary_input,
+            const std::vector<double> & width_input,
+            const std::vector<double> & krestr_input,                // force constant in eABF
+            const std::string & output_filename_input,              // the prefix of output files
+            const int output_freq_input,
+            const bool restart_input,                              // whether restart from a .count and a .grad file
+            const std::vector<std::string> & input_filename_input,   // the prefixes of input files
+            const double temperature_input) {
 
             // initialize variables
-            this->lowerboundary = lowerboundary;
-            this->upperboundary = upperboundary;
-            this->width = width;
-            this->krestr = krestr;
-            this->output_filename = output_filename;
-            this->output_freq = output_freq;
-            this->restart = restart;
-            this->input_filename = input_filename;
-            this->temperature = temperature;
+            this->lowerboundary = lowerboundary_input;
+            this->upperboundary = upperboundary_input;
+            this->width = width_input;
+            this->krestr = krestr_input;
+            this->output_filename = output_filename_input;
+            this->output_freq = output_freq_input;
+            this->restart = restart_input;
+            this->input_filename = input_filename_input;
+            this->temperature = temperature_input;
 
             int i, j;
 
@@ -300,7 +301,7 @@ namespace UIestimator {
         ~UIestimator() {}
 
         // called from MD engine every step
-        bool update(const int step, std::vector<double> x, std::vector<double> y) {
+        bool update(cvm::step_number step, std::vector<double> x, std::vector<double> y) {
 
             int i;
 
@@ -431,7 +432,7 @@ namespace UIestimator {
                     loop_flag_y[k] = loop_flag_x[k] - HALF_Y_SIZE * width[k];
                 }
 
-                int j = 0;
+                j = 0;
                 while (j >= 0) {
                     norm += distribution_x_y.get_value(loop_flag_x, loop_flag_y);
                     for (k = 0; k < dimension; k++) {
@@ -672,7 +673,7 @@ namespace UIestimator {
         }
 
         // read input files
-        void read_inputfiles(const std::vector<std::string> input_filename)
+        void read_inputfiles(const std::vector<std::string> filename)
         {
             char sharp;
             double nothing;
@@ -683,11 +684,11 @@ namespace UIestimator {
             std::vector<double> position_temp(dimension, 0);
             std::vector<double> grad_temp(dimension, 0);
             int count_temp = 0;
-            for (i = 0; i < int(input_filename.size()); i++) {
+            for (i = 0; i < int(filename.size()); i++) {
                 int size = 1 , size_temp = 0;
 
-                std::string count_filename = input_filename[i] + ".UI.count";
-                std::string grad_filename = input_filename[i] + ".UI.grad";
+                std::string count_filename = filename[i] + ".UI.count";
+                std::string grad_filename = filename[i] + ".UI.grad";
 
                 std::ifstream count_file(count_filename.c_str(), std::ios::in);
                 std::ifstream grad_file(grad_filename.c_str(), std::ios::in);

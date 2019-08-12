@@ -15,16 +15,14 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
+#include "pair_meamc.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include "meam.h"
-#include "pair_meamc.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -93,9 +91,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // neighbor list info
 
@@ -228,6 +224,9 @@ void PairMEAMC::coeff(int narg, char **arg)
   }
   nelements = narg - 4 - atom->ntypes;
   if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (nelements > maxelt)
+    error->all(FLERR,"Too many elements extracted from MEAM library. "
+                      "Increase 'maxelt' in meam.h and recompile.");
   elements = new char*[nelements];
   mass = new double[nelements];
 
@@ -458,6 +457,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     t3[i] = atof(words[16]);
     rozero[i] = atof(words[17]);
     ibar[i] = atoi(words[18]);
+
+    if (!iszero(t0[i]-1.0))
+      error->all(FLERR,"Unsupported parameter in MEAM potential file");
 
     nset++;
   }

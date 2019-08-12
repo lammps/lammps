@@ -24,11 +24,14 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_valence_angles.h"
-#include "reaxc_bond_orders.h"
+#include <cmath>
+#include "pair.h"
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include "error.h"
 
 static double Dot( double* v1, double* v2, int k )
 {
@@ -405,9 +408,10 @@ void Valence_Angles( reax_system *system, control_params *control,
   if (num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE) {
     workspace->realloc.num_3body = num_thb_intrs;
     if (num_thb_intrs > thb_intrs->num_intrs) {
-      fprintf( stderr, "step%d-ran out of space on angle_list: top=%d, max=%d",
-               data->step, num_thb_intrs, thb_intrs->num_intrs );
-      MPI_Abort( MPI_COMM_WORLD, INSUFFICIENT_MEMORY );
+      char errmsg[128];
+      snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
+               data->step, num_thb_intrs, thb_intrs->num_intrs);
+      control->error_ptr->one(FLERR, errmsg);
     }
   }
 

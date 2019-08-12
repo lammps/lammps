@@ -22,19 +22,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
 #include "pair_smd_ulsph.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <utility>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -386,10 +383,7 @@ void PairULSPH::compute(int eflag, int vflag) {
         int k;
         SelfAdjointEigenSolver < Matrix3d > es;
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         if (atom->nmax > nmax) {
 //printf("... allocating in compute with nmax = %d\n", atom->nmax);

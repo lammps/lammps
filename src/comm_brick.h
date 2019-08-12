@@ -74,7 +74,6 @@ class CommBrick : public Comm {
   double *buf_send;                 // send buffer for all comm
   double *buf_recv;                 // recv buffer for all comm
   int maxsend,maxrecv;              // current size of send/recv buffer
-  int bufextra;                     // extra space beyond maxsend in send buffer
   int smax,rmax;             // max size in atoms of single borders send/recv
 
   // NOTE: init_buffers is called from a constructor and must not be made virtual

@@ -565,6 +565,7 @@ molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
 smd: atom-ID atom-type molecule volume mass kernel-radius contact-radius x y z
 sphere: atom-ID atom-type diameter density x y z
+spin: atom-ID atom-type sp x y z spx spy spz
 template: atom-ID molecule-ID template-index template-atom atom-type x y z
 tri: atom-ID molecule-ID atom-type triangleflag density x y z
 wavepacket: atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
@@ -595,6 +596,8 @@ mux,muy,muz = components of dipole moment of atom (dipole units)
 q = charge on atom (charge units)
 rho = density (need units) for SPH particles
 spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
+sp = norm of magnetic spin of atom (in number of Bohr magnetons)
+spx,spy,spz = components of magnetic spin of atom (adim normalized vector)
 template-atom = which atom within a template molecule the atom is
 template-index = which molecule within the molecule template the atom is part of
 theta = internal temperature of a DPD particle
@@ -701,7 +704,7 @@ of 0 means the atom is still inside the box when unwrapped.  A value
 of 2 means add 2 box lengths to get the unwrapped coordinate.  A value
 of -1 means subtract 1 box length to get the unwrapped coordinate.
 LAMMPS updates these flags as atoms cross periodic boundaries during
-the simulation.  The "dump"_dump.html command can output atom atom
+the simulation.  The "dump"_dump.html command can output atom
 coordinates in wrapped or unwrapped form, as well as the 3 image
 flags.
 

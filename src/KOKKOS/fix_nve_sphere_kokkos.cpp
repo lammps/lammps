@@ -149,7 +149,7 @@ void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
 
 namespace LAMMPS_NS {
 template class FixNVESphereKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixNVESphereKokkos<LMPHostType>;
 #endif
 }

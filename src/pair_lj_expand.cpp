@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_expand.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -38,8 +37,9 @@ PairLJExpand::PairLJExpand(LAMMPS *lmp) : Pair(lmp)
 
 PairLJExpand::~PairLJExpand()
 {
-  if (!copymode) {
-   if (allocated) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -52,7 +52,6 @@ PairLJExpand::~PairLJExpand()
     memory->destroy(lj3);
     memory->destroy(lj4);
     memory->destroy(offset);
-   }
   }
 }
 
@@ -67,8 +66,7 @@ void PairLJExpand::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

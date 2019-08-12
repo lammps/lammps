@@ -15,25 +15,20 @@
    Contributing authors: Amit Kumar and Michael Bybee (UIUC)
 ------------------------------------------------------------------------- */
 
+#include "pair_lubricateU.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include "pair_lubricateU.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
 #include "math_const.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_deform.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
@@ -116,8 +111,7 @@ void PairLubricateU::compute(int eflag, int vflag)
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // skip compute() if called from integrate::setup()
   // this is b/c do not want compute() to update velocities twice on a restart

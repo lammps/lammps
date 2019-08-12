@@ -16,14 +16,12 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
+#include "pair_edpd.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <ctime>
 #include <cstring>
-#include "pair_edpd.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -99,8 +97,7 @@ PairEDPD::~PairEDPD()
 void PairEDPD::compute(int eflag, int vflag)
 {
   double evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;

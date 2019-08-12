@@ -11,18 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_region.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
 #include "region.h"
 #include "force.h"
-#include "lattice.h"
 #include "update.h"
-#include "output.h"
 #include "respa.h"
 #include "error.h"
 #include "math_const.h"

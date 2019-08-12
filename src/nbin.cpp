@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin.h"
+#include <cmath>
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 
@@ -35,6 +35,8 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 
   dimension = domain->dimension;
   triclinic = domain->triclinic;
+
+  kokkos = 0;
 }
 
 /* ---------------------------------------------------------------------- */

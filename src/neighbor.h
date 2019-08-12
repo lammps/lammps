@@ -15,7 +15,6 @@
 #define LMP_NEIGHBOR_H
 
 #include "pointers.h"
-#include <map>
 
 namespace LAMMPS_NS {
 
@@ -126,6 +125,8 @@ class Neighbor : protected Pointers {
 
   bigint memory_usage();
 
+  bigint last_setup_bins;          // step of last neighbor::setup_bins() call
+
  protected:
   int me,nprocs;
   int firsttime;                   // flag for calling init_styles() only once
@@ -138,8 +139,6 @@ class Neighbor : protected Pointers {
   int restart_check;               // 1 if restart enabled, 0 if no
   int fix_check;                   // # of fixes that induce reneigh
   int *fixchecklist;               // which fixes to check
-
-  bigint last_setup_bins;          // step of last neighbor::setup_bins() call
 
   double triggersq;                // trigger = build when atom moves this dist
 
@@ -233,6 +232,7 @@ class Neighbor : protected Pointers {
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
   virtual void grow_ex_mol_intra_kokkos() {}
+  virtual void set_binsize_kokkos() {}
 };
 
 namespace NeighConst {

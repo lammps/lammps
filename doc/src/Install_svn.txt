@@ -40,7 +40,7 @@ as if you unpacked a current LAMMPS tarball, with the exception, that
 the HTML documentation files are not included.  They can be fetched
 from the LAMMPS website by typing "make fetch" in the doc directory.
 Or they can be generated from the content provided in doc/src by
-typing "make html" from the the doc directory.
+typing "make html" from the doc directory.
 
 After initial checkout, as bug fixes and new features are added to
 LAMMPS, as listed on "this page"_Errors_bugs.html, you can stay

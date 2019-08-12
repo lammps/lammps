@@ -147,7 +147,8 @@ asub     = "A" parameter for MEAM (see e.g. "(Baskes)"_#Baskes) :pre
 
 The alpha, b0, b1, b2, b3, t0, t1, t2, t3 parameters correspond to the
 standard MEAM parameters in the literature "(Baskes)"_#Baskes (the b
-parameters are the standard beta parameters).  The rozero parameter is
+parameters are the standard beta parameters). Note that only parameters
+normalized to t0 = 1.0 are supported.  The rozero parameter is
 an element-dependent density scaling that weights the reference
 background density (see e.g. equation 4.5 in "(Gullet)"_#Gullet) and
 is typically 1.0 for single-element systems.  The ibar parameter
@@ -356,6 +357,13 @@ This pair style can only be used via the {pair} keyword of the
 The {meam/c} style is provided in the USER-MEAMC package. It is
 only enabled if LAMMPS was built with that package.
 See the "Build package"_Build_package.html doc page for more info.
+
+The maximum number of elements, that can be read from the MEAM
+library file, is determined at compile time. The default is 5.
+If you need support for more elements, you have to change the
+define for the constant 'maxelt' at the beginning of the file
+src/USER-MEAMC/meam.h and update/recompile LAMMPS. There is no
+limit on the number of atoms types.
 
 [Related commands:]
 

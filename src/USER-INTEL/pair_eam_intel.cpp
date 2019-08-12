@@ -78,9 +78,9 @@ void PairEAMIntel::compute(int eflag, int vflag,
                            IntelBuffers<flt_t,acc_t> *buffers,
                            const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -451,7 +451,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (tid == 0)
         comm->forward_comm_pair(this);
-      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       #if defined(_OPENMP)
       #pragma omp barrier

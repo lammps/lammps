@@ -15,17 +15,14 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_charmm_coul_long.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -59,27 +56,27 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulLong::~PairLJCharmmCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(eps14);
-      memory->destroy(sigma14);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(lj14_1);
-      memory->destroy(lj14_2);
-      memory->destroy(lj14_3);
-      memory->destroy(lj14_4);
-      memory->destroy(offset);
-    }
-    if (ftable) free_tables();
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
+    memory->destroy(offset);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,8 +93,7 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
   double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -404,8 +400,7 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
   double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

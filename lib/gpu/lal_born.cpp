@@ -23,7 +23,7 @@ const char *born=0;
 
 #include "lal_born.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BornT Born<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -179,3 +179,4 @@ void BornT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Born<PRECISION,ACC_PRECISION>;
+}

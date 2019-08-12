@@ -13,17 +13,17 @@ pair_style ilp/graphene/hbn command :h3
 pair_style \[hybrid/overlay ...\] ilp/graphene/hbn cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function
+tap_flag = 0/1 to turn off/on the taper function :ul
 
 [Examples:]
 
-pair_style hybrid/overlay ilp/graphene/hbn 16.0 1
-pair_coeff * * ilp/graphene/hbn  BNCH.ILP B N C :pre
+pair_style  hybrid/overlay ilp/graphene/hbn 16.0 1
+pair_coeff  * * ilp/graphene/hbn  BNCH.ILP B N C :pre
 
 pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
-pair_coeff  * * rebo                 CH.airebo   NULL NULL C
-pair_coeff  * * tersoff              BNC.tersoff B    N    NULL
-pair_coeff  * * ilp/graphene/hbn     BNCH.ILP    B    N    C
+pair_coeff  * * rebo              CH.rebo     NULL NULL C
+pair_coeff  * * tersoff           BNC.tersoff B    N    NULL
+pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
 pair_coeff  1 1 coul/shield 0.70
 pair_coeff  1 2 coul/shield 0.695
 pair_coeff  2 2 coul/shield 0.69 :pre
@@ -47,11 +47,16 @@ equation can be found in "(Leven1)"_#Leven1 and "(Maaravi)"_#Maaravi2.
 It is important to include all the pairs to build the neighbor list for
 calculating the normals.
 
-NOTE: This potential is intended for interactions between two different
-layers of graphene or hexagonal boron nitride. Therefore, to avoid
-interaction within the same layers, each layer should have a separate
-molecule id and is recommended to use "full" atom style in the data
-file.
+NOTE: This potential (ILP) is intended for interlayer interactions between two
+different layers of graphene, hexagonal boron nitride (h-BN) and their hetero-junction.
+To perform a realistic simulation, this potential must be used in combination with
+intralayer potential, such as "AIREBO"_pair_airebo.html or "Tersoff"_pair_tersoff.html potential.
+To keep the intralayer properties unaffected, the interlayer interaction
+within the same layers should be avoided. Hence, each atom has to have a layer
+identifier such that atoms residing on the same layer interact via the
+appropriate intralayer potential and atoms residing on different layers
+interact via the ILP. Here, the molecule id is chosen as the layer identifier,
+thus a data file with the "full" atom style is required to use this potential.
 
 The parameter file (e.g. BNCH.ILP), is intended for use with {metal}
 "units"_units.html, with energies in meV. Two additional parameters,
@@ -62,6 +67,10 @@ list for calculating the normals for each atom pair.
 NOTE: The parameters presented in the parameter file (e.g. BNCH.ILP),
 are fitted with taper function by setting the cutoff equal to 16.0
 Angstrom.  Using different cutoff or taper function should be careful.
+The parameters for atoms pairs between Boron and Nitrogen are fitted with
+a screened Coulomb interaction "coul/shield"_pair_coul_shield.html. Therefore,
+to simulated the properties of h-BN correctly, this potential must be used in
+combination with the pair style "coul/shield"_pair_coul_shield.html.
 
 NOTE: Two new sets of parameters of ILP for two-dimensional hexagonal
 Materials are presented in "(Ouyang)"_#Ouyang.  These parameters provide
@@ -75,6 +84,22 @@ be found in "(Ouyang)"_#Ouyang.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
+
+This pair style tallies a breakdown of the total interlayer potential
+energy into sub-categories, which can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 2.
+The 2 values correspond to the following sub-categories:
+
+{E_vdW} = vdW (attractive) energy
+{E_Rep} = Repulsive energy :ol
+
+To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+
+compute 0 all pair ilp/graphene/hbn
+variable Evdw  equal c_0\[1\]
+variable Erep  equal c_0\[2\]
+thermo_style custom step temp epair v_Erep v_Evdw :pre
 
 :line
 
@@ -108,6 +133,7 @@ units, if your simulation does not use {metal} units.
 "pair_coeff"_pair_coeff.html,
 "pair_none"_pair_none.html,
 "pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style drip"_pair_drip.html,
 "pair_style pair_kolmogorov_crespi_z"_pair_kolmogorov_crespi_z.html,
 "pair_style pair_kolmogorov_crespi_full"_pair_kolmogorov_crespi_full.html,
 "pair_style pair_lebedeva_z"_pair_lebedeva_z.html,

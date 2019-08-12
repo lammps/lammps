@@ -32,24 +32,18 @@
 ------------------------------------------------------------------------- */
 
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_nve_manifold_rattle.h"
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "group.h"
-#include <cmath>
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
-#include "memory.h"
 #include "comm.h"
 
-
-#include "fix_nve_manifold_rattle.h"
 #include "manifold_factory.h"
 #include "manifold.h"
 
@@ -559,7 +553,8 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
 
   if (iters >= max_iter && res > tolerance) {
     char msg[2048];
-    sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+    sprintf(msg,"Failed to constrain atom " TAGINT_FORMAT
+            " (x = (%f, %f, %f)! res = %e, iters = %d\n",
             tagi, x[0], x[1], x[2], res, iters);
     error->one(FLERR,msg);
   }
@@ -652,7 +647,8 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
 
   if (iters >= max_iter && res >= tolerance) {
           char msg[2048];
-          sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+          sprintf(msg,"Failed to constrain atom " TAGINT_FORMAT
+                  " (x = (%f, %f, %f)! res = %e, iters = %d\n",
                   tagi, x[0], x[1], x[2], res, iters);
           error->all(FLERR,msg);
   }

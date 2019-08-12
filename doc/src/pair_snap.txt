@@ -38,7 +38,7 @@ where {B_k^i} is the {k}-th bispectrum component of atom {i},
 and {beta_k^alpha_i} is the corresponding linear coefficient
 that depends on {alpha_i}, the SNAP element of atom {i}. The
 number of bispectrum components used and their definitions
-depend on the values of {twojmax} and {diagonalstyle}
+depend on the value of {twojmax}
 defined in the SNAP parameter file described below.
 The bispectrum calculation is described in more detail
 in "compute sna/atom"_compute_sna_atom.html.
@@ -125,14 +125,13 @@ This line is followed by {ncoeff} coefficients, one per line.
 The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are {rcutfac} and
-{twojmax}. Optional keywords are {rfac0}, {rmin0}, {diagonalstyle},
+{twojmax}. Optional keywords are {rfac0}, {rmin0},
 {switchflag}, and {bzeroflag}.
 
 The default values for these keywords are
 
 {rfac0} = 0.99363
 {rmin0} = 0.0
-{diagonalstyle} = 3
 {switchflag} = 0
 {bzeroflag} = 1
 {quadraticflag} = 1 :ul
@@ -143,6 +142,9 @@ If {quadraticflag} is set to 1, then the SNAP energy expression includes the qua
 0.5*B^t.alpha.B, where alpha is a symmetric {K} by {K} matrix.
 The SNAP element file should contain {K}({K}+1)/2 additional coefficients
 for each element, the upper-triangular elements of alpha.
+
+NOTE: The previously used {diagonalstyle} keyword was removed in 2019,
+since all known SNAP potentials use the default value of 3.
 
 :line
 

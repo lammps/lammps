@@ -65,14 +65,6 @@ E: GPU package does not (yet) work with atom_style template
 
 Self-explanatory.
 
-E: Cannot use pair hybrid with GPU neighbor list builds
-
-Neighbor list builds must be done on the CPU for this pair style.
-
-E: GPU split param must be positive for hybrid pair styles
-
-See the package gpu command.
-
 E: Cannot use package gpu neigh yes with triclinic box
 
 This is a current restriction in LAMMPS.

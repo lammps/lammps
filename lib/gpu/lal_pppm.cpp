@@ -25,7 +25,7 @@ const char *pppm_d=0;
 #include "lal_pppm.h"
 #include <cassert>
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define PPPMT PPPM<numtyp, acctyp, grdtyp, grdtyp4>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
@@ -402,3 +402,4 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
 
 template class PPPM<PRECISION,ACC_PRECISION,float,_lgpu_float4>;
 template class PPPM<PRECISION,ACC_PRECISION,double,_lgpu_double4>;
+}

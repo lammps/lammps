@@ -15,23 +15,19 @@
    Contributing author: Pieter J. in 't Veld and Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_long_dipole_long.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_const.h"
 #include "math_vector.h"
-#include "pair_lj_long_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
 
@@ -405,8 +401,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
   double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;

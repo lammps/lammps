@@ -18,9 +18,9 @@
    lj/sdk potential for coarse grained MD simulations.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_sdk.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -68,8 +68,7 @@ void AngleSDK::compute(int eflag, int vflag)
   double rsq1,rsq2,rsq3,r1,r2,c,s,a,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

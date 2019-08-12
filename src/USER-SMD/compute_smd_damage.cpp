@@ -23,13 +23,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_smd_damage.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
 #include "memory.h"
 #include "error.h"
 

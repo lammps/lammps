@@ -92,7 +92,7 @@ public:
   static std::vector<feature *> cv_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual const std::vector<feature *> &features()
+  virtual const std::vector<feature *> &features() const
   {
     return cv_features;
   }
@@ -133,7 +133,7 @@ protected:
 
     Here:
     S(x(t)) = x
-    s(t)    = xr
+    s(t)    = x_ext
     DS = Ds = delta
   */
 
@@ -170,13 +170,13 @@ protected:
 
   // Options for extended_lagrangian
   /// Restraint center
-  colvarvalue xr;
+  colvarvalue x_ext;
   /// Previous value of the restraint center;
-  colvarvalue prev_xr;
+  colvarvalue prev_x_ext;
   /// Velocity of the restraint center
-  colvarvalue vr;
+  colvarvalue v_ext;
   /// Previous velocity of the restraint center
-  colvarvalue prev_vr;
+  colvarvalue prev_v_ext;
   /// Mass of the restraint center
   cvm::real ext_mass;
   /// Restraint force constant
@@ -272,6 +272,9 @@ public:
 
   /// Init output flags
   int init_output_flags(std::string const &conf);
+
+  /// \brief Initialize dependency tree
+  virtual int init_dependencies();
 
 private:
   /// Parse the CVC configuration for all components of a certain type
@@ -373,7 +376,7 @@ protected:
   void update_active_cvc_square_norm();
 
   /// \brief Absolute timestep number when this colvar was last updated
-  int prev_timestep;
+  cvm::step_number prev_timestep;
 
 public:
 
@@ -383,32 +386,32 @@ public:
   /// \brief Return the number of CVC objects with an active flag (as set by update_cvc_flags)
   inline size_t num_active_cvcs() const { return n_active_cvcs; }
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   cvm::real dist2(colvarvalue const &x1,
                   colvarvalue const &x2) const;
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_lgrad(colvarvalue const &x1,
                           colvarvalue const &x2) const;
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_rgrad(colvarvalue const &x1,
                           colvarvalue const &x2) const;
 
-  /// \brief Use the internal metrics (as from \link cvc
+  /// \brief Use the internal metrics (as from \link colvar::cvc
   /// \endlink objects) to wrap a value into a standard interval
   ///
   /// Handles correctly symmetries and periodic boundary conditions
-  void wrap(colvarvalue &x) const;
+  void wrap(colvarvalue &x_unwrapped) const;
 
 
   /// Read the analysis tasks
@@ -546,6 +549,7 @@ public:
   class polar_phi;
   class distance_inv;
   class distance_pairs;
+  class dipole_magnitude;
   class angle;
   class dipole_angle;
   class dihedral;
@@ -565,6 +569,14 @@ public:
   class alpha_dihedrals;
   class alpha_angles;
   class dihedPC;
+  class componentDisabled;
+  class CartesianBasedPath;
+  class gspath;
+  class gzpath;
+  class linearCombination;
+  class CVBasedPath;
+  class gspathCV;
+  class gzpathCV;
 
   // non-scalar components
   class distance_vec;
@@ -574,7 +586,7 @@ public:
 
 protected:
 
-  /// \brief Array of \link cvc \endlink objects
+  /// \brief Array of \link colvar::cvc \endlink objects
   std::vector<cvc *> cvcs;
 
   /// \brief Flags to enable or disable cvcs at next colvar evaluation
@@ -619,6 +631,9 @@ public:
   inline size_t n_components() const {
     return cvcs.size();
   }
+
+  /// \brief Get vector of vectors of atom IDs for all atom groups
+  virtual std::vector<std::vector<int> > get_atom_lists();
 };
 
 inline cvm::real const & colvar::force_constant() const
@@ -655,6 +670,8 @@ inline colvarvalue const & colvar::total_force() const
 
 inline void colvar::add_bias_force(colvarvalue const &force)
 {
+  check_enabled(f_cv_gradient,
+                std::string("applying a force to the variable \""+name+"\""));
   if (cvm::debug()) {
     cvm::log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
   }

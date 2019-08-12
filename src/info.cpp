@@ -16,8 +16,14 @@
                           Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "info.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <cctype>
+#include <ctime>
+#include <map>
+#include <string>
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -42,11 +48,7 @@
 #include "variable.h"
 #include "update.h"
 #include "error.h"
-
-#include <ctime>
-#include <map>
-#include <string>
-#include <algorithm>
+#include "utils.h"
 
 #ifdef _WIN32
 #define PSAPI_VERSION 1
@@ -54,19 +56,18 @@
 #include <stdint.h> // <cstdint> requires C++-11
 #include <psapi.h>
 #else
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
 #endif
 
-#if defined __linux
+#if defined(__linux)
 #include <malloc.h>
 #endif
 
 namespace LAMMPS_NS {
 // same as in variable.cpp
 enum {INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,PYTHON};
+      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 
 enum {COMPUTES=1<<0,
       DUMPS=1<<1,
@@ -105,7 +106,7 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
 
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
-  "file", "atomfile", "format", "equal", "atom", "python", "(unknown)"};
+  "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash" };
 
@@ -260,9 +261,14 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-    fprintf(out,"\nLAMMPS version: %s / %s\n\n",
-            universe->version, universe->num_ver);
-
+    if (lmp->has_git_info) {
+      fprintf(out,"\nLAMMPS version: %s / %s\nGit info: %s / %s / %s\n\n",
+              universe->version, universe->num_ver,lmp->git_branch,
+              lmp->git_descriptor,lmp->git_commit);
+    } else {
+      fprintf(out,"\nLAMMPS version: %s / %s\n\n",
+              universe->version, universe->num_ver);
+    }
     const char *infobuf = get_os_info();
     fprintf(out,"OS information: %s\n\n",infobuf);
     delete[] infobuf;
@@ -347,11 +353,24 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & COMM) {
-    int major,minor;
+    int major,minor,len;
+#if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+    char version[MPI_MAX_LIBRARY_VERSION_STRING];
+    MPI_Get_library_version(version,&len);
+#else
+    char version[] = "Undetected MPI implementation";
+    len = strlen(version);
+#endif
+
     MPI_Get_version(&major,&minor);
+    if (len > 80) {
+      char *ptr = strchr(version+80,'\n');
+      if (ptr) *ptr = '\0';
+    }
 
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out,"MPI version: %s\n",version);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",
@@ -360,7 +379,7 @@ void Info::command(int narg, char **arg)
     if (comm->mode == 0) {
       fprintf(out,"Communication mode = single\n");
       fprintf(out,"Communication cutoff = %g\n",
-              MAX(comm->cutghostuser,neighbor->cutneighmax));
+              comm->get_comm_cutoff());
     }
 
     if (comm->mode == 1) {
@@ -392,7 +411,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
             atom->natoms, atom->ntypes, force->pair_style);
 
-    if (force->pair && strstr(force->pair_style,"hybrid")) {
+    if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       PairHybrid *hybrid = (PairHybrid *)force->pair;
       fprintf(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
@@ -593,6 +612,10 @@ void Info::command(int narg, char **arg)
       int ndata = 1;
       fprintf(out,"Variable[%3d]: %-10s,  style = %-10s,  def =",
               i,names[i],varstyles[style[i]]);
+      if (style[i] == INTERNAL) {
+        fprintf(out,"%g\n",input->variable->dvalue[i]);
+        continue;
+      }
       if ((style[i] != LOOP) && (style[i] != ULOOP))
         ndata = input->variable->num[i];
       for (int j=0; j < ndata; ++j)

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_coul_long_opt.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
@@ -38,8 +38,7 @@ PairLJCutCoulLongOpt::PairLJCutCoulLongOpt(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
 
 void PairLJCutCoulLongOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   if (!ncoultablebits) {
     if (evflag) {

@@ -16,19 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_harmonic_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "domain.h"
-
-#include "math_const.h"
-
-#include <cmath>
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -44,10 +40,7 @@ AngleHarmonicOMP::AngleHarmonicOMP(class LAMMPS *lmp)
 
 void AngleHarmonicOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

@@ -15,17 +15,15 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_expand_coul_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -91,8 +89,7 @@ void PairLJExpandCoulLong::compute(int eflag, int vflag)
   double rsq,rshift,rshiftsq,rshift2inv;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -412,8 +409,7 @@ void PairLJExpandCoulLong::compute_outer(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

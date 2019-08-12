@@ -11,13 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom.h"
 #include <mpi.h>
-#include <cmath>
-#include <cstdio>
+#include <climits>
 #include <cstdlib>
 #include <cstring>
-#include <climits>
-#include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,18 +25,16 @@
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
-#include "output.h"
-#include "thermo.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "molecule.h"
-#include "atom_masks.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"
@@ -58,6 +54,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   natoms = 0;
   nlocal = nghost = nmax = 0;
   ntypes = 0;
+  nellipsoids = nlines = ntris = nbodies = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
@@ -98,7 +95,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // SPIN package
 
-  sp = fm = NULL;
+  sp = fm = fm_long = NULL;
 
   // USER-DPD
 
@@ -277,6 +274,7 @@ Atom::~Atom()
 
   memory->destroy(sp);
   memory->destroy(fm);
+  memory->destroy(fm_long);
 
   memory->destroy(vfrac);
   memory->destroy(s0);
@@ -452,8 +450,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   if (sflag) {
     char estyle[256];
-    if (sflag == 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
-    else sprintf(estyle,"%s/%s",style,lmp->suffix2);
+    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
     int n = strlen(estyle) + 1;
     atom_style = new char[n];
     strcpy(atom_style,estyle);
@@ -484,7 +482,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -494,7 +492,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -508,7 +506,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown atom style");
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
   return NULL;
 }
 
@@ -736,6 +734,45 @@ int Atom::tag_consecutive()
 
   if (idminall != 1 || idmaxall != natoms) return 0;
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   check that bonus data settings are valid
+   error if number of atoms with ellipsoid/line/tri/body flags
+   are consistent with global setting.
+------------------------------------------------------------------------- */
+
+void Atom::bonus_check()
+{
+  bigint local_ellipsoids = 0, local_lines = 0, local_tris = 0;
+  bigint local_bodies = 0, num_global;
+
+  for (int i = 0; i < nlocal; ++i) {
+    if (ellipsoid && (ellipsoid[i] >=0)) ++local_ellipsoids;
+    if (line && (line[i] >=0)) ++local_lines;
+    if (tri && (tri[i] >=0)) ++local_tris;
+    if (body && (body[i] >=0)) ++local_bodies;
+  }
+
+  MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (nellipsoids != num_global)
+    error->all(FLERR,"Inconsistent 'ellipsoids' header value and number of "
+               "atoms with enabled ellipsoid flags");
+
+  MPI_Allreduce(&local_lines,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (nlines != num_global)
+    error->all(FLERR,"Inconsistent 'lines' header value and number of "
+               "atoms with enabled line flags");
+
+  MPI_Allreduce(&local_tris,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntris != num_global)
+    error->all(FLERR,"Inconsistent 'tris' header value and number of "
+               "atoms with enabled tri flags");
+
+  MPI_Allreduce(&local_bodies,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (nbodies != num_global)
+    error->all(FLERR,"Inconsistent 'bodies' header value and number of "
+               "atoms with enabled body flags");
 }
 
 /* ----------------------------------------------------------------------
@@ -1029,7 +1066,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
                       int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1037,8 +1074,10 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2);
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2);
+    if (rv != 4)
+      error->one(FLERR,"Incorrect format of Bonds section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1082,7 +1121,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
                        int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2,atom3;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1090,8 +1129,10 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3);
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2,&atom3);
+    if (rv != 5)
+      error->one(FLERR,"Incorrect format of Angles section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1152,7 +1193,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
                           int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1160,9 +1201,11 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d "
-           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
+                " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (rv != 6)
+      error->one(FLERR,"Incorrect format of Dihedrals section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1241,7 +1284,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
                           int type_offset)
 {
-  int m,tmp,itype;
+  int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
@@ -1249,9 +1292,11 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d "
-           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    rv = sscanf(buf,"%d %d "
+                TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (rv != 6)
+      error->one(FLERR,"Incorrect format of Impropers section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;

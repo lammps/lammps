@@ -21,29 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_neel.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_neel.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -171,10 +166,11 @@ void PairSpinNeel::init_style()
   int ifix = 0;
   while (ifix < modify->nfix) {
     if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
+    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
     ifix++;
   }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
+  if ((ifix == modify->nfix) && (comm->me == 0))
+    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
 
   // get the lattice_flag from nve/spin
 
@@ -232,8 +228,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -330,7 +325,9 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 {
@@ -342,57 +339,81 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
 
-  int i,j,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int j,jnum,itype,jtype,ntypes;
+  int k,locflag;
+  int *jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // check if interaction applies to type of ii
 
-  spi[0] = sp[i][0];
-  spi[1] = sp[i][1];
-  spi[2] = sp[i][2];
-
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-
-  eij[0] = eij[1] = eij[2] = 0.0;
-
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-
-    local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = inorm*rij[0];
-    eij[1] = inorm*rij[1];
-    eij[2] = inorm*rij[2];
-
-    if (rsq <= local_cut2) {
-      compute_neel(i,j,rsq,eij,fmi,spi,spj);
-    }
+  itype = type[ii];
+  ntypes = atom->ntypes;
+  locflag = 0;
+  k = 1;
+  while (k <= ntypes) {
+    if (k <= itype) {
+      if (setflag[k][itype] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else if (k > itype) {
+      if (setflag[itype][k] == 1) {
+        locflag =1;
+        break;
+      }
+      k++;
+    } else error->all(FLERR,"Wrong type number");
   }
 
+  // if interaction applies to type ii,
+  // locflag = 1 and compute pair interaction
+
+  if (locflag == 1) {
+
+    spi[0] = sp[ii][0];
+    spi[1] = sp[ii][1];
+    spi[2] = sp[ii][2];
+
+    xi[0] = x[ii][0];
+    xi[1] = x[ii][1];
+    xi[2] = x[ii][2];
+
+    eij[0] = eij[1] = eij[2] = 0.0;
+
+    jlist = firstneigh[ii];
+    jnum = numneigh[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+
+      local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
+
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+
+      rij[0] = x[j][0] - xi[0];
+      rij[1] = x[j][1] - xi[1];
+      rij[2] = x[j][2] - xi[2];
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = inorm*rij[0];
+      eij[1] = inorm*rij[1];
+      eij[2] = inorm*rij[2];
+
+      if (rsq <= local_cut2) {
+        compute_neel(ii,j,rsq,eij,fmi,spi,spj);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

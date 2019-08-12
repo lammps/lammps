@@ -20,7 +20,6 @@ AngleStyle(cosine/periodic, AngleCosinePeriodic)
 #ifndef LMP_ANGLE_PERIODIC_H
 #define LMP_ANGLE_PERIODIC_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

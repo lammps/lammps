@@ -11,14 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "timer.h"
 #include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "timer.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
 
 #ifdef _WIN32
 #include <windows.h>

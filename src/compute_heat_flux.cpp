@@ -16,14 +16,13 @@
                          Mario Pinto (Computational Research Lab, Pune, India)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "compute_heat_flux.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "force.h"
-#include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -70,7 +69,7 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,
                "Compute heat/flux compute ID does not compute stress/atom");
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

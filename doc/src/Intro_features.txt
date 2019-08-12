@@ -92,8 +92,8 @@ commands)
   implicit solvent potentials: hydrodynamic lubrication, Debye
   force-field compatibility with common CHARMM, AMBER, DREIDING, \
     OPLS, GROMACS, COMPASS options
-  access to "KIM archive"_http://openkim.org of potentials via \
-    "pair kim"_pair_kim.html
+  access to the "OpenKIM Repository"_http://openkim.org of potentials via \
+    "kim_init, kim_interactions, and kim_query"_kim_commands.html commands
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation
   overlaid potentials: superposition of multiple pair potentials :ul

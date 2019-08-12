@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
 #include "dump.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"
@@ -423,7 +421,12 @@ void Dump::write()
     atom->x = xpbc;
     atom->v = vpbc;
     atom->image = imagepbc;
+
+    // for triclinic, PBC is applied in lamda coordinates
+
+    if (domain->triclinic) domain->x2lamda(nlocal);
     domain->pbc();
+    if (domain->triclinic) domain->lamda2x(nlocal);
   }
 
   // pack my data into buf

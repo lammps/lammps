@@ -11,17 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_exp6_rx.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cfloat>
-#include "pair_exp6_rx.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
@@ -29,7 +28,6 @@
 #include "fix.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecial;
 
 #define MAXLINE 1024
@@ -121,8 +119,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 
   evdwlOld = 0.0;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

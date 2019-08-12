@@ -191,6 +191,16 @@ switch"_Run_options.html when you invoke LAMMPS, or you can use the
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
 
+[Restart info:]
+
+This dihedral style writes the settings for the "dihedral_style table"
+command to "binary restart files"_restart.html, so a dihedral_style
+command does not need to specified in an input script that reads a
+restart file.  However, the coefficient information is not stored in
+the restart file, since it is tabulated in the potential files.  Thus,
+dihedral_coeff commands do need to be specified in the restart input
+script.
+
 [Restrictions:]
 
 This dihedral style can only be used if LAMMPS was built with the

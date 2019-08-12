@@ -15,11 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -27,9 +26,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "pppm_cg.h"
-
 #include "math_const.h"
+#include "remap.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -88,9 +86,7 @@ void PPPMCG::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();

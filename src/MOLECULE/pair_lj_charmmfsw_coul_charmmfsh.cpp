@@ -19,11 +19,10 @@
      with additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -62,26 +61,6 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
 
 PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
-
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(eps14);
-      memory->destroy(sigma14);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(lj4);
-      memory->destroy(lj14_1);
-      memory->destroy(lj14_2);
-      memory->destroy(lj14_3);
-      memory->destroy(lj14_4);
-    }
-  }
-
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
@@ -89,6 +68,26 @@ PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
       error->message(FLERR,"Restoring original LAMMPS coulomb energy"
                      " conversion constant");
     force->qqr2e = force->qqr2e_lammps_real;
+  }
+
+  if (copymode) return;
+
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
   }
 }
 
@@ -103,8 +102,7 @@ void PairLJCharmmfswCoulCharmmfsh::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

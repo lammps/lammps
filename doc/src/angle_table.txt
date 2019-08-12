@@ -143,6 +143,16 @@ instructions on how to use the accelerated styles effectively.
 
 :line
 
+[Restart info:]
+
+This angle style writes the settings for the "angle_style table"
+command to "binary restart files"_restart.html, so a angle_style
+command does not need to specified in an input script that reads a
+restart file.  However, the coefficient information is not stored in
+the restart file, since it is tabulated in the potential files.  Thus,
+angle_coeff commands do need to be specified in the restart input
+script.
+
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the

@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "read_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include <dirent.h>
-#include "read_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -23,7 +22,6 @@
 #include "irregular.h"
 #include "update.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_read_restart.h"
 #include "group.h"
 #include "force.h"
@@ -80,6 +78,9 @@ void ReadRestart::command(int narg, char **arg)
 
   if (domain->box_exist)
     error->all(FLERR,"Cannot read_restart after simulation box is defined");
+
+  MPI_Barrier(world);
+  double time1 = MPI_Wtime();
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -562,35 +563,47 @@ void ReadRestart::command(int narg, char **arg)
     Special special(lmp);
     special.build();
   }
+
+  // total time
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  read_restart CPU = %g secs\n",time2-time1);
+    if (logfile)
+      fprintf(logfile,"  read_restart CPU = %g secs\n",time2-time1);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   infile contains a "*"
-   search for all files which match the infile pattern
+   inpfile contains a "*"
+   search for all files which match the inpfile pattern
    replace "*" with latest timestep value to create outfile name
    search dir referenced by initial pathname of file
-   if infile also contains "%", use "base" when searching directory
+   if inpfile also contains "%", use "base" when searching directory
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadRestart::file_search(char *infile, char *outfile)
+void ReadRestart::file_search(char *inpfile, char *outfile)
 {
   char *ptr;
 
-  // separate infile into dir + filename
+  // separate inpfile into dir + filename
 
-  char *dirname = new char[strlen(infile) + 1];
-  char *filename = new char[strlen(infile) + 1];
+  char *dirname = new char[strlen(inpfile) + 1];
+  char *filename = new char[strlen(inpfile) + 1];
 
-  if (strchr(infile,'/')) {
-    ptr = strrchr(infile,'/');
+  if (strchr(inpfile,'/')) {
+    ptr = strrchr(inpfile,'/');
     *ptr = '\0';
-    strcpy(dirname,infile);
+    strcpy(dirname,inpfile);
     strcpy(filename,ptr+1);
     *ptr = '/';
   } else {
     strcpy(dirname,"./");
-    strcpy(filename,infile);
+    strcpy(filename,inpfile);
   }
 
   // if filename contains "%" replace "%" with "base"
@@ -636,11 +649,11 @@ void ReadRestart::file_search(char *infile, char *outfile)
   if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
 
   // create outfile with maxint substituted for "*"
-  // use original infile, not pattern, since need to retain "%" in filename
+  // use original inpfile, not pattern, since need to retain "%" in filename
 
-  ptr = strchr(infile,'*');
+  ptr = strchr(inpfile,'*');
   *ptr = '\0';
-  sprintf(outfile,"%s" BIGINT_FORMAT "%s",infile,maxnum,ptr+1);
+  sprintf(outfile,"%s" BIGINT_FORMAT "%s",inpfile,maxnum,ptr+1);
   *ptr = '*';
 
   // clean up

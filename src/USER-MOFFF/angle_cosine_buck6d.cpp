@@ -16,9 +16,9 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_buck6d.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,13 +26,11 @@
 #include "force.h"
 #include "pair.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.001
 
@@ -69,8 +67,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
   double rcu,rqu,sme,smf;
 
   eangle = evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-3 virial contribution
 

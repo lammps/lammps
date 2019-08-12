@@ -21,12 +21,12 @@
        Phys. Rev. B 58, 2539 (1998)
 ------------------------------------------------------------------------- */
 
+#include "pair_edip.h"
+#include <mpi.h>
 #include <cmath>
 #include <cfloat>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_edip.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -149,8 +149,7 @@ void PairEDIP::compute(int eflag, int vflag)
   double potential2B_factor;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

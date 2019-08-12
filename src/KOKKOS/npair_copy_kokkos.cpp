@@ -12,14 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_copy_kokkos.h"
-#include "neighbor.h"
 #include "neigh_list_kokkos.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "my_page.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -53,7 +46,7 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
 
 namespace LAMMPS_NS {
 template class NPairCopyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairCopyKokkos<LMPHostType>;
 #endif
 }

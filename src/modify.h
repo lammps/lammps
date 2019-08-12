@@ -14,7 +14,6 @@
 #ifndef LMP_MODIFY_H
 #define LMP_MODIFY_H
 
-#include <cstdio>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -172,6 +171,7 @@ class Modify : protected Pointers {
   FixCreatorMap *fix_map;
 
  protected:
+  void create_factories();
   template <typename T> static Compute *compute_creator(LAMMPS *, int, char **);
   template <typename T> static Fix *fix_creator(LAMMPS *, int, char **);
 };
@@ -224,9 +224,9 @@ The ID and style of a fix match for a fix you are changing with a fix
 command, but the new group you are specifying does not match the old
 group.
 
-E: Unknown fix style %s
+E: Unrecognized fix style %s
 
-UNDOCUMENTED
+The choice of fix style is unknown.
 
 E: Could not find fix_modify ID
 
@@ -240,9 +240,9 @@ E: Reuse of compute ID
 
 A compute ID cannot be used twice.
 
-E: Unknown compute style %s
+E: Unrecognized compute style %s
 
-UNDOCUMENTED
+The choice of compute style is unknown.
 
 E: Could not find compute_modify ID
 

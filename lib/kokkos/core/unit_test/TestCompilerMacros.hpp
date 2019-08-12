@@ -102,7 +102,7 @@ bool Test() {
 
   AddFunctor< DeviceType > f( a, b );
   Kokkos::parallel_for( 1024, f );
-  DeviceType::fence();
+  DeviceType().fence();
 
   return true;
 }

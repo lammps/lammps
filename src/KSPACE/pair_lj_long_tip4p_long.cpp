@@ -16,23 +16,18 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_long_tip4p_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
 
@@ -92,8 +87,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
   double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred
@@ -1004,8 +998,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
   int respa_flag;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred

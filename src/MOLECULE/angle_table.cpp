@@ -15,10 +15,11 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "angle_table.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "angle_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -72,8 +73,7 @@ void AngleTable::compute(int eflag, int vflag)
   double theta,u,mdu; //mdu: minus du, -du/dx=f
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -279,8 +279,7 @@ double AngleTable::equilibrium_angle(int i)
 
 void AngleTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -289,14 +288,32 @@ void AngleTable::write_restart(FILE *fp)
 
 void AngleTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void AngleTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void AngleTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -501,7 +518,7 @@ void AngleTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
   tb->fpflag = 0;
-  tb->theta0 = 180.0;
+  tb->theta0 = MY_PI;
 
   char *word = strtok(line," \t\n\r\f");
   while (word) {
@@ -518,7 +535,7 @@ void AngleTable::param_extract(Table *tb, char *line)
       tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
     } else if (strcmp(word,"EQ") == 0) {
       word = strtok(NULL," \t\n\r\f");
-      tb->theta0 = atof(word);
+      tb->theta0 = atof(word)/180.0*MY_PI;
     } else {
       error->one(FLERR,"Invalid keyword in angle table parameters");
     }

@@ -239,6 +239,8 @@ void FixLangevin::init()
   if (ascale && !atom->ellipsoid_flag)
     error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
+  if (gjfflag && zeroflag && tallyflag)
+    error->warning(FLERR,"Fix langevin gjf zero and tally were all set");
   // check variable
 
   if (tstr) {
@@ -315,24 +317,29 @@ void FixLangevin::setup(int vflag)
   }
   if (gjfflag) {
 
-
     // update v of atoms in group
     double ** v = atom->v;
     double **f = atom->f;
     int nlocal = atom->nlocal;
     if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+    double b[3] = {0.0,0.0,0.0};
 
     for (int i = 0; i < nlocal; i++) {
       f[i][0] = wildcard[i][0];
       f[i][1] = wildcard[i][1];
       f[i][2] = wildcard[i][2];
+      b[0] = v[i][0];
+      b[1] = v[i][1];
+      b[2] = v[i][2];
+      if (tbiasflag == BIAS) temperature->remove_bias(i,v[i]);
       wildcard[i][0] = v[i][0];
       wildcard[i][1] = v[i][1];
       wildcard[i][2] = v[i][2];
       if (tbiasflag == BIAS) {
-        bias[i][0] = 0.0;
-        bias[i][1] = 0.0;
-        bias[i][2] = 0.0;
+        temperature->restore_bias(i,v[i]);
+        bias[i][0] = b[0] - wildcard[i][0];
+        bias[i][1] = b[1] - wildcard[i][1];
+        bias[i][2] = b[2] - wildcard[i][2];
       }
     }
   }
@@ -360,37 +367,17 @@ void FixLangevin::post_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  if (tbiasflag == BIAS) {
-    double b[3] = {0.0, 0.0, 0.0};
-    for (int i = 0; i < nlocal; i++) {
-      bias[i][0] = v[i][0];
-      bias[i][1] = v[i][1];
-      bias[i][2] = v[i][2];
-      v[i][0] = wildcard[i][0];
-      v[i][1] = wildcard[i][1];
-      v[i][2] = wildcard[i][2];
-    }
-    temperature->compute_scalar();
-    for (int i = 0; i < nlocal; i++) {
-      temperature->remove_bias(i, v[i]);
-      wildcard[i][0] = v[i][0];
-      wildcard[i][1] = v[i][1];
-      wildcard[i][2] = v[i][2];
-      if (wildcard[i][0] == 0.0) franprev[i][0] = 0.0;
-      if (wildcard[i][1] == 0.0) franprev[i][1] = 0.0;
-      if (wildcard[i][2] == 0.0) franprev[i][2] = 0.0;
-      temperature->restore_bias(i, v[i]);
-      b[0] = v[i][0] - wildcard[i][0];
-      b[1] = v[i][1] - wildcard[i][1];
-      b[2] = v[i][2] - wildcard[i][2];
-      v[i][0] = bias[i][0];
-      v[i][1] = bias[i][1];
-      v[i][2] = bias[i][2];
-      bias[i][0] = b[0];
-      bias[i][1] = b[1];
-      bias[i][2] = b[2];
-    }
+  // zero option
+  double vsum[3],vsumall[3];
+  bigint count;
+
+  if (zeroflag) {
+    vsum[0] = vsum[1] = vsum[2] = 0.0;
+    count = group->count(igroup);
+    if (count == 0)
+      error->all(FLERR,"Cannot zero Langevin force of 0 atoms");
   }
+
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -404,11 +391,7 @@ void FixLangevin::post_integrate()
         if (tbiasflag == BIAS)
           for (int j = 0; j < 3; j++) {
             if (wildcard[i][j] == 0) {
-              v[i][j] /= gjffac;
-            }
-            v[i][j] += bias[i][j];
-            if (wildcard[i][j] == 0){
-              v[i][j] /= gjffac;
+              v[i][j] /= gjffac * gjffac;
             }
           }
         x[i][0] += gjffac * dt * v[i][0];
@@ -418,6 +401,8 @@ void FixLangevin::post_integrate()
           for (int j = 0; j < 3; j++) {
             if (wildcard[i][j] == 0)
               v[i][j] *= gjffac;
+            v[i][j] += bias[i][j];
+            x[i][j] += dt * bias[i][j];
           }
       }
 
@@ -434,11 +419,7 @@ void FixLangevin::post_integrate()
         if (tbiasflag == BIAS)
           for (int j = 0; j < 3; j++) {
             if (wildcard[i][j] == 0) {
-              v[i][j] /= gjffac;
-            }
-            v[i][j] += bias[i][j];
-            if (wildcard[i][j] == 0){
-              v[i][j] /= gjffac;
+              v[i][j] /= gjffac*gjffac;
             }
           }
         x[i][0] += gjffac * dt * v[i][0];
@@ -446,10 +427,31 @@ void FixLangevin::post_integrate()
         x[i][2] += gjffac * dt * v[i][2];
         if (tbiasflag == BIAS)
           for (int j = 0; j < 3; j++) {
-            if (wildcard[i][j] == 0)
-              v[i][j] *= gjffac;
+           if (wildcard[i][j] == 0)
+             v[i][j] *= gjffac;
+           v[i][j] += bias[i][j];
+           x[i][j] += dt * bias[i][j];
           }
+        if (zeroflag){
+          vsum[0] += gjffac * dtfm * franprev[i][0];
+          vsum[1] += gjffac * dtfm * franprev[i][1];
+          vsum[2] += gjffac * dtfm * franprev[i][2];
+        }
       }
+  }
+
+  if (zeroflag) {
+    MPI_Allreduce(vsum,vsumall,3,MPI_DOUBLE,MPI_SUM,world);
+    vsumall[0] /= count;
+    vsumall[1] /= count;
+    vsumall[2] /= count;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        v[i][0] -= vsumall[0];
+        v[i][1] -= vsumall[1];
+        v[i][2] -= vsumall[2];
+      }
+    }
   }
 }
 
@@ -664,26 +666,34 @@ void FixLangevin::post_force_templated()
     flangevin_allocated = 1;
   }
 
-  if (Tp_BIAS) temperature->compute_scalar();
+  if (Tp_BIAS && !gjfflag) temperature->compute_scalar();
+  else if (Tp_BIAS && update->ntimestep == update->beginstep && gjfflag) temperature->compute_scalar();
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
-        gamma2 = sqrt(rmass[i]) * sqrt(2.0*boltz/t_period/dt/mvv2e) / ftm2v;
-        gamma1 *= 1.0/ratio[type[i]];
-        gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+        gamma2 = sqrt(rmass[i]) * sqrt(2.0 * boltz / t_period / dt / mvv2e) / ftm2v;
+        gamma1 *= 1.0 / ratio[type[i]];
+        gamma2 *= 1.0 / sqrt(ratio[type[i]]) * tsqrt;
       } else {
         gamma1 = gfactor1[type[i]];
         gamma2 = gfactor2[type[i]] * tsqrt;
       }
 
-      fran[0] = gamma2*random->gaussian();
-      fran[1] = gamma2*random->gaussian();
-      fran[2] = gamma2*random->gaussian();
+      if (!gjfflag) {
+        fran[0] = gamma2 * random->uniform();
+        fran[1] = gamma2 * random->uniform();
+        fran[2] = gamma2 * random->uniform();
+      } else {
+        fran[0] = gamma2 * random->gaussian();
+        fran[1] = gamma2 * random->gaussian();
+        fran[2] = gamma2 * random->gaussian();
+      }
 
       if (Tp_BIAS) {
+        double b[3] = {0.0,0.0,0.0};
         temperature->remove_bias(i,v[i]);
         fdrag[0] = gamma1*v[i][0];
         fdrag[1] = gamma1*v[i][1];
@@ -693,9 +703,9 @@ void FixLangevin::post_force_templated()
         if (v[i][2] == 0.0) fran[2] = 0.0;
         temperature->restore_bias(i,v[i]);
       } else {
-        fdrag[0] = gamma1*v[i][0];
-        fdrag[1] = gamma1*v[i][1];
-        fdrag[2] = gamma1*v[i][2];
+        fdrag[0] = gamma1*v[i][0];// - gjffac*(dtf / mass[type[i]])*gamma1*franprev[i][0];
+        fdrag[1] = gamma1*v[i][1];// - gjffac*(dtf / mass[type[i]])*gamma1*franprev[i][1];
+        fdrag[2] = gamma1*v[i][2];// - gjffac*(dtf / mass[type[i]])*gamma1*franprev[i][2];
       }
 
       if (Tp_GJF) {
@@ -706,13 +716,14 @@ void FixLangevin::post_force_templated()
         rantemp[0] = fran[0];
         rantemp[1] = fran[1];
         rantemp[2] = fran[2];
+
         fran[0] = franprev[i][0];
         fran[1] = franprev[i][1];
         fran[2] = franprev[i][2];
 
-        fdrag[0] *= -2*t_period*(2*gjffac-1/gjffac-1)/dt;
-        fdrag[1] *= -2*t_period*(2*gjffac-1/gjffac-1)/dt;
-        fdrag[2] *= -2*t_period*(2*gjffac-1/gjffac-1)/dt;
+        fdrag[0] *= -2*t_period*((2*gjffac)-(1.0/gjffac)-1.0)/dt;
+        fdrag[1] *= -2*t_period*((2*gjffac)-(1.0/gjffac)-1.0)/dt;
+        fdrag[2] *= -2*t_period*((2*gjffac)-(1.0/gjffac)-1.0)/dt;
       }
 
       f[i][0] += fdrag[0] + fran[0];
@@ -747,9 +758,16 @@ void FixLangevin::post_force_templated()
       }
 
       if (Tp_ZERO) {
-        fsum[0] += fran[0];
-        fsum[1] += fran[1];
-        fsum[2] += fran[2];
+        if (!gjfflag){
+          fsum[0] += fran[0];
+          fsum[1] += fran[1];
+          fsum[2] += fran[2];
+        }
+        else {
+          fsum[0] += franprev[i][0];
+          fsum[1] += franprev[i][1];
+          fsum[2] += franprev[i][2];
+        }
       }
 
       if (Tp_GJF)
@@ -762,6 +780,11 @@ void FixLangevin::post_force_templated()
           lv[i][0] = v[i][0];
           lv[i][1] = v[i][1];
           lv[i][2] = v[i][2];
+          if (tbiasflag == BIAS) {
+            lv[i][0] += bias[i][0];
+            lv[i][1] += bias[i][1];
+            lv[i][2] += bias[i][2];
+          }
         }
       }
     }
@@ -949,17 +972,30 @@ void FixLangevin::end_of_step()
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double b[3] = {0.0,0.0,0.0};
+
+  if (gjfflag && tbiasflag == BIAS) temperature->compute_scalar();
 
   energy_onestep = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (gjfflag){
+        b[0] = v[i][0];
+        b[1] = v[i][1];
+        b[2] = v[i][2];
         f[i][0] = wildcard[i][0];
         f[i][1] = wildcard[i][1];
         f[i][2] = wildcard[i][2];
+        if (tbiasflag == BIAS) temperature->remove_bias(i,v[i]);
         wildcard[i][0] = v[i][0];
         wildcard[i][1] = v[i][1];
         wildcard[i][2] = v[i][2];
+        if (tbiasflag == BIAS) {
+          bias[i][0] = b[0] - v[i][0];
+          bias[i][1] = b[1] - v[i][1];
+          bias[i][2] = b[2] - v[i][2];
+          temperature->restore_bias(i, v[i]);
+        }
         if (hsflag){
           v[i][0] = lv[i][0];
           v[i][1] = lv[i][1];

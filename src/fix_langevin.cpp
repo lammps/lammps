@@ -240,7 +240,8 @@ void FixLangevin::init()
     error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
   if (gjfflag && zeroflag && tallyflag)
-    error->warning(FLERR,"Fix langevin gjf zero and tally were all set");
+    error->warning(FLERR,
+                   "Fix langevin: gjf, zero, and tally were all set correct energy tallying is not guaranteed");
   // check variable
 
   if (tstr) {
@@ -283,9 +284,14 @@ void FixLangevin::init()
   if (!atom->rmass) {
     for (int i = 1; i <= atom->ntypes; i++) {
       gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
-      gfactor2[i] = sqrt(atom->mass[i]) *
-        sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
-        force->ftm2v;
+      if (gjfflag)
+        gfactor2[i] = sqrt(atom->mass[i]) *
+          sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
+      else
+        gfactor2[i] = sqrt(atom->mass[i]) *
+          sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       gfactor1[i] *= 1.0/ratio[i];
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
     }
@@ -674,7 +680,10 @@ void FixLangevin::post_force_templated()
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
-        gamma2 = sqrt(rmass[i]) * sqrt(2.0 * boltz / t_period / dt / mvv2e) / ftm2v;
+        if (gjfflag)
+          gamma2 = sqrt(rmass[i]) * sqrt(2.0 * boltz / t_period / dt / mvv2e) / ftm2v;
+        else
+          gamma2 = sqrt(rmass[i]) * sqrt(24.0 * boltz / t_period / dt / mvv2e) / ftm2v;
         gamma1 *= 1.0 / ratio[type[i]];
         gamma2 *= 1.0 / sqrt(ratio[type[i]]) * tsqrt;
       } else {
@@ -682,18 +691,17 @@ void FixLangevin::post_force_templated()
         gamma2 = gfactor2[type[i]] * tsqrt;
       }
 
-      if (!gjfflag) {
-        fran[0] = gamma2 * random->uniform();
-        fran[1] = gamma2 * random->uniform();
-        fran[2] = gamma2 * random->uniform();
-      } else {
+      if (gjfflag) {
         fran[0] = gamma2 * random->gaussian();
         fran[1] = gamma2 * random->gaussian();
         fran[2] = gamma2 * random->gaussian();
+      } else {
+        fran[0] = gamma2 * random->uniform();
+        fran[1] = gamma2 * random->uniform();
+        fran[2] = gamma2 * random->uniform();
       }
 
       if (Tp_BIAS) {
-        double b[3] = {0.0,0.0,0.0};
         temperature->remove_bias(i,v[i]);
         fdrag[0] = gamma1*v[i][0];
         fdrag[1] = gamma1*v[i][1];
@@ -703,9 +711,9 @@ void FixLangevin::post_force_templated()
         if (v[i][2] == 0.0) fran[2] = 0.0;
         temperature->restore_bias(i,v[i]);
       } else {
-        fdrag[0] = gamma1*v[i][0];// - gjffac*(dtf / mass[type[i]])*gamma1*franprev[i][0];
-        fdrag[1] = gamma1*v[i][1];// - gjffac*(dtf / mass[type[i]])*gamma1*franprev[i][1];
-        fdrag[2] = gamma1*v[i][2];// - gjffac*(dtf / mass[type[i]])*gamma1*franprev[i][2];
+        fdrag[0] = gamma1*v[i][0];
+        fdrag[1] = gamma1*v[i][1];
+        fdrag[2] = gamma1*v[i][2];
       }
 
       if (Tp_GJF) {

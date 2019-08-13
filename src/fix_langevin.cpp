@@ -680,7 +680,7 @@ void FixLangevin::post_force_templated()
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
-        if (gjfflag)
+        if (Tp_GJF)
           gamma2 = sqrt(rmass[i]) * sqrt(2.0 * boltz / t_period / dt / mvv2e) / ftm2v;
         else
           gamma2 = sqrt(rmass[i]) * sqrt(24.0 * boltz / t_period / dt / mvv2e) / ftm2v;
@@ -691,14 +691,14 @@ void FixLangevin::post_force_templated()
         gamma2 = gfactor2[type[i]] * tsqrt;
       }
 
-      if (gjfflag) {
+      if (Tp_GJF) {
         fran[0] = gamma2 * random->gaussian();
         fran[1] = gamma2 * random->gaussian();
         fran[2] = gamma2 * random->gaussian();
       } else {
-        fran[0] = gamma2 * random->uniform();
-        fran[1] = gamma2 * random->uniform();
-        fran[2] = gamma2 * random->uniform();
+        fran[0] = gamma2 * (random->uniform()-0.5);
+        fran[1] = gamma2 * (random->uniform()-0.5);
+        fran[2] = gamma2 * (random->uniform()-0.5);
       }
 
       if (Tp_BIAS) {
@@ -766,7 +766,7 @@ void FixLangevin::post_force_templated()
       }
 
       if (Tp_ZERO) {
-        if (!gjfflag){
+        if (!Tp_GJF){
           fsum[0] += fran[0];
           fsum[1] += fran[1];
           fsum[2] += fran[2];

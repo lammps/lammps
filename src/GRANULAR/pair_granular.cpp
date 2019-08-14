@@ -1630,7 +1630,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
       magtortwist = -Mtcrit * signtwist; // eq 34
     }
   }
-
+	
+  // set force and return no energy
+	
+  fforce = Fntot*rinv;
+	
   // set single_extra quantities
 
   svector[0] = fs1;

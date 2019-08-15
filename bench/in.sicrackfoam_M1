@@ -1,0 +1,62 @@
+log		log.sicrackfoam  # Name of log file to write to
+
+#Test relaxation script for Nathan 
+
+boundary    p p p
+
+units       metal
+atom_style  atomic
+neighbor    2.0 bin
+neigh_modify    delay 5
+
+## create geometry
+
+read_data CrackBlock
+
+# define groups
+
+region	    mobile block -70.0 70.0 -70.0 70.0 INF INF
+group		mobile region mobile
+group		boundary subtract all mobile
+#set		    group boundary type 2
+
+pair_style eam
+pair_coeff * * /Users/bnathan2/Desktop/LAMMPS_git_Aug14_2019/potentials/Au_u3.eam
+
+# computes
+
+compute     myTemp mobile temp
+compute     pot mobile pe/atom
+compute     kin all ke/atom
+compute     stress mobile stress/atom myTemp virial
+variable    mises atom "0.707106781 * sqrt( (c_stress[1] - c_stress[2])^2 + (c_stress[2] - c_stress[3])^2 + (c_stress[1] - c_stress[3])^2 + 6*(c_stress[4]^2 + c_stress[5]^2 + c_stress[6]^2) )"
+compute     disp mobile displace/atom
+
+# initial velocities
+
+velocity	mobile create 300.0 887723 temp myTemp
+velocity	boundary set 0.0 0.0 0.0
+
+#fixes
+
+fix     1 mobile nvt temp 300.0 300.0 100.0 drag 0.2
+fix     2 boundary setforce 0.0 0.0 0.0
+fix     3 mobile temp/rescale 10 300.0 300.0 0.07 1.0
+fix_modify  3 temp myTemp
+fix		4 all sicrack 0.0  0.0  27.0 0.44 M1 1.29 0.0
+
+# run
+
+timestep	0.001
+thermo		500
+thermo_style	custom step temp etotal press vol pxx pyy pzz ly
+thermo_modify	temp myTemp
+
+dump		1 all custom 5000 dump.sicrackfoam_1.29_ModeCombo_M1_* id type xs ys zs c_pot v_mises c_kin
+
+run		5000
+
+unfix 45
+fix		6 all sicrack 0.0  0.0  27.0 0.44 M1 0.0 0.00001
+
+run		50000

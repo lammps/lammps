@@ -187,7 +187,7 @@ END_RST -->
 "Drude induced dipoles"_Howto_drude.html
 "Drude induced dipoles (extended)"_Howto_drude2.html
 "Manifolds (surfaces)"_Howto_manifold.html
-"Magnetic spins"_Howto_spins.html :all(b)
-"Concurrent Atomistic Continuum (CAC)"_Howto_cac.html
+"Magnetic spins"_Howto_spins.html
+"Concurrent Atomistic Continuum (CAC)"_Howto_cac.html :all(b)
 
 <!-- END_HTML_ONLY -->

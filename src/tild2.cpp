@@ -73,6 +73,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   pppmflag = 0;
   group_group_enable = 0;
+  tildflag = 1;
   triclinic = domain->triclinic;
 
   nfactors = 3;

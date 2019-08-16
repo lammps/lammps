@@ -77,7 +77,7 @@ endif()
 if(KIM-API_INCLUDEDIR)
   _KIMAPI_GET_VERSION(KIM-API_VERSION ${KIM-API_INCLUDEDIR}/KIM_Version.h)
 else()
-  set(KIM-API_VERSION 0)
+  message(FATAL_ERROR "KIM-API_INCLUDEDIR not defined")
 endif()
 
 # handle the QUIETLY and REQUIRED arguments and set KIM-API_FOUND to TRUE

@@ -412,7 +412,7 @@ option by an additional factor of {a}, the radius of the contact region. The tan
 \end\{equation\}
 
 Here, {a} is the radius of the contact region, given by \(a =\sqrt\{R\delta\}\)
- for all normal contact models, except for {jkr}, where it is given
+for all normal contact models, except for {jkr}, where it is given
 implicitly by \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\), see
 discussion above. To match the Mindlin solution, one should set \(k_t
 = 8G\), where \(G\) is the shear modulus, related to Young's modulus

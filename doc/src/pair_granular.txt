@@ -100,7 +100,7 @@ on particle {i} due to contact with particle {j} is given by:
 \mathbf\{F\}_\{ne, Hooke\} = k_N \delta_\{ij\} \mathbf\{n\}
 \end\{equation\}
 
-Where \(\delta = R_i + R_j - \|\mathbf\{r\}_\{ij\}\|\) is the particle
+Where \(\delta_\{ij\} = R_i + R_j - \|\mathbf\{r\}_\{ij\}\|\) is the particle
 overlap, \(R_i, R_j\) are the particle radii, \(\mathbf\{r\}_\{ij\} =
 \mathbf\{r\}_i - \mathbf\{r\}_j\) is the vector separating the two
 particle centers (note the i-j ordering so that \(F_\{ne\}\) is
@@ -411,8 +411,8 @@ option by an additional factor of {a}, the radius of the contact region. The tan
 \mathbf\{F\}_t =  -min(\mu_t F_\{n0\}, \|-k_t a \mathbf\{\xi\} + \mathbf\{F\}_\mathrm\{t,damp\}\|) \mathbf\{t\}
 \end\{equation\}
 
-Here, {a} is the radius of the contact region, given by \(a = \delta
-R\) for all normal contact models, except for {jkr}, where it is given
+Here, {a} is the radius of the contact region, given by \(a =\sqrt\{R\delta\}\)
+ for all normal contact models, except for {jkr}, where it is given
 implicitly by \(\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\), see
 discussion above. To match the Mindlin solution, one should set \(k_t
 = 8G\), where \(G\) is the shear modulus, related to Young's modulus
@@ -680,7 +680,7 @@ The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
-calculates 10 extra pairwise quantities.  The first 3 are the
+calculates 12 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
 on particle I.  The 4th is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the rolling torque acting on

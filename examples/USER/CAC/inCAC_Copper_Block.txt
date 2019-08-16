@@ -73,6 +73,7 @@ fix NVE all cac/nve
 #fix visc all cac/viscous 0.1
 
 #outputs all the nodal positions including atom positions
+#turn on to simulate longer since this example is unstable with the LJ params
 #dump	      1 all cac/nodal/positions 1000 CACmesh.txt
 
 #outputs the velocity norm for every dimension for every nodal position

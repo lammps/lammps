@@ -330,9 +330,9 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
 			e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
 			
 		    if(neigh_max>local_inner_max){
-              memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_coul_wolf:neighbor_coords");
-		      memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_coul_wolf:neighbor_types");
-		      memory->grow(inner_neighbor_charges, neigh_max, "Pair_CAC_coul_wolf:neighbor_charges");
+          memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_coul_wolf:neighbor_coords");
+		      memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_types");
+		      memory->grow(inner_neighbor_charges, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_charges");
 	          local_inner_max=neigh_max+EXPAND;
 	        }      
 			for (int l = 0; l < neigh_max; l++) {

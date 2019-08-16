@@ -393,9 +393,9 @@ unit_cell[2] = w;
 				//if(update->ntimestep==1)
       
       if(neigh_max>local_inner_max){
-			memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_lj:inner_neighbor_coords");
+			memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_lj:inner_neighbor_coords");
 
-			memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_lj:inner_neighbor_types");
+			memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_lj:inner_neighbor_types");
 	     local_inner_max=neigh_max+EXPAND;
 	     }
       

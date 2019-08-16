@@ -873,10 +873,10 @@ void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w
   int m;
 
   if(neigh_max_inner>local_inner_max){
-    memory->grow(rho, neigh_max_inner + 1, "Pair_CAC_eam:rho");
-    memory->grow(fp, neigh_max_inner + 1, "Pair_CAC_eam:fp");
-    memory->grow(inner_neighbor_types, neigh_max_inner, "Pair_CAC_eam:inner_neighbor_types");
-    memory->grow(inner_neighbor_coords, neigh_max_inner, 3, "Pair_CAC_eam:inner_neighbor_coords");
+    memory->grow(rho, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:rho");
+    memory->grow(fp, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:fp");
+    memory->grow(inner_neighbor_types, neigh_max_inner+EXPAND, "Pair_CAC_eam:inner_neighbor_types");
+    memory->grow(inner_neighbor_coords, neigh_max_inner+EXPAND, 3, "Pair_CAC_eam:inner_neighbor_coords");
     local_inner_max=neigh_max_inner+EXPAND;
     }
   
@@ -1025,11 +1025,11 @@ int distanceflag=0;
     double *coeff;
     int m;
   if(neigh_max_inner>local_inner_max){
-    memory->grow(rho, neigh_max_inner + 1, "Pair_CAC_eam:rho");
-    memory->grow(fp, neigh_max_inner + 1, "Pair_CAC_eam:fp");
-    memory->grow(inner_neighbor_types, neigh_max_inner, "Pair_CAC_eam:inner_neighbor_types");
-    memory->grow(inner_neighbor_coords, neigh_max_inner, 3, "Pair_CAC_eam:inner_neighbor_coords");
-    local_inner_max=neigh_max_inner;
+    memory->grow(rho, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:rho");
+    memory->grow(fp, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:fp");
+    memory->grow(inner_neighbor_types, neigh_max_inner+EXPAND, "Pair_CAC_eam:inner_neighbor_types");
+    memory->grow(inner_neighbor_coords, neigh_max_inner+EXPAND, 3, "Pair_CAC_eam:inner_neighbor_coords");
+    local_inner_max=neigh_max_inner+EXPAND;
     }
   
     for (int l = 0; l < neigh_max_inner+1; l++) {

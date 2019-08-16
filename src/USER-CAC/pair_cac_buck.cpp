@@ -390,8 +390,8 @@ void PairCACBuck::force_densities(int iii, double s, double t, double w, double 
 
 			
 		 if(neigh_max>local_inner_max){
-       memory->grow(inner_neighbor_coords, neigh_max, 3, "Pair_CAC_buck:inner_neighbor_coords");
-		   memory->grow(inner_neighbor_types, neigh_max, "Pair_CAC_buck:inner_neighbor_types");
+       memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_buck:inner_neighbor_coords");
+		   memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_buck:inner_neighbor_types");
 	     local_inner_max=neigh_max+EXPAND;
 	     }   
 			for (int l = 0; l < neigh_max; l++) {

@@ -49,11 +49,11 @@ decorrelation time.
 
 HMA should not be used if atoms are expected to diffuse.  It is also
 restricted to simulations in the NVT ensemble.  While this compute may be
-used with any potential in LAMMPS, it may not provide efficiency improvements
-for potentials that do not go to 0 smoothly at the truncation distance;
+used with any potential in LAMMPS, it will provide inaccurate results
+for potentials that do not go to 0 at the truncation distance;
 "pair_lj_smooth_linear"_pair_lj_smooth_linear.html and Ewald summation should
 work fine, while "pair_lj"_pair_lj.html will perform poorly unless 
-the cutoff is very large.  Furthermore, computation of the heat capacity with
+the potential is shifted (via "pair_modify"_pair_modify.html shift) or the cutoff is large.  Furthermore, computation of the heat capacity with
 this compute is restricted to those that implement the single_hessian method
 in Pair.  Implementing single_hessian in additional pair styles is simple.
 Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke (kofke at
@@ -69,10 +69,11 @@ by noise produced by the already-known harmonic behavior.
 A detailed description of this method can be found in ("Moustafa"_#hma-Moustafa). The potential energy is computed by the formula:
 
 \begin\{equation\}
-\left< U\right>_\{HMA\} = \frac\{d(N-1)\}\{2\beta\}  + \left< U + \frac\{1\}\{2\} F\bullet\Delta r \right>
+\left< U\right>_\{HMA\} = \frac\{d\}\{2\} (N-1) k_B T  + \left< U + \frac\{1\}\{2\} F\bullet\Delta r \right>
 \end\{equation\}
 
-where \(N\) is the number of atoms in the system, \(\beta\) is the reciprocal of the thermodynamic temperature, \(d\) is the
+where \(N\) is the number of atoms in the system, \(k_B\) is Boltzmann's
+constant, \(T\) is the temperature, \(d\) is the
 dimensionality of the system (2 or 3 for 2d/3d), \(F\bullet\Delta r\) is the sum of dot products of the 
 atomic force vectors and displacement (from lattice sites) vectors, and \(U\) is the sum of 
 pair, bond, angle, dihedral, improper, kspace (long-range), and fix energies. 
@@ -84,18 +85,18 @@ The pressure is computed by the formula:
 \end\{equation\}
 
 where \(\rho\) is the number density of the system, \(\Delta \hat P\) is the
-difference between the harmonic and lattice pressure, and \(P_\{vir\}\) is
+difference between the harmonic and lattice pressure, \(P_\{vir\}\) is
 the virial pressure computed as the sum of pair, bond, angle, dihedral,
 improper, kspace (long-range), and fix contributions to the force on each
-atom.  Although the method will work for any value of \(\Delta \hat P\)
+atom, and \(k_B=1/k_B T\).  Although the method will work for any value of \(\Delta \hat P\)
 specified (use pressure "units"_units.html), the precision of the resultant
 pressure is sensitive to \(\Delta \hat P\); the precision tends to be
 best when \(\Delta \hat P\) is the actual the difference between the lattice
 pressure and harmonic pressure.
 
 \begin\{equation\}
-\left<C_V \right>_\{HMA\} = \frac\{d k_B (N-1)\}\{2\} + \beta \left( \left<
-U_\{HMA\}^2 \right> - \left<U_\{HMA\}\right>^2 \right)/T + \frac\{1\}\{4 T\}
+\left<C_V \right>_\{HMA\} = \frac\{d\}\{2\} (N-1) k_B + \frac\{1\}\{k_B T^2\} \left( \left<
+U_\{HMA\}^2 \right> - \left<U_\{HMA\}\right>^2 \right) + \frac\{1\}\{4 T\}
 \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>
 \end\{equation\}
 
@@ -111,7 +112,8 @@ digits.
 thermo_modify format float '%22.15e' :pre
 
 The {anharmonic} keyword will instruct the compute to return anharmonic
-properties rather than the full properties (lattice, harmonic and anharmonic).
+properties rather than the full properties, which include lattice, harmonic
+and anharmonic contributions.
 When using this keyword, the compute must be first active (it must be included
 via a "thermo_style custom"_thermo_style.html command) while the atoms are
 still at their lattice sites (before equilibration).
@@ -149,7 +151,7 @@ properties fluctuate less than the corresponding conventional properties.
 [Output info:]
 
 This compute calculates a global vector that includes the n properties
-requested as arguments to the command (the potential energy, pressure or heat
+requested as arguments to the command (the potential energy, pressure and/or heat
 capacity).  The elements of the vector can be accessed by indices 1-n by any
 command that uses global vector values as input.  See the "Howto
 output"_Howto_output.html doc page for an overview of LAMMPS output options.
@@ -159,8 +161,8 @@ scalar value will be in energy "units"_units.html.
 
 [Restrictions:]
 
-This compute is part of the USER-MISC package.  It is only
-enabled if LAMMPS was built with that package.  See the "Build
+This compute is part of the USER-MISC package.  It is enabled only
+if LAMMPS was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
 Usage restricted to canonical (NVT) ensemble simulation only.

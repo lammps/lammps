@@ -15,15 +15,12 @@
    Contributing author: Michele Ceriotti (EPFL), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include "fix_ipi.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "kspace.h"
 #include "modify.h"
@@ -32,8 +29,6 @@
 #include "neighbor.h"
 #include "irregular.h"
 #include "domain.h"
-#include "compute_pressure.h"
-#include <errno.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -27,17 +27,10 @@
     and all codes relevant to that has been removed
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_rigid_meso.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "group.h"
-#include "force.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
 

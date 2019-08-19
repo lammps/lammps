@@ -13,19 +13,16 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_nh_uef.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "group.h"
 #include "comm.h"
 #include "citeme.h"
 #include "irregular.h"
 #include "modify.h"
 #include "compute.h"
-#include "kspace.h"
 #include "update.h"
 #include "domain.h"
 #include "error.h"

@@ -110,10 +110,10 @@ class VectorImport {
 private:
 
   // rank == 1 or array_layout == LayoutRight
-  enum { OK = Kokkos::Impl::StaticAssert<
-           ( VectorType::rank == 1 ) ||
-           std::is_same< typename VectorType::array_layout , Kokkos::LayoutRight >::value
-         >::value };
+  static_assert(
+             ( VectorType::rank == 1 ) ||
+             std::is_same< typename VectorType::array_layout , Kokkos::LayoutRight >::value,
+             "Kokkos::Example::VectorImport Assert Fail: rank != 1 or array_layout != LayoutRight" );
 
   typedef typename VectorType::HostMirror HostVectorType ;
 
@@ -153,7 +153,7 @@ public:
       , buffer( arg_buffer )
     {
       Kokkos::parallel_for( index.dimension_0() , *this );
-      execution_space::fence();
+      execution_space().fence();
     }
   };
 

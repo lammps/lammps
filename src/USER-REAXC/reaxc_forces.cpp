@@ -24,23 +24,21 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_forces.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "reaxc_bond_orders.h"
 #include "reaxc_bonds.h"
 #include "reaxc_hydrogen_bonds.h"
-#include "reaxc_io_tools.h"
 #include "reaxc_list.h"
-#include "reaxc_lookup.h"
 #include "reaxc_multi_body.h"
 #include "reaxc_nonbonded.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_torsion_angles.h"
 #include "reaxc_valence_angles.h"
 #include "reaxc_vector.h"
 
 #include "error.h"
-
 
 interaction_function Interaction_Functions[NUM_INTRS];
 

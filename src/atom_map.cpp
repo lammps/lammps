@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "atom.h"
+#include <mpi.h>
+#include <cmath>
 #include "comm.h"
 #include "memory.h"
 #include "error.h"

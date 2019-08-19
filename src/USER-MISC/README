@@ -30,8 +30,10 @@ compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
 compute entropy/atom, Pablo Piaggi (EPFL), pablo.piaggi at epfl.ch, 15 June 2018
+compute gyration/shape, Evangelos Voyiatzis, evoyiatzis at gmail.com, 25 July 2019
 compute hma, Andrew Schultz & David Kofke (UB), ajs42 at buffalo.edu & kofke at buffalo.edu, 1 Jul 2019
 compute pressure/cylinder, Cody K. Addington (NCSU), , 2 Oct 2018
+compute momentum, Rupert Nash (University of Edinburgh), r.nash at epcc.ed.ac.uk, 28 June 2019
 compute stress/mop, Romain Vermorel (U Pau) & Laurent Joly (U Lyon), romain.vermorel at univ-pau.fr & ljoly.ulyon at gmail.com, 5 Sep 18
 compute stress/mop/profile, Romain Vermorel (U Pau) & Laurent Joly (U Lyon), romain.vermorel at univ-pau.fr & ljoly.ulyon at gmail.com, 5 Sep 18
 compute temp/rotate, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11

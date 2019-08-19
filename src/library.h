@@ -17,7 +17,9 @@
 */
 
 #include <mpi.h>
+#ifdef LAMMPS_BIGBIG
 #include <inttypes.h>  /* for int64_t */
+#endif
 
 /* ifdefs allow this file to be included in a C program */
 

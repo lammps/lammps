@@ -15,9 +15,9 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_class2_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"

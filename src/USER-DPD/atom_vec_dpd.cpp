@@ -15,7 +15,6 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_dpd.h"
 #include "atom.h"
 #include "comm.h"
@@ -24,6 +23,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -813,12 +813,12 @@ void AtomVecDPD::data_atom(double *coord, tagint imagetmp, char **values)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  dpdTheta[nlocal] = atof(values[2]);
+  dpdTheta[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (dpdTheta[nlocal] <= 0)
     error->one(FLERR,"Internal temperature in Atoms section of date file must be > zero");
 
@@ -850,7 +850,7 @@ void AtomVecDPD::data_atom(double *coord, tagint imagetmp, char **values)
 
 int AtomVecDPD::data_atom_hybrid(int nlocal, char **values)
 {
-  dpdTheta[nlocal] = atof(values[0]);
+  dpdTheta[nlocal] = utils::numeric(FLERR,values[0],true,lmp);
 
   return 1;
 }

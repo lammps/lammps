@@ -13,7 +13,7 @@ pair_style coul/shield command :h3
 pair_style coul/shield cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function
+tap_flag = 0/1 to turn off/on the taper function :ul
 
 [Examples:]
 

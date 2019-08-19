@@ -15,11 +15,10 @@ See the README file in the top-level LAMMPS directory.
 Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_bond_react.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_bond_react.h"
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -1286,7 +1285,7 @@ void FixBondReact::make_a_guess()
 
   for (int i = 0; i < nxspecial[atom->map(glove[pion][1])][0]; i++) {
     if (atom->map(xspecial[atom->map(glove[pion][1])][i]) < 0) {
-      error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away1"); // parallel issues.
+      error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away"); // parallel issues.
     }
     if (i_limit_tags[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] != 0) {
       status = GUESSFAIL;
@@ -1397,7 +1396,7 @@ void FixBondReact::check_a_neighbor()
 
             //another check for ghost atoms. perhaps remove the one in make_a_guess
             if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-              error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away2");
+              error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
             }
 
             for (int j = 0; j < onemol_nxspecial[onemol_xspecial[pion][neigh]-1][0]; j++) {
@@ -1449,7 +1448,7 @@ void FixBondReact::check_a_neighbor()
 
         //another check for ghost atoms. perhaps remove the one in make_a_guess
         if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-          error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away3");
+          error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
         }
 
         for (int ii = 0; ii < onemol_nxspecial[onemol_xspecial[pion][neigh]-1][0]; ii++) {
@@ -1560,7 +1559,7 @@ void FixBondReact::inner_crosscheck_loop()
 
   //another check for ghost atoms. perhaps remove the one in make_a_guess
   if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {
-    error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away4");
+    error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
   }
 
   if (guess_branch[avail_guesses-1] == 0) avail_guesses--;

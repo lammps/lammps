@@ -15,12 +15,12 @@
    Contributing author: Jan Los
 ------------------------------------------------------------------------- */
 
+#include "pair_extep.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "pair_extep.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"

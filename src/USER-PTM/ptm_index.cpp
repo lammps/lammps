@@ -12,20 +12,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "ptm_convex_hull_incremental.h"
 #include "ptm_deformation_gradient.h"
 #include "ptm_functions.h"
-#include "ptm_graph_data.h"
 #include "ptm_initialize_data.h"
 #include "ptm_neighbour_ordering.h"
 #include "ptm_normalize_vertices.h"
 #include "ptm_polar.h"
 #include "ptm_quat.h"
 #include "ptm_structure_matcher.h"
-#include <algorithm>
 #include <cassert>
-#include <cfloat>
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
+#include <stdint.h>
 
 static double calculate_interatomic_distance(int type, double scale) {
         assert(type >= 1 && type <= 8);

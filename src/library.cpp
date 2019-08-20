@@ -1606,6 +1606,11 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
   END_CAPTURE
 }
 
+/* ----------------------------------------------------------------------
+   find fix external with given ID and set the callback function
+   and caller pointer
+------------------------------------------------------------------------- */
+
 void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr callback_ptr, void * caller)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;

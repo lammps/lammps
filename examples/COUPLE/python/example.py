@@ -23,7 +23,7 @@ def callback(caller, ntimestep, nlocal, tag, x, fext):
     print("="*40)
 
 L = lammps.lammps()
-L.file("in.lammps")
+L.file("in.fix_external")
 
 # you can pass an arbitrary Python object to the callback every time it is called
 # this can be useful if you need more state information such as the LAMMPS ptr to

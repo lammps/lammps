@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(HMA,ComputeHMA)
+ComputeStyle(hma,ComputeHMA)
 
 #else
 

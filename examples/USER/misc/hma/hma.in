@@ -23,7 +23,7 @@ compute u all pe
   
 compute p all pressure NULL pair  
 
-compute hma all HMA settemp u p 9.579586686264458 cv
+compute hma all hma settemp u p 9.579586686264458 cv
 
 timestep 0.005
 

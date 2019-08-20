@@ -64,6 +64,8 @@
 #include "input.h"
 #include "modify.h"
 #include "variable.h"
+#include "version.h"
+#include "info.h"
 #include "fix_store_kim.h"
 
 #if defined(LMP_KIM_CURL)
@@ -242,6 +244,10 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
+      std::string user_agent = std::string("kim_query--LAMMPS/")
+                               + LAMMPS_VERSION
+                               + " (" + Info::get_os_info() + ")";
+      curl_easy_setopt(handle, CURLOPT_USERAGENT, user_agent.c_str());
 
       curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
       curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);

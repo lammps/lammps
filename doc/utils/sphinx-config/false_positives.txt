@@ -356,6 +356,7 @@ Cii
 Cij
 cis
 civ
+CKD
 Clang
 clearstore
 Cleary
@@ -421,6 +422,7 @@ coreshell
 cornflowerblue
 cornsilk
 corotate
+corotation
 corotational
 correlator
 cosineshifted
@@ -2991,6 +2993,7 @@ Waltham
 wavepacket
 wB
 Wbody
+wca
 webpage
 Weckner
 WeinanE

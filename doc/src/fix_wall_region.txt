@@ -15,11 +15,14 @@ fix ID group-ID wall/region region-ID style args ... cutoff :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/region = style name of this fix command :l
 region-ID = region whose boundary will act as wall :l
-style = {lj93} or {lj126} or {lj1043} or {morse} or {colloid} or {harmonic} :l
-args = :l
+style = {lj93} or {lj126} or {lj1043} or {colloid} or {harmonic} or {morse} :l
+args for styles {lj93} or {lj126} or {lj1043} or {colloid} or {harmonic} = :l
    epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
-   alpha (width parameter), only if style = {morse}
    sigma = size factor for wall-particle interaction (distance units) :pre
+args for style {morse} = :l
+   D_0 = depth of the potential (energy units)
+   alpha = width parameter (1/distance units)
+   r_0 = distance of the potential minimum from wall position (distance units) :pre
 cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :l
 :ule
 

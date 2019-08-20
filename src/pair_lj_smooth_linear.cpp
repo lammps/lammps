@@ -349,7 +349,7 @@ double PairLJSmoothLinear::single(int /*i*/, int /*j*/, int itype, int jtype,
 }
 
 double PairLJSmoothLinear::single_hessian(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
-                         double delr[3], double factor_coul, double factor_lj,
+                         double delr[3], double /*factor_coul*/, double factor_lj,
                          double &fforce, double d2u[6])
 {
   double r2inv,r6inv,forcelj,philj,r,rinv;

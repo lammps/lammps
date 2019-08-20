@@ -421,6 +421,7 @@ coreshell
 cornflowerblue
 cornsilk
 corotate
+corotation
 corotational
 correlator
 cosineshifted

@@ -10,24 +10,24 @@ fix wall/region command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/region region-ID style epsilon sigma cutoff args ... :pre
+fix ID group-ID wall/region region-ID style args ... cutoff :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/region = style name of this fix command :l
 region-ID = region whose boundary will act as wall :l
 style = {lj93} or {lj126} or {lj1043} or {morse} or {colloid} or {harmonic} :l
-epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units) :l
-sigma = size factor for wall-particle interaction (distance units) :l
-cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :l
 args = :l
-  alpha (width parameter), if style = {morse}
-  {none}, if style = {lj93/lj126/lj1043/colloid/harmonic} :pre
+   epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
+   alpha (width parameter), only if style = {morse}
+   sigma = size factor for wall-particle interaction (distance units) :pre
+cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :l
 :ule
 
 [Examples:]
 
 fix wall all wall/region mySphere lj93 1.0 1.0 2.5
-fix wall all wall/region box_top morse 1.0 1.0 3.0 1.5 :pre
+fix wall all wall/region mySphere harmonic 1.0 0.0 2.5
+fix wall all wall/region box_top morse 1.0 1.0 1.5 3.0 :pre
 
 [Description:]
 
@@ -121,27 +121,28 @@ For style {wall/lj1043}, the energy E is given by the 10/4/3 potential:
 
 :c,image(Eqs/fix_wall_lj1043.jpg)
 
-For style {wall/morse}, the energy E is given by the Morse potential:
-
-:c,image(Eqs/pair_morse.jpg)
-
-where {r_0 = sigma} and {D_0 = epsilon}.
-
 For style {colloid}, the energy E is given by an integrated form of
 the "pair_style colloid"_pair_colloid.html potential:
 
 :c,image(Eqs/fix_wall_colloid.jpg)
 
 For style {wall/harmonic}, the energy E is given by a harmonic spring
-potential:
+potential (the distance parameter is ignored):
 
 :c,image(Eqs/fix_wall_harmonic.jpg)
 
+For style {wall/morse}, the energy E is given by the Morse potential:
+
+:c,image(Eqs/pair_morse.jpg)
+
+Unlike other styles, this requires three parameters ({D_0}, {alpha}, {r_0}
+in this order) instead of two like for the other wall styles.
+
 In all cases, {r} is the distance from the particle to the region
 surface, and Rc is the {cutoff} distance at which the particle and
-surface no longer interact.  The energy of the wall potential is
-shifted so that the wall-particle interaction energy is 0.0 at the
-cutoff distance.
+surface no longer interact.  The cutoff is always the last argument.
+The energy of the wall potential is shifted so that the wall-particle
+interaction energy is 0.0 at the cutoff distance.
 
 For a full description of these wall styles, see fix_style
 "wall"_fix_wall.html

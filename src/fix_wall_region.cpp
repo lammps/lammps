@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{LJ93,LJ126,LJ1043,MORSE,COLLOID,HARMONIC};
+enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC,MORSE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -60,24 +60,30 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[4],"lj93") == 0) style = LJ93;
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;
   else if (strcmp(arg[4],"lj1043") == 0) style = LJ1043;
-  else if (strcmp(arg[4],"morse") == 0) style = MORSE;
   else if (strcmp(arg[4],"colloid") == 0) style = COLLOID;
   else if (strcmp(arg[4],"harmonic") == 0) style = HARMONIC;
+  else if (strcmp(arg[4],"morse") == 0) style = MORSE;
   else error->all(FLERR,"Illegal fix wall/region command");
 
   if (style != COLLOID) dynamic_group_allow = 1;
 
-  epsilon = force->numeric(FLERR,arg[5]);
-  sigma = force->numeric(FLERR,arg[6]);
-  cutoff = force->numeric(FLERR,arg[7]);
-
   if (style == MORSE) {
     if (narg != 9)
       error->all(FLERR,"Illegal fix wall/region command");
-    else
-      alpha = force->numeric(FLERR,arg[8]);
-  } else if (narg != 8)
+
+    epsilon = force->numeric(FLERR,arg[5]);
+    alpha = force->numeric(FLERR,arg[6]);
+    sigma = force->numeric(FLERR,arg[7]);
+    cutoff = force->numeric(FLERR,arg[8]);
+
+  } else {
+    if (narg != 8)
       error->all(FLERR,"Illegal fix wall/region command");
+
+    epsilon = force->numeric(FLERR,arg[5]);
+    sigma = force->numeric(FLERR,arg[6]);
+    cutoff = force->numeric(FLERR,arg[7]);
+  }
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");
 
@@ -297,7 +303,7 @@ void FixWallRegion::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallRegion::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWallRegion::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

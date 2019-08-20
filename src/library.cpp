@@ -1596,7 +1596,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
 
     if (lmp->atom->natoms != natoms_prev + n) {
       char str[128];
-      sprintf(str,"Library warning in lammps_create_atoms, "
+      snprintf(str, 128, "Library warning in lammps_create_atoms, "
               "invalid total atoms " BIGINT_FORMAT " " BIGINT_FORMAT,
               lmp->atom->natoms,natoms_prev+n);
       if (lmp->comm->me == 0)
@@ -1621,7 +1621,7 @@ void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr call
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0) {
       char str[50];
-      sprintf(str, "Can not find fix with ID '%s'!", id);
+      snprintf(str, 50, "Can not find fix with ID '%s'!", id);
       lmp->error->all(FLERR,str);
     }
 
@@ -1629,7 +1629,7 @@ void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr call
 
     if (strcmp("external",fix->style) != 0){
       char str[50];
-      sprintf(str, "Fix '%s' is not of style external!", id);
+      snprintf(str, 50, "Fix '%s' is not of style external!", id);
       lmp->error->all(FLERR,str);
     }
 

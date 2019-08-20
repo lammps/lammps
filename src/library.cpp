@@ -37,6 +37,7 @@
 #include "error.h"
 #include "force.h"
 #include "info.h"
+#include "fix_external.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -1604,6 +1605,35 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
   }
   END_CAPTURE
 }
+
+void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr callback_ptr, void * caller)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  FixExternal::FnPtr callback = (FixExternal::FnPtr) callback_ptr;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) {
+      char str[50];
+      sprintf(str, "Can not find fix with ID '%s'!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0){
+      char str[50];
+      sprintf(str, "Fix '%s' is not of style external!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_callback(callback, caller);
+  }
+  END_CAPTURE
+}
+
 
 // ----------------------------------------------------------------------
 // library API functions for accessing LAMMPS configuration

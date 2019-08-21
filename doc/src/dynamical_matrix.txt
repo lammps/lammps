@@ -47,6 +47,9 @@ package"_Build_package.html doc page for more info.
 
 "fix phonon"_fix_phonon.html
 
+"compute hma"_compute_hma.html uses an analytic formulation of the hessian
+provided by Pair's single_hessian.
+
 [Default:]
 
 The default settings are file = "dynmat.dyn", binary = no  

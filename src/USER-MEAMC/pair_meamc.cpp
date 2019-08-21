@@ -430,13 +430,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     found[i] = true;
 
     // map lat string to an integer
-
-    if (strcmp(words[1],"fcc") == 0) lat[i] = FCC;
-    else if (strcmp(words[1],"bcc") == 0) lat[i] = BCC;
-    else if (strcmp(words[1],"hcp") == 0) lat[i] = HCP;
-    else if (strcmp(words[1],"dim") == 0) lat[i] = DIM;
-    else if (strcmp(words[1],"dia") == 0) lat[i] = DIA;
-    else error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
+    
+    if (!MEAM::str_to_lat(words[1], true, lat[i]))
+      error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
 
     // store parameters
 
@@ -523,6 +519,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   int which;
   double value;
+  lattice_t latt;
   int nindex,index[3];
   int maxparams = 6;
   char **params = new char*[maxparams];
@@ -571,16 +568,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // map lattce_meam value to an integer
 
     if (which == 4) {
-      if (strcmp(params[nparams-1],"fcc") == 0) value = FCC;
-      else if (strcmp(params[nparams-1],"bcc") == 0) value = BCC;
-      else if (strcmp(params[nparams-1],"hcp") == 0) value = HCP;
-      else if (strcmp(params[nparams-1],"dim") == 0) value = DIM;
-      else if (strcmp(params[nparams-1],"dia") == 0) value = DIA;
-      else if (strcmp(params[nparams-1],"b1")  == 0) value = B1;
-      else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
-      else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
-      else if (strcmp(params[nparams-1],"b2")  == 0) value = B2;
-      else error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
+      if (!MEAM::str_to_lat(params[nparams-1], false, latt))
+        error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
+      value = latt;
     }
     else value = atof(params[nparams-1]);
 

@@ -49,17 +49,23 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
     this->rho0_meam[i] = rozero[i];
     this->ibar_meam[i] = ibar[i];
 
-    if (this->lattce_meam[i][i] == FCC)
-      this->re_meam[i][i] = tmplat[i] / sqrt(2.0);
-    else if (this->lattce_meam[i][i] == BCC)
-      this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 2.0;
-    else if (this->lattce_meam[i][i] == HCP)
-      this->re_meam[i][i] = tmplat[i];
-    else if (this->lattce_meam[i][i] == DIM)
-      this->re_meam[i][i] = tmplat[i];
-    else if (this->lattce_meam[i][i] == DIA)
-      this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
-    else {
+    switch(this->lattce_meam[i][i]) {
+      case FCC:
+        this->re_meam[i][i] = tmplat[i] / sqrt(2.0);
+        break;
+      case BCC:
+        this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 2.0;
+        break;
+      case HCP:
+        this->re_meam[i][i] = tmplat[i];
+        break;
+      case DIM:
+        this->re_meam[i][i] = tmplat[i];
+        break;
+      case DIA:
+        this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
+        break;
+      //default:
       //           error
     }
   }

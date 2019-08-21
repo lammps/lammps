@@ -161,10 +161,10 @@ void
 MEAM::compute_pair_meam(void)
 {
 
-  double r /*ununsed:, temp*/;
+  double r;
   int j, a, b, nv2;
   double astar, frac, phizbl;
-  int n, nmax, Z1, Z2;
+  int n, Z1, Z2;
   double arat, rarat, scrn, scrn2;
   double phiaa, phibb /*unused:,phitmp*/;
   double C, s111, s112, s221, S11, S22;
@@ -230,9 +230,8 @@ MEAM::compute_pair_meam(void)
             Z1 = get_Zij(this->lattce_meam[a][a]);
             Z2 = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
                      this->Cmax_meam[a][a][a], arat, scrn);
-            nmax = 10;
             if (scrn > 0.0) {
-              for (n = 1; n <= nmax; n++) {
+              for (n = 1; n <= 10; n++) {
                 phiaa = phiaa + pow((-Z2 * scrn / Z1), n) * phi_meam(rarat * pow(arat, n), a, a);
               }
             }
@@ -242,9 +241,8 @@ MEAM::compute_pair_meam(void)
             Z1 = get_Zij(this->lattce_meam[b][b]);
             Z2 = get_Zij2(this->lattce_meam[b][b], this->Cmin_meam[b][b][b],
                      this->Cmax_meam[b][b][b], arat, scrn);
-            nmax = 10;
             if (scrn > 0.0) {
-              for (n = 1; n <= nmax; n++) {
+              for (n = 1; n <= 10; n++) {
                 phibb = phibb + pow((-Z2 * scrn / Z1), n) * phi_meam(rarat * pow(arat, n), b, b);
               }
             }
@@ -279,8 +277,7 @@ MEAM::compute_pair_meam(void)
             }
 
           } else {
-            nmax = 10;
-            for (n = 1; n <= nmax; n++) {
+            for (n = 1; n <= 10; n++) {
               this->phir[nv2][j] =
                 this->phir[nv2][j] + pow((-Z2 * scrn / Z1), n) * phi_meam(r * pow(arat, n), a, b);
             }
@@ -330,7 +327,7 @@ MEAM::phi_meam(double r, int a, int b)
   double Eu;
   double arat, scrn /*unused:,scrn2*/;
   int Z12, errorflag;
-  int n, nmax, Z1nn, Z2nn;
+  int n, Z1nn, Z2nn;
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
 
@@ -476,9 +473,8 @@ MEAM::phi_meam(double r, int a, int b)
     Z1nn = get_Zij(this->lattce_meam[a][a]);
     Z2nn = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
              this->Cmax_meam[a][a][a], arat, scrn);
-    nmax = 10;
     if (scrn > 0.0) {
-      for (n = 1; n <= nmax; n++) {
+      for (n = 1; n <= 10; n++) {
         phiaa = phiaa + pow((-Z2nn * scrn / Z1nn), n) * phi_meam(r * pow(arat, n), a, a);
       }
     }
@@ -555,30 +551,38 @@ MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, dou
     *t12av = t12;
     *t22av = t22;
     *t32av = t32;
-  } else if (latt == FCC || latt == BCC || latt == DIA || latt == HCP || latt == B1 || latt == DIM || latt == B2) {
-    //     all neighbors are of the opposite type
-    *t11av = t12;
-    *t21av = t22;
-    *t31av = t32;
-    *t12av = t11;
-    *t22av = t21;
-    *t32av = t31;
-  } else {
-    a1 = r / this->re_meam[a][a] - 1.0;
-    a2 = r / this->re_meam[b][b] - 1.0;
-    rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
-    rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
-    if (latt == L12) {
-      rho01 = 8 * rhoa01 + 4 * rhoa02;
-      *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
+  } else switch (latt)  {
+    case FCC:
+    case BCC:
+    case DIA:
+    case HCP:
+    case B1:
+    case DIM:
+    case B2:
+      //     all neighbors are of the opposite type
+      *t11av = t12;
+      *t21av = t22;
+      *t31av = t32;
       *t12av = t11;
-      *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
       *t22av = t21;
-      *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
       *t32av = t31;
-    } else {
-      //      call error('Lattice not defined in get_tavref.')
-    }
+      break;
+    default:
+      a1 = r / this->re_meam[a][a] - 1.0;
+      a2 = r / this->re_meam[b][b] - 1.0;
+      rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
+      rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+      if (latt == L12) {
+        rho01 = 8 * rhoa01 + 4 * rhoa02;
+        *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
+        *t12av = t11;
+        *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
+        *t22av = t21;
+        *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
+        *t32av = t31;
+      } else {
+        //      call error('Lattice not defined in get_tavref.')
+      }
   }
 }
 
@@ -627,59 +631,69 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
   *rho12 = 0.0;
   *rho22 = 0.0;
   *rho32 = 0.0;
-
-  if (lat == FCC) {
-    *rho01 = 12.0 * rhoa02;
-    *rho02 = 12.0 * rhoa01;
-  } else if (lat == BCC) {
-    *rho01 = 8.0 * rhoa02;
-    *rho02 = 8.0 * rhoa01;
-  } else if (lat == B1) {
-    *rho01 = 6.0 * rhoa02;
-    *rho02 = 6.0 * rhoa01;
-  } else if (lat == DIA) {
-    *rho01 = 4.0 * rhoa02;
-    *rho02 = 4.0 * rhoa01;
-    *rho31 = 32.0 / 9.0 * rhoa32 * rhoa32;
-    *rho32 = 32.0 / 9.0 * rhoa31 * rhoa31;
-  } else if (lat == HCP) {
-    *rho01 = 12 * rhoa02;
-    *rho02 = 12 * rhoa01;
-    *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
-    *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
-  } else if (lat == DIM) {
-    get_shpfcn(DIM, s);
-    *rho01 = rhoa02;
-    *rho02 = rhoa01;
-    *rho11 = s[0] * rhoa12 * rhoa12;
-    *rho12 = s[0] * rhoa11 * rhoa11;
-    *rho21 = s[1] * rhoa22 * rhoa22;
-    *rho22 = s[1] * rhoa21 * rhoa21;
-    *rho31 = s[2] * rhoa32 * rhoa32;
-    *rho32 = s[2] * rhoa31 * rhoa31;
-  } else if (lat == C11) {
-    *rho01 = rhoa01;
-    *rho02 = rhoa02;
-    *rho11 = rhoa11;
-    *rho12 = rhoa12;
-    *rho21 = rhoa21;
-    *rho22 = rhoa22;
-    *rho31 = rhoa31;
-    *rho32 = rhoa32;
-  } else if (lat == L12) {
-    *rho01 = 8 * rhoa01 + 4 * rhoa02;
-    *rho02 = 12 * rhoa01;
-    if (this->ialloy == 1) {
-      *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
-      denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);
-      if (denom > 0.)
-        *rho21 = *rho21 / denom * *rho01;
-    } else
-      *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
-  } else if (lat == B2) {
-    *rho01 = 8.0 * rhoa02;
-    *rho02 = 8.0 * rhoa01;
-  } else {
+  
+  switch (lat) {
+    case FCC:
+      *rho01 = 12.0 * rhoa02;
+      *rho02 = 12.0 * rhoa01;
+      break;
+    case BCC:
+      *rho01 = 8.0 * rhoa02;
+      *rho02 = 8.0 * rhoa01;
+      break;
+    case B1:
+      *rho01 = 6.0 * rhoa02;
+      *rho02 = 6.0 * rhoa01;
+      break;
+    case DIA:
+      *rho01 = 4.0 * rhoa02;
+      *rho02 = 4.0 * rhoa01;
+      *rho31 = 32.0 / 9.0 * rhoa32 * rhoa32;
+      *rho32 = 32.0 / 9.0 * rhoa31 * rhoa31;
+      break;
+    case HCP:
+      *rho01 = 12 * rhoa02;
+      *rho02 = 12 * rhoa01;
+      *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
+      *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
+      break;
+    case DIM:
+      get_shpfcn(DIM, s);
+      *rho01 = rhoa02;
+      *rho02 = rhoa01;
+      *rho11 = s[0] * rhoa12 * rhoa12;
+      *rho12 = s[0] * rhoa11 * rhoa11;
+      *rho21 = s[1] * rhoa22 * rhoa22;
+      *rho22 = s[1] * rhoa21 * rhoa21;
+      *rho31 = s[2] * rhoa32 * rhoa32;
+      *rho32 = s[2] * rhoa31 * rhoa31;
+      break;
+    case C11:
+      *rho01 = rhoa01;
+      *rho02 = rhoa02;
+      *rho11 = rhoa11;
+      *rho12 = rhoa12;
+      *rho21 = rhoa21;
+      *rho22 = rhoa22;
+      *rho31 = rhoa31;
+      *rho32 = rhoa32;
+      break;
+    case L12:
+      *rho01 = 8 * rhoa01 + 4 * rhoa02;
+      *rho02 = 12 * rhoa01;
+      if (this->ialloy == 1) {
+        *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
+        denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);
+        if (denom > 0.)
+          *rho21 = *rho21 / denom * *rho01;
+      } else
+        *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
+      break;
+    case B2:
+      *rho01 = 8.0 * rhoa02;
+      *rho02 = 8.0 * rhoa01;
+      break;
+    // default:
     //        call error('Lattice not defined in get_densref.')
   }
 

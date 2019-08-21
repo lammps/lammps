@@ -2,6 +2,7 @@
 #define LMP_MEAM_H
 
 #include <cmath>
+#include <cstring>
 
 #define maxelt 5
 
@@ -26,7 +27,6 @@ private:
 
   // Ec_meam = cohesive energy
   // re_meam = nearest-neighbor distance
-  // Omega_meam = atomic volume
   // B_meam = bulk modulus
   // Z_meam = number of first neighbors for reference structure
   // ielt_meam = atomic number of element
@@ -65,7 +65,7 @@ private:
   // nrar,rdrar = spline coeff array parameters
 
   double Ec_meam[maxelt][maxelt], re_meam[maxelt][maxelt];
-  double Omega_meam[maxelt], Z_meam[maxelt];
+  double Z_meam[maxelt];
   double A_meam[maxelt], alpha_meam[maxelt][maxelt], rho0_meam[maxelt];
   double delta_meam[maxelt][maxelt];
   double beta0_meam[maxelt], beta1_meam[maxelt];
@@ -212,6 +212,31 @@ protected:
   void interpolate_meam(int);
 
 public:
+  //-----------------------------------------------------------------------------
+  // convert lattice spec to lattice_t
+  // only use single-element lattices if single=true
+  // return false on failure
+  // return true and set lat on success
+  static bool str_to_lat(const char* str, bool single, lattice_t& lat)
+  {
+    if (strcmp(str,"fcc") == 0) lat = FCC;
+    else if (strcmp(str,"bcc") == 0) lat = BCC;
+    else if (strcmp(str,"hcp") == 0) lat = HCP;
+    else if (strcmp(str,"dim") == 0) lat = DIM;
+    else if (strcmp(str,"dia") == 0) lat = DIA;
+    else {
+      if (single)
+        return false;
+      
+      if (strcmp(str,"b1")  == 0) lat = B1;
+      else if (strcmp(str,"c11") == 0) lat = C11;
+      else if (strcmp(str,"l12") == 0) lat = L12;
+      else if (strcmp(str,"b2")  == 0) lat = B2;
+      else return false;
+    }
+    return true;
+  }
+  
   void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
                          double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                          double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,

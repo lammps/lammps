@@ -23,6 +23,10 @@
 #include <fftw3.h>
 #endif
 
+#if defined(LAMMPS_EXCEPTIONS)
+#include "exceptions.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------

@@ -20,12 +20,16 @@ if(PKG_KIM)
       message(FATAL_ERROR "Cannot build downloaded KIM-API library with Ninja build tool")
     endif()
     message(STATUS "KIM-API download requested - we will build our own")
-    enable_language(C)
-    enable_language(Fortran)
+    include(CheckLanguage)
     include(ExternalProject)
+    enable_language(C)
+    check_language(Fortran)
+    if(NOT CMAKE_Fortran_COMPILER)
+      message(FATAL_ERROR "Compiling the KIM-API library requires a Fortran compiler")
+    endif()
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-2.1.2.txz
-      URL_MD5 6ac52e14ef52967fc7858220b208cba5
+      URL https://s3.openkim.org/kim-api/kim-api-2.1.3.txz
+      URL_MD5 6ee829a1bbba5f8b9874c88c4c4ebff8
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

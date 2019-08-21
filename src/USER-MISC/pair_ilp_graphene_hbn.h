@@ -34,9 +34,10 @@ class PairILPGrapheneHBN : public Pair {
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
+  void ILP_neigh();
   void calc_normal();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  void calc_FRep(int, int);
+  void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
@@ -74,7 +75,6 @@ class PairILPGrapheneHBN : public Pair {
 
   void read_file( char * );
   void allocate();
-  void ILP_neigh();
 
   /* ----Calculate the long-range cutoff term */
   inline double calc_Tap(double r_ij, double Rcut) {

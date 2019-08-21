@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <sys/time.h>
 #include <mpi.h>
+#include "../version.h"
 
 /* data structure for double/int */
 
@@ -80,7 +81,7 @@ int MPI_Finalized(int *flag)
 
 int MPI_Get_library_version(char *version, int *resultlen)
 {
-  const char string[] = "LAMMPS MPI STUBS";
+  const char string[] = "LAMMPS MPI STUBS for LAMMPS version " LAMMPS_VERSION;
   int len;
 
   if (!version || !resultlen) return MPI_ERR_ARG;

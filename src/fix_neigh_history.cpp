@@ -40,6 +40,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   create_attribute = 1;
+  maxexchange_dynamic = 1;
 
   newton_pair = force->newton_pair;
 
@@ -294,11 +295,11 @@ void FixNeighHistory::pre_exchange_onesided()
   }
 
   // set maxpartner = max # of partners of any owned atom
-  // bump up comm->maxexchange_fix if necessary
+  // maxexchange = max # of values for any Comm::exchange() atom
 
   maxpartner = 0;
   for (i = 0; i < nlocal_neigh; i++) maxpartner = MAX(maxpartner,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+  maxexchange = (dnum+1)*maxpartner + 1;
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -422,11 +423,11 @@ void FixNeighHistory::pre_exchange_newton()
   comm->reverse_comm_fix_variable(this);
 
   // set maxpartner = max # of partners of any owned atom
-  // bump up comm->maxexchange_fix if necessary
+  // maxexchange = max # of values for any Comm::exchange() atom
 
   maxpartner = 0;
   for (i = 0; i < nlocal_neigh; i++) maxpartner = MAX(maxpartner,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+  maxexchange = (dnum+1)*maxpartner + 1;
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -529,11 +530,11 @@ void FixNeighHistory::pre_exchange_no_newton()
   }
 
   // set maxpartner = max # of partners of any owned atom
-  // bump up comm->maxexchange_fix if necessary
+  // maxexchange = max # of values for any Comm::exchange() atom
 
   maxpartner = 0;
   for (i = 0; i < nlocal_neigh; i++) maxpartner = MAX(maxpartner,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+  maxexchange = (dnum+1)*maxpartner + 1;
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -794,9 +795,6 @@ void FixNeighHistory::unpack_reverse_comm(int n, int *list, double *buf)
 
 int FixNeighHistory::pack_exchange(int i, double *buf)
 {
-  // NOTE: how do I know comm buf is big enough if extreme # of touching neighs
-  // Comm::BUFEXTRA may need to be increased
-
   int m = 0;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {

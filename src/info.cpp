@@ -60,7 +60,7 @@
 #include <sys/utsname.h>
 #endif
 
-#if defined __linux
+#if defined(__linux)
 #include <malloc.h>
 #endif
 
@@ -353,11 +353,24 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & COMM) {
-    int major,minor;
+    int major,minor,len;
+#if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+    char version[MPI_MAX_LIBRARY_VERSION_STRING];
+    MPI_Get_library_version(version,&len);
+#else
+    char version[] = "Undetected MPI implementation";
+    len = strlen(version);
+#endif
+
     MPI_Get_version(&major,&minor);
+    if (len > 80) {
+      char *ptr = strchr(version+80,'\n');
+      if (ptr) *ptr = '\0';
+    }
 
     fprintf(out,"\nCommunication information:\n");
     fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
+    fprintf(out,"MPI version: %s\n",version);
     fprintf(out,"Comm style = %s,  Comm layout = %s\n",
             commstyles[comm->style], commlayout[comm->layout]);
     fprintf(out,"Communicate velocities for ghost atoms = %s\n",

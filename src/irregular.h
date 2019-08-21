@@ -14,7 +14,6 @@
 #ifndef LMP_IRREGULAR_H
 #define LMP_IRREGULAR_H
 
-#include <mpi.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -44,6 +43,7 @@ class Irregular : protected Pointers {
   int triclinic;
   int map_style;
 
+  int bufextra;                     // augment send buf size for a migrating atom
   int maxsend,maxrecv;              // size of buf send/recv in # of doubles
   double *buf_send,*buf_recv;       // bufs used in migrate_atoms
   int maxdbuf;                      // size of double buf in bytes
@@ -92,6 +92,7 @@ class Irregular : protected Pointers {
 
   int binary(double, int, double *);
 
+  void init_exchange();             // reset bufxtra
   void grow_send(int,int);          // reallocate send buffer
   void grow_recv(int);              // free/allocate recv buffer
 };

@@ -134,6 +134,24 @@ foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
 endforeach()
 
 ######################################################
+# download and unpack support binaries for compilation
+# of windows binaries.
+######################################################
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(LAMMPS_THIRDPARTY_URL "http://download.lammps.org/thirdparty")
+  file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
+          EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
+    set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
+  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")
+  endif()
+  set(OpenCL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/include")
+endif()
+
+######################################################
+######################################################
 # packages with special compiler needs or external libs
 ######################################################
 include_directories(${LAMMPS_SOURCE_DIR})
@@ -148,6 +166,7 @@ if(PKG_USER-ADIOS)
 endif()
 
 # do MPI detection after language activation, if MPI for these language is required
+set(MPI_CXX_SKIP_MPICXX TRUE)
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
@@ -175,11 +194,13 @@ add_definitions(-DLAMMPS_${LAMMPS_SIZES})
 set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_${LAMMPS_SIZES}")
 
 # posix_memalign is not available on Windows
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
+else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
-  if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
-    add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
-  endif()
+endif()
+if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
+  add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 endif()
 
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
@@ -219,8 +240,7 @@ if(BUILD_OMP)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-
-if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-PLUMED OR PKG_USER-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
@@ -230,6 +250,7 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-PLUMED OR PKG_USER-QUI
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
+    set(BLAS_LIBRARIES linalg)
     set(LAPACK_LIBRARIES linalg)
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
@@ -498,37 +519,36 @@ if(BUILD_LIB)
     add_dependencies(lammps ${LAMMPS_DEPS})
   endif()
   set(LAMMPS_CXX_HEADERS
-    angle.h
-    atom.h
-    bond.h
-    citeme.h
-    comm.h
-    compute.h
-    dihedral.h
-    domain.h
-    error.h
-    fix.h
-    force.h
-    group.h
-    improper.h
-    input.h
-    kspace.h
-    lammps.h
-    lattice.h
-    lmppython.h
-    memory.h
-    modify.h
-    neighbor.h
-    neigh_list.h
-    output.h
-    pair.h
-    pointers.h
-    region.h
-    timer.h
-    universe.h
-    update.h
-    variable.h)
-  list(TRANSFORM LAMMPS_CXX_HEADERS PREPEND ${LAMMPS_SOURCE_DIR}/)
+    ${LAMMPS_SOURCE_DIR}/angle.h
+    ${LAMMPS_SOURCE_DIR}/atom.h
+    ${LAMMPS_SOURCE_DIR}/bond.h
+    ${LAMMPS_SOURCE_DIR}/citeme.h
+    ${LAMMPS_SOURCE_DIR}/comm.h
+    ${LAMMPS_SOURCE_DIR}/compute.h
+    ${LAMMPS_SOURCE_DIR}/dihedral.h
+    ${LAMMPS_SOURCE_DIR}/domain.h
+    ${LAMMPS_SOURCE_DIR}/error.h
+    ${LAMMPS_SOURCE_DIR}/fix.h
+    ${LAMMPS_SOURCE_DIR}/force.h
+    ${LAMMPS_SOURCE_DIR}/group.h
+    ${LAMMPS_SOURCE_DIR}/improper.h
+    ${LAMMPS_SOURCE_DIR}/input.h
+    ${LAMMPS_SOURCE_DIR}/kspace.h
+    ${LAMMPS_SOURCE_DIR}/lammps.h
+    ${LAMMPS_SOURCE_DIR}/lattice.h
+    ${LAMMPS_SOURCE_DIR}/lmppython.h
+    ${LAMMPS_SOURCE_DIR}/memory.h
+    ${LAMMPS_SOURCE_DIR}/modify.h
+    ${LAMMPS_SOURCE_DIR}/neighbor.h
+    ${LAMMPS_SOURCE_DIR}/neigh_list.h
+    ${LAMMPS_SOURCE_DIR}/output.h
+    ${LAMMPS_SOURCE_DIR}/pair.h
+    ${LAMMPS_SOURCE_DIR}/pointers.h
+    ${LAMMPS_SOURCE_DIR}/region.h
+    ${LAMMPS_SOURCE_DIR}/timer.h
+    ${LAMMPS_SOURCE_DIR}/universe.h
+    ${LAMMPS_SOURCE_DIR}/update.h
+    ${LAMMPS_SOURCE_DIR}/variable.h)
 
   set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
   set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
@@ -569,6 +589,7 @@ if(BUILD_TOOLS)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+    install(TARGETS chain.x DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
 
   enable_language(C)

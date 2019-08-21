@@ -105,6 +105,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
       for (int i = 0; i < nlocal; i++)
         for (int j = 0; j < nvalues; j++)
           astore[i][j] = 0.0;
+    maxexchange = nvalues;
   }
 }
 

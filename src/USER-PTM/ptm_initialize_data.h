@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "ptm_deformation_gradient.h"
 #include "ptm_fundamental_mappings.h"
 #include "ptm_alt_templates.h"
+#include <cstddef>
 
 
 namespace ptm {

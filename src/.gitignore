@@ -805,6 +805,8 @@
 /pair_comb3.h
 /pair_colloid.cpp
 /pair_colloid.h
+/pair_cosine_squared.cpp
+/pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
 /pair_coul_long.cpp

@@ -41,15 +41,15 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {}
+MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {
+  alpha_damp = 1.0;
+  discrete_factor = 10.0;
+}
 
 /* ---------------------------------------------------------------------- */
 
 void MinSpin::init()
 {
-  alpha_damp = 1.0;
-  discrete_factor = 10.0;
-
   Min::init();
 
   dts = dt = update->dt;

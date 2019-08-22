@@ -192,7 +192,6 @@ protected:
   static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
 
   static void get_shpfcn(const lattice_t latt, double (&s)[3]);
-  static int get_Zij(const lattice_t latt);
   static int get_Zij2(const lattice_t latt, const double cmin, const double cmax, double &a, double &S);
 protected:
   void meam_checkindex(int, int, int, int*, int*);
@@ -237,6 +236,7 @@ public:
     return true;
   }
   
+  static int get_Zij(const lattice_t latt);
   void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
                          double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                          double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,

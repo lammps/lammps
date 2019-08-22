@@ -463,7 +463,10 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     ibar[i] = atoi(words[18]);
 
     if (!isone(t0[i]))
-      error->all(FLERR,"Unsupported parameter in MEAM potential file");
+      error->all(FLERR,"Unsupported parameter in MEAM potential file: t0!=1");
+    
+    if (z[i] != MEAM::get_Zij(lat[i]))
+      error->warning(FLERR,"Unsupported parameter in MEAM potential file: z!=lat", true);
 
     nset++;
   }

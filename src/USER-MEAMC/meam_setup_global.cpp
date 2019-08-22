@@ -18,7 +18,7 @@ static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
 }
 
 void
-MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* /*atwt*/, double* alpha,
+MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*/, double* alpha,
                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                         double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
                         int* ibar)
@@ -32,7 +32,6 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, doub
   for (i = 0; i < nelt; i++) {
     this->lattce_meam[i][i] = lat[i];
 
-    this->Z_meam[i] = z[i];
     this->ielt_meam[i] = ielement[i];
     this->alpha_meam[i][i] = alpha[i];
     this->beta0_meam[i] = b0[i];

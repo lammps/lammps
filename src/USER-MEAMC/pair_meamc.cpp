@@ -465,8 +465,9 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     if (!isone(t0[i]))
       error->all(FLERR,"Unsupported parameter in MEAM potential file: t0!=1");
     
+    // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
     if (z[i] != MEAM::get_Zij(lat[i]))
-      error->warning(FLERR,"Unsupported parameter in MEAM potential file: z!=lat", true);
+      error->all(FLERR,"Mismatched parameter in MEAM potential file: z!=lat");
 
     nset++;
   }
@@ -478,7 +479,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   // pass element parameters to MEAM package
 
-  meam_inst->meam_setup_global(nelements,lat,z,ielement,atwt,alpha,b0,b1,b2,b3,
+  meam_inst->meam_setup_global(nelements,lat,ielement,atwt,alpha,b0,b1,b2,b3,
                        alat,esub,asub,t0,t1,t2,t3,rozero,ibar);
 
   // set element masses

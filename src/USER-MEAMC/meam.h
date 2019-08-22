@@ -28,7 +28,6 @@ private:
   // Ec_meam = cohesive energy
   // re_meam = nearest-neighbor distance
   // B_meam = bulk modulus
-  // Z_meam = number of first neighbors for reference structure
   // ielt_meam = atomic number of element
   // A_meam = adjustable parameter
   // alpha_meam = sqrt(9*Omega*B/Ec)
@@ -65,7 +64,6 @@ private:
   // nrar,rdrar = spline coeff array parameters
 
   double Ec_meam[maxelt][maxelt], re_meam[maxelt][maxelt];
-  double Z_meam[maxelt];
   double A_meam[maxelt], alpha_meam[maxelt][maxelt], rho0_meam[maxelt];
   double delta_meam[maxelt][maxelt];
   double beta0_meam[maxelt], beta1_meam[maxelt];
@@ -237,7 +235,7 @@ public:
   }
   
   static int get_Zij(const lattice_t latt);
-  void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
+  void meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* atwt, double* alpha,
                          double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                          double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
                          int* ibar);

@@ -327,7 +327,7 @@ MEAM::phi_meam(double r, int a, int b)
   double Eu;
   double arat, scrn /*unused:,scrn2*/;
   int Z12, errorflag;
-  int n, Z1nn, Z2nn;
+  int n, Z1nn;
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
 
@@ -338,6 +338,8 @@ MEAM::phi_meam(double r, int a, int b)
 
   // get number of neighbors in the reference structure
   //   Nref[i][j] = # of i's neighbors of type j
+  Z1 = get_Zij(this->lattce_meam[a][a]);
+  Z2 = get_Zij(this->lattce_meam[b][b]);
   Z12 = get_Zij(this->lattce_meam[a][b]);
 
   get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32);
@@ -398,8 +400,6 @@ MEAM::phi_meam(double r, int a, int b)
     //     If using mixing rule for t, apply to reference structure; else
     //     use precomputed values
     if (this->mix_ref_t == 1) {
-      Z1 = this->Z_meam[a];
-      Z2 = this->Z_meam[b];
       if (this->ibar_meam[a] <= 0)
         G1 = 1.0;
       else {
@@ -436,8 +436,8 @@ MEAM::phi_meam(double r, int a, int b)
       rho_bkgd2 = rho0_2;
     } else {
       if (this->bkgd_dyn == 1) {
-        rho_bkgd1 = this->rho0_meam[a] * this->Z_meam[a];
-        rho_bkgd2 = this->rho0_meam[b] * this->Z_meam[b];
+        rho_bkgd1 = this->rho0_meam[a] * Z1;
+        rho_bkgd2 = this->rho0_meam[b] * Z2;
       } else {
         rho_bkgd1 = this->rho_ref_meam[a];
         rho_bkgd2 = this->rho_ref_meam[b];
@@ -470,12 +470,11 @@ MEAM::phi_meam(double r, int a, int b)
   } else if (this->lattce_meam[a][b] == L12) {
     phiaa = phi_meam(r, a, a);
     //       account for second neighbor a-a potential here...
-    Z1nn = get_Zij(this->lattce_meam[a][a]);
-    Z2nn = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
+    Z1nn = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
              this->Cmax_meam[a][a][a], arat, scrn);
     if (scrn > 0.0) {
       for (n = 1; n <= 10; n++) {
-        phiaa = phiaa + pow((-Z2nn * scrn / Z1nn), n) * phi_meam(r * pow(arat, n), a, a);
+        phiaa = phiaa + pow((-Z1nn * scrn / Z1), n) * phi_meam(r * pow(arat, n), a, a);
       }
     }
     phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
@@ -506,7 +505,7 @@ MEAM::compute_reference_density(void)
 
   // loop over element types
   for (a = 0; a < this->neltypes; a++) {
-    Z = (int)this->Z_meam[a];
+    Z = get_Zij(this->lattce_meam[a][a]);
     if (this->ibar_meam[a] <= 0)
       Gbar = 1.0;
     else {

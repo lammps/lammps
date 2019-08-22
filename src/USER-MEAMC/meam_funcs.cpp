@@ -232,7 +232,7 @@ MEAM::get_shpfcn(const lattice_t latt, double (&s)[3])
 }
 
 //-----------------------------------------------------------------------------
-// Number of neighbors for the reference structure
+// Number of first neighbors for reference structure
 //
 int
 MEAM::get_Zij(const lattice_t latt)
@@ -244,12 +244,12 @@ MEAM::get_Zij(const lattice_t latt)
       return 8;
     case HCP:
       return 12;
-    case B1:
-      return 6;
     case DIA:
       return 4;
     case DIM:
       return 1;
+    case B1:
+      return 6;
     case C11:
       return 10;
     case L12:

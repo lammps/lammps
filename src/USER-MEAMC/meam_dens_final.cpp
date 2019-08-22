@@ -54,7 +54,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
       }
 
-      Z = this->Z_meam[elti];
+      Z = get_Zij(this->lattce_meam[elti][elti]);
 
       G = G_gam(gamma[i], this->ibar_meam[elti], errorflag);
       if (errorflag != 0)

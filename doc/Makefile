@@ -2,7 +2,7 @@
 
 SHELL         = /bin/bash
 SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
-BUILDDIR      = /tmp/lammps-docs-$(SHA1)
+BUILDDIR      = ${PWD}
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
@@ -31,7 +31,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub mobi html pdf old venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi rst html pdf old venv spelling anchor_check
 
 # ------------------------------------------
 
@@ -53,19 +53,22 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR) html old epub latex
+	rm -rf $(RSTDIR)/{Eqs,JPG,*.rst} html old epub latex
 	rm -rf spelling
 
 clean-spelling:
 	rm -rf spelling
 
+rst: clean $(OBJECTS) $(ANCHORCHECK)
+
 html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
+	    cp -r src/JPG $(RSTDIR)/ ;\
+	    cp -r src/Eqs $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		doc_anchor_check src/*.txt ;\
@@ -88,7 +91,6 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
-		cp -r src/* $(RSTDIR)/ ;\
         cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
@@ -102,7 +104,6 @@ epub: $(OBJECTS)
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
@@ -125,7 +126,6 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 	)
 	@(\
                 . $(VENV)/bin/activate ;\
-                cp -r src/* $(RSTDIR)/ ;\
                 sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
                 echo "############################################" ;\
                 doc_anchor_check src/*.txt ;\

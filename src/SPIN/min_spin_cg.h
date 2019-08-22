@@ -13,40 +13,43 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(spin_oso_lbfgs, MinSpinOSO_LBFGS)
+MinimizeStyle(spin/cg, MinSpinCG)
 
 #else
 
-#ifndef LMP_MIN_SPIN_OSO_LBFGS_H
-#define LMP_MIN_SPIN_OSO_LBFGS_H
+#ifndef LMP_MIN_SPIN_CG_H
+#define LMP_MIN_SPIN_CG_H
 
 #include "min.h"
 
 namespace LAMMPS_NS {
 
-class MinSpinOSO_LBFGS: public Min {
+class MinSpinCG: public Min {
  public:
-  MinSpinOSO_LBFGS(class LAMMPS *);
-  virtual ~MinSpinOSO_LBFGS();
+  MinSpinCG(class LAMMPS *);
+  virtual ~MinSpinCG();
   void init();
   void setup_style();
-  int modify_param(int, char **);
   void reset_vectors();
+  int modify_param(int, char **);
   int iterate(int);
 
  private:
-  int local_iter;     		// for neb
-  int use_line_search; 		// use line search or not.
+  int local_iter;		// for neb
   int nlocal_max;		// max value of nlocal (for size of lists)
-  int ireplica,nreplica; 	// for neb
+  int use_line_search;		// use line search or not.
+  int ireplica,nreplica;	// for neb
+  double dt;			// global timestep
+  double dts;			// spin timestep
+  double discrete_factor;	// factor for spin timestep evaluation
   double der_e_cur;		// current derivative along search dir.
-  double der_e_pr;    		// previous derivative along search dir.
-  double maxepsrot;
+  double der_e_pr;		// previous derivative along search dir.
   double *spvec;		// variables for atomic dof, as 1d vector
   double *fmvec;		// variables for atomic dof, as 1d vector
   double *g_old;  		// gradient vector at previous step
   double *g_cur;  		// current gradient vector
   double *p_s;  		// search direction vector
+  double **sp_copy;		// copy of the spins
 
   void advance_spins();
   void calc_gradient();
@@ -56,13 +59,9 @@ class MinSpinOSO_LBFGS: public Min {
   void make_step(double, double *);
   int calc_and_make_step(double, double, int);
   int adescent(double, double);
+  double evaluate_dt();
   double maximum_rotation(double *);
 
-  double *rho;		// estimation of curvature
-  double **ds;		// change in rotation matrix between two iterations, da
-  double **dy;		// change in gradients between two iterations, dg
-  double **sp_copy;	// copy of the spins
-  int num_mem;		// number of stored steps
   bigint last_negative;
 };
 

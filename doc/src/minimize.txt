@@ -104,7 +104,7 @@ the number of outer iterations or timesteps exceeds {maxiter}
 the number of total force evaluations exceeds {maxeval} :ul
 
 NOTE: the "minimization style"_min_style.html {spin},
-{spin_oso_cg}, and {spin_oso_lbfgs} replace
+{spin/cg}, and {spin/lbfgs} replace
 the force tolerance {ftol} by a torque tolerance.
 The minimization procedure stops if the 2-norm (length) of the torque vector on atom
 (defined as the cross product between the

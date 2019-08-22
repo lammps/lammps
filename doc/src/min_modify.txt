@@ -72,7 +72,7 @@ that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
 The choice of a norm can be modified for the min styles {cg}, {sd}, 
-{quickmin}, {fire}, {spin}, {spin_oso_cg} and {spin_oso_lbfgs} using 
+{quickmin}, {fire}, {spin}, {spin/cg} and {spin/lbfgs} using 
 the {norm} keyword.
 The default {euclidean} norm computes the 2-norm (length) of the
 global force vector. The {max} norm computes the maximum value
@@ -88,19 +88,19 @@ adaptive timestep used in the {spin} minimization.
 See "min_spin"_min_spin.html for more information about those
 quantities. 
 
-The choice of a line search algorithm for the {spin_oso_cg} and
-{spin_oso_lbfgs} styles can be specified via the {line} keyword.
+The choice of a line search algorithm for the {spin/cg} and
+{spin/lbfgs} styles can be specified via the {line} keyword.
 The {spin_cubic} and  {spin_none} only make sense when one of those 
 two minimization styles is declared.
 The {spin_cubic} performs the line search based on a cubic interpolation
 of the energy along the search direction. The {spin_none} keyword
 deactivates the line search procedure.
-The {spin_none} is a default value for {line} keyword for both {spin_oso_lbfgs}
-and {spin_oso_cg}. Convergence of {spin_oso_lbfgs} can be more robust if
+The {spin_none} is a default value for {line} keyword for both {spin/lbfgs}
+and {spin/cg}. Convergence of {spin/lbfgs} can be more robust if
 {spin_cubic} line search is used.
 
 [Restrictions:] The line search procedure of styles
-{spin_oso_cg} and {spin_oso_lbfgs} cannot be used for magnetic
+{spin/cg} and {spin/lbfgs} cannot be used for magnetic
 GNEB calculations. See "neb/spin"_neb_spin.html for more
 explanation.
 
@@ -112,6 +112,6 @@ explanation.
 
 The option defaults are dmax = 0.1, line = quadratic and norm = euclidean.
 
-For the {spin}, {spin_oso_cg} and {spin_oso_lbfgs} styles, the
+For the {spin}, {spin/cg} and {spin/lbfgs} styles, the
 option defaults are alpha_damp = 1.0, discrete_factor = 10.0,
 line = spin_none, and norm = euclidean.

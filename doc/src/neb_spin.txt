@@ -173,7 +173,7 @@ A NEB calculation proceeds in two stages, each of which is a
 minimization procedure.  To enable
 this, you must first define a
 "min_style"_min_style.html, using either the {spin},
-{spin_oso_cg}, or {spin_oso_lbfgs} style (see
+{spin/cg}, or {spin/lbfgs} style (see
 "min_spin"_min_spin.html for more information).  
 The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
@@ -359,7 +359,7 @@ This command can only be used if LAMMPS was built with the SPIN
 package.  See the "Build package"_Build_package.html doc
 page for more info.
 
-The line search procedures of the {spin_oso_cg} and {spin_oso_lbfgs} 
+The line search procedures of the {spin/cg} and {spin/lbfgs} 
 minimization styles cannot be used in a GNEB calculation. 
 
 :line

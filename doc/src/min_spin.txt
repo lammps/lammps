@@ -6,18 +6,18 @@
 :line
 
 min_style spin command :h3
-min_style spin_oso_cg command :h3
-min_style spin_oso_lbfgs command :h3
+min_style spin/cg command :h3
+min_style spin/lbfgs command :h3
 
 [Syntax:]
 
 min_style spin 
-min_style spin_oso_cg 
-min_style spin_oso_lbfgs :pre
+min_style spin/cg 
+min_style spin/lbfgs :pre
 
 [Examples:]
 
-min_style 	spin_oso_lbfgs 
+min_style 	spin/lbfgs 
 min_modify      line spin_cubic discrete_factor 10.0 :pre
 
 [Description:]
@@ -51,35 +51,35 @@ definition of this timestep.
 {discrete_factor} can be defined with the "min_modify"_min_modify.html
 command.
 
-Style {spin_oso_cg} defines an orthogonal spin optimization
+Style {spin/cg} defines an orthogonal spin optimization
 (OSO) combined to a conjugate gradient (CG) algorithm. 
 The "min_modify"_min_modify.html command can be used to
-couple the {spin_oso_cg} to a line search procedure, and to modify the 
+couple the {spin/cg} to a line search procedure, and to modify the 
 discretization factor {discrete_factor}.
-By default, style {spin_oso_cg} does not employ the line search procedure 
+By default, style {spin/cg} does not employ the line search procedure 
 and uses the adaptive time-step technique in the same way as style {spin}.
 
-Style {spin_oso_lbfgs} defines an orthogonal spin optimization
+Style {spin/lbfgs} defines an orthogonal spin optimization
 (OSO) combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno 
 (L-BFGS) algorithm.
-By default, style {spin_oso_lbfgs} does not employ line search procedure.
+By default, style {spin/lbfgs} does not employ line search procedure.
 If the line search procedure is not used then the discrete factor defines
 the maximum root mean squared rotation angle of spins by equation {pi/(5*Kappa)}.
 The default value for Kappa is 10.
 The {spin_cubic} line search can improve the convergence of the 
-{spin_oso_lbfgs} algorithm.
+{spin/lbfgs} algorithm.
 
 The "min_modify"_min_modify.html command can be used to
 activate the line search procedure, and to modify the
 discretization factor {discrete_factor}. 
 
-For more information about styles {spin_oso_cg} and {spin_oso_lbfgs}, 
+For more information about styles {spin/cg} and {spin/lbfgs}, 
 see their implementation reported in "(Ivanov)"_#Ivanov1.
 
 NOTE: All the {spin} styles replace the force tolerance by a torque
 tolerance. See "minimize"_minimize.html for more explanation. 
 
-NOTE: The {spin_oso_cg} and {spin_oso_lbfgs} styles can be used
+NOTE: The {spin/cg} and {spin/lbfgs} styles can be used
 for magnetic NEB calculations only if the line search procedure
 is deactivated. See "neb/spin"_neb_spin.html for more explanation. 
 

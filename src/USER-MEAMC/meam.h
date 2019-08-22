@@ -234,6 +234,10 @@ static inline bool iszero(const double f) {
   return fabs(f) < 1e-20;
 }
 
+static inline bool isone(const double f) {
+  return fabs(f-1.0) < 1e-20;
+}
+
 // Helper functions
 
 static inline double fdiv_zero(const double n, const double d) {

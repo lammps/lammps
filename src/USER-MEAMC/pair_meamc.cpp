@@ -458,7 +458,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     rozero[i] = atof(words[17]);
     ibar[i] = atoi(words[18]);
 
-    if (!iszero(t0[i]-1.0))
+    if (!isone(t0[i]))
       error->all(FLERR,"Unsupported parameter in MEAM potential file");
 
     nset++;

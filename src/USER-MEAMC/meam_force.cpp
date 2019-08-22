@@ -410,7 +410,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
 
         //     Now compute forces on other atoms k due to change in sij
 
-        if (iszero(sij) || iszero(sij - 1.0)) continue; //: cont jn loop
+        if (iszero(sij) || isone(sij)) continue; //: cont jn loop
 
         double dxik(0), dyik(0), dzik(0);
         double dxjk(0), dyjk(0), dzjk(0);
@@ -429,7 +429,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
 
             dsij1 = 0.0;
             dsij2 = 0.0;
-            if (!iszero(sij) && !iszero(sij - 1.0)) {
+            if (!iszero(sij) && !isone(sij)) {
               const double rbound = rij2 * this->ebound_meam[elti][eltj];
               delc = Cmax - Cmin;
               dxjk = x[k][0] - x[j][0];

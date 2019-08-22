@@ -199,7 +199,7 @@ chunk/reduce"_compute_reduce_chunk.html command doc page.
 (8) An example for using one set of per-chunk values (dipole moment
 vectors) for molecule chunks, spreading the values to each atom in
 each chunk, then defining a second set of chunks as spatial bins, and
-using the "fix ave/chunk"_fix_ave_chunk.html command to calulate an
+using the "fix ave/chunk"_fix_ave_chunk.html command to calculate an
 average dipole moment vector for each bin.  This example is explained
 on the "compute chunk/spread/atom"_compute_chunk_spread_atom.html
 command doc page.

@@ -1,7 +1,6 @@
 # Makefile for LAMMPS documentation
 
 SHELL         = /bin/bash
-SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
 BUILDDIR      = ${PWD}
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv

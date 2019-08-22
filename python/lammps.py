@@ -32,6 +32,11 @@ import select
 import re
 import sys
 
+LAMMPS_INT    = 0
+LAMMPS_DOUBLE = 1
+LAMMPS_BIGINT = 2
+LAMMPS_TAGINT = 3
+
 def get_ctypes_int(size):
   if size == 4:
     return c_int32
@@ -283,10 +288,14 @@ class lammps(object):
 
   def extract_global(self,name,type):
     if name: name = name.encode()
-    if type == 0:
+    if type == LAMMPS_INT:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
-    elif type == 1:
+    elif type == LAMMPS_DOUBLE:
       self.lib.lammps_extract_global.restype = POINTER(c_double)
+    elif type == LAMMPS_BIGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
+    elif type == LAMMPS_TAGINT:
+      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
     else: return None
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]

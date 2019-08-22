@@ -90,6 +90,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
   ascale = 0.0;
   gjfflag = 0;
+  fsflag = 0;
   oflag = 0;
   tallyflag = 0;
   zeroflag = 0;
@@ -103,8 +104,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) gjfflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) gjfflag = 1;
+      if (strcmp(arg[iarg+1],"no") == 0) {gjfflag = 0; fsflag = 0;}
+      else if (strcmp(arg[iarg+1],"yes") == 0)
+        error->all(FLERR,"Fix langevin gjf yes is outdated, please use vhalf or vfull");
+      else if (strcmp(arg[iarg+1],"vhalf") == 0) {gjfflag = 1; fsflag = 0;}
+      else if (strcmp(arg[iarg+1],"vfull") == 0) {gjfflag = 1; fsflag = 1;}
       else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {
@@ -431,7 +435,7 @@ void FixLangevin::post_force(int /*vflag*/)
 
   if (tstyle == ATOM)
     if (gjfflag)
-      if (tallyflag)
+      if (tallyflag || fsflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<1,1,1,1,1,1>();
@@ -462,7 +466,7 @@ void FixLangevin::post_force(int /*vflag*/)
       if (zeroflag) post_force_templated<1,1,0,0,0,1>();
       else          post_force_templated<1,1,0,0,0,0>();
     else
-    if (tallyflag)
+    if (tallyflag || fsflag)
       if (tbiasflag == BIAS)
         if (rmass)
           if (zeroflag) post_force_templated<1,0,1,1,1,1>();
@@ -494,7 +498,7 @@ void FixLangevin::post_force(int /*vflag*/)
     else          post_force_templated<1,0,0,0,0,0>();
   else
   if (gjfflag)
-    if (tallyflag)
+    if (tallyflag || fsflag)
       if (tbiasflag == BIAS)
         if (rmass)
           if (zeroflag) post_force_templated<0,1,1,1,1,1>();
@@ -525,7 +529,7 @@ void FixLangevin::post_force(int /*vflag*/)
     if (zeroflag) post_force_templated<0,1,0,0,0,1>();
     else          post_force_templated<0,1,0,0,0,0>();
   else
-  if (tallyflag)
+  if (tallyflag || fsflag)
     if (tbiasflag == BIAS)
       if (rmass)
         if (zeroflag) post_force_templated<0,0,1,1,1,1>();
@@ -906,6 +910,13 @@ void FixLangevin::end_of_step()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double ftm2v = force->ftm2v;
+  double gamma1; double dtfm;
+  double dt = update->dt;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  double **f = atom->f;
+  int *type = atom->type;
 
   energy_onestep = 0.0;
 
@@ -916,9 +927,27 @@ void FixLangevin::end_of_step()
         tmp[0] = v[i][0];
         tmp[1] = v[i][1];
         tmp[2] = v[i][2];
-        v[i][0] = lv[i][0];
-        v[i][1] = lv[i][1];
-        v[i][2] = lv[i][2];
+        if (!fsflag){
+          v[i][0] = lv[i][0];
+          v[i][1] = lv[i][1];
+          v[i][2] = lv[i][2];
+        }
+        else{
+          if (atom->rmass) {
+            dtfm = 0.5 * dt / rmass[i];
+            gamma1 = -rmass[i] / t_period / ftm2v;
+            gamma1 *= 1.0/ratio[type[i]];
+          } else {
+            dtfm = 0.5 * dt / mass[type[i]];
+            gamma1 = gfactor1[type[i]];
+          }
+          v[i][0] = flangevin[i][0] - franprev[i][0] + gjfa * (gjfsib/2 + gamma1/gjfsib) * lv[i][0]
+                    + gjfsib*gjfsib*(dtfm * f[i][0] + v[i][0])/2;
+          v[i][1] = flangevin[i][1] - franprev[i][1] + gjfa * (gjfsib/2 + gamma1/gjfsib) * lv[i][1]
+                    + gjfsib*gjfsib*(dtfm * f[i][1] + v[i][1])/2;
+          v[i][2] = flangevin[i][2] - franprev[i][2] + gjfa * (gjfsib/2 + gamma1/gjfsib) * lv[i][2]
+                    + gjfsib*gjfsib*(dtfm * f[i][2] + v[i][2])/2;
+        }
         lv[i][0] = tmp[0];
         lv[i][1] = tmp[1];
         lv[i][2] = tmp[2];
@@ -1032,7 +1061,7 @@ double FixLangevin::memory_usage()
 {
   double bytes = 0.0;
   if (gjfflag) bytes += atom->nmax*6 * sizeof(double);
-  if (tallyflag) bytes += atom->nmax*3 * sizeof(double);
+  if (tallyflag || fsflag) bytes += atom->nmax*3 * sizeof(double);
   if (tforce) bytes += atom->nmax * sizeof(double);
   return bytes;
 }

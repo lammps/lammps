@@ -716,9 +716,21 @@ void FixLangevin::post_force_templated()
       f[i][2] += fdrag[2] + fran[2];
 
       if (Tp_TALLY) {
+        if (Tp_GJF && update->ntimestep != update->beginstep){
+          fdrag[0] = gamma1*lv[i][0]/gjfsib/gjfsib;
+          fdrag[1] = gamma1*lv[i][1]/gjfsib/gjfsib;
+          fdrag[2] = gamma1*lv[i][2]/gjfsib/gjfsib;
+          fswap = (2*fran[0] - franprev[i][0])/gjfsib;
+          fran[0] = fswap;
+          fswap = (2*fran[1] - franprev[i][1])/gjfsib;
+          fran[1] = fswap;
+          fswap = (2*fran[2] - franprev[i][2])/gjfsib;
+          fran[2] = fswap;
+        }
         flangevin[i][0] = fdrag[0] + fran[0];
         flangevin[i][1] = fdrag[1] + fran[1];
         flangevin[i][2] = fdrag[2] + fran[2];
+
       }
 
       if (Tp_ZERO) {
@@ -935,18 +947,18 @@ void FixLangevin::end_of_step()
         else{
           if (atom->rmass) {
             dtfm = 0.5 * dt / rmass[i];
-            gamma1 = -rmass[i] / t_period / ftm2v;
-            gamma1 *= 1.0/ratio[type[i]];
           } else {
             dtfm = 0.5 * dt / mass[type[i]];
-            gamma1 = gfactor1[type[i]];
           }
-          v[i][0] = flangevin[i][0] - franprev[i][0] + gjfa * (gjfsib/2 + gamma1/gjfsib) * lv[i][0]
-                    + gjfsib*gjfsib*(dtfm * f[i][0] + v[i][0])/2;
-          v[i][1] = flangevin[i][1] - franprev[i][1] + gjfa * (gjfsib/2 + gamma1/gjfsib) * lv[i][1]
-                    + gjfsib*gjfsib*(dtfm * f[i][1] + v[i][1])/2;
-          v[i][2] = flangevin[i][2] - franprev[i][2] + gjfa * (gjfsib/2 + gamma1/gjfsib) * lv[i][2]
-                    + gjfsib*gjfsib*(dtfm * f[i][2] + v[i][2])/2;
+          v[i][0] = 0.5 * gjfsib*gjfsib*(v[i][0] + dtfm * f[i][0] / gjfa) +
+                    dtfm * 0.5 * (gjfsib * flangevin[i][0] - franprev[i][0]) +
+                    (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * lv[i][0];
+          v[i][1] = 0.5 * gjfsib*gjfsib*(v[i][1] + dtfm * f[i][1] / gjfa) +
+                    dtfm * 0.5 * (gjfsib * flangevin[i][1] - franprev[i][1]) +
+                    (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * lv[i][1];
+          v[i][2] = 0.5 * gjfsib*gjfsib*(v[i][2] + dtfm * f[i][2] / gjfa) +
+                    dtfm * 0.5 * (gjfsib * flangevin[i][2] - franprev[i][2]) +
+                    (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * lv[i][2];
         }
         lv[i][0] = tmp[0];
         lv[i][1] = tmp[1];

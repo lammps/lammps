@@ -27,7 +27,7 @@ keyword = {cutoff} or {nnn} or {degrees} or {components}
 
 compute 1 all orientorder/atom
 compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
-compute 1 all orientorder/atom degrees 4 6 components 6 nnn NULL cutoff 3.0 :pre
+compute 1 all orientorder/atom degrees 2 4 6 components 6 nnn NULL cutoff 3.0 :pre
 
 [Description:]
 
@@ -48,7 +48,7 @@ neighbors of the central atom.
 The angles theta and phi are the standard spherical polar angles
 defining the direction of the bond vector {rij}.
 The second equation defines {Ql}, which is a
-rotationally invariant scalar quantity obtained by summing
+rotationally invariant non-negative amplitude obtained by summing
 over all the components of degree {l}.
 
 The optional keyword {cutoff} defines the distance cutoff

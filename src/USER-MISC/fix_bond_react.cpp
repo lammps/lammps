@@ -1209,7 +1209,7 @@ void FixBondReact::superimpose_algorithm()
           rxn_by_proc[j] = -1; // corresponds to ghostly
         int itemp = 0;
         for (int j = 0; j < nprocs; j++)
-          for (int k = 0; k < local_rxn_count[j]; k++)
+          for (int k = 0; k < local_rxncounts[j]; k++)
             rxn_by_proc[itemp++] = j;
         std::random_shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn]);
         for (int j = 0; j < nprocs; j++)

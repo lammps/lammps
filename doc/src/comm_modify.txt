@@ -69,9 +69,15 @@ processors.  By default the ghost cutoff = neighbor cutoff = pairwise
 force cutoff + neighbor skin.  See the "neighbor"_neighbor.html command
 for more information about the skin distance.  If the specified Rcut is
 greater than the neighbor cutoff, then extra ghost atoms will be acquired.
-If the provided cutoff is smaller, the provided value will be ignored
-and the ghost cutoff is set to the neighbor cutoff. Specifying a
-cutoff value of 0.0 will reset any previous value to the default.
+If the provided cutoff is smaller, the provided value will be ignored,
+the ghost cutoff is set to the neighbor cutoff and a warning will be
+printed. Specifying a cutoff value of 0.0 will reset any previous value
+to the default. If bonded interactions exist and equilibrium bond length
+information is available, then also a heuristic based on that bond length
+is computed. It is used as communication cutoff, if there is no pair
+style present and no {comm_modify cutoff} command used. Otherwise a
+warning is printed, if this bond based estimate is larger than the
+communication cutoff used. A
 
 The {cutoff/multi} option is equivalent to {cutoff}, but applies to
 communication mode {multi} instead. Since in this case the communication

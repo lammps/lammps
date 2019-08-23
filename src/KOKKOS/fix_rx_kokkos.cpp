@@ -11,15 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_rx_kokkos.h"
+#include <cstring>
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "memory_kokkos.h"
 #include "update.h"
-#include "respa.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"

@@ -12,14 +12,14 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_born_coul_wolf_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "math_const.h"
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

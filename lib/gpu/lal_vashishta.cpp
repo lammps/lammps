@@ -23,7 +23,7 @@ const char *vashishta=0;
 
 #include "lal_vashishta.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define VashishtaT Vashishta<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -295,4 +295,4 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
 }
 
 template class Vashishta<PRECISION,ACC_PRECISION>;
-
+}

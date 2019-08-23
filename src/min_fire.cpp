@@ -11,15 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "min_fire.h"
+#include <mpi.h>
+#include <cmath>
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

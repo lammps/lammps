@@ -14,8 +14,8 @@
 // Marsaglia random number generator
 // see RANMAR in F James, Comp Phys Comm, 60, 329 (1990)
 
-#include <cmath>
 #include "random_mars.h"
+#include <cmath>
 #include "error.h"
 
 using namespace LAMMPS_NS;

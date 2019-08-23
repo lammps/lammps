@@ -21,7 +21,6 @@ PairStyle(airebo,PairAIREBO)
 #define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
-#include "my_page.h"
 #include <cmath>
 #include "math_const.h"
 

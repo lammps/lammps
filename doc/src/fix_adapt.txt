@@ -149,8 +149,7 @@ meaning of these parameters:
 "spin/neel"_pair_spin_neel.html: coulombic_cutoff: type global:
 "table"_pair_table.html: table_cutoff: type pairs:
 "ufm"_pair_ufm.html: epsilon,sigma: type pairs:
-"soft"_pair_soft.html: a: type pairs:
-"kim"_pair_kim.html: PARAM_FREE_*&#58i,j,...: global :tb(c=3,s=:)
+"soft"_pair_soft.html: a: type pairs: :tb(c=3,s=:)
 
 NOTE: It is easy to add new pairwise potentials and their parameters
 to this list.  All it typically takes is adding an extract() method to

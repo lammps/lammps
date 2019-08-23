@@ -20,7 +20,6 @@ BondStyle(zero,BondZero)
 #ifndef LMP_BOND_ZERO_H
 #define LMP_BOND_ZERO_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

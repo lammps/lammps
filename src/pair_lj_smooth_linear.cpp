@@ -15,10 +15,9 @@
    Contributing author: Jonathan Zimmerman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_lj_smooth_linear.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -30,7 +29,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {}
+PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
+  single_hessian_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -344,5 +345,28 @@ double PairLJSmoothLinear::single(int /*i*/, int /*j*/, int itype, int jtype,
   philj = philj - ljcut[itype][jtype]
                 + (r-cut[itype][jtype])*dljcut[itype][jtype];
 
+  return factor_lj*philj;
+}
+
+double PairLJSmoothLinear::single_hessian(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double delr[3], double /*factor_coul*/, double factor_lj,
+                         double &fforce, double d2u[6])
+{
+  double r2inv,r6inv,forcelj,philj,r,rinv;
+
+  r2inv = 1.0/rsq;
+  r6inv = r2inv*r2inv*r2inv;
+  rinv  = sqrt(r2inv);
+  r     = sqrt(rsq);
+  forcelj = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+  forcelj = rinv*forcelj - dljcut[itype][jtype];
+  fforce = factor_lj*forcelj*rinv;
+
+  philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+  philj = philj - ljcut[itype][jtype]
+                + (r-cut[itype][jtype])*dljcut[itype][jtype];
+
+  double d2r = factor_lj * r6inv * (13.0*lj1[itype][jtype]*r6inv - 7.0*lj2[itype][jtype])/rsq;
+  hessian_twobody(fforce, -(fforce + d2r) / rsq, delr, d2u);
   return factor_lj*philj;
 }

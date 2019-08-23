@@ -20,7 +20,6 @@ BondStyle(class2,BondClass2)
 #ifndef LMP_BOND_CLASS2_H
 #define LMP_BOND_CLASS2_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

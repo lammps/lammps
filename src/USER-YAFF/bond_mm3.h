@@ -20,7 +20,6 @@ BondStyle(mm3,BondMM3)
 #ifndef LMP_BOND_MM3_H
 #define LMP_BOND_MM3_H
 
-#include <stdio.h>
 #include "bond.h"
 
 namespace LAMMPS_NS {

@@ -33,27 +33,25 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
+#include "fix_shardlow.h"
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "fix_shardlow.h"
+#include <stdint.h>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "npair.h"
 #include "memory.h"
 #include "domain.h"
 #include "modify.h"
 #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy.h"
-#include "pair.h"
 #include "npair_half_bin_newton_ssa.h"
 #include "citeme.h"
 

@@ -11,17 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "compute_pressure_grem.h"
-#include "atom.h"
+#include <cstring>
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
 #include "kspace.h"
 #include "error.h"
 

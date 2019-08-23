@@ -15,18 +15,16 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu
 ------------------------------------------------------------------------- */
 
+#include "pair_agni.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_agni.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"

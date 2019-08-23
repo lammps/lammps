@@ -16,10 +16,10 @@
                          Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "compute_orientorder_atom.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "compute_orientorder_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

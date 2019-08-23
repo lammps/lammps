@@ -13,12 +13,11 @@
    Contributing author: Ulf R. Pedersen, ulf@urp.dk
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_rhok.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
 
-#include "fix_rhok.h"
 #include "atom.h"
 #include "domain.h"
 #include "error.h"

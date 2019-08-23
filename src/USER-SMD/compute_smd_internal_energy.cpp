@@ -29,7 +29,6 @@
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
 #include "memory.h"
 #include "error.h"
 

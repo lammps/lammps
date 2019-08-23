@@ -15,8 +15,8 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt_body.h"
+#include <cstring>
 #include "group.h"
 #include "modify.h"
 #include "error.h"

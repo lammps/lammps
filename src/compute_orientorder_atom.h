@@ -33,7 +33,7 @@ class ComputeOrientOrderAtom : public Compute {
   void compute_peratom();
   double memory_usage();
   double cutsq;
-  int iqlcomp, qlcomp, qlcompflag;
+  int iqlcomp, qlcomp, qlcompflag, wlflag;
   int *qlist;
   int nqlist;
 
@@ -55,6 +55,14 @@ class ComputeOrientOrderAtom : public Compute {
 
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);
+
+  static const int nmaxfactorial = 167;
+  static const double nfac_table[];
+  double factorial(int);
+  void init_clebsch_gordan();
+  double deltacg(int, int, int);
+  double *cglist;
+  int idxcg_max;
 };
 
 }

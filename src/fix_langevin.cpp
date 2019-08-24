@@ -716,15 +716,15 @@ void FixLangevin::post_force_templated()
       f[i][2] += fdrag[2] + fran[2];
 
       if (Tp_TALLY) {
-        if (Tp_GJF && update->ntimestep != update->beginstep){
+        if (Tp_GJF){
           fdrag[0] = gamma1*lv[i][0]/gjfsib/gjfsib;
           fdrag[1] = gamma1*lv[i][1]/gjfsib/gjfsib;
           fdrag[2] = gamma1*lv[i][2]/gjfsib/gjfsib;
-          fswap = (2*fran[0] - franprev[i][0])/gjfsib;
+          fswap = (2*fran[0]/gjfa - franprev[i][0])/gjfsib;
           fran[0] = fswap;
-          fswap = (2*fran[1] - franprev[i][1])/gjfsib;
+          fswap = (2*fran[1]/gjfa - franprev[i][1])/gjfsib;
           fran[1] = fswap;
-          fswap = (2*fran[2] - franprev[i][2])/gjfsib;
+          fswap = (2*fran[2]/gjfa - franprev[i][2])/gjfsib;
           fran[2] = fswap;
         }
         flangevin[i][0] = fdrag[0] + fran[0];
@@ -922,8 +922,7 @@ void FixLangevin::end_of_step()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double ftm2v = force->ftm2v;
-  double gamma1; double dtfm;
+  double dtfm;
   double dt = update->dt;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -931,6 +930,20 @@ void FixLangevin::end_of_step()
   int *type = atom->type;
 
   energy_onestep = 0.0;
+
+  if (tallyflag){
+    if (gjfflag){
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit)
+          energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +
+                            flangevin[i][2]*lv[i][2];
+    }
+    else
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit)
+          energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
+                            flangevin[i][2]*v[i][2];
+}
 
   if (gjfflag){
     double tmp[3];
@@ -946,9 +959,9 @@ void FixLangevin::end_of_step()
         }
         else{
           if (atom->rmass) {
-            dtfm = 0.5 * dt / rmass[i];
+            dtfm = force->ftm2v * 0.5 * dt / rmass[i];
           } else {
-            dtfm = 0.5 * dt / mass[type[i]];
+            dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
           }
           v[i][0] = 0.5 * gjfsib*gjfsib*(v[i][0] + dtfm * f[i][0] / gjfa) +
                     dtfm * 0.5 * (gjfsib * flangevin[i][0] - franprev[i][0]) +
@@ -965,12 +978,6 @@ void FixLangevin::end_of_step()
         lv[i][2] = tmp[2];
       }
   }
-
-  if (tallyflag)
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
-                          flangevin[i][2]*v[i][2];
 
   energy += energy_onestep*update->dt;
 }

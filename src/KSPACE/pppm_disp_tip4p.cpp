@@ -16,13 +16,12 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pppm_disp_tip4p.h"
+#include <cmath>
 #include "pppm_disp.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "math_const.h"
 

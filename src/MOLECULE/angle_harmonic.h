@@ -20,7 +20,6 @@ AngleStyle(harmonic,AngleHarmonic)
 #ifndef LMP_ANGLE_HARMONIC_H
 #define LMP_ANGLE_HARMONIC_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

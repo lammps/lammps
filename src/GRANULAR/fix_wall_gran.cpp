@@ -16,15 +16,13 @@
                          Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_gran.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "modify.h"
 #include "respa.h"
 #include "math_const.h"
@@ -1149,11 +1147,11 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   else{
     knfac = E; //Hooke
     a = sqrt(dR);
+    Fne = knfac*delta;
     if (normal_model != HOOKE) {
       Fne *= a;
       knfac *= a;
     }
-    Fne = knfac*delta;
     if (normal_model == DMT)
       Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
   }
@@ -1294,10 +1292,12 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   // rolling resistance
   //****************************************
 
-  if (roll_model != ROLL_NONE) {
+  if (roll_model != ROLL_NONE || twist_model != NONE) {
     relrot1 = omega[0];
     relrot2 = omega[1];
     relrot3 = omega[2];
+  }
+  if (roll_model != ROLL_NONE){
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,

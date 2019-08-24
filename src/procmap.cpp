@@ -16,15 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "procmap.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <string>
+#include <utility>
 #include "universe.h"
 #include "comm.h"
 #include "domain.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
-#include <string>
 
 using namespace LAMMPS_NS;
 
@@ -301,7 +304,8 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
   MPI_Bcast(&n,1,MPI_INT,0,world);
   MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-  sscanf(line,"%d %d %d",&procgrid[0],&procgrid[1],&procgrid[2]);
+  int rv = sscanf(line,"%d %d %d",&procgrid[0],&procgrid[1],&procgrid[2]);
+  if (rv != 3) error->all(FLERR,"Processors custom grid file is inconsistent");
 
   int flag = 0;
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs) flag = 1;
@@ -320,8 +324,10 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     for (int i = 0; i < nprocs; i++) {
       if (!fgets(line,MAXLINE,fp))
         error->one(FLERR,"Unexpected end of custom file");
-      sscanf(line,"%d %d %d %d",
-             &cmap[i][0],&cmap[i][1],&cmap[i][2],&cmap[i][3]);
+      rv = sscanf(line,"%d %d %d %d",
+                  &cmap[i][0],&cmap[i][1],&cmap[i][2],&cmap[i][3]);
+      if (rv != 4)
+        error->one(FLERR,"Processors custom grid file is inconsistent");
     }
     fclose(fp);
   }

@@ -14,11 +14,10 @@
    from The Pennsylvania State University
 ------------------------------------------------------------------------- */
 
+#include "fix_bocs.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_bocs.h"
-#include "math_extra.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
@@ -59,6 +58,9 @@ static const char cite_user_bocs_package[] =
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
+
+// NB: Keep error and warning messages less than 255 chars long.
+const int MAX_MESSAGE_LENGTH = 256;
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
@@ -631,24 +633,32 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   double **data = (double **) calloc(N_columns,sizeof(double *));
   char * line = (char *) calloc(200,sizeof(char));
 
+  bool badInput = false;
+  char badDataMsg[MAX_MESSAGE_LENGTH];
   fpi = fopen(filename,"r");
   if (fpi)
   {
     while (fgets(line,199,fpi)) { ++n_entries; }
-    fclose(fpi);
+
     for (i = 0; i < N_columns; ++i)
     {
       data[i] = (double *) calloc(n_entries,sizeof(double));
     }
-  } else {
-    char errmsg[128];
-    snprintf(errmsg,128,"Unable to open file: %s\n",filename);
-    error->all(FLERR,errmsg);
-  }
 
-  n_entries = 0;
-  fpi = fopen(filename,"r");
-  if (fpi) {
+    // Don't need to re-open the file to make a second pass through it
+    // simply rewind to beginning
+    rewind(fpi);
+
+    double stdVolumeInterval = 0.0;
+    double currVolumeInterval = 0.0;
+    // When comparing doubles/floats, we need an Epsilon.
+    // The literature indicates getting this value right in the
+    // general case can be pretty complicated. I don't think it
+    // needs to be complicated here, though. At least based on the
+    // sample data I've seen where the volume values are fairly
+    // large.
+    const double volumeIntervalTolerance = 0.001;
+    n_entries = 0;
     while( fgets(line,199,fpi)) {
       ++n_entries;
       test_sscanf = sscanf(line," %f , %f ",&f1, &f2);
@@ -656,19 +666,47 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       {
         data[0][n_entries-1] = (double) f1;
         data[1][n_entries-1] = (double) f2;
+        if (n_entries == 2) {
+          stdVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
+        }
+        else if (n_entries > 2) {
+          currVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
+          if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
+            snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
+                     "BAD VOLUME INTERVAL: spline analysis requires uniform"
+                     " volume distribution, found inconsistent volume"
+                     " differential, line %d of file %s\n\tline: %s",
+                     n_entries,filename,line);
+            error->message(FLERR,badDataMsg);
+            badInput = true;
+          }
+        }
+        // no else -- first entry is simply ignored
       }
       else
       {
-        fprintf(stderr,"WARNING: did not find 2 comma separated values in "
-                 "line %d of file %s\n\tline: %s",n_entries,filename,line);
+        snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
+                 "BAD INPUT FORMAT: did not find 2 comma separated numeric"
+                 " values in line %d of file %s\n\tline: %s",
+                 n_entries,filename,line);
+        error->message(FLERR,badDataMsg);
+        badInput = true;
       }
     }
-  } else {
-    char errmsg[128];
-    snprintf(errmsg,128,"Unable to open file: %s\n",filename);
+    fclose(fpi);
+  }
+  else {
+    char errmsg[MAX_MESSAGE_LENGTH];
+    snprintf(errmsg,MAX_MESSAGE_LENGTH,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
-  fclose(fpi);
+
+  if (badInput) {
+    char errmsg[MAX_MESSAGE_LENGTH];
+    snprintf(errmsg,MAX_MESSAGE_LENGTH,
+             "Bad volume / pressure-correction data: %s\nSee details above",filename);
+    error->all(FLERR,errmsg);
+  }
 
   if (p_basis_type == 1)
   {
@@ -692,9 +730,10 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   }
   else
   {
-    char * errmsg = (char *) calloc(70,sizeof(char));
-    sprintf(errmsg,"ERROR: invalid p_basis_type value "
-                                    "of %d in read_F_table",p_basis_type);
+    char errmsg[MAX_MESSAGE_LENGTH];
+    snprintf(errmsg, MAX_MESSAGE_LENGTH,
+             "ERROR: invalid p_basis_type value of %d in read_F_table",
+             p_basis_type);
     error->all(FLERR,errmsg);
   }
   // cleanup

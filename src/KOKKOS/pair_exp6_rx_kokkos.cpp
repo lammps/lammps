@@ -15,20 +15,17 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_exp6_rx_kokkos.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "math_const.h"
 #include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "modify.h"
 #include "fix.h"
 #include <cfloat>
 #include "atom_masks.h"
@@ -41,7 +38,6 @@
 #endif
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecialKokkos;
 
 #define MAXLINE 1024

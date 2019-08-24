@@ -22,22 +22,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <Eigen/Eigen>
 #include "fix_smd_integrate_tlsph.h"
+#include <cmath>
+#include <cstring>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
 #include "pair.h"
-#include "neigh_list.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "comm.h"
-#include "modify.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;

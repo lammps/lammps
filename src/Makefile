@@ -198,8 +198,8 @@ gitversion:
 # shlib = shared lib in Obj_shared_machine
 
 .DEFAULT:
-	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
-	  then $(MAKE) mpi-stubs; fi
+	@if [ $@ = "serial" ]; \
+	  then cd STUBS; $(MAKE); cd ..; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
@@ -256,7 +256,10 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+
 clean-%:
+	@if [ $@ = "clean-serial" ]; \
+		then cd STUBS; $(MAKE) clean; cd ..; fi
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
 # Create Makefile.list

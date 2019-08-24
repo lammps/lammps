@@ -248,9 +248,8 @@ write_dump      all atom sinusoid.lammpstrj :pre
 
 :c,image(JPG/sinusoid_small.jpg,JPG/sinusoid.jpg)
 
-The {rotate} keyword can only be used with the {single} style and
-when adding a single molecule. It allows to specify the orientation
-at which the molecule is inserted.  The axis of rotation is
+The {rotate} keyword allows specification of the orientation
+at which molecules are inserted.  The axis of rotation is
 determined by the rotation vector (Rx,Ry,Rz) that goes through the
 insertion point.  The specified {theta} determines the angle of
 rotation around that axis.  Note that the direction of rotation for

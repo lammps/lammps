@@ -67,6 +67,7 @@ distance^2 "units"_units.html respectively.
 
 [Related commands:]
 
-"compute gyration/chunk"_compute_gyration_chunk.html
+"compute gyration/chunk"_compute_gyration_chunk.html,
+"compute gyration/shape"_compute_gyration_shape.html
 
 [Default:] none

@@ -15,33 +15,23 @@
    Contributing author: Julien Tranchida (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm_dipole_spin.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include "pppm_dipole_spin.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
-#include "neighbor.h"
 #include "force.h"
 #include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
-#include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
 #include "update.h"
 
 #include "math_const.h"
-#include "math_special.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define MAXORDER 7
 #define OFFSET 16384

@@ -11,11 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_line_lj.h"
+#include <cmath>
 #include "atom.h"
 #include "atom_vec_line.h"
 #include "force.h"

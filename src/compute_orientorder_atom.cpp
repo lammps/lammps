@@ -96,11 +96,11 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (iarg+nqlist > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
-      for (int iw = 0; iw < nqlist; iw++) {
-        qlist[iw] = force->numeric(FLERR,arg[iarg+iw]);
-        if (qlist[iw] < 0)
+      for (int il = 0; il < nqlist; il++) {
+        qlist[il] = force->numeric(FLERR,arg[iarg+il]);
+        if (qlist[il] < 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
-        if (qlist[iw] > qmax) qmax = qlist[iw];
+        if (qlist[il] > qmax) qmax = qlist[il];
       }
       iarg += nqlist;
     } else if (strcmp(arg[iarg],"components") == 0) {
@@ -111,9 +111,9 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (qlcomp <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       iqlcomp = -1;
-      for (int iw = 0; iw < nqlist; iw++)
-        if (qlcomp == qlist[iw]) {
-          iqlcomp = iw;
+      for (int il = 0; il < nqlist; il++)
+        if (qlcomp == qlist[il]) {
+          iqlcomp = il;
           break;
         }
       if (iqlcomp < 0)
@@ -274,8 +274,8 @@ void ComputeOrientOrderAtom::compute_peratom()
       // if not nnn neighbors, order parameter = 0;
 
       if ((ncount == 0) || (ncount < nnn)) {
-        for (int iw = 0; iw < nqlist; iw++)
-          qn[iw] = 0.0;
+        for (int il = 0; il < nqlist; il++)
+          qn[il] = 0.0;
         continue;
       }
 
@@ -403,13 +403,13 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
 void ComputeOrientOrderAtom::calc_boop(double **rlist,
                                        int ncount, double qn[],
                                        int qlist[], int nqlist) {
-  for (int iw = 0; iw < nqlist; iw++) {
-    int n = qlist[iw];
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
 
-    qn[iw] = 0.0;
-    for(int m = 0; m < 2*n+1; m++) {
-      qnm_r[iw][m] = 0.0;
-      qnm_i[iw][m] = 0.0;
+    qn[il] = 0.0;
+    for(int m = 0; m < 2*l+1; m++) {
+      qnm_r[il][m] = 0.0;
+      qnm_i[il][m] = 0.0;
     }
   }
 
@@ -433,24 +433,24 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       expphi_i *= rxymaginv;
     }
 
-    for (int iw = 0; iw < nqlist; iw++) {
-      int n = qlist[iw];
+    for (int il = 0; il < nqlist; il++) {
+      int l = qlist[il];
 
-      qnm_r[iw][n] += polar_prefactor(n, 0, costheta);
+      qnm_r[il][l] += polar_prefactor(l, 0, costheta);
       double expphim_r = expphi_r;
       double expphim_i = expphi_i;
-      for(int m = 1; m <= +n; m++) {
-        double prefactor = polar_prefactor(n, m, costheta);
+      for(int m = 1; m <= +l; m++) {
+        double prefactor = polar_prefactor(l, m, costheta);
         double c_r = prefactor * expphim_r;
         double c_i = prefactor * expphim_i;
-        qnm_r[iw][m+n] += c_r;
-        qnm_i[iw][m+n] += c_i;
+        qnm_r[il][m+l] += c_r;
+        qnm_i[il][m+l] += c_i;
         if(m & 1) {
-          qnm_r[iw][-m+n] -= c_r;
-          qnm_i[iw][-m+n] += c_i;
+          qnm_r[il][-m+l] -= c_r;
+          qnm_i[il][-m+l] += c_i;
         } else {
-          qnm_r[iw][-m+n] += c_r;
-          qnm_i[iw][-m+n] -= c_i;
+          qnm_r[il][-m+l] += c_r;
+          qnm_i[il][-m+l] -= c_i;
         }
         double tmp_r = expphim_r*expphi_r - expphim_i*expphi_i;
         double tmp_i = expphim_r*expphi_i + expphim_i*expphi_r;
@@ -461,30 +461,55 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     }
   }
 
+  // calculate Q_l
+
   double fac = sqrt(MY_4PI) / ncount;
   double normfac = 0.0;
-  for (int iw = 0; iw < nqlist; iw++) {
-    int n = qlist[iw];
+  int jcount = 0;
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
     double qm_sum = 0.0;
-    for(int m = 0; m < 2*n+1; m++) {
-      qm_sum += qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m];
-      //      printf("Ylm^2 = %d %d %g\n",n,m,
-      //     qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m]);
-    }
-    qn[iw] = fac * sqrt(qm_sum / (2*n+1));
-    if (qlcompflag && iqlcomp == iw) normfac = 1.0/sqrt(qm_sum);
+    for(int m = 0; m < 2*l+1; m++)
+      qm_sum += qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m];
+
+    qn[jcount++] = fac * sqrt(qm_sum / (2*l+1));
+    if (qlcompflag && iqlcomp == il) normfac = 1.0/sqrt(qm_sum);
 
   }
+
+  // TODO: 
+  // 1. Need to allocate extra memory in qn[] for this option
+  // 2. Need to add keyword option
+  // 3. Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
+  // 4. Compate to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop
+
+//   // calculate W_l
+
+//   if (wlflag) {
+//     for (int il = 0; il < nqlist; il++) {
+//       int l = qlist[il];
+//       double wlsum = 0.0;
+//       for(int m1 = 0; m1 < 2*l+1; m1++) {
+//         for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1; m2++)) {
+//           int m = m1 + m2 - l;
+//           qm1qm2_r = qnm_r[il][m1]*qnm_r[il][m2] - qnm_i[il][m1]*qnm_i[il][m2];
+//           qm1qm2_i = qnm_r[il][m1]*qnm_i[il][m2] + qnm_i[il][m1]*qnm_r[il][m2];
+//           wlsum += (qm1qm2_r*qnm_r[il][m] + qm1qm2_i*qnm_i[il][m])*cg; 
+//         }
+//       }
+//       qn[jcount++] = wlsum;
+//     }
+//   }
 
   // output of the complex vector
 
   if (qlcompflag) {
-    int j = nqlist;
     for(int m = 0; m < 2*qlcomp+1; m++) {
-      qn[j++] = qnm_r[iqlcomp][m] * normfac;
-      qn[j++] = qnm_i[iqlcomp][m] * normfac;
+      qn[jcount++] = qnm_r[iqlcomp][m] * normfac;
+      qn[jcount++] = qnm_i[iqlcomp][m] * normfac;
     }
   }
+
 }
 
 /* ----------------------------------------------------------------------

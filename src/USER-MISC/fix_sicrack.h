@@ -22,7 +22,6 @@ FixStyle(sicrack,FixSICrack)
 #ifndef LMP_FIX_SICRACK_H
 #define LMP_FIX_SICRACK_H
 
-#include "stdio.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {

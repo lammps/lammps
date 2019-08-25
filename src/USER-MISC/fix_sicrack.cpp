@@ -13,21 +13,23 @@
    //Mode 1 crack
 /*------------------------------------------------------------------------- */
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_sicrack.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "lattice.h"
 #include "math.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "fix_sicrack.h"
-#include "atom.h"
-#include "force.h"
-#include "fix.h"
-#include "modify.h"
-#include "memory.h"
-#include "domain.h"
-#include "lattice.h"
-#include "group.h"
 #include "update.h"
-#include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -49,10 +51,10 @@ FixSICrack::FixSICrack(LAMMPS *lmp, int narg, char **arg) :
 
   // read arguments from input and check validity
 
-  xtip = atof(arg[3]);  // Give coords in (rotated) lattice units, not in Ångstrøm
+  xtip = atof(arg[3]);  // give coords in (rotated) lattice units, not in angstrøm
   ytip = atof(arg[4]);
-  mu = atof(arg[5]);   // Shear modulus, in GPa
-  vu = atof(arg[6]);  // Poisson ratio
+  mu = atof(arg[5]);   // shear modulus, in GPa
+  vu = atof(arg[6]);  // poisson ratio
 
   int iarg = 7;
 
@@ -139,8 +141,8 @@ FixSICrack::~FixSICrack()
 int FixSICrack::setmask()
 {
   int mask = 0;
-  mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
-  mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
+    mask |= FixConst::INITIAL_INTEGRATE;
+  mask |= FixConst::FINAL_INTEGRATE;
   return mask;
 }
 
@@ -183,9 +185,9 @@ void FixSICrack::setup(int vflag)
 	cost = cos(theta);
 	sint = sin(theta);
 
-	ux = 0.5/mu*sqrt(0.5*rdist/PI)*(K1*cost*(Xk - 1.0 + 2.0*sint*sint) + K2*sint*(Xk + 1.0 + 2.0*cost*cost))*100;
-	uy = 0.5/mu*sqrt(0.5*rdist/PI)*(K1*sint*(Xk + 1.0 - 2.0*cost*cost) - K2*cost*(Xk - 1.0 - 2.0*sint*sint))*100;
-	uz = K3/mu*sqrt(0.5*rdist/PI)*sint*100;
+	ux = 0.5/mu*sqrt(0.5*rdist/MathConst::MY_PI)*(K1*cost*(Xk - 1.0 + 2.0*sint*sint) + K2*sint*(Xk + 1.0 + 2.0*cost*cost))*100;
+	uy = 0.5/mu*sqrt(0.5*rdist/MathConst::MY_PI)*(K1*sint*(Xk + 1.0 - 2.0*cost*cost) - K2*cost*(Xk - 1.0 - 2.0*sint*sint))*100;
+	uz = K3/mu*sqrt(0.5*rdist/MathConst::MY_PI)*sint*100;
 	// factor 100 is to make the units right, so we get a displacement in Ångstrøm
 
 	uTx = T/8/mu*(Xk+1)*rdist*cos(theta2)/1000;

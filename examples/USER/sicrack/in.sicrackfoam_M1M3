@@ -11,7 +11,13 @@ neigh_modify    delay 5
 
 ## create geometry
 
-read_data CrackBlock
+## create geometry
+region region_name1 block -40.8 40.8 -40.8 40.8 -40.8 40.8
+create_box 2 region_name1
+
+lattice fcc 4.08 origin 0.0 0.0 0.0 #orient x 1 1 -2 orient y 1 1 1 orient z 1 -1 0
+region reg_Mo2 sphere 0.0 0.0 0.0 380.09 side in units box
+create_atoms 1 region reg_Mo2
 
 # define groups
 
@@ -44,6 +50,7 @@ fix     2 boundary setforce 0.0 0.0 0.0
 fix     3 mobile temp/rescale 10 300.0 300.0 0.07 1.0
 fix_modify  3 temp myTemp
 fix		4 all sicrack 0.0  0.0  27.0 0.44 M1 1.29 0.0
+fix     5 all sicrack 0.0  0.0  27.0 0.44 M3 1.29 0.0
 
 # run
 
@@ -52,11 +59,13 @@ thermo		500
 thermo_style	custom step temp etotal press vol pxx pyy pzz ly
 thermo_modify	temp myTemp
 
-dump		1 all custom 5000 dump.sicrackfoam_1.29_ModeCombo_M1_* id type xs ys zs c_pot v_mises c_kin
+dump		1 all custom 5000 dump.sicrackfoam_1.29_ModeCombo_M1M3_* id type xs ys zs c_pot v_mises c_kin
 
 run		5000
 
-unfix 45
+unfix 4
+unfix 5
 fix		6 all sicrack 0.0  0.0  27.0 0.44 M1 0.0 0.00001
+fix     7 all sicrack 0.0  0.0  27.0 0.44 M3 0.0 0.00001
 
 run		50000

@@ -1,1 +1,12 @@
-../../potentials/SiC.meam
+# DATE: 2007-06-11 CONTRIBUTOR: Greg Wagner, gjwagne@sandia.gov CITATION: Unknown
+lattce(1,2) = 'dia'
+Ec(1,2) = 6.4325
+alpha(1,2) = 4.37
+re(1,2) = 1.8878
+rho0(2) = 2.25
+rc = 4.0
+delr = 0.1
+Cmax(1,2,1) = 4.0
+Cmax(1,2,2) = 4.0
+Cmax(2,2,1) = 4.0
+Cmax(1,1,2) = 4.0

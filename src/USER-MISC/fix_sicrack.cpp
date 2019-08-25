@@ -51,10 +51,10 @@ FixSICrack::FixSICrack(LAMMPS *lmp, int narg, char **arg) :
 
   // read arguments from input and check validity
 
-  xtip = atof(arg[3]);  // give coords in (rotated) lattice units, not in angstrøm
-  ytip = atof(arg[4]);
-  mu = atof(arg[5]);   // shear modulus, in GPa
-  vu = atof(arg[6]);  // poisson ratio
+  xtip = utils::numeric(FLERR,arg[3],true,lmp);  // give coords in (rotated) lattice units, not in angstrøm
+  ytip = utils::numeric(FLERR,arg[4],true,lmp); 
+  mu = utils::numeric(FLERR,arg[5],true,lmp);  // shear modulus, in GPa
+  vu = utils::numeric(FLERR,arg[6],true,lmp);  // poisson ratio
 
   int iarg = 7;
 
@@ -62,29 +62,29 @@ FixSICrack::FixSICrack(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"M1") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix sicrack command");
       else {
-	K1 = atof(arg[iarg+1]);  // Mode I stress-intensity factor, in MPa*sqrt(m)
-	dK1 = atof(arg[iarg+2]);  // Increase in Mode I stress-intensity factor, in MPa*sqrt(m)
+	K1 = utils::numeric(FLERR,arg[iarg+1],true,lmp);  // Mode I stress-intensity factor, in MPa*sqrt(m)
+	dK1 = utils::numeric(FLERR,arg[iarg+2],true,lmp);  // Increase in Mode I stress-intensity factor, in MPa*sqrt(m)
 	iarg += 3;
       }
     } else if (strcmp(arg[iarg],"M2") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix sicrack command");
       else {
-	K2 = atof(arg[iarg+1]);  // Mode II stress-intensity factor, in MPa*sqrt(m)
-	dK2 = atof(arg[iarg+2]);  // Increase in Mode II stress-intensity factor, in MPa*sqrt(m)
+	K2 = utils::numeric(FLERR,arg[iarg+1],true,lmp);  // Mode II stress-intensity factor, in MPa*sqrt(m)
+	dK2 = utils::numeric(FLERR,arg[iarg+2],true,lmp);  // Increase in Mode II stress-intensity factor, in MPa*sqrt(m)
 	iarg += 3;
       }
     } else if (strcmp(arg[iarg],"M3") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix sicrack command");
       else {
-	K3 = atof(arg[iarg+1]);  // Mode III stress-intensity factor, in MPa*sqrt(m)
-	dK3 = atof(arg[iarg+2]);  // Increase in Mode III stress-intensity factor, in MPa*sqrt(m)
+	K3 = utils::numeric(FLERR,arg[iarg+1],true,lmp);  // Mode III stress-intensity factor, in MPa*sqrt(m)
+	dK3 = utils::numeric(FLERR,arg[iarg+2],true,lmp);  // Increase in Mode III stress-intensity factor, in MPa*sqrt(m)
 	iarg += 3;
       }
     } else if (strcmp(arg[iarg],"T") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix sicrack command");
       else {
-	T = atof(arg[iarg+1]);  // T-stress, in MPa
-	dT = atof(arg[iarg+2]);  // Increase in T-stress, in MPa
+	T = utils::numeric(FLERR,arg[iarg+1],true,lmp);  // T-stress, in MPa
+	dT = utils::numeric(FLERR,arg[iarg+2],true,lmp);  // Increase in T-stress, in MPa
 	iarg += 3;
       }
     } else error->all(FLERR,"Illegal fix sicrack command");

@@ -1,1 +1,74 @@
-../../../../../potentials/BNC.tersoff
+# DATE: 2013-03-21 CONTRIBUTOR: Cem Sevik CITATION: Kinaci, Haskins, Sevik and Cagin,  Phys Rev B, 86, 115410 (2012) 
+# Tersoff parameters for B, C, and BN-C hybrid based graphene like nano structures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+
+# these entries are in LAMMPS "metal" units:
+#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms
+#   other quantities are unitless
+
+# Cem Sevik (csevik at anadolu.edu.tr) takes full blame for this
+# file.  It specifies B-N, B-C, and N-C interaction parameters 
+# generated and published by the reseacrh group of Prof. Tahir Cagin.
+
+# 1. Physical Review B 84, 085409 2011
+#    Characterization of thermal transport in low-dimensional boron nitride nanostructures, 
+#
+
+# 2. Physical Review B 86, 075403 2012
+#    Influence of disorder on thermal transport properties of boron nitride nanostructures
+#
+
+# 3. Physical Review B 86, 075403 2012, Please see for further information about B-C and N-C parameters
+#    Thermal conductivity of BN-C nanostructures
+#
+
+# The file also specifies C-C, interaction parameters 
+# generated and published by the reseacrh group of Dr. D. A. Broido
+# Physical Review B 81, 205441 2010
+# Optimized Tersoff and Brenner empirical potential parameters for 
+# lattice dynamics and phonon thermal transport in carbon nanotubes and graphene
+
+# Users in referring the full parameters can cite the full parameter paper (3) as:
+#      A. Kinaci, J. B. Haskins, C. Sevik, T. Cagin,  Physical Review B 86, 115410 (2012) 
+#      Thermal conductivity of BN-C nanostructures
+#
+
+# format of a single entry (one or more lines):
+#   element 1, element 2, element 3,
+#   m, gamma, lambda3, c, d, costheta0, n, beta, lambda2, B, R, D, lambda1, A
+
+N      B       B         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
+N      B       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0    
+N      B       C         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
+
+B      N       B         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
+B      N       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0    
+B      N       C         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
+
+N      N       B         3.0 1.0 0.0 17.7959  5.9484  0.00000 0.6184432 0.019251        2.6272721    138.77866       2.0     0.1     2.8293093    128.86866
+N      N       N         3.0 1.0 0.0 17.7959  5.9484  0.00000 0.6184432 0.019251        2.6272721    138.77866       2.0     0.1     2.8293093    128.86866
+N      N       C         3.0 1.0 0.0 17.7959  5.9484  0.00000 0.6184432 0.019251        2.6272721    138.77866       2.0     0.1     2.8293093    128.86866
+
+B      B       B         3.0 1.0 0.0 0.52629  0.001587  0.5    3.9929061  1.6e-6     2.0774982    43.132016       2.0     0.1     2.2372578   40.0520156
+B      B       N         3.0 1.0 0.0 0.52629  0.001587  0.5    3.9929061  1.6e-6     2.0774982    43.132016       2.0     0.1     2.2372578   40.0520156
+B      B       C         3.0 1.0 0.0 0.52629  0.001587  0.5    3.9929061  1.6e-6     2.0774982    43.132016       2.0     0.1     2.2372578   40.0520156
+
+C      C       C         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2119  430.00    1.95    0.15   3.4879  1393.6
+C      C       B         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2119  430.00    1.95    0.15   3.4879  1393.6
+C      C       N         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2119  430.00    1.95    0.15   3.4879  1393.6
+
+C      B       B         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2054  339.068910     1.95    0.10   3.5279  1386.78
+C      B       N         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2054  339.068910     1.95    0.10   3.5279  1386.78
+C      B       C         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2054  339.068910     1.95    0.10   3.5279  1386.78
+
+C      N       B         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2054  387.575152     1.95    0.10   3.5279  1386.78
+C      N       N         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2054  387.575152     1.95    0.10   3.5279  1386.78
+C      N       C         3.0 1.0 0.0 3.8049e4 4.3484 -0.93000 0.72751 1.5724e-7  2.2054  387.575152     1.95    0.10   3.5279  1386.78
+
+B      C       C         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751 1.25724e-7 2.2054  339.068910     1.95    0.10   3.5279  1386.78
+B      C       B         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751 1.25724e-7 2.2054  339.068910     1.95    0.10   3.5279  1386.78
+B      C       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751 1.25724e-7 2.2054  339.068910     1.95    0.10   3.5279  1386.78
+
+N      C       C         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751 1.25724e-7 2.2054  387.575152     1.95    0.10   3.5279  1386.78
+N      C       B         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751 1.25724e-7 2.2054  387.575152     1.95    0.10   3.5279  1386.78
+N      C       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751 1.25724e-7 2.2054  387.575152     1.95    0.10   3.5279  1386.78

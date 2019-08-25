@@ -1,1 +1,7 @@
-Makefile.lammps.linalg
+# Settings that the LAMMPS build will import when this package library is used
+
+# GNU Fortran settings for use with bundled linalg lib
+
+latte_SYSINC = 
+latte_SYSLIB = ../../lib/latte/filelink.o -llatte -llinalg -lgfortran
+latte_SYSPATH = -L../../lib/linalg -fopenmp

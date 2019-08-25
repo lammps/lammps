@@ -21,7 +21,7 @@ group		boundary subtract all mobile
 #set		    group boundary type 2
 
 pair_style eam
-pair_coeff * * /Users/bnathan2/Desktop/LAMMPS_git_Aug14_2019/potentials/Au_u3.eam
+pair_coeff * * Au_u3.eam
 
 # computes
 

@@ -1,1 +1,101 @@
-Makefile.g++
+# *
+# *_________________________________________________________________________*
+# *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
+# *      DESCRIPTION: SEE READ-ME                                           *
+# *      FILE NAME: Makefile                                                *
+# *      AUTHORS: See Author List                                           * 
+# *      GRANTS: See Grants List                                            *
+# *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
+# *      LICENSE: Please see License Agreement                              *
+# *      DOWNLOAD: Free at www.rpi.edu/~anderk5                             *
+# *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
+# *                     Computational Dynamics Lab                          *
+# *                     Rensselaer Polytechnic Institute                    *
+# *                     110 8th St. Troy NY 12180                           * 
+# *      CONTACT:        anderk5@rpi.edu                                    *
+# *_________________________________________________________________________*/
+
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.empty
+
+# ------ FILES ------
+
+SRC_MAIN = workspace.cpp system.cpp poemsobject.cpp 
+INC_MAIN = workspace.h system.h poemsobject.h
+
+SRC_BODY =      body.cpp rigidbody.cpp particle.cpp inertialframe.cpp
+INC_BODY =      bodies.h body.h rigidbody.h particle.h inertialframe.h
+
+
+SRC_JOINT =     joint.cpp revolutejoint.cpp prismaticjoint.cpp sphericaljoint.cpp \
+    freebodyjoint.cpp body23joint.cpp mixedjoint.cpp
+INC_JOINT =     joints.h joint.h revolutejoint.h prismaticjoint.h sphericaljoint.h \
+    freebodyjoint.h body23joint.h mixedjoint.h
+
+SRC_POINT =     point.cpp fixedpoint.cpp
+INC_POINT =     points.h point.h fixedpoint.h
+
+SRC_SOLVE = solver.cpp  
+INC_SOLVE = solver.h  
+
+SRC_ORDERN = onsolver.cpp onfunctions.cpp onbody.cpp
+INC_ORDERN = onsolver.h onfunctions.h onbody.h
+
+SRC_MAT =       virtualmatrix.cpp matrix.cpp matrixfun.cpp mat3x3.cpp virtualcolmatrix.cpp \
+    colmatrix.cpp vect3.cpp virtualrowmatrix.cpp rowmatrix.cpp mat6x6.cpp vect6.cpp \
+    fastmatrixops.cpp colmatmap.cpp eulerparameters.cpp vect4.cpp norm.cpp mat4x4.cpp \
+    
+INC_MAT =       matrices.h virtualmatrix.h matrix.h matrixfun.h mat3x3.h virtualcolmatrix.h \
+    colmatrix.h vect3.h virtualrowmatrix.h rowmatrix.h mat6x6.h vect6.h \
+    fastmatrixops.h colmatmap.h eulerparameters.h vect4.h norm.h mat4x4.h 
+
+SRC_MISC = poemstreenode.cpp
+INC_MISC = poemslist.h poemstreenode.h poemstree.h poemsnodelib.h SystemProcessor.h defines.h POEMSChain.h
+
+SRC = $(SRC_MAIN) $(SRC_BODY) $(SRC_JOINT) $(SRC_POINT) $(SRC_SOLVE) $(SRC_ORDERN) $(SRC_MAT) $(SRC_MISC) 
+INC = $(INC_MAIN) $(INC_BODY) $(INC_JOINT) $(INC_POINT) $(INC_SOLVE) $(INC_ORDERN) $(INC_MAT) $(INC_MISC) 
+
+FILES = $(SRC) $(INC) Makefile Authors_List.txt Grants_List.txt POEMS_License.txt README Copyright_Notice
+
+# ------ DEFINITIONS ------
+
+LIB = libpoems.a
+OBJ =   $(SRC:.cpp=.o)
+
+# ------ SETTINGS ------
+
+CC =	        g++
+CCFLAGS =       -O3 -g -fPIC -Wall #-Wno-deprecated
+ARCHIVE =	ar
+ARCHFLAG =	-rc
+DEPFLAGS =      -M
+LINK =         	g++
+LINKFLAGS =	-O
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ COMPILE RULES ------
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# ------ DEPENDENCIES ------
+
+include .depend
+
+# ------ CLEAN ------
+
+clean:
+	-rm *.o *.d *~ $(LIB)
+
+tar:
+	-tar -cvf ../POEMS.tar $(FILES)

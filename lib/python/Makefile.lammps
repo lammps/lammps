@@ -1,7 +1,0 @@
-# Settings that the LAMMPS build will import when this package library is used
-# See the README file for more explanation
-
-python_SYSINC = $(shell which python-config > /dev/null 2>&1 && python-config --includes || :)
-python_SYSLIB = $(shell which python-config > /dev/null 2>&1 && python-config --ldflags || :)
-python_SYSPATH =
-PYTHON=python

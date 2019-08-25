@@ -1,1 +1,72 @@
-Makefile.linux
+# /* ----------------------------------------------------------------------   
+#  Generic Linux Makefile for CUDA 
+#     - Change CUDA_ARCH for your GPU
+# ------------------------------------------------------------------------- */
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
+ifeq ($(CUDA_HOME),)
+CUDA_HOME = /usr/local/cuda
+endif
+
+NVCC = nvcc
+
+# obsolete hardware. not supported by current drivers anymore.
+#CUDA_ARCH = -arch=sm_13
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+
+# Fermi hardware
+#CUDA_ARCH = -arch=sm_20
+#CUDA_ARCH = -arch=sm_21
+
+# Kepler hardware
+CUDA_ARCH = -arch=sm_30
+#CUDA_ARCH = -arch=sm_32
+#CUDA_ARCH = -arch=sm_35
+#CUDA_ARCH = -arch=sm_37
+
+# Maxwell hardware
+#CUDA_ARCH = -arch=sm_50
+#CUDA_ARCH = -arch=sm_52
+
+# Pascal hardware
+#CUDA_ARCH = -arch=sm_60
+#CUDA_ARCH = -arch=sm_61
+
+# Volta hardware
+#CUDA_ARCH = -arch=sm_70
+
+# Turing hardware
+#CUDA_ARCH = -arch=sm_75
+
+# this setting should match LAMMPS Makefile
+# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+# precision for GPU calculations
+# -D_SINGLE_SINGLE  # Single precision for all calculations
+# -D_DOUBLE_DOUBLE  # Double precision for all calculations
+# -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+
+CUDA_PRECISION = -D_SINGLE_DOUBLE
+
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64
+CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC
+
+CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
+CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+
+include Nvidia.makefile
+

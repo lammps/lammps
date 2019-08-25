@@ -1,1 +1,10 @@
-../../potentials/Si.tersoff.modc
+# DATE: 2016-11-09 CONTRIBUTOR: Ganga P Purja Pun (George Mason University, Fairfax) CITATION: Unknown
+#
+# Format:
+# element1 element2 element3
+# beta alpha h eta
+# beta_ters lam2 B R D lam1 A
+# n c1 c2 c3 c4 c5 C
+Si Si Si 3.00000000 1.80536502 -0.38136087 2.16152496
+1 1.39343356 117.78072440 2.87478837 0.33090566 3.18011795 3198.51383127
+1.98633876 0.20123243 614230.04310619 996439.09714140 3.33560562 25.20963770 -0.00592042

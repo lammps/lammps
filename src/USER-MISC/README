@@ -56,6 +56,7 @@ fix ipi, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov
 fix nvk, Efrem Braun (UC Berkeley), efrem.braun at gmail.com, https://github.com/lammps/lammps/pull/310
 fix pimd, Yuxing Peng (U Chicago), yuxing at uchicago.edu, 24 Nov 2014
 fix rhok, Ulf Pedersen (Roskilde U), ulf at urp.dk, 25 Sep 2017
+fix sicrack, Nathan Beets, nathanbeets324 at gmail.com August 2019
 fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
 fix ti/spring, Rodrigo Freitas (Unicamp/Brazil), rodrigohb at gmail.com, 7 Nov 2013
 fix ttm/mod, Sergey Starikov and Vasily Pisarev (JIHT), pisarevvv at gmail.com, 2 Feb 2015

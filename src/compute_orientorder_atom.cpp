@@ -43,12 +43,14 @@ using namespace std;
   #define MY_EPSILON (10.0*2.220446049250313e-16)
 #endif
 
+#define QEPSILON 1.0e-6
+
 /* ---------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
-  qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
+  qnarray(NULL), qnm_r(NULL), qnm_i(NULL), cglist(NULL)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -57,6 +59,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   nnn = 12;
   cutsq = 0.0;
   wlflag = 0;
+  wlhatflag = 0;
   qlcompflag = 0;
 
   // specify which orders to request
@@ -104,11 +107,18 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         if (qlist[il] > qmax) qmax = qlist[il];
       }
       iarg += nqlist;
-    } else if (strcmp(arg[iarg],"wlparams") == 0) {
+    } else if (strcmp(arg[iarg],"wl") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       if (strcmp(arg[iarg+1],"yes") == 0) wlflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) wlflag = 0;
+      else error->all(FLERR,"Illegal compute orientorder/atom command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wl/hat") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (strcmp(arg[iarg+1],"yes") == 0) wlhatflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) wlhatflag = 0;
       else error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"components") == 0) {
@@ -116,15 +126,13 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       qlcomp = force->numeric(FLERR,arg[iarg+1]);
-      if (qlcomp <= 0)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
       iqlcomp = -1;
       for (int il = 0; il < nqlist; il++)
         if (qlcomp == qlist[il]) {
           iqlcomp = il;
           break;
         }
-      if (iqlcomp < 0)
+      if (iqlcomp == -1)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
@@ -140,7 +148,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
   ncol = nqlist;
   if (wlflag) ncol += nqlist;
-  if (qlcompflag) ncol += nqlist + 2*(2*qlcomp+1);
+  if (wlhatflag) ncol += nqlist;
+  if (qlcompflag) ncol += 2*(2*qlcomp+1);
 
   peratom_flag = 1;
   size_peratom_cols = ncol;
@@ -175,8 +184,8 @@ void ComputeOrientOrderAtom::init()
     error->all(FLERR,"Compute orientorder/atom cutoff is "
                "longer than pairwise cutoff");
 
-  memory->create(qnm_r,qmax,2*qmax+1,"orientorder/atom:qnm_r");
-  memory->create(qnm_i,qmax,2*qmax+1,"orientorder/atom:qnm_i");
+  memory->create(qnm_r,nqlist,2*qmax+1,"orientorder/atom:qnm_r");
+  memory->create(qnm_i,nqlist,2*qmax+1,"orientorder/atom:qnm_i");
 
   // need an occasional full neighbor list
 
@@ -193,7 +202,7 @@ void ComputeOrientOrderAtom::init()
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute orientorder/atom");
 
-  if (wlflag) init_clebsch_gordan();
+  if (wlflag || wlhatflag) init_clebsch_gordan();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,6 +307,7 @@ void ComputeOrientOrderAtom::compute_peratom()
       }
 
       calc_boop(rlist, ncount, qn, qlist, nqlist);
+
     }
   }
 }
@@ -414,10 +424,9 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
 void ComputeOrientOrderAtom::calc_boop(double **rlist,
                                        int ncount, double qn[],
                                        int qlist[], int nqlist) {
+
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-
-    qn[il] = 0.0;
     for(int m = 0; m < 2*l+1; m++) {
       qnm_r[il][m] = 0.0;
       qnm_i[il][m] = 0.0;
@@ -484,30 +493,29 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   }
 
   // calculate Q_l
+  // NOTE: optional W_l_hat and components of Q_qlcomp use these stored Q_l values 
 
-  double facpi = sqrt(MY_4PI);
-  double normfac = 0.0;
   int jj = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
+    double qnormfac = sqrt(MY_4PI/(2*l+1));
     double qm_sum = 0.0;
     for(int m = 0; m < 2*l+1; m++)
       qm_sum += qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m];
-
-    for(int m = 0; m < 2*l+1; m++)
-      printf("Q_l = %d %g %g\n",l, qnm_r[il][m], qnm_i[il][m]);
-
-    qn[jj++] = facpi * sqrt(qm_sum / (2*l+1) );
-    if (qlcompflag && iqlcomp == il) normfac = 1.0/sqrt(qm_sum);
-
+    qn[jj++] = qnormfac * sqrt(qm_sum);
   }
 
   // TODO: 
   // 1. [done]Need to allocate extra memory in qnarray[] for this option
   // 2. [done]Need to add keyword option
-  // 3. Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
+  // 3. [done]Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
   //     (Can try getting them from boop.py first)
-  // 5. Compate to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop.py
+  // 5. [done]Compare to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop.py
+  // 6. [done]I get the right answer for W_l, but need to make sure that factor of 1/sqrt(l+1) is right for cglist
+  // 7. Add documentation
+  // 8. [done] run valgrind
+  // 9. [done] Add Wlhat
+  // 10. Update memory_usage()
 
   // calculate W_l
 
@@ -525,18 +533,54 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           idxcg_count++;
         }
       }
-      // This matches boop.py output, with cg==1
-      printf("W_l = %d %g\n",l,wlsum);
       qn[jj++] = wlsum/sqrt(2*l+1);
     }
   }
 
-  // output of the complex vector
+  // calculate W_l_hat
+
+  if (wlhatflag) {
+    int idxcg_count = 0;
+    for (int il = 0; il < nqlist; il++) {
+      int l = qlist[il];
+      double wlsum = 0.0;
+      for(int m1 = 0; m1 < 2*l+1; m1++) {
+        for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+          int m = m1 + m2 - l;
+          double qm1qm2_r = qnm_r[il][m1]*qnm_r[il][m2] - qnm_i[il][m1]*qnm_i[il][m2];
+          double qm1qm2_i = qnm_r[il][m1]*qnm_i[il][m2] + qnm_i[il][m1]*qnm_r[il][m2];
+          wlsum += (qm1qm2_r*qnm_r[il][m] + qm1qm2_i*qnm_i[il][m])*cglist[idxcg_count];
+          idxcg_count++;
+        }
+      }
+  //      Whats = [w/(q/np.sqrt(np.pi * 4 / (2 * l + 1)))**3 if abs(q) > 1.0e-6 else 0.0 for l,q,w in zip(range(1,max_l+1),Qs,Ws)]
+      if (qn[il] < QEPSILON)
+        qn[jj++] = 0.0;
+      else {
+        double qnormfac = sqrt(MY_4PI/(2*l+1));
+        double qnfac = qnormfac/qn[il];
+        qn[jj++] = wlsum/sqrt(2*l+1)*(qnfac*qnfac*qnfac);
+      }
+    }
+  }
+
+  // Calculate components of Q_l, for l=qlcomp
 
   if (qlcompflag) {
-    for(int m = 0; m < 2*qlcomp+1; m++) {
-      qn[jj++] = qnm_r[iqlcomp][m] * normfac;
-      qn[jj++] = qnm_i[iqlcomp][m] * normfac;
+    int il = iqlcomp;
+    int l = qlcomp;
+    if (qn[il] < QEPSILON)
+      for(int m = 0; m < 2*l+1; m++) {
+        qn[jj++] = 0.0;
+        qn[jj++] = 0.0;
+      }
+    else {
+      double qnormfac = sqrt(MY_4PI/(2*l+1));
+      double qnfac = qnormfac/qn[il];
+      for(int m = 0; m < 2*l+1; m++) {
+        qn[jj++] = qnm_r[il][m] * qnfac;
+        qn[jj++] = qnm_i[il][m] * qnfac;
+      }
     }
   }
 
@@ -599,24 +643,23 @@ double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
 }
 
 /* ----------------------------------------------------------------------
-   assign Clebsch-Gordan coefficients with l1=l2=l
+   assign Clebsch-Gordan coefficients
    using the quasi-binomial formula VMK 8.2.1(3)
+   specialized for case j1=j2=j=l
 ------------------------------------------------------------------------- */
 
 void ComputeOrientOrderAtom::init_clebsch_gordan()
 {
-  double sum,dcg,sfaccg;
-  int m, aa2, bb2, cc2, j1, j2, j;
+  double sum,dcg,sfaccg, sfac1, sfac2;
+  int m, aa2, bb2, cc2;
   int ifac, idxcg_count;
 
   idxcg_count = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    for(int m1 = 0; m1 < 2*l+1; m1++) {
-      for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+    for(int m1 = 0; m1 < 2*l+1; m1++)
+      for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++)
         idxcg_count++;
-      }
-    }
   }
   idxcg_max = idxcg_count;
   memory->create(cglist, idxcg_max, "computeorientorderatom:cglist");
@@ -624,39 +667,38 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
   idxcg_count = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    j1 = j2 = j = l;
     for(int m1 = 0; m1 < 2*l+1; m1++) {
-        aa2 = m1 - j1;
+        aa2 = m1 - l;
         for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
-          bb2 = m2 - j2;
-          m = (aa2 + bb2 + j) / 2;
+          bb2 = m2 - l;
+          m = aa2 + bb2 + l;
           
           sum = 0.0;
-          for (int z = MAX(0, MAX(-(j - j2 + aa2)
-                                  , -(j - j1 - bb2) ));
-               z <= MIN((j1 + j2 - j),
-                        MIN((j1 - aa2), (j2 + bb2)));
-               z++) {
+          for (int z = MAX(0, MAX(-aa2, bb2));
+               z <= MIN(l, MIN(l - aa2, l + bb2)); z++) {
             ifac = z % 2 ? -1 : 1;
             sum += ifac /
               (factorial(z) *
-               factorial((j1 + j2 - j) - z) *
-               factorial((j1 - aa2) - z) *
-               factorial((j2 + bb2) - z) *
-               factorial((j - j2 + aa2) + z) *
-               factorial((j - j1 - bb2) + z));
+               factorial(l - z) *
+               factorial(l - aa2 - z) *
+               factorial(l + bb2 - z) *
+               factorial(aa2 + z) *
+               factorial(-bb2 + z));
           }
           
-          cc2 = m - j;
-          dcg = deltacg(j1, j2, j);
-          sfaccg = sqrt(factorial((j1 + aa2)) *
-                        factorial((j1 - aa2)) *
-                        factorial((j2 + bb2)) *
-                        factorial((j2 - bb2)) *
-                        factorial((j  + cc2)) *
-                        factorial((j  - cc2)) *
-                        (j + 1));
+          cc2 = m - l;
+          sfaccg = sqrt(factorial(l + aa2) *
+                        factorial(l - aa2) *
+                        factorial(l + bb2) *
+                        factorial(l - bb2) *
+                        factorial(l + cc2) *
+                        factorial(l - cc2) *
+                        (2*l + 1));
           
+          sfac1 = factorial(3*l + 1);
+          sfac2 = factorial(l);
+          dcg = sqrt(sfac2*sfac2*sfac2 / sfac1);
+
           cglist[idxcg_count] = sum * dcg * sfaccg;
           idxcg_count++;
         }
@@ -853,16 +895,4 @@ const double ComputeOrientOrderAtom::nfac_table[] = {
   9.00369170577843e+297,
   1.503616514865e+300, // nmaxfactorial = 167
 };
-
-/* ----------------------------------------------------------------------
-   the function delta given by VMK Eq. 8.2(1)
-------------------------------------------------------------------------- */
-
-double ComputeOrientOrderAtom::deltacg(int j1, int j2, int j)
-{
-  double sfaccg = factorial((j1 + j2 + j) + 1);
-  return sqrt(factorial((j1 + j2 - j)) *
-              factorial((j1 - j2 + j)) *
-              factorial((-j1 + j2 + j)) / sfaccg);
-}
 

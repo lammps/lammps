@@ -33,7 +33,7 @@ class ComputeOrientOrderAtom : public Compute {
   void compute_peratom();
   double memory_usage();
   double cutsq;
-  int iqlcomp, qlcomp, qlcompflag, wlflag;
+  int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;
   int nqlist;
 
@@ -60,8 +60,7 @@ class ComputeOrientOrderAtom : public Compute {
   static const double nfac_table[];
   double factorial(int);
   void init_clebsch_gordan();
-  double deltacg(int, int, int);
-  double *cglist;
+  double *cglist;                      // Clebsch-Gordan coeffs
   int idxcg_max;
 };
 

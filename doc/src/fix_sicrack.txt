@@ -1,0 +1,181 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix indent command :h3
+
+[Syntax:]
+
+fix ID Group-ID sicrack Tip_X Tip_Y G ν Mode_val K_initial K_increase
+
+ID, Group-ID are documented in "fix"_fix.html command :ulb,l
+sicrack = style name of this fix command :l
+Tip_X = The X position of the crack tip, and the direction in which the 
+crack will advance.(distance units) :l
+Tip_Y = the Y position of the crack tip. (distance units) :l
+G = Shear modulus of the material in question (GPa)
+ν = the Poisson Ratio of the material in question.
+Mode_Val = Crack mode (M1, M2,M3)  
+K_initial = Applied stress intensity factor to open the first K value 
+to
+K_increase = rate (per step) to increase the applied stress intensity 
+by MD step.
+
+[Examples:]
+
+fix     1 all sicrack 200.  200.  27.0 0.44 M1 1.21 0.0
+fix     1 all sicrack 200.  200.  27.0 0.44 M2 0.0 0.00001
+
+[Description:]
+
+This fix introduces and propagates a semi-infinite crack of desired 
+tip intensity, position, and mode in a simulation block.  This is 
+done by applying the equations of linear elastic fracture mechanics 
+for displacement to all atoms in the block. A “skin” of atoms 
+around the border parallel to the crack front should be kept f
+ixed whereas the atoms around the crack tip are free to deform 
+according to the formalism of molecular dynamics and the specified 
+potential.  The package requires no external libraries, and multiple 
+fracture modes and intensities can be combined based on the needs 
+of the user.
+
+Multiple fixes for multiple modes can be included in the same script 
+and can be run simultaneously. The crack front will always be along 
+the Z axis. The package is designed to run using units “metal”. 
+The shear modulus should be entered in GPa, and the stress intensity 
+in MPa√m.
+
+To introduce and expand the crack with desired tip intensity, the 
+displacement equations of linear elastic fracture mechanics are 
+applied to all atoms in the defined sample, given below [1]:
+
+ux = (KI/μ)*sqrt(rdist/(2*PI))*(cos(t/2)*(1.0 - 2.0*υ + sin^2(t/2)) 
++ (KII/μ)*sqrt(rdist/(2*PI))*(sin(t/2)*(2.0 - 2.0*υ + cos^2(t/2))
+ux = (KI/μ)*sqrt(rdist/(2*PI))*(sin(t/2)*(1.0 - 2.0*υ - cos^2(t/2)) 
++ (KII/μ)*sqrt(rdist/(2*PI))*(cos(t/2)*(-1.0 + 2.0*υ + sin^2(t/2))
+uz = KIII/μ*sqrt(rdist/&2*PI))*sin(t/2)
+
+Wherein   KI, II, III  are all tip stress intensity values, with 
+units MPa√m, μ is the shear modulus, and υ is the Poisson ratio 
+of your material and r and t are the angle and distance to the 
+crack tip in the x-y plane, respectively.  The program introduces 
+a crack in the sample with a user-specified crack tip intensity 
+value (K), with the mode specified.  Multiple different fixes 
+can be defined in the same script if a user wants to propagate 
+a crack with more than just one mode.  Once introduced, the 
+crack can be expanded at a user-defined rate, with the 
+K_increase parameter, per MD step.
+
+This fix can be used for different crack modes (I, II, and III) 
+such that behavior at and around the crack tip is governed by 
+the molecular dynamics formalism, while the sample border is 
+governed by the continuum fracture mechanics equations given 
+above. In order to do this, the best practice is to first define 
+a “border” or skin of atoms around the sample. To do this, 
+utilize the “region” and “group” commands in tandem with the 
+samples’ dimensions (see example scripts). This border needs 
+to be somewhat larger than the range of the interatomic 
+potential used and the atomic positions are kept fixed.  As 
+an example, if you have a 40 nm by 40 nm by 40 nm cuboid 
+structure filled with a single crystal of gold (lattice parameter 
+0.408 nm) with origin in a corner and all initial atom 
+coordinates positive, the crack front (as specified by the fix) 
+will be parallel to the z axis, and the crack itself will 
+oriented in the x direction.  The skin should be around 2.0 
+nm thick, parallel to the crack front.  So, this is all 
+atoms where x > 38, x < 2, and y > 38, y < 2.  All atoms 
+in this region will be defined as group “border.”  Everything 
+outside of it will be defined as group “mobile.” An example 
+of this is documented in either of the input scripts.
+
+It is important to note that if modes II or III are used without 
+an additional fix to include a mode I contribution, any displaced 
+atoms on the crack front that are close enough to the other side 
+will re-bond, eliminating the defined front.  This is specifically 
+different from the method of introducing a crack defined on the 
+LAMMPS website because for this method, no atoms are deleted – 
+only moved according to the equations given above.  So, in order 
+to properly study mode II or III fracture behavior, a small mode 
+I contribution must be added, to allow some separation between 
+atoms on the crack front to deter bond formation.  Otherwise, 
+the user must eliminate atoms along the crack front using the 
+centrosymmetry or common neighbor analysis algorithms.
+
+Figure 1 illustrates this for a mode 1 crack.
+
+(See /JPG/user_sicrack_figure1.png)
+
+Figure 1: Border or “fixed” atoms and nucleation of a mode I crack.  
+Similar setups can be used for modesII and III.
+
+After a border has been defined, the user needs to open the crack 
+to a specified intensity, through the fix, which is applied to all 
+atoms (fixed and free, from the figure above).  Ideally, this 
+initial opening should be at a value for critical stress intensity 
+so that the crack will not close immediately after taking the 
+formalism away.  Determining this optimum value for K usually 
+takes a little trial and error.  For typical metals, a stress 
+intensity of around K = 1.2 MPaÖm is a good place to start.  
+In order to study crack propagation, this first fix command can 
+be unfixed and a second fix can be applied with K_initial as 
+zero, but K_increase is used to introduce additional crack opening.  
+This value is the rate of increase of K per step.  The motion 
+of the interior free atoms is governed by the molecular dynamics, 
+while atom motion in the border, far from the crack tip is 
+given by linear elastic fracture mechanics.
+
+This formalism has been used for to simulate fracture behavior 
+in zirconium, [2] tantalum [3] and nickel [4] . It has also 
+been used to model microstructural evolution in the crack tip 
+region in single and polycrystalline systems. [5, 6]
+
+[Restrictions:]
+
+The use of this fix is limited to the nvt and nve ensembles.  
+Furthermore, due to the fact that the samples sides perpendicular 
+to the Z direction are being continuously deformed, we cannot 
+have periodic boundary conditions in either the x or y directions.  
+Both periodic or free surface boundary conditions along the Z axis 
+are possible.   Finally, if simulating a brittle material, where 
+the crack tip is expected to propagate into the sample with 
+increasing applied stress tip intensity, the user will need to 
+manually move the crack tip forward by altering the input 
+script and keeping up with the tip by checking the dump files, 
+or sample snapshots as the deformation proceeds.
+
+
+[Related Commands:]
+
+None
+
+ 
+[Default:]
+
+None
+
+[Bibliography:]          
+
+1.         Liebowitz, H. and G. C. Sih, Mathematical Theories of 
+Brittle Fracture. Vol. Vol. II. 1968.
+2.         Bertolino, G., M. Ruda, and D. Farkas, Fracture 
+resistance of textured polycrystalline Zr: A simulation study. 
+Computational Materials Science, 2019. 162: p. 304-313.
+3.         Smith, L., et al., Molecular dynamics study of 
+deformation and fracture in a tantalum nano-crystalline thin 
+film. Modelling and Simulation in Materials Science and Engineering, 
+2014. 22(4): p. 045010.
+4.         Farkas, D., Fracture Resistance of Nanocrystalline Ni. 
+Metallurgical and Materials Transactions A, 2007. 38(13): p. 
+2168-2173.
+5.         Ruda, M., D. Farkas, and G. Bertolino, Twinning and 
+phase transformations in Zr crack tips. Computational Materials 
+Science, 2010. 49(4): p. 743-750.
+6.         Farkas, D., Atomistic simulations of metallic microstructures. 
+Current Opinion in Solid State and Materials Science, 2013. 
+17(6): p. 284-297.
+
+ 

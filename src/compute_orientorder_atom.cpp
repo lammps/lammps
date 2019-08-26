@@ -516,6 +516,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   // 8. [done] run valgrind
   // 9. [done] Add Wlhat
   // 10. Update memory_usage()
+  // 11. Add exact FCC values for W_4, W_4_hat
 
   // calculate W_l
 

@@ -19,6 +19,8 @@ keyword = {cutoff} or {nnn} or {degrees} or {components}
   {cutoff} value = distance cutoff
   {nnn} value = number of nearest neighbors
   {degrees} values = nlvalues, l1, l2,...
+  {wl} value = yes or no
+  {wl/hat} value = yes or no
   {components} value = ldegree  :pre
 
 :ule
@@ -63,7 +65,7 @@ specified distance cutoff are used.
 
 The optional keyword {degrees} defines the list of order parameters to
 be computed.  The first argument {nlvalues} is the number of order
-parameters. This is followed by that number of integers giving the
+parameters. This is followed by that number of non-negative integers giving the
 degree of each order parameter. Because {Q}2 and all odd-degree order
 parameters are zero for atoms in cubic crystals (see
 "Steinhardt"_#Steinhardt), the default order parameters are {Q}4,

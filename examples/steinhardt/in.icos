@@ -1,0 +1,106 @@
+# Steinhardt-Nelson bond orientational order parameters for icosahedral cluster
+# W_6_hat is sensitive to icosohedral order
+
+variable        rcut equal 1.2 # a bit bigger than LJ Rmin 
+variable        rcutred equal 0.75 # a bit bigger than 1/sqrt(2)
+
+# create a perfect fcc crystallite
+
+atom_style	atomic
+boundary	s s s
+lattice		fcc 1.0 # neighbors at LJ Rmin
+region		box block 0 2 0 2 0 2
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+region 		centralatom sphere 1 1 1 0.0 side in
+group 		centralatom region centralatom
+
+region 		mysphere sphere 1 1 1 ${rcutred} side out
+delete_atoms 	region mysphere
+
+# LJ potential
+
+pair_style	lj/cut 100.0
+pair_coeff	* * 1.0 1.0 100.0
+
+# define output for central atom
+
+compute 	qlwlhat all orientorder/atom wl/hat yes cutoff ${rcut} nnn NULL
+compute 	avql centralatom reduce ave c_qlwlhat[1] c_qlwlhat[2] c_qlwlhat[3] c_qlwlhat[4] c_qlwlhat[5] 
+compute 	avwlhat centralatom reduce ave c_qlwlhat[6] c_qlwlhat[7] c_qlwlhat[8] c_qlwlhat[9] c_qlwlhat[10] 
+variable	q6 equal c_avql[2]
+variable	w6hat equal c_avwlhat[2]
+
+compute 	mype all pe/atom
+compute 	centralatompe centralatom reduce ave c_mype
+
+# gently equilibrate the crystallite
+
+velocity     	all create 0.001 482748
+fix	     	1 all nve
+neighbor	0.3 bin
+neigh_modify	every 1 check no delay 0
+timestep	0.003
+thermo_style    custom step temp epair etotal c_centralatompe v_q6 v_w6hat
+thermo		10
+
+run		10
+
+# quench to icosehedral cluster
+
+minimize      	1.0e-10 1.0e-6 100 1000
+
+# check Q_l values
+
+print " "
+print "*******************************************************************"
+print " "
+print "Comparison with reference values of Q_l "
+print "   [Table I in W. Mickel, S. C. Kapfer," 
+print "   G. E. Schroeder-Turkand, K. Mecke, "
+print "   J. Chem. Phys. 138, 044501 (2013).]"
+print " "
+
+variable 	q4ref equal 0.0
+variable 	q6ref equal 0.663
+variable 	q8ref equal 0.0
+variable 	q10ref equal 0.363
+variable 	q12ref equal 0.585
+
+variable 	q4 equal c_avql[1]
+variable 	q6 equal c_avql[2]
+variable 	q8 equal c_avql[3]
+variable 	q10 equal c_avql[4]
+variable 	q12 equal c_avql[5]
+
+print "q4     = $(v_q4:%10.6f) delta = $(v_q4-v_q4ref:%10.4f)"
+print "q6     = $(v_q6:%10.6f) delta = $(v_q6-v_q6ref:%10.4f)"
+print "q8     = $(v_q8:%10.6f) delta = $(v_q8-v_q8ref:%10.4f)"
+print "q10    = $(v_q10:%10.6f) delta = $(v_q10-v_q10ref:%10.4f)"
+print "q12    = $(v_q12:%10.6f) delta = $(v_q12-v_q12ref:%10.4f)"
+
+# check W_l_hat values
+
+print " "
+print "Comparison with reference values of W_l_hat"
+print "   [Table I in P. Steinhardt, D. Nelson, and M. Ronchetti, "
+print "   Phys. Rev. B 28, 784 (1983).]"
+print " "
+
+variable 	w6hatref equal -0.169754
+variable 	w10hatref equal -0.093967
+
+variable 	w4hat equal c_avwlhat[1]
+variable 	w6hat equal c_avwlhat[2]
+variable 	w8hat equal c_avwlhat[3]
+variable 	w10hat equal c_avwlhat[4]
+variable 	w12hat equal c_avwlhat[5]
+
+print "w6hat  = $(v_w6hat:%10.6f) delta = $(v_w6hat-v_w6hatref:%10.6f)"
+print "w10hat = $(v_w10hat:%10.6f) delta = $(v_w10hat-v_w10hatref:%10.6f)"
+print " "
+print "*******************************************************************"
+print " "
+

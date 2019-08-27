@@ -99,9 +99,10 @@ The {spin_none} is a default value for {line} keyword for both {spin/lbfgs}
 and {spin/cg}. Convergence of {spin/lbfgs} can be more robust if
 {spin_cubic} line search is used.
 
-[Restrictions:] The line search procedure of styles
-{spin/cg} and {spin/lbfgs} cannot be used for magnetic
-GNEB calculations. See "neb/spin"_neb_spin.html for more
+[Restrictions:] 
+
+The line search procedure of styles {spin/cg} and {spin/lbfgs} cannot be 
+used for magnetic GNEB calculations. See "neb/spin"_neb_spin.html for more
 explanation.
 
 [Related commands:]

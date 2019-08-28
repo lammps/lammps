@@ -145,11 +145,9 @@ Some compilers do not fully support the ``default(none)`` directive
 and others (e.g. GCC version 9 and beyond) may implement OpenMP 4.0
 semantics, which are incompatible with the OpenMP 3.1 semantics used
 in LAMMPS (for maximal compatibility with compiler versions in use).
-In those case, all ``default(none)`` directives (which aid in detecting
-incorrect and unwanted sharing) can be replaced with ``default(shared)``
-while dropping all ``shared()`` directives. The script
-'src/USER-OMP/hack_openmp_for_pgi_gcc9.sh' can be used to automate
-this conversion.
+LAMMPS will try to detect compilers that use OpenMP 4.0 semantics and
+change the directives accordingly, but if your compiler is not
+detected, you may set the CMake variable ``-D LMP_OMP_COMPAT=4``.
 
 ----------
 

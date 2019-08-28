@@ -229,16 +229,7 @@ pkg_depends(USER-SCAFACOS MPI)
 
 find_package(OpenMP QUIET)
 
-# TODO: this is a temporary workaround until a better solution is found. AK 2019-05-30
-# GNU GCC 9.x uses settings incompatible with our use of 'default(none)' in OpenMP pragmas
-# where we assume older GCC semantics. For the time being, we disable OpenMP by default
-# for GCC 9.x and beyond. People may manually turn it on, but need to run the script
-# src/USER-OMP/hack_openmp_for_pgi_gcc9.sh on all sources to make it compatible with gcc 9.
-if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
-  option(BUILD_OMP "Build with OpenMP support" OFF)
-else()
-  option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
-endif()
+option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
 
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
@@ -248,6 +239,13 @@ if(BUILD_OMP)
   endif()
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+  if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9))
+    # GCC 9.x strictly implements OpenMP 4.0 semantics for consts.
+    add_definitions(-DLMP_OMP_COMPAT=4)
+  else()
+    add_definitions(-DLMP_OMP_COMPAT=3)
+  endif()
 endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)

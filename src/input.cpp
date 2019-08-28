@@ -1672,7 +1672,7 @@ void Input::min_style()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Min_style command before simulation box is defined");
-  update->create_minimize(narg,arg);
+  update->create_minimize(narg,arg,1);
 }
 
 /* ---------------------------------------------------------------------- */

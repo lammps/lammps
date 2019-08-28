@@ -1,7 +1,5 @@
 # knl = Flags for Knights Landing Xeon Phi Processor,Intel Compiler/MPI,MKL FFT
-# module load perftools-base perftools
 # make theta -j 8
-# pat_build -g mpi -u ./lmp_theta
 
 SHELL = /bin/sh
 
@@ -10,24 +8,16 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =        CC -mkl
-#OPTFLAGS =       -O0
-OPTFLAGS =      -xMIC-AVX512 -O3 -fp-model fast=2 -no-prec-div -qoverride-limits
+OPTFLAGS =  -xMIC-AVX512 -O3 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload \
                 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-#CCFLAGS +=      -DLMP_INTEL_NO_TBB
-#CCFLAGS +=      -DLAMMPS_BIGBIG
-#CCFLAGS +=      -D_USE_PAPI
-#CCFLAGS +=      -D_USE_CRAYPAT_API
+CCFLAGS +=  -std=c++11
 SHFLAGS =   -fPIC
 DEPFLAGS =  -M
 
 LINK =      $(CC)
-LINKFLAGS = -g -qopenmp $(OPTFLAGS)
-LINKFLAGS += -dynamic
-LIB =
-#LIB +=           -L${TBBROOT}/lib/intel64/gcc4.7 -ltbbmalloc
-LIB +=           -ltbbmalloc
-#LIB +=          /soft/debuggers/forge-7.0-2017-02-16/lib/64/libdmallocthcxx.a -zmuldefs
+LINKFLAGS = -g -qopenmp $(OPTFLAGS) -dynamic
+LIB =       -ltbbmalloc
 SIZE =      size
 
 ARCHIVE =   ar
@@ -99,35 +89,35 @@ vpath %.h ..
 # Link target
 
 $(EXE): $(OBJ)
-    $(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
-    $(SIZE) $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(SIZE) $(EXE)
 
 # Library targets
 
 lib:    $(OBJ)
-    $(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
 shlib:  $(OBJ)
-    $(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
-        $(OBJ) $(EXTRA_LIB) $(LIB)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+	$(OBJ) $(EXTRA_LIB) $(LIB)
 
 # Compilation rules
 
 %.o:%.cpp
-    $(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-    $(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 %.o:%.cu
-    $(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies
 
 depend : fastdep.exe $(SRC)
-    @./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
 fastdep.exe: ../DEPEND/fastdep.c
-    icc -O -o $@ $<
+	icc -O -o $@ $<
 
 sinclude .depend

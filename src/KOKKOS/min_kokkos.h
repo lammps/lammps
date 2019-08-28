@@ -27,7 +27,6 @@ class MinKokkos : public Min {
   void setup(int flag=1);
   void setup_minimal(int);
   void run(int);
-  void cleanup();
   double fnorm_sqr();
   double fnorm_inf();
 

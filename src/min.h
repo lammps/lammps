@@ -34,7 +34,7 @@ class Min : protected Pointers {
   virtual void setup(int flag=1);
   virtual void setup_minimal(int);
   virtual void run(int);
-  virtual void cleanup();
+  void cleanup();
   int request(class Pair *, int, double);
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);

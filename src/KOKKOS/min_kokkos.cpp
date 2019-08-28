@@ -406,32 +406,6 @@ void MinKokkos::run(int n)
   lmp->kokkos->auto_sync = 1;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void MinKokkos::cleanup()
-{
-  modify->post_run();
-
-  // stats for Finish to print
-
-  efinal = ecurrent;
-  fnorm2_final = sqrt(fnorm_sqr());
-  fnorminf_final = fnorm_inf();
-
-  // reset reneighboring criteria
-
-  neighbor->every = neigh_every;
-  neighbor->delay = neigh_delay;
-  neighbor->dist_check = neigh_dist_check;
-
-  // delete fix at end of run, so its atom arrays won't persist
-
-  modify->delete_fix("MINIMIZE");
-  atomKK->sync(Host,ALL_MASK);
-  domain->box_too_small_check(); /// need KK version
-  atomKK->modified(Host,ALL_MASK);
-}
-
 /* ----------------------------------------------------------------------
    evaluate potential energy and forces
    may migrate atoms due to reneighboring

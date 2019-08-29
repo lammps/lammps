@@ -23,7 +23,7 @@ const char *gauss=0;
 
 #include "lal_gauss.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define GaussT Gauss<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -159,3 +159,4 @@ void GaussT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Gauss<PRECISION,ACC_PRECISION>;
+}

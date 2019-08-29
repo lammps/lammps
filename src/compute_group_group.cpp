@@ -16,10 +16,10 @@
      K-space terms added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
+#include "compute_group_group.h"
 #include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "compute_group_group.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -33,7 +33,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "math_const.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

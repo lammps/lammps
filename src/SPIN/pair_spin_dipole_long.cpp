@@ -13,20 +13,19 @@
 
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
-			 Stan Moore (SNL)
+                         Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "pair_spin_dipole_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
 #include "kspace.h"
@@ -59,12 +58,12 @@ lockfixnvespin(NULL)
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
 
-  hbar = force->hplanck/MY_2PI;			// eV/(rad.THz)
+  hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
   mub = 9.274e-4;                               // in A.Ang^2
   mu_0 = 785.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
-  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
-  mub2mu0hbinv = mub2mu0 / hbar;		// in rad.THz
+  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
+  mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
 
 }
 
@@ -243,7 +242,7 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;       
   int *type = atom->type;  
   int nlocal = atom->nlocal;  
   int newton_pair = force->newton_pair;
@@ -314,36 +313,36 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
         bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
         bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
-	compute_long(i,j,eij,bij,fmi,spi,spj);
-	compute_long_mech(i,j,eij,bij,fmi,spi,spj);
+        compute_long(i,j,eij,bij,fmi,spi,spj);
+        compute_long_mech(i,j,eij,bij,fmi,spi,spj);
       }
 
       // force accumulation
 
-      f[i][0] += fi[0];	 
-      f[i][1] += fi[1];	  	  
+      f[i][0] += fi[0];  
+      f[i][1] += fi[1];           
       f[i][2] += fi[2];
-      fm[i][0] += fmi[0];	 
-      fm[i][1] += fmi[1];	  	  
+      fm[i][0] += fmi[0];        
+      fm[i][1] += fmi[1];                 
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fi[0];	 
-        f[j][1] -= fi[1];	  	  
+        f[j][0] -= fi[0];        
+        f[j][1] -= fi[1];                 
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
-	if (rsq <= local_cut2) {
-	  evdwl -= spi[0]*fmi[0] + spi[1]*fmi[1] + 
-	    spi[2]*fmi[2];
-	  evdwl *= hbar;
-	}
+        if (rsq <= local_cut2) {
+          evdwl -= spi[0]*fmi[0] + spi[1]*fmi[1] + 
+            spi[2]*fmi[2];
+          evdwl *= hbar;
+        }
       } else evdwl = 0.0;
 
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
 
     }
   }
@@ -365,7 +364,7 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 
   int *type = atom->type;  
   double **x = atom->x;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;       
   double **fm_long = atom->fm_long;
 
   ilist = list->ilist;
@@ -550,7 +549,7 @@ void PairSpinDipoleLong::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&cut_spin_long[i][j],sizeof(int),1,fp);
+        fwrite(&cut_spin_long[i][j],sizeof(int),1,fp);
       }
     }
   }
@@ -573,10 +572,10 @@ void PairSpinDipoleLong::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&cut_spin_long[i][j],sizeof(int),1,fp);
-	}
-	MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
+        if (me == 0) {
+          fread(&cut_spin_long[i][j],sizeof(int),1,fp);
+        }
+        MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
     }
   }

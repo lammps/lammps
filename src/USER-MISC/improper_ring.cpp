@@ -36,16 +36,13 @@
                   of j.
 ------------------------------------------------------------------------- */
 
+#include "improper_ring.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_ring.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"

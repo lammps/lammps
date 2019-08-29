@@ -16,28 +16,18 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_sdk_coul_msm.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
 #include "error.h"
 
 #include "lj_sdk_common.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace LJSDKParms;
 
 /* ---------------------------------------------------------------------- */

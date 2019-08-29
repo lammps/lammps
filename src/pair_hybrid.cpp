@@ -12,11 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
+#include "pair_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "pair_hybrid.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"

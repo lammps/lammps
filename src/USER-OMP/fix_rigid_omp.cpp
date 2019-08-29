@@ -16,15 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_omp.h"
-
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "comm.h"
+#include "error.h"
 #include "domain.h"
-
-#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

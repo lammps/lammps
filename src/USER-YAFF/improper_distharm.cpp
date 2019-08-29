@@ -16,16 +16,14 @@
    improper_distance code by Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
 #include "improper_distharm.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 

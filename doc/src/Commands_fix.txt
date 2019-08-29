@@ -232,6 +232,7 @@ OPT.
 "wall/lj1043"_fix_wall.html,
 "wall/lj126"_fix_wall.html,
 "wall/lj93 (k)"_fix_wall.html,
+"wall/morse"_fix_wall.html,
 "wall/piston"_fix_wall_piston.html,
 "wall/reflect (k)"_fix_wall_reflect.html,
 "wall/region"_fix_wall_region.html,

@@ -14,28 +14,22 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna_stk.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <utility>
 #include "mf_oxdna.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MFOxdna;
 
 // sequence-specific stacking strength
@@ -103,6 +97,94 @@ PairOxdnaStk::~PairOxdnaStk()
     memory->destroy(b_st2);
     memory->destroy(cosphi_st2_c);
 
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally energy and virial into global and per-atom accumulators
+
+   NOTE: Although this is a pair style interaction, the algorithm below
+   follows the virial incrementation of the bond style. This is because 
+   the bond topology is used in the main compute loop.
+------------------------------------------------------------------------- */
+
+void PairOxdnaStk::ev_tally_xyz(int i, int j, int nlocal, int newton_bond,
+                    double evdwl,
+                    double fx, double fy, double fz,
+                    double delx, double dely, double delz)
+{
+  double evdwlhalf,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) eng_vdwl += evdwl;
+      else {
+        evdwlhalf = 0.5*evdwl;
+        if (i < nlocal) eng_vdwl += evdwlhalf;
+        if (j < nlocal) eng_vdwl += evdwlhalf;
+      }
+    }
+    if (eflag_atom) {
+      evdwlhalf = 0.5*evdwl;
+      if (newton_bond || i < nlocal) eatom[i] += evdwlhalf;
+      if (newton_bond || j < nlocal) eatom[j] += evdwlhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        vatom[i][0] += 0.5*v[0];
+        vatom[i][1] += 0.5*v[1];
+        vatom[i][2] += 0.5*v[2];
+        vatom[i][3] += 0.5*v[3];
+        vatom[i][4] += 0.5*v[4];
+        vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        vatom[j][0] += 0.5*v[0];
+        vatom[j][1] += 0.5*v[1];
+        vatom[j][2] += 0.5*v[2];
+        vatom[j][3] += 0.5*v[3];
+        vatom[j][4] += 0.5*v[4];
+        vatom[j][5] += 0.5*v[5];
+      }
+    }
   }
 }
 
@@ -295,9 +377,6 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     // early rejection criterium
     if (evdwl) {
 
-    // increment energy
-    if (evflag) ev_tally(a,b,nlocal,newton_bond,evdwl,0.0,0.0,0.0,0.0,0.0);
-
     df1 = DF1(r_st, epsilon_st[atype][btype], a_st[atype][btype], cut_st_0[atype][btype],
         cut_st_lc[atype][btype], cut_st_hc[atype][btype], cut_st_lo[atype][btype], cut_st_hi[atype][btype],
         b_st_lo[atype][btype], b_st_hi[atype][btype]);
@@ -366,7 +445,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     }
 
-    // increment forces, torques and virial
+    // increment forces and torques
 
     if (newton_bond || a < nlocal) {
 
@@ -402,7 +481,12 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     }
 
-    if (evflag) ev_tally(a,b,nlocal,newton_bond,0.0,0.0,fpair,delr_st[0],delr_st[1],delr_st[2]);
+    // increment energy and virial
+    // NOTE: The virial is calculated on the 'molecular' basis.
+    // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+    if (evflag) ev_tally_xyz(a,b,nlocal,newton_bond,evdwl,
+        delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
     // force, torque and virial contribution for forces between backbone sites
 
@@ -444,7 +528,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     }
 
-    // increment forces, torques and virial
+    // increment forces and torques
 
     if (newton_bond || a < nlocal) {
 
@@ -480,8 +564,9 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     }
 
-    if (evflag) ev_tally(a,b,nlocal,newton_bond,0.0,0.0,fpair,delr_ss[0],delr_ss[1],delr_ss[2]);
-
+    // increment virial only
+    if (evflag) ev_tally_xyz(a,b,nlocal,newton_bond,0.0,
+        delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
     // pure torques not expressible as r x f
 
@@ -656,11 +741,11 @@ void PairOxdnaStk::settings(int narg, char **/*arg*/)
    return temperature dependent oxDNA stacking strength
 ------------------------------------------------------------------------- */
 
-double PairOxdnaStk::stacking_strength(double T)
+double PairOxdnaStk::stacking_strength(double xi_st, double kappa_st, double T)
 {
   double eps;
 
-  eps = 1.3448 + 2.6568 * T;
+  eps = xi_st + kappa_st * T;
 
   return eps;
 }
@@ -673,7 +758,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 22) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
+  if (narg != 24) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -683,7 +768,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   // stacking interaction
   count = 0;
 
-  double T, epsilon_st_one, a_st_one, b_st_lo_one, b_st_hi_one;
+  double T, epsilon_st_one, xi_st_one, kappa_st_one, a_st_one, b_st_lo_one, b_st_hi_one;
   double cut_st_0_one, cut_st_c_one, cut_st_lo_one, cut_st_hi_one;
   double cut_st_lc_one, cut_st_hc_one, tmp, shift_st_one;
 
@@ -706,27 +791,29 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   if (strcmp(arg[2],"seqdep") == 0) seqdepflag = 1;
 
   T = force->numeric(FLERR,arg[3]);
-  epsilon_st_one = stacking_strength(T);
+  xi_st_one = force->numeric(FLERR,arg[4]);
+  kappa_st_one = force->numeric(FLERR,arg[5]);
+  epsilon_st_one = stacking_strength(xi_st_one, kappa_st_one, T);
 
-  a_st_one = force->numeric(FLERR,arg[4]);
-  cut_st_0_one = force->numeric(FLERR,arg[5]);
-  cut_st_c_one = force->numeric(FLERR,arg[6]);
-  cut_st_lo_one = force->numeric(FLERR,arg[7]);
-  cut_st_hi_one = force->numeric(FLERR,arg[8]);
+  a_st_one = force->numeric(FLERR,arg[6]);
+  cut_st_0_one = force->numeric(FLERR,arg[7]);
+  cut_st_c_one = force->numeric(FLERR,arg[8]);
+  cut_st_lo_one = force->numeric(FLERR,arg[9]);
+  cut_st_hi_one = force->numeric(FLERR,arg[10]);
 
-  a_st4_one = force->numeric(FLERR,arg[9]);
-  theta_st4_0_one = force->numeric(FLERR,arg[10]);
-  dtheta_st4_ast_one = force->numeric(FLERR,arg[11]);
-  a_st5_one = force->numeric(FLERR,arg[12]);
-  theta_st5_0_one = force->numeric(FLERR,arg[13]);
-  dtheta_st5_ast_one = force->numeric(FLERR,arg[14]);
-  a_st6_one = force->numeric(FLERR,arg[15]);
-  theta_st6_0_one = force->numeric(FLERR,arg[16]);
-  dtheta_st6_ast_one = force->numeric(FLERR,arg[17]);
-  a_st1_one = force->numeric(FLERR,arg[18]);
-  cosphi_st1_ast_one = force->numeric(FLERR,arg[19]);
-  a_st2_one = force->numeric(FLERR,arg[20]);
-  cosphi_st2_ast_one = force->numeric(FLERR,arg[21]);
+  a_st4_one = force->numeric(FLERR,arg[11]);
+  theta_st4_0_one = force->numeric(FLERR,arg[12]);
+  dtheta_st4_ast_one = force->numeric(FLERR,arg[13]);
+  a_st5_one = force->numeric(FLERR,arg[14]);
+  theta_st5_0_one = force->numeric(FLERR,arg[15]);
+  dtheta_st5_ast_one = force->numeric(FLERR,arg[16]);
+  a_st6_one = force->numeric(FLERR,arg[17]);
+  theta_st6_0_one = force->numeric(FLERR,arg[18]);
+  dtheta_st6_ast_one = force->numeric(FLERR,arg[19]);
+  a_st1_one = force->numeric(FLERR,arg[20]);
+  cosphi_st1_ast_one = force->numeric(FLERR,arg[21]);
+  a_st2_one = force->numeric(FLERR,arg[22]);
+  cosphi_st2_ast_one = force->numeric(FLERR,arg[23]);
 
   b_st_lo_one = 2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
         2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*

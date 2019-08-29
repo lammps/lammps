@@ -19,14 +19,14 @@
 
 #ifdef LMP_KOKKOS
 
-#include "kokkos.h"
-#include "atom_kokkos.h"
-#include "comm_kokkos.h"
-#include "comm_tiled_kokkos.h"
-#include "domain_kokkos.h"
-#include "neighbor_kokkos.h"
-#include "memory_kokkos.h"
-#include "modify_kokkos.h"
+#include "kokkos.h"              // IWYU pragma: export
+#include "atom_kokkos.h"         // IWYU pragma: export
+#include "comm_kokkos.h"         // IWYU pragma: export
+#include "comm_tiled_kokkos.h"   // IWYU pragma: export
+#include "domain_kokkos.h"       // IWYU pragma: export
+#include "neighbor_kokkos.h"     // IWYU pragma: export
+#include "memory_kokkos.h"       // IWYU pragma: export
+#include "modify_kokkos.h"       // IWYU pragma: export
 
 #define LAMMPS_INLINE KOKKOS_INLINE_FUNCTION
 

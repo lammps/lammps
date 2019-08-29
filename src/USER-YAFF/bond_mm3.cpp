@@ -15,12 +15,11 @@
    Contributing author: Steven Vandenbrande
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
 #include "bond_mm3.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"

@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "memory.h"
+#include <cstdlib>
 #include "error.h"
 
 #if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)

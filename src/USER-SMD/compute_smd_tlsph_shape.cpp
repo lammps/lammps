@@ -22,13 +22,9 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <Eigen/Eigen>
-#include <Eigen/Geometry>
 #include "compute_smd_tlsph_shape.h"
+#include <cstring>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

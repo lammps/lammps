@@ -20,7 +20,6 @@ BondStyle(nonlinear,BondNonlinear)
 #ifndef LMP_BOND_NONLINEAR_H
 #define LMP_BOND_NONLINEAR_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

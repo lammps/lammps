@@ -15,7 +15,6 @@
 #define LMP_NEIGH_LIST_H
 
 #include "pointers.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 

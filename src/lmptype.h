@@ -37,6 +37,7 @@
 #endif
 
 #include <climits>
+#include <cstdlib>
 #include <stdint.h>   // <cstdint> requires C++-11
 #include <inttypes.h> // <cinttypes> requires C++-11
 
@@ -47,10 +48,6 @@
 #endif
 
 namespace LAMMPS_NS {
-
-// enum used for KOKKOS host/device flags
-
-enum ExecutionSpace{Host,Device};
 
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
 // max local + ghost atoms per processor = 2^30 - 1

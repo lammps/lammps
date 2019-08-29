@@ -14,7 +14,7 @@
 #ifndef LMP_PAIR_SPIN_H
 #define LMP_PAIR_SPIN_H
 
-#include "pair.h"
+#include "pair.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

@@ -23,7 +23,7 @@ set type * shape 1.0 1.0 1.0
 set type * quat 0 0 1 0
 
 fix step all nve
-fix temp all langevin 1.0 1.0 1.0 13 angmom yes
+fix temp all langevin 1.0 1.0 1.0 13 angmom 3.333333333
 
 neighbor 0.6 bin
 

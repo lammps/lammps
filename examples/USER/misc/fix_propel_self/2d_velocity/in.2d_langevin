@@ -1,0 +1,37 @@
+dimension 2
+boundary p p p
+
+variable L equal 20
+region total block -$L $L -$L $L -0.5 0.5
+lattice hex 0.3
+create_box 2 total
+create_atoms 1 box
+
+# Set random fraction to passive:
+set type 1 type/fraction 2 0.5 1337
+
+# Purely repulsive particles:
+variable rc equal "2^(1.0/6.0)"
+pair_style lj/cut ${rc}
+pair_coeff * * 1.0 1.0
+pair_modify shift yes
+
+mass * 1.0
+
+fix step all nve
+fix temp all langevin 1.0 1.0 1.0 13
+fix twod all enforce2d
+
+neighbor 0.6 bin
+
+dump traj all custom 250 2d_active.dump.bin id type x y z
+
+thermo_style custom time step pe ke etotal temp
+thermo 1000
+run 25000
+
+fix active all propel/self velocity 1.0
+
+# With active force there is more motion so increase bin size:
+neighbor 1.0 bin
+run 25000

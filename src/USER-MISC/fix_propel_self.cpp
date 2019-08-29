@@ -103,16 +103,16 @@ double FixPropelSelf::memory_usage()
 
 void FixPropelSelf::post_force(int vflag )
 {
-	switch(mode) {
-	case QUATERNION:
-		post_force_quaternion(vflag);
-		break;
-	case VELOCITY:
-		post_force_velocity(vflag);
-		break;
-	default:
-		error->all(FLERR, "reached statement that should be unreachable");
-	}
+  switch(mode) {
+  case QUATERNION:
+    post_force_quaternion(vflag);
+    break;
+  case VELOCITY:
+    post_force_velocity(vflag);
+    break;
+  default:
+    error->all(FLERR, "reached statement that should be unreachable");
+  }
 }
 
 
@@ -179,10 +179,16 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/ )
   // Add the active force to the atom force:
   for( int i = 0; i < nlocal; ++i ){
     if( mask[i] & groupbit ){
-	    const double *vi = v[i];
-	    double f_act[3] = { vi[0], vi[1], vi[2] };
-	    double nv2 = vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2];
-	    double fnorm = magnitude / sqrt(nv2);
+      const double *vi = v[i];
+      double f_act[3] = { vi[0], vi[1], vi[2] };
+      double nv2 = vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2];
+      double fnorm = 0.0;
+      constexpr const double TOL = 1e-14;
+      if (nv2 > TOL) {
+        // Without this check you can run into numerical issues
+        // because fnorm will blow up.
+        fnorm = magnitude / sqrt(nv2);
+      }
       
       if (debug_out && comm->me == 0) {
         // Magical reference particle:
@@ -214,16 +220,16 @@ int FixPropelSelf::verify_atoms_have_quaternion()
   // Make sure all atoms have ellipsoid or body set:
   for (int i = 0; i < atom->nlocal; ++i) {
     if (mask[i] & groupbit) {
-	    if (ellipsoid_flag && atom->ellipsoid[i] < 0) {
-		    error->all(FLERR, "Got atom without ellipsoid set");
-		    // Kind-of pointless return but silences compiler warnings:
-		    return 1;
-	    }
-	    if (body_flag && atom->body[i] < 0) {
-		    error->all(FLERR, "Got atom without body set");
-		    // Kind-of pointless return silences compiler warnings:
-		    return 1;
-	    }
+      if (ellipsoid_flag && atom->ellipsoid[i] < 0) {
+        error->all(FLERR, "Got atom without ellipsoid set");
+        // Kind-of pointless return but silences compiler warnings:
+        return 1;
+      }
+      if (body_flag && atom->body[i] < 0) {
+        error->all(FLERR, "Got atom without body set");
+        // Kind-of pointless return silences compiler warnings:
+        return 1;
+      }
     }
   }
   

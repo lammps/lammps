@@ -21,7 +21,9 @@ magnitude = magnitude of the active force :l
 [Examples:]
 
 fix active_group all propel/self velocity 1.0
-fix constant_velocity all viscous 1.0
+fix constant_velocity all viscous 1.0 :pre
+
+fix active_group all propel/self quaternion 1.0 :pre
 
 [Description:]
 
@@ -47,8 +49,8 @@ This fix is not imposed  during minimization.
 
 This fix makes use of per-atom quaternions to take into
 account the fact that the orientation can rotate and hence the direction
-of the active force can change. Therefore, this fix only works with
-ellipsoidal particles.
+of the active force can change. Therefore, this fix only works with atom_styles
+that have a quaternion.
 
 [Related commands:]
 

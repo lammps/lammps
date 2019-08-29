@@ -147,7 +147,8 @@ asub     = "A" parameter for MEAM (see e.g. "(Baskes)"_#Baskes) :pre
 
 The alpha, b0, b1, b2, b3, t0, t1, t2, t3 parameters correspond to the
 standard MEAM parameters in the literature "(Baskes)"_#Baskes (the b
-parameters are the standard beta parameters).  The rozero parameter is
+parameters are the standard beta parameters). Note that only parameters
+normalized to t0 = 1.0 are supported.  The rozero parameter is
 an element-dependent density scaling that weights the reference
 background density (see e.g. equation 4.5 in "(Gullet)"_#Gullet) and
 is typically 1.0 for single-element systems.  The ibar parameter

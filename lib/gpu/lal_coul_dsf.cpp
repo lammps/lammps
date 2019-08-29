@@ -23,7 +23,7 @@ const char *coul_dsf=0;
 
 #include "lal_coul_dsf.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CoulDSFT CoulDSF<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -151,3 +151,4 @@ void CoulDSFT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class CoulDSF<PRECISION,ACC_PRECISION>;
+}

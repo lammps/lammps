@@ -1,6 +1,6 @@
-#include <cmath>
-#include <stdint.h> // <cstdint> requires C++-11
 #include "math_special.h"
+#include <cmath>
+#include <stdint.h> // IWYU pragma: keep
 
 using namespace LAMMPS_NS;
 

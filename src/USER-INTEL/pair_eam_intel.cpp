@@ -451,7 +451,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (tid == 0)
         comm->forward_comm_pair(this);
-      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       #if defined(_OPENMP)
       #pragma omp barrier

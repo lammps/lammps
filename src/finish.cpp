@@ -11,16 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "finish.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include "finish.h"
-#include "timer.h"
-#include "universe.h"
 #include "accelerator_kokkos.h"
-#include "accelerator_omp.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -32,10 +28,10 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "timer.h"
+#include "universe.h"
 
 #ifdef LMP_USER_OMP
 #include "modify.h"

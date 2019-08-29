@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_half_bin_2d_newtoff.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

@@ -11,15 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "input.h"
 #include <mpi.h>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
 #include <cctype>
 #include <unistd.h>
 #include <sys/stat.h>
-#include "input.h"
 #include "style_command.h"
 #include "universe.h"
 #include "atom.h"
@@ -51,10 +50,6 @@
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #ifdef _WIN32
 #include <direct.h>
@@ -312,6 +307,17 @@ char *Input::one(const char *single)
   }
 
   return command;
+}
+
+/* ----------------------------------------------------------------------
+   Send text to active echo file pointers
+------------------------------------------------------------------------- */
+void Input::write_echo(const char *txt)
+{
+  if (me == 0) {
+    if (echo_screen && screen) fputs(txt,screen);
+    if (echo_log && logfile) fputs(txt,logfile);
+  }
 }
 
 /* ----------------------------------------------------------------------

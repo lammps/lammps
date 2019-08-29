@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "angle_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "angle_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -324,6 +323,7 @@ void AngleHybrid::write_restart(FILE *fp)
     n = strlen(keywords[m]) + 1;
     fwrite(&n,sizeof(int),1,fp);
     fwrite(keywords[m],sizeof(char),n,fp);
+    styles[m]->write_restart_settings(fp);
   }
 }
 
@@ -349,6 +349,7 @@ void AngleHybrid::read_restart(FILE *fp)
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_angle(keywords[m],0,dummy);
+    styles[m]->read_restart_settings(fp);
   }
 }
 

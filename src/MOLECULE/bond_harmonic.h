@@ -20,7 +20,6 @@ BondStyle(harmonic,BondHarmonic)
 #ifndef LMP_BOND_HARMONIC_H
 #define LMP_BOND_HARMONIC_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

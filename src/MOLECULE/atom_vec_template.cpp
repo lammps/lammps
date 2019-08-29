@@ -11,8 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "atom_vec_template.h"
 #include "atom.h"
 #include "molecule.h"
@@ -22,6 +20,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -740,13 +739,13 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
   if (tag[nlocal] <= 0)
     error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
-  molecule[nlocal] = ATOTAGINT(values[1]);
-  molindex[nlocal] = atoi(values[2]) - 1;
-  molatom[nlocal] = atoi(values[3]) - 1;
+  molecule[nlocal] = utils::tnumeric(FLERR,values[1],true,lmp);
+  molindex[nlocal] = utils::inumeric(FLERR,values[2],true,lmp) - 1;
+  molatom[nlocal] = utils::inumeric(FLERR,values[3],true,lmp) - 1;
 
   if (molindex[nlocal] < 0 || molindex[nlocal] >= nset)
     error->one(FLERR,"Invalid template index in Atoms section of data file");
@@ -754,7 +753,7 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
       molatom[nlocal] >= onemols[molindex[nlocal]]->natoms)
     error->one(FLERR,"Invalid template atom in Atoms section of data file");
 
-  type[nlocal] = atoi(values[4]);
+  type[nlocal] = utils::inumeric(FLERR,values[4],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -779,9 +778,9 @@ void AtomVecTemplate::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecTemplate::data_atom_hybrid(int nlocal, char **values)
 {
-  molecule[nlocal] = ATOTAGINT(values[0]);
-  molindex[nlocal] = atoi(values[1]) - 1;
-  molatom[nlocal] = atoi(values[2]) - 1;
+  molecule[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  molindex[nlocal] = utils::inumeric(FLERR,values[1],true,lmp) - 1;
+  molatom[nlocal] = utils::inumeric(FLERR,values[2],true,lmp) - 1;
   return 3;
 }
 

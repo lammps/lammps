@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_coeff.h"
 #include <cstring>
 #include <cstdlib>
+#include <cctype>
 #include <unistd.h>
-#include "write_coeff.h"
 #include "pair.h"
 #include "bond.h"
 #include "angle.h"

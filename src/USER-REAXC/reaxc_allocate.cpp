@@ -24,14 +24,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_allocate.h"
+#include <cstdlib>
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
-#include "reaxc_reset_tools.h"
 #include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
 
-#if defined(_OPENMP)
+#if defined(LMP_USER_OMP) && defined(_OPENMP)
 #include <omp.h>
 #endif
 

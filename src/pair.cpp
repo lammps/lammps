@@ -15,24 +15,18 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cctype>
-#include <cfloat>
-#include <climits>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair.h"
+#include <mpi.h>
+#include <cfloat>    // IWYU pragma: keep
+#include <climits>   // IWYU pragma: keep
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
 #include "suffix.h"
 #include "atom_masks.h"
@@ -60,6 +54,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
@@ -1747,6 +1742,18 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   masklo = rsq_lookup.i & ~(nmask);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+  int m = 0;
+  for (int k=0; k<3; k++) {
+    phiTensor[m] = fforce;
+    for (int l=k; l<3; l++) {
+      if (l>k) phiTensor[m] = 0;
+      phiTensor[m++] += delr[k]*delr[l] * dfac;
+    }
+  }
+}
 /* ---------------------------------------------------------------------- */
 
 double Pair::memory_usage()

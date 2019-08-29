@@ -15,7 +15,7 @@
 
 #include "lal_atom.h"
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define AtomT Atom<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
@@ -349,4 +349,4 @@ void AtomT::compile_kernels(UCL_Device &dev) {
 #endif
 
 template class Atom<PRECISION,ACC_PRECISION>;
-
+}

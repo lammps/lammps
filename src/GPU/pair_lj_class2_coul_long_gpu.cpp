@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_class2_coul_long_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_class2_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

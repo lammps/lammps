@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_bin_newton_ssa.h"
-#include "neighbor.h"
 #include "nstencil_ssa.h"
 #include "nbin_ssa.h"
 #include "neigh_list.h"
@@ -25,7 +24,6 @@
 #include "atom_vec.h"
 #include "molecule.h"
 #include "domain.h"
-#include "group.h"
 #include "memory.h"
 #include "my_page.h"
 #include "error.h"

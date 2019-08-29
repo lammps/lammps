@@ -21,19 +21,15 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "min_linesearch.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
-#include "update.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "modify.h"
 #include "fix_minimize.h"
 #include "pair.h"
 #include "output.h"
 #include "thermo.h"
-#include "timer.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

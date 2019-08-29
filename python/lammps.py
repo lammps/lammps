@@ -219,6 +219,12 @@ class lammps(object):
     self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
     self._installed_packages = None
 
+    # add way to insert Python callback for fix external
+    self.callback = {}
+    self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, c_void_p, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
+    self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, c_void_p]
+    self.lib.lammps_set_fix_external_callback.restype = None
+
   # shut-down LAMMPS instance
 
   def __del__(self):
@@ -602,6 +608,42 @@ class lammps(object):
         self._installed_packages.append(sb.value.decode())
     return self._installed_packages
 
+  def set_fix_external_callback(self, fix_name, callback, caller=None):
+    import numpy as np
+    def _ctype_to_numpy_int(ctype_int):
+          if ctype_int == c_int32:
+            return np.int32
+          elif ctype_int == c_int64:
+            return np.int64
+          return np.intc
+
+    def callback_wrapper(caller_ptr, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
+      if cast(caller_ptr,POINTER(py_object)).contents:
+        pyCallerObj = cast(caller_ptr,POINTER(py_object)).contents.value
+      else:
+        pyCallerObj = None
+
+      tptr = cast(tag_ptr, POINTER(self.c_tagint * nlocal))
+      tag = np.frombuffer(tptr.contents, dtype=_ctype_to_numpy_int(self.c_tagint))
+      tag.shape = (nlocal)
+
+      xptr = cast(x_ptr[0], POINTER(c_double * nlocal * 3))
+      x = np.frombuffer(xptr.contents)
+      x.shape = (nlocal, 3)
+
+      fptr = cast(fext_ptr[0], POINTER(c_double * nlocal * 3))
+      f = np.frombuffer(fptr.contents)
+      f.shape = (nlocal, 3)
+
+      callback(pyCallerObj, ntimestep, nlocal, tag, x, f)
+
+    cFunc   = self.FIX_EXTERNAL_CALLBACK_FUNC(callback_wrapper)
+    cCaller = cast(pointer(py_object(caller)), c_void_p)
+
+    self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
+
+    self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
+
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
@@ -872,8 +914,8 @@ class PyLammps(object):
     output = self.__getattr__('run')(*args, **kwargs)
 
     if(lammps.has_mpi4py):
-      output = self.lmp.comm.bcast(output, root=0) 
-    
+      output = self.lmp.comm.bcast(output, root=0)
+
     self.runs += get_thermo_data(output)
     return output
 

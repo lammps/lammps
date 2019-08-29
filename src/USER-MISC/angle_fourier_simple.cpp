@@ -16,9 +16,9 @@
    [ based on angle_cosine_squared.cpp Naveen Michaud-Agrawal (Johns Hopkins U)]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_fourier_simple.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

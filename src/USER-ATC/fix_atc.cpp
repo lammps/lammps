@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
    ------------------------------------------------------------------------- */
 
-// LAMMPS
 #include "fix_atc.h"
+#include <cstdio>
+#include <cstring>
+#include <sstream>
 #include "fix_nve.h"
 #include "atom.h"
 #include "force.h"
@@ -24,7 +26,7 @@
 #include "pointers.h"
 #include "comm.h"
 #include "group.h"
-// ATC
+
 #include "ATC_Method.h"
 #include "ATC_Transfer.h"
 #include "ATC_TransferKernel.h"
@@ -34,10 +36,6 @@
 #include "ATC_CouplingMass.h"
 #include "ATC_CouplingMomentumEnergy.h"
 #include "LammpsInterface.h"
-// other
-#include <cstdio>
-#include <cstring>
-#include <sstream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

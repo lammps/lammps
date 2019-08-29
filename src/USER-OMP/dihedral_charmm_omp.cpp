@@ -15,13 +15,12 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
 #include "dihedral_charmm_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "force.h"
 #include "pair.h"
 #include "update.h"

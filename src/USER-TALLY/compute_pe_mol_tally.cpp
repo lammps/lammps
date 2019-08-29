@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_mol_tally.h"
+#include <mpi.h>
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
 #include "update.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
 #include "comm.h"

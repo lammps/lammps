@@ -18,14 +18,8 @@
 #include "sna.h"
 #include <cmath>
 #include "math_const.h"
-#include "math_extra.h"
-#include <cstring>
-#include <cstdlib>
-
 #include "memory.h"
 #include "error.h"
-#include "comm.h"
-#include "atom.h"
 
 using namespace std;
 using namespace LAMMPS_NS;

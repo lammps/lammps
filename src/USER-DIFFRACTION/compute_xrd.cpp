@@ -16,13 +16,12 @@
    Updated: 06/17/2015-2
 ------------------------------------------------------------------------- */
 
+#include "compute_xrd.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
-#include <cstdio>
 #include <cstring>
 #include "math_const.h"
-#include "compute_xrd.h"
 #include "compute_xrd_consts.h"
 #include "atom.h"
 #include "comm.h"

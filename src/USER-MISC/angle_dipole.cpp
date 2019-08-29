@@ -15,9 +15,9 @@
    Contributing authors: Mario Orsi & Wei Ding (QMUL), m.orsi@qmul.ac.uk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_dipole.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

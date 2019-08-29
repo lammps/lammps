@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_xyz_gz.h"
-#include "domain.h"
 #include "error.h"
 #include "update.h"
 

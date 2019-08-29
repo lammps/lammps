@@ -11,23 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "update.h"
+#include <cstring>
 #include "integrate.h"
 #include "min.h"
 #include "style_integrate.h"
 #include "style_minimize.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
-#include "domain.h"
-#include "region.h"
 #include "compute.h"
 #include "output.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

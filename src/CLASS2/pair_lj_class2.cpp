@@ -9,11 +9,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_class2.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -21,7 +20,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "math_const.h"
 #include "memory.h"

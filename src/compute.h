@@ -14,7 +14,7 @@
 #ifndef LMP_COMPUTE_H
 #define LMP_COMPUTE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

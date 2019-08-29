@@ -6,28 +6,33 @@
 
 :line
 
-fix active command  :pre
+fix propel/self command  :pre
 
 [Syntax:]
 
-fix ID group-ID magnitude
+fix ID group-ID propel/self mode magnitude
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-addforce = style name of this fix command :l
+propel/self = style name of this fix command :l
+mode = velocity or quaternion :l
 magnitude = magnitude of the active force :l
 :ule
 
 [Examples:]
 
-fix active_group all active 1.0
+fix active_group all propel/self velocity 1.0
 fix constant_velocity all viscous 1.0
 
 [Description:]
 
-Adds a force of a constant magnitude to each atom in the group. The direction
-of the force is along the axis obtained by rotating the z-axis along the atom's
-quaternion. In other words, the force is along the z-axis in the atom's body
-frame.
+Adds a force of a constant magnitude to each atom in the group. The nature in
+which the force is added depends on the mode.
+For mode = velocity, the active force acts along the velocity vector of each
+atom.
+For mode = quaternion the force is along the axis obtained by rotating the
+z-axis along the atom's quaternion. In other words, the force is along the
+z-axis in the atom's body frame. This mode requires all atoms in the group
+to have a quaternion, so atom_style should either be ellipsoid or body.
 
 :line
 

@@ -58,7 +58,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   // 2. Cases where the atoms have an internal ellipsoid. Currently those
   //    styles are only body and aspherical particles.
   // The first argument (mode) is used to differentiate between these.
-
+  
   // args: fix ID all propel/self mode magnitude
   // Optional args are
   const char *mode_str = argv[3];
@@ -77,7 +77,6 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
     error->all(FLERR, msg);
   }
 
-  
   magnitude = force->numeric( FLERR, argv[4] );
 }
 
@@ -217,12 +216,12 @@ int FixPropelSelf::verify_atoms_have_quaternion()
     if (mask[i] & groupbit) {
 	    if (ellipsoid_flag && atom->ellipsoid[i] < 0) {
 		    error->all(FLERR, "Got atom without ellipsoid set");
-		    // Kind-of pointless but silences some compiler warnings:
+		    // Kind-of pointless return but silences compiler warnings:
 		    return 1;
 	    }
 	    if (body_flag && atom->body[i] < 0) {
 		    error->all(FLERR, "Got atom without body set");
-		    // Kind-of pointless but silences some compiler warnings:
+		    // Kind-of pointless return silences compiler warnings:
 		    return 1;
 	    }
     }

@@ -59,7 +59,9 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
       G = G_gam(gamma[i], this->ibar_meam[elti], errorflag);
       if (errorflag != 0)
         return;
-      get_shpfcn(this->lattce_meam[elti][elti], shp);
+
+      get_shpfcn(this->lattce_meam[elti][elti], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shp);
+
       if (this->ibar_meam[elti] <= 0) {
         Gbar = 1.0;
         dGbar = 0.0;

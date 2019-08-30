@@ -56,12 +56,15 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
         this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 2.0;
         break;
       case HCP:
-        this->re_meam[i][i] = tmplat[i];
-        break;
       case DIM:
+      case CH4:
+      case LIN:
+      case ZIG:
+      case TRI:
         this->re_meam[i][i] = tmplat[i];
         break;
       case DIA:
+      case DIA3:
         this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
         break;
       //default:
@@ -87,4 +90,7 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
   this->emb_lin_neg = 0;
   this->bkgd_dyn = 0;
   this->erose_form = 0;
+  // for trimer, zigzag, line refernece structure, sungkwang
+  setall2d(this->stheta_meam, 1.0); // stheta = sin(theta/2*pi/180) where theta is 180, so 1.0
+  setall2d(this->ctheta_meam, 0.0); // stheta = cos(theta/2*pi/180) where theta is 180, so 0
 }

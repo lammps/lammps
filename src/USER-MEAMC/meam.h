@@ -3,13 +3,14 @@
 
 #include <cmath>
 #include <cstring>
+#include "math_const.h"
 
 #define maxelt 5
 
 namespace LAMMPS_NS {
 class Memory;
 
-typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
+typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI } lattice_t;
 
 class MEAM
 {
@@ -63,6 +64,10 @@ private:
   // nr,dr = pair function discretization parameters
   // nrar,rdrar = spline coeff array parameters
 
+  // theta = angle between three atoms in line, zigzag, and trimer reference structures
+  // stheta_meam = sin(theta/2) in radian used in line, zigzag, and trimer reference structures
+  // ctheta_meam = cos(theta/2) in radian used in line, zigzag, and trimer reference structures
+
   double Ec_meam[maxelt][maxelt], re_meam[maxelt][maxelt];
   double A_meam[maxelt], alpha_meam[maxelt][maxelt], rho0_meam[maxelt];
   double delta_meam[maxelt][maxelt];
@@ -105,6 +110,10 @@ public:
 
   int maxneigh;
   double *scrfcn, *dscrfcn, *fcpair;
+
+  //angle for trimer, zigzag, line reference structures
+  double stheta_meam[maxelt][maxelt];
+  double ctheta_meam[maxelt][maxelt];
 
 protected:
   // meam_funcs.cpp
@@ -189,8 +198,12 @@ protected:
   double embedding(const double A, const double Ec, const double rhobar, double& dF) const;
   static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
 
-  static void get_shpfcn(const lattice_t latt, double (&s)[3]);
-  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax, double &a, double &S);
+  static void get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3]);
+
+  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax,
+                      const double sthe, double &a, double &S);
+  static int get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S);
+
 protected:
   void meam_checkindex(int, int, int, int*, int*);
   void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
@@ -201,6 +214,7 @@ protected:
   void alloyparams();
   void compute_pair_meam();
   double phi_meam(double, int, int);
+  const double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat);
   void compute_reference_density();
   void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double,
                   double, double, double, int, int, lattice_t);
@@ -221,19 +235,27 @@ public:
     else if (strcmp(str,"hcp") == 0) lat = HCP;
     else if (strcmp(str,"dim") == 0) lat = DIM;
     else if (strcmp(str,"dia") == 0) lat = DIA;
+    else if (strcmp(str,"dia3") == 0) lat = DIA3;
+    else if (strcmp(str,"lin") == 0) lat = LIN;
+    else if (strcmp(str,"zig") == 0) lat = ZIG;
+    else if (strcmp(str,"tri") == 0) lat = TRI;
     else {
       if (single)
         return false;
-      
+
       if (strcmp(str,"b1")  == 0) lat = B1;
       else if (strcmp(str,"c11") == 0) lat = C11;
       else if (strcmp(str,"l12") == 0) lat = L12;
       else if (strcmp(str,"b2")  == 0) lat = B2;
+      else if (strcmp(str,"ch4")  == 0) lat = CH4;
+      else if (strcmp(str,"lin")  == 0) lat =LIN;
+      else if (strcmp(str,"zig")  == 0) lat = ZIG;
+      else if (strcmp(str,"tri")  == 0) lat = TRI;
       else return false;
     }
     return true;
   }
-  
+
   static int get_Zij(const lattice_t latt);
   void meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* atwt, double* alpha,
                          double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,

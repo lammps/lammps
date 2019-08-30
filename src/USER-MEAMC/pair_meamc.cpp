@@ -33,13 +33,13 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-static const int nkeywords = 21;
+static const int nkeywords = 22;
 static const char *keywords[] = {
   "Ec","alpha","rho0","delta","lattce",
   "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
   "augt1","gsmooth_factor","re","ialloy",
   "mixture_ref_t","erose_form","zbl",
-  "emb_lin_neg","bkgd_dyn"};
+  "emb_lin_neg","bkgd_dyn", "theta"};
 
 /* ---------------------------------------------------------------------- */
 

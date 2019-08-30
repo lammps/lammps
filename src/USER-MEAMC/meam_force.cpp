@@ -290,8 +290,9 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         }
 
         //     Compute derivatives of total density wrt rij, sij and rij(3)
-        get_shpfcn(this->lattce_meam[elti][elti], shpi);
-        get_shpfcn(this->lattce_meam[eltj][eltj], shpj);
+        get_shpfcn(this->lattce_meam[elti][elti], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shpi);
+        get_shpfcn(this->lattce_meam[eltj][eltj], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shpj);
+
         drhodr1 = dgamma1[i] * drho0dr1 +
           dgamma2[i] * (dt1dr1 * rho1[i] + t1i * drho1dr1 + dt2dr1 * rho2[i] + t2i * drho2dr1 +
                         dt3dr1 * rho3[i] + t3i * drho3dr1) -

@@ -207,7 +207,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     iarg++;
 
-    rxn_name[rxn] = arg[iarg++];
+    strcpy(rxn_name[rxn],arg[iarg++]);
 
     int igroup = group->find(arg[iarg++]);
     if (igroup == -1) error->all(FLERR,"Could not find fix group ID");

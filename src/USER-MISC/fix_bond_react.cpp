@@ -207,7 +207,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     iarg++;
 
-    strcpy(rxn_name[rxn],arg[iarg++]);
+    int n = strlen(arg[iarg]) + 1;
+    if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
+    strncpy(rxn_name[rxn],arg[iarg++],n);
 
     int igroup = group->find(arg[iarg++]);
     if (igroup == -1) error->all(FLERR,"Could not find fix group ID");

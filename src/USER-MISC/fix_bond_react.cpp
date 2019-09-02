@@ -87,6 +87,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   newton_bond = force->newton_bond;
 
+  restart_global = 1;
   attempted_rxn = 0;
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -388,6 +389,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   id_fix3 = NULL;
   statted_id = NULL;
   custom_exclude_flag = 0;
+
+  // used to store restart info
+  set = new Set[nreacts];
+  memset(set,0,nreacts*sizeof(Set));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -471,6 +476,7 @@ FixBondReact::~FixBondReact()
   delete [] statted_id;
   delete [] guess_branch;
   delete [] pioneer_count;
+  delete [] set;
 
   if (group) {
     char **newarg;
@@ -3096,6 +3102,42 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
           partner[j] = (tagint) ubuf(buf[m++]).i;
           distsq[j][0] = buf[m++];
         } else m += 2;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write Set data to restart file
+------------------------------------------------------------------------- */
+
+void FixBondReact::write_restart(FILE *fp)
+{
+  set[0].nreacts = nreacts;
+  for (int i = 0; i < nreacts; i++) {
+    set[i].reaction_count_total = reaction_count_total[i];
+    int n = strlen(rxn_name[i]) + 1;
+    strncpy(set[i].rxn_name,rxn_name[i],n);
+  }
+
+  if (me == 0) {
+    int size = nreacts*sizeof(Set);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(set,sizeof(Set),nreacts,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use selected state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixBondReact::restart(char *buf)
+{
+  Set *set_restart = (Set *) buf;
+  for (int i = 0; i < set_restart[0].nreacts; i++) {
+    for (int j = 0; j < nreacts; j++) {
+      if (strcmp(set_restart[i].rxn_name,rxn_name[j]) == 0) {
+        reaction_count_total[j] = set_restart[i].reaction_count_total;
+      }
     }
   }
 }

@@ -392,10 +392,11 @@ local command.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html, aside from internally-created per-atom
-properties. None of the "fix_modify"_fix_modify.html options are
-relevant to this fix.
+Cumulative reaction counts for each reaction are written to "binary
+restart files"_restart.html. These values are associated with the
+reaction name (react-ID). Additionally, internally-created per-atom
+properties are stored to allow for smooth restarts. None of the
+"fix_modify"_fix_modify.html options are relevant to this fix.
 
 This fix computes one statistic for each {react} argument that it
 stores in a global vector, of length 'number of react arguments', that

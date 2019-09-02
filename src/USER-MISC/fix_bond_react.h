@@ -170,6 +170,15 @@ class FixBondReact : public Fix {
   void unlimit_bond();
   void limit_bond(int);
   void dedup_mega_gloves(int); //dedup global mega_glove
+  virtual void write_restart(FILE *);
+  virtual void restart(char *buf);
+
+  struct Set {
+    int nreacts;
+    char rxn_name[256];
+    int reaction_count_total;
+  };
+  Set *set;
 
   // DEBUG
 

@@ -125,7 +125,7 @@ int MinAdaptGlok::iterate(int maxiter)
     energy_force(0);
     neval++;
 
-    dtf = 0.5 * dt * force->ftm2v;
+    dtf = -0.5 * dt * force->ftm2v;
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {

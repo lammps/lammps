@@ -1,4 +1,4 @@
-# knl = Flags for Knights Landing Xeon Phi Processor,Intel Compiler/MPI,MKL FFT
+# theta = Flags for Knights Landing Xeon Phi Processor, Intel Compiler, Cray MPI, MKL FFT
 # make theta -j 8
 
 SHELL = /bin/sh

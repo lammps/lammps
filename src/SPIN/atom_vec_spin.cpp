@@ -23,17 +23,17 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "atom_vec_spin.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "atom_vec_spin.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "memory.h"
 #include "modify.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -48,7 +48,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   comm_x_only = 0;
   comm_f_only = 0;
   size_forward = 7;
-  size_reverse = 6;
+  size_reverse = 9;
   size_border = 10;
   size_velocity = 3;
   size_data_atom = 9;
@@ -57,7 +57,6 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->sp_flag = 1;
 }
-
 
 /* ----------------------------------------------------------------------
    grow atom arrays
@@ -88,6 +87,7 @@ void AtomVecSpin::grow(int n)
 
   sp = memory->grow(atom->sp,nmax,4,"atom:sp");
   fm = memory->grow(atom->fm,nmax*comm->nthreads,3,"atom:fm");
+  fm_long = memory->grow(atom->fm_long,nmax*comm->nthreads,3,"atom:fm_long");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -103,9 +103,8 @@ void AtomVecSpin::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  sp = atom->sp; fm = atom->fm;
+  sp = atom->sp; fm = atom->fm; fm_long = atom->fm_long;
 }
-
 
 /* ----------------------------------------------------------------------
    copy atom I info to atom J
@@ -262,10 +261,10 @@ int AtomVecSpin::pack_comm_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = sp[j][3];
     buf[m++] = sp[j][0];
     buf[m++] = sp[j][1];
     buf[m++] = sp[j][2];
-    buf[m++] = sp[j][3];
   }
   return m;
 }
@@ -320,10 +319,10 @@ int AtomVecSpin::unpack_comm_hybrid(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
+    sp[i][3] = buf[m++];
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
-    sp[i][3] = buf[m++];
   }
   return m;
 }
@@ -342,6 +341,9 @@ int AtomVecSpin::pack_reverse(int n, int first, double *buf)
     buf[m++] = fm[i][0];
     buf[m++] = fm[i][1];
     buf[m++] = fm[i][2];
+    buf[m++] = fm_long[i][0];
+    buf[m++] = fm_long[i][1];
+    buf[m++] = fm_long[i][2];
   }
 
   return m;
@@ -361,6 +363,9 @@ void AtomVecSpin::unpack_reverse(int n, int *list, double *buf)
     fm[j][0] += buf[m++];
     fm[j][1] += buf[m++];
     fm[j][2] += buf[m++];
+    fm_long[j][0] += buf[m++];
+    fm_long[j][1] += buf[m++];
+    fm_long[j][2] += buf[m++];
   }
 }
 
@@ -517,10 +522,10 @@ int AtomVecSpin::pack_border_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = sp[j][3];
     buf[m++] = sp[j][0];
     buf[m++] = sp[j][1];
     buf[m++] = sp[j][2];
-    buf[m++] = sp[j][3];
   }
 
   return m;
@@ -596,10 +601,10 @@ int AtomVecSpin::unpack_border_hybrid(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
+    sp[i][3] = buf[m++];
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
-    sp[i][3] = buf[m++];
   }
 
   return m;
@@ -806,8 +811,8 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
@@ -815,10 +820,10 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
 
-  sp[nlocal][3] = atof(values[2]);
-  sp[nlocal][0] = atof(values[6]);
-  sp[nlocal][1] = atof(values[7]);
-  sp[nlocal][2] = atof(values[8]);
+  sp[nlocal][3] = utils::numeric(FLERR,values[2],true,lmp);
+  sp[nlocal][0] = utils::numeric(FLERR,values[6],true,lmp);
+  sp[nlocal][1] = utils::numeric(FLERR,values[7],true,lmp);
+  sp[nlocal][2] = utils::numeric(FLERR,values[8],true,lmp);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
@@ -844,16 +849,16 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
 int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
 {
 
-  sp[nlocal][0] = atof(values[0]);
-  sp[nlocal][1] = atof(values[1]);
-  sp[nlocal][2] = atof(values[2]);
+  sp[nlocal][0] = utils::numeric(FLERR,values[0],true,lmp);
+  sp[nlocal][1] = utils::numeric(FLERR,values[1],true,lmp);
+  sp[nlocal][2] = utils::numeric(FLERR,values[2],true,lmp);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);
   sp[nlocal][0] *= inorm;
   sp[nlocal][1] *= inorm;
   sp[nlocal][2] *= inorm;
-  sp[nlocal][3] = atof(values[3]);
+  sp[nlocal][3] = utils::numeric(FLERR,values[3],true,lmp);
 
   return 4;
 }
@@ -887,10 +892,10 @@ void AtomVecSpin::pack_data(double **buf)
 
 int AtomVecSpin::pack_data_hybrid(int i, double *buf)
 {
-  buf[0] = sp[i][0];
-  buf[1] = sp[i][1];
-  buf[2] = sp[i][2];
-  buf[3] = sp[i][3];
+  buf[0] = sp[i][3];
+  buf[1] = sp[i][0];
+  buf[2] = sp[i][1];
+  buf[3] = sp[i][2];
   return 4;
 }
 
@@ -917,7 +922,7 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecSpin::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3],buf[4]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3]);
   return 4;
 }
 
@@ -939,14 +944,20 @@ bigint AtomVecSpin::memory_usage()
 
   if (atom->memcheck("sp")) bytes += memory->usage(sp,nmax,4);
   if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
+  if (atom->memcheck("fm_long")) bytes += memory->usage(fm_long,nmax*comm->nthreads,3);
 
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   clear all forces (mech and mag)
+------------------------------------------------------------------------- */
 
 void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
 {
   memset(&atom->f[0][0],0,3*nbytes);
   memset(&atom->fm[0][0],0,3*nbytes);
+  memset(&atom->fm_long[0][0],0,3*nbytes);
 }
 
 

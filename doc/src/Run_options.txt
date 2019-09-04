@@ -79,7 +79,7 @@ stdin.
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
 in "Speed kokkos"_Speed_kokkos.html, this switch must be set to enable
-running with the KOKKOS-enabled styles the package provides.  If the
+running with KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
 the GPU or USER-OMP packages, for testing or benchmarking purposes.
@@ -242,7 +242,7 @@ processors.
 
 Running with multiple partitions can be useful for running
 "multi-replica simulations"_Howto_replica.html, where each replica
-runs on on one or a few processors.  Note that with MPI installed on a
+runs on one or a few processors.  Note that with MPI installed on a
 machine (e.g. your desktop), you can run on more (virtual) processors
 than you have physical processors.
 
@@ -448,7 +448,7 @@ partition screen files file.N.
 [-suffix style args] :link(suffix)
 
 Use variants of various styles if they exist.  The specified style can
-be {cuda}, {gpu}, {intel}, {kk}, {omp}, {opt}, or {hybrid}.  These
+be {gpu}, {intel}, {kk}, {omp}, {opt}, or {hybrid}.  These
 refer to optional packages that LAMMPS can be built with, as described
 in "Accelerate performance"_Speed.html.  The "gpu" style corresponds to the
 GPU package, the "intel" style to the USER-INTEL package, the "kk"

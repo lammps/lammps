@@ -15,12 +15,11 @@
    Contributing author: Steven Vandenbrande
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
 #include "bond_mm3.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -54,8 +53,7 @@ void BondMM3::compute(int eflag, int vflag)
   double rsq,r,dr,dr2,de_bond,K3,K4;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -201,12 +199,13 @@ void BondMM3::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondMM3::single(int type, double rsq, int i, int j, double &fforce)
+double BondMM3::single(int type, double rsq,
+                       int /* i */, int /* j */, double &fforce)
 {
   /*
-  E = K(r-r0)^2 [1-2.55*(r-r0)+(7/12)*2.55^(2)*(r-r0)^2]
-  with -2.55 in angstrom^(-1) and (7/12)*2.55^(2) in angstrom^(-2)
-  These prefactors are converted here to the correct units
+    E = K(r-r0)^2 [1-2.55*(r-r0)+(7/12)*2.55^(2)*(r-r0)^2]
+    with -2.55 in angstrom^(-1) and (7/12)*2.55^(2) in angstrom^(-2)
+    These prefactors are converted here to the correct units
   */
   double K3 = -2.55/force->angstrom;
   double K4 = 7.0/12.0*2.55*2.55/force->angstrom/force->angstrom;

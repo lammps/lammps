@@ -21,10 +21,11 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
+#include "fix_pimd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_pimd.h"
 #include "universe.h"
 #include "comm.h"
 #include "force.h"
@@ -637,14 +638,14 @@ void FixPIMD::comm_exec(double **ptr)
     if(nsend > max_nsend)
     {
       max_nsend = nsend+200;
-      tag_send = (int*) memory->srealloc(tag_send, sizeof(int)*max_nsend, "FixPIMD:tag_send");
+      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD:tag_send");
       buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixPIMD:x_send");
     }
 
     // send tags
 
-    MPI_Sendrecv( atom->tag, nlocal, MPI_INT, plan_send[iplan], 0,
-                  tag_send,  nsend,  MPI_INT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
+    MPI_Sendrecv( atom->tag, nlocal, MPI_LMP_TAGINT, plan_send[iplan], 0,
+                  tag_send,  nsend,  MPI_LMP_TAGINT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
 
     // wrap positions
 
@@ -661,7 +662,7 @@ void FixPIMD::comm_exec(double **ptr)
 
         sprintf(error_line, "Atom " TAGINT_FORMAT " is missing at world [%d] "
                 "rank [%d] required by  rank [%d] (" TAGINT_FORMAT ", "
-                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n",tag_send[i],
+                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n", tag_send[i],
                 universe->iworld, comm->me, plan_recv[iplan],
                 atom->tag[0], atom->tag[1], atom->tag[2]);
 

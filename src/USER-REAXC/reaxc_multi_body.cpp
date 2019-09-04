@@ -24,11 +24,12 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_multi_body.h"
-#include "reaxc_bond_orders.h"
+#include <cmath>
+#include <cstring>
+#include "pair.h"
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
-#include "reaxc_vector.h"
 
 void Atom_Energy( reax_system *system, control_params *control,
                   simulation_data *data, storage *workspace, reax_list **lists,

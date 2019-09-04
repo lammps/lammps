@@ -3,9 +3,9 @@
          http://lammps.sandia.gov, Sandia National Laboratories
          Steve Plimpton, sjplimp@sandia.gov
 
-         Copyright (2003) Sandia Corporation.	Under the terms of Contract
+         Copyright (2003) Sandia Corporation.  Under the terms of Contract
          DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-         certain rights in this software.	This software is distributed
+         certain rights in this software.  This software is distributed
 under
          the GNU General Public License.
 
@@ -16,14 +16,14 @@ under
          Contributing author: PM Larsen (MIT)
 ------------------------------------------------------------------------- */
 
+#include "compute_ptm_atom.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include "atom.h"
 #include "comm.h"
-#include "compute_ptm_atom.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -31,15 +31,13 @@ under
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair.h"
 #include "update.h"
 
 #include "ptm_functions.h"
 
-#define MAX_NEIGHBORS 30
 #define NUM_COLUMNS 7
-#define UNKNOWN 0
-#define OTHER 8
+#define PTM_LAMMPS_UNKNOWN -1
+#define PTM_LAMMPS_OTHER 0
 
 using namespace LAMMPS_NS;
 
@@ -69,7 +67,9 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
   char *ptr = structures;
 
   const char *strings[] = {"fcc",  "hcp",  "bcc", "ico",    "sc",
-                           "dcub", "dhex", "all", "default"};
+                           "dcub", "dhex", "graphene", "all", "default"};
+  int num_strings = sizeof(strings) / sizeof(const char*);
+
   int32_t flags[] = {
       PTM_CHECK_FCC,
       PTM_CHECK_HCP,
@@ -78,6 +78,7 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
       PTM_CHECK_SC,
       PTM_CHECK_DCUB,
       PTM_CHECK_DHEX,
+      PTM_CHECK_GRAPHENE,
       PTM_CHECK_ALL,
       PTM_CHECK_FCC | PTM_CHECK_HCP | PTM_CHECK_BCC | PTM_CHECK_ICO};
 
@@ -85,7 +86,7 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
   while (*ptr != '\0') {
 
     bool found = false;
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < num_strings; i++) {
       int len = strlen(strings[i]);
       if (strncmp(ptr, strings[i], len) == 0) {
         input_flags |= flags[i];
@@ -152,9 +153,20 @@ void ComputePTMAtom::init() {
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePTMAtom::init_list(int id, NeighList *ptr) { list = ptr; }
+void ComputePTMAtom::init_list(int /* id */, NeighList *ptr) { list = ptr; }
 
 /* ---------------------------------------------------------------------- */
+
+typedef struct
+{
+  double **x;
+  int *numneigh;
+  int **firstneigh;
+  int *ilist;
+  int nlocal;
+
+} ptmnbrdata_t;
+
 
 typedef struct {
   int index;
@@ -165,38 +177,59 @@ static bool sorthelper_compare(ptmnbr_t const &a, ptmnbr_t const &b) {
   return a.d < b.d;
 }
 
-static int get_neighbors(double *pos, int jnum, int *jlist, double **x,
-                         double (*nbr)[3]) {
+static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, int num, size_t* nbr_indices, int32_t* numbers, double (*nbr_pos)[3])
+{
+  ptmnbrdata_t* data = (ptmnbrdata_t*)vdata;
 
-  ptmnbr_t *nbr_order = new ptmnbr_t[jnum];
+  double **x = data->x;
+  double *pos = x[atom_index];
+
+  int *jlist = NULL;
+  int jnum = 0;
+  if (atom_index < data->nlocal) {
+    jlist = data->firstneigh[atom_index];
+    jnum = data->numneigh[atom_index];
+  }
+  else {
+    jlist = data->firstneigh[central_index];
+    jnum = data->numneigh[central_index];
+  }
+
+  std::vector<ptmnbr_t> nbr_order;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist[jj];
     j &= NEIGHMASK;
+    if (j == atom_index)
+      continue;
 
     double dx = pos[0] - x[j][0];
     double dy = pos[1] - x[j][1];
     double dz = pos[2] - x[j][2];
     double rsq = dx * dx + dy * dy + dz * dz;
 
-    nbr_order[jj].index = j;
-    nbr_order[jj].d = rsq;
+    ptmnbr_t nbr = {j, rsq};
+    nbr_order.push_back(nbr);
   }
 
-  std::sort(nbr_order, nbr_order + jnum, &sorthelper_compare);
-  int num_nbrs = std::min(MAX_NEIGHBORS, jnum);
+  std::sort(nbr_order.begin(), nbr_order.end(), &sorthelper_compare);
+  int num_nbrs = std::min(num - 1, (int)nbr_order.size());
 
-  nbr[0][0] = nbr[0][1] = nbr[0][2] = 0;
+  nbr_pos[0][0] = nbr_pos[0][1] = nbr_pos[0][2] = 0;
+  nbr_indices[0] = atom_index;
+  numbers[0] = 0;
   for (int jj = 0; jj < num_nbrs; jj++) {
 
     int j = nbr_order[jj].index;
-    nbr[jj + 1][0] = x[j][0] - pos[0];
-    nbr[jj + 1][1] = x[j][1] - pos[1];
-    nbr[jj + 1][2] = x[j][2] - pos[2];
+    nbr_pos[jj + 1][0] = x[j][0] - pos[0];
+    nbr_pos[jj + 1][1] = x[j][1] - pos[1];
+    nbr_pos[jj + 1][2] = x[j][2] - pos[2];
+
+    nbr_indices[jj + 1] = j;
+    numbers[jj + 1] = 0;
   }
 
-  delete[] nbr_order;
-  return num_nbrs;
+  return num_nbrs + 1;
 }
 
 void ComputePTMAtom::compute_peratom() {
@@ -228,51 +261,29 @@ void ComputePTMAtom::compute_peratom() {
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal};
 
   for (int ii = 0; ii < inum; ii++) {
 
     int i = ilist[ii];
-    output[i][0] = UNKNOWN;
+    output[i][0] = PTM_LAMMPS_UNKNOWN;
     if (!(mask[i] & groupbit))
       continue;
 
-    double *pos = x[i];
-
-    int *jlist = firstneigh[i];
     int jnum = numneigh[i];
     if (jnum <= 0)
       continue;
 
-    // get neighbours ordered by increasing distance
-    double nbr[MAX_NEIGHBORS + 1][3];
-    int num_nbrs = get_neighbors(pos, jnum, jlist, x, nbr);
-
-    // check that we have enough neighbours for the desired structure types
-    int32_t flags = 0;
-    if (num_nbrs >= PTM_NUM_NBRS_SC && (input_flags & PTM_CHECK_SC))
-      flags |= PTM_CHECK_SC;
-    if (num_nbrs >= PTM_NUM_NBRS_FCC && (input_flags & PTM_CHECK_FCC))
-      flags |= PTM_CHECK_FCC;
-    if (num_nbrs >= PTM_NUM_NBRS_HCP && (input_flags & PTM_CHECK_HCP))
-      flags |= PTM_CHECK_HCP;
-    if (num_nbrs >= PTM_NUM_NBRS_ICO && (input_flags & PTM_CHECK_ICO))
-      flags |= PTM_CHECK_ICO;
-    if (num_nbrs >= PTM_NUM_NBRS_BCC && (input_flags & PTM_CHECK_BCC))
-      flags |= PTM_CHECK_BCC;
-    if (num_nbrs >= PTM_NUM_NBRS_DCUB && (input_flags & PTM_CHECK_DCUB))
-      flags |= PTM_CHECK_DCUB;
-    if (num_nbrs >= PTM_NUM_NBRS_DHEX && (input_flags & PTM_CHECK_DHEX))
-      flags |= PTM_CHECK_DHEX;
 
     // now run PTM
-    int8_t mapping[MAX_NEIGHBORS + 1];
     int32_t type, alloy_type;
-    double scale, rmsd, interatomic_distance, lattice_constant;
-    double q[4], F[9], F_res[3], U[9], P[9];
-    ptm_index(local_handle, flags, num_nbrs + 1, nbr, NULL, true, &type,
-              &alloy_type, &scale, &rmsd, q, F, F_res, U, P, mapping,
-              &interatomic_distance, &lattice_constant);
+    double scale, rmsd, interatomic_distance;
+    double q[4];
+    bool standard_orientations = false;
+    ptm_index(local_handle, i, get_neighbours, (void*)&nbrlist,
+              input_flags, standard_orientations,
+              &type, &alloy_type, &scale, &rmsd, q,
+              NULL, NULL, NULL, NULL, &interatomic_distance, NULL, NULL);
 
     if (rmsd > rmsd_threshold) {
       type = PTM_MATCH_NONE;
@@ -280,8 +291,10 @@ void ComputePTMAtom::compute_peratom() {
 
     // printf("%d type=%d rmsd=%f\n", i, type, rmsd);
 
-    if (type == PTM_MATCH_NONE)
-      type = OTHER;
+    if (type == PTM_MATCH_NONE) {
+      type = PTM_LAMMPS_OTHER;
+      rmsd = INFINITY;
+    }
 
     output[i][0] = type;
     output[i][1] = rmsd;

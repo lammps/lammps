@@ -52,7 +52,7 @@ MEAM::G_gam(const double gamma, const int ibar, int& errorflag) const
     case 1:
       return MathSpecial::fm_exp(gamma / 2.0);
     case 3:
-      return 2.0 / (1.0 + exp(-gamma));
+      return 2.0 / (1.0 + MathSpecial::fm_exp(-gamma));
     case -5:
       if ((1.0 + gamma) >= 0) {
         return sqrt(1.0 + gamma);
@@ -141,6 +141,29 @@ MEAM::zbl(const double r, const int z1, const int z2)
   if (r > 0.0)
     result = result * z1 * z2 / r * cc;
   return result;
+}
+
+//-----------------------------------------------------------------------------
+// Compute embedding function F(rhobar) and derivative F'(rhobar), eqn I.5
+//
+double
+MEAM::embedding(const double A, const double Ec, const double rhobar, double& dF) const
+{
+  const double AEc = A * Ec;
+
+  if (rhobar > 0.0) {
+      const double lrb = log(rhobar);
+      dF = AEc * (1.0 + lrb);
+      return AEc * rhobar * lrb;
+  } else {
+    if (this->emb_lin_neg == 0) {
+      dF = 0.0;
+      return 0.0;
+    } else {
+      dF = - AEc;
+      return - AEc * rhobar;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_class2_soft.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -32,28 +31,26 @@ using namespace MathConst;
 PairLJClass2Soft::PairLJClass2Soft(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-  allocated = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2Soft::~PairLJClass2Soft()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut);
-      memory->destroy(epsilon);
-      memory->destroy(sigma);
-      memory->destroy(lambda);
-      memory->destroy(lj1);
-      memory->destroy(lj2);
-      memory->destroy(lj3);
-      memory->destroy(offset);
-      allocated=0;
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lambda);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(offset);
   }
 }
 
@@ -68,8 +65,7 @@ void PairLJClass2Soft::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

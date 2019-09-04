@@ -18,9 +18,8 @@
     references: Espanol and Revenga, Phys Rev E 67, 026705 (2003)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sdpd_taitwater_isothermal.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -71,8 +70,7 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
   double rsq, tmp, wfd, delVdotDelR;
   double prefactor, wiener[3][3], f_random[3];
 
-  if (eflag || vflag) ev_setup (eflag, vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;

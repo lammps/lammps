@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "improper_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "improper_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -104,8 +103,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
   // set neighbor->improperlist to sub-style improperlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nimproperlist = nimproperlist[m];
@@ -307,6 +305,7 @@ void ImproperHybrid::write_restart(FILE *fp)
     n = strlen(keywords[m]) + 1;
     fwrite(&n,sizeof(int),1,fp);
     fwrite(keywords[m],sizeof(char),n,fp);
+    styles[m]->write_restart_settings(fp);
   }
 }
 
@@ -332,6 +331,7 @@ void ImproperHybrid::read_restart(FILE *fp)
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_improper(keywords[m],0,dummy);
+    styles[m]->read_restart_settings(fp);
   }
 }
 

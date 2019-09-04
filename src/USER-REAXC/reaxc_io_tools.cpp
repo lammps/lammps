@@ -24,15 +24,12 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "update.h"
 #include "reaxc_io_tools.h"
-#include "reaxc_list.h"
-#include "reaxc_reset_tools.h"
+#include <cstdio>
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_system_props.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_traj.h"
-#include "reaxc_vector.h"
 
 int Init_Output_Files( reax_system *system, control_params *control,
                        output_controls *out_control, mpi_datatypes *mpi_data,
@@ -55,8 +52,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
       sprintf( temp, "%s.pot", control->sim_name );
       if ((out_control->pot = fopen( temp, "w" )) != NULL) {
         fflush( out_control->pot );
-      }
-      else {
+      } else {
         strcpy( msg, "init_out_controls: .pot file could not be opened\n" );
         return FAILURE;
       }
@@ -74,8 +70,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
                 "step", "Pint/norm[x]", "Pint/norm[y]", "Pint/norm[z]",
                 "Pext/Ptot[x]", "Pext/Ptot[y]", "Pext/Ptot[z]", "Pkin/V" );
         fflush( out_control->prs );
-      }
-      else {
+      } else {
         strcpy(msg,"init_out_controls: .prs file couldn't be opened\n");
         return FAILURE;
       }
@@ -87,20 +82,22 @@ int Init_Output_Files( reax_system *system, control_params *control,
 
 
 /************************ close output files ************************/
-int Close_Output_Files( reax_system *system, control_params *control,
+int Close_Output_Files( reax_system *system, control_params * /* control */,
                         output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
 {
   if (out_control->write_steps > 0)
     End_Traj( system->my_rank, out_control );
 
   if (system->my_rank == MASTER_NODE) {
-    if (out_control->energy_update_freq > 0) {
+    if (out_control->pot) {
       fclose( out_control->pot );
+      out_control->pot = NULL;
     }
 
-    if( control->ensemble == NPT || control->ensemble == iNPT ||
-        control->ensemble == sNPT )
-      fclose( out_control->prs );
+    if (out_control->prs) {
+      fclose(out_control->prs);
+      out_control->prs = NULL;
+    }
   }
 
   return SUCCESS;
@@ -124,7 +121,7 @@ void Output_Results( reax_system *system, control_params *control,
         out_control->energy_update_freq > 0 &&
         data->step % out_control->energy_update_freq == 0 ) {
 
-      if (control->virial) {
+      if (control->virial && out_control->prs) {
         fprintf( out_control->prs,
                  "%8d%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
                  data->step,

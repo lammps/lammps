@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -24,7 +24,6 @@
 #include "improper.h"
 #include "kspace.h"
 #include "modify.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 

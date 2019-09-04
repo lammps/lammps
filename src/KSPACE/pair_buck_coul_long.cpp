@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck_coul_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -50,23 +49,23 @@ PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairBuckCoulLong::~PairBuckCoulLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(a);
-      memory->destroy(rho);
-      memory->destroy(c);
-      memory->destroy(rhoinv);
-      memory->destroy(buck1);
-      memory->destroy(buck2);
-      memory->destroy(offset);
-    }
-    if (ftable) free_tables();
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(c);
+    memory->destroy(rhoinv);
+    memory->destroy(buck1);
+    memory->destroy(buck2);
+    memory->destroy(offset);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,8 +81,7 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

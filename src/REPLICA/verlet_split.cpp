@@ -15,7 +15,6 @@
    Contributing authors: Yuxing Peng and Chris Knight (U Chicago)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "verlet_split.h"
 #include "universe.h"
 #include "neighbor.h"
@@ -223,7 +222,7 @@ void VerletSplit::init()
   if (!force->kspace && comm->me == 0)
     error->warning(FLERR,"No Kspace calculation with verlet/split");
 
-  if (force->kspace_match("tip4p",0)) tip4p_flag = 1;
+  if (force->kspace_match("/tip4p",0)) tip4p_flag = 1;
   else tip4p_flag = 0;
 
   // currently TIP4P does not work with verlet/split, so generate error

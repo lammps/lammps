@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_ids.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -28,7 +29,7 @@ ResetIDs::ResetIDs(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void ResetIDs::command(int narg, char **/*arg*/)
+void ResetIDs::command(int narg, char ** /* arg */)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Reset_ids command before simulation box is defined");

@@ -36,7 +36,7 @@ pair_style airebo/morse 3.0
 pair_coeff * * ../potentials/CH.airebo-m H C :pre
 
 pair_style rebo
-pair_coeff * * ../potentials/CH.airebo H C :pre
+pair_coeff * * ../potentials/CH.rebo H C :pre
 
 [Description:]
 
@@ -57,7 +57,8 @@ The {rebo} pair style computes the Reactive Empirical Bond Order (REBO)
 Potential of "(Brenner)"_#Brenner. Note that this is the so-called
 2nd generation REBO from 2002, not the original REBO from 1990.
 As discussed below, 2nd generation REBO is closely related to the
-initial AIREBO; it is just a subset of the potential energy terms.
+initial AIREBO; it is just a subset of the potential energy terms
+with a few slightly different parameters
 
 The AIREBO potential consists of three terms:
 
@@ -113,12 +114,12 @@ various dihedral angle preferences in hydrocarbon configurations.
 :line
 
 Only a single pair_coeff command is used with the {airebo}, {airebo}
-or {rebo} style which specifies an AIREBO or AIREBO-M potential file
-with parameters for C and H.  Note that the {rebo} style in LAMMPS
-uses the same AIREBO-formatted potential file.  These are mapped to
-LAMMPS atom types by specifying N additional arguments after the
-filename in the pair_coeff command, where N is the number of LAMMPS
-atom types:
+or {rebo} style which specifies an AIREBO, REBO, or AIREBO-M potential
+file with parameters for C and H.  Note that as of LAMMPS version
+15 May 2019 the {rebo} style in LAMMPS uses its own potential
+file (CH.rebo).  These are mapped to LAMMPS atom types by specifying
+N additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
 
 filename
 N element names = mapping of AIREBO elements to atom types :ul

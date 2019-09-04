@@ -15,17 +15,15 @@
    Contributing author: Steven Vandenbrande
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "pair_mm3_switch3_coulgauss_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -82,17 +80,16 @@ PairMM3Switch3CoulGaussLong::~PairMM3Switch3CoulGaussLong()
 
 void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
 {
-  int i,ii,j,jj,inum,jnum,itype,jtype,itable,jtable,ktable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,ecoul2,fpair;
-  double fraction,fraction2,table;
+  int i,ii,j,jj,inum,jnum,itype,jtype,itable;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcecoul2,forcelj,factor_coul,factor_lj,tr,ftr,trx;
-  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expn2,expb,g_ewald2i,g_ewaldi;
+  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expn2,expb;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double rsq, lookup_corr;
+  double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -109,9 +106,6 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  g_ewaldi = 1.0/g_ewald;
-  g_ewald2i = g_ewaldi*g_ewaldi;
-  lookup_corr = 0.0;
 
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
@@ -615,9 +609,9 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
                                  double factor_coul, double factor_lj,
                                  double &fforce)
 {
-  double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2,rrij,expn2,erfc2;
-  double fraction,table,forcecoul,forcecoul2,forcelj,phicoul,phicoul2,philj;
-  double expb, ecoul, evdwl, trx, tr, ftr;
+  double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
+  double fraction,table,forcecoul,forcecoul2,forcelj,phicoul;
+  double expb,rrij,expn2,erfc2,ecoul,evdwl,trx,tr,ftr;
 
   int itable;
 

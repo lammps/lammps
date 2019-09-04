@@ -18,11 +18,9 @@
                Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck6d_coul_gauss_dsf.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -48,29 +46,29 @@ PairBuck6dCoulGaussDSF::PairBuck6dCoulGaussDSF(LAMMPS *lmp) : Pair(lmp)
 
 PairBuck6dCoulGaussDSF::~PairBuck6dCoulGaussDSF()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(alpha_ij);
-      memory->destroy(f_shift_ij);
-      memory->destroy(e_shift_ij);
-      memory->destroy(buck6d1);
-      memory->destroy(buck6d2);
-      memory->destroy(buck6d3);
-      memory->destroy(buck6d4);
-      memory->destroy(c0);
-      memory->destroy(c1);
-      memory->destroy(c2);
-      memory->destroy(c3);
-      memory->destroy(c4);
-      memory->destroy(c5);
-      memory->destroy(rsmooth_sq);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(alpha_ij);
+    memory->destroy(f_shift_ij);
+    memory->destroy(e_shift_ij);
+    memory->destroy(buck6d1);
+    memory->destroy(buck6d2);
+    memory->destroy(buck6d3);
+    memory->destroy(buck6d4);
+    memory->destroy(c0);
+    memory->destroy(c1);
+    memory->destroy(c2);
+    memory->destroy(c3);
+    memory->destroy(c4);
+    memory->destroy(c5);
+    memory->destroy(rsmooth_sq);
+    memory->destroy(offset);
   }
 }
 
@@ -87,8 +85,7 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

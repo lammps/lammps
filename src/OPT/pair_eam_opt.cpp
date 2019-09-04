@@ -19,9 +19,9 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_opt.h"
 #include <cmath>
 #include <cstdlib>
-#include "pair_eam_opt.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -38,8 +38,7 @@ PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp) {}
 
 void PairEAMOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {

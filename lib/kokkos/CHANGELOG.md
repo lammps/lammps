@@ -1,5 +1,60 @@
 # Change Log
 
+## [2.9.00](https://github.com/kokkos/kokkos/tree/2.9.00) (2019-06-24)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.8.00...2.9.00)
+
+**Implemented enhancements:**
+
+- Capability: CUDA Streams [\#1723](https://github.com/kokkos/kokkos/issues/1723)
+- Capability: CUDA Stream support for parallel\_reduce [\#2061](https://github.com/kokkos/kokkos/issues/2061)
+- Capability: Feature Request: TeamVectorRange [\#713](https://github.com/kokkos/kokkos/issues/713)
+- Capability: Adding HPX backend [\#2080](https://github.com/kokkos/kokkos/issues/2080)
+- Capability: TaskScheduler to have multiple queues [\#565](https://github.com/kokkos/kokkos/issues/565)
+- Capability: Support for additional reductions in ScatterView [\#1674](https://github.com/kokkos/kokkos/issues/1674)
+- Capability: Request: deep\_copy within parallel regions [\#689](https://github.com/kokkos/kokkos/issues/689)
+- Capability: Feature Request: `create\_mirror\_view\_without\_initializing` [\#1765](https://github.com/kokkos/kokkos/issues/1765)
+- View: Use SFINAE to restrict possible View type conversions [\#2127](https://github.com/kokkos/kokkos/issues/2127)
+- Deprecation: Deprecate ExecutionSpace::fence\(\) as static function and make it non-static [\#2140](https://github.com/kokkos/kokkos/issues/2140)
+- Deprecation: Deprecate LayoutTileLeft [\#2122](https://github.com/kokkos/kokkos/issues/2122)
+- Macros: KOKKOS\_RESTRICT defined for non-Intel compilers [\#2038](https://github.com/kokkos/kokkos/issues/2038)
+
+**Fixed bugs:**
+
+- Cuda: TeamThreadRange loop count on device is passed by reference to host static constexpr [\#1733](https://github.com/kokkos/kokkos/issues/1733)
+- Cuda: Build error with relocatable device code with CUDA 10.1 GCC 7.3 [\#2134](https://github.com/kokkos/kokkos/issues/2134)
+- Cuda: cudaFuncSetCacheConfig is setting CachePreferShared too often [\#2066](https://github.com/kokkos/kokkos/issues/2066)
+- Cuda: TeamPolicy doesn't throw then created with non-viable vector length and also doesn't backscale to viable one [\#2020](https://github.com/kokkos/kokkos/issues/2020)
+- Cuda: cudaMemcpy error for large league sizes on V100 [\#1991](https://github.com/kokkos/kokkos/issues/1991)
+- Cuda: illegal warp sync in parallel\_reduce by functor on Turing 75 [\#1958](https://github.com/kokkos/kokkos/issues/1958)
+- TeamThreadRange: Inconsistent results from TeamThreadRange reduction [\#1905](https://github.com/kokkos/kokkos/issues/1905)
+- Atomics: atomic\_fetch\_oper & atomic\_oper\_fetch don't build for complex\<float\> [\#1964](https://github.com/kokkos/kokkos/issues/1964)
+- Views: Kokkos randomread Views leak memory [\#2155](https://github.com/kokkos/kokkos/issues/2155)
+- ScatterView: LayoutLeft overload currently non-functional [\#2165](https://github.com/kokkos/kokkos/issues/2165)
+- KNL: With intel 17.2.174 illegal instruction in random number test [\#2078](https://github.com/kokkos/kokkos/issues/2078)
+- Bitset: Enable copy constructor on device [\#2094](https://github.com/kokkos/kokkos/issues/2094)
+- Examples: do not compile due to template deduction error \(multi\_fem\) [\#1928](https://github.com/kokkos/kokkos/issues/1928)
+
+## [2.8.00](https://github.com/kokkos/kokkos/tree/2.8.00) (2019-02-05)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.7.24...2.8.00)
+
+**Implemented enhancements:**
+
+- Capability, Tests: C++14 support and testing [\#1914](https://github.com/kokkos/kokkos/issues/1914)
+- Capability: Add environment variables for all command line arguments [\#1798](https://github.com/kokkos/kokkos/issues/1798)
+- Capability: --kokkos-ndevices not working for Slurm [\#1920](https://github.com/kokkos/kokkos/issues/1920)
+- View: Undefined behavior when deep copying from and to an empty unmanaged view [\#1967](https://github.com/kokkos/kokkos/issues/1967)
+- BuildSystem: nvcc\_wrapper should stop immediately if nvcc is not in PATH [\#1861](https://github.com/kokkos/kokkos/issues/1861)
+
+**Fixed bugs:**
+
+- Cuda: Fix Volta Issues 1 Non-deterministic behavior on Volta, runs fine on Pascal [\#1949](https://github.com/kokkos/kokkos/issues/1949)
+- Cuda: Fix Volta Issues 2 CUDA Team Scan gives wrong values on Volta with -G compile flag [\#1942](https://github.com/kokkos/kokkos/issues/1942)
+- Cuda: illegal warp sync in parallel\_reduce by functor on Turing 75 [\#1958](https://github.com/kokkos/kokkos/issues/1958)
+- Threads: Pthreads backend does not handle RangePolicy with offset correctly [\#1976](https://github.com/kokkos/kokkos/issues/1976)
+- Atomics: atomic\_fetch\_oper has no case for Kokkos::complex\<double\> or other 16-byte types [\#1951](https://github.com/kokkos/kokkos/issues/1951)
+- MDRangePolicy: Fix zero-length range [\#1948](https://github.com/kokkos/kokkos/issues/1948)
+- TeamThreadRange: TeamThreadRange MaxLoc reduce doesnt compile  [\#1909](https://github.com/kokkos/kokkos/issues/1909)
+
 ## [2.7.24](https://github.com/kokkos/kokkos/tree/2.7.24) (2018-11-04)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.7.00...2.7.24)
 

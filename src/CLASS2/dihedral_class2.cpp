@@ -15,14 +15,13 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_class2.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "dihedral_class2.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
@@ -118,8 +117,7 @@ void DihedralClass2::compute(int eflag, int vflag)
   double fabcd[4][3];
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

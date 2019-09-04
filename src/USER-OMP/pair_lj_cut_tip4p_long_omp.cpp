@@ -12,8 +12,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_tip4p_long_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -62,8 +62,7 @@ PairLJCutTIP4PLongOMP::~PairLJCutTIP4PLongOMP()
 
 void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;

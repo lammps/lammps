@@ -15,12 +15,11 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_buck_long_coul_long.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_vector.h"
-#include "pair_buck_long_coul_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -29,7 +28,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
@@ -445,8 +443,7 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
 
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
   double **f = atom->f, *f0 = f[0], *fi = f0;
@@ -785,8 +782,7 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
 {
   double evdwl,ecoul,fpair,fvirial;
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
   double **f = atom->f, *f0 = f[0], *fi = f0;

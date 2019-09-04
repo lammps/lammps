@@ -1,5 +1,5 @@
 #HTMLDOC 1.8.28
--t pdf14 -f "../Manual.pdf" --book --toclevels 4 --no-numbered --toctitle "Table of Contents" --title --textcolor #000000 --linkcolor #0000ff --linkstyle plain --bodycolor #ffffff --size Universal --left 1.00in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --header1 ... --footer ..1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=9 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Sans --bodyfont Serif --headfootsize 11.0 --headfootfont Sans-Bold --charset iso-8859-15 --links --embedfonts --pagemode document --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 680 --no-strict --no-overflow
+-t pdf14 -f "Manual.pdf" --book --toclevels 4 --no-numbered --toctitle "Table of Contents" --title --textcolor #000000 --linkcolor #0000ff --linkstyle plain --bodycolor #ffffff --size Universal --left 1.00in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --header1 ... --footer ..1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=9 --jpeg=0 --fontsize 11.0 --fontspacing 1.2 --headingfont Sans --bodyfont Serif --headfootsize 11.0 --headfootfont Sans-Bold --charset iso-8859-15 --links --embedfonts --pagemode document --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password ""  --user-password "" --browserwidth 680 --no-strict --no-overflow
 Manual.html
 Intro.html
 Intro_overview.html
@@ -42,6 +42,7 @@ Commands_compute.html
 Commands_pair.html
 Commands_bond.html
 Commands_kspace.html
+Commands_removed.html
 Packages.html
 Packages_standard.html
 Packages_user.html
@@ -150,6 +151,7 @@ dielectric.html
 dimension.html
 displace_atoms.html
 dump.html
+dump_adios.html
 dump_h5md.html
 dump_image.html
 dump_modify.html
@@ -157,6 +159,7 @@ dump_molfile.html
 dump_netcdf.html
 dump_vtk.html
 dump_cfg_uef.html
+dynamical_matrix.html
 echo.html
 group.html
 group2ndx.html
@@ -165,6 +168,7 @@ if.html
 include.html
 info.html
 jump.html
+kim_commands.html
 label.html
 lattice.html
 log.html
@@ -172,9 +176,11 @@ mass.html
 message.html
 min_modify.html
 min_style.html
+min_spin.html
 minimize.html
 molecule.html
 neb.html
+neb_spin.html
 neigh_modify.html
 neighbor.html
 newton.html
@@ -261,6 +267,7 @@ fix_drude_transform.html
 fix_dt_reset.html
 fix_efield.html
 fix_ehex.html
+fix_electron_stopping.html
 fix_enforce2d.html
 fix_eos_cv.html
 fix_eos_table.html
@@ -304,6 +311,7 @@ fix_mscg.html
 fix_msst.html
 fix_mvv_dpd.html
 fix_neb.html
+fix_neb_spin.html
 fix_nh.html
 fix_nh_eff.html
 fix_nph_asphere.html
@@ -448,6 +456,7 @@ compute_global_atom.html
 compute_group_group.html
 compute_gyration.html
 compute_gyration_chunk.html
+compute_gyration_shape.html
 compute_heat_flux.html
 compute_hexorder_atom.html
 compute_improper.html
@@ -461,6 +470,7 @@ compute_ke_rigid.html
 compute_meso_e_atom.html
 compute_meso_rho_atom.html
 compute_meso_t_atom.html
+compute_momentum.html
 compute_msd.html
 compute_msd_chunk.html
 compute_msd_nongauss.html
@@ -567,6 +577,8 @@ pair_dipole.html
 pair_dpd.html
 pair_dpd_fdt.html
 pair_dsmc.html
+pair_e3b.html
+pair_drip.html
 pair_eam.html
 pair_edip.html
 pair_eff.html
@@ -576,6 +588,7 @@ pair_extep.html
 pair_gauss.html
 pair_gayberne.html
 pair_gran.html
+pair_granular.html
 pair_gromacs.html
 pair_gw.html
 pair_ilp_graphene_hbn.html
@@ -637,6 +650,7 @@ pair_sph_lj.html
 pair_sph_rhosum.html
 pair_sph_taitwater.html
 pair_sph_taitwater_morris.html
+pair_spin_dipole.html
 pair_spin_dmi.html
 pair_spin_exchange.html
 pair_spin_magelec.html

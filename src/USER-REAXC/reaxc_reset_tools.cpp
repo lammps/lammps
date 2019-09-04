@@ -24,11 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_reset_tools.h"
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
+
+#include "error.h"
+
 
 void Reset_Atoms( reax_system* system, control_params *control )
 {
@@ -120,8 +124,7 @@ void Reset_Workspace( reax_system *system, storage *workspace )
 
 
 void Reset_Neighbor_Lists( reax_system *system, control_params *control,
-                           storage *workspace, reax_list **lists,
-                           MPI_Comm comm )
+                           storage *workspace, reax_list **lists )
 {
   int i, total_bonds, Hindex, total_hbonds;
   reax_list *bonds, *hbonds;
@@ -142,10 +145,10 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     if (total_bonds >= bonds->num_intrs * DANGER_ZONE) {
       workspace->realloc.bonds = 1;
       if (total_bonds >= bonds->num_intrs) {
-        fprintf(stderr,
-                "p%d: not enough space for bonds! total=%d allocated=%d\n",
-                system->my_rank, total_bonds, bonds->num_intrs );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        char errmsg[256];
+        snprintf(errmsg, 256, "Not enough space for bonds! total=%d allocated=%d\n",
+                total_bonds, bonds->num_intrs);
+        control->error_ptr->one(FLERR, errmsg);
       }
     }
   }
@@ -168,10 +171,10 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     if (total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/) {
       workspace->realloc.hbonds = 1;
       if (total_hbonds >= hbonds->num_intrs) {
-        fprintf(stderr,
-                "p%d: not enough space for hbonds! total=%d allocated=%d\n",
-                system->my_rank, total_hbonds, hbonds->num_intrs );
-        MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        char errmsg[256];
+        snprintf(errmsg, 256, "Not enough space for hbonds! total=%d allocated=%d\n",
+                total_hbonds, hbonds->num_intrs);
+        control->error_ptr->one(FLERR, errmsg);
       }
     }
   }
@@ -179,7 +182,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
 
 
 void Reset( reax_system *system, control_params *control, simulation_data *data,
-            storage *workspace, reax_list **lists, MPI_Comm comm )
+            storage *workspace, reax_list **lists )
 {
   Reset_Atoms( system, control );
 
@@ -187,6 +190,6 @@ void Reset( reax_system *system, control_params *control, simulation_data *data,
 
   Reset_Workspace( system, workspace );
 
-  Reset_Neighbor_Lists( system, control, workspace, lists, comm );
+  Reset_Neighbor_Lists( system, control, workspace, lists );
 
 }

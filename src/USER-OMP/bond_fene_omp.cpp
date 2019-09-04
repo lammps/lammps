@@ -20,7 +20,7 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "error.h"
 #include "update.h"
 
@@ -41,10 +41,7 @@ BondFENEOMP::BondFENEOMP(class LAMMPS *lmp)
 
 void BondFENEOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

@@ -18,13 +18,13 @@ fix ID group-ID bond/react common_keyword values ...
 
 ID, group-ID are documented in "fix"_fix.html command. Group-ID is ignored. :ulb,l
 bond/react = style name of this fix command :l
-zero or more common keyword/value pairs may be appended directly after 'bond/react' :l
-these apply to all reaction specifications (below) :l
+the common keyword/values may be appended directly after 'bond/react' :l
+this applies to all reaction specifications (below) :l
 common_keyword = {stabilization} :l
   {stabilization} values = {no} or {yes} {group-ID} {xmax}
     {no} = no reaction site stabilization
     {yes} = perform reaction site stabilization
-      {group-ID} = user-assigned prefix for the dynamic group of non-reacting atoms
+      {group-ID} = user-assigned prefix for the dynamic group of atoms not currently involved in a reaction
       {xmax} = xmax value that is used by an internally-created "nve/limit"_fix_nve_limit.html integrator :pre
 react = mandatory argument indicating new reaction specification :l
   react-ID = user-assigned name for the reaction :l
@@ -51,6 +51,8 @@ react = mandatory argument indicating new reaction specification :l
 :ule
 
 [Examples:]
+
+For unabridged example scripts and files, see examples/USER/misc/bond_react.
 
 molecule mol1 pre_reacted_topology.txt
 molecule mol2 post_reacted_topology.txt
@@ -106,6 +108,20 @@ involved in any new reactions. The {xmax} value keyword should
 typically be set to the maximum distance that non-reacting atoms move
 during the simulation.
 
+Fix bond/react creates and maintains two important dynamic groups of
+atoms when using the {stabilization} keyword. The first group contains
+all atoms currently involved in a reaction; this group is
+automatically thermostatted by an internally-created
+"nve/limit"_fix_nve_limit.html integrator. The second group contains
+all atoms currently not involved in a reaction. This group should be
+used by a thermostat in order to time integrate the system. The name
+of this group of non-reacting atoms is created by appending '_REACT'
+to the group-ID argument of the {stabilization} keyword, as shown in
+the second example above.
+
+NOTE: When using reaction stabilization, you should generally not have
+a separate thermostat which acts on the 'all' group.
+
 The group-ID set using the {stabilization} keyword can be an existing
 static group or a previously-unused group-ID. It cannot be specified
 as 'all'. If the group-ID is previously unused, the fix bond/react
@@ -116,19 +132,16 @@ internally-created dynamic group. In both cases, this new dynamic
 group is named by appending '_REACT' to the group-ID, e.g.
 nvt_grp_REACT. By specifying an existing group, you may thermostat
 constant-topology parts of your system separately. The dynamic group
-contains only non-reacting atoms at a given timestep, and therefore
-should be used by a subsequent system-wide time integrator such as
-nvt, npt, or nve, as shown in the second example above. The time
-integration command should be placed after the fix bond/react command
-due to the internal dynamic grouping performed by fix bond/react.
+contains only atoms not involved in a reaction at a given timestep,
+and therefore should be used by a subsequent system-wide time
+integrator such as nvt, npt, or nve, as shown in the second example
+above (full examples can be found at examples/USER/misc/bond_react).
+The time integration command should be placed after the fix bond/react
+command due to the internal dynamic grouping performed by fix
+bond/react.
 
 NOTE: If the group-ID is an existing static group, react-group-IDs
 should also be specified as this static group, or a subset.
-
-NOTE: If the group-ID is previously unused, the internally-created
-group applies to all atoms in the system, i.e. you should generally
-not have a separate thermostat which acts on the 'all' group, or any
-other group.
 
 The following comments pertain to each {react} argument (in other
 words, can be customized for each reaction, or reaction step):
@@ -136,28 +149,30 @@ words, can be customized for each reaction, or reaction step):
 A check for possible new reaction sites is performed every {Nevery}
 timesteps.
 
-Two conditions must be met for a reaction to occur. First a bonding
-atom pair must be identified. Second, the topology surrounding the
-bonding atom pair must match the topology of the pre-reaction
-template. If both these conditions are met, the reaction site is
+Three physical conditions must be met for a reaction to occur. First,
+a bonding atom pair must be identified within the reaction distance
+cutoffs. Second, the topology surrounding the bonding atom pair must
+match the topology of the pre-reaction template. Finally, any reaction
+constraints listed in the map file (see below) must be satisfied. If
+all of these conditions are met, the reaction site is eligible to be
 modified to match the post-reaction template.
 
 A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms I,J within the specified react-group-ID of type
 itype and jtype must be separated by a distance between {Rmin} and
 {Rmax}. It is possible that multiple bonding atom pairs are
-identified: if the bonding atoms in the pre-reacted template are not
-1-2, 1-3, or 1-4 neighbors, the closest bonding atom partner is set as
-its bonding partner; otherwise, the farthest potential partner is
-chosen. Then, if both an atom I and atom J have each other as their
-nearest bonding partners, these two atoms are identified as the
-bonding atom pair of the reaction site. Once this unique bonding atom
-pair is identified for each reaction, there could two or more
-reactions that involve a given atom on the same timestep. If this is
-the case, only one such reaction is permitted to occur. This reaction
-is chosen randomly from all potential reactions. This capability
-allows e.g. for different reaction pathways to proceed from identical
-reaction sites with user-specified probabilities.
+identified: if the bonding atoms in the pre-reacted template are  1-2
+neighbors, i.e. directly bonded, the farthest bonding atom partner is
+set as its bonding partner; otherwise, the closest potential partner
+is chosen. Then, if both an atom I and atom J have each other as their
+bonding partners, these two atoms are identified as the bonding atom
+pair of the reaction site. Once this unique bonding atom pair is
+identified for each reaction, there could two or more reactions that
+involve a given atom on the same timestep. If this is the case, only
+one such reaction is permitted to occur. This reaction is chosen
+randomly from all potential reactions. This capability allows e.g. for
+different reaction pathways to proceed from identical reaction sites
+with user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -203,14 +218,24 @@ new types must also be defined during the setup of a given simulation.
 A discussion of correctly handling this is also provided on the
 "molecule"_molecule.html command page.
 
+NOTE: When a reaction occurs, it is possible that the resulting
+topology/atom (e.g. special bonds, dihedrals, etc.) exceeds that of
+the existing system and reaction templates. As when inserting
+molecules, enough space for this increased topology/atom must be
+reserved by using the relevant "extra" keywords to the
+"read_data"_read_data.html or "create_box"_create_box.html commands.
+
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and three optional keywords. The
-mandatory keyword is 'equivalences' and the optional keywords are
-'edgeIDs' and 'deleteIDs' and 'customIDs':
+contains one mandatory keyword and four optional keywords. The
+mandatory keyword is 'equivalences':
 
-N {equivalences} = # of atoms N in the reaction molecule templates
+N {equivalences} = # of atoms N in the reaction molecule templates :pre
+
+The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
+'constraints':
+
 N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template
 N {deleteIDs} = # of atoms N that are specified for deletion
 N {customIDs} = # of atoms N that are specified for a custom update
@@ -244,8 +269,8 @@ A sample map file is given below:
 
 # this is a map file :pre
 
-2 edgeIDs
-7 equivalences :pre
+7 equivalences
+2 edgeIDs :pre
 
 BondingIDs :pre
 
@@ -297,26 +322,25 @@ can allow for the possibility of one or more reverse reactions.
 
 The optional keywords deal with the probability of a given reaction
 occurring as well as the stable equilibration of each reaction site as
-it occurs.
+it occurs:
 
-The {prob} keyword can affect whether an eligible reaction actually
-occurs. The fraction setting must be a value between 0.0 and 1.0. A
-uniform random number between 0.0 and 1.0 is generated and the
+The {prob} keyword can affect whether or not an eligible reaction
+actually occurs. The fraction setting must be a value between 0.0 and
+1.0. A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
 specified by the {max_rxn} keyword.
 
 The {stabilize_steps} keyword allows for the specification of how many
 timesteps a reaction site is stabilized before being returned to the
-overall system thermostat.
-
-In order to produce the most physical behavior, this 'reaction site
-equilibration time' should be tuned to be as small as possible while
-retaining stability for a given system or reaction step. After a
-limited number of case studies, this number has been set to a default
-of 60 timesteps. Ideally, it should be individually tuned for each fix
-reaction step. Note that in some situations, decreasing rather than
-increasing this parameter will result in an increase in stability.
+overall system thermostat. In order to produce the most physical
+behavior, this 'reaction site equilibration time' should be tuned to
+be as small as possible while retaining stability for a given system
+or reaction step. After a limited number of case studies, this number
+has been set to a default of 60 timesteps. Ideally, it should be
+individually tuned for each fix reaction step. Note that in some
+situations, decreasing rather than increasing this parameter will
+result in an increase in stability.
 
 The {update_edges} keyword can increase the number of atoms whose
 atomic charges are updated, when the pre-reaction template contains
@@ -324,11 +348,11 @@ edge atoms. When the value is set to 'charges,' all atoms' atomic
 charges are updated to those specified by the post-reaction template,
 including atoms near the edge of reaction templates. When the value is
 set to 'custom,' an additional section must be included in the map
-file that specifies whether to update charges, on a per-atom basis.
-The format of this section is detailed above. Listing a pre-reaction
-atom ID with a value of 'charges' will force the update of the atom's
-charge, even if it is near a template edge. Atoms not near a template
-edge are unaffected by this setting.
+file that specifies whether or not to update charges, on a per-atom
+basis. The format of this section is detailed above. Listing a
+pre-reaction atom ID with a value of 'charges' will force the update
+of the atom's charge, even if it is near a template edge. Atoms not
+near a template edge are unaffected by this setting.
 
 A few other considerations:
 
@@ -341,12 +365,13 @@ an atom that is not deleted. In addition to deleting unwanted reaction
 by-products, this feature can be used to remove specific topologies,
 such as small rings, that may be otherwise indistinguishable.
 
-Also, it may be beneficial to ensure reacting atoms are at a certain
-temperature before being released to the overall thermostat. For this,
-you can use the internally-created dynamic group named
-"bond_react_MASTER_group." For example, adding the following command
-would thermostat the group of all atoms currently involved in a
-reaction:
+Optionally, you can enforce additional behaviors on reacting atoms.
+For example, it may be beneficial to force reacting atoms to remain at
+a certain temperature. For this, you can use the internally-created
+dynamic group named "bond_react_MASTER_group", which consists of all
+atoms currently involved in a reaction. For example, adding the
+following command would add an additional thermostat to the group of
+all currently-reacting atoms:
 
 fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1 :pre
 
@@ -384,6 +409,10 @@ These is 1 quantity for each react argument:
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
+
+When fix bond/react is 'unfixed,' all internally-created groups are
+deleted. Therefore, fix bond/react can only be unfixed after unfixing
+all other fixes that use any group created by fix bond/react.
 
 [Restrictions:]
 

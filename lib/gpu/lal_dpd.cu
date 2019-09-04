@@ -42,9 +42,9 @@ texture<int4,1> vel_tex;
 // 2. C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput. Phys. Comm. 230 (2011), 7191-7201.
 // PRNG period = 3666320093*2^32 ~ 2^64 ~ 10^19
 
-#define LCGA 0x4beb5d59 // Full period 32 bit LCG
+#define LCGA 0x4beb5d59 /* Full period 32 bit LCG */
 #define LCGC 0x2600e1f7
-#define oWeylPeriod 0xda879add // Prime period 3666320093
+#define oWeylPeriod 0xda879add /* Prime period 3666320093 */
 #define oWeylOffset 0x8009d14b
 #define TWO_N32 0.232830643653869628906250e-9f /* 2^-32 */
 

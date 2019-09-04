@@ -66,7 +66,7 @@ struct TestBitset
 
   unsigned testit(unsigned collisions)
   {
-    execution_space::fence();
+    execution_space().fence();
 
     unsigned count = 0;
     Kokkos::parallel_reduce( m_bitset.size()*collisions, *this, count);
@@ -114,7 +114,7 @@ struct TestBitsetTest
 
   unsigned testit()
   {
-    execution_space::fence();
+    execution_space().fence();
 
     unsigned count = 0;
     Kokkos::parallel_reduce( m_bitset.size(), *this, count);
@@ -151,7 +151,7 @@ struct TestBitsetAny
 
   unsigned testit()
   {
-    execution_space::fence();
+    execution_space().fence();
 
     unsigned count = 0;
     Kokkos::parallel_reduce( m_bitset.size(), *this, count);

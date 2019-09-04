@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_dpd_tstat.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -43,8 +44,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
   double rsq,r,rinv,dot,wd,randnum,factor_dpd;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // adjust sigma if target T is changing
 

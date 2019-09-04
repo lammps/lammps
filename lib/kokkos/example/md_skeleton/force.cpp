@@ -178,7 +178,7 @@ double2 force(System &s,int evflag) {
   else
     Kokkos::parallel_reduce(s.nlocal,f,ev);
 
-  execution_space::fence();
+  execution_space().fence();
   return ev;
 }
 

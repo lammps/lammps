@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "create_atoms.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -23,8 +22,6 @@
 #include "modify.h"
 #include "force.h"
 #include "special.h"
-#include "fix.h"
-#include "compute.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
@@ -176,8 +173,6 @@ void CreateAtoms::command(int narg, char **arg)
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (style != SINGLE)
-        error->all(FLERR,"Cannot use create_atoms rotate unless single style");
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
@@ -514,9 +509,6 @@ void CreateAtoms::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
   }
 
-  MPI_Barrier(world);
-  double time2 = MPI_Wtime();
-
   // clean up
 
   delete ranmol;
@@ -525,21 +517,6 @@ void CreateAtoms::command(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-
-  // print status
-
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
-    }
-    if (logfile) {
-      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
-    }
-  }
 
   // for MOLECULE mode:
   // create special bond lists for molecular systems,
@@ -550,6 +527,25 @@ void CreateAtoms::command(int narg, char **arg)
     if (atom->molecular == 1 && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
+
+    }
+  }
+
+  // print status
+
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
+  if (comm->me == 0) {
+    if (screen) {
+      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
+              atom->natoms-natoms_previous);
+      fprintf(screen,"  create_atoms CPU = %g secs\n",time2-time1);
+    }
+    if (logfile) {
+      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
+              atom->natoms-natoms_previous);
+      fprintf(logfile,"  create_atoms CPU = %g secs\n",time2-time1);
     }
   }
 }
@@ -677,7 +673,9 @@ void CreateAtoms::add_random()
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       if (mode == ATOM) atom->avec->create_atom(ntype,xone);
-      else add_molecule(xone);
+      else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+        add_molecule(xone);
+      else add_molecule(xone, quatone);
     }
   }
 
@@ -705,6 +703,26 @@ void CreateAtoms::add_lattice()
     bboxlo[2] = domain->sublo[2]; bboxhi[2] = domain->subhi[2];
   } else domain->bbox(domain->sublo_lamda,domain->subhi_lamda,bboxlo,bboxhi);
 
+  // narrow down the subbox by the bounding box of the given region, if available.
+  // for small regions in large boxes, this can result in a significant speedup
+
+  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
+
+    const double rxmin = domain->regions[nregion]->extent_xlo;
+    const double rxmax = domain->regions[nregion]->extent_xhi;
+    const double rymin = domain->regions[nregion]->extent_ylo;
+    const double rymax = domain->regions[nregion]->extent_yhi;
+    const double rzmin = domain->regions[nregion]->extent_zlo;
+    const double rzmax = domain->regions[nregion]->extent_zhi;
+
+    if (rxmin > bboxlo[0]) bboxlo[0] = (rxmin > bboxhi[0]) ? bboxhi[0] : rxmin;
+    if (rxmax < bboxhi[0]) bboxhi[0] = (rxmax < bboxlo[0]) ? bboxlo[0] : rxmax;
+    if (rymin > bboxlo[1]) bboxlo[1] = (rymin > bboxhi[1]) ? bboxhi[1] : rymin;
+    if (rymax < bboxhi[1]) bboxhi[1] = (rymax < bboxlo[1]) ? bboxlo[1] : rymax;
+    if (rzmin > bboxlo[2]) bboxlo[2] = (rzmin > bboxhi[2]) ? bboxhi[2] : rzmin;
+    if (rzmax < bboxhi[2]) bboxhi[2] = (rzmax < bboxlo[2]) ? bboxlo[2] : rzmax;
+  }
+
   double xmin,ymin,zmin,xmax,ymax,zmax;
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;
@@ -726,26 +744,6 @@ void CreateAtoms::add_lattice()
                         xmin,ymin,zmin,xmax,ymax,zmax);
   domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxhi[2],
                         xmin,ymin,zmin,xmax,ymax,zmax);
-
-  // narrow down min/max further by extent of the region, if possible
-
-  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
-    double rxmin = domain->regions[nregion]->extent_xlo;
-    double rxmax = domain->regions[nregion]->extent_xhi;
-    double rymin = domain->regions[nregion]->extent_ylo;
-    double rymax = domain->regions[nregion]->extent_yhi;
-    double rzmin = domain->regions[nregion]->extent_zlo;
-    double rzmax = domain->regions[nregion]->extent_zhi;
-    domain->lattice->box2lattice(rxmin,rymin,rzmin);
-    domain->lattice->box2lattice(rxmax,rymax,rzmax);
-
-    if (rxmin > xmin) xmin = (rxmin > xmax) ? xmax : rxmin;
-    if (rxmax < xmax) xmax = (rxmax < xmin) ? xmin : rxmax;
-    if (rymin > ymin) ymin = (rymin > ymax) ? ymax : rymin;
-    if (rymax < ymax) ymax = (rymax < ymin) ? ymin : rymax;
-    if (rzmin > zmin) zmin = (rzmin > zmax) ? zmax : rzmin;
-    if (rzmax < zmax) zmax = (rzmax < zmin) ? zmin : rzmax;
-  }
 
   // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my subbox
   // overlap = any part of a unit cell (face,edge,pt) in common with my subbox
@@ -831,7 +829,9 @@ void CreateAtoms::add_lattice()
           // add the atom or entire molecule to my list of atoms
 
           if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
-          else add_molecule(x);
+          else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            add_molecule(x);
+          else add_molecule(x,quatone);
         }
       }
     }

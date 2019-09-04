@@ -17,22 +17,19 @@
      and Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
+#include "dihedral_spherical.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cassert>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "pair.h"
-#include "update.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-#include "dihedral_spherical.h"
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -41,7 +38,10 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -213,8 +213,7 @@ void DihedralSpherical::compute(int eflag, int vflag)
   //    perp34on23[d] = v34[d] - proj34on23[d]
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
 
   for (n = 0; n < ndihedrallist; n++) {
@@ -817,10 +816,11 @@ void DihedralSpherical::write_data(FILE *fp)
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fprintf(fp,"%d %d ", i , nterms[i]);
     for (int j = 0; j < nterms[i]; j++) {
-      fprintf(fp, "%g %g %g %g %g %g %g %g %g ",
-              phi_mult[i][j],    phi_shift[i][j],    phi_offset[i][j],
-              theta1_mult[i][j], theta1_shift[i][j], theta1_offset[i][j],
-              theta2_mult[i][j], theta2_shift[i][j], theta2_offset[i][j]);
+      fprintf(fp, "%g %g %g %g %g %g %g %g %g %g ", Ccoeff[i][j],
+              phi_mult[i][j], phi_shift[i][j]*180.0/MY_PI, phi_offset[i][j],
+              theta1_mult[i][j], theta1_shift[i][j]*180.0/MY_PI,
+              theta1_offset[i][j], theta2_mult[i][j],
+              theta2_shift[i][j]*180.0/MY_PI, theta2_offset[i][j]);
     }
     fprintf(fp,"\n");
   }

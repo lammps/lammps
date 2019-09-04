@@ -15,11 +15,12 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_awpmd_cut.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
 #include "atom.h"
 #include "update.h"
 #include "min.h"
@@ -32,6 +33,9 @@
 #include "memory.h"
 #include "error.h"
 
+#include "logexc.h"
+#include "vector_3.h"
+#include "TCP/wpmd.h"
 #include "TCP/wpmd_split.h"
 
 using namespace LAMMPS_NS;
@@ -108,10 +112,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (int i=0; i<4; i++) pvector[i] = 0.0;
 
-  if (eflag || vflag)
-    ev_setup(eflag,vflag);
-  else
-    evflag = vflag_fdotr = 0; //??
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

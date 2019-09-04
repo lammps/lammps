@@ -21,17 +21,16 @@
    (2011).  See LLNL copyright notice at bottom of this file.
 ------------------------------------------------------------------------- */
 
+#include "pair_mgpt.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
 
-#include "pair_mgpt.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -1673,8 +1672,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
 void PairMGPT::compute(int eflag, int vflag)
 {
-  if(eflag || vflag) ev_setup(eflag, vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag, vflag);
 
   int newton_pair = force->newton_pair;
   double e_s,e_p,e_t,e_q;

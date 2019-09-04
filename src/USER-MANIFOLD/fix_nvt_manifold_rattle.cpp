@@ -32,25 +32,18 @@
 ------------------------------------------------------------------------- */
 
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_nvt_manifold_rattle.h"
 #include <cstring>
 #include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "group.h"
-#include "input.h"
-#include "variable.h"
 #include "citeme.h"
-#include "memory.h"
-#include "comm.h"
 #include "modify.h"
 #include "compute.h"
 
-#include "fix_nvt_manifold_rattle.h"
 #include "manifold.h"
 
 

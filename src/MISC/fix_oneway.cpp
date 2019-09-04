@@ -15,14 +15,13 @@
    Contributing author: Axel Kohlmeyer (ICTP, Italy)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_oneway.h"
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "region.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

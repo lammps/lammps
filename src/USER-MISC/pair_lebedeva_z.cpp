@@ -22,11 +22,11 @@
    [Lebedeva et al., Physica E, 44(6), 949-954, 2012.]
 ------------------------------------------------------------------------- */
 
+#include "pair_lebedeva_z.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lebedeva_z.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -44,6 +44,7 @@ using namespace LAMMPS_NS;
 PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
 
   // initialize element to parameter maps
   nelements = 0;
@@ -82,13 +83,12 @@ void PairLebedevaZ::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,der;
-  double rsq,r,rhosq,rho,exp1,exp2,exp3,r6,r8;
-  double frho,sumD,Ulm,fxy,fz,rdsq;
+  double rsq,r,rhosq,exp1,exp2,exp3,r6,r8;
+  double sumD,Ulm,fxy,fz;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -120,7 +120,6 @@ void PairLebedevaZ::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       // rho^2 = r^2 - z^2
       rhosq = delx*delx + dely*dely;
-      rho = sqrt(rhosq);
       rsq = rhosq + delz*delz;
 
       if (rsq < cutsq[itype][jtype]) {
@@ -256,17 +255,18 @@ void PairLebedevaZ::coeff(int narg, char **arg)
     }
   }
 
-
   read_file(arg[2]);
 
-  double cut_one = cut_global;
+  // set setflag only for i,j pairs where both are mapped to elements
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
+      if ((map[i] >= 0) && (map[j] >= 0)) {
+        cut[i][j] = cut_global;
+        setflag[i][j] = 1;
+        count++;
+      }
     }
   }
 
@@ -281,6 +281,8 @@ void PairLebedevaZ::coeff(int narg, char **arg)
 double PairLebedevaZ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (!offset_flag)
+    error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];

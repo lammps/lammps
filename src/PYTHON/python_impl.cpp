@@ -15,8 +15,10 @@
    Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include "python.h"
+#include "python_impl.h"
+#include <cstdlib>
+#include <cstring>
+#include <Python.h>  // IWYU pragma: keep
 #include "force.h"
 #include "input.h"
 #include "variable.h"

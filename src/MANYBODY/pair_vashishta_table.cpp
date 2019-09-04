@@ -15,21 +15,14 @@
    Contributing author: Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_vashishta_table.h"
+#include <cstdio>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
+#include "error.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -64,8 +57,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -15,6 +15,7 @@
 #define LMP_PYTHON_IMPL_H
 
 #include "pointers.h"
+#include "lmppython.h"
 
 namespace LAMMPS_NS {
 

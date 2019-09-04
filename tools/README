@@ -39,6 +39,7 @@ pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
 python		       Python scripts for post-processing LAMMPS output
 reax	       	       Tools for analyzing output of ReaxFF simulations
 smd                    convert Smooth Mach Dynamics triangles to VTK
+spin                   perform a cubic polynomial interpolation of a GNEB MEP
 vim		       add-ons to VIM editor for editing LAMMPS input scripts
 xmgrace                a collection of scripts to generate xmgrace plots
 

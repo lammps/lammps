@@ -50,6 +50,7 @@ function(CreateStyleHeader path filename)
         list(REMOVE_AT ARGV 0 1)
         set(header_list)
         foreach(FNAME ${ARGV})
+            set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${FNAME}")
             get_filename_component(FNAME ${FNAME} NAME)
             list(APPEND header_list ${FNAME})
         endforeach()
@@ -61,6 +62,7 @@ function(CreateStyleHeader path filename)
     message(STATUS "Generating ${filename}...")
     file(WRITE "${path}/${filename}.tmp" "${temp}" )
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}/${filename}.tmp" "${path}/${filename}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${path}/${filename}")
 endfunction(CreateStyleHeader)
 
 function(GenerateStyleHeader path property style)
@@ -88,6 +90,10 @@ endfunction(RegisterNPairStyle)
 function(RegisterFixStyle path)
     AddStyleHeader(${path} FIX)
 endfunction(RegisterFixStyle)
+
+function(RegisterIntegrateStyle path)
+    AddStyleHeader(${path} INTEGRATE)
+endfunction(RegisterIntegrateStyle)
 
 function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} ANGLE_CLASS     angle_     ANGLE     ) # angle     ) # force
@@ -175,3 +181,88 @@ function(DetectBuildSystemConflict lammps_src_dir)
     endforeach()
   endif()
 endfunction(DetectBuildSystemConflict)
+
+
+function(FindPackagesHeaders path style_class file_pattern headers)
+    file(GLOB files "${path}/${file_pattern}*.h")
+    get_property(plist GLOBAL PROPERTY ${headers})
+
+    foreach(file_name ${files})
+        file(STRINGS ${file_name} is_style LIMIT_COUNT 1 REGEX ${style_class})
+        if(is_style)
+            list(APPEND plist ${file_name})
+        endif()
+    endforeach()
+    set_property(GLOBAL PROPERTY ${headers} "${plist}")
+endfunction(FindPackagesHeaders)
+
+function(RegisterPackages search_path)
+    FindPackagesHeaders(${search_path} ANGLE_CLASS     angle_     PKGANGLE     ) # angle     ) # force
+    FindPackagesHeaders(${search_path} ATOM_CLASS      atom_vec_  PKGATOM_VEC  ) # atom      ) # atom      atom_vec_hybrid
+    FindPackagesHeaders(${search_path} BODY_CLASS      body_      PKGBODY      ) # body      ) # atom_vec_body
+    FindPackagesHeaders(${search_path} BOND_CLASS      bond_      PKGBOND      ) # bond      ) # force
+    FindPackagesHeaders(${search_path} COMMAND_CLASS   "[^.]"     PKGCOMMAND   ) # command   ) # input
+    FindPackagesHeaders(${search_path} COMPUTE_CLASS   compute_   PKGCOMPUTE   ) # compute   ) # modify
+    FindPackagesHeaders(${search_path} DIHEDRAL_CLASS  dihedral_  PKGDIHEDRAL  ) # dihedral  ) # force
+    FindPackagesHeaders(${search_path} DUMP_CLASS      dump_      PKGDUMP      ) # dump      ) # output    write_dump
+    FindPackagesHeaders(${search_path} FIX_CLASS       fix_       PKGFIX       ) # fix       ) # modify
+    FindPackagesHeaders(${search_path} IMPROPER_CLASS  improper_  PKGIMPROPER  ) # improper  ) # force
+    FindPackagesHeaders(${search_path} INTEGRATE_CLASS "[^.]"     PKGINTEGRATE ) # integrate ) # update
+    FindPackagesHeaders(${search_path} KSPACE_CLASS    "[^.]"     PKGKSPACE    ) # kspace    ) # force
+    FindPackagesHeaders(${search_path} MINIMIZE_CLASS  min_       PKGMINIMIZE  ) # minimize  ) # update
+    FindPackagesHeaders(${search_path} NBIN_CLASS      nbin_      PKGNBIN      ) # nbin      ) # neighbor
+    FindPackagesHeaders(${search_path} NPAIR_CLASS     npair_     PKGNPAIR     ) # npair     ) # neighbor
+    FindPackagesHeaders(${search_path} NSTENCIL_CLASS  nstencil_  PKGNSTENCIL  ) # nstencil  ) # neighbor
+    FindPackagesHeaders(${search_path} NTOPO_CLASS     ntopo_     PKGNTOPO     ) # ntopo     ) # neighbor
+    FindPackagesHeaders(${search_path} PAIR_CLASS      pair_      PKGPAIR      ) # pair      ) # force
+    FindPackagesHeaders(${search_path} READER_CLASS    reader_    PKGREADER    ) # reader    ) # read_dump
+    FindPackagesHeaders(${search_path} REGION_CLASS    region_    PKGREGION    ) # region    ) # domain
+endfunction(RegisterPackages)
+
+function(CreatePackagesHeader path filename)
+  set(temp "")
+  if(ARGC GREATER 2)
+    list(REMOVE_AT ARGV 0 1)
+    foreach(FNAME ${ARGV})
+      set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${FNAME}")
+      get_filename_component(DNAME ${FNAME} DIRECTORY)
+      get_filename_component(DNAME ${DNAME} NAME)
+      get_filename_component(FNAME ${FNAME} NAME)
+      set(temp "${temp}#undef PACKAGE\n#define PACKAGE \"${DNAME}\"\n")
+      set(temp "${temp}#include \"${DNAME}/${FNAME}\"\n")
+    endforeach()
+  endif()
+  message(STATUS "Generating ${filename}...")
+  file(WRITE "${path}/${filename}.tmp" "${temp}" )
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}/${filename}.tmp" "${path}/${filename}")
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${path}/${filename}")
+endfunction(CreatePackagesHeader)
+
+function(GeneratePackagesHeader path property style)
+  get_property(files GLOBAL PROPERTY ${property})
+  CreatePackagesHeader("${path}" "packages_${style}.h" ${files})
+endfunction(GeneratePackagesHeader)
+
+function(GeneratePackagesHeaders output_path)
+    GeneratePackagesHeader(${output_path} PKGANGLE      angle     ) # force
+    GeneratePackagesHeader(${output_path} PKGATOM_VEC   atom      ) # atom      atom_vec_hybrid
+    GeneratePackagesHeader(${output_path} PKGBODY       body      ) # atom_vec_body
+    GeneratePackagesHeader(${output_path} PKGBOND       bond      ) # force
+    GeneratePackagesHeader(${output_path} PKGCOMMAND    command   ) # input
+    GeneratePackagesHeader(${output_path} PKGCOMPUTE    compute   ) # modify
+    GeneratePackagesHeader(${output_path} PKGDIHEDRAL   dihedral  ) # force
+    GeneratePackagesHeader(${output_path} PKGDUMP       dump      ) # output    write_dump
+    GeneratePackagesHeader(${output_path} PKGFIX        fix       ) # modify
+    GeneratePackagesHeader(${output_path} PKGIMPROPER   improper  ) # force
+    GeneratePackagesHeader(${output_path} PKGINTEGRATE  integrate ) # update
+    GeneratePackagesHeader(${output_path} PKGKSPACE     kspace    ) # force
+    GeneratePackagesHeader(${output_path} PKGMINIMIZE   minimize  ) # update
+    GeneratePackagesHeader(${output_path} PKGNBIN       nbin      ) # neighbor
+    GeneratePackagesHeader(${output_path} PKGNPAIR      npair     ) # neighbor
+    GeneratePackagesHeader(${output_path} PKGNSTENCIL   nstencil  ) # neighbor
+    GeneratePackagesHeader(${output_path} PKGNTOPO      ntopo     ) # neighbor
+    GeneratePackagesHeader(${output_path} PKGPAIR       pair      ) # force
+    GeneratePackagesHeader(${output_path} PKGREADER     reader    ) # read_dump
+    GeneratePackagesHeader(${output_path} PKGREGION     region    ) # domain
+endfunction(GeneratePackagesHeaders)
+

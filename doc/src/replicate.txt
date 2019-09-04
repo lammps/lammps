@@ -14,7 +14,8 @@ replicate nx ny nz {keyword} :pre
 
 nx,ny,nz = replication factors in each dimension :ulb
 optional {keyword} = {bbox} :l
-  {bbox} = only check atoms in replicas that overlap with a processor's sub-domain :ule
+  {bbox} = only check atoms in replicas that overlap with a processor's sub-domain :pre
+:ule
 
 [Examples:]
 
@@ -45,11 +46,13 @@ file that crosses a periodic boundary should be between two atoms with
 image flags that differ by 1.  This will allow the bond to be
 unwrapped appropriately.
 
-The optional keyword {bbox} uses a bounding box to only check atoms
-in replicas that overlap with a processor's sub-domain when assigning
-atoms to processors, and thus can result in substantial speedups for
-calculations using a large number of processors. It does require
-temporarily using more memory.
+The optional keyword {bbox} uses a bounding box to only check atoms in
+replicas that overlap with a processor's sub-domain when assigning
+atoms to processors.  It typically results in a substantial speedup
+when using the replicate command on a large number of processors.  It
+does require temporary use of more memory, specifically that each
+processor can store all atoms in the entire system before it is
+replicated.
 
 [Restrictions:]
 

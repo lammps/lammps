@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "atom_kokkos.h"
+#include <mpi.h>
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
 #include "comm_kokkos.h"
@@ -22,6 +22,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "kokkos.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -270,8 +271,10 @@ int AtomKokkos::add_custom(const char *name, int flag)
     int n = strlen(name) + 1;
     dname[index] = new char[n];
     strcpy(dname[index],name);
+    this->sync(Device,DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector,dvector,ndvector,nmax,
                         "atom:dvector");
+    this->modified(Device,DVECTOR_MASK);
   }
 
   return index;

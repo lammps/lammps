@@ -15,11 +15,9 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_zero.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -50,8 +48,7 @@ PairZero::~PairZero()
 
 void PairZero::compute(int eflag, int vflag)
 {
- if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+ ev_init(eflag,vflag);
 
  if (vflag_fdotr) virial_fdotr_compute();
 }

@@ -11,24 +11,28 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
 #include "lammps.h"
-#include "style_angle.h"
-#include "style_atom.h"
-#include "style_bond.h"
-#include "style_command.h"
-#include "style_compute.h"
-#include "style_dihedral.h"
-#include "style_dump.h"
-#include "style_fix.h"
-#include "style_improper.h"
-#include "style_integrate.h"
-#include "style_kspace.h"
-#include "style_minimize.h"
-#include "style_pair.h"
-#include "style_region.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
+#include <map>
+#include <string>
+#include "style_angle.h"     // IWYU pragma: keep
+#include "style_atom.h"      // IWYU pragma: keep
+#include "style_bond.h"      // IWYU pragma: keep
+#include "style_command.h"   // IWYU pragma: keep
+#include "style_compute.h"   // IWYU pragma: keep
+#include "style_dihedral.h"  // IWYU pragma: keep
+#include "style_dump.h"      // IWYU pragma: keep
+#include "style_fix.h"       // IWYU pragma: keep
+#include "style_improper.h"  // IWYU pragma: keep
+#include "style_integrate.h" // IWYU pragma: keep
+#include "style_kspace.h"    // IWYU pragma: keep
+#include "style_minimize.h"  // IWYU pragma: keep
+#include "style_pair.h"      // IWYU pragma: keep
+#include "style_region.h"    // IWYU pragma: keep
 #include "universe.h"
 #include "input.h"
 #include "info.h"
@@ -44,18 +48,38 @@
 #include "output.h"
 #include "citeme.h"
 #include "accelerator_kokkos.h"
-#include "accelerator_omp.h"
+#include "accelerator_omp.h"    // IWYU pragma: keep
 #include "timer.h"
-#include "python.h"
+#include "lmppython.h"
 #include "version.h"
 #include "memory.h"
 #include "error.h"
 
 #include "lmpinstalledpkgs.h"
-
-using namespace LAMMPS_NS;
+#include "lmpgitversion.h"
 
 static void print_style(FILE *fp, const char *str, int &pos);
+
+struct LAMMPS_NS::package_styles_lists {
+  std::map<std::string,std::string> angle_styles;
+  std::map<std::string,std::string> atom_styles;
+  std::map<std::string,std::string> body_styles;
+  std::map<std::string,std::string> bond_styles;
+  std::map<std::string,std::string> command_styles;
+  std::map<std::string,std::string> compute_styles;
+  std::map<std::string,std::string> dihedral_styles;
+  std::map<std::string,std::string> dump_styles;
+  std::map<std::string,std::string> fix_styles;
+  std::map<std::string,std::string> improper_styles;
+  std::map<std::string,std::string> integrate_styles;
+  std::map<std::string,std::string> kspace_styles;
+  std::map<std::string,std::string> minimize_styles;
+  std::map<std::string,std::string> pair_styles;
+  std::map<std::string,std::string> reader_styles;
+  std::map<std::string,std::string> region_styles;
+};
+
+using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -84,6 +108,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   infile = NULL;
 
   initclock = MPI_Wtime();
+
+  init_pkg_lists();
 
   // check if -mpi is first arg
   // if so, then 2 apps were launched with one mpirun command
@@ -692,6 +718,8 @@ LAMMPS::~LAMMPS()
   delete universe;
   delete error;
   delete memory;
+
+  delete pkg_lists;
 }
 
 /* ----------------------------------------------------------------------
@@ -867,10 +895,153 @@ void LAMMPS::destroy()
 }
 
 /* ----------------------------------------------------------------------
+   initialize lists of styles in packages
+------------------------------------------------------------------------- */
+
+void _noopt LAMMPS::init_pkg_lists()
+{
+  pkg_lists = new package_styles_lists;
+#define PACKAGE "UNKNOWN"
+#define ANGLE_CLASS
+#define AngleStyle(key,Class)                   \
+  pkg_lists->angle_styles[#key] = PACKAGE;
+#include "packages_angle.h"
+#undef AngleStyle
+#undef ANGLE_CLASS
+#define ATOM_CLASS
+#define AtomStyle(key,Class)                    \
+  pkg_lists->atom_styles[#key] = PACKAGE;
+#include "packages_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
+#define BODY_CLASS
+#define BodyStyle(key,Class)                    \
+  pkg_lists->body_styles[#key] = PACKAGE;
+#include "packages_body.h"
+#undef BodyStyle
+#undef BODY_CLASS
+#define BOND_CLASS
+#define BondStyle(key,Class)                    \
+  pkg_lists->bond_styles[#key] = PACKAGE;
+#include "packages_bond.h"
+#undef BondStyle
+#undef BOND_CLASS
+#define COMMAND_CLASS
+#define CommandStyle(key,Class)                 \
+  pkg_lists->command_styles[#key] = PACKAGE;
+#include "packages_command.h"
+#undef CommandStyle
+#undef COMMAND_CLASS
+#define COMPUTE_CLASS
+#define ComputeStyle(key,Class)                 \
+  pkg_lists->compute_styles[#key] = PACKAGE;
+#include "packages_compute.h"
+#undef ComputeStyle
+#undef COMPUTE_CLASS
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class)                \
+  pkg_lists->dihedral_styles[#key] = PACKAGE;
+#include "packages_dihedral.h"
+#undef DihedralStyle
+#undef DIHEDRAL_CLASS
+#define DUMP_CLASS
+#define DumpStyle(key,Class)                    \
+  pkg_lists->dump_styles[#key] = PACKAGE;
+#include "packages_dump.h"
+#undef DumpStyle
+#undef DUMP_CLASS
+#define FIX_CLASS
+#define FixStyle(key,Class)                     \
+  pkg_lists->fix_styles[#key] = PACKAGE;
+#include "packages_fix.h"
+#undef FixStyle
+#undef FIX_CLASS
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class)                \
+  pkg_lists->improper_styles[#key] = PACKAGE;
+#include "packages_improper.h"
+#undef ImproperStyle
+#undef IMPROPER_CLASS
+#define INTEGRATE_CLASS
+#define IntegrateStyle(key,Class)               \
+  pkg_lists->integrate_styles[#key] = PACKAGE;
+#include "packages_integrate.h"
+#undef IntegrateStyle
+#undef INTEGRATE_CLASS
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class)                  \
+  pkg_lists->kspace_styles[#key] = PACKAGE;
+#include "packages_kspace.h"
+#undef KSpaceStyle
+#undef KSPACE_CLASS
+#define MINIMIZE_CLASS
+#define MinimizeStyle(key,Class)                \
+  pkg_lists->minimize_styles[#key] = PACKAGE;
+#include "packages_minimize.h"
+#undef MinimizeStyle
+#undef MINIMIZE_CLASS
+#define PAIR_CLASS
+#define PairStyle(key,Class)                    \
+  pkg_lists->pair_styles[#key] = PACKAGE;
+#include "packages_pair.h"
+#undef PairStyle
+#undef PAIR_CLASS
+#define READER_CLASS
+#define ReaderStyle(key,Class)                  \
+  pkg_lists->reader_styles[#key] = PACKAGE;
+#include "packages_reader.h"
+#undef ReaderStyle
+#undef READER_CLASS
+#define REGION_CLASS
+#define RegionStyle(key,Class)                  \
+  pkg_lists->region_styles[#key] = PACKAGE;
+#include "packages_region.h"
+#undef RegionStyle
+#undef REGION_CLASS
+}
+
+bool LAMMPS::is_installed_pkg(const char *pkg) 
+{
+  for (int i=0; installed_packages[i] != NULL; ++i)
+    if (strcmp(installed_packages[i],pkg) == 0) return true;
+
+  return false;
+}
+
+#define check_for_match(style,list,name)                                \
+  if (strcmp(list,#style) == 0) {                                       \
+    std::map<std::string,std::string> &styles(pkg_lists-> style ## _styles); \
+    if (styles.find(name) != styles.end()) {                            \
+      return styles[name].c_str();                                      \
+    }                                                                   \
+  }
+
+const char *LAMMPS::match_style(const char *style, const char *name)
+{
+  check_for_match(angle,style,name);
+  check_for_match(atom,style,name);
+  check_for_match(body,style,name);
+  check_for_match(bond,style,name);
+  check_for_match(command,style,name);
+  check_for_match(compute,style,name);
+  check_for_match(dump,style,name);
+  check_for_match(fix,style,name);
+  check_for_match(compute,style,name);
+  check_for_match(improper,style,name);
+  check_for_match(integrate,style,name);
+  check_for_match(kspace,style,name);
+  check_for_match(minimize,style,name);
+  check_for_match(pair,style,name);
+  check_for_match(reader,style,name);
+  check_for_match(region,style,name);
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    help message for command line options and styles present in executable
 ------------------------------------------------------------------------- */
 
-void LAMMPS::help()
+void _noopt LAMMPS::help()
 {
   FILE *fp = screen;
   const char *pager = NULL;
@@ -898,9 +1069,14 @@ void LAMMPS::help()
 
   // general help message about command line and flags
 
+  if (has_git_info) {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+  } else {
+    fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+            LAMMPS_VERSION "\n\n");
+  }
   fprintf(fp,
-          "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-          LAMMPS_VERSION "\n\n"
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
@@ -1087,7 +1263,7 @@ void LAMMPS::print_config(FILE *fp)
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s\n\n",infobuf);
+  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
 
   fputs("Active compile time flags:\n\n",fp);

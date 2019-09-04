@@ -156,13 +156,17 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union { unsigned long long int i ; T t ; } oldval , assume , newval ;
+  union U {
+    unsigned long long int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
   do {
     assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
+    newval.t = op.apply(assume.t, val) ;
     oldval.i = Kokkos::atomic_compare_exchange( (unsigned long long int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
@@ -175,7 +179,11 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union { unsigned long long int i ; T t ; } oldval , assume , newval ;
+  union U {
+    unsigned long long int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
@@ -193,13 +201,17 @@ KOKKOS_INLINE_FUNCTION
 T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union { int i ; T t ; } oldval , assume , newval ;
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
   do {
     assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
+    newval.t = op.apply(assume.t, val) ;
     oldval.i = Kokkos::atomic_compare_exchange( (int*)dest , assume.i , newval.i );
   } while ( assume.i != oldval.i );
 
@@ -211,7 +223,11 @@ KOKKOS_INLINE_FUNCTION
 T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int), const T >::type val )
 {
-  union { int i ; T t ; } oldval , assume , newval ;
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
@@ -230,9 +246,6 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   typename Kokkos::Impl::enable_if<
                 ( sizeof(T) != 4 )
              && ( sizeof(T) != 8 )
-          #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-             && ( sizeof(T) != 16 )
-          #endif
            , const T >::type val )
 {
 
@@ -250,7 +263,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
 #else
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
 #endif
   unsigned int done_active = 0;
   while (active!=done_active) {
@@ -265,7 +278,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
 #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
     done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
 #else
-    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
 #endif
   }
   return return_val;
@@ -298,7 +311,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
 #else
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
 #endif
   unsigned int done_active = 0;
   while (active!=done_active) {
@@ -313,7 +326,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
 #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
     done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
 #else
-    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
 #endif
   }
   return return_val;

@@ -15,11 +15,11 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -95,8 +95,7 @@ double PairEAMGPU::memory_usage()
 
 void PairEAMGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute density on each atom on GPU
 
@@ -195,8 +194,8 @@ void PairEAMGPU::init_style()
 /* ---------------------------------------------------------------------- */
 
 double PairEAMGPU::single(int i, int j, int itype, int jtype,
-                       double rsq, double factor_coul, double factor_lj,
-                       double &fforce)
+                          double rsq, double /* factor_coul */,
+                          double /* factor_lj */, double &fforce)
 {
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
@@ -238,7 +237,7 @@ double PairEAMGPU::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairEAMGPU::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag,int *pbc)
+                                  int /* pbc_flag */, int * /* pbc */)
 {
   int i,j,m;
 

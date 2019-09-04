@@ -52,7 +52,6 @@
 
 #include <Kokkos_Parallel.hpp>
 
-#include <impl/Kokkos_StaticAssert.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <KokkosExp_MDRangePolicy.hpp>
@@ -142,16 +141,15 @@ private:
 
     WorkRange range( self.m_policy , exec.pool_rank() , exec.pool_size() );
 
-    exec.set_work_range(range.begin(),range.end(),self.m_policy.chunk_size());
+    exec.set_work_range(range.begin()-self.m_policy.begin(),range.end()-self.m_policy.begin(),self.m_policy.chunk_size());
     exec.reset_steal_target();
     exec.barrier();
 
     long work_index = exec.get_work_index();
 
     while(work_index != -1) {
-      const Member begin = static_cast<Member>(work_index) * self.m_policy.chunk_size();
+      const Member begin = static_cast<Member>(work_index) * self.m_policy.chunk_size()+self.m_policy.begin();
       const Member end = begin + self.m_policy.chunk_size() < self.m_policy.end()?begin+self.m_policy.chunk_size():self.m_policy.end();
-
       ParallelFor::template exec_range< WorkTag >
         ( self.m_functor , begin , end );
       work_index = exec.get_work_index();
@@ -470,14 +468,14 @@ private:
     const ParallelReduce & self = * ((const ParallelReduce *) arg );
     const WorkRange range( self.m_policy, exec.pool_rank(), exec.pool_size() );
 
-    exec.set_work_range(range.begin(),range.end(),self.m_policy.chunk_size());
+    exec.set_work_range(range.begin()-self.m_policy.begin(),range.end()-self.m_policy.begin(),self.m_policy.chunk_size());
     exec.reset_steal_target();
     exec.barrier();
 
     long work_index = exec.get_work_index();
     reference_type update = ValueInit::init( ReducerConditional::select(self.m_functor , self.m_reducer) , exec.reduce_memory() );
     while(work_index != -1) {
-      const Member begin = static_cast<Member>(work_index) * self.m_policy.chunk_size();
+      const Member begin = static_cast<Member>(work_index) * self.m_policy.chunk_size() + self.m_policy.begin();
       const Member end = begin + self.m_policy.chunk_size() < self.m_policy.end()?begin+self.m_policy.chunk_size():self.m_policy.end();
       ParallelReduce::template exec_range< WorkTag >
         ( self.m_functor , begin , end

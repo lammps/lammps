@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "fix_manifoldforce.h"  // For stuff
+#include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -21,7 +21,6 @@
 #include "force.h"
 
 #include "manifold.h"
-#include "fix_manifoldforce.h"  // For stuff
 #include "manifold_factory.h"   // For constructing manifold
 
 

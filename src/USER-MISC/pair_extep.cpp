@@ -15,11 +15,12 @@
    Contributing author: Jan Los
 ------------------------------------------------------------------------- */
 
+#include "pair_extep.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_extep.h"
+#include <cctype>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -190,8 +191,7 @@ void PairExTeP::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   SR_neigh();
 
@@ -706,7 +706,7 @@ void PairExTeP::read_file(char *file)
       error->all(FLERR,"Illegal ExTeP parameter");
 
     nparams++;
-    if (nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(nelements,3)) break;
   }
 
   // deallocate words array
@@ -747,14 +747,24 @@ void PairExTeP::read_file(char *file)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in ExTeP potential file");
-
     // words = ptrs to all words in line
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((nwords < params_per_line)
+           && (words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+
+    // skip line if it is a leftover from the previous section,
+    // which can be identified by having 3 elements (instead of 2)
+    // as first words.
+     
+    if (isupper(words[0][0]) && isupper(words[1][0]) && isupper(words[2][0]))
+      continue;
+
+    // need to have two elements followed by a number in each line
+    if (!(isupper(words[0][0]) && isupper(words[1][0])
+        && !isupper(words[2][0])))
+      error->all(FLERR,"Incorrect format in ExTeP potential file");
 
     // ielement,jelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -1075,10 +1085,10 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 // initialize spline for F_corr (based on PairLCBOP::F_conj)
 
 void PairExTeP::spline_init() {
-  for ( size_t iel=0; iel<atom->ntypes; iel++) {
-    for ( size_t jel=0; jel<atom->ntypes; jel++) {
-      for ( size_t N_ij=0; N_ij<4; N_ij++ ) {
-        for ( size_t N_ji=0; N_ji<4; N_ji++ ) {
+  for ( int iel=0; iel<nelements; iel++) {
+    for ( int jel=0; jel<nelements; jel++) {
+      for ( int N_ij=0; N_ij<4; N_ij++ ) {
+        for ( int N_ji=0; N_ji<4; N_ji++ ) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];
 
           // corner points for each spline function
@@ -1150,8 +1160,8 @@ double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN
 
   // compute F_XY
 
-  size_t Ndij_int         = static_cast<size_t>( floor( Ndij ) );
-  size_t Ndji_int         = static_cast<size_t>( floor( Ndji ) );
+  int Ndij_int         = static_cast<int>( floor( Ndij ) );
+  int Ndji_int         = static_cast<int>( floor( Ndji ) );
   double x                = Ndij - Ndij_int;
   double y                = Ndji - Ndji_int;
   TF_corr_param &f  = F_corr_param[iel][jel][Ndij_int][Ndji_int];

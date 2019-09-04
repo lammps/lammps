@@ -29,6 +29,7 @@
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 
 #include "reaxc_nonbonded.h"
@@ -213,9 +214,9 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
           rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                           -1., system->my_atoms[j].x );
           f_tmp = -(CEvd + CEclmb);
-          pair_reax_ptr->ev_tally_thr_proxy( system->pair_ptr, i, j, natoms,
-                                             1, pe_vdw, e_ele, f_tmp,
-                                             delij[0], delij[1], delij[2], thr);
+          pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms,
+                                            1, pe_vdw, e_ele, f_tmp,
+                                            delij[0], delij[1], delij[2], thr);
         }
 
         if (control->virial == 0) {
@@ -281,6 +282,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   int tid = 0;
 #endif
   long froffset = (system->N * tid);
+  LR_lookup_table ** & LR = system->LR;
 
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);

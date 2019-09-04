@@ -15,14 +15,14 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "respa.h"
+#include <cstring>
 #include "neighbor.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "fix.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -33,11 +33,10 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
 #include "fix_respa.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "pair_hybrid.h"
 
 using namespace LAMMPS_NS;
@@ -120,7 +119,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"hybrid") == 0) {
       // the hybrid keyword requires a hybrid pair style
-      if (!strstr(force->pair_style,"hybrid"))
+      if (!utils::strmatch(force->pair_style,"^hybrid"))
         error->all(FLERR,"Illegal run_style respa command");
       PairHybrid *hybrid = (PairHybrid *) force->pair;
       nhybrid_styles = hybrid->nstyles;

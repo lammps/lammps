@@ -15,13 +15,11 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_gromos.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -55,8 +53,7 @@ void BondGromos::compute(int eflag, int vflag)
   double delx,dely,delz,ebond,fbond;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

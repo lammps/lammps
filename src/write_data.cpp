@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_data.h"
 #include <mpi.h>
 #include <cstring>
-#include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -175,6 +174,17 @@ void WriteData::write(char *file)
   if (atom->molecular == 1 && (atom->nimpropers || atom->nimpropertypes)) {
     nimpropers_local = atom->avec->pack_improper(NULL);
     MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  // check for bonus data.
+  if (me == 0) {
+    if ((atom->nellipsoids > 0)
+        || (atom->nlines > 0)
+        || (atom->ntris > 0)
+        || (atom->nbodies > 0))
+      error->warning(FLERR,"System has ellipsoids, lines, triangles, or bodies. "
+                     "Those are not yet supported by write_data. The data file "
+                     "will thus be incomplete.");
   }
 
   // open data file

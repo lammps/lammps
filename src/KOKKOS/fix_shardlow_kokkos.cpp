@@ -33,31 +33,23 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_shardlow_kokkos.h"
+#include <cmath>
+#include <cstdlib>
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include <cmath>
-#include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "memory_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-// #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
-#include "pair.h"
 #include "npair_ssa_kokkos.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -808,7 +800,7 @@ double FixShardlowKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class FixShardlowKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixShardlowKokkos<LMPHostType>;
 #endif
 }

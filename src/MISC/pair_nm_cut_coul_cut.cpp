@@ -15,11 +15,10 @@
    Contributing Author: Julien Devemy (ICCF)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_nm_cut_coul_cut.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -74,8 +73,7 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -488,9 +486,8 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
 
 void *PairNMCutCoulCut::extract(const char *str, int &dim)
 {
-  dim = 0;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   dim = 2;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   if (strcmp(str,"e0") == 0) return (void *) e0;
   if (strcmp(str,"r0") == 0) return (void *) r0;
   if (strcmp(str,"nn") == 0) return (void *) nn;

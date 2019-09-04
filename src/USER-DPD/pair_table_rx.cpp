@@ -15,14 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table_rx.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "pair_table_rx.h"
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -78,8 +76,7 @@ void PairTableRX::compute(int eflag, int vflag)
 
   evdwlOld = 0.0;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -49,6 +49,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <stack>
+#include <cerrno>
 
 //----------------------------------------------------------------------------
 
@@ -70,7 +71,6 @@ bool is_unsigned_int(const char* str)
   }
   return true;
 }
-
 void initialize_internal(const InitArguments& args)
 {
 // This is an experimental setting
@@ -85,7 +85,8 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   }
 
   // Protect declarations, to prevent "unused variable" warnings.
-#if defined( KOKKOS_ENABLE_OPENMP ) || defined( KOKKOS_ENABLE_THREADS ) || defined( KOKKOS_ENABLE_OPENMPTARGET )
+#if defined( KOKKOS_ENABLE_OPENMP ) || defined( KOKKOS_ENABLE_THREADS ) ||\
+    defined( KOKKOS_ENABLE_OPENMPTARGET ) || defined ( KOKKOS_ENABLE_HPX )
   const int num_threads = args.num_threads;
 #endif
 #if defined( KOKKOS_ENABLE_THREADS ) || defined( KOKKOS_ENABLE_OPENMPTARGET )
@@ -99,6 +100,7 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   if (use_gpu < 0 && ndevices >= 0) {
     auto local_rank_str = std::getenv("OMPI_COMM_WORLD_LOCAL_RANK"); //OpenMPI
     if (!local_rank_str) local_rank_str = std::getenv("MV2_COMM_WORLD_LOCAL_RANK"); //MVAPICH2
+    if (!local_rank_str) local_rank_str = std::getenv("SLURM_LOCALID"); //SLURM
     if (local_rank_str) {
       auto local_rank = std::atoi(local_rank_str);
       use_gpu = local_rank % ndevices;
@@ -156,6 +158,21 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   }
   else {
     //std::cout << "Kokkos::initialize() fyi: Pthread enabled but not initialized" << std::endl ;
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_HPX )
+  if( std::is_same< Kokkos::Experimental::HPX , Kokkos::DefaultExecutionSpace >::value ||
+      std::is_same< Kokkos::Experimental::HPX , Kokkos::HostSpace::execution_space >::value ) {
+      if(num_threads>0) {
+        Kokkos::Experimental::HPX::impl_initialize(num_threads);
+      } else {
+        Kokkos::Experimental::HPX::impl_initialize();
+      }
+      //std::cout << "Kokkos::initialize() fyi: HPX enabled and initialized" << std::endl ;
+  }
+  else {
+      //std::cout << "Kokkos::initialize() fyi: HPX enabled but not initialized" << std::endl ;
   }
 #endif
 
@@ -267,6 +284,8 @@ void finalize_internal( const bool all_spaces = false )
       Kokkos::Cuda::impl_finalize();
 #endif
   }
+#else
+  (void)all_spaces;
 #endif
 
 #if defined( KOKKOS_ENABLE_ROCM )
@@ -294,6 +313,15 @@ void finalize_internal( const bool all_spaces = false )
     if(Kokkos::OpenMP::impl_is_initialized())
       Kokkos::OpenMP::impl_finalize();
 #endif
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_HPX )
+  if( std::is_same< Kokkos::Experimental::HPX , Kokkos::DefaultExecutionSpace >::value ||
+      std::is_same< Kokkos::Experimental::HPX , Kokkos::HostSpace::execution_space >::value ||
+      all_spaces ) {
+    if(Kokkos::Experimental::HPX::impl_is_initialized())
+      Kokkos::Experimental::HPX::impl_finalize();
   }
 #endif
 
@@ -330,34 +358,38 @@ void fence_internal()
 
 #if defined( KOKKOS_ENABLE_CUDA )
   if( std::is_same< Kokkos::Cuda , Kokkos::DefaultExecutionSpace >::value ) {
-    Kokkos::Cuda::fence();
+    Kokkos::Cuda::impl_static_fence();
   }
 #endif
 
 #if defined( KOKKOS_ENABLE_ROCM )
   if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value ) {
-    Kokkos::Experimental::ROCm::fence();
+    Kokkos::Experimental::ROCm().fence();
   }
 #endif
 
 #if defined( KOKKOS_ENABLE_OPENMP )
   if( std::is_same< Kokkos::OpenMP , Kokkos::DefaultExecutionSpace >::value ||
       std::is_same< Kokkos::OpenMP , Kokkos::HostSpace::execution_space >::value ) {
-    Kokkos::OpenMP::fence();
+    Kokkos::OpenMP::impl_static_fence();
   }
+#endif
+
+#if defined( KOKKOS_ENABLE_HPX )
+  Kokkos::Experimental::HPX::impl_static_fence();
 #endif
 
 #if defined( KOKKOS_ENABLE_THREADS )
   if( std::is_same< Kokkos::Threads , Kokkos::DefaultExecutionSpace >::value ||
       std::is_same< Kokkos::Threads , Kokkos::HostSpace::execution_space >::value ) {
-    Kokkos::Threads::fence();
+    Kokkos::Threads::impl_static_fence();
   }
 #endif
 
 #if defined( KOKKOS_ENABLE_SERIAL )
   if( std::is_same< Kokkos::Serial , Kokkos::DefaultExecutionSpace >::value ||
       std::is_same< Kokkos::Serial , Kokkos::HostSpace::execution_space >::value ) {
-    Kokkos::Serial::fence();
+    Kokkos::Serial::impl_static_fence();
   }
 #endif
 
@@ -532,6 +564,85 @@ void initialize(int& narg, char* arg[])
       iarg++;
     }
 
+    //Read environment variables
+    char * endptr;
+    auto env_num_threads_str = std::getenv("KOKKOS_NUM_THREADS");
+    if (env_num_threads_str!=nullptr) {
+        errno = 0;
+        auto env_num_threads = std::strtol(env_num_threads_str,&endptr,10);
+        if (endptr== env_num_threads_str) 
+            Impl::throw_runtime_exception("Error: cannot convert KOKKOS_NUM_THREADS to an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if (errno == ERANGE)
+            Impl::throw_runtime_exception("Error: KOKKOS_NUM_THREADS out of range of representable values by an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if ((num_threads != -1)&&(env_num_threads!=num_threads))
+            Impl::throw_runtime_exception("Error: expecting a match between --kokkos-threads and KOKKOS_NUM_THREADS if both are set. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        else
+            num_threads = env_num_threads;
+    }
+    auto env_numa_str = std::getenv("KOKKOS_NUMA");
+    if (env_numa_str!=nullptr) {
+        errno = 0;
+        auto env_numa = std::strtol(env_numa_str,&endptr,10);
+        if (endptr== env_numa_str) 
+            Impl::throw_runtime_exception("Error: cannot convert KOKKOS_NUMA to an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if (errno == ERANGE)
+            Impl::throw_runtime_exception("Error: KOKKOS_NUMA out of range of representable values by an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if ((numa != -1)&&(env_numa!=numa))
+            Impl::throw_runtime_exception("Error: expecting a match between --kokkos-numa and KOKKOS_NUMA if both are set. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        else
+            numa = env_numa;
+    }
+    auto env_device_str = std::getenv("KOKKOS_DEVICE_ID");
+    if (env_device_str!=nullptr) {
+        errno = 0;
+        auto env_device = std::strtol(env_device_str,&endptr,10);
+        if (endptr== env_device_str) 
+            Impl::throw_runtime_exception("Error: cannot convert KOKKOS_DEVICE_ID to an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if (errno == ERANGE)
+            Impl::throw_runtime_exception("Error: KOKKOS_DEVICE_ID out of range of representable values by an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if ((device != -1)&&(env_device!=device))
+            Impl::throw_runtime_exception("Error: expecting a match between --kokkos-device and KOKKOS_DEVICE_ID if both are set. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        else
+            device = env_device;
+    }
+    auto env_ndevices_str = std::getenv("KOKKOS_NUM_DEVICES");
+    if (env_ndevices_str!=nullptr) {
+        errno = 0;
+        auto env_ndevices = std::strtol(env_ndevices_str,&endptr,10);
+        if (endptr== env_ndevices_str) 
+            Impl::throw_runtime_exception("Error: cannot convert KOKKOS_NUM_DEVICES to an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if (errno == ERANGE)
+            Impl::throw_runtime_exception("Error: KOKKOS_NUM_DEVICES out of range of representable values by an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        if ((ndevices != -1)&&(env_ndevices!=ndevices))
+            Impl::throw_runtime_exception("Error: expecting a match between --kokkos-ndevices and KOKKOS_NUM_DEVICES if both are set. Raised by Kokkos::initialize(int narg, char* argc[]).");
+        else
+            ndevices = env_ndevices;
+        //Skip device
+        auto env_skip_device_str = std::getenv("KOKKOS_SKIP_DEVICE");
+        if (env_skip_device_str!=nullptr) {
+            errno = 0;
+            auto env_skip_device = std::strtol(env_skip_device_str,&endptr,10);
+            if (endptr== env_skip_device_str) 
+                Impl::throw_runtime_exception("Error: cannot convert KOKKOS_SKIP_DEVICE to an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+            if (errno == ERANGE)
+                Impl::throw_runtime_exception("Error: KOKKOS_SKIP_DEVICE out of range of representable values by an integer. Raised by Kokkos::initialize(int narg, char* argc[]).");
+            if ((skip_device != 9999)&&(env_skip_device!=skip_device))
+                Impl::throw_runtime_exception("Error: expecting a match between --kokkos-ndevices and KOKKOS_SKIP_DEVICE if both are set. Raised by Kokkos::initialize(int narg, char* argc[]).");
+            else
+                skip_device = env_skip_device;
+        }
+    }
+    char * env_disablewarnings_str = std::getenv("KOKKOS_DISABLE_WARNINGS");
+    if (env_disablewarnings_str!=nullptr) {
+        std::string env_str (env_disablewarnings_str); // deep-copies string
+        for (char& c : env_str) { c = toupper (c); }
+        if ((env_str == "TRUE") || (env_str == "ON") || (env_str == "1"))
+            disable_warnings = true;
+        else
+            if (disable_warnings)
+                Impl::throw_runtime_exception("Error: expecting a match between --kokkos-disable-warnings and KOKKOS_DISABLE_WARNINGS if both are set. Raised by Kokkos::initialize(int narg, char* argc[]).");
+    }
+
     InitArguments arguments;
     arguments.num_threads = num_threads;
     arguments.num_numa = numa;
@@ -625,6 +736,12 @@ void print_configuration( std::ostream & out , const bool detail )
 #endif
   msg << "  KOKKOS_ENABLE_OPENMP: ";
 #ifdef KOKKOS_ENABLE_OPENMP
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
+#endif
+  msg << "  KOKKOS_ENABLE_HPX: ";
+#ifdef KOKKOS_ENABLE_HPX
   msg << "yes" << std::endl;
 #else
   msg << "no" << std::endl;
@@ -876,6 +993,9 @@ void print_configuration( std::ostream & out , const bool detail )
 #endif
 #ifdef KOKKOS_ENABLE_OPENMP
   OpenMP::print_configuration(msg, detail);
+#endif
+#ifdef KOKKOS_ENABLE_HPX
+  Experimental::HPX::print_configuration(msg, detail);
 #endif
 #if defined( KOKKOS_ENABLE_THREADS )
   Threads::print_configuration(msg, detail);

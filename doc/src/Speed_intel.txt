@@ -24,7 +24,7 @@ LAMMPS to run on the CPU cores and co-processor cores simultaneously.
 
 Angle Styles: charmm, harmonic :ulb,l
 Bond Styles: fene, fourier, harmonic :l
-Dihedral Styles: charmm, harmonic, opls :l
+Dihedral Styles: charmm, fourier, harmonic, opls :l
 Fixes: nve, npt, nvt, nvt/sllod, nve/asphere :l
 Improper Styles: cvff, harmonic :l
 Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long,
@@ -33,6 +33,10 @@ lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long,
 rebo, sw, tersoff :l
 K-Space Styles: pppm, pppm/disp :l
 :ule
+
+IMPORTANT NOTE: None of the styles in the USER-INTEL package currently
+support computing per-atom stress.  If any compute or fix in your
+input requires it, LAMMPS will abort with an error message.
 
 [Speed-ups to expect:]
 

@@ -116,6 +116,18 @@ enables OpenMP. For GNU compilers it is -fopenmp.  For (recent) Intel
 compilers it is -qopenmp.  If you are using a different compiler,
 please refer to its documentation.
 
+[OpenMP Compiler compatibility info]: :link(default-none-issues)
+
+Some compilers do not fully support the 'default(none)' directive
+and others (e.g. GCC version 9 and beyond) may implement OpenMP 4.0
+semantics, which are incompatible with the OpenMP 3.1 directives used
+in LAMMPS (for maximal compatibility with compiler versions in use).
+In those case, all 'default(none)' directives (which aid in detecting
+incorrect and unwanted sharing) can be replaced with 'default(shared)'
+while dropping all 'shared()' directives. The script
+'src/USER-OMP/hack_openmp_for_pgi_gcc9.sh' can be used to automate
+this conversion.
+
 :line
 
 Choice of compiler and compile/link options :h4,link(compile)
@@ -223,12 +235,16 @@ running LAMMPS from Python via its library interface.
 
 -D BUILD_EXE=value           # yes (default) or no
 -D BUILD_LIB=value           # yes or no (default)
--D BUILD_SHARED_LIBS=value   # yes or no (default) :pre
+-D BUILD_SHARED_LIBS=value   # yes or no (default)
+-D LAMMPS_LIB_SUFFIX=name    # name = mpi, serial, mybox, titan, laptop, etc
+                             # no default value :pre
+
 
 Setting BUILD_EXE=no will not produce an executable.  Setting
 BUILD_LIB=yes will produce a static library named liblammps.a.
 Setting both BUILD_LIB=yes and BUILD_SHARED_LIBS=yes will produce a
-shared library named liblammps.so.
+shared library named liblammps.so. If LAMMPS_LIB_SUFFIX is set the generated
+libraries will be named liblammps_name.a or liblammps_name.so instead.
 
 [Traditional make]:
 
@@ -297,6 +313,30 @@ current LAMMPS version (HTML and PDF files), from the website
 "download page"_http://lammps.sandia.gov/download.html.
 
 :line
+
+Build LAMMPS tools :h4,link(tools)
+
+Some tools described in "Auxiliary tools"_Tools.html can be built directly
+using CMake or Make.
+
+[CMake variable]:
+
+-D BUILD_TOOLS=value       # yes or no (default) :pre
+
+The generated binaries will also become part of the LAMMPS installation (see below)
+
+[Traditional make]:
+
+cd lammps/tools
+make all              # build all binaries of tools
+make binary2txt       # build only binary2txt tool
+make chain            # build only chain tool
+make micelle2d        # build only micelle2d tool
+make thermo_extract   # build only thermo_extract tool
+:pre
+
+:line
+
 
 Install LAMMPS after a build :h4,link(install)
 

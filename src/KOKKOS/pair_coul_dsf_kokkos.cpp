@@ -15,22 +15,15 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_dsf_kokkos.h"
+#include <cmath>
 #include "kokkos.h"
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "memory_kokkos.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
 #include "error.h"
 #include "atom_masks.h"
@@ -80,8 +73,7 @@ void PairCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -422,7 +414,7 @@ int PairCoulDSFKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairCoulDSFKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairCoulDSFKokkos<LMPHostType>;
 #endif
 }

@@ -31,6 +31,8 @@ class FixLangevin : public Fix {
   int setmask();
   void init();
   void setup(int);
+  //virtual void initial_integrate(int);
+  virtual void post_integrate();
   virtual void post_force(int);
   void post_force_respa(int, int, int);
   virtual void end_of_step();
@@ -46,7 +48,7 @@ class FixLangevin : public Fix {
   int unpack_exchange(int, double *);
 
  protected:
-  int gjfflag,oflag,tallyflag,zeroflag,tbiasflag;
+  int gjfflag,oflag,tallyflag,zeroflag,tbiasflag,hsflag;
   int flangevin_allocated;
   double ascale;
   double t_start,t_stop,t_period,t_target;
@@ -63,6 +65,9 @@ class FixLangevin : public Fix {
   double **flangevin;
   double *tforce;
   double **franprev;
+  double **lv;  //2GJ velocity or half-step velocity
+  double **wildcard;
+
   int nvalues;
 
   char *id_temp;
@@ -72,16 +77,10 @@ class FixLangevin : public Fix {
   class RanMars *random;
   int seed;
 
-  // comment next line to turn off templating
-#define TEMPLATED_FIX_LANGEVIN
-#ifdef TEMPLATED_FIX_LANGEVIN
   template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
              int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
   void post_force_templated();
-#else
-  void post_force_untemplated(int, int, int,
-                              int, int, int);
-#endif
+
   void omega_thermostat();
   void angmom_thermostat();
   void compute_target();
@@ -103,12 +102,6 @@ command-line option when running LAMMPS to see the offending line.
 E: Fix langevin period must be > 0.0
 
 The time window for temperature relaxation must be > 0
-
-W: Energy tally does not account for 'zero yes'
-
-The energy removed by using the 'zero yes' flag is not accounted
-for in the energy tally and thus energy conservation cannot be
-monitored in this case.
 
 E: Fix langevin omega requires atom style sphere
 

@@ -16,31 +16,23 @@
    Implementation of the Multi-Scale Shock Method with quantum nuclear effects
 ------------------------------------------------------------------------- */
 
+#include "fix_qbmsst.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_qbmsst.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "output.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "group.h"
 #include "kspace.h"
-#include "thermo.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -410,14 +402,14 @@ void FixQBMSST::init()
   // rfix[] = indices to each fix rigid
   nrigid = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-        strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
-  if (nrigid) {
+    if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
+        (strcmp(modify->fix[i]->style,"poems") == 0)) nrigid++;
+  if (nrigid > 0) {
     rfix = new int[nrigid];
     nrigid = 0;
     for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-          strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
+      if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
+          (strcmp(modify->fix[i]->style,"poems") == 0)) rfix[nrigid++] = i;
   }
 }
 

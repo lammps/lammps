@@ -16,15 +16,12 @@
    [ based on improper_umbrella.cpp Tod A Pascal (Caltech) ]
 ------------------------------------------------------------------------- */
 
+#include "improper_fourier.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "improper_fourier.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
@@ -59,8 +56,7 @@ void ImproperFourier::compute(int eflag, int vflag)
   int i1,i2,i3,i4,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   int **improperlist = neighbor->improperlist;

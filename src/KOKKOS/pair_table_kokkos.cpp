@@ -15,15 +15,11 @@
    Contributing author: Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "pair_table_kokkos.h"
+#include <cstring>
 #include "kokkos.h"
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -86,8 +82,7 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -550,7 +545,7 @@ void PairTableKokkos<DeviceType>::cleanup_copy() {
 
 namespace LAMMPS_NS {
 template class PairTableKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairTableKokkos<LMPHostType>;
 #endif
 

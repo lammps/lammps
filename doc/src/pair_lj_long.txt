@@ -91,7 +91,7 @@ is to enable LAMMPS to "find" the 2 H atoms associated with each O
 atom.  For example, if the atom ID of an O atom in a TIP4P water
 molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the the "Howto tip4p"_Howto_tip4p.html doc page for more
+See the "Howto tip4p"_Howto_tip4p.html doc page for more
 information on how to use the TIP4P pair style.  Note that the
 neighbor list cutoff for Coulomb interactions is effectively extended
 by a distance 2*qdist when using the TIP4P pair style, to account for

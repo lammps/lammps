@@ -19,9 +19,8 @@
    Contributing author: Zhen Li (Brown University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_mdpd_rhosum.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -30,8 +29,6 @@
 #include "memory.h"
 #include "error.h"
 #include "neighbor.h"
-#include "update.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -84,10 +81,7 @@ void PairMDPDRhoSum::compute(int eflag, int vflag) {
   // neighbor list variables
   int inum, *ilist, *numneigh, **firstneigh;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double *rho = atom->rho;

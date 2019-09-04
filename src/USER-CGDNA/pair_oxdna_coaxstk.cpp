@@ -14,20 +14,16 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna_coaxstk.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "mf_oxdna.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -62,9 +58,9 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
     memory->destroy(cut_cxst_hi);
     memory->destroy(cut_cxst_lc);
     memory->destroy(cut_cxst_hc);
+    memory->destroy(cutsq_cxst_hc); 
     memory->destroy(b_cxst_lo);
     memory->destroy(b_cxst_hi);
-    memory->destroy(cutsq_cxst_hc);
 
     memory->destroy(a_cxst1);
     memory->destroy(theta_cxst1_0);
@@ -156,8 +152,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
   double df2,df4t1,df4t4,df4t5,df4t6,df5c3,rsint;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;
@@ -451,7 +446,11 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       }
 
       // increment energy and virial
-      if (evflag) ev_tally(a,b,nlocal,newton_pair,evdwl,0.0,fpair,delr_st[0],delr_st[1],delr_st[2]);
+      // NOTE: The virial is calculated on the 'molecular' basis.
+      // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+      if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+          delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
       // pure torques not expressible as r x f
 

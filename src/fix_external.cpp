@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include "fix_external.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "memory.h"
@@ -141,8 +139,7 @@ void FixExternal::post_force(int vflag)
   bigint ntimestep = update->ntimestep;
 
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // invoke the callback in driver program
   // it will fill fexternal with forces

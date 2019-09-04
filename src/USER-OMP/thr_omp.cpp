@@ -22,7 +22,6 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "timer.h"
@@ -34,7 +33,6 @@
 #include "angle.h"
 #include "dihedral.h"
 #include "improper.h"
-#include "kspace.h"
 #include "compute.h"
 
 #include "math_const.h"

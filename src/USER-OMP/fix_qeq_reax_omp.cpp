@@ -31,26 +31,22 @@
    High Performance Computing Applications, to appear.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_reax_omp.h"
-#include "pair_reaxc_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "update.h"
-#include "force.h"
-#include "group.h"
-#include "pair.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
 #include "reaxc_defs.h"
+#include "reaxc_types.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -275,7 +271,7 @@ void FixQEqReaxOMP::init_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxOMP::pre_force(int vflag)
+void FixQEqReaxOMP::pre_force(int /* vflag */)
 {
 
 #ifdef OMP_TIMING

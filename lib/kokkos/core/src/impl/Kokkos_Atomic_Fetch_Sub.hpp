@@ -89,7 +89,11 @@ __inline__ __device__
 T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union { int i ; T t ; } oldval , assume , newval ;
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
@@ -108,7 +112,11 @@ T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union { unsigned long long int i ; T t ; } oldval , assume , newval ;
+  union U {
+    unsigned long long int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
@@ -139,7 +147,7 @@ T atomic_fetch_sub( volatile T * const dest ,
   unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
   unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
 #else
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
 #endif
   unsigned int done_active = 0;
   while (active!=done_active) {
@@ -154,7 +162,7 @@ T atomic_fetch_sub( volatile T * const dest ,
 #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
     done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
 #else
-    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
 #endif
   }
   return return_val;
@@ -211,7 +219,11 @@ inline
 T atomic_fetch_sub( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union { int i ; T t ; } assume , oldval , newval ;
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {}
+  } oldval , assume , newval ;
 
 #if defined( KOKKOS_ENABLE_RFO_PREFETCH )
   _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
@@ -238,7 +250,11 @@ T atomic_fetch_sub( volatile T * const dest ,
   _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
 #endif
 
-  union { long i ; T t ; } assume , oldval , newval ;
+  union U {
+     long i ;
+     T t ;
+     KOKKOS_INLINE_FUNCTION U() {}
+   } oldval , assume , newval ;
 
   oldval.t = *dest ;
 
@@ -303,6 +319,15 @@ T atomic_fetch_sub( volatile T * const dest_v , const T val )
 #endif
 #endif
 #endif // !defined ROCM_ATOMICS
+
+// dummy for non-CUDA Kokkos headers being processed by NVCC
+#if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
+template< typename T >
+__inline__ __device__
+T atomic_fetch_sub(volatile T* const, Kokkos::Impl::identity_t<T>) {
+  return T();
+}
+#endif
 
 // Simpler version of atomic_fetch_sub without the fetch
 template <typename T>

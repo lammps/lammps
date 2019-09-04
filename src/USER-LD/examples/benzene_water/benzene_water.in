@@ -1,0 +1,62 @@
+# LAMMPS input file for 26.5% benzene mole fraction solution
+# with 380 benzene and 1000 water molecules,
+# using all possible local density potentials
+# between benzene and water
+#
+# Author: Tanmoy Sanyal, Shell Group, UC Santa Barbara
+#
+# Refer: Sanyal and Shell, JPC-B, 2018, 122 (21), 5678-5693
+
+
+
+# Initialize simulation box
+dimension       3
+boundary        p p p 
+units           real
+atom_style      molecular
+
+# Set potential styles
+pair_style      hybrid/overlay table spline 500 localdensity
+
+# Read molecule data and set initial velocities
+read_data       benzene_water.data
+velocity        all create  3.0000e+02 16611 rot yes dist gaussian
+
+# Assign potentials
+pair_coeff          1     1    table          benzene_water.pair.table      PairBB
+pair_coeff          1     2    table          benzene_water.pair.table      PairWW
+pair_coeff          2     2    table          benzene_water.pair.table      PairBW
+pair_coeff          *     *    localdensity   benzene_water.localdensity.table
+
+# Recentering during minimization and equilibration
+fix recentering all recenter 0.0 0.0 0.0 units box
+
+# Thermostat & time integration
+timestep        2.0 
+thermo          100
+thermo_style    custom temp ke pe etotal ebond eangle edihed evdwl
+
+# Minimization
+minimize        1.e-4 0.0 10000 10000
+
+# Set up integration parameters
+fix             timeintegration all nve
+fix             thermostat all langevin  3.0000e+02  3.0000e+02  1.0000e+02 81890
+
+# Equilibration (for realistic results, run for 5000000 steps)
+reset_timestep  0
+run             5000
+
+# Turn off recentering during production phase
+unfix recentering
+
+# Setup trajectory output
+dump            myDump all custom 100 benzene_water.lammpstrj.gz id type x y z element
+dump_modify     myDump element B W
+dump_modify     myDump sort id
+
+# Production (for realistic results, run for 10000000 steps)
+reset_timestep  0
+run             1000             
+
+

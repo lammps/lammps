@@ -1,0 +1,149 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\title{Local Density potential in LAMMPS}
+\author{Tanmoy Sanyal and M. Scott Shell,\\University of California Santa Barbara}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Introduction}
+The local density (LD) potential is a new potential style that is, in some sense, a generalization of embedded atom models (EAM). We call it a ``local density potential" because it assigns an energy to an atom depending on the number of neighboring atoms of given type around it within a predefined spherical volume (i.e., within a cutoff). Our work suggests that such potentials can be widely useful in capturing effective multibody forces in a computationally efficient manner so as to improve the quality of CG models of implicit solvation\cite{sanyal_2016} and phase-segregation in liquid mixtures\cite{sanyal_2018}, and provide guidelines to determine the extent of manybody correlations present in a CG model.\cite{rosenberger_2019} The LD potential in LAMMPS is primarily intended to be used as a \emph{corrective} potential over traditional pair potentials in bottom-up coarse-grained (CG) models, i.e., as a hybrid pair style with other explicit pair interaction terms (e.g., table spline, Lennard Jones, etc.). Because the LD potential is not a pair potential per se, we implement it simply as a single auxiliary file with all specifications for the local density potentials that will be read upon initialization.\\ 
+%
+%
+%
+\section*{Illustration of the potential in a system with a single CG atom type}
+A system of a single atom type (e.g., LJ argon) with a single local density (LD) potential would have an energy that follows
+%
+\begin{equation*}
+U_{LD} = \sum_i F(\rho_i)
+\end{equation*}
+%
+where $\rho_i$ is the LD at atom i and $F(\rho)$ is similar in spirit to the embedding function used in EAM potentials. The LD at atom $i$ is given by the sum
+%
+\begin{equation*}
+\rho_i = \sum_{j \neq i} \varphi(r_{ij})
+\end{equation*}
+%
+where $\varphi$ is an \textbf{indicator function} that is one at $r=0$ and zero beyond a cutoff distance $(r_c)$. The choice of $\varphi$ is somewhat arbitrary, but the following piecewise cubic function seems sufficiently general in our previous experience:\cite{sanyal_2016, sanyal_2018, rosenberger_2019}
+%
+\begin{equation*}
+\varphi(r) = \begin{cases} 
+      1 & r \le R_1\\
+      c_0 + c_2r^2 + c_4r^4 + c_6r^6  & r \in (R_1, R_2)\\
+      0 & r \ge R_2
+   \end{cases}
+\end{equation*}
+%
+The constants $\{c\}$ are chosen so that the indicator function smoothly interpolates between 1 and 0 between the distances $R_1$ and $R_2$, which we call the \textbf{inner} and \textbf{outer} cutoffs. Thus $\varphi$ satisfies $\varphi(R_1) = 1, \varphi(R_2) = \frac{d\phi}{dr} \mid_{r=R_1} = \frac{d\phi}{dr} \mid_{r=R_2} = 0$. The ``embedding function" $F(\rho)$ may or may not have a closed-form expression. To maintain generality, we represent it with a spline-interpolated table over a predetermined range of $\rho$. Outside of that range it simply adopts values at the endpoints.
+%
+%
+%
+\section*{Systems with arbitrary numbers of atom types}
+The potential is easily generalized to systems involving multiple atom types:
+%
+\begin{equation*}
+U_{LD} = \sum_i a_\alpha F(\rho_i)
+\end{equation*}
+%
+with
+%
+\begin{equation*}
+\rho_i = \sum_{j \neq i} b_\beta \varphi(r_{ij})
+\end{equation*}
+%
+where $\alpha$ gives the type of atom $i$, $\beta$ the type of atom $j$, and the coefficients $a$ and $b$ filter for atom types as specified by the user. We call $a$ the \textbf{central atom filter} as it determines to which atoms the potential applies; $a_\alpha = 1$ if the LD potential applies to atom type $\alpha$ else zero. On the other hand, we call $b$ the \textbf{neighbor atom filter} because it specifies which atom types to use in the calculation of the LD; $b_\beta = 1$ if atom type $\beta$ contributes to the LD and zero otherwise.\\
+
+\noindent Note that the potentials need not be symmetric with respect to atom types, which is the reason for two distinct sets of coefficients $a$ and $b$. An atom type may contribute to the LD but not the potential, or to the potential but not the LD. Such decisions are made by the user and should (ideally) be motivated on physical grounds for the problem at hand.\\
+
+\noindent It can be shown that the total force between two atoms due to the LD potential takes the form of a pair force, which motivates its designation as a LAMMPS pair style. Please see ref. \cite{sanyal_2016} for details of the derivation. 
+%
+%
+%
+\section*{General form for implementation in LAMMPS}
+Of course, a system with many atom types may have many different possible LD potentials, each with their own atom type filters, cutoffs, and embedding functions. The most general form of this potential as implemented in the \texttt{pair\_style localdensity} is
+%
+\begin{equation*}
+U_{LD} = \sum_k U_{LD}^{(k)} = \sum_i \left[ \sum_k a_\alpha^{(k)} F^{(k)} \left(\rho_i^{(k)}\right) \right] 
+\end{equation*}
+%
+where, $k$ is an index that spans the (arbitrary) number of applied LD potentials $N_{LD}$. Each LD is calculated as before with:
+%
+\begin{equation*}
+\rho_i^{(k)} = \sum_j b_\beta^{(k)} \varphi^{(k)} (r_{ij})
+\end{equation*}
+%
+The superscript on the indicator function $\varphi$ simply indicates that it is associated with specific values of the cutoff distances $R_1^{(k)}$ and $R_2^{(k)}$.\\
+
+\noindent To summarize, there may be $N_{LD}$ distinct LD potentials.  With each potential $k$, one must specify:
+%
+\begin{itemize}
+\item[$\bullet$] the inner and outer cutoffs as $R_1$ and $R_2$ 
+\item[$\bullet$] the central type filter $a^{(k)}$, where $k = 1,2,...N_{LD}$
+\item[$\bullet$] the neighbor type filter $b^{(k)}$, where $k = 1,2,...N_{LD}$
+\item[$\bullet$] the LD potential function $F^{(k)}(\rho)$ , typically as a table that is later spline-interpolated
+\end{itemize}
+%
+%
+%
+\section*{LAMMPS implementation}
+\subsubsection*{Name of the pair style}
+\texttt{localdensity}
+%
+\subsubsection*{How to write in an input script}
+a) When the only interaction in the system are LD potentials, use:\\
+\texttt{pair\_style localdensity $\langle$input file$\rangle$} (NO \texttt{pair\_coeff} command)\\
+
+\noindent b) When the system has additional pair styles (e.g. when the LD potential is combined with a pair potential through \texttt{pair\_style hybrid/overlay}, use:\\
+\texttt{pair\_coeff *  * localdensity $\langle$input file$\rangle$} (instead of (a) )
+
+\subsubsection*{Input tabulated file format:}
+\begin{tabular}{l l}
+Line 1:   & comment or blank (ignored)\\
+Line 2:  & comment or blank (ignored)\\
+Line 3:  & $N_{LD}$ $N_{\rho}$ (\# of LD potentials and \# of tabulated values, single space separated)\\
+Line 4:  & blank (ignored)\\
+Line 5:  & $R_1^{(k)} \; \; \; R_2^{(k)}$ (lower and upper cutoffs, single space separated)\\
+Line 6: 	& central-types (central atom types, single space separated)\\
+Line 7: 	& neighbor-types (neighbor atom types single space separated)\\
+Line 8: 	& $\rho_{\mathrm{min}} \; \; \rho_{\mathrm{max}} \; \; \Delta \rho$ (min, max and dif. in tabulated $\rho$ values, single space separated)\\
+Line 9: 	& $F^{(k)}(\rho_{min} + 0.\Delta \rho)$\\
+Line 10:	& $F^{(k)}(\rho_{min} + 1.\Delta \rho)$\\
+Line 11:	& $F^{(k)}(\rho_{min} + 2.\Delta \rho)$\\
+............& { }\\
+Line 9+$N_\rho$: &  $F^{(k)}(\rho_{min} + N_\rho . \Delta \rho)$\\	
+Line 10+$N_\rho$: & blank (ignored)\\
+\\
+Block 2 & { }\\
+\\
+Block 3 & { }\\
+\\
+Block $N_{LD}$ & { }
+\end{tabular}
+\\
+
+\noindent Lines 5 to 9+$N_\rho$ constitute the first block. Thus the input file is separated (by blank lines) into $N_{LD}$ blocks each representing a separate LD potential and each specifying its own upper and lower cutoffs, central and neighbor atoms, and potential.  In general, blank lines anywhere are ignored. 
+%
+%
+%
+\begin{thebibliography}{9}
+%
+\bibitem{sanyal_2016}
+Sanyal and Shell, \emph{Coarse-grained models using local density potentials optimized with the relative entropy: Application to implicit solvation}, Journal of Chemical Physics, 2016, 145 (\textbf{3}), 034109
+ %
+\bibitem{sanyal_2018}
+Sanyal and Shell, \emph{Transferable coarse-grained models of liquid-liquid equilibrium using local density potentials optimized with the relative entropy}, Journal of Physical Chemistry B, 122 (\textbf{21}), 5678-5693
+ % 
+\bibitem{rosenberger_2019}
+Rosenberger, Sanyal, Shell and van der Vegt, \emph{Transferability of local density assisted implicit solvation models for homogenenous fluid mixtures}, Journal of Chemical Physics, 2019, 151 (\textbf{4}), 044111
+%
+\end{thebibliography}
+%
+\end{document}
+

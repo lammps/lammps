@@ -776,8 +776,8 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       // copy substyle extra values into hybrid's svector
 
       if (single_extra && styles[map[itype][jtype][m]]->single_extra)
-        for (m = 0; m < single_extra; m++)
-          svector[m] = styles[map[itype][jtype][m]]->svector[m];
+        for (int n = 0; n < single_extra; n++)
+          svector[n] = styles[map[itype][jtype][m]]->svector[n];
     }
   }
 

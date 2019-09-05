@@ -10,7 +10,8 @@ CC =		mpicxx -cxx=icc
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high
 CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
-                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
+                -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

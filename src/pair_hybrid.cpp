@@ -363,7 +363,7 @@ void PairHybrid::flags()
     if (styles[m]->compute_flag) compute_flag = 1;
   }
 
-  // single_extra = sum of all sub-style single_extra
+  // single_extra = list all sub-style single_extra
   // allocate svector
 
   single_extra = 0;
@@ -759,6 +759,7 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   fforce = 0.0;
   double esum = 0.0;
   int n = 0;
+  if (single_extra) memset(svector,0,single_extra*sizeof(double));
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {

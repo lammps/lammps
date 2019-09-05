@@ -62,7 +62,10 @@ pair styles do not define any additional quantities, so N = 0.  An
 example of ones that do are the "granular pair styles"_pair_gran.html
 which calculate the tangential force between two particles and return
 its components and magnitude acting on atom I for N = 1,2,3,4.  See
-individual pair styles for details.
+individual pair styles for details. When using hybrid pair styles,
+these quantities are the combined lists of the individual quantities
+for the pair styles active for a given pair of atom types padded with
+zeros.
 
 The value {dist} will be in distance "units"_units.html.  The value
 {eng} will be in energy "units"_units.html.  The values {force}, {fx},

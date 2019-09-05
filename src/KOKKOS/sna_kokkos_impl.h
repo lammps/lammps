@@ -225,7 +225,8 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
   dedr = t_sna_3d("sna:dedr",natom,nmax,3);
 
   blist = t_sna_2d("sna:blist",natom,idxb_max);
-  ulisttot = t_sna_2c_cpu("sna:ulisttot",natom,idxu_max);
+  ulisttot = t_sna_2c("sna:ulisttot",natom,idxu_max);
+  ulisttot_lr = t_sna_2c_cpu("sna:ulisttot_lr",natom,idxu_max);
   zlist = t_sna_2c("sna:zlist",natom,idxz_max);
 
   ulist = t_sna_3c("sna:ulist",natom,nmax,idxu_max);
@@ -281,6 +282,11 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   //Kokkos::single(Kokkos::PerThread(team), [&] (){
   add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor));
   //});
+
+  if (Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
+    ulisttot_lr = ulisttot;
+  else
+    Kokkos::deep_copy(ulisttot_lr,ulisttot);
 }
 
 template<class DeviceType>
@@ -400,8 +406,6 @@ void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceT
     });
   }
 
-  //int flopsum = 0;
-
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxz_max),
       [&] (const int& jjz) {
   //for(int jjz = 0; jjz < idxz_max; jjz++) {
@@ -435,9 +439,8 @@ void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceT
       int icga = ma1min*(j2+1) + ma2max;
 
       for(int ia = 0; ia < na; ia++) {
-        suma1_r += cgblock[icga] * (ulisttot(iatom,jju1+ma1).re * ulisttot(iatom,jju2+ma2).re - ulisttot(iatom,jju1+ma1).im * ulisttot(iatom,jju2+ma2).im);
-        suma1_i += cgblock[icga] * (ulisttot(iatom,jju1+ma1).re * ulisttot(iatom,jju2+ma2).im + ulisttot(iatom,jju1+ma1).im * ulisttot(iatom,jju2+ma2).re);
-        //flopsum += 10;
+        suma1_r += cgblock[icga] * (ulisttot_lr(iatom,jju1+ma1).re * ulisttot_lr(iatom,jju2+ma2).re - ulisttot_lr(iatom,jju1+ma1).im * ulisttot_lr(iatom,jju2+ma2).im);
+        suma1_i += cgblock[icga] * (ulisttot_lr(iatom,jju1+ma1).re * ulisttot_lr(iatom,jju2+ma2).im + ulisttot_lr(iatom,jju1+ma1).im * ulisttot_lr(iatom,jju2+ma2).re);
         ma1++;
         ma2--;
         icga += j2;
@@ -481,7 +484,6 @@ void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceT
 
   }); // end loop over jjz
 
-  //printf("sum %i\n",flopsum);
 }
 
 /* ----------------------------------------------------------------------
@@ -1318,6 +1320,7 @@ double SNAKokkos<DeviceType>::memory_usage()
 
   bytes += natom * idxu_max * sizeof(double) * 2;        // ulist
   bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot
+  bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
   bytes += natom * idxu_max * 3 * sizeof(double) * 2;    // dulist
                                                        
   bytes += natom * idxz_max * sizeof(double) * 2;        // zlist

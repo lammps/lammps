@@ -129,7 +129,8 @@ inline
   int twojmax, diagonalstyle;
   
   t_sna_2d blist;
-  t_sna_2c_cpu ulisttot;
+  t_sna_2c ulisttot;
+  t_sna_2c_cpu ulisttot_lr;
   t_sna_2c zlist;
 
   t_sna_3c ulist;

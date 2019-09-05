@@ -563,5 +563,5 @@ Additional options can be used to calculate the canonical configurational
 log-weight for each frame at each temperature using the pymbar package. See
 the README.md file for further details. Try out the peptide example provided.
 
-This tool was written by Tanmoy Sanyal, 
-while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com) 
+This tool was written by Tanmoy Sanyal, while at the Shell lab 
+at UC Santa Barbara. (tanmoy dot 7989 at gmail.com) 

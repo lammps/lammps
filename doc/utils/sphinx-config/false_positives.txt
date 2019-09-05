@@ -2239,6 +2239,7 @@ Py
 pydir
 pylammps
 PyLammps
+pymbar
 pymodule
 pymol
 pypar
@@ -2325,6 +2326,7 @@ reinit
 relink
 relTol
 remappings
+remd
 Ren
 Rendon
 reneighbor
@@ -2456,6 +2458,7 @@ Sandia
 sandybrown
 Sanitizer
 sanitizers
+Sanyal
 sc
 scafacos
 SCAFACOS
@@ -2689,6 +2692,8 @@ Tajkhorshid
 Tamaskovics
 Tanaka
 tanh
+tanmoy
+Tanmoy
 Tartakovsky
 taskset
 taubi

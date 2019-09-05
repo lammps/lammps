@@ -363,12 +363,12 @@ void PairHybrid::flags()
     if (styles[m]->compute_flag) compute_flag = 1;
   }
 
-  // single_extra = min of all sub-style single_extra
+  // single_extra = sum of all sub-style single_extra
   // allocate svector
 
-  single_extra = styles[0]->single_extra;
-  for (m = 1; m < nstyles; m++)
-    single_extra = MIN(single_extra,styles[m]->single_extra);
+  single_extra = 0;
+  for (m = 0; m < nstyles; m++)
+    single_extra += styles[m]->single_extra;
 
   if (single_extra) {
     delete [] svector;
@@ -758,6 +758,7 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   double fone;
   fforce = 0.0;
   double esum = 0.0;
+  int n = 0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
@@ -776,8 +777,8 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       // copy substyle extra values into hybrid's svector
 
       if (single_extra && styles[map[itype][jtype][m]]->single_extra)
-        for (int n = 0; n < single_extra; n++)
-          svector[n] = styles[map[itype][jtype][m]]->svector[n];
+        for (int l = 0; l < styles[map[itype][jtype][m]]->single_extra; l++)
+          svector[n++] = styles[map[itype][jtype][m]]->svector[l];
     }
   }
 

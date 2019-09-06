@@ -43,7 +43,7 @@ from scipy.special import logsumexp
 from mpi4py import MPI
 
 from tqdm import tqdm, trange
-import gzip
+import gzip, bz2
 try:
     # python-2
     from StringIO import StringIO as IOBuffer

@@ -14,7 +14,7 @@ dihedral_style  charmm
 improper_style  harmonic
 kspace_style	pppm 0.0001
 
-read_data	    data.peptide
+read_data	    ../../../examples/peptide/data.peptide
 
 neighbor	    2.0 bin
 neigh_modify	delay 5

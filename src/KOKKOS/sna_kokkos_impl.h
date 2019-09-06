@@ -226,11 +226,12 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
 
   blist = t_sna_2d("sna:blist",natom,idxb_max);
   ulisttot = t_sna_2c("sna:ulisttot",natom,idxu_max);
-  ulisttot_lr = t_sna_2c_cpu("sna:ulisttot_lr",natom,idxu_max);
+  if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value) 
+    ulisttot_lr = t_sna_2c_lr("sna:ulisttot_lr",natom,idxu_max);
   zlist = t_sna_2c("sna:zlist",natom,idxz_max);
 
   ulist = t_sna_3c("sna:ulist",natom,nmax,idxu_max);
-  ylist = t_sna_2c("sna:ylist",natom,idxu_max);
+  ylist = t_sna_2c_lr("sna:ylist",natom,idxu_max);
 
   dulist = t_sna_4c("sna:dulist",natom,nmax,idxu_max);
 }
@@ -282,11 +283,6 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   //Kokkos::single(Kokkos::PerThread(team), [&] (){
   add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor));
   //});
-
-  if (Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
-    ulisttot_lr = ulisttot;
-  else
-    Kokkos::deep_copy(ulisttot_lr,ulisttot);
 }
 
 template<class DeviceType>
@@ -786,6 +782,12 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
       }
     });
   }
+}
+
+template<class DeviceType>
+void SNAKokkos<DeviceType>::transpose_ulisttot()
+{
+  UlisttotHelper<typename DeviceType::array_layout,decltype(ulisttot_lr),decltype(ulisttot)>::transpose(ulisttot_lr,ulisttot);
 }
 
 /* ----------------------------------------------------------------------
@@ -1320,7 +1322,8 @@ double SNAKokkos<DeviceType>::memory_usage()
 
   bytes += natom * idxu_max * sizeof(double) * 2;        // ulist
   bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot
-  bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
+  if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
+    bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
   bytes += natom * idxu_max * 3 * sizeof(double) * 2;    // dulist
                                                        
   bytes += natom * idxz_max * sizeof(double) * 2;        // zlist

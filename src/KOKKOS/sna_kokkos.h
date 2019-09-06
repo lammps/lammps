@@ -53,11 +53,31 @@ public:
   typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
   typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
   typedef Kokkos::View<SNAcomplex**, DeviceType> t_sna_2c;
-  typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_cpu;
+  typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_lr;
   typedef Kokkos::View<SNAcomplex***, DeviceType> t_sna_3c;
   typedef Kokkos::View<SNAcomplex***[3], DeviceType> t_sna_4c;
   typedef Kokkos::View<SNAcomplex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<SNAcomplex*****, DeviceType> t_sna_5c;
+
+// Helper class to get ulisttot_r
+
+template<typename DeviceLayout, typename T1, typename T2>
+class UlisttotHelper {
+public:
+  inline
+  static void transpose(T1 &ulisttot_lr, const T2 &ulisttot) {
+    Kokkos::deep_copy(ulisttot_lr,ulisttot);
+  }
+};
+
+template<typename T1, typename T2>
+class UlisttotHelper<Kokkos::LayoutRight,T1,T2> {
+public:
+  inline
+  static void transpose(T1 &ulisttot_lr, const T2 &ulisttot) {
+    ulisttot_lr = ulisttot;
+  }
+};
 
 inline
   SNAKokkos() {};
@@ -79,6 +99,9 @@ inline
   double memory_usage();
 
   int ncoeff;
+
+inline
+  void transpose_ulisttot();
 
   // functions for bispectrum coefficients
   KOKKOS_INLINE_FUNCTION
@@ -130,11 +153,11 @@ inline
   
   t_sna_2d blist;
   t_sna_2c ulisttot;
-  t_sna_2c_cpu ulisttot_lr;
+  t_sna_2c_lr ulisttot_lr;
   t_sna_2c zlist;
 
   t_sna_3c ulist;
-  t_sna_2c ylist;
+  t_sna_2c_lr ylist;
 
   // derivatives of data
   t_sna_4c dulist;

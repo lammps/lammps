@@ -234,6 +234,9 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi> policy_ui(((inum+team_size-1)/team_size)*max_neighs,team_size,ui_vector_length);
     Kokkos::parallel_for("ComputeUi",policy_ui,*this);
 
+    //Ulisttot transpose
+    snaKK.transpose_ulisttot();
+
     //Compute bispectrum
     if (quadraticflag || eflag) {
       //ComputeZi

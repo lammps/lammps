@@ -26,6 +26,8 @@ FixStyle(bond/react,FixBondReact)
 
 #include "fix.h"
 
+#define MAXLINE 256
+
 namespace LAMMPS_NS {
 
 class FixBondReact : public Fix {
@@ -175,7 +177,7 @@ class FixBondReact : public Fix {
 
   struct Set {
     int nreacts;
-    char rxn_name[256];
+    char rxn_name[MAXLINE];
     int reaction_count_total;
   };
   Set *set;

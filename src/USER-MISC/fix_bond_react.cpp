@@ -56,7 +56,6 @@ static const char cite_fix_bond_react[] =
 
 #define BIG 1.0e20
 #define DELTA 16
-#define MAXLINE 256
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
 #define MAXCONARGS 5 // max # of arguments for any type of constraint
 

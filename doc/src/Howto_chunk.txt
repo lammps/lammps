@@ -136,7 +136,9 @@ The "compute chunk/spread/atom"_compute_chunk_spread_atom.html command
 spreads per-chunk values to each atom in the chunk, producing per-atom
 values as its output.  This can be useful for outputting per-chunk
 values to a per-atom "dump file"_dump.html.  Or for using an atom's
-associated chunk value in an "atom-style variable"_variable.html.
+associated chunk value in an "atom-style variable"_variable.html.  Or
+as input to the "fix ave/chunk"_fix_ave_chunk.html command to
+spatially average per-chunk values calculated by a per-chunk compute.
 
 The "compute reduce/chunk"_compute_reduce_chunk.html command reduces a
 peratom value across the atoms in each chunk to produce a value per
@@ -184,12 +186,20 @@ compute cc1 all chunk/atom c_cluster compress yes
 compute size all property/chunk cc1 count
 fix 1 all ave/histo 100 1 100 0 20 20 c_size mode vector ave running beyond ignore file tmp.histo :pre
 
-(6) An example of using a per-chunk value to apply per-atom forces to
+(6) An example for using a per-chunk value to apply per-atom forces to
 compress individual polymer chains (molecules) in a mixture, is
 explained on the "compute
 chunk/spread/atom"_compute_chunk_spread_atom.html command doc page.
 
-(7) An example of using one set of per-chunk values for molecule
+(7) An example for using one set of per-chunk values for molecule
 chunks, to create a 2nd set of micelle-scale chunks (clustered
 molecules, due to hydrophobicity), is explained on the "compute
 chunk/reduce"_compute_reduce_chunk.html command doc page.
+
+(8) An example for using one set of per-chunk values (dipole moment
+vectors) for molecule chunks, spreading the values to each atom in
+each chunk, then defining a second set of chunks as spatial bins, and
+using the "fix ave/chunk"_fix_ave_chunk.html command to calculate an
+average dipole moment vector for each bin.  This example is explained
+on the "compute chunk/spread/atom"_compute_chunk_spread_atom.html
+command doc page.

@@ -84,6 +84,7 @@ pair_style lebedeva/z, Zbigniew Koziol (National Center for Nuclear Research), s
 pair_style lennard/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style list, Axel Kohlmeyer (Temple U), akohlmey at gmail.com, 1 Jun 13
 pair_style lj/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
+pair_style local/density, Tanmoy Sanyal (tanmoy dot 7989 at gmail.com) and M. Scott Shell (UCSB), and David Rosenberger (TU Darmstadt), 9 Sept 19
 pair_style kolmogorov/crespi/full, Wengen Ouyang (Tel Aviv University), w.g.ouyang at gmail dot com, 30 Mar 18
 pair_style kolmogorov/crespi/z, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Feb 17
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12

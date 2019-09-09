@@ -29,7 +29,7 @@ sense,a generalization of embedded atom models (EAM). The name "local density
 potential" arises from the fact that it assigns an energy to an atom depending 
 on the number of neighboring atoms of given type around it within a predefined 
 spherical volume (i.e., within a cutoff). The bottom-up coarse-graining (CG)
-literature sugggests that such potentials can be widely useful  in capturing 
+literature suggests that such potentials can be widely useful  in capturing 
 effective multibody forces in a computationally efficient manner so as to 
 improve the quality of CG models of implicit solvation"(Sanyal1)"_#Sanyal1 and 
 phase-segregation in liquid mixtures"(Sanyal2)"_#Sanyal2, and provide guidelines 
@@ -45,7 +45,7 @@ upon initialization.
 NOTE: Thus when used as the only interaction in the system, there is no 
 corresponding pair_coeff command and when used with other pair styles using the 
 hybrid/overlay option, the corresponding pair_coeff command must be supplied
-*  * as placeholders for the atomtypes.
+*  * as placeholders for the atom types.
 
 :line
 

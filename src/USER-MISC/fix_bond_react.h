@@ -26,12 +26,13 @@ FixStyle(bond/react,FixBondReact)
 
 #include "fix.h"
 
-#define MAXLINE 256
-
 namespace LAMMPS_NS {
 
 class FixBondReact : public Fix {
  public:
+
+  enum {MAXLINE=256};
+
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
   int setmask();

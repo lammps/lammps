@@ -128,9 +128,6 @@ class FixRigidSmall : public Fix {
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
 
-  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
-  int OMEGA,ANGMOM,TORQUE;
-
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;

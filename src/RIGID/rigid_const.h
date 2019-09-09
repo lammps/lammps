@@ -16,7 +16,7 @@
 
 namespace LAMMPS_NS {
   namespace RigidConst {
-    
+
     enum{SINGLE,MOLECULE,GROUP};
     enum{NONE,XYZ,XY,YZ,XZ};
     enum{ISO,ANISO,TRICLINIC};

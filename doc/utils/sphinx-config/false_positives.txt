@@ -45,6 +45,7 @@ Aidan
 aij
 airebo
 Aj
+ajs
 ajaramil
 akohlmey
 Aktulga
@@ -99,6 +100,7 @@ antisymmetry
 anton
 Antonelli
 api
+Apoorva
 Appl
 Apu
 arccos
@@ -356,6 +358,7 @@ Cii
 Cij
 cis
 civ
+CKD
 Clang
 clearstore
 Cleary
@@ -421,6 +424,7 @@ coreshell
 cornflowerblue
 cornsilk
 corotate
+corotation
 corotational
 correlator
 cosineshifted
@@ -521,6 +525,7 @@ Dcut
 de
 dE
 De
+decorrelation
 debye
 Debye
 Decius
@@ -1073,6 +1078,7 @@ Hilger
 histo
 histogrammed
 histogramming
+hma
 hmaktulga
 hoc
 Hochbruck
@@ -1329,6 +1335,8 @@ kmax
 Kmax
 Knizhnik
 knl
+Kofke
+kofke
 Kohlmeyer
 Kohn
 kokkos
@@ -1716,6 +1724,7 @@ Morteza
 Mosayebi
 Moseler
 Moskalev
+Moustafa
 mov
 mpi
 MPI
@@ -2215,6 +2224,7 @@ PTM
 ptr
 pu
 purdue
+Purohit
 pushstore
 pvar
 pw
@@ -2432,6 +2442,7 @@ Ryckaert
 Rycroft
 Rydbergs
 Rz
+Sabry
 saddlebrown
 Sadigh
 saed
@@ -2991,6 +3002,7 @@ Waltham
 wavepacket
 wB
 Wbody
+wca
 webpage
 Weckner
 WeinanE

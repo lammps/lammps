@@ -1,0 +1,118 @@
+LAMMPS (7 Aug 2019)
+# 3d Lennard-Jones melt
+#
+# This example requires that the KIM Portable Model (PM)
+# SW_StillingerWeber_1985_Si__MO_405512056662_005
+# is installed.  This can be done with the command
+#   kim-api-collections-management install user SW_StillingerWeber_1985_Si__MO_405512056662_005
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see https://openkim.org/doc/obtaining-models for alternative options.
+#
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
+
+kim_init	SW_StillingerWeber_1985_Si__MO_405512056662_005 real
+#=== BEGIN kim-init ==========================================
+units real
+#=== END kim-init ============================================
+
+
+lattice		fcc 4.4300
+Lattice spacing in x,y,z = 4.43 4.43 4.43
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+  create_atoms CPU = 0.003591 secs
+
+kim_interactions Si
+#=== BEGIN kim_interactions ==================================
+pair_style kim SW_StillingerWeber_1985_Si__MO_405512056662_005
+pair_coeff * * Si 
+#=== END kim_interactions ====================================
+
+
+mass		1 39.95
+velocity	all create 200.0 232345 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+#fix		1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run 		100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.07118
+  ghost atom cutoff = 4.07118
+  binsize = 2.03559, bins = 44 44 44
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair kim, perpetual
+      attributes: full, newton off, cut 4.07118
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 1
+Per MPI rank memory allocation (min/avg/max) = 10.44 | 10.44 | 10.44 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200   -85249.847            0   -66173.259   -33302.387 
+     100    253.43357    -90346.68            0   -66173.441   -14888.698 
+Loop time of 74.248 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 0.116 ns/day, 206.244 hours/ns, 1.347 timesteps/s
+98.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 74.118     | 74.118     | 74.118     |   0.0 | 99.83
+Neigh   | 0.069623   | 0.069623   | 0.069623   |   0.0 |  0.09
+Comm    | 0.0137     | 0.0137     | 0.0137     |   0.0 |  0.02
+Output  | 7.6e-05    | 7.6e-05    | 7.6e-05    |   0.0 |  0.00
+Modify  | 0.031883   | 0.031883   | 0.031883   |   0.0 |  0.04
+Other   |            | 0.01433    |            |       |  0.02
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    7760 ave 7760 max 7760 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  402352 ave 402352 max 402352 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 402352
+Ave neighs/atom = 12.5735
+Neighbor list builds = 4
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:01:14

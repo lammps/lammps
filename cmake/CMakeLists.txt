@@ -589,6 +589,7 @@ if(BUILD_TOOLS)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+    install(TARGETS chain.x DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
 
   enable_language(C)

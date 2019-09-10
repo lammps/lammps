@@ -209,7 +209,7 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
 
 void DumpAtom::header_item(bigint ndump)
 {
-  fprintf(fp,"ITEM: UNITS %s\n",update->unit_style);
+  fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -225,7 +225,7 @@ void DumpAtom::header_item(bigint ndump)
 
 void DumpAtom::header_item_triclinic(bigint ndump)
 {
-  fprintf(fp,"ITEM: UNITS %s\n",update->unit_style);
+  fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");

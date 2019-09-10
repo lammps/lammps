@@ -263,16 +263,6 @@ The 2GJ half-step velocity {vhalf} samples the correct velocity distribution for
 Results of simulations using the {gjf} option with both {vfull} and {vhalf} compared to
 other available thermostats are shown in the LAMMPS directory: examples/gjf.
 
-As an example of why to use the {gjf} keyword, for molecules containing C-H
-bonds, configurational properties generated with dt = 2.5 fs and tdamp
-= 100 fs are indistinguishable from dt = 0.5 fs.  Because the velocity
-distribution systematically decreases with increasing timestep, the
-method should not be used to generate properties that depend on the
-velocity distribution, such as the velocity auto-correlation function
-(VACF). In this example, the velocity distribution at dt = 2.5fs
-generates an average temperature of 220 K, instead of 300 K.
-
-
 :line
 
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are

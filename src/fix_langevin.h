@@ -29,7 +29,6 @@ namespace LAMMPS_NS {
     int setmask();
     void init();
     void setup(int);
-    void initial_integrate_respa(int, int, int);
     virtual void initial_integrate(int);
     virtual void post_force(int);
     void post_force_respa(int, int, int);

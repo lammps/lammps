@@ -12,6 +12,9 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Carolyn Phillips (U Mich), reservoir energy tally
                          Aidan Thompson (SNL) GJF formulation
+                         Charles Sievers & Niels Gronbech-Jensen (UC Davis)
+                             updated GJF formulation and included
+                             statistically correct 2GJ velocity
 ------------------------------------------------------------------------- */
 
 #include "fix_langevin.h"
@@ -207,7 +210,6 @@ int FixLangevin::setmask()
 {
   int mask = 0;
   if (gjfflag) mask |= INITIAL_INTEGRATE;
-  if (gjfflag) mask |= INITIAL_INTEGRATE_RESPA;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
@@ -302,6 +304,9 @@ void FixLangevin::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
+  if (strstr(update->integrate_style,"respa") && gjfflag)
+    error->all(FLERR,"Fix langevin gjf and respa are not compatible");
+
   if (gjfflag) gjfa = (1.0-update->dt/2.0/t_period)/(1.0+update->dt/2.0/t_period);
   if (gjfflag) gjfsib = sqrt(1.0+update->dt/2.0/t_period);
 }
@@ -377,9 +382,9 @@ void FixLangevin::setup(int vflag)
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
           v[i][2] += dtfm * f[i][2];
-          lv[i][0] = f[i][0];
-          lv[i][1] = f[i][1];
-          lv[i][2] = f[i][2];
+          lv[i][0] = v[i][0];
+          lv[i][1] = v[i][1];
+          lv[i][2] = v[i][2];
         }
 //
     } else {
@@ -395,12 +400,6 @@ void FixLangevin::setup(int vflag)
         }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixLangevin::initial_integrate_respa(int vflag, int ilevel, int /* iloop */){
-  if (ilevel == respa_level-1) initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -715,6 +714,12 @@ void FixLangevin::post_force_templated()
       f[i][1] += fdrag[1] + fran[1];
       f[i][2] += fdrag[2] + fran[2];
 
+      if (Tp_ZERO) {
+        fsum[0] += fran[0];
+        fsum[1] += fran[1];
+        fsum[2] += fran[2];
+      }
+
       if (Tp_TALLY) {
         if (Tp_GJF){
           fdrag[0] = gamma1*lv[i][0]/gjfsib/gjfsib;
@@ -733,11 +738,6 @@ void FixLangevin::post_force_templated()
 
       }
 
-      if (Tp_ZERO) {
-        fsum[0] += fran[0];
-        fsum[1] += fran[1];
-        fsum[2] += fran[2];
-      }
     }
   }
 
@@ -934,16 +934,21 @@ void FixLangevin::end_of_step()
   if (tallyflag){
     if (gjfflag){
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i] & groupbit) {
+          if (tbiasflag)
+            temperature->remove_bias(i, lv[i]);
           energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +
                             flangevin[i][2]*lv[i][2];
+          if (tbiasflag)
+            temperature->restore_bias(i, lv[i]);
+        }
     }
     else
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
           energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
                             flangevin[i][2]*v[i][2];
-}
+  }
 
   if (gjfflag){
     double tmp[3];
@@ -1043,11 +1048,25 @@ double FixLangevin::compute_scalar()
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
-                          flangevin[i][2]*v[i][2];
-    energy = 0.5*energy_onestep*update->dt;
+    if (!gjfflag){
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit)
+          energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
+                            flangevin[i][2]*v[i][2];
+      energy = 0.5*energy_onestep*update->dt;
+    }
+    else{
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit){
+          if (tbiasflag)
+            temperature->remove_bias(i, lv[i]);
+          energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +
+                            flangevin[i][2]*lv[i][2];
+          if (tbiasflag)
+            temperature->restore_bias(i, lv[i]);
+        }
+      energy = -0.5*energy_onestep*update->dt;
+    }
   }
 
   // convert midstep energy back to previous fullstep energy

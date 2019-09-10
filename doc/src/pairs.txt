@@ -24,6 +24,7 @@ Pair Styles :h1
    pair_class2
    pair_colloid
    pair_comb
+   pair_cosine_squared
    pair_coul
    pair_coul_diel
    pair_coul_shield

@@ -65,6 +65,7 @@ OPT.
 "colloid (go)"_pair_colloid.html,
 "comb (o)"_pair_comb.html,
 "comb3"_pair_comb.html,
+"cosine/squared"_pair_cosine_squared.html,
 "coul/cut (gko)"_pair_coul.html,
 "coul/cut/soft (o)"_pair_fep_soft.html,
 "coul/debye (gko)"_pair_coul.html,

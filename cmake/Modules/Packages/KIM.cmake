@@ -1,4 +1,5 @@
 if(PKG_KIM)
+  set(KIM-API_MIN_VERSION 2.1)
   find_package(CURL)
   if(CURL_FOUND)
     include_directories(${CURL_INCLUDE_DIRS})
@@ -7,10 +8,17 @@ if(PKG_KIM)
   endif()
   find_package(KIM-API QUIET)
   if(KIM-API_FOUND)
-    set(DOWNLOAD_KIM_DEFAULT OFF)
+    if (KIM-API_VERSION VERSION_LESS ${KIM-API_MIN_VERSION})
+      if ("${DOWNLOAD_KIM}" STREQUAL "")
+        message(WARNING "Unsuitable KIM-API version \"${KIM-API_VERSION}\" found, but required is at least \"${KIM-API_MIN_VERSION}\".  Default behavior set to download and build our own.")
+      endif()
+      set(DOWNLOAD_KIM_DEFAULT ON)
+    else()
+      set(DOWNLOAD_KIM_DEFAULT OFF)
+    endif()
   else()
-    if (NOT DOWNLOAD_KIM)
-      message(WARNING "KIM-API package not found.  We will download and build our own")
+    if ("${DOWNLOAD_KIM}" STREQUAL "")
+      message(WARNING "KIM-API package not found.  Default behavior set to download and build our own")
     endif()
     set(DOWNLOAD_KIM_DEFAULT ON)
   endif()
@@ -28,8 +36,8 @@ if(PKG_KIM)
       message(FATAL_ERROR "Compiling the KIM-API library requires a Fortran compiler")
     endif()
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-2.1.2.txz
-      URL_MD5 6ac52e14ef52967fc7858220b208cba5
+      URL https://s3.openkim.org/kim-api/kim-api-2.1.3.txz
+      URL_MD5 6ee829a1bbba5f8b9874c88c4c4ebff8
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -42,7 +50,7 @@ if(PKG_KIM)
     set(KIM-API_LDFLAGS ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
-    find_package(KIM-API REQUIRED)
+    find_package(KIM-API ${KIM-API_MIN_VERSION} REQUIRED)
   endif()
   list(APPEND LAMMPS_LINK_LIBS "${KIM-API_LDFLAGS}")
   include_directories(${KIM-API_INCLUDE_DIRS})

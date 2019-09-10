@@ -244,7 +244,7 @@ accelerated styles exist.
 "mscg"_fix_mscg.html - apply MSCG method for force-matching to generate coarse grain models
 "msst"_fix_msst.html - multi-scale shock technique (MSST) integration
 "mvv/dpd"_fix_mvv_dpd.html - DPD using the modified velocity-Verlet integration algorithm
-"mvv/edpd"_fix_mvv_dpd.html - constant energy DPD using the modified velocity-Verlet algrithm
+"mvv/edpd"_fix_mvv_dpd.html - constant energy DPD using the modified velocity-Verlet algorithm
 "mvv/tdpd"_fix_mvv_dpd.html - constant temperature DPD using the modified velocity-Verlet algorithm
 "neb"_fix_neb.html - nudged elastic band (NEB) spring forces
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
@@ -371,6 +371,7 @@ accelerated styles exist.
 "wall/lj1043"_fix_wall.html - Lennard-Jones 10-4-3 wall
 "wall/lj126"_fix_wall.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall.html - Lennard-Jones 9-3 wall
+"wall/morse"_fix_wall.html - Morse potential wall
 "wall/piston"_fix_wall_piston.html - moving reflective piston wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "wall/region"_fix_wall_region.html - use region surface as wall

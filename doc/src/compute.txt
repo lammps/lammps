@@ -217,6 +217,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "heat/flux/tally"_compute_tally.html -
 "hexorder/atom"_compute_hexorder_atom.html - bond orientational order parameter q6
+"hma"_compute_hma.html - harmonically mapped averaging for atomic crystals
 "improper"_compute_improper.html - energy of each improper sub-style
 "improper/local"_compute_improper_local.html - angle of each improper
 "inertia/chunk"_compute_inertia_chunk.html - inertia tensor for each chunk

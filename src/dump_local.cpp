@@ -256,6 +256,7 @@ int DumpLocal::modify_param(int narg, char **arg)
 void DumpLocal::write_header(bigint ndump)
 {
   if (me == 0) {
+    fprintf(fp,"ITEM: UNITS %s\n",update->unit_style);
     fprintf(fp,"ITEM: TIMESTEP\n");
     fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);

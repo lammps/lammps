@@ -10,12 +10,16 @@ fix propel/self command  :pre
 
 [Syntax:]
 
-fix ID group-ID propel/self mode magnitude
+fix ID group-ID propel/self mode magnitude keyword values ...
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 propel/self = style name of this fix command :l
 mode = velocity or quaternion :l
 magnitude = magnitude of the active force :l
+one or more keyword/value pairs may be appended to args :l
+keyword = {types} :l
+  {types} values = one or more atom types
+  
 :ule
 
 [Examples:]
@@ -24,6 +28,9 @@ fix active_group all propel/self velocity 1.0
 fix constant_velocity all viscous 1.0 :pre
 
 fix active_group all propel/self quaternion 1.0 :pre
+
+fix active all propel/self quaternion 1.0 types 1 2 4 :pre
+
 
 [Description:]
 
@@ -36,6 +43,10 @@ For mode = quaternion the force is along the axis obtained by rotating the
 z-axis along the atom's quaternion. In other words, the force is along the
 z-axis in the atom's body frame. This mode requires all atoms in the group
 to have a quaternion, so atom_style should either be ellipsoid or body.
+
+By default, this fix is applied to all atoms in the group. You can override this
+behavior by specifying the atom types the fix should work on through the {types}
+keyword.
 
 :line
 
@@ -65,3 +76,5 @@ Phys. Rev. E, 74, 061908, 2006
 [(Henkes)] Henkes, S, Fily, Y., and Marchetti, M. C.
 Phys. Rev. E, 84, 040301(R), 2011
 
+
+[Default:] types

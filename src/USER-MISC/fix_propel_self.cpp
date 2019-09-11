@@ -49,7 +49,8 @@ static constexpr const bool debug_out = false;
 
 
 FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
-  : Fix(lmp, narg, argv)
+	: Fix(lmp, narg, argv), magnitude(1.0), thermostat_orient(0),
+	  mode(VELOCITY), n_types_filter(0), apply_to_type(NULL)
 {
   if( narg < 5 ) error->all(FLERR, "Illegal fix propel/self command");
 
@@ -78,6 +79,49 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   }
 
   magnitude = force->numeric( FLERR, argv[4] );
+
+    // Handle rest of args:
+  int iarg = 5;
+  while (iarg < narg) {
+    const char *arg = argv[iarg];
+    if (strncmp(arg, "types", 5) == 0) {
+      // In this case we need to allocate the type list.
+      // First find the largest given type:
+      int max_type_in_list = 0;
+      while (!isalpha(arg[iarg + n_types_filter][0])) {
+        int curr_type = force->numeric(FLERR, arg[iarg + n_types_filter]);
+        if (curr_type > max_type_in_list) max_type_in_list = curr_type;
+        ++n_types_filter;
+      }
+      if (n_types_filter == 0) {
+        error->all(FLERR, "\"types\" option requires at least one type");
+      }
+      
+      // sanity check:
+      if (max_type_in_list < n_types_filter) {
+        error->warning(FLERR, "Found duplicate type in \"types\" option");
+      }
+      
+      apply_to_type = new int[max_type_in_list+1];
+      if (!apply_to_type) error->all(FLERR, "Failed to allocate type storage!");
+        
+      for (int i = 0; i < max_type_in_list+1; ++i) {
+        apply_to_type[i] = 0;
+      }
+      
+      for (int i = 0; i < n_types_filter; ++i) {
+        int curr_type = force->numeric(FLERR, arg[iarg + i]);
+        apply_to_type[curr_type] = 1;
+      }
+      // Done handling types argument.
+    } else {
+      char msg[2048];
+      sprintf(msg, "Illegal fix propel/self command: "
+              "Unrecognized argument %s", arg);
+      error->all(FLERR, msg);
+    }
+  }
+
 }
 
 
@@ -96,7 +140,10 @@ int FixPropelSelf::setmask()
 
 double FixPropelSelf::memory_usage()
 {
-  double bytes = 0.0;
+  // magnitude + thermostat_orient + mode + n_types_filter + apply_to_type
+  double bytes = sizeof(double) + 3*sizeof(int) + sizeof(int*);
+  bytes += sizeof(int)*n_types_filter;
+  
   return bytes;
 }
 
@@ -105,11 +152,12 @@ void FixPropelSelf::post_force(int vflag )
 {
   switch(mode) {
   case QUATERNION:
-    post_force_quaternion(vflag);
+    if (n_types_filter) post_force_quaternion<1>(vflag);
+    else                post_force_quaternion<0>(vflag);
     break;
   case VELOCITY:
-    post_force_velocity(vflag);
-    break;
+    if (n_types_filter) post_force_velocity<1>(vflag);
+    else                post_force_velocity<0>(vflag);
   default:
     error->all(FLERR, "reached statement that should be unreachable");
   }
@@ -117,6 +165,7 @@ void FixPropelSelf::post_force(int vflag )
 
 
 
+template <int filter_by_type>
 void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 {
   double **f = atom->f;
@@ -129,6 +178,10 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
   // Add the active force to the atom force:
   for( int i = 0; i < nlocal; ++i ){
     if( mask[i] & groupbit ){
+      if (filter_by_type && !apply_to_type[type[i]]) {
+        continue;
+      }
+      
       double f_act[3] = { 0.0, 0.0, 1.0 };
       double f_rot[3];
 
@@ -167,7 +220,7 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 }
 
 
-
+template <int filter_by_type> 
 void FixPropelSelf::post_force_velocity(int /*vflag*/ )
 {
   double **f = atom->f;
@@ -179,6 +232,10 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/ )
   // Add the active force to the atom force:
   for( int i = 0; i < nlocal; ++i ){
     if( mask[i] & groupbit ){
+      if (filter_by_type && !apply_to_type[type[i]]) {
+        continue;
+      }
+	    
       const double *vi = v[i];
       double f_act[3] = { vi[0], vi[1], vi[2] };
       double nv2 = vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2];

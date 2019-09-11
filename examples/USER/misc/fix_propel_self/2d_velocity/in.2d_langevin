@@ -30,8 +30,25 @@ thermo_style custom time step pe ke etotal temp
 thermo 1000
 run 25000
 
+group one type 1
+group two type 2
+
+compute ke1 one ke
+compute ke2 two ke
+
+thermo_style custom time step pe ke etotal temp c_ke1 c_ke2
+
 fix active all propel/self velocity 1.0
 
 # With active force there is more motion so increase bin size:
 neighbor 1.0 bin
 run 25000
+
+# Only make type 1 active:
+fix active all propel/self velocity 1.0 types 1
+
+# With active force there is more motion so increase bin size:
+neighbor 1.0 bin
+run 25000
+
+

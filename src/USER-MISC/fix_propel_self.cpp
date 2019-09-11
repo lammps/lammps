@@ -88,8 +88,10 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
       // In this case we need to allocate the type list.
       // First find the largest given type:
       int max_type_in_list = 0;
-      while (!isalpha(arg[iarg + n_types_filter][0])) {
-        int curr_type = force->numeric(FLERR, arg[iarg + n_types_filter]);
+      ++iarg;
+      while ( (iarg + n_types_filter < narg) &&
+              (!isalpha(argv[iarg + n_types_filter][0]))) {
+        int curr_type = force->numeric(FLERR, argv[iarg + n_types_filter]);
         if (curr_type > max_type_in_list) max_type_in_list = curr_type;
         ++n_types_filter;
       }
@@ -110,10 +112,11 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
       }
       
       for (int i = 0; i < n_types_filter; ++i) {
-        int curr_type = force->numeric(FLERR, arg[iarg + i]);
+        int curr_type = force->numeric(FLERR, argv[iarg + i]);
         apply_to_type[curr_type] = 1;
       }
       // Done handling types argument.
+      iarg += n_types_filter; // -1 because we incremented by 1 previously.
     } else {
       char msg[2048];
       sprintf(msg, "Illegal fix propel/self command: "
@@ -158,6 +161,7 @@ void FixPropelSelf::post_force(int vflag )
   case VELOCITY:
     if (n_types_filter) post_force_velocity<1>(vflag);
     else                post_force_velocity<0>(vflag);
+    break;
   default:
     error->all(FLERR, "reached statement that should be unreachable");
   }
@@ -173,7 +177,9 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
+  int *type = atom->type;
+  int* ellipsoid = atom->ellipsoid;
+  
   AtomVecEllipsoid::Bonus *bonus = av->bonus;
   // Add the active force to the atom force:
   for( int i = 0; i < nlocal; ++i ){
@@ -185,7 +191,6 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
       double f_act[3] = { 0.0, 0.0, 1.0 };
       double f_rot[3];
 
-      int* ellipsoid = atom->ellipsoid;
       double *quat  = bonus[ellipsoid[i]].quat;
       tagint *tag = atom->tag;
 
@@ -228,6 +233,7 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/ )
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   tagint *tag = atom->tag;
+  int *type = atom->type;
 
   // Add the active force to the atom force:
   for( int i = 0; i < nlocal; ++i ){

@@ -24,6 +24,90 @@ FixStyle(rigid/kk/host,FixRigidKokkos<LMPHostType>)
 #ifndef LMP_FIX_RIGID_KOKKOS_H
 #define LMP_FIX_RIGID_KOKKOS_H
 
+#include "fix_rigid.h"
+#include "kokkos_type.h"
+
+namespace LAMMPS_NS {
+
+template <class DeviceType>
+class FixRigidKokkos;
+
+template <class DeviceType>
+class FixRigidKokkos : public FixRigid {
+ public:
+  FixRigidKokkos(class LAMMPS *, int, char **);
+  virtual ~FixRigidKokkos();
+  void cleanup_copy();
+
+  // virtual int setmask();
+  // virtual void init();
+  // virtual void setup(int);
+  virtual void initial_integrate(int);
+  //void post_force(int);
+  //virtual void final_integrate();
+  // void initial_integrate_respa(int, int, int);
+  // void final_integrate_respa(int, int);
+  // void write_restart_file(char *);
+  // virtual double compute_scalar();
+
+
+
+  KOKKOS_INLINE_FUNCTION
+  void initial_integrate_item(int) const;
+  KOKKOS_INLINE_FUNCTION
+  void initial_integrate_rmass_item(int) const;
+
+
+ private:
+
+  typename ArrayTypes<DeviceType>::t_x_array x;
+  typename ArrayTypes<DeviceType>::t_v_array v;
+  typename ArrayTypes<DeviceType>::t_f_array f;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d mass;
+  typename ArrayTypes<DeviceType>::t_int_1d type;
+  typename ArrayTypes<DeviceType>::t_int_1d mask;
+	
+	
+}; // class FixRigidKokkos
+
+	
+template <class DeviceType, int RMass>
+struct FixRigidKokkosInitialIntegrateFunctor  {
+  typedef DeviceType  device_type ;
+  FixRigidKokkos<DeviceType> c;
+
+  FixRigidKokkosInitialIntegrateFunctor(FixRigidKokkos<DeviceType>* c_ptr):
+    c(*c_ptr) {c.cleanup_copy();};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const {
+    if (RMass) c.initial_integrate_rmass_item(i);
+    else c.initial_integrate_item(i);
+  }
+};
+
+	/*
+template <class DeviceType, int RMass>
+struct FixRigidKokkosFinalIntegrateFunctor  {
+  typedef DeviceType  device_type ;
+  FixNVEKokkos<DeviceType> c;
+
+  FixNVEKokkosFinalIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
+  c(*c_ptr) {c.cleanup_copy();};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const {
+    if (RMass) c.final_integrate_rmass_item(i);
+    else c.final_integrate_item(i);
+  }
+};
+	*/
+
+
+	
+} // namespace LAMMPS_NS
+
+
 
 
 #endif // LMP_FIX_RIGID_KOKKOS_H

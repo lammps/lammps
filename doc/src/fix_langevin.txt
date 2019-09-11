@@ -263,6 +263,13 @@ The 2GJ half-step velocity {vhalf} samples the correct velocity distribution for
 Results of simulations using the {gjf} option with both {vfull} and {vhalf} compared to
 other available thermostats are shown in the LAMMPS directory: examples/gjf.
 
+This updated implementation of the {gjf} thermostat includes the choice between
+outputting either the on-site {vfull} or half-step {vhalf} velocity. The on-site
+velocity has been updated to be the GJF on-site velocity, and the half-step
+velocity is the statistically correct 2GJ velocity. The implementation
+also takes advantage of Gaussian distributed random numbers in order to achieve
+correct fluctuations.
+
 :line
 
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are

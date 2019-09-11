@@ -142,21 +142,21 @@ Line 2:             comment or blank (ignored)
 Line 3:             N_LD N_rho (# of LD potentials and # of tabulated values, single space separated)
 Line 4:             blank (ignored)
 Line 5:             R1(k) R2(k) (lower and upper cutoffs, single space separated)
-Line 6: 	        central-types (central atom types, single space separated)
-Line 7: 	        neighbor-types (neighbor atom types single space separated)
-Line 8: 	        rho_min rho_max drho (min, max and diff. in tabulated rho values, single space separated)
-Line 9: 	        F(k)(rho_min + 0.drho)
-Line 10:	        F(k)(rho_min + 1.drho)
-Line 11:	        F(k)(rho_min + 2.drho)
-............ 
+Line 6:             central-types (central atom types, single space separated)
+Line 7:             neighbor-types (neighbor atom types single space separated)
+Line 8:             rho_min rho_max drho (min, max and diff. in tabulated rho values, single space separated)
+Line 9:             F(k)(rho_min + 0.drho)
+Line 10:            F(k)(rho_min + 1.drho)
+Line 11:            F(k)(rho_min + 2.drho)
+...
 Line 9+N_rho:       F(k)(rho_min + N_rho . drho)
-Line 10+N_rho:      blank (ignored) :ul
+Line 10+N_rho:      blank (ignored) :pre
 
-Block 2 :ul
+Block 2 :pre
 
-Block 3 :ul
+Block 3 :pre
 
-Block N_LD :ul
+Block N_LD :pre
 
 Lines 5 to 9+N_rho constitute the first block. Thus the input file is separated 
 (by blank lines) into N_LD blocks each representing a separate LD potential and 

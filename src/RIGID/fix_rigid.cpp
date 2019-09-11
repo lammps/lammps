@@ -2154,7 +2154,7 @@ void FixRigid::setup_bodies_static()
 /* ----------------------------------------------------------------------
    one-time initialization of dynamic rigid body attributes
    set vcm and angmom, computed explicitly from constituent particles
-   not done if body properites read from file, e.g. for overlapping particles
+   not done if body properties read from file, e.g. for overlapping particles
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_dynamic()

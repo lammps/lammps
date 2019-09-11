@@ -143,7 +143,6 @@ void VerletKokkos::setup(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-
   if (atomKK->molecular) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
@@ -248,7 +247,6 @@ void VerletKokkos::setup_minimal(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-
   if (atomKK->molecular) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
@@ -285,7 +283,9 @@ void VerletKokkos::setup_minimal(int flag)
 
   if (force->newton) comm->reverse_comm();
 
+  lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
+  lmp->kokkos->auto_sync = 1;
   update->setupflag = 0;
 }
 

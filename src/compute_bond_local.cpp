@@ -405,6 +405,7 @@ int ComputeBondLocal::compute_bonds(int flag)
             break;
           case FZ:
             ptr[n] = dz*fbond;
+            break;
           case ENGVIB:
             ptr[n] = engvib;
             break;

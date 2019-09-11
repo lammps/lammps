@@ -30,7 +30,8 @@ fix active_group all propel/self quaternion 1.0 :pre
 Adds a force of a constant magnitude to each atom in the group. The nature in
 which the force is added depends on the mode.
 For mode = velocity, the active force acts along the velocity vector of each
-atom.
+atom. This can be interpreted as an overdamped form of the model used by
+"(Szabo)"_#Szabo and "(Henkes)"_#Henkes.
 For mode = quaternion the force is along the axis obtained by rotating the
 z-axis along the atom's quaternion. In other words, the force is along the
 z-axis in the atom's body frame. This mode requires all atoms in the group
@@ -55,3 +56,12 @@ that have a quaternion.
 [Related commands:]
 
 "fix setforce"_fix_setforce.html, "fix addforce"_fix_addforce.html
+
+:link(Szabo)
+[(Szabo)] Szabo, B, Szollosi, G. J., Gonci, B., Juranyi, Zs., Selmeczi, D. and Viscek, T.,
+Phys. Rev. E, 74, 061908, 2006
+
+:link(Henkes)
+[(Henkes)] Henkes, S, Fily, Y., and Marchetti, M. C.
+Phys. Rev. E, 84, 040301(R), 2011
+

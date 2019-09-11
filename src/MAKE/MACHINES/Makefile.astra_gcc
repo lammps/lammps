@@ -1,4 +1,7 @@
-# intel_cpu_intelmpi = USER-INTEL package, Intel MPI, MKL FFT
+# astra-gcc - ThunderX2 GCC/OpenMPI Based, FFTW
+
+# need to load the following modules:
+# 1) arm-based developer pack
 
 SHELL = /bin/sh
 
@@ -6,23 +9,15 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc 
-OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
-                -qopt-zmm-usage=high
-CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
-                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
-                -I$(MKLROOT)/include
-SHFLAGS =	-fPIC
-DEPFLAGS =	-M
-
-LINK =		mpiicpc
-LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
-LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core	
-SIZE =		size
-
-ARCHIVE =	ar
-ARFLAGS =	-rc
-SHLIBFLAGS =	-shared
+CC =            mpicxx
+CCFLAGS =       -O3 -funroll-loops -fopenmp -mcpu=thunderx2t99 -mtune=thunderx2t99
+DEPFLAGS =      -M
+LINK =          mpicxx
+LINKFLAGS =     -O3 -fopenmp -mcpu=thunderx2t99 -mtune=thunderx2t99
+LIB =           -lstdc++
+ARCHIVE =       ar
+ARFLAGS =       -rcsv
+SIZE =          size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -32,7 +27,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =       -DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -43,7 +38,7 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_INC =       
 MPI_PATH = 
 MPI_LIB =
 
@@ -54,9 +49,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_MKL -DFFT_SINGLE
-FFT_PATH = 
-FFT_LIB =
+FFT_INC =    -DFFT_FFTW2 -I${FFTW_INC}
+FFT_PATH =   -I${FFTW_INC}
+FFT_LIB =    -L${FFTW_LIB} -lfftw3
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -66,8 +61,8 @@ FFT_LIB =
 # LIB = name(s) of JPEG library and/or PNG library
 
 JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	
+JPG_PATH = 
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

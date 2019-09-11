@@ -63,7 +63,7 @@ class Update : protected Pointers {
   void init();
   void set_units(const char *);
   void create_integrate(int, char **, int);
-  void create_minimize(int, char **);
+  void create_minimize(int, char **, int);
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
@@ -71,6 +71,7 @@ class Update : protected Pointers {
 
  private:
   void new_integrate(char *, int, char **, int, int &);
+  void new_minimize(char *, int, char **, int, int &);
 
   template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
   template <typename T> static Min *minimize_creator(LAMMPS *);

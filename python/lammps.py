@@ -70,6 +70,9 @@ class NeighList:
         iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
         return iatom, numneigh, neighbors
 
+    def __getitem__(self, element):
+        return self.get(element)
+
     def __iter__(self):
         inum = self.size
 

@@ -51,6 +51,31 @@ class MPIAbortException(Exception):
   def __str__(self):
     return repr(self.message)
 
+class NeighList:
+    def __init__(self, lmp, idx):
+        self.lmp = lmp
+        self.idx = idx
+
+    def __str__(self):
+        return "Neighbor List ({} atoms)".format(self.size)
+
+    def __repr__(self):
+        return self.__str__()
+
+    @property
+    def size(self):
+        return self.lmp.get_neighlist_size(self.idx)
+
+    def get(self, element):
+        iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
+        return iatom, numneigh, neighbors
+
+    def __iter__(self):
+        inum = self.size
+
+        for ii in range(inum):
+            yield self.get(ii)
+
 class lammps(object):
 
   # detect if Python is using version of mpi4py that can pass a communicator
@@ -73,6 +98,7 @@ class lammps(object):
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
+    self.lmp = None
 
     # if a pointer to a LAMMPS object is handed in,
     # all symbols should already be available
@@ -136,6 +162,21 @@ class lammps(object):
     self.lib.lammps_scatter_atoms_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_atoms_subset.restype = None
+
+    self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int]
+    self.lib.lammps_find_pair_neighlist.restype  = c_int
+
+    self.lib.lammps_find_fix_neighlist.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_find_fix_neighlist.restype  = c_int
+
+    self.lib.lammps_find_compute_neighlist.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_find_compute_neighlist.restype  = c_int
+
+    self.lib.lammps_neighlist_num_elements.argtypes = [c_void_p, c_int]
+    self.lib.lammps_neighlist_num_elements.restype  = c_int
+
+    self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
+    self.lib.lammps_neighlist_element_neighbors.restype  = None
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -650,6 +691,37 @@ class lammps(object):
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
 
     self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
+
+  def get_neighlist(self, idx):
+    if idx < 0:
+        return None
+    return NeighList(self, idx)
+
+  def find_pair_neighlist(self, style, nsub=0, request=0):
+    style = style.encode()
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, nsub, request)
+    return self.get_neighlist(idx)
+
+  def find_fix_neighlist(self, fixid, request=0):
+    fixid = fixid.encode()
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
+    return self.get_neighlist(idx)
+
+  def find_compute_neighlist(self, computeid, request):
+    computeid = computeid.encode()
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
+    return self.get_neighlist(idx)
+
+  def get_neighlist_size(self, idx):
+    return self.lib.lammps_neighlist_num_elements(self.lmp, idx)
+
+  def get_neighlist_element_neighbors(self, idx, element):
+    c_iatom = c_int()
+    c_numneigh = c_int()
+    c_neighbors = POINTER(c_int)()
+    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom), byref(c_numneigh), byref(c_neighbors))
+    neighbors = self.numpy.iarray(c_int, c_neighbors, c_numneigh.value, 1)
+    return c_iatom.value, c_numneigh.value, neighbors
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------

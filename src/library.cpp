@@ -38,6 +38,9 @@
 #include "force.h"
 #include "info.h"
 #include "fix_external.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -1727,3 +1730,133 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
 }
 
 #endif
+
+/* ----------------------------------------------------------------------
+   Find neighbor list index for pair style
+------------------------------------------------------------------------- */
+int lammps_find_pair_neighlist(void* ptr, char * style, int nsub, int request) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Pair* pair = lmp->force->pair_match(style, 1, nsub);
+
+  if (pair != NULL) {
+    // find neigh list
+    for (int i = 0; i < lmp->neighbor->nlist; i++) {
+      NeighList * list = lmp->neighbor->lists[i];
+      if (list->requestor_type != NeighList::PAIR || pair != list->requestor) continue;
+
+      if (list->index == request) {
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   Find neighbor list index for compute with given fix ID
+   The request ID identifies which request it is in case of there are
+   multiple neighbor lists for this fix
+------------------------------------------------------------------------- */
+int lammps_find_fix_neighlist(void* ptr, char * id, int request) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Fix* fix = NULL;
+  const int nfix = lmp->modify->nfix;
+
+  // find fix with name
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strcmp(lmp->modify->fix[ifix]->id, id) == 0) {
+        fix = lmp->modify->fix[ifix];
+        break;
+    }
+  }
+
+  if (fix != NULL) {
+    // find neigh list
+    for (int i = 0; i < lmp->neighbor->nlist; i++) {
+      NeighList * list = lmp->neighbor->lists[i];
+      if (list->requestor_type != NeighList::FIX || fix != list->requestor) continue;
+
+      if (list->index == request) {
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   Find neighbor list index for compute with given compute ID
+   The request ID identifies which request it is in case of there are
+   multiple neighbor lists for this compute
+------------------------------------------------------------------------- */
+
+int lammps_find_compute_neighlist(void* ptr, char * id, int request) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Compute* compute = NULL;
+  const int ncompute = lmp->modify->ncompute;
+
+  // find compute with name
+  for (int icompute = 0; icompute < ncompute; icompute++) {
+    if (strcmp(lmp->modify->compute[icompute]->id, id) == 0) {
+        compute = lmp->modify->compute[icompute];
+        break;
+    }
+  }
+
+  if (compute == NULL) {
+    // find neigh list
+    for (int i = 0; i < lmp->neighbor->nlist; i++) {
+      NeighList * list = lmp->neighbor->lists[i];
+      if (list->requestor_type != NeighList::COMPUTE || compute != list->requestor) continue;
+
+      if (list->index == request) {
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   Return the number of entries in the neighbor list with given index
+------------------------------------------------------------------------- */
+
+int lammps_neighlist_num_elements(void * ptr, int idx) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return -1;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+  return list->inum;
+}
+
+/* ----------------------------------------------------------------------
+   Return atom index, number of neighbors and neighbor array for neighbor
+   list entry
+------------------------------------------------------------------------- */
+
+void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+  *iatom = -1;
+  *numneigh = 0;
+  *neighbors = NULL;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+
+  if(element < 0 || element >= list->inum) {
+    return;
+  }
+
+  int i = list->ilist[element];
+  *iatom     = i;
+  *numneigh  = list->numneigh[i];
+  *neighbors = list->firstneigh[i];
+}

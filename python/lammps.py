@@ -72,6 +72,9 @@ class NeighList:
 
     def __getitem__(self, element):
         return self.get(element)
+    
+    def __len__(self):
+        return self.size
 
     def __iter__(self):
         inum = self.size

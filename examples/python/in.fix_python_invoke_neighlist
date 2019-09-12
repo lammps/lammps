@@ -24,13 +24,17 @@ from lammps import lammps
 
 def post_force_callback(lmp, v):
   try:
+    import os
+    pid = os.getpid()
+    pid_prefix = "[{}] ".format(pid)
+
     L = lammps(ptr=lmp)
     t = L.extract_global("ntimestep", 0)
-    print("### POST_FORCE ###", t)
+    print(pid_prefix, "### POST_FORCE ###", t)
 
     #mylist = L.get_neighlist(0)
     mylist = L.find_pair_neighlist("lj/cut", request=0)
-    print(mylist)
+    print(pid_prefix, mylist)
     nlocal = L.extract_global("nlocal", 0)
     nghost = L.extract_global("nghost", 0)
     ntypes = L.extract_global("ntypes", 0)
@@ -41,18 +45,18 @@ def post_force_callback(lmp, v):
     f = L.numpy.extract_atom_darray("f", nlocal+nghost, dim=3)
 
     for iatom, numneigh, neighs in mylist:
-      print("- {}".format(iatom), x[iatom], v[iatom], f[iatom], " : ",  numneigh, "Neighbors")
+      print(pid_prefix, "- {}".format(iatom), x[iatom], v[iatom], f[iatom], " : ",  numneigh, "Neighbors")
       for jatom in neighs:
         if jatom < nlocal:
-            print("    *  ", jatom, x[jatom], v[jatom], f[jatom])
+            print(pid_prefix, "    *  ", jatom, x[jatom], v[jatom], f[jatom])
         else:
-            print("    * [GHOST]", jatom, x[jatom], v[jatom], f[jatom])
+            print(pid_prefix, "    * [GHOST]", jatom, x[jatom], v[jatom], f[jatom])
   except Exception as e:
     print(e)
 """
 
 fix		1 all nve
-fix     3 all python/invoke 1 post_force post_force_callback
+fix     3 all python/invoke 50 post_force post_force_callback
 
 #dump		id all atom 1 dump.melt
 
@@ -65,4 +69,4 @@ fix     3 all python/invoke 1 post_force post_force_callback
 #dump_modify	3 pad 3
 
 thermo		1
-run		1
+run		100

@@ -62,10 +62,17 @@ pair styles do not define any additional quantities, so N = 0.  An
 example of ones that do are the "granular pair styles"_pair_gran.html
 which calculate the tangential force between two particles and return
 its components and magnitude acting on atom I for N = 1,2,3,4.  See
-individual pair styles for details. When using hybrid pair styles,
-these quantities are the combined lists of the individual quantities
-for the pair styles active for a given pair of atom types padded with
-zeros.
+individual pair styles for details. When using pair style {hybrid},
+the output will be that of the Nth quantity from the active sub-style
+active or 0.0. The maximum allowed N is the maximum of any sub-style.
+When using pair style {hybrid/overlay} all additional properties of
+all pair styles are available for output, but the values of inactive
+sub-styles for a given pair of atom types will be 0.0. Thus if there
+are, for example, 3 sub-styles and 2 of them have additional output
+(3 and 4 items, respectively), the maximum N would be 7 and {p1}, {p2},
+and {p3} would refer to the first 3 additional properties and the
+remaining allowed parameters {p4} to {p7} would address properties {p1}
+to {p4} of the second sub-style with additional properties.
 
 The value {dist} will be in distance "units"_units.html.  The value
 {eng} will be in energy "units"_units.html.  The values {force}, {fx},
@@ -129,7 +136,7 @@ options.
 The output for {dist} will be in distance "units"_units.html.  The
 output for {eng} will be in energy "units"_units.html.  The output for
 {force}, {fx}, {fy}, and {fz} will be in force "units"_units.html.
-The outpur for {pN} will be in whatever units the pair style defines.
+The output for {pN} will be in whatever units the pair style defines.
 
 [Restrictions:] none
 

@@ -713,7 +713,7 @@ class lammps(object):
     idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
     return self.get_neighlist(idx)
 
-  def find_compute_neighlist(self, computeid, request):
+  def find_compute_neighlist(self, computeid, request=0):
     computeid = computeid.encode()
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
     return self.get_neighlist(idx)

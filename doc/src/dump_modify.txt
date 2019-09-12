@@ -50,6 +50,7 @@ keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fi
   {sfactor} arg = coordinate scaling factor (> 0.0)
   {thermo} arg = {yes} or {no}
   {tfactor} arg = time scaling factor (> 0.0)
+  {units} arg = {yes} or {no}
   {sort} arg = {off} or {id} or N or -N
      off = no sorting of per-atom lines within a snapshot
      id = sort per-atom lines by atom ID
@@ -620,6 +621,21 @@ threshold criterion is met.  Otherwise it is not met.
 
 :line
 
+The {units} keyword only applies to the dump {atom}, {custom}, and
+{local} styles (and their COMPRESS package versions {atom/gz},
+{custom/gz} and {local/gz}). If set to {yes}, each dump file will contain
+two extra lines at the very beginning with:
+
+ITEM: UNITS
+\<units style\> :pre
+
+This will output the current selected "units"_units.html style
+to the dump file and thus allows visualization and post-processing
+tools to determine the choice of units of the data in the dump file.
+The default setting is {no}.
+
+:line
+
 The {unwrap} keyword only applies to the dump {dcd} and {xtc} styles.
 If set to {yes}, coordinates will be written "unwrapped" by the image
 flags for each atom.  Unwrapped means that if the atom has passed through
@@ -924,6 +940,7 @@ scale = yes
 sort = off for dump styles {atom}, {custom}, {cfg}, and {local}
 sort = id for dump styles {dcd}, {xtc}, and {xyz}
 thresh = none
+units = no
 unwrap = no :ul
 
 acolor = * red/green/blue/yellow/aqua/cyan

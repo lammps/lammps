@@ -2269,6 +2269,7 @@ qoffload
 qopenmp
 qoverride
 qtb
+quadratically
 quadrupolar
 Quant
 quartic

@@ -43,6 +43,3 @@ Thumbs.db
 /Makefile
 /cmake_install.cmake
 /lmp
-
-#python example
-/example/python/gjf_python

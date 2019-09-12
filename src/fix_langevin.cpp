@@ -223,7 +223,7 @@ void FixLangevin::init()
 {
   if (gjfflag){
     if (t_period*2 == update->dt)
-      error->all(FLERR,"Fix langevin gjf cannot have t_period equal to dt/2 at the start");
+      error->all(FLERR,"Fix langevin gjf cannot have t_period equal to dt/2");
 
     // warn if any integrate fix comes after this one
     int before = 1;
@@ -440,124 +440,124 @@ void FixLangevin::post_force(int /*vflag*/)
             if (zeroflag) post_force_templated<1,1,1,1,1,1>();
             else          post_force_templated<1,1,1,1,1,0>();
           else
-          if (zeroflag) post_force_templated<1,1,1,1,0,1>();
-          else          post_force_templated<1,1,1,1,0,0>();
+            if (zeroflag) post_force_templated<1,1,1,1,0,1>();
+            else          post_force_templated<1,1,1,1,0,0>();
         else
-        if (rmass)
-          if (zeroflag) post_force_templated<1,1,1,0,1,1>();
-          else          post_force_templated<1,1,1,0,1,0>();
+          if (rmass)
+            if (zeroflag) post_force_templated<1,1,1,0,1,1>();
+            else          post_force_templated<1,1,1,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,1,1,0,0,1>();
+            else          post_force_templated<1,1,1,0,0,0>();
+      else
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<1,1,0,1,1,1>();
+            else          post_force_templated<1,1,0,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,1,0,1,0,1>();
+            else          post_force_templated<1,1,0,1,0,0>();
         else
-        if (zeroflag) post_force_templated<1,1,1,0,0,1>();
-        else          post_force_templated<1,1,1,0,0,0>();
-      else
-      if (tbiasflag == BIAS)
-        if (rmass)
-          if (zeroflag) post_force_templated<1,1,0,1,1,1>();
-          else          post_force_templated<1,1,0,1,1,0>();
+          if (rmass)
+            if (zeroflag) post_force_templated<1,1,0,0,1,1>();
+            else          post_force_templated<1,1,0,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,1,0,0,0,1>();
+            else          post_force_templated<1,1,0,0,0,0>();
+    else
+      if (tallyflag)
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<1,0,1,1,1,1>();
+            else          post_force_templated<1,0,1,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,0,1,1,0,1>();
+            else          post_force_templated<1,0,1,1,0,0>();
         else
-        if (zeroflag) post_force_templated<1,1,0,1,0,1>();
-        else          post_force_templated<1,1,0,1,0,0>();
+          if (rmass)
+            if (zeroflag) post_force_templated<1,0,1,0,1,1>();
+            else          post_force_templated<1,0,1,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,0,1,0,0,1>();
+            else          post_force_templated<1,0,1,0,0,0>();
       else
-      if (rmass)
-        if (zeroflag) post_force_templated<1,1,0,0,1,1>();
-        else          post_force_templated<1,1,0,0,1,0>();
-      else
-      if (zeroflag) post_force_templated<1,1,0,0,0,1>();
-      else          post_force_templated<1,1,0,0,0,0>();
-    else
-    if (tallyflag || fsflag)
-      if (tbiasflag == BIAS)
-        if (rmass)
-          if (zeroflag) post_force_templated<1,0,1,1,1,1>();
-          else          post_force_templated<1,0,1,1,1,0>();
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<1,0,0,1,1,1>();
+            else          post_force_templated<1,0,0,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,0,0,1,0,1>();
+            else          post_force_templated<1,0,0,1,0,0>();
         else
-        if (zeroflag) post_force_templated<1,0,1,1,0,1>();
-        else          post_force_templated<1,0,1,1,0,0>();
-      else
-      if (rmass)
-        if (zeroflag) post_force_templated<1,0,1,0,1,1>();
-        else          post_force_templated<1,0,1,0,1,0>();
-      else
-      if (zeroflag) post_force_templated<1,0,1,0,0,1>();
-      else          post_force_templated<1,0,1,0,0,0>();
-    else
-    if (tbiasflag == BIAS)
-      if (rmass)
-        if (zeroflag) post_force_templated<1,0,0,1,1,1>();
-        else          post_force_templated<1,0,0,1,1,0>();
-      else
-      if (zeroflag) post_force_templated<1,0,0,1,0,1>();
-      else          post_force_templated<1,0,0,1,0,0>();
-    else
-    if (rmass)
-      if (zeroflag) post_force_templated<1,0,0,0,1,1>();
-      else          post_force_templated<1,0,0,0,1,0>();
-    else
-    if (zeroflag) post_force_templated<1,0,0,0,0,1>();
-    else          post_force_templated<1,0,0,0,0,0>();
+          if (rmass)
+            if (zeroflag) post_force_templated<1,0,0,0,1,1>();
+            else          post_force_templated<1,0,0,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<1,0,0,0,0,1>();
+            else          post_force_templated<1,0,0,0,0,0>();
   else
-  if (gjfflag)
-    if (tallyflag || fsflag)
-      if (tbiasflag == BIAS)
-        if (rmass)
-          if (zeroflag) post_force_templated<0,1,1,1,1,1>();
-          else          post_force_templated<0,1,1,1,1,0>();
+    if (gjfflag)
+      if (tallyflag)
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<0,1,1,1,1,1>();
+            else          post_force_templated<0,1,1,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,1,1,1,0,1>();
+            else          post_force_templated<0,1,1,1,0,0>();
         else
-        if (zeroflag) post_force_templated<0,1,1,1,0,1>();
-        else          post_force_templated<0,1,1,1,0,0>();
+          if (rmass)
+            if (zeroflag) post_force_templated<0,1,1,0,1,1>();
+            else          post_force_templated<0,1,1,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,1,1,0,0,1>();
+            else          post_force_templated<0,1,1,0,0,0>();
       else
-      if (rmass)
-        if (zeroflag) post_force_templated<0,1,1,0,1,1>();
-        else          post_force_templated<0,1,1,0,1,0>();
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<0,1,0,1,1,1>();
+            else          post_force_templated<0,1,0,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,1,0,1,0,1>();
+            else          post_force_templated<0,1,0,1,0,0>();
+        else
+          if (rmass)
+            if (zeroflag) post_force_templated<0,1,0,0,1,1>();
+            else          post_force_templated<0,1,0,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,1,0,0,0,1>();
+            else          post_force_templated<0,1,0,0,0,0>();
+    else
+      if (tallyflag)
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<0,0,1,1,1,1>();
+            else          post_force_templated<0,0,1,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,0,1,1,0,1>();
+            else          post_force_templated<0,0,1,1,0,0>();
+        else
+          if (rmass)
+            if (zeroflag) post_force_templated<0,0,1,0,1,1>();
+            else          post_force_templated<0,0,1,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,0,1,0,0,1>();
+            else          post_force_templated<0,0,1,0,0,0>();
       else
-      if (zeroflag) post_force_templated<0,1,1,0,0,1>();
-      else          post_force_templated<0,1,1,0,0,0>();
-    else
-    if (tbiasflag == BIAS)
-      if (rmass)
-        if (zeroflag) post_force_templated<0,1,0,1,1,1>();
-        else          post_force_templated<0,1,0,1,1,0>();
-      else
-      if (zeroflag) post_force_templated<0,1,0,1,0,1>();
-      else          post_force_templated<0,1,0,1,0,0>();
-    else
-    if (rmass)
-      if (zeroflag) post_force_templated<0,1,0,0,1,1>();
-      else          post_force_templated<0,1,0,0,1,0>();
-    else
-    if (zeroflag) post_force_templated<0,1,0,0,0,1>();
-    else          post_force_templated<0,1,0,0,0,0>();
-  else
-  if (tallyflag || fsflag)
-    if (tbiasflag == BIAS)
-      if (rmass)
-        if (zeroflag) post_force_templated<0,0,1,1,1,1>();
-        else          post_force_templated<0,0,1,1,1,0>();
-      else
-      if (zeroflag) post_force_templated<0,0,1,1,0,1>();
-      else          post_force_templated<0,0,1,1,0,0>();
-    else
-    if (rmass)
-      if (zeroflag) post_force_templated<0,0,1,0,1,1>();
-      else          post_force_templated<0,0,1,0,1,0>();
-    else
-    if (zeroflag) post_force_templated<0,0,1,0,0,1>();
-    else          post_force_templated<0,0,1,0,0,0>();
-  else
-  if (tbiasflag == BIAS)
-    if (rmass)
-      if (zeroflag) post_force_templated<0,0,0,1,1,1>();
-      else          post_force_templated<0,0,0,1,1,0>();
-    else
-    if (zeroflag) post_force_templated<0,0,0,1,0,1>();
-    else          post_force_templated<0,0,0,1,0,0>();
-  else
-  if (rmass)
-    if (zeroflag) post_force_templated<0,0,0,0,1,1>();
-    else          post_force_templated<0,0,0,0,1,0>();
-  else
-  if (zeroflag) post_force_templated<0,0,0,0,0,1>();
-  else          post_force_templated<0,0,0,0,0,0>();
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<0,0,0,1,1,1>();
+            else          post_force_templated<0,0,0,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,0,0,1,0,1>();
+            else          post_force_templated<0,0,0,1,0,0>();
+        else
+          if (rmass)
+            if (zeroflag) post_force_templated<0,0,0,0,1,1>();
+            else          post_force_templated<0,0,0,0,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,0,0,0,0,1>();
+            else          post_force_templated<0,0,0,0,0,0>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -572,7 +572,7 @@ void FixLangevin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 ------------------------------------------------------------------------- */
 
 template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
-    int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
+           int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
 void FixLangevin::post_force_templated()
 {
   double gamma1,gamma2;
@@ -802,9 +802,9 @@ void FixLangevin::compute_target()
       input->variable->compute_atom(tvar,igroup,tforce,1,0);
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
-          if (tforce[i] < 0.0)
-            error->one(FLERR,
-                       "Fix langevin variable returned negative temperature");
+            if (tforce[i] < 0.0)
+              error->one(FLERR,
+                         "Fix langevin variable returned negative temperature");
     }
     modify->addstep_compute(update->ntimestep + 1);
   }
@@ -1001,8 +1001,8 @@ void FixLangevin::reset_dt()
   if (atom->mass) {
     for (int i = 1; i <= atom->ntypes; i++) {
       gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
-                    force->ftm2v;
+        sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+        force->ftm2v;
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
     }
   }

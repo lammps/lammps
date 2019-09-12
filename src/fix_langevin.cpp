@@ -2,10 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -49,9 +51,9 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg),
-    gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
-    flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL), lv(NULL)
+  Fix(lmp, narg, arg),
+  gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
+  flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL), lv(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -169,7 +171,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     grow_arrays(atom->nmax);
     atom->add_callback(0);
 
-    // initialize franprev to zero
+  // initialize franprev to zero
 
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) {
@@ -737,7 +739,6 @@ void FixLangevin::post_force_templated()
         flangevin[i][2] = fdrag[2] + fran[2];
 
       }
-
     }
   }
 

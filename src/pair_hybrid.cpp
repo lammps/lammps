@@ -362,13 +362,21 @@ void PairHybrid::flags()
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
   }
+  init_svector();
+}
 
+/* ----------------------------------------------------------------------
+   initialize Pair::svector array
+------------------------------------------------------------------------- */
+
+void PairHybrid::init_svector()
+{
   // single_extra = list all sub-style single_extra
   // allocate svector
 
   single_extra = 0;
-  for (m = 0; m < nstyles; m++)
-    single_extra += styles[m]->single_extra;
+  for (int m = 0; m < nstyles; m++)
+    single_extra = MAX(single_extra,styles[m]->single_extra);
 
   if (single_extra) {
     delete [] svector;
@@ -759,7 +767,6 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   fforce = 0.0;
   double esum = 0.0;
   int n = 0;
-  if (single_extra) memset(svector,0,single_extra*sizeof(double));
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
@@ -774,16 +781,27 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       esum += styles[map[itype][jtype][m]]->
         single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
       fforce += fone;
-
-      // copy substyle extra values into hybrid's svector
-
-      if (single_extra && styles[map[itype][jtype][m]]->single_extra)
-        for (int l = 0; l < styles[map[itype][jtype][m]]->single_extra; l++)
-          svector[n++] = styles[map[itype][jtype][m]]->svector[l];
     }
   }
 
+  if (single_extra) copy_svector(itype,jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   copy Pair::svector data
+------------------------------------------------------------------------- */
+
+void PairHybrid::copy_svector(int itype, int jtype)
+{
+  memset(svector,0,single_extra*sizeof(double));
+
+  // there is only one style in pair style hybrid for a pair of atom types
+  Pair *this_style = styles[map[itype][jtype][0]];
+
+  for (int l = 0; this_style->single_extra; ++l) {
+    svector[l] = this_style->svector[l];
+  }
 }
 
 /* ----------------------------------------------------------------------

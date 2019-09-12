@@ -85,7 +85,7 @@ NPairCAC::~NPairCAC()
 
 void NPairCAC::build(NeighList *list)
 {
-	int i, j, k, n, itype, jtype, ibin, iatom, moltemplate;
+	int i, j, k, n, itype, jtype, ibin, iatom;
 	double delx, dely, delz, rsq;
 	int *neighptr;
 
@@ -98,18 +98,12 @@ void NPairCAC::build(NeighList *list)
 	double interior_scale[3];
 	if (includegroup) nlocal = atom->nfirst;
   double ****nodal_positions = atom->nodal_positions;
-	int *molindex = atom->molindex;
-	int *molatom = atom->molatom;
-	if (molecular == 2) moltemplate = 1;
-	else moltemplate = 0;
+
 	cutneighmax = neighbor->cutneighmax;
-	
-	
 	
 	int *ilist = list->ilist;
 	int *numneigh = list->numneigh;
 	int **firstneigh = list->firstneigh;
-
 
   int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
@@ -201,7 +195,6 @@ void NPairCAC::build(NeighList *list)
 	current_element_scale[0] = element_scale[i][0];
 	current_element_scale[1] = element_scale[i][1];
 	current_element_scale[2] = element_scale[i][2];
-  
 	//find the current quadrature points of this element
 	if(current_element_type!=0){
 		quadrature_count=compute_quad_points(i);
@@ -234,9 +227,7 @@ for (int iquad = 0; iquad < quadrature_count; iquad++) {
 				if(scan_flags[j]) continue;
 			}
 				
-			
 			jtype = type[j];
-			
 			
 			if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
       
@@ -479,18 +470,19 @@ int NPairCAC::compute_quad_points(int element_index){
 	double ***current_nodal_positions = nodal_positions[element_index];
 	int current_poly_count = poly_count[element_index];
   int quadrature_counter=0;
+	int signs, signt, signw;
 
 	//compute quadrature point positions to test for neighboring
 	int sign[2];
 	sign[0] = -1;
 	sign[1] = 1;
 	
-  	    surface_count[0]=surface_counts[element_index][0];
-		surface_count[1]=surface_counts[element_index][1];
-		surface_count[2]=surface_counts[element_index][2];
-	    interior_scale[0]= interior_scales[element_index][0];
-		interior_scale[1]= interior_scales[element_index][1];
-		interior_scale[2]= interior_scales[element_index][2];
+  surface_count[0]=surface_counts[element_index][0];
+  surface_count[1]=surface_counts[element_index][1];
+  surface_count[2]=surface_counts[element_index][2];
+  interior_scale[0]= interior_scales[element_index][0];
+  interior_scale[1]= interior_scales[element_index][1];
+  interior_scale[2]= interior_scales[element_index][2];
 	for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
 		
 		//interior contributions
@@ -502,9 +494,28 @@ int NPairCAC::compute_quad_points(int element_index){
 					s = interior_scale[0] * quadrature_abcissae[i];
 					t = interior_scale[1] * quadrature_abcissae[j];
 					w = interior_scale[2] * quadrature_abcissae[k];
-					s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
-					t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
-					w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+					signs=signt=signw=1;
+					if(s<0) signs=-1;
+					if(t<0) signt=-1;
+					if(w<0) signw=-1;
+					s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+					t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+					w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
+
+          if (quadrature_abcissae[i] < 0)
+						s = s - 0.5*unit_cell_mapped[0];
+					else
+						s = s + 0.5*unit_cell_mapped[0];
+
+					if (quadrature_abcissae[j] < 0)
+						t = t - 0.5*unit_cell_mapped[1];
+					else
+						t = t + 0.5*unit_cell_mapped[1];
+
+					if (quadrature_abcissae[k] < 0)
+						w = w - 0.5*unit_cell_mapped[2];
+					else
+						w = w + 0.5*unit_cell_mapped[2];
 
 
 					quad_position[0] = 0;
@@ -518,7 +529,7 @@ int NPairCAC::compute_quad_points(int element_index){
 					}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-         		 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
                  quadrature_counter+=1;
 
@@ -536,8 +547,11 @@ int NPairCAC::compute_quad_points(int element_index){
 						s = s - 0.5*unit_cell_mapped[0] * sign[sc];
 						t = interior_scale[1] * quadrature_abcissae[j];
 						w = interior_scale[2] * quadrature_abcissae[k];
-						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
-						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+						signs=signt=signw=1;
+					  if(t<0) signt=-1;
+					  if(w<0) signw=-1;
+						t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+						w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 						if (quadrature_abcissae[k] < 0)
 							w = w - 0.5*unit_cell_mapped[2];
@@ -560,7 +574,7 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-                 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
          quadrature_counter+=1;
 					}
@@ -575,15 +589,15 @@ int NPairCAC::compute_quad_points(int element_index){
 		for (int i = 0; i < surface_count[1]; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
-					
-
-						s = interior_scale[0] * quadrature_abcissae[j];
-						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+					  s = interior_scale[0] * quadrature_abcissae[j];
 						t = sign[sc] - i*unit_cell_mapped[1] * sign[sc];
-
 						t = t - 0.5*unit_cell_mapped[1] * sign[sc];
 						w = interior_scale[2] * quadrature_abcissae[k];
-						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+            signs=signt=signw=1;
+					  if(s<0) signs=-1;
+					  if(w<0) signw=-1;
+						s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+						w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 						if (quadrature_abcissae[j] < 0)
 							s = s - 0.5*unit_cell_mapped[0];
@@ -606,7 +620,7 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-                 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
          quadrature_counter+=1;
 
@@ -622,14 +636,14 @@ int NPairCAC::compute_quad_points(int element_index){
 		for (int i = 0; i < surface_count[2]; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
-					
-
-						s = interior_scale[0] * quadrature_abcissae[j];
-						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+					  s = interior_scale[0] * quadrature_abcissae[j];
 						t = interior_scale[1] * quadrature_abcissae[k];
-						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+						signs=signt=signw=1;
+					  if(s<0) signs=-1;
+					  if(t<0) signt=-1;
+						s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+						t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 						w = sign[sc] - i*unit_cell_mapped[2] * sign[sc];
-
 						w = w - 0.5*unit_cell_mapped[2] * sign[sc];
 
 						if (quadrature_abcissae[j] < 0)
@@ -654,7 +668,7 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-                 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
          quadrature_counter+=1;
 
@@ -696,7 +710,9 @@ int NPairCAC::compute_quad_points(int element_index){
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -706,7 +722,9 @@ int NPairCAC::compute_quad_points(int element_index){
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -716,7 +734,9 @@ int NPairCAC::compute_quad_points(int element_index){
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -726,7 +746,9 @@ int NPairCAC::compute_quad_points(int element_index){
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -734,7 +756,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 4) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = -1 + (i + 0.5)*unit_cell_mapped[1];
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -745,7 +769,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 5) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = 1 - (i + 0.5)*unit_cell_mapped[1];
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -755,7 +781,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 6) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = -1 + (i + 0.5)*unit_cell_mapped[1];
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -765,7 +793,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 7) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = 1 - (i + 0.5)*unit_cell_mapped[1];
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -776,7 +806,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						else if (sc == 8) {
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -787,7 +819,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						else if (sc == 9) {
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -797,7 +831,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						else if (sc == 10) {
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -807,7 +843,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						else if (sc == 11) {
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -826,7 +864,7 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-                 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
          quadrature_counter+=1;
 					}
@@ -895,7 +933,7 @@ int NPairCAC::compute_quad_points(int element_index){
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-                 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
          quadrature_counter+=1;
 

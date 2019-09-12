@@ -442,16 +442,10 @@ unit_cell[2] = w;
 		    virial_density[4] +=delx*delz*fpair;
 		    virial_density[5] +=dely*delz*fpair;
 		    }
-        if (quad_eflag) {
-				scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
-			  scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
-			  scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
-			  listindex = inner_quad_lists_index[iii][neigh_quad_counter][l][0];
-			  poly_grad_scan = inner_quad_lists_index[iii][neigh_quad_counter][l][1];
-
+        if (quad_eflag) 
 					quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
 						offset[origin_type][scan_type]/2;
-				}
+				
 				//end of energy portion
 			}
 //end of scanning loop

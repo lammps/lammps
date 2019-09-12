@@ -499,7 +499,6 @@ void NBinCAC::CAC_setup_bins(int style)
 
   mbinzlo=mbinylo=mbinxlo=-1;
 	
- 
   // extend bins by 1 to insure stencil extent is included
   // for 2d, only 1 bin in z
 
@@ -1169,6 +1168,7 @@ int NBinCAC::compute_quad_points(int element_index){
 	double ***current_nodal_positions = nodal_positions[element_index];
 	int current_poly_count = poly_count[element_index];
     int quadrature_counter=0;
+	int signs, signt, signw;
 
 
 	//compute quadrature point positions to test for neighboring
@@ -1193,10 +1193,28 @@ int NBinCAC::compute_quad_points(int element_index){
 					s = interior_scale[0] * quadrature_abcissae[i];
 					t = interior_scale[1] * quadrature_abcissae[j];
 					w = interior_scale[2] * quadrature_abcissae[k];
-					s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
-					t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
-					w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+					signs=signt=signw=1;
+					if(s<0) signs=-1;
+					if(t<0) signt=-1;
+					if(w<0) signw=-1;
+					s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+					t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+					w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
+          if (quadrature_abcissae[i] < 0)
+						s = s - 0.5*unit_cell_mapped[0];
+					else
+						s = s + 0.5*unit_cell_mapped[0];
+
+					if (quadrature_abcissae[j] < 0)
+						t = t - 0.5*unit_cell_mapped[1];
+					else
+						t = t + 0.5*unit_cell_mapped[1];
+
+					if (quadrature_abcissae[k] < 0)
+						w = w - 0.5*unit_cell_mapped[2];
+					else
+						w = w + 0.5*unit_cell_mapped[2];
 
 					quad_position[0] = 0;
 					quad_position[1] = 0;
@@ -1222,14 +1240,15 @@ int NBinCAC::compute_quad_points(int element_index){
 		for (int i = 0; i < surface_count[0]; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
-					
-						s = sign[sc] - i*unit_cell_mapped[0] * sign[sc];
-
+					  s = sign[sc] - i*unit_cell_mapped[0] * sign[sc];
 						s = s - 0.5*unit_cell_mapped[0] * sign[sc];
 						t = interior_scale[1] * quadrature_abcissae[j];
 						w = interior_scale[2] * quadrature_abcissae[k];
-						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
-						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+						signs=signt=signw=1;
+					  if(t<0) signt=-1;
+					  if(w<0) signw=-1;
+						t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+						w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 						if (quadrature_abcissae[k] < 0)
 							w = w - 0.5*unit_cell_mapped[2];
@@ -1268,15 +1287,15 @@ int NBinCAC::compute_quad_points(int element_index){
 		for (int i = 0; i < surface_count[1]; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
-					
-
-						s = interior_scale[0] * quadrature_abcissae[j];
-						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+					  s = interior_scale[0] * quadrature_abcissae[j];
 						t = sign[sc] - i*unit_cell_mapped[1] * sign[sc];
-
 						t = t - 0.5*unit_cell_mapped[1] * sign[sc];
 						w = interior_scale[2] * quadrature_abcissae[k];
-						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+            signs=signt=signw=1;
+					  if(s<0) signs=-1;
+					  if(w<0) signw=-1;
+						s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+						w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 						if (quadrature_abcissae[j] < 0)
 							s = s - 0.5*unit_cell_mapped[0];
@@ -1314,14 +1333,14 @@ int NBinCAC::compute_quad_points(int element_index){
 		for (int i = 0; i < surface_count[2]; i++) {
 			for (int j = 0; j < quadrature_node_count; j++) {
 				for (int k = 0; k < quadrature_node_count; k++) {
-					
-
-						s = interior_scale[0] * quadrature_abcissae[j];
-						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+					  s = interior_scale[0] * quadrature_abcissae[j];
 						t = interior_scale[1] * quadrature_abcissae[k];
-						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+						signs=signt=signw=1;
+					  if(s<0) signs=-1;
+					  if(t<0) signt=-1;
+						s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+						t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 						w = sign[sc] - i*unit_cell_mapped[2] * sign[sc];
-
 						w = w - 0.5*unit_cell_mapped[2] * sign[sc];
 
 						if (quadrature_abcissae[j] < 0)
@@ -1389,7 +1408,9 @@ int NBinCAC::compute_quad_points(int element_index){
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -1399,7 +1420,9 @@ int NBinCAC::compute_quad_points(int element_index){
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -1409,7 +1432,9 @@ int NBinCAC::compute_quad_points(int element_index){
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -1419,7 +1444,9 @@ int NBinCAC::compute_quad_points(int element_index){
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(w<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -1427,7 +1454,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 4) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = -1 + (i + 0.5)*unit_cell_mapped[1];
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -1438,7 +1467,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 5) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = 1 - (i + 0.5)*unit_cell_mapped[1];
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -1448,7 +1479,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 6) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = -1 + (i + 0.5)*unit_cell_mapped[1];
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -1458,7 +1491,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						}
 						else if (sc == 7) {
 							s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(s<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							t = 1 - (i + 0.5)*unit_cell_mapped[1];
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -1469,7 +1504,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						else if (sc == 8) {
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -1480,7 +1517,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						else if (sc == 9) {
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -1490,7 +1529,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						else if (sc == 10) {
 							s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -1500,7 +1541,9 @@ int NBinCAC::compute_quad_points(int element_index){
 						else if (sc == 11) {
 							s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(t<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -1521,7 +1564,7 @@ int NBinCAC::compute_quad_points(int element_index){
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
-                 current_element_quad_points[quadrature_counter][1]=quad_position[1];
+         current_element_quad_points[quadrature_counter][1]=quad_position[1];
 				 current_element_quad_points[quadrature_counter][2]=quad_position[2];
          quadrature_counter+=1;
 					}

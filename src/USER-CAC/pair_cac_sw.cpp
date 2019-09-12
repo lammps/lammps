@@ -578,7 +578,6 @@ double r2inv;
 double r6inv;
 double shape_func;
 double shape_func2;
-double unit_cell_mapped[3];
 double scanning_unit_cell[3];
 
 double forcelj,factor_lj,fpair;
@@ -592,13 +591,6 @@ int current_type = poly_counter;
 
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;	
-
-//equivalent isoparametric cutoff range for a cube of rcut
-
-unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-
 
 unit_cell[0] = s;
 unit_cell[1] = t;
@@ -792,7 +784,7 @@ int distanceflag=0;
 		delr1[2] = current_position[2] - inner_scan_position[2];
 		distancesq = delx*delx + dely*dely + delz*delz;
 
-		ijparam = elem2param[origin_type][scan_type][scan_type];
+		ijparam = elem2param[scan_type][origin_type][origin_type];
 
 		rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
 		if (rsq1 >= params[ijparam].cutsq) continue;
@@ -807,8 +799,8 @@ int distanceflag=0;
 			scan_position[1] = inner_neighbor_coords[k][1];
 			scan_position[2] = inner_neighbor_coords[k][2];
 
-			ikparam = elem2param[origin_type][scan_type2][scan_type2];
-			ijkparam = elem2param[origin_type][scan_type][scan_type2];
+			ikparam = elem2param[scan_type][scan_type2][scan_type2];
+			ijkparam = elem2param[scan_type][origin_type][scan_type2];
 
 			delr2[0] = scan_position[0] - inner_scan_position[0];
 			delr2[1] = scan_position[1] - inner_scan_position[1];
@@ -834,15 +826,15 @@ int distanceflag=0;
 		  }
 		}
 		for (int k = 0; k < neigh_max_outer; k++) {
-			//add contributions that come from outer neighbor band (farther particle triplets connected to i)
+			//add contributions that come from outer neighbor band (further particle triplets containing i)
 
 			scan_type2 = outer_neighbor_types[k];
 			scan_position[0] = outer_neighbor_coords[k][0];
 			scan_position[1] = outer_neighbor_coords[k][1];
 			scan_position[2] = outer_neighbor_coords[k][2];
 
-			ikparam = elem2param[origin_type][scan_type2][scan_type2];
-			ijkparam = elem2param[origin_type][scan_type][scan_type2];
+			ikparam = elem2param[scan_type][scan_type2][scan_type2];
+			ijkparam = elem2param[scan_type][origin_type][scan_type2];
 
 			delr2[0] = scan_position[0] - inner_scan_position[0];
 			delr2[1] = scan_position[1] - inner_scan_position[1];

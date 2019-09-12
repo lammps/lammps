@@ -576,8 +576,8 @@ double PairCAC::shape_product(int ii, int jj) {
 void PairCAC::compute_quad_neighbors(int iii){
 	double unit_cell_mapped[3];
 	//int nodes_per_element;
-	double coefficients;	
-	
+	double coefficients;
+	int signs, signt, signw;
 	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
@@ -608,9 +608,13 @@ void PairCAC::compute_quad_neighbors(int iii){
 					sq=s = interior_scale[0] * quadrature_abcissae[i];
 					tq=t = interior_scale[1] * quadrature_abcissae[j];
 					wq=w = interior_scale[2] * quadrature_abcissae[k];
-					s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
-					t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
-					w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+					signs=signt=signw=1;
+					if(sq<0) signs=-1;
+					if(tq<0) signt=-1;
+					if(wq<0) signw=-1;
+					s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+					t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+					w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 					if (quadrature_abcissae[i] < 0)
 						s = s - 0.5*unit_cell_mapped[0];
@@ -663,8 +667,11 @@ void PairCAC::compute_quad_neighbors(int iii){
 						sq = s = s - 0.5*unit_cell_mapped[0] * sign[sc];
 						tq = t = interior_scale[1] * quadrature_abcissae[j];
 						wq = w = interior_scale[2] * quadrature_abcissae[k];
-						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
-						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+						signs=signt=signw=1;
+					    if(tq<0) signt=-1;
+					    if(wq<0) signw=-1;
+						t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+						w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 						if (quadrature_abcissae[k] < 0)
 							w = w - 0.5*unit_cell_mapped[2];
@@ -702,12 +709,14 @@ void PairCAC::compute_quad_neighbors(int iii){
 				for (int j = 0; j < quadrature_node_count; j++) {
 					for (int k = 0; k < quadrature_node_count; k++) {
 						sq = s = interior_scale[0] * quadrature_abcissae[j];
-						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
 						t = sign[sc] - i*unit_cell_mapped[1] * sign[sc];
-
 						tq=t = t - 0.5*unit_cell_mapped[1] * sign[sc];
 						wq = w = interior_scale[2] * quadrature_abcissae[k];
-						w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+            signs=signt=signw=1;
+					  if(sq<0) signs=-1;
+					  if(wq<0) signw=-1;
+						s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+						w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 
 						if (quadrature_abcissae[j] < 0)
 							s = s - 0.5*unit_cell_mapped[0];
@@ -737,18 +746,20 @@ void PairCAC::compute_quad_neighbors(int iii){
 				}
 			}
 		}
-
+        //w axis contributions
 		for (int sc = 0; sc < 2; sc++) {
 			for (int i = 0; i < isurface_counts[2]; i++) {
 				for (int j = 0; j < quadrature_node_count; j++) {
 					for (int k = 0; k < quadrature_node_count; k++) {
 
 						sq = s = interior_scale[0] * quadrature_abcissae[j];
-						s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
 						tq = t = interior_scale[1] * quadrature_abcissae[k];
-						t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+						signs=signt=signw=1;
+					  if(sq<0) signs=-1;
+					  if(tq<0) signt=-1;
+						s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+						t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 						w = sign[sc] - i*unit_cell_mapped[2] * sign[sc];
-
 						wq = w = w - 0.5*unit_cell_mapped[2] * sign[sc];
 
 						if (quadrature_abcissae[j] < 0)
@@ -784,26 +795,26 @@ void PairCAC::compute_quad_neighbors(int iii){
 		int surface_countsy;
 		double unit_mappedx;
 		double unit_mappedy;
-        double interior_scalez;
+    double interior_scalez;
 		//compute edge contributions
 
 		for (int sc = 0; sc < 12; sc++) {
 			if (sc == 0 || sc == 1 || sc == 2 || sc == 3) {
-                interior_scalez = interior_scale[2];
+        interior_scalez = interior_scale[2];
 				surface_countsx = isurface_counts[0];
 				surface_countsy = isurface_counts[1];
 				unit_mappedx = unit_cell_mapped[0];
 				unit_mappedy = unit_cell_mapped[1];
 			}
 			else if (sc == 4 || sc == 5 || sc == 6 || sc == 7) {
-                interior_scalez = interior_scale[0];
+        interior_scalez = interior_scale[0];
 				surface_countsx = isurface_counts[1];
 				surface_countsy = isurface_counts[2];
 				unit_mappedx = unit_cell_mapped[1];
 				unit_mappedy = unit_cell_mapped[2];
 			}
 			else if (sc == 8 || sc == 9 || sc == 10 || sc == 11) {
-                interior_scalez = interior_scale[1];
+        interior_scalez = interior_scale[1];
 				surface_countsx = isurface_counts[0];
 				surface_countsy = isurface_counts[2];
 				unit_mappedx = unit_cell_mapped[0];
@@ -818,7 +829,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 							sq = s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							tq = t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							wq = w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(wq<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -828,7 +841,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 							sq = s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							tq = t = -1 + (j + 0.5)*unit_cell_mapped[1];
 							wq = w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(wq<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -838,7 +853,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 							sq = s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							tq = t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							wq = w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(wq<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -848,7 +865,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 							sq = s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							tq = t = 1 - (j + 0.5)*unit_cell_mapped[1];
 							wq = w = interior_scale[2] * quadrature_abcissae[k];
-							w = unit_cell_mapped[2] * (int(w / unit_cell_mapped[2]));
+							signs=signt=signw=1;
+					        if(wq<0) signw=-1;
+							w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
 							if (quadrature_abcissae[k] < 0)
 								w = w - 0.5*unit_cell_mapped[2];
 							else
@@ -856,7 +875,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						}
 						else if (sc == 4) {
 							sq = s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(sq<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							tq = t = -1 + (i + 0.5)*unit_cell_mapped[1];
 							wq = w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -867,7 +888,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						}
 						else if (sc == 5) {
 							sq = s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(sq<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							tq = t = 1 - (i + 0.5)*unit_cell_mapped[1];
 							wq = w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -877,7 +900,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						}
 						else if (sc == 6) {
 							sq = s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(sq<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							tq = t = -1 + (i + 0.5)*unit_cell_mapped[1];
 							wq = w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -887,7 +912,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						}
 						else if (sc == 7) {
 							sq = s = interior_scale[0] * quadrature_abcissae[k];
-							s = unit_cell_mapped[0] * (int(s / unit_cell_mapped[0]));
+							signs=signt=signw=1;
+					        if(sq<0) signs=-1;
+							s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
 							tq = t = 1 - (i + 0.5)*unit_cell_mapped[1];
 							wq = w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
@@ -898,7 +925,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						else if (sc == 8) {
 							sq = s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							tq = t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(tq<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							wq = w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -909,7 +938,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						else if (sc == 9) {
 							sq = s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							tq = t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(tq<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							wq = w = -1 + (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -919,7 +950,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						else if (sc == 10) {
 							sq = s = -1 + (i + 0.5)*unit_cell_mapped[0];
 							tq = t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(tq<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							wq = w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -929,7 +962,9 @@ void PairCAC::compute_quad_neighbors(int iii){
 						else if (sc == 11) {
 							sq = s = 1 - (i + 0.5)*unit_cell_mapped[0];
 							tq = t = interior_scale[1] * quadrature_abcissae[k];
-							t = unit_cell_mapped[1] * (int(t / unit_cell_mapped[1]));
+							signs=signt=signw=1;
+					        if(tq<0) signt=-1;
+							t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
 							wq = w = 1 - (j + 0.5)*unit_cell_mapped[2];
 							if (quadrature_abcissae[k] < 0)
 								t = t - 0.5*unit_cell_mapped[1];
@@ -1397,7 +1432,7 @@ void PairCAC::quad_list_build(int iii, double s, double t, double w) {
 //------------------------------------------------------------------------
 //this method is designed for 8 node parallelpiped elements; IT IS NOT GENERAL!!.
 void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_neigh_initial, int outer_neigh_initial){
-  int i,j,jj,jnum;
+  int i,j,jj,jnum,sign1,sign2;
   double delx,dely,delz;
   int *jlist,*numneigh,**firstneigh;
   double ****nodal_positions= atom->nodal_positions;
@@ -1719,13 +1754,15 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 				if (complete == 1) {
 
 			//compute position of minimum mapped point to obtain geometric values
-
+      sign1=sign2=1;
+			if(xm[0]<0) sign1=-1;
+			if(xm[1]<0) sign2=-1;
 			if (surf_select[0] == 1 && surf_select[1] == -1) {
-
-				xm[0] = (int)(xm[0] / unit_cell_mapped[1]);
-				xm[0] = xm[0] * unit_cell_mapped[1];
-				xm[1] = (int)(xm[1] / unit_cell_mapped[2]);
-				xm[1] = xm[1] * unit_cell_mapped[2];
+                
+				xm[0] = (int)((xm[0]+sign1) / unit_cell_mapped[1]);
+				xm[0] = xm[0] * unit_cell_mapped[1]-sign1;
+				xm[1] = (int)((xm[1]+sign2) / unit_cell_mapped[2]);
+				xm[1] = xm[1] * unit_cell_mapped[2]-sign2;
 
 
 				if (xm[0] < 0 && xm[0]>-1)
@@ -1753,10 +1790,10 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 			}
 			else if (surf_select[0] == 1 && surf_select[1] == 1) {
 
-				xm[0] = (int)(xm[0] / unit_cell_mapped[1]);
-				xm[0] = xm[0] * unit_cell_mapped[1];
-				xm[1] = (int)(xm[1] / unit_cell_mapped[2]);
-				xm[1] = xm[1] * unit_cell_mapped[2];
+				xm[0] = (int)((xm[0]+sign1) / unit_cell_mapped[1]);
+				xm[0] = xm[0] * unit_cell_mapped[1]-sign1;
+				xm[1] = (int)((xm[1]+sign2) / unit_cell_mapped[2]);
+				xm[1] = xm[1] * unit_cell_mapped[2]-sign2;
 
 				if (xm[0] < 0 && xm[0]>-1)
 					xm[0] = xm[0] - 0.5*unit_cell_mapped[1];
@@ -1783,10 +1820,10 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 			}
 			else if (surf_select[0] == 2 && surf_select[1] == -1) {
 
-				xm[0] = (int)(xm[0] / unit_cell_mapped[0]);
-				xm[0] = xm[0] * unit_cell_mapped[0];
-				xm[1] = (int)(xm[1] / unit_cell_mapped[2]);
-				xm[1] = xm[1] * unit_cell_mapped[2];
+				xm[0] = (int)((xm[0]+sign1) / unit_cell_mapped[0]);
+				xm[0] = xm[0] * unit_cell_mapped[0]-sign1;
+				xm[1] = (int)((xm[1]+sign2)/ unit_cell_mapped[2]);
+				xm[1] = xm[1] * unit_cell_mapped[2]-sign2;
 
 				if (xm[0] < 0 && xm[0]>-1)
 					xm[0] = xm[0] - 0.5*unit_cell_mapped[0];
@@ -1812,10 +1849,10 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 			}
 			else if (surf_select[0] == 2 && surf_select[1] == 1) {
 
-				xm[0] = (int)(xm[0] / unit_cell_mapped[0]);
-				xm[0] = xm[0] * unit_cell_mapped[0];
-				xm[1] = (int)(xm[1] / unit_cell_mapped[2]);
-				xm[1] = xm[1] * unit_cell_mapped[2];
+				xm[0] = (int)((xm[0]+sign1) / unit_cell_mapped[0]);
+				xm[0] = xm[0] * unit_cell_mapped[0]-sign1;
+				xm[1] = (int)((xm[1]+sign2) / unit_cell_mapped[2]);
+				xm[1] = xm[1] * unit_cell_mapped[2]-sign2;
 
 				if (xm[0] < 0 && xm[0]>-1)
 					xm[0] = xm[0] - 0.5*unit_cell_mapped[0];
@@ -1841,10 +1878,10 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 			}
 			else if (surf_select[0] == 3 && surf_select[1] == -1) {
 
-				xm[0] = (int)(xm[0] / unit_cell_mapped[0]);
-				xm[0] = xm[0] * unit_cell_mapped[0];
-				xm[1] = (int)(xm[1] / unit_cell_mapped[1]);
-				xm[1] = xm[1] * unit_cell_mapped[1];
+				xm[0] = (int)((xm[0]+sign1) / unit_cell_mapped[0]);
+				xm[0] = xm[0] * unit_cell_mapped[0]-sign1;
+				xm[1] = (int)((xm[1]+sign2) / unit_cell_mapped[1]);
+				xm[1] = xm[1] * unit_cell_mapped[1]-sign2;
 
 				if (xm[0] < 0 && xm[0]>-1)
 					xm[0] = xm[0] - 0.5*unit_cell_mapped[0];
@@ -1870,10 +1907,10 @@ void PairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_n
 				shape_args[2] = -1 + unit_cell_mapped[2] / 2;
 			}
 			else if (surf_select[0] == 3 && surf_select[1] == 1) {
-				xm[0] = (int)(xm[0] / unit_cell_mapped[0]);
-				xm[0] = xm[0] * unit_cell_mapped[0];
-				xm[1] = (int)(xm[1] / unit_cell_mapped[1]);
-				xm[1] = xm[1] * unit_cell_mapped[1];
+				xm[0] = (int)((xm[0]+sign1) / unit_cell_mapped[0]);
+				xm[0] = xm[0] * unit_cell_mapped[0]-sign1;
+				xm[1] = (int)((xm[1]+sign2) / unit_cell_mapped[1]);
+				xm[1] = xm[1] * unit_cell_mapped[1]-sign2;
 
 				if (xm[0] < 0 && xm[0]>-1)
 					xm[0] = xm[0] - 0.5*unit_cell_mapped[0];

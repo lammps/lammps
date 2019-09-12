@@ -14,7 +14,7 @@
 #ifndef LMP_LMPTYPE_KOKKOS_H
 #define LMP_LMPTYPE_KOKKOS_H
 
-#include "lmptype.h"
+#include "pointers.h"
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>

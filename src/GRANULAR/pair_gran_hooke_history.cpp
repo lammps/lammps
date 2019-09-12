@@ -15,14 +15,11 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_gran_hooke_history.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"

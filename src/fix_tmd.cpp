@@ -16,11 +16,10 @@
                          Christian Burisch (Bochum Univeristy, Germany)
 ------------------------------------------------------------------------- */
 
+#include "fix_tmd.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_tmd.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

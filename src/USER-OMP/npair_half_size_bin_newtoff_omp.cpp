@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "npair_half_size_bin_newtoff_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"

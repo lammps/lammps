@@ -15,13 +15,15 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_cut_thole_long_omp.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_lj_cut_thole_long_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "fix_drude.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -29,7 +31,7 @@
 #include "math_const.h"
 #include "error.h"
 #include "suffix.h"
-#include "domain.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

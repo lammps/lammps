@@ -23,22 +23,15 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <Eigen/Eigen>
 #include "compute_smd_triangle_vertices.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "pair.h"
 
-using namespace Eigen;
 using namespace std;
 using namespace LAMMPS_NS;
 

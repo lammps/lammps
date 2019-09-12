@@ -17,11 +17,10 @@
    References: Bureekaew and Schmid, Phys. Status Solidi B 250, 1128 (2013)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck6d_coul_gauss_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -29,12 +28,10 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
-#include "math_const.h"
 #include "error.h"
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define EWALD_F   1.12837917
 

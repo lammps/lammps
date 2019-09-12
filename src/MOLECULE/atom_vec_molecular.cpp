@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_molecular.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"

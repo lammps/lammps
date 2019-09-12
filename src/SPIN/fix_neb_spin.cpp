@@ -21,15 +21,13 @@
    Computer Physics Communications, 196, 335-347.
 ------------------------------------------------------------------------- */
 
+#include "fix_neb_spin.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_neb_spin.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
 #include "modify.h"
 #include "compute.h"
@@ -37,11 +35,9 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
 
 enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 

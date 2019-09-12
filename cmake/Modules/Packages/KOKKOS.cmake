@@ -23,6 +23,7 @@ if(PKG_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
@@ -40,6 +41,7 @@ if(PKG_KOKKOS)
   # register kokkos-only styles
   RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
   RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
+  RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.h)
 
   if(PKG_USER-DPD)
     get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)

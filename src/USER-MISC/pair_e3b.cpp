@@ -14,16 +14,14 @@
    contact: stevene.strong at gmail dot com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "pair_e3b.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <algorithm>
 
 #include "atom.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 #include "neigh_list.h"
 #include "force.h"
 #include "comm.h"

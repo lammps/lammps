@@ -17,10 +17,10 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_rigid_nh_small.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "compute.h"
@@ -32,7 +32,6 @@
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
 

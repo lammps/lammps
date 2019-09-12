@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_nsq_newtoff_ghost.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"

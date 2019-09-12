@@ -58,8 +58,6 @@ negotiate an appropriate license for such distribution."
 #include "group.h"
 #include "memory.h"
 
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 

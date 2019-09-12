@@ -15,20 +15,15 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_kokkos.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "gridcomm_kokkos.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "domain.h"
 #include "fft3d_kokkos.h"
 #include "remap_kokkos.h"

@@ -59,14 +59,15 @@ granular particles; all the other commands create smooth walls.
 "fix wall/lj126"_fix_wall.html - flat walls, with Lennard-Jones 12/6 potential
 "fix wall/colloid"_fix_wall.html - flat walls, with "pair_style colloid"_pair_colloid.html potential
 "fix wall/harmonic"_fix_wall.html - flat walls, with repulsive harmonic spring potential
+"fix wall/morse"_fix_wall.html - flat walls, with Morse potential
 "fix wall/region"_fix_wall_region.html - use region surface as wall
 "fix wall/gran"_fix_wall_gran.html - flat or curved walls with "pair_style granular"_pair_gran.html potential :ul
 
-The {lj93}, {lj126}, {colloid}, and {harmonic} styles all allow the
-flat walls to move with a constant velocity, or oscillate in time.
-The "fix wall/region"_fix_wall_region.html command offers the most
-generality, since the region surface is treated as a wall, and the
-geometry of the region can be a simple primitive volume (e.g. a
+The {lj93}, {lj126}, {colloid}, {harmonic}, and {morse} styles all
+allow the flat walls to move with a constant velocity, or oscillate in
+time.  The "fix wall/region"_fix_wall_region.html command offers the
+most generality, since the region surface is treated as a wall, and
+the geometry of the region can be a simple primitive volume (e.g. a
 sphere, or cube, or plane), or a complex volume made from the union
 and intersection of primitive volumes.  "Regions"_region.html can also
 specify a volume "interior" or "exterior" to the specified primitive

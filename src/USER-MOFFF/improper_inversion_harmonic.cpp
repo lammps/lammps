@@ -19,17 +19,13 @@
    [ abbreviated from and verified via DLPOLY2.0 ]
 ------------------------------------------------------------------------- */
 
+#include "improper_inversion_harmonic.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "improper_inversion_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

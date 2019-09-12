@@ -17,17 +17,14 @@
    Vasily Pisarev (Joint Institute for High Temperatures of RAS)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
+#include "fix_ttm_mod.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_ttm_mod.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "random_mars.h"

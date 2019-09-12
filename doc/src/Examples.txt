@@ -73,7 +73,7 @@ granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 hyper:    global and local hyperdynamics of diffusion on Pt surface
 indent:   spherical indenter into a 2d solid
-kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
+kim:      use of potentials from the "OpenKIM Repository"_openkim
 latte:    examples for using fix latte for DFTB via the LATTE library
 meam:     MEAM test for SiC and shear (same as shear examples)
 melt:     rapid melt of 3d LJ system
@@ -153,3 +153,5 @@ illustrate how to use the command(s) provided in that package.  Many
 of the sub-directories have their own README files which give further
 instructions.  See the "Packages_details"_Packages_details.html doc
 page for more info on specific USER packages.
+
+:link(openkim,https://openkim.org)

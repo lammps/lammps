@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_gpu.h"
 #include <cstring>
 #include <cstdlib>
-#include "fix_gpu.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"

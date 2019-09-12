@@ -17,11 +17,10 @@
    Please cite the related publication:
 ------------------------------------------------------------------------- */
 
+#include "min_spin.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "min_spin.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
@@ -29,8 +28,6 @@
 #include "output.h"
 #include "timer.h"
 #include "error.h"
-#include "modify.h"
-#include "math_special.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;

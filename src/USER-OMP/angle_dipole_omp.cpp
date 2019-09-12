@@ -16,20 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_dipole_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "neighbor.h"
-#include "domain.h"
-
-#include "math_const.h"
-
-#include <cmath>
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define SMALL 0.001
 

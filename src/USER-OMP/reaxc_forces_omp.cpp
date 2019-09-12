@@ -26,19 +26,19 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-#include "thr_data.h"
-
 #include "reaxc_forces_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
+#include "reaxc_defs.h"
+#include "pair_reaxc_omp.h"
+
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_bonds_omp.h"
 #include "reaxc_hydrogen_bonds_omp.h"
-#include "reaxc_io_tools.h"
 #include "reaxc_list.h"
-#include "reaxc_lookup.h"
 #include "reaxc_multi_body_omp.h"
 #include "reaxc_nonbonded_omp.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_torsion_angles_omp.h"
 #include "reaxc_valence_angles_omp.h"
 #include "reaxc_vector.h"

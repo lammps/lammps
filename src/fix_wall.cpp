@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall.h"
-#include "atom.h"
+#include <mpi.h>
+#include <cstring>
 #include "input.h"
 #include "variable.h"
 #include "domain.h"
@@ -25,6 +23,7 @@
 #include "respa.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -99,6 +98,19 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       } else {
         epsilon[nwall] = force->numeric(FLERR,arg[iarg+2]);
         estyle[nwall] = CONSTANT;
+      }
+
+      if (utils::strmatch(style,"^wall/morse")) {
+        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+          int n = strlen(&arg[iarg+3][2]) + 1;
+          astr[nwall] = new char[n];
+          strcpy(astr[nwall],&arg[iarg+3][2]);
+          astyle[nwall] = VARIABLE;
+        } else {
+          alpha[nwall] = force->numeric(FLERR,arg[iarg+3]);
+          astyle[nwall] = CONSTANT;
+        }
+        ++iarg;
       }
 
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {

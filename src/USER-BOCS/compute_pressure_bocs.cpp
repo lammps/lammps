@@ -14,10 +14,11 @@
    from The Pennsylvania State University
 ------------------------------------------------------------------------- */
 
+#include "compute_pressure_bocs.h"
 #include <mpi.h>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "compute_pressure_bocs.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -31,7 +31,6 @@
 #include "force.h"
 #include "input.h"
 #include "variable.h"
-#include "output.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

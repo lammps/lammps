@@ -177,7 +177,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "angle"_compute_angle.html - energy of each angle sub-style
 "angle/local"_compute_angle_local.html - theta and energy of each angle
 "angmom/chunk"_compute_angmom_chunk.html - angular momentum for each chunk
-"basal/atom"_compute_basal_atom.html - calculates the hexagonal close-packed “c” lattice vector of each atom
+"basal/atom"_compute_basal_atom.html - calculates the hexagonal close-packed "c" lattice vector of each atom
 "body/local"_compute_body_local.html - attributes of body sub-particles
 "bond"_compute_bond.html - energy of each bond sub-style
 "bond/local"_compute_bond_local.html - distance and energy of each bond
@@ -213,9 +213,11 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
 "gyration"_compute_gyration.html - radius of gyration of group of atoms
 "gyration/chunk"_compute_gyration_chunk.html - radius of gyration for each chunk
+"gyration/shape"_compute_gyration_shape.html - compute shape parameters from radius of gyration tensor
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "heat/flux/tally"_compute_tally.html -
 "hexorder/atom"_compute_hexorder_atom.html - bond orientational order parameter q6
+"hma"_compute_hma.html - harmonically mapped averaging for atomic crystals
 "improper"_compute_improper.html - energy of each improper sub-style
 "improper/local"_compute_improper_local.html - angle of each improper
 "inertia/chunk"_compute_inertia_chunk.html - inertia tensor for each chunk
@@ -227,6 +229,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "meso/e/atom"_compute_meso_e_atom.html - per-atom internal energy of Smooth-Particle Hydrodynamics atoms
 "meso/rho/atom"_compute_meso_rho_atom.html - per-atom mesoscopic density of Smooth-Particle Hydrodynamics atoms
 "meso/t/atom"_compute_meso_t_atom.html - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
+"momentum"_compute_momentum.html - translational momentum
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/chunk"_compute_msd_chunk.html - mean-squared displacement for each chunk
 "msd/nongauss"_compute_msd_nongauss.html - MSD and non-Gaussian parameter of group of atoms

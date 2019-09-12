@@ -15,20 +15,16 @@
    Contributing Author: Julien Devemy (ICCF)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_nm_cut_coul_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "integrate.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

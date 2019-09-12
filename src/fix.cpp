@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix.h"
 #include <cstring>
 #include <cctype>
-#include "fix.h"
 #include "atom.h"
 #include "group.h"
 #include "force.h"
-#include "comm.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
@@ -78,6 +77,8 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   enforce2d_flag = 0;
   respa_level_support = 0;
   respa_level = -1;
+  maxexchange = 0;
+  maxexchange_dynamic = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;

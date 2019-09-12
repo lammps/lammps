@@ -15,23 +15,21 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_peri_pmb.h"
+#include <mpi.h>
 #include <cmath>
 #include <cfloat>
-#include <cstdlib>
 #include <cstring>
-#include "pair_peri_pmb.h"
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_peri_neigh.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
 

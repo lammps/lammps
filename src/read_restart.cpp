@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "read_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include <dirent.h>
-#include "read_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -23,7 +22,6 @@
 #include "irregular.h"
 #include "update.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_read_restart.h"
 #include "group.h"
 #include "force.h"

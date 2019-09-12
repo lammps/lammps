@@ -15,9 +15,10 @@
    Contributing authors: Timothy Sirk (ARL), Pieter in't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_srp.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -635,11 +636,11 @@ void FixSRP::restart(char *buf)
 int FixSRP::modify_param(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"btype") == 0) {
-    btype = atoi(arg[1]);
+    btype = force->inumeric(FLERR,arg[1]);
     return 2;
   }
   if (strcmp(arg[0],"bptype") == 0) {
-    bptype = atoi(arg[1]);
+    bptype = force->inumeric(FLERR,arg[1]);
     return 2;
   }
   return 0;

@@ -18,11 +18,8 @@
    [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_shield.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

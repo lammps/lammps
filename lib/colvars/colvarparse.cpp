@@ -7,7 +7,6 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -54,6 +53,28 @@ bool colvarparse::get_key_string_value(std::string const &conf,
     cvm::error("Error: found more than one instance of \""+
                std::string(key)+"\".\n", INPUT_ERROR);
   }
+
+  return b_found_any;
+}
+
+bool colvarparse::get_key_string_multi_value(std::string const &conf,
+                                             char const *key, std::vector<std::string>& data)
+{
+  bool b_found = false, b_found_any = false;
+  size_t save_pos = 0, found_count = 0;
+
+  data.clear();
+
+  do {
+    std::string data_this = "";
+    b_found = key_lookup(conf, key, &data_this, &save_pos);
+    if (b_found) {
+      if (!b_found_any)
+        b_found_any = true;
+      found_count++;
+      data.push_back(data_this);
+    }
+  } while (b_found);
 
   return b_found_any;
 }
@@ -842,4 +863,19 @@ int colvarparse::check_braces(std::string const &conf,
     brace++;
   }
   return (brace_count != 0) ? INPUT_ERROR : COLVARS_OK;
+}
+
+void colvarparse::split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest) {
+    size_t index = 0, new_index = 0;
+    std::string tmpstr;
+    while (index != data.length()) {
+        new_index = data.find(delim, index);
+        if (new_index != std::string::npos) tmpstr = data.substr(index, new_index - index);
+        else tmpstr = data.substr(index, data.length());
+        if (!tmpstr.empty()) {
+            dest.push_back(tmpstr);
+        }
+        if (new_index == std::string::npos) break;
+        index = new_index + 1;
+    }
 }

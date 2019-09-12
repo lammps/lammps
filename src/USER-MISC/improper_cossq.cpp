@@ -16,14 +16,12 @@
      gvog@chemeng.ntua.gr
 ------------------------------------------------------------------------- */
 
+#include "improper_cossq.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_cossq.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"

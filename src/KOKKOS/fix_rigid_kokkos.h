@@ -39,8 +39,8 @@ class FixRigidKokkos : public FixRigid {
   virtual ~FixRigidKokkos();
   void cleanup_copy();
 
-  // virtual int setmask();
-  // virtual void init();
+  //virtual int setmask();
+  virtual void init();
   // virtual void setup(int);
   virtual void initial_integrate(int);
   //void post_force(int);
@@ -67,42 +67,22 @@ class FixRigidKokkos : public FixRigid {
   typename ArrayTypes<DeviceType>::t_float_1d mass;
   typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
+
+  // We need Kokkos style containers for everything in the innner loops:
+
+  typename ArrayTypes<DeviceType>::t_v_array xcm;
+  typename ArrayTypes<DeviceType>::t_v_array vcm;
+  typename ArrayTypes<DeviceType>::t_f_array fcm;
+	
+  typename ArrayTypes<DeviceType>::t_v_array omega;
+  typename ArrayTypes<DeviceType>::t_v_array angmom;
+  typename ArrayTypes<DeviceType>::t_f_array torque;
+
+  // Is this even the right type?
+  typename ArrayTypes<DeviceType>::t_f_array fflag, tflag;
 	
 	
 }; // class FixRigidKokkos
-
-	
-template <class DeviceType, int RMass>
-struct FixRigidKokkosInitialIntegrateFunctor  {
-  typedef DeviceType  device_type ;
-  FixRigidKokkos<DeviceType> c;
-
-  FixRigidKokkosInitialIntegrateFunctor(FixRigidKokkos<DeviceType>* c_ptr):
-    c(*c_ptr) {c.cleanup_copy();};
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int i) const {
-    if (RMass) c.initial_integrate_rmass_item(i);
-    else c.initial_integrate_item(i);
-  }
-};
-
-	/*
-template <class DeviceType, int RMass>
-struct FixRigidKokkosFinalIntegrateFunctor  {
-  typedef DeviceType  device_type ;
-  FixNVEKokkos<DeviceType> c;
-
-  FixNVEKokkosFinalIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
-  c(*c_ptr) {c.cleanup_copy();};
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int i) const {
-    if (RMass) c.final_integrate_rmass_item(i);
-    else c.final_integrate_item(i);
-  }
-};
-	*/
-
 
 	
 } // namespace LAMMPS_NS

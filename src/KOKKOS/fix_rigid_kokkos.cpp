@@ -94,6 +94,14 @@ void FixRigidKokkos<DeviceType>::cleanup_copy()
 }
 
 
+template <class DeviceType>
+void FixRigidKokkos<DeviceType>::init()
+{
+  FixRigid::init();
+  atomKK->k_mass.modify<LMPHostType>();
+  atomKK->k_mass.sync<DeviceType>();
+}
+
 /*                                            
 int FixRigidKokkos::setmask();                      
 void FixRigidKokkos::init();                        
@@ -106,30 +114,43 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   atomKK->modified(execution_space, datamask_modify);
 
   // Grab all arrays you need for initial_integrate:
-  x = atomKK->k_x.view<DeviceType>();
-  y = atomKK->k_y.view<DeviceType>();
-  z = atomKK->k_z.view<DeviceType>();
+  double dtfm;
 
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
-  int nlocal = atomKK->nlocal;
-  if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
+  
+  {
+    // Local block for Kokkos parallel for:
+    auto l_vcm = vcm;
+    auto l_xcm = xcm;
+    auto l_angmom = angmom;
+    auto l_masstotal = masstotal;
+    auto l_fflag = fflag;
+    auto l_fcm = fcm;
+    auto l_torque = torque;
+    auto l_tflag = tflag;
+    
+    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int& ibody) {
 
-  if (rmass.data()) {
-    FixRigidKokkosInitialIntegrateFunctor<DeviceType,1> functor(this);
-    Kokkos::parallel_for(nlocal,functor);
-  } else {
-    FixRigidKokkosInitialIntegrateFunctor<DeviceType,0> functor(this);
-    Kokkos::parallel_for(nlocal,functor);
+      const double dtfm = dtf / l_masstotal[ibody];
+        
+      l_vcm(ibody,0) += dtfm * l_fcm(ibody,0) * l_fflag(ibody,0);
+      l_vcm(ibody,1) += dtfm * l_fcm(ibody,1) * l_fflag(ibody,1);
+      l_vcm(ibody,2) += dtfm * l_fcm(ibody,2) * l_fflag(ibody,2);
+      
+      // update xcm by full step
+      
+      l_xcm(ibody,0) += dtv * l_vcm(ibody,0);
+      l_xcm(ibody,1) += dtv * l_vcm(ibody,1);
+      l_xcm(ibody,2) += dtv * l_vcm(ibody,2);
+      
+      // update angular momentum by 1/2 step
+      
+      l_angmom(ibody,0) += dtf * l_torque(ibody,0) * l_tflag(ibody,0);
+      l_angmom(ibody,1) += dtf * l_torque(ibody,1) * l_tflag(ibody,1);
+      l_angmom(ibody,2) += dtf * l_torque(ibody,2) * l_tflag(ibody,2);
+
+      // TODO: Convert the body angmom back to per-atom velocities.
+    });
   }
-
-
-
-
-  // set_xv is called in initial_integrate so make sure everything it needs is
-  // Kokkos-able?
 }
 
 /*

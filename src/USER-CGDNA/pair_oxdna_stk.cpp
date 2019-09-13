@@ -761,7 +761,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   if (narg != 24) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
+  int ilo,ihi,jlo,jhi,imod4,jmod4;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
@@ -852,16 +852,21 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   dtheta_st6_c_one = 1/(a_st6_one*dtheta_st6_ast_one);
 
   b_st1_one = a_st1_one*a_st1_one*cosphi_st1_ast_one*cosphi_st1_ast_one/(1-a_st1_one*cosphi_st1_ast_one*cosphi_st1_ast_one);
-  cosphi_st1_c_one=1/(a_st1_one*cosphi_st1_ast_one);
+  cosphi_st1_c_one = 1/(a_st1_one*cosphi_st1_ast_one);
 
   b_st2_one = a_st2_one*a_st2_one*cosphi_st2_ast_one*cosphi_st2_ast_one/(1-a_st2_one*cosphi_st2_ast_one*cosphi_st2_ast_one);
-  cosphi_st2_c_one=1/(a_st2_one*cosphi_st2_ast_one);
+  cosphi_st2_c_one = 1/(a_st2_one*cosphi_st2_ast_one);
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
 
+      imod4 = i%4;
+      if (imod4 == 0) imod4 = 4;
+      jmod4 = j%4;
+      if (jmod4 == 0) jmod4 = 4;
+
       epsilon_st[i][j] = epsilon_st_one;
-      if (seqdepflag) epsilon_st[i][j] *= eta_st[i-1][j-1];
+      if (seqdepflag) epsilon_st[i][j] *= eta_st[imod4-1][jmod4-1];
       a_st[i][j] = a_st_one;
       cut_st_0[i][j] = cut_st_0_one;
       cut_st_c[i][j] = cut_st_c_one;
@@ -872,7 +877,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
       b_st_lo[i][j] = b_st_lo_one;
       b_st_hi[i][j] = b_st_hi_one;
       shift_st[i][j] = shift_st_one;
-      if (seqdepflag) shift_st[i][j] *= eta_st[i-1][j-1];
+      if (seqdepflag) shift_st[i][j] *= eta_st[imod4-1][jmod4-1];
 
       a_st4[i][j] = a_st4_one;
       theta_st4_0[i][j] = theta_st4_0_one;
@@ -944,6 +949,8 @@ void PairOxdnaStk::init_list(int id, NeighList *ptr)
 double PairOxdnaStk::init_one(int i, int j)
 {
 
+  int imod4,jmod4;
+
   if (setflag[i][j] == 0) {
     error->all(FLERR,"Coefficient mixing not defined in oxDNA");
   }
@@ -951,8 +958,13 @@ double PairOxdnaStk::init_one(int i, int j)
     error->all(FLERR,"Offset not supported in oxDNA");
   }
 
+  imod4 = i%4;
+  if (imod4 == 0) imod4 = 4;
+  jmod4 = j%4;
+  if (jmod4 == 0) jmod4 = 4;
+
   if (seqdepflag) {
-    epsilon_st[j][i] = epsilon_st[i][j]  / eta_st[i-1][j-1] * eta_st[j-1][i-1];
+    epsilon_st[j][i] = epsilon_st[i][j]  / eta_st[imod4-1][jmod4-1] * eta_st[jmod4-1][imod4-1];
   }
   else {
     epsilon_st[j][i] = epsilon_st[i][j];
@@ -967,7 +979,7 @@ double PairOxdnaStk::init_one(int i, int j)
   cut_st_lc[j][i] = cut_st_lc[i][j];
   cut_st_hc[j][i] = cut_st_hc[i][j];
   if (seqdepflag) {
-    shift_st[j][i] = shift_st[i][j] / eta_st[i-1][j-1] * eta_st[j-1][i-1];
+    shift_st[j][i] = shift_st[i][j] / eta_st[imod4-1][jmod4-1] * eta_st[jmod4-1][imod4-1];
   }
   else {
     shift_st[j][i] = shift_st[i][j];

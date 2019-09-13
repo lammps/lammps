@@ -65,7 +65,6 @@ class FixRigid : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
-  double MINUSPI,TWOPI;
 
   char *inpfile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
@@ -136,9 +135,6 @@ class FixRigid : public Fix {
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
-
-  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
-  int OMEGA,ANGMOM,TORQUE;
 
   void image_shift();
   void set_xv();

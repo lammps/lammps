@@ -72,7 +72,6 @@ class FixRigidSmall : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
-  double MINUSPI,TWOPI;
 
   char *inpfile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
@@ -128,9 +127,6 @@ class FixRigidSmall : public Fix {
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
-
-  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
-  int OMEGA,ANGMOM,TORQUE;
 
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;

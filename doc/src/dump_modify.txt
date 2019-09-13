@@ -623,8 +623,8 @@ threshold criterion is met.  Otherwise it is not met.
 
 The {units} keyword only applies to the dump {atom}, {custom}, and
 {local} styles (and their COMPRESS package versions {atom/gz},
-{custom/gz} and {local/gz}). If set to {yes}, each dump file will contain
-two extra lines at the very beginning with:
+{custom/gz} and {local/gz}). If set to {yes}, each individal dump
+file will contain two extra lines at the very beginning with:
 
 ITEM: UNITS
 \<units style\> :pre

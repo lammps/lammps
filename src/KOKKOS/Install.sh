@@ -109,6 +109,8 @@ action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
+action fix_minimize_kokkos.cpp
+action fix_minimize_kokkos.h
 action fix_neigh_history_kokkos.cpp
 action fix_neigh_history_kokkos.h
 action fix_nh_kokkos.cpp
@@ -181,6 +183,12 @@ action nbin_ssa_kokkos.cpp nbin_ssa.cpp
 action nbin_ssa_kokkos.h nbin_ssa.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
+action min_cg_kokkos.cpp
+action min_cg_kokkos.h
+action min_kokkos.cpp
+action min_kokkos.h
+action min_linesearch_kokkos.cpp
+action min_linesearch_kokkos.h
 action pair_buck_coul_cut_kokkos.cpp
 action pair_buck_coul_cut_kokkos.h
 action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp

@@ -1,0 +1,10 @@
+This package contains implementation of stochastic boundary conditions which can be used in fluid transport in pore.
+Those are statistical models which describe how fluid atoms are reflected after collisions with the wall. Three models are used:
+Diffusive wall: the gas atoms are reflected diffusively
+Maxwell model: the gas atoms are partially reflected diffusively (using 1 accommodation coefficients)
+Anisotropic Cercignani Lampis model: 3 accommodations coefficients are used.
+
+There are an example for using commands in this package in the same directory
+
+For all questions, contact Quy-Dong To, Universite Paris Est Marne la Vallee, Laboratoire Modelisation Simulation Multi-Echelle 
+Email: toquydong at gmail dot com.

@@ -572,7 +572,7 @@ void ReadData::command(int narg, char **arg)
 
       } else if (strcmp(keyword, "CAC Elements") == 0) {
 		    CACflag = 1;
-		    if (me == 0 && !style_match("CAC", atom->atom_style))
+		    if (!atom->CAC_flag)
 			  error->warning(FLERR, "Atom style in data file (CAC) differs "
 				  "from currently defined atom style");
 		    CAC_elements();

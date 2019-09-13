@@ -55,21 +55,7 @@ class AtomVecCAC_Charge : public AtomVecCAC {
   virtual void shrink_array(int);
   
  protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-   
-  double **x,**v,**f;
-  double ****nodal_positions,****nodal_velocities,****nodal_forces,
-    ****nodal_gradients, **node_charges, ****initial_nodal_positions, *scale_search_range;
-  double ****nodal_virial;
-  int *poly_count, **node_types, *element_type,
-	  **element_scale, scale_count, oneflag, *scale_list;
-  int element_type_count;
-  int search_range_max;
-  int initial_size;
-  char **element_names;
-
+  double  **node_charges;
   
   virtual void allocate_element(int,int,int);
 };

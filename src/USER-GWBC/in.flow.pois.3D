@@ -1,0 +1,44 @@
+units		metal
+dimension	3
+boundary	p f p
+
+atom_style		atomic
+neighbor		2.0 bin
+
+
+# create geometry
+
+lattice		sc 10
+region			box block 0 20 0 20 0 20
+create_box		1 box
+create_atoms	1 box
+
+mass		1 39.95
+
+
+
+# LJ potentials
+
+pair_style	lj/cut 8.5
+pair_coeff	* * 0.01 3.4 8.5
+
+
+# initial velocities
+
+
+velocity	all create 300 482748 
+fix			1 all nve
+#fix ywalls all wall/reflect ylo EDGE yhi EDGE
+fix ywalls all wall/diffusive ylo EDGE 300 0 0 0 yhi EDGE 300 0.1 0 0
+#fix ywalls all wall/ACL ylo EDGE 300 0 0 0 0.1 0.1 0.1 yhi EDGE 300 0 0 0 0.1 0.1 0.1
+
+
+# Run
+
+#timestep			0.0005
+thermo			1000
+
+
+dump		1 all atom 100 dump.flow
+
+run		1000000

@@ -40,7 +40,7 @@ class RanExtra : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Invalid seed for Park random # generator
+E: Invalid seed for Park random # generator (random extra)
 
 The initial seed for this random number generator must be a positive
 integer.

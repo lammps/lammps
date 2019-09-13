@@ -61,23 +61,23 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Wall defined twice in fix wall/gas command
+E: Wall defined twice in fix wall/diffusive command
 
 Self-explanatory.
 
-E: Cannot use fix wall/gas in periodic dimension
+E: Cannot use fix wall/diffusive in periodic dimension
 
 Self-explanatory.
 
-E: Cannot use fix wall/reflect zlo/zhi for a 2d simulation
+E: Cannot use fix wall/diffusive zlo/zhi for a 2d simulation
 
 Self-explanatory.
 
-E: Variable name for fix wall/gas does not exist
+E: Variable name for fix wall/diffusive does not exist
 
 Self-explanatory.
 
-E: Variable for fix wall/gas is invalid style
+E: Variable for fix wall/diffusive is invalid style
 
 Only equal-style variables can be used.
 

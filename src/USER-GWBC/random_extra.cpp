@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 RanExtra::RanExtra(LAMMPS *lmp, int seed_init) : Pointers(lmp)
 {
   if (seed_init <= 0)
-    error->one(FLERR,"Invalid seed for Park random # generator");
+    error->one(FLERR,"Invalid seed for Park random # generator (random extra)");
   seed = seed_init;
   save = 0;
 }
@@ -117,7 +117,7 @@ double RanExtra::besselexp(double theta, double alpha, double cp)
 void RanExtra::reset(int seed_init)
 {
   if (seed_init <= 0)
-    error->all(FLERR,"Invalid seed for Park random # generator");
+    error->all(FLERR,"Invalid seed for Park random # generator (random extra)");
   seed = seed_init;
   save = 0;
 }

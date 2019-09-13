@@ -24,7 +24,6 @@
 #include "error.h"
 #include "force.h"
 #include "random_extra.h"
-#include "update.h"
 #include <stdlib.h> 
 /*#include <iostream> */
 

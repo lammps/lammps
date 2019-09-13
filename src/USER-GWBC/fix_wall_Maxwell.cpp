@@ -24,7 +24,6 @@
 #include "error.h"
 #include "force.h"
 #include "random_extra.h"
-#include "update.h"
 #include <stdlib.h> 
 /*#include <iostream> */
 
@@ -41,7 +40,7 @@ FixWallMaxwell::FixWallMaxwell(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nwall(0)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/diffusive command");
+  if (narg < 4) error->all(FLERR,"Illegal fix wall/Maxwell command");
 
   dynamic_group_allow = 1;
 
@@ -57,7 +56,7 @@ FixWallMaxwell::FixWallMaxwell(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
         (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
         (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/diffusive command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/Maxwell command");
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -69,7 +68,7 @@ FixWallMaxwell::FixWallMaxwell(LAMMPS *lmp, int narg, char **arg) :
 
       for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
-          error->all(FLERR,"Wall defined twice in fix wall/diffusive command");
+          error->all(FLERR,"Wall defined twice in fix wall/Maxwell command");
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
@@ -97,12 +96,12 @@ FixWallMaxwell::FixWallMaxwell(LAMMPS *lmp, int narg, char **arg) :
       iarg += 7;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/diffusive command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/Maxwell command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix wall/diffusive command");
+      else error->all(FLERR,"Illegal fix wall/Maxwell command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix wall/diffusive command");
+    } else error->all(FLERR,"Illegal fix wall/Maxwell command");
   }
 
   // error check
@@ -111,17 +110,17 @@ FixWallMaxwell::FixWallMaxwell(LAMMPS *lmp, int narg, char **arg) :
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR,"Cannot use fix wall/diffusive in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/Maxwell in periodic dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR,"Cannot use fix wall/diffusive in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/Maxwell in periodic dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR,"Cannot use fix wall/diffusive in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/Maxwell in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
       error->all(FLERR,
-                 "Cannot use fix wall/diffusive zlo/zhi for a 2d simulation");
+                 "Cannot use fix wall/Maxwell zlo/zhi for a 2d simulation");
 
   // scale factors for CONSTANT and VARIABLE walls
 
@@ -180,9 +179,9 @@ void FixWallMaxwell::init()
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all(FLERR,"Variable name for fix wall/diffusive does not exist");
+      error->all(FLERR,"Variable name for fix wall/Maxwell does not exist");
     if (!input->variable->equalstyle(varindex[m]))
-      error->all(FLERR,"Variable for fix wall/diffusive is invalid style");
+      error->all(FLERR,"Variable for fix wall/Maxwell is invalid style");
   }
 
   int nrigid = 0;

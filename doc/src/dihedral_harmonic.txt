@@ -8,6 +8,7 @@
 
 dihedral_style harmonic command :h3
 dihedral_style harmonic/intel command :h3
+dihedral_style harmonic/kk command :h3
 dihedral_style harmonic/omp command :h3
 
 [Syntax:]

@@ -1,4 +1,4 @@
-This package contains implementation of stochastic boundary conditions which can be used in fluid transport in pore.
+This package contains implementation of stochastic boundary conditions which can be used for simulating fluid transport in a confined space limited by walls.
 Those are statistical models which describe how fluid atoms are reflected after collisions with the wall. Three models are used:
 Diffusive wall: the gas atoms are reflected diffusively
 Maxwell model: the gas atoms are partially reflected diffusively (using 1 accommodation coefficients)

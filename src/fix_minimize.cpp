@@ -42,8 +42,10 @@ FixMinimize::~FixMinimize()
   // delete locally stored data
 
   memory->destroy(peratom);
-  for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
-  memory->sfree(vectors);
+  if (vectors) {
+    for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
+    memory->sfree(vectors);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

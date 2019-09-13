@@ -13,44 +13,40 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(MINIMIZE,FixMinimize)
+FixStyle(MINIMIZE/kk,FixMinimizeKokkos)
+FixStyle(MINIMIZE/kk/device,FixMinimizeKokkos)
+FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos)
 
 #else
 
-#ifndef LMP_FIX_MINIMIZE_H
-#define LMP_FIX_MINIMIZE_H
+#ifndef LMP_FIX_MINIMIZE_KOKKOS_H
+#define LMP_FIX_MINIMIZE_KOKKOS_H
 
-#include "fix.h"
+#include "fix_minimize.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class FixMinimize : public Fix {
-  friend class MinLineSearch;
+class FixMinimizeKokkos : public FixMinimize {
+  friend class MinLineSearchKokkos;
 
  public:
-  FixMinimize(class LAMMPS *, int, char **);
-  virtual ~FixMinimize();
-  int setmask();
-  virtual void init() {}
+  FixMinimizeKokkos(class LAMMPS *, int, char **);
+  virtual ~FixMinimizeKokkos();
+  void init() {}
 
-  double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
 
-  virtual void add_vector(int);
-  double *request_vector(int);
-  void store_box();
+  void add_vector_kokkos();
+  DAT::t_float_1d request_vector_kokkos(int);
   void reset_coords();
 
- protected:
-  int nvector;
-  int *peratom;
-  double **vectors;
-  double boxlo[3],boxhi[3];
-
-  void box_swap();
+  DAT::tdual_float_2d k_vectors;
+  DAT::t_float_2d d_vectors;
+  HAT::t_float_2d h_vectors;
 };
 
 }

@@ -23,6 +23,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <utils.h>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -53,7 +54,7 @@ enum{CONSTANT,EQUAL,ATOM};
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
-  flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL), lv(NULL)
+  flangevin(NULL), tforce(NULL), franprev(NULL), lv(NULL), id_temp(NULL), random(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -232,7 +233,7 @@ void FixLangevin::init()
     int flag = 0;
     for (int i = 0; i < modify->nfix; i++) {
       if (strcmp(id,modify->fix[i]->id) == 0) before = 0;
-      else if ((modify->fmask[i] && strcmp(modify->fix[i]->style,"nve")==0) && before) flag = 1;
+      else if ((modify->fmask[i] && utils::strmatch(modify->fix[i]->style,"^nve")) && before) flag = 1;
     }
     if (flag && comm->me == 0)
       error->all(FLERR,"Fix langevin gjf should come before fix nve");
@@ -287,13 +288,13 @@ void FixLangevin::init()
   if (!atom->rmass) {
     for (int i = 1; i <= atom->ntypes; i++) {
       gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
-      if (!gjfflag)
+      if (gjfflag)
         gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+                    sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
                     force->ftm2v;
       else
         gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
+                    sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
                     force->ftm2v;
       gfactor1[i] *= 1.0/ratio[i];
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
@@ -306,7 +307,7 @@ void FixLangevin::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  if (strstr(update->integrate_style,"respa") && gjfflag)
+  if (utils::strmatch(update->integrate_style,"^respa") && gjfflag)
     error->all(FLERR,"Fix langevin gjf and respa are not compatible");
 
   if (gjfflag) gjfa = (1.0-update->dt/2.0/t_period)/(1.0+update->dt/2.0/t_period);
@@ -643,10 +644,10 @@ void FixLangevin::post_force_templated()
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
-        if (!Tp_GJF)
-          gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-        else
+        if (Tp_GJF)
           gamma2 = sqrt(rmass[i]) * sqrt(2.0*boltz/t_period/dt/mvv2e) / ftm2v;
+        else
+          gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
         gamma1 *= 1.0/ratio[type[i]];
         gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
       } else {
@@ -654,15 +655,15 @@ void FixLangevin::post_force_templated()
         gamma2 = gfactor2[type[i]] * tsqrt;
       }
 
-      if (!Tp_GJF){
-        fran[0] = gamma2*(random->uniform()-0.5);
-        fran[1] = gamma2*(random->uniform()-0.5);
-        fran[2] = gamma2*(random->uniform()-0.5);
-      }
-      else{
+      if (Tp_GJF){
         fran[0] = gamma2*random->gaussian();
         fran[1] = gamma2*random->gaussian();
         fran[2] = gamma2*random->gaussian();
+      }
+      else{
+        fran[0] = gamma2*(random->uniform()-0.5);
+        fran[1] = gamma2*(random->uniform()-0.5);
+        fran[2] = gamma2*(random->uniform()-0.5);
       }
 
       if (Tp_BIAS) {

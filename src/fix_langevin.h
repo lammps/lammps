@@ -142,7 +142,7 @@ The compute ID assigned to the fix must compute temperature.
 
 E: Fix langevin gjf cannot have period equal to dt/2
 
-If the period is equal to dt/2 then division by zero can happen.
+If the period is equal to dt/2 then division by zero will happen.
 
 E: Fix langevin gjf should come before fix nve
 

@@ -23,7 +23,6 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <utils.h>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -39,6 +38,7 @@
 #include "memory.h"
 #include "error.h"
 #include "group.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

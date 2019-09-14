@@ -327,7 +327,9 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] For {gjf} do not choose damp=dt/2. {gjf} is not compatible
+[Restrictions:]
+
+For {gjf} do not choose damp=dt/2. {gjf} is not compatible
 with run_style respa. 
 
 [Related commands:]

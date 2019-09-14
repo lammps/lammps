@@ -11,23 +11,20 @@
    See the README file in the top-level LAMMPS directory.
    ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_langevin_kokkos.h"
+#include <cmath>
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
+#include "group.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "memory_kokkos.h"
-#include "group.h"
-#include "random_mars.h"
 #include "compute.h"
 #include "comm.h"
 #include "modify.h"
 #include "input.h"
+#include "region.h"
 #include "variable.h"
 
 using namespace LAMMPS_NS;
@@ -117,8 +114,7 @@ void FixLangevinKokkos<DeviceType>::init()
   if(gjfflag && tbiasflag)
     error->all(FLERR,"Fix langevin gjf + tbias is not yet implemented with kokkos");
   if(gjfflag && tbiasflag)
-    error->warning(FLERR,"Fix langevin gjf + kokkos is not implemented with random gaussians,"
-        " this may cause errors in kinetic fluctuations");
+    error->warning(FLERR,"Fix langevin gjf + kokkos is not implemented with random gaussians");
 
   // prefactors are modified in the init
   k_gfactor1.template modify<LMPHostType>();
@@ -138,9 +134,7 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
   h_lv = k_lv.template view<LMPHostType>();
 }
 
-/* ----------------------------------------------------------------------
-   allow for both per-type and per-atom mass
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::initial_integrate(int vflag)

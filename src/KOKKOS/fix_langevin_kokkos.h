@@ -282,4 +282,12 @@ E: Fix langevin variable returned negative temperature
 
 Self-explanatory.
 
+E: Fix langevin gjf with tbias is not yet implemented with kokkos
+
+This option is not yet available.
+
+W: Fix langevin gjf using random gaussians is not implemented with kokkos
+
+This will most likely cause errors in kinetic fluctuations.
+
 */

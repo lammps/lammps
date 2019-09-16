@@ -14,8 +14,8 @@ atom_style hybrid bond ellipsoid
 atom_modify sort 0 1.0
 
 # Pair interactions require lists of neighbours to be calculated
-neighbor 3.0 bin
-neigh_modify every 30 delay 0 check yes
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
 
 read_data data.duplex2
 
@@ -67,13 +67,11 @@ variable erot equal c_erot
 variable ekin equal c_ekin
 variable epot equal c_epot
 variable etot equal c_erot+c_ekin+c_epot
-fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen no file oxdna_thermo.dat
+fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
 
-thermo 100000
-
-dump out all custom ${ofreq} out.${number}.txt id x y z vx vy vz fx fy fz tqx tqy tqz
-dump_modify out sort id
-# dump_modify out format line "%d   %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le"
+#dump out all custom ${ofreq} out.${number}.txt id x y z vx vy vz fx fy fz tqx tqy tqz
+#dump_modify out sort id
+#dump_modify out format line "%d   %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le"
 
 run 1000000
 

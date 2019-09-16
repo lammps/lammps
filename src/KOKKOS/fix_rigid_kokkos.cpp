@@ -330,9 +330,9 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   // The initialization for these two is simple enough:
   for (int i = 0; i < nbody; i++) {
-	  k_fflag.d_view(i,0) = k_fflag.d_view(i,1) = k_fflag.d_view(i,2) = 1.0;
-	  k_tflag.d_view(i,0) = k_tflag.d_view(i,1) = k_tflag.d_view(i,2) = 1.0;
-	  if (domain->dimension == 2) k_fflag.d_view(i,2) = k_tflag.d_view(i,2) = 0.0;
+    k_fflag.d_view(i,0) = k_fflag.d_view(i,1) = k_fflag.d_view(i,2) = 1.0;
+    k_tflag.d_view(i,0) = k_tflag.d_view(i,1) = k_tflag.d_view(i,2) = 1.0;
+    if (domain->dimension == 2) k_fflag.d_view(i,2) = k_tflag.d_view(i,2) = 0.0;
   }
   k_fflag.template modify<LMPDeviceType>();
   k_tflag.template modify<LMPDeviceType>();
@@ -395,14 +395,14 @@ template <typename kokkos_arr, typename base_arr>
 void FixRigidKokkos<DeviceType>::debug_print(kokkos_arr k_arr, base_arr arr,
                                              const char *name, int idx)
 {
-	if (debug_output && comm->me == 0) {
-		fprintf(stderr, "  ** -->   %s is now (%g, %g, %g)\n", name,
-		        arr[idx][0],arr[idx][1],arr[idx][2]);
-		fprintf(stderr, "  ** --> d_%s is now (%g, %g, %g)\n", name,
-		        k_arr.d_view(idx,0),k_arr.d_view(idx,1),k_arr.d_view(idx,2));
-		fprintf(stderr, "  ** --> h_%s is now (%g, %g, %g)\n", name,
-		        k_arr.h_view(idx,0),k_arr.h_view(idx,1),k_arr.h_view(idx,2));
-	}
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "  ** -->   %s is now (%g, %g, %g)\n", name,
+            arr[idx][0],arr[idx][1],arr[idx][2]);
+    fprintf(stderr, "  ** --> d_%s is now (%g, %g, %g)\n", name,
+            k_arr.d_view(idx,0),k_arr.d_view(idx,1),k_arr.d_view(idx,2));
+    fprintf(stderr, "  ** --> h_%s is now (%g, %g, %g)\n", name,
+            k_arr.h_view(idx,0),k_arr.h_view(idx,1),k_arr.h_view(idx,2));
+  }
 }
 
 

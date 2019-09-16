@@ -44,24 +44,22 @@ class FixRigidKokkos : public FixRigid {
   virtual void init();
   // virtual void setup(int);
   virtual void initial_integrate(int);
+  virtual void final_integrate();
+  
   //void post_force(int);
-  //virtual void final_integrate();
   // void initial_integrate_respa(int, int, int);
   // void final_integrate_respa(int, int);
   // void write_restart_file(char *);
   // virtual double compute_scalar();
-
-
-
-  KOKKOS_INLINE_FUNCTION
-  void initial_integrate_item(int) const;
-  KOKKOS_INLINE_FUNCTION
-  void initial_integrate_rmass_item(int) const;
+  void grow_arrays(int);
 
  protected:
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
   void set_v_kokkos();  //
 
+  void sync_arrays(int phase_mask);
+  void modify_arrays(int phase_mask);
+  
 
   template <typename kokkos_arr, typename base_arr>
   void debug_print(kokkos_arr k_arr, base_arr arr,
@@ -69,8 +67,16 @@ class FixRigidKokkos : public FixRigid {
 
 
  private:
-  // We need Kokkos style containers for everything in the innner loops:
+  typename ArrayTypes<DeviceType>::t_x_array x;
+  typename ArrayTypes<DeviceType>::t_v_array v;
+  typename ArrayTypes<DeviceType>::t_f_array_const f;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d mass;
+  typename ArrayTypes<DeviceType>::t_int_1d type;
+  typename ArrayTypes<DeviceType>::t_int_1d mask;
 
+  
+  // We need Kokkos style containers for everything in the innner loops:
   DAT::tdual_x_array k_xcm;
   DAT::tdual_v_array k_vcm;
   DAT::tdual_f_array k_fcm;
@@ -85,12 +91,17 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_x_array k_quat, k_inertia;
 
   DAT::tdual_x_array k_ex_space, k_ey_space, k_ez_space;
+  DAT::tdual_x_array k_displace;
 
-
-	
+  typename ArrayTypes<DeviceType>::t_int_1d k_eflags, k_body;
+  typename ArrayTypes<DeviceType>::tdual_imageint_1d k_xcmimage;
+  DAT::tdual_x_array k_orient;
+  DAT::tdual_x_array k_dorient;
+  
+  
 }; // class FixRigidKokkos
 
-	
+  
 } // namespace LAMMPS_NS
 
 

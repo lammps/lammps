@@ -1,10 +1,17 @@
-This package contains implementation of stochastic boundary conditions which can be used for simulating fluid transport in a confined space limited by walls.
-Those are statistical models which describe how fluid atoms are reflected after collisions with the wall. Three models are used:
-Diffusive wall: the gas atoms are reflected diffusively
-Maxwell model: the gas atoms are partially reflected diffusively (using 1 accommodation coefficients)
-Anisotropic Cercignani Lampis model: 3 accommodations coefficients are used.
+This package contains implementation of stochastic boundary conditions which can be used for simulating fluid transport in a confined space limited by walls. Developed in the framework of kinetic theory of gases, those are statistical models which describe how fluid atoms are reflected after collisions with the wall. Different from the command fix wall/reflect which is equivalent to the mirror reflection, the post collision velocity of the atoms in the stochastic wall model is random. The randomness can come from many sources: thermal motion of solid atoms, the surface roughness, etc... Three statistical models are implemented
+
+Diffusive wall: all the gas atoms are reflected diffusively. Their velocity distribution corresponds to the equilibrium distribution at the wall temperature. 
+Maxwell model: the gas atoms are partially reflected diffusively and partially mirror. The accommodation coefficient is the portion of the diffusive reflection [1].
+Cercignani Lampis model: 3 accommodations coefficients are used, two velocity accommodation coefficients and one normal kinetic energy accommodation [2,3]. 
+
+In a general sense, the accommodation coefficients are the parameters of the statistical models and their physical meanings are the measure of diffusive degree of the wall. Those parameters can be determined by experiments or by separate molecular dynamics simulation [4].
 
 There are an example for using commands in this package in the same directory
 
 For all questions, contact Quy-Dong To, Universite Paris Est Marne la Vallee, Laboratoire Modelisation Simulation Multi-Echelle 
 Email: toquydong at gmail dot com.
+
+[1] Maxwell, J. C. (1867). "On the Dynamical Theory of Gases". Philosophical Transactions of the Royal Society of London. 157: 49–88.
+[2] Cercignani and M. Lampis, "Kinetic models for gas-surface interactions" Transp. Theory Stat. Phys. 1, 2, 101 (1971).
+[3] Q.D. To, V.H. Vu, G. Lauriat, and C. Leonard, "Boundary conditions for gas flow problems from anisotropic scattering kernels" J. Math. Phys. 56, 103101 (2015).
+[4] M. Liao, Q.D. To, C. Leonard, and V. Monchiet, "Non-parametric wall model and methods of identifying boundary conditions for moments in gas flow equations" Physics of Fluids, 30(3), 032008.

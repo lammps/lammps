@@ -27,6 +27,7 @@ FixStyle(rigid/kk/host,FixRigidKokkos<LMPHostType>)
 #include "fix_rigid.h"
 #include "kokkos_type.h"
 
+
 namespace LAMMPS_NS {
 
 template <class DeviceType>
@@ -57,30 +58,35 @@ class FixRigidKokkos : public FixRigid {
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_rmass_item(int) const;
 
+ protected:
+  void set_xv_kokkos(); // Original set_xv and set_v are also protected.
+  void set_v_kokkos();  //
+
+
+  template <typename kokkos_arr, typename base_arr>
+  void debug_print(kokkos_arr k_arr, base_arr arr,
+                   const char *name, int idx = 0);
+
 
  private:
-
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
-
   // We need Kokkos style containers for everything in the innner loops:
 
-  typename ArrayTypes<DeviceType>::t_v_array xcm;
-  typename ArrayTypes<DeviceType>::t_v_array vcm;
-  typename ArrayTypes<DeviceType>::t_f_array fcm;
-	
-  typename ArrayTypes<DeviceType>::t_v_array omega;
-  typename ArrayTypes<DeviceType>::t_v_array angmom;
-  typename ArrayTypes<DeviceType>::t_f_array torque;
+  DAT::tdual_x_array k_xcm;
+  DAT::tdual_v_array k_vcm;
+  DAT::tdual_f_array k_fcm;
 
-  // Is this even the right type?
-  typename ArrayTypes<DeviceType>::t_f_array fflag, tflag;
-	
+  DAT::tdual_f_array k_tflag, k_fflag;
+
+  // Careful. This fix' omega, angmom and torque are defined in fix_rigid.
+  // They are not the same as those in atom_vec and atom_vec_kokkos!
+  DAT::tdual_v_array k_omega, k_angmom;
+  DAT::tdual_f_array k_torque;
+
+  DAT::tdual_x_array k_quat, k_inertia;
+
+  DAT::tdual_x_array k_ex_space, k_ey_space, k_ez_space;
+
+
 	
 }; // class FixRigidKokkos
 

@@ -260,7 +260,6 @@ recall that while the equilibrium statistics is appropriately sampled, the corre
 of the trajectories may not be for large time steps, as is the case for all thermostats.
 All thermostats provide good statistics and dynamics for small time steps.
 The 2GJ half-step velocity {vhalf} samples the correct velocity distribution for the {gjf} trajectory.
-Results of simulations using the {gjf} option with both {vfull} and {vhalf} compared to
 other available thermostats are shown in the LAMMPS directory: examples/gjf.
 
 This updated implementation of the {gjf} thermostat includes the choice between

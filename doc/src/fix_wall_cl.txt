@@ -1,0 +1,101 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov) link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix wall/cl command :h3
+
+[Syntax:]
+
+fix ID group-ID wall/cl face pos temp velx vely velz keyword value ... :pre
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+wall/cl = style name of this fix command :l
+one or more face/arg pairs may be appended :l
+face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
+  {xlo},{ylo},{zlo} pos = EDGE or constant or variable
+    EDGE = current lo edge of simulation box
+    constant = number like 0.0 or -30.0 (distance units)
+    variable = "equal-style variable"_variable.html like v_x or v_wiggle
+    temp = wall temperature
+    velx, vely, velz = wall velocity along x, y, z directions
+    accomx, accomy, accomz = accommodation coefficients along x, y, z directions
+  {xhi},{yhi},{zhi} pos = EDGE or constant or variable
+    EDGE = current hi edge of simulation box
+    constant = number like 50.0 or 100.3 (distance units)
+    variable = "equal-style variable"_variable.html like v_x or v_wiggle 
+    temp = wall temperature 
+    velx, vely, velz = wall velocity along x, y, z directions
+    accomx, accomy, accomz = accommodation coefficients along x, y, z directions
+    :pre
+
+zero or more keyword/value pairs may be appended :l
+keyword = {units} :l
+    {units} value = {lattice} or {box}
+    {lattice} = the wall position is defined in lattice units
+    {box} = the wall position is defined in simulation box units :pre
+
+:ule
+
+[Examples:]
+
+fix ywalls all wall/cl xlo EDGE 300 0.1 0.1 0 0.8 0.8 0.9 xhi EDGE 200 0.1 0.1 0
+0.8 0.8 0.9
+
+fix ywalls all wall/cl xlo 300 0.1 0.1 0 ylo 300 0.1 0.1 0 0.9 0.8 0.7 units box
+:pre
+
+[Description:]
+
+Cercignani-Lampis (CL) "CL"_#CL propose a stochastic wall model which can model
+the gas-wall collision realistically. Instead of mixing wall/reflect and
+wall/diffusive as in Maxwell model (fix wall/maxwell), the CL model used shifted
+MB distribution for the tangential velocity and exponential bessel for the
+normal velocity. Two accommodation coefficients are used: one for the tangential
+velocity (isotropic) and one for the normal kinetic energy. In this fix, a
+generalized version "To"_#To which can account for the anisotropy of the wall
+surface is implemented, there are three coefficients: two for the tangential
+velocity (two components) and one for the kinetic energy. The code will
+recognize automatically the normal direction of the wall and the other two
+tangential directions. For example, if accomx = 0.5, accomy = 0.2, accomz = 0.3
+and the wall is normal to direction y, accomx and accomz are the tangential
+velocity accommodation coefficients and accomy is the normal kinetic energy
+accommodation coefficients.
+
+The {units} keyword determines the distance units used to define a wall position
+
+A {box} value selects standard distance units as defined by the
+"units"_units.html command, e.g. Angstroms for units = real or metal. 
+
+A {lattice} value means the distance units are in lattice spacings. The
+"lattice"_lattice.html command must have been previously used to define the
+lattice spacings.
+
+:line
+
+[Restrictions:]
+
+Due to its properties, this fix has has the same limitation as the the
+wall/reflect. Any dimension (xyz) that has a wall must be non-periodic. It
+shoudld not be used with rigid bodies such as those defined by a "fix rigid"
+command. 
+
+[Related commands:]
+
+"fix wall/reflect"_fix_wall_reflect.html, "fix
+"wall/maxwell"_fix_wall_maxwell.html, "fix
+"wall/diffusive"_fix_wall_diffusive.html
+ 
+[Default:] none
+
+:line
+
+:link(CL) 
+[(CL)] Cercignani and M. Lampis, "Kinetic models for gas-surface
+interactions" Transp. Theory Stat. Phys. 1, 2, 101 (1971). 
+:link(To) 
+[(To)] Q.D.
+To, V.H. Vu, G. Lauriat, and C. Leonard, "Boundary conditions for gas flow
+problems from anisotropic scattering kernels" J. Math. Phys. 56, 103101 (2015).
+

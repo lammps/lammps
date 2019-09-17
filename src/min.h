@@ -31,16 +31,16 @@ class Min : protected Pointers {
   Min(class LAMMPS *);
   virtual ~Min();
   virtual void init();
-  void setup(int flag=1);
-  void setup_minimal(int);
-  void run(int);
+  virtual void setup(int flag=1);
+  virtual void setup_minimal(int);
+  virtual void run(int);
   void cleanup();
   int request(class Pair *, int, double);
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
   virtual int modify_param(int, char **) {return 0;}
-  double fnorm_sqr();
-  double fnorm_inf();
+  virtual double fnorm_sqr();
+  virtual double fnorm_inf();
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
@@ -97,10 +97,12 @@ class Min : protected Pointers {
   double *extra_max;          // max allowed change per iter for atom's var
   class Pair **requestor;     // Pair that stores/manipulates the variable
 
+  int kokkosable;             // 1 if this min style supports Kokkos
+
   int neigh_every,neigh_delay,neigh_dist_check;  // neighboring params
 
-  double energy_force(int);
-  void force_clear();
+  virtual double energy_force(int);
+  virtual void force_clear();
 
   double compute_force_norm_sqr();
   double compute_force_norm_inf();

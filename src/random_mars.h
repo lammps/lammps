@@ -24,6 +24,9 @@ class RanMars : protected Pointers {
   ~RanMars();
   double uniform();
   double gaussian();
+  double gaussian(double mu, double sigma);
+  double rayleigh(double sigma);
+  double besselexp(double theta, double alpha, double cp);
 
  private:
   int save;

@@ -105,6 +105,7 @@ shear:    sideways shear applied to 2d solid, with and without a void
 snap:     use of SNAP potential for Ta
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
+steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 threebody: regression test input for a variety of manybody potentials

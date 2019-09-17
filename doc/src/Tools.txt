@@ -515,13 +515,13 @@ Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 spin tool :h4,link(spin)
 
 The spin sub-directory contains a C file interpolate.c which can
-be compiled and used to perform a cubic polynomial interpolation of 
+be compiled and used to perform a cubic polynomial interpolation of
 the MEP following a GNEB calculation.
 
 See the README file in tools/spin/interpolate_gneb for more details.
 
 This tool was written by the SPIN package author, Julien
-Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei 
+Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
 Ivanov, at University of Iceland (ali5 at hi.is).
 
 :line

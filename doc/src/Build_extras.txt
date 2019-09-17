@@ -302,7 +302,7 @@ files.
 
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-CC =		mpicxx :pre
+CC =            mpicxx :pre
 
 :line
 
@@ -849,15 +849,15 @@ additional information.
 For CPUs:
 
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+CCFLAGS =       -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+LINKFLAGS =     -g -qopenmp $(OPTFLAGS)
 LIB =           -ltbbmalloc :pre
 
 For KNLs:
 
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
+CCFLAGS =       -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+LINKFLAGS =     -g -qopenmp $(OPTFLAGS)
 LIB =           -ltbbmalloc :pre
 
 :line

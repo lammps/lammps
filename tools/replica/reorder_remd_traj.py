@@ -351,7 +351,7 @@ def get_canonical_logw(enefn, frametuple_dict, temps, nprod, writefreq,
     u_kln = np.zeros([ntemps, ntemps, nframes], float)
     for k in range(ntemps):
         u_kln[k] = np.outer(beta_k, u_kn[k])
-        
+
     # run pymbar and extract the free energies
     print("\nRunning pymbar...")
     mbar = pymbar.mbar.MBAR(u_kln, nframes_k, verbose = True)
@@ -368,7 +368,7 @@ def get_canonical_logw(enefn, frametuple_dict, temps, nprod, writefreq,
             denom = f_k - beta_k[k] * u_kn[k,n]
             for l in range(ntemps):
                 logw[l][k,n] = num - logsumexp(denom) - log_nframes
-            
+
     return logw
 
 
@@ -518,7 +518,7 @@ if __name__ == "__main__":
 
     # open all replica files for reading
     infobjs = [readwrite(i, "rb") for i in intrajfns]
-    
+
     # open all byteindex files
     byte_inds = dict( (i, np.loadtxt(fn)) for i, fn in enumerate(byteindfns) )
 

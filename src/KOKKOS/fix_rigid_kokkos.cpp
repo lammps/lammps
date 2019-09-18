@@ -356,12 +356,35 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   memoryKK->create_kokkos(k_quat,   quat,    nbody, 4,"rigid/kk:quat");
   memoryKK->create_kokkos(k_inertia,inertia, nbody, 3,"rigid/kk:inertia");
 
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "Contents of body:");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(stderr, " %i", body[i]);
+    }
+    fprintf(stderr, "\n");
+  }
+
+  int nmax = atomKK->nmax;
+
+  // eflags and k_body are already set in the c-tor of FixRigid:
+  k_eflags.modify<LMPHostType>();
+  k_body.modify<LMPHostType>();
+  memoryKK->create_kokkos(k_eflags, eflags, nmax, "rigid/kk:eflags");
+  memoryKK->create_kokkos(k_body,   body,   nmax,  "rigid/kk:body");
+  
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "Contents of body:");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(stderr, " %i", body[i]);
+    }
+    fprintf(stderr, "\n");
+  }
+
   memoryKK->create_kokkos(k_ex_space,ex_space, nbody, 3,"rigid/kk:ex_space");
   memoryKK->create_kokkos(k_ey_space,ey_space, nbody, 3,"rigid/kk:ey_space");
   memoryKK->create_kokkos(k_ez_space,ez_space, nbody, 3,"rigid/kk:ez_space");
 
   // displace, body, xcmimage and eflags are the size of nmax.
-  int nmax = atomKK->nmax;
   memoryKK->create_kokkos(k_displace, displace, nmax, 3,"rigid/kk:displace");
 
   if (debug_output && comm->me == 0) {
@@ -547,7 +570,7 @@ void FixRigidKokkos<DeviceType>::sync_arrays(int phase_mask)
     k_displace.sync<LMPHostType>();
   }
   if (phase_mask == FINAL_INTEGRATE) {
-	  k_vcm.sync<LMPHostType>();
+    k_vcm.sync<LMPHostType>();
     k_angmom.sync<LMPHostType>();
     k_omega.sync<LMPHostType>();
   }
@@ -641,12 +664,18 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   else evflag = 0;
 
   if (debug_output && comm->me == 0) {
-    fprintf(stderr, "\nAfter initial Kokkos::parallel_for, we have:\n");
+    fprintf(stderr, "\nAfter initial Kokkos::parallel_for, before set_xv we have:\n");
   }
   debug_print_quat(k_quat, quat, "quat");
+  debug_print_vec(k_vcm, vcm, "vcm");
   
   // Convert in-body coordinates and etc. back to per-atom quantities:
   set_xv_kokkos();
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "\nAfter initial Kokkos::parallel_for, after set_xv we have:\n");
+  }
+  debug_print_quat(k_quat, quat, "quat");
+  debug_print_vec(k_vcm, vcm, "vcm");
 
 }
 
@@ -655,8 +684,8 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  // Why are k_body and k_eflags not working?
-  // memoryKK->grow_kokkos(k_body,body, nmax,"rigid/kk:body");
+  memoryKK->grow_kokkos(k_body,body, nmax,"rigid/kk:body");
+  memoryKK->grow_kokkos(k_eflags,eflags, nmax,"rigid/kk:eflags");
   memoryKK->grow_kokkos(k_xcmimage, xcmimage,nmax,"rigid/kk:xcmimage");
   memoryKK->grow_kokkos(k_displace, displace,nmax,3,"rigid/kk:displace");
   if (extended) {
@@ -707,7 +736,6 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
   {
     // Local block for Kokkos parallel for:
     
-    auto l_body = body;
     auto l_x = x;
     auto l_v = v;
     auto l_f = f;
@@ -723,9 +751,12 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
     auto l_vcm = k_vcm.d_view;
     auto l_omega = k_omega.d_view;
     auto l_displace = k_displace.d_view;
+
+    // auto l_body = k_body.template view<DeviceType>();
+    auto l_body = k_body.d_view;
     
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
-      if (body[i] < 0) return;
+      if (l_body[i] < 0) return;
       int ibody = l_body[i];
       
       double xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
@@ -808,7 +839,8 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
         vr[4] = 0.5*x0*fc2;
         vr[5] = 0.5*x1*fc2;
 
-        //v_tally(1,&i,1.0,vr);
+        int j = i;
+        v_tally(1,&j,1.0,vr);
       }
     }); // end Kokkos::parallel_for
   } // end local block.
@@ -884,31 +916,30 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::final_integrate()
 {
-  // Right now, compute_forces_and_torques() runs on host.
-  // This probably should be ported too.
+  atomKK->sync(execution_space, datamask_read);
+  atomKK->modified(execution_space, datamask_read);
+
   sync_arrays(FINAL_INTEGRATE);
   modify_arrays(FINAL_INTEGRATE);
+
+  if (!earlyflag) compute_forces_and_torques_kokkos();
   
-  if (debug_output && comm->me == 0) {
-	  fprintf(stderr, "\nChecking forces at start of final_integrate!\n");
-  }
-  debug_print_vec(k_fcm, fcm, "fcm");
-  if (!earlyflag) compute_forces_and_torques();
-  debug_print_vec(k_fcm, fcm, "fcm");
-  if (debug_output && comm->me == 0) {
-	  fprintf(stderr, "\n");
-  }
 
-  // compute_forces_and_torques() calculates kcm and torque, but on host.
-  // So now we reverse the order of host and device in the sync/modify pair?
-  k_xcm.modify<LMPHostType>();
-  k_vcm.modify<LMPHostType>();
-
-  k_xcm.sync<DeviceType>();
   k_vcm.sync<DeviceType>();
+  k_angmom.sync<DeviceType>();
+  k_omega.sync<DeviceType>();
 
-  // update vcm and angmom
-  // fflag,tflag = 0 for some dimensions in 2d
+  k_fflag.sync<DeviceType>();
+  k_tflag.sync<DeviceType>();
+  k_inertia.sync<DeviceType>();
+  
+  k_ex_space.sync<DeviceType>();
+  k_ey_space.sync<DeviceType>();
+  k_ez_space.sync<DeviceType>();
+
+  debug_print_vec(k_torque, torque, "torque");
+  debug_print_vec(k_fcm, fcm, "fcm");
+  
 
   {
     // Local block for lambda captures:
@@ -916,16 +947,18 @@ void FixRigidKokkos<DeviceType>::final_integrate()
     auto l_angmom = k_angmom.d_view;
     auto l_omega = k_omega.d_view;
     
-    auto l_fcm = k_fcm.d_view;
+    auto l_fcm   = k_fcm.d_view;
     auto l_fflag = k_fflag.d_view;
     
     auto l_torque = k_torque.d_view;
-    auto l_tflag = k_tflag.d_view;
+    auto l_tflag  = k_tflag.d_view;
     auto l_inertia = k_inertia.d_view;
 
     auto l_ex_space = k_ex_space.d_view;
     auto l_ey_space = k_ey_space.d_view;
     auto l_ez_space = k_ez_space.d_view;
+
+    auto l_masstotal = masstotal;
     
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody) {
       // update vcm by 1/2 step
@@ -944,10 +977,8 @@ void FixRigidKokkos<DeviceType>::final_integrate()
       auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
       auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
       auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
-
       
-      
-      double dtfm = dtf / masstotal[ibody];
+      double dtfm = dtf / l_masstotal[ibody];
       vcm_ibody[0] += dtfm * fcm_ibody[0] * fflag_ibody[0];
       vcm_ibody[1] += dtfm * fcm_ibody[1] * fflag_ibody[1];
       vcm_ibody[2] += dtfm * fcm_ibody[2] * fflag_ibody[2];
@@ -968,10 +999,86 @@ void FixRigidKokkos<DeviceType>::final_integrate()
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
-
+  if(debug_output && comm->me == 0) {
+    fprintf(stderr, "After parallel_for, before set_v, we have:\n");
+  }
+  
+  debug_print_vec(k_vcm, vcm, "vcm");
+  debug_print_vec(k_omega, omega, "omega");
+  
   set_v_kokkos();
+  atomKK->sync(execution_space, datamask_read);
 }
 
+
+
+template <class DeviceType>
+void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
+{
+  // TODO: PORT THIS; CONTINUE HERE LATER.
+  int i,ibody;
+  
+  // sum over atoms to get force and torque on rigid body
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+
+  double dx,dy,dz;
+  double unwrap[3];
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    ibody = body[i];
+
+    sum[ibody][0] += f[i][0];
+    sum[ibody][1] += f[i][1];
+    sum[ibody][2] += f[i][2];
+
+    domain->unmap(x[i],xcmimage[i],unwrap);
+    dx = unwrap[0] - xcm[ibody][0];
+    dy = unwrap[1] - xcm[ibody][1];
+    dz = unwrap[2] - xcm[ibody][2];
+
+    sum[ibody][3] += dy*f[i][2] - dz*f[i][1];
+    sum[ibody][4] += dz*f[i][0] - dx*f[i][2];
+    sum[ibody][5] += dx*f[i][1] - dy*f[i][0];
+  }
+
+  // extended particles add their torque to torque of body
+
+  if (extended) {
+    double **torque_one = atom->torque;
+
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      ibody = body[i];
+
+      if (eflags[i] & TORQUE) {
+        sum[ibody][3] += torque_one[i][0];
+        sum[ibody][4] += torque_one[i][1];
+        sum[ibody][5] += torque_one[i][2];
+      }
+    }
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  // include Langevin thermostat forces
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
+    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
+    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
+    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
+    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
+    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+  }
+
+}
 
 
 template <class DeviceType>
@@ -1003,7 +1110,6 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
   {
     // Local block for Kokkos parallel for:
     
-    auto l_body = body;
     auto l_x = x;
     auto l_v = v;
     auto l_f = f;
@@ -1019,10 +1125,11 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
     auto l_vcm = k_vcm.d_view;
     auto l_omega = k_omega.d_view;
     auto l_displace = k_displace.d_view;
+    auto l_body = k_body.d_view;
     
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
-      if (body[i] < 0) return;
-      const int ibody = body[i];
+      if (l_body[i] < 0) return;
+      const int ibody = l_body[i];
 
       auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
       auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
@@ -1088,8 +1195,9 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         vr[3] = 0.5*x0*fc1;
         vr[4] = 0.5*x0*fc2;
         vr[5] = 0.5*x1*fc2;
-        
-        //v_tally(1,&i,1.0,vr);
+
+        int j = i;
+        v_tally(1,&j,1.0,vr);
       }
     });
   }

@@ -58,7 +58,8 @@ class FixRigidKokkos : public FixRigid {
 
  protected:
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
-  void set_v_kokkos();  //
+  void set_v_kokkos();
+  void compute_forces_and_torques_kokkos();
 
   void sync_arrays(int phase_mask);
   void modify_arrays(int phase_mask);
@@ -101,7 +102,7 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_x_array k_ex_space, k_ey_space, k_ez_space;
   DAT::tdual_x_array k_displace;
 
-  typename ArrayTypes<DeviceType>::t_int_1d k_eflags, k_body;
+  DAT::tdual_int_1d k_body, k_eflags;
   typename ArrayTypes<DeviceType>::tdual_imageint_1d k_xcmimage;
   DAT::tdual_x_array k_orient;
   DAT::tdual_x_array k_dorient;

@@ -249,12 +249,12 @@ void FixWallDiffusive::post_integrate()
             x[i][dir] -=v[i][dir]*time2;
             v[i][dir] = wallvel[m][dir] + random->gaussian(0,factor) ;
             x[i][dir] +=v[i][dir]*time2;
-            cout << v[i][dir] << "\n";
+
 
             } else {
             v[i][dir] = wallvel[m][dir] + random->rayleigh(factor) ; 
             x[i][dir] = coord + v[i][dir]*time2;
-            cout << v[i][dir] << "\n";
+
             }
             
 
@@ -272,12 +272,12 @@ void FixWallDiffusive::post_integrate()
             x[i][dir] -=v[i][dir]*time2;
             v[i][dir] = wallvel[m][dir] + random->gaussian(0,factor) ;
             x[i][dir] +=v[i][dir]*time2;
-            cout << v[i][dir] << "\n";
+
             
             } else {
             v[i][dir] = wallvel[m][dir] - random->rayleigh(factor) ; 
             x[i][dir] = coord + v[i][dir]*time2;
-            cout << v[i][dir] << "\n";
+
             
             }
 

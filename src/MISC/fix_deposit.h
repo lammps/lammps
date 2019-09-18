@@ -20,6 +20,7 @@ FixStyle(deposit,FixDeposit)
 #ifndef LMP_FIX_DEPOSIT_H
 #define LMP_FIX_DEPOSIT_H
 
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -38,9 +39,9 @@ class FixDeposit : public Fix {
  private:
   int ninsert,ntype,nfreq,seed;
   int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
-  int mode,rigidflag,shakeflag,idnext,distflag;
+  int mode,rigidflag,shakeflag,idnext,distflag,rflag;
   double lo,hi,deltasq,nearsq,rate,sigma;
-  double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
+  double vxlo,vxhi,vylo,vyhi,vzlo,vzhi,rx,ry,rz;
   double xlo,xhi,ylo,yhi,zlo,zhi,xmid,ymid,zmid;
   double tx,ty,tz;
   char *idregion;

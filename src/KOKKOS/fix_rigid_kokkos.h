@@ -36,6 +36,9 @@ class FixRigidKokkos;
 template <class DeviceType>
 class FixRigidKokkos : public FixRigid {
  public:
+
+  typedef Kokkos::DualView<F_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_quat_array;
+	
   FixRigidKokkos(class LAMMPS *, int, char **);
   virtual ~FixRigidKokkos();
   void cleanup_copy();
@@ -62,8 +65,11 @@ class FixRigidKokkos : public FixRigid {
   
 
   template <typename kokkos_arr, typename base_arr>
-  void debug_print(kokkos_arr k_arr, base_arr arr,
-                   const char *name, int idx = 0);
+  void debug_print_vec(kokkos_arr k_arr, base_arr arr,
+                       const char *name, int idx = 0);
+  template <typename kokkos_arr, typename base_arr>
+  void debug_print_quat(kokkos_arr k_arr, base_arr arr,
+                        const char *name, int idx = 0);
 
 
  private:
@@ -87,8 +93,10 @@ class FixRigidKokkos : public FixRigid {
   // They are not the same as those in atom_vec and atom_vec_kokkos!
   DAT::tdual_v_array k_omega, k_angmom;
   DAT::tdual_f_array k_torque;
+  DAT::tdual_x_array k_inertia;
 
-  DAT::tdual_x_array k_quat, k_inertia;
+  // k_quat has to be a special array because it is a quaternion!
+  tdual_quat_array k_quat;
 
   DAT::tdual_x_array k_ex_space, k_ey_space, k_ez_space;
   DAT::tdual_x_array k_displace;

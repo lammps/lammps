@@ -31,14 +31,12 @@
 
 #include "math_extra.h"
 #include "math_const.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
-
-enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
+using namespace RigidConst;
 
 typedef struct { double x,y,z; } dbl3_t;
 
@@ -427,8 +425,8 @@ void FixRigidSmallOMP::set_xv_thr()
         if (b.quat[3] >= 0.0) theta_body = 2.0*acos(b.quat[0]);
         else theta_body = -2.0*acos(b.quat[0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega[i][0] = b.omega[0];
         omega[i][1] = b.omega[1];

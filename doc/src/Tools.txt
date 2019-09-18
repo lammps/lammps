@@ -76,9 +76,10 @@ Post-processing tools :h3
 "pymol_asphere"_#pymol,
 "python"_#pythontools,
 "reax"_#reax_tool,
+"replica"_#replica,
 "smd"_#smd,
 "spin"_#spin,
-"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
+"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l) 
 
 Miscellaneous tools :h3
 
@@ -485,6 +486,21 @@ README for more info on Pizza.py and how to use these scripts.
 
 :line
 
+replica tool :h4,link(replica)
+
+The tools/replica directory contains the reorder_remd_traj python script which
+can be used to reorder the replica trajectories (resulting from the use of the 
+temper command) according to temperature. This will produce discontinuous
+trajectories with all frames at the same temperature in each trajectory.
+Additional options can be used to calculate the canonical configurational
+log-weight for each frame at each temperature using the pymbar package. See
+the README.md file for further details. Try out the peptide example provided.
+
+This tool was written by (and is maintained by) Tanmoy Sanyal, 
+while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com) 
+
+:line
+
 reax tool :h4,link(reax_tool)
 
 The reax sub-directory contains stand-alone codes that can
@@ -549,3 +565,4 @@ simulation.
 See the README file for details.
 
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
+

@@ -11,7 +11,7 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {cg/kk} or {hftn} or {sd} or {quickmin} or {fire} or {spin} :ul
+style = {cg} or {cg/kk} or {hftn} or {sd} or {quickmin} or {fire} or {spin} or {adaptglok} :ul
 
 [Examples:]
 

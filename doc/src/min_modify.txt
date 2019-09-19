@@ -27,8 +27,8 @@ keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
 these keywords apply only to the "min_style"_min_style.html {adaptglok} :ulb,l
 keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} 
           or {alpha0} or {alphashrink} or {halfstepback} or {initialdelay} or {vdfmax}
-  {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
-    eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme
+  {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet}
+    eulerimplicit,eulerexplicit,verlet = integration scheme
   {tmax} arg = coef
     coef = factor defining the maximum timestep
   {tmin} arg = coef
@@ -99,7 +99,7 @@ The style {adaptglok} has several parameters that can be tuned in order
 to optimize the relaxation: {integrator}, {tmax}, {tmin}, {delaystep}, {dtgrow}, {dtshrink}, 
 {alpha0}, and {alphashrink}.
 Different Newton {integrator} can be selected: explicit Euler, 
-semi-implicit Euler (= symplectic Euler), leapfrog, and velocity Verlet.
+semi-implicit Euler (= symplectic Euler) and velocity Verlet.
 The parameters {tmax} and {tmin} define the maximum and minimum timestep 
 allowed during an adaptglok minimization. Those are not in time unit, but are 
 multiplication factor applied to the "timestep"_timestep.html. Thus 

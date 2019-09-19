@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "dump_atom_gz.h"
+#include "dump_local_gz.h"
 #include "domain.h"
 #include "error.h"
 #include "update.h"
@@ -20,23 +20,25 @@
 
 using namespace LAMMPS_NS;
 
-DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) :
-  DumpAtom(lmp, narg, arg)
+DumpLocalGZ::DumpLocalGZ(LAMMPS *lmp, int narg, char **arg) :
+  DumpLocal(lmp, narg, arg)
 {
   gzFp = NULL;
 
   if (!compressed)
-    error->all(FLERR,"Dump atom/gz only writes compressed files");
+    error->all(FLERR,"Dump local/gz only writes compressed files");
 }
+
 
 /* ---------------------------------------------------------------------- */
 
-DumpAtomGZ::~DumpAtomGZ()
+DumpLocalGZ::~DumpLocalGZ()
 {
   if (gzFp) gzclose(gzFp);
   gzFp = NULL;
   fp = NULL;
 }
+
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
@@ -44,7 +46,7 @@ DumpAtomGZ::~DumpAtomGZ()
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
-void DumpAtomGZ::openfile()
+void DumpLocalGZ::openfile()
 {
   // single file, already opened, so just return
 
@@ -103,9 +105,7 @@ void DumpAtomGZ::openfile()
   if (multifile) delete [] filecurrent;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void DumpAtomGZ::write_header(bigint ndump)
+void DumpLocalGZ::write_header(bigint ndump)
 {
   if ((multiproc) || (!multiproc && me == 0)) {
     if (unit_flag && !unit_count) {
@@ -118,31 +118,46 @@ void DumpAtomGZ::write_header(bigint ndump)
     gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic == 0) {
       gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      gzprintf(gzFp,"%g %g\n",boxxlo,boxxhi);
-      gzprintf(gzFp,"%g %g\n",boxylo,boxyhi);
-      gzprintf(gzFp,"%g %g\n",boxzlo,boxzhi);
+      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxxlo,boxxhi);
+      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxylo,boxyhi);
+      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxzlo,boxzhi);
     } else {
       gzprintf(gzFp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      gzprintf(gzFp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-      gzprintf(gzFp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-      gzprintf(gzFp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+      gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxxlo,boxxhi,boxxy);
+      gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxylo,boxyhi,boxxz);
+      gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxzlo,boxzhi,boxyz);
     }
-    gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
+    gzprintf(gzFp,"ITEM: %s %s\n",label,columns);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtomGZ::write_data(int n, double *mybuf)
+void DumpLocalGZ::write_data(int n, double *mybuf)
 {
-  gzwrite(gzFp,mybuf,sizeof(char)*n);
+  if (buffer_flag == 1) {
+    gzwrite(gzFp,mybuf,sizeof(char)*n);
+
+  } else {
+    int i,j;
+    int m = 0;
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < size_one; j++) {
+        if (vtype[j] == INT)
+          gzprintf(gzFp,vformat[j],static_cast<int> (mybuf[m]));
+        else gzprintf(gzFp,vformat[j],mybuf[m]);
+        m++;
+      }
+      gzprintf(gzFp,"\n");
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtomGZ::write()
+void DumpLocalGZ::write()
 {
-  DumpAtom::write();
+  DumpLocal::write();
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);

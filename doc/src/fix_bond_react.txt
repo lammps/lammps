@@ -412,8 +412,8 @@ These is 1 quantity for each react argument:
 
 (1) cumulative # of reactions occurred :ul
 
-No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
+No parameter of this fix can be used with the {start/stop} keywords
+of the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 When fix bond/react is 'unfixed,' all internally-created groups are
@@ -423,18 +423,20 @@ all other fixes that use any group created by fix bond/react.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.
+LAMMPS was built with that package.  See the
+"Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"fix bond/create"_fix_bond_create.html, "fix
-bond/break"_fix_bond_break.html, "fix bond/swap"_fix_bond_swap.html,
+"fix bond/create"_fix_bond_create.html,
+"fix bond/break"_fix_bond_break.html,
+"fix bond/swap"_fix_bond_swap.html,
 "dump local"_dump.html, "special_bonds"_special_bonds.html
 
 [Default:]
 
-The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60, update_edges = none
+The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
+update_edges = none
 
 :line
 

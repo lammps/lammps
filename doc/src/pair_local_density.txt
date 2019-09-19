@@ -24,7 +24,7 @@ pair_coeff * * local/density  benzene_water.localdensity.table :pre
 
 [Description:]
 
-The local density (LD) potential is a new potential style that is, in some 
+The local density (LD) potential is a mean-field manybody potential, and, in some 
 sense,a generalization of embedded atom models (EAM). The name "local density 
 potential" arises from the fact that it assigns an energy to an atom depending 
 on the number of neighboring atoms of given type around it within a predefined 

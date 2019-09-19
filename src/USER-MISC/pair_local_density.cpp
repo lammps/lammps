@@ -32,10 +32,28 @@
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
+
+static const char cite_pair_local_density[] =
+  "pair_style  local/density  command:\n\n"
+  "@Article{Sanyal16,\n"
+  " author =  {T.Sanyal and M.Scott Shell},\n"
+  " title =   {Coarse-grained models using local-density potentials optimized with the relative entropy: Application to implicit solvation},\n"
+  " journal = {J.~Chem.~Phys.},\n"
+  " year =    2016,\n"
+  " DOI = doi.org/10.1063/1.4958629"
+  "}\n\n"
+  "@Article{Sanyal18,\n"
+  " author =  {T.Sanyal and M.Scott Shell},\n"
+  " title =   {Transferable coarse-grained models of liquid-liquid equilibrium using local density potentials optimized with the relative entropy},\n"
+  " journal = {J.~Phys.~Chem. B},\n"
+  " year =    2018,\n"
+  " DOI = doi.org/10.1021/acs.jpcb.7b12446"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -74,6 +92,9 @@ PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
   // set comm size needed by this pair
   comm_forward = 1;
   comm_reverse = 1;
+
+  // cite publication
+  if (lmp->citeme) lmp->citeme->add(cite_pair_local_density);
 }
 
 /* ----------------------------------------------------------------------

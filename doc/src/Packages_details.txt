@@ -208,7 +208,7 @@ available on your system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#compress on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -338,35 +338,51 @@ KIM package :link(PKG-KIM),h4
 
 [Contents:]
 
-A "pair_style kim"_pair_kim.html command which is a wrapper on the
-Knowledge Base for Interatomic Models (KIM) repository of interatomic
-potentials, enabling any of them to be used in LAMMPS simulations.
-Also a "kim_query"_kim_query.html command, which allows to query
-the OpenKIM database for stored properties.
+This package contains a set of commands that serve as a wrapper on the
+"Open Knowledgebase of Interatomic Models (OpenKIM)"_https://openkim.org
+repository of interatomic models (IMs)
+enabling compatible ones to be used in LAMMPS simulations.
+This includes "kim_init and kim_interactions"_kim_commands.html
+commands to select, initialize and instantiate the IM, and a
+"kim_query"_kim_commands.html command to perform web queries
+for material property predictions of OpenKIM IMs.
+Support for KIM IMs that conform to the
+"KIM Application Programming Interface (API)"_https://openkim.org/kim-api/
+is provided by the "pair_style kim"_pair_kim.html command.
 
-To use this package you must have the KIM library available on your
-system.
+NOTE: The command {pair_style kim} is called by {kim_interactions} and
+is not recommended to be directly used in input scripts.
+
+To use this package you must have the KIM API library available on your
+system. The KIM API is available for download on the
+"OpenKIM website"_https://openkim.org/kim-api/.
+When installing LAMMPS from binary, the kim-api package
+is a dependency that is automatically downloaded and installed.
 
 Information about the KIM project can be found at its website:
-https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
-Elliott (U Minnesota).
+"https://openkim.org"_https://openkim.org.
+The KIM project is led by Ellad Tadmor and Ryan Elliott (U Minnesota)
+and is funded by the "National Science Foundation"_https://www.nsf.gov/.
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
-API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style.
+API and the {pair_style kim} command. Axel Kohlmeyer (Temple U) and
+Ellad Tadmor (U Minnesota) contributed to the "kim_commands"_kim_commands.html
+interface in close collaboration with Ryan Elliott.
+
 
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#kim on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
 
+"kim_commands"_kim_commands.html
+"pair_style kim"_pair_kim.html
 src/KIM: filenames -> commands
 src/KIM/README
 lib/kim/README
-"pair_style kim"_pair_kim.html
 examples/kim :ul
 
 :line
@@ -404,7 +420,7 @@ lib/kokkos.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#kokkos on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -477,7 +493,7 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#latte on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -654,7 +670,7 @@ University of Chicago.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#mscg on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -686,7 +702,7 @@ and Vincent Natoli (Stone Ridge Technolgy).
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#opt on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -743,7 +759,7 @@ connections at hinge points.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#poems on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -775,7 +791,7 @@ lib/python/README for more details.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#python on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -911,6 +927,8 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 
 src/SPIN: filenames -> commands
 "Howto spins"_Howto_spins.html
+"pair_style spin/dipole/cut"_pair_spin_dipole.html
+"pair_style spin/dipole/long"_pair_spin_dipole.html
 "pair_style spin/dmi"_pair_spin_dmi.html
 "pair_style spin/exchange"_pair_spin_exchange.html
 "pair_style spin/magelec"_pair_spin_magelec.html
@@ -965,7 +983,7 @@ and LBNL.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#voronoi on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -982,9 +1000,9 @@ USER-ADIOS package :link(PKG-USER-ADIOS),h4
 
 [Contents:]
 
-ADIOS is a high-performance I/O library. This package implements the 
+ADIOS is a high-performance I/O library. This package implements the
 dump "atom/adios" and dump "custom/adios" commands to write data using
-the ADIOS library. 
+the ADIOS library.
 
 [Authors:] Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
@@ -1017,7 +1035,7 @@ atomic information to continuum fields.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-atc on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1044,7 +1062,7 @@ model.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-awpmd on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1173,7 +1191,7 @@ USER-PLUMED package :link(PKG-USER-PLUMED),h4
 The fix plumed command allows you to use the PLUMED free energy plugin
 for molecular dynamics to analyze and bias your LAMMPS trajectory on
 the fly.  The PLUMED library is called from within the LAMMPS input
-script by using the "fix plumed _fix_plumed.html command.
+script by using the "fix plumed"_fix_plumed.html command.
 
 [Authors:] The "PLUMED library"_#PLUMED is written and maintained by
 Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
@@ -1184,7 +1202,7 @@ Tribello.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-plumed on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1362,7 +1380,7 @@ H5MD format.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-h5md on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1400,7 +1418,7 @@ NOTE: the USER-INTEL package contains styles that require using the
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-intel on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1620,7 +1638,7 @@ at
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-molfile on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1660,7 +1678,7 @@ tools:
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-netcdf on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1704,7 +1722,7 @@ install/un-install the package and build LAMMPS in the usual manner:
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-omp on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1788,7 +1806,7 @@ without changes to LAMMPS itself.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-qmmm on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1846,7 +1864,7 @@ on your system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-quip on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1964,7 +1982,7 @@ Dynamics, Ernst Mach Institute, Germany).
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-smd on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -2090,7 +2108,7 @@ system.
 [Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-vtk on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]

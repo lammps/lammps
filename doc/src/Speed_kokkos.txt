@@ -46,16 +46,15 @@ software version 7.5 or later must be installed on your system. See
 the discussion for the "GPU package"_Speed_gpu.html for details of how
 to check and do this.
 
-NOTE: Kokkos with CUDA currently implicitly assumes, that the MPI
-library is CUDA-aware and has support for GPU-direct. This is not
-always the case, especially when using pre-compiled MPI libraries
-provided by a Linux distribution. This is not a problem when using
-only a single GPU and a single MPI rank on a desktop. When running
-with multiple MPI ranks, you may see segmentation faults without
-GPU-direct support.  These can be avoided by adding the flags "-pk
-kokkos gpu/direct off"_Run_options.html to the LAMMPS command line or
-by using the command "package kokkos gpu/direct off"_package.html in
-the input file.
+NOTE: Kokkos with CUDA currently implicitly assumes that the MPI library 
+is CUDA-aware. This is not always the case, especially when using 
+pre-compiled MPI libraries provided by a Linux distribution. This is not 
+a problem when using only a single GPU with a single MPI rank. When 
+running with multiple MPI ranks, you may see segmentation faults without 
+CUDA-aware MPI support. These can be avoided by adding the flags "-pk 
+kokkos cuda/aware off"_Run_options.html to the LAMMPS command line or by 
+using the command "package kokkos cuda/aware off"_package.html in the 
+input file.
 
 [Building LAMMPS with the KOKKOS package:]
 
@@ -207,19 +206,20 @@ supports.
 
 [Running on GPUs:]
 
-Use the "-k" "command-line switch"_Run_options.html to
-specify the number of GPUs per node. Typically the -np setting of the
-mpirun command should set the number of MPI tasks/node to be equal to
-the number of physical GPUs on the node.  You can assign multiple MPI
-tasks to the same GPU with the KOKKOS package, but this is usually
-only faster if significant portions of the input script have not
-been ported to use Kokkos. Using CUDA MPS is recommended in this
-scenario. Using a CUDA-aware MPI library with support for GPU-direct
-is highly recommended. GPU-direct use can be avoided by using
-"-pk kokkos gpu/direct no"_package.html.
-As above for multi-core CPUs (and no GPU), if N is the number of
-physical cores/node, then the number of MPI tasks/node should not
-exceed N.
+Use the "-k" "command-line switch"_Run_options.html to specify the 
+number of GPUs per node. Typically the -np setting of the mpirun command 
+should set the number of MPI tasks/node to be equal to the number of 
+physical GPUs on the node. You can assign multiple MPI tasks to the same 
+GPU with the KOKKOS package, but this is usually only faster if some 
+portions of the input script have not been ported to use Kokkos. In this 
+case, also packing/unpacking communication buffers on the host may give 
+speedup (see the KOKKOS "package"_package.html command). Using CUDA MPS 
+is recommended in this scenario.
+
+Using a CUDA-aware MPI library is highly recommended. CUDA-aware MPI use can be 
+avoided by using "-pk kokkos cuda/aware no"_package.html. As above for 
+multi-core CPUs (and no GPU), if N is the number of physical cores/node, 
+then the number of MPI tasks/node should not exceed N.
 
 -k on g Ng :pre
 

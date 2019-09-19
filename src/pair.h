@@ -14,7 +14,7 @@
 #ifndef LMP_PAIR_H
 #define LMP_PAIR_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -46,6 +46,7 @@ class Pair : protected Pointers {
   int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
+  int single_hessian_enable;     // 1 if single_hessian() routine exists
   int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
@@ -61,6 +62,7 @@ class Pair : protected Pointers {
   int dispersionflag;            // 1 if compatible with LJ/dispersion solver
   int tip4pflag;                 // 1 if compatible with TIP4P solver
   int dipoleflag;                // 1 if compatible with dipole solver
+  int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
@@ -144,6 +146,16 @@ class Pair : protected Pointers {
                         double, double, double,
                         double& fforce) {
     fforce = 0.0;
+    return 0.0;
+  }
+
+  void hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]);
+
+  virtual double single_hessian(int, int, int, int,
+                        double, double[3], double, double,
+                        double& fforce, double d2u[6]) {
+    fforce = 0.0;
+    for (int i=0; i<6; i++) d2u[i] = 0;
     return 0.0;
   }
 

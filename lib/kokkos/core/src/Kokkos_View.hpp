@@ -74,7 +74,11 @@ template< class DataType , class ArrayLayout
 struct ViewDataAnalysis ;
 
 template< class , class ... >
-class ViewMapping { public: enum { is_assignable = false }; };
+class ViewMapping {
+  public:
+  enum { is_assignable_data_type = false };
+  enum { is_assignable = false };
+};
 
 
 
@@ -97,6 +101,7 @@ std::size_t count_valid_integers(const IntType i0,
 
 }
 
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
 KOKKOS_INLINE_FUNCTION
 void runtime_check_rank_device(const size_t dyn_rank,
                         const bool is_void_spec,
@@ -109,8 +114,6 @@ void runtime_check_rank_device(const size_t dyn_rank,
                         const size_t i6,
                         const size_t i7 ){
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
-
   if ( is_void_spec ) {
     const size_t num_passed_args = count_valid_integers(i0, i1, i2, i3,
         i4, i5, i6, i7);
@@ -121,10 +124,25 @@ void runtime_check_rank_device(const size_t dyn_rank,
 
     }
   }
-#endif
 }
+#else
+KOKKOS_INLINE_FUNCTION
+void runtime_check_rank_device(const size_t ,
+                        const bool ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t  ){
+
+}
+#endif
 
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
 KOKKOS_INLINE_FUNCTION
 void runtime_check_rank_host(const size_t dyn_rank,
                         const bool is_void_spec,
@@ -137,7 +155,6 @@ void runtime_check_rank_host(const size_t dyn_rank,
                         const size_t i6,
                         const size_t i7, const std::string & label ){
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
 
   if ( is_void_spec ) {
     const size_t num_passed_args = count_valid_integers(i0, i1, i2, i3,
@@ -150,8 +167,20 @@ void runtime_check_rank_host(const size_t dyn_rank,
       Kokkos::abort(message.c_str()) ;
     }
   }
-#endif
 }
+#else
+KOKKOS_INLINE_FUNCTION
+void runtime_check_rank_host(const size_t ,
+                        const bool ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t ,
+                        const size_t , const std::string &){}
+#endif
 #endif
 
 } /* namespace Impl */
@@ -362,8 +391,8 @@ public:
   typedef typename MemorySpace::size_type  size_type ;
 
   enum { is_hostspace      = std::is_same< MemorySpace , HostSpace >::value };
-  enum { is_managed        = MemoryTraits::Unmanaged    == 0 };
-  enum { is_random_access  = MemoryTraits::RandomAccess == 1 };
+  enum { is_managed        = MemoryTraits::is_unmanaged    == 0 };
+  enum { is_random_access  = MemoryTraits::is_random_access == 1 };
 
   //------------------------------------
 };
@@ -1965,7 +1994,10 @@ public:
 
   template< class RT , class ... RP >
   KOKKOS_INLINE_FUNCTION
-  View( const View<RT,RP...> & rhs )
+  View( const View<RT,RP...> & rhs,
+        typename std::enable_if<Kokkos::Impl::ViewMapping<
+        traits , typename View<RT,RP...>::traits , typename traits::specialize >::is_assignable_data_type>::type* = 0
+     )
     : m_track( rhs.m_track , traits::is_managed )
     , m_map()
     {
@@ -1977,7 +2009,9 @@ public:
 
   template< class RT , class ... RP >
   KOKKOS_INLINE_FUNCTION
-  View & operator = ( const View<RT,RP...> & rhs )
+  typename std::enable_if<Kokkos::Impl::ViewMapping<
+     traits , typename View<RT,RP...>::traits , typename traits::specialize >::is_assignable_data_type,
+     View>::type & operator = ( const View<RT,RP...> & rhs )
     {
       typedef typename View<RT,RP...>::traits  SrcTraits ;
       typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , typename traits::specialize >  Mapping ;
@@ -1994,7 +2028,7 @@ public:
   template< class RT , class ... RP , class Arg0 , class ... Args >
   KOKKOS_INLINE_FUNCTION
   View( const View< RT , RP... > & src_view
-      , const Arg0 & arg0 , Args ... args )
+      , const Arg0 arg0 , Args ... args )
     : m_track( src_view.m_track , traits::is_managed )
     , m_map()
     {
@@ -2077,7 +2111,7 @@ public:
       }
 
       // Copy the input allocation properties with possibly defaulted properties
-      alloc_prop prop( arg_prop );
+      alloc_prop prop_copy( arg_prop );
 
 //------------------------------------------------------------
 #if defined( KOKKOS_ENABLE_CUDA )
@@ -2087,18 +2121,18 @@ public:
       // Fence using the trait's executon space (which will be Kokkos::Cuda)
       // to avoid incomplete type errors from usng Kokkos::Cuda directly.
       if ( std::is_same< Kokkos::CudaUVMSpace , typename traits::device_type::memory_space >::value ) {
-        traits::device_type::memory_space::execution_space::fence();
+        typename traits::device_type::memory_space::execution_space().fence();
       }
 #endif
 //------------------------------------------------------------
 
       Kokkos::Impl::SharedAllocationRecord<> *
-        record = m_map.allocate_shared( prop , arg_layout );
+        record = m_map.allocate_shared( prop_copy , arg_layout );
 
 //------------------------------------------------------------
 #if defined( KOKKOS_ENABLE_CUDA )
       if ( std::is_same< Kokkos::CudaUVMSpace , typename traits::device_type::memory_space >::value ) {
-        traits::device_type::memory_space::execution_space::fence();
+        typename traits::device_type::memory_space::execution_space().fence();
       }
 #endif
 //------------------------------------------------------------

@@ -24,11 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "error.h"
 #include "reaxc_ffield.h"
+#include <mpi.h>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
+#include "error.h"
 #include "reaxc_tool_box.h"
-
 
 char Read_Force_Field( FILE *fp, reax_interaction *reax,
                        control_params *control )

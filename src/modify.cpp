@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "modify.h"
+#include <cstring>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -81,6 +80,11 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   ncompute = maxcompute = 0;
   compute = NULL;
 
+  create_factories();
+}
+
+void _noopt Modify::create_factories()
+{
   // fill map with fixes listed in style_fix.h
 
   fix_map = new FixCreatorMap();
@@ -793,7 +797,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", NULL};
+     "deprecated", "STORE/KIM", NULL};
 
   if (domain->box_exist == 0) {
     int m;
@@ -893,11 +897,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) {
-    char str[128];
-    snprintf(str,128,"Unknown fix style %s",arg[2]);
-    error->all(FLERR,str);
-  }
+  if (fix[ifix] == NULL)
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -1195,11 +1196,8 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) {
-    char str[128];
-    snprintf(str,128,"Unknown compute style %s",arg[2]);
-    error->all(FLERR,str);
-  }
+  if (compute[ncompute] == NULL)
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
 
   ncompute++;
 }

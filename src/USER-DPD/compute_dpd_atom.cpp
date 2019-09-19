@@ -15,20 +15,14 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "compute_dpd_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
-#include "domain.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 #include "comm.h"
-
-#include <vector>
 
 using namespace LAMMPS_NS;
 

@@ -47,13 +47,13 @@ or {cubic_spline}.
 
 With either spline method, the only argument that needs to follow it
 is the name of a file that contains the desired pressure correction
-as a function of volume. The file should be formatted so each line has:
+as a function of volume. The file must be formatted so each line has:
 
 Volume_i, PressureCorrection_i :pre
 
 Note both the COMMA and the SPACE separating the volume's
 value and its corresponding pressure correction. The volumes in the file
-should be uniformly spaced. Both the volumes and the pressure corrections
+must be uniformly spaced. Both the volumes and the pressure corrections
 should be provided in the proper units, e.g. if you are using {units real},
 the volumes should all be in cubic angstroms, and the pressure corrections
 should all be in atmospheres. Furthermore, the table should start/end at a

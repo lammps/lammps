@@ -23,7 +23,6 @@ PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>)
 #ifndef LMP_PAIR_EAM_ALLOY_KOKKOS_H
 #define LMP_PAIR_EAM_ALLOY_KOKKOS_H
 
-#include <cstdio>
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_eam.h"

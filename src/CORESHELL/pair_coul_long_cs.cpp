@@ -15,22 +15,11 @@
    Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_long_cs.h"
+#include <cmath>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
-#include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

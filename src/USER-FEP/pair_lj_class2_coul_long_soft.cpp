@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_class2_coul_long_soft.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -74,7 +73,6 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction;
   double rsq,r,forcecoul,forcelj;
   double grij,expm2,prefactor,t,erfc;
   double factor_coul,factor_lj;
@@ -490,7 +488,7 @@ double PairLJClass2CoulLongSoft::single(int i, int j, int itype, int jtype,
                                     double &fforce)
 {
   double denc,r,denlj,r4sig6,grij,expm2,t,erfc,prefactor;
-  double fraction,forcecoul,forcelj,phicoul,philj;
+  double forcecoul,forcelj,phicoul,philj;
 
   if (rsq < cut_coulsq) {
       r = sqrt(rsq);

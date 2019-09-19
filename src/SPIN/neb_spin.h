@@ -20,7 +20,6 @@ CommandStyle(neb/spin,NEBSpin)
 #ifndef LMP_NEB_SPIN_H
 #define LMP_NEB_SPIN_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -46,7 +45,7 @@ class NEBSpin : protected Pointers {
   double ttol;                 // torque tolerance convergence criterion
   int n1steps, n2steps;        // number of steps in stage 1 and 2
   int nevery;                  // output interval
-  char *infile;                // name of file containing final state
+  char *inpfile;                // name of file containing final state
 
   class FixNEBSpin *fneb;
   int numall;                  // per-replica dimension of array all

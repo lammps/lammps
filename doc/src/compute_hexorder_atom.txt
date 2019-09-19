@@ -65,7 +65,7 @@ In an isotropic liquid, local neighborhoods may still exhibit
 weak hexagonal symmetry, but because the orientational correlation
 decays quickly with distance, the value of phi will be different for
 different atoms, and so when {q}6 is averaged over all the atoms
-in the system, \|<{q}6>\| << 1.
+in the system, |<{q}6>| << 1.
 
 The value of {qn} is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than

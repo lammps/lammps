@@ -129,6 +129,7 @@ accelerated styles exist.
 "colloid"_pair_colloid.html - integrated colloidal potential
 "comb"_pair_comb.html - charge-optimized many-body (COMB) potential
 "comb3"_pair_comb.html - charge-optimized many-body (COMB3) potential
+"cosine/squared"_pair_cosine_squared.html - Cooke-Kremer-Deserno membrane model potential
 "coul/cut"_pair_coul.html - cutoff Coulombic potential
 "coul/cut/soft"_pair_fep_soft.html - Coulombic potential with a soft core
 "coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
@@ -284,6 +285,8 @@ accelerated styles exist.
 "sph/rhosum"_pair_sph_rhosum.html -
 "sph/taitwater"_pair_sph_taitwater.html -
 "sph/taitwater/morris"_pair_sph_taitwater_morris.html -
+"spin/dipole/cut"_pair_spin_dipole.html -
+"spin/dipole/long"_pair_spin_dipole.html -
 "spin/dmi"_pair_spin_dmi.html -
 "spin/exchange"_pair_spin_exchange.html -
 "spin/magelec"_pair_spin_magelec.html -

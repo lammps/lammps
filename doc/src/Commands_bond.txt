@@ -28,8 +28,12 @@ OPT.
 
 "none"_bond_none.html,
 "zero"_bond_zero.html,
-"hybrid"_bond_hybrid.html :tb(c=3,ea=c)
-
+"hybrid"_bond_hybrid.html,
+,
+,
+,
+,
+,
 "class2 (ko)"_bond_class2.html,
 "fene (iko)"_bond_fene.html,
 "fene/expand (o)"_bond_fene_expand.html,
@@ -56,8 +60,12 @@ OPT.
 
 "none"_angle_none.html,
 "zero"_angle_zero.html,
-"hybrid"_angle_hybrid.html :tb(c=3,ea=c)
-
+"hybrid"_angle_hybrid.html,
+,
+,
+,
+,
+,
 "charmm (iko)"_angle_charmm.html,
 "class2 (ko)"_angle_class2.html,
 "class2/p6"_angle_class2.html,
@@ -89,14 +97,18 @@ OPT.
 
 "none"_dihedral_none.html,
 "zero"_dihedral_zero.html,
-"hybrid"_dihedral_hybrid.html :tb(c=3,ea=c)
-
+"hybrid"_dihedral_hybrid.html,
+,
+,
+,
+,
+,
 "charmm (iko)"_dihedral_charmm.html,
 "charmmfsw"_dihedral_charmm.html,
 "class2 (ko)"_dihedral_class2.html,
 "cosine/shift/exp (o)"_dihedral_cosine_shift_exp.html,
 "fourier (io)"_dihedral_fourier.html,
-"harmonic (io)"_dihedral_harmonic.html,
+"harmonic (iko)"_dihedral_harmonic.html,
 "helix (o)"_dihedral_helix.html,
 "multi/harmonic (o)"_dihedral_multi_harmonic.html,
 "nharmonic (o)"_dihedral_nharmonic.html,
@@ -117,8 +129,12 @@ OPT.
 
 "none"_improper_none.html,
 "zero"_improper_zero.html,
-"hybrid"_improper_hybrid.html :tb(c=3,ea=c)
-
+"hybrid"_improper_hybrid.html,
+,
+,
+,
+,
+,
 "class2 (ko)"_improper_class2.html,
 "cossq (o)"_improper_cossq.html,
 "cvff (io)"_improper_cvff.html,

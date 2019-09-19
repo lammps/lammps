@@ -16,15 +16,12 @@
    [ based on improper_umbrella.cpp Tod A Pascal (Caltech) ]
 ------------------------------------------------------------------------- */
 
+#include "improper_fourier.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "improper_fourier.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"

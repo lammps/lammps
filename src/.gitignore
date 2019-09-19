@@ -5,6 +5,7 @@
 /lmp_*
 
 /style_*.h
+/packages_*.h
 /lmpinstalledpkgs.h
 /lmpgitversion.h
 
@@ -166,6 +167,10 @@
 /pair_spin.h
 /pair_spin_dmi.cpp
 /pair_spin_dmi.h
+/pair_spin_dipole_cut.cpp
+/pair_spin_dipole_cut.h
+/pair_spin_dipole_long.cpp
+/pair_spin_dipole_long.h
 /pair_spin_exchange.cpp
 /pair_spin_exchange.h
 /pair_spin_magelec.cpp
@@ -427,6 +432,10 @@
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
+/ewald_dipole.cpp
+/ewald_dipole.h
+/ewald_dipole_spin.cpp
+/ewald_dipole_spin.h
 /ewald_disp.cpp
 /ewald_disp.h
 /ewald_n.cpp
@@ -792,6 +801,8 @@
 /pair_comb3.h
 /pair_colloid.cpp
 /pair_colloid.h
+/pair_cosine_squared.cpp
+/pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
 /pair_coul_long.cpp
@@ -1026,6 +1037,10 @@
 /pppm.h
 /pppm_cg.cpp
 /pppm_cg.h
+/pppm_dipole.cpp
+/pppm_dipole.h
+/pppm_dipole_spin.cpp
+/pppm_dipole_spin.h
 /pppm_disp.cpp
 /pppm_disp.h
 /pppm_disp_tip4p.cpp

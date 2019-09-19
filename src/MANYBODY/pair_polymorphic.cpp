@@ -16,11 +16,11 @@
    This modifies from pair_tersoff.cpp by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_polymorphic.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_polymorphic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -30,10 +30,7 @@
 #include "memory.h"
 #include "error.h"
 
-#include "math_const.h"
-
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4

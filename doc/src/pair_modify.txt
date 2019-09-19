@@ -13,7 +13,8 @@ pair_modify command :h3
 pair_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {pair} or {shift} or {mix} or {table} or {table/disp} or {tabinner} or {tabinner/disp} or {tail} or {compute} :l
+keyword = {pair} or {shift} or {mix} or {table} or {table/disp} or {tabinner}
+or {tabinner/disp} or {tail} or {compute} or {nofdotr} :l
   {pair} values = sub-style N {special} which wt1 wt2 wt3
                or sub-style N {compute/tally} flag
     sub-style = sub-style of "pair hybrid"_pair_hybrid.html
@@ -33,7 +34,8 @@ keyword = {pair} or {shift} or {mix} or {table} or {table/disp} or {tabinner} or
   {tabinner/disp} value = cutoff
     cutoff = inner cutoff at which to begin table (distance units)
   {tail} value = {yes} or {no}
-  {compute} value = {yes} or {no} :pre
+  {compute} value = {yes} or {no}
+  {nofdotr} :pre
 :ule
 
 [Examples:]
@@ -211,6 +213,10 @@ short-range pairwise interactions.  Doing this by simply not defining
 a pair style will not work, because the
 "kspace_style"_kspace_style.html command requires a Kspace-compatible
 pair style be defined.
+
+The {nofdotr} keyword allows to disable an optimization that computes
+the global stress tensor from the total forces and atom positions rather
+than from summing forces between individual pairs of atoms.
 
 :line
 

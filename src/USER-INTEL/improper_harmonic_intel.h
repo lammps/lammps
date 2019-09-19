@@ -24,7 +24,6 @@ ImproperStyle(harmonic/intel,ImproperHarmonicIntel)
 #ifndef LMP_IMPROPER_HARMONIC_INTEL_H
 #define LMP_IMPROPER_HARMONIC_INTEL_H
 
-#include <cstdio>
 #include "improper_harmonic.h"
 #include "fix_intel.h"
 

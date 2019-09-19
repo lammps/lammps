@@ -16,14 +16,12 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
+#include "pair_edpd.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <ctime>
 #include <cstring>
-#include "pair_edpd.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"

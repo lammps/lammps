@@ -82,6 +82,15 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch. :dd
 
+{Bond/react: Atom affected by reaction too close to template edge} :dt
+
+This means an atom which changes type or connectivity during the
+reaction is too close to an 'edge' atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom. :dd
+
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
 Self-explanatory. :dd
@@ -119,6 +128,16 @@ Self-explanatory. :dd
 {Charges did not converge at step %ld: %lg} :dt
 
 Self-explanatory. :dd
+
+{Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost} :dt
+
+The communication cutoff defaults to the maximum of what is inferred from
+pair and bond styles (will be zero, if none are defined) and what is specified
+via "comm_modify cutoff"_comm_modify.html (defaults to 0.0).  If this results
+to 0.0, no ghost atoms will be generated and LAMMPS may lose atoms or use
+incorrect periodic images of atoms in interaction lists.  To avoid, either use
+"pair style zero"_pair_zero.html with a suitable cutoff or use "comm_modify
+cutoff"_comm_modify.html. :dd
 
 {Communication cutoff is too small for SNAP micro load balancing, increased to %lf} :dt
 

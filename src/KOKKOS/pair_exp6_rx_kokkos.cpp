@@ -15,20 +15,17 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_exp6_rx_kokkos.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "math_const.h"
 #include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "modify.h"
 #include "fix.h"
 #include <cfloat>
 #include "atom_masks.h"
@@ -41,7 +38,6 @@
 #endif
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecialKokkos;
 
 #define MAXLINE 1024
@@ -310,12 +306,12 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 #else // No atomics
 
-  num_threads = lmp->kokkos->num_threads;
+  nthreads = lmp->kokkos->nthreads;
   int nmax = f.extent(0);
   if (nmax > t_f.extent(1)) {
-    t_f = t_f_array_thread("pair_exp6_rx:t_f",num_threads,nmax);
-    t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",num_threads,nmax);
-    t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",num_threads,nmax);
+    t_f = t_f_array_thread("pair_exp6_rx:t_f",nthreads,nmax);
+    t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",nthreads,nmax);
+    t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",nthreads,nmax);
   }
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroDupViews>(0,nmax),*this);
@@ -1642,7 +1638,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, const int &i) const {
-  for (int n = 0; n < num_threads; n++) {
+  for (int n = 0; n < nthreads; n++) {
     f(i,0) += t_f(n,i,0);
     f(i,1) += t_f(n,i,1);
     f(i,2) += t_f(n,i,2);
@@ -1654,7 +1650,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, con
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroDupViews, const int &i) const {
-  for (int n = 0; n < num_threads; n++) {
+  for (int n = 0; n < nthreads; n++) {
     t_f(n,i,0) = 0.0;
     t_f(n,i,1) = 0.0;
     t_f(n,i,2) = 0.0;

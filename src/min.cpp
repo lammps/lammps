@@ -19,10 +19,10 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "min.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -80,6 +80,8 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   requestor = NULL;
 
   external_force_clear = 0;
+
+  kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,6 +107,10 @@ Min::~Min()
 
 void Min::init()
 {
+  if (lmp->kokkos && !kokkosable)
+    error->all(FLERR,"Must use a Kokkos-enabled min style (e.g. min_style cg/kk) "
+     "with Kokkos minimize");
+
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 

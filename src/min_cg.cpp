@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "min_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstring>
-#include "min_cg.h"
-#include "atom.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"

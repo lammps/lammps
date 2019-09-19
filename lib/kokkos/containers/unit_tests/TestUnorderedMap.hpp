@@ -69,7 +69,7 @@ struct TestInsert
 
   void testit( bool rehash_on_fail = true )
   {
-    execution_space::fence();
+    execution_space().fence();
 
     uint32_t failed_count = 0;
     do {
@@ -82,7 +82,7 @@ struct TestInsert
       }
     } while (rehash_on_fail && failed_count > 0u);
 
-    execution_space::fence();
+    execution_space().fence();
   }
 
 
@@ -122,9 +122,9 @@ struct TestInsert
 
     void testit()
     {
-      execution_space::fence();
+      execution_space().fence();
       Kokkos::parallel_for(m_num_erase, *this);
-      execution_space::fence();
+      execution_space().fence();
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -161,9 +161,9 @@ struct TestInsert
 
     void testit(value_type &errors)
     {
-      execution_space::execution_space::fence();
+      execution_space().fence();
       Kokkos::parallel_reduce(m_map.capacity(), *this, errors);
-      execution_space::execution_space::fence();
+      execution_space().fence();
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -247,7 +247,7 @@ void test_failed_insert( uint32_t num_nodes)
   map_type map(num_nodes);
   Impl::TestInsert<map_type> test_insert(map, 2u*num_nodes, 1u);
   test_insert.testit(false /*don't rehash on fail*/);
-  Device::execution_space::fence();
+  typename Device::execution_space().fence();
 
   EXPECT_TRUE( map.failed_insert() );
 }

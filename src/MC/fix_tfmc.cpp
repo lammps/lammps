@@ -22,7 +22,6 @@
 #include <cfloat>
 #include "atom.h"
 #include "force.h"
-#include "update.h"
 #include "group.h"
 #include "random_mars.h"
 #include "comm.h"

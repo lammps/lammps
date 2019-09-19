@@ -21,11 +21,6 @@ FixStyle(reax/c/species,FixReaxCSpecies)
 #define LMP_FIX_REAXC_SPECIES_H
 
 #include "fix.h"
-#include "pointers.h"
-
-#include "pair_reaxc.h"
-#include "reaxc_types.h"
-#include "reaxc_defs.h"
 
 #define BUFLEN 1000
 

@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
+#include "timer.h"
 #include "force.h"
 #include "update.h"
 #include "math_const.h"

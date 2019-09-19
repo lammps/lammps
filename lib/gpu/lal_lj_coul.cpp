@@ -23,7 +23,7 @@ const char *lj_coul=0;
 
 #include "lal_lj_coul.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJCoulT LJCoul<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -164,3 +164,4 @@ void LJCoulT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJCoul<PRECISION,ACC_PRECISION>;
+}

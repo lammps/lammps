@@ -38,25 +38,24 @@
    <http://www.gnu.org/licenses/>.
    ------------------------------------------------------------------------- */
 
+#include "pair_smtbq.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <vector>
-#include "pair_smtbq.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
 #include "update.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 #include <fstream>
 #include <iomanip>

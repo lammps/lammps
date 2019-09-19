@@ -15,18 +15,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_omp.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "pppm_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "error.h"
-#include "fix_omp.h"
 #include "force.h"
-#include "memory.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "timer.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

@@ -15,21 +15,14 @@
    Contributing author: Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_vashishta_table.h"
+#include <cstdio>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
+#include "error.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

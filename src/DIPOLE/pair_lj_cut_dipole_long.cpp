@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_cut_dipole_long.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -44,7 +43,7 @@ using namespace MathConst;
 PairLJCutDipoleLong::PairLJCutDipoleLong(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
-  ewaldflag = dipoleflag = 1;
+  ewaldflag = pppmflag = dipoleflag = 1;
   respa_enable = 0;
 }
 

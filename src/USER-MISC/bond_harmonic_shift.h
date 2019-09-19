@@ -20,7 +20,6 @@ BondStyle(harmonic/shift,BondHarmonicShift)
 #ifndef LMP_BOND_HARMONIC_SHIFT_H
 #define LMP_BOND_HARMONIC_SHIFT_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

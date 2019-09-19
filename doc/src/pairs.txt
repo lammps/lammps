@@ -24,6 +24,7 @@ Pair Styles :h1
    pair_class2
    pair_colloid
    pair_comb
+   pair_cosine_squared
    pair_coul
    pair_coul_diel
    pair_coul_shield
@@ -105,6 +106,7 @@ Pair Styles :h1
    pair_sph_rhosum
    pair_sph_taitwater
    pair_sph_taitwater_morris
+   pair_spin_dipole
    pair_spin_dmi
    pair_spin_exchange
    pair_spin_magelec

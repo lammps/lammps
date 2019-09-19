@@ -174,6 +174,7 @@ __kernel void k_lj96_fast(const __global numtyp4 *restrict x_,
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp r3inv = ucl_sqrt(r6inv);
         numtyp force = r2inv*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
+        force*=factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;

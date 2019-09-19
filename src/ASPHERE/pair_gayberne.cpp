@@ -15,11 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_gayberne.h"
+#include <mpi.h>
+#include <cmath>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,7 +25,6 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "integrate.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"

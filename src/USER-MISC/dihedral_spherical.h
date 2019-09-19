@@ -20,7 +20,6 @@ DihedralStyle(spherical,DihedralSpherical)
 #ifndef LMP_DIHEDRAL_SPHERICAL_H
 #define LMP_DIHEDRAL_SPHERICAL_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_coord_atom.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "compute_coord_atom.h"
 #include "compute_orientorder_atom.h"
 #include "atom.h"
 #include "update.h"

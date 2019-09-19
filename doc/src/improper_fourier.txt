@@ -27,7 +27,7 @@ The {fourier} improper style uses the following potential:
 where K is the force constant and omega is the angle between the IL
 axis and the IJK plane:
 
-:c,image(Eqs/umbrella.jpg)
+:c,image(JPG/umbrella.jpg)
 
 If all parameter (see bellow) is not zero, the all the three possible angles will taken in account.
 

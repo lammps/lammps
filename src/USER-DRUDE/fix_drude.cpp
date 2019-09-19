@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_drude.h"
+#include <mpi.h>
+#include <cstring>
+#include <map>
 #include "atom.h"
 #include "comm.h"
 #include "modify.h"

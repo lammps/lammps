@@ -21,28 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_exchange.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_exchange.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,7 +71,7 @@ PairSpinExchange::~PairSpinExchange()
 
 void PairSpinExchange::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2)
+  if (narg < 1 || narg > 7) 
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
 
   if (strcmp(update->unit_style,"metal") != 0)
@@ -464,8 +460,6 @@ void PairSpinExchange::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 }
 
-
-
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
@@ -550,5 +544,3 @@ void PairSpinExchange::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
-
-

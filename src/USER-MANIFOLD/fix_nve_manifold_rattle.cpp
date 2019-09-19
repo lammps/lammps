@@ -32,24 +32,18 @@
 ------------------------------------------------------------------------- */
 
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_nve_manifold_rattle.h"
+#include <mpi.h>
 #include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "group.h"
-#include <cmath>
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
-#include "memory.h"
 #include "comm.h"
 
-
-#include "fix_nve_manifold_rattle.h"
 #include "manifold_factory.h"
 #include "manifold.h"
 

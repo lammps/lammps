@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "imbalance_time.h"
+#include <mpi.h>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "timer.h"
 #include "error.h"

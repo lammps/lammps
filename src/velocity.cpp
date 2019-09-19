@@ -11,14 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "velocity.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
 #include "lattice.h"
 #include "input.h"
@@ -112,7 +108,7 @@ void Velocity::command(int narg, char **arg)
 
   int initcomm = 0;
   if (style == ZERO && rfix >= 0 &&
-      strcmp(modify->fix[rfix]->style,"rigid/small") == 0) initcomm = 1;
+      utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
       strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
 

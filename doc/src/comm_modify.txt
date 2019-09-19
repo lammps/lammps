@@ -40,11 +40,12 @@ coordinates and other properties are exchanged between neighboring
 processors and stored as properties of ghost atoms.
 
 NOTE: These options apply to the currently defined comm style.  When
-you specify a "comm_style"_comm_style.html command, all communication
-settings are restored to their default values, including those
+you specify a "comm_style"_comm_style.html or
+"read_restart"_read_restart.html command, all communication settings
+are restored to their default or stored values, including those
 previously reset by a comm_modify command.  Thus if your input script
-specifies a comm_style command, you should use the comm_modify command
-after it.
+specifies a comm_style or read_restart command, you should use the
+comm_modify command after it.
 
 The {mode} keyword determines whether a single or multiple cutoff
 distances are used to determine which atoms to communicate.
@@ -69,9 +70,15 @@ processors.  By default the ghost cutoff = neighbor cutoff = pairwise
 force cutoff + neighbor skin.  See the "neighbor"_neighbor.html command
 for more information about the skin distance.  If the specified Rcut is
 greater than the neighbor cutoff, then extra ghost atoms will be acquired.
-If the provided cutoff is smaller, the provided value will be ignored
-and the ghost cutoff is set to the neighbor cutoff. Specifying a
-cutoff value of 0.0 will reset any previous value to the default.
+If the provided cutoff is smaller, the provided value will be ignored,
+the ghost cutoff is set to the neighbor cutoff and a warning will be
+printed. Specifying a cutoff value of 0.0 will reset any previous value
+to the default. If bonded interactions exist and equilibrium bond length
+information is available, then also a heuristic based on that bond length
+is computed. It is used as communication cutoff, if there is no pair
+style present and no {comm_modify cutoff} command used. Otherwise a
+warning is printed, if this bond based estimate is larger than the
+communication cutoff used. A
 
 The {cutoff/multi} option is equivalent to {cutoff}, but applies to
 communication mode {multi} instead. Since in this case the communication

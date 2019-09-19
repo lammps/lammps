@@ -72,9 +72,8 @@ class FixRigidSmall : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
-  double MINUSPI,TWOPI;
 
-  char *infile;             // file to read rigid body attributes from
+  char *inpfile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
   int earlyflag;            // 1 if forces/torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
@@ -128,9 +127,6 @@ class FixRigidSmall : public Fix {
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
   int reinitflag;       // 1 if re-initialize rigid bodies between runs
-
-  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
-  int OMEGA,ANGMOM,TORQUE;
 
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -318,7 +314,7 @@ E: Fix rigid: Bad principal moments
 The principal moments of inertia computed for a rigid body
 are not within the required tolerances.
 
-E: Cannot open fix rigid/small infile %s
+E: Cannot open fix rigid/small inpfile %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.

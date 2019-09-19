@@ -15,12 +15,10 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h"
+#include "thermo.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "thermo.h"
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -43,11 +41,8 @@
 #include "kspace.h"
 #include "output.h"
 #include "timer.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "universe.h"
-
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -113,9 +108,11 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   if (strcmp(style,"one") == 0) {
     line = new char[256+6*64];
+    memset(line,0,256+6*64);
     strcpy(line,ONE);
   } else if (strcmp(style,"multi") == 0) {
     line = new char[256+12*64];
+    memset(line,0,256+12*64);
     strcpy(line,MULTI);
     lineflag = MULTILINE;
 
@@ -404,8 +401,9 @@ void Thermo::compute(int flag)
    call function to compute property
 ------------------------------------------------------------------------- */
 
-void Thermo::call_vfunc(int ifield)
+void Thermo::call_vfunc(int ifield_in)
 {
+  ifield = ifield_in;
   (this->*vfunc[ifield])();
 }
 

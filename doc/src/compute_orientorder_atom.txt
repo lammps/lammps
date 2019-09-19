@@ -76,14 +76,14 @@ parameters up to {Q}12 for a range of commonly encountered
 high-symmetry structures are given in Table I of "Mickel et
 al."_#Mickel, and these can be reproduced with this compute
 
-The optional keyword {wl} will output the third-order invariants {Wl} 
+The optional keyword {wl} will output the third-order invariants {Wl}
 (see Eq. 1.4 in "Steinhardt"_#Steinhardt) for the same degrees as
 for the {Ql} parameters. For the FCC crystal with {nnn} =12,
 {W}4 = -sqrt(14/143).(49/4096)/Pi^1.5 = -0.0006722136...
 
-The optional keyword {wl/hat} will output the normalized third-order 
-invariants {Wlhat} (see Eq. 2.2 in "Steinhardt"_#Steinhardt) 
-for the same degrees as for the {Ql} parameters. For the FCC crystal 
+The optional keyword {wl/hat} will output the normalized third-order
+invariants {Wlhat} (see Eq. 2.2 in "Steinhardt"_#Steinhardt)
+for the same degrees as for the {Ql} parameters. For the FCC crystal
 with {nnn} =12, {W}4hat = -7/3*sqrt(2/429) = -0.159317...The numerical
 values of {Wlhat} for a range of commonly encountered high-symmetry
 structures are given in Table I of "Steinhardt"_#Steinhardt, and these
@@ -127,9 +127,9 @@ range 0 <= {Ql} <= 1.
 If the keyword {wl} is set to yes, then the {Wl} values for each
 atom will be added to the output array, which are real numbers.
 
-If the keyword {wl/hat} is set to yes, then the {Wl_hat} 
+If the keyword {wl/hat} is set to yes, then the {Wl_hat}
 values for each atom will be added to the output array, which are real numbers.
- 
+
 If the keyword {components} is set, then the real and imaginary parts
 of each component of (normalized) {Ybar_lm} will be added to the
 output array in the following order: Re({Ybar_-m}) Im({Ybar_-m})

@@ -2,18 +2,17 @@
 // Created by charlie sievers on 7/5/18.
 //
 
-
 #include <mpi.h>
-#include <cstdlib>
+#include <cmath>
+#include <cstring>
 #include "third_order.h"
 #include "atom.h"
-#include "complex"
 #include "domain.h"
 #include "comm.h"
+#include "error.h"
 #include "group.h"
 #include "force.h"
 #include "memory.h"
-#include "math_extra.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -25,6 +24,8 @@
 #include "timer.h"
 #include "finish.h"
 #include <algorithm>
+#include "complex"
+
 
 
 using namespace LAMMPS_NS;
@@ -89,8 +90,8 @@ void ThirdOrder::command(int narg, char **arg)
     MPI_Comm_rank(world,&me);
 
     if (domain->box_exist == 0)
-        error->all(FLERR,"Dynamical_matrix command before simulation box is defined");
-    if (narg < 2) error->all(FLERR,"Illegal dynamical_matrix command");
+        error->all(FLERR,"third_order command before simulation box is defined");
+    if (narg < 2) error->all(FLERR,"Illegal third_order command");
 
     lmp->init();
 
@@ -134,7 +135,7 @@ void ThirdOrder::command(int narg, char **arg)
     del = force->numeric(FLERR, arg[2]);
 
     if (atom->map_style == 0)
-        error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
+        error->all(FLERR,"third_order command requires an atom map, see atom_modify");
 
     // move atoms by 3-vector or specified variable(s)
 
@@ -166,21 +167,21 @@ void ThirdOrder::command(int narg, char **arg)
 
 void ThirdOrder::options(int narg, char **arg)
 {
-    if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
+    if (narg < 0) error->all(FLERR,"Illegal third_order command");
     int iarg = 0;
     const char *filename = "third_order.dat";
     std::stringstream fss;
 
     while (iarg < narg) {
         if (strcmp(arg[iarg],"file") == 0) {
-            if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+            if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
             fss << arg[iarg + 1];
             filename = fss.str().c_str();
             file_flag = 1;
             iarg += 2;
         }
         else if (strcmp(arg[iarg],"binary") == 0) {
-            if (iarg + 2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+            if (iarg + 2 > narg) error->all(FLERR, "Illegal third_order command");
             if (strcmp(arg[iarg+1],"gzip") == 0) {
                 compressed = 1;
             }
@@ -188,7 +189,7 @@ void ThirdOrder::options(int narg, char **arg)
                 binaryflag = 1;
             }
             iarg += 2;
-        } else error->all(FLERR,"Illegal dynamical_matrix command");
+        } else error->all(FLERR,"Illegal third_order command");
     }
     if (file_flag == 1 and me == 0) {
         openfile(filename);

@@ -1,18 +1,19 @@
 //
-// Created by charlie sievers on 6/21/18.
+// Created by charlie sievers on 7/5/18.
 //
 
+
 #include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "dynamical_matrix.h"
+#include <cstdlib>
+#include "third_order.h"
 #include "atom.h"
+#include "complex"
 #include "domain.h"
 #include "comm.h"
-#include "error.h"
 #include "group.h"
 #include "force.h"
 #include "memory.h"
+#include "math_extra.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -25,23 +26,24 @@
 #include "finish.h"
 #include <algorithm>
 
+
 using namespace LAMMPS_NS;
-enum{REGULAR,ESKM};
+enum{REGULAR,BALLISTICO};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
+ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
 {
     external_force_clear = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::~DynamicalMatrix()
+ThirdOrder::~ThirdOrder()
 {
     if (fp && me == 0) fclose(fp);
-    memory->destroy(groupmap);
     fp = NULL;
+    memory->destroy(groupmap);
 }
 
 /* ----------------------------------------------------------------------
@@ -50,7 +52,7 @@ DynamicalMatrix::~DynamicalMatrix()
    flag = 1 = reneighbor and force calculation
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::setup()
+void ThirdOrder::setup()
 {
     // setup domain, communication and neighboring
     // acquire ghosts
@@ -73,7 +75,6 @@ void DynamicalMatrix::setup()
     vflag=0;
     update_force();
 
-    //if all then skip communication groupmap population
     if (gcount == atom->natoms)
         for (bigint i=0; i<atom->natoms; i++)
             groupmap[i] = i;
@@ -83,7 +84,7 @@ void DynamicalMatrix::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void DynamicalMatrix::command(int narg, char **arg)
+void ThirdOrder::command(int narg, char **arg)
 {
     MPI_Comm_rank(world,&me);
 
@@ -114,9 +115,8 @@ void DynamicalMatrix::command(int narg, char **arg)
 
     int style = -1;
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
-    else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
+    else if (strcmp(arg[1],"ballistico") == 0) style = BALLISTICO;
     else error->all(FLERR,"Illegal Dynamical Matrix command");
-    del = force->numeric(FLERR, arg[2]);
 
     // set option defaults
 
@@ -129,11 +129,12 @@ void DynamicalMatrix::command(int narg, char **arg)
 
     // read options from end of input line
     if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
-    else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
+    else if (style == BALLISTICO) options(narg-3,&arg[3]); //COME BACK
     else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+    del = force->numeric(FLERR, arg[2]);
 
     if (atom->map_style == 0)
-      error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
+        error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
 
     // move atoms by 3-vector or specified variable(s)
 
@@ -145,10 +146,10 @@ void DynamicalMatrix::command(int narg, char **arg)
         timer->barrier_stop();
     }
 
-    if (style == ESKM) {
+    if (style == BALLISTICO) {
         setup();
         convert_units(update->unit_style);
-        conversion = conv_energy/conv_distance/conv_mass;
+        conversion = conv_energy/conv_distance/conv_distance;
         timer->init();
         timer->barrier_start();
         calculateMatrix();
@@ -163,13 +164,22 @@ void DynamicalMatrix::command(int narg, char **arg)
    parse optional parameters
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::options(int narg, char **arg)
+void ThirdOrder::options(int narg, char **arg)
 {
     if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
     int iarg = 0;
-    const char* filename = "dynmat.dyn";
+    const char *filename = "third_order.dat";
+    std::stringstream fss;
+
     while (iarg < narg) {
-        if (strcmp(arg[iarg],"binary") == 0) {
+        if (strcmp(arg[iarg],"file") == 0) {
+            if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+            fss << arg[iarg + 1];
+            filename = fss.str().c_str();
+            file_flag = 1;
+            iarg += 2;
+        }
+        else if (strcmp(arg[iarg],"binary") == 0) {
             if (iarg + 2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
             if (strcmp(arg[iarg+1],"gzip") == 0) {
                 compressed = 1;
@@ -178,15 +188,9 @@ void DynamicalMatrix::options(int narg, char **arg)
                 binaryflag = 1;
             }
             iarg += 2;
-        }
-        else if (strcmp(arg[iarg],"file") == 0) {
-            if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
-            filename = arg[iarg + 1];
-            file_flag = 1;
-            iarg += 2;
         } else error->all(FLERR,"Illegal dynamical_matrix command");
     }
-    if (file_flag == 1) {
+    if (file_flag == 1 and me == 0) {
         openfile(filename);
     }
 }
@@ -197,10 +201,9 @@ void DynamicalMatrix::options(int narg, char **arg)
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::openfile(const char* filename)
+void ThirdOrder::openfile(const char* filename)
 {
     // if file already opened, return
-    //if (me!=0) return;
     if (file_opened) return;
 
     if (compressed) {
@@ -230,134 +233,153 @@ void DynamicalMatrix::openfile(const char* filename)
    create dynamical matrix
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::calculateMatrix()
+void ThirdOrder::calculateMatrix()
 {
     int local_idx; // local index
     int local_jdx; // second local index
+    int local_kdx; // third local index
     int nlocal = atom->nlocal;
     bigint natoms = atom->natoms;
-    int *type = atom->type;
     bigint *gm = groupmap;
-    double imass; // dynamical matrix element
-    double *m = atom->mass;
     double **f = atom->f;
 
-    double **dynmat = new double*[3];
-    for (int i=0; i<3; i++)
-        dynmat[i] = new double[dynlen];
-
-    double **fdynmat = new double*[3];
-    for (int i=0; i<3; i++)
-        fdynmat[i] = new double[dynlen];
-
-    //initialize dynmat to all zeros
-    dynmat_clear(dynmat);
+    double *dynmat = new double[3*dynlen];
+    double *fdynmat = new double[3*dynlen];
+    memset(&dynmat[0],0,dynlen*sizeof(double));
+    memset(&fdynmat[0],0,dynlen*sizeof(double));
 
     if (comm->me == 0 && screen) {
-        fprintf(screen,"Calculating Dynamical Matrix ...\n");
+        fprintf(screen,"Calculating Third Order ...\n");
         fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
         fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-        fprintf(screen,"  Total dynamical matrix elements = " BIGINT_FORMAT "\n", (dynlen*dynlen) );
+        fprintf(screen,"  Total third order elements = " BIGINT_FORMAT "\n", (dynlen*dynlen*dynlen) );
     }
-    
-    // emit dynlen rows of dimalpha*dynlen*dimbeta elements
 
     update->nsteps = 0;
     int prog = 0;
     for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
-        if (gm[i-1] < 0)
-            continue;
         for (int alpha=0; alpha<3; alpha++){
-            displace_atom(local_idx, alpha, 1);
-            update_force();
             for (bigint j=1; j<=natoms; j++){
                 local_jdx = atom->map(j);
-                if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
-                    && gm[j-1] >= 0){
-                    for (int beta=0; beta<3; beta++){
-                        dynmat[alpha][gm[j-1]*3+beta] -= f[local_jdx][beta];
+                for (int beta=0; beta<3; beta++){
+                    displace_atom(local_idx, alpha, 1);
+                    displace_atom(local_jdx, beta, 1);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                            }
+                        }
                     }
+                    displace_atom(local_jdx, beta, -2);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                            }
+                        }
+                    }
+                    displace_atom(local_jdx, beta, 1);
+                    displace_atom(local_idx,alpha,-2);
+                    displace_atom(local_jdx, beta, 1);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                            }
+                        }
+                    }
+                    displace_atom(local_jdx, beta, -2);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                                dynmat[gm[k-1]*3+gamma] /= (4 * del * del);
+                            }
+                        }
+                    }
+                    displace_atom(local_jdx, beta, 1);
+                    displace_atom(local_idx, alpha, 1);
+                    MPI_Reduce(dynmat,fdynmat,3*dynlen,MPI_DOUBLE,MPI_SUM,0,world);
+                    if (me == 0){
+                        writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
+                    }
+                    memset(&dynmat[0],0,dynlen*sizeof(double));
                 }
             }
-            displace_atom(local_idx,alpha,-2);
-            update_force();
-            for (bigint j=1; j<=natoms; j++){
-                local_jdx = atom->map(j);
-                if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
-                    && gm[j-1] >= 0){
-                    for (int beta=0; beta<3; beta++){
-                        if (atom->rmass_flag == 1)
-                            imass = sqrt(m[local_idx] * m[local_jdx]);
-                        else
-                            imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
-                        dynmat[alpha][gm[j-1]*3+beta] -= -f[local_jdx][beta];
-                        dynmat[alpha][gm[j-1]*3+beta] /= (2 * del * imass);
-                        dynmat[alpha][gm[j-1]*3+beta] *= conversion;
-                    }
-                }
-            }
-            displace_atom(local_idx,alpha,1);
         }
-        for (int k=0; k<3; k++)
-            MPI_Reduce(dynmat[k],fdynmat[k],dynlen,MPI_DOUBLE,MPI_SUM,0,world);
-        if (me == 0)
-            writeMatrix(fdynmat);
-        dynmat_clear(dynmat);
         if (comm->me == 0 && screen) {
             int p = 10 * gm[i-1] / gcount;
             if (p > prog) {
-              prog = p;
-              fprintf(screen," %d%%",p*10);
-              fflush(screen);
+                prog = p;
+                fprintf(screen," %d%%",p*10);
+                fflush(screen);
             }
         }
     }
-    if (comm->me == 0 && screen) fprintf(screen,"\n");
 
-    for (int i=0; i < 3; i++)
-        delete [] dynmat[i];
     delete [] dynmat;
-
-    for (int i=0; i < 3; i++)
-        delete [] fdynmat[i];
     delete [] fdynmat;
 
-    if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
+    if (screen && me ==0 ) fprintf(screen,"Finished Calculating Third Order Tensor\n");
+
 }
 
 /* ----------------------------------------------------------------------
    write dynamical matrix
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::writeMatrix(double **dynmat)
+void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
 {
-    if (me != 0 || !fp)
+    if (me != 0)
         return;
 
-    clearerr(fp);
-    if (binaryflag) {
-        for (int i=0; i<3; i++)
-            fwrite(dynmat[i], sizeof(double), dynlen, fp);
-        if (ferror(fp))
-            error->one(FLERR, "Error writing to binary file");
-    } else {
-        for (int i = 0; i < 3; i++) {
-            for (bigint j = 0; j < dynlen; j++) {
-                if ((j+1)%3==0) fprintf(fp, "%4.8f\n", dynmat[i][j]);
-                else fprintf(fp, "%4.8f ",dynmat[i][j]);
-            }
+    double norm;
+    if (!binaryflag && fp) {
+        clearerr(fp);
+        for (int k = 0; k < gcount; k++){
+            norm = pow(dynmat[k*3], 2)+
+                pow(dynmat[k*3+1], 2)+
+                pow(dynmat[k*3+2], 2);
+            if (norm > 1.0e-16)
+                fprintf(fp,
+                        "%llu %d %llu %d %llu %7.8f %7.8f %7.8f\n",
+                        i+1, a + 1, j+1, b + 1, groupmap[k]+1,
+                        dynmat[k*3] * conversion,
+                        dynmat[k*3+1] * conversion,
+                        dynmat[k*3+2] * conversion);
         }
-        if (ferror(fp))
-            error->one(FLERR,"Error writing to file");
     }
+    else if (binaryflag && fp){
+        clearerr(fp);
+        fwrite(&dynmat[0], sizeof(double), dynlen, fp);
+    }
+    if (ferror(fp)) error->one(FLERR,"Error writing to file");
+
 }
 
 /* ----------------------------------------------------------------------
   Displace atoms
    ---------------------------------------------------------------------- */
 
-void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
+void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 {
     if (local_idx < 0) return;
 
@@ -373,7 +395,6 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
     }
 }
 
-
 /* ----------------------------------------------------------------------
    evaluate potential energy and forces
    may migrate atoms due to reneighboring
@@ -382,7 +403,7 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
    return negative gradient for nextra_global dof in fextra
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::update_force()
+void ThirdOrder::update_force()
 {
     force_clear();
 
@@ -413,7 +434,7 @@ void DynamicalMatrix::update_force()
    clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::force_clear()
+void ThirdOrder::force_clear()
 {
     if (external_force_clear) return;
 
@@ -428,24 +449,9 @@ void DynamicalMatrix::force_clear()
     }
 }
 
-/* ----------------------------------------------------------------------
-   clear dynmat needed
-------------------------------------------------------------------------- */
-
-void DynamicalMatrix::dynmat_clear(double **dynmat)
-{
-
-    size_t nbytes = sizeof(double) * dynlen;
-
-    if (nbytes) {
-        for (int i=0; i<3; i++)
-            memset(&dynmat[i][0],0,nbytes);
-    }
-}
-
 /* ---------------------------------------------------------------------- */
 
-void DynamicalMatrix::convert_units(const char *style)
+void ThirdOrder::convert_units(const char *style)
 {
     // physical constants from:
     // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
@@ -500,7 +506,7 @@ void DynamicalMatrix::convert_units(const char *style)
 
 /* ---------------------------------------------------------------------- */
 
-void DynamicalMatrix::create_groupmap()
+void ThirdOrder::create_groupmap()
 {
     //Create a group map which maps atom order onto group
     // groupmap[global atom index-1] = output column/row

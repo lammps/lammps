@@ -1,4 +1,4 @@
-# CO2 molecule file. TraPPE model.
+# H2O molecule file. SPC/E model.
 
 3 atoms
 2 bonds

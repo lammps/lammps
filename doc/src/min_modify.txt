@@ -90,12 +90,12 @@ For the min styles {spin}, {spin/cg} and {spin/lbfgs}, the force
 norm is replaced by the spin-torque norm.
 
 Keywords {alpha_damp} and {discrete_factor} only make sense when
-a "min_spin"_min_spin.html command is declared. 
+a "min_spin"_min_spin.html command is declared.
 Keyword {alpha_damp} defines an analog of a magnetic Gilbert
 damping. It defines a relaxation rate toward an equilibrium for
-a given magnetic system. 
+a given magnetic system.
 Keyword {discrete_factor} defines a discretization factor for the
-adaptive timestep used in the {spin} minimization. 
+adaptive timestep used in the {spin} minimization.
 See "min_spin"_min_spin.html for more information about those
 quantities. 
 
@@ -122,7 +122,7 @@ explanation.
 
 [Default:]
 
-The option defaults are dmax = 0.1, line = quadratic and norm = euclidean.
+The option defaults are dmax = 0.1, line = quadratic and norm = two.
 
 For the {spin}, {spin/cg} and {spin/lbfgs} styles, the
 option defaults are alpha_damp = 1.0, discrete_factor = 10.0,

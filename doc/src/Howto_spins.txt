@@ -43,19 +43,19 @@ langevin/spin"_fix_langevin_spin.html. It allows to either dissipate
 the thermal energy of the Langevin thermostat, or to perform a
 relaxation of the magnetic configuration toward an equilibrium state.
 
-The command "fix setforce/spin"_fix_setforce.html allows to set the 
-components of the magnetic precession vectors (while erasing and 
-replacing the previously computed magnetic precession vectors on 
-the atom). 
-This command can be used to freeze the magnetic moment of certain 
-atoms in the simulation by zeroing their precession vector. 
+The command "fix setforce/spin"_fix_setforce.html allows to set the
+components of the magnetic precession vectors (while erasing and
+replacing the previously computed magnetic precession vectors on
+the atom).
+This command can be used to freeze the magnetic moment of certain
+atoms in the simulation by zeroing their precession vector.
 
 The command "fix nve/spin"_fix_nve_spin.html can be used to
-perform a symplectic integration of the combined dynamics of spins 
+perform a symplectic integration of the combined dynamics of spins
 and atomic motions.
 
 The minimization style "min/spin"_min_spin.html can be applied
-to the spins to perform a minimization of the spin configuration. 
+to the spins to perform a minimization of the spin configuration.
 
 
 All the computed magnetic properties can be output by two main

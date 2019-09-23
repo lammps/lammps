@@ -443,7 +443,7 @@ struct NPairKokkosBuildFunctorSize {
   const size_t sharedsize;
 
   NPairKokkosBuildFunctorSize(const NeighborKokkosExecute<DeviceType> &_c,
-			      const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
+                              const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
@@ -467,7 +467,7 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
   const size_t sharedsize;
 
   NPairKokkosBuildFunctorSize(const NeighborKokkosExecute<LMPHostType> &_c,
-			      const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
+                              const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {

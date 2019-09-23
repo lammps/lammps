@@ -50,7 +50,7 @@ Code Coverage and Testing :h4,link(testing)
 
 We do extensive regression testing of the LAMMPS code base on a continuous
 basis. Some of the logic to do this has been added to the CMake build so
-developers can run the tests directly on their workstation. 
+developers can run the tests directly on their workstation.
 
 NOTE: this is incomplete and only represents a small subset of tests that we run
 

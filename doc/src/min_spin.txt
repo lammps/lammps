@@ -32,22 +32,22 @@ timestep, according to:
 
 with lambda a damping coefficient (similar to a Gilbert
 damping).
-Lambda can be defined by setting the {alpha_damp} keyword with the 
-"min_modify"_min_modify.html command. 
+Lambda can be defined by setting the {alpha_damp} keyword with the
+"min_modify"_min_modify.html command.
 
 The minimization procedure solves this equation using an
-adaptive timestep. The value of this timestep is defined 
-by the largest precession frequency that has to be solved in the 
+adaptive timestep. The value of this timestep is defined
+by the largest precession frequency that has to be solved in the
 system:
 
 :c,image(Eqs/min_spin_timestep.jpg)
 
 with {|omega|_{max}} the norm of the largest precession frequency
 in the system (across all processes, and across all replicas if a
-spin/neb calculation is performed). 
+spin/neb calculation is performed).
 
-Kappa defines a discretization factor {discrete_factor} for the 
-definition of this timestep. 
+Kappa defines a discretization factor {discrete_factor} for the
+definition of this timestep.
 {discrete_factor} can be defined with the "min_modify"_min_modify.html
 command.
 
@@ -90,7 +90,7 @@ freedom for a frozen lattice configuration.
 
 [Related commands:]
 
-"min_style"_min_style.html, "minimize"_minimize.html, 
+"min_style"_min_style.html, "minimize"_minimize.html,
 "min_modify"_min_modify.html
 
 [Default:]

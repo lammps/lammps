@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC};
+enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC,MORSE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -36,7 +36,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   idregion(NULL)
 {
-  if (narg != 8) error->all(FLERR,"Illegal fix wall/region command");
+  if (narg < 8) error->all(FLERR,"Illegal fix wall/region command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -62,13 +62,28 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4],"lj1043") == 0) style = LJ1043;
   else if (strcmp(arg[4],"colloid") == 0) style = COLLOID;
   else if (strcmp(arg[4],"harmonic") == 0) style = HARMONIC;
+  else if (strcmp(arg[4],"morse") == 0) style = MORSE;
   else error->all(FLERR,"Illegal fix wall/region command");
 
   if (style != COLLOID) dynamic_group_allow = 1;
 
-  epsilon = force->numeric(FLERR,arg[5]);
-  sigma = force->numeric(FLERR,arg[6]);
-  cutoff = force->numeric(FLERR,arg[7]);
+  if (style == MORSE) {
+    if (narg != 9)
+      error->all(FLERR,"Illegal fix wall/region command");
+
+    epsilon = force->numeric(FLERR,arg[5]);
+    alpha = force->numeric(FLERR,arg[6]);
+    sigma = force->numeric(FLERR,arg[7]);
+    cutoff = force->numeric(FLERR,arg[8]);
+
+  } else {
+    if (narg != 8)
+      error->all(FLERR,"Illegal fix wall/region command");
+
+    epsilon = force->numeric(FLERR,arg[5]);
+    sigma = force->numeric(FLERR,arg[6]);
+    cutoff = force->numeric(FLERR,arg[7]);
+  }
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");
 
@@ -154,12 +169,15 @@ void FixWallRegion::init()
     coeff5 = coeff1 * 10.0;
     coeff6 = coeff2 * 4.0;
     coeff7 = coeff3 * 3.0;
-
     double rinv = 1.0/cutoff;
     double r2inv = rinv*rinv;
     double r4inv = r2inv*r2inv;
     offset = coeff1*r4inv*r4inv*r2inv - coeff2*r4inv -
       coeff3*pow(cutoff+coeff4,-3.0);
+  } else if (style == MORSE) {
+    coeff1 = 2 * epsilon * alpha;
+    double alpha_dr = -alpha * (cutoff - sigma);
+    offset = epsilon * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
   } else if (style == COLLOID) {
     coeff1 = -4.0/315.0 * epsilon * pow(sigma,6.0);
     coeff2 = -2.0/3.0 * epsilon;
@@ -250,6 +268,7 @@ void FixWallRegion::post_force(int vflag)
         if (style == LJ93) lj93(region->contact[m].r);
         else if (style == LJ126) lj126(region->contact[m].r);
         else if (style == LJ1043) lj1043(region->contact[m].r);
+        else if (style == MORSE) morse(region->contact[m].r);
         else if (style == COLLOID) colloid(region->contact[m].r,radius[i]);
         else harmonic(region->contact[m].r);
 
@@ -284,7 +303,7 @@ void FixWallRegion::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallRegion::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixWallRegion::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -370,6 +389,19 @@ void FixWallRegion::lj1043(double r)
     coeff7*pow(r+coeff4,-4.0);
   eng = coeff1*r10inv - coeff2*r4inv -
     coeff3*pow(r+coeff4,-3.0) - offset;
+}
+
+/* ----------------------------------------------------------------------
+   Morse interaction for particle with wall
+   compute eng and fwall = magnitude of wall force
+------------------------------------------------------------------------- */
+
+void FixWallRegion::morse(double r)
+{
+  double dr = r - sigma;
+  double dexp = exp(-alpha * dr);
+  fwall = coeff1 * (dexp*dexp - dexp) / r;
+  eng = epsilon * (dexp*dexp - 2.0*dexp) - offset;
 }
 
 /* ----------------------------------------------------------------------

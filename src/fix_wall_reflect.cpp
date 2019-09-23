@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+ /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,19 +24,24 @@
 #include "error.h"
 #include "force.h"
 
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
-enum{NONE=0,EDGE,CONSTANT,VARIABLE};
+
 
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nwall(0)
-{
+{ 
+  
+
   if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
+
+  if (strcmp(arg[2],"wall/reflect") == 0){ // child class can be stochastic
+
 
   dynamic_group_allow = 1;
 
@@ -83,6 +88,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
       nwall++;
       iarg += 2;
+
 
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal wall/reflect command");
@@ -140,6 +146,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if (wallstyle[m] == VARIABLE) varflag = 1;
 }
 
+}
+
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::~FixWallReflect()
@@ -186,16 +194,13 @@ void FixWallReflect::init()
 
 void FixWallReflect::post_integrate()
 {
-  int i,dim,side;
+  //int m;
   double coord;
 
   // coord = current position of wall
   // evaluate variable if necessary, wrap with clear/add
 
-  double **x = atom->x;
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+
 
   if (varflag) modify->clearstep_compute();
 
@@ -207,11 +212,29 @@ void FixWallReflect::post_integrate()
       else coord *= zscale;
     } else coord = coord0[m];
 
-    dim = wallwhich[m] / 2;
-    side = wallwhich[m] % 2;
+
+    wall_particle(m,wallwhich[m],coord);
+
+
+  if (varflag) modify->addstep_compute(update->ntimestep + 1);
+}
+}
+
+void FixWallReflect::wall_particle(int m, int which, double coord)
+{
+  int i, dim, side,sign;
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+    dim = which / 2;
+    side = which % 2;
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+
         if (side == 0) {
           if (x[i][dim] < coord) {
             x[i][dim] = coord + (coord - x[i][dim]);
@@ -224,7 +247,4 @@ void FixWallReflect::post_integrate()
           }
         }
       }
-  }
-
-  if (varflag) modify->addstep_compute(update->ntimestep + 1);
 }

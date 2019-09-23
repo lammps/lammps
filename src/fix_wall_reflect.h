@@ -28,10 +28,13 @@ class FixWallReflect : public Fix {
  public:
   FixWallReflect(class LAMMPS *, int, char **);
   virtual ~FixWallReflect();
+  virtual void wall_particle(int m, int which, double coord);
   int setmask();
   void init();
   void post_integrate();
-
+  enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
+  enum{NONE=0,EDGE,CONSTANT,VARIABLE};
+  
  protected:
   int nwall;
   int wallwhich[6],wallstyle[6];

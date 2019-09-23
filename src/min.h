@@ -41,6 +41,7 @@ class Min : protected Pointers {
   virtual int modify_param(int, char **) {return 0;}
   double fnorm_sqr();
   double fnorm_inf();
+  double fnorm_max();
 
   // methods for spin minimizers
   double max_torque(); 
@@ -64,7 +65,8 @@ class Min : protected Pointers {
   int linestyle;		// 0 = backtrack, 1 = quadratic, 2 = forcezero 
   				// 3 = spin_cubic, 4 = spin_none
 
-  int normstyle;		// 0 = Euclidean norm, 1 = inf. norm
+  int normstyle;		// TWO or MAX flag for force norm evaluation
+  // int normstyle;		// 0 = Euclidean norm, 1 = inf. norm
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

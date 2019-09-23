@@ -49,6 +49,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+enum{TWO,MAX}
+
 /* ---------------------------------------------------------------------- */
 
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
@@ -56,7 +58,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   dmax = 0.1;
   searchflag = 0;
   linestyle = 1;
-  normstyle = 0;
+  normstyle = TWO;
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -662,8 +664,8 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"euclidean") == 0) normstyle = 0;
-      else if (strcmp(arg[iarg+1],"max") == 0) normstyle = 1;
+      if (strcmp(arg[iarg+1],"two") == 0) normstyle = TWO;
+      else if (strcmp(arg[iarg+1],"max") == 0) normstyle = MAX;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else {
@@ -828,6 +830,41 @@ double Min::fnorm_inf()
 }
 
 /* ----------------------------------------------------------------------
+   compute and return ||force||_max (inf norm per-vector)
+------------------------------------------------------------------------- */
+
+double Min::fnorm_max()
+{
+  int i,n;
+  double fdotf,*fatom;
+
+  double local_norm_max = 0.0;
+  for (i = 0; i < nvec; i+=3) {
+    fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+    local_norm_max = MAX(fdotf,local_norm_max);
+  }
+  if (nextra_atom) {
+    for (int m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i+=3)
+        fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+        local_norm_max = MAX(fdotf,local_norm_max);
+    }
+  }
+
+  double norm_max = 0.0;
+  MPI_Allreduce(&local_norm_max,&norm_max,1,MPI_DOUBLE,MPI_MAX,world);
+
+  if (nextra_global)
+    for (i = 0; i < n; i+=3)
+      fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+      norm_max = MAX(fdotf,norm_max);
+
+  return norm_max;
+}
+
+/* ----------------------------------------------------------------------
    compute and return  sum_i||mag. torque_i||_2 (in eV)
 ------------------------------------------------------------------------- */
 
@@ -842,10 +879,10 @@ double Min::total_torque()
 
   fmsq = ftotsqone = ftotsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
-    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
-    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
-    fmsq = tx * tx + ty * ty + tz * tz;
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmsq = tx*tx + ty*ty + tz*tz;
     ftotsqone += fmsq;
   }
 
@@ -873,10 +910,10 @@ double Min::max_torque()
 
   fmsq = fmaxsqone = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
-    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
-    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
-    fmsq = tx * tx + ty * ty + tz * tz;
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmsq = tx*tx + ty*ty + tz*tz;
     fmaxsqone = MAX(fmaxsqone,fmsq);
   }
 

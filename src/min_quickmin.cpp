@@ -215,15 +215,8 @@ int MinQuickMin::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      if (normstyle == 1) {		// max force norm
-	fdotf = fnorm_inf();
-	fdotfloc = fdotf;
-	MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_INT,MPI_MAX,universe->uworld);
-      } else {			// Euclidean force norm
-	fdotf = fnorm_sqr();
-	fdotfloc = fdotf;
-	MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_INT,MPI_SUM,universe->uworld);
-      }
+      if (normstyle == MAX) fdotfloc = fnorm_max();	// max force norm
+      else fdotf = fnorm_sqr();				// Euclidean force 2-norm
       if (update->multireplica == 0) {
         if (fdotf < update->ftol*update->ftol) return FTOL;
       } else {

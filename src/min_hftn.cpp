@@ -113,7 +113,7 @@ void MinHFTN::init()
 {
   Min::init();
 
-  if (normstyle == 1)
+  if (normstyle == MAX)
     error->all(FLERR,"Incorrect min_modify option");
 
   for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++) {

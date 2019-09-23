@@ -47,7 +47,7 @@ class FixLangevin : public Fix {
   int unpack_exchange(int, double *);
 
  protected:
-  int gjfflag,nvalues,fsflag,oflag,tallyflag,zeroflag,tbiasflag;
+  int gjfflag,nvalues,osflag,oflag,tallyflag,zeroflag,tbiasflag;
   int flangevin_allocated;
   double ascale;
   double t_start,t_stop,t_period,t_target;

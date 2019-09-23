@@ -116,7 +116,7 @@ void ThirdOrder::command(int narg, char **arg)
 
     int style = -1;
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
-    else if (strcmp(arg[1],"ballistico") == 0) style = BALLISTICO;
+    else if (strcmp(arg[1],"eskm") == 0) style = BALLISTICO;
     else error->all(FLERR,"Illegal Dynamical Matrix command");
 
     // set option defaults

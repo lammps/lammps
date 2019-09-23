@@ -97,6 +97,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   ascale = 0.0;
   gjfflag = 0;
   nvalues = 0;
+  fsflag = 0;
   oflag = 0;
   tallyflag = 0;
   zeroflag = 0;
@@ -110,11 +111,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) {gjfflag = 0; nvalues = 0;}
+      if (strcmp(arg[iarg+1],"no") == 0) {gjfflag = 0; fsflag = 0;}
       else if (strcmp(arg[iarg+1],"yes") == 0)
         error->all(FLERR,"Fix langevin gjf yes is outdated, please use vhalf or vfull");
-      else if (strcmp(arg[iarg+1],"vhalf") == 0) {gjfflag = 1; nvalues = 0;}
-      else if (strcmp(arg[iarg+1],"vfull") == 0) {gjfflag = 1; nvalues = 1;}
+      else if (strcmp(arg[iarg+1],"vhalf") == 0) {gjfflag = 1; fsflag = 0;}
+      else if (strcmp(arg[iarg+1],"vfull") == 0) {gjfflag = 1; fsflag = 1;}
       else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {
@@ -437,7 +438,7 @@ void FixLangevin::post_force(int /*vflag*/)
 
   if (tstyle == ATOM)
     if (gjfflag)
-      if (tallyflag || nvalues)
+      if (tallyflag || fsflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<1,1,1,1,1,1>();
@@ -959,7 +960,7 @@ void FixLangevin::end_of_step()
         tmp[0] = v[i][0];
         tmp[1] = v[i][1];
         tmp[2] = v[i][2];
-        if (!nvalues){
+        if (!fsflag){
           v[i][0] = lv[i][0];
           v[i][1] = lv[i][1];
           v[i][2] = lv[i][2];
@@ -1101,7 +1102,7 @@ double FixLangevin::memory_usage()
 {
   double bytes = 0.0;
   if (gjfflag) bytes += atom->nmax*6 * sizeof(double);
-  if (tallyflag || nvalues) bytes += atom->nmax*3 * sizeof(double);
+  if (tallyflag || fsflag) bytes += atom->nmax*3 * sizeof(double);
   if (tforce) bytes += atom->nmax * sizeof(double);
   return bytes;
 }

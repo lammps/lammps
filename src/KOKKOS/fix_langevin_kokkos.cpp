@@ -816,7 +816,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
-    if (!fsflag){
+    if (!osflag){
       v(i,0) = d_lv(i,0);
       v(i,1) = d_lv(i,1);
       v(i,2) = d_lv(i,2);
@@ -847,7 +847,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
-    if (!fsflag){
+    if (!osflag){
       v(i,0) = d_lv(i,0);
       v(i,1) = d_lv(i,1);
       v(i,2) = d_lv(i,2);

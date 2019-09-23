@@ -81,7 +81,7 @@ global force vector:
 :c,image(Eqs/norm_two.jpg) 
 
 The {max} norm computes the length of the 3-vector force 
-for each atom  (2-norm), and takes the maximum value of those accross 
+for each atom  (2-norm), and takes the maximum value of those across 
 all atoms
 
 :c,image(Eqs/norm_max.jpg) 

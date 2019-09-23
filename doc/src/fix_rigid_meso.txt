@@ -44,7 +44,7 @@ fix 1 rods      rigid/meso molecule
 fix 1 spheres   rigid/meso single force 1 off off on
 fix 1 particles rigid/meso molecule force 1*5 off off off force 6*10 off off on
 fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque * off off off  :pre
-	
+
 [Description:]
 
 Treat one or more sets of mesoscopic SPH/SDPD particles as independent

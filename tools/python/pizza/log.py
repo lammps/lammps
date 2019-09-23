@@ -3,7 +3,7 @@
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
 # log tool
@@ -28,7 +28,7 @@ nvec = l.nvec                        # of vectors of thermo info
 nlen = l.nlen                        length of each vectors
 names = l.names                      list of vector names
 t,pe,... = l.get("Time","KE",...)    return one or more vectors of values
-l.write("file.txt")	 	     write all vectors to a file
+l.write("file.txt")                  write all vectors to a file
 l.write("file.txt","Time","PE",...)  write listed vectors to a file
 
   get and write allow abbreviated (uniquely) vector names
@@ -89,7 +89,7 @@ class log:
 
   # --------------------------------------------------------------------
   # read all thermo from all files
-  
+
   def read_all(self):
     self.read_header(self.flist[0])
     if self.nvec == 0: raise StandardError,"log file has no values"
@@ -100,7 +100,7 @@ class log:
     print
 
     # sort entries by timestep, cull duplicates
-    
+
     self.data.sort(self.compare)
     self.cull()
     self.nlen = len(self.data)
@@ -133,9 +133,9 @@ class log:
       else:
         count = 0
         for i in range(self.nvec):
-	  if self.names[i].find(key) == 0:
-	    count += 1
-	    index = i
+          if self.names[i].find(key) == 0:
+            count += 1
+            index = i
         if count == 1:
           map.append(index)
         else:
@@ -161,9 +161,9 @@ class log:
         else:
           count = 0
           for i in range(self.nvec):
-	    if self.names[i].find(key) == 0:
-	      count += 1
-	      index = i
+            if self.names[i].find(key) == 0:
+              count += 1
+              index = i
           if count == 1:
             map.append(index)
           else:
@@ -226,7 +226,7 @@ class log:
       keywords.insert(0,"Step")
       i = 0
       for keyword in keywords:
-	self.names.append(keyword)
+        self.names.append(keyword)
         self.ptr[keyword] = i
         i += 1
 
@@ -236,7 +236,7 @@ class log:
       line = txt[s1:s2]
       words = line.split()
       for i in range(len(words)):
-	self.names.append(words[i])
+        self.names.append(words[i])
         self.ptr[words[i]] = i
 
     self.nvec = len(self.names)
@@ -275,43 +275,43 @@ class log:
 
       if s1 >= 0 and s2 >= 0 and s1 < s2:    # found s1,s2 with s1 before s2
         if self.style == 2:
-	  s1 = txt.find("\n",s1) + 1
+          s1 = txt.find("\n",s1) + 1
       elif s1 >= 0 and s2 >= 0 and s2 < s1:  # found s1,s2 with s2 before s1
         s1 = 0
       elif s1 == -1 and s2 >= 0:             # found s2, but no s1
-	last = 1
+        last = 1
         s1 = 0
       elif s1 >= 0 and s2 == -1:             # found s1, but no s2
         last = 1
         if self.style == 1:
           s2 = txt.rfind("\n--",s1) + 1
         else:
-	  s1 = txt.find("\n",s1) + 1
+          s1 = txt.find("\n",s1) + 1
           s2 = txt.rfind("\n",s1) + 1
-	eof -= len(txt) - s2
+        eof -= len(txt) - s2
       elif s1 == -1 and s2 == -1:            # found neither
                                              # could be end-of-file section
-					     # or entire read was one chunk
+                                             # or entire read was one chunk
 
         if txt.find("Loop time of",start) == start:   # end of file, so exit
-	  eof -= len(txt) - start                     # reset eof to "Loop"
-	  break
+          eof -= len(txt) - start                     # reset eof to "Loop"
+          break
 
-	last = 1                                      # entire read is a chunk
+        last = 1                                      # entire read is a chunk
         s1 = 0
         if self.style == 1:
           s2 = txt.rfind("\n--",s1) + 1
         else:
           s2 = txt.rfind("\n",s1) + 1
-	eof -= len(txt) - s2
-	if s1 == s2: break
+        eof -= len(txt) - s2
+        if s1 == s2: break
 
       chunk = txt[s1:s2-1]
       start = s2
 
       # split chunk into entries
       # parse each entry for numeric fields, append to data
-  
+
       if self.style == 1:
         sections = chunk.split("\n--")
         pat1 = re.compile("Step\s*(\S*)\s")

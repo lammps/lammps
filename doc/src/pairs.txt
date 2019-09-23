@@ -66,6 +66,7 @@ Pair Styles :h1
    pair_lj_smooth
    pair_lj_smooth_linear
    pair_lj_switch3_coulgauss
+   pair_local_density
    pair_lubricate
    pair_lubricateU
    pair_mdf

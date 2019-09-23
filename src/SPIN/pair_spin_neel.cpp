@@ -694,11 +694,11 @@ void PairSpinNeel::read_restart(FILE *fp)
           fread(&g1[i][j],sizeof(double),1,fp);
           fread(&g1_mech[i][j],sizeof(double),1,fp);
           fread(&g2[i][j],sizeof(double),1,fp);
-          fread(&g2[i][j],sizeof(double),1,fp);
+          fread(&g3[i][j],sizeof(double),1,fp);
           fread(&q1[i][j],sizeof(double),1,fp);
           fread(&q1_mech[i][j],sizeof(double),1,fp);
           fread(&q2[i][j],sizeof(double),1,fp);
-          fread(&q2[i][j],sizeof(double),1,fp);
+          fread(&q3[i][j],sizeof(double),1,fp);
           fread(&cut_spin_neel[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);

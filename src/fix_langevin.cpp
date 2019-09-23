@@ -96,7 +96,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
   ascale = 0.0;
   gjfflag = 0;
-  nvalues = 0; // flag for onsite velocity
+  nvalues = 0;
   oflag = 0;
   tallyflag = 0;
   zeroflag = 0;

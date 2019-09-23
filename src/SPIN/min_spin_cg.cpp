@@ -60,7 +60,6 @@ static const char cite_minstyle_spin_cg[] =
 
 #define DELAYSTEP 5
 
-
 /* ---------------------------------------------------------------------- */
 
 MinSpinCG::MinSpinCG(LAMMPS *lmp) :
@@ -183,7 +182,7 @@ int MinSpinCG::iterate(int maxiter)
 {
   int nlocal = atom->nlocal;
   bigint ntimestep;
-  double fmdotfm,fmsq,fmsqall;
+  double fmdotfm,fmsq;
   int flag, flagall;
   double **sp = atom->sp;
   double der_e_cur_tmp = 0.0;
@@ -269,20 +268,11 @@ int MinSpinCG::iterate(int maxiter)
     // magnetic torque tolerance criterion
     // sync across replicas if running multi-replica minimization
 
-    fmdotfm = fmsq = fmsqall = 0.0;
+    fmdotfm = fmsq = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == 1) {		// max torque norm
-	fmsq = max_torque();
-	fmsqall = fmsq;
-	if (update->multireplica == 0)
-	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_MAX,universe->uworld);
-      } else {				// Euclidean torque norm
-	fmsq = total_torque();
-	fmsqall = fmsq;
-	if (update->multireplica == 0)
-	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_SUM,universe->uworld);
-      }
-      fmdotfm = fmsqall*fmsqall;
+      if (normstyle == MAX) fmsq = max_torque();	// max norm
+      else fmsq = total_torque();			// Euclidean 2-norm
+      fmdotfm = fmsq*fmsq;
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {

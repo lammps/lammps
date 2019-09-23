@@ -86,6 +86,9 @@ all atoms
 
 :c,image(Eqs/norm_max.jpg) 
 
+For the min styles {spin}, {spin/cg} and {spin/lbfgs}, the force
+norm is replaced by the spin-torque norm.
+
 Keywords {alpha_damp} and {discrete_factor} only make sense when
 a "min_spin"_min_spin.html command is declared. 
 Keyword {alpha_damp} defines an analog of a magnetic Gilbert

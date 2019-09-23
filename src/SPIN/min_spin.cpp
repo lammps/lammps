@@ -116,7 +116,7 @@ void MinSpin::reset_vectors()
 int MinSpin::iterate(int maxiter)
 {
   bigint ntimestep;
-  double fmdotfm,fmsq,fmsqall;
+  double fmdotfm,fmsq;
   int flag,flagall;
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -163,20 +163,11 @@ int MinSpin::iterate(int maxiter)
     // magnetic torque tolerance criterion
     // sync across replicas if running multi-replica minimization
 
-    fmdotfm = fmsq = fmsqall = 0.0;
+    fmdotfm = fmsq = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == 1) {		// max torque norm
-	fmsq = max_torque();
-	fmsqall = fmsq;
-	if (update->multireplica == 0)
-	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_MAX,universe->uworld);
-      } else {				// Euclidean torque norm
-	fmsq = total_torque();
-	fmsqall = fmsq;
-	if (update->multireplica == 0)
-	  MPI_Allreduce(&fmsq,&fmsqall,1,MPI_INT,MPI_SUM,universe->uworld);
-      }
-      fmdotfm = fmsqall*fmsqall;
+      if (normstyle == MAX) fmsq = max_torque();	// max norm
+      else fmsq = total_torque();			// Euclidean 2-norm
+      fmdotfm = fmsq*fmsq;
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {

@@ -43,6 +43,8 @@ class Min : protected Pointers {
   double fnorm_inf();
   double fnorm_max();
 
+  enum{TWO,MAX};
+
   // methods for spin minimizers
   double max_torque(); 
   double total_torque();

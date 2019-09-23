@@ -49,8 +49,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{TWO,MAX}
-
 /* ---------------------------------------------------------------------- */
 
 Min::Min(LAMMPS *lmp) : Pointers(lmp)

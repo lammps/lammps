@@ -96,6 +96,9 @@ FixWallStochastic::FixWallStochastic(LAMMPS *lmp, int narg, char **arg) :
 
       for (dir = 0; dir < 3; dir++) {
       wallvel[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+3]);
+      int dim = wallwhich[nwall] / 2;
+      if ((wallvel[nwall][dir] !=0) & (dir == dim)) error->all(FLERR,"The wall velocity must be tangential");
+
        if (reflectionstyle == CERCIGNANILAMPIS) {
         wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+6]);
        } else if (reflectionstyle == MAXWELL) { 

@@ -39,7 +39,6 @@ class Min : protected Pointers {
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
   virtual int modify_param(int, char **) {return 0;}
-<<<<<<< HEAD
   double fnorm_sqr();
   double fnorm_inf();
   double fnorm_max();
@@ -49,10 +48,6 @@ class Min : protected Pointers {
   // methods for spin minimizers
   double max_torque(); 
   double total_torque();
-=======
-  virtual double fnorm_sqr();
-  virtual double fnorm_inf();
->>>>>>> aa2b885783e471ed622e1402adeed67e3224aa53
 
   virtual void init_style() {}
   virtual void setup_style() = 0;

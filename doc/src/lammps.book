@@ -404,18 +404,16 @@ fix_vector.html
 fix_viscosity.html
 fix_viscous.html
 fix_wall.html
-fix_wall_cl.html
 fix_wall_body_polygon.html
 fix_wall_body_polyhedron.html
-fix_wall_diffusive.html
 fix_wall_ees.html
 fix_wall_gran.html
 fix_wall_gran_region.html
-fix_wall_maxwell.html
 fix_wall_piston.html
 fix_wall_reflect.html
 fix_wall_region.html
 fix_wall_srd.html
+fix_wall_stochastic.html
 
 lammps_commands_compute.html
 compute.html
@@ -572,6 +570,7 @@ pair_charmm.html
 pair_class2.html
 pair_colloid.html
 pair_comb.html
+pair_cosine_squared.html
 pair_coul.html
 pair_coul_diel.html
 pair_coul_shield.html

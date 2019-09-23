@@ -97,6 +97,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   ascale = 0.0;
   gjfflag = 0;
   fsflag = 0;
+  nvalues = 0;
   oflag = 0;
   tallyflag = 0;
   zeroflag = 0;

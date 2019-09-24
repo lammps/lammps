@@ -1,7 +1,8 @@
 "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
-:link(lws,http://lammps.sandia.gov) link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
 
 :line
 

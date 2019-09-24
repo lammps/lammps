@@ -12,76 +12,66 @@ fix wall/stochastic command :h3
 fix ID group-ID wall/stochastic reflectionstyle face pos temp velx vely velz accomx accomy accomz ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-
 wall/stochastic = style name of this fix command :l
-
 one or more face/arg pairs may be appended :l
-
-reflectionstyle = diffusive or maxwell or cercignanilampis
-
+reflectionstyle = diffusive or maxwell or cercignanilampis :l
 face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
-
-  {xlo},{ylo},{zlo} pos = EDGE or constant 
-
+  {xlo},{ylo},{zlo} pos = EDGE or constant
     EDGE = current lo edge of simulation box
-
     constant = number like 0.0 or -30.0 (distance units)
-
     temp = wall temperature
-
     velx, vely, velz = wall velocity along x, y, z directions
-
     accomx, accomy, accomz = accommodation coefficients along x, y, z directions (only for maxwell and cercignanilampis reflection style)
-
   {xhi},{yhi},{zhi} pos = EDGE or constant or variable
-
     EDGE = current hi edge of simulation box
-
     constant = number like 50.0 or 100.3 (distance units)
-
-    temp = wall temperature 
-
+    temp = wall temperature
     velx, vely, velz = wall velocity along x, y, z directions
-
-    accomx, accomy, accomz = accommodation coefficients along x, y, z directions (only for maxwell and cercignanilampis style)
-
-    :pre
-
-zero or more keyword/value pairs may be appended :l keyword = {units} :l {units}
-value = {lattice} or {box}
-
+    accomx, accomy, accomz = accommodation coefficients along x, y, z directions (only for maxwell and cercignanilampis style) :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {units} :l
+  {units} value = {lattice} or {box}
     {lattice} = the wall position is defined in lattice units
-
     {box} = the wall position is defined in simulation box units :pre
-
 :ule
 
 [Examples:]
 
 fix zwalls all wall/stochastic diffusive zlo EDGE 300 0.1 0.1 0 zhi EDGE 200 0.1 0.1 0
-
 fix ywalls all wall/stochastic maxwell ylo 5.0 300 0.1 0.0 0.0 0.8 yhi 10.0 300 0.1 0.0 0.0 0.8
-
 fix xwalls all wall/stochastic cercignanilampis xlo 0.0 300 0.0 0.1 0.9 0.8 0.7 xhi EDGE 300 0.0 0.1 0 0.9 0.8 0.7 units box :pre
 
 [Description:]
 
-Different from the command fix wall/reflect which is equivalent to the mirror reflection, the post collision velocity of the atoms in the stochastic wall is random. The randomness can come from many sources: thermal motion of solid atoms, the surface roughness, etc... Three stochastic wall models are implemented. 
+This fix differs from the command fix wall/reflect which is equivalent
+to the mirror reflection, the post collision velocity of the atoms in the
+stochastic wall is random. The randomness can come from many sources:
+thermal motion of solid atoms, the surface roughness, etc... Three
+stochastic wall models are implemented.
 
-Diffusive wall (reflectionstyle = diffusive): all the gas atoms are reflected diffusively. Their velocity distribution corresponds to the equilibrium distribution at the wall temperature. 
+Diffusive wall (reflectionstyle = diffusive): all the gas atoms are
+reflected diffusively. Their velocity distribution corresponds to the
+equilibrium distribution at the wall temperature.
 
-Maxwell model (reflectionstyle = maxwell): the reflection is partially diffusive and partially specular. The accommodation coefficient is the portion of the diffusive reflection "Maxwell"_#Maxwell. 
+Maxwell model (reflectionstyle = maxwell): the reflection is partially
+diffusive and partially specular. The accommodation coefficient is the
+portion of the diffusive reflection "Maxwell"_#Maxwell.
 
-Cercignani Lampis model: 3 accommodations coefficients are used, two velocity accommodation coefficients and one normal kinetic energy accommodation "CL"_#CL, "To"_#To. The code will recognize automatically the normal direction of the wall and the other two tangential directions. For example, if accomx = 0.5, accomy = 0.2, accomz = 0.3 and the wall is normal to direction y, accomx and accomz are the tangential velocity accommodation coefficients and accomy is the normal kinetic energy accommodation coefficients.
+Cercignani/Lampis model: 3 accommodations coefficients are used, two
+velocity accommodation coefficients and one normal kinetic energy
+accommodation "CL"_#CL, "To"_#To. The code will recognize automatically
+the normal direction of the wall and the other two tangential
+directions. For example, if accomx = 0.5, accomy = 0.2, accomz = 0.3 and
+the wall is normal to direction y, accomx and accomz are the tangential
+velocity accommodation coefficients and accomy is the normal kinetic
+energy accommodation coefficients.
 
-The {units} keyword determines the distance units used to define a wall position
-
-A {box} value selects standard distance units as defined by the
-"units"_units.html command, e.g. Angstroms for units = real or metal. 
-
-A {lattice} value means the distance units are in lattice spacings. The
-"lattice"_lattice.html command must have been previously used to define the
-lattice spacings.
+The {units} keyword determines the distance units used to define a wall
+position.  A {box} value selects standard distance units as defined by
+the "units"_units.html command, e.g. Angstroms for units = real or
+metal.  A {lattice} value means the distance units are in lattice
+spacings. The "lattice"_lattice.html command must have been previously
+used to define the lattice spacings.
 
 :line
 
@@ -89,19 +79,23 @@ lattice spacings.
 
 Due to the similarities, this fix has the same limitation as the the
 wall/reflect. Any dimension (xyz) that has a wall must be non-periodic. It
-shoudld not be used with rigid bodies such as those defined by a "fix rigid"
+should not be used with rigid bodies such as those defined by a "fix rigid"
 command. Furthermore, the wall velocity must lie on the same plane as the wall. Package USER-MISC is required to use this fix.
 
 [Related commands:]
 
-"fix wall/reflect"_fix_wall_reflect.html, 
- 
+"fix wall/reflect"_fix_wall_reflect.html,
+
 [Default:] none
 
 :line
-:link(Maxwell)  [(Maxwell)] J. C. Maxwell. Philos. Trans. Royal Soc. London. 157: 49–88 (1867).
 
-:link(CL)  [(CL)] C. Cercignani and M. Lampis. Transp. Theory Stat. Phys. 1, 2, 101 (1971).  
+:link(Maxwell)
+[(Maxwell)] J. C. Maxwell. Philos. Trans. Royal Soc. London. 157: 49–88 (1867).
 
-:link(To)  [(To)] Q.D. To, V.H. Vu, G. Lauriat, and C. Leonard. J. Math. Phys. 56, 103101 (2015).
+:link(CL)
+[(Cercignani)] C. Cercignani and M. Lampis. Trans. Theory Stat. Phys. 1, 2, 101 (1971).
+
+:link(To)
+[(To)] Q.D. To, V.H. Vu, G. Lauriat, and C. Leonard. J. Math. Phys. 56, 103101 (2015).
 

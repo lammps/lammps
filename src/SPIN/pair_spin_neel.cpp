@@ -643,9 +643,7 @@ void PairSpinNeel::allocate()
   memory->create(q3,n+1,n+1,"pair/spin/soc/neel:q3");
 
   memory->create(cutsq,n+1,n+1,"pair/spin/soc/neel:cutsq");
-
 }
-
 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file

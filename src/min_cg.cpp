@@ -14,6 +14,7 @@
 #include "min_cg.h"
 #include <mpi.h>
 #include <cmath>
+#include "error.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
@@ -110,12 +111,15 @@ int MinCG::iterate(int maxiter)
       }
 
     fmax = 0.0;
-    if (normstyle == MAX) {	// max force norm
+    if (normstyle == MAX) {		// max force norm
       fmax = fnorm_max();
       if (fmax < update->ftol*update->ftol) return FTOL;
-    } else {			// Euclidean force 2-norm
+    } else if (normstyle == INF) {	// infinite force norm
+      fmax = fnorm_inf();
+      if (fmax < update->ftol*update->ftol) return FTOL;
+    } else if (normstyle == TWO) {	// Euclidean force 2-norm
       if (dotall[0] < update->ftol*update->ftol) return FTOL;
-    }
+    } else error->all(FLERR,"Illegal min_modify command"); 
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

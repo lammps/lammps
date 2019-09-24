@@ -20,7 +20,8 @@ keyword = {dmax} or {line} or {norm} or {alpha_damp} or {discrete_factor}
     backtrack,quadratic,forcezero,spin_cubic,spin_none = style of linesearch to use 
   {norm} value = {two} or {max}
     two = Euclidean two-norm (length of 3N vector)
-    max = max value of across all 3-vectors
+    inf = max force component across all 3-vectors
+    max = max force norm across all 3-vectors
   {alpha_damp} value = damping
     damping = fictitious Gilbert damping for spin minimization (adim)
   {discrete_factor} value = factor
@@ -85,6 +86,11 @@ for each atom  (2-norm), and takes the maximum value of those across
 all atoms
 
 :c,image(Eqs/norm_max.jpg) 
+
+The {inf} norm takes the maximum component across the forces of
+all atoms in the system: 
+
+:c,image(Eqs/norm_inf.jpg) 
 
 For the min styles {spin}, {spin/cg} and {spin/lbfgs}, the force
 norm is replaced by the spin-torque norm.

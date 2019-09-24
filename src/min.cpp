@@ -670,6 +670,7 @@ void Min::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"two") == 0) normstyle = TWO;
       else if (strcmp(arg[iarg+1],"max") == 0) normstyle = MAX;
+      else if (strcmp(arg[iarg+1],"inf") == 0) normstyle = INF;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else {
@@ -897,6 +898,39 @@ double Min::total_torque()
   // multiply it by hbar so that units are in eV
   
   return sqrt(ftotsqall) * hbar;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return max_i ||mag. torque components|| (in eV)
+------------------------------------------------------------------------- */
+
+double Min::inf_torque()
+{
+  double fmsq,fmaxsqone,fmaxsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmaxsqone = MAX(fmaxsqone,tx*tx);
+    fmaxsqone = MAX(fmaxsqone,ty*ty);
+    fmaxsqone = MAX(fmaxsqone,tz*tz);
+  }
+
+  // finding max fm on this replica
+
+  fmaxsqall = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  // multiply it by hbar so that units are in eV
+
+  return sqrt(fmaxsqall) * hbar;
 }
 
 /* ----------------------------------------------------------------------

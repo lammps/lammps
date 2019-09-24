@@ -43,11 +43,12 @@ class Min : protected Pointers {
   double fnorm_inf();
   double fnorm_max();
 
-  enum{TWO,MAX};
+  enum{TWO,MAX,INF};
 
   // methods for spin minimizers
-  double max_torque(); 
   double total_torque();
+  double inf_torque(); 
+  double max_torque(); 
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
@@ -67,8 +68,7 @@ class Min : protected Pointers {
   int linestyle;		// 0 = backtrack, 1 = quadratic, 2 = forcezero 
   				// 3 = spin_cubic, 4 = spin_none
 
-  int normstyle;		// TWO or MAX flag for force norm evaluation
-  // int normstyle;		// 0 = Euclidean norm, 1 = inf. norm
+  int normstyle;		// TWO, MAX or INF flag for force norm evaluation
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

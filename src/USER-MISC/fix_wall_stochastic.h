@@ -20,8 +20,6 @@ FixStyle(wall/stochastic,FixWallStochastic)
 #ifndef LMP_FIX_WALL_STOCHASTIC_H
 #define LMP_FIX_WALL_STOCHASTIC_H
 
-
-#include "random_mars.h"
 #include "fix_wall_reflect.h"
 
 namespace LAMMPS_NS {
@@ -31,17 +29,11 @@ class FixWallStochastic : public FixWallReflect {
   FixWallStochastic(class LAMMPS *, int, char **);
   void wall_particle(int m,int which, double coord);
 
-
-
-
-
  protected:
-    class RanMars *random;
-    int seedfix;
-    double walltemp[6],wallvel[6][3],wallaccom[6][3];
-    int reflectionstyle;
-
-  
+  class RanMars *random;
+  int seedfix;
+  double walltemp[6],wallvel[6][3],wallaccom[6][3];
+  int reflectionstyle;
 };
 
 }

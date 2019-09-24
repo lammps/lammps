@@ -45,8 +45,8 @@ fix xwalls all wall/stochastic cercignanilampis xlo 0.0 300 0.0 0.1 0.9 0.8 0.7 
 [Description:]
 
 This fix differs from the command fix wall/reflect which is equivalent
-to the mirror reflection, the post collision velocity of the atoms in the
-stochastic wall is random. The randomness can come from many sources:
+to the mirror reflection in that the post collision velocity of the atoms
+in the stochastic wall is random. The randomness can come from many sources:
 thermal motion of solid atoms, the surface roughness, etc... Three
 stochastic wall models are implemented.
 

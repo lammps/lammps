@@ -569,6 +569,7 @@ pair_charmm.html
 pair_class2.html
 pair_colloid.html
 pair_comb.html
+pair_cosine_squared.html
 pair_coul.html
 pair_coul_diel.html
 pair_coul_shield.html
@@ -610,6 +611,7 @@ pair_lj_smooth.html
 pair_lj_smooth_linear.html
 pair_fep_soft.html
 pair_lj_switch3_coulgauss.html
+pair_local_density.html
 pair_lubricate.html
 pair_lubricateU.html
 pair_mdf.html

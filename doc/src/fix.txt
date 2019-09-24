@@ -221,7 +221,7 @@ accelerated styles exist.
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "hyper/global"_fix_hyper_global.html - global hyperdynamics
 "hyper/local"_fix_hyper_local.html - local hyperdynamics
-"imd"_fix_imd.html - implements the “Interactive MD” (IMD) protocol 
+"imd"_fix_imd.html - implements the “Interactive MD” (IMD) protocol
 "indent"_fix_indent.html - impose force due to an indenter
 "ipi"_fix_ipi.html - enable LAMMPS to run as a client for i-PI path-integral simulations
 "langevin"_fix_langevin.html - Langevin temperature control
@@ -244,7 +244,7 @@ accelerated styles exist.
 "mscg"_fix_mscg.html - apply MSCG method for force-matching to generate coarse grain models
 "msst"_fix_msst.html - multi-scale shock technique (MSST) integration
 "mvv/dpd"_fix_mvv_dpd.html - DPD using the modified velocity-Verlet integration algorithm
-"mvv/edpd"_fix_mvv_dpd.html - constant energy DPD using the modified velocity-Verlet algrithm
+"mvv/edpd"_fix_mvv_dpd.html - constant energy DPD using the modified velocity-Verlet algorithm
 "mvv/tdpd"_fix_mvv_dpd.html - constant temperature DPD using the modified velocity-Verlet algorithm
 "neb"_fix_neb.html - nudged elastic band (NEB) spring forces
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
@@ -327,7 +327,7 @@ accelerated styles exist.
 "rigid/nvt/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVT integration
 "rigid/small"_fix_rigid.html - constrain many small clusters of atoms to move as a rigid body with NVE integration
 "rx"_fix_rx.html -
-"saed/vtk"_fix_saed_vtk.html - 
+"saed/vtk"_fix_saed_vtk.html -
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
 "shardlow"_fix_shardlow.html - integration of DPD equations of motion using the Shardlow splitting
@@ -371,6 +371,7 @@ accelerated styles exist.
 "wall/lj1043"_fix_wall.html - Lennard-Jones 10-4-3 wall
 "wall/lj126"_fix_wall.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall.html - Lennard-Jones 9-3 wall
+"wall/morse"_fix_wall.html - Morse potential wall
 "wall/piston"_fix_wall_piston.html - moving reflective piston wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "wall/region"_fix_wall_region.html - use region surface as wall

@@ -43,8 +43,8 @@ when the tapper function is turned off. The formula of taper function
 can be found in pair style "ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
 
 NOTE: This potential (ILP) is intended for interlayer interactions between two
-different layers of graphene. To perform a realistic simulation, this potential 
-must be used in combination with intralayer potential, such as 
+different layers of graphene. To perform a realistic simulation, this potential
+must be used in combination with intralayer potential, such as
 "AIREBO"_pair_airebo.html or "Tersoff"_pair_tersoff.html potential.
 To keep the intralayer properties unaffected, the interlayer interaction
 within the same layers should be avoided. Hence, each atom has to have a layer

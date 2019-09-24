@@ -92,7 +92,7 @@ command. Furthermore, the wall velocity must lie on the same plane as the wall. 
 :line
 
 :link(Maxwell)
-[(Maxwell)] J. C. Maxwell. Philos. Trans. Royal Soc. London. 157: 49–88 (1867).
+[(Maxwell)] J.C. Maxwell, Philos. Tans. Royal Soc. London, 157: 49-88 (1867).
 
 :link(CL)
 [(Cercignani)] C. Cercignani and M. Lampis. Trans. Theory Stat. Phys. 1, 2, 101 (1971).

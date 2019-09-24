@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_deposit.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -776,7 +776,7 @@ void FixDeposit::options(int narg, char **arg)
       vzlo = force->numeric(FLERR,arg[iarg+1]);
       vzhi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
-    } else if (strcmp(arg[iarg],"rotation") == 0) {
+    } else if (strcmp(arg[iarg],"orientation") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
       rflag = 1;
       rx = force->numeric(FLERR,arg[iarg+1]);

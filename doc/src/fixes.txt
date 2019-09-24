@@ -186,5 +186,6 @@ Fixes :h1
    fix_wall_reflect
    fix_wall_region
    fix_wall_srd
+   fix_wall_stochastic
 
 END_RST -->

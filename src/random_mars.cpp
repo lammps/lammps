@@ -17,6 +17,7 @@
 #include "random_mars.h"
 #include <cmath>
 #include "error.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 
@@ -122,10 +123,9 @@ double RanMars::gaussian()
 double RanMars::gaussian(double mu, double sigma)
 {  
   double v1;
-         v1 = mu+sigma*gaussian();
+  v1 = mu+sigma*gaussian();
   return v1;
 }
-/* ---------------------------------------------------------------------- */
 
 
 /* ----------------------------------------------------------------------
@@ -136,13 +136,13 @@ double RanMars::rayleigh(double sigma)
 {
   double first,v1;
  
-   if (sigma <= 0)
+  if (sigma <= 0) {
     error->all(FLERR,"Invalid Rayleigh parameter");
-   else {
+  } else {
     v1 = uniform();
     first = sigma*sqrt(-2.0*log(v1));
     return first;
-   }
+  }
 }
 
 
@@ -153,17 +153,20 @@ double RanMars::rayleigh(double sigma)
 double RanMars::besselexp(double theta, double alpha, double cp)
 {
   double first,v1,v2;
-
-
-   if ((theta < 0) || (alpha < 0) || (alpha >1))
+  if ((theta < 0) || (alpha < 0) || (alpha >1)) {
     error->all(FLERR,"Invalid Bessel exponential distribution parameters");
-   else {
+  } else {
     v1 = uniform();
     v2 = uniform();
-    if (cp < 0) 
-    first = sqrt((1-alpha)*cp*cp-2*alpha*theta*log(v1)+2*sqrt(-2*theta*(1-alpha)*alpha*log(v1))*cos(2*M_PI*v2)*cp);
-    else {
-    first = - sqrt((1-alpha)*cp*cp-2*alpha*theta*log(v1)-2*sqrt(-2*theta*(1-alpha)*alpha*log(v1))*cos(2*M_PI*v2)*cp) ;}
-        return first;
-   }
+    if (cp < 0) {
+      first = sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1)
+                   + 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1))
+                   * cos(2.0*MathConst::MY_PI*v2)*cp);
+    } else {
+      first = -sqrt((1.0-alpha)*cp*cp - 2.0*alpha*theta*log(v1)
+                    - 2.0*sqrt(-2.0*theta*(1.0-alpha)*alpha*log(v1))
+                    * cos(2.0*MathConst::MY_PI*v2)*cp);
+    }
+    return first;
+  }
 }

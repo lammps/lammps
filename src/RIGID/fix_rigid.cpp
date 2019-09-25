@@ -609,6 +609,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (screen) fprintf(screen,"%d rigid bodies with %d atoms\n",nbody,nsum);
     if (logfile) fprintf(logfile,"%d rigid bodies with %d atoms\n",nbody,nsum);
   }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -666,6 +667,8 @@ int FixRigid::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
   if (langflag) mask |= POST_FORCE;
+  // TODO: REMOVE THIS
+  if (!langflag && comm->me == 0) fprintf(stderr, "post_force mask not set!\n");
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -752,6 +755,16 @@ void FixRigid::init()
   ndof -= nlinear;
   if (ndof > 0.0) tfactor = force->mvv2e / (ndof * force->boltz);
   else tfactor = 0.0;
+
+  // TODO: REMOVE LATER
+  if (comm->me == 0) {
+    fprintf(stderr,"  ** --> IN (exit): quat = (%g, %g, %g, %g)\n",
+            quat[0][0], quat[0][1], quat[0][2], quat[0][3]);
+    fprintf(stderr,"  ** --> IN (exit): displace = (%g, %g, %g)\n",
+            displace[0][0], displace[0][1], displace[0][2]);
+
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -772,6 +785,11 @@ void FixRigid::setup_pre_neighbor()
 void FixRigid::setup(int vflag)
 {
   int i,n,ibody;
+
+  fprintf(stderr, "  ** --> SE: omega = (%g, %g, %g)\n",
+          omega[0][0], omega[0][1], omega[0][2]);
+  fprintf(stderr, "  ** --> SE: fcm = (%g, %g, %g)\n",
+          fcm[0][0], fcm[0][1], fcm[0][2]);
 
   // fcm = force on center-of-mass of each rigid body
 
@@ -796,6 +814,9 @@ void FixRigid::setup(int vflag)
     fcm[ibody][1] = all[ibody][1];
     fcm[ibody][2] = all[ibody][2];
   }
+
+  fprintf(stderr, "  ** --> SE: fcm = (%g, %g, %g)\n",
+          fcm[0][0], fcm[0][1], fcm[0][2]);
 
   // torque = torque on each rigid body
 
@@ -874,6 +895,10 @@ void FixRigid::setup(int vflag)
       for (n = 0; n < 6; n++)
         vatom[i][n] *= 2.0;
   }
+
+  fprintf(stderr, "  ** --> SE (exit): omega = (%g, %g, %g)\n",
+          omega[0][0], omega[0][1], omega[0][2]);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -881,6 +906,12 @@ void FixRigid::setup(int vflag)
 void FixRigid::initial_integrate(int vflag)
 {
   double dtfm;
+
+  if (comm->me == 0) {
+    fprintf(stderr, "  ** --> x lives at %p\n",atom->x[0]);
+    fprintf(stderr, "  ** --> II: omega is (%g, %g, %g)\n", omega[0][0],
+            omega[0][1], omega[0][2]);
+  }
 
   for (int ibody = 0; ibody < nbody; ibody++) {
 
@@ -1050,6 +1081,14 @@ void FixRigid::compute_forces_and_torques()
   }
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  if (comm->me == 0) {
+    fprintf(stderr, "sum    = (%g, %g, %g)\n",
+            fcm[0][0], fcm[0][1], fcm[0][2]);
+    fprintf(stderr, "all = (%g, %g, %g)\n\n",
+            torque[0][0], torque[0][1], torque[0][2]);
+  }
+
+
 
   // include Langevin thermostat forces
 
@@ -1061,6 +1100,7 @@ void FixRigid::compute_forces_and_torques()
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
+
 }
 
 
@@ -1068,6 +1108,9 @@ void FixRigid::compute_forces_and_torques()
 
 void FixRigid::post_force(int /*vflag*/)
 {
+	if (comm->me == 0 && langflag == 0 && earlyflag == 0) {
+    fprintf(stderr, "This is post_force, not doing anything.");
+  }
   if (langflag) apply_langevin_thermostat();
   if (earlyflag) compute_forces_and_torques();
 }
@@ -1107,6 +1150,21 @@ void FixRigid::final_integrate()
   // virial is already setup from initial_integrate
 
   set_v();
+
+  // TODO: REMOVE THIS LATER:
+  if (comm->me == 0) {
+    double **x = atom->x;
+    double **v = atom->v;
+    fprintf(stderr, "End of final integrate:\n");
+    fprintf(stderr, "quat  = (%g, %g, %g, %g)\n",
+            quat[0][0], quat[0][1], quat[0][2], quat[0][3] );
+    fprintf(stderr, "x     = (%g, %g, %g)\n",
+            x[0][0], x[0][1], x[0][2]);
+    fprintf(stderr, "omega = (%g, %g, %g)\n",
+            omega[0][0], omega[0][1], omega[0][2]);
+    fprintf(stderr, "v     = (%g, %g, %g)\n\n",
+            v[0][0], v[0][1], v[0][2]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1193,6 +1251,10 @@ void FixRigid::image_shift()
 int FixRigid::dof(int tgroup)
 {
   // cannot count DOF correctly unless setup_bodies_static() has been called
+  // TODO: REMOVE THIS:
+  if (comm->me) {
+    fprintf(stderr, "This is FixRigid::dof()\n");
+  }
 
   if (!setupflag) {
     if (comm->me == 0)
@@ -1324,6 +1386,7 @@ void FixRigid::set_xv()
     yz = domain->yz;
   }
 
+
   // set x and v of each atom
 
   for (int i = 0; i < nlocal; i++) {
@@ -1350,6 +1413,21 @@ void FixRigid::set_xv()
       v1 = v[i][1];
       v2 = v[i][2];
     }
+
+    // TODO: REMOVE THIS LATER
+    if (comm->me == 0 && ibody == 0) {
+      fprintf(stderr, "\ni = %d, ibody = %d\n", i, ibody);
+      fprintf(stderr, "in set_xv().\n");
+      fprintf(stderr, "x before is (%g, %g, %g)\n",        x[i][0], x[i][1], x[i][2]);
+      fprintf(stderr, "v before is (%g, %g, %g)\n",        v[i][0], v[i][1], v[i][2]);
+      fprintf(stderr, "omega before is (%g, %g, %g)\n",    omega[ibody][0], omega[ibody][1], omega[ibody][2]);
+      fprintf(stderr, "vcm before is (%g, %g, %g)\n",      vcm[ibody][0], vcm[ibody][1], vcm[ibody][2]);
+      fprintf(stderr, "ex_space before is (%g, %g, %g)\n", ex_space[ibody][0], ex_space[ibody][1], ex_space[ibody][2]);
+      fprintf(stderr, "ey_space before is (%g, %g, %g)\n", ey_space[ibody][0], ey_space[ibody][1], ey_space[ibody][2]);
+      fprintf(stderr, "ez_space before is (%g, %g, %g)\n", ez_space[ibody][0], ez_space[ibody][1], ez_space[ibody][2]);
+      fprintf(stderr, "displace before is (%g, %g, %g)\n\n", displace[i][0], displace[i][1], displace[i][2]);
+    }
+
 
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
@@ -1399,6 +1477,20 @@ void FixRigid::set_xv()
       vr[5] = 0.5*x1*fc2;
 
       v_tally(1,&i,1.0,vr);
+    }
+
+    // TODO: REMOVE LATER
+    if (comm->me == 0 && ibody == 0) {
+      fprintf(stderr, "\ni = %d, ibody = %d\n", i, ibody);
+      fprintf(stderr, "in set_xv().\n");
+      fprintf(stderr, "x after is (%g, %g, %g)\n",        x[i][0], x[i][1], x[i][2]);
+      fprintf(stderr, "v after is (%g, %g, %g)\n",        v[i][0], v[i][1], v[i][2]);
+      fprintf(stderr, "omega after is (%g, %g, %g)\n",    omega[ibody][0], omega[ibody][1], omega[ibody][2]);
+      fprintf(stderr, "vcm after is (%g, %g, %g)\n",      vcm[ibody][0], vcm[ibody][1], vcm[ibody][2]);
+      fprintf(stderr, "ex_space after is (%g, %g, %g)\n", ex_space[ibody][0], ex_space[ibody][1], ex_space[ibody][2]);
+      fprintf(stderr, "ey_space after is (%g, %g, %g)\n", ey_space[ibody][0], ey_space[ibody][1], ey_space[ibody][2]);
+      fprintf(stderr, "ez_space after is (%g, %g, %g)\n", ez_space[ibody][0], ez_space[ibody][1], ez_space[ibody][2]);
+      fprintf(stderr, "displace after is (%g, %g, %g)\n\n", displace[i][0], displace[i][1], displace[i][2]);
     }
   }
 
@@ -1895,6 +1987,11 @@ void FixRigid::setup_bodies_static()
   // inertia = 3 eigenvalues = principal moments of inertia
   // evectors and exzy_space = 3 evectors = principal axes of rigid body
 
+  // TODO: REMOVE THIS:
+  if (comm->me == 0) {
+	  fprintf(stderr, "all is (%g, %g, %g, %g, %g, %g)\n", all[0][0],
+	          all[0][1], all[0][2], all[0][3], all[0][4], all[0][5]);
+  }
   int ierror;
   double cross[3];
   double tensor[3][3],evectors[3][3];
@@ -1977,6 +2074,7 @@ void FixRigid::setup_bodies_static()
     delta[0] = xunwrap - xcm[ibody][0];
     delta[1] = yunwrap - xcm[ibody][1];
     delta[2] = zunwrap - xcm[ibody][2];
+
     MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
                                 ez_space[ibody],delta,displace[i]);
 

@@ -37,23 +37,37 @@ template <class DeviceType>
 class FixRigidKokkos : public FixRigid {
  public:
 
+  // These did not exist or at least I could not find them:
   typedef Kokkos::DualView<F_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_quat_array;
-	
+  typedef Kokkos::DualView<F_FLOAT*[6], Kokkos::LayoutRight, LMPDeviceType> tdual_sum_array;
+  typedef Kokkos::DualView<T_INT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_int4_array;
+
+
   FixRigidKokkos(class LAMMPS *, int, char **);
   virtual ~FixRigidKokkos();
   void cleanup_copy();
 
-  //virtual int setmask();
+	// virtual int setmask(); // Masks remain same
   virtual void init();
-  // virtual void setup(int);
+  virtual void setup(int);
   virtual void initial_integrate(int);
+  virtual void post_force(int);
   virtual void final_integrate();
-  
-  //void post_force(int);
+  virtual void pre_neighbor();
+  virtual double compute_scalar();
+
   // void initial_integrate_respa(int, int, int);
   // void final_integrate_respa(int, int);
   // void write_restart_file(char *);
   // virtual double compute_scalar();
+
+  //int dof(int);
+  //void deform(int);
+  //void enforce2d();
+  //void reset_dt();
+  //void zero_momentum();
+  //void zero_rotation();
+
   void grow_arrays(int);
 
  protected:
@@ -63,7 +77,7 @@ class FixRigidKokkos : public FixRigid {
 
   void sync_arrays(int phase_mask);
   void modify_arrays(int phase_mask);
-  
+
 
   template <typename kokkos_arr, typename base_arr>
   void debug_print_vec(kokkos_arr k_arr, base_arr arr,
@@ -74,15 +88,6 @@ class FixRigidKokkos : public FixRigid {
 
 
  private:
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
-
-  
   // We need Kokkos style containers for everything in the innner loops:
   DAT::tdual_x_array k_xcm;
   DAT::tdual_v_array k_vcm;
@@ -98,19 +103,43 @@ class FixRigidKokkos : public FixRigid {
 
   // k_quat has to be a special array because it is a quaternion!
   tdual_quat_array k_quat;
+  tdual_int4_array k_remapflag;
 
   DAT::tdual_x_array k_ex_space, k_ey_space, k_ez_space;
   DAT::tdual_x_array k_displace;
 
+  tdual_sum_array k_sum, k_all;
+  tdual_sum_array k_langextra;
+
   DAT::tdual_int_1d k_body, k_eflags;
-  typename ArrayTypes<DeviceType>::tdual_imageint_1d k_xcmimage;
+  DAT::tdual_imageint_1d k_xcmimage;
+  DAT::tdual_imageint_1d k_imagebody;
+  DAT::tdual_float_1d k_masstotal;
+  DAT::tdual_int_1d k_nrigid;
+
+
   DAT::tdual_x_array k_orient;
   DAT::tdual_x_array k_dorient;
-  
-  
+
+
+  // helper functions to create and copy arrays. They function just like
+  // atomKK::create_kokkos, except the data in array is preserved and
+  // copied into data.
+
+  // 1d variant:
+  template <typename arr_type>
+  void create_and_copy(arr_type &data, typename arr_type::value_type *&array,
+                       int n1, const char *name);
+  // 2d variant:
+  template <typename arr_type>
+  void create_and_copy(arr_type &data, typename arr_type::value_type **&array,
+                       int n1, int n2, const char *name);
+
+
+
 }; // class FixRigidKokkos
 
-  
+
 } // namespace LAMMPS_NS
 
 

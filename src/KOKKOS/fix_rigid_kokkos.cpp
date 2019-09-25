@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+
 #include "fix_rigid_kokkos.h"
 #include <mpi.h>
 #include <cmath>
@@ -38,7 +39,9 @@
 
 #include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "domain_kokkos.h"
 #include "memory_kokkos.h"
+
 
 
 using namespace LAMMPS_NS;
@@ -48,386 +51,270 @@ using namespace RigidConst;
 
 constexpr const bool debug_output = true;
 
+/* ----------------------------------------------------------------------
+   Contributing author: Stefan Paquay (Brandeis U, stefanpaquay@gmail.com)
+------------------------------------------------------------------------- */
+
+
 /* ---------------------------------------------------------------------- */
 
-// Some MathExtra functions had to be ported to Kokkos. In the future we
-// probably want to collect all of them somewhere.
-namespace MathExtraKokkos {
-
-// These trigger warning about redundant inline on explicit specialization :(
-KOKKOS_INLINE_FUNCTION 
-template <class DeviceType>
-void angmom_to_omega(typename ArrayTypes<DeviceType>::t_v_array m,
-                     typename ArrayTypes<DeviceType>::t_x_array ex,
-                     typename ArrayTypes<DeviceType>::t_x_array ey,
-                     typename ArrayTypes<DeviceType>::t_x_array ez,
-                     typename ArrayTypes<DeviceType>::t_x_array idiag,
-                     typename ArrayTypes<DeviceType>::t_v_array w, int ibody)
-{
-  double wbody[3];
-
-  if (idiag(ibody,0) == 0.0) wbody[0] = 0.0;
-  else wbody[0] = (m(ibody,0)*ex(ibody,0) + m(ibody,1)*ex(ibody,1) + m(ibody,2)*ex(ibody,2)) / idiag(ibody,0);
-  if (idiag(ibody,1) == 0.0) wbody[1] = 0.0;
-  else wbody[1] = (m(ibody,0)*ey(ibody,0) + m(ibody,1)*ey(ibody,1) + m(ibody,2)*ey(ibody,2)) / idiag(ibody,1);
-  if (idiag(ibody,2) == 0.0) wbody[2] = 0.0;
-  else wbody[2] = (m(ibody,0)*ez(ibody,0) + m(ibody,1)*ez(ibody,1) + m(ibody,2)*ez(ibody,2)) / idiag(ibody,2);
-  
-  w(ibody,0) = wbody[0]*ex(ibody,0) + wbody[1]*ey(ibody,0) + wbody[2]*ez(ibody,0);
-  w(ibody,1) = wbody[0]*ex(ibody,1) + wbody[1]*ey(ibody,1) + wbody[2]*ez(ibody,1);
-  w(ibody,2) = wbody[0]*ex(ibody,2) + wbody[1]*ey(ibody,2) + wbody[2]*ez(ibody,2);
-}
-
-KOKKOS_INLINE_FUNCTION 
-template <typename a_arr_type, typename b_arr_type>
-inline void vecquat(a_arr_type a, b_arr_type b, double c[4])
-{
-  c[0] = -a[0]*b[1] - a[1]*b[2] - a[2]*b[3];
-  c[1] = b[0]*a[0] + a[1]*b[3] - a[2]*b[2];
-  c[2] = b[0]*a[1] + a[2]*b[1] - a[0]*b[3];
-  c[3] = b[0]*a[2] + a[0]*b[2] - a[1]*b[1];
-}
-
-/* ----------------------------------------------------------------------
-   matrix times vector
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION 
-template <typename arr_out_type>
-inline void matvec(const double m[3][3], const double v[3],
-                   arr_out_type ans)
-{
-  ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
-  ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
-  ans[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
-}
-  
-
-/* ----------------------------------------------------------------------
-   transposed matrix times vector
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
-template <typename v_arr_type, typename arr_out_type>
-void transpose_matvec(const double m[3][3], v_arr_type v,
-                             arr_out_type ans)
-{
-  ans[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2];
-  ans[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2];
-  ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
-}
-
-
-  /* ----------------------------------------------------------------------
-   matrix times vector
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
-template <typename e_arr_type, typename v_arr_type, typename ans_arr_type>
-void matvec(e_arr_type ex, e_arr_type ey,
-                   e_arr_type ez, v_arr_type v, ans_arr_type ans)
-{
-  ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
-  ans[1] = ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2];
-  ans[2] = ex[2]*v[0] + ey[2]*v[1] + ez[2]*v[2];
-}
-
-
-/* ----------------------------------------------------------------------
-   normalize a quaternion
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
-template <typename q_arr_type>
- void qnormalize(q_arr_type q)
-{
-  double norm = 1.0 / sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-  q[0] *= norm;
-  q[1] *= norm;
-  q[2] *= norm;
-  q[3] *= norm;
-}
-
-
-/* ----------------------------------------------------------------------
-   conjugate of a quaternion: qc = conjugate of q
-   assume q is of unit length
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
- void qconjugate(double q[4], double qc[4])
-{
-  qc[0] = q[0];
-  qc[1] = -q[1];
-  qc[2] = -q[2];
-  qc[3] = -q[3];
-}
-
-/* ----------------------------------------------------------------------
-   compute rotation matrix from quaternion
-   quat = [w i j k]
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
-void quat_to_mat(const double quat[4], double mat[3][3])
-{
-  double w2 = quat[0]*quat[0];
-  double i2 = quat[1]*quat[1];
-  double j2 = quat[2]*quat[2];
-  double k2 = quat[3]*quat[3];
-  double twoij = 2.0*quat[1]*quat[2];
-  double twoik = 2.0*quat[1]*quat[3];
-  double twojk = 2.0*quat[2]*quat[3];
-  double twoiw = 2.0*quat[1]*quat[0];
-  double twojw = 2.0*quat[2]*quat[0];
-  double twokw = 2.0*quat[3]*quat[0];
-
-  mat[0][0] = w2+i2-j2-k2;
-  mat[0][1] = twoij-twokw;
-  mat[0][2] = twojw+twoik;
-
-  mat[1][0] = twoij+twokw;
-  mat[1][1] = w2-i2+j2-k2;
-  mat[1][2] = twojk-twoiw;
-
-  mat[2][0] = twoik-twojw;
-  mat[2][1] = twojk+twoiw;
-  mat[2][2] = w2-i2-j2+k2;
-}
-
-
-
-/* ----------------------------------------------------------------------
-   compute space-frame ex,ey,ez from current quaternion q
-   ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
-   operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
-------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
-template <typename q_arr_type, typename e_arr_type>
- void q_to_exyz(q_arr_type q,
-                      e_arr_type ex, e_arr_type ey, e_arr_type ez)
-{
-  double q0 = q[0];
-  double q1 = q[1];
-  double q2 = q[2];
-  double q3 = q[3];
-
-  ex[0] = q0*q0 + q1*q1 - q2*q2 - q3*q3;
-  ex[1] = 2.0 * (q1*q2 + q0*q3);
-  ex[2] = 2.0 * (q1*q3 - q0*q2);
-
-  ey[0] = 2.0 * (q1*q2 - q0*q3);
-  ey[1] = q0*q0 - q1*q1 + q2*q2 - q3*q3;
-  ey[2] = 2.0 * (q2*q3 + q0*q1);
-
-  ez[0] = 2.0 * (q1*q3 + q0*q2);
-  ez[1] = 2.0 * (q2*q3 - q0*q1);
-  ez[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
-}
-
-
-
-
-/* ----------------------------------------------------------------------
-   compute omega from angular momentum
-   w = omega = angular velocity in space frame
-   wbody = angular velocity in body frame
-   project space-frame angular momentum onto body axes
-     and divide by principal moments
-------------------------------------------------------------------------- */
-
-KOKKOS_INLINE_FUNCTION
-template <typename v_arr_type, typename x_arr_type>
- void mq_to_omega(v_arr_type m, double q[4],
-                        x_arr_type moments, v_arr_type w)
-{
-  double wbody[3];
-  double rot[3][3];
-
-  MathExtraKokkos::quat_to_mat(q,rot);
-  MathExtraKokkos::transpose_matvec(rot,m,wbody);
-  if (moments[0] == 0.0) wbody[0] = 0.0;
-  else wbody[0] /= moments[0];
-  if (moments[1] == 0.0) wbody[1] = 0.0;
-  else wbody[1] /= moments[1];
-  if (moments[2] == 0.0) wbody[2] = 0.0;
-  else wbody[2] /= moments[2];
-  MathExtraKokkos::matvec(rot,wbody,w);
-}
-
-
-KOKKOS_INLINE_FUNCTION
-template <typename q_arr_type, typename x_arr_type, typename v_arr_type>
-void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
-                x_arr_type moments_ibody, double dtq)
-{
-  // full update from dq/dt = 1/2 w q
-
-	double wq[4];
-  MathExtraKokkos::vecquat(w_ibody,q_ibody,wq);
-
-  double qfull[4];
-  qfull[0] = q_ibody[0] + dtq * wq[0];
-  qfull[1] = q_ibody[1] + dtq * wq[1];
-  qfull[2] = q_ibody[2] + dtq * wq[2];
-  qfull[3] = q_ibody[3] + dtq * wq[3];
-  MathExtraKokkos::qnormalize(qfull);
-
-  // 1st half update from dq/dt = 1/2 w q
-
-  double qhalf[4];
-  qhalf[0] = q_ibody[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q_ibody[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q_ibody[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q_ibody[3] + 0.5*dtq * wq[3];
-  MathExtraKokkos::qnormalize(qhalf);
-  
-
-  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
-  // recompute wq
-  
-  MathExtraKokkos::mq_to_omega(m_ibody,qhalf,moments_ibody,w_ibody);
-  MathExtraKokkos::vecquat(w_ibody,qhalf,wq);
-
-  // 2nd half update from dq/dt = 1/2 w q
-
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
-  MathExtraKokkos::qnormalize(qhalf);
-  
-  // corrected Richardson update
-  
-  q_ibody[0] = 2.0*qhalf[0] - qfull[0];
-  q_ibody[1] = 2.0*qhalf[1] - qfull[1];
-  q_ibody[2] = 2.0*qhalf[2] - qfull[2];
-  q_ibody[3] = 2.0*qhalf[3] - qfull[3];
-   MathExtraKokkos::qnormalize(q_ibody);
-}
-  
-
-} // MathExtraKokkos
-
-
-
-template <class DeviceType>
-FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg)
-{
-  kokkosable = 1;
-  atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-
-  datamask_read   = (X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK
-                     | OMEGA_MASK | ANGMOM_MASK | TORQUE_MASK);
-  datamask_modify = (X_MASK | V_MASK | OMEGA_MASK | ANGMOM_MASK);
-
-  // Only some arrays are initialized in the FixRigid constructor that we need.
-  // The following are all either
-  //   a) set after that, so we need not worry about preserving the data, or
-  //   b) Set to all zeros which is also what Kokkos does by default.
-
-  // These are all zero-initialized in FixRigid::FixRigid(...) and
-  // later initialized:
-  memoryKK->create_kokkos(k_xcm,xcm,nbody,3,"rigid/kk:xcm");
-  memoryKK->create_kokkos(k_vcm,vcm,nbody,3,"rigid/kk:vcm");
-  memoryKK->create_kokkos(k_fcm,fcm,nbody,3,"rigid/kk:fcm");
-
-  memoryKK->create_kokkos(k_torque,torque,nbody,3,"rigid/kk:torque");
-
-
-  // These are initialized in the base c-tor but not to 0:
-  memoryKK->create_kokkos(k_fflag,fflag,nbody,3,"rigid/kk:fflag");
-  memoryKK->create_kokkos(k_tflag,tflag,nbody,3,"rigid/kk:tflag");
-
-  
-  // The initialization for these two is simple enough:
-  for (int i = 0; i < nbody; i++) {
-    k_fflag.d_view(i,0) = k_fflag.d_view(i,1) = k_fflag.d_view(i,2) = 1.0;
-    k_tflag.d_view(i,0) = k_tflag.d_view(i,1) = k_tflag.d_view(i,2) = 1.0;
-    if (domain->dimension == 2) k_fflag.d_view(i,2) = k_tflag.d_view(i,2) = 0.0;
-  }
-  k_fflag.template modify<LMPDeviceType>();
-  k_tflag.template modify<LMPDeviceType>();
-
-  // These seem fine.
-  memoryKK->create_kokkos(k_omega, omega, nbody,3,"rigid/kk:omega");
-  memoryKK->create_kokkos(k_angmom,angmom,nbody,3,"rigid/kk:angmom");
-
-  
-  // These are allocated in the base c-tor but set later.
-  // Specifically, quat, ex_space, ey_space, ez_space and inertia
-  // are set in setup_bodies_static() which is called in init().
-  memoryKK->create_kokkos(k_quat,   quat,    nbody, 4,"rigid/kk:quat");
-  memoryKK->create_kokkos(k_inertia,inertia, nbody, 3,"rigid/kk:inertia");
-
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "Contents of body:");
-    for (int i = 0; i < nbody; ++i) {
-      fprintf(stderr, " %i", body[i]);
-    }
-    fprintf(stderr, "\n");
-  }
-
-  int nmax = atomKK->nmax;
-
-  // eflags and k_body are already set in the c-tor of FixRigid:
-  k_eflags.modify<LMPHostType>();
-  k_body.modify<LMPHostType>();
-  memoryKK->create_kokkos(k_eflags, eflags, nmax, "rigid/kk:eflags");
-  memoryKK->create_kokkos(k_body,   body,   nmax,  "rigid/kk:body");
-  
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "Contents of body:");
-    for (int i = 0; i < nbody; ++i) {
-      fprintf(stderr, " %i", body[i]);
-    }
-    fprintf(stderr, "\n");
-  }
-
-  memoryKK->create_kokkos(k_ex_space,ex_space, nbody, 3,"rigid/kk:ex_space");
-  memoryKK->create_kokkos(k_ey_space,ey_space, nbody, 3,"rigid/kk:ey_space");
-  memoryKK->create_kokkos(k_ez_space,ez_space, nbody, 3,"rigid/kk:ez_space");
-
-  // displace, body, xcmimage and eflags are the size of nmax.
-  memoryKK->create_kokkos(k_displace, displace, nmax, 3,"rigid/kk:displace");
-
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "Using fix rigid/kokkos!\n");
-  }
-}
-
-template <class DeviceType>
-FixRigidKokkos<DeviceType>::~FixRigidKokkos()
-{
-  memoryKK->destroy_kokkos(k_xcm);
-  memoryKK->destroy_kokkos(k_vcm);
-  memoryKK->destroy_kokkos(k_fcm);
-
-  memoryKK->destroy_kokkos(k_tflag);
-  memoryKK->destroy_kokkos(k_fflag);
-
-  memoryKK->destroy_kokkos(k_omega);
-  memoryKK->destroy_kokkos(k_angmom);
-  memoryKK->destroy_kokkos(k_torque);
-
-  memoryKK->destroy_kokkos(k_quat);
-  memoryKK->destroy_kokkos(k_inertia);
-
-  memoryKK->destroy_kokkos(k_ex_space);
-  memoryKK->destroy_kokkos(k_ey_space);
-  memoryKK->destroy_kokkos(k_ez_space);
-
-  memoryKK->destroy_kokkos(k_displace);
-}
-
-
-
-template <class DeviceType>
-void FixRigidKokkos<DeviceType>::cleanup_copy()
-{
-  id = style = NULL;
-  vatom = NULL;
-
-}
-
-
-
+// // Some MathExtra functions had to be ported to Kokkos. In the future we
+// // probably want to collect all of them somewhere.
+
+// namespace MathExtraKokkos {
+
+// // These trigger warning about redundant inline on explicit specialization :(
+// KOKKOS_INLINE_FUNCTION
+// template <class DeviceType>
+// void angmom_to_omega(typename ArrayTypes<DeviceType>::t_v_array m,
+//                      typename ArrayTypes<DeviceType>::t_x_array ex,
+//                      typename ArrayTypes<DeviceType>::t_x_array ey,
+//                      typename ArrayTypes<DeviceType>::t_x_array ez,
+//                      typename ArrayTypes<DeviceType>::t_x_array idiag,
+//                      typename ArrayTypes<DeviceType>::t_v_array w, int ibody)
+// {
+//   double wbody[3];
+
+//   if (idiag(ibody,0) == 0.0) wbody[0] = 0.0;
+//   else wbody[0] = (m(ibody,0)*ex(ibody,0) + m(ibody,1)*ex(ibody,1) + m(ibody,2)*ex(ibody,2)) / idiag(ibody,0);
+//   if (idiag(ibody,1) == 0.0) wbody[1] = 0.0;
+//   else wbody[1] = (m(ibody,0)*ey(ibody,0) + m(ibody,1)*ey(ibody,1) + m(ibody,2)*ey(ibody,2)) / idiag(ibody,1);
+//   if (idiag(ibody,2) == 0.0) wbody[2] = 0.0;
+//   else wbody[2] = (m(ibody,0)*ez(ibody,0) + m(ibody,1)*ez(ibody,1) + m(ibody,2)*ez(ibody,2)) / idiag(ibody,2);
+
+//   w(ibody,0) = wbody[0]*ex(ibody,0) + wbody[1]*ey(ibody,0) + wbody[2]*ez(ibody,0);
+//   w(ibody,1) = wbody[0]*ex(ibody,1) + wbody[1]*ey(ibody,1) + wbody[2]*ez(ibody,1);
+//   w(ibody,2) = wbody[0]*ex(ibody,2) + wbody[1]*ey(ibody,2) + wbody[2]*ez(ibody,2);
+// }
+
+// KOKKOS_INLINE_FUNCTION
+// template <typename a_arr_type, typename b_arr_type>
+// inline void vecquat(a_arr_type a, b_arr_type b, double c[4])
+// {
+//   c[0] = -a[0]*b[1] - a[1]*b[2] - a[2]*b[3];
+//   c[1] = b[0]*a[0] + a[1]*b[3] - a[2]*b[2];
+//   c[2] = b[0]*a[1] + a[2]*b[1] - a[0]*b[3];
+//   c[3] = b[0]*a[2] + a[0]*b[2] - a[1]*b[1];
+// }
+
+// /* ----------------------------------------------------------------------
+//    matrix times vector
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+// template <typename arr_out_type>
+// inline void matvec(const double m[3][3], const double v[3],
+//                    arr_out_type ans)
+// {
+//   ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
+//   ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
+//   ans[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
+// }
+
+
+// /* ----------------------------------------------------------------------
+//    transposed matrix times vector
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+// template <typename v_arr_type, typename arr_out_type>
+// void transpose_matvec(const double m[3][3], v_arr_type v,
+//                              arr_out_type ans)
+// {
+//   ans[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2];
+//   ans[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2];
+//   ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
+// }
+
+
+//   /* ----------------------------------------------------------------------
+//    matrix times vector
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+// template <typename e_arr_type, typename v_arr_type, typename ans_arr_type>
+// void matvec(e_arr_type ex, e_arr_type ey,
+//                    e_arr_type ez, v_arr_type v, ans_arr_type ans)
+// {
+//   ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
+//   ans[1] = ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2];
+//   ans[2] = ex[2]*v[0] + ey[2]*v[1] + ez[2]*v[2];
+// }
+
+
+// /* ----------------------------------------------------------------------
+//    normalize a quaternion
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+// template <typename q_arr_type>
+//  void qnormalize(q_arr_type q)
+// {
+//   double norm = 1.0 / sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+//   q[0] *= norm;
+//   q[1] *= norm;
+//   q[2] *= norm;
+//   q[3] *= norm;
+// }
+
+
+// /* ----------------------------------------------------------------------
+//    conjugate of a quaternion: qc = conjugate of q
+//    assume q is of unit length
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+//  void qconjugate(double q[4], double qc[4])
+// {
+//   qc[0] = q[0];
+//   qc[1] = -q[1];
+//   qc[2] = -q[2];
+//   qc[3] = -q[3];
+// }
+
+// /* ----------------------------------------------------------------------
+//    compute rotation matrix from quaternion
+//    quat = [w i j k]
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+// void quat_to_mat(const double quat[4], double mat[3][3])
+// {
+//   double w2 = quat[0]*quat[0];
+//   double i2 = quat[1]*quat[1];
+//   double j2 = quat[2]*quat[2];
+//   double k2 = quat[3]*quat[3];
+//   double twoij = 2.0*quat[1]*quat[2];
+//   double twoik = 2.0*quat[1]*quat[3];
+//   double twojk = 2.0*quat[2]*quat[3];
+//   double twoiw = 2.0*quat[1]*quat[0];
+//   double twojw = 2.0*quat[2]*quat[0];
+//   double twokw = 2.0*quat[3]*quat[0];
+
+//   mat[0][0] = w2+i2-j2-k2;
+//   mat[0][1] = twoij-twokw;
+//   mat[0][2] = twojw+twoik;
+
+//   mat[1][0] = twoij+twokw;
+//   mat[1][1] = w2-i2+j2-k2;
+//   mat[1][2] = twojk-twoiw;
+
+//   mat[2][0] = twoik-twojw;
+//   mat[2][1] = twojk+twoiw;
+//   mat[2][2] = w2-i2-j2+k2;
+// }
+
+
+
+// /* ----------------------------------------------------------------------
+//    compute space-frame ex,ey,ez from current quaternion q
+//    ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
+//    operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
+// ------------------------------------------------------------------------- */
+// KOKKOS_INLINE_FUNCTION
+// template <typename q_arr_type, typename e_arr_type>
+//  void q_to_exyz(q_arr_type q,
+//                       e_arr_type ex, e_arr_type ey, e_arr_type ez)
+// {
+//   double q0 = q[0];
+//   double q1 = q[1];
+//   double q2 = q[2];
+//   double q3 = q[3];
+
+//   ex[0] = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+//   ex[1] = 2.0 * (q1*q2 + q0*q3);
+//   ex[2] = 2.0 * (q1*q3 - q0*q2);
+
+//   ey[0] = 2.0 * (q1*q2 - q0*q3);
+//   ey[1] = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+//   ey[2] = 2.0 * (q2*q3 + q0*q1);
+
+//   ez[0] = 2.0 * (q1*q3 + q0*q2);
+//   ez[1] = 2.0 * (q2*q3 - q0*q1);
+//   ez[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+// }
+
+
+
+
+// /* ----------------------------------------------------------------------
+//    compute omega from angular momentum
+//    w = omega = angular velocity in space frame
+//    wbody = angular velocity in body frame
+//    project space-frame angular momentum onto body axes
+//      and divide by principal moments
+// ------------------------------------------------------------------------- */
+
+// KOKKOS_INLINE_FUNCTION
+// template <typename v_arr_type, typename x_arr_type>
+//  void mq_to_omega(v_arr_type m, double q[4],
+//                         x_arr_type moments, v_arr_type w)
+// {
+//   double wbody[3];
+//   double rot[3][3];
+
+//   MathExtraKokkos::quat_to_mat(q,rot);
+//   MathExtraKokkos::transpose_matvec(rot,m,wbody);
+//   if (moments[0] == 0.0) wbody[0] = 0.0;
+//   else wbody[0] /= moments[0];
+//   if (moments[1] == 0.0) wbody[1] = 0.0;
+//   else wbody[1] /= moments[1];
+//   if (moments[2] == 0.0) wbody[2] = 0.0;
+//   else wbody[2] /= moments[2];
+//   MathExtraKokkos::matvec(rot,wbody,w);
+// }
+
+
+// KOKKOS_INLINE_FUNCTION
+// template <typename q_arr_type, typename x_arr_type, typename v_arr_type>
+// void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
+//                 x_arr_type moments_ibody, double dtq)
+// {
+//   // full update from dq/dt = 1/2 w q
+
+//   double wq[4];
+//   MathExtraKokkos::vecquat(w_ibody,q_ibody,wq);
+
+//   double qfull[4];
+//   qfull[0] = q_ibody[0] + dtq * wq[0];
+//   qfull[1] = q_ibody[1] + dtq * wq[1];
+//   qfull[2] = q_ibody[2] + dtq * wq[2];
+//   qfull[3] = q_ibody[3] + dtq * wq[3];
+//   MathExtraKokkos::qnormalize(qfull);
+
+//   // 1st half update from dq/dt = 1/2 w q
+
+//   double qhalf[4];
+//   qhalf[0] = q_ibody[0] + 0.5*dtq * wq[0];
+//   qhalf[1] = q_ibody[1] + 0.5*dtq * wq[1];
+//   qhalf[2] = q_ibody[2] + 0.5*dtq * wq[2];
+//   qhalf[3] = q_ibody[3] + 0.5*dtq * wq[3];
+//   MathExtraKokkos::qnormalize(qhalf);
+
+
+//   // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
+//   // recompute wq
+
+//   MathExtraKokkos::mq_to_omega(m_ibody,qhalf,moments_ibody,w_ibody);
+//   MathExtraKokkos::vecquat(w_ibody,qhalf,wq);
+
+//   // 2nd half update from dq/dt = 1/2 w q
+
+//   qhalf[0] += 0.5*dtq * wq[0];
+//   qhalf[1] += 0.5*dtq * wq[1];
+//   qhalf[2] += 0.5*dtq * wq[2];
+//   qhalf[3] += 0.5*dtq * wq[3];
+//   MathExtraKokkos::qnormalize(qhalf);
+
+//   // corrected Richardson update
+
+//   q_ibody[0] = 2.0*qhalf[0] - qfull[0];
+//   q_ibody[1] = 2.0*qhalf[1] - qfull[1];
+//   q_ibody[2] = 2.0*qhalf[2] - qfull[2];
+//   q_ibody[3] = 2.0*qhalf[3] - qfull[3];
+//    MathExtraKokkos::qnormalize(q_ibody);
+// }
+//
+//
+// } // MathExtraKokkos
+
+
+
+// Debug helper functions:
 template <class DeviceType>
 template <typename kokkos_arr, typename base_arr>
 void FixRigidKokkos<DeviceType>::debug_print_vec(kokkos_arr k_arr, base_arr arr,
@@ -436,8 +323,10 @@ void FixRigidKokkos<DeviceType>::debug_print_vec(kokkos_arr k_arr, base_arr arr,
   if (debug_output && comm->me == 0) {
     fprintf(stderr, "  ** -->   %s is now (%g, %g, %g)\n", name,
             arr[idx][0],arr[idx][1],arr[idx][2]);
+#ifndef KOKKOS_ENABLE_CUDA
     fprintf(stderr, "  ** --> d_%s is now (%g, %g, %g)\n", name,
             k_arr.d_view(idx,0),k_arr.d_view(idx,1),k_arr.d_view(idx,2));
+#endif
     fprintf(stderr, "  ** --> h_%s is now (%g, %g, %g)\n", name,
             k_arr.h_view(idx,0),k_arr.h_view(idx,1),k_arr.h_view(idx,2));
   }
@@ -453,243 +342,461 @@ void FixRigidKokkos<DeviceType>::debug_print_quat(kokkos_arr k_arr, base_arr arr
   if (debug_output && comm->me == 0) {
     fprintf(stderr, "  ** -->   %s is now (%g, %g, %g, %g)\n", name,
             arr[idx][0],arr[idx][1],arr[idx][2], arr[idx][3]);
+#ifndef KOKKOS_ENABLE_CUDA
     fprintf(stderr, "  ** --> d_%s is now (%g, %g, %g, %g)\n", name,
             k_arr.d_view(idx,0),k_arr.d_view(idx,1),k_arr.d_view(idx,2),k_arr.d_view(idx,3));
+#endif
     fprintf(stderr, "  ** --> h_%s is now (%g, %g, %g, %g)\n", name,
             k_arr.h_view(idx,0),k_arr.h_view(idx,1),k_arr.h_view(idx,2),k_arr.h_view(idx,3));
   }
 }
 
 
+
+
+// helper functions to "copy-and-swap" arrays. They function just like
+// atomKK::create_kokkos, except the data in array is preserved and
+// copied into data.
+
+// 1d variant:
+template <class DeviceType>
+template <typename arr_type>
+void FixRigidKokkos<DeviceType>::create_and_copy(arr_type &data,
+                                                 typename arr_type::value_type *&array,
+                                                 int n1, const char *name)
+{
+  typename arr_type::value_type *tmp = new typename arr_type::value_type[n1];
+  if (!tmp) error->all(FLERR, "Memory allocation failed!");
+
+  memcpy(tmp, array, n1*sizeof(typename arr_type::value_type));
+  memoryKK->create_kokkos(data, array, n1, name);
+  memcpy(array, tmp, n1*sizeof(typename arr_type::value_type));
+
+  delete [] tmp;
+}
+
+// 2d variant:
+template <typename DeviceType>
+template <typename arr_type>
+void FixRigidKokkos<DeviceType>::create_and_copy(arr_type &data,
+                                                 typename arr_type::value_type **&array,
+                                                 int n1, int n2,
+                                                 const char *name)
+{
+  typename arr_type::value_type *tmp = new typename arr_type::value_type[n1*n2];
+  if (!tmp) error->all(FLERR, "Memory allocation failed!");
+
+  // This does assume the 2D array is fully contiguous...
+  memcpy(tmp, array[0], n1*n2*sizeof(typename arr_type::value_type));
+  memoryKK->create_kokkos(data, array, n1, n2, name);
+  memcpy(array[0], tmp, n1*n2*sizeof(typename arr_type::value_type));
+
+  delete [] tmp;
+}
+
+
+template <class DeviceType>
+FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
+  FixRigid(lmp, narg, arg)
+{
+  kokkosable = 1;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK = (AtomKokkos *) atom;
+
+  datamask_read   = (X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK
+                     | OMEGA_MASK | ANGMOM_MASK | TORQUE_MASK);
+  datamask_modify = (X_MASK | V_MASK | OMEGA_MASK | ANGMOM_MASK);
+
+  // Most arrays allocated in the constructor of FixRigid are either
+  //   a) set after that, so we need not worry about preserving the data, or
+  //   b) Set to all zeros which is also what Kokkos does by default.
+  // Those that are allocated _and_set in the c-tor use create_and_copy
+  // to preserve the values already in the array, the rest do not need to.
+  //
+  // nrigid, body, tflag and fflag are set to specific values in base c-tor.
+
+  int nmax = atomKK->nmax;
+
+  //HAT::t_int_1d h_body(body,atom->local);
+  //HAT::t_int_1d h_nrigid(nrigid,nbody);
+  //HAT::t_f_array h_tflag(tflag,nbody,3);
+  //HAT::t_f_array h_fflag(fflag,nbody,3);
+  /*
+  k_body.h_view = h_body;
+  k_body.modify<LMPHostType>();
+  k_body.sync<DeviceType>();
+
+  k_nrigid.h_view = h_nrigid;
+  k_nrigid.modify<LMPHostType>();
+  k_nrigid.sync<DeviceType>();
+
+  k_tflag.h_view = h_tflag;
+  k_tflag.modify<LMPHostType>();
+  k_tflag.sync<DeviceType>();
+
+  k_fflag.h_view = h_fflag;
+  k_fflag.modify<LMPHostType>();
+  k_fflag.sync<DeviceType>();
+
+  */
+
+
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "Before call to grow_arrays, k_body has contents:\n");
+    for (int i = 0; i < nmax; ++i) {
+      fprintf(stderr, "%d ", k_body.h_view(i));
+    }
+    fprintf(stderr, "\n");
+  }
+
+  // The call to grow_arrays has to be after the create_and_copys because
+  // else the empty arrays will be overwritten and their contents lost?
+  grow_arrays(nmax);
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "After call to grow_arrays, k_body has contents:\n");
+    for (int i = 0; i < nmax; ++i) {
+      fprintf(stderr, "%d ", k_body.h_view(i));
+    }
+    fprintf(stderr, "\n");
+  }
+
+  memoryKK->create_kokkos(k_masstotal, masstotal, nbody, "rigid/kk:masstotal");
+  memoryKK->create_kokkos(k_xcm,xcm,nbody,3,"rigid/kk:xcm");
+  memoryKK->create_kokkos(k_vcm,vcm,nbody,3,"rigid/kk:vcm");
+  memoryKK->create_kokkos(k_fcm,fcm,nbody,3,"rigid/kk:fcm");
+  memoryKK->create_kokkos(k_torque,torque,nbody,3,"rigid/kk:torque");
+
+
+  memoryKK->create_kokkos(k_omega, omega, nbody,3,"rigid/kk:omega");
+  memoryKK->create_kokkos(k_angmom,angmom,nbody,3,"rigid/kk:angmom");
+
+  memoryKK->create_kokkos(k_quat,   quat,    nbody, 4,"rigid/kk:quat");
+  memoryKK->create_kokkos(k_inertia,inertia, nbody, 3,"rigid/kk:inertia");
+
+  memoryKK->create_kokkos(k_ex_space,ex_space, nbody, 3,"rigid/kk:ex_space");
+  memoryKK->create_kokkos(k_ey_space,ey_space, nbody, 3,"rigid/kk:ey_space");
+  memoryKK->create_kokkos(k_ez_space,ez_space, nbody, 3,"rigid/kk:ez_space");
+
+  memoryKK->create_kokkos(k_sum, sum, nbody, 6, "rigid/kk:sum");
+  memoryKK->create_kokkos(k_all, all, nbody, 6, "rigid/kk:all");
+  memoryKK->create_kokkos(k_langextra,langextra,nbody,6,"rigid/kk:langextra");
+
+  memoryKK->create_kokkos(k_imagebody,imagebody,nbody,"rigid/kk:imagebody");
+  memoryKK->create_kokkos(k_remapflag,remapflag,nbody,4,"rigid/kk:remapflag");
+
+
+}
+
+template <class DeviceType>
+FixRigidKokkos<DeviceType>::~FixRigidKokkos()
+{
+  memoryKK->destroy_kokkos(k_nrigid,nrigid);
+  memoryKK->destroy_kokkos(k_tflag,tflag);
+  memoryKK->destroy_kokkos(k_fflag,fflag);
+  memoryKK->destroy_kokkos(k_body,body);
+
+  memoryKK->destroy_kokkos(k_masstotal,masstotal);
+  memoryKK->destroy_kokkos(k_xcm,xcm);
+  memoryKK->destroy_kokkos(k_vcm,vcm);
+  memoryKK->destroy_kokkos(k_fcm,fcm);
+  memoryKK->destroy_kokkos(k_torque,torque);
+
+
+  memoryKK->destroy_kokkos(k_omega,omega);
+  memoryKK->destroy_kokkos(k_angmom,angmom);
+
+  memoryKK->destroy_kokkos(k_quat,quat);
+  memoryKK->destroy_kokkos(k_inertia,inertia);
+
+  memoryKK->destroy_kokkos(k_ex_space,ex_space);
+  memoryKK->destroy_kokkos(k_ey_space,ey_space);
+  memoryKK->destroy_kokkos(k_ez_space,ez_space);
+
+  memoryKK->destroy_kokkos(k_sum,sum);
+  memoryKK->destroy_kokkos(k_all,all);
+  memoryKK->destroy_kokkos(k_langextra,langextra);
+
+  memoryKK->destroy_kokkos(k_imagebody,imagebody);
+  memoryKK->destroy_kokkos(k_remapflag,remapflag);
+
+
+  memoryKK->destroy_kokkos(k_xcmimage, xcmimage);
+  memoryKK->destroy_kokkos(k_displace, displace);
+  memoryKK->destroy_kokkos(k_eflags,eflags);
+  memoryKK->destroy_kokkos(k_orient,orient);
+  memoryKK->destroy_kokkos(k_dorient,dorient);
+
+}
+
+
+
+template <class DeviceType>
+void FixRigidKokkos<DeviceType>::cleanup_copy()
+{
+  id = style = NULL;
+  vatom = NULL;
+
+}
+
+
+
+
+
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::init()
 {
 
-  // FixRigid::init() is going to modify k_quat.
+  // The host code uses these in FixRigid::init():
+  // They should be synched first.
+  // tflag, fflag, body, mu, radius, rmass, mass, ellipsoid, line, tri, type,
+  // nlocal, eflags, image, x, sum, xcmimage, inertia, {ex,ey,ez}_space, quat
+  k_body.sync<LMPHostType>();
+  k_quat.sync<LMPHostType>();
+  k_inertia.sync<LMPHostType>();
+  k_ex_space.sync<LMPHostType>();
+  k_ey_space.sync<LMPHostType>();
+  k_ez_space.sync<LMPHostType>();
+
+  k_tflag.sync<LMPHostType>();
+  k_fflag.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
+  k_all.sync<LMPHostType>();
+  k_sum.sync<LMPHostType>();
+
+  k_vcm.sync<LMPHostType>();
+  k_angmom.sync<LMPHostType>();
+  k_imagebody.sync<LMPHostType>();
+  k_xcm.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
+  k_displace.sync<LMPHostType>();
+
+  atomKK->k_image.sync<LMPHostType>();
+  atomKK->k_x.sync<LMPHostType>();
+
+
+  if (comm->me == 0) {
+    fprintf(stderr, "  ** --> IN(start; kk): quat and displace\n");
+    debug_print_quat(k_quat, quat, "quat");
+    debug_print_vec(k_displace, displace, "displace");
+  }
+
+  // These are also modified:
+  // eflags, inertia, quat, body
+
   FixRigid::init();
-  
+
   atomKK->k_mass.modify<LMPHostType>();
   atomKK->k_mass.sync<DeviceType>();
 
+  k_imagebody.modify<LMPHostType>();
+  k_vcm.modify<LMPHostType>();
+  k_angmom.modify<LMPHostType>();
+
+  k_xcmimage.modify<LMPHostType>();
+  k_xcm.modify<LMPHostType>();
+  k_displace.modify<LMPHostType>();
+
   k_quat.modify<LMPHostType>();
+  k_inertia.modify<LMPHostType>();
+  k_ex_space.modify<LMPHostType>();
+  k_ey_space.modify<LMPHostType>();
+  k_ez_space.modify<LMPHostType>();
+
+  k_all.modify<LMPHostType>();
+  k_sum.modify<LMPHostType>();
+
   k_quat.sync<DeviceType>();
-  
-  if (debug_output && comm->me == 0) {
-	  fprintf(stderr, "  This is quat after:\n");
+  k_displace.sync<DeviceType>();
+  k_inertia.sync<DeviceType>();
+  k_ex_space.sync<DeviceType>();
+  k_ey_space.sync<DeviceType>();
+  k_ez_space.sync<DeviceType>();
+
+  k_all.sync<DeviceType>();
+  k_sum.sync<DeviceType>();
+  k_body.sync<DeviceType>();
+
+  if (comm->me == 0) {
+    fprintf(stderr, "  ** --> IN(exit; kk): quat and displace\n");
+    debug_print_quat(k_quat, quat, "quat");
+    debug_print_vec(k_displace, displace, "displace");
   }
-  debug_print_quat(k_quat, quat, "quat");
-  
-  
-  debug_print_vec(k_xcm, xcm, "xcm");
-  debug_print_vec(k_vcm, vcm, "vcm");
-  debug_print_vec(k_fcm, fcm, "fcm");
-  debug_print_vec(k_torque, torque, "torque");
-
-  debug_print_vec(k_fflag, fflag, "fflag");
-  debug_print_vec(k_tflag, tflag, "tflag");
-
-  debug_print_vec(k_omega, omega, "omega");
-  debug_print_vec(k_angmom, angmom, "angmom");
-
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "\nChecking quat, inertia and space vects pre-init().\n");
-  }
-  debug_print_quat(k_quat, quat, "quat");
-  debug_print_vec(k_inertia, inertia, "inertia");
-
-  debug_print_vec(k_ex_space, ex_space, "ex_space");
-  debug_print_vec(k_ey_space, ey_space, "ey_space");
-  debug_print_vec(k_ez_space, ez_space, "ez_space");
-  fprintf(stderr, "\n");
-
-  // The host code has changed these in FixRigid::init():
-  k_quat.template modify<LMPHostType>();
-  k_inertia.template modify<LMPHostType>();
-  k_ex_space.template modify<LMPHostType>();
-  k_ey_space.template modify<LMPHostType>();
-  k_ez_space.template modify<LMPHostType>();
-
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "\nChecking quat, inertia and space vects post-init().\n");
-  }
-  debug_print_quat(k_quat, quat, "quat");
-  debug_print_vec(k_inertia, inertia, "inertia");
-
-  debug_print_vec(k_ex_space, ex_space, "ex_space");
-  debug_print_vec(k_ey_space, ey_space, "ey_space");
-  debug_print_vec(k_ez_space, ez_space, "ez_space");
-  fprintf(stderr, "\n");
-  
-  
 }
+
+
+
 
 
 
 template <class DeviceType>
-void FixRigidKokkos<DeviceType>::modify_arrays(int phase_mask)
+void FixRigidKokkos<DeviceType>::setup(int vflag)
 {
-  if (phase_mask == INITIAL_INTEGRATE) {
-    k_xcm.modify<DeviceType>();
-    k_vcm.modify<DeviceType>();
-    k_angmom.modify<DeviceType>();
-    k_quat.modify<DeviceType>();
-    k_omega.modify<DeviceType>();
-    
-    k_ex_space.modify<DeviceType>();
-    k_ey_space.modify<DeviceType>();
-    k_ez_space.modify<DeviceType>();
+  // setup modifies the following:
+  // sum, all, torque, langextra, omega
+  //
+  // setup uses the following:
+  // sum, f, body, all, x, xcm, atom->torque, torque, langextra, omega,
+  // e{x,y,z}_space, xcmimage, inertia
+  //
+  // also calls set_v, which modifies the following:
+  // v, atom_vec->omega, atom_vec->angmom
+  // uses the following:
+  // e{x,y,z}_space, displace, omega, v, vcm, atom_vec->mass, xcmimage, x
 
-    k_displace.modify<DeviceType>();
-  }
-  if (phase_mask == FINAL_INTEGRATE) {
-    k_vcm.modify<DeviceType>();
-    k_angmom.modify<DeviceType>();
-    k_omega.modify<DeviceType>();
+  k_sum.sync<LMPHostType>();
+  k_all.sync<LMPHostType>();
+  k_torque.sync<LMPHostType>();
+  k_langextra.sync<LMPHostType>();
+  k_omega.sync<LMPHostType>();
+
+  atomKK->k_x.sync<LMPHostType>();
+  atomKK->k_v.sync<LMPHostType>();
+  atomKK->k_f.sync<LMPHostType>();
+
+  k_body.sync<LMPHostType>();
+  k_xcm.sync<LMPHostType>();
+  k_ex_space.sync<LMPHostType>();
+  k_ey_space.sync<LMPHostType>();
+  k_ez_space.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
+  k_inertia.sync<LMPHostType>();
+
+  k_vcm.sync<LMPHostType>();
+  k_quat.sync<LMPHostType>();
+
+  // modifies:
+  k_sum.modify<LMPHostType>();
+  k_all.modify<LMPHostType>();
+  k_torque.modify<LMPHostType>();
+  k_langextra.modify<LMPHostType>();
+  k_omega.modify<LMPHostType>();
+  k_quat.modify<LMPHostType>();
+  atomKK->k_v.modify<LMPHostType>();
+
+  FixRigid::setup(vflag);
+
+  k_sum.sync<DeviceType>();
+  k_all.sync<DeviceType>();
+  k_torque.sync<DeviceType>();
+  k_langextra.sync<DeviceType>();
+  k_omega.sync<DeviceType>();
+  k_quat.sync<DeviceType>();
+  atomKK->k_v.sync<DeviceType>();
+
+
+  if (debug_output && comm->me == 0) {
+    fprintf(stderr, "  ** --> SE (exit2): After synching, we have:\n");
+    debug_print_vec(k_fcm, fcm, "fcm");
+    debug_print_vec(k_omega, omega, "omega");
   }
 }
 
 
 template <class DeviceType>
-void FixRigidKokkos<DeviceType>::sync_arrays(int phase_mask)
+void FixRigidKokkos<DeviceType>::pre_neighbor()
 {
-  if (phase_mask == INITIAL_INTEGRATE) {
-    k_xcm.sync<LMPHostType>();
-    k_vcm.sync<LMPHostType>();
-    k_angmom.sync<LMPHostType>();
-    k_quat.sync<LMPHostType>();
-    k_omega.sync<LMPHostType>();
+  // pre_neighbor modifies both xcm and imagebody
+  // and xcmimage and body
+  k_xcm.sync<LMPHostType>();
+  k_body.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
 
-    k_torque.sync<LMPHostType>();
-    k_fcm.sync<LMPHostType>();
-    
-    
-    k_ex_space.sync<LMPHostType>();
-    k_ey_space.sync<LMPHostType>();
-    k_ez_space.sync<LMPHostType>();
+  FixRigid::pre_neighbor();
 
-    k_displace.sync<LMPHostType>();
-  }
-  if (phase_mask == FINAL_INTEGRATE) {
-    k_vcm.sync<LMPHostType>();
-    k_angmom.sync<LMPHostType>();
-    k_omega.sync<LMPHostType>();
-  }
+  k_xcm.modify<LMPHostType>();
+
 }
+
+
 
 
 
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
 {
-  atomKK->sync(execution_space, datamask_read);
-  sync_arrays(INITIAL_INTEGRATE);
-  
-  atomKK->modified(execution_space, datamask_modify);
-  modify_arrays(INITIAL_INTEGRATE);
+  // initial integrate uses the following:
+  // vcm, fcm, fflag, angmom, torque, tflag, ex_space, ey_space,
+  // ez_space, inertia, omega, quat, x, v, f, rmass, mass, xcmimage, body
+  //
+  // initial integrate modifies the following:
+  // vcm, xcm, angmom, omega, quat, ex_space, ey_space, ez_space, x, v
+  //
+  // set_xv uses:
+  // body, xcmimage, x, v, omega, vcm, xcm, mass, f, displace
+  //
+  // set_xv modifies:
+  // x, v
 
-  if (debug_output && comm->me == 0) fprintf(stderr,"\n");
+  k_vcm.sync<LMPHostType>();
+  k_xcm.sync<LMPHostType>();
+  k_fcm.sync<LMPHostType>();
+
+  k_fflag.sync<LMPHostType>();
+  k_tflag.sync<LMPHostType>();
+  k_body.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
+  k_displace.sync<LMPHostType>();
+
+  k_angmom.sync<LMPHostType>();
+  k_omega.sync<LMPHostType>();
+  k_torque.sync<LMPHostType>();
+  k_inertia.sync<LMPHostType>();
+
+  k_quat.sync<LMPHostType>();
+
+  k_ex_space.sync<LMPHostType>();
+  k_ey_space.sync<LMPHostType>();
+  k_ez_space.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
+
+  atomKK->k_x.sync<LMPHostType>();
+  atomKK->k_v.sync<LMPHostType>();
+  atomKK->k_f.sync<LMPHostType>();
+  atomKK->k_mass.sync<LMPHostType>();
+  atomKK->k_rmass.sync<LMPHostType>();
+
+  FixRigid::initial_integrate(vflag);
+
+  k_vcm.modify<LMPHostType>();
+  k_xcm.modify<LMPHostType>();
+  k_angmom.modify<LMPHostType>();
+  k_omega.modify<LMPHostType>();
+  k_quat.modify<LMPHostType>();
+
+  k_ex_space.modify<LMPHostType>();
+  k_ey_space.modify<LMPHostType>();
+  k_ez_space.modify<LMPHostType>();
+
+  atomKK->k_x.modify<LMPHostType>();
+  atomKK->k_v.modify<LMPHostType>();
 
 
-  // Grab all arrays you need for initial_integrate:
-  double dtfm;
+  k_vcm.sync<DeviceType>();
+  k_xcm.sync<DeviceType>();
+  k_angmom.sync<DeviceType>();
+  k_omega.sync<DeviceType>();
+  k_quat.sync<DeviceType>();
 
-  
-  {
-    // Local block for Kokkos parallel for:
+  k_ex_space.sync<DeviceType>();
+  k_ey_space.sync<DeviceType>();
+  k_ez_space.sync<DeviceType>();
 
-    auto l_masstotal = masstotal;
-    auto l_ex_space = k_ex_space.d_view;
-    auto l_ey_space = k_ey_space.d_view;
-    auto l_ez_space = k_ez_space.d_view;
+  atomKK->k_x.sync<DeviceType>();
+  atomKK->k_v.sync<DeviceType>();
 
-    auto l_torque = k_torque.d_view;
-    auto l_angmom = k_angmom.d_view;
-    auto l_omega  = k_omega.d_view;
-
-    // These are handled by FixRigid itself:
-    auto l_fflag = k_fflag.d_view;
-    auto l_tflag = k_tflag.d_view;
-    
-    auto l_xcm = k_xcm.d_view;
-    auto l_vcm = k_vcm.d_view;
-    auto l_fcm = k_fcm.d_view;
-    auto l_quat = k_quat.d_view;
-    auto l_inertia = k_inertia.d_view;
-
-
-    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int& ibody) {
-
-      const double dtfm = dtf / l_masstotal[ibody];
-
-      l_vcm(ibody,0) += dtfm * l_fcm(ibody,0) * l_fflag(ibody,0);
-      l_vcm(ibody,1) += dtfm * l_fcm(ibody,1) * l_fflag(ibody,1);
-      l_vcm(ibody,2) += dtfm * l_fcm(ibody,2) * l_fflag(ibody,2);
-      
-      // update xcm by full step
-      l_xcm(ibody,0) += dtv * l_vcm(ibody,0);
-      l_xcm(ibody,1) += dtv * l_vcm(ibody,1);
-      l_xcm(ibody,2) += dtv * l_vcm(ibody,2);
-      
-      // update angular momentum by 1/2 step
-
-      l_angmom(ibody,0) += dtf * l_torque(ibody,0) * l_tflag(ibody,0);
-      l_angmom(ibody,1) += dtf * l_torque(ibody,1) * l_tflag(ibody,1);
-      l_angmom(ibody,2) += dtf * l_torque(ibody,2) * l_tflag(ibody,2);
-
-      MathExtraKokkos::angmom_to_omega<DeviceType>(l_angmom,
-                                                   l_ex_space,
-                                                   l_ey_space,
-                                                   l_ez_space,
-                                                   l_inertia, l_omega, ibody);
-
-      auto q_ibody  = Kokkos::subview(l_quat, ibody, Kokkos::ALL);
-      auto ex_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
-      auto ey_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
-      auto ez_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
-
-      auto angmom_ibody  = Kokkos::subview(l_angmom,  ibody, Kokkos::ALL);
-      auto omega_ibody   = Kokkos::subview(l_omega,   ibody, Kokkos::ALL);
-      auto inertia_ibody = Kokkos::subview(l_inertia, ibody, Kokkos::ALL);
-      
-      MathExtraKokkos::richardson(q_ibody, angmom_ibody,
-                                  omega_ibody, inertia_ibody, dtq);
-
-      MathExtraKokkos::q_to_exyz(q_ibody, ex_ibody, ey_ibody, ez_ibody);
-      
-    });
-
-  } // Ends local block for Kokkos parallel lambda.
-  // At this point, we need to set up the virial if required:
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
-
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "\nAfter initial Kokkos::parallel_for, before set_xv we have:\n");
-  }
-  debug_print_quat(k_quat, quat, "quat");
-  debug_print_vec(k_vcm, vcm, "vcm");
-  
-  // Convert in-body coordinates and etc. back to per-atom quantities:
-  set_xv_kokkos();
-  if (debug_output && comm->me == 0) {
-    fprintf(stderr, "\nAfter initial Kokkos::parallel_for, after set_xv we have:\n");
-  }
-  debug_print_quat(k_quat, quat, "quat");
-  debug_print_vec(k_vcm, vcm, "vcm");
 
 }
 
 
-// This mirrors FixRigid::grow_arrays.
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::grow_arrays(int nmax)
 {
+  // This mirrors FixRigid::grow_arrays.
   memoryKK->grow_kokkos(k_body,body, nmax,"rigid/kk:body");
-  memoryKK->grow_kokkos(k_eflags,eflags, nmax,"rigid/kk:eflags");
   memoryKK->grow_kokkos(k_xcmimage, xcmimage,nmax,"rigid/kk:xcmimage");
   memoryKK->grow_kokkos(k_displace, displace,nmax,3,"rigid/kk:displace");
   if (extended) {
-    //memoryKK->grow_kokkos(k_eflags,eflags,nmax,"rigid/kk:eflags");
+    memoryKK->grow_kokkos(k_eflags,eflags,nmax,"rigid/kk:eflags");
     if (orientflag) memoryKK->grow_kokkos(k_orient,orient, nmax, orientflag,"rigid/kk:orient");
     if (dorientflag) memoryKK->grow_kokkos(k_dorient,dorient,nmax,3,"rigid/kk:dorient");
   }
@@ -709,559 +816,90 @@ void FixRigidKokkos<DeviceType>::grow_arrays(int nmax)
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 {
-  double xy,xz,yz;
-
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
-  int nlocal = atomKK->nlocal;
-
-  x = atomKK->k_x.view<DeviceType>();
-  v = atomKK->k_v.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
-
-
-  if (triclinic) {
-    xy = domain->xy;
-    xz = domain->xz;
-    yz = domain->yz;
-  }
-
-  // set x and v of each atom
-  {
-    // Local block for Kokkos parallel for:
-    
-    auto l_x = x;
-    auto l_v = v;
-    auto l_f = f;
-
-    auto l_type = type;
-    auto l_rmass = rmass;
-    auto l_mass  = mass;
-    
-    auto l_ex_space = k_ex_space.d_view;
-    auto l_ey_space = k_ex_space.d_view;
-    auto l_ez_space = k_ex_space.d_view;
-
-    auto l_vcm = k_vcm.d_view;
-    auto l_omega = k_omega.d_view;
-    auto l_displace = k_displace.d_view;
-
-    // auto l_body = k_body.template view<DeviceType>();
-    auto l_body = k_body.d_view;
-    
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
-      if (l_body[i] < 0) return;
-      int ibody = l_body[i];
-      
-      double xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
-      double ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      double zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
-      double x0, x1, x2;
-      double v0, v1, v2;
-      
-      // save old positions and velocities for virial
-      auto xi = Kokkos::subview(l_x, i, Kokkos::ALL);
-      auto vi = Kokkos::subview(l_v, i, Kokkos::ALL);
-      auto fi = Kokkos::subview(l_f, i, Kokkos::ALL);
-      
-      
-      if (evflag) {
-        if (triclinic == 0) {
-          x0 = xi[0] + xbox*xprd;
-          x1 = xi[1] + ybox*yprd;
-          x2 = xi[2] + zbox*zprd;
-        } else {
-          x0 = xi[0] + xbox*xprd + ybox*xy + zbox*xz;
-          x1 = xi[1] + ybox*yprd + zbox*yz;
-          x2 = xi[2] + zbox*zprd;
-        }
-        v0 = vi[0];
-        v1 = vi[1];
-        v2 = vi[2];
-      }
-
-      // x = displacement from center-of-mass, based on body orientation
-      // v = vcm + omega around center-of-mass
-      auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
-      auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
-      auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
-
-      auto omega_ibody = Kokkos::subview(l_omega, ibody, Kokkos::ALL);
-      auto vcm_ibody   = Kokkos::subview(l_vcm, ibody, Kokkos::ALL);
-
-      auto l_displace_i = Kokkos::subview(l_displace, i, Kokkos::ALL);
-      
-      MathExtraKokkos::matvec(ex_space_ibody,ey_space_ibody,
-                              ez_space_ibody,l_displace_i,xi);
-
-      vi[0] = omega_ibody[1]*xi[2] - omega_ibody[2]*xi[1] + vcm_ibody[0];
-      vi[1] = omega_ibody[2]*xi[0] - omega_ibody[0]*xi[2] + vcm_ibody[1];
-      vi[2] = omega_ibody[0]*xi[1] - omega_ibody[1]*xi[0] + vcm_ibody[2];
-
-      // add center of mass to displacement
-      // map back into periodic box via xbox,ybox,zbox
-      // for triclinic, add in box tilt factors as well
-      
-      if (triclinic == 0) {
-        xi[0] += xcm[ibody][0] - xbox*xprd;
-        xi[1] += xcm[ibody][1] - ybox*yprd;
-        xi[2] += xcm[ibody][2] - zbox*zprd;
-      } else {
-        xi[0] += xcm[ibody][0] - xbox*xprd - ybox*xy - zbox*xz;
-        xi[1] += xcm[ibody][1] - ybox*yprd - zbox*yz;
-        xi[2] += xcm[ibody][2] - zbox*zprd;
-      }
-
-      // virial = unwrapped coords dotted into body constraint force
-      // body constraint force = implied force due to v change minus f external
-      // assume f does not include forces internal to body
-      // 1/2 factor b/c final_integrate contributes other half
-      // assume per-atom contribution is due to constraint force on that atom
-
-      if (evflag) {
-        double massone;
-        if (rmass.data()) massone = l_rmass[i];
-        else massone = l_mass[l_type[i]];
-        double fc0 = massone*(vi[0] - v0)/dtf - fi[0];
-        double fc1 = massone*(vi[1] - v1)/dtf - fi[1];
-        double fc2 = massone*(vi[2] - v2)/dtf - fi[2];
-        double vr[6];
-        vr[0] = 0.5*x0*fc0;
-        vr[1] = 0.5*x1*fc1;
-        vr[2] = 0.5*x2*fc2;
-        vr[3] = 0.5*x0*fc1;
-        vr[4] = 0.5*x0*fc2;
-        vr[5] = 0.5*x1*fc2;
-
-        int j = i;
-        v_tally(1,&j,1.0,vr);
-      }
-    }); // end Kokkos::parallel_for
-  } // end local block.
-
-  
-  // set orientation, omega, angmom of each extended particle
-  /*
-  if (extended) {
-    double theta_body,theta;
-    double *shape,*quatatom,*inertiaatom;
-
-    AtomVecEllipsoid::Bonus *ebonus;
-    if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecLine::Bonus *lbonus;
-    if (avec_line) lbonus = avec_line->bonus;
-    AtomVecTri::Bonus *tbonus;
-    if (avec_tri) tbonus = avec_tri->bonus;
-    double **omega_one = atom->omega;
-    double **angmom_one = atom->angmom;
-    double **mu = atom->mu;
-    int *ellipsoid = atom->ellipsoid;
-    int *line = atom->line;
-    int *tri = atom->tri;
-
-    for (int i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-
-      if (eflags[i] & SPHERE) {
-        omega_one[i][0] = omega[ibody][0];
-        omega_one[i][1] = omega[ibody][1];
-        omega_one[i][2] = omega[ibody][2];
-      } else if (eflags[i] & ELLIPSOID) {
-        shape = ebonus[ellipsoid[i]].shape;
-        quatatom = ebonus[ellipsoid[i]].quat;
-        MathExtra::quatquat(quat[ibody],orient[i],quatatom);
-        MathExtra::qnormalize(quatatom);
-        ione[0] = EINERTIA*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
-        ione[1] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
-        ione[2] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
-        MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
-        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
-                                   angmom_one[i]);
-      } else if (eflags[i] & LINE) {
-        if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
-        else theta_body = -2.0*acos(quat[ibody][0]);
-        theta = orient[i][0] + theta_body;
-        while (theta <= -MY_PI) theta += MY_2PI;
-        while (theta > MY_PI) theta -= MY_2PI;
-        lbonus[line[i]].theta = theta;
-        omega_one[i][0] = omega[ibody][0];
-        omega_one[i][1] = omega[ibody][1];
-        omega_one[i][2] = omega[ibody][2];
-      } else if (eflags[i] & TRIANGLE) {
-        inertiaatom = tbonus[tri[i]].inertia;
-        quatatom = tbonus[tri[i]].quat;
-        MathExtra::quatquat(quat[ibody],orient[i],quatatom);
-        MathExtra::qnormalize(quatatom);
-        MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
-        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,
-                                   inertiaatom,angmom_one[i]);
-      }
-      if (eflags[i] & DIPOLE) {
-        MathExtra::quat_to_mat(quat[ibody],p);
-        MathExtra::matvec(p,dorient[i],mu[i]);
-        MathExtra::snormalize3(mu[i][3],mu[i],mu[i]);
-      }
-    }
-  }
-  */
 }
 
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::final_integrate()
 {
-  atomKK->sync(execution_space, datamask_read);
-  atomKK->modified(execution_space, datamask_read);
+  // final_integrate modifies (in [] only if extended)
+  // vcm, angmom, omega, v, [atom_vec->angmom, atom_vec->omega]
+  //
+  // final_integrate uses:
+  // vcm, fcm, fflag, angmom, torque, tflag, x, v, f,
+  // omega, mass, xcmimage, body
+  // [atom_vec->omega, atom_vec->ellipsoid, ebonus],
 
-  sync_arrays(FINAL_INTEGRATE);
-  modify_arrays(FINAL_INTEGRATE);
+  k_vcm.sync<LMPHostType>();
+  k_fcm.sync<LMPHostType>();
+  k_fflag.sync<LMPHostType>();
+  k_angmom.sync<LMPHostType>();
+  k_torque.sync<LMPHostType>();
+  k_tflag.sync<LMPHostType>();
+  atomKK->k_x.sync<LMPHostType>();
+  atomKK->k_v.sync<LMPHostType>();
+  atomKK->k_f.sync<LMPHostType>();
+  atomKK->k_mass.sync<LMPHostType>();
+  atomKK->k_rmass.sync<LMPHostType>();
 
-  if (!earlyflag) compute_forces_and_torques_kokkos();
-  
+  k_omega.sync<LMPHostType>();
+  k_xcmimage.sync<LMPHostType>();
+  k_body.sync<LMPHostType>();
+
+  k_vcm.modify<LMPHostType>();
+  k_angmom.modify<LMPHostType>();
+  k_omega.modify<LMPHostType>();
+  atomKK->k_v.modify<LMPHostType>();
+
+  FixRigid::final_integrate();
 
   k_vcm.sync<DeviceType>();
   k_angmom.sync<DeviceType>();
   k_omega.sync<DeviceType>();
+  atomKK->k_v.sync<DeviceType>();
 
-  k_fflag.sync<DeviceType>();
-  k_tflag.sync<DeviceType>();
-  k_inertia.sync<DeviceType>();
-  
-  k_ex_space.sync<DeviceType>();
-  k_ey_space.sync<DeviceType>();
-  k_ez_space.sync<DeviceType>();
-
-  debug_print_vec(k_torque, torque, "torque");
-  debug_print_vec(k_fcm, fcm, "fcm");
-  
-
-  {
-    // Local block for lambda captures:
-    auto l_vcm = k_vcm.d_view;
-    auto l_angmom = k_angmom.d_view;
-    auto l_omega = k_omega.d_view;
-    
-    auto l_fcm   = k_fcm.d_view;
-    auto l_fflag = k_fflag.d_view;
-    
-    auto l_torque = k_torque.d_view;
-    auto l_tflag  = k_tflag.d_view;
-    auto l_inertia = k_inertia.d_view;
-
-    auto l_ex_space = k_ex_space.d_view;
-    auto l_ey_space = k_ey_space.d_view;
-    auto l_ez_space = k_ez_space.d_view;
-
-    auto l_masstotal = masstotal;
-    
-    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody) {
-      // update vcm by 1/2 step
-
-      auto vcm_ibody = Kokkos::subview(l_vcm, ibody, Kokkos::ALL);
-      auto fcm_ibody = Kokkos::subview(l_fcm, ibody, Kokkos::ALL);
-      auto fflag_ibody = Kokkos::subview(l_fflag, ibody, Kokkos::ALL);
-      
-      auto angmom_ibody = Kokkos::subview(l_angmom, ibody, Kokkos::ALL);
-      auto omega_ibody = Kokkos::subview(l_omega, ibody, Kokkos::ALL);
-      
-      auto torque_ibody = Kokkos::subview(l_torque, ibody, Kokkos::ALL);
-      auto tflag_ibody = Kokkos::subview(l_tflag, ibody, Kokkos::ALL);
-      auto inertia_ibody = Kokkos::subview(l_inertia, ibody, Kokkos::ALL);
-
-      auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
-      auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
-      auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
-      
-      double dtfm = dtf / l_masstotal[ibody];
-      vcm_ibody[0] += dtfm * fcm_ibody[0] * fflag_ibody[0];
-      vcm_ibody[1] += dtfm * fcm_ibody[1] * fflag_ibody[1];
-      vcm_ibody[2] += dtfm * fcm_ibody[2] * fflag_ibody[2];
-      
-      // update angular momentum by 1/2 step
-      
-      angmom_ibody[0] += dtf * torque_ibody[0] * tflag_ibody[0];
-      angmom_ibody[1] += dtf * torque_ibody[1] * tflag_ibody[1];
-      angmom_ibody[2] += dtf * torque_ibody[2] * tflag_ibody[2];
-      
-      MathExtraKokkos::angmom_to_omega<DeviceType>(l_angmom,l_ex_space,
-                                                   l_ey_space, l_ez_space,
-                                                   l_inertia,l_omega, ibody);
-
-    });
-  }
-  
-
-  // set velocity/rotation of atoms in rigid bodies
-  // virial is already setup from initial_integrate
-  if(debug_output && comm->me == 0) {
-    fprintf(stderr, "After parallel_for, before set_v, we have:\n");
-  }
-  
-  debug_print_vec(k_vcm, vcm, "vcm");
-  debug_print_vec(k_omega, omega, "omega");
-  
-  set_v_kokkos();
-  atomKK->sync(execution_space, datamask_read);
 }
 
+
+template <class DeviceType>
+double FixRigidKokkos<DeviceType>::compute_scalar()
+{
+  k_tflag.sync<LMPHostType>();
+  k_fflag.sync<LMPHostType>();
+  k_inertia.sync<LMPHostType>();
+
+  k_angmom.sync<LMPHostType>();
+  k_quat.sync<LMPHostType>();
+  k_vcm.sync<LMPHostType>();
+
+
+  return FixRigid::compute_scalar();
+}
 
 
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
 {
-  // TODO: PORT THIS; CONTINUE HERE LATER.
-  int i,ibody;
-  
-  // sum over atoms to get force and torque on rigid body
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-
-  double dx,dy,dz;
-  double unwrap[3];
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    sum[ibody][0] += f[i][0];
-    sum[ibody][1] += f[i][1];
-    sum[ibody][2] += f[i][2];
-
-    domain->unmap(x[i],xcmimage[i],unwrap);
-    dx = unwrap[0] - xcm[ibody][0];
-    dy = unwrap[1] - xcm[ibody][1];
-    dz = unwrap[2] - xcm[ibody][2];
-
-    sum[ibody][3] += dy*f[i][2] - dz*f[i][1];
-    sum[ibody][4] += dz*f[i][0] - dx*f[i][2];
-    sum[ibody][5] += dx*f[i][1] - dy*f[i][0];
-  }
-
-  // extended particles add their torque to torque of body
-
-  if (extended) {
-    double **torque_one = atom->torque;
-
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-
-      if (eflags[i] & TORQUE) {
-        sum[ibody][3] += torque_one[i][0];
-        sum[ibody][4] += torque_one[i][1];
-        sum[ibody][5] += torque_one[i][2];
-      }
-    }
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  // include Langevin thermostat forces
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
-  }
-
 }
 
 
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::set_v_kokkos()
 {
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+}
 
-  int nlocal = atomKK->nlocal;
 
-  x = atomKK->k_x.view<DeviceType>();
-  v = atomKK->k_v.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
-
-  double xy, xz,yz;
-
-  if (triclinic) {
-    xy = domain->xy;
-    xz = domain->xz;
-    yz = domain->yz;
-  }
-
-  // set v of each atom
-  {
-    // Local block for Kokkos parallel for:
-    
-    auto l_x = x;
-    auto l_v = v;
-    auto l_f = f;
-
-    auto l_type = type;
-    auto l_rmass = rmass;
-    auto l_mass  = mass;
-    
-    auto l_ex_space = k_ex_space.d_view;
-    auto l_ey_space = k_ex_space.d_view;
-    auto l_ez_space = k_ex_space.d_view;
-
-    auto l_vcm = k_vcm.d_view;
-    auto l_omega = k_omega.d_view;
-    auto l_displace = k_displace.d_view;
-    auto l_body = k_body.d_view;
-    
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
-      if (l_body[i] < 0) return;
-      const int ibody = l_body[i];
-
-      auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
-      auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
-      auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
-
-      auto omega_ibody = Kokkos::subview(l_omega, ibody, Kokkos::ALL);
-      auto vcm_ibody   = Kokkos::subview(l_vcm, ibody, Kokkos::ALL);
-
-      auto displace_i = Kokkos::subview(l_displace, i, Kokkos::ALL);
-
-      double delta[3];
-      MathExtraKokkos::matvec(ex_space_ibody,ey_space_ibody,
-                              ez_space_ibody,displace_i,delta);
-
-      // save old velocities for virial
-      double v0, v1, v2;
-      
-      auto xi = Kokkos::subview(l_x, i, Kokkos::ALL);
-      auto vi = Kokkos::subview(l_v, i, Kokkos::ALL);
-
-      if (evflag) {
-        v0 = vi[0];
-        v1 = vi[1];
-        v2 = vi[2];
-      }
-
-      vi[0] = omega_ibody[1]*delta[2] - omega_ibody[2]*delta[1] + vcm_ibody[0];
-      vi[1] = omega_ibody[2]*delta[0] - omega_ibody[0]*delta[2] + vcm_ibody[1];
-      vi[2] = omega_ibody[0]*delta[1] - omega_ibody[1]*delta[0] + vcm_ibody[2];
-
-      // virial = unwrapped coords dotted into body constraint force
-      // body constraint force = implied force due to v change minus f external
-      // assume f does not include forces internal to body
-      // 1/2 factor b/c initial_integrate contributes other half
-      // assume per-atom contribution is due to constraint force on that atom
-
-      auto fi = Kokkos::subview(l_f, i, Kokkos::ALL);
-      if (evflag) {
-        double massone;
-        if (rmass.data()) massone = l_rmass[i];
-        else massone = l_mass[l_type[i]];
-        double fc0 = massone*(vi[0] - v0)/dtf - fi[0];
-        double fc1 = massone*(vi[1] - v1)/dtf - fi[1];
-        double fc2 = massone*(vi[2] - v2)/dtf - fi[2];
-        
-        double xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
-        double ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        double zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
-        double x0, x1, x2;
-        if (triclinic == 0) {
-          x0 = xi[0] + xbox*xprd;
-          x1 = xi[1] + ybox*yprd;
-          x2 = xi[2] + zbox*zprd;
-        } else {
-          x0 = xi[0] + xbox*xprd + ybox*xy + zbox*xz;
-          x1 = xi[1] + ybox*yprd + zbox*yz;
-          x2 = xi[2] + zbox*zprd;
-        }
-        double vr[6];
-        vr[0] = 0.5*x0*fc0;
-        vr[1] = 0.5*x1*fc1;
-        vr[2] = 0.5*x2*fc2;
-        vr[3] = 0.5*x0*fc1;
-        vr[4] = 0.5*x0*fc2;
-        vr[5] = 0.5*x1*fc2;
-
-        int j = i;
-        v_tally(1,&j,1.0,vr);
-      }
-    });
-  }
-  
-  // set omega, angmom of each extended particle
-  /*
-  if (extended) {
-    double *shape,*quatatom,*inertiaatom;
-
-    AtomVecEllipsoid::Bonus *ebonus;
-    if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecTri::Bonus *tbonus;
-    if (avec_tri) tbonus = avec_tri->bonus;
-    double **omega_one = atom->omega;
-    double **angmom_one = atom->angmom;
-    int *ellipsoid = atom->ellipsoid;
-    int *tri = atom->tri;
-
-    for (int i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      const int ibody = body[i];
-
-      if (eflags[i] & SPHERE) {
-        omega_one[i][0] = omega[ibody][0];
-        omega_one[i][1] = omega[ibody][1];
-        omega_one[i][2] = omega[ibody][2];
-      } else if (eflags[i] & ELLIPSOID) {
-        shape = ebonus[ellipsoid[i]].shape;
-        quatatom = ebonus[ellipsoid[i]].quat;
-        ione[0] = EINERTIA*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
-        ione[1] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
-        ione[2] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
-        MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
-        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
-                                   angmom_one[i]);
-      } else if (eflags[i] & LINE) {
-        omega_one[i][0] = omega[ibody][0];
-        omega_one[i][1] = omega[ibody][1];
-        omega_one[i][2] = omega[ibody][2];
-      } else if (eflags[i] & TRIANGLE) {
-        inertiaatom = tbonus[tri[i]].inertia;
-        quatatom = tbonus[tri[i]].quat;
-        MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
-        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,
-                                   inertiaatom,angmom_one[i]);
-      }
-    }
-  }
-  */
+template <class DeviceType>
+void FixRigidKokkos<DeviceType>::post_force(int vflag)
+{
+  FixRigid::post_force(vflag);
 }
 
 
 /*
-template <class DeviceType>
-void FixRigidKokkos::post_force(int)
-{
-}
-
-
-
 void FixRigidKokkos::initial_integrate_respa(int, int, int);
-void FixRigidKokkos::final_integrate_respa(int, int);       
-void FixRigidKokkos::write_restart_file(char *);            
-double FixRigidKokkos::compute_scalar();            
+void FixRigidKokkos::final_integrate_respa(int, int);
+void FixRigidKokkos::write_restart_file(char *);
+double FixRigidKokkos::compute_scalar();
 */
 
 
@@ -1271,4 +909,3 @@ template class FixRigidKokkos<LMPDeviceType>;
 template class FixRigidKokkos<LMPHostType>;
 #endif
 }
-

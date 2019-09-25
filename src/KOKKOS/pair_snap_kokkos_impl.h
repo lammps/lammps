@@ -250,7 +250,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for("ComputeBeta",policy_beta,*this);
 
     //ComputeYi
-    typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(chunk_size,yi_team_size,vector_length);
+    //typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(chunk_size,yi_team_size,vector_length);
+    typename Kokkos::RangePolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(0,chunk_size);
     Kokkos::parallel_for("ComputeYi",policy_yi,*this);
 
     //ComputeDuidrj
@@ -529,10 +530,9 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUi,const typename
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeYi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeYi>::member_type& team) const {
-  int ii = team.league_rank();
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeYi,const int &ii) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
-  my_sna.compute_yi(team,ii,d_beta);
+  my_sna.compute_yi(ii,d_beta);
 }
 
 template<class DeviceType>

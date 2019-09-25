@@ -386,25 +386,27 @@ void SNAKokkos<DeviceType>::compute_zi(const typename Kokkos::TeamPolicy<DeviceT
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom,
+void SNAKokkos<DeviceType>::compute_yi(int iatom,
  const Kokkos::View<F_FLOAT**, DeviceType> &beta)
 {
   double betaj;
   const int ii = iatom;
 
-  {
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team,ylist.extent(1)),
-        [&] (const int& i) {
+  //{
+    //Kokkos::parallel_for(Kokkos::TeamThreadRange(team,ylist.extent(1)),
+    //    [&] (const int& i) {
+  for (int i = 0; i < ylist.extent(1); i++) {
       ylist(iatom,i).re = 0.0;
       ylist(iatom,i).im = 0.0;
-    });
-  }
+    }
+  //  });
+  //}
 
   //int flopsum = 0;
 
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxz_max),
-      [&] (const int& jjz) {
-  //for(int jjz = 0; jjz < idxz_max; jjz++) {
+  //Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxz_max),
+  //    [&] (const int& jjz) {
+  for (int jjz = 0; jjz < idxz_max; jjz++) {
     const int j1 = idxz[jjz].j1;
     const int j2 = idxz[jjz].j2;
     const int j = idxz[jjz].j;
@@ -474,12 +476,12 @@ void SNAKokkos<DeviceType>::compute_yi(const typename Kokkos::TeamPolicy<DeviceT
       betaj = beta(ii,jjb)*(j1+1)/(j+1.0);
     }
 
-  Kokkos::single(Kokkos::PerThread(team), [&] () {
+  //Kokkos::single(Kokkos::PerThread(team), [&] () {
     Kokkos::atomic_add(&(ylist(iatom,jju).re), betaj*ztmp_r);
     Kokkos::atomic_add(&(ylist(iatom,jju).im), betaj*ztmp_i);
-  });
+  //});
 
-  }); // end loop over jjz
+  }//); // end loop over jjz
 
   //printf("sum %i\n",flopsum);
 }

@@ -90,7 +90,7 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_zi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_yi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int,
+  void compute_yi(int,
    const Kokkos::View<F_FLOAT**, DeviceType> &beta); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_bi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP

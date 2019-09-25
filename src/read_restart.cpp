@@ -734,8 +734,12 @@ void ReadRestart::header(int incompatible)
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
-      if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,"Restart file used different # of processors");
+      if (nprocs_file != comm->nprocs && me == 0) {
+        char msg[128];
+        snprintf(msg,128,"Restart file used different # of processors: %d vs. %d",
+                 nprocs_file,comm->nprocs);
+        error->warning(FLERR,msg);
+      }
 
     // don't set procgrid, warn if different
 

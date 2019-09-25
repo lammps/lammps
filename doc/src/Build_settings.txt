@@ -12,6 +12,7 @@ Optional build settings :h3
 LAMMPS can be built with several optional settings.  Each sub-section
 explain how to do this for building both with CMake and make.
 
+"C++11 standard compliance test"_#cxx11 when building all of LAMMPS
 "FFT library"_#fft for use with the "kspace_style pppm"_kspace_style.html command
 "Size of LAMMPS data types"_#size
 "Read or write compressed files"_#gzip
@@ -20,6 +21,28 @@ explain how to do this for building both with CMake and make.
 "Memory allocation alignment"_#align
 "Workaround for long long integers"_#longlong
 "Error handling exceptions"_#exceptions when using LAMMPS as a library :all(b)
+
+:line
+
+C++11 standard compliance test :h4,link(cxx11)
+
+The LAMMPS developers plan to transition to make the C++11 standard the
+minimum requirement for compiling LAMMPS.  Currently this only applies to
+some packages like KOKKOS while the rest aims to be compatible with the C++98
+standard.  Most currently used compilers are compatible with C++11; some need
+to set extra flags to switch.  To determine the impact of requiring C++11,
+we have added a simple compliance test to the source code, that will cause
+the compilation to abort, if C++11 compliance is not available or enabled.
+To bypass this check, you need to change a setting in the makefile or
+when calling CMake.
+
+[CMake variable]:
+
+-D DISABLE_CXX11_REQUIREMENT=yes
+
+[Makefile.machine setting]:
+
+LMP_INC = -DLAMMPS_CXX98
 
 :line
 

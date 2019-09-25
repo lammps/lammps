@@ -513,7 +513,7 @@ void ComputeXRD::compute_array()
 
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," 100%% \nTime ellapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
+      fprintf(screen," 100%% \nTime elapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
   }
 
   delete [] scratch;

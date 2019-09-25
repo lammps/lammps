@@ -38,33 +38,16 @@
 #include "hashlittle.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 #include <map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+using namespace RigidConst;
 
 #define RVOUS 1   // 0 for irregular, 1 for all2all
-
-#define MAXLINE 1024
-#define CHUNK 1024
-#define ATTRIBUTE_PERBODY 20
-
-#define TOLERANCE 1.0e-6
-#define EPSILON 1.0e-7
-#define BIG 1.0e20
-
-#define SINERTIA 0.4            // moment of inertia prefactor for sphere
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
-#define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
-
-#define DELTA_BODY 10000
-
-enum{NONE,XYZ,XY,YZ,XZ};        // same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};      // same as in FixRigid
-
-enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 
 /* ---------------------------------------------------------------------- */
 
@@ -454,21 +437,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   comm_forward = 1 + bodysize;
   comm_reverse = 6;
-
-  // bitmasks for properties of extended particles
-
-  POINT = 1;
-  SPHERE = 2;
-  ELLIPSOID = 4;
-  LINE = 8;
-  TRIANGLE = 16;
-  DIPOLE = 32;
-  OMEGA = 64;
-  ANGMOM = 128;
-  TORQUE = 256;
-
-  MINUSPI = -MY_PI;
-  TWOPI = 2.0*MY_PI;
 
   // atom style pointers to particles that store extra info
 
@@ -1384,8 +1352,8 @@ void FixRigidSmall::set_xv()
         if (b->quat[3] >= 0.0) theta_body = 2.0*acos(b->quat[0]);
         else theta_body = -2.0*acos(b->quat[0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega[i][0] = b->omega[0];
         omega[i][1] = b->omega[1];
@@ -2155,8 +2123,8 @@ void FixRigidSmall::setup_bodies_static()
         if (b->quat[3] >= 0.0) theta_body = 2.0*acos(b->quat[0]);
         else theta_body = -2.0*acos(b->quat[0]);
         orient[i][0] = lbonus[line[i]].theta - theta_body;
-        while (orient[i][0] <= MINUSPI) orient[i][0] += TWOPI;
-        while (orient[i][0] > MY_PI) orient[i][0] -= TWOPI;
+        while (orient[i][0] <= -MY_PI) orient[i][0] += MY_2PI;
+        while (orient[i][0] > MY_PI) orient[i][0] -= MY_2PI;
         if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
       } else if (eflags[i] & TRIANGLE) {
         quatatom = tbonus[tri[i]].quat;

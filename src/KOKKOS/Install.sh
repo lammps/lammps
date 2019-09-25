@@ -91,6 +91,8 @@ action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp 
 action dihedral_class2_kokkos.h dihedral_class2.h
+action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp 
+action dihedral_harmonic_kokkos.h dihedral_harmonic.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp

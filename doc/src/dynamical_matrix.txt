@@ -52,4 +52,4 @@ provided by Pair's single_hessian.
 
 [Default:]
 
-The default settings are file = "dynmat.dyn", binary = no  
+The default settings are file = "dynmat.dyn", binary = no

@@ -611,6 +611,7 @@ pair_lj_smooth.html
 pair_lj_smooth_linear.html
 pair_fep_soft.html
 pair_lj_switch3_coulgauss.html
+pair_local_density.html
 pair_lubricate.html
 pair_lubricateU.html
 pair_mdf.html

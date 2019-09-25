@@ -62,7 +62,7 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
-Style {spin} is a damped spin dynamics with an adaptive 
+Style {spin} is a damped spin dynamics with an adaptive
 timestep.
 See the "min/spin"_min_spin.html doc page for more information.
 
@@ -74,10 +74,10 @@ defined via the "timestep"_timestep.html command.  Often they will
 converge more quickly if you use a timestep about 10x larger than you
 would normally use for dynamics simulations.
 
-NOTE: The {quickmin}, {fire}, {hftn}, and {cg/kk} styles do not yet 
-support the use of the "fix box/relax"_fix_box_relax.html command or 
-minimizations involving the electron radius in "eFF"_pair_eff.html 
-models. 
+NOTE: The {quickmin}, {fire}, {hftn}, and {cg/kk} styles do not yet
+support the use of the "fix box/relax"_fix_box_relax.html command or
+minimizations involving the electron radius in "eFF"_pair_eff.html
+models.
 
 :line
 

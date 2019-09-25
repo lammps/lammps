@@ -20,6 +20,7 @@
 #define LMP_USE_TBB_ALLOCATOR
 #include "tbb/scalable_allocator.h"
 #else
+#include <cstring>
 #include <malloc.h>
 #endif
 #endif

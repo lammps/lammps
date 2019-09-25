@@ -41,7 +41,7 @@ using namespace MathConst;
 
 // same as fix_wall.cpp
 
-enum{EDGE,CONSTANT,VARIABLE};
+enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 

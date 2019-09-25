@@ -17,7 +17,7 @@ keyword = {dmax} or {line} or {alpha_damp} or {discrete_factor}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero}
-    backtrack,quadratic,forcezero = style of linesearch to use 
+    backtrack,quadratic,forcezero = style of linesearch to use
   {alpha_damp} value = damping
     damping = fictitious Gilbert damping for spin minimization (adim)
   {discrete_factor} value = factor
@@ -70,14 +70,14 @@ that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
 Keywords {alpha_damp} and {discrete_factor} only make sense when
-a "min_spin"_min_spin.html command is declared. 
+a "min_spin"_min_spin.html command is declared.
 Keyword {alpha_damp} defines an analog of a magnetic Gilbert
 damping. It defines a relaxation rate toward an equilibrium for
-a given magnetic system. 
+a given magnetic system.
 Keyword {discrete_factor} defines a discretization factor for the
-adaptive timestep used in the {spin} minimization. 
+adaptive timestep used in the {spin} minimization.
 See "min_spin"_min_spin.html for more information about those
-quantities. 
+quantities.
 Default values are {alpha_damp} = 1.0 and {discrete_factor} = 10.0.
 
 [Restrictions:] none

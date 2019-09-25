@@ -20,8 +20,8 @@ If the {preset} keyword is given, no others are needed.
 Otherwise, all are mandatory except for {neigh}.
 The {neigh} keyword is always optional. :l
   {preset} arg = {2011} or {2015} = which set of predefined parameters to use
-  	   2011 = use the potential parameters from "(Tainter 2011)"_#Tainter2011
-  	   2015 = use the potential parameters from "(Tainter 2015)"_#Tainter2015
+           2011 = use the potential parameters from "(Tainter 2011)"_#Tainter2011
+           2015 = use the potential parameters from "(Tainter 2015)"_#Tainter2015
   {Ea} arg = three-body energy for type A hydrogen bonding interactions (energy units)
   {Eb} arg = three-body energy for type B hydrogen bonding interactions (energy units)
   {Ec} arg = three-body energy for type C hydrogen bonding interactions (energy units)

@@ -1,0 +1,267 @@
+LAMMPS (7 Aug 2019)
+# LAMMPS input file for 26.5% benzene mole fraction solution
+# with 380 benzene and 1000 water molecules,
+# using all possible local density potentials
+# between benzene and water
+#
+# Author: Tanmoy Sanyal, Shell Group, UC Santa Barbara
+#
+# Refer: Sanyal and Shell, JPC-B, 2018, 122 (21), 5678-5693
+
+
+
+# Initialize simulation box
+dimension       3
+boundary        p p p
+units           real
+atom_style      molecular
+
+# Set potential styles
+pair_style      hybrid/overlay table spline 500 local/density
+
+# Read molecule data and set initial velocities
+read_data       benzene_water.data
+  orthogonal box = (-12.865 -12.865 -64.829) to (12.865 12.865 64.829)
+  1 by 1 by 8 MPI processor grid
+  reading atoms ...
+  1380 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.000566959 secs
+  read_data CPU = 0.00661397 secs
+velocity        all create  3.0000e+02 16611 rot yes dist gaussian
+
+# Assign potentials
+pair_coeff          1     1    table          benzene_water.pair.table      PairBB
+WARNING: 33 of 500 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:483)
+WARNING: 150 of 500 distance values in table with relative error
+  over 1e-06 to re-computed values (../pair_table.cpp:492)
+pair_coeff          1     2    table          benzene_water.pair.table      PairWW
+WARNING: 61 of 500 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:483)
+WARNING: 90 of 500 distance values in table with relative error
+  over 1e-06 to re-computed values (../pair_table.cpp:492)
+pair_coeff          2     2    table          benzene_water.pair.table      PairBW
+WARNING: 108 of 500 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:483)
+WARNING: 135 of 500 distance values in table with relative error
+  over 1e-06 to re-computed values (../pair_table.cpp:492)
+pair_coeff          *     *    local/density  benzene_water.localdensity.table
+
+# Recentering during minimization and equilibration
+fix recentering all recenter 0.0 0.0 0.0 units box
+
+# Thermostat & time integration
+timestep        2.0
+thermo          100
+thermo_style    custom temp ke pe etotal ebond eangle edihed evdwl
+
+# Minimization
+minimize        1.e-4 0.0 10000 10000
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:168)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 15.25
+  ghost atom cutoff = 15.25
+  binsize = 7.625, bins = 4 4 18
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair local/density, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 8.061 | 8.32 | 8.674 Mbytes
+Temp KinEng PotEng TotEng E_bond E_angle E_dihed E_vdwl 
+         300    1233.1611    4162.3053    5395.4665            0            0            0    4162.3053 
+         300    1233.1611     2275.526    3508.6871            0            0            0     2275.526 
+Loop time of 0.352822 on 8 procs for 40 steps with 1380 atoms
+
+71.3% CPU use with 8 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+         4162.30533361      2208.86525108      2275.52597861
+  Force two-norm initial, final = 259.364 69.3915
+  Force max component initial, final = 22.2077 8.31436
+  Final line search alpha, max atom move = 2.90022e-12 2.41135e-11
+  Iterations, force evaluations = 40 110
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.053192   | 0.23903    | 0.32779    |  17.2 | 67.75
+Bond    | 9.0599e-06 | 1.6302e-05 | 2.5272e-05 |   0.0 |  0.00
+Neigh   | 0.00044513 | 0.0023614  | 0.0063851  |   5.1 |  0.67
+Comm    | 0.015469   | 0.090432   | 0.20295    |  20.0 | 25.63
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.02098    |            |       |  5.95
+
+Nlocal:    172.5 ave 348 max 72 min
+Histogram: 5 0 0 0 0 0 0 0 1 2
+Nghost:    2193.62 ave 4352 max 932 min
+Histogram: 3 0 0 2 0 0 2 0 0 1
+Neighs:    9700.5 ave 20535 max 3685 min
+Histogram: 5 0 0 0 0 0 0 1 0 2
+
+Total # of neighbors = 77604
+Ave neighs/atom = 56.2348
+Ave special neighs/atom = 0
+Neighbor list builds = 2
+Dangerous builds = 0
+
+# Set up integration parameters
+fix             timeintegration all nve
+fix             thermostat all langevin  3.0000e+02  3.0000e+02  1.0000e+02 81890
+
+# Equilibration (for realistic results, run for 5000000 steps)
+reset_timestep  0
+run             5000
+WARNING: Fix recenter should come after all other integration fixes (../fix_recenter.cpp:131)
+Per MPI rank memory allocation (min/avg/max) = 6.936 | 7.195 | 7.552 Mbytes
+Temp KinEng PotEng TotEng E_bond E_angle E_dihed E_vdwl 
+         300    1233.1611    2866.9109    4100.0721            0            0            0    2866.9109 
+   273.33541    1123.5553    3983.2007     5106.756            0            0            0    3983.2007 
+   293.68078    1207.1857    3319.6601    4526.8458            0            0            0    3319.6601 
+   314.21462    1291.5908    3389.2178    4680.8086            0            0            0    3389.2178 
+   323.77563    1330.8917    3332.9828    4663.8745            0            0            0    3332.9828 
+    302.5902    1243.8082    3461.7692    4705.5774            0            0            0    3461.7692 
+   295.39324    1214.2249    3411.5727    4625.7976            0            0            0    3411.5727 
+   320.52341    1317.5234    3453.1931    4770.7164            0            0            0    3453.1931 
+   312.00777    1282.5195    3403.3443    4685.8638            0            0            0    3403.3443 
+   307.96774    1265.9128    3429.7809    4695.6937            0            0            0    3429.7809 
+   294.75922    1211.6187    3388.8404    4600.4591            0            0            0    3388.8404 
+   311.24567    1279.3869    3514.9603    4794.3472            0            0            0    3514.9603 
+    306.6152    1260.3531    3447.2011    4707.5542            0            0            0    3447.2011 
+   305.23306    1254.6718    3375.5092     4630.181            0            0            0    3375.5092 
+   321.62889    1322.0675    3460.2581    4782.3256            0            0            0    3460.2581 
+   316.37725    1300.4804    3437.0312    4737.5116            0            0            0    3437.0312 
+   322.90522    1327.3139    3389.1262      4716.44            0            0            0    3389.1262 
+   307.57893    1264.3146    3359.8491    4624.1637            0            0            0    3359.8491 
+   302.22607    1242.3115    3406.1711    4648.4826            0            0            0    3406.1711 
+   302.73997    1244.4239    3220.2582    4464.6821            0            0            0    3220.2582 
+   303.66194    1248.2137    3318.4629    4566.6765            0            0            0    3318.4629 
+   308.73862    1269.0815    3369.5894     4638.671            0            0            0    3369.5894 
+   315.60294    1297.2976    3411.2405    4708.5381            0            0            0    3411.2405 
+    310.0113    1274.3129    3360.1054    4634.4183            0            0            0    3360.1054 
+   302.36229    1242.8714    3326.9845    4569.8559            0            0            0    3326.9845 
+   317.78659    1306.2735    3355.4976    4661.7711            0            0            0    3355.4976 
+   302.50479    1243.4571    3317.6846    4561.1417            0            0            0    3317.6846 
+   304.29249    1250.8056    3423.5068    4674.3124            0            0            0    3423.5068 
+   305.99948    1257.8222    3432.9395    4690.7617            0            0            0    3432.9395 
+   309.93363    1273.9937     3393.657    4667.6506            0            0            0     3393.657 
+   316.14884    1299.5415    3463.0636    4762.6051            0            0            0    3463.0636 
+   300.38817    1234.7567    3309.2495    4544.0062            0            0            0    3309.2495 
+   311.05735    1278.6128    3304.4418    4583.0546            0            0            0    3304.4418 
+   311.11872     1278.865    3291.1891    4570.0542            0            0            0    3291.1891 
+   315.74338    1297.8749    3341.3063    4639.1812            0            0            0    3341.3063 
+    297.5658    1223.1552    3316.3862    4539.5414            0            0            0    3316.3862 
+   311.79033    1281.6257    3357.4556    4639.0813            0            0            0    3357.4556 
+   310.93666    1278.1167    3414.7694    4692.8861            0            0            0    3414.7694 
+   307.37298     1263.468    3337.3889    4600.8569            0            0            0    3337.3889 
+   298.84185    1228.4005    3329.6173    4558.0178            0            0            0    3329.6173 
+   310.54684    1276.5143    3351.0852    4627.5995            0            0            0    3351.0852 
+    300.0871    1233.5191    3302.2315    4535.7506            0            0            0    3302.2315 
+   304.69078    1252.4427    3324.2508    4576.6935            0            0            0    3324.2508 
+   313.50714    1288.6827    3330.4088    4619.0915            0            0            0    3330.4088 
+   329.80018    1355.6559      3301.86    4657.5159            0            0            0      3301.86 
+   304.57609    1251.9713    3365.2938    4617.2652            0            0            0    3365.2938 
+   308.73584    1269.0701    3344.4155    4613.4856            0            0            0    3344.4155 
+   306.90951    1261.5629    3304.4698    4566.0327            0            0            0    3304.4698 
+   308.85761    1269.5707    3392.1511    4661.7218            0            0            0    3392.1511 
+   302.78788    1244.6208    3317.0849    4561.7057            0            0            0    3317.0849 
+   321.68092    1322.2813    3321.5755    4643.8568            0            0            0    3321.5755 
+Loop time of 16.3061 on 8 procs for 5000 steps with 1380 atoms
+
+Performance: 52.986 ns/day, 0.453 hours/ns, 306.634 timesteps/s
+69.6% CPU use with 8 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.1872     | 10.542     | 14.607     | 116.7 | 64.65
+Bond    | 0.00044084 | 0.00069669 | 0.00095081 |   0.0 |  0.00
+Neigh   | 0.026948   | 0.15225    | 0.44344    |  42.0 |  0.93
+Comm    | 0.63452    | 4.2953     | 9.49       | 133.9 | 26.34
+Output  | 0.0016391  | 0.012378   | 0.050919   |  13.9 |  0.08
+Modify  | 0.45894    | 1.2107     | 4.4629     | 116.4 |  7.42
+Other   |            | 0.09292    |            |       |  0.57
+
+Nlocal:    172.5 ave 380 max 70 min
+Histogram: 5 0 0 0 0 0 0 1 1 1
+Nghost:    2213 ave 4440 max 903 min
+Histogram: 3 0 0 2 0 0 2 0 0 1
+Neighs:    10042.5 ave 24051 max 3500 min
+Histogram: 5 0 0 0 0 0 0 1 1 1
+
+Total # of neighbors = 80340
+Ave neighs/atom = 58.2174
+Ave special neighs/atom = 0
+Neighbor list builds = 123
+Dangerous builds = 1
+
+# Turn off recentering during production phase
+unfix recentering
+
+# Setup trajectory output
+dump            myDump all custom 100 benzene_water.lammpstrj.gz id type x y z element
+dump_modify     myDump element B W
+dump_modify     myDump sort id
+
+# Production (for realistic results, run for 10000000 steps)
+reset_timestep  0
+run             1000
+Per MPI rank memory allocation (min/avg/max) = 8.232 | 8.492 | 8.851 Mbytes
+Temp KinEng PotEng TotEng E_bond E_angle E_dihed E_vdwl 
+   321.68092    1322.2813    3784.0834    5106.3647            0            0            0    3784.0834 
+   310.59763    1276.7231    3318.3283    4595.0513            0            0            0    3318.3283 
+   303.39445    1247.1141    3324.1191    4571.2332            0            0            0    3324.1191 
+   311.37275    1279.9092    3305.0901    4584.9993            0            0            0    3305.0901 
+   311.29071     1279.572     3248.216     4527.788            0            0            0     3248.216 
+   314.53456     1292.906    3283.4563    4576.3623            0            0            0    3283.4563 
+   316.52595    1301.0916    3258.9171    4560.0087            0            0            0    3258.9171 
+   318.92447    1310.9509    3235.6256    4546.5765            0            0            0    3235.6256 
+   311.79212    1281.6331     3308.099    4589.7321            0            0            0     3308.099 
+   305.52477    1255.8709    3267.6907    4523.5616            0            0            0    3267.6907 
+   301.07457    1237.5782    3206.3997    4443.9779            0            0            0    3206.3997 
+Loop time of 4.44139 on 8 procs for 1000 steps with 1380 atoms
+
+Performance: 38.907 ns/day, 0.617 hours/ns, 225.155 timesteps/s
+60.8% CPU use with 8 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.656      | 2.5078     | 3.5775     |  57.7 | 56.46
+Bond    | 0.00013375 | 0.0001854  | 0.0002377  |   0.0 |  0.00
+Neigh   | 0.0048757  | 0.029188   | 0.090432   |  18.9 |  0.66
+Comm    | 0.51836    | 1.4427     | 2.6285     |  56.9 | 32.48
+Output  | 0.083084   | 0.089199   | 0.10333    |   2.3 |  2.01
+Modify  | 0.0087376  | 0.019705   | 0.038437   |   8.4 |  0.44
+Other   |            | 0.3526     |            |       |  7.94
+
+Nlocal:    172.5 ave 388 max 69 min
+Histogram: 5 0 0 0 0 0 0 2 0 1
+Nghost:    2207.88 ave 4429 max 896 min
+Histogram: 3 0 0 2 0 0 2 0 0 1
+Neighs:    10094.1 ave 24847 max 3403 min
+Histogram: 5 0 0 0 0 0 1 1 0 1
+
+Total # of neighbors = 80753
+Ave neighs/atom = 58.5167
+Ave special neighs/atom = 0
+Neighbor list builds = 23
+Dangerous builds = 0
+
+
+Total wall time: 0:00:21

@@ -228,6 +228,7 @@ accelerated styles exist.
 "lj/smooth/linear"_pair_lj_smooth_linear.html - linear smoothed LJ potential
 "lj/switch3/coulgauss"_pair_lj_switch3_coulgauss - smoothed LJ vdW potential with Gaussian electrostatics
 "lj96/cut"_pair_lj96.html - Lennard-Jones 9/6 potential
+"local/density"_pair_local_density.html - generalized basic local density potential
 "lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "lubricate/poly"_pair_lubricate.html - hydrodynamic lubrication forces with polydispersity
 "lubricateU"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication Dynamics

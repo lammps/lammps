@@ -68,7 +68,7 @@ gamma (distance) :ul
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-Mixing rules are fixed for this style as defined above. 
+Mixing rules are fixed for this style as defined above.
 
 Shifting the potential energy is not necessary because the switching
 function ensures that the potential is zero at the cut-off.

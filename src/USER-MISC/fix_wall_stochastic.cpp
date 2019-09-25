@@ -50,7 +50,7 @@ FixWallStochastic::FixWallStochastic(LAMMPS *lmp, int narg, char **arg) :
   int scaleflag = 1;
   reflectionstyle = NONE;
 
-  //RanMars *random;
+
   if (strcmp(arg[3],"diffusive") == 0) {
     reflectionstyle = DIFFUSIVE;
     arginc = 6;
@@ -63,11 +63,11 @@ FixWallStochastic::FixWallStochastic(LAMMPS *lmp, int narg, char **arg) :
   } else error->all(FLERR,"Illegal fix wall/stochastic command");
 
   if (reflectionstyle != NONE) {
-
-    do seedfix = rand(); while (seedfix > 900000000);
+    seedfix = force->numeric(FLERR,arg[4]);
+    if (seedfix > 900000000) error->all(FLERR,"Random seed must be less than 900000000");
     random = new RanMars(lmp,seedfix);
 
-    int iarg = 4;
+    int iarg = 5;
     while (iarg < narg) {
       if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
           (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||

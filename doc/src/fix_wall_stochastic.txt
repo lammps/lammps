@@ -10,12 +10,13 @@ fix wall/stochastic command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/stochastic reflectionstyle face pos temp velx vely velz accomx accomy accomz ... :pre
+fix ID group-ID wall/stochastic reflectionstyle seed face pos temp velx vely velz accomx accomy accomz ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/stochastic = style name of this fix command :l
 one or more face/arg pairs may be appended :l
 reflectionstyle = diffusive or maxwell or cercignanilampis :l
+seed = random seed for stochastic wall (must be less than 900000000) :l
 face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
   {xlo},{ylo},{zlo} pos = EDGE or constant
     EDGE = current lo edge of simulation box
@@ -38,9 +39,9 @@ keyword = {units} :l
 
 [Examples:]
 
-fix zwalls all wall/stochastic diffusive zlo EDGE 300 0.1 0.1 0 zhi EDGE 200 0.1 0.1 0
-fix ywalls all wall/stochastic maxwell ylo 5.0 300 0.1 0.0 0.0 0.8 yhi 10.0 300 0.1 0.0 0.0 0.8
-fix xwalls all wall/stochastic cercignanilampis xlo 0.0 300 0.0 0.1 0.9 0.8 0.7 xhi EDGE 300 0.0 0.1 0 0.9 0.8 0.7 units box :pre
+fix zwalls all wall/stochastic diffusive 23424 zlo EDGE 300 0.1 0.1 0 zhi EDGE 200 0.1 0.1 0
+fix ywalls all wall/stochastic maxwell 345533 ylo 5.0 300 0.1 0.0 0.0 0.8 yhi 10.0 300 0.1 0.0 0.0 0.8
+fix xwalls all wall/stochastic cercignanilampis 2308 xlo 0.0 300 0.0 0.1 0.9 0.8 0.7 xhi EDGE 300 0.0 0.1 0 0.9 0.8 0.7 units box :pre
 
 [Description:]
 
@@ -99,4 +100,3 @@ command. Furthermore, the wall velocity must lie on the same plane as the wall. 
 
 :link(To)
 [(To)] Q.D. To, V.H. Vu, G. Lauriat, and C. Leonard. J. Math. Phys. 56, 103101 (2015).
-

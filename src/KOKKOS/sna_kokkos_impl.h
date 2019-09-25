@@ -386,27 +386,30 @@ void SNAKokkos<DeviceType>::compute_zi(const typename Kokkos::TeamPolicy<DeviceT
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_yi(int iatom,
+void SNAKokkos<DeviceType>::compute_yi(int iter,
  const Kokkos::View<F_FLOAT**, DeviceType> &beta)
 {
   double betaj;
-  const int ii = iatom;
+  const int iatom = iter / idxz_max;
+  const int jjz = iter % idxz_max;
+  const int jju = idxz[jjz].jju;
 
   //{
     //Kokkos::parallel_for(Kokkos::TeamThreadRange(team,ylist.extent(1)),
     //    [&] (const int& i) {
-  for (int i = 0; i < ylist.extent(1); i++) {
-      ylist(iatom,i).re = 0.0;
-      ylist(iatom,i).im = 0.0;
-    }
+  //for (int i = 0; i < ylist.extent(1); i++) {
+      ylist(iatom,jju) = {0.0,0.0};
+  //  }
   //  });
   //}
+
+
 
   //int flopsum = 0;
 
   //Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxz_max),
   //    [&] (const int& jjz) {
-  for (int jjz = 0; jjz < idxz_max; jjz++) {
+  //for (int jjz = 0; jjz < idxz_max; jjz++) {
     const int j1 = idxz[jjz].j1;
     const int j2 = idxz[jjz].j2;
     const int j = idxz[jjz].j;
@@ -453,27 +456,27 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom,
     } // end loop over ib
 
     // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
-    // find right y_list[jju] and beta(ii,jjb) entries
+    // find right y_list[jju] and beta(iatom,jjb) entries
     // multiply and divide by j+1 factors
     // account for multiplicity of 1, 2, or 3
 
-    const int jju = idxz[jjz].jju;
+    //const int jju = idxz[jjz].jju;
 
   // pick out right beta value
 
     if (j >= j1) {
       const int jjb = idxb_block(j1,j2,j);
       if (j1 == j) {
-        if (j2 == j) betaj = 3*beta(ii,jjb);
-        else betaj = 2*beta(ii,jjb);
-      } else betaj = beta(ii,jjb); 
+        if (j2 == j) betaj = 3*beta(iatom,jjb);
+        else betaj = 2*beta(iatom,jjb);
+      } else betaj = beta(iatom,jjb); 
     } else if (j >= j2) {
       const int jjb = idxb_block(j,j2,j1);
-      if (j2 == j) betaj = 2*beta(ii,jjb)*(j1+1)/(j+1.0);
-      else betaj = beta(ii,jjb)*(j1+1)/(j+1.0);
+      if (j2 == j) betaj = 2*beta(iatom,jjb)*(j1+1)/(j+1.0);
+      else betaj = beta(iatom,jjb)*(j1+1)/(j+1.0);
     } else {
       const int jjb = idxb_block(j2,j,j1);
-      betaj = beta(ii,jjb)*(j1+1)/(j+1.0);
+      betaj = beta(iatom,jjb)*(j1+1)/(j+1.0);
     }
 
   //Kokkos::single(Kokkos::PerThread(team), [&] () {
@@ -481,7 +484,7 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom,
     Kokkos::atomic_add(&(ylist(iatom,jju).im), betaj*ztmp_i);
   //});
 
-  }//); // end loop over jjz
+  //}//); // end loop over jjz
 
   //printf("sum %i\n",flopsum);
 }

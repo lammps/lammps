@@ -138,6 +138,8 @@ inline
   // derivatives of data
   t_sna_4c dulist;
 
+  int idxcg_max, idxu_max, idxz_max, idxb_max;
+
 private:
   double rmin0, rfac0;
 
@@ -145,7 +147,6 @@ private:
   // Same across all SNAKokkos
   Kokkos::View<SNAKK_ZINDICES*, DeviceType> idxz;
   Kokkos::View<SNAKK_BINDICES*, DeviceType> idxb;
-  int idxcg_max, idxu_max, idxz_max, idxb_max;
   Kokkos::View<int***, DeviceType> idxcg_block;
   Kokkos::View<int*, DeviceType> idxu_block;
   Kokkos::View<int***, DeviceType> idxz_block;

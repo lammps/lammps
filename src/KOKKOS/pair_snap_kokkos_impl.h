@@ -250,8 +250,9 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for("ComputeBeta",policy_beta,*this);
 
     //ComputeYi
+    int idxz_max = snaKK.idxz_max;
     //typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(chunk_size,yi_team_size,vector_length);
-    typename Kokkos::RangePolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(0,chunk_size);
+    typename Kokkos::RangePolicy<DeviceType, TagPairSNAPComputeYi> policy_yi(0,chunk_size*idxz_max);
     Kokkos::parallel_for("ComputeYi",policy_yi,*this);
 
     //ComputeDuidrj

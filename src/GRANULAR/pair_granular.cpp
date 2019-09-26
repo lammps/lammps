@@ -635,7 +635,7 @@ void PairGranular::compute(int eflag, int vflag)
             torque[j][2] -= torroll3;
           }
         }
-        if (evflag) ev_tally_xyz(i,j,nlocal,0,
+        if (evflag) ev_tally_xyz(i,j,nlocal,force->newton_pair,
             0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }

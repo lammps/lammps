@@ -289,54 +289,52 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_zi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom)
+void SNAKokkos<DeviceType>::compute_zi(const int& iter)
 {
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxz_max),
-      [&] (const int& jjz) {
-  //for(int jjz = 0; jjz < idxz_max; jjz++) {
-    const int j1 = idxz(jjz,0);
-    const int j2 = idxz(jjz,1);
-    const int j = idxz(jjz,2);
-    const int ma1min = idxz(jjz,3);
-    const int ma2max = idxz(jjz,4);
-    const int mb1min = idxz(jjz,5);
-    const int mb2max = idxz(jjz,6);
-    const int na = idxz(jjz,7);
-    const int nb = idxz(jjz,8);
+  const int iatom = iter / idxz_max;
+  const int jjz = iter % idxz_max;
 
-    const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const int j1 = idxz(jjz,0);
+  const int j2 = idxz(jjz,1);
+  const int j = idxz(jjz,2);
+  const int ma1min = idxz(jjz,3);
+  const int ma2max = idxz(jjz,4);
+  const int mb1min = idxz(jjz,5);
+  const int mb2max = idxz(jjz,6);
+  const int na = idxz(jjz,7);
+  const int nb = idxz(jjz,8);
 
-    zlist(iatom,jjz).re = 0.0; 
-    zlist(iatom,jjz).im = 0.0;
+  const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
 
-    int jju1 = idxu_block[j1] + (j1+1)*mb1min;
-    int jju2 = idxu_block[j2] + (j2+1)*mb2max;
-    int icgb = mb1min*(j2+1) + mb2max;
-    for(int ib = 0; ib < nb; ib++) {
+  zlist(iatom,jjz).re = 0.0; 
+  zlist(iatom,jjz).im = 0.0;
 
-      double suma1_r = 0.0;
-      double suma1_i = 0.0;
+  int jju1 = idxu_block[j1] + (j1+1)*mb1min;
+  int jju2 = idxu_block[j2] + (j2+1)*mb2max;
+  int icgb = mb1min*(j2+1) + mb2max;
+  for(int ib = 0; ib < nb; ib++) {
 
-      int ma1 = ma1min;
-      int ma2 = ma2max;
-      int icga = ma1min*(j2+1) + ma2max;
-      for(int ia = 0; ia < na; ia++) {
-        suma1_r += cgblock[icga] * (ulisttot(iatom,jju1+ma1).re * ulisttot(iatom,jju2+ma2).re - ulisttot(iatom,jju1+ma1).im * ulisttot(iatom,jju2+ma2).im);
-        suma1_i += cgblock[icga] * (ulisttot(iatom,jju1+ma1).re * ulisttot(iatom,jju2+ma2).im + ulisttot(iatom,jju1+ma1).im * ulisttot(iatom,jju2+ma2).re);
-        ma1++;
-        ma2--;
-        icga += j2;
-      } // end loop over ia
+    double suma1_r = 0.0;
+    double suma1_i = 0.0;
 
-      zlist(iatom,jjz).re += cgblock[icgb] * suma1_r;
-      zlist(iatom,jjz).im += cgblock[icgb] * suma1_i;
+    int ma1 = ma1min;
+    int ma2 = ma2max;
+    int icga = ma1min*(j2+1) + ma2max;
+    for(int ia = 0; ia < na; ia++) {
+      suma1_r += cgblock[icga] * (ulisttot(iatom,jju1+ma1).re * ulisttot(iatom,jju2+ma2).re - ulisttot(iatom,jju1+ma1).im * ulisttot(iatom,jju2+ma2).im);
+      suma1_i += cgblock[icga] * (ulisttot(iatom,jju1+ma1).re * ulisttot(iatom,jju2+ma2).im + ulisttot(iatom,jju1+ma1).im * ulisttot(iatom,jju2+ma2).re);
+      ma1++;
+      ma2--;
+      icga += j2;
+    } // end loop over ia
 
-      jju1 += j1+1;
-      jju2 -= j2+1;
-      icgb += j2;
-    } // end loop over ib
+    zlist(iatom,jjz).re += cgblock[icgb] * suma1_r;
+    zlist(iatom,jjz).im += cgblock[icgb] * suma1_i;
 
-  }); // end loop over jjz
+    jju1 += j1+1;
+    jju2 -= j2+1;
+    icgb += j2;
+  } // end loop over ib
 }
 
 /* ----------------------------------------------------------------------

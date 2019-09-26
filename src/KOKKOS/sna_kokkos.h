@@ -29,27 +29,17 @@ typedef double SNAreal;
 
 //typedef struct { SNAreal re, im; } SNAcomplex;
 struct alignas(2*sizeof(SNAreal)) SNAcomplex{
-    SNAreal re, im;
+  SNAreal re, im;
 
-    KOKKOS_INLINE_FUNCTION
-    SNAcomplex() : re(0),im(0)
-    {;}
+  KOKKOS_INLINE_FUNCTION
+  SNAcomplex() : re(0),im(0)
+  {}
 
-    KOKKOS_INLINE_FUNCTION
-    SNAcomplex(SNAreal real_in, SNAreal imag_in)
-        :re(real_in),im(imag_in)
-    {;}
-
-#ifdef __CUDACC__
-    KOKKOS_INLINE_FUNCTION
-    SNAcomplex(double2 ref)
-        :re(ref.x),im(ref.y)
-    {;}
-
-    operator double2() { return make_double2(re,im); }
-#endif
-
-} ;
+  KOKKOS_INLINE_FUNCTION
+  SNAcomplex(SNAreal real_in, SNAreal imag_in)
+      :re(real_in),im(imag_in)
+  {}
+};
 
 //struct SNAKK_ZINDICES {
 //  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
@@ -125,8 +115,6 @@ inline
 
 inline
   void transpose_ulisttot();
-inline
-  void zero_yi();
 
   // functions for bispectrum coefficients
   KOKKOS_INLINE_FUNCTION
@@ -136,7 +124,7 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_ui_orig(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void compute_zi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
+  void compute_zi(const int&);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void zero_yi(const int&);
   KOKKOS_INLINE_FUNCTION

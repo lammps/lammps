@@ -230,7 +230,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //Compute bispectrum
     if (quadraticflag || eflag) {
       //ComputeZi
-      typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeZi> policy_zi(chunk_size,team_size,vector_length);
+      int idxz_max = snaKK.idxz_max;
+      typename Kokkos::RangePolicy<DeviceType, TagPairSNAPComputeZi> policy_zi(0,chunk_size*idxz_max);
       Kokkos::parallel_for("ComputeZi",policy_zi,*this);
 
       //ComputeBi
@@ -540,10 +541,9 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeYi,const int& ii)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeZi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeZi>::member_type& team) const {
-  int ii = team.league_rank();
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeZi,const int& ii) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
-  my_sna.compute_zi(team,ii);
+  my_sna.compute_zi(ii);
 }
 
 template<class DeviceType>

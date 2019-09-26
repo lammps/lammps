@@ -80,7 +80,7 @@ public:
   void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeZi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeZi>::member_type& team) const;
+  void operator() (TagPairSNAPComputeZi,const int& ii) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBi>::member_type& team) const;

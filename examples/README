@@ -99,12 +99,11 @@ pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
-reax:     RDX and TATB models using the ReaxFF
+reax:     RDX and TATB and several other models using ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
-snap:     use of SNAP potential for Ta
+snap:     examples for using several bundled SNAP potentials
 srd:      stochastic rotation dynamics (SRD) particles as solvent
-snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si

@@ -8,15 +8,15 @@ SHELL = /bin/sh
 
 CC =		mpiicpc
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
+CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
                 -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpiicpc
-LINKFLAGS =	-qopenmp $(OPTFLAGS)
-LIB =           -ltbbmalloc
+LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar
@@ -55,8 +55,7 @@ MPI_LIB =
 
 FFT_INC =       -DFFT_MKL -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =       -L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 \
-                -lmkl_sequential -lmkl_core	
+FFT_LIB =
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

@@ -255,20 +255,6 @@ Regardless of the choice of output velocity, the sampling of the configurational
 distribution of atom positions is the same, and linearly consistent with the
 target temperature.
 
-An example of a reason why to use the {gjf} keyword is the freedom to take a larger time step,
-up to the stability limit, while maintaining robust statistics. It is crucial to
-recall that while the equilibrium statistics is appropriately sampled, the correct dynamics
-of the trajectories may not be for large time steps, as is the case for all thermostats.
-All thermostats provide good statistics and dynamics for small time steps.
-The 2GJ half-step velocity {vhalf} samples the correct velocity distribution for the {gjf} trajectory.
-
-This updated implementation of the {gjf} thermostat includes the choice between
-outputting either the on-site {vfull} or half-step {vhalf} velocity. The on-site
-velocity has been updated to be the GJF on-site velocity, and the half-step
-velocity is the statistically correct 2GJ velocity. The implementation
-also takes advantage of Gaussian distributed random numbers in order to achieve
-correct fluctuations.
-
 :line
 
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are

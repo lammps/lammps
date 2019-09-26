@@ -26,15 +26,38 @@
 namespace LAMMPS_NS {
 
 typedef double SNAreal;
-typedef struct { SNAreal re, im; } SNAcomplex;
 
-struct SNAKK_ZINDICES {
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
-};
+//typedef struct { SNAreal re, im; } SNAcomplex;
+struct alignas(2*sizeof(SNAreal)) SNAcomplex{
+    SNAreal re, im;
 
-struct SNAKK_BINDICES {
-  int j1, j2, j;
-};
+    KOKKOS_INLINE_FUNCTION
+    SNAcomplex() : re(0),im(0)
+    {;}
+
+    KOKKOS_INLINE_FUNCTION
+    SNAcomplex(SNAreal real_in, SNAreal imag_in)
+        :re(real_in),im(imag_in)
+    {;}
+
+#ifdef __CUDACC__
+    KOKKOS_INLINE_FUNCTION
+    SNAcomplex(double2 ref)
+        :re(ref.x),im(ref.y)
+    {;}
+
+    operator double2() { return make_double2(re,im); }
+#endif
+
+} ;
+
+//struct SNAKK_ZINDICES {
+//  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
+//};
+//
+//struct SNAKK_BINDICES {
+//  int j1, j2, j;
+//};
 
 template<class DeviceType>
 class SNAKokkos {
@@ -53,11 +76,31 @@ public:
   typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
   typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
   typedef Kokkos::View<SNAcomplex**, DeviceType> t_sna_2c;
-  typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_cpu;
+  typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_lr;
   typedef Kokkos::View<SNAcomplex***, DeviceType> t_sna_3c;
   typedef Kokkos::View<SNAcomplex***[3], DeviceType> t_sna_4c;
   typedef Kokkos::View<SNAcomplex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<SNAcomplex*****, DeviceType> t_sna_5c;
+
+// Helper class to get ulisttot_r
+
+template<typename DeviceLayout, typename T1, typename T2>
+class UlisttotHelper {
+public:
+  inline
+  static void transpose(T1 &ulisttot_lr, const T2 &ulisttot) {
+    Kokkos::deep_copy(ulisttot_lr,ulisttot);
+  }
+};
+
+template<typename T1, typename T2>
+class UlisttotHelper<Kokkos::LayoutRight,T1,T2> {
+public:
+  inline
+  static void transpose(T1 &ulisttot_lr, const T2 &ulisttot) {
+    ulisttot_lr = ulisttot;
+  }
+};
 
 inline
   SNAKokkos() {};
@@ -80,15 +123,22 @@ inline
 
   int ncoeff;
 
+inline
+  void transpose_ulisttot();
+inline
+  void zero_yi();
+
   // functions for bispectrum coefficients
   KOKKOS_INLINE_FUNCTION
-  void pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int); // ForceSNAP
+  void pre_ui(const int&); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_ui_orig(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_zi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
+  KOKKOS_INLINE_FUNCTION
+  void zero_yi(const int&);
   KOKKOS_INLINE_FUNCTION
   void compute_yi(int,
    const Kokkos::View<F_FLOAT**, DeviceType> &beta); // ForceSNAP
@@ -129,11 +179,12 @@ inline
   int twojmax, diagonalstyle;
   
   t_sna_2d blist;
-  t_sna_2c_cpu ulisttot;
+  t_sna_2c ulisttot;
+  t_sna_2c_lr ulisttot_lr;
   t_sna_2c zlist;
 
   t_sna_3c ulist;
-  t_sna_2c ylist;
+  t_sna_2c_lr ylist;
 
   // derivatives of data
   t_sna_4c dulist;
@@ -145,8 +196,8 @@ private:
 
   //use indexlist instead of loops, constructor generates these
   // Same across all SNAKokkos
-  Kokkos::View<SNAKK_ZINDICES*, DeviceType> idxz;
-  Kokkos::View<SNAKK_BINDICES*, DeviceType> idxb;
+  Kokkos::View<int*[10], DeviceType> idxz;
+  Kokkos::View<int*[3], DeviceType> idxb;
   Kokkos::View<int***, DeviceType> idxcg_block;
   Kokkos::View<int*, DeviceType> idxu_block;
   Kokkos::View<int***, DeviceType> idxz_block;
@@ -174,9 +225,9 @@ inline
 inline
   void init_rootpqarray();    // init()
   KOKKOS_INLINE_FUNCTION
-  void zero_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);      // compute_ui
+  void zero_uarraytot(const int&);      // compute_ui
   KOKKOS_INLINE_FUNCTION
-  void addself_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, double); // compute_ui
+  void addself_uarraytot(const int&, const double&); // compute_ui
   KOKKOS_INLINE_FUNCTION
   void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, double, double, double); // compute_ui
 

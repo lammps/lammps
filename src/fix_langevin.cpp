@@ -112,10 +112,14 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) {gjfflag = 0; osflag = 0;}
-      else if (strcmp(arg[iarg+1],"yes") == 0)
-        error->all(FLERR,"Fix langevin gjf yes is outdated, please use vhalf or vfull");
-      else if (strcmp(arg[iarg+1],"vhalf") == 0) {gjfflag = 1; osflag = 0;}
-      else if (strcmp(arg[iarg+1],"vfull") == 0) {gjfflag = 1; osflag = 1;}
+      else if (strcmp(arg[iarg+1],"vfull") == 0) {
+      gjfflag = 1;
+      osflag = 1;
+      }
+      else if (strcmp(arg[iarg+1],"vhalf") == 0) {
+      gjfflag = 1;
+      osflag = 0;
+      }
       else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {

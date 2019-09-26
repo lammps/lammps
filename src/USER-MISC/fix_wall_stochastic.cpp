@@ -63,9 +63,9 @@ FixWallStochastic::FixWallStochastic(LAMMPS *lmp, int narg, char **arg) :
   } else error->all(FLERR,"Illegal fix wall/stochastic command");
 
   if (reflectionstyle != NONE) {
-    seedfix = force->numeric(FLERR,arg[4]);
-    if (seedfix > 900000000) error->all(FLERR,"Random seed must be less than 900000000");
-    random = new RanMars(lmp,seedfix);
+    seedfix = force->inumeric(FLERR,arg[4]);
+    if (seedfix <=0) error->all(FLERR,"Random seed must be a postive number");
+    random = new RanMars(lmp,seedfix + comm->me);
 
     int iarg = 5;
     while (iarg < narg) {

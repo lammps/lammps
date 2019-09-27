@@ -1,0 +1,77 @@
+LAMMPS (18 Sep 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+  using 1 OpenMP thread(s) per MPI task
+# H2O with NWChem
+
+variable        mode index file
+
+if "${mode} == file" then   "message client md file tmp.couple" elif "${mode} == zmq"   "message client md zmq localhost:5555"
+message client md zmq localhost:5555
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+units		metal
+atom_style	atomic
+atom_modify     sort 0 0.0 map yes
+
+boundary        m m m
+read_data       data.h2o
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3 atoms
+
+replicate       $x $y $z
+replicate       1 $y $z
+replicate       1 1 $z
+replicate       1 1 1
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+  3 atoms
+  Time spent = 5.8016e-05 secs
+
+velocity	all create 300.0 87287 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 10 check no
+
+fix		1 all nve
+fix             2 all client/md
+fix_modify      2 energy yes
+
+thermo          1
+run		3
+Per MPI rank memory allocation (min/avg/max) = 0.02705 | 0.02705 | 0.02705 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          300            0            0   -2068.2746    10.354878         8000 
+       1    368.98118            0            0   -2068.2567    12.735851         8000 
+       2    459.96278            0            0   -2068.2332    15.876195         8000 
+       3    572.94479            0            0    -2068.204    19.775912         8000 
+Loop time of 0.0174769 on 1 procs for 3 steps with 3 atoms
+
+Performance: 14.831 ns/day, 1.618 hours/ns, 171.655 timesteps/s
+8.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 2.555e-06  | 2.555e-06  | 2.555e-06  |   0.0 |  0.01
+Output  | 8.4169e-05 | 8.4169e-05 | 8.4169e-05 |   0.0 |  0.48
+Modify  | 0.017383   | 0.017383   | 0.017383   |   0.0 | 99.46
+Other   |            | 7.694e-06  |            |       |  0.04
+
+Nlocal:    3 ave 3 max 3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds not checked
+Total wall time: 0:00:01

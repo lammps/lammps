@@ -72,6 +72,7 @@ client or server code:
 examples/message
 examples/COUPLE/README
 examples/COUPLE/lammps_mc
+examples/COUPLE/lammps_nwchem
 examples/COUPLE/lammps_vasp :ul
 
 The examples/message dir couples a client instance of LAMMPS to a
@@ -79,6 +80,10 @@ server instance of LAMMPS.
 
 The lammps_mc dir shows how to couple LAMMPS as a server to a simple
 Monte Carlo client code as the driver.
+
+The lammps_nwchem dir shows how to couple LAMMPS as a client code
+running MD timestepping to NWChem acting as a server providing quantum
+DFT forces, through a Python wrapper script on NWChem.
 
 The lammps_vasp dir shows how to couple LAMMPS as a client code
 running MD timestepping to VASP acting as a server providing quantum

@@ -1,0 +1,622 @@
+ argument  1 = nwchem_lammps.nw
+
+
+
+============================== echo of input deck ==============================
+echo
+
+memory global 40 mb stack 23 mb heap 5 mb
+
+geometry units angstrom noautosym
+O  0 0 0
+H  0 0.756723 -0.585799
+H  0 -0.756723 -0.585799
+end
+
+scf
+ vectors input nwchem_lammps.movecs
+end
+
+dft
+ vectors input nwchem_lammps.movecs
+end
+
+basis
+  O library 6-31g*
+  H library 6-31g*
+end
+
+scf
+ maxiter 100
+end
+
+task scf gradient
+
+================================================================================
+
+
+                                         
+                                         
+
+
+              Northwest Computational Chemistry Package (NWChem) 6.8
+              ------------------------------------------------------
+
+
+                    Environmental Molecular Sciences Laboratory
+                       Pacific Northwest National Laboratory
+                                Richland, WA 99352
+
+                              Copyright (c) 1994-2017
+                       Pacific Northwest National Laboratory
+                            Battelle Memorial Institute
+
+             NWChem is an open-source computational chemistry package
+                        distributed under the terms of the
+                      Educational Community License (ECL) 2.0
+             A copy of the license is included with this distribution
+                              in the LICENSE.TXT file
+
+                                  ACKNOWLEDGMENT
+                                  --------------
+
+            This software and its documentation were developed at the
+            EMSL at Pacific Northwest National Laboratory, a multiprogram
+            national laboratory, operated for the U.S. Department of Energy
+            by Battelle under Contract Number DE-AC05-76RL01830. Support
+            for this work was provided by the Department of Energy Office
+            of Biological and Environmental Research, Office of Basic
+            Energy Sciences, and the Office of Advanced Scientific Computing.
+
+
+           Job information
+           ---------------
+
+    hostname        = mcq
+    program         = /usr/bin/nwchem
+    date            = Mon Sep 23 16:28:27 2019
+
+    compiled        = Wed_Aug_15_19:14:19_2018
+    source          = /home/edo/debichem-team/nwchem/nwchem-6.8.1
+    nwchem branch   = 6.8.1
+    nwchem revision = v6.8-133-ge032219
+    ga revision     = 5.6.5
+    use scalapack   = T
+    input           = nwchem_lammps.nw
+    prefix          = nwchem_lammps.
+    data base       = ./nwchem_lammps.db
+    status          = restart
+    nproc           =        1
+    time left       =     -1s
+
+
+
+           Memory information
+           ------------------
+
+    heap     =     655358 doubles =      5.0 Mbytes
+    stack    =    3014651 doubles =     23.0 Mbytes
+    global   =    5242880 doubles =     40.0 Mbytes (distinct from heap & stack)
+    total    =    8912889 doubles =     68.0 Mbytes
+    verify   = yes
+    hardfail = no 
+
+
+           Directory information
+           ---------------------
+
+  0 permanent = .
+  0 scratch   = .
+
+
+           Previous task information
+           -------------------------
+
+    Theory    = scf                             
+    Operation = gradient                      
+    Status    = ok                            
+    Qmmm      = F
+    Ignore    = F
+
+
+           Geometries in the database
+           --------------------------
+
+       Name                              Natoms  Last Modified
+       --------------------------------  ------  ------------------------
+    1  geometry                               3  Mon Sep 23 16:26:29 2019  
+
+  The geometry named "geometry" is the default for restart
+
+
+
+           Basis sets in the database
+           --------------------------
+
+       Name                              Natoms  Last Modified
+        --------------------------------  ------  ------------------------
+    1  ao basis                               2  Mon Sep 23 16:26:29 2019  
+
+  The basis set named "ao basis" is the default AO basis for restart
+
+
+
+
+                                NWChem Input Module
+                                -------------------
+
+
+
+ Scaling coordinates for geometry "geometry" by  1.889725989
+ (inverse scale =  0.529177249)
+
+
+          ------
+          auto-z
+          ------
+
+
+                             Geometry "geometry" -> ""
+                             -------------------------
+
+ Output coordinates in angstroms (scale by  1.889725989 to convert to a.u.)
+
+  No.       Tag          Charge          X              Y              Z
+ ---- ---------------- ---------- -------------- -------------- --------------
+    1 O                    8.0000     0.00000000     0.00000000     0.11715980
+    2 H                    1.0000     0.00000000     0.75672300    -0.46863920
+    3 H                    1.0000     0.00000000    -0.75672300    -0.46863920
+
+      Atomic Mass 
+      ----------- 
+
+      O                 15.994910
+      H                  1.007825
+
+
+ Effective nuclear repulsion energy (a.u.)       9.1972032776
+
+            Nuclear Dipole moment (a.u.) 
+            ----------------------------
+        X                 Y               Z
+ ---------------- ---------------- ----------------
+     0.0000000000     0.0000000000     0.0000000000
+
+
+
+                                Z-matrix (autoz)
+                                -------- 
+
+ Units are Angstrom for bonds and degrees for angles
+
+      Type          Name      I     J     K     L     M      Value
+      ----------- --------  ----- ----- ----- ----- ----- ----------
+    1 Stretch                  1     2                       0.95697
+    2 Stretch                  1     3                       0.95697
+    3 Bend                     2     1     3               104.51122
+
+
+            XYZ format geometry
+            -------------------
+     3
+ geometry
+ O                     0.00000000     0.00000000     0.11715980
+ H                     0.00000000     0.75672300    -0.46863920
+ H                     0.00000000    -0.75672300    -0.46863920
+
+ ==============================================================================
+                                internuclear distances
+ ------------------------------------------------------------------------------
+       center one      |      center two      | atomic units |  angstroms
+ ------------------------------------------------------------------------------
+    2 H                |   1 O                |     1.80841  |     0.95697
+    3 H                |   1 O                |     1.80841  |     0.95697
+ ------------------------------------------------------------------------------
+                         number of included internuclear distances:          2
+ ==============================================================================
+
+
+
+ ==============================================================================
+                                 internuclear angles
+ ------------------------------------------------------------------------------
+        center 1       |       center 2       |       center 3       |  degrees
+ ------------------------------------------------------------------------------
+    2 H                |   1 O                |   3 H                |   104.51
+ ------------------------------------------------------------------------------
+                            number of included internuclear angles:          1
+ ==============================================================================
+
+
+
+                      Basis "ao basis" -> "" (cartesian)
+                      -----
+  O (Oxygen)
+  ----------
+            Exponent  Coefficients 
+       -------------- ---------------------------------------------------------
+  1 S  5.48467170E+03  0.001831
+  1 S  8.25234950E+02  0.013950
+  1 S  1.88046960E+02  0.068445
+  1 S  5.29645000E+01  0.232714
+  1 S  1.68975700E+01  0.470193
+  1 S  5.79963530E+00  0.358521
+
+  2 S  1.55396160E+01 -0.110778
+  2 S  3.59993360E+00 -0.148026
+  2 S  1.01376180E+00  1.130767
+
+  3 P  1.55396160E+01  0.070874
+  3 P  3.59993360E+00  0.339753
+  3 P  1.01376180E+00  0.727159
+
+  4 S  2.70005800E-01  1.000000
+
+  5 P  2.70005800E-01  1.000000
+
+  6 D  8.00000000E-01  1.000000
+
+  H (Hydrogen)
+  ------------
+            Exponent  Coefficients 
+       -------------- ---------------------------------------------------------
+  1 S  1.87311370E+01  0.033495
+  1 S  2.82539370E+00  0.234727
+  1 S  6.40121700E-01  0.813757
+
+  2 S  1.61277800E-01  1.000000
+
+
+
+ Summary of "ao basis" -> "" (cartesian)
+ ------------------------------------------------------------------------------
+       Tag                 Description            Shells   Functions and Types
+ ---------------- ------------------------------  ------  ---------------------
+ O                           6-31g*                  6       15   3s2p1d
+ H                           6-31g*                  2        2   2s
+
+
+                                 NWChem SCF Module
+                                 -----------------
+
+
+
+  ao basis        = "ao basis"
+  functions       =    19
+  atoms           =     3
+  closed shells   =     5
+  open shells     =     0
+  charge          =   0.00
+  wavefunction    = RHF 
+  input vectors   = ./nwchem_lammps.movecs
+  output vectors  = ./nwchem_lammps.movecs
+  use symmetry    = F
+  symmetry adapt  = F
+
+
+ Summary of "ao basis" -> "ao basis" (cartesian)
+ ------------------------------------------------------------------------------
+       Tag                 Description            Shells   Functions and Types
+ ---------------- ------------------------------  ------  ---------------------
+ O                           6-31g*                  6       15   3s2p1d
+ H                           6-31g*                  2        2   2s
+
+
+
+ Forming initial guess at       0.0s
+
+
+ Loading old vectors from job with title :
+
+
+
+
+ Starting SCF solution at       0.0s
+
+
+
+ ----------------------------------------------
+         Quadratically convergent ROHF
+
+ Convergence threshold     :          1.000E-04
+ Maximum no. of iterations :          100
+ Final Fock-matrix accuracy:          1.000E-07
+ ----------------------------------------------
+
+
+ #quartets = 1.540D+03 #integrals = 8.874D+03 #direct =  0.0% #cached =100.0%
+
+
+ Integral file          = ./nwchem_lammps.aoints.0
+ Record size in doubles =  65536        No. of integs per rec  =  43688
+ Max. records in memory =      2        Max. records in file   = 326674
+ No. of bits per label  =      8        No. of bits per value  =     64
+
+
+              iter       energy          gnorm     gmax       time
+             ----- ------------------- --------- --------- --------
+                 1      -75.9732571733  7.14D-01  3.37D-01      0.3
+                 2      -76.0055117003  3.10D-01  1.79D-01      0.3
+                 3      -76.0098071888  1.15D-01  5.21D-02      0.3
+                 4      -76.0105377099  2.55D-03  9.57D-04      0.3
+                 5      -76.0105386346  9.48D-06  3.52D-06      0.3
+
+
+       Final RHF  results 
+       ------------------ 
+
+         Total SCF energy =    -76.010538634624
+      One-electron energy =   -123.058850386783
+      Two-electron energy =     37.851108474513
+ Nuclear repulsion energy =      9.197203277646
+
+        Time for solution =      0.1s
+
+
+             Final eigenvalues
+             -----------------
+
+              1      
+    1  -20.5603
+    2   -1.3419
+    3   -0.7071
+    4   -0.5711
+    5   -0.4979
+    6    0.2108
+    7    0.3042
+    8    1.0227
+    9    1.1318
+   10    1.1678
+   11    1.1719
+   12    1.3809
+   13    1.4341
+   14    2.0201
+   15    2.0337
+
+                       ROHF Final Molecular Orbital Analysis
+                       -------------------------------------
+
+ Vector    2  Occ=2.000000D+00  E=-1.341930D+00
+              MO Center= -7.7D-08,  1.6D-07, -5.6D-02, r^2= 5.0D-01
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     2      0.475861  1 O  s                  6      0.439201  1 O  s          
+     1     -0.209676  1 O  s          
+
+ Vector    3  Occ=2.000000D+00  E=-7.070591D-01
+              MO Center=  5.8D-08, -1.2D-07, -1.0D-01, r^2= 7.7D-01
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     4      0.507651  1 O  py                 8      0.306488  1 O  py         
+    16      0.230979  2 H  s                 18     -0.230979  3 H  s          
+
+ Vector    4  Occ=2.000000D+00  E=-5.710712D-01
+              MO Center=  6.9D-07, -2.0D-07,  1.7D-01, r^2= 6.9D-01
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     5      0.555446  1 O  pz                 9      0.403175  1 O  pz         
+     6      0.325535  1 O  s                  2      0.164591  1 O  s          
+
+ Vector    5  Occ=2.000000D+00  E=-4.979251D-01
+              MO Center= -9.5D-08, -7.1D-08,  9.7D-02, r^2= 6.0D-01
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     3      0.639615  1 O  px                 7      0.511470  1 O  px         
+
+ Vector    6  Occ=0.000000D+00  E= 2.108019D-01
+              MO Center= -5.7D-07,  1.0D-06, -6.5D-01, r^2= 2.6D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     6      1.415545  1 O  s                 17     -1.041449  2 H  s          
+    19     -1.041447  3 H  s                  9     -0.508218  1 O  pz         
+     5     -0.217054  1 O  pz         
+
+ Vector    7  Occ=0.000000D+00  E= 3.042327D-01
+              MO Center= -1.9D-09, -9.8D-07, -6.2D-01, r^2= 2.7D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+    17      1.395012  2 H  s                 19     -1.395014  3 H  s          
+     8     -0.833805  1 O  py                 4     -0.329272  1 O  py         
+
+ Vector    8  Occ=0.000000D+00  E= 1.022735D+00
+              MO Center= -1.1D-10,  6.2D-07, -4.7D-02, r^2= 1.4D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+    16      0.838912  2 H  s                 18     -0.838911  3 H  s          
+     8     -0.662620  1 O  py                17     -0.459236  2 H  s          
+    19      0.459235  3 H  s                 14     -0.343167  1 O  dyz        
+
+ Vector    9  Occ=0.000000D+00  E= 1.131842D+00
+              MO Center=  2.2D-07,  3.1D-07,  2.0D-01, r^2= 1.6D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     6      1.636696  1 O  s                  2     -0.921950  1 O  s          
+     9      0.708679  1 O  pz                16      0.548799  2 H  s          
+    18      0.548800  3 H  s                 17     -0.474050  2 H  s          
+    19     -0.474049  3 H  s                  5     -0.419243  1 O  pz         
+    10     -0.387486  1 O  dxx               15     -0.318053  1 O  dzz        
+
+ Vector   10  Occ=0.000000D+00  E= 1.167786D+00
+              MO Center=  2.2D-05,  5.1D-09,  1.1D-01, r^2= 1.1D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     7     -1.036049  1 O  px                 3      0.962745  1 O  px         
+
+ Vector   11  Occ=0.000000D+00  E= 1.171944D+00
+              MO Center= -2.2D-05, -4.7D-07, -3.9D-02, r^2= 1.1D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     5      0.761007  1 O  pz                16      0.661205  2 H  s          
+    18      0.661206  3 H  s                  6     -0.462694  1 O  s          
+     9     -0.370404  1 O  pz                17     -0.357353  2 H  s          
+    19     -0.357353  3 H  s                 13      0.249348  1 O  dyy        
+
+ Vector   12  Occ=0.000000D+00  E= 1.380937D+00
+              MO Center= -2.5D-09,  2.4D-07,  5.7D-02, r^2= 1.4D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     8      1.537091  1 O  py                 4     -1.037376  1 O  py         
+    17     -0.915091  2 H  s                 19      0.915090  3 H  s          
+
+ Vector   13  Occ=0.000000D+00  E= 1.434077D+00
+              MO Center=  5.4D-08, -5.6D-07, -3.9D-01, r^2= 1.4D+00
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+     6      3.574401  1 O  s                  2     -1.418426  1 O  s          
+     9     -1.174649  1 O  pz                17     -0.784923  2 H  s          
+    19     -0.784925  3 H  s                 13     -0.644454  1 O  dyy        
+     5      0.506381  1 O  pz                15     -0.402328  1 O  dzz        
+    16     -0.323132  2 H  s                 18     -0.323132  3 H  s          
+
+ Vector   14  Occ=0.000000D+00  E= 2.020054D+00
+              MO Center= -2.1D-08,  1.2D-08,  1.6D-01, r^2= 6.2D-01
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+    15      1.008815  1 O  dzz               13     -0.580616  1 O  dyy        
+    10     -0.366779  1 O  dxx                6     -0.227333  1 O  s          
+
+ Vector   15  Occ=0.000000D+00  E= 2.033720D+00
+              MO Center= -5.0D-08,  6.6D-08,  1.2D-01, r^2= 6.1D-01
+   Bfn.  Coefficient  Atom+Function         Bfn.  Coefficient  Atom+Function  
+  ----- ------------  ---------------      ----- ------------  ---------------
+    11      1.732051  1 O  dxy        
+
+
+ center of mass
+ --------------
+ x =   0.00000000 y =   0.00000000 z =   0.09751017
+
+ moments of inertia (a.u.)
+ ------------------
+           6.315433940446           0.000000000000           0.000000000000
+           0.000000000000           2.193636332720           0.000000000000
+           0.000000000000           0.000000000000           4.121797607726
+
+  Mulliken analysis of the total density
+  --------------------------------------
+
+    Atom       Charge   Shell Charges
+ -----------   ------   -------------------------------------------------------
+    1 O    8     8.87   2.00  0.90  2.90  0.92  2.07  0.08
+    2 H    1     0.57   0.46  0.10
+    3 H    1     0.57   0.46  0.10
+
+       Multipole analysis of the density wrt the origin
+       ------------------------------------------------
+
+     L   x y z        total         open         nuclear
+     -   - - -        -----         ----         -------
+     0   0 0 0      0.000000      0.000000     10.000000
+
+     1   1 0 0     -0.000002      0.000000      0.000000
+     1   0 1 0      0.000001      0.000000      0.000000
+     1   0 0 1     -0.875296      0.000000      0.000000
+
+     2   2 0 0     -5.372336      0.000000      0.000000
+     2   1 1 0     -0.000002      0.000000      0.000000
+     2   1 0 1      0.000001      0.000000      0.000000
+     2   0 2 0     -3.071804      0.000000      4.089795
+     2   0 1 1      0.000000      0.000000      0.000000
+     2   0 0 2     -4.444596      0.000000      1.960717
+
+
+ Parallel integral file used       1 records with       0 large values
+
+                              NWChem Gradients Module
+                              -----------------------
+
+
+
+  wavefunction    =   RHF     
+
+
+
+                         RHF ENERGY GRADIENTS
+
+    atom               coordinates                        gradient
+                 x          y          z           x          y          z
+   1 O       0.000000   0.000000   0.221400    0.000001   0.000000   0.014490
+   2 H       0.000000   1.429999  -0.885600   -0.000001   0.007296  -0.007245
+   3 H       0.000000  -1.429999  -0.885600   -0.000000  -0.007296  -0.007245
+
+                 ----------------------------------------
+                 |  Time  |  1-e(secs)   |  2-e(secs)   |
+                 ----------------------------------------
+                 |  CPU   |       0.00   |       0.07   |
+                 ----------------------------------------
+                 |  WALL  |       0.00   |       0.03   |
+                 ----------------------------------------
+
+ Task  times  cpu:        0.2s     wall:        0.1s
+
+
+                                NWChem Input Module
+                                -------------------
+
+
+ Summary of allocated global arrays
+-----------------------------------
+  No active global arrays
+
+
+
+                         GA Statistics for process    0
+                         ------------------------------
+
+       create   destroy   get      put      acc     scatter   gather  read&inc
+calls:  225      225     3182      894      878        0        0       68     
+number of processes/call 1.00e+00 1.00e+00 1.00e+00 0.00e+00 0.00e+00
+bytes total:             8.62e+05 5.44e+05 1.23e+05 0.00e+00 0.00e+00 5.44e+02
+bytes remote:            0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00
+Max memory consumed for GA by this process: 39432 bytes
+
+MA_summarize_allocated_blocks: starting scan ...
+MA_summarize_allocated_blocks: scan completed: 0 heap blocks, 0 stack blocks
+MA usage statistics:
+
+	allocation statistics:
+					      heap	     stack
+					      ----	     -----
+	current number of blocks	         0	         0
+	maximum number of blocks	        18	        28
+	current total bytes		         0	         0
+	maximum total bytes		   1060104	  16000888
+	maximum total K-bytes		      1061	     16001
+	maximum total M-bytes		         2	        17
+
+
+                                     CITATION
+                                     --------
+                Please cite the following reference when publishing
+                           results obtained with NWChem:
+
+                 M. Valiev, E.J. Bylaska, N. Govind, K. Kowalski,
+              T.P. Straatsma, H.J.J. van Dam, D. Wang, J. Nieplocha,
+                        E. Apra, T.L. Windus, W.A. de Jong
+                 "NWChem: a comprehensive and scalable open-source
+                  solution for large scale molecular simulations"
+                      Comput. Phys. Commun. 181, 1477 (2010)
+                           doi:10.1016/j.cpc.2010.04.018
+
+                                      AUTHORS
+                                      -------
+          E. Apra, E. J. Bylaska, W. A. de Jong, N. Govind, K. Kowalski,
+       T. P. Straatsma, M. Valiev, H. J. J. van Dam, D. Wang, T. L. Windus,
+        J. Hammond, J. Autschbach, K. Bhaskaran-Nair, J. Brabec, K. Lopata,
+    S. A. Fischer, S. Krishnamoorthy, M. Jacquelin, W. Ma, M. Klemm, O. Villa,
+      Y. Chen, V. Anisimov, F. Aquino, S. Hirata, M. T. Hackler, V. Konjkov,
+            D. Mejia-Rodriguez, T. Risthaus, M. Malagoli, A. Marenich,
+   A. Otero-de-la-Roza, J. Mullin, P. Nichols, R. Peverati, J. Pittner, Y. Zhao,
+        P.-D. Fan, A. Fonari, M. J. Williamson, R. J. Harrison, J. R. Rehr,
+      M. Dupuis, D. Silverstein, D. M. A. Smith, J. Nieplocha, V. Tipparaju,
+    M. Krishnan, B. E. Van Kuiken, A. Vazquez-Mayagoitia, L. Jensen, M. Swart,
+      Q. Wu, T. Van Voorhis, A. A. Auer, M. Nooijen, L. D. Crosby, E. Brown,
+      G. Cisneros, G. I. Fann, H. Fruchtl, J. Garza, K. Hirao, R. A. Kendall,
+      J. A. Nichols, K. Tsemekhman, K. Wolinski, J. Anchell, D. E. Bernholdt,
+      P. Borowski, T. Clark, D. Clerc, H. Dachsel, M. J. O. Deegan, K. Dyall,
+    D. Elwood, E. Glendening, M. Gutowski, A. C. Hess, J. Jaffe, B. G. Johnson,
+     J. Ju, R. Kobayashi, R. Kutteh, Z. Lin, R. Littlefield, X. Long, B. Meng,
+      T. Nakajima, S. Niu, L. Pollack, M. Rosing, K. Glaesemann, G. Sandrone,
+      M. Stave, H. Taylor, G. Thomas, J. H. van Lenthe, A. T. Wong, Z. Zhang.
+
+ Total times  cpu:        0.2s     wall:        0.1s

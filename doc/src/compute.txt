@@ -244,7 +244,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "plasticity/atom"_compute_plasticity_atom.html - Peridynamic plasticity for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "pressure/cylinder"_compute_pressure_cylinder.html - pressure tensor in cylindrical coordinates
-"pressure/uef"_compute_pressure_uef.html - pressure tensor in the reference frame of an applied flow field 
+"pressure/uef"_compute_pressure_uef.html - pressure tensor in the reference frame of an applied flow field
 "property/atom"_compute_property_atom.html - convert atom attributes to per-atom vectors/arrays
 "property/chunk"_compute_property_chunk.html - extract various per-chunk attributes
 "property/local"_compute_property_local.html - convert local attributes to localvectors/arrays
@@ -284,7 +284,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "stress/mop"_compute_stress_mop.html - normal components of the local stress tensor using the method of planes
 "stress/mop/profile"_compute_stress_mop.html - profile of the normal components of the local stress tensor using the method of planes
 "stress/tally"_compute_tally.html -
-"tdpd/cc/atom"_compute_tdpd_cc_atom.html - per-atom chemical concentration of a specified species for each tDPD particle 
+"tdpd/cc/atom"_compute_tdpd_cc_atom.html - per-atom chemical concentration of a specified species for each tDPD particle
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
 "temp/body"_compute_temp_body.html - temperature of body particles

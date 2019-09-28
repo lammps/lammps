@@ -108,27 +108,26 @@ void DumpAtomGZ::openfile()
 void DumpAtomGZ::write_header(bigint ndump)
 {
   if ((multiproc) || (!multiproc && me == 0)) {
+    if (unit_flag && !unit_count) {
+      ++unit_count;
+      gzprintf(gzFp,"ITEM: UNITS\n%s\n",update->unit_style);
+    }
+    gzprintf(gzFp,"ITEM: TIMESTEP\n");
+    gzprintf(gzFp,BIGINT_FORMAT "\n",update->ntimestep);
+    gzprintf(gzFp,"ITEM: NUMBER OF ATOMS\n");
+    gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic == 0) {
-      gzprintf(gzFp,"ITEM: TIMESTEP\n");
-      gzprintf(gzFp,BIGINT_FORMAT "\n",update->ntimestep);
-      gzprintf(gzFp,"ITEM: NUMBER OF ATOMS\n");
-      gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
       gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
       gzprintf(gzFp,"%g %g\n",boxxlo,boxxhi);
       gzprintf(gzFp,"%g %g\n",boxylo,boxyhi);
       gzprintf(gzFp,"%g %g\n",boxzlo,boxzhi);
-      gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
     } else {
-      gzprintf(gzFp,"ITEM: TIMESTEP\n");
-      gzprintf(gzFp,BIGINT_FORMAT "\n",update->ntimestep);
-      gzprintf(gzFp,"ITEM: NUMBER OF ATOMS\n");
-      gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
       gzprintf(gzFp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
       gzprintf(gzFp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
       gzprintf(gzFp,"%g %g %g\n",boxylo,boxyhi,boxxz);
       gzprintf(gzFp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
-      gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
     }
+    gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
   }
 }
 

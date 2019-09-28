@@ -11,7 +11,7 @@ pair_style spin/dipole/long command :h3
 
 [Syntax:]
 
-pair_style spin/dipole/cut cutoff 
+pair_style spin/dipole/cut cutoff
 pair_style spin/dipole/long cutoff :pre
 
 cutoff = global cutoff for magnetic dipole energy and forces
@@ -21,7 +21,7 @@ cutoff = global cutoff for magnetic dipole energy and forces
 [Examples:]
 
 pair_style spin/dipole/cut 10.0
-pair_coeff * * 10.0 
+pair_coeff * * 10.0
 pair_coeff 2 3 8.0 :pre
 
 pair_style spin/dipole/long 9.0
@@ -32,24 +32,24 @@ pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 [Description:]
 
 Style {spin/dipole/cut} computes a short-range dipole-dipole
-interaction between pairs of magnetic particles that each 
-have a magnetic spin. 
+interaction between pairs of magnetic particles that each
+have a magnetic spin.
 The magnetic dipole-dipole interactions are computed by the
-following formulas for the magnetic energy, magnetic precession 
+following formulas for the magnetic energy, magnetic precession
 vector omega and mechanical force between particles I and J.
 
 :c,image(Eqs/pair_spin_dipole.jpg)
 
-where si and sj are the spin on two magnetic particles, 
-r is their separation distance, and the vector e = (Ri - Rj)/|Ri - Rj| 
-is the direction vector between the two particles.  
+where si and sj are the spin on two magnetic particles,
+r is their separation distance, and the vector e = (Ri - Rj)/|Ri - Rj|
+is the direction vector between the two particles.
 
 Style {spin/dipole/long} computes long-range magnetic dipole-dipole
 interaction.
 A "kspace_style"_kspace_style.html must be defined to
-use this pair style.  Currently, "kspace_style 
+use this pair style.  Currently, "kspace_style
 ewald/dipole/spin"_kspace_style.html and "kspace_style
-pppm/dipole/spin"_kspace_style.html support long-range magnetic 
+pppm/dipole/spin"_kspace_style.html support long-range magnetic
 dipole-dipole interactions.
 
 :line
@@ -68,8 +68,8 @@ to be specified in an input script that reads a restart file.
 [Restrictions:]
 
 The {spin/dipole/cut} and {spin/dipole/long} styles are part of
-the SPIN package.  They are only enabled if LAMMPS was built with that 
-package.  See the "Build package"_Build_package.html doc page for more 
+the SPIN package.  They are only enabled if LAMMPS was built with that
+package.  See the "Build package"_Build_package.html doc page for more
 info.
 
 Using dipole/spin pair styles with {electron} "units"_units.html is not

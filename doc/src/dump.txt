@@ -21,7 +21,8 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or {cfg/mpiio} or {custom} or {custom/gz} or {custom/mpiio} or {dcd} or {h5md} or {image} or {local} or {molfile} or {movie} or {netcdf} or {netcdf/mpiio} or {vtk} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} :l
+style = {atom} or {atom/gz} or {atom/mpiio} or {cfg} or {cfg/gz} or
+{cfg/mpiio} or {custom} or {custom/gz} or {custom/mpiio} or {dcd} or {h5md} or {image} or {local} or {local/gz} or {molfile} or {movie} or {netcdf} or {netcdf/mpiio} or {vtk} or {xtc} or {xyz} or {xyz/gz} or {xyz/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l

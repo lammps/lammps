@@ -14,6 +14,7 @@
 #include <cstring>
 #include "dump_cac_xyz.h"
 #include "atom.h"
+#include "domain.h"
 #include "group.h"
 #include "error.h"
 #include "memory.h"
@@ -211,65 +212,77 @@ void DumpCACXYZ::pack(tagint *ids)
   double xmap[3];
   double unit_cell[3];
   double unit_cell_mapped[3];
+  double ***current_nodal_positions;
+  double shape_func;
+  int nodes_per_element;
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
   int nlocal = atom->nlocal;
   int *poly_count = atom->poly_count;
   int *element_type = atom->element_type;
   int **node_types = atom->node_types;
   int **element_scale = atom->element_scale;
   double ****nodal_positions = atom->nodal_positions;
-  double ***current_nodal_positions;
-  double shape_func;
-  int nodes_per_element;
+  int *periodicity = domain->periodicity;
+  double *prd = domain->prd;
+  
   //int maptag=1;
   m = n = 0;
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit) {
-             if(element_type[i]==0){
-
+      if(element_type[i]==0){
       buf[m++] = tag[i];
       buf[m++] = node_types[i][0];
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
-
-
-            }
+      }
       else if(element_type[i]==1){
-
-            unit_cell_mapped[0] = 2 / double(element_scale[i][0]);
+      unit_cell_mapped[0] = 2 / double(element_scale[i][0]);
 			unit_cell_mapped[1] = 2 / double(element_scale[i][1]);
 			unit_cell_mapped[2] = 2 / double(element_scale[i][2]);
-          current_nodal_positions=nodal_positions[i];
-                nodes_per_element=8;
+      current_nodal_positions=nodal_positions[i];
+      nodes_per_element=8;
 
       for (int polyscan = 0; polyscan < poly_count[i]; polyscan++) {
-            for (int e1 = 0; e1 < element_scale[i][0]; e1++) {
-                for (int e2 = 0; e2 < element_scale[i][1]; e2++) {
-                    for (int e3 = 0; e3 < element_scale[i][2]; e3++) {
-                    unit_cell[0]=unit_cell_mapped[0]/2+e1*unit_cell_mapped[0]-1;
-                    unit_cell[1]=unit_cell_mapped[1]/2+e2*unit_cell_mapped[1]-1;
-                    unit_cell[2]=unit_cell_mapped[2]/2+e3*unit_cell_mapped[2]-1;
-                    xmap[0]=0;
-                    xmap[1]=0;
-                    xmap[2]=0;
-            for (int kk = 0; kk < nodes_per_element; kk++) {
-            	shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
-				xmap[0] += current_nodal_positions[kk][polyscan][0] * shape_func;
-				xmap[1] += current_nodal_positions[kk][polyscan][1] * shape_func;
-				xmap[2] += current_nodal_positions[kk][polyscan][2] * shape_func;
+        for (int e1 = 0; e1 < element_scale[i][0]; e1++) {
+          for (int e2 = 0; e2 < element_scale[i][1]; e2++) {
+            for (int e3 = 0; e3 < element_scale[i][2]; e3++) {
+              unit_cell[0]=unit_cell_mapped[0]/2+e1*unit_cell_mapped[0]-1;
+              unit_cell[1]=unit_cell_mapped[1]/2+e2*unit_cell_mapped[1]-1;
+              unit_cell[2]=unit_cell_mapped[2]/2+e3*unit_cell_mapped[2]-1;
+              xmap[0]=0;
+              xmap[1]=0;
+              xmap[2]=0;
+              for (int kk = 0; kk < nodes_per_element; kk++) {
+            	  shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
+				        xmap[0] += current_nodal_positions[kk][polyscan][0] * shape_func;
+				        xmap[1] += current_nodal_positions[kk][polyscan][1] * shape_func;
+				        xmap[2] += current_nodal_positions[kk][polyscan][2] * shape_func;
+              }
+              //test if mapped particle is in box and remap otherwise
+              if(periodicity[0]){
+                if(xmap[0]>boxhi[0]) xmap[0]-=prd[0];
+                if(xmap[0]<boxlo[0]) xmap[0]+=prd[0];
+              }
+              if(periodicity[1]){
+                if(xmap[1]>boxhi[1]) xmap[1]-=prd[1];
+                if(xmap[1]<boxlo[1]) xmap[1]+=prd[1];
+              }
+              if(periodicity[2]){
+                if(xmap[2]>boxhi[2]) xmap[2]-=prd[2];
+                if(xmap[2]<boxlo[2]) xmap[2]+=prd[2];
+              }   
+              buf[m++] = tag[i];
+              buf[m++] = node_types[i][polyscan];
+              buf[m++] = xmap[0];
+              buf[m++] = xmap[1];
+              buf[m++] = xmap[2];
             }
-      buf[m++] = tag[i];
-      buf[m++] = node_types[i][polyscan];
-      buf[m++] = xmap[0];
-      buf[m++] = xmap[1];
-      buf[m++] = xmap[2];
-
-
-                    }
-                }
-		  }
-        }
-            }
+          }
+		    }
+      }
+      }
     if (ids) ids[n++] = tag[i];
     }
   }

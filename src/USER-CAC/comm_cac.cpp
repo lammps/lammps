@@ -43,6 +43,7 @@ using namespace LAMMPS_NS;
 #define BUFEXTRA 1000
 #define EPSILON 1.0e-6
 #define BOXEPSILON 1.0e-8
+#define PRDEPSILON 3.0e-2
 #define DELTA_PROCS 16
 
 /* ---------------------------------------------------------------------- */
@@ -58,7 +59,6 @@ CommCAC::CommCAC(LAMMPS *lmp) : CommTiled(lmp)
   maxebox=0;
   maxforeign_ebox=0;
   maxall=0;
-  neboxes=0;
   local_neboxes=0;
   nforeign_eboxes=0;
   reset_array_flag=0;
@@ -87,7 +87,6 @@ CommCAC::CommCAC(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp, oldcomm)
   maxebox=0;
   maxforeign_ebox=0;
   maxall=0;
-  neboxes=0;
   local_neboxes=0;
   nforeign_eboxes=0;
   reset_array_flag=0;
@@ -207,6 +206,7 @@ void CommCAC::setup()
 	int *nodes_per_element_list = atom->nodes_per_element_list;
   double max_distancesq;
   int nodetotal;
+  double reduced_ebox[6];
   max_search_range= 0;
   // domain properties used in setup method and methods it calls
   size_forward = atom->avec->size_velocity;
@@ -298,7 +298,7 @@ void CommCAC::setup()
   
    
 	
-	MPI_Allreduce(&atom->max_search_range,&max_search_range,1,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&atom->max_search_range,&max_search_range,1,MPI_DOUBLE,MPI_MAX,world);
   atom->max_search_range=max_search_range;
   if(cut>max_search_range)
   atom->max_search_range=max_search_range=cut;
@@ -308,6 +308,25 @@ void CommCAC::setup()
   element_overlap_range[3]=element_overlap_range[4]=element_overlap_range[5]=max_search_range+BOXEPSILON;
   cutghost[0] = cutghost[1] = cutghost[2] = cut+BOXEPSILON;
   
+  //check if pbc box dimension is too small to encompass an element
+  compute_eboxes(0);
+  //loop through eboxes
+  for (int idim = 0; idim < dimension; idim++) {
+    if(!periodicity[idim]) continue;
+      for (int eloop=0; eloop < atom->neboxes; eloop++){
+        reduced_ebox[idim]=eboxes[eloop][idim]+cutghost[idim];
+        reduced_ebox[idim+3]=eboxes[eloop][idim+3]-cutghost[idim];
+        if(reduced_ebox[idim+3]-reduced_ebox[idim]>(1+PRDEPSILON)*prd[idim]+BOXEPSILON)
+        error->all(FLERR,"A finite element is larger than a periodic box dim; this causes material overlap");
+      }
+  }
+  //alter search range if larger than pbc simply due to element alteration
+  for (int idim = 0; idim < dimension; idim++){
+  if(element_overlap_range[idim]+cutghost[idim]>periodicity[idim]) element_overlap_range[idim]=prd[idim]-BOXEPSILON-cutghost[idim];
+  if(element_overlap_range[3+idim]+cutghost[idim]>periodicity[idim]) element_overlap_range[3+idim]=prd[idim]-BOXEPSILON-cutghost[idim];
+  }
+  //check if cutghost is larger than periodic box dim due to current code limitations
+  //enabling at most one image
   if ((periodicity[0] && cutghost[0] > prd[0]) ||
       (periodicity[1] && cutghost[1] > prd[1]) ||
       (dimension == 3 && periodicity[2] && cutghost[2] > prd[2]))
@@ -1233,17 +1252,15 @@ void CommCAC::exchange()
    compute_eboxes: called by borders to compute the current set of eboxes 
 ------------------------------------------------------------------------- */
 
-void CommCAC::compute_eboxes(int iswap){
-int i,j,n,m;
+void CommCAC::compute_eboxes(int mode){
+  int i,j,n,m;
   int ntypes = atom->ntypes;
 	double ***nodal_positions;
 	int idir, idim;
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
 	int *nodes_per_element_list = atom->nodes_per_element_list;
-  //double max_search_range= atom->max_search_range;
-  nebox_considered=0;
-  neboxes=0;
+  int neboxes=0;
   local_neboxes=0;
   // domain properties used in setup method and methods it calls
   
@@ -1254,7 +1271,6 @@ int i,j,n,m;
   sublo = domain->sublo;
   subhi = domain->subhi;
   elimit=atom->nlocal+atom->nghost;
- 
 
   //grow bounding boxes if needed
    ebox_ref=memory->grow(atom->ebox_ref,atom->nlocal+atom->nghost,"commCAC: ebox_ref");
@@ -1262,16 +1278,15 @@ int i,j,n,m;
   //NOTE: CONVERT TO LAMBDA COORDS FOR TRICLINIC COMPATIBILITY
   for(int element_index=0; element_index<elimit; element_index++){
   	if(element_type[element_index]){
-   nodal_positions = atom->nodal_positions[element_index];
-	//int current_poly_count = poly_count[element_index];
+    nodal_positions = atom->nodal_positions[element_index];
+	  //int current_poly_count = poly_count[element_index];
     int current_poly_count = poly_count[element_index];
-	int nodes_per_element = nodes_per_element_list[element_type[element_index]];
-  if(neboxes == maxebox){
-  maxebox+=BUFEXTRA;
-  eboxes=memory->grow(atom->eboxes,maxebox,6,"commCAC: eboxes");
-  }
-
-
+    if(mode==0) current_poly_count = 1;
+	  int nodes_per_element = nodes_per_element_list[element_type[element_index]];
+    if(neboxes == maxebox){
+    maxebox+=BUFEXTRA;
+    eboxes=memory->grow(atom->eboxes,maxebox,6,"commCAC: eboxes");
+    }
 
 	//initialize bounding box values
 	eboxes[neboxes][0] = nodal_positions[0][0][0];
@@ -1306,8 +1321,6 @@ int i,j,n,m;
   if(element_index<atom->nlocal) local_neboxes++;
 	}
   }
-  
-
 
   // setup forward/reverse communication
   // loop over 6 swap directions
@@ -1319,8 +1332,6 @@ int i,j,n,m;
   atom->neboxes=neboxes;
   atom->local_neboxes=local_neboxes;
 }
-
-
 
 /* ----------------------------------------------------------------------
    overlap_element_comm: called by borders to obtain information about 
@@ -1336,7 +1347,6 @@ int i,j,n,m;
 	int idir, idim;
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
-  //double max_search_range= atom->max_search_range;
   double* current_ebox;
   //double  expanded_subbox[6];
   int nsend,nrecv;
@@ -1363,7 +1373,7 @@ int i,j,n,m;
 
   //find maximum element overlap length in each swap direction
   //NOTE: CONVERT TO LAMBDA COORDS FOR TRICLINIC COMPATIBILITY
-  for(int iebox=0; iebox<neboxes; iebox++){
+  for(int iebox=0; iebox<atom->neboxes; iebox++){
    current_ebox=eboxes[iebox];
    
 
@@ -1412,7 +1422,6 @@ void CommCAC::overlap_element_comm(int iswap){
 	
 	int *element_type = atom->element_type;
 	int *poly_count = atom->poly_count;
-  //double max_search_range= atom->max_search_range;
   double box_limit;
   int i,m,n,nlast,nsend,nrecv;
   double *bbox;
@@ -1437,7 +1446,7 @@ void CommCAC::overlap_element_comm(int iswap){
   subhi = domain->subhi;
 //send elements that exceed the subbox limit for this swap
 
- ebox_limit=neboxes;
+ ebox_limit=atom->neboxes;
  for (m = 0; m < nsendproc[iswap]; m++) {
    overlap_counter=m;
          
@@ -1698,7 +1707,7 @@ void CommCAC::borders()
   
   nforeign_eboxes=0;
   //communicate all overlapping elements in all 6 swaps first to modify all sendboxes as needed
-  compute_eboxes(iswap);
+  compute_eboxes(1);
 
   //communicate overlapping elements
   get_aug_oboxes(iswap);
@@ -1979,8 +1988,7 @@ void CommCAC::borders()
 	int *poly_count = atom->poly_count;
 	int *nodes_per_element_list = atom->nodes_per_element_list;
   
-  nebox_considered=0;
-  neboxes=0;
+  int neboxes=0;
   local_neboxes=0;
   ebox_ref=memory->grow(atom->ebox_ref,atom->nlocal+atom->nghost,"commCAC: ebox_ref");
   //compute final set of eboxes in me
@@ -2885,6 +2893,7 @@ int CommCAC::pack_eboxes(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz;
   double *current_ebox;
+  int neboxes = atom->neboxes;
   m = 0;
   
   if (pbc_flag == 0) {
@@ -2949,7 +2958,7 @@ void CommCAC::unpack_eboxes(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     
-    if(neboxes>=maxebox) {
+    if(atom->neboxes>=maxebox) {
       maxebox+=BUFEXTRA;
       eboxes=memory->grow(atom->eboxes,maxebox,6,"commCAC: eboxes");
       }

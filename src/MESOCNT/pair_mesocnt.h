@@ -37,13 +37,7 @@ class PairMesoCNT : public Pair {
   double *starth_usemi, *startzeta_phi;
   double *delh_usemi, *delzeta_phi;
   double *gamma_data, *uinf_data;
-  double *m, *p1, *p2, *param, *param2, *wvector;
-  double *dw1, *dw2, *sumdw1, *sumdw2;
-  double *fchain11, *fchain12, *fchain21, *fchain22, *fchain1, *fchain2;
-  double **dw1q1, **dw1q2, **dw2q1, **dw2q2;
-  double **sumdw1q1, **sumdw1q2, **sumdw2q1, **sumdw2q2;
-  double **sumdw1p1, **sumdw1p2, **sumdw2p1, **sumdw2p2;
-  double **dp1_dr1, **dp2_dr1, **dp1_dr2, **dp2_dr2;
+  double *p1, *p2, *param;
   double **usemi_data, **phi_data;
   double **gamma_coeff, **uinf_coeff;
   double **flocal,**fglobal,**basis;
@@ -77,28 +71,21 @@ class PairMesoCNT : public Pair {
 
   double uinf(double *);
   double usemi(double *);
-  void finf(double *, double *, double *, double *, double *, double *, double **);
-  void fsemi(double *, double *, double *, double *, double *, double *, double **);
+  void finf(double *, double **);
+  void fsemi(double *, double **);
 
   void geominf(const double *, const double *, const double *, 
-		  const double *, double *, double *, double **);
+		  const double *, double *, double **);
   void geomsemi(const double *, const double *, const double *, const double *, 
-		  const double *, double *, double *, double **);
-  void weight(const double *, const double *,
-		  const double *, const double *, double *);
+		  const double *, double *, double **);
+  double weight(const double *, const double *,
+		  const double *, const double *);
   int heaviside(double);
   double s(double);
   double ds(double);
   double s5(double);
   double ds5(double);
   void sort(int *, int);
-
-  void zero(double **);
-  void plus(const double * const *, const double * const *, double **);
-  void scalar(double, double**);
-  void outer(const double *, const double *, double **);
-  void matrix_vector(const double * const *, const double *, double *);
-  void trans_matrix_vector(const double * const *, const double *, double *);
 };
 
 }

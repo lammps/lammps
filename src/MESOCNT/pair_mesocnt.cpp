@@ -24,11 +24,13 @@ using namespace MathConst;
 
 #define MAXLINE 1024
 #define SMALL 1.0e-6
-#define LOW 1.0e-6
-#define HIGH 2.0e-6
+#define SWITCH 1.0e-6
 #define DELTA1 1.0
 #define DELTA2 2.0
 #define DELTAREC 1.0
+#define QUADRATURE 100
+#define GAMMAPOINTS 26
+#define POTPOINTS 1001
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,39 +70,8 @@ PairMesoCNT::~PairMesoCNT()
 
     memory->destroy(p1);
     memory->destroy(p2);
-    memory->destroy(m);
-    memory->destroy(dw1);
-    memory->destroy(dw2);
-    memory->destroy(sumdw1);
-    memory->destroy(sumdw2);
-    memory->destroy(fchain11);
-    memory->destroy(fchain12);
-    memory->destroy(fchain21);
-    memory->destroy(fchain22);
-    memory->destroy(fchain1);
-    memory->destroy(fchain2);
 
     memory->destroy(param);
-    memory->destroy(param2);
-    memory->destroy(wvector);
-
-    memory->destroy(dw1q1);
-    memory->destroy(dw1q2);
-    memory->destroy(dw2q1);
-    memory->destroy(dw2q2);
-    memory->destroy(sumdw1q1);
-    memory->destroy(sumdw1q2);
-    memory->destroy(sumdw2q1);
-    memory->destroy(sumdw2q2);
-    memory->destroy(sumdw1p1);
-    memory->destroy(sumdw1p2);
-    memory->destroy(sumdw2p1);
-    memory->destroy(sumdw2p2);
-    memory->destroy(dp1_dr1);
-    memory->destroy(dp2_dr1);
-    memory->destroy(dp1_dr2);
-    memory->destroy(dp2_dr2);
-
     memory->destroy(flocal);
     memory->destroy(fglobal);
     memory->destroy(basis);
@@ -113,7 +84,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
 {
   int inum,i,i1,i2,j,j1,j2,jj,jj1,jj2,j1num,j2num,listmax,numred,inflag,n;
   int ind,loc1,loc2,cid,cnum,cn,tag1,tag2,idprev,idnext;
-  double w,sumw,sumwreq,evdwl;
+  double w,sumw,sumwrec,evdwl;
   double *r1,*r2,*q1,*q2,*qe;
 
   int *ilist,*j1list,*j2list,*numneigh,**firstneigh;
@@ -135,6 +106,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  //Iterate over all bonds/segments
   for(n = 0; n < nbondlist; n++){
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
@@ -144,7 +116,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     r1 = x[i1];
     r2 = x[i2];
     
-    // reduce neighbors to common list
+    //Reduce neighbors to common list
     
     if(i1 > nlocal-1){
       j1num = 0;
@@ -192,11 +164,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
     
     if (numred < 2) continue;
     
-    // insertion sort according to atom-id
+    //Insertion sort according to atom-id
     
     sort(redlist,numred);
  
-    // split into connected chains
+    //Split into connected chains
     
     cid = 0;
     cnum = 0;
@@ -220,7 +192,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     chain[cid][cnum++] = redlist[numred-1];
     nchain[cid++] = cnum;
 
-    // check for ends
+    //Check for ends
  
     if(cid > end_size){
       end_size = 2 * cid;
@@ -246,45 +218,28 @@ void PairMesoCNT::compute(int eflag, int vflag)
       }
     }
 
-    // compute subsitute chains, forces and energies
-
     using namespace MathExtra;
     
-    double chainEnd1,chainEnd2;
+    //Iterate over all neighbouring chains
     for(i = 0; i < cid; i++){
       if(nchain[i] < 2) continue;
 
       zero3(p1);
       zero3(p2);
-      
       sumw = 0;
-      zero3(sumdw1);
-      zero3(sumdw2);
-      zero(sumdw1q1);
-      zero(sumdw1q2);
-      zero(sumdw2q1);
-      zero(sumdw2q2);
 
-      chainEnd1 = 0;
-      chainEnd2 = 0;
-
+      //Assign end position
       loc1 = chain[i][0];
       loc2 = chain[i][nchain[i]-1];
       if(end[i] == 1) qe = x[loc1];
       if(end[i] == 2) qe = x[loc2];
 
+      //Compute substitute straight (semi-)infinite CNT
       for(j = 0; j < nchain[i]-1; j++){
 	q1 = x[chain[i][j]];
 	q2 = x[chain[i][j+1]];
 
-	weight(r1,r2,q1,q2,wvector);
-	w = wvector[0];
-	dw1[0] = wvector[1];
-	dw1[1] = wvector[2];
-	dw1[2] = wvector[3];
-	dw2[0] = wvector[4];
-	dw2[1] = wvector[5];
-	dw2[2] = wvector[6];
+	w = weight(r1,r2,q1,q2);
 
 	if(w == 0){ 
           if(end[i] == 1 && j == 0) end[i] = 0;
@@ -292,21 +247,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	  continue;
 	}
 	sumw += w;
-	add3(dw1,sumdw1,sumdw1);
-	add3(dw2,sumdw2,sumdw2);
-
-	chainEnd1 += w * chain[i][j];
-	chainEnd2 += w * chain[i][j+1];
-
-	outer(dw1,q1,dw1q1);
-	outer(dw1,q2,dw1q2);
-	outer(dw2,q1,dw2q1);
-	outer(dw2,q2,dw2q2);
-
-	plus(dw1q1,sumdw1q1,sumdw1q1);
-	plus(dw1q2,sumdw1q2,sumdw1q2);
-	plus(dw2q1,sumdw2q1,sumdw2q1);
-	plus(dw2q2,sumdw2q2,sumdw2q2);
 
 	scaleadd3(w,q1,p1,p1);
 	scaleadd3(w,q2,p2,p2);
@@ -314,446 +254,104 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
       if (sumw == 0) continue;
 
-      sumwreq = 1.0 / sumw;
+      sumwrec = 1.0 / sumw;
 
-      chainEnd1 *= sumwreq;
-      chainEnd2 *= sumwreq;
+      scale3(sumwrec,p1);
+      scale3(sumwrec,p2);
 
-      scale3(sumwreq,p1);
-      scale3(sumwreq,p2);
-
+      //Compute geometry, forces and swap indices if necessary
       int rswap = 0;
+      //Infinite CNT
       if(end[i] == 0){
-        geominf(r1,r2,p1,p2,param,m,basis);
+        geominf(r1,r2,p1,p2,param,basis);
 	if(param[0] > cutoff) continue;
 	if(fabs(param[2] > param[3]) && fabs(param[4] > param[5])){
-          geominf(r2,r1,p2,p1,param,m,basis);
+          geominf(r2,r1,p2,p1,param,basis);
 	  rswap = 1;
-	  if(fabs(param[2] > param[3])) printf("r and p swapped but xi still wrong!\n");
-	  if(fabs(param[4] > param[5])) printf("r and p swapped but eta still wrong!\n");
 	}
 	else if(fabs(param[2] > param[3])){
-          geominf(r2,r1,p1,p2,param,m,basis);
+          geominf(r2,r1,p1,p2,param,basis);
 	  rswap = 1;
-	  if(fabs(param[2] > param[3])) printf("r swapped but xi still wrong!\n");
-	  if(fabs(param[4] > param[5])) printf("r swapped but eta now wrong!\n");
 	}
 	else if(fabs(param[4] > param[5])){
-	  geominf(r1,r2,p2,p1,param,m,basis);
-	  if(fabs(param[2] > param[3])) printf("p swapped but xi now wrong!\n");
-	  if(fabs(param[4] > param[5])) printf("p swapped but eta still wrong!\n");
+	  geominf(r1,r2,p2,p1,param,basis);
 	}
-	finf(param,r1,r2,p1,p2,m,flocal);
-
+	finf(param,flocal);
       }
+      //Semi-infinite CNT with end at beginning of chain
       else if(end[i] == 1){
-        geomsemi(r1,r2,p1,p2,qe,param,m,basis);
+        geomsemi(r1,r2,p1,p2,qe,param,basis);
         if(param[0] > cutoff) continue;
-	fsemi(param,r1,r2,p1,qe,m,flocal);
+	if(fabs(param[2] > param[3]) && fabs(param[4] > param[5])){
+          geomsemi(r2,r1,p2,p1,qe,param,basis);
+	  rswap = 1;
+	}
+	else if(fabs(param[2] > param[3])){
+          geomsemi(r2,r1,p1,p2,qe,param,basis);
+	  rswap = 1;
+	}
+	else if(fabs(param[4] > param[5])){
+	  geomsemi(r1,r2,p2,p1,qe,param,basis);
+	}
+	fsemi(param,flocal);
       }
+      //Semi-infinite CNT with end at end of chain
       else{
-        geomsemi(r1,r2,p2,p1,qe,param,m,basis);
+        geomsemi(r1,r2,p2,p1,qe,param,basis);
         if(param[0] > cutoff) continue;
-	fsemi(param,r1,r2,p2,qe,m,flocal);
+	if(fabs(param[2] > param[3]) && fabs(param[4] > param[5])){
+          geomsemi(r2,r1,p1,p2,qe,param,basis);
+	  rswap = 1;
+	}
+	else if(fabs(param[2] > param[3])){
+          geomsemi(r2,r1,p2,p1,qe,param,basis);
+	  rswap = 1;
+	}
+	else if(fabs(param[4] > param[5])){
+	  geomsemi(r1,r2,p1,p2,qe,param,basis);
+	}
+	fsemi(param,flocal);
       }
-      
-      scale3(-sumwreq,sumdw1);
-      scale3(-sumwreq,sumdw2);
-      
-      outer(sumdw1,p1,sumdw1p1);
-      outer(sumdw1,p2,sumdw1p2);
-      outer(sumdw2,p1,sumdw2p1);
-      outer(sumdw2,p2,sumdw2p2);
+     
+      //Convert forces to global coordinate system
+      fglobal[0][0] = flocal[0][0]*basis[0][0] 
+	      + flocal[0][1]*basis[1][0] 
+	      + flocal[0][2]*basis[2][0];
+      fglobal[0][1] = flocal[0][0]*basis[0][1] 
+	      + flocal[0][1]*basis[1][1] 
+	      + flocal[0][2]*basis[2][1];
+      fglobal[0][2] = flocal[0][0]*basis[0][2] 
+	      + flocal[0][1]*basis[1][2] 
+	      + flocal[0][2]*basis[2][2];
+      fglobal[1][0] = flocal[1][0]*basis[0][0] 
+	      + flocal[1][1]*basis[1][0] 
+	      + flocal[1][2]*basis[2][0];
+      fglobal[1][1] = flocal[1][0]*basis[0][1] 
+	      + flocal[1][1]*basis[1][1] 
+	      + flocal[1][2]*basis[2][1];
+      fglobal[1][2] = flocal[1][0]*basis[0][2] 
+	      + flocal[1][1]*basis[1][2] 
+	      + flocal[1][2]*basis[2][2];
 
-      scalar(sumwreq,sumdw1q1);
-      scalar(sumwreq,sumdw1q2);
-      scalar(sumwreq,sumdw2q1);
-      scalar(sumwreq,sumdw2q2);
-
-      plus(sumdw1q1,sumdw1p1,dp1_dr1);
-      plus(sumdw1q2,sumdw1p2,dp2_dr1);
-      plus(sumdw2q1,sumdw2p1,dp1_dr2);
-      plus(sumdw2q2,sumdw2p2,dp2_dr2);
-
-      trans_matrix_vector(basis,flocal[0],fglobal[0]);
-      trans_matrix_vector(basis,flocal[1],fglobal[1]);
-      trans_matrix_vector(basis,flocal[2],fglobal[2]);
-      trans_matrix_vector(basis,flocal[3],fglobal[3]);
-
-      matrix_vector(dp1_dr1,fglobal[2],fchain11);
-      matrix_vector(dp2_dr1,fglobal[3],fchain12);
-      matrix_vector(dp1_dr2,fglobal[2],fchain21);
-      matrix_vector(dp2_dr2,fglobal[3],fchain22);
-
-      add3(fchain11,fchain12,fchain1);
-      add3(fchain21,fchain22,fchain2);
-
+      //Add forces
       if(rswap){
-        f[i1][0] += fglobal[1][0];// + fchain1[0];
-        f[i1][1] += fglobal[1][1];// + fchain1[1];
-        f[i1][2] += fglobal[1][2];// + fchain1[2];
-        f[i2][0] += fglobal[0][0];// + fchain2[0];
-        f[i2][1] += fglobal[0][1];// + fchain2[1];
-        f[i2][2] += fglobal[0][2];// + fchain2[2];
+        f[i1][0] += fglobal[1][0];
+        f[i1][1] += fglobal[1][1];
+        f[i1][2] += fglobal[1][2];
+        f[i2][0] += fglobal[0][0];
+        f[i2][1] += fglobal[0][1];
+        f[i2][2] += fglobal[0][2];
       }
       else{
-        f[i1][0] += fglobal[0][0];// + fchain1[0];
-        f[i1][1] += fglobal[0][1];// + fchain1[1];
-        f[i1][2] += fglobal[0][2];// + fchain1[2];
-        f[i2][0] += fglobal[1][0];// + fchain2[0];
-        f[i2][1] += fglobal[1][1];// + fchain2[1];
-        f[i2][2] += fglobal[1][2];// + fchain2[2];
+        f[i1][0] += fglobal[0][0];
+        f[i1][1] += fglobal[0][1];
+        f[i1][2] += fglobal[0][2];
+        f[i2][0] += fglobal[1][0];
+        f[i2][1] += fglobal[1][1];
+        f[i2][2] += fglobal[1][2];
       }
       
-      /*
-      double delta = 1.0e-12;
-
-      double r1_xlo[3] = {r1[0] - delta,r1[1],r1[2]};
-      double r1_xhi[3] = {r1[0] + delta,r1[1],r1[2]};
-      double r1_ylo[3] = {r1[0],r1[1] - delta,r1[2]};
-      double r1_yhi[3] = {r1[0],r1[1] + delta,r1[2]};
-      double r1_zlo[3] = {r1[0],r1[1],r1[2] - delta};
-      double r1_zhi[3] = {r1[0],r1[1],r1[2] + delta};
-      double r2_xlo[3] = {r2[0] - delta,r2[1],r2[2]};
-      double r2_xhi[3] = {r2[0] + delta,r2[1],r2[2]};
-      double r2_ylo[3] = {r2[0],r2[1] - delta,r2[2]};
-      double r2_yhi[3] = {r2[0],r2[1] + delta,r2[2]};
-      double r2_zlo[3] = {r2[0],r2[1],r2[2] - delta};
-      double r2_zhi[3] = {r2[0],r2[1],r2[2] + delta};
- 
-      double u1_xlo,u1_xhi,u1_ylo,u1_yhi,u1_zlo,u1_zhi;
-      double u2_xlo,u2_xhi,u2_ylo,u2_yhi,u2_zlo,u2_zhi;
-
-      if(end[i] == 0){
-        geominf(r1_xlo,r2,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u1_xlo = 0;
-	else u1_xlo = uinf(param); 
-	geominf(r1_xhi,r2,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u1_xhi = 0;
-	else u1_xhi = uinf(param); 
-        geominf(r1_ylo,r2,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u1_ylo = 0;
-	else u1_ylo = uinf(param); 
-        geominf(r1_yhi,r2,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u1_yhi = 0;
-	else u1_yhi = uinf(param); 
-        geominf(r1_zlo,r2,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u1_zlo = 0;
-	else u1_zlo = uinf(param); 
-        geominf(r1_zhi,r2,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u1_zhi = 0;
-	else u1_zhi = uinf(param); 
-	geominf(r1,r2_xlo,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u2_xlo = 0;
-	else u2_xlo = uinf(param); 
-	geominf(r1,r2_xhi,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u2_xhi = 0;
-	else u2_xhi = uinf(param); 
-        geominf(r1,r2_ylo,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u2_ylo = 0;
-	else u2_ylo = uinf(param); 
-        geominf(r1,r2_yhi,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u2_yhi = 0;
-	else u2_yhi = uinf(param); 
-        geominf(r1,r2_zlo,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u2_zlo = 0;
-	else u2_zlo = uinf(param); 
-        geominf(r1,r2_zhi,p1,p2,param,m,basis);
-	if(param[0] > cutoff) u2_zhi = 0;
-	else u2_zhi = uinf(param); 
-	geominf(r1,r2,p1,p2,param,m,basis);
-      }
-      else if(end[i] == 1){
-        geomsemi(r1_xlo,r2,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u1_xlo = 0;
-	else u1_xlo = usemi(param); 
-	geomsemi(r1_xhi,r2,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u1_xhi = 0;
-	else u1_xhi = usemi(param); 
-        geomsemi(r1_ylo,r2,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u1_ylo = 0;
-	else u1_ylo = usemi(param); 
-        geomsemi(r1_yhi,r2,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u1_yhi = 0;
-	else u1_yhi = usemi(param); 
-        geomsemi(r1_zlo,r2,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u1_zlo = 0;
-	else u1_zlo = usemi(param); 
-        geomsemi(r1_zhi,r2,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u1_zhi = 0;
-	else u1_zhi = usemi(param); 
-        geomsemi(r1,r2_xlo,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u2_xlo = 0;
-	else u2_xlo = usemi(param); 
-	geomsemi(r1,r2_xhi,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u2_xhi = 0;
-	else u2_xhi = usemi(param); 
-        geomsemi(r1,r2_ylo,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u2_ylo = 0;
-	else u2_ylo = usemi(param); 
-        geomsemi(r1,r2_yhi,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u2_yhi = 0;
-	else u2_yhi = usemi(param); 
-        geomsemi(r1,r2_zlo,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u2_zlo = 0;
-	else u2_zlo = usemi(param); 
-        geomsemi(r1,r2_zhi,p1,p2,qe,param,m,basis);
-	if(param[0] > cutoff) u2_zhi = 0;
-	else u2_zhi = usemi(param); 
-	geomsemi(r1,r2,p1,p2,qe,param,m,basis);
-      }
-      else{
-        geomsemi(r1_xlo,r2,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u1_xlo = 0;
-	else u1_xlo = usemi(param); 
-	geomsemi(r1_xhi,r2,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u1_xhi = 0;
-	else u1_xhi = usemi(param); 
-        geomsemi(r1_ylo,r2,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u1_ylo = 0;
-	else u1_ylo = usemi(param); 
-        geomsemi(r1_yhi,r2,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u1_yhi = 0;
-	else u1_yhi = usemi(param); 
-        geomsemi(r1_zlo,r2,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u1_zlo = 0;
-	else u1_zlo = usemi(param); 
-        geomsemi(r1_zhi,r2,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u1_zhi = 0;
-	else u1_zhi = usemi(param); 
-	geomsemi(r1,r2_xlo,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u2_xlo = 0;
-	else u2_xlo = usemi(param); 
-	geomsemi(r1,r2_xhi,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u2_xhi = 0;
-	else u2_xhi = usemi(param); 
-        geomsemi(r1,r2_ylo,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u2_ylo = 0;
-	else u2_ylo = usemi(param); 
-        geomsemi(r1,r2_yhi,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u2_yhi = 0;
-	else u2_yhi = usemi(param); 
-        geomsemi(r1,r2_zlo,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u2_zlo = 0;
-	else u2_zlo = usemi(param); 
-        geomsemi(r1,r2_zhi,p2,p1,qe,param,m,basis);
-	if(param[0] > cutoff) u2_zhi = 0;
-	else u2_zhi = usemi(param); 
-	geomsemi(r1,r2,p2,p1,qe,param,m,basis);
-      }
- 
-      if(end[i] == 0) geominf(r1,r2,p1,p2,param,m,basis);
-      else if(end[i] == 1) geomsemi(r1,r2,p1,p2,qe,param,m,basis);
-      else geomsemi(r1,r2,p2,p1,qe,param,m,basis);
-
-      double delta_rec = -0.5 / delta;
-      double f1x = delta_rec * (u1_xhi - u1_xlo);
-      double f1y = delta_rec * (u1_yhi - u1_ylo);
-      double f1z = delta_rec * (u1_zhi - u1_zlo);
-      double f2x = delta_rec * (u2_xhi - u2_xlo);
-      double f2y = delta_rec * (u2_yhi - u2_ylo);
-      double f2z = delta_rec * (u2_zhi - u2_zlo);
-      
-      double f1x_local = f1x*basis[0][0] + f1y*basis[0][1] + f1z*basis[0][2];
-      double f1y_local = f1x*basis[1][0] + f1y*basis[1][1] + f1z*basis[1][2];
-      double f1z_local = f1x*basis[2][0] + f1y*basis[2][1] + f1z*basis[2][2];
-      double f2x_local = f2x*basis[0][0] + f2y*basis[0][1] + f2z*basis[0][2];
-      double f2y_local = f2x*basis[1][0] + f2y*basis[1][1] + f2z*basis[1][2];
-      double f2z_local = f2x*basis[2][0] + f2y*basis[2][1] + f2z*basis[2][2];
-
-      if(fabs(param[2]) > param[3] || fabs(param[4]) > param[5]){
-        f[i2][0] += f1x;
-        f[i2][1] += f1y;
-        f[i2][2] += f1z;
-        f[i1][0] += f2x;
-        f[i1][1] += f2y;
-        f[i1][2] += f2z;
-      }
-      else{
-        f[i1][0] += f1x;
-        f[i1][1] += f1y;
-        f[i1][2] += f1z;
-        f[i2][0] += f2x;
-        f[i2][1] += f2y;
-        f[i2][2] += f2z;
-
-	if(fabs(param[4]) > param[5]) printf("eta wrong without swap!\n");
-      }
-
-      if(eflag_either){
-	if(eflag_global){
-          if(end[i] == 0) evdwl = uinf(param);
-          else evdwl = usemi(param);
-	  eng_vdwl += 0.5 * evdwl;
-	}
-	if(eflag_atom){
-	  eatom[i1] += 0.25 * evdwl;
-	  eatom[i2] += 0.25 * evdwl;
-	}
-      }
-      */
-      /*
-      if(atom->tag[i1] == 250){
-        std::ofstream outFile;
-        outFile.open("h.txt", std::ios_base::app);
-        outFile << update->ntimestep << " " << param[0] << std::endl;
-        outFile.close();	
-	outFile.open("alpha.txt", std::ios_base::app);
-        outFile << update->ntimestep << " " << param[1] << std::endl;
-        outFile.close();
-	outFile.open("psi.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << param[4] << std::endl;
-	outFile.close();
-	outFile.open("denom.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << param[5] << std::endl;
-	outFile.close();
-	outFile.open("f1x_local.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << flocal[0][0] << std::endl;
-	outFile.close();
-	outFile.open("f1y_local.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << flocal[0][1] << std::endl;
-	outFile.close();
-	outFile.open("f1z_local.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << flocal[0][2] << std::endl;
-	outFile.close();
-	outFile.open("f2x_local.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << flocal[1][0] << std::endl;
-	outFile.close();
-	outFile.open("f2y_local.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << flocal[1][1] << std::endl;
-	outFile.close();
-	outFile.open("f2z_local.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << flocal[1][2] << std::endl;
-	outFile.close();
-	outFile.open("f1x_global.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << fglobal[0][0] << std::endl;
-	outFile.close();
-	outFile.open("f1y_global.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << fglobal[0][1] << std::endl;
-	outFile.close();
-	outFile.open("f1z_global.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << fglobal[0][2] << std::endl;
-	outFile.close();
-	outFile.open("f2x_global.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << fglobal[1][0] << std::endl;
-	outFile.close();
-	outFile.open("f2y_global.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << fglobal[1][1] << std::endl;
-	outFile.close();
-	outFile.open("f2z_global.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << fglobal[1][2] << std::endl;
-	outFile.close();
-	outFile.open("f1x_global_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f1x << std::endl;
-	outFile.close();
-	outFile.open("f1y_global_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f1y << std::endl;
-	outFile.close();
-	outFile.open("f1z_global_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f1z << std::endl;
-	outFile.close();
-	outFile.open("f2x_global_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f2x << std::endl;
-	outFile.close();
-	outFile.open("f2y_global_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f2y << std::endl;
-	outFile.close();
-	outFile.open("f2z_global_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f2z << std::endl;
-	outFile.close();
-	outFile.open("f1x_local_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f1x_local << std::endl;
-	outFile.close();
-	outFile.open("f1y_local_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f1y_local << std::endl;
-	outFile.close();
-	outFile.open("f1z_local_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f1z_local << std::endl;
-	outFile.close();
-	outFile.open("f2x_local_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f2x_local << std::endl;
-	outFile.close();
-	outFile.open("f2y_local_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f2y_local << std::endl;
-	outFile.close();
-	outFile.open("f2z_local_num.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << f2z_local << std::endl;
-	outFile.close();
-	outFile.open("m1.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << m[0] << std::endl;
-	outFile.close();
-      	outFile.open("m2.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << m[1] << std::endl;
-	outFile.close();
-	outFile.open("m3.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << m[2] << std::endl;
-	outFile.close();
-	outFile.open("ex1.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[0][0] << std::endl;
-	outFile.close();
-      	outFile.open("ex2.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[0][1] << std::endl;
-	outFile.close();
-	outFile.open("ex3.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[0][2] << std::endl;
-	outFile.close();
-	outFile.open("ey1.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[1][0] << std::endl;
-	outFile.close();
-      	outFile.open("ey2.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[1][1] << std::endl;
-	outFile.close();
-	outFile.open("ey3.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[1][2] << std::endl;
-	outFile.close();
-	outFile.open("ez1.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[2][0] << std::endl;
-	outFile.close();
-      	outFile.open("ez2.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[2][1] << std::endl;
-	outFile.close();
-	outFile.open("ez3.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << basis[2][2] << std::endl;
-	outFile.close();
-	outFile.open("r11.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << r1[0] << std::endl;
-	outFile.close();
-      	outFile.open("r12.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << r1[1] << std::endl;
-	outFile.close();
-	outFile.open("r13.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << r1[2] << std::endl;
-	outFile.close();
-      	outFile.open("r21.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << r2[0] << std::endl;
-	outFile.close();
-      	outFile.open("r22.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << r2[1] << std::endl;
-	outFile.close();
-	outFile.open("r23.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << r2[2] << std::endl;
-	outFile.close();
-	outFile.open("p11.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << p1[0] << std::endl;
-	outFile.close();
-      	outFile.open("p12.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << p1[1] << std::endl;
-	outFile.close();
-	outFile.open("p13.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << p1[2] << std::endl;
-	outFile.close();
-      	outFile.open("p21.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << p2[0] << std::endl;
-	outFile.close();
-      	outFile.open("p22.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << p2[1] << std::endl;
-	outFile.close();
-	outFile.open("p23.txt", std::ios_base::app);
-	outFile << update->ntimestep << " " << p2[2] << std::endl;
-	outFile.close();
-      }
-      */
-
+      //Compute virial
       if(vflag_atom){
         vatom[i1][0] += f[i1][0]*x[i1][0];
 	vatom[i1][1] += f[i1][1]*x[i1][1];
@@ -832,38 +430,8 @@ void PairMesoCNT::allocate()
 
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
-  memory->create(m,3,"pair:m");
-  memory->create(dw1,3,"pair:dw1");
-  memory->create(dw2,3,"pair:dw2");
-  memory->create(sumdw1,3,"pair:sumdw1");
-  memory->create(sumdw2,3,"pair:sumdw2");
-  memory->create(fchain11,3,"pair:fchain11");
-  memory->create(fchain12,3,"pair:fchain12");
-  memory->create(fchain21,3,"pair:fchain21");
-  memory->create(fchain22,3,"pair:fchain22"); 
-  memory->create(fchain1,3,"pair:fchain1");
-  memory->create(fchain2,3,"pair:fchain2"); 
 
   memory->create(param,7,"pair:param");
-  memory->create(param2,7,"pair:param2");
-  memory->create(wvector,7,"pair:wvector");
-
-  memory->create(dw1q1,3,3,"pair:dw1q1");
-  memory->create(dw1q2,3,3,"pair:dw1q2");
-  memory->create(dw2q1,3,3,"pair:dw2q1");
-  memory->create(dw2q2,3,3,"pair:dw2q2");
-  memory->create(sumdw1q1,3,3,"pair:sumdw1q1");
-  memory->create(sumdw1q2,3,3,"pair:sumdw1q2");
-  memory->create(sumdw2q1,3,3,"pair:sumdw2q1");
-  memory->create(sumdw2q2,3,3,"pair:sumdw2q2");
-  memory->create(sumdw1p1,3,3,"pair:sumdw1p1");
-  memory->create(sumdw1p2,3,3,"pair:sumdw1p2");
-  memory->create(sumdw2p1,3,3,"pair:sumdw2p1");
-  memory->create(sumdw2p2,3,3,"pair:sumdw2p2");
-  memory->create(dp1_dr1,3,3,"pair:dp1_dr1");
-  memory->create(dp2_dr1,3,3,"pair:dp2_dr1");
-  memory->create(dp1_dr2,3,3,"pair:dp1_dr2");
-  memory->create(dp2_dr2,3,3,"pair:dp2_dr2");
 
   memory->create(flocal,4,3,"pair:flocal");
   memory->create(fglobal,4,3,"pair:fglobal");
@@ -876,15 +444,23 @@ void PairMesoCNT::allocate()
 
 void PairMesoCNT::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  //Default number of data points
+  if (narg == 0){
+    gamma_points = GAMMAPOINTS;
+    uinf_points = POTPOINTS;
+    usemi_points = POTPOINTS;
+    phi_points = POTPOINTS;
+  }
+  //Custom number of data points
+  else if (narg == 2){
+    gamma_points = force->inumeric(FLERR,arg[0]);
+    pot_points = force->inumeric(FLERR,arg[1]);
+    uinf_points = pot_points;
+    usemi_points = pot_points;
+    phi_points = pot_points;
+  }
+  else error->all(FLERR,"Illegal pair_style command");
 
-  gamma_points = force->inumeric(FLERR,arg[0]);
-  pot_points = force->inumeric(FLERR,arg[1]);
-
-  gamma_points = 20;
-  uinf_points = 2001;
-  usemi_points = 1001;
-  phi_points = 2001;
 }
 
 /* ----------------------------------------------------------------------
@@ -896,22 +472,26 @@ void PairMesoCNT::coeff(int narg, char **arg)
   if (narg != 10) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
+  //CNT constants
   n = force->inumeric(FLERR,arg[2]);
   sigma = force->numeric(FLERR,arg[3]);
   epsilon = force->numeric(FLERR,arg[4]);
   n_sigma = force->numeric(FLERR,arg[5]);
 
+  //File names
   gamma_file = arg[6];
   uinf_file = arg[7];
   usemi_file = arg[8];
   phi_file = arg[9];
  
+  //Units
   angstrom = force->angstrom;
-  angstromrec = 1 / angstrom;
+  angstromrec = 1.0 / angstrom;
   qelectron = force->qelectron;
-  qelectronrec = 1 / qelectron;
+  qelectronrec = 1.0 / qelectron;
   forceunit = qelectron * angstromrec;
 
+  //Potential variables
   radius = 1.421*3*n / MY_2PI * angstrom;
   radiussq = radius * radius;
   diameter = 2 * radius;
@@ -952,12 +532,13 @@ void PairMesoCNT::coeff(int narg, char **arg)
     MPI_Bcast(phi_data[i],phi_points,MPI_DOUBLE,0,world);
   }
  
+  //Compute spline coefficients
   spline_coeff(gamma_data,gamma_coeff,del_gamma,gamma_points);
   spline_coeff(uinf_data,uinf_coeff,del_uinf,uinf_points);  
   spline_coeff(usemi_data,usemi_coeff,usemi_points);
   spline_coeff(phi_data,phi_coeff,delzeta_phi[0],delh_phi,phi_points);
-  printf("Coefficients computed\n");
 
+  //Define cutoffs
   int n = atom->ntypes;
 
   cutoff = rc + diameter;
@@ -975,7 +556,9 @@ void PairMesoCNT::coeff(int narg, char **arg)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   1D cubic spline interpolation
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::spline(double x, double xstart, double dx, 
 		double **coeff, int coeff_size)
@@ -998,7 +581,10 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
 	  + xbar*(coeff[i][1] + xbar*(coeff[i][2] + xbar*coeff[i][3]));
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline interpolation constructed from 1D interpolation
+------------------------------------------------------------------------- */
+
 
 double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
                 double *dx, double dy, double ***coeff, int coeff_size)
@@ -1052,8 +638,9 @@ double PairMesoCNT::spline(double x, double y, double *xstart, double ystart,
   return a0 + ybar*(a1 + ybar*(a2 + a3*ybar));
 }
 
-/* ---------------------------------------------------------------------- */
-
+/* ----------------------------------------------------------------------
+   2D cubic spline interpolation
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::spline(double x, double y, double xstart, double ystart,
 		double dx, double dy, double ****coeff, int coeff_size)
@@ -1103,7 +690,9 @@ double PairMesoCNT::spline(double x, double y, double xstart, double ystart,
   return y0 + xbar*(y1 + xbar*(y2 + xbar*y3));
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   1D cubic spline derivative
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::dspline(double x, double xstart, double dx, 
 		double **coeff, int coeff_size)
@@ -1124,7 +713,9 @@ double PairMesoCNT::dspline(double x, double xstart, double dx,
   return coeff[i][1] + xbar*(2*coeff[i][2] + 3*xbar*coeff[i][3]);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline derivative in x by construction of 1D spline derivatives
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
                 double *dx, double dy, double ***coeff, int coeff_size)
@@ -1179,7 +770,9 @@ double PairMesoCNT::dxspline(double x, double y, double *xstart, double ystart,
 }
 
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline derivative in x
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart,
 		double dx, double dy, double ****coeff, int coeff_size)
@@ -1229,7 +822,9 @@ double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart,
   return y1 + xbar*(2*y2 + 3*xbar*y3);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline derivative in y by construction of 1D spline derivatives
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
                 double *dx, double dy, double ***coeff, int coeff_size)
@@ -1283,7 +878,9 @@ double PairMesoCNT::dyspline(double x, double y, double *xstart, double ystart,
   return (a1 + ybar*(2*a2 + 3*a3*ybar)) / dy;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline derivative in y
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart,
 		double dx, double dy, double ****coeff, int coeff_size)
@@ -1329,7 +926,9 @@ double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart,
   return y0 + xbar*(y1 + xbar*(y2 + xbar*y3));
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   1D cubic spline coefficients
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::spline_coeff(double *data, double **coeff, 
 		double dx, int data_size)
@@ -1417,7 +1016,9 @@ void PairMesoCNT::spline_coeff(double *data, double **coeff,
   memory->destroy(dprime);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline coefficients by construction of 1D spline derivatives
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::spline_coeff(double **data, double ***coeff, int data_size)
 {
@@ -1447,7 +1048,9 @@ void PairMesoCNT::spline_coeff(double **data, double ***coeff, int data_size)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D cubic spline coefficients
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::spline_coeff(double **data, double ****coeff, 
 		double dx, double dy, int data_size)
@@ -1642,7 +1245,9 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff,
   memory->destroy(dprime);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   1D spline file parser
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::read_file(char *file, double *data, 
 		double *startx, double *dx, int ninput)
@@ -1700,7 +1305,9 @@ void PairMesoCNT::read_file(char *file, double *data,
   fclose(fp);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   2D spline file parser
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::read_file(char *file, double **data, 
 		double *startx, double *starty, double *dx, double *dy,
@@ -1776,7 +1383,9 @@ void PairMesoCNT::read_file(char *file, double **data,
   fclose(fp);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Potential energy for infinite CNT
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::uinf(double *param)
 {
@@ -1787,10 +1396,13 @@ double PairMesoCNT::uinf(double *param)
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
+  
+  //Parallel case
   if(sin_alphasq < SMALL){
     return (xi2 - xi1) * spline(h,start_uinf,del_uinf,uinf_coeff,uinf_points)
 	    * qelectron;
   }
+  //Non-parallel case
   else{
     double omega = 1.0 / (1.0 - comega*sin_alphasq);
     double a = omega * sin_alpha;
@@ -1805,6 +1417,7 @@ double PairMesoCNT::uinf(double *param)
     double zetamax = sqrt(cutoffsq_angstrom - h*h);
     double diff_zetarec = 1.0 / (zetamax - zetamin);
 
+    //Spline interpolation and accounting for odd functions
     double psi1, psi2, phi1, phi2;
     if(zeta1 < 0){ 
       psi1 = -(zeta1 + zetamin) * diff_zetarec;
@@ -1835,7 +1448,9 @@ double PairMesoCNT::uinf(double *param)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Potential energy for semi-infinite CNT
+------------------------------------------------------------------------- */
 
 double PairMesoCNT::usemi(double *param)
 {
@@ -1879,24 +1494,23 @@ double PairMesoCNT::usemi(double *param)
   return delxi * gamma * sum * qelectron;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Forces for infinite CNT
+------------------------------------------------------------------------- */
 
-void PairMesoCNT::finf(double *param, double *r1, double *r2, 
-		double *p1, double *p2, double *m, double **f)
+void PairMesoCNT::finf(double *param, double **f)
 {
   using namespace MathExtra;
   double h = param[0] * angstromrec;
   double alpha = param[1];
   double xi1 = param[2] * angstromrec;
   double xi2 = param[3] * angstromrec;
-  double eta1 = param[4];
-  double eta2 = param[5];
 
   double sin_alpha = sin(alpha);
   double sin_alphasq = sin_alpha*sin_alpha;
-  
-  if(sin_alphasq < HIGH){
-    //printf("Parallel case triggered!\n");
+
+  //Parallel case  
+  if(sin_alphasq < SWITCH){
     f[0][0] = 0.5 * (xi2 - xi1) * dspline(h,start_uinf,del_uinf,
         uinf_coeff,uinf_points) * forceunit;
     f[1][0] = f[0][0];
@@ -1905,9 +1519,10 @@ void PairMesoCNT::finf(double *param, double *r1, double *r2,
     f[0][2] = spline(h,start_uinf,del_uinf,uinf_coeff,uinf_points)
 	    * forceunit;
     f[1][2] = -f[0][2];
+    return;
   }
 
-  if(sin_alphasq > LOW){ 
+  //Non-parallel case
   double sin_alpharec = 1.0 / sin_alpha;
   double sin_alpharecsq = sin_alpharec * sin_alpharec;
   double cos_alpha = cos(alpha);
@@ -1929,6 +1544,7 @@ void PairMesoCNT::finf(double *param, double *r1, double *r2,
   double zeta1 = xi1 * a1;
   double zeta2 = xi2 * a1;
      
+  //Chain rule variables
   double g = diameter_angstrom + DELTA2;
   double zetamin;
   double zetabarmin, s5arg, s5value;
@@ -1951,7 +1567,8 @@ void PairMesoCNT::finf(double *param, double *r1, double *r2,
 
   double psi1 = diff_zeta1 * diff_zetarec;
   double psi2 = diff_zeta2 * diff_zetarec;
-  
+
+  //Spline derivatives  
   double phi1 = spline(psi1,h,startzeta_phi[0],starth_phi,
    	delzeta_phi[0],delh_phi,phi_coeff,phi_points);
   double dpsi_phibar1 = dxspline(psi1,h,startzeta_phi[0],starth_phi,
@@ -1976,6 +1593,8 @@ void PairMesoCNT::finf(double *param, double *r1, double *r2,
 
   double dh_phi1 = dh_phibar1 + dpsi_phibar1*dh_psi1;
   double dh_phi2 = dh_phibar2 + dpsi_phibar2*dh_psi2;
+  
+  //Account for odd functions
   if(zeta1 < 0){ 
     phi1 *= -1;
     dh_phi1 *= -1;
@@ -2000,63 +1619,26 @@ void PairMesoCNT::finf(double *param, double *r1, double *r2,
   double cx = h * gamma * sin_alpharecsq * diff_dzeta_phi;
   double cy = gamma * cot_alpha * diff_dzeta_phi;
 
-  if(sin_alphasq < HIGH && HIGH != LOW){
-    double weight = s((sin_alphasq - LOW) / (HIGH - LOW));
-    f[0][0] = weight * f[0][0] 
-	    + (1-weight) * lrec * (xi2*dh_u - cx) * forceunit;
-    f[1][0] = weight * f[1][0] 
-	    + (1-weight) * lrec * (-xi1*dh_u + cx) * forceunit;
-    f[0][1] = (1-weight) * lrec * (dalpha_u - xi2*cy) * forceunit;
-    f[1][1] = (1-weight) * lrec * (-dalpha_u + xi1*cy) * forceunit;
-    f[0][2] = weight * f[0][2] 
-	    + (1-weight) * gamma * dzeta_phi1 * forceunit;
-    f[1][2] = weight * f[1][2] 
-	    - (1-weight) * gamma * dzeta_phi2 * forceunit;
-  }
-  else{
-    //printf("Non-parallel case triggered!\n");
-    f[0][0] = lrec * (xi2*dh_u - cx) * forceunit;
-    f[1][0] = lrec * (-xi1*dh_u + cx) * forceunit;
-    f[0][1] = lrec * (dalpha_u - xi2*cy) * forceunit;
-    f[1][1] = lrec * (-dalpha_u + xi1*cy) * forceunit;
-    f[0][2] = gamma * dzeta_phi1 * forceunit;
-    f[1][2] = -gamma * dzeta_phi2 * forceunit;
-  }
-  }
-
-  double p[3], delr1p[3], delr2p[3];
-  double ftotal[3], fmoment[3], m1[3], m2[3], mtotal[3];
-  add3(f[0],f[1],ftotal);
-  scale3(-0.5,ftotal);
-
-  add3(p1,p2,p);
-  scale3(0.5,p);
-  sub3(r1,p,delr1p);
-  sub3(r2,p,delr2p);
-  cross3(delr1p,f[0],m1);
-  cross3(delr2p,f[1],m2);
-  add3(m1,m2,mtotal);
-
-  double letarec = 1.0 / (eta2 - eta1);
-  cross3(mtotal,m,fmoment);
-  scale3(letarec,fmoment);
-
-  add3(ftotal,fmoment,f[2]);
-  sub3(ftotal,fmoment,f[3]);
+  //Forces
+  f[0][0] = lrec * (xi2*dh_u - cx) * forceunit;
+  f[1][0] = lrec * (-xi1*dh_u + cx) * forceunit;
+  f[0][1] = lrec * (dalpha_u - xi2*cy) * forceunit;
+  f[1][1] = lrec * (-dalpha_u + xi1*cy) * forceunit;
+  f[0][2] = gamma * dzeta_phi1 * forceunit;
+  f[1][2] = -gamma * dzeta_phi2 * forceunit;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Forces for semi-infinite CNT
+------------------------------------------------------------------------- */
 
-void PairMesoCNT::fsemi(double *param, double *r1, double *r2, 
-		double *p1, double *p2, double *m, double **f)
+void PairMesoCNT::fsemi(double *param, double **f)
 {
   using namespace MathExtra;
   double h = param[0] * angstromrec;
   double alpha = param[1];
   double xi1 = param[2] * angstromrec;
   double xi2 = param[3] * angstromrec;
-  double eta1 = param[4];
-  double eta2 = param[5];
   double etae = param[6] * angstromrec;
 
   double sin_alpha = sin(alpha);
@@ -2082,7 +1664,7 @@ void PairMesoCNT::fsemi(double *param, double *r1, double *r2,
   double dh_gamma = dspline(h,start_gamma,del_gamma,
 		    gamma_coeff,gamma_points) * sin_alphasq;
  
-  int points = 100;
+  int points = QUADRATURE;
   double delxi = (xi2 - xi1) / (points - 1);
   double a3 = delxi * gamma;
 
@@ -2093,6 +1675,7 @@ void PairMesoCNT::fsemi(double *param, double *r1, double *r2,
   double jxi1 = 0;
   double ubar = 0;
 
+  //Quadrature
   for(int i = 0; i < points; i++){
     double xibar = xi1 + i*delxi;
     double g = xibar * a1;
@@ -2145,36 +1728,18 @@ void PairMesoCNT::fsemi(double *param, double *r1, double *r2,
   f[1][1] = lrec * (xi1*cy - dalpha_ubar) * forceunit;
   f[0][2] = lrec * (cz2 + ubar - xi2*cz1) * forceunit;
   f[1][2] = lrec * (xi1*cz1 - cz2 - ubar) * forceunit;
-
-  double p[3], delr1p[3], delr2p[3];
-  double ftotal[3], fmoment[3], m1[3], m2[3], mtotal[3];
-  add3(f[0],f[1],ftotal);
-  scale3(-0.5,ftotal);
-
-  add3(p1,p2,p);
-  scale3(0.5,p);
-  sub3(r1,p,delr1p);
-  sub3(r2,p,delr2p);
-  cross3(delr1p,f[0],m1);
-  cross3(delr2p,f[1],m2);
-  add3(m1,m2,mtotal);
-
-  double letarec = 1.0 / (eta2 - eta1);
-  cross3(mtotal,m,fmoment);
-  scale3(letarec,fmoment);
-
-  add3(ftotal,fmoment,f[2]);
-  sub3(ftotal,fmoment,f[3]);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Local geometry parameters for infinite CNT
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::geominf(const double *r1, const double *r2, 
 		const double *p1, const double *p2, 
-		double *param, double *m, double **basis)
+		double *param, double **basis)
 {
   using namespace MathExtra;
-  double r[3], p[3], delr[3], l[3], rbar[3], pbar[3], delrbar[3];
+  double r[3], p[3], delr[3], m[3], l[3], rbar[3], pbar[3], delrbar[3];
   double psil[3], psim[3], dell_psim[3], delpsil_m[3];
   double delr1[3], delr2[3], delp1[3], delp2[3];
   double *ex, *ey, *ez;
@@ -2207,10 +1772,12 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
   copy3(m,psim);
   scale3(psi,psim);
 
-  if(denom < HIGH){
+  //Parallel case
+  if(denom < SMALL){
     taur = dot3(delr,l);
     taup = 0;
   }
+  //Non-parallel case
   else{
     frac = 1.0 / denom;
     sub3(l,psim,dell_psim);
@@ -2252,33 +1819,22 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
   copy3(pbar,m);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Local geometry parameters for semi-infinite CNT
+------------------------------------------------------------------------- */
 
 void PairMesoCNT::geomsemi(const double *r1, const double *r2,
-                const double *pin1, const double *pin2, const double *qe,
-                double *param, double *m, double **basis)
+                const double *p1, const double *p2, const double *qe,
+                double *param, double **basis)
 {
   using namespace MathExtra;
-  double r[3], p[3], delr[3], l[3], rbar[3], pbar[3], delrbar[3];
+  double r[3], p[3], delr[3], m[3], l[3], rbar[3], pbar[3], delrbar[3];
   double psil[3], psim[3], dell_psim[3], delpsil_m[3];
   double delr1[3], delr2[3], delp1[3], delp2[3], delpqe[3];
-  const double *p1, *p2;
   double *ex, *ey, *ez;
   double dist1, dist2;
   double psi, denom, frac, taur, taup, rhoe;
   double h, alpha, xi1, xi2, eta1, eta2, etae;
-
-  dist1 = distsq3(pin1,qe);
-  dist2 = distsq3(pin2,qe);
-  if(dist2 > dist1){
-    p1 = pin1;
-    p2 = pin2;
-  }
-  else{
-    p1 = pin2;
-    p2 = pin1;
-    printf("Indices swapped!\n");
-  }
  
   ex = basis[0];
   ey = basis[1];
@@ -2309,11 +1865,13 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   sub3(p,qe,delpqe);
   rhoe = dot3(delpqe,m); 
 
+  //Parallel case
   if(denom < SMALL){
     taur = dot3(delr,l) - rhoe*psi;
     taup = -rhoe;
     etae = 0;
   }
+  //Non-parallel case
   else{
     frac = 1.0 / denom;
     sub3(l,psim,dell_psim);
@@ -2355,11 +1913,12 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   param[6] = etae;
 }
 
+/* ----------------------------------------------------------------------
+   Weighting function for substitute chain
+------------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::weight(const double *r1, const double *r2, 
-		const double *p1, const double *p2, double *output)
+double PairMesoCNT::weight(const double *r1, const double *r2, 
+		const double *p1, const double *p2)
 {
   using namespace MathExtra;
   double r[3], p[3], delr[3];
@@ -2374,51 +1933,12 @@ void PairMesoCNT::weight(const double *r1, const double *r2,
   rhoc = rhoctemp + sqrt(0.25*distsq3(p1,p2) + radiussq) + rc;
   rhomin = 0.72*rhoc;
   rho = sqrt(distsq3(r,p));
- 
-  if(rho > rhoc){ 
-    output[0] = 0;
-    output[1] = 0;
-    output[2] = 0;
-    output[3] = 0;
-    output[4] = 0;
-    output[5] = 0;
-    output[6] = 0;
-  }
-  else if(rho < rhomin){
-    output[0] = 1;
-    output[1] = 0;
-    output[2] = 0;
-    output[3] = 0;
-    output[4] = 0;
-    output[5] = 0;
-    output[6] = 0;
-  }
-  else{
-    double denom = 1.0 / (rhoc - rhomin);
-    double rhodiff = rho - rhomin;
-    double rhobar = rhodiff * denom;
-    double a1 = ds(rhobar) * denom;
-    double a2 = 0.5 / rho;
-    double a3 = a1 * a2;
-    double a4 = 0.25 * rhobar / rhoctemp;
-    double a5 = a1 * a4;
 
-    sub3(r,p,delr);
+  double denom = 1.0 / (rhoc - rhomin);
+  double rhodiff = rho - rhomin;
+  double rhobar = rhodiff * denom;
 
-    output[0] = s(rhobar);
-    double temp1 = a3 * (r[0] - p[0]);
-    double temp2 = a3 * (r[1] - p[1]);
-    double temp3 = a3 * (r[2] - p[2]);
-    double temp4 = a5 * (r1[0] - r2[0]);
-    double temp5 = a5 * (r1[1] - r2[1]);
-    double temp6 = a5 * (r1[2] - r2[2]);
-    output[1] = temp1 - temp4;
-    output[2] = temp2 - temp5;
-    output[3] = temp3 - temp6;
-    output[4] = temp1 + temp4;
-    output[5] = temp2 + temp5;
-    output[6] = temp3 + temp6;
-  }
+  return s(rhobar);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2479,68 +1999,3 @@ void PairMesoCNT::sort(int *list, int size){
     }
   } 
 }
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::zero(double **a){
-  for(int i = 0; i < 3; i++){
-    for(int j = 0; j < 3; j++){
-      a[i][j] = 0;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::plus(const double * const *a, 
-  const double * const *b, double **ans){
-  for(int i = 0; i < 3; i++){
-    for(int j = 0; j < 3; j++){
-      ans[i][j] = a[i][j] + b[i][j];
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::scalar(double a, double **m){
-  for(int i = 0; i < 3; i++){
-    for(int j = 0; j < 3; j++){
-      m[i][j] *= a;
-    }
-  }
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::outer(const double *a, const double *b, double **c){
-  for(int i = 0; i < 3; i++){
-    for(int j = 0; j < 3; j++){
-      c[i][j] = a[i] * b[j];
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::matrix_vector(
-  const double * const *m, const double *v, double *ans)
-{
-  ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
-  ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
-  ans[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::trans_matrix_vector(
-  const double * const *m, const double *v, double *ans)
-{
-  ans[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2];
-  ans[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2];
-  ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
-}
-
-

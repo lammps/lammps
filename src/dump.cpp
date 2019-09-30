@@ -87,6 +87,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   buffer_flag = 0;
   padflag = 0;
   pbcflag = 0;
+  time_flag = 0;
   unit_flag = 0;
   unit_count = 0;
   delay_flag = 0;
@@ -1123,6 +1124,13 @@ void Dump::modify_params(int narg, char **arg)
       }
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"time") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) time_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) time_flag = 0;
+      else error->all(FLERR,"Illegal dump_modify command");
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) unit_flag = 1;
@@ -1138,6 +1146,12 @@ void Dump::modify_params(int narg, char **arg)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+double Dump::compute_time()
+{
+  return update->atime + (update->ntimestep - update->atimestep)*update->dt;
+}
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */

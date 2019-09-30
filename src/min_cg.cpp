@@ -14,6 +14,7 @@
 #include "min_cg.h"
 #include <mpi.h>
 #include <cmath>
+#include "error.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
@@ -35,7 +36,7 @@ MinCG::MinCG(LAMMPS *lmp) : MinLineSearch(lmp) {}
 int MinCG::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
-  double beta,gg,dot[2],dotall[2],fmax,fmaxall;
+  double beta,gg,dot[2],dotall[2],fmax;
   double *fatom,*gatom,*hatom;
 
   // nlimit = max # of CG iterations before restarting
@@ -85,13 +86,12 @@ int MinCG::iterate(int maxiter)
 
     // force tolerance criterion
 
-    fmax = fmaxall = 0.0;
     dot[0] = dot[1] = 0.0;
     for (i = 0; i < nvec; i++) {
       dot[0] += fvec[i]*fvec[i];
       dot[1] += fvec[i]*g[i];
-      fmax = MAX(fmax,fvec[i]*fvec[i]);
     }
+    
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
         fatom = fextra_atom[m];
@@ -104,18 +104,22 @@ int MinCG::iterate(int maxiter)
         }
       }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&fmax,&fmaxall,2,MPI_DOUBLE,MPI_MAX,world);
     if (nextra_global)
       for (i = 0; i < nextra_global; i++) {
         dotall[0] += fextra[i]*fextra[i];
         dotall[1] += fextra[i]*gextra[i];
       }
 
-    if (normstyle == 1) {	// max force norm
+    fmax = 0.0;
+    if (normstyle == MAX) {		// max force norm
+      fmax = fnorm_max();
       if (fmax < update->ftol*update->ftol) return FTOL;
-    } else {			// Euclidean force norm
+    } else if (normstyle == INF) {	// infinite force norm
+      fmax = fnorm_inf();
+      if (fmax < update->ftol*update->ftol) return FTOL;
+    } else if (normstyle == TWO) {	// Euclidean force 2-norm
       if (dotall[0] < update->ftol*update->ftol) return FTOL;
-    }
+    } else error->all(FLERR,"Illegal min_modify command"); 
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

@@ -13,6 +13,7 @@
 
 #include "min_sd.h"
 #include <cmath>
+#include "error.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
@@ -34,7 +35,7 @@ MinSD::MinSD(LAMMPS *lmp) : MinLineSearch(lmp) {}
 int MinSD::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
-  double fdotf;
+  double fdotf,fdotfloc;
   double *fatom,*hatom;
 
   // initialize working vectors
@@ -77,8 +78,10 @@ int MinSD::iterate(int maxiter)
 
     // force tolerance criterion
 
-    if (normstyle == 1) fdotf = fnorm_inf();	// max force norm
-    else fdotf = fnorm_sqr();			// Euclidean force norm
+    if (normstyle == MAX) fdotf = fnorm_max();		// max force norm
+    else if (normstyle == INF) fdotf = fnorm_inf();	// infinite force norm
+    else if (normstyle == TWO) fdotf = fnorm_sqr();	// Euclidean force 2-norm
+    else error->all(FLERR,"Illegal min_modify command");
     if (fdotf < update->ftol*update->ftol) return FTOL;
 
     // set new search direction h to f = -Grad(x)

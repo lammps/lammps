@@ -56,7 +56,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   dmax = 0.1;
   searchflag = 0;
   linestyle = 1;
-  normstyle = 0;
+  normstyle = TWO;
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -71,6 +71,8 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   requestor = NULL;
 
   external_force_clear = 0;
+
+  kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,6 +98,10 @@ Min::~Min()
 
 void Min::init()
 {
+  if (lmp->kokkos && !kokkosable)
+    error->all(FLERR,"Must use a Kokkos-enabled min style (e.g. min_style cg/kk) "
+     "with Kokkos minimize");
+
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
@@ -662,8 +668,9 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"euclidean") == 0) normstyle = 0;
-      else if (strcmp(arg[iarg+1],"max") == 0) normstyle = 1;
+      if (strcmp(arg[iarg+1],"two") == 0) normstyle = TWO;
+      else if (strcmp(arg[iarg+1],"max") == 0) normstyle = MAX;
+      else if (strcmp(arg[iarg+1],"inf") == 0) normstyle = INF;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else {
@@ -828,6 +835,41 @@ double Min::fnorm_inf()
 }
 
 /* ----------------------------------------------------------------------
+   compute and return ||force||_max (inf norm per-vector)
+------------------------------------------------------------------------- */
+
+double Min::fnorm_max()
+{
+  int i,n;
+  double fdotf,*fatom;
+
+  double local_norm_max = 0.0;
+  for (i = 0; i < nvec; i+=3) {
+    fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+    local_norm_max = MAX(fdotf,local_norm_max);
+  }
+  if (nextra_atom) {
+    for (int m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i+=3)
+        fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+        local_norm_max = MAX(fdotf,local_norm_max);
+    }
+  }
+
+  double norm_max = 0.0;
+  MPI_Allreduce(&local_norm_max,&norm_max,1,MPI_DOUBLE,MPI_MAX,world);
+
+  if (nextra_global)
+    for (i = 0; i < n; i+=3)
+      fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+      norm_max = MAX(fdotf,norm_max);
+
+  return norm_max;
+}
+
+/* ----------------------------------------------------------------------
    compute and return  sum_i||mag. torque_i||_2 (in eV)
 ------------------------------------------------------------------------- */
 
@@ -842,10 +884,10 @@ double Min::total_torque()
 
   fmsq = ftotsqone = ftotsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
-    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
-    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
-    fmsq = tx * tx + ty * ty + tz * tz;
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmsq = tx*tx + ty*ty + tz*tz;
     ftotsqone += fmsq;
   }
 
@@ -856,6 +898,39 @@ double Min::total_torque()
   // multiply it by hbar so that units are in eV
   
   return sqrt(ftotsqall) * hbar;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return max_i ||mag. torque components|| (in eV)
+------------------------------------------------------------------------- */
+
+double Min::inf_torque()
+{
+  double fmsq,fmaxsqone,fmaxsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmaxsqone = MAX(fmaxsqone,tx*tx);
+    fmaxsqone = MAX(fmaxsqone,ty*ty);
+    fmaxsqone = MAX(fmaxsqone,tz*tz);
+  }
+
+  // finding max fm on this replica
+
+  fmaxsqall = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  // multiply it by hbar so that units are in eV
+
+  return sqrt(fmaxsqall) * hbar;
 }
 
 /* ----------------------------------------------------------------------
@@ -873,10 +948,10 @@ double Min::max_torque()
 
   fmsq = fmaxsqone = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    tx = fm[i][1] * sp[i][2] - fm[i][2] * sp[i][1];
-    ty = fm[i][2] * sp[i][0] - fm[i][0] * sp[i][2];
-    tz = fm[i][0] * sp[i][1] - fm[i][1] * sp[i][0];
-    fmsq = tx * tx + ty * ty + tz * tz;
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmsq = tx*tx + ty*ty + tz*tz;
     fmaxsqone = MAX(fmaxsqone,fmsq);
   }
 

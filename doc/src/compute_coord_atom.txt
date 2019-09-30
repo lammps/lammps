@@ -47,7 +47,7 @@ neighboring atoms, unless selected by type, type range, or group option,
 are included in the coordination number tally.
 
 The optional {group} keyword allows to specify from which group atoms
-contribute to the coordination number. Default setting is group 'all'. 
+contribute to the coordination number. Default setting is group 'all'.
 
 The {typeN} keywords allow specification of which atom types
 contribute to each coordination number.  One coordination number is

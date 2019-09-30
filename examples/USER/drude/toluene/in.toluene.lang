@@ -7,7 +7,7 @@ atom_style full
 bond_style harmonic
 angle_style harmonic
 dihedral_style opls
-improper_style opls
+improper_style fourier
 special_bonds lj/coul 0.0 0.0 0.5
 
 pair_style lj/cut/thole/long 2.600 8.0 8.0
@@ -109,7 +109,7 @@ fix fNPH all nve
 
 compute cTEMP all temp/drude
 
-thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2]
+thermo_style custom step etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2]
 thermo 50
 
 timestep 0.5

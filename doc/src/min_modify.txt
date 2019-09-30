@@ -101,9 +101,9 @@ and {spin/cg}. Convergence of {spin/lbfgs} can be more robust if
 
 [Restrictions:] 
 
-The line search procedure of styles {spin/cg} and {spin/lbfgs} cannot be 
-used for magnetic GNEB calculations. See "neb/spin"_neb_spin.html for more
-explanation.
+For magnetic GNEB calculations, only {spin_none} value for {line} keyword can be used
+when styles {spin/cg} and {spin/lbfgs} are employed.
+See "neb/spin"_neb_spin.html for more explanation.
 
 [Related commands:]
 

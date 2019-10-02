@@ -186,7 +186,7 @@ File mode of messaging:
 % python nwchem_wrap.py file pw w.nw
 
 % mpirun -np 2 lmp_mpi -v mode file < in.client.h2o
-% python nwchem_wrap.py file ao h2o_dft.nw
+% python nwchem_wrap.py file ao h2o.nw
 
 ZMQ mode of messaging:
 
@@ -194,4 +194,4 @@ ZMQ mode of messaging:
 % python nwchem_wrap.py zmq pw w.nw
 
 % mpirun -np 2 lmp_mpi -v mode zmq < in.client.h2o
-% python nwchem_wrap.py zmq ao h2o_dft.nw
+% python nwchem_wrap.py zmq ao h2o.nw

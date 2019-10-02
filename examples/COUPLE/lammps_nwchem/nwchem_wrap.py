@@ -39,7 +39,7 @@ from cslib import CSlib
 
 # comment out 2nd line once 1st line is correct for your system
 
-nwchemcmd = "mpirun -np 1 /usr/bin/nwchem nwchem_lammps.nw > "
+nwchemcmd = "mpirun -np 1 /usr/bin/nwchem"
 nwchemcmd = "touch tmp"
 
 # enums matching FixClientMD class in LAMMPS
@@ -418,7 +418,7 @@ while 1:
   i += 1
   log = "nwchem_lammps.out"
   archive = "nwchem_logs/nwchem_lammps" + str(i) + ".out"
-  cmd = nwchemcmd + log
+  cmd = nwchemcmd + " nwchem_lammps.nw > " log
   print("\nLaunching NWChem ...")
   print(cmd)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

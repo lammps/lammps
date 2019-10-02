@@ -418,7 +418,7 @@ while 1:
   i += 1
   log = "nwchem_lammps.out"
   archive = "nwchem_logs/nwchem_lammps" + str(i) + ".out"
-  cmd = nwchemcmd + " nwchem_lammps.nw > " log
+  cmd = nwchemcmd + " nwchem_lammps.nw > " + log
   print("\nLaunching NWChem ...")
   print(cmd)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

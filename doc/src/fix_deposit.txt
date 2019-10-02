@@ -57,7 +57,9 @@ keyword = {region} or {id} or {global} or {local} or {near} or {gaussian} or {at
     fix-ID = ID of "fix shake"_fix_shake.html command
   {units} value = {lattice} or {box}
     lattice = the geometry is defined in lattice units
-    box = the geometry is defined in simulation box units :pre
+    box = the geometry is defined in simulation box units 
+  {orientation} value = rx ry rz
+    rx,ry,rz = axis of orientation vector :pre
 :ule
 
 [Examples:]

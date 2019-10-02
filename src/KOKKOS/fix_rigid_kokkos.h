@@ -56,6 +56,7 @@ class FixRigidKokkos : public FixRigid {
   virtual void pre_neighbor();
   virtual double compute_scalar();
 
+
   // void initial_integrate_respa(int, int, int);
   // void final_integrate_respa(int, int);
   // void write_restart_file(char *);
@@ -74,10 +75,6 @@ class FixRigidKokkos : public FixRigid {
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
   void set_v_kokkos();
   void compute_forces_and_torques_kokkos();
-
-  void sync_arrays(int phase_mask);
-  void modify_arrays(int phase_mask);
-
 
   template <typename kokkos_arr, typename base_arr>
   void debug_print_vec(kokkos_arr k_arr, base_arr arr,

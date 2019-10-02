@@ -61,6 +61,11 @@ class DomainKokkos : public Domain {
   Few<double,3> unmap(Few<double,3> prd, Few<double,6> h, int triclinic,
       Few<double,3> x, imageint image);
 
+	// Needed by fix_rigid_kokkos and maybe others
+  static KOKKOS_INLINE_FUNCTION
+  Few<double, 3> remap(Few<double,3> prd, Few<double,6> h, int triclinic,
+                       Few<double,3> boxlo, Few <double,3> x, imageint &image);
+
  private:
   double lo[3],hi[3],period[3];
   int n_flip, m_flip, p_flip;
@@ -86,6 +91,27 @@ Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
     y[2] = x[2] + h[2]*zbox;
   }
   return y;
+}
+
+
+KOKKOS_INLINE_FUNCTION
+Few<double, 3> DomainKokkos::remap(Few<double,3> prd, Few<double,6> h,
+                                   int triclinic, Few<double,3> boxlo,
+                                   Few <double,3> x, imageint &image)
+{
+  Few<double, 3> lo, hi, period, lambda;
+  double *coord;
+
+  // Sorry for making this look like Java. :(
+  auto add_few_3 = [](Few<double, 3> a, Few<double, 3> b) {
+                     return Few<double, 3>{a[0]+b[0], a[1]+b[1], a[2]+b[2]}; };
+  if (triclinic == 0) {
+    lo = boxlo;
+    hi = add_few_3(boxlo, prd);
+  }
+
+
+
 }
 
 }

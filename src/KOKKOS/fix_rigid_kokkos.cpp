@@ -428,7 +428,8 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   k_fflag.sync<DeviceType>();
 
   // The call to grow_arrays has to be after the create_mirror_views because
-  // else the empty arrays will be overwritten and their contents lost.
+  // else the empty device arrays will be overwritten and the contents of the
+  // host will be lost.
   grow_arrays(nmax);
 
 
@@ -507,7 +508,6 @@ FixRigidKokkos<DeviceType>::~FixRigidKokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::init()
 {
-
   // The host code uses these in FixRigid::init():
   // They should be synched first.
   // tflag, fflag, body, mu, radius, rmass, mass, ellipsoid, line, tri, type,
@@ -673,17 +673,78 @@ void FixRigidKokkos<DeviceType>::pre_neighbor()
 {
   // pre_neighbor modifies both xcm and imagebody
   // and xcmimage and body
-  k_xcm.sync<LMPHostType>();
-  k_body.sync<LMPHostType>();
-  k_xcmimage.sync<LMPHostType>();
+  k_xcm.sync<DeviceType>();
+  k_body.sync<DeviceType>();
+  k_imagebody.sync<DeviceType>();
+  k_xcmimage.sync<DeviceType>();
 
-  FixRigid::pre_neighbor();
+  {
+	  // Local block for Kokkos lambda.
+    auto l_xcm = k_xcm.d_view;
+    auto l_imagebody = k_imagebody.d_view;
+    auto domainKK = static_cast<DomainKokkos *>(domain);
 
-  k_xcm.modify<LMPHostType>();
+    Few<double,3> prd{domain->prd[0], domain->prd[1], domain->prd[2]};
+    Few<double,6> h{domain->prd[0], domain->prd[1], domain->prd[2],
+                    domain->prd[3], domain->prd[4], domain->prd[5]};
+    Few<double,3> boxlo{domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
+    int triclinic = domain->triclinic;
 
+    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody){
+        // auto xcm_ibody   = Kokkos::subview(l_xcm, ibody, Kokkos::ALL);
+      Few<double,3> xcm_ibody{l_xcm(ibody,0), l_xcm(ibody,1), l_xcm(ibody,2)};
+      imageint imagebody_ibody = l_imagebody(ibody);
+
+      auto new_xcm = domainKK->remap(prd, h, triclinic, boxlo, xcm_ibody,
+                                     imagebody_ibody);
+
+      l_imagebody(ibody) = imagebody_ibody;
+      l_xcm(ibody,0) = new_xcm[0];
+      l_xcm(ibody,1) = new_xcm[1];
+      l_xcm(ibody,2) = new_xcm[2];
+    });
+  }
+
+  image_shift_kokkos();
+
+  k_xcm.modify<DeviceType>();
+  k_imagebody.modify<DeviceType>();
 }
 
+template <class DeviceType>
+void FixRigidKokkos<DeviceType>::image_shift_kokkos()
+{
+  int nlocal = atomKK->nlocal;
 
+  {
+    // Local block for Kokkos::parallel_for
+
+    imageint tdim,bdim,xdim[3];
+    auto l_image = atomKK->k_image.d_view;
+    auto l_imagebody = k_imagebody.d_view;
+    auto l_body = k_body.d_view;
+    auto l_xcmimage = k_xcmimage.d_view;
+
+    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
+        if (l_body[i] < 0) return;
+        int ibody = body[i];
+        imageint xdim[3];
+        imageint tdim = l_image[i] & IMGMASK;
+        imageint bdim = l_imagebody[ibody] & IMGMASK;
+
+        xdim[0] = IMGMAX + tdim - bdim;
+        tdim = (l_image[i] >> IMGBITS) & IMGMASK;
+        bdim = (l_imagebody[ibody] >> IMGBITS) & IMGMASK;
+        xdim[1] = IMGMAX + tdim - bdim;
+        tdim = l_image[i] >> IMG2BITS;
+        bdim = l_imagebody[ibody] >> IMG2BITS;
+        xdim[2] = IMGMAX + tdim - bdim;
+
+        l_xcmimage[i] = (xdim[2] << IMG2BITS) | (xdim[1] << IMGBITS) | xdim[0];
+    });
+  }
+  k_xcmimage.modify<DeviceType>();
+}
 
 
 

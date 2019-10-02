@@ -75,6 +75,7 @@ class FixRigidKokkos : public FixRigid {
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
   void set_v_kokkos();
   void compute_forces_and_torques_kokkos();
+	void image_shift_kokkos();
 
   template <typename kokkos_arr, typename base_arr>
   void debug_print_vec(kokkos_arr k_arr, base_arr arr,

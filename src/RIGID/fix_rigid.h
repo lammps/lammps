@@ -32,7 +32,7 @@ class FixRigid : public Fix {
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
-  void post_force(int);
+  virtual void post_force(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
@@ -47,7 +47,7 @@ class FixRigid : public Fix {
   int unpack_exchange(int, double *);
 
   void setup_pre_neighbor();
-  void pre_neighbor();
+  virtual void pre_neighbor();
   int dof(int);
   void deform(int);
   void enforce2d();

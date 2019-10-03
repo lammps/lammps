@@ -370,7 +370,7 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   // Most arrays allocated in the constructor of FixRigid are either
   //   a) set after that, so we need not worry about preserving the data, or
   //   b) Set to all zeros which is also what Kokkos does by default.
-  // Those that are allocated _and_set in the c-tor use create_and_copy
+  // Those that are allocated _and_set in the c-tor use create_mirror_view
   // to preserve the values already in the array, the rest do not need to.
   //
   // nrigid, body, tflag and fflag are set to specific values in base c-tor.

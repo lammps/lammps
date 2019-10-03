@@ -307,7 +307,7 @@ void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
   q_ibody[1] = 2.0*qhalf[1] - qfull[1];
   q_ibody[2] = 2.0*qhalf[2] - qfull[2];
   q_ibody[3] = 2.0*qhalf[3] - qfull[3];
-   MathExtraKokkos::qnormalize(q_ibody);
+  MathExtraKokkos::qnormalize(q_ibody);
 }
 
 
@@ -353,32 +353,6 @@ void FixRigidKokkos<DeviceType>::debug_print_quat(kokkos_arr k_arr, base_arr arr
 }
 
 
-
-
-// helper functions to "copy-and-swap" arrays. They function just like
-// atomKK::create_kokkos, except the data in array is preserved and
-// copied into data.
-
-// 1d variant:
-template <class DeviceType>
-template <typename arr_type>
-void FixRigidKokkos<DeviceType>::create_and_copy(arr_type &data,
-                                                 typename arr_type::value_type *&array,
-                                                 int n1, const char *name)
-{
-
-}
-
-// 2d variant:
-template <typename DeviceType>
-template <typename arr_type>
-void FixRigidKokkos<DeviceType>::create_and_copy(arr_type &data,
-                                                 typename arr_type::value_type **&array,
-                                                 int n1, int n2,
-                                                 const char *name)
-{
-
-}
 
 
 template <class DeviceType>

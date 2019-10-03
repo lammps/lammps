@@ -155,7 +155,6 @@ def nwchem_read_ao(natoms, log):
   bohr2angstrom = 0.52917721092
   eout = eout * hartree2eV
   fout = [i * hartree2eV/bohr2angstrom for i in fout]
-  print(eout)
 
   return eout,fout
 

@@ -87,8 +87,8 @@ void angmom_to_omega(DAT::t_v_array m,
   w(ibody,2) = wbody[0]*ex(ibody,2) + wbody[1]*ey(ibody,2) + wbody[2]*ez(ibody,2);
 }
 
-KOKKOS_INLINE_FUNCTION
 template <typename a_arr_type, typename b_arr_type>
+KOKKOS_INLINE_FUNCTION
 inline void vecquat(a_arr_type a, b_arr_type b, double c[4])
 {
   c[0] = -a[0]*b[1] - a[1]*b[2] - a[2]*b[3];
@@ -100,8 +100,8 @@ inline void vecquat(a_arr_type a, b_arr_type b, double c[4])
 /* ----------------------------------------------------------------------
    matrix times vector
 ------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
 template <typename arr_out_type>
+KOKKOS_INLINE_FUNCTION
 inline void matvec(const double m[3][3], const double v[3],
                    arr_out_type ans)
 {
@@ -114,8 +114,8 @@ inline void matvec(const double m[3][3], const double v[3],
 /* ----------------------------------------------------------------------
    transposed matrix times vector
 ------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
 template <typename v_arr_type, typename arr_out_type>
+KOKKOS_INLINE_FUNCTION
 void transpose_matvec(const double m[3][3], v_arr_type v,
                       arr_out_type ans)
 {
@@ -128,8 +128,8 @@ void transpose_matvec(const double m[3][3], v_arr_type v,
   /* ----------------------------------------------------------------------
    matrix times vector
 ------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
 template <typename e_arr_type, typename v_arr_type>
+KOKKOS_INLINE_FUNCTION
 Few<double,3> matvec(e_arr_type ex, e_arr_type ey,
                      e_arr_type ez, v_arr_type v)
 {
@@ -143,8 +143,8 @@ Few<double,3> matvec(e_arr_type ex, e_arr_type ey,
 /* ----------------------------------------------------------------------
    normalize a quaternion
 ------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
 template <typename q_arr_type>
+KOKKOS_INLINE_FUNCTION
  void qnormalize(q_arr_type q)
 {
   double norm = 1.0 / sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
@@ -160,7 +160,7 @@ template <typename q_arr_type>
    assume q is of unit length
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
- void qconjugate(double q[4], double qc[4])
+void qconjugate(double q[4], double qc[4])
 {
   qc[0] = q[0];
   qc[1] = -q[1];
@@ -206,10 +206,10 @@ void quat_to_mat(const double quat[4], double mat[3][3])
    ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
    operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
 ------------------------------------------------------------------------- */
-KOKKOS_INLINE_FUNCTION
 template <typename q_arr_type, typename e_arr_type>
+KOKKOS_INLINE_FUNCTION
  void q_to_exyz(q_arr_type q,
-                      e_arr_type ex, e_arr_type ey, e_arr_type ez)
+                e_arr_type ex, e_arr_type ey, e_arr_type ez)
 {
   double q0 = q[0];
   double q1 = q[1];
@@ -240,10 +240,10 @@ template <typename q_arr_type, typename e_arr_type>
      and divide by principal moments
 ------------------------------------------------------------------------- */
 
-KOKKOS_INLINE_FUNCTION
 template <typename v_arr_type, typename x_arr_type>
- void mq_to_omega(v_arr_type m, double q[4],
-                        x_arr_type moments, v_arr_type w)
+KOKKOS_INLINE_FUNCTION
+void mq_to_omega(v_arr_type m, double q[4],
+                 x_arr_type moments, v_arr_type w)
 {
   double wbody[3];
   double rot[3][3];
@@ -260,8 +260,8 @@ template <typename v_arr_type, typename x_arr_type>
 }
 
 
-KOKKOS_INLINE_FUNCTION
 template <typename q_arr_type, typename x_arr_type, typename v_arr_type>
+KOKKOS_INLINE_FUNCTION
 void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
                 x_arr_type moments_ibody, double dtq)
 {

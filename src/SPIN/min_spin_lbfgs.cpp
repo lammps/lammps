@@ -372,9 +372,6 @@ void MinSpinLBFGS::calc_search_direction()
     factor = 1.0;
   }
 
-  q = (double *) calloc(3*nlocal, sizeof(double));
-  alpha = (double *) calloc(num_mem, sizeof(double));
-
   if (local_iter == 0){ 	// steepest descent direction
 
     //if no line search then calculate maximum rotation
@@ -387,10 +384,12 @@ void MinSpinLBFGS::calc_search_direction()
       for (int k = 0; k < num_mem; k++){
         ds[k][i] = 0.0;
         dy[k][i] = 0.0;
-        rho[k] = 0.0;
       }
     }
-  } else {
+    for (int k = 0; k < num_mem; k++)
+      rho[k] = 0.0;
+
+    } else {
     dyds = 0.0;
     for (int i = 0; i < 3 * nlocal; i++) {
       ds[m_index][i] = p_s[i];
@@ -410,15 +409,10 @@ void MinSpinLBFGS::calc_search_direction()
 
     if (rho[m_index] < 0.0){
       local_iter = 0;
-      for (int k = 0; k < num_mem; k++){
-	      for (int i = 0; i < nlocal; i ++){
-      ds[k][i] = 0.0;
-      dy[k][i] = 0.0;
-        }
-      }
       return calc_search_direction();
     }
-
+    q = (double *) calloc(3*nlocal, sizeof(double));
+    alpha = (double *) calloc(num_mem, sizeof(double));
     // set the q vector
 
     for (int i = 0; i < 3 * nlocal; i++) {
@@ -511,12 +505,10 @@ void MinSpinLBFGS::calc_search_direction()
       p_s[i] = - factor * p_s[i] * scaling;
       g_old[i] = g_cur[i] * factor;
     }
+    free(q);
+    free(alpha);
   }
-
   local_iter++;
-  free(q);
-  free(alpha);
-
 }
 
 /* ----------------------------------------------------------------------

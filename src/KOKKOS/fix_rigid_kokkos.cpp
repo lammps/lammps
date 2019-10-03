@@ -89,7 +89,7 @@ void angmom_to_omega(DAT::t_v_array m,
 
 template <typename a_arr_type, typename b_arr_type>
 KOKKOS_INLINE_FUNCTION
-inline void vecquat(a_arr_type a, b_arr_type b, double c[4])
+void vecquat(a_arr_type a, b_arr_type b, double c[4])
 {
   c[0] = -a[0]*b[1] - a[1]*b[2] - a[2]*b[3];
   c[1] = b[0]*a[0] + a[1]*b[3] - a[2]*b[2];
@@ -102,7 +102,7 @@ inline void vecquat(a_arr_type a, b_arr_type b, double c[4])
 ------------------------------------------------------------------------- */
 template <typename arr_out_type>
 KOKKOS_INLINE_FUNCTION
-inline void matvec(const double m[3][3], const double v[3],
+void matvec(const double m[3][3], const double v[3],
                    arr_out_type ans)
 {
   ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
@@ -208,8 +208,8 @@ void quat_to_mat(const double quat[4], double mat[3][3])
 ------------------------------------------------------------------------- */
 template <typename q_arr_type, typename e_arr_type>
 KOKKOS_INLINE_FUNCTION
- void q_to_exyz(q_arr_type q,
-                e_arr_type ex, e_arr_type ey, e_arr_type ez)
+void q_to_exyz(q_arr_type q,
+               e_arr_type ex, e_arr_type ey, e_arr_type ez)
 {
   double q0 = q[0];
   double q1 = q[1];

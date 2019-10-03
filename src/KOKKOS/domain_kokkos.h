@@ -112,9 +112,6 @@ Few<double, 3> DomainKokkos::remap(Few<double,3> prd,
   Few<double, 3> lo, hi, period, lambda, coord;
 
   imageint idim, otherdims;
-  // Sorry for making this look like Java. :(
-  auto add_few_3 = [](Few<double, 3> a, Few<double, 3> b) {
-                     return Few<double, 3>{a[0]+b[0], a[1]+b[1], a[2]+b[2]}; };
 
   int xperiodic = (periodic_bits & 1);
   int yperiodic = (periodic_bits & 2);
@@ -123,7 +120,7 @@ Few<double, 3> DomainKokkos::remap(Few<double,3> prd,
 
   if (triclinic == 0) {
     lo = boxlo;
-    hi = add_few_3(boxlo, prd);
+    hi = boxhi;
     period = prd;
     coord = x;
   } else {

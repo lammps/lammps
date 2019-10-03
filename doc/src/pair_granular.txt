@@ -177,7 +177,7 @@ following general form:
 \end\{equation\}
 
 Here, \(\mathbf\{v\}_\{n,rel\} = (\mathbf\{v\}_j - \mathbf\{v\}_i)
-\cdot \mathbf\{n\}\) is the component of relative velocity along
+\cdot \mathbf\{n\} \mathbf\{n\}\) is the component of relative velocity along
 \(\mathbf\{n\}\).
 
 The optional {damping} keyword to the {pair_coeff} command followed by
@@ -299,8 +299,8 @@ the normal damping \(\eta_n\) (see above):
 \eta_t = -x_\{\gamma,t\} \eta_n
 \end\{equation\}
 
-The normal damping prefactor \(\eta_n\) is determined by the choice of
-the {damping} keyword, as discussed above.  Thus, the {damping}
+The normal damping prefactor \(\eta_n\) is determined by the choice
+of the {damping} keyword, as discussed above.  Thus, the {damping}
 keyword also affects the tangential damping.  The parameter
 \(x_\{\gamma,t\}\) is a scaling coefficient. Several works in the
 literature use \(x_\{\gamma,t\} = 1\) ("Marshall"_#Marshall2009,
@@ -308,10 +308,10 @@ literature use \(x_\{\gamma,t\} = 1\) ("Marshall"_#Marshall2009,
 tangential velocity at the point of contact is given by
 \(\mathbf\{v\}_\{t, rel\} = \mathbf\{v\}_\{t\} - (R_i\Omega_i +
 R_j\Omega_j) \times \mathbf\{n\}\), where \(\mathbf\{v\}_\{t\} =
-\mathbf\{v\}_r - \mathbf\{v\}_r\cdot\mathbf\{n\}\), \(\mathbf\{v\}_r =
-\mathbf\{v\}_j - \mathbf\{v\}_i\). The direction of the applied force
-is \(\mathbf\{t\} =
-\mathbf\{v_\{t,rel\}\}/\|\mathbf\{v_\{t,rel\}\}\|\).
+\mathbf\{v\}_r - \mathbf\{v\}_r\cdot\mathbf\{n\}\{n\}\),
+\(\mathbf\{v\}_r = \mathbf\{v\}_j - \mathbf\{v\}_i\).
+The direction of the applied force is \(\mathbf\{t\} =
+\mathbf\{v_\{t,rel\}\}/\|\mathbf\{v_\{t,rel\}\}\|\) .
 
 The normal force value \(F_\{n0\}\) used to compute the critical force
 depends on the form of the contact model. For non-cohesive models

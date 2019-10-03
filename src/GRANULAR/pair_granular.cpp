@@ -305,7 +305,8 @@ void PairGranular::compute(int eflag, int vflag)
 
         delta = radsum - r;
         dR = delta*Reff;
-        if (normal_model[itype][jtype] == JKR) {
+
+	if (normal_model[itype][jtype] == JKR) {
           touch[jj] = 1;
           R2=Reff*Reff;
           coh = normal_coeffs[itype][jtype][3];
@@ -1374,22 +1375,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   vn2 = ny*vnnr;
   vn3 = nz*vnnr;
 
-  double *rmass = atom->rmass;
-  int *mask = atom->mask;
-  mi = rmass[i];
-  mj = rmass[j];
-  if (fix_rigid) {
-    if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
-    if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
-  }
-
-  meff = mi*mj / (mi+mj);
-  if (mask[i] & freeze_group_bit) meff = mj;
-  if (mask[j] & freeze_group_bit) meff = mi;
-
-  delta = radsum - r;
-  dR = delta*Reff;
-
   // tangential component
 
   vt1 = vr1 - vn1;
@@ -1406,6 +1391,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // meff = effective mass of pair of particles
   // if I or J part of rigid body, use body mass
   // if I or J is frozen, meff is other particle
+
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
 
   mi = rmass[i];
   mj = rmass[j];
@@ -1557,7 +1545,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // rolling resistance
   //****************************************
 
-  if (roll_model[itype][jtype] != ROLL_NONE) {
+  if ((roll_model[itype][jtype] != ROLL_NONE)
+      || (twist_model[itype][jtype] != TWIST_NONE)) {
     relrot1 = omega[i][0] - omega[j][0];
     relrot2 = omega[i][1] - omega[j][1];
     relrot3 = omega[i][2] - omega[j][2];
@@ -1623,7 +1612,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     Mtcrit = mu_twist*Fncrit; // critical torque (eq 44)
     if (fabs(magtortwist) > Mtcrit) {
       magtortwist = -Mtcrit * signtwist; // eq 34
-    }
+    } else magtortwist = 0.0;
   }
 	
   // set force and return no energy

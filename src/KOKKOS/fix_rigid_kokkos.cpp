@@ -315,44 +315,6 @@ void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
 
 
 
-// Debug helper functions:
-template <class DeviceType>
-template <typename kokkos_arr, typename base_arr>
-void FixRigidKokkos<DeviceType>::debug_print_vec(kokkos_arr k_arr, base_arr arr,
-                                                 const char *name, int idx)
-{
-  if (debug_output && comm->me == 0) {
-    fprintf(screen, "  ** -->   %s is now (%g, %g, %g)\n", name,
-            arr[idx][0],arr[idx][1],arr[idx][2]);
-#ifndef KOKKOS_ENABLE_CUDA
-    fprintf(screen, "  ** --> d_%s is now (%g, %g, %g)\n", name,
-            k_arr.d_view(idx,0),k_arr.d_view(idx,1),k_arr.d_view(idx,2));
-#endif
-    fprintf(screen, "  ** --> h_%s is now (%g, %g, %g)\n", name,
-            k_arr.h_view(idx,0),k_arr.h_view(idx,1),k_arr.h_view(idx,2));
-  }
-}
-
-
-
-template <class DeviceType>
-template <typename kokkos_arr, typename base_arr>
-void FixRigidKokkos<DeviceType>::debug_print_quat(kokkos_arr k_arr, base_arr arr,
-                                                  const char *name, int idx)
-{
-  if (debug_output && comm->me == 0) {
-    fprintf(screen, "  ** -->   %s is now (%g, %g, %g, %g)\n", name,
-            arr[idx][0],arr[idx][1],arr[idx][2], arr[idx][3]);
-#ifndef KOKKOS_ENABLE_CUDA
-    fprintf(screen, "  ** --> d_%s is now (%g, %g, %g, %g)\n", name,
-            k_arr.d_view(idx,0),k_arr.d_view(idx,1),k_arr.d_view(idx,2),k_arr.d_view(idx,3));
-#endif
-    fprintf(screen, "  ** --> h_%s is now (%g, %g, %g, %g)\n", name,
-            k_arr.h_view(idx,0),k_arr.h_view(idx,1),k_arr.h_view(idx,2),k_arr.h_view(idx,3));
-  }
-}
-
-
 
 
 template <class DeviceType>
@@ -509,19 +471,6 @@ void FixRigidKokkos<DeviceType>::init()
   atomKK->k_image.sync<LMPHostType>();
   atomKK->k_x.sync<LMPHostType>();
 
-
-  if (debug_output && comm->me == 0) {
-    fprintf(screen, "  ** --> IN(start; kk): quat and displace\n");
-    debug_print_quat(k_quat, quat, "quat");
-    debug_print_vec(k_displace, displace, "displace");
-
-    fprintf(screen, "  ** --> IN(start; kk): contents of body:");
-    for (int i = 0; i < atomKK->nmax; ++i) {
-      fprintf(screen, " %d", k_body.h_view(i));
-    }
-    fprintf(screen, "\n");
-  }
-
   // These are also modified:
   // eflags, inertia, quat, body
 
@@ -567,11 +516,6 @@ void FixRigidKokkos<DeviceType>::init()
   k_sum.sync<DeviceType>();
   k_body.sync<DeviceType>();
 
-  if (debug_output && comm->me == 0) {
-    fprintf(screen, "  ** --> IN(exit; kk): quat and displace\n");
-    debug_print_quat(k_quat, quat, "quat");
-    debug_print_vec(k_displace, displace, "displace");
-  }
 }
 
 
@@ -634,12 +578,6 @@ void FixRigidKokkos<DeviceType>::setup(int vflag)
   k_quat.sync<DeviceType>();
   atomKK->k_v.sync<DeviceType>();
 
-
-  if (debug_output && comm->me == 0) {
-    fprintf(screen, "  ** --> SE (exit2): After synching, we have:\n");
-    debug_print_vec(k_fcm, fcm, "fcm");
-    debug_print_vec(k_omega, omega, "omega");
-  }
 }
 
 
@@ -1670,7 +1608,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::post_force(int vflag)
 {
-  FixRigid::post_force(vflag);
+	// FixRigid::post_force(vflag);
 }
 
 

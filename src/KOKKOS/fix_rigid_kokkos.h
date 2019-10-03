@@ -70,20 +70,10 @@ class FixRigidKokkos : public FixRigid {
   //void zero_rotation();
 
   void grow_arrays(int);
-
- protected:
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
   void set_v_kokkos();
   void compute_forces_and_torques_kokkos();
-	void image_shift_kokkos();
-
-  template <typename kokkos_arr, typename base_arr>
-  void debug_print_vec(kokkos_arr k_arr, base_arr arr,
-                       const char *name, int idx = 0);
-  template <typename kokkos_arr, typename base_arr>
-  void debug_print_quat(kokkos_arr k_arr, base_arr arr,
-                        const char *name, int idx = 0);
-
+  void image_shift_kokkos();
 
  private:
   // We need Kokkos style containers for everything in the innner loops:
@@ -118,21 +108,6 @@ class FixRigidKokkos : public FixRigid {
 
   DAT::tdual_x_array k_orient;
   DAT::tdual_x_array k_dorient;
-
-
-  // helper functions to create and copy arrays. They function just like
-  // atomKK::create_kokkos, except the data in array is preserved and
-  // copied into data.
-
-  // 1d variant:
-  template <typename arr_type>
-  void create_and_copy(arr_type &data, typename arr_type::value_type *&array,
-                       int n1, const char *name);
-  // 2d variant:
-  template <typename arr_type>
-  void create_and_copy(arr_type &data, typename arr_type::value_type **&array,
-                       int n1, int n2, const char *name);
-
 
 
 }; // class FixRigidKokkos

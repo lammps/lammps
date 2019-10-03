@@ -114,6 +114,7 @@ class FixRigid : public Fix {
 
   double tfactor;           // scale factor on temperature of rigid bodies
   int langflag;             // 0/1 = no/yes Langevin thermostat
+	int seed;                 // seed for Langevin random number generator
 
   int tstat_flag;           // NVT settings
   double t_start,t_stop,t_target;

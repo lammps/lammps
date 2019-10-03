@@ -64,7 +64,6 @@ constexpr const bool debug_output = false;
 
 namespace MathExtraKokkos {
 
-// These trigger warning about redundant inline on explicit specialization :(
 KOKKOS_INLINE_FUNCTION
 void angmom_to_omega(DAT::t_v_array m,
                      DAT::t_x_array ex,
@@ -319,7 +318,7 @@ void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
 
 template <class DeviceType>
 FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg)
+  FixRigid(lmp, narg, arg), rand_pool(comm->me + seed)
 {
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -1608,7 +1607,68 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::post_force(int vflag)
 {
-	// FixRigid::post_force(vflag);
+  if (langflag) apply_langevin_thermostat_kokkos();
+  if (earlyflag) compute_forces_and_torques_kokkos();
+}
+
+
+// Closely mirrors FixRigid::apply_langevin_thermostat.
+template <class DeviceType>
+void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
+{
+
+  k_masstotal.sync<DeviceType>();
+  k_langextra.sync<DeviceType>();
+  k_vcm.sync<DeviceType>();
+  k_inertia.sync<DeviceType>();
+  k_omega.sync<DeviceType>();
+
+  if (comm->me == 0) {
+    // Local block for Kokkos lambda coincides with if-block:
+
+    double delta = update->ntimestep - update->beginstep;
+    if (delta != 0.0) delta /= update->endstep - update->beginstep;
+    t_target = t_start + delta * (t_stop-t_start);
+    double tsqrt = sqrt(t_target);
+
+    double boltz = force->boltz;
+    double dt = update->dt;
+    double mvv2e = force->mvv2e;
+    double ftm2v = force->ftm2v;
+
+    auto l_masstotal = k_masstotal.d_view;
+    auto l_langextra = k_langextra.d_view;
+    auto l_vcm = k_vcm.d_view;
+    auto l_inertia = k_inertia.d_view;
+    auto l_omega = k_omega.d_view;
+
+    // Aped from fix_langevin_kokkos:
+    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int&ibody) {
+
+      rand_type rand_gen = rand_pool.get_state();
+
+      double gamma1 = -l_masstotal[ibody] / t_period / ftm2v;
+      double gamma2 = sqrt(l_masstotal[ibody]) * tsqrt *
+        sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      l_langextra(ibody,0) = gamma1*l_vcm(ibody,0) + gamma2*(rand_gen.drand()-0.5);
+      l_langextra(ibody,1) = gamma1*l_vcm(ibody,1) + gamma2*(rand_gen.drand()-0.5);
+      l_langextra(ibody,2) = gamma1*l_vcm(ibody,2) + gamma2*(rand_gen.drand()-0.5);
+
+      gamma1 = -1.0 / t_period / ftm2v;
+      gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      l_langextra(ibody,3) = l_inertia(ibody,0)*gamma1*l_omega(ibody,0) +
+        sqrt(l_inertia(ibody,0))*gamma2*(random->uniform()-0.5);
+      l_langextra(ibody,4) = l_inertia(ibody,1)*gamma1*l_omega(ibody,2) +
+        sqrt(l_inertia(ibody,1))*gamma2*(random->uniform()-0.5);
+      l_langextra(ibody,5) = l_inertia(ibody,2)*gamma1*l_omega(ibody,2) +
+        sqrt(l_inertia(ibody,2))*gamma2*(random->uniform()-0.5);
+
+      rand_pool.free_state(rand_gen);
+    });
+  }
+
+  k_langextra.modify<DeviceType>();
+  MPI_Bcast(&langextra[0][0],6*nbody,MPI_DOUBLE,0,world);
 }
 
 

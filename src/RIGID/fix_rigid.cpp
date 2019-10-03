@@ -301,7 +301,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  int seed;
   langflag = 0;
   reinitflag = 1;
 

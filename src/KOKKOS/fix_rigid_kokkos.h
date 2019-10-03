@@ -26,7 +26,7 @@ FixStyle(rigid/kk/host,FixRigidKokkos<LMPHostType>)
 
 #include "fix_rigid.h"
 #include "kokkos_type.h"
-
+#include "Kokkos_Random.hpp"
 
 namespace LAMMPS_NS {
 
@@ -74,6 +74,7 @@ class FixRigidKokkos : public FixRigid {
   void set_v_kokkos();
   void compute_forces_and_torques_kokkos();
   void image_shift_kokkos();
+  void apply_langevin_thermostat_kokkos();
 
  private:
   // We need Kokkos style containers for everything in the innner loops:
@@ -109,6 +110,10 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_x_array k_orient;
   DAT::tdual_x_array k_dorient;
 
+
+	// Needed if we apply langvin forces:
+	Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 
 }; // class FixRigidKokkos
 

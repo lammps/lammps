@@ -297,4 +297,3 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type** &array)
 }
 
 #endif
-

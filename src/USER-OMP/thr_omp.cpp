@@ -451,6 +451,19 @@ static void v_tally(double * const vout, const double * const vin)
   vout[5] += vin[5];
 }
 
+static void v_tally9(double * const vout, const double * const vin)
+{
+  vout[0] += vin[0];
+  vout[1] += vin[1];
+  vout[2] += vin[2];
+  vout[3] += vin[3];
+  vout[4] += vin[4];
+  vout[5] += vin[5];
+  vout[6] += vin[6];
+  vout[7] += vin[7];
+  vout[8] += vin[8];
+}
+
 static void v_tally(double * const vout, const double scale, const double * const vin)
 {
   vout[0] += scale*vin[0];

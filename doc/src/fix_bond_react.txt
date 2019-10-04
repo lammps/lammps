@@ -266,7 +266,7 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update_edges' keyword. The fourth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there is one type of constraint available, as discussed below.
+there are two types of constraints available, as discussed below.
 
 A sample map file is given below:
 
@@ -300,14 +300,23 @@ Equivalences :pre
 :line
 
 Any number of additional constraints may be specified in the
-Constraints section of the map file. Currently there is one type of
-additional constraint, of type 'distance', whose syntax is as follows:
+Constraints section of the map file. The constraint of type 'distance'
+has syntax as follows:
 
 distance {ID1} {ID2} {rmin} {rmax} :pre
 
 where 'distance' is the required keyword, {ID1} and {ID2} are
 pre-reaction atom IDs, and these two atoms must be separated by a
-distance between {rmin} and {rmax} for the reaction to occur. This
+distance between {rmin} and {rmax} for the reaction to occur.
+
+The constraint of type 'angle' has the following syntax:
+
+angle {ID1} {ID2} {ID3} {amin} {amax} :pre
+
+where 'angle' is the required keyword, {ID1}, {ID2} and {ID3} are
+pre-reaction atom IDs, and these three atoms must form an angle
+between {amin} and {amax} for the reaction to occur (where {ID2} is
+the central atom). Angles must be specified in degrees. This
 constraint can be used to enforce a certain orientation between
 reacting molecules.
 

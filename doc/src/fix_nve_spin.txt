@@ -15,28 +15,26 @@ fix ID group-ID nve/spin keyword values :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 nve/spin = style name of this fix command :l
 keyword = {lattice} :l
-  {lattice} value = {no} or {yes} :pre
+  {lattice} value = {moving} or {frozen}
+    moving = integrate both spin and atomic degress of freedom
+    frozen = integrate spins on a fixed lattice :pre
 :ule
 
 [Examples:]
 
-fix 3 all nve/spin lattice yes
-fix 1 all nve/spin lattice no :pre
+fix 3 all nve/spin lattice moving
+fix 1 all nve/spin lattice frozen :pre
 
 [Description:]
 
 Perform a symplectic integration for the spin or spin-lattice system.
 
-The {lattice} keyword defines whether the spins are integrated on a 
-fixed or moving lattice. 
-
-If {lattice}=yes, the equations of motion of the atoms are integrated, 
-and a combined spin and lattice calculation is performed.
-This is the default option.
-
-If {lattice}=no, the equations of motion of the atoms are not
-integrated. The lattice degrees of freedom are frozen, and a
-spin dynamics only calculation is performed.
+The {lattice} keyword defines if the spins are integrated on a lattice
+of fixed atoms (lattice = frozen), or if atoms are moving
+(lattice = moving).
+The first case corresponds to a spin dynamics calculation, and
+the second to a spin-lattice calculation.
+By default a spin-lattice integration is performed (lattice = moving).
 
 The {nve/spin} fix applies a Suzuki-Trotter decomposition to
 the equations of motion of the spin lattice system, following the scheme:
@@ -69,8 +67,9 @@ instead of "array" is also valid.
 
 "atom_style spin"_atom_style.html, "fix nve"_fix_nve.html
 
-[Default:] By default (lattice = yes), a spin-lattice integration is 
-performed.
+[Default:] 
+
+The option default is lattice = moving.
 
 :line
 

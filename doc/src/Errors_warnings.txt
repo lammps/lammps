@@ -248,6 +248,10 @@ included one or more of the following: kspace, triclinic, a hybrid
 pair style, an eam pair style, or no "single" function for the pair
 style. :dd
 
+{Fix langevin gjf using random gaussians is not implemented with kokkos} :dt
+
+This will most likely cause errors in kinetic fluctuations.
+
 {Fix property/atom mol or charge w/out ghost communication} :dt
 
 A model typically needs these properties defined for ghost atoms. :dd

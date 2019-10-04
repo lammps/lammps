@@ -45,11 +45,7 @@ fix xwalls all wall/stochastic cercignanilampis 2308 xlo 0.0 300 0.0 0.1 0.9 0.8
 
 [Description:]
 
-This fix differs from the command fix wall/reflect which is equivalent
-to the mirror reflection in that the post collision velocity of the atoms
-in the stochastic wall is random. The randomness can come from many sources:
-thermal motion of solid atoms, the surface roughness, etc... Three
-stochastic wall models are implemented.
+This fix models the stochastic and inelastic collisions between fluid atoms and a solid boundary. The solid surface with finite temperature and moving speed can exchange energy with the fluid atoms. Different from the command fix wall/reflect which is equivalent to the mirror reflection, the post collision velocity of the fluid atoms in the stochastic wall model is random. The randomness can come from many sources: thermal motion of solid atoms, the surface roughness, etc... Three stochastic wall models are implemented.
 
 Diffusive wall (reflectionstyle = diffusive): all the gas atoms are
 reflected diffusively. Their velocity distribution corresponds to the

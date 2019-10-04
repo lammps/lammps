@@ -33,9 +33,10 @@ Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
 
   allocated = 0;
 
-  maxeatom = maxvatom = 0;
+  maxeatom = maxvatom = maxcvatom = 0;
   eatom = NULL;
   vatom = NULL;
+  cvatom = NULL;
   setflag = NULL;
 
   execution_space = Host;
@@ -53,6 +54,7 @@ Dihedral::~Dihedral()
 
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(cvatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -83,9 +85,10 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
   eflag_global = eflag % 2;
   eflag_atom = eflag / 2;
 
-  vflag_either = vflag;
   vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_atom = vflag & 4;
+  cvflag_atom = vflag & 8;
+  vflag_either = vflag_global || vflag_atom;
 
   // reallocate per-atom arrays if necessary
 
@@ -101,6 +104,13 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
     if (alloc) {
       memory->destroy(vatom);
       memory->create(vatom,comm->nthreads*maxvatom,6,"dihedral:vatom");
+    }
+  }
+  if (cvflag_atom && atom->nmax > maxcvatom) {
+    maxcvatom = atom->nmax;
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,comm->nthreads*maxcvatom,9,"dihedral:cvatom");
     }
   }
 
@@ -123,6 +133,22 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
       vatom[i][3] = 0.0;
       vatom[i][4] = 0.0;
       vatom[i][5] = 0.0;
+    }
+  }
+  if (cvflag_atom && alloc) {
+    n = atom->nlocal;
+    if (force->newton_bond) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
+      cvatom[i][9] = 0.0;
     }
   }
 }
@@ -250,6 +276,95 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4,
       }
     }
   }
+
+  // per-atom centroid virial
+  if (cvflag_atom) {
+
+    // r0 = (r1+r2+r3+r4)/4
+    // rij = ri-rj
+    // total virial = r10*f1 + r20*f2 + r30*f3 + r40*f4
+    // vb1: r12
+    // vb2: r32
+    // vb3: r43
+
+    if (newton_bond || i1 < nlocal) {
+      double a1[3];
+
+      // a1 = r10 = (3*r12 - 2*r32 -   r43)/4
+      a1[0] = 0.25*(3*vb1x - 2*vb2x - vb3x);
+      a1[1] = 0.25*(3*vb1y - 2*vb2y - vb3y);
+      a1[2] = 0.25*(3*vb1z - 2*vb2z - vb3z);
+
+      cvatom[i1][0] += a1[0]*f1[0];
+      cvatom[i1][1] += a1[1]*f1[1];
+      cvatom[i1][2] += a1[2]*f1[2];
+      cvatom[i1][3] += a1[0]*f1[1];
+      cvatom[i1][4] += a1[0]*f1[2];
+      cvatom[i1][5] += a1[1]*f1[2];
+      cvatom[i1][6] += a1[1]*f1[0];
+      cvatom[i1][7] += a1[2]*f1[0];
+      cvatom[i1][8] += a1[2]*f1[1];
+    }
+    if (newton_bond || i2 < nlocal) {
+      double a2[3];
+      double f2[3];
+
+      // a2 = r20 = ( -r12 - 2*r32 -   r43)/4
+      a2[0] = 0.25*(-vb1x - 2*vb2x - vb3x);
+      a2[1] = 0.25*(-vb1y - 2*vb2y - vb3y);
+      a2[2] = 0.25*(-vb1z - 2*vb2z - vb3z);
+
+      f2[0] = - f1[0] - f3[0] - f4[0];
+      f2[1] = - f1[1] - f3[1] - f4[1];
+      f2[2] = - f1[2] - f3[2] - f4[2];
+
+      cvatom[i2][0] += a2[0]*f2[0];
+      cvatom[i2][1] += a2[1]*f2[1];
+      cvatom[i2][2] += a2[2]*f2[2];
+      cvatom[i2][3] += a2[0]*f2[1];
+      cvatom[i2][4] += a2[0]*f2[2];
+      cvatom[i2][5] += a2[1]*f2[2];
+      cvatom[i2][6] += a2[1]*f2[0];
+      cvatom[i2][7] += a2[2]*f2[0];
+      cvatom[i2][8] += a2[2]*f2[1];
+    }
+    if (newton_bond || i3 < nlocal) {
+      double a3[3];
+
+      // a3 = r30 = ( -r12 + 2*r32 -   r43)/4
+      a3[0] = 0.25*(-vb1x + 2*vb2x - vb3x);
+      a3[1] = 0.25*(-vb1y + 2*vb2y - vb3y);
+      a3[2] = 0.25*(-vb1z + 2*vb2z - vb3z);
+
+      cvatom[i3][0] += a3[0]*f3[0];
+      cvatom[i3][1] += a3[1]*f3[1];
+      cvatom[i3][2] += a3[2]*f3[2];
+      cvatom[i3][3] += a3[0]*f3[1];
+      cvatom[i3][4] += a3[0]*f3[2];
+      cvatom[i3][5] += a3[1]*f3[2];
+      cvatom[i3][6] += a3[1]*f3[0];
+      cvatom[i3][7] += a3[2]*f3[0];
+      cvatom[i3][8] += a3[2]*f3[1];
+    }
+    if (newton_bond || i4 < nlocal) {
+      double a4[3];
+
+      // a4 = r40 = ( -r12 + 2*r32 + 3*r43)/4
+      a4[0] = 0.25*(-vb1x + 2*vb2x + 3*vb3x);
+      a4[1] = 0.25*(-vb1y + 2*vb2y + 3*vb3y);
+      a4[2] = 0.25*(-vb1z + 2*vb2z + 3*vb3z);
+
+      cvatom[i4][0] += a4[0]*f4[0];
+      cvatom[i4][1] += a4[1]*f4[1];
+      cvatom[i4][2] += a4[2]*f4[2];
+      cvatom[i4][3] += a4[0]*f4[1];
+      cvatom[i4][4] += a4[0]*f4[2];
+      cvatom[i4][5] += a4[1]*f4[2];
+      cvatom[i4][6] += a4[1]*f4[0];
+      cvatom[i4][7] += a4[2]*f4[0];
+      cvatom[i4][8] += a4[2]*f4[1];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -258,5 +373,6 @@ double Dihedral::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }

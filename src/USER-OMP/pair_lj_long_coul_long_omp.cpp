@@ -326,7 +326,7 @@ void PairLJLongCoulLongOMP::compute_inner()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, thr);
+    ev_setup_thr(0, 0, nall, 0, 0, NULL, thr);
     eval_inner(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 

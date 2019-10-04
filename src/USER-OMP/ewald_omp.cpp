@@ -115,7 +115,7 @@ void EwaldOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, nlocal, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, 0, NULL, NULL, thr);
+    ev_setup_thr(eflag, vflag, 0, NULL, NULL, NULL, thr);
 
     for (i = ifrom; i < ito; i++) {
       ek[i][0] = 0.0;

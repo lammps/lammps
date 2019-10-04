@@ -64,7 +64,7 @@ ThrOMP::~ThrOMP()
    ---------------------------------------------------------------------- */
 
 void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
-                          double **vatom, ThrData *thr)
+                          double **vatom, double **cvatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
   if (tid == 0) thr_error = 0;

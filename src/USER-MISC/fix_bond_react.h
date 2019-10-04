@@ -64,7 +64,7 @@ class FixBondReact : public Fix {
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
-  int *nconstraints;
+  int nconstraints;
   double **constraints;
   int status;
   int *groupbits;
@@ -108,7 +108,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom,ndelete; // number of edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ncustom,ndelete,nconstr; // # edge, equivalent, custom atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;

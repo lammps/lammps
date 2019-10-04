@@ -259,57 +259,24 @@ void PairMesoCNT::compute(int eflag, int vflag)
       scale3(sumwrec,p1);
       scale3(sumwrec,p2);
 
-      //Compute geometry, forces and swap indices if necessary
-      int rswap = 0;
+      //Compute geometry and forces
+  
       //Infinite CNT
       if(end[i] == 0){
         geominf(r1,r2,p1,p2,param,basis);
 	if(param[0] > cutoff) continue;
-	if(fabs(param[2] > param[3]) && fabs(param[4] > param[5])){
-          geominf(r2,r1,p2,p1,param,basis);
-	  rswap = 1;
-	}
-	else if(fabs(param[2] > param[3])){
-          geominf(r2,r1,p1,p2,param,basis);
-	  rswap = 1;
-	}
-	else if(fabs(param[4] > param[5])){
-	  geominf(r1,r2,p2,p1,param,basis);
-	}
 	finf(param,flocal);
       }
       //Semi-infinite CNT with end at beginning of chain
       else if(end[i] == 1){
         geomsemi(r1,r2,p1,p2,qe,param,basis);
         if(param[0] > cutoff) continue;
-	if(fabs(param[2] > param[3]) && fabs(param[4] > param[5])){
-          geomsemi(r2,r1,p2,p1,qe,param,basis);
-	  rswap = 1;
-	}
-	else if(fabs(param[2] > param[3])){
-          geomsemi(r2,r1,p1,p2,qe,param,basis);
-	  rswap = 1;
-	}
-	else if(fabs(param[4] > param[5])){
-	  geomsemi(r1,r2,p2,p1,qe,param,basis);
-	}
 	fsemi(param,flocal);
       }
       //Semi-infinite CNT with end at end of chain
       else{
         geomsemi(r1,r2,p2,p1,qe,param,basis);
         if(param[0] > cutoff) continue;
-	if(fabs(param[2] > param[3]) && fabs(param[4] > param[5])){
-          geomsemi(r2,r1,p1,p2,qe,param,basis);
-	  rswap = 1;
-	}
-	else if(fabs(param[2] > param[3])){
-          geomsemi(r2,r1,p2,p1,qe,param,basis);
-	  rswap = 1;
-	}
-	else if(fabs(param[4] > param[5])){
-	  geomsemi(r1,r2,p1,p2,qe,param,basis);
-	}
 	fsemi(param,flocal);
       }
      
@@ -334,23 +301,27 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	      + flocal[1][2]*basis[2][2];
 
       //Add forces
-      if(rswap){
-        f[i1][0] += fglobal[1][0];
-        f[i1][1] += fglobal[1][1];
-        f[i1][2] += fglobal[1][2];
-        f[i2][0] += fglobal[0][0];
-        f[i2][1] += fglobal[0][1];
-        f[i2][2] += fglobal[0][2];
-      }
-      else{
-        f[i1][0] += fglobal[0][0];
-        f[i1][1] += fglobal[0][1];
-        f[i1][2] += fglobal[0][2];
-        f[i2][0] += fglobal[1][0];
-        f[i2][1] += fglobal[1][1];
-        f[i2][2] += fglobal[1][2];
-      }
+      f[i1][0] += fglobal[0][0];
+      f[i1][1] += fglobal[0][1];
+      f[i1][2] += fglobal[0][2];
+      f[i2][0] += fglobal[1][0];
+      f[i2][1] += fglobal[1][1];
+      f[i2][2] += fglobal[1][2];
       
+      //Compute energy
+      if(eflag_either){
+        if(end[i] == 0) evdwl = uinf(param);
+        else evdwl = usemi(param);
+
+	if(eflag_global){
+	  eng_vdwl += 0.5 * evdwl;
+	}
+	if(eflag_atom){
+	  eatom[i1] += 0.25 * evdwl;
+	  eatom[i2] += 0.25 * evdwl;
+	}
+      }
+
       //Compute virial
       if(vflag_atom){
         vatom[i1][0] += f[i1][0]*x[i1][0];
@@ -537,6 +508,8 @@ void PairMesoCNT::coeff(int narg, char **arg)
   spline_coeff(uinf_data,uinf_coeff,del_uinf,uinf_points);  
   spline_coeff(usemi_data,usemi_coeff,usemi_points);
   spline_coeff(phi_data,phi_coeff,delzeta_phi[0],delh_phi,phi_points);
+
+  printf("Coefficients computed!\n");
 
   //Define cutoffs
   int n = atom->ntypes;
@@ -1398,7 +1371,7 @@ double PairMesoCNT::uinf(double *param)
   double sin_alphasq = sin_alpha*sin_alpha;
   
   //Parallel case
-  if(sin_alphasq < SMALL){
+  if(sin_alphasq < SWITCH){
     return (xi2 - xi1) * spline(h,start_uinf,del_uinf,uinf_coeff,uinf_points)
 	    * qelectron;
   }
@@ -1469,7 +1442,7 @@ double PairMesoCNT::usemi(double *param)
   double a1 = omega * sin_alpha;
   double a2 = theta * etae;
 
-  int points = 100;
+  int points = QUADRATURE;
   double delxi = (xi2 - xi1) / (points - 1);
   
   double sum = 0;
@@ -1688,7 +1661,7 @@ void PairMesoCNT::fsemi(double *param, double **f)
     double u = c * spline(hbar,zetabar,starth_usemi,startxi_usemi,
 	delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
     double uh;
-    if(hbar < SMALL) uh = 0;
+    if(hbar == 0) uh = 0;
     else uh = c / hbar * dxspline(hbar,zetabar,starth_usemi,startxi_usemi,
 	delh_usemi,delxi_usemi,usemi_coeff,usemi_points);
     double uxi = c * dyspline(hbar,zetabar,starth_usemi,startxi_usemi,
@@ -1773,7 +1746,7 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
   scale3(psi,psim);
 
   //Parallel case
-  if(denom < SMALL){
+  if(denom < SWITCH){
     taur = dot3(delr,l);
     taup = 0;
   }
@@ -1866,7 +1839,7 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   rhoe = dot3(delpqe,m); 
 
   //Parallel case
-  if(denom < SMALL){
+  if(denom < SWITCH){
     taur = dot3(delr,l) - rhoe*psi;
     taup = -rhoe;
     etae = 0;

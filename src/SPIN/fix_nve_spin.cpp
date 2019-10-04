@@ -21,38 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
+#include "fix_nve_spin.h"
 #include <cstring>
-
 #include "atom.h"
-#include "atom_vec.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_nve_spin.h"
 #include "fix_precession_spin.h"
 #include "fix_langevin_spin.h"
 #include "fix_setforce_spin.h"
 #include "force.h"
-#include "math_vector.h"
-#include "math_extra.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "pair.h"
-#include "pair_hybrid.h"
 #include "pair_spin.h"
-#include "respa.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
-using namespace MathExtra;
 
 static const char cite_fix_nve_spin[] =
   "fix nve/spin command:\n\n"
@@ -105,12 +91,17 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // defining lattice_flag
 
+  // changing the lattice option, from (yes,no) -> (moving,frozen)
+  // for now, (yes,no) still works (to avoid user's confusions).
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"lattice") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix/NVE/spin command");
       if (strcmp(arg[iarg+1],"no") == 0) lattice_flag = 0;
+      else if (strcmp(arg[iarg+1],"frozen") == 0) lattice_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) lattice_flag = 1;
+      else if (strcmp(arg[iarg+1],"moving") == 0) lattice_flag = 1;
       else error->all(FLERR,"Illegal fix/NVE/spin command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix/NVE/spin command");
@@ -312,29 +303,37 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       comm->forward_comm();
       int i = stack_foot[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = forward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = forward_stacks[i];
+	}
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = backward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = backward_stacks[i];
+	}
       }
     }
   } else if (sector_flag == 0) {                // serial seq. update
     comm->forward_comm();                       // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++){           // advance quarter s for nlocal
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
     for (int i = nlocal-1; i >= 0; i--){        // advance quarter s for nlocal
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
   } else error->all(FLERR,"Illegal fix NVE/spin command");
 
@@ -357,29 +356,37 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       comm->forward_comm();
       int i = stack_foot[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = forward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = forward_stacks[i];
+	}
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
-        i = backward_stacks[i];
+        if (mask[i] & groupbit) {
+          ComputeInteractionsSpin(i);
+          AdvanceSingleSpin(i);
+          i = backward_stacks[i];
+	}
       }
     }
   } else if (sector_flag == 0) {                // serial seq. update
     comm->forward_comm();                       // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++){           // advance quarter s for nlocal-1
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
     for (int i = nlocal-1; i >= 0; i--){        // advance quarter s for nlocal-1
-      ComputeInteractionsSpin(i);
-      AdvanceSingleSpin(i);
+      if (mask[i] & groupbit) {
+        ComputeInteractionsSpin(i);
+        AdvanceSingleSpin(i);
+      }
     }
   } else error->all(FLERR,"Illegal fix NVE/spin command");
 
@@ -613,11 +620,11 @@ void FixNVESpin::AdvanceSingleSpin(int i)
 
   // renormalization (check if necessary)
 
-  //msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-  //scale = 1.0/sqrt(msq);
-  //sp[i][0] *= scale;
-  //sp[i][1] *= scale;
-  //sp[i][2] *= scale;
+  // msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+  // scale = 1.0/sqrt(msq);
+  // sp[i][0] *= scale;
+  // sp[i][1] *= scale;
+  // sp[i][2] *= scale;
 
   // comm. sp[i] to atoms with same tag (for serial algo)
 

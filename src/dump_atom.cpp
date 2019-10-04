@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_atom.h"
+#include <cstring>
 #include "domain.h"
 #include "atom.h"
 #include "update.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 
@@ -210,6 +209,10 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
 
 void DumpAtom::header_item(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -225,6 +228,10 @@ void DumpAtom::header_item(bigint ndump)
 
 void DumpAtom::header_item_triclinic(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");

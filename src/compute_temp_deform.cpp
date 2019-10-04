@@ -15,9 +15,9 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_deform.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_deform.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"
@@ -48,7 +48,7 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

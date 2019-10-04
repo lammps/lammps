@@ -20,7 +20,6 @@ AtomStyle(hybrid/kk,AtomVecHybridKokkos)
 #ifndef LMP_ATOM_VEC_HYBRID_KOKKOS_H
 #define LMP_ATOM_VEC_HYBRID_KOKKOS_H
 
-#include <cstdio>
 #include "atom_vec_kokkos.h"
 #include "kokkos_type.h"
 

@@ -15,13 +15,10 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "dihedral_zero.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "memory.h"
 #include "error.h"
 

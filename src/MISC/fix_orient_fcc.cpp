@@ -15,11 +15,11 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_orient_fcc.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <mpi.h>
-#include "fix_orient_fcc.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -27,7 +27,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
-#include "output.h"
 #include "force.h"
 #include "math_const.h"
 #include "citeme.h"

@@ -15,14 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_harmonic.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "dihedral_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
@@ -44,7 +42,7 @@ DihedralHarmonic::DihedralHarmonic(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralHarmonic::~DihedralHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(sign);

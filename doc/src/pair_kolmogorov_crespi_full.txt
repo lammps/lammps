@@ -13,7 +13,7 @@ pair_style kolmogorov/crespi/full command :h3
 pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function
+tap_flag = 0/1 to turn off/on the taper function :ul
 
 [Examples:]
 
@@ -43,8 +43,8 @@ when the tapper function is turned off. The formula of taper function
 can be found in pair style "ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
 
 NOTE: This potential (ILP) is intended for interlayer interactions between two
-different layers of graphene. To perform a realistic simulation, this potential 
-must be used in combination with intralayer potential, such as 
+different layers of graphene. To perform a realistic simulation, this potential
+must be used in combination with intralayer potential, such as
 "AIREBO"_pair_airebo.html or "Tersoff"_pair_tersoff.html potential.
 To keep the intralayer properties unaffected, the interlayer interaction
 within the same layers should be avoided. Hence, each atom has to have a layer
@@ -73,6 +73,22 @@ comparison of these parameters can be found in "(Ouyang)"_#Ouyang1.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
+
+This pair style tallies a breakdown of the total interlayer potential
+energy into sub-categories, which can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 2.
+The 2 values correspond to the following sub-categories:
+
+{E_vdW} = vdW (attractive) energy
+{E_Rep} = Repulsive energy :ol
+
+To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+
+compute 0 all pair kolmogorov/crespi/full
+variable Evdw  equal c_0\[1\]
+variable Erep  equal c_0\[2\]
+thermo_style custom step temp epair v_Erep v_Evdw :pre
 
 :line
 

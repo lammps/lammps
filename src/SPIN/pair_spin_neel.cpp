@@ -21,29 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_neel.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_neel.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -648,9 +643,7 @@ void PairSpinNeel::allocate()
   memory->create(q3,n+1,n+1,"pair/spin/soc/neel:q3");
 
   memory->create(cutsq,n+1,n+1,"pair/spin/soc/neel:cutsq");
-
 }
-
 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
@@ -699,11 +692,11 @@ void PairSpinNeel::read_restart(FILE *fp)
           fread(&g1[i][j],sizeof(double),1,fp);
           fread(&g1_mech[i][j],sizeof(double),1,fp);
           fread(&g2[i][j],sizeof(double),1,fp);
-          fread(&g2[i][j],sizeof(double),1,fp);
+          fread(&g3[i][j],sizeof(double),1,fp);
           fread(&q1[i][j],sizeof(double),1,fp);
           fread(&q1_mech[i][j],sizeof(double),1,fp);
           fread(&q2[i][j],sizeof(double),1,fp);
-          fread(&q2[i][j],sizeof(double),1,fp);
+          fread(&q3[i][j],sizeof(double),1,fp);
           fread(&cut_spin_neel[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);

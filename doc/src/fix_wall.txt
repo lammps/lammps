@@ -12,16 +12,18 @@ fix wall/lj126 command :h3
 fix wall/lj1043 command :h3
 fix wall/colloid command :h3
 fix wall/harmonic command :h3
+fix wall/morse command :h3
 
 [Syntax:]
 
 fix ID group-ID style face args ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-style = {wall/lj93} or {wall/lj126} or {wall/lj1043} or {wall/colloid} or {wall/harmonic} :l
+style = {wall/lj93} or {wall/lj126} or {wall/lj1043} or {wall/colloid} or {wall/harmonic} or {wall/morse} :l
 one or more face/arg pairs may be appended :l
 face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
-  args = coord epsilon sigma cutoff
+  args for styles {lj93} or {lj126} or {lj1043} or {colloid} or {harmonic} :l
+    args = coord epsilon sigma cutoff
     coord = position of wall = EDGE or constant or variable
       EDGE = current lo or hi edge of simulation box
       constant = number like 0.0 or -30.0 (distance units)
@@ -30,6 +32,19 @@ face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
       epsilon can be a variable (see below)
     sigma = size factor for wall-particle interaction (distance units)
       sigma can be a variable (see below)
+    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
+  args for style {morse} :l
+    args = coord D_0 alpha r_0 cutoff
+    coord = position of wall = EDGE or constant or variable
+      EDGE = current lo or hi edge of simulation box
+      constant = number like 0.0 or -30.0 (distance units)
+      variable = "equal-style variable"_variable.html like v_x or v_wiggle
+    D_0 = depth of the potential (energy units)
+      D_0 can be a variable (see below)
+    alpha = width factor for wall-particle interaction (1/distance units)
+      alpha can be a variable (see below)
+    r_0 = distance of the potential minimum from the face of region (distance units)
+      r_0 can be a variable (see below)
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {units} or {fld} :l
@@ -48,6 +63,7 @@ keyword = {units} or {fld} :l
 
 fix wallhi all wall/lj93 xlo -1.0 1.0 1.0 2.5 units box
 fix wallhi all wall/lj93 xhi EDGE 1.0 1.0 2.5
+fix wallhi all wall/morse xhi EDGE 1.0 1.0 1.0 2.5 units box
 fix wallhi all wall/lj126 v_wiggle 23.2 1.0 1.0 2.5
 fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858 :pre
 
@@ -79,6 +95,10 @@ For style {wall/harmonic}, the energy E is given by a harmonic spring
 potential:
 
 :c,image(Eqs/fix_wall_harmonic.jpg)
+
+For style {wall/morse}, the energy E is given by a Morse potential:
+
+:c,image(Eqs/pair_morse.jpg)
 
 In all cases, {r} is the distance from the particle to the wall at
 position {coord}, and Rc is the {cutoff} distance at which the
@@ -147,7 +167,13 @@ constant K, and has units (energy/distance^2).  The input parameter
 spring is at the {cutoff}.  This is a repulsive-only spring since the
 interaction is truncated at the {cutoff}
 
-For any wall, the {epsilon} and/or {sigma} parameter can be specified
+For the {wall/morse} style, the three parameters are in this order:
+{D_0} the depth of the potential, {alpha} the width parameter, and
+{r_0} the location of the minimum.  {D_0} has energy units, {alpha}
+inverse distance units, and {r_0} distance units.
+
+For any wall, the {epsilon} and/or {sigma} and/or {alpha} parameter can
+be specified
 as an "equal-style variable"_variable.html, in which case it should be
 specified as v_name, where name is the variable name.  As with a
 variable wall position, the variable is evaluated each timestep and

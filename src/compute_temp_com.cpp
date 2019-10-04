@@ -11,16 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_com.h"
+#include <mpi.h>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
 #include "domain.h"
-#include "lattice.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -39,7 +36,7 @@ ComputeTempCOM::ComputeTempCOM(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

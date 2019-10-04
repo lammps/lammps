@@ -17,12 +17,15 @@ if(PKG_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/min_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/min_linesearch_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
@@ -38,6 +41,7 @@ if(PKG_KOKKOS)
   # register kokkos-only styles
   RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
   RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
+  RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.h)
 
   if(PKG_USER-DPD)
     get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)

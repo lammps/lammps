@@ -129,6 +129,7 @@ accelerated styles exist.
 "colloid"_pair_colloid.html - integrated colloidal potential
 "comb"_pair_comb.html - charge-optimized many-body (COMB) potential
 "comb3"_pair_comb.html - charge-optimized many-body (COMB3) potential
+"cosine/squared"_pair_cosine_squared.html - Cooke-Kremer-Deserno membrane model potential
 "coul/cut"_pair_coul.html - cutoff Coulombic potential
 "coul/cut/soft"_pair_fep_soft.html - Coulombic potential with a soft core
 "coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
@@ -227,6 +228,7 @@ accelerated styles exist.
 "lj/smooth/linear"_pair_lj_smooth_linear.html - linear smoothed LJ potential
 "lj/switch3/coulgauss"_pair_lj_switch3_coulgauss - smoothed LJ vdW potential with Gaussian electrostatics
 "lj96/cut"_pair_lj96.html - Lennard-Jones 9/6 potential
+"local/density"_pair_local_density.html - generalized basic local density potential
 "lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "lubricate/poly"_pair_lubricate.html - hydrodynamic lubrication forces with polydispersity
 "lubricateU"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication Dynamics

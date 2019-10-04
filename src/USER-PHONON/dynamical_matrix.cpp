@@ -3,15 +3,15 @@
 //
 
 #include <mpi.h>
-#include <cstdlib>
+#include <cmath>
+#include <cstring>
 #include "dynamical_matrix.h"
 #include "atom.h"
-#include "modify.h"
 #include "domain.h"
 #include "comm.h"
+#include "error.h"
 #include "group.h"
 #include "force.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "bond.h"
 #include "angle.h"
@@ -24,7 +24,6 @@
 #include "timer.h"
 #include "finish.h"
 #include <algorithm>
-
 
 using namespace LAMMPS_NS;
 enum{REGULAR,ESKM};

@@ -15,18 +15,13 @@
    Contributing authors: Arben Jusufi, Axel Kohlmeyer (Temple U.)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_gauss_cut.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"

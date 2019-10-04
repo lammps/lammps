@@ -2438,6 +2438,14 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Compute gyration ID does not exist for compute gyration/shape} :dt
+
+Self-explanatory. Provide a valid compute ID. :dd
+
+{Compute gyration/shape compute ID does not point to a gyration compute} :dt
+
+Self-explanatory. Provide and ID of a compute gyration command. :dd
+
 {Compute ID for compute reduce does not exist} :dt
 
 Self-explanatory. :dd
@@ -4783,6 +4791,22 @@ Self-explanatory. :dd
 
 This fix option cannot be used with point particles. :dd
 
+{Fix langevin gjf and respa are not compatible} :dt
+
+Self-explanatory. :dd
+
+{Fix langevin gjf cannot have period equal to dt/2} :dt
+
+If the period is equal to dt/2 then division by zero will happen. :dd
+
+{Fix langevin gjf should come before fix nve} :dt
+
+Self-explanatory. :dd
+
+{Fix langevin gjf with tbias is not yet implemented with kokkos} :dt
+
+This option is not yet available. :dd
+
 {Fix langevin omega is not yet implemented with kokkos} :dt
 
 This option is not yet available. :dd
@@ -5777,6 +5801,16 @@ definitions. :dd
 
 The data file header lists improper but no improper types. :dd
 
+{Incompatible KIM Simulator Model} :dt
+
+The requested KIM Simulator Model was defined for a different MD code
+and thus is not compatible with LAMMPS. :dd
+
+{Incompatible units for KIM Simulator Model} :dt
+
+The selected unit style is not compatible with the requested KIM
+Simulator Model. :dd
+
 {Incomplete use of variables in create_atoms command} :dt
 
 The var and set options must be used together. :dd
@@ -5889,6 +5923,11 @@ The element names in the ADP file do not match those requested. :dd
 {Incorrect element names in EAM potential file} :dt
 
 The element names in the EAM file do not match those requested. :dd
+
+{Incorrect format of ... section in data file} :dt
+
+Number or type of values per line in the given section of the data file
+is not consistent with the requirements for this section. :dd
 
 {Incorrect format in COMB potential file} :dt
 
@@ -7042,6 +7081,12 @@ The atom style defined does not have this attribute. :dd
 
 The atom style defined does not have these attributes. :dd
 
+{KIM Simulator Model has no Model definition} :dt
+
+There is no model definition (key: model-defn) in the KIM Simulator
+Model.  Please contact the OpenKIM database maintainers to verify
+and potentially correct this. :dd
+
 {KOKKOS package does not yet support comm_style tiled} :dt
 
 Self-explanatory. :dd
@@ -7543,6 +7588,18 @@ The region keyword must be specified with this fix. :dd
 Self-explanatory. :dd
 
 {Must specify at least 2 types in fix atom/swap command} :dt
+
+Self-explanatory. :dd
+
+{Must use 'kim_style init' command before simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{Must use 'kim_style define' command after simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{Must use 'kim_style init' command before 'kim_style define'} :dt
 
 Self-explanatory. :dd
 
@@ -9488,6 +9545,11 @@ See the "read_data extra/special/per/atom" command
 (or the "create_box extra/special/per/atom" command)
 for info on how to leave space in the special bonds
 list to allow for additional bonds to be formed. :dd
+
+{Species XXX is not supported by this KIM Simulator Model} :dt
+
+The kim_style define command was referencing a species that is not
+present in the requested KIM Simulator Model. :dd
 
 {Specified processors != physical processors} :dt
 

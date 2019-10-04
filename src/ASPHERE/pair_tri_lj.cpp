@@ -11,11 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_tri_lj.h"
+#include <cmath>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_tri.h"

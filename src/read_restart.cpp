@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "read_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
 #include <dirent.h>
-#include "read_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -23,7 +22,6 @@
 #include "irregular.h"
 #include "update.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_read_restart.h"
 #include "group.h"
 #include "force.h"
@@ -736,8 +734,12 @@ void ReadRestart::header(int incompatible)
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
-      if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,"Restart file used different # of processors");
+      if (nprocs_file != comm->nprocs && me == 0) {
+        char msg[128];
+        snprintf(msg,128,"Restart file used different # of processors: %d vs. %d",
+                 nprocs_file,comm->nprocs);
+        error->warning(FLERR,msg);
+      }
 
     // don't set procgrid, warn if different
 

@@ -11,22 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_sphere_kokkos.h"
+#include <cmath>
+#include <cstring>
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
 #include "modify.h"
-#include "force.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
 #include "memory_kokkos.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -2548,16 +2547,16 @@ void AtomVecSphereKokkos::data_atom(double *coord, imageint imagetmp, char **val
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = ATOTAGINT(values[0]);
-  type[nlocal] = atoi(values[1]);
+  tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  radius[nlocal] = 0.5 * atof(values[2]);
+  radius[nlocal] = 0.5 * utils::numeric(FLERR,values[2],true,lmp);
   if (radius[nlocal] < 0.0)
     error->one(FLERR,"Invalid radius in Atoms section of data file");
 
-  double density = atof(values[3]);
+  double density = utils::numeric(FLERR,values[3],true,lmp);
   if (density <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -2592,11 +2591,11 @@ void AtomVecSphereKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
 int AtomVecSphereKokkos::data_atom_hybrid(int nlocal, char **values)
 {
-  radius[nlocal] = 0.5 * atof(values[0]);
+  radius[nlocal] = 0.5 * utils::numeric(FLERR,values[0],true,lmp);
   if (radius[nlocal] < 0.0)
     error->one(FLERR,"Invalid radius in Atoms section of data file");
 
-  double density = atof(values[1]);
+  double density = utils::numeric(FLERR,values[1],true,lmp);
   if (density <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
@@ -2618,12 +2617,12 @@ int AtomVecSphereKokkos::data_atom_hybrid(int nlocal, char **values)
 void AtomVecSphereKokkos::data_vel(int m, char **values)
 {
   atomKK->sync(Host,V_MASK|OMEGA_MASK);
-  h_v(m,0) = atof(values[0]);
-  h_v(m,1) = atof(values[1]);
-  h_v(m,2) = atof(values[2]);
-  h_omega(m,0) = atof(values[3]);
-  h_omega(m,1) = atof(values[4]);
-  h_omega(m,2) = atof(values[5]);
+  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
+  h_omega(m,0) = utils::numeric(FLERR,values[3],true,lmp);
+  h_omega(m,1) = utils::numeric(FLERR,values[4],true,lmp);
+  h_omega(m,2) = utils::numeric(FLERR,values[5],true,lmp);
   atomKK->modified(Host,V_MASK|OMEGA_MASK);
 }
 
@@ -2634,9 +2633,9 @@ void AtomVecSphereKokkos::data_vel(int m, char **values)
 int AtomVecSphereKokkos::data_vel_hybrid(int m, char **values)
 {
   atomKK->sync(Host,OMEGA_MASK);
-  omega[m][0] = atof(values[0]);
-  omega[m][1] = atof(values[1]);
-  omega[m][2] = atof(values[2]);
+  omega[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[2],true,lmp);
   atomKK->modified(Host,OMEGA_MASK);
   return 3;
 }

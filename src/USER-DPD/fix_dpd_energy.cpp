@@ -11,14 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_dpd_energy.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "error.h"
 #include "pair_dpd_fdt_energy.h"
 

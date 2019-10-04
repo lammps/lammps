@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_langevin_drude.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
+#include "fix_drude.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "input.h"
 #include "variable.h"
 #include "random_mars.h"
-#include "group.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"

@@ -21,28 +21,24 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
+#include "pair_spin_exchange.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_nve_spin.h"
 #include "force.h"
-#include "pair_hybrid.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_exchange.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -508,7 +504,7 @@ void PairSpinExchange::read_restart(FILE *fp)
           fread(&J1_mag[i][j],sizeof(double),1,fp);
           fread(&J1_mech[i][j],sizeof(double),1,fp);
           fread(&J2[i][j],sizeof(double),1,fp);
-          fread(&J2[i][j],sizeof(double),1,fp);
+          fread(&J3[i][j],sizeof(double),1,fp);
           fread(&cut_spin_exchange[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&J1_mag[i][j],1,MPI_DOUBLE,0,world);

@@ -52,7 +52,7 @@ such enhancements or derivative works thereof, in binary and source code form.
  * \brief Function implementations for the voronoicell and related classes. */
 
 #include <cmath>
-#include <cstring>
+#include <cstdio>
 #include <cstdlib>
 #include "ptm_voronoi_config.h"
 #include "ptm_voronoi_cell.h"

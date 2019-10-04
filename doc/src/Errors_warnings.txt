@@ -129,6 +129,16 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost} :dt
+
+The communication cutoff defaults to the maximum of what is inferred from
+pair and bond styles (will be zero, if none are defined) and what is specified
+via "comm_modify cutoff"_comm_modify.html (defaults to 0.0).  If this results
+to 0.0, no ghost atoms will be generated and LAMMPS may lose atoms or use
+incorrect periodic images of atoms in interaction lists.  To avoid, either use
+"pair style zero"_pair_zero.html with a suitable cutoff or use "comm_modify
+cutoff"_comm_modify.html. :dd
+
 {Communication cutoff is too small for SNAP micro load balancing, increased to %lf} :dt
 
 Self-explanatory. :dd
@@ -237,6 +247,10 @@ is required for systems like the one specified by the user. User input
 included one or more of the following: kspace, triclinic, a hybrid
 pair style, an eam pair style, or no "single" function for the pair
 style. :dd
+
+{Fix langevin gjf using random gaussians is not implemented with kokkos} :dt
+
+This will most likely cause errors in kinetic fluctuations.
 
 {Fix property/atom mol or charge w/out ghost communication} :dt
 

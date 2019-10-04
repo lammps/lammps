@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_rigid.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -31,29 +31,15 @@
 #include "force.h"
 #include "input.h"
 #include "variable.h"
-#include "output.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-enum{SINGLE,MOLECULE,GROUP};
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-
-#define MAXLINE 1024
-#define CHUNK 1024
-#define ATTRIBUTE_PERBODY 20
-
-#define TOLERANCE 1.0e-6
-#define EPSILON 1.0e-7
-
-#define SINERTIA 0.4            // moment of inertia prefactor for sphere
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
-#define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
+using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -605,21 +591,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   for (ibody = 0; ibody < nbody; ibody++)
     if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body");
-
-  // bitmasks for properties of extended particles
-
-  POINT = 1;
-  SPHERE = 2;
-  ELLIPSOID = 4;
-  LINE = 8;
-  TRIANGLE = 16;
-  DIPOLE = 32;
-  OMEGA = 64;
-  ANGMOM = 128;
-  TORQUE = 256;
-
-  MINUSPI = -MY_PI;
-  TWOPI = 2.0*MY_PI;
 
   // wait to setup bodies until first init() using current atom properties
 
@@ -1473,8 +1444,8 @@ void FixRigid::set_xv()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];
@@ -2019,8 +1990,8 @@ void FixRigid::setup_bodies_static()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         orient[i][0] = lbonus[line[i]].theta - theta_body;
-        while (orient[i][0] <= MINUSPI) orient[i][0] += TWOPI;
-        while (orient[i][0] > MY_PI) orient[i][0] -= TWOPI;
+        while (orient[i][0] <= -MY_PI) orient[i][0] += MY_2PI;
+        while (orient[i][0] > MY_PI) orient[i][0] -= MY_2PI;
         if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
       } else if (eflags[i] & TRIANGLE) {
         quatatom = tbonus[tri[i]].quat;

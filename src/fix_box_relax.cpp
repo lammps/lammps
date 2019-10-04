@@ -15,10 +15,9 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_box_relax.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_box_relax.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"

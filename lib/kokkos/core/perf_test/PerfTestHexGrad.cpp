@@ -253,12 +253,12 @@ struct HexGrad
     double dt_min = 0 ;
 
     Kokkos::parallel_for( count , Init( coord ) );
-    execution_space::fence();
+    execution_space().fence();
 
     for ( int i = 0 ; i < iter ; ++i ) {
       Kokkos::Timer timer ;
       Kokkos::parallel_for( count , HexGrad<execution_space>( coord , grad ) );
-      execution_space::fence();
+      execution_space().fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
       else dt_min = dt < dt_min ? dt : dt_min ;

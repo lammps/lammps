@@ -16,27 +16,23 @@
                          Oleg Sergeev (VNIIA, sergeev@vniia.ru)
 ------------------------------------------------------------------------- */
 
+#include "fix_reaxc_species.h"
+#include <mpi.h>
 #include <cstdlib>
-#include <cmath>
 #include <cstring>
 #include "fix_ave_atom.h"
-#include "fix_reaxc_species.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
-#include "pair_reaxc.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "comm.h"
 #include "force.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "reaxc_list.h"
+#include "pair_reaxc.h"
+#include "reaxc_defs.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

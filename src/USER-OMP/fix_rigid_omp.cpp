@@ -16,15 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_omp.h"
-
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "comm.h"
+#include "error.h"
 #include "domain.h"
-
-#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -32,14 +33,12 @@
 
 #include "math_extra.h"
 #include "math_const.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-enum{SINGLE,MOLECULE,GROUP};    // same as in FixRigid
-
-#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
+using namespace RigidConst;
 
 typedef struct { double x,y,z; } dbl3_t;
 
@@ -487,8 +486,8 @@ void FixRigidOMP::set_xv_thr()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];

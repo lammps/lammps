@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "dump_custom.h"
 #include <cstdlib>
 #include <cstring>
-#include "dump_custom.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -421,6 +420,10 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
 
 void DumpCustom::header_item(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -436,6 +439,10 @@ void DumpCustom::header_item(bigint ndump)
 
 void DumpCustom::header_item_triclinic(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");

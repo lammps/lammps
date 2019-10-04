@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_evaporate.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -25,7 +24,6 @@
 #include "force.h"
 #include "group.h"
 #include "random_park.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "error.h"
 

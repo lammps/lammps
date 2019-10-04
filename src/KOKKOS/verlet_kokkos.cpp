@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "verlet_kokkos.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "comm.h"
-#include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "force.h"
@@ -29,14 +27,9 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
-#include "fix.h"
 #include "timer.h"
 #include "memory_kokkos.h"
-#include "error.h"
 #include "kokkos.h"
-
-#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -150,7 +143,6 @@ void VerletKokkos::setup(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-
   if (atomKK->molecular) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
@@ -255,7 +247,6 @@ void VerletKokkos::setup_minimal(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-
   if (atomKK->molecular) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
@@ -292,7 +283,9 @@ void VerletKokkos::setup_minimal(int flag)
 
   if (force->newton) comm->reverse_comm();
 
+  lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
+  lmp->kokkos->auto_sync = 1;
   update->setupflag = 0;
 }
 

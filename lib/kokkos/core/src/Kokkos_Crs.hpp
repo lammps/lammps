@@ -187,7 +187,7 @@ class GetCrsTransposeCounts {
     using closure_type = Kokkos::Impl::ParallelFor<self_type, policy_type>;
     const closure_type closure(*this, policy_type(0, index_type(in.entries.size())));
     closure.execute();
-    execution_space::fence();
+    execution_space().fence();
   }
 };
 
@@ -266,7 +266,7 @@ class FillCrsTransposeEntries {
     using closure_type = Kokkos::Impl::ParallelFor<self_type, policy_type>;
     const closure_type closure(*this, policy_type(0, index_type(in.numRows())));
     closure.execute();
-    execution_space::fence();
+    execution_space().fence();
   }
 };
 

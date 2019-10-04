@@ -1,13 +1,12 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
-#include "memory.h"
 #include <cmath>
-#include <cstdlib>
 
 #define maxelt 5
 
 namespace LAMMPS_NS {
+class Memory;
 
 typedef enum { FCC, BCC, HCP, DIM, DIA, B1, C11, L12, B2 } lattice_t;
 
@@ -93,8 +92,9 @@ private:
   int augt1, ialloy, mix_ref_t, erose_form;
   int emb_lin_neg, bkgd_dyn;
   double gsmooth_factor;
-  int vind2D[3][3], vind3D[3][3][3];
-  int v2D[6], v3D[10];
+
+  int vind2D[3][3], vind3D[3][3][3];                  // x-y-z to Voigt-like index
+  int v2D[6], v3D[10];                                // multiplicity of Voigt index (i.e. [1] -> xy+yx = 2
 
   int nr, nrar;
   double dr, rdrar;
@@ -121,6 +121,7 @@ protected:
     else if (xi <= 0.0)
       return 0.0;
     else {
+      // ( 1.d0 - (1.d0 - xi)**4 )**2, but with better codegen
       a = 1.0 - xi;
       a *= a; a *= a;
       a = 1.0 - a;
@@ -187,6 +188,7 @@ protected:
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
   static double zbl(const double r, const int z1, const int z2);
+  double embedding(const double A, const double Ec, const double rhobar, double& dF) const;
   static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
 
   static void get_shpfcn(const lattice_t latt, double (&s)[3]);
@@ -230,21 +232,6 @@ public:
 
 static inline bool iszero(const double f) {
   return fabs(f) < 1e-20;
-}
-
-template <typename TYPE, size_t maxi, size_t maxj>
-static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v) {
-  for (size_t i = 0; i < maxi; i++)
-    for (size_t j = 0; j < maxj; j++)
-      arr[i][j] = v;
-}
-
-template <typename TYPE, size_t maxi, size_t maxj, size_t maxk>
-static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
-  for (size_t i = 0; i < maxi; i++)
-    for (size_t j = 0; j < maxj; j++)
-      for (size_t k = 0; k < maxk; k++)
-        arr[i][j][k] = v;
 }
 
 // Helper functions

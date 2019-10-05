@@ -275,6 +275,7 @@ Broadwell
 Broglie
 brownian
 brownw
+Broyden
 Bryantsev
 Btarget
 btype
@@ -988,6 +989,7 @@ gmask
 Gmask
 gneb
 GNEB
+Goldfarb
 googlemail
 Gordan
 GPa
@@ -1405,6 +1407,7 @@ Laupretre
 lavenderblush
 lawngreen
 lB
+lbfgs
 lbl
 LBtype
 lcbop
@@ -2041,6 +2044,7 @@ Orsi
 ortho
 orthonormal
 orthorhombic
+oso
 ot
 Otype
 Ouldridge
@@ -2514,6 +2518,7 @@ setvel
 sfftw
 Sg
 Shan
+Shanno
 shapex
 shapey
 shapez

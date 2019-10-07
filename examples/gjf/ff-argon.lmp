@@ -1,0 +1,20 @@
+#############################
+#Atoms types - mass - charge#
+#############################
+#@ 1 atom types #!THIS LINE IS NECESSARY DON'T SPEND HOURS FINDING THAT OUT!#
+
+variable Ar equal 1
+
+#############
+#Atom Masses#
+#############
+
+mass ${Ar}      39.903
+
+###########################
+#Pair Potentials - Tersoff#
+###########################
+
+pair_style      lj/cubic
+pair_coeff      * * 0.0102701 3.42
+

@@ -76,8 +76,8 @@ void ComputeCACQuadCount::compute_peratom()
     memory->destroy(quad_count);
     nmax = atom->nmax;
     memory->create(quad_count,nmax,"compute_CAC_quad_count: quad_count");
-    vector_atom = quad_count;
   }
+  vector_atom = quad_count;
   int nlocal = atom->nlocal;
   // compute quadrature counts for each CAC element in the group
   for (int i = 0; i < nlocal; i++) {
@@ -117,6 +117,11 @@ void ComputeCACQuadCount::compute_peratom()
 	  }
 	}
 	else{
+		//check if neighbor weights are zero; can happen due to lost atoms/elements.
+		//set to 1 so that weight errors don't precede checks for lost atoms
+		if(neighbor_weights[i][0]==0) neighbor_weights[i][0]=1;
+		if(neighbor_weights[i][1]==0) neighbor_weights[i][1]=1;
+		if(neighbor_weights[i][2]==0) neighbor_weights[i][2]=1;
 		if(atom->outer_neigh_flag)
 		quad_count[i]=neighbor_weights[i][2];
 		else

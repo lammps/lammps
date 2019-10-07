@@ -317,7 +317,7 @@ void CommCAC::setup()
         reduced_ebox[idim]=eboxes[eloop][idim]+cutghost[idim];
         reduced_ebox[idim+3]=eboxes[eloop][idim+3]-cutghost[idim];
         if(reduced_ebox[idim+3]-reduced_ebox[idim]>(1+PRDEPSILON)*prd[idim]+BOXEPSILON)
-        error->all(FLERR,"A finite element is larger than a periodic box dim; this causes material overlap");
+        error->one(FLERR,"A finite element is larger than a periodic box dim; this causes material overlap");
       }
   }
   //alter search range if larger than pbc simply due to element alteration
@@ -1367,24 +1367,20 @@ int i,j,n,m;
   // send sendnum counts to procs who recv from me except self
  // copy data to self if sendself is set
 
-    nsend = nsendproc[iswap] - sendself[iswap];
-    nrecv = nrecvproc[iswap] - sendself[iswap];
+  nsend = nsendproc[iswap] - sendself[iswap];
+  nrecv = nrecvproc[iswap] - sendself[iswap];
   //initialize expanded subbox
 
   //find maximum element overlap length in each swap direction
   //NOTE: CONVERT TO LAMBDA COORDS FOR TRICLINIC COMPATIBILITY
   for(int iebox=0; iebox<atom->neboxes; iebox++){
    current_ebox=eboxes[iebox];
-   
-
         for(int idim=0; idim<dimension; idim++){
           if(current_ebox[idim]<aug_box[idim])
           aug_box[idim]=current_ebox[idim];
           if(current_ebox[3+idim]>aug_box[3+idim])
           aug_box[3+idim]=current_ebox[3+idim];
         }
-    
-    
   }
   
   //send my expanded subbox to all my sendprocs (except self send cases)
@@ -2406,8 +2402,6 @@ void CommCAC::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 void CommCAC::box_drop_brick_full(int idim, double *lo, double *hi, int &indexme)
 {
   // NOTE: this is not triclinic compatible
-  // NOTE: these error messages are internal sanity checks
-  //       should not occur, can be removed at some point
 
   int pbc_bit;
   double subbox_size[3];
@@ -2423,8 +2417,8 @@ void CommCAC::box_drop_brick_full(int idim, double *lo, double *hi, int &indexme
   split_array[1]=ysplit;
   split_array[2]=zsplit;
   for(int i=0; i<dimension; i++){
-    xi[i]=(unsigned int) (lo[i]-boxlo[i])/subbox_size[i];
-    xf[i]=(unsigned int) (hi[i]-boxlo[i])/subbox_size[i];
+    xi[i]=static_cast<int> ((lo[i]-boxlo[i])/subbox_size[i]);
+    xf[i]=static_cast<int> ((hi[i]-boxlo[i])/subbox_size[i]);
     
      if(hi[i]==boxhi[i]) xf[i]=procgrid[i]-1;
      if(lo[i]==boxlo[i]) xi[i]=0;

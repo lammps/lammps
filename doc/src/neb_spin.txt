@@ -59,9 +59,9 @@ performance speed-up you would see with one or more physical
 processors per replica.  See the "Howto replica"_Howto_replica.html
 doc page for further discussion.
 
-NOTE: As explained below, a GNEB calculation performs a damped dynamics
-minimization across all the replicas.  The "spin"_min_spin.html
-style minimizer has to be defined in your input script.
+NOTE: As explained below, a GNEB calculation performs a
+minimization across all the replicas. One of the "spin"_min_spin.html
+style minimizers has to be defined in your input script. 
 
 When a GNEB calculation is performed, it is assumed that each replica
 is running the same system, though LAMMPS does not check for this.
@@ -170,10 +170,11 @@ command is issued.
 :line
 
 A NEB calculation proceeds in two stages, each of which is a
-minimization procedure, performed via damped dynamics.  To enable
-this, you must first define a damped spin dynamics
-"min_style"_min_style.html, using the {spin} style (see
-"min_spin"_min_spin.html for more information).
+minimization procedure.  To enable
+this, you must first define a
+"min_style"_min_style.html, using either the {spin},
+{spin/cg}, or {spin/lbfgs} style (see
+"min_spin"_min_spin.html for more information).  
 The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
 
@@ -357,6 +358,9 @@ by the verbose output option (as detailed in Appendix D of
 This command can only be used if LAMMPS was built with the SPIN
 package.  See the "Build package"_Build_package.html doc
 page for more info.
+
+For magnetic GNEB calculations, only {spin_none} value for {line} keyword can be used
+when styles {spin/cg} and {spin/lbfgs} are employed.
 
 :line
 

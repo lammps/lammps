@@ -16,6 +16,7 @@
 #include <cmath>
 #include "universe.h"
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
 #include "output.h"
@@ -80,7 +81,7 @@ void MinFire::reset_vectors()
 int MinFire::iterate(int maxiter)
 {
   bigint ntimestep;
-  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
+  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfloc,fdotfall;
   double scale1,scale2;
   double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
@@ -250,7 +251,10 @@ int MinFire::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      fdotf = fnorm_sqr();
+      if (normstyle == MAX) fdotf = fnorm_max();	// max force norm
+      else if (normstyle == INF) fdotf = fnorm_inf();	// inf force norm
+      else if (normstyle == TWO) fdotf = fnorm_sqr();	// Euclidean force 2-norm
+      else error->all(FLERR,"Illegal min_modify command");
       if (update->multireplica == 0) {
         if (fdotf < update->ftol*update->ftol) return FTOL;
       } else {

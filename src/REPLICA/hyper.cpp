@@ -255,10 +255,11 @@ void Hyper::command(int narg, char **arg)
   }
 
   // subset of quantities also available in fix hyper output
+  // set t_hyper to no-boost value when hyperenable is not set
 
   int nevent_running = 0;
   int nevent_atoms_running = 0;
-  double t_hyper = 0.0;
+  double t_hyper = update->dt * (update->endstep - update->beginstep);
   double avebonds = 0.0;
   double maxdrift = 0.0;
   double maxbondlen = 0.0;
@@ -306,8 +307,10 @@ void Hyper::command(int narg, char **arg)
       if (!out) continue;
       fprintf(out,"Cummulative quantities for fix hyper:\n");
       fprintf(out,"  hyper time = %g\n",t_hyper);
-      fprintf(out,"  time boost factor = %g\n", t_hyper / 
-              ((update->ntimestep-fix_hyper->ntimestep_initial)*update->dt));
+      if (hyperenable)
+        fprintf(out,"  time boost factor = %g\n", t_hyper / 
+                ((update->ntimestep-fix_hyper->ntimestep_initial)*update->dt));
+      else fprintf(out,"  time boost factor = 1\n");
       fprintf(out,"  event timesteps = %d\n",nevent_running);
       fprintf(out,"  # of atoms in events = %d\n",nevent_atoms_running);
       fprintf(out,"Quantities for this hyper run:\n");

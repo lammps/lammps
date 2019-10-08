@@ -338,28 +338,34 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   int nmax = atomKK->nmax;
 
+
   // create_mirror_view creates a host_view from device, not the
   // other way around! So we need this ugly manual memcpy.
 
-  double *body_buffer = new double[nmax];
+  int *body_buffer = new int[nmax];
   double *nrigid_buffer = new double[nbody];
-  double *tflag_buffer = new double[nbody];
-  double *fflag_buffer = new double[nbody];
+  double *tflag_buffer = new double[3*nbody];
+  double *fflag_buffer = new double[3*nbody];
 
-  memcpy(body_buffer,   body,   nmax*sizeof(double));
+  memcpy(body_buffer,   body,   nmax*sizeof(int));
   memcpy(nrigid_buffer, nrigid, nbody*sizeof(double));
-  memcpy(tflag_buffer,  tflag,  nbody*sizeof(double));
-  memcpy(fflag_buffer,  fflag,  nbody*sizeof(double));
+  memcpy(tflag_buffer,  tflag[0],  3*nbody*sizeof(double));
+  memcpy(fflag_buffer,  fflag[0],  3*nbody*sizeof(double));
 
   memoryKK->create_kokkos(k_body,   body,   nmax, "rigid/kk:body");
   memoryKK->create_kokkos(k_nrigid, nrigid, nbody, "rigid/kk:nrigid");
-  memoryKK->create_kokkos(k_tflag,  tflag,  nbody, "rigid/kk:tflag");
-  memoryKK->create_kokkos(k_fflag,  fflag,  nbody, "rigid/kk:fflag");
+  memoryKK->create_kokkos(k_tflag,  tflag,  nbody, 3, "rigid/kk:tflag");
+  memoryKK->create_kokkos(k_fflag,  fflag,  nbody, 3, "rigid/kk:fflag");
 
-  memcpy(body,   body_buffer,   nmax*sizeof(double));
+  // The call to grow_arrays has to be after the create_mirror_views because
+  // else the empty device arrays will be overwritten and the contents of the
+  // host will be lost.
+  grow_arrays(nmax);
+
+  memcpy(body,   body_buffer,   nmax*sizeof(int));
   memcpy(nrigid, nrigid_buffer, nbody*sizeof(double));
-  memcpy(tflag,  tflag_buffer,  nbody*sizeof(double));
-  memcpy(fflag,  fflag_buffer,  nbody*sizeof(double));
+  memcpy(tflag[0],  tflag_buffer,  3*nbody*sizeof(double));
+  memcpy(fflag[0],  fflag_buffer,  3*nbody*sizeof(double));
 
   k_body.modify<LMPHostType>();
   k_nrigid.modify<LMPHostType>();
@@ -371,11 +377,44 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   k_tflag.sync<DeviceType>();
   k_fflag.sync<DeviceType>();
 
-  // The call to grow_arrays has to be after the create_mirror_views because
-  // else the empty device arrays will be overwritten and the contents of the
-  // host will be lost.
+  delete [] body_buffer;
+  delete [] nrigid_buffer;
+  delete [] tflag_buffer;
+  delete [] fflag_buffer;
+
+
+  if (debug_output && comm->me == 0) {
+    fprintf(screen, "Body contains:\n");
+    for (int i = 0; i < nmax; ++i) {
+      fprintf(screen, "%d ", body[i]);
+    }
+    fprintf(screen, "\n");
+  }
+
+  /*
+  HAT::t_int_1d h_body(body, nmax);
+  k_body.h_view = h_body;
+  k_body.modify<LMPHostType>();
+  k_body.d_view = create_mirror_view(DeviceType(), k_body.h_view);
+
+  HAT::t_f_array h_tflag(*tflag, nbody, 3);
+  k_tflag.h_view = h_tflag;
+  k_tflag.modify<LMPHostType>();
+  k_tflag.d_view = create_mirror_view(DeviceType(), k_tflag.h_view);
+
+  HAT::t_f_array h_fflag(*fflag, nbody, 3);
+  k_fflag.h_view = h_fflag;
+  k_fflag.modify<LMPHostType>();
+  k_fflag.d_view = create_mirror_view(DeviceType(), k_fflag.h_view);
+
+  HAT::t_int_1d h_nrigid(nrigid, nbody);
+  k_nrigid.h_view = h_nrigid;
+  k_nrigid.modify<LMPHostType>();
+  k_nrigid.d_view = create_mirror_view(DeviceType(), k_nrigid.h_view);
+
   grow_arrays(nmax);
 
+  */
 
   memoryKK->create_kokkos(k_masstotal, masstotal, nbody, "rigid/kk:masstotal");
   memoryKK->create_kokkos(k_xcm,xcm,nbody,3,"rigid/kk:xcm");
@@ -1055,7 +1094,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 
       // x = displacement from center-of-mass, based on body orientation
       // v = vcm + omega around center-of-mass
-      /*
+
       auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
       auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
       auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
@@ -1068,8 +1107,16 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 
       auto ans = MathExtraKokkos::matvec(ex_space_ibody,ey_space_ibody,
                                          ez_space_ibody,l_displace_i);
-      */
 
+      l_x(i,0) = ans[0];
+      l_x(i,1) = ans[1];
+      l_x(i,2) = ans[2];
+
+      l_v(i,0) = l_omega(ibody,1)*l_x(i,2) - l_omega(ibody,2)*l_x(i,1) + l_vcm(ibody,0);
+      l_v(i,1) = l_omega(ibody,2)*l_x(i,0) - l_omega(ibody,0)*l_x(i,2) + l_vcm(ibody,1);
+      l_v(i,2) = l_omega(ibody,0)*l_x(i,1) - l_omega(ibody,1)*l_x(i,0) + l_vcm(ibody,2);
+
+      /*
       l_x(i,0) = l_ex_space(ibody,0)*l_displace(i,0) +
 	      l_ey_space(ibody,0)*l_displace(i,1) +
 	      l_ez_space(ibody,0)*l_displace(i,2);
@@ -1083,7 +1130,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
       l_v(i,0) = l_omega(ibody,1)*l_x(i,2) - l_omega(ibody,2)*l_x(i,1) + l_vcm(ibody,0);
       l_v(i,1) = l_omega(ibody,2)*l_x(i,0) - l_omega(ibody,0)*l_x(i,2) + l_vcm(ibody,1);
       l_v(i,2) = l_omega(ibody,0)*l_x(i,1) - l_omega(ibody,1)*l_x(i,0) + l_vcm(ibody,2);
-
+      */
       // add center of mass to displacement
       // map back into periodic box via xbox,ybox,zbox
       // for triclinic, add in box tilt factors as well
@@ -1466,8 +1513,6 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
   atomKK->k_v.modify<DeviceType>();
   atomKK->sync(execution_space, datamask_read);
 
-
-
   int nlocal = atomKK->nlocal;
   double xy, xz, yz;
   double xprd = domain->xprd;
@@ -1505,7 +1550,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
       const int ibody = l_body[i];
-      /*
+
       auto l_ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
       auto l_ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
       auto l_ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
@@ -1515,7 +1560,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
                                            l_ey_space_ibody,
                                            l_ez_space_ibody,
                                            l_displace_i);
-      */
+      /*
       double delta[3];
       delta[0] = l_ex_space(ibody,0)*l_displace(i,0) +
         l_ey_space(ibody,0)*l_displace(i,1) +
@@ -1526,7 +1571,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
       delta[2] = l_ex_space(ibody,2)*l_displace(i,0) +
         l_ey_space(ibody,2)*l_displace(i,1) +
         l_ez_space(ibody,2)*l_displace(i,2);
-
+      */
       double v0, v1, v2;
       if (evflag) {
         v0 = l_v(i,0);

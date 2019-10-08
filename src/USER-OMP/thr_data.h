@@ -97,6 +97,7 @@ class ThrData {
   double **vatom_dihed;
   double **vatom_imprp;
   double **vatom_kspce;
+  double **cvatom_angle;
 
   // per thread segments of various force or similar arrays
 

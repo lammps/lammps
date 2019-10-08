@@ -107,6 +107,11 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
     }
+    if (vflag & 8) {
+      thr->cvatom_angle = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_angle[0][0]),0,nall*9*sizeof(double));
+    }
   }
 
   if (thr_style & THR_DIHEDRAL) {
@@ -277,6 +282,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       }
       if (vflag & 4) {
         data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & 8) {
+        data_reduce_thr(&(angle->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -911,6 +919,77 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
         if (j < nlocal) v_tally(thr->vatom_angle[j],v);
         if (k < nlocal) v_tally(thr->vatom_angle[k],v);
       }
+    }
+  }
+
+  // per-atom centroid virial
+  if (angle->cvflag_atom) {
+    double f2[3], v1[9], v2[9], v3[9];
+    double a1[3], a2[3], a3[3];
+
+    // r0 = (r1+r2+r3)/3
+    // rij = ri-rj
+    // total virial = r10*f1 + r20*f2 + r30*f3
+    // del1: r12
+    // del2: r32
+
+    // a1 = r10 = (2*r12 -   r32)/3
+    a1[0] = THIRD*(2*delx1-delx2);
+    a1[1] = THIRD*(2*dely1-dely2);
+    a1[2] = THIRD*(2*delz1-delz2);
+
+    // a2 = r20 = ( -r12 -   r32)/3
+    a2[0] = THIRD*(-delx1-delx2);
+    a2[1] = THIRD*(-dely1-dely2);
+    a2[2] = THIRD*(-delz1-delz2);
+
+    // a3 = r30 = ( -r12 + 2*r32)/3
+    a3[0] = THIRD*(-delx1+2*delx2);
+    a3[1] = THIRD*(-dely1+2*dely2);
+    a3[2] = THIRD*(-delz1+2*delz2);
+
+    f2[0] = - f1[0] - f3[0];
+    f2[1] = - f1[1] - f3[1];
+    f2[2] = - f1[2] - f3[2];
+
+    v1[0] = a1[0]*f1[0];
+    v1[1] = a1[1]*f1[1];
+    v1[2] = a1[2]*f1[2];
+    v1[3] = a1[0]*f1[1];
+    v1[4] = a1[0]*f1[2];
+    v1[5] = a1[1]*f1[2];
+    v1[6] = a1[1]*f1[0];
+    v1[7] = a1[2]*f1[0];
+    v1[8] = a1[2]*f1[1];
+
+    v2[0] = a2[0]*f2[0];
+    v2[1] = a2[1]*f2[1];
+    v2[2] = a2[2]*f2[2];
+    v2[3] = a2[0]*f2[1];
+    v2[4] = a2[0]*f2[2];
+    v2[5] = a2[1]*f2[2];
+    v2[6] = a2[1]*f2[0];
+    v2[7] = a2[2]*f2[0];
+    v2[8] = a2[2]*f2[1];
+
+    v3[0] = a3[0]*f3[0];
+    v3[1] = a3[1]*f3[1];
+    v3[2] = a3[2]*f3[2];
+    v3[3] = a3[0]*f3[1];
+    v3[4] = a3[0]*f3[2];
+    v3[5] = a3[1]*f3[2];
+    v3[6] = a3[1]*f3[0];
+    v3[7] = a3[2]*f3[0];
+    v3[8] = a3[2]*f3[1];
+
+    if (newton_bond) {
+      v_tally9(thr->cvatom_angle[i],v1);
+      v_tally9(thr->cvatom_angle[j],v2);
+      v_tally9(thr->cvatom_angle[k],v3);
+    } else {
+      if (i < nlocal) v_tally9(thr->cvatom_angle[i],v1);
+      if (j < nlocal) v_tally9(thr->cvatom_angle[j],v2);
+      if (k < nlocal) v_tally9(thr->cvatom_angle[k],v3);
     }
   }
 }

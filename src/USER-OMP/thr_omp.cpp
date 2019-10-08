@@ -75,7 +75,9 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->eatom_pair[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    // per-atom virial and per-atom centroid virial are the same for pairwise
+    // many-body pair styles not yet implemented
+    if (vflag & 12) {
       thr->vatom_pair = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
@@ -227,7 +229,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       if (eflag & 2) {
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      // per-atom virial and per-atom centroid virial are the same for pairwise
+      // many-body pair styles not yet implemented
+      if (vflag & 12) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -368,10 +372,14 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       }
       if (vflag & 4) {
         data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
-        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
       if (vflag & 8) {
         data_reduce_thr(&(dihedral->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
+      // per-atom virial and per-atom centroid virial are the same for pairwise
+      // many-body pair styles not yet implemented
+      if (vflag & 12) {
+        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
     break;

@@ -781,6 +781,7 @@ erotate
 Ertas
 ervel
 Espanol
+eskm
 esu
 esub
 esw
@@ -2129,6 +2130,7 @@ ph
 Phillpot
 phiphi
 phonon
+phonons
 phophorous
 phosphide
 Phs

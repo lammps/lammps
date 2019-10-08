@@ -86,6 +86,7 @@ void angmom_to_omega(DAT::t_v_array m,
   w(ibody,2) = wbody[0]*ex(ibody,2) + wbody[1]*ey(ibody,2) + wbody[2]*ez(ibody,2);
 }
 
+
 template <typename a_arr_type, typename b_arr_type>
 KOKKOS_INLINE_FUNCTION
 void vecquat(a_arr_type a, b_arr_type b, double c[4])
@@ -824,15 +825,6 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
                                        l_ez_space,
                                        l_inertia, l_omega, ibody);
 
-      auto q_ibody  = Kokkos::subview(l_quat, ibody, Kokkos::ALL);
-      auto ex_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
-      auto ey_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
-      auto ez_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
-
-      auto angmom_ibody  = Kokkos::subview(l_angmom,  ibody, Kokkos::ALL);
-      auto omega_ibody   = Kokkos::subview(l_omega,   ibody, Kokkos::ALL);
-      auto inertia_ibody = Kokkos::subview(l_inertia, ibody, Kokkos::ALL);
-
       MathExtraKokkos::richardson(q_ibody, angmom_ibody,
                                   omega_ibody, inertia_ibody, dtq);
 
@@ -1094,7 +1086,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 
       // x = displacement from center-of-mass, based on body orientation
       // v = vcm + omega around center-of-mass
-
+      /*
       auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
       auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
       auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
@@ -1115,8 +1107,8 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
       l_v(i,0) = l_omega(ibody,1)*l_x(i,2) - l_omega(ibody,2)*l_x(i,1) + l_vcm(ibody,0);
       l_v(i,1) = l_omega(ibody,2)*l_x(i,0) - l_omega(ibody,0)*l_x(i,2) + l_vcm(ibody,1);
       l_v(i,2) = l_omega(ibody,0)*l_x(i,1) - l_omega(ibody,1)*l_x(i,0) + l_vcm(ibody,2);
+      */
 
-      /*
       l_x(i,0) = l_ex_space(ibody,0)*l_displace(i,0) +
 	      l_ey_space(ibody,0)*l_displace(i,1) +
 	      l_ez_space(ibody,0)*l_displace(i,2);
@@ -1130,7 +1122,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
       l_v(i,0) = l_omega(ibody,1)*l_x(i,2) - l_omega(ibody,2)*l_x(i,1) + l_vcm(ibody,0);
       l_v(i,1) = l_omega(ibody,2)*l_x(i,0) - l_omega(ibody,0)*l_x(i,2) + l_vcm(ibody,1);
       l_v(i,2) = l_omega(ibody,0)*l_x(i,1) - l_omega(ibody,1)*l_x(i,0) + l_vcm(ibody,2);
-      */
+
       // add center of mass to displacement
       // map back into periodic box via xbox,ybox,zbox
       // for triclinic, add in box tilt factors as well

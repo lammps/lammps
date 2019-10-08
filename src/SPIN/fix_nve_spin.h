@@ -52,7 +52,7 @@ friend class PairSpin;
 
   double dtv, dtf, dts;			// velocity, force, and spin timesteps
 
-  int nlocal_max;			// max value of nlocal (for lists size)
+  int nlocal_max;			// max value of nlocal (for size of lists)
 
   int pair_spin_flag;			// magnetic pair flags
   int long_spin_flag;			// magnetic long-range flag

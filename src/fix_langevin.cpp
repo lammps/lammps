@@ -240,7 +240,7 @@ void FixLangevin::init()
       if (strcmp(id,modify->fix[i]->id) == 0) before = 0;
       else if ((modify->fmask[i] && utils::strmatch(modify->fix[i]->style,"^nve")) && before) flag = 1;
     }
-    if (flag && comm->me == 0)
+    if (flag)
       error->all(FLERR,"Fix langevin gjf should come before fix nve");
   }
 
@@ -295,12 +295,12 @@ void FixLangevin::init()
       gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
       if (gjfflag)
         gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
-                    force->ftm2v;
+          sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       else
         gfactor2[i] = sqrt(atom->mass[i]) *
-                    sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
-                    force->ftm2v;
+          sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       gfactor1[i] *= 1.0/ratio[i];
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
     }
@@ -1007,11 +1007,20 @@ void FixLangevin::reset_dt()
 {
   if (atom->mass) {
     for (int i = 1; i <= atom->ntypes; i++) {
-      gfactor2[i] = sqrt(atom->mass[i]) *
-        sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
-        force->ftm2v;
+      if (gjfflag)
+        gfactor2[i] = sqrt(atom->mass[i]) *
+          sqrt(2.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
+      else
+        gfactor2[i] = sqrt(atom->mass[i]) *
+          sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) /
+          force->ftm2v;
       gfactor2[i] *= 1.0/sqrt(ratio[i]);
     }
+  }
+  if (gjfflag) {
+    gjfa = (1.0-update->dt/2.0/t_period)/(1.0+update->dt/2.0/t_period);
+    gjfsib = sqrt(1.0+update->dt/2.0/t_period);
   }
 }
 

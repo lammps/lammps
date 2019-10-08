@@ -88,7 +88,8 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->eatom_bond[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    // per-atom virial and per-atom centroid virial are the same for bonds
+    if (vflag & 12) {
       thr->vatom_bond = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_bond[0][0]),0,nall*6*sizeof(double));
@@ -242,7 +243,8 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       if (eflag & 2) {
         data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      // per-atom virial and per-atom centroid virial are the same for bonds
+      if (vflag & 12) {
         data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
       }
 

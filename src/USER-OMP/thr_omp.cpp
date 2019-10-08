@@ -143,6 +143,11 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
     }
+    if (vflag & 8) {
+      thr->cvatom_imprp = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_imprp[0][0]),0,nall*9*sizeof(double));
+    }
   }
 
   // nothing to do for THR_KSPACE
@@ -397,6 +402,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       }
       if (vflag & 4) {
         data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & 8) {
+        data_reduce_thr(&(improper->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -1333,6 +1341,96 @@ void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
       }
     }
   }
+
+  // per-atom centroid virial
+  if (imprp->cvflag_atom) {
+    double f2[3], v1[9], v2[9], v3[9], v4[9];
+    double a1[3], a2[3], a3[3], a4[3];
+
+    // r0 = (r1+r2+r3+r4)/4
+    // rij = ri-rj
+    // total virial = r10*f1 + r20*f2 + r30*f3 + r40*f4
+    // vb1: r12
+    // vb2: r32
+    // vb3: r43
+
+    // a1 = r10 = (3*r12 - 2*r32 -   r43)/4
+    a1[0] = 0.25*(3*vb1x - 2*vb2x - vb3x);
+    a1[1] = 0.25*(3*vb1y - 2*vb2y - vb3y);
+    a1[2] = 0.25*(3*vb1z - 2*vb2z - vb3z);
+
+    // a2 = r20 = ( -r12 - 2*r32 -   r43)/4
+    a2[0] = 0.25*(-vb1x - 2*vb2x - vb3x);
+    a2[1] = 0.25*(-vb1y - 2*vb2y - vb3y);
+    a2[2] = 0.25*(-vb1z - 2*vb2z - vb3z);
+
+    // a3 = r30 = ( -r12 + 2*r32 -   r43)/4
+    a3[0] = 0.25*(-vb1x + 2*vb2x - vb3x);
+    a3[1] = 0.25*(-vb1y + 2*vb2y - vb3y);
+    a3[2] = 0.25*(-vb1z + 2*vb2z - vb3z);
+
+    // a4 = r40 = ( -r12 + 2*r32 + 3*r43)/4
+    a4[0] = 0.25*(-vb1x + 2*vb2x + 3*vb3x);
+    a4[1] = 0.25*(-vb1y + 2*vb2y + 3*vb3y);
+    a4[2] = 0.25*(-vb1z + 2*vb2z + 3*vb3z);
+
+    f2[0] = - f1[0] - f3[0] - f4[0];
+    f2[1] = - f1[1] - f3[1] - f4[1];
+    f2[2] = - f1[2] - f3[2] - f4[2];
+
+    v1[0] = a1[0]*f1[0];
+    v1[1] = a1[1]*f1[1];
+    v1[2] = a1[2]*f1[2];
+    v1[3] = a1[0]*f1[1];
+    v1[4] = a1[0]*f1[2];
+    v1[5] = a1[1]*f1[2];
+    v1[6] = a1[1]*f1[0];
+    v1[7] = a1[2]*f1[0];
+    v1[8] = a1[2]*f1[1];
+
+    v2[0] = a2[0]*f2[0];
+    v2[1] = a2[1]*f2[1];
+    v2[2] = a2[2]*f2[2];
+    v2[3] = a2[0]*f2[1];
+    v2[4] = a2[0]*f2[2];
+    v2[5] = a2[1]*f2[2];
+    v2[6] = a2[1]*f2[0];
+    v2[7] = a2[2]*f2[0];
+    v2[8] = a2[2]*f2[1];
+
+    v3[0] = a3[0]*f3[0];
+    v3[1] = a3[1]*f3[1];
+    v3[2] = a3[2]*f3[2];
+    v3[3] = a3[0]*f3[1];
+    v3[4] = a3[0]*f3[2];
+    v3[5] = a3[1]*f3[2];
+    v3[6] = a3[1]*f3[0];
+    v3[7] = a3[2]*f3[0];
+    v3[8] = a3[2]*f3[1];
+
+    v4[0] = a4[0]*f4[0];
+    v4[1] = a4[1]*f4[1];
+    v4[2] = a4[2]*f4[2];
+    v4[3] = a4[0]*f4[1];
+    v4[4] = a4[0]*f4[2];
+    v4[5] = a4[1]*f4[2];
+    v4[6] = a4[1]*f4[0];
+    v4[7] = a4[2]*f4[0];
+    v4[8] = a4[2]*f4[1];
+
+    if (newton_bond) {
+      v_tally9(thr->cvatom_imprp[i1],v1);
+      v_tally9(thr->cvatom_imprp[i2],v2);
+      v_tally9(thr->cvatom_imprp[i3],v3);
+      v_tally9(thr->cvatom_imprp[i4],v4);
+    } else {
+      if (i1 < nlocal) v_tally9(thr->cvatom_imprp[i1],v1);
+      if (i2 < nlocal) v_tally9(thr->cvatom_imprp[i2],v2);
+      if (i3 < nlocal) v_tally9(thr->cvatom_imprp[i3],v3);
+      if (i4 < nlocal) v_tally9(thr->cvatom_imprp[i4],v4);
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------

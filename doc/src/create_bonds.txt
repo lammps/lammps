@@ -23,13 +23,13 @@ style = {many} or {single/bond} or {single/angle} or {single/dihedral} :ule,l
     btype = bond type of new bond
     batom1,batom2 = atom IDs for two atoms in bond
   {single/angle} args = atype aatom1 aatom2 aatom3
-    atype = bond type of new angle
+    atype = angle type of new angle
     aatom1,aatom2,aatom3 = atom IDs for three atoms in angle
   {single/dihedral} args = dtype datom1 datom2 datom3 datom4
-    dtype = bond type of new dihedral
+    dtype = dihedral type of new dihedral
     datom1,datom2,datom3,datom4 = atom IDs for four atoms in dihedral
   {single/improper} args = itype iatom1 iatom2 iatom3 iatom4
-    itype = bond type of new improper
+    itype = improper type of new improper
     iatom1,iatom2,iatom3,iatom4 = atom IDs for four atoms in improper :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {special} :l
@@ -177,7 +177,7 @@ to only trigger the internal list to be created once, after the last
 bond (or angle, or dihedral, or improper) is added:
 
 create_bonds single/bond 5 52 98 special no
-create_bonds single/bond  5 73 74 special no
+create_bonds single/bond 5 73 74 special no
 ...
 create_bonds single/bond 5 17 386 special no
 create_bonds single/bond 4 112 183 special yes :pre

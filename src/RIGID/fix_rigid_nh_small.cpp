@@ -34,17 +34,12 @@
 #include "kspace.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
-
-enum{NONE,XYZ,XY,YZ,XZ};     // same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
-
-#define EPSILON 1.0e-7
-
-enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
+using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 

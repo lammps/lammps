@@ -75,6 +75,8 @@ class Dump : protected Pointers {
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
+  int unit_flag;             // 1 if dump should contain unit information
+  int unit_count;            // # of times the unit information was written
   int delay_flag;            // 1 if delay output until delaystep
   bigint delaystep;
 

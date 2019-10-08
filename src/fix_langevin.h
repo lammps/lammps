@@ -31,8 +31,7 @@ class FixLangevin : public Fix {
   int setmask();
   void init();
   void setup(int);
-  //virtual void initial_integrate(int);
-  virtual void post_integrate();
+  virtual void initial_integrate(int);
   virtual void post_force(int);
   void post_force_respa(int, int, int);
   virtual void end_of_step();
@@ -48,7 +47,7 @@ class FixLangevin : public Fix {
   int unpack_exchange(int, double *);
 
  protected:
-  int gjfflag,oflag,tallyflag,zeroflag,tbiasflag,hsflag;
+  int gjfflag,nvalues,osflag,oflag,tallyflag,zeroflag,tbiasflag;
   int flangevin_allocated;
   double ascale;
   double t_start,t_stop,t_period,t_target;
@@ -56,7 +55,7 @@ class FixLangevin : public Fix {
   double energy,energy_onestep;
   double tsqrt;
   int tstyle,tvar;
-  double gjffac;
+  double gjfa, gjfsib; //gjf a and gjf sqrt inverse b
   char *tstr;
 
   class AtomVecEllipsoid *avec;
@@ -65,10 +64,7 @@ class FixLangevin : public Fix {
   double **flangevin;
   double *tforce;
   double **franprev;
-  double **lv;  //2GJ velocity or half-step velocity
-  double **wildcard;
-
-  int nvalues;
+  double **lv; //half step velocity
 
   char *id_temp;
   class Compute *temperature;
@@ -143,6 +139,18 @@ The compute ID for computing temperature does not exist.
 E: Fix_modify temperature ID does not compute temperature
 
 The compute ID assigned to the fix must compute temperature.
+
+E: Fix langevin gjf cannot have period equal to dt/2
+
+If the period is equal to dt/2 then division by zero will happen.
+
+E: Fix langevin gjf should come before fix nve
+
+Self-explanatory
+
+E: Fix langevin gjf and respa are not compatible
+
+Self-explanatory
 
 W: Group for fix_modify temp != fix group
 

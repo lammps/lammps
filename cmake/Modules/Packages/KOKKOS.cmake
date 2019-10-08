@@ -1,4 +1,7 @@
 if(PKG_KOKKOS)
+  # TODO: this option needs to be documented when this works with a
+  # regular release version of KOKKOS, and a version compatibility check
+  # of external KOKKOS lib versus what the KOKKOS package needs is required.
   option(EXTERNAL_KOKKOS "Build against external kokkos library")
   if(EXTERNAL_KOKKOS)
     find_package(Kokkos REQUIRED)

@@ -88,7 +88,7 @@ void FixNHKokkos<DeviceType>::init()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNHKokkos<DeviceType>::setup(int vflag)
+void FixNHKokkos<DeviceType>::setup(int /* vflag */)
 {
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
@@ -135,12 +135,16 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
   // masses and initial forces on thermostat variables
 
   if (tstat_flag) {
-    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
-      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++) {
-      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
-                         boltz * t_target) / eta_mass[ich];
+    if (logistic_flag) { // logistic enforces mtchain = 1
+      eta_mass[0] = tdof * boltz * t_target / t_freq;
+    } else {
+      eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+      for (int ich = 1; ich < mtchain; ich++)
+        eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+      for (int ich = 1; ich < mtchain; ich++) {
+        eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
+                           boltz * t_target) / eta_mass[ich];
+      }
     }
   }
 
@@ -162,15 +166,18 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
   // masses and initial forces on barostat thermostat variables
 
     if (mpchain) {
-      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-        etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-        etap_dotdot[ich] =
-          (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
-           boltz * t_target) / etap_mass[ich];
+      if (logistic_flag) { // logistic enforces mpchain = 1
+        etap_mass[0] = boltz * t_target / p_freq_max;
+      } else {
+        etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
+        for (int ich = 1; ich < mpchain; ich++)
+          etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
+        for (int ich = 1; ich < mpchain; ich++)
+          etap_dotdot[ich] =
+            (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
+             boltz * t_target) / etap_mass[ich];
+      }
     }
-
   }
 }
 
@@ -179,17 +186,21 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNHKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNHKokkos<DeviceType>::initial_integrate(int /* vflag */)
 {
   // update eta_press_dot
 
-  if (pstat_flag && mpchain) nhc_press_integrate();
+  if (pstat_flag && mpchain) {
+    if (logistic_flag) logistic_press_integrate();
+    else nhc_press_integrate();
+  }
 
   // update eta_dot
 
   if (tstat_flag) {
     compute_temp_target();
-    nhc_temp_integrate();
+    if (logistic_flag) logistic_temp_integrate();
+    else nhc_temp_integrate();
   }
 
   // need to recompute pressure to account for change in KE
@@ -283,8 +294,15 @@ void FixNHKokkos<DeviceType>::final_integrate()
   // update eta_dot
   // update eta_press_dot
 
-  if (tstat_flag) nhc_temp_integrate();
-  if (pstat_flag && mpchain) nhc_press_integrate();
+  if (tstat_flag) {
+    if (logistic_flag) logistic_temp_integrate();
+    else nhc_temp_integrate();
+  }
+
+  if (pstat_flag && mpchain) {
+    if (logistic_flag) logistic_press_integrate();
+    else nhc_press_integrate();
+  }
 }
 
 /* ----------------------------------------------------------------------

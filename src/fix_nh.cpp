@@ -33,6 +33,7 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -110,6 +111,10 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   // used by FixNVTSllod to preserve non-default value
 
   mtchain_default_flag = 1;
+
+  // used for logistic thermostat to preserve non-default value
+
+  int mpchain_default_flag = 1;
 
   tstat_flag = 0;
   double t_period = 0.0;
@@ -285,6 +290,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       mpchain = force->inumeric(FLERR,arg[iarg+1]);
+      mpchain_default_flag = 0;
       if (mpchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
@@ -364,8 +370,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     // logistic thermostat flag
 
     } else if (strcmp(arg[iarg],"logistic") == 0) {
-      logistic_flag = 1;
-      iarg++;
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) logistic_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) logistic_flag = 0;
+      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }
 
@@ -504,6 +513,29 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       pre_exchange_flag = 1;
   }
 
+  // checks and overriding defaults for logistic thermostat
+
+  if (logistic_flag) {
+    if (tstat_flag) {
+      if (!mtk_flag)
+        error->all(FLERR,"Cannot use 'mtk no' with 'logistic yes'");
+
+      if (!mtchain_default_flag && mtchain != 1)
+        error->all(FLERR,"Must use 'tchain 1' with 'logistic yes'");
+
+      if (mtchain_default_flag) mtchain = 1;
+    }
+
+    if (pstat_flag) {
+      if (!mpchain_default_flag && mpchain != 1)
+        error->all(FLERR,"Must use 'pchain 1' with 'logistic yes'");
+      if (mpchain_default_flag) mpchain = 1;
+    }
+
+    if (drag != 0.0)
+      error->all(FLERR,"Cannot not use 'drag != 0.0' with 'logistic yes'");
+  }
+
   // convert input periods to frequencies
 
   t_freq = 0.0;
@@ -522,31 +554,23 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 0;
 
   if (tstat_flag) {
+    eta = new double[mtchain];
+    eta_dotdot = new double[mtchain];
+    eta_mass = new double[mtchain];
+
     if (logistic_flag) {
-      drag = 0.0;
-      mtk_flag = 1;
-      mtchain = 1;
-      eta = new double[mtchain];
       eta_dot = new double[mtchain];
-      eta_dotdot = new double[mtchain];
-      eta[0] = eta_dot[0] = eta_dotdot[0] = 0.0;
-      eta_mass = new double[mtchain];
-      size_vector += 2*2*mtchain;
     } else {
-      int ich;
-      eta = new double[mtchain];
-
-      // add one extra dummy thermostat, set to zero
-
+      // add one extra dummy thermostat for N-H, set to zero
       eta_dot = new double[mtchain+1];
       eta_dot[mtchain] = 0.0;
-      eta_dotdot = new double[mtchain];
-      for (ich = 0; ich < mtchain; ich++) {
-        eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
-      }
-      eta_mass = new double[mtchain];
-      size_vector += 2*2*mtchain;
     }
+
+    int ich;
+    for (ich = 0; ich < mtchain; ich++) {
+      eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
+    }
+    size_vector += 2*2*mtchain;
   }
 
   if (pstat_flag) {
@@ -561,30 +585,24 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     else if (pstyle == TRICLINIC) size_vector += 2*2*6;
 
     if (mpchain) {
+      etap = new double[mpchain];
+      etap_dotdot = new double[mpchain];
+      etap_mass = new double[mpchain];
+
       if (logistic_flag) {
-         mpchain = 1;
-         etap = new double[mpchain];
-         etap_dot = new double[mpchain];
-         etap_dotdot = new double[mpchain];
-         etap[0] = etap_dot[0] = etap_dotdot[0] = 0.0;
-         etap_mass = new double[mpchain];
-         size_vector += 2*2*mpchain;
-       } else {
-         int ich;
-         etap = new double[mpchain];
+        etap_dot = new double[mpchain];
+      } else {
 
          // add one extra dummy thermostat, set to zero
-
-         etap_dot = new double[mpchain+1];
-         etap_dot[mpchain] = 0.0;
-         etap_dotdot = new double[mpchain];
-         for (ich = 0; ich < mpchain; ich++) {
-           etap[ich] = etap_dot[ich] =
-           etap_dotdot[ich] = 0.0;
-         }
-         etap_mass = new double[mpchain];
-         size_vector += 2*2*mpchain;
+        etap_dot = new double[mpchain+1];
+        etap_dot[mpchain] = 0.0;
       }
+
+      int ich;
+      for (ich = 0; ich < mpchain; ich++)
+        etap[ich] = etap_dot[ich] = etap_dotdot[ich] = 0.0;
+
+      size_vector += 2*2*mpchain;
     }
 
     if (deviatoric_flag) size_vector += 1;
@@ -811,7 +829,7 @@ void FixNH::setup(int /*vflag*/)
   // masses and initial forces on thermostat variables
 
   if (tstat_flag) {
-    if (logistic_flag) {
+    if (logistic_flag) { // logistic enforces mtchain = 1
       eta_mass[0] = tdof * boltz * t_target / t_freq;
     } else {
       eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
@@ -819,7 +837,7 @@ void FixNH::setup(int /*vflag*/)
         eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
       for (int ich = 1; ich < mtchain; ich++) {
         eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
-                         boltz * t_target) / eta_mass[ich];
+                           boltz * t_target) / eta_mass[ich];
       }
     }
   }
@@ -839,10 +857,10 @@ void FixNH::setup(int /*vflag*/)
         if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
     }
 
-  // masses and initial forces on barostat thermostat variables
+    // masses and initial forces on barostat thermostat variables
 
     if (mpchain) {
-      if (logistic_flag) {
+      if (logistic_flag) { // logistic enforces mpchain = 1
         etap_mass[0] = boltz * t_target / p_freq_max;
       } else {
         etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
@@ -866,22 +884,16 @@ void FixNH::initial_integrate(int /*vflag*/)
   // update eta_press_dot
 
   if (pstat_flag && mpchain) {
-    if (logistic_flag) {
-      logistic_press_integrate();
-    } else {
-      nhc_press_integrate();
-    }
+    if (logistic_flag) logistic_press_integrate();
+    else nhc_press_integrate();
   }
 
   // update eta_dot
 
   if (tstat_flag) {
     compute_temp_target();
-    if (logistic_flag) {
-      logistic_temp_integrate();
-    } else {
-      nhc_temp_integrate();
-    }
+    if (logistic_flag) logistic_temp_integrate();
+    else nhc_temp_integrate();
   }
 
   // need to recompute pressure to account for change in KE
@@ -968,19 +980,13 @@ void FixNH::final_integrate()
   // update eta_press_dot
 
   if (tstat_flag) {
-    if (logistic_flag) {
-      logistic_temp_integrate();
-    } else {
-      nhc_temp_integrate();
-    }
+    if (logistic_flag) logistic_temp_integrate();
+    else nhc_temp_integrate();
   }
 
   if (pstat_flag && mpchain) {
-    if (logistic_flag) {
-      logistic_press_integrate();
-    } else {
-      nhc_press_integrate();
-    }
+    if (logistic_flag) logistic_press_integrate();
+    else nhc_press_integrate();
   }
 }
 
@@ -1003,22 +1009,16 @@ void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
     // update eta_press_dot
 
     if (pstat_flag && mpchain) {
-      if (logistic_flag) {
-        logistic_press_integrate();
-      } else {
-        nhc_press_integrate();
-      }
+      if (logistic_flag) logistic_press_integrate();
+      else nhc_press_integrate();
     }
 
     // update eta_dot
 
     if (tstat_flag) {
       compute_temp_target();
-      if (logistic_flag) {
-        logistic_temp_integrate();
-      } else {
-        nhc_temp_integrate();
-      }
+      if (logistic_flag) logistic_temp_integrate();
+      else nhc_temp_integrate();
     }
 
     // recompute pressure to account for change in KE
@@ -2556,9 +2556,8 @@ void FixNH::logistic_press_integrate()
     }
   }
 
-  if (etap_mass_flag) {
+  if (etap_mass_flag)
     etap_mass[0] = boltz * t_target / p_freq_max;
-  }
 
   kecurrent = 0.0;
   for (i = 0; i < 3; i++)
@@ -2570,15 +2569,12 @@ void FixNH::logistic_press_integrate()
   }
 
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
-
   etap_dot[0] += etap_dotdot[0] * dt4;
 
   logistic_scaling = dthalf*kt*tanh(0.5*etap_dot[0]);
-
   etap[0] += logistic_scaling;
 
   factor_etap = exp(-logistic_scaling);
-
   for (i = 0; i < 3; i++)
     if (p_flag[i]) omega_dot[i] *= factor_etap;
 
@@ -2609,5 +2605,5 @@ double FixNH::logistic_term(double a)
 {
  double b;
  b = exp(a);
- return log(b/pow(1+b,2));
+ return log(b/MathSpecial::square(1.0+b));
 }

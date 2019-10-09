@@ -131,7 +131,7 @@ class FixNH : public Fix {
   void logistic_temp_integrate();  // logistic thermostat on particles
   void logistic_press_integrate(); // logistic thermostat on barostat
   double logistic_term(double);
-  
+
   virtual void nve_x();            // may be overwritten by child classes
   virtual void nve_v();
   virtual void nh_v_press();
@@ -281,5 +281,4 @@ U: The dlm flag must be used with update dipole
 
 Self-explanatory.
 
-U: The logistic flag apply thermostat on particles and/or barostat
 */

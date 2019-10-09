@@ -97,7 +97,7 @@ double ComputeNodalTemp::compute_scalar()
 
 	  for (int i = 0; i < nlocal; i++) {
 		  
-			  if (mask[i] & groupbit)
+			  if (mask[i] & groupbit){
            nodes_per_element = nodes_count_list[element_type[i]];
 				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
 					  for (int n = 0; n < nodes_per_element; n++)
@@ -105,14 +105,14 @@ double ComputeNodalTemp::compute_scalar()
 							  + nodal_velocities[i][n][ipoly][1] * nodal_velocities[i][n][ipoly][1]
 							  + nodal_velocities[i][n][ipoly][2] * nodal_velocities[i][n][ipoly][2])
 						  * rmass[i] / nodes_per_element / poly_count[i];
-		  
+        }
 	  }
   }
   else {
 	  
 	  for (int i = 0; i < nlocal; i++) {
 
-			  if (mask[i] & groupbit)
+			  if (mask[i] & groupbit){
          nodes_per_element = nodes_count_list[element_type[i]];
 				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
 					  for (int n = 0; n < nodes_per_element; n++)
@@ -120,7 +120,7 @@ double ComputeNodalTemp::compute_scalar()
 							  + nodal_velocities[i][n][ipoly][1] * nodal_velocities[i][n][ipoly][1]
 							  + nodal_velocities[i][n][ipoly][2] * nodal_velocities[i][n][ipoly][2])*
 						  mass[node_types[i][ipoly]] / nodes_per_element / poly_count[i];
-		  
+        }
 	  }
   }
 

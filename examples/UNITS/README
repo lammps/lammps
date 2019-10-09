@@ -33,15 +33,20 @@ unscaled back to LJ units.  So that you can see the outputs are the
 same if you examine the log files.  Comments about this comparison
 are at the bottom of the real and metal scripts.
 
-If you understand LJ reduced units (see Allen & Tildesley's Computer
-Simulation of Liquids, Appendix B for a nice discussion), and you
-study these scripts, you should be able to convert an input script in
-one set of units to an identical input script in an alternate set of
-units.  Where "identical" means it runs the same simulation in a
-statistical sense.  For example you could easily define conversion
-factors from real to metal units or vice versa, and use them to scale
-inputs and outputs in one script to produce a script in alternate
-units.
+These 3 scripts are provided, because converting from lj reduced units
+to physical units (e.g. real or metal) or vice versa is the trickiest
+case.  Converting input scripts between 2 sets of physical units
+(e.g. reak <--> metal) is much easier.  But you can use the same ideas
+as in these scripts; just define a set of scale/unscale factors.
+
+See Allen & Tildesley's Computer Simulation of Liquids, Appendix B for
+a nice discussion of reduced units.  It will explain the conversion
+formulas used in the real and metal scripts.
+
+Hopefully, if you study these scripts, you should be able to convert
+an input script of your own, written in one set of units, to an
+identical input script in an alternate set of units.  Where
+"identical" means it runs the same simulation in a statistical sense.
 
 You can find the full set of scale factors LAMMPS uses internally for
 different unit systems it supports, at the top of the src/udpate.cpp

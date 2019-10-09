@@ -25,7 +25,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt} or {npt} or {nph} :l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {logistic} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint} or {update}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -41,6 +41,7 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {pchain} values = N
     N length of thermostat chain on barostat (0 = no thermostat)
   {mtk} value = {yes} or {no} = add in MTK adjustment term or not
+  {logistic} value = {yes} or {no} = switch to Logistic thermostat or not
   {tloop} value = M
     M = number of sub-cycles to perform on thermostat
   {ploop} value = M
@@ -283,6 +284,12 @@ Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using {yes} is more correct, but in many cases the difference is
 negligible.
+
+The {logistic} keyword allows to switch from a Nose-Hoover (chain)
+thermostat and barostat to a Logistic thermostat "(Tapias)"_#logistic
+when set to {yes}. Enabling this setting disables Nose-Hoover chains
+({tchain} and {pchain} defaults are set to 1) and you cannot use a
+non-zero value for {drag}. The default for this keyword is {no}.  
 
 The keyword {tloop} can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
@@ -626,10 +633,11 @@ over time or the atom count becomes very small.
 
 [Default:]
 
-The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop = 1,
-ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
+The keyword defaults are tchain = 3, pchain = 3, mtk = yes, logistic = no,
+tloop = 1, ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
 flip = yes, scaleyz = scalexz = scalexy = yes if periodic in 2nd
 dimension and not coupled to barostat, otherwise no.
+if logistic = yes, then tchain = 1, and pchain = 1; 
 
 :line
 
@@ -649,3 +657,7 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 :link(nh-Dullweber)
 [(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
+
+:link(logistic)
+[(Tapias)] Tapias, Sanders, and Bravetti, J. Chem. Phys. 145, 084113 (2016)
+and Tapias, Bravetti, and Sanders, CMST 23, 11 (2017).

@@ -269,6 +269,7 @@ bpclermont
 br
 Branduardi
 Branicio
+Bravetti
 brennan
 Brilliantov
 Broadwell
@@ -2707,6 +2708,7 @@ Tanaka
 tanh
 tanmoy
 Tanmoy
+Tapias
 Tartakovsky
 taskset
 taubi

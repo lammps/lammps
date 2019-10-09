@@ -1,0 +1,49 @@
+This directory has 3 scripts which show how to run the same problem
+using the 3 most common units system used in LAMMPS: lj, real, and
+metal units.  As stated on the units command doc page:
+
+"Any simulation you perform for one choice of units can be duplicated
+with any other unit setting LAMMPS supports. ...  To perform the same
+simulation in a different set of units you must change all the
+unit-based input parameters in your input script and other input files
+(data file, potential files, etc) correctly to the new units.  And you
+must correctly convert all output from the new units to the old units
+when comparing to the original results.  That is often not simple to
+do."
+
+These examples are meant to illustrate how to do this for a simple
+Lennard-Jones liquid (argon).  All of the scripts have a set of
+variables defined at the top which can be changed as command line
+arguments (e.g. -v cutoff 3.0).  All 3 scripts give identical output,
+modulo round-offs due to the finite precision of the conversion
+factors used, either internally in LAMMPS or in the scripts.  If there
+were run for a long time, the trajectories would diverge, but they
+would still give statistically identical results.
+
+The LJ script is the simplest; it is similar to the bench/in.lj
+script.
+
+The real and metal scripts each have a set of variables at the top
+which define scale factors for converting quantities like distance,
+energy, pressure from reduced LJ units to real or metal units.  Once
+these are defined the rest of the input script is very similar to the
+LJ script.  The approprate scale factor is applied to every input.
+Output quantities are printed in both the native real/metal units and
+unscaled back to LJ units.  So that you can see the outputs are the
+same if you examine the log files.  Comments about this comparison
+are at the bottom of the real and metal scripts.
+
+If you understand LJ reduced units (see Allen & Tildesley's Computer
+Simulation of Liquids, Appendix B for a nice discussion), and you
+study these scripts, you should be able to convert an input script in
+one set of units to an identical input script in an alternate set of
+units.  Where "identical" means it runs the same simulation in a
+statistical sense.  For example you could easily define conversion
+factors from real to metal units or vice versa, and use them to scale
+inputs and outputs in one script to produce a script in alternate
+units.
+
+You can find the full set of scale factors LAMMPS uses internally for
+different unit systems it supports, at the top of the src/udpate.cpp
+file.  A couple of those values are used in the real and metal
+scripts.

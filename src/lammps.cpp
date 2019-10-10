@@ -1276,8 +1276,9 @@ void LAMMPS::print_config(FILE *fp)
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
+  fprintf(fp,"Compiler: %s with %s\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
+  fprintf(fp,"C++ standard: %s\n\n",Info::get_cxx_info());
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

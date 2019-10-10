@@ -260,6 +260,8 @@ void DumpLocal::write_header(bigint ndump)
       ++unit_count;
       fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
     }
+    if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
     fprintf(fp,"ITEM: TIMESTEP\n");
     fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);

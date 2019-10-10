@@ -61,6 +61,10 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   ghostneigh = 1;
 
+  BOP_index = NULL;
+  BOP_index3 = NULL;
+  BOP_total = NULL;
+  BOP_total3 = NULL;
   map = NULL;
   pi_a = NULL;
   pro_delta = NULL;
@@ -102,6 +106,8 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   rij = NULL;
   neigh_index = NULL;
   neigh_index3 = NULL;
+  neigh_flag = NULL;
+  neigh_flag3 = NULL;
   cosAng = NULL;
   betaS = NULL;
   dBetaS = NULL;
@@ -5798,6 +5804,12 @@ void PairBOP::memory_theta_destroy()
   memory->destroy(neigh_flag3);
   memory->destroy(neigh_index);
   memory->destroy(neigh_index3);
+  itypeSigBk = NULL;
+  itypePiBk = NULL;
+  neigh_flag = NULL;
+  neigh_flag3 = NULL;
+  neigh_index = NULL;
+  neigh_index3 = NULL;
   if(otfly==0) {
     memory->destroy(cosAng);
     memory->destroy(dcAng);

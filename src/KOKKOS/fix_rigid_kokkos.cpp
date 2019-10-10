@@ -208,25 +208,25 @@ void quat_to_mat(const double quat[4], double mat[3][3])
 ------------------------------------------------------------------------- */
 template <typename q_arr_type, typename e_arr_type>
 KOKKOS_INLINE_FUNCTION
-void q_to_exyz(q_arr_type q,
-               e_arr_type ex, e_arr_type ey, e_arr_type ez)
+void q_to_exyz(q_arr_type q, e_arr_type ex, e_arr_type ey,
+               e_arr_type ez, int ibody)
 {
-  double q0 = q[0];
-  double q1 = q[1];
-  double q2 = q[2];
-  double q3 = q[3];
+  double q0 = q(ibody,0);
+  double q1 = q(ibody,1);
+  double q2 = q(ibody,2);
+  double q3 = q(ibody,3);
 
-  ex[0] = q0*q0 + q1*q1 - q2*q2 - q3*q3;
-  ex[1] = 2.0 * (q1*q2 + q0*q3);
-  ex[2] = 2.0 * (q1*q3 - q0*q2);
+  ex(ibody,0) = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+  ex(ibody,1) = 2.0 * (q1*q2 + q0*q3);
+  ex(ibody,2) = 2.0 * (q1*q3 - q0*q2);
 
-  ey[0] = 2.0 * (q1*q2 - q0*q3);
-  ey[1] = q0*q0 - q1*q1 + q2*q2 - q3*q3;
-  ey[2] = 2.0 * (q2*q3 + q0*q1);
+  ey(ibody,0) = 2.0 * (q1*q2 - q0*q3);
+  ey(ibody,1) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+  ey(ibody,2) = 2.0 * (q2*q3 + q0*q1);
 
-  ez[0] = 2.0 * (q1*q3 + q0*q2);
-  ez[1] = 2.0 * (q2*q3 - q0*q1);
-  ez[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+  ez(ibody,0) = 2.0 * (q1*q3 + q0*q2);
+  ez(ibody,1) = 2.0 * (q2*q3 - q0*q1);
+  ez(ibody,2) = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 }
 
 
@@ -262,12 +262,15 @@ void mq_to_omega(v_arr_type m, double q[4],
 
 template <typename q_arr_type, typename x_arr_type, typename v_arr_type>
 KOKKOS_INLINE_FUNCTION
-void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
-                x_arr_type moments_ibody, double dtq)
+void richardson(q_arr_type q, v_arr_type m, v_arr_type w,
+                x_arr_type moments, double dtq, int ibody)
 {
   // full update from dq/dt = 1/2 w q
 
   double wq[4];
+  auto w_ibody = Kokkos::subview(w, ibody, Kokkos::ALL);
+  auto q_ibody = Kokkos::subview(q, ibody, Kokkos::ALL);
+
   MathExtraKokkos::vecquat(w_ibody,q_ibody,wq);
 
   double qfull[4];
@@ -289,6 +292,9 @@ void richardson(q_arr_type q_ibody, v_arr_type m_ibody, v_arr_type w_ibody,
 
   // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
   // recompute wq
+
+  auto m_ibody = Kokkos::subview(m, ibody, Kokkos::ALL);
+  auto moments_ibody = Kokkos::subview(moments, ibody, Kokkos::ALL);
 
   MathExtraKokkos::mq_to_omega(m_ibody,qhalf,moments_ibody,w_ibody);
   MathExtraKokkos::vecquat(w_ibody,qhalf,wq);
@@ -825,10 +831,11 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
                                        l_ez_space,
                                        l_inertia, l_omega, ibody);
 
-      MathExtraKokkos::richardson(q_ibody, angmom_ibody,
-                                  omega_ibody, inertia_ibody, dtq);
+      MathExtraKokkos::richardson(l_quat, l_angmom, l_omega,
+                                  l_inertia, dtq, ibody);
 
-      MathExtraKokkos::q_to_exyz(q_ibody, ex_ibody, ey_ibody, ez_ibody);
+      MathExtraKokkos::q_to_exyz(l_quat, l_ex_space, l_ey_space,
+                                 l_ez_space, ibody);
     });
 
   } // Ends local block for Kokkos parallel lambda.
@@ -1419,9 +1426,6 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     periodic_bits += 2*domain->yperiodic;
     periodic_bits += 4*domain->zperiodic;
 
-    Few<double, 3> xi, unwrap;
-
-
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
       int ibody = l_body[i];
@@ -1429,12 +1433,14 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       l_sum(ibody,1) += l_f(i,1);
       l_sum(ibody,2) += l_f(i,2);
 
+      Few<double,3> xi;
+
       xi[0] = l_x(i,0);
       xi[1] = l_x(i,1);
       xi[2] = l_x(i,2);
 
-      unwrap = domainKK->unmap(prd, h, triclinic,
-                               xi, l_image(i));
+      Few<double,3> unwrap = domainKK->unmap(prd, h, triclinic,
+                                             xi, l_image(i));
 
       double dx = unwrap[0] - l_xcm(ibody,0);
       double dy = unwrap[1] - l_xcm(ibody,1);
@@ -1721,11 +1727,11 @@ void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
       gamma1 = -1.0 / t_period / ftm2v;
       gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
       l_langextra(ibody,3) = l_inertia(ibody,0)*gamma1*l_omega(ibody,0) +
-        sqrt(l_inertia(ibody,0))*gamma2*(random->uniform()-0.5);
+        sqrt(l_inertia(ibody,0))*gamma2*(rand_gen.drand()-0.5);
       l_langextra(ibody,4) = l_inertia(ibody,1)*gamma1*l_omega(ibody,2) +
-        sqrt(l_inertia(ibody,1))*gamma2*(random->uniform()-0.5);
+        sqrt(l_inertia(ibody,1))*gamma2*(rand_gen.drand()-0.5);
       l_langextra(ibody,5) = l_inertia(ibody,2)*gamma1*l_omega(ibody,2) +
-        sqrt(l_inertia(ibody,2))*gamma2*(random->uniform()-0.5);
+        sqrt(l_inertia(ibody,2))*gamma2*(rand_gen.drand()-0.5);
 
       rand_pool.free_state(rand_gen);
     });

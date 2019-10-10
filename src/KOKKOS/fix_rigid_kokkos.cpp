@@ -344,7 +344,9 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   // nrigid, body, tflag and fflag are set to specific values in base c-tor.
 
   int nmax = atomKK->nmax;
-
+  if (debug_output && comm->me == 0) {
+    fprintf(screen, "body is of size %d\n", nmax);
+  }
 
   // create_mirror_view creates a host_view from device, not the
   // other way around! So we need this ugly manual memcpy.
@@ -364,64 +366,6 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   memoryKK->create_kokkos(k_tflag,  tflag,  nbody, 3, "rigid/kk:tflag");
   memoryKK->create_kokkos(k_fflag,  fflag,  nbody, 3, "rigid/kk:fflag");
 
-  // The call to grow_arrays has to be after the create_mirror_views because
-  // else the empty device arrays will be overwritten and the contents of the
-  // host will be lost.
-  grow_arrays(nmax);
-
-  memcpy(body,   body_buffer,   nmax*sizeof(int));
-  memcpy(nrigid, nrigid_buffer, nbody*sizeof(double));
-  memcpy(tflag[0],  tflag_buffer,  3*nbody*sizeof(double));
-  memcpy(fflag[0],  fflag_buffer,  3*nbody*sizeof(double));
-
-  k_body.modify<LMPHostType>();
-  k_nrigid.modify<LMPHostType>();
-  k_tflag.modify<LMPHostType>();
-  k_fflag.modify<LMPHostType>();
-
-  k_body.sync<DeviceType>();
-  k_nrigid.sync<DeviceType>();
-  k_tflag.sync<DeviceType>();
-  k_fflag.sync<DeviceType>();
-
-  delete [] body_buffer;
-  delete [] nrigid_buffer;
-  delete [] tflag_buffer;
-  delete [] fflag_buffer;
-
-
-  if (debug_output && comm->me == 0) {
-    fprintf(screen, "Body contains:\n");
-    for (int i = 0; i < nmax; ++i) {
-      fprintf(screen, "%d ", body[i]);
-    }
-    fprintf(screen, "\n");
-  }
-
-  /*
-  HAT::t_int_1d h_body(body, nmax);
-  k_body.h_view = h_body;
-  k_body.modify<LMPHostType>();
-  k_body.d_view = create_mirror_view(DeviceType(), k_body.h_view);
-
-  HAT::t_f_array h_tflag(*tflag, nbody, 3);
-  k_tflag.h_view = h_tflag;
-  k_tflag.modify<LMPHostType>();
-  k_tflag.d_view = create_mirror_view(DeviceType(), k_tflag.h_view);
-
-  HAT::t_f_array h_fflag(*fflag, nbody, 3);
-  k_fflag.h_view = h_fflag;
-  k_fflag.modify<LMPHostType>();
-  k_fflag.d_view = create_mirror_view(DeviceType(), k_fflag.h_view);
-
-  HAT::t_int_1d h_nrigid(nrigid, nbody);
-  k_nrigid.h_view = h_nrigid;
-  k_nrigid.modify<LMPHostType>();
-  k_nrigid.d_view = create_mirror_view(DeviceType(), k_nrigid.h_view);
-
-  grow_arrays(nmax);
-
-  */
 
   memoryKK->create_kokkos(k_masstotal, masstotal, nbody, "rigid/kk:masstotal");
   memoryKK->create_kokkos(k_xcm,xcm,nbody,3,"rigid/kk:xcm");
@@ -446,6 +390,53 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   memoryKK->create_kokkos(k_imagebody,imagebody,nbody,"rigid/kk:imagebody");
   memoryKK->create_kokkos(k_remapflag,remapflag,nbody,4,"rigid/kk:remapflag");
+
+  grow_arrays(atomKK->nmax);
+  atom->add_callback(0);
+
+  // We have to delay the writing of the data from these four arrays
+  // until _after_ the other arrays that get modified by grow_arrays
+  // are created _and_ grow_arrays is called!
+  for (int i = 0; i < nmax; ++i) {
+	  k_body.h_view(i) = body_buffer[i];
+  }
+
+  for (int i = 0; i < nbody; ++i) {
+    k_nrigid.h_view(i) = nrigid_buffer[i];
+
+    // tflag_buffer and fflag_buffer are 1D arrays:
+    k_tflag.h_view(i,0) = tflag_buffer[3*i+0];
+    k_tflag.h_view(i,1) = tflag_buffer[3*i+1];
+    k_tflag.h_view(i,2) = tflag_buffer[3*i+2];
+
+    k_fflag.h_view(i,0) = fflag_buffer[3*i+0];
+    k_fflag.h_view(i,1) = fflag_buffer[3*i+1];
+    k_fflag.h_view(i,2) = fflag_buffer[3*i+2];
+  }
+
+  k_body.modify<LMPHostType>();
+  k_nrigid.modify<LMPHostType>();
+  k_tflag.modify<LMPHostType>();
+  k_fflag.modify<LMPHostType>();
+
+  k_body.sync<DeviceType>();
+  k_nrigid.sync<DeviceType>();
+  k_tflag.sync<DeviceType>();
+  k_fflag.sync<DeviceType>();
+
+  delete [] body_buffer;
+  delete [] nrigid_buffer;
+  delete [] tflag_buffer;
+  delete [] fflag_buffer;
+
+
+  if (debug_output && comm->me == 0) {
+    fprintf(screen, "Body contains:\n");
+    for (int i = 0; i < nmax; ++i) {
+      fprintf(screen, "%d ", body[i]);
+    }
+    fprintf(screen, "\n");
+  }
 
 
 }

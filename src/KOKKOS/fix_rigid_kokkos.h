@@ -47,7 +47,7 @@ class FixRigidKokkos : public FixRigid {
   virtual ~FixRigidKokkos();
   void cleanup_copy();
 
-	// virtual int setmask(); // Masks remain same
+  // virtual int setmask(); // Masks remain same
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
@@ -69,7 +69,7 @@ class FixRigidKokkos : public FixRigid {
   //void zero_momentum();
   //void zero_rotation();
 
-  void grow_arrays(int);
+  virtual void grow_arrays(int);
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
   void set_v_kokkos();
   void compute_forces_and_torques_kokkos();

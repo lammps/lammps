@@ -520,16 +520,19 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       if (!mtk_flag)
         error->all(FLERR,"Cannot use 'mtk no' with 'logistic yes'");
 
-      if (!mtchain_default_flag && mtchain != 1)
-        error->all(FLERR,"Must use 'tchain 1' with 'logistic yes'");
-
       if (mtchain_default_flag) mtchain = 1;
+      else {
+        if (mtchain != 1)
+          error->all(FLERR,"Must use 'tchain 1' with 'logistic yes'");
+      }
     }
 
     if (pstat_flag) {
-      if (!mpchain_default_flag && mpchain != 1)
-        error->all(FLERR,"Must use 'pchain 1' with 'logistic yes'");
       if (mpchain_default_flag) mpchain = 1;
+      else {
+        if (mpchain != 1)
+          error->all(FLERR,"Must use 'pchain 1' with 'logistic yes'");
+      }
     }
 
     if (drag != 0.0)

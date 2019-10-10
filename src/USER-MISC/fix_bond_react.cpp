@@ -2814,13 +2814,11 @@ void FixBondReact::read(int myrxn)
     }
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
-    else if (strstr(line,"constraints")) sscanf(line,"%d",&nconstr);
-    else break;
+    else if (strstr(line,"constraints")) {
+      sscanf(line,"%d",&nconstr);
+      memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
+    } else break;
   }
-
-  memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
-
-  //count = NULL;
 
   // grab keyword and skip next line
 

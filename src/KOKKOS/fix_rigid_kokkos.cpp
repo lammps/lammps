@@ -1419,6 +1419,8 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     periodic_bits += 2*domain->yperiodic;
     periodic_bits += 4*domain->zperiodic;
 
+    Few<double, 3> xi, unwrap;
+
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
@@ -1427,9 +1429,12 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       l_sum(ibody,1) += l_f(i,1);
       l_sum(ibody,2) += l_f(i,2);
 
-      Few<double,3> xi{l_x(i,0), l_x(i,1), l_x(i,2)};
-      Few<double,3> unwrap = domainKK->unmap(prd, h, triclinic,
-                                             xi, l_image(i));
+      xi[0] = l_x(i,0);
+      xi[1] = l_x(i,1);
+      xi[2] = l_x(i,2);
+
+      unwrap = domainKK->unmap(prd, h, triclinic,
+                               xi, l_image(i));
 
       double dx = unwrap[0] - l_xcm(ibody,0);
       double dy = unwrap[1] - l_xcm(ibody,1);

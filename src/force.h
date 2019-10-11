@@ -226,4 +226,48 @@ A command with an argument that specifies an integer or range of
 integers is using a value that is less than 1 or greater than the
 maximum allowed limit.
 
+W: Bonds are defined but no bond style is set
+
+The topology contains bonds, but there are no bond forces computed
+since there was no bond_style command.
+
+W: Angles are defined but no angle style is set
+
+The topology contains angles, but there are no angle forces computed
+since there was no angle_style command.
+
+W: Dihedrals are defined but no dihedral style is set
+
+The topology contains dihedrals, but there are no dihedral forces computed
+since there was no dihedral_style command.
+
+W: Impropers are defined but no improper style is set
+
+The topology contains impropers, but there are no improper forces computed
+since there was no improper_style command.
+
+W: Likewise 1-2 special neighbor interactions != 1.0
+
+The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style.
+
+W: Likewise 1-3 special neighbor interactions != 1.0
+
+The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style.
+
+W: Likewise 1-4 special neighbor interactions != 1.0
+
+The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style.
+
 */

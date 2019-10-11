@@ -1056,6 +1056,8 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
     auto l_xcmimage = k_xcmimage.d_view;
     auto l_body = k_body.d_view;
 
+    auto l_virial = virial;
+
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
       if (l_body[i] < 0) return;
       int ibody = l_body[i];
@@ -1156,20 +1158,42 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
         vr[4] = 0.5*x0*fc2;
         vr[5] = 0.5*x1*fc2;
 
-        EV_FLOAT ev;
-        v_tally<HALFTHREAD>(ev, i, vr);
 
-        // ev needs to be accumulated back into the virial[] array.
-        virial[0] += ev.v[0];
-        virial[1] += ev.v[1];
-        virial[2] += ev.v[2];
-        virial[3] += ev.v[3];
-        virial[4] += ev.v[4];
-        virial[5] += ev.v[5];
+        if (vflag_global) {
+          l_virial[0] += vr[0];
+          l_virial[1] += vr[1];
+          l_virial[2] += vr[2];
+          l_virial[3] += vr[3];
+          l_virial[4] += vr[4];
+          l_virial[5] += vr[5];
+        }
 
 
+        if (vflag_atom) {
+          Kokkos::Experimental::ScatterView<F_FLOAT*[6],
+                                            typename DAT::t_virial_array::array_layout,
+                                            DeviceType,Kokkos::Experimental::ScatterSum,
+                                            Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+
+          Kokkos::Experimental::ScatterView<F_FLOAT*[6],
+                                            typename DAT::t_virial_array::array_layout,
+                                            DeviceType,Kokkos::Experimental::ScatterSum,
+                                            Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
+          // NEIGHFLAG always seems to be 2 (HALFTHREAD):
+          auto v_atom = ScatterViewHelper<NeedDup<HALFTHREAD,DeviceType>::value,
+                                          decltype(dup_vatom),
+                                          decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+          auto a_vatom = v_atom.template access<AtomicDup<HALFTHREAD,DeviceType>::value>();
+
+          a_vatom(i,0) += vr[0];
+          a_vatom(i,1) += vr[1];
+          a_vatom(i,2) += vr[2];
+          a_vatom(i,3) += vr[3];
+          a_vatom(i,4) += vr[4];
+          a_vatom(i,5) += vr[5];
+        }
       }
-
     }); // end Kokkos::parallel_for
   } // end local block.
 
@@ -1380,39 +1404,7 @@ void FixRigidKokkos<DeviceType>::v_tally(EV_FLOAT &ev, const int &i, double v_ar
             vflag_atom, vflag_global, NEIGHFLAG);
   }
 
-  if (vflag_global) {
-    ev.v[0] += v_arr[0];
-    ev.v[1] += v_arr[1];
-    ev.v[2] += v_arr[2];
-    ev.v[3] += v_arr[3];
-    ev.v[4] += v_arr[4];
-    ev.v[5] += v_arr[5];
-  }
 
-
-  if (vflag_atom) {
-    Kokkos::Experimental::ScatterView<F_FLOAT*[6],
-                                      typename DAT::t_virial_array::array_layout,
-                                      DeviceType,Kokkos::Experimental::ScatterSum,
-                                      Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-
-    Kokkos::Experimental::ScatterView<F_FLOAT*[6],
-                                      typename DAT::t_virial_array::array_layout,
-                                      DeviceType,Kokkos::Experimental::ScatterSum,
-                                      Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
-
-    auto v_atom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,
-                                    decltype(dup_vatom),
-                                    decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-    auto a_vatom = v_atom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-
-    a_vatom(i,0) += v_arr[0];
-    a_vatom(i,1) += v_arr[1];
-    a_vatom(i,2) += v_arr[2];
-    a_vatom(i,3) += v_arr[3];
-    a_vatom(i,4) += v_arr[4];
-    a_vatom(i,5) += v_arr[5];
-  }
 }
 
 
@@ -1597,6 +1589,8 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
     auto l_vcm = k_vcm.d_view;
     auto l_xcmimage = k_xcmimage.d_view;
 
+    auto l_virial = virial;
+
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
@@ -1669,19 +1663,40 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         vr[4] = 0.5*x0*fc2;
         vr[5] = 0.5*x1*fc2;
 
-        // NEIGHFLAG is a pair_style thing. I have no idea what we
-        // should be using here. Apparently it's HALF to be consistent
-        // with the original fix.
-        EV_FLOAT ev;
-        v_tally<HALFTHREAD>(ev, i, vr);
 
-        // ev needs to be accumulated back into the virial[] array.
-        virial[0] += ev.v[0];
-        virial[1] += ev.v[1];
-        virial[2] += ev.v[2];
-        virial[3] += ev.v[3];
-        virial[4] += ev.v[4];
-        virial[5] += ev.v[5];
+        if (vflag_global) {
+          l_virial[0] += vr[0];
+          l_virial[1] += vr[1];
+          l_virial[2] += vr[2];
+          l_virial[3] += vr[3];
+          l_virial[4] += vr[4];
+          l_virial[5] += vr[5];
+        }
+
+
+        if (vflag_atom) {
+          Kokkos::Experimental::ScatterView<F_FLOAT*[6],
+                                            typename DAT::t_virial_array::array_layout,
+                                            DeviceType,Kokkos::Experimental::ScatterSum,
+                                            Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+
+          Kokkos::Experimental::ScatterView<F_FLOAT*[6],
+                                            typename DAT::t_virial_array::array_layout,
+                                            DeviceType,Kokkos::Experimental::ScatterSum,
+                                            Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
+          auto v_atom = ScatterViewHelper<NeedDup<HALFTHREAD,DeviceType>::value,
+                                          decltype(dup_vatom),
+                                          decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+          auto a_vatom = v_atom.template access<AtomicDup<HALFTHREAD,DeviceType>::value>();
+
+          a_vatom(i,0) += vr[0];
+          a_vatom(i,1) += vr[1];
+          a_vatom(i,2) += vr[2];
+          a_vatom(i,3) += vr[3];
+          a_vatom(i,4) += vr[4];
+          a_vatom(i,5) += vr[5];
+        }
       }
     });
   }

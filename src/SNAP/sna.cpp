@@ -20,6 +20,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "comm.h"
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -283,7 +284,7 @@ void SNA::build_indexlist()
 void SNA::init()
 {
   init_clebsch_gordan();
-  // print_clebsch_gordan();
+  //   print_clebsch_gordan();
   init_rootpqarray();
 }
 
@@ -1523,6 +1524,8 @@ void SNA::init_clebsch_gordan()
 
 void SNA::print_clebsch_gordan()
 {
+  if (comm->me) return;
+
   int aa2, bb2, cc2;
   for (int j = 0; j <= twojmax; j += 1) {
     printf("c = %g\n",j/2.0);

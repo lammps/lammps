@@ -31,6 +31,30 @@ Doc page with "ERROR messages"_Errors_messages.html
 
 :dlb
 
+{1-2 special neighbor interactions != 1.0} :dt
+
+The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style. :dd
+
+{1-3 special neighbor interactions != 1.0} :dt
+
+The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style. :dd
+
+{1-4 special neighbor interactions != 1.0} :dt
+
+The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style. :dd
+
 {Adjusting Coulombic cutoff for MSM, new cutoff = %g} :dt
 
 The adjust/cutoff command is turned on and the Coulombic cutoff has been
@@ -46,6 +70,11 @@ too far away. :dd
 {Angle style in data file differs from currently defined angle style} :dt
 
 Self-explanatory. :dd
+
+{Angles are defined but no angle style is set} :dt
+
+The topology contains angles, but there are no angle forces computed
+since there was no angle_style command. :dd
 
 {Atom style in data file differs from currently defined atom style} :dt
 
@@ -72,6 +101,11 @@ short or the bond has blown apart and an atom is too far away. :dd
 {Bond style in data file differs from currently defined bond style} :dt
 
 Self-explanatory. :dd
+
+{Bonds are defined but no bond style is set} :dt
+
+The topology contains bonds, but there are no bond forces computed
+since there was no bond_style command. :dd
 
 {Bond/angle/dihedral extent > half of periodic box length} :dt
 
@@ -185,6 +219,11 @@ to check your simulation geometry. :dd
 {Dihedral style in data file differs from currently defined dihedral style} :dt
 
 Self-explanatory. :dd
+
+{Dihedrals are defined but no dihedral style is set} :dt
+
+The topology contains dihedrals, but there are no dihedral forces computed
+since there was no dihedral_style command. :dd
 
 {Dump dcd/xtc timestamp may be wrong with fix dt/reset} :dt
 
@@ -351,6 +390,11 @@ to check your simulation geometry. :dd
 {Improper style in data file differs from currently defined improper style} :dt
 
 Self-explanatory. :dd
+
+{Impropers are defined but no improper style is set} :dt
+
+The topology contains impropers, but there are no improper forces computed
+since there was no improper_style command. :dd
 
 {Inconsistent image flags} :dt
 

@@ -79,6 +79,7 @@ class FixRigidKokkos : public FixRigid {
   template <int NEIGHFLAG>
   void v_tally(EV_FLOAT &ev, const int &i, double v_arr[6]) const;
 
+
  private:
   // We need Kokkos style containers for everything in the innner loops:
   DAT::tdual_x_array k_xcm;

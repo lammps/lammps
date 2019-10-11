@@ -130,13 +130,13 @@ void transpose_matvec(const double m[3][3], v_arr_type v,
 ------------------------------------------------------------------------- */
 template <typename e_arr_type, typename v_arr_type>
 KOKKOS_INLINE_FUNCTION
-Few<double,3> matvec(e_arr_type ex, e_arr_type ey,
-                     e_arr_type ez, v_arr_type v)
+void matvec(e_arr_type ex, e_arr_type ey,
+            e_arr_type ez, v_arr_type v, double ans[3])
 {
-  Few<double,3> ans = { ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2],
-                        ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2],
-                        ex[2]*v[0] + ey[2]*v[1] + ez[2]*v[2] };
-  return ans;
+  ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
+  ans[1] = ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2];
+  ans[2] = ex[2]*v[0] + ey[2]*v[1] + ez[2]*v[2];
+
 }
 
 
@@ -319,6 +319,123 @@ void richardson(q_arr_type q, v_arr_type m, v_arr_type w,
 
 } // MathExtraKokkos
 
+
+
+
+KOKKOS_INLINE_FUNCTION
+Few<double, 3> remap(Few<double,3> prd,
+                     Few<double,6> h, Few<double, 6> h_inv,
+                     int triclinic,
+                     Few<double,3> boxlo, Few<double,3> boxhi,
+                     Few<double,3> boxlo_lambda,
+                     Few<double,3> boxhi_lambda,
+                     Few<double,3> prd_lambda,
+                     Few<double,3> x, imageint &image,
+                     int periodic_bits)
+{
+  Few<double, 3> lo, hi, period, lambda, coord;
+
+  imageint idim, otherdims;
+
+  int xperiodic = (periodic_bits & 1);
+  int yperiodic = (periodic_bits & 2);
+  int zperiodic = (periodic_bits & 4);
+
+
+  if (triclinic == 0) {
+    lo = boxlo;
+    hi = boxhi;
+    period = prd;
+    coord = x;
+  } else {
+    lo = boxlo_lambda;
+    hi = boxhi_lambda;
+    period = prd_lambda;
+
+    // verbatim copy of x2lamda code so that this can remain static.
+    // Should be equivalent to x2lamda(x,lambda);
+    double delta[3];
+    delta[0] = x[0] - boxlo[0];
+    delta[1] = x[1] - boxlo[1];
+    delta[2] = x[2] - boxlo[2];
+
+    lambda[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+    lambda[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+    lambda[2] = h_inv[2]*delta[2];
+
+  }
+
+  if (xperiodic) {
+    while (coord[0] < lo[0]) {
+      coord[0] += period[0];
+      idim = image & IMGMASK;
+      otherdims = image ^ idim;
+      idim--;
+      idim &= IMGMASK;
+      image = otherdims | idim;
+    }
+    while (coord[0] >= hi[0]) {
+      coord[0] -= period[0];
+      idim = image & IMGMASK;
+      otherdims = image ^ idim;
+      idim++;
+      idim &= IMGMASK;
+      image = otherdims | idim;
+    }
+    coord[0] = MAX(coord[0], lo[0]);
+  }
+
+  if (yperiodic) {
+    while (coord[1] < lo[1]) {
+      coord[1] += period[1];
+      idim = (image >> IMGBITS) & IMGMASK;
+      otherdims = image ^ (idim << IMGBITS);
+      idim--;
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMGBITS);
+    }
+    while (coord[1] >= hi[1]) {
+      coord[1] -= period[1];
+      idim = (image >> IMGBITS) & IMGMASK;
+      otherdims = image ^ (idim << IMGBITS);
+      idim++;
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMGBITS);
+    }
+    coord[1] = MAX(coord[1],lo[1]);
+  }
+
+  if (zperiodic) {
+    while (coord[2] < lo[2]) {
+      coord[2] += period[2];
+      idim = image >> IMG2BITS;
+      otherdims = image ^ (idim << IMG2BITS);
+      idim--;
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMG2BITS);
+    }
+    while (coord[2] >= hi[2]) {
+      coord[2] -= period[2];
+      idim = image >> IMG2BITS;
+      otherdims = image ^ (idim << IMG2BITS);
+      idim++;
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMG2BITS);
+    }
+    coord[2] = MAX(coord[2],lo[2]);
+  }
+
+  if (triclinic) {
+    // Verbatim copy of lamda2x so that this can remain static
+    // This should be equivalent with lamda2x(coord,x)
+
+    coord[0] = h[0]*coord[0] + h[5]*coord[1] + h[4]*coord[2] + boxlo[0];
+    coord[1] = h[1]*coord[1] + h[3]*coord[2] + boxlo[1];
+    coord[2] = h[2]*coord[2] + boxlo[2];
+  }
+
+  return coord;
+}
 
 
 
@@ -638,7 +755,6 @@ void FixRigidKokkos<DeviceType>::pre_neighbor()
 	  // Local block for Kokkos lambda.
     auto l_xcm = k_xcm.d_view;
     auto l_imagebody = k_imagebody.d_view;
-    auto domainKK = static_cast<DomainKokkos *>(domain);
 
     int periodic_bits = 0;
     periodic_bits +=   domain->xperiodic;
@@ -662,12 +778,17 @@ void FixRigidKokkos<DeviceType>::pre_neighbor()
     Few<double,3> boxhi_lambda{domain->boxhi_lamda[0], domain->boxhi_lamda[1], domain->boxhi_lamda[2]};
 
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody){
-      Few<double,3> xcm_ibody{l_xcm(ibody,0), l_xcm(ibody,1), l_xcm(ibody,2)};
-      imageint imagebody_ibody = l_imagebody(ibody);
 
-      auto new_xcm = domainKK->remap(prd, h, h_inv, triclinic, boxlo, boxhi,
-                                     boxlo_lambda, boxhi_lambda, prd_lambda,
-                                     xcm_ibody, imagebody_ibody, periodic_bits);
+      double xcm_ibody_arr[3];
+      xcm_ibody_arr[0] = l_xcm(ibody,0);
+      xcm_ibody_arr[1] = l_xcm(ibody,1);
+      xcm_ibody_arr[2] = l_xcm(ibody,2);
+
+      imageint imagebody_ibody = l_imagebody(ibody);
+      // We need to use remap as a static function so we cannot use domainKK->
+      auto new_xcm = remap(prd, h, h_inv, triclinic, boxlo, boxhi,
+                           boxlo_lambda, boxhi_lambda, prd_lambda,
+                           xcm_ibody_arr, imagebody_ibody, periodic_bits);
 
       l_imagebody(ibody) = imagebody_ibody;
       l_xcm(ibody,0) = new_xcm[0];
@@ -694,8 +815,6 @@ void FixRigidKokkos<DeviceType>::image_shift_kokkos()
 
   {
     // Local block for Kokkos::parallel_for
-
-    imageint tdim,bdim,xdim[3];
     auto l_image = atomKK->k_image.d_view;
     auto l_imagebody = k_imagebody.d_view;
     auto l_body = k_body.d_view;
@@ -703,7 +822,7 @@ void FixRigidKokkos<DeviceType>::image_shift_kokkos()
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
         if (l_body[i] < 0) return;
-        int ibody = body[i];
+        int ibody = l_body[i];
         imageint xdim[3];
         imageint tdim = l_image[i] & IMGMASK;
         imageint bdim = l_imagebody[ibody] & IMGMASK;
@@ -772,8 +891,6 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   atomKK->sync(execution_space, datamask_read);
 
   // Grab all arrays you need for initial_integrate:
-  double dtfm;
-
   {
     // Local block for Kokkos parallel for:
 
@@ -796,25 +913,26 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
     auto l_quat = k_quat.d_view;
     auto l_inertia = k_inertia.d_view;
 
+    double l_dtf = dtf;
+    double l_dtv = dtv;
 
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int& ibody) {
 
-      const double dtfm = dtf / l_masstotal[ibody];
-
+      const double dtfm = l_dtf / l_masstotal[ibody];
       l_vcm(ibody,0) += dtfm * l_fcm(ibody,0) * l_fflag(ibody,0);
       l_vcm(ibody,1) += dtfm * l_fcm(ibody,1) * l_fflag(ibody,1);
       l_vcm(ibody,2) += dtfm * l_fcm(ibody,2) * l_fflag(ibody,2);
 
       // update xcm by full step
-      l_xcm(ibody,0) += dtv * l_vcm(ibody,0);
-      l_xcm(ibody,1) += dtv * l_vcm(ibody,1);
-      l_xcm(ibody,2) += dtv * l_vcm(ibody,2);
+      l_xcm(ibody,0) += l_dtv * l_vcm(ibody,0);
+      l_xcm(ibody,1) += l_dtv * l_vcm(ibody,1);
+      l_xcm(ibody,2) += l_dtv * l_vcm(ibody,2);
 
       // update angular momentum by 1/2 step
 
-      l_angmom(ibody,0) += dtf * l_torque(ibody,0) * l_tflag(ibody,0);
-      l_angmom(ibody,1) += dtf * l_torque(ibody,1) * l_tflag(ibody,1);
-      l_angmom(ibody,2) += dtf * l_torque(ibody,2) * l_tflag(ibody,2);
+      l_angmom(ibody,0) += l_dtf * l_torque(ibody,0) * l_tflag(ibody,0);
+      l_angmom(ibody,1) += l_dtf * l_torque(ibody,1) * l_tflag(ibody,1);
+      l_angmom(ibody,2) += l_dtf * l_torque(ibody,2) * l_tflag(ibody,2);
 
       MathExtraKokkos::angmom_to_omega(l_angmom,
                                        l_ex_space,
@@ -827,6 +945,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
 
       MathExtraKokkos::q_to_exyz(l_quat, l_ex_space, l_ey_space,
                                  l_ez_space, ibody);
+
     });
 
   } // Ends local block for Kokkos parallel lambda.
@@ -1086,7 +1205,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 
       // x = displacement from center-of-mass, based on body orientation
       // v = vcm + omega around center-of-mass
-      /*
+
       auto ex_space_ibody = Kokkos::subview(l_ex_space, ibody, Kokkos::ALL);
       auto ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
       auto ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
@@ -1097,27 +1216,13 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 
       auto l_displace_i = Kokkos::subview(l_displace, i, Kokkos::ALL);
 
-      auto ans = MathExtraKokkos::matvec(ex_space_ibody,ey_space_ibody,
-                                         ez_space_ibody,l_displace_i);
+      double ans[3];
+      MathExtraKokkos::matvec(ex_space_ibody,ey_space_ibody,
+                              ez_space_ibody,l_displace_i, ans);
 
       l_x(i,0) = ans[0];
       l_x(i,1) = ans[1];
       l_x(i,2) = ans[2];
-
-      l_v(i,0) = l_omega(ibody,1)*l_x(i,2) - l_omega(ibody,2)*l_x(i,1) + l_vcm(ibody,0);
-      l_v(i,1) = l_omega(ibody,2)*l_x(i,0) - l_omega(ibody,0)*l_x(i,2) + l_vcm(ibody,1);
-      l_v(i,2) = l_omega(ibody,0)*l_x(i,1) - l_omega(ibody,1)*l_x(i,0) + l_vcm(ibody,2);
-      */
-
-      l_x(i,0) = l_ex_space(ibody,0)*l_displace(i,0) +
-	      l_ey_space(ibody,0)*l_displace(i,1) +
-	      l_ez_space(ibody,0)*l_displace(i,2);
-      l_x(i,1) = l_ex_space(ibody,1)*l_displace(i,0) +
-	      l_ey_space(ibody,1)*l_displace(i,1) +
-	      l_ez_space(ibody,1)*l_displace(i,2);
-      l_x(i,2) = l_ex_space(ibody,2)*l_displace(i,0) +
-	      l_ey_space(ibody,2)*l_displace(i,1) +
-	      l_ez_space(ibody,2)*l_displace(i,2);
 
       l_v(i,0) = l_omega(ibody,1)*l_x(i,2) - l_omega(ibody,2)*l_x(i,1) + l_vcm(ibody,0);
       l_v(i,1) = l_omega(ibody,2)*l_x(i,0) - l_omega(ibody,0)*l_x(i,2) + l_vcm(ibody,1);
@@ -1168,7 +1273,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
           l_virial[5] += vr[5];
         }
 
-
+        // This should be refactored:
         if (vflag_atom) {
           Kokkos::Experimental::ScatterView<F_FLOAT*[6],
                                             typename DAT::t_virial_array::array_layout,
@@ -1600,23 +1705,12 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
       auto l_ey_space_ibody = Kokkos::subview(l_ey_space, ibody, Kokkos::ALL);
       auto l_ez_space_ibody = Kokkos::subview(l_ez_space, ibody, Kokkos::ALL);
       auto l_displace_i = Kokkos::subview(l_displace, i, Kokkos::ALL);
-
-      auto delta = MathExtraKokkos::matvec(l_ex_space_ibody,
-                                           l_ey_space_ibody,
-                                           l_ez_space_ibody,
-                                           l_displace_i);
-      /*
       double delta[3];
-      delta[0] = l_ex_space(ibody,0)*l_displace(i,0) +
-        l_ey_space(ibody,0)*l_displace(i,1) +
-        l_ez_space(ibody,0)*l_displace(i,2);
-      delta[1] = l_ex_space(ibody,1)*l_displace(i,0) +
-        l_ey_space(ibody,1)*l_displace(i,1) +
-        l_ez_space(ibody,1)*l_displace(i,2);
-      delta[2] = l_ex_space(ibody,2)*l_displace(i,0) +
-        l_ey_space(ibody,2)*l_displace(i,1) +
-        l_ez_space(ibody,2)*l_displace(i,2);
-      */
+
+      MathExtraKokkos::matvec(l_ex_space_ibody,
+                              l_ey_space_ibody,
+                              l_ez_space_ibody,
+                              l_displace_i, delta);
       double v0, v1, v2;
       if (evflag) {
         v0 = l_v(i,0);
@@ -1673,7 +1767,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
           l_virial[5] += vr[5];
         }
 
-
+        // This should be refactored:
         if (vflag_atom) {
           Kokkos::Experimental::ScatterView<F_FLOAT*[6],
                                             typename DAT::t_virial_array::array_layout,

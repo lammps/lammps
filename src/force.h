@@ -246,7 +246,7 @@ W: Impropers are defined but no improper style is set
 The topology contains impropers, but there are no improper forces computed
 since there was no improper_style command.
 
-W: 1-2 special neighbor interactions != 1.0
+W: Likewise 1-2 special neighbor interactions != 1.0
 
 The topology contains bonds, but there is no bond style defined
 and a 1-2 special neighbor scaling factor was not 1.0. This
@@ -254,7 +254,7 @@ means that pair style interactions may have scaled or missing
 pairs in the neighbor list in expectation of interactions for
 those pairs being computed from the bond style.
 
-W: 1-3 special neighbor interactions != 1.0
+W: Likewise 1-3 special neighbor interactions != 1.0
 
 The topology contains angles, but there is no angle style defined
 and a 1-3 special neighbor scaling factor was not 1.0. This
@@ -262,7 +262,7 @@ means that pair style interactions may have scaled or missing
 pairs in the neighbor list in expectation of interactions for
 those pairs being computed from the angle style.
 
-W: 1-4 special neighbor interactions != 1.0
+W: Likewise 1-4 special neighbor interactions != 1.0
 
 The topology contains dihedrals, but there is no dihedral style defined
 and a 1-4 special neighbor scaling factor was not 1.0. This

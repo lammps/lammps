@@ -31,30 +31,6 @@ Doc page with "ERROR messages"_Errors_messages.html
 
 :dlb
 
-{1-2 special neighbor interactions != 1.0} :dt
-
-The topology contains bonds, but there is no bond style defined
-and a 1-2 special neighbor scaling factor was not 1.0. This
-means that pair style interactions may have scaled or missing
-pairs in the neighbor list in expectation of interactions for
-those pairs being computed from the bond style. :dd
-
-{1-3 special neighbor interactions != 1.0} :dt
-
-The topology contains angles, but there is no angle style defined
-and a 1-3 special neighbor scaling factor was not 1.0. This
-means that pair style interactions may have scaled or missing
-pairs in the neighbor list in expectation of interactions for
-those pairs being computed from the angle style. :dd
-
-{1-4 special neighbor interactions != 1.0} :dt
-
-The topology contains dihedrals, but there is no dihedral style defined
-and a 1-4 special neighbor scaling factor was not 1.0. This
-means that pair style interactions may have scaled or missing
-pairs in the neighbor list in expectation of interactions for
-those pairs being computed from the dihedral style. :dd
-
 {Adjusting Coulombic cutoff for MSM, new cutoff = %g} :dt
 
 The adjust/cutoff command is turned on and the Coulombic cutoff has been
@@ -450,6 +426,30 @@ or are not consecutively numbered. :dd
 This library function cannot be used if atom IDs are not defined or
 are not consecutively numbered, or if no atom map is defined.  See the
 atom_modify command for details about atom maps. :dd
+
+{Likewise 1-2 special neighbor interactions != 1.0} :dt
+
+The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style. :dd
+
+{Likewise 1-3 special neighbor interactions != 1.0} :dt
+
+The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style. :dd
+
+{Likewise 1-4 special neighbor interactions != 1.0} :dt
+
+The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style. :dd
 
 {Lost atoms via change_box: original %ld current %ld} :dt
 

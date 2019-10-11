@@ -69,12 +69,15 @@ class FixRigidKokkos : public FixRigid {
   //void zero_momentum();
   //void zero_rotation();
 
-  virtual void grow_arrays(int);
+  void grow_arrays(int);
   void set_xv_kokkos(); // Original set_xv and set_v are also protected.
   void set_v_kokkos();
   void compute_forces_and_torques_kokkos();
   void image_shift_kokkos();
   void apply_langevin_thermostat_kokkos();
+
+  template <int NEIGHFLAG>
+  void v_tally(EV_FLOAT &ev, const int &i, double v_arr[6]) const;
 
  private:
   // We need Kokkos style containers for everything in the innner loops:
@@ -111,8 +114,8 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_x_array k_dorient;
 
 
-	// Needed if we apply langvin forces:
-	Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  // Needed if we apply langvin forces:
+  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 
 }; // class FixRigidKokkos

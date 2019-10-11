@@ -50,7 +50,7 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-constexpr const bool debug_output = false;
+constexpr const int debug_level = 0;
 
 /* ----------------------------------------------------------------------
    Contributing author: Stefan Paquay (Brandeis U, stefanpaquay@gmail.com)
@@ -344,7 +344,7 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   // nrigid, body, tflag and fflag are set to specific values in base c-tor.
 
   int nmax = atomKK->nmax;
-  if (debug_output && comm->me == 0) {
+  if (debug_level && comm->me == 0) {
     fprintf(screen, "body is of size %d\n", nmax);
   }
 
@@ -430,7 +430,7 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   delete [] fflag_buffer;
 
 
-  if (debug_output && comm->me == 0) {
+  if (debug_level && comm->me == 0) {
     fprintf(screen, "Body contains:\n");
     for (int i = 0; i < nmax; ++i) {
       fprintf(screen, "%d ", body[i]);
@@ -538,7 +538,7 @@ void FixRigidKokkos<DeviceType>::init()
   k_ey_space.modify<LMPHostType>();
   k_ez_space.modify<LMPHostType>();
 
-  if (debug_output && comm->me == 0) {
+  if (debug_level > 1 && comm->me == 0) {
     fprintf(screen, "  ** --> Post init, ex_space = (%g, %g, %g)\n",
             k_ex_space.h_view(0,0), k_ex_space.h_view(0,1), k_ex_space.h_view(0,2));
     fprintf(screen, "  ** --> Post init, ey_space = (%g, %g, %g)\n",
@@ -834,7 +834,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   if (vflag) v_setup(vflag);
   else evflag = 0;
 
-  if (debug_output && comm->me == 0) {
+  if (debug_level > 1 && comm->me == 0) {
     atomKK->k_x.sync<LMPHostType>();
     atomKK->k_v.sync<LMPHostType>();
     atomKK->k_type.sync<LMPHostType>();
@@ -852,7 +852,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
       if (atomKK->k_tag.h_view(i) == 4) break;
     }
     int ibody = k_body.h_view(i);
-    if (debug_output && comm->me == 0) {
+    if (debug_level > 1 && comm->me == 0) {
       fprintf(screen, "\ni = %d, ibody = %d\n", i, ibody);
       fprintf(screen, "before set_xv().\n");
       fprintf(screen, "vcm is (%g, %g, %g)\n",
@@ -916,7 +916,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   atomKK->k_x.modify<DeviceType>();
   atomKK->k_v.modify<DeviceType>();
 
-  if (debug_output && comm->me == 0) {
+  if (debug_level > 1 && comm->me == 0) {
     atomKK->k_x.sync<LMPHostType>();
     atomKK->k_v.sync<LMPHostType>();
     k_omega.sync<LMPHostType>();
@@ -1156,9 +1156,20 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
         vr[4] = 0.5*x0*fc2;
         vr[5] = 0.5*x1*fc2;
 
-        int j = i;
-        v_tally(1,&j,1.0,vr);
+        EV_FLOAT ev;
+        v_tally<HALFTHREAD>(ev, i, vr);
+
+        // ev needs to be accumulated back into the virial[] array.
+        virial[0] += ev.v[0];
+        virial[1] += ev.v[1];
+        virial[2] += ev.v[2];
+        virial[3] += ev.v[3];
+        virial[4] += ev.v[4];
+        virial[5] += ev.v[5];
+
+
       }
+
     }); // end Kokkos::parallel_for
   } // end local block.
 
@@ -1356,6 +1367,52 @@ double FixRigidKokkos<DeviceType>::compute_scalar()
 
 
   return FixRigid::compute_scalar();
+}
+
+
+
+template <class DeviceType>
+template <int NEIGHFLAG>
+void FixRigidKokkos<DeviceType>::v_tally(EV_FLOAT &ev, const int &i, double v_arr[6]) const
+{
+  if (debug_level && comm->me == 0 && i == 0) {
+    fprintf(screen, "  ** --> In v_tally, vflag_atom is %d, vflag_global is %d and NEIGHFLAG is %d\n",
+            vflag_atom, vflag_global, NEIGHFLAG);
+  }
+
+  if (vflag_global) {
+    ev.v[0] += v_arr[0];
+    ev.v[1] += v_arr[1];
+    ev.v[2] += v_arr[2];
+    ev.v[3] += v_arr[3];
+    ev.v[4] += v_arr[4];
+    ev.v[5] += v_arr[5];
+  }
+
+
+  if (vflag_atom) {
+    Kokkos::Experimental::ScatterView<F_FLOAT*[6],
+                                      typename DAT::t_virial_array::array_layout,
+                                      DeviceType,Kokkos::Experimental::ScatterSum,
+                                      Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+
+    Kokkos::Experimental::ScatterView<F_FLOAT*[6],
+                                      typename DAT::t_virial_array::array_layout,
+                                      DeviceType,Kokkos::Experimental::ScatterSum,
+                                      Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
+    auto v_atom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,
+                                    decltype(dup_vatom),
+                                    decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+    auto a_vatom = v_atom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
+    a_vatom(i,0) += v_arr[0];
+    a_vatom(i,1) += v_arr[1];
+    a_vatom(i,2) += v_arr[2];
+    a_vatom(i,3) += v_arr[3];
+    a_vatom(i,4) += v_arr[4];
+    a_vatom(i,5) += v_arr[5];
+  }
 }
 
 
@@ -1610,10 +1667,21 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         vr[2] = 0.5*x2*fc2;
         vr[3] = 0.5*x0*fc1;
         vr[4] = 0.5*x0*fc2;
-        vr[5] = 0.6*x1*fc2;
+        vr[5] = 0.5*x1*fc2;
 
-        int j = i;
-        v_tally(1,&j, 1.0, vr);
+        // NEIGHFLAG is a pair_style thing. I have no idea what we
+        // should be using here. Apparently it's HALF to be consistent
+        // with the original fix.
+        EV_FLOAT ev;
+        v_tally<HALFTHREAD>(ev, i, vr);
+
+        // ev needs to be accumulated back into the virial[] array.
+        virial[0] += ev.v[0];
+        virial[1] += ev.v[1];
+        virial[2] += ev.v[2];
+        virial[3] += ev.v[3];
+        virial[4] += ev.v[4];
+        virial[5] += ev.v[5];
       }
     });
   }
@@ -1731,6 +1799,9 @@ void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
   k_langextra.modify<DeviceType>();
   MPI_Bcast(&langextra[0][0],6*nbody,MPI_DOUBLE,0,world);
 }
+
+
+
 
 
 /*

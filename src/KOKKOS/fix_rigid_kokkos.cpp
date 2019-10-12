@@ -71,7 +71,8 @@ void angmom_to_omega(DAT::t_v_array m,
                      DAT::t_x_array ey,
                      DAT::t_x_array ez,
                      DAT::t_x_array idiag,
-                     DAT::t_v_array w, int ibody)
+                     DAT::t_v_array w,
+                     int ibody)
 {
   double wbody[3];
 
@@ -538,6 +539,10 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   memoryKK->create_kokkos(k_imagebody,imagebody,nbody,"rigid/kk:imagebody");
   memoryKK->create_kokkos(k_remapflag,remapflag,nbody,4,"rigid/kk:remapflag");
 
+  // double[6] is not a double* so implicitly cast it:
+  double *tmp_vir = virial;
+  memoryKK->create_kokkos(k_virial,tmp_vir, 6, "rigid/kk:virial");
+
   grow_arrays(atomKK->nmax);
   atom->add_callback(0);
 
@@ -953,6 +958,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
 
     double l_dtf = dtf;
     double l_dtv = dtv;
+    double l_dtq = dtq;
 
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int& ibody) {
 
@@ -980,7 +986,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
                                        l_inertia, l_omega, ibody);
 
       MathExtraKokkos::richardson(l_quat, l_angmom, l_omega,
-                                  l_inertia, dtq, ibody);
+                                  l_inertia, l_dtq, ibody);
 
       MathExtraKokkos::q_to_exyz(l_quat, l_ex_space, l_ey_space,
                                  l_ez_space, ibody);
@@ -1176,7 +1182,7 @@ void FixRigidKokkos<DeviceType>::grow_arrays(int nmax)
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 {
-  double xy,xz,yz;
+  double xy = 0, xz = 0, yz = 0;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -1189,6 +1195,10 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
     xz = domain->xz;
     yz = domain->yz;
   }
+
+  k_virial.modify<LMPHostType>();
+  k_virial.sync<DeviceType>();
+
 
   // set x and v of each atom
   {
@@ -1214,7 +1224,16 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
     auto l_xcmimage = k_xcmimage.d_view;
     auto l_body = k_body.d_view;
 
-    auto l_virial = virial;
+    auto l_virial = k_virial.d_view;
+
+    double l_dtf = dtf;
+    double l_xprd = xprd, l_yprd = yprd, l_zprd = zprd;
+    double l_xy = xy, l_xz = xz, l_yz = yz;
+
+    int l_triclinic = triclinic;
+    int l_evflag = evflag;
+    int l_vflag_atom = vflag_atom;
+    int l_vflag_global = vflag_global;
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
       if (l_body[i] < 0) return;
@@ -1227,15 +1246,15 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
       double v0, v1, v2;
 
       // save old positions and velocities for virial
-      if (evflag) {
-        if (triclinic == 0) {
-          x0 = l_x(i,0) + xbox*xprd;
-          x1 = l_x(i,1) + ybox*yprd;
-          x2 = l_x(i,2) + zbox*zprd;
+      if (l_evflag) {
+        if (l_triclinic == 0) {
+          x0 = l_x(i,0) + xbox*l_xprd;
+          x1 = l_x(i,1) + ybox*l_yprd;
+          x2 = l_x(i,2) + zbox*l_zprd;
         } else {
-          x0 = l_x(i,0) + xbox*xprd + ybox*xy + zbox*xz;
-          x1 = l_x(i,1) + ybox*yprd + zbox*yz;
-          x2 = l_x(i,2) + zbox*zprd;
+          x0 = l_x(i,0) + xbox*l_xprd + ybox*l_xy + zbox*l_xz;
+          x1 = l_x(i,1) + ybox*l_yprd + zbox*l_yz;
+          x2 = l_x(i,2) + zbox*l_zprd;
         }
         v0 = l_v(i,0);
         v1 = l_v(i,1);
@@ -1271,14 +1290,14 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
       // map back into periodic box via xbox,ybox,zbox
       // for triclinic, add in box tilt factors as well
 
-      if (triclinic == 0) {
-        l_x(i,0) += l_xcm(ibody,0) - xbox*xprd;
-        l_x(i,1) += l_xcm(ibody,1) - ybox*yprd;
-        l_x(i,2) += l_xcm(ibody,2) - zbox*zprd;
+      if (l_triclinic == 0) {
+        l_x(i,0) += l_xcm(ibody,0) - xbox*l_xprd;
+        l_x(i,1) += l_xcm(ibody,1) - ybox*l_yprd;
+        l_x(i,2) += l_xcm(ibody,2) - zbox*l_zprd;
       } else {
-        l_x(i,0) += l_xcm(ibody,0) - xbox*xprd - ybox*xy - zbox*xz;
-        l_x(i,1) += l_xcm(ibody,1) - ybox*yprd - zbox*yz;
-        l_x(i,2) += l_xcm(ibody,2) - zbox*zprd;
+        l_x(i,0) += l_xcm(ibody,0) - xbox*l_xprd - ybox*l_xy - zbox*l_xz;
+        l_x(i,1) += l_xcm(ibody,1) - ybox*l_yprd - zbox*l_yz;
+        l_x(i,2) += l_xcm(ibody,2) - zbox*l_zprd;
       }
 
       // virial = unwrapped coords dotted into body constraint force
@@ -1287,13 +1306,13 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
       // 1/2 factor b/c final_integrate contributes other half
       // assume per-atom contribution is due to constraint force on that atom
 
-      if (evflag) {
+      if (l_evflag) {
         double massone;
         if (l_rmass.data()) massone = l_rmass[i];
         else massone = l_mass[l_type[i]];
-        double fc0 = massone*(l_v(i,0) - v0)/dtf - l_f(i,0);
-        double fc1 = massone*(l_v(i,1) - v1)/dtf - l_f(i,1);
-        double fc2 = massone*(l_v(i,2) - v2)/dtf - l_f(i,2);
+        double fc0 = massone*(l_v(i,0) - v0)/l_dtf - l_f(i,0);
+        double fc1 = massone*(l_v(i,1) - v1)/l_dtf - l_f(i,1);
+        double fc2 = massone*(l_v(i,2) - v2)/l_dtf - l_f(i,2);
         double vr[6];
         vr[0] = 0.5*x0*fc0;
         vr[1] = 0.5*x1*fc1;
@@ -1302,8 +1321,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
         vr[4] = 0.5*x0*fc2;
         vr[5] = 0.5*x1*fc2;
 
-
-        if (vflag_global) {
+        if (l_vflag_global) {
           l_virial[0] += vr[0];
           l_virial[1] += vr[1];
           l_virial[2] += vr[2];
@@ -1313,7 +1331,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
         }
 
         // This should be refactored:
-        if (vflag_atom) {
+        if (l_vflag_atom) {
           Kokkos::Experimental::ScatterView<F_FLOAT*[6],
                                             typename DAT::t_virial_array::array_layout,
                                             DeviceType,Kokkos::Experimental::ScatterSum,
@@ -1339,8 +1357,10 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
         }
       }
     }); // end Kokkos::parallel_for
+
   } // end local block.
 
+  k_virial.modify<DeviceType>();
 
   // set orientation, omega, angmom of each extended particle
   /*
@@ -1469,9 +1489,11 @@ void FixRigidKokkos<DeviceType>::final_integrate()
     auto l_inertia = k_inertia.d_view;
     auto l_omega = k_omega.d_view;
 
+    double l_dtf = dtf;
+
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody) {
       // update vcm by 1/2 step
-      double dtfm = dtf / l_masstotal(ibody);
+      double dtfm = l_dtf / l_masstotal(ibody);
 
       l_vcm(ibody,0) += dtfm * l_fcm(ibody,0) * l_fflag(ibody,0);
       l_vcm(ibody,1) += dtfm * l_fcm(ibody,1) * l_fflag(ibody,1);
@@ -1479,9 +1501,9 @@ void FixRigidKokkos<DeviceType>::final_integrate()
 
       // update angular momentum by 1/2 step
 
-      l_angmom(ibody,0) += dtf * l_torque(ibody,0) * l_tflag(ibody,0);
-      l_angmom(ibody,1) += dtf * l_torque(ibody,1) * l_tflag(ibody,1);
-      l_angmom(ibody,2) += dtf * l_torque(ibody,2) * l_tflag(ibody,2);
+      l_angmom(ibody,0) += l_dtf * l_torque(ibody,0) * l_tflag(ibody,0);
+      l_angmom(ibody,1) += l_dtf * l_torque(ibody,1) * l_tflag(ibody,1);
+      l_angmom(ibody,2) += l_dtf * l_torque(ibody,2) * l_tflag(ibody,2);
 
       MathExtraKokkos::angmom_to_omega(l_angmom,
                                        l_ex_space,
@@ -1706,6 +1728,10 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
+  k_virial.modify<LMPHostType>();
+  k_virial.sync<DeviceType>();
+
+
   if (triclinic) {
     xy = domain->xy;
     xz = domain->xz;
@@ -1733,8 +1759,16 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
     auto l_vcm = k_vcm.d_view;
     auto l_xcmimage = k_xcmimage.d_view;
 
-    auto l_virial = virial;
+    auto l_virial = k_virial.d_view;
+    double l_dtf = dtf;
 
+    double l_xprd = xprd, l_yprd = yprd, l_zprd = zprd;
+    double l_xy = xy, l_xz = xz, l_yz = yz;
+
+    int l_evflag = evflag;
+    int l_vflag_global = vflag_global;
+    int l_vflag_atom = vflag_atom;
+    int l_triclinic = triclinic;
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
@@ -1751,7 +1785,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
                               l_ez_space_ibody,
                               l_displace_i, delta);
       double v0, v1, v2;
-      if (evflag) {
+      if (l_evflag) {
         v0 = l_v(i,0);
         v1 = l_v(i,1);
         v2 = l_v(i,2);
@@ -1765,27 +1799,27 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         + l_vcm(ibody,2);
 
       double massone = 0;
-      if (evflag) {
+      if (l_evflag) {
         if (l_rmass.data()) massone = l_rmass[i];
         else massone = l_mass[l_type[i]];
 
-        double fc0 = massone*(l_v(i,0) - v0)/dtf - l_f(i,0);
-        double fc1 = massone*(l_v(i,1) - v1)/dtf - l_f(i,1);
-        double fc2 = massone*(l_v(i,2) - v2)/dtf - l_f(i,2);
+        double fc0 = massone*(l_v(i,0) - v0)/l_dtf - l_f(i,0);
+        double fc1 = massone*(l_v(i,1) - v1)/l_dtf - l_f(i,1);
+        double fc2 = massone*(l_v(i,2) - v2)/l_dtf - l_f(i,2);
 
         imageint xbox = (l_xcmimage[i] & IMGMASK) - IMGMAX;
         imageint ybox = (l_xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
         imageint zbox = (l_xcmimage[i] >> IMG2BITS) - IMGMAX;
 
         double x0, x1, x2;
-        if (triclinic == 0) {
-          x0 = l_x(i,0) + xbox*xprd;
-          x1 = l_x(i,1) + ybox*yprd;
-          x2 = l_x(i,2) + zbox*zprd;
+        if (l_triclinic == 0) {
+          x0 = l_x(i,0) + xbox*l_xprd;
+          x1 = l_x(i,1) + ybox*l_yprd;
+          x2 = l_x(i,2) + zbox*l_zprd;
         } else {
-          x0 = l_x(i,0) + xbox*xprd + ybox*xy + zbox*xz;
-          x1 = l_x(i,1) + ybox*yprd + zbox*yz;
-          x2 = l_x(i,2) + zbox*zprd;
+          x0 = l_x(i,0) + xbox*l_xprd + ybox*l_xy + zbox*l_xz;
+          x1 = l_x(i,1) + ybox*l_yprd + zbox*l_yz;
+          x2 = l_x(i,2) + zbox*l_zprd;
         }
 
         double vr[6];
@@ -1797,7 +1831,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         vr[5] = 0.5*x1*fc2;
 
 
-        if (vflag_global) {
+        if (l_vflag_global) {
           l_virial[0] += vr[0];
           l_virial[1] += vr[1];
           l_virial[2] += vr[2];
@@ -1807,7 +1841,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         }
 
         // This should be refactored:
-        if (vflag_atom) {
+        if (l_vflag_atom) {
           Kokkos::Experimental::ScatterView<F_FLOAT*[6],
                                             typename DAT::t_virial_array::array_layout,
                                             DeviceType,Kokkos::Experimental::ScatterSum,
@@ -1832,6 +1866,9 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
         }
       }
     });
+
+    k_virial.modify<DeviceType>();
+
   }
 
   /*

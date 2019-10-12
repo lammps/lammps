@@ -117,6 +117,7 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_x_array k_orient;
   DAT::tdual_x_array k_dorient;
 
+  DAT::tdual_float_1d k_virial;
 
   // Needed if we apply langvin forces:
   Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;

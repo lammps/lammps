@@ -53,6 +53,9 @@ class FixRigidKokkos : public FixRigid {
   virtual void initial_integrate(int);
   virtual void post_force(int);
   virtual void final_integrate();
+
+  // pre_neighbor gets called explicitly during init. At this time, not all
+  // kokkos-able arrays and stuff is set. We have to bypass this somehow.
   virtual void pre_neighbor();
   virtual double compute_scalar();
 
@@ -118,6 +121,9 @@ class FixRigidKokkos : public FixRigid {
   // Needed if we apply langvin forces:
   Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+
+
+  bool bypass_pre_neighbor;
 
 }; // class FixRigidKokkos
 

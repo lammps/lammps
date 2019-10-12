@@ -50,7 +50,8 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-constexpr const int debug_level = 0;
+constexpr const int debug_level = 1;
+
 
 /* ----------------------------------------------------------------------
    Contributing author: Stefan Paquay (Brandeis U, stefanpaquay@gmail.com)
@@ -321,36 +322,58 @@ void richardson(q_arr_type q, v_arr_type m, v_arr_type w,
 
 
 
-
+// We need some way of returning both image and the new x position.
 KOKKOS_INLINE_FUNCTION
-Few<double, 3> remap(Few<double,3> prd,
-                     Few<double,6> h, Few<double, 6> h_inv,
-                     int triclinic,
-                     Few<double,3> boxlo, Few<double,3> boxhi,
-                     Few<double,3> boxlo_lambda,
-                     Few<double,3> boxhi_lambda,
-                     Few<double,3> prd_lambda,
-                     Few<double,3> x, imageint &image,
-                     int periodic_bits)
+Few<double,3> remap(Few<double,3> prd,
+                    Few<double,6> h,
+                    Few<double, 6> h_inv,
+                    int triclinic,
+                    Few<double,3> boxlo,
+                    Few<double,3> boxhi,
+                    Few<double,3> boxlo_lambda,
+                    Few<double,3> boxhi_lambda,
+                    Few<double,3> prd_lambda,
+                    Few<double,3> x,
+                    imageint &image,
+                    int periodic_bits)
 {
-  Few<double, 3> lo, hi, period, lambda, coord;
-
+  //Few<double, 3> lo, hi, period, lambda, coord;
+  Few<double,3> lo, hi, period, lambda, coord;
+  Few<double,3> x_out;
   imageint idim, otherdims;
 
   int xperiodic = (periodic_bits & 1);
   int yperiodic = (periodic_bits & 2);
   int zperiodic = (periodic_bits & 4);
 
-
   if (triclinic == 0) {
-    lo = boxlo;
-    hi = boxhi;
-    period = prd;
-    coord = x;
+    lo[0] = boxlo[0];
+    lo[1] = boxlo[1];
+    lo[2] = boxlo[2];
+
+    hi[0] = boxhi[0];
+    hi[1] = boxhi[1];
+    hi[2] = boxhi[2];
+
+    period[0] = prd[0];
+    period[1] = prd[1];
+    period[2] = prd[2];
+
+    coord[0] = x[0];
+    coord[1] = x[1];
+    coord[2] = x[2];
   } else {
-    lo = boxlo_lambda;
-    hi = boxhi_lambda;
-    period = prd_lambda;
+    lo[0] = boxlo_lambda[0];
+    lo[1] = boxlo_lambda[1];
+    lo[2] = boxlo_lambda[2];
+
+    hi[0] = boxhi_lambda[0];
+    hi[1] = boxhi_lambda[1];
+    hi[2] = boxhi_lambda[2];
+
+    period[0] = prd_lambda[0];
+    period[1] = prd_lambda[1];
+    period[2] = prd_lambda[2];
 
     // verbatim copy of x2lamda code so that this can remain static.
     // Should be equivalent to x2lamda(x,lambda);
@@ -363,6 +386,9 @@ Few<double, 3> remap(Few<double,3> prd,
     lambda[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
     lambda[2] = h_inv[2]*delta[2];
 
+    coord[0] = lambda[0];
+    coord[1] = lambda[1];
+    coord[2] = lambda[2];
   }
 
   if (xperiodic) {
@@ -429,12 +455,16 @@ Few<double, 3> remap(Few<double,3> prd,
     // Verbatim copy of lamda2x so that this can remain static
     // This should be equivalent with lamda2x(coord,x)
 
-    coord[0] = h[0]*coord[0] + h[5]*coord[1] + h[4]*coord[2] + boxlo[0];
-    coord[1] = h[1]*coord[1] + h[3]*coord[2] + boxlo[1];
-    coord[2] = h[2]*coord[2] + boxlo[2];
+    x_out[0] = h[0]*coord[0] + h[5]*coord[1] + h[4]*coord[2] + boxlo[0];
+    x_out[1] = h[1]*coord[1] + h[3]*coord[2] + boxlo[1];
+    x_out[2] = h[2]*coord[2] + boxlo[2];
+  } else {
+	  x_out[0] = coord[0];
+    x_out[1] = coord[1];
+    x_out[2] = coord[2];
   }
 
-  return coord;
+  return x_out;
 }
 
 
@@ -442,7 +472,7 @@ Few<double, 3> remap(Few<double,3> prd,
 
 template <class DeviceType>
 FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg), rand_pool(comm->me + seed)
+  FixRigid(lmp, narg, arg), rand_pool(comm->me+seed), bypass_pre_neighbor(true)
 {
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -678,6 +708,8 @@ void FixRigidKokkos<DeviceType>::init()
   k_sum.sync<DeviceType>();
   k_body.sync<DeviceType>();
 
+  // At this point it should be safe to rely on our own pre_neighbor.
+  bypass_pre_neighbor = false;
 }
 
 
@@ -746,21 +778,20 @@ void FixRigidKokkos<DeviceType>::setup(int vflag)
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::pre_neighbor()
 {
+  if (bypass_pre_neighbor) {
+    FixRigid::pre_neighbor();
+    return;
+  }
+
   // pre_neighbor modifies both xcm and imagebody
   // image_shift modifies xcmimage and body
   k_xcm.sync<DeviceType>();
   k_imagebody.sync<DeviceType>();
 
   {
-	  // Local block for Kokkos lambda.
+    // Local block for Kokkos lambda.
     auto l_xcm = k_xcm.d_view;
     auto l_imagebody = k_imagebody.d_view;
-
-    int periodic_bits = 0;
-    periodic_bits +=   domain->xperiodic;
-    periodic_bits += 2*domain->yperiodic;
-    periodic_bits += 4*domain->zperiodic;
-
 
     Few<double,3> prd{domain->prd[0], domain->prd[1], domain->prd[2]};
     Few<double,3> prd_lambda{domain->prd_lamda[0], domain->prd_lamda[1], domain->prd_lamda[2]};
@@ -770,25 +801,32 @@ void FixRigidKokkos<DeviceType>::pre_neighbor()
     Few<double,6> h_inv{domain->h_inv[0], domain->h_inv[1], domain->h_inv[2],
                         domain->h_inv[3], domain->h_inv[4], domain->h_inv[5]};
 
-
     Few<double,3> boxlo{domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
     Few<double,3> boxhi{domain->boxhi[0], domain->boxhi[1], domain->boxhi[2]};
 
     Few<double,3> boxlo_lambda{domain->boxlo_lamda[0], domain->boxlo_lamda[1], domain->boxlo_lamda[2]};
     Few<double,3> boxhi_lambda{domain->boxhi_lamda[0], domain->boxhi_lamda[1], domain->boxhi_lamda[2]};
 
-    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody){
+    // Even simple variables have to be copied in the local block here
+    // because else it is not properly copied to the device?
+    int l_periodic_bits = 0;
+    l_periodic_bits +=   domain->xperiodic;
+    l_periodic_bits += 2*domain->xperiodic;
+    l_periodic_bits += 4*domain->xperiodic;
 
-      double xcm_ibody_arr[3];
-      xcm_ibody_arr[0] = l_xcm(ibody,0);
-      xcm_ibody_arr[1] = l_xcm(ibody,1);
-      xcm_ibody_arr[2] = l_xcm(ibody,2);
+    int l_triclinic = triclinic;
+
+    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody){
+      Few<double,3> xcm_ibody;
+      xcm_ibody[0] = l_xcm(ibody,0);
+      xcm_ibody[1] = l_xcm(ibody,1);
+      xcm_ibody[2] = l_xcm(ibody,2);
 
       imageint imagebody_ibody = l_imagebody(ibody);
       // We need to use remap as a static function so we cannot use domainKK->
-      auto new_xcm = remap(prd, h, h_inv, triclinic, boxlo, boxhi,
+      auto new_xcm = remap(prd, h, h_inv, l_triclinic, boxlo, boxhi,
                            boxlo_lambda, boxhi_lambda, prd_lambda,
-                           xcm_ibody_arr, imagebody_ibody, periodic_bits);
+                           xcm_ibody, imagebody_ibody, l_periodic_bits);
 
       l_imagebody(ibody) = imagebody_ibody;
       l_xcm(ibody,0) = new_xcm[0];
@@ -919,6 +957,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int& ibody) {
 
       const double dtfm = l_dtf / l_masstotal[ibody];
+
       l_vcm(ibody,0) += dtfm * l_fcm(ibody,0) * l_fflag(ibody,0);
       l_vcm(ibody,1) += dtfm * l_fcm(ibody,1) * l_fflag(ibody,1);
       l_vcm(ibody,2) += dtfm * l_fcm(ibody,2) * l_fflag(ibody,2);

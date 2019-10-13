@@ -500,11 +500,21 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     // since local atoms are in lambda coordinates, but ghosts are not.
 
     int *sametag = atom->sametag;
-    double xo[3],xh1[3],xh2[3];
+    double xo[3],xh1[3],xh2[3],xm[0];
+    double *lo = domain->boxlo_lamda;
+    double *hi = domain->boxhi_lamda;
+    double *prd = domain->prd_lamda;
+    const int nlocal = atom->nlocal;
 
-    domain->lamda2x(x[i],xo);
-    domain->lamda2x(x[iH1],xh1);
-    domain->lamda2x(x[iH2],xh2);
+    for (int ii = 0; ii < 3; ++ii) {
+      xo[ii] = x[i][ii];
+      xh1[ii] = x[iH1][ii];
+      xh2[ii] = x[iH2][ii];
+    }
+
+    if (i < nlocal) domain->lamda2x(x[i],xo);
+    if (iH1 < nlocal) domain->lamda2x(x[iH1],xh1);
+    if (iH2 < nlocal) domain->lamda2x(x[iH2],xh2);
 
     double delx = xo[0] - xh1[0];
     double dely = xo[1] - xh1[1];
@@ -512,6 +522,8 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     double rsqmin = delx*delx + dely*dely + delz*delz;
     double rsq;
     int closest = iH1;
+
+    // no need to run lamda2x() here -> ghost atoms
 
     while (sametag[iH1] >= 0) {
       iH1 = sametag[iH1];
@@ -561,13 +573,13 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     double dely2 = xh2[1] - xo[1];
     double delz2 = xh2[2] - xo[2];
 
-    xM[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
-    xM[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
-    xM[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
+    xm[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
+    xm[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
+    xm[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
 
     // ... and convert M to lamda space for PPPM
 
-    domain->x2lamda(xM,xM);
+    domain->x2lamda(xm,xM);
 
   } else {
 

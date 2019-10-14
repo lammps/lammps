@@ -17,6 +17,7 @@
 #include "update.h"
 #include "output.h"
 #include "timer.h"
+#include "universe.h"
 
 using namespace LAMMPS_NS;
 
@@ -77,11 +78,18 @@ int MinSD::iterate(int maxiter)
       return ETOL;
 
     // force tolerance criterion
+    // sync across replicas if running multi-replica minimization
 
-    if (normstyle == MAX) fdotf = fnorm_max();		// max force norm
-    else if (normstyle == INF) fdotf = fnorm_inf();	// infinite force norm
-    else if (normstyle == TWO) fdotf = fnorm_sqr();	// Euclidean force 2-norm
-    else error->all(FLERR,"Illegal min_modify command");
+    if (normstyle == MAX) {
+      fdotfloc = fnorm_max();	// max force norm
+      MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+    } else if (normstyle == INF) {
+      fdotfloc = fnorm_inf();	// infinite force norm
+      MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+    } else if (normstyle == TWO) {
+      fdotfloc = fnorm_sqr();	// Euclidean force 2-norm
+      MPI_Allreduce(&fdotfloc,&fdotf,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+    } else error->all(FLERR,"Illegal min_modify command");
     if (fdotf < update->ftol*update->ftol) return FTOL;
 
     // set new search direction h to f = -Grad(x)

@@ -1048,7 +1048,6 @@ void PPPMDipole::compute_gf_dipole()
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = MY_4PI/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
 

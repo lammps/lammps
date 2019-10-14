@@ -500,10 +500,7 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     // since local atoms are in lambda coordinates, but ghosts are not.
 
     int *sametag = atom->sametag;
-    double xo[3],xh1[3],xh2[3],xm[0];
-    double *lo = domain->boxlo_lamda;
-    double *hi = domain->boxhi_lamda;
-    double *prd = domain->prd_lamda;
+    double xo[3],xh1[3],xh2[3],xm[3];
     const int nlocal = atom->nlocal;
 
     for (int ii = 0; ii < 3; ++ii) {

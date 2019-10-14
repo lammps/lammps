@@ -2827,7 +2827,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, edgeflag = 0, bondflag = 0, customedgesflag = 0;
+  int equivflag = 0, bondflag = 0, customedgesflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -2836,7 +2836,6 @@ void FixBondReact::read(int myrxn)
       readline(line);
       sscanf(line,"%d",&jbonding[myrxn]);
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
-      edgeflag = 1;
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;

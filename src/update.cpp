@@ -404,7 +404,7 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
    create the Minimize style, first with suffix appended
 ------------------------------------------------------------------------- */
 
-void Update::new_minimize(char *style, int narg, char **arg,
+void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
                            int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {

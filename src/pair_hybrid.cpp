@@ -766,7 +766,6 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   double fone;
   fforce = 0.0;
   double esum = 0.0;
-  int n = 0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {

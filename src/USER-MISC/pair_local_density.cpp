@@ -374,7 +374,7 @@ void PairLocalDensity::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLocalDensity::settings(int narg, char **arg)
+void PairLocalDensity::settings(int narg, char ** /* arg */)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -438,7 +438,7 @@ void PairLocalDensity::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLocalDensity::init_one(int i, int j)
+double PairLocalDensity::init_one(int /* i */, int /* j */)
 {
   // single global cutoff = max of all uppercuts read in from LD file
 
@@ -457,9 +457,9 @@ double PairLocalDensity::init_one(int i, int j)
   of the LD potential without doing an actual MD run
  ---------------------------------------------------------------------------*/
 
-double PairLocalDensity::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
-                         double &fforce)
+double PairLocalDensity::single(int /* i */, int /* j */, int itype, int jtype,
+				double rsq, double /* factor_coul */,
+				double /* factor_lj */, double &fforce)
 {
     int m, k, index;
     double rsqinv, p, uLD;
@@ -816,7 +816,8 @@ void PairLocalDensity::parse_file(char *filename) {
    communication routines
 ------------------------------------------------------------------------- */
 
-int PairLocalDensity::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int PairLocalDensity::pack_comm(int n, int *list, double *buf,
+				int /* pbc_flag */, int * /* pbc */) {
   int i,j,k;
   int m; 	
 

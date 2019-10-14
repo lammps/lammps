@@ -448,9 +448,9 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
+void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int /* vflag */)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,Rcut,r2inv,r6inv,r8inv,Tap,dTap,Vkc,fsum;
@@ -544,15 +544,15 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
+void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,rhosq1,exp0,exp1,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
+  double rsq,r,rhosq1,exp0,exp1,r2inv,r6inv,Tap,dTap,Vkc;
   double frho_ij,sumC1,sumC11,sumCff,fsum,rho_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *KC_neighs_i,*KC_neighs_j;
+  int *KC_neighs_i;
 
   evdwl = 0.0;
 
@@ -608,7 +608,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
         r = sqrt(rsq);
         r2inv = 1.0/rsq;
         r6inv = r2inv*r2inv*r2inv;
-        r8inv = r2inv*r6inv;
+
 	// turn on/off taper function
 	if (tap_flag) {
 	  Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));

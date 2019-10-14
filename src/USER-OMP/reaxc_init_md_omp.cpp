@@ -51,13 +51,11 @@ int Init_ListsOMP( reax_system *system, control_params *control,
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
-  MPI_Comm comm;
 
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;
 
-  comm = mpi_data->world;
   bond_top = (int*) calloc( system->total_cap, sizeof(int) );
   hb_top = (int*) calloc( system->local_cap, sizeof(int) );
   Estimate_Storages( system, control, lists,

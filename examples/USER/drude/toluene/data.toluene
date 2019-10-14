@@ -79,10 +79,10 @@ Dihedral Coeffs
 
 Improper Coeffs
 
-   1    0.0000    2.1999    0.0000    0.0000 # CAO-CAO-CAT-CTT
-   2    0.0000    2.1999    0.0000    0.0000 # CAT-CAM-CAO-HAT
-   3    0.0000    2.1999    0.0000    0.0000 # CAO-CAP-CAM-HAT
-   4    0.0000    2.1999    0.0000    0.0000 # CAM-CAM-CAP-HAT
+   1    2.1999    0.0000    0.0000   -1.0000 0 # CAO-CAO-CAT-CTT
+   2    2.1999    0.0000    0.0000   -1.0000 0 # CAT-CAM-CAO-HAT
+   3    2.1999    0.0000    0.0000   -1.0000 0 # CAO-CAP-CAM-HAT
+   4    2.1999    0.0000    0.0000   -1.0000 0 # CAM-CAM-CAP-HAT
 
 Atoms
 

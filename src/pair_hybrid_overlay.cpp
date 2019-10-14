@@ -102,3 +102,52 @@ void PairHybridOverlay::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
+
+
+/* ----------------------------------------------------------------------
+   we need to handle Pair::svector special for hybrid/overlay
+------------------------------------------------------------------------- */
+
+void PairHybridOverlay::init_svector()
+{
+  // single_extra = list all sub-style single_extra
+  // allocate svector
+
+  single_extra = 0;
+  for (int m = 0; m < nstyles; m++)
+    single_extra += styles[m]->single_extra;
+
+  if (single_extra) {
+    delete [] svector;
+    svector = new double[single_extra];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   we need to handle Pair::svector special for hybrid/overlay
+------------------------------------------------------------------------- */
+
+void PairHybridOverlay::copy_svector(int itype, int jtype)
+{
+  int n=0;
+  Pair *this_style;
+
+  // fill svector array.
+  // copy data from active styles and use 0.0 for inactive ones
+  for (int m = 0; m < nstyles; m++) {
+    for (int k = 0; k < nmap[itype][jtype]; ++k) {
+      if (m == map[itype][jtype][k]) {
+        this_style = styles[m];
+      } else {
+        this_style = NULL;
+      }
+    }
+    for (int l = 0; l < styles[m]->single_extra; ++l) {
+      if (this_style) {
+        svector[n++] = this_style->svector[l];
+      } else {
+        svector[n++] = 0.0;
+      }
+    }
+  }
+}

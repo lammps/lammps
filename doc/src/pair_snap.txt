@@ -50,7 +50,7 @@ the SNAP potential files themselves.
 Only a single pair_coeff command is used with the {snap} style which
 specifies a SNAP coefficient file followed by a SNAP parameter file
 and then N additional arguments specifying the mapping of SNAP
-elements to LAMMPS atom types, where N is the number of 
+elements to LAMMPS atom types, where N is the number of
 LAMMPS atom types:
 
 SNAP coefficient file
@@ -79,7 +79,7 @@ The name of the SNAP coefficient file usually ends in the
 ".snapcoeff" extension. It may contain coefficients
 for many SNAP elements. The only requirement is that it
 contain at least those element names appearing in the
-LAMMPS mapping list. 
+LAMMPS mapping list.
 The name of the SNAP parameter file usually ends in the ".snapparam"
 extension. It contains a small number
 of parameters that define the overall form of the SNAP potential.

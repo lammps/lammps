@@ -20,14 +20,14 @@
 #include "region.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
 #include "fix_store.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "variable.h"
 
 using namespace LAMMPS_NS;
 
@@ -420,6 +420,12 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
 
 void DumpCustom::header_item(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
+  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -435,6 +441,12 @@ void DumpCustom::header_item(bigint ndump)
 
 void DumpCustom::header_item_triclinic(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
+  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");

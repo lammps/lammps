@@ -1,0 +1,226 @@
+LAMMPS (7 Aug 2019)
+# LAMMPS input file for 50.0% methanol mole fraction solution
+# with 2500 methanol molecules in implicit water.
+#
+#
+# Author: David Rosenberger, van der Vegt Group, TU Darmstadt
+#
+# Refer: Rosenberger, Sanyal, Shell, van der Vegt, J. Chem. Theory Comput. 15, 2881-2895 (2019)
+
+
+# Initialize simulation box
+dimension       3
+boundary        p p p
+units           real
+atom_style      molecular
+
+# Set potential styles
+pair_style      hybrid/overlay table spline 500 local/density
+
+# Read molecule data and set initial velocities
+read_data       methanol_implicit_water.data
+  orthogonal box = (-31.123 -31.123 -31.123) to (31.123 31.123 31.123)
+  2 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2500 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.00063014 secs
+  read_data CPU = 0.00599909 secs
+velocity        all create  3.0000e+02 12142 rot yes dist gaussian
+
+# Assign potentials
+pair_coeff          1     1 table         methanol_implicit_water.pair.table PairMM
+WARNING: 93 of 500 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:483)
+WARNING: 254 of 500 distance values in table with relative error
+  over 1e-06 to re-computed values (../pair_table.cpp:492)
+pair_coeff          *     * local/density methanol_implicit_water.localdensity.table
+
+
+
+
+#Recentering during minimization and equilibration
+fix recentering all recenter 0.0 0.0 0.0 units box
+
+#Thermostat & time integration
+timestep        1.0
+thermo          100
+thermo_style    custom etotal ke pe temp evdwl
+
+#minimization
+minimize        1.e-4 0.0 1000 1000
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:168)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 17
+  ghost atom cutoff = 17
+  binsize = 8.5, bins = 8 8 8
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair local/density, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 7.411 | 7.411 | 7.412 Mbytes
+TotEng KinEng PotEng Temp E_vdwl 
+   1470.3564    2234.7133   -764.35689          300   -764.35689 
+   46.496766    2234.7133   -2188.2165          300   -2188.2165 
+   7.9030246    2234.7133   -2226.8103          300   -2226.8103 
+Loop time of 0.463996 on 8 procs for 121 steps with 2500 atoms
+
+91.4% CPU use with 8 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -764.356892369     -2227.85589084     -2226.81026984
+  Force two-norm initial, final = 134.911 3.83896
+  Force max component initial, final = 14.1117 1.07422
+  Final line search alpha, max atom move = 5.06747e-10 5.44356e-10
+  Iterations, force evaluations = 121 154
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.41442    | 0.41976    | 0.42434    |   0.5 | 90.47
+Bond    | 1.1683e-05 | 2.0713e-05 | 3.5048e-05 |   0.0 |  0.00
+Neigh   | 0.0084722  | 0.0090862  | 0.010038   |   0.5 |  1.96
+Comm    | 0.022712   | 0.028157   | 0.034072   |   1.9 |  6.07
+Output  | 3.1948e-05 | 3.6925e-05 | 6.6996e-05 |   0.0 |  0.01
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.006937   |            |       |  1.50
+
+Nlocal:    312.5 ave 333 max 299 min
+Histogram: 2 2 0 0 1 0 2 0 0 1
+Nghost:    2546 ave 2580 max 2517 min
+Histogram: 1 1 0 3 0 1 0 0 0 2
+Neighs:    33215.4 ave 37251 max 29183 min
+Histogram: 1 0 0 1 2 2 0 1 0 1
+
+Total # of neighbors = 265723
+Ave neighs/atom = 106.289
+Ave special neighs/atom = 0
+Neighbor list builds = 6
+Dangerous builds = 0
+
+#set up integration parameters
+fix             timeintegration all nve
+fix             thermostat all langevin  3.0000e+02  3.0000e+02  1.0000e+02 59915
+
+#Equilibration (for realistic results, run for 2000000  steps)
+reset_timestep  0
+thermo          200
+thermo_style    custom etotal ke pe temp evdwl
+
+#run equilibration
+run             2000
+WARNING: Fix recenter should come after all other integration fixes (../fix_recenter.cpp:131)
+Per MPI rank memory allocation (min/avg/max) = 6.286 | 6.286 | 6.287 Mbytes
+TotEng KinEng PotEng Temp E_vdwl 
+   177.26822    2234.7133   -2057.4451          300   -2057.4451 
+   736.24287    2151.2608   -1415.0179    288.79688   -1415.0179 
+   963.07617    2090.6433   -1127.5671    280.65926   -1127.5671 
+   1148.9049    2173.1327   -1024.2279    291.73309   -1024.2279 
+   1303.6409    2279.8586   -976.21767    306.06055   -976.21767 
+     1355.42    2281.0383   -925.61826    306.21892   -925.61826 
+   1394.5206    2276.2093   -881.68863    305.57064   -881.68863 
+   1346.9764    2215.2973   -868.32091     297.3935   -868.32091 
+   1381.3654    2248.8061   -867.44063    301.89189   -867.44063 
+   1315.8059    2189.3193   -873.51332    293.90606   -873.51332 
+   1314.4456    2209.7431   -895.29752    296.64787   -895.29752 
+Loop time of 6.38989 on 8 procs for 2000 steps with 2500 atoms
+
+Performance: 27.043 ns/day, 0.887 hours/ns, 312.994 timesteps/s
+80.5% CPU use with 8 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.2693     | 5.3572     | 5.457      |   2.1 | 83.84
+Bond    | 0.00028825 | 0.00033835 | 0.00039148 |   0.0 |  0.01
+Neigh   | 0.0296     | 0.032337   | 0.035071   |   0.9 |  0.51
+Comm    | 0.64679    | 0.73397    | 0.80847    |   5.2 | 11.49
+Output  | 0.00033498 | 0.00051582 | 0.0015228  |   0.0 |  0.01
+Modify  | 0.16395    | 0.18919    | 0.21056    |   3.9 |  2.96
+Other   |            | 0.07636    |            |       |  1.19
+
+Nlocal:    312.5 ave 337 max 295 min
+Histogram: 2 2 0 1 0 0 0 1 1 1
+Nghost:    2551.62 ave 2582 max 2525 min
+Histogram: 2 1 0 0 1 1 1 0 1 1
+Neighs:    33241.8 ave 37659 max 29705 min
+Histogram: 2 0 0 2 2 0 0 0 1 1
+
+Total # of neighbors = 265934
+Ave neighs/atom = 106.374
+Ave special neighs/atom = 0
+Neighbor list builds = 21
+Dangerous builds = 0
+
+#turn off recentering during production run
+unfix recentering
+
+
+#setup trajectory output
+dump            myDump all custom 100 methanol_implicit_water.lammpstrj.gz id type x y z element
+dump_modify     myDump element M
+dump_modify     myDump sort id
+
+#run production (for realistic results, run for 10000000 steps)
+reset_timestep  0
+thermo          1000
+thermo_style    custom etotal ke pe temp  evdwl
+run             10000
+Per MPI rank memory allocation (min/avg/max) = 7.588 | 7.589 | 7.589 Mbytes
+TotEng KinEng PotEng Temp E_vdwl 
+   1442.5428    2209.7431   -767.20027    296.64787   -767.20027 
+   1391.8624    2262.6889   -870.82656     303.7556   -870.82656 
+    1375.914    2244.6176    -868.7036     301.3296    -868.7036 
+   1345.9064    2227.2324   -881.32599    298.99573   -881.32599 
+   1379.2334    2278.1156   -898.88222    305.82657   -898.88222 
+   1389.7928    2255.8062   -866.01341    302.83163   -866.01341 
+   1380.4549    2258.2108   -877.75582    303.15443   -877.75582 
+   1380.8489    2256.9432   -876.09428    302.98426   -876.09428 
+   1326.5151    2225.7408   -899.22577    298.79549   -899.22577 
+   1376.6025    2253.0128   -876.41028    302.45662   -876.41028 
+   1331.0008    2218.1033   -887.10258    297.77019   -887.10258 
+Loop time of 25.4591 on 8 procs for 10000 steps with 2500 atoms
+
+Performance: 33.937 ns/day, 0.707 hours/ns, 392.787 timesteps/s
+89.3% CPU use with 8 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 21.635     | 21.916     | 22.237     |   3.9 | 86.08
+Bond    | 0.0011308  | 0.0013149  | 0.0016932  |   0.5 |  0.01
+Neigh   | 0.14593    | 0.15675    | 0.16667    |   1.9 |  0.62
+Comm    | 1.3789     | 1.7502     | 1.9558     |  13.7 |  6.87
+Output  | 0.34664    | 0.82927    | 1.2013     |  32.8 |  3.26
+Modify  | 0.24904    | 0.25842    | 0.26907    |   1.2 |  1.02
+Other   |            | 0.5475     |            |       |  2.15
+
+Nlocal:    312.5 ave 327 max 298 min
+Histogram: 2 0 0 1 1 0 1 1 1 1
+Nghost:    2575 ave 2601 max 2559 min
+Histogram: 2 0 3 1 0 0 0 0 1 1
+Neighs:    33223.2 ave 35920 max 30303 min
+Histogram: 1 1 1 1 0 1 0 0 0 3
+
+Total # of neighbors = 265786
+Ave neighs/atom = 106.314
+Ave special neighs/atom = 0
+Neighbor list builds = 103
+Dangerous builds = 0
+
+
+Total wall time: 0:00:32

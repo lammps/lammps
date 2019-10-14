@@ -6,14 +6,19 @@
 :line
 
 min_style spin command :h3
+min_style spin/cg command :h3
+min_style spin/lbfgs command :h3
 
 [Syntax:]
 
-min_style spin :pre
+min_style spin 
+min_style spin/cg 
+min_style spin/lbfgs :pre
 
 [Examples:]
 
-min_style 	spin :pre 
+min_style  spin/lbfgs
+min_modify line spin_cubic discrete_factor 10.0 :pre
 
 [Description:]
 
@@ -27,27 +32,56 @@ timestep, according to:
 
 with lambda a damping coefficient (similar to a Gilbert
 damping).
-Lambda can be defined by setting the {alpha_damp} keyword with the 
-"min_modify"_min_modify.html command. 
+Lambda can be defined by setting the {alpha_damp} keyword with the
+"min_modify"_min_modify.html command.
 
 The minimization procedure solves this equation using an
-adaptive timestep. The value of this timestep is defined 
-by the largest precession frequency that has to be solved in the 
+adaptive timestep. The value of this timestep is defined
+by the largest precession frequency that has to be solved in the
 system:
 
 :c,image(Eqs/min_spin_timestep.jpg)
 
 with {|omega|_{max}} the norm of the largest precession frequency
 in the system (across all processes, and across all replicas if a
-spin/neb calculation is performed). 
+spin/neb calculation is performed).
 
-Kappa defines a discretization factor {discrete_factor} for the 
-definition of this timestep. 
+Kappa defines a discretization factor {discrete_factor} for the
+definition of this timestep.
 {discrete_factor} can be defined with the "min_modify"_min_modify.html
 command.
 
-NOTE: The {spin} style replaces the force tolerance by a torque
+Style {spin/cg} defines an orthogonal spin optimization
+(OSO) combined to a conjugate gradient (CG) algorithm. 
+The "min_modify"_min_modify.html command can be used to
+couple the {spin/cg} to a line search procedure, and to modify the 
+discretization factor {discrete_factor}.
+By default, style {spin/cg} does not employ the line search procedure 
+and uses the adaptive time-step technique in the same way as style {spin}.
+
+Style {spin/lbfgs} defines an orthogonal spin optimization
+(OSO) combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno 
+(L-BFGS) algorithm.
+By default, style {spin/lbfgs} does not employ line search procedure.
+If the line search procedure is not used then the discrete factor defines
+the maximum root mean squared rotation angle of spins by equation {pi/(5*Kappa)}.
+The default value for Kappa is 10.
+The {spin_cubic} line search can improve the convergence of the 
+{spin/lbfgs} algorithm.
+
+The "min_modify"_min_modify.html command can be used to
+activate the line search procedure, and to modify the
+discretization factor {discrete_factor}. 
+
+For more information about styles {spin/cg} and {spin/lbfgs}, 
+see their implementation reported in "(Ivanov)"_#Ivanov1.
+
+NOTE: All the {spin} styles replace the force tolerance by a torque
 tolerance. See "minimize"_minimize.html for more explanation. 
+
+NOTE: The {spin/cg} and {spin/lbfgs} styles can be used
+for magnetic NEB calculations only if the line search procedure
+is deactivated. See "neb/spin"_neb_spin.html for more explanation. 
 
 [Restrictions:] 
 
@@ -56,10 +90,15 @@ freedom for a frozen lattice configuration.
 
 [Related commands:]
 
-"min_style"_min_style.html, "minimize"_minimize.html, 
+"min_style"_min_style.html, "minimize"_minimize.html,
 "min_modify"_min_modify.html
 
 [Default:]
 
-The option defaults are {alpha_damp} = 1.0 and {discrete_factor} =
-10.0.
+The option defaults are {alpha_damp} = 1.0, {discrete_factor} =
+10.0, {line} = spin_none and {norm} = euclidean.
+
+:line
+
+:link(Ivanov1)
+[(Ivanov)] Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).

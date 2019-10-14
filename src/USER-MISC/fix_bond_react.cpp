@@ -35,6 +35,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "molecule.h"
 #include "group.h"
 #include "citeme.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
@@ -42,6 +43,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
   "fix bond/react:\n\n"
@@ -56,9 +58,8 @@ static const char cite_fix_bond_react[] =
 
 #define BIG 1.0e20
 #define DELTA 16
-#define MAXLINE 256
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
-#define MAXCONARGS 5 // max # of arguments for any type of constraint
+#define MAXCONARGS 7 // max # of arguments for any type of constraint + rxnID
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -68,6 +69,9 @@ static const char cite_fix_bond_react[] =
 // GUESSFAIL: a guess has failed (if no more restore points, status = 'REJECT')
 // RESTORE: restore mode, load most recent restore point
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
+
+// types of available reaction constraints
+enum{DISTANCE,ANGLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -87,6 +91,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   newton_bond = force->newton_bond;
 
+  restart_global = 1;
   attempted_rxn = 0;
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -94,6 +99,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   rxnID = 0;
+  nconstraints = 0;
   status = PROCEED;
 
   nxspecial = NULL;
@@ -169,8 +175,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
-  memory->create(nconstraints,nreacts,"bond/react:nconstraints");
-  memory->create(constraints,nreacts,MAXCONARGS,"bond/react:constraints");
+  memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
   memory->create(jatomtype,nreacts,"bond/react:jatomtype");
   memory->create(ibonding,nreacts,"bond/react:ibonding");
@@ -188,7 +193,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
-    nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -207,7 +211,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     iarg++;
 
-    rxn_name[rxn] = arg[iarg++];
+    int n = strlen(arg[iarg]) + 1;
+    if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
+    strncpy(rxn_name[rxn],arg[iarg++],n);
 
     int igroup = group->find(arg[iarg++]);
     if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
@@ -386,6 +392,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   id_fix3 = NULL;
   statted_id = NULL;
   custom_exclude_flag = 0;
+
+  // used to store restart info
+  set = new Set[nreacts];
+  memset(set,0,nreacts*sizeof(Set));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -469,6 +479,7 @@ FixBondReact::~FixBondReact()
   delete [] statted_id;
   delete [] guess_branch;
   delete [] pioneer_count;
+  delete [] set;
 
   if (group) {
     char **newarg;
@@ -1131,6 +1142,22 @@ void FixBondReact::superimpose_algorithm()
       glove[myjbonding-1][1] = created[lcl_inst][1][rxnID];
       glove_counter++;
 
+      // special case, only two atoms in reaction templates
+      // then: bonding onemol_nxspecials guaranteed to be equal, and either 0 or 1
+      if (glove_counter == onemol->natoms) {
+        tagint local_atom1 = atom->map(glove[myibonding-1][1]);
+        tagint local_atom2 = atom->map(glove[myjbonding-1][1]);
+        if ( (nxspecial[local_atom1][0] == onemol_nxspecial[myibonding-1][0] &&
+              nxspecial[local_atom2][0] == nxspecial[local_atom1][0]) &&
+             (nxspecial[local_atom1][0] == 0 ||
+              xspecial[local_atom1][0] == atom->tag[local_atom2]) &&
+             check_constraints() ) {
+          status = ACCEPT;
+          glove_ghostcheck();
+        } else
+          status = REJECT;
+      }
+
       avail_guesses = 0;
 
       for (int i = 0; i < max_natoms; i++)
@@ -1209,7 +1236,7 @@ void FixBondReact::superimpose_algorithm()
           rxn_by_proc[j] = -1; // corresponds to ghostly
         int itemp = 0;
         for (int j = 0; j < nprocs; j++)
-          for (int k = 0; k < local_rxn_count[j]; k++)
+          for (int k = 0; k < local_rxncounts[j]; k++)
             rxn_by_proc[itemp++] = j;
         std::random_shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn]);
         for (int j = 0; j < nprocs; j++)
@@ -1610,21 +1637,50 @@ evaluate constraints: return 0 if any aren't satisfied
 
 int FixBondReact::check_constraints()
 {
-  tagint atom1,atom2;
+  tagint atom1,atom2,atom3;
   double delx,dely,delz,rsq;
+  double delx1,dely1,delz1,delx2,dely2,delz2;
+  double rsq1,rsq2,r1,r2,c;
 
   double **x = atom->x;
 
-  for (int i = 0; i < nconstraints[rxnID]; i++) {
-    if (constraints[rxnID][0] == 0) { // 'distance' type
-      atom1 = atom->map(glove[(int) constraints[rxnID][1]-1][1]);
-      atom2 = atom->map(glove[(int) constraints[rxnID][2]-1][1]);
-      delx = x[atom1][0] - x[atom2][0];
-      dely = x[atom1][1] - x[atom2][1];
-      delz = x[atom1][2] - x[atom2][2];
-      domain->minimum_image(delx,dely,delz); // ghost location fix
-      rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < constraints[rxnID][3] || rsq > constraints[rxnID][4]) return 0;
+  for (int i = 0; i < nconstraints; i++) {
+    if (constraints[i][0] == rxnID) {
+      if (constraints[i][1] == DISTANCE) {
+        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
+        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
+        delx = x[atom1][0] - x[atom2][0];
+        dely = x[atom1][1] - x[atom2][1];
+        delz = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx,dely,delz); // ghost location fix
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < constraints[i][4] || rsq > constraints[i][5]) return 0;
+      } else if (constraints[i][1] == ANGLE) {
+        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
+        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
+        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
+
+        // 1st bond
+        delx1 = x[atom1][0] - x[atom2][0];
+        dely1 = x[atom1][1] - x[atom2][1];
+        delz1 = x[atom1][2] - x[atom2][2];
+        rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+        r1 = sqrt(rsq1);
+
+        // 2nd bond
+        delx2 = x[atom3][0] - x[atom2][0];
+        dely2 = x[atom3][1] - x[atom2][1];
+        delz2 = x[atom3][2] - x[atom2][2];
+        rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+        r2 = sqrt(rsq2);
+
+        // angle (cos and sin)
+        c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+        c /= r1*r2;
+        if (c > 1.0) c = 1.0;
+        if (c < -1.0) c = -1.0;
+        if (acos(c) < constraints[i][5] || acos(c) > constraints[i][6]) return 0;
+      }
     }
   }
   return 1;
@@ -2750,14 +2806,19 @@ void FixBondReact::read(int myrxn)
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
-    else if (strstr(line,"equivalences")) sscanf(line,"%d",&nequivalent);
+    else if (strstr(line,"equivalences")) {
+      sscanf(line,"%d",&nequivalent);
+      if (nequivalent != onemol->natoms)
+        error->one(FLERR,"Bond/react: Number of equivalences in map file must "
+                                  "equal number of atoms in reaction templates");
+    }
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
-    else if (strstr(line,"constraints")) sscanf(line,"%d",&nconstraints[myrxn]);
-    else break;
+    else if (strstr(line,"constraints")) {
+      sscanf(line,"%d",&nconstr);
+      memory->grow(constraints,nconstraints+nconstr,MAXCONARGS,"bond/react:constraints");
+    } else break;
   }
-
-  //count = NULL;
 
   // grab keyword and skip next line
 
@@ -2867,18 +2928,28 @@ void FixBondReact::Constraints(char *line, int myrxn)
   double tmp[MAXCONARGS];
   int n = strlen("distance") + 1;
   char *constraint_type = new char[n];
-  for (int i = 0; i < nconstraints[myrxn]; i++) {
+  for (int i = 0; i < nconstr; i++) {
     readline(line);
     sscanf(line,"%s",constraint_type);
+    constraints[nconstraints][0] = myrxn;
     if (strcmp(constraint_type,"distance") == 0) {
-      constraints[myrxn][0] = 0; // 0 = 'distance' ...maybe use another enum eventually
+      constraints[nconstraints][1] = DISTANCE;
       sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      constraints[myrxn][1] = tmp[0];
-      constraints[myrxn][2] = tmp[1];
-      constraints[myrxn][3] = tmp[2]*tmp[2]; // using square of distance
-      constraints[myrxn][4] = tmp[3]*tmp[3];
+      constraints[nconstraints][2] = tmp[0];
+      constraints[nconstraints][3] = tmp[1];
+      constraints[nconstraints][4] = tmp[2]*tmp[2]; // using square of distance
+      constraints[nconstraints][5] = tmp[3]*tmp[3];
+    } else if (strcmp(constraint_type,"angle") == 0) {
+      constraints[nconstraints][1] = ANGLE;
+      sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
+      constraints[nconstraints][2] = tmp[0];
+      constraints[nconstraints][3] = tmp[1];
+      constraints[nconstraints][4] = tmp[2];
+      constraints[nconstraints][5] = tmp[3]/180.0 * MY_PI;
+      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
+    nconstraints++;
   }
   delete [] constraint_type;
 }
@@ -3094,6 +3165,42 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
           partner[j] = (tagint) ubuf(buf[m++]).i;
           distsq[j][0] = buf[m++];
         } else m += 2;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write Set data to restart file
+------------------------------------------------------------------------- */
+
+void FixBondReact::write_restart(FILE *fp)
+{
+  set[0].nreacts = nreacts;
+  for (int i = 0; i < nreacts; i++) {
+    set[i].reaction_count_total = reaction_count_total[i];
+    int n = strlen(rxn_name[i]) + 1;
+    strncpy(set[i].rxn_name,rxn_name[i],n);
+  }
+
+  if (me == 0) {
+    int size = nreacts*sizeof(Set);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(set,sizeof(Set),nreacts,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use selected state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixBondReact::restart(char *buf)
+{
+  Set *set_restart = (Set *) buf;
+  for (int i = 0; i < set_restart[0].nreacts; i++) {
+    for (int j = 0; j < nreacts; j++) {
+      if (strcmp(set_restart[i].rxn_name,rxn_name[j]) == 0) {
+        reaction_count_total[j] = set_restart[i].reaction_count_total;
+      }
     }
   }
 }

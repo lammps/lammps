@@ -124,6 +124,7 @@ An alphabetic list of all general LAMMPS commands.
 "thermo"_thermo.html,
 "thermo_modify"_thermo_modify.html,
 "thermo_style"_thermo_style.html,
+"third_order"_third_order.html,
 "timer"_timer.html,
 "timestep"_timestep.html,
 "uncompute"_uncompute.html,

@@ -56,12 +56,19 @@ int ReaderNative::read_time(bigint &ntimestep)
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
 
+  // skip over unit information, if present.
+
+  if (strstr(line,"ITEM: UNITS") == line)
+    read_lines(2);
+
   if (strstr(line,"ITEM: TIMESTEP") != line)
     error->one(FLERR,"Dump file is incorrectly formatted");
+
   read_lines(1);
   int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
   if (rv != 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
+
   return 0;
 }
 

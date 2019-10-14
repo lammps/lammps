@@ -63,10 +63,10 @@ void PairLJLongDipoleLong::options(char **arg, int order)
   if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
     case 0: ewald_order |= 1<<order; break;             // set kspace r^-order
     case 2: ewald_off |= 1<<order;                      // turn r^-order off
     case 1: break;
+    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   }
 }
 

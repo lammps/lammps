@@ -59,8 +59,8 @@ endif()
 option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
 if(DISABLE_CXX11_REQUIREMENT)
   add_definitions(-DLAMMPS_CXX98)
-else()
-  set(CMAKE_CXX_STANDARD 11)
+# else()
+#  set(CMAKE_CXX_STANDARD 11)
 endif()
 
 # GNU compiler features

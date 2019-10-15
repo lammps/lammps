@@ -31,6 +31,8 @@ using namespace LAMMPS_NS;
 PairZero::PairZero(LAMMPS *lmp) : Pair(lmp) {
   coeffflag=1;
   writedata=1;
+  single_enable=1;
+  respa_enable=1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,8 +51,14 @@ PairZero::~PairZero()
 void PairZero::compute(int eflag, int vflag)
 {
  ev_init(eflag,vflag);
-
  if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairZero::compute_outer(int eflag, int vflag)
+{
+ ev_init(eflag,vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -227,4 +235,13 @@ void PairZero::write_data_all(FILE *fp)
       fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
 }
 
+/* ---------------------------------------------------------------------- */
+
+double PairZero::single(int /*i*/, int /*j*/, int /* itype */, int /* jtype */,
+                        double /* rsq */, double /*factor_coul*/,
+                        double /* factor_lj */, double &fforce)
+{
+  fforce = 0.0;
+  return 0.0;
+}
 

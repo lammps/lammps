@@ -38,11 +38,16 @@ when calling CMake.
 
 [CMake variable]:
 
--D DISABLE_CXX11_REQUIREMENT=yes
+-D DISABLE_CXX11_REQUIREMENT=yes :pre
+
+You can set additional C++ compiler flags (beyond those selected by CMake)
+through the CMAKE_CXX_FLAGS variable. Example for CentOS 7:
+
+-D CMAKE_CXX_FLAGS="-O3 -g -fopenmp -DNDEBUG -std=c++11" :pre
 
 [Makefile.machine setting]:
 
-LMP_INC = -DLAMMPS_CXX98
+LMP_INC = -DLAMMPS_CXX98 :pre
 
 :line
 

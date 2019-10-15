@@ -148,12 +148,18 @@ int DumpCACNodalPositions::count()
 
   //compute number of nodes in total system
   int local_node_count=0;
-   total_node_count=0;
+  total_node_count=0;
+  int local_element_count=0;
+  total_element_count=0;
     
-    for (int i=0; i<atom->nlocal; i++){
-       local_node_count+=nodes_per_element_list[element_type[i]];
+  for (int i=0; i<atom->nlocal; i++){
+    if (mask[i] & groupbit){
+    local_node_count+=nodes_per_element_list[element_type[i]];
+    local_element_count++;
     }
-    MPI_Allreduce(&local_node_count,&total_node_count,1,MPI_INT,MPI_SUM,world);
+  }
+  MPI_Allreduce(&local_node_count,&total_node_count,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&local_element_count,&total_element_count,1,MPI_INT,MPI_SUM,world);
 
 
 	for (int i = 0; i < nlocal; i++)
@@ -175,7 +181,7 @@ void DumpCACNodalPositions::write_header(bigint n)
   if (me == 0) {
 	fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
 	" e= " BIGINT_FORMAT " Q4 " "\n",
-	update->ntimestep, (bigint)total_node_count, atom->natoms);
+	update->ntimestep, (bigint)total_node_count, total_element_count);
   }
 }
 

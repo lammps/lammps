@@ -380,12 +380,12 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
 					force_densityy += dely*fpair;
 					force_densityz += delz*fpair;
           if(atom->CAC_virial){
-		      virial_density[0] +=delx*delx*fpair;
-		      virial_density[1] +=dely*dely*fpair;
-		      virial_density[2] +=delz*delz*fpair;
-		      virial_density[3] +=delx*dely*fpair;
-		      virial_density[4] +=delx*delz*fpair;
-		      virial_density[5] +=dely*delz*fpair;
+		      virial_density[0] += 0.5*delx*delx*fpair;
+		      virial_density[1] += 0.5*dely*dely*fpair;
+		      virial_density[2] += 0.5*delz*delz*fpair;
+		      virial_density[3] += 0.5*delx*dely*fpair;
+		      virial_density[4] += 0.5*delx*delz*fpair;
+		      virial_density[5] += 0.5*dely*delz*fpair;
 		      }
 
 					if (quad_eflag) 

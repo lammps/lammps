@@ -740,19 +740,14 @@ void PairKIM::kim_init()
   kimerror = KIM_ComputeArguments_SetArgumentPointerInteger(pargs,
     KIM_COMPUTE_ARGUMENT_NAME_numberOfParticles,
     &lmps_local_tot_num_atoms);
-  if (KIM_SupportStatus_NotEqual(kim_model_support_for_energy,
-                                 KIM_SUPPORT_STATUS_notSupported))
-    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(pargs,
-      KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,
-      &(eng_vdwl));
+  if (kimerror) error->all(FLERR,"Unable to set KIM argument pointer");
 
   kimerror = KIM_ComputeArguments_SetCallbackPointer(pargs,
     KIM_COMPUTE_CALLBACK_NAME_GetNeighborList,
     KIM_LANGUAGE_NAME_cpp,
     reinterpret_cast<KIM_Function *>(get_neigh),
     reinterpret_cast<void *>(this));
-
-  if (kimerror) error->all(FLERR,"Unable to register KIM pointers");
+  if (kimerror) error->all(FLERR,"Unable to set KIM call back pointer");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -763,6 +758,26 @@ void PairKIM::set_argument_pointers()
   kimerror = KIM_ComputeArguments_SetArgumentPointerDouble(
     pargs, KIM_COMPUTE_ARGUMENT_NAME_coordinates, &(atom->x[0][0]));
 
+  // Set KIM pointer appropriately for Energy
+  if (KIM_SupportStatus_NotEqual(kim_model_support_for_energy,
+                                 KIM_SUPPORT_STATUS_notSupported))
+  {
+      if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
+                                  KIM_SUPPORT_STATUS_required)
+        || (eflag_global == 1))
+      {
+        kimerror = kimerror ||
+        KIM_ComputeArguments_SetArgumentPointerDouble(
+          pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,&(eng_vdwl));
+      }
+      else
+      {
+        kimerror = kimerror ||
+        KIM_ComputeArguments_SetArgumentPointerDouble(
+          pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,
+          reinterpret_cast<double * const>(NULL));
+      }
+  }
   // Set KIM pointer appropriately for particalEnergy
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
                               KIM_SUPPORT_STATUS_required)

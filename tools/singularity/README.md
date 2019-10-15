@@ -18,7 +18,7 @@ mkdir build-centos7
 cd build-centos7
 sudo singularity build centos7.sif ../tools/singularity/centos7.def
 singularity shell centos7.sif
-cmake ../cmake -C ../cmake/presets/most.cmake -DCMAKE_CXX_FLAGS="-O3 -g -fopenmp -std=c++11"
+cmake -C ../cmake/presets/most.cmake -D CMAKE_CXX_FLAGS="-O3 -g -fopenmp -std=c++11" ../cmake
 make
 ```
 

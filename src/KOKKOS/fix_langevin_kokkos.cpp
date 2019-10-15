@@ -205,7 +205,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
   }
 
   // reallocate flangevin if necessary
-  if (tallyflag) {
+  if (tallyflag || osflag) {
     if (nlocal > maxatom1) {
       memoryKK->destroy_kokkos(k_flangevin,flangevin);
       maxatom1 = atomKK->nmax;
@@ -229,7 +229,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
   FSUM s_fsum;
   if (tstyle == ATOM)
     if (gjfflag)
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass.data())
             if (zeroflag) {
@@ -300,7 +300,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
               Kokkos::parallel_for(nlocal,post_functor);
             }
     else
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass.data())
             if (zeroflag) {
@@ -372,7 +372,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
             }
   else
     if (gjfflag)
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass.data())
             if (zeroflag) {
@@ -443,7 +443,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
               Kokkos::parallel_for(nlocal,post_functor);
             }
     else
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass.data())
             if (zeroflag) {
@@ -525,7 +525,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int vflag)
   // set modify flags for the views modified in post_force functor
   if (gjfflag) k_franprev.template modify<DeviceType>();
   if (gjfflag) k_lv.template modify<DeviceType>();
-  if (tallyflag) k_flangevin.template modify<DeviceType>();
+  if (tallyflag || osflag) k_flangevin.template modify<DeviceType>();
 
   // set total force to zero
   if (zeroflag) {

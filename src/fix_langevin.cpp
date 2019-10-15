@@ -476,7 +476,7 @@ void FixLangevin::post_force(int /*vflag*/)
             if (zeroflag) post_force_templated<1,1,0,0,0,1>();
             else          post_force_templated<1,1,0,0,0,0>();
     else
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<1,0,1,1,1,1>();
@@ -508,7 +508,7 @@ void FixLangevin::post_force(int /*vflag*/)
             else          post_force_templated<1,0,0,0,0,0>();
   else
     if (gjfflag)
-      if (tallyflag)
+      if (tallyflag  || osflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<0,1,1,1,1,1>();
@@ -539,7 +539,7 @@ void FixLangevin::post_force(int /*vflag*/)
             if (zeroflag) post_force_templated<0,1,0,0,0,1>();
             else          post_force_templated<0,1,0,0,0,0>();
     else
-      if (tallyflag)
+      if (tallyflag || osflag)
         if (tbiasflag == BIAS)
           if (rmass)
             if (zeroflag) post_force_templated<0,0,1,1,1,1>();

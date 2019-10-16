@@ -873,6 +873,11 @@ void FixRigid::setup(int vflag)
       for (n = 0; n < 6; n++)
         vatom[i][n] *= 2.0;
   }
+
+  if (comm->me == 0) {
+    fprintf(screen, "  ** --> FixRigid::setup(): v = (%g, %g, %g)\n",
+            atom->v[0][0], atom->v[0][1], atom->v[0][2]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1192,6 +1197,10 @@ void FixRigid::image_shift()
 int FixRigid::dof(int tgroup)
 {
   // cannot count DOF correctly unless setup_bodies_static() has been called
+
+  if (comm->me == 0) {
+    fprintf(screen, "  ** -->This is dof()\n");
+  }
 
   if (!setupflag) {
     if (comm->me == 0)
@@ -2633,6 +2642,24 @@ double FixRigid::compute_scalar()
 {
   double wbody[3],rot[3][3];
 
+  if (comm->me == 0) {
+	  fprintf(screen, "  ** --> This is compute_scalar().\n");
+    fprintf(screen, "         masstotal, fflag, cvm: ");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " %g", masstotal[i]);
+    }
+    fprintf(screen, "\n");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g)", fflag[i][0], fflag[i][1], fflag[i][2]);
+    }
+    fprintf(screen, "\n");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g)", vcm[i][0], vcm[i][1], vcm[i][2]);
+    }
+    fprintf(screen, "\n");
+  }
+
+
   double t = 0.0;
   for (int i = 0; i < nbody; i++) {
     t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
@@ -2687,6 +2714,23 @@ void *FixRigid::extract(const char *str, int &dim)
 double FixRigid::extract_ke()
 {
   double ke = 0.0;
+  if (comm->me == 0) {
+	  fprintf(screen, "  ** --> This is extract_ke().\n");
+    fprintf(screen, "         masstotal, fflag, cvm: ");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " %g", masstotal[i]);
+    }
+    fprintf(screen, "\n");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g)", fflag[i][0], fflag[i][1], fflag[i][2]);
+    }
+    fprintf(screen, "\n");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g)", vcm[i][0], vcm[i][1], vcm[i][2]);
+    }
+    fprintf(screen, "\n");
+  }
+
   for (int i = 0; i < nbody; i++)
     ke += masstotal[i] *
       (vcm[i][0]*vcm[i][0] + vcm[i][1]*vcm[i][1] + vcm[i][2]*vcm[i][2]);
@@ -2702,6 +2746,24 @@ double FixRigid::extract_ke()
 double FixRigid::extract_erotational()
 {
   double wbody[3],rot[3][3];
+
+  if (comm->me == 0) {
+	  fprintf(screen, "  ** --> This is extract_erotational().\n");
+    fprintf(screen, "         quat, angmom, inertia are");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g, %g)", quat[i][0], quat[i][1], quat[i][2], quat[i][3]);
+    }
+    fprintf(screen, "\n");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g)", angmom[i][0], angmom[i][1], angmom[i][2]);
+    }
+    fprintf(screen, "\n");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " (%g, %g, %g)", inertia[i][0], inertia[i][1], inertia[i][2]);
+    }
+    fprintf(screen, "\n");
+  }
+
 
   double erotate = 0.0;
   for (int i = 0; i < nbody; i++) {

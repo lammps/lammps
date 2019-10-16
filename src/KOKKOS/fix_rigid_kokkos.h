@@ -45,7 +45,6 @@ class FixRigidKokkos : public FixRigid {
 
   FixRigidKokkos(class LAMMPS *, int, char **);
   virtual ~FixRigidKokkos();
-  void cleanup_copy();
 
   // virtual int setmask(); // Masks remain same
   virtual void init();
@@ -65,7 +64,7 @@ class FixRigidKokkos : public FixRigid {
   // void write_restart_file(char *);
   // virtual double compute_scalar();
 
-  //int dof(int);
+  virtual int dof(int);
   //void deform(int);
   //void enforce2d();
   //void reset_dt();
@@ -82,6 +81,14 @@ class FixRigidKokkos : public FixRigid {
   template <int NEIGHFLAG>
   void v_tally(EV_FLOAT &ev, const int &i, double v_arr[6]) const;
 
+  enum SYNC_MODIFY_FLAGS { HOST = 0, DEVICE = 1 };
+  template <int space> void sync_all();
+  template <int space> void modify_all();
+
+  virtual double extract_ke();
+  virtual double extract_erotational();
+
+
 
  private:
   // We need Kokkos style containers for everything in the innner loops:
@@ -89,11 +96,13 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_v_array k_vcm;
   DAT::tdual_f_array k_fcm;
 
-  DAT::tdual_f_array k_tflag, k_fflag;
+  DAT::tdual_f_array k_tflag;
+  DAT::tdual_f_array k_fflag;
 
   // Careful. This fix' omega, angmom and torque are defined in fix_rigid.
   // They are not the same as those in atom_vec and atom_vec_kokkos!
-  DAT::tdual_v_array k_omega, k_angmom;
+  DAT::tdual_v_array k_omega;
+  DAT::tdual_v_array k_angmom;
   DAT::tdual_f_array k_torque;
   DAT::tdual_x_array k_inertia;
 
@@ -116,7 +125,6 @@ class FixRigidKokkos : public FixRigid {
 
   DAT::tdual_x_array k_orient;
   DAT::tdual_x_array k_dorient;
-
   DAT::tdual_float_1d k_virial;
 
   // Needed if we apply langvin forces:

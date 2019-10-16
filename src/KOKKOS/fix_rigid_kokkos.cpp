@@ -19,6 +19,7 @@
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
@@ -42,7 +43,7 @@
 #include "domain_kokkos.h"
 #include "memory_kokkos.h"
 #include "kokkos_few.h"
-
+#include "kokkos_type.h"
 
 
 using namespace LAMMPS_NS;
@@ -479,8 +480,8 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK = (AtomKokkos *) atom;
 
-  datamask_read   = (X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK
-                     | OMEGA_MASK | ANGMOM_MASK | TORQUE_MASK);
+  datamask_read   = (X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK
+                     | TYPE_MASK | OMEGA_MASK | ANGMOM_MASK | TORQUE_MASK);
   datamask_modify = (X_MASK | V_MASK | OMEGA_MASK | ANGMOM_MASK);
 
   // Most arrays allocated in the constructor of FixRigid are either
@@ -500,14 +501,23 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   // other way around! So we need this ugly manual memcpy.
 
   int *body_buffer = new int[nmax];
-  double *nrigid_buffer = new double[nbody];
+  int *nrigid_buffer = new int[nbody];
   double *tflag_buffer = new double[3*nbody];
   double *fflag_buffer = new double[3*nbody];
 
+  if (comm->me == 0) {
+    fprintf(screen, "  ** --> nrigid =");
+    for (int i = 0; i < nbody; ++i) {
+      fprintf(screen, " %d", nrigid[i]);
+    }
+    fprintf(screen, "\n");
+  }
+
   memcpy(body_buffer,   body,   nmax*sizeof(int));
-  memcpy(nrigid_buffer, nrigid, nbody*sizeof(double));
+  memcpy(nrigid_buffer, nrigid, nbody*sizeof(int));
   memcpy(tflag_buffer,  tflag[0],  3*nbody*sizeof(double));
   memcpy(fflag_buffer,  fflag[0],  3*nbody*sizeof(double));
+
 
   memoryKK->create_kokkos(k_body,   body,   nmax, "rigid/kk:body");
   memoryKK->create_kokkos(k_nrigid, nrigid, nbody, "rigid/kk:nrigid");
@@ -540,8 +550,8 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   memoryKK->create_kokkos(k_remapflag,remapflag,nbody,4,"rigid/kk:remapflag");
 
   // double[6] is not a double* so implicitly cast it:
-  double *tmp_vir = virial;
-  memoryKK->create_kokkos(k_virial,tmp_vir, 6, "rigid/kk:virial");
+  // double *tmp_vir = virial;
+  // memoryKK->create_kokkos(k_virial,tmp_vir, 6, "rigid/kk:virial");
 
   grow_arrays(atomKK->nmax);
   atom->add_callback(0);
@@ -566,6 +576,7 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
     k_fflag.h_view(i,2) = fflag_buffer[3*i+2];
   }
 
+  k_masstotal.modify<LMPHostType>();
   k_body.modify<LMPHostType>();
   k_nrigid.modify<LMPHostType>();
   k_tflag.modify<LMPHostType>();
@@ -581,16 +592,13 @@ FixRigidKokkos<DeviceType>::FixRigidKokkos(LAMMPS *lmp, int narg, char **arg) :
   delete [] tflag_buffer;
   delete [] fflag_buffer;
 
-
   if (debug_level && comm->me == 0) {
-    fprintf(screen, "Body contains:\n");
+    fprintf(screen, "  ** --> Body contains:\n");
     for (int i = 0; i < nmax; ++i) {
       fprintf(screen, "%d ", body[i]);
     }
     fprintf(screen, "\n");
   }
-
-
 }
 
 template <class DeviceType>
@@ -645,76 +653,19 @@ void FixRigidKokkos<DeviceType>::init()
   // They should be synched first.
   // tflag, fflag, body, mu, radius, rmass, mass, ellipsoid, line, tri, type,
   // nlocal, eflags, image, x, sum, xcmimage, inertia, {ex,ey,ez}_space, quat
-  k_body.sync<LMPHostType>();
-  k_quat.sync<LMPHostType>();
-  k_inertia.sync<LMPHostType>();
-  k_ex_space.sync<LMPHostType>();
-  k_ey_space.sync<LMPHostType>();
-  k_ez_space.sync<LMPHostType>();
-
-  k_tflag.sync<LMPHostType>();
-  k_fflag.sync<LMPHostType>();
-  k_xcmimage.sync<LMPHostType>();
-  k_all.sync<LMPHostType>();
-  k_sum.sync<LMPHostType>();
-
-  k_vcm.sync<LMPHostType>();
-  k_angmom.sync<LMPHostType>();
-  k_imagebody.sync<LMPHostType>();
-  k_xcm.sync<LMPHostType>();
-  k_xcmimage.sync<LMPHostType>();
-  k_displace.sync<LMPHostType>();
-
-  atomKK->k_image.sync<LMPHostType>();
-  atomKK->k_x.sync<LMPHostType>();
 
   // These are also modified:
   // eflags, inertia, quat, body
 
+  sync_all<HOST>();
+
   FixRigid::init();
+  modify_all<HOST>();
+  sync_all<DEVICE>();
 
-  atomKK->k_mass.modify<LMPHostType>();
-  atomKK->k_mass.sync<DeviceType>();
-
-  k_imagebody.modify<LMPHostType>();
-  k_vcm.modify<LMPHostType>();
-  k_angmom.modify<LMPHostType>();
-
-  k_xcmimage.modify<LMPHostType>();
-  k_xcm.modify<LMPHostType>();
-  k_displace.modify<LMPHostType>();
-
-  k_quat.modify<LMPHostType>();
-  k_inertia.modify<LMPHostType>();
-  k_ex_space.modify<LMPHostType>();
-  k_ey_space.modify<LMPHostType>();
-  k_ez_space.modify<LMPHostType>();
-
-  if (debug_level > 1 && comm->me == 0) {
-    fprintf(screen, "  ** --> Post init, ex_space = (%g, %g, %g)\n",
-            k_ex_space.h_view(0,0), k_ex_space.h_view(0,1), k_ex_space.h_view(0,2));
-    fprintf(screen, "  ** --> Post init, ey_space = (%g, %g, %g)\n",
-            k_ey_space.h_view(0,0), k_ey_space.h_view(0,1), k_ey_space.h_view(0,2));
-    fprintf(screen, "  ** --> Post init, ez_space = (%g, %g, %g)\n",
-            k_ez_space.h_view(0,0), k_ez_space.h_view(0,1), k_ez_space.h_view(0,2));
-  }
-
-  k_all.modify<LMPHostType>();
-  k_sum.modify<LMPHostType>();
-
-  k_quat.sync<DeviceType>();
-  k_displace.sync<DeviceType>();
-  k_inertia.sync<DeviceType>();
-  k_ex_space.sync<DeviceType>();
-  k_ey_space.sync<DeviceType>();
-  k_ez_space.sync<DeviceType>();
-
-  k_all.sync<DeviceType>();
-  k_sum.sync<DeviceType>();
-  k_body.sync<DeviceType>();
 
   // At this point it should be safe to rely on our own pre_neighbor.
-  bypass_pre_neighbor = false;
+  // bypass_pre_neighbor = false;
 }
 
 
@@ -736,16 +687,15 @@ void FixRigidKokkos<DeviceType>::setup(int vflag)
   // v, atom_vec->omega, atom_vec->angmom
   // uses the following:
   // e{x,y,z}_space, displace, omega, v, vcm, atom_vec->mass, xcmimage, x
-
+  /*
   k_sum.sync<LMPHostType>();
   k_all.sync<LMPHostType>();
   k_torque.sync<LMPHostType>();
   k_langextra.sync<LMPHostType>();
   k_omega.sync<LMPHostType>();
 
-  atomKK->k_x.sync<LMPHostType>();
-  atomKK->k_v.sync<LMPHostType>();
-  atomKK->k_f.sync<LMPHostType>();
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space,
+               X_MASK | V_MASK | F_MASK);
 
   k_body.sync<LMPHostType>();
   k_xcm.sync<LMPHostType>();
@@ -757,36 +707,28 @@ void FixRigidKokkos<DeviceType>::setup(int vflag)
 
   k_vcm.sync<LMPHostType>();
   k_quat.sync<LMPHostType>();
-
+  */
   // modifies:
-  k_sum.modify<LMPHostType>();
-  k_all.modify<LMPHostType>();
-  k_torque.modify<LMPHostType>();
-  k_langextra.modify<LMPHostType>();
-  k_omega.modify<LMPHostType>();
-  k_quat.modify<LMPHostType>();
-  atomKK->k_v.modify<LMPHostType>();
 
+  sync_all<HOST>();
   FixRigid::setup(vflag);
-
-  k_sum.sync<DeviceType>();
-  k_all.sync<DeviceType>();
-  k_torque.sync<DeviceType>();
-  k_langextra.sync<DeviceType>();
-  k_omega.sync<DeviceType>();
-  k_quat.sync<DeviceType>();
-  atomKK->k_v.sync<DeviceType>();
-
+  modify_all<HOST>();
+  sync_all<DEVICE>();
 }
 
 
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::pre_neighbor()
 {
-  if (bypass_pre_neighbor) {
+  //if (bypass_pre_neighbor) {
+    sync_all<HOST>();
+
     FixRigid::pre_neighbor();
+    modify_all<HOST>();
+    sync_all<DEVICE>();
+
     return;
-  }
+  //}
 
   // pre_neighbor modifies both xcm and imagebody
   // image_shift modifies xcmimage and body
@@ -843,18 +785,195 @@ void FixRigidKokkos<DeviceType>::pre_neighbor()
   k_xcm.modify<DeviceType>();
   k_imagebody.modify<DeviceType>();
 
-  image_shift_kokkos();
+  if (debug_level && comm->me == 0) {
+    fprintf(screen, "  ** --> After remap, xcm is (%g, %g, %g)\n",
+            k_xcm.h_view(0,0), k_xcm.h_view(0,1), k_xcm.h_view(0,2));
+  }
 
+
+  image_shift_kokkos();
 }
+
+
+template <class DeviceType>
+template <int space>
+void FixRigidKokkos<DeviceType>::sync_all()
+{
+  if (space == HOST) {
+    atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, datamask_read);
+    atomKK->k_mass.sync<LMPHostType>();
+
+    k_xcm.sync<LMPHostType>();
+    k_vcm.sync<LMPHostType>();
+    k_fcm.sync<LMPHostType>();
+
+    k_tflag.sync<LMPHostType>();
+    k_fflag.sync<LMPHostType>();
+
+    k_omega.sync<LMPHostType>();
+    k_angmom.sync<LMPHostType>();
+    k_torque.sync<LMPHostType>();
+    k_inertia.sync<LMPHostType>();
+
+    k_quat.sync<LMPHostType>();
+    k_remapflag.sync<LMPHostType>();
+
+    k_ex_space.sync<LMPHostType>();
+    k_ey_space.sync<LMPHostType>();
+    k_ez_space.sync<LMPHostType>();
+    k_displace.sync<LMPHostType>();
+
+    k_sum.sync<LMPHostType>();
+    k_all.sync<LMPHostType>();
+    k_langextra.sync<LMPHostType>();
+
+    k_body.sync<LMPHostType>();
+    k_eflags.sync<LMPHostType>();
+    k_xcmimage.sync<LMPHostType>();
+    k_imagebody.sync<LMPHostType>();
+    k_masstotal.sync<LMPHostType>();
+    k_nrigid.sync<LMPHostType>();
+
+    k_orient.sync<LMPHostType>();
+    k_dorient.sync<LMPHostType>();
+    k_virial.sync<LMPHostType>();
+  } else {
+    atomKK->sync(execution_space, datamask_read);
+    atomKK->k_mass.sync<DeviceType>();
+
+    k_xcm.sync<DeviceType>();
+    k_vcm.sync<DeviceType>();
+    k_fcm.sync<DeviceType>();
+
+    k_tflag.sync<DeviceType>();
+    k_fflag.sync<DeviceType>();
+
+    k_omega.sync<DeviceType>();
+    k_angmom.sync<DeviceType>();
+    k_torque.sync<DeviceType>();
+    k_inertia.sync<DeviceType>();
+
+    k_quat.sync<DeviceType>();
+    k_remapflag.sync<DeviceType>();
+
+    k_ex_space.sync<DeviceType>();
+    k_ey_space.sync<DeviceType>();
+    k_ez_space.sync<DeviceType>();
+    k_displace.sync<DeviceType>();
+
+    k_sum.sync<DeviceType>();
+    k_all.sync<DeviceType>();
+    k_langextra.sync<DeviceType>();
+
+    k_body.sync<DeviceType>();
+    k_eflags.sync<DeviceType>();
+    k_xcmimage.sync<DeviceType>();
+    k_imagebody.sync<DeviceType>();
+    k_masstotal.sync<DeviceType>();
+    k_nrigid.sync<DeviceType>();
+
+    k_orient.sync<DeviceType>();
+    k_dorient.sync<DeviceType>();
+    k_virial.sync<DeviceType>();
+  }
+}
+
+
+template <class DeviceType>
+template <int space>
+void FixRigidKokkos<DeviceType>::modify_all()
+{
+  if (space == HOST) {
+    atomKK->modified(ExecutionSpaceFromDevice<LMPHostType>::space, datamask_read);
+    atomKK->k_mass.modify<LMPHostType>();
+
+    k_xcm.modify<LMPHostType>();
+    k_vcm.modify<LMPHostType>();
+    k_fcm.modify<LMPHostType>();
+
+    k_tflag.modify<LMPHostType>();
+    k_fflag.modify<LMPHostType>();
+
+    k_omega.modify<LMPHostType>();
+    k_angmom.modify<LMPHostType>();
+    k_torque.modify<LMPHostType>();
+    k_inertia.modify<LMPHostType>();
+
+    k_quat.modify<LMPHostType>();
+    k_remapflag.modify<LMPHostType>();
+
+    k_ex_space.modify<LMPHostType>();
+    k_ey_space.modify<LMPHostType>();
+    k_ez_space.modify<LMPHostType>();
+    k_displace.modify<LMPHostType>();
+
+    k_sum.modify<LMPHostType>();
+    k_all.modify<LMPHostType>();
+    k_langextra.modify<LMPHostType>();
+
+    k_body.modify<LMPHostType>();
+    k_eflags.modify<LMPHostType>();
+    k_xcmimage.modify<LMPHostType>();
+    k_imagebody.modify<LMPHostType>();
+    k_masstotal.modify<LMPHostType>();
+    k_nrigid.modify<LMPHostType>();
+
+    k_orient.modify<LMPHostType>();
+    k_dorient.modify<LMPHostType>();
+    k_virial.modify<LMPHostType>();
+  } else {
+    atomKK->modified(execution_space, datamask_read);
+    atomKK->k_mass.modify<DeviceType>();
+
+    k_xcm.modify<DeviceType>();
+    k_vcm.modify<DeviceType>();
+    k_fcm.modify<DeviceType>();
+
+    k_tflag.modify<DeviceType>();
+    k_fflag.modify<DeviceType>();
+
+    k_omega.modify<DeviceType>();
+    k_angmom.modify<DeviceType>();
+    k_torque.modify<DeviceType>();
+    k_inertia.modify<DeviceType>();
+
+    k_quat.modify<DeviceType>();
+    k_remapflag.modify<DeviceType>();
+
+    k_ex_space.modify<DeviceType>();
+    k_ey_space.modify<DeviceType>();
+    k_ez_space.modify<DeviceType>();
+    k_displace.modify<DeviceType>();
+
+    k_sum.modify<DeviceType>();
+    k_all.modify<DeviceType>();
+    k_langextra.modify<DeviceType>();
+
+    k_body.modify<DeviceType>();
+    k_eflags.modify<DeviceType>();
+    k_xcmimage.modify<DeviceType>();
+    k_imagebody.modify<DeviceType>();
+    k_masstotal.modify<DeviceType>();
+    k_nrigid.modify<DeviceType>();
+
+    k_orient.modify<DeviceType>();
+    k_dorient.modify<DeviceType>();
+    k_virial.modify<DeviceType>();
+  }
+}
+
 
 
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::image_shift_kokkos()
 {
-  int nlocal = atomKK->nlocal;
-
   k_body.sync<DeviceType>();
   k_xcmimage.sync<DeviceType>();
+  k_imagebody.sync<DeviceType>();
+  atomKK->k_image.sync<DeviceType>();
+
+
+  error->all(FLERR, "Unexpected call to Kokkos function");
 
   {
     // Local block for Kokkos::parallel_for
@@ -862,6 +981,8 @@ void FixRigidKokkos<DeviceType>::image_shift_kokkos()
     auto l_imagebody = k_imagebody.d_view;
     auto l_body = k_body.d_view;
     auto l_xcmimage = k_xcmimage.d_view;
+    int nlocal = atomKK->nlocal;
+
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
         if (l_body[i] < 0) return;
@@ -902,34 +1023,33 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   // set_xv modifies:
   // x, v
 
-  k_vcm.sync<DeviceType>();
-  k_xcm.sync<DeviceType>();
-  k_fcm.sync<DeviceType>();
+  sync_all<HOST>();
+  FixRigid::initial_integrate(vflag);
+  modify_all<HOST>();
 
-  k_fflag.sync<DeviceType>();
-  k_tflag.sync<DeviceType>();
-  k_body.sync<DeviceType>();
-  k_xcmimage.sync<DeviceType>();
-  k_displace.sync<DeviceType>();
+  sync_all<DEVICE>();
 
-  k_angmom.sync<DeviceType>();
-  k_omega.sync<DeviceType>();
-  k_torque.sync<DeviceType>();
-  k_inertia.sync<DeviceType>();
 
-  k_quat.sync<DeviceType>();
+  return;
 
+
+
+  k_masstotal.sync<DeviceType>();
   k_ex_space.sync<DeviceType>();
   k_ey_space.sync<DeviceType>();
   k_ez_space.sync<DeviceType>();
-  k_xcmimage.sync<DeviceType>();
-  k_masstotal.sync<DeviceType>();
 
-  atomKK->k_x.sync<DeviceType>();
-  atomKK->k_v.sync<DeviceType>();
-  atomKK->k_f.sync<DeviceType>();
-  atomKK->k_mass.sync<DeviceType>();
-  atomKK->k_rmass.sync<DeviceType>();
+  k_torque.sync<DeviceType>();
+  k_angmom.sync<DeviceType>();
+  k_omega.sync<DeviceType>();
+  k_fflag.sync<DeviceType>();
+  k_tflag.sync<DeviceType>();
+
+  k_xcm.sync<DeviceType>();
+  k_vcm.sync<DeviceType>();
+  k_fcm.sync<DeviceType>();
+  k_quat.sync<DeviceType>();
+  k_inertia.sync<DeviceType>();
 
   atomKK->sync(execution_space, datamask_read);
 
@@ -1077,9 +1197,6 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
   k_ey_space.modify<DeviceType>();
   k_ez_space.modify<DeviceType>();
 
-  atomKK->k_x.modify<DeviceType>();
-  atomKK->k_v.modify<DeviceType>();
-
   if (debug_level > 1 && comm->me == 0) {
     atomKK->k_x.sync<LMPHostType>();
     atomKK->k_v.sync<LMPHostType>();
@@ -1149,7 +1266,7 @@ void FixRigidKokkos<DeviceType>::initial_integrate(int vflag)
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  // This mirrors FixRigid::grow_arrays.
+
   memoryKK->grow_kokkos(k_body,body, nmax,"rigid/kk:body");
   memoryKK->grow_kokkos(k_xcmimage, xcmimage,nmax,"rigid/kk:xcmimage");
   memoryKK->grow_kokkos(k_displace, displace,nmax,3,"rigid/kk:displace");
@@ -1182,6 +1299,8 @@ void FixRigidKokkos<DeviceType>::grow_arrays(int nmax)
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 {
+  error->all(FLERR, "Reached set_xv_kokkos()!");
+
   double xy = 0, xz = 0, yz = 0;
 
   double xprd = domain->xprd;
@@ -1198,6 +1317,16 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 
   k_virial.modify<LMPHostType>();
   k_virial.sync<DeviceType>();
+
+  atomKK->k_x.sync<DeviceType>();
+  atomKK->k_v.sync<DeviceType>();
+  atomKK->k_f.sync<DeviceType>();
+  atomKK->k_type.sync<DeviceType>();
+  atomKK->k_rmass.sync<DeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
+
+  k_displace.sync<DeviceType>();
+  k_xcmimage.sync<DeviceType>();
 
 
   // set x and v of each atom
@@ -1361,6 +1490,9 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
   } // end local block.
 
   k_virial.modify<DeviceType>();
+  atomKK->k_x.modify<DeviceType>();
+  atomKK->k_v.modify<DeviceType>();
+
 
   // set orientation, omega, angmom of each extended particle
   /*
@@ -1430,6 +1562,17 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::final_integrate()
 {
+
+  sync_all<HOST>();
+  FixRigid::final_integrate();
+
+  modify_all<HOST>();
+  sync_all<DEVICE>();
+
+
+  return;
+
+
   // final_integrate modifies (in [] only if extended)
   // vcm, angmom, omega, v, [atom_vec->angmom, atom_vec->omega]
   //
@@ -1445,30 +1588,14 @@ void FixRigidKokkos<DeviceType>::final_integrate()
   k_angmom.sync<DeviceType>();
   k_omega.sync<DeviceType>();
   k_torque.sync<DeviceType>();
-  k_xcmimage.sync<DeviceType>();
-  k_body.sync<DeviceType>();
-
-  atomKK->k_x.sync<DeviceType>();
-  atomKK->k_f.sync<DeviceType>();
-  atomKK->k_v.sync<DeviceType>();
-
-  k_langextra.sync<DeviceType>();
-
-  k_sum.sync<DeviceType>();
-  k_all.sync<DeviceType>();
-
-  atomKK->k_type.sync<DeviceType>();
-  atomKK->k_rmass.sync<DeviceType>();
-  atomKK->k_mass.sync<DeviceType>();
 
   k_ex_space.sync<DeviceType>();
   k_ey_space.sync<DeviceType>();
   k_ez_space.sync<DeviceType>();
 
-  k_xcm.sync<DeviceType>();
-  k_displace.sync<DeviceType>();
+  k_inertia.sync<DeviceType>();
 
-  if (!earlyflag) compute_forces_and_torques();
+  if (!earlyflag) compute_forces_and_torques_kokkos();
 
   // update vcm and angmom
   // fflag,tflag = 0 for some dimensions in 2d
@@ -1515,7 +1642,12 @@ void FixRigidKokkos<DeviceType>::final_integrate()
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
 
+  k_omega.modify<DeviceType>();
+  k_angmom.modify<DeviceType>();
+  k_vcm.modify<DeviceType>();
+
   set_v_kokkos();
+
 
   // Modifies:
   // atom->v, [atom->angmom, atom->omega]
@@ -1547,31 +1679,11 @@ void FixRigidKokkos<DeviceType>::final_integrate()
 template <class DeviceType>
 double FixRigidKokkos<DeviceType>::compute_scalar()
 {
-  k_tflag.sync<LMPHostType>();
-  k_fflag.sync<LMPHostType>();
-  k_inertia.sync<LMPHostType>();
-
-  k_angmom.sync<LMPHostType>();
-  k_quat.sync<LMPHostType>();
-  k_vcm.sync<LMPHostType>();
-
-
+  sync_all<HOST>();
+  // Does it go wrong here?
   return FixRigid::compute_scalar();
 }
 
-
-
-template <class DeviceType>
-template <int NEIGHFLAG>
-void FixRigidKokkos<DeviceType>::v_tally(EV_FLOAT &ev, const int &i, double v_arr[6]) const
-{
-  if (debug_level && comm->me == 0 && i == 0) {
-    fprintf(screen, "  ** --> In v_tally, vflag_atom is %d, vflag_global is %d and NEIGHFLAG is %d\n",
-            vflag_atom, vflag_global, NEIGHFLAG);
-  }
-
-
-}
 
 
 
@@ -1585,10 +1697,28 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
   // fcm, torque, sum,
 
   // sum over atoms to get force and torque on rigid body
-  int nlocal = atomKK->nlocal;
+
+  error->all(FLERR, "Unexpectedly called Kokkos function");
+
+  atomKK->k_x.sync<DeviceType>();
+  atomKK->k_f.sync<DeviceType>();
+  atomKK->k_image.sync<DeviceType>();
+  k_body.sync<DeviceType>();
+  k_xcm.sync<DeviceType>();
+  k_fcm.sync<DeviceType>();
+  k_torque.sync<DeviceType>();
+  k_eflags.sync<DeviceType>();
+  k_langextra.sync<DeviceType>();
+  k_ex_space.sync<DeviceType>();
+  k_ey_space.sync<DeviceType>();
+  k_ez_space.sync<DeviceType>();
+  k_sum.sync<DeviceType>();
+  k_all.sync<DeviceType>();
+  atomKK->k_torque.sync<DeviceType>();
 
   {
     // Local block for Kokkos parallel for:
+    int nlocal = atomKK->nlocal;
 
     auto l_x = atomKK->k_x.d_view;
     auto l_f = atomKK->k_f.d_view;
@@ -1610,8 +1740,6 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     auto l_sum = k_sum.d_view;
     auto l_all = k_all.d_view;
 
-    DomainKokkos *domainKK = static_cast<DomainKokkos*>(domain);
-
     Few<double,3> prd{domain->prd[0], domain->prd[1], domain->prd[2]};
     Few<double,6> h{domain->h[0], domain->h[1], domain->h[2],
                     domain->h[3], domain->h[4], domain->h[5]};
@@ -1631,6 +1759,18 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     periodic_bits +=   domain->xperiodic;
     periodic_bits += 2*domain->yperiodic;
     periodic_bits += 4*domain->zperiodic;
+    int l_extended = extended;
+    int l_triclinic = triclinic;
+
+    // We need to zero out sum first?
+    Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody) {
+      l_sum(ibody,0) = 0;
+      l_sum(ibody,1) = 0;
+      l_sum(ibody,2) = 0;
+      l_sum(ibody,3) = 0;
+      l_sum(ibody,4) = 0;
+      l_sum(ibody,5) = 0;
+    });
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
@@ -1645,31 +1785,36 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       xi[1] = l_x(i,1);
       xi[2] = l_x(i,2);
 
-      Few<double,3> unwrap = domainKK->unmap(prd, h, triclinic,
-                                             xi, l_image(i));
+      Few<double,3> unwrap = DomainKokkos::unmap(prd, h, l_triclinic,
+                                                 xi, l_image(i));
 
       double dx = unwrap[0] - l_xcm(ibody,0);
       double dy = unwrap[1] - l_xcm(ibody,1);
       double dz = unwrap[2] - l_xcm(ibody,2);
 
       l_sum(ibody,3) += dy*l_f(i,2) - dz*l_f(i,1);
-      l_sum(ibody,4) += dy*l_f(i,0) - dz*l_f(i,2);
-      l_sum(ibody,5) += dy*l_f(i,1) - dz*l_f(i,0);
+      l_sum(ibody,4) += dz*l_f(i,0) - dx*l_f(i,2);
+      l_sum(ibody,5) += dx*l_f(i,1) - dy*l_f(i,0);
     });
 
     // If particles are extended, second loop over their torques:
-    if (extended) {
+    if (l_extended) {
+
+      auto l_torque_one = atomKK->k_torque.d_view;
+
       Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
         if (body[i] < 0) return;
         int ibody = l_body[i];
 
         if (l_eflags[i] & TORQUE) {
-          l_sum(ibody,3) += l_torque(i,0);
-          l_sum(ibody,4) += l_torque(i,1);
-          l_sum(ibody,5) += l_torque(i,2);
+          l_sum(ibody,3) += l_torque_one(i,0);
+          l_sum(ibody,4) += l_torque_one(i,1);
+          l_sum(ibody,5) += l_torque_one(i,2);
         }
       });
     }
+
+    k_sum.modify<DeviceType>();
 
     // TODO: Don't know how to rewrite this in KOKKOS parallel_reduce.
     // This is probably a  significant communication overhead:
@@ -1690,6 +1835,10 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     });
   } // ends local block for Kokkos parallel_reduces and parallel_fors.
 
+  k_fcm.modify<DeviceType>();
+  k_torque.modify<DeviceType>();
+  atomKK->k_torque.modify<DeviceType>();
+
 }
 
 
@@ -1702,24 +1851,28 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
   // omega, vcm, atom->v, vr, atom->omega, atom->angmom, displace, body
   //
 
+  error->all(FLERR, "Reached set_v_kokkos()!");
   atomKK->k_v.sync<DeviceType>();
-  atomKK->k_f.sync<DeviceType>();
   atomKK->k_x.sync<DeviceType>();
-  atomKK->k_type.sync<DeviceType>();
+  atomKK->k_f.sync<DeviceType>();
 
-  atomKK->k_omega.sync<DeviceType>();
   k_omega.sync<DeviceType>();
-  k_vcm.sync<DeviceType>();
-  k_displace.sync<DeviceType>();
   k_body.sync<DeviceType>();
+  atomKK->k_rmass.sync<DeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
+  atomKK->k_type.sync<DeviceType>();
 
   k_ex_space.sync<DeviceType>();
   k_ey_space.sync<DeviceType>();
   k_ez_space.sync<DeviceType>();
+
   k_displace.sync<DeviceType>();
+
+  k_vcm.sync<DeviceType>();
   k_xcmimage.sync<DeviceType>();
 
-  atomKK->k_v.modify<DeviceType>();
+  k_virial.sync<DeviceType>();
+
   atomKK->sync(execution_space, datamask_read);
 
   int nlocal = atomKK->nlocal;
@@ -1868,6 +2021,7 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
     });
 
     k_virial.modify<DeviceType>();
+    atomKK->k_v.modify<DeviceType>();
 
   }
 
@@ -1921,6 +2075,12 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::post_force(int vflag)
 {
+  sync_all<HOST>();
+  FixRigid::post_force(vflag);
+  modify_all<HOST>();
+  sync_all<DEVICE>();
+  return;
+
   if (langflag) apply_langevin_thermostat_kokkos();
   if (earlyflag) compute_forces_and_torques_kokkos();
 }
@@ -1945,6 +2105,7 @@ void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
     t_target = t_start + delta * (t_stop-t_start);
     double tsqrt = sqrt(t_target);
 
+    double l_t_period = t_period;
     double boltz = force->boltz;
     double dt = update->dt;
     double mvv2e = force->mvv2e;
@@ -1961,15 +2122,15 @@ void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
 
       rand_type rand_gen = rand_pool.get_state();
 
-      double gamma1 = -l_masstotal[ibody] / t_period / ftm2v;
+      double gamma1 = -l_masstotal[ibody] / l_t_period / ftm2v;
       double gamma2 = sqrt(l_masstotal[ibody]) * tsqrt *
         sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
       l_langextra(ibody,0) = gamma1*l_vcm(ibody,0) + gamma2*(rand_gen.drand()-0.5);
       l_langextra(ibody,1) = gamma1*l_vcm(ibody,1) + gamma2*(rand_gen.drand()-0.5);
       l_langextra(ibody,2) = gamma1*l_vcm(ibody,2) + gamma2*(rand_gen.drand()-0.5);
 
-      gamma1 = -1.0 / t_period / ftm2v;
-      gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      gamma1 = -1.0 / l_t_period / ftm2v;
+      gamma2 = tsqrt * sqrt(24.0*boltz/l_t_period/dt/mvv2e) / ftm2v;
       l_langextra(ibody,3) = l_inertia(ibody,0)*gamma1*l_omega(ibody,0) +
         sqrt(l_inertia(ibody,0))*gamma2*(rand_gen.drand()-0.5);
       l_langextra(ibody,4) = l_inertia(ibody,1)*gamma1*l_omega(ibody,2) +
@@ -1986,6 +2147,27 @@ void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
 }
 
 
+template <class DeviceType>
+double FixRigidKokkos<DeviceType>::extract_ke()
+{
+  sync_all<HOST>();
+  return FixRigid::extract_ke();
+}
+
+template <class DeviceType>
+double FixRigidKokkos<DeviceType>::extract_erotational()
+{
+  sync_all<HOST>();
+  return FixRigid::extract_erotational();
+}
+
+
+template <class DeviceType>
+int FixRigidKokkos<DeviceType>::dof(int tgroup)
+{
+  sync_all<HOST>();
+  return FixRigid::dof(tgroup);
+}
 
 
 

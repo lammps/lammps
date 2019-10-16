@@ -48,7 +48,7 @@ class FixRigid : public Fix {
 
   void setup_pre_neighbor();
   virtual void pre_neighbor();
-  int dof(int);
+  virtual int dof(int);
   void deform(int);
   void enforce2d();
   void reset_dt();
@@ -56,8 +56,8 @@ class FixRigid : public Fix {
   void zero_rotation();
   virtual int modify_param(int, char **);
   virtual void *extract(const char*, int &);
-  double extract_ke();
-  double extract_erotational();
+  virtual double extract_ke();
+  virtual double extract_erotational();
   double compute_array(int, int);
 
  protected:

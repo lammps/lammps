@@ -644,7 +644,10 @@ USER-COLVARS package :h4,link(user-colvars)
 
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_USER-COLVARS=yes".
+The USER-COLVARS package requires the use of a C++11 compiler to compile
+the included Lepton library. You can set the flag "-D COLVARS_LEPTON=no"
+in addition to "-D PKG_USER-COLVARS=yes" in order to instruct CMake to
+skip building and including the Lepton library into the USER-COLVARS code.
 
 [Traditional make]:
 

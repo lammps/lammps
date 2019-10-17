@@ -150,7 +150,8 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
       int fd = fileno(fp);
       snprintf(procpath,32,"/proc/self/fd/%d",fd);
       memset(inferred_name,0,MAXFILEBUF);
-      readlink(procpath,inferred_name,MAXFILEBUF);
+      if (readlink(procpath,inferred_name,MAXFILEBUF) <= 0)
+        strcpy(inferred_name,"(unknown)");
 #else
       strcpy(inferred_name,"(unknown)");
 #endif

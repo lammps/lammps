@@ -17,6 +17,10 @@
 #include "lammps.h"
 #include "error.h"
 
+#if defined(__linux)
+#include <unistd.h>  // for readlink
+#endif
+
 /*! \file utils.cpp */
 
 /*
@@ -127,13 +131,31 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
   return;
 }
 
+#define MAXFILEBUF 1024
 /* like fread() but aborts with an error or EOF is encountered */
-void sfread(const char *srcname, int srcline, void *s, size_t size,
-                size_t num, FILE *fp, const char *filename, Error *error)
+void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
+                   size_t num, FILE *fp, const char *filename, Error *error)
 {
+  char inferred_name[MAXFILEBUF];
   size_t rv = fread(s,size,num,fp);
   if (rv != num) { // something went wrong
     std::string errmsg;
+
+    // try to figure out the file name from the file pointer
+    if (!filename) {
+      // on Linux we can infer the name of the open file from /proc
+      // otherwise we set it to "(unknown)"
+#if defined(__linux)
+      char procpath[32];
+      int fd = fileno(fp);
+      snprintf(procpath,32,"/proc/self/fd/%d",fd);
+      memset(inferred_name,0,MAXFILEBUF);
+      readlink(procpath,inferred_name,MAXFILEBUF);
+#else
+      strcpy(inferred_name,"(unknown)");
+#endif
+      filename = inferred_name;
+    }
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";

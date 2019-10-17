@@ -78,7 +78,7 @@ namespace LAMMPS_NS {
      *  \param size     size of data elements read by fread()
      *  \param num      number of data elements read by fread()
      *  \param fp       file pointer used by fread()
-     *  \param filename file name associated with fp (for error message)
+     *  \param filename file name associated with fp (may be NULL; then LAMMPS will try to detect)
      *  \param error    pointer to Error class instance (for abort)
      */
     void sfread(const char *srcname, int srcline, void *s, size_t size,

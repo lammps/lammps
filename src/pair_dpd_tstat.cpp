@@ -265,11 +265,11 @@ void PairDPDTstat::write_restart_settings(FILE *fp)
 void PairDPDTstat::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&t_start,sizeof(double),1,fp);
-    fread(&t_stop,sizeof(double),1,fp);
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&seed,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&t_start,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&t_stop,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&t_start,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&t_stop,1,MPI_DOUBLE,0,world);

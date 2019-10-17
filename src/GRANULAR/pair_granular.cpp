@@ -34,6 +34,7 @@ See the README file in the top-level LAMMPS directory.
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1251,20 +1252,20 @@ void PairGranular::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&normal_model[i][j],sizeof(int),1,fp);
-          fread(&damping_model[i][j],sizeof(int),1,fp);
-          fread(&tangential_model[i][j],sizeof(int),1,fp);
-          fread(&roll_model[i][j],sizeof(int),1,fp);
-          fread(&twist_model[i][j],sizeof(int),1,fp);
-          fread(normal_coeffs[i][j],sizeof(double),4,fp);
-          fread(tangential_coeffs[i][j],sizeof(double),3,fp);
-          fread(roll_coeffs[i][j],sizeof(double),3,fp);
-          fread(twist_coeffs[i][j],sizeof(double),3,fp);
-          fread(&cutoff_type[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,NULL,error);
+          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,NULL,error);
+          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,NULL,error);
+          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,NULL,error);
+          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);

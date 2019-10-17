@@ -17,7 +17,7 @@
 */
 
 #include <mpi.h>
-#ifdef LAMMPS_BIGBIG
+#if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
 #endif
 

@@ -32,20 +32,36 @@
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
 
-// sequence-specific base-pairing strength
-// A:0 C:1 G:2 T:3, 5'- (i,j) -3'
-static const double alpha_hb[4][4] = 
-{{1.00000,1.00000,1.00000,0.82915},
- {1.00000,1.00000,1.15413,1.00000},
- {1.00000,1.15413,1.00000,1.00000},
- {0.82915,1.00000,1.00000,1.00000}};
-
 /* ---------------------------------------------------------------------- */
 
 PairOxdnaHbond::PairOxdnaHbond(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+
+  // sequence-specific base-pairing strength
+  // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
+   
+  alpha_hb[0][0] = 1.00000;
+  alpha_hb[0][1] = 1.00000;
+  alpha_hb[0][2] = 1.00000;
+  alpha_hb[0][3] = 0.82915;
+
+  alpha_hb[1][0] = 1.00000;
+  alpha_hb[1][1] = 1.00000;
+  alpha_hb[1][2] = 1.15413;
+  alpha_hb[1][3] = 1.00000;
+
+  alpha_hb[2][0] = 1.00000;
+  alpha_hb[2][1] = 1.15413;
+  alpha_hb[2][2] = 1.00000;
+  alpha_hb[2][3] = 1.00000;
+
+  alpha_hb[3][0] = 0.82915;
+  alpha_hb[3][1] = 1.00000;
+  alpha_hb[3][2] = 1.00000;
+  alpha_hb[3][3] = 1.00000;
+
 }
 
 /* ---------------------------------------------------------------------- */

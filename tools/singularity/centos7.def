@@ -1,0 +1,10 @@
+BootStrap: library
+From: centos:7
+
+%post
+	yum -y install epel-release
+        yum -y update
+	yum -y install vim-enhanced ccache gcc-c++ gcc-gfortran clang gdb valgrind-openmpi make cmake cmake3 patch which file git libpng-devel libjpeg-devel openmpi-devel mpich-devel python-devel python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant
+
+%labels
+	Author akohlmey

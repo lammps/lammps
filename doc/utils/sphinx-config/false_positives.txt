@@ -1586,6 +1586,7 @@ Materias
 mathbf
 matlab
 matplotlib
+Mattice
 Mattox
 Mattson
 maxangle

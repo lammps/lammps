@@ -248,6 +248,7 @@ if(BUILD_OMP)
 endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
+  enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)

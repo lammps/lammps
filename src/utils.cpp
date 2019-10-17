@@ -127,6 +127,29 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
   return;
 }
 
+/* like fread() but aborts with an error or EOF is encountered */
+void sfread(const char *srcname, int srcline, void *s, size_t size,
+                size_t num, FILE *fp, const char *filename, Error *error)
+{
+  size_t rv = fread(s,size,num,fp);
+  if (rv != num) { // something went wrong
+    std::string errmsg;
+
+    if (feof(fp)) {
+      errmsg = "Unexpected end of file while reading file '";
+    } else if (ferror(fp)) {
+      errmsg = "Unexpected error while reading file '";
+    } else {
+      errmsg = "Unexpected short read while reading file '";
+    }
+    errmsg += filename;
+    errmsg += "'";
+
+    if (error) error->one(srcname,srcline,errmsg.c_str());
+  }
+  return;
+}
+
 /* ------------------------------------------------------------------ */
 
 std::string utils::check_packages_for_style(std::string style,

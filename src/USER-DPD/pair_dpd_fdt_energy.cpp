@@ -406,7 +406,7 @@ void PairDPDfdtEnergy::init_style()
     error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
 
   splitFDT_flag = false;
-  int irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
     if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
       splitFDT_flag = true;

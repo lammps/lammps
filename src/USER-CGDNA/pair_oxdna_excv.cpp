@@ -563,20 +563,6 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairOxdnaExcv::init_style()
-{
-  int irequest;
-
-  // request regular neighbor lists
-
-  irequest = neighbor->request(this,instance_me);
-
-}
-
-/* ----------------------------------------------------------------------
    neighbor callback to inform pair style of neighbor list to use regular
 ------------------------------------------------------------------------- */
 

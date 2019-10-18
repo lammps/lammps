@@ -285,14 +285,13 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-// Set internal timestep counter to that of LAMMPS
+  // Set internal timestep counter to that of LAMMPS
 
   data->step = update->ntimestep;
 
   Output_Results( system, control, data, &lists, out_control, mpi_data );
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
-  int i, j;
 
   if(fixspecies_flag) {
     if (system->N > nmax) {
@@ -306,8 +305,8 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 #if defined(_OPENMP)
 #pragma omp parallel for collapse(2) schedule(static) default(shared)
 #endif
-    for (i = 0; i < system->N; i ++)
-      for (j = 0; j < MAXSPECBOND; j ++) {
+    for (int i = 0; i < system->N; i++)
+      for (int j = 0; j < MAXSPECBOND; j++) {
         tmpbo[i][j] = 0.0;
         tmpid[i][j] = 0;
       }
@@ -613,13 +612,11 @@ void PairReaxCOMP::read_reax_forces(int /* vflag */)
 void PairReaxCOMP::FindBond()
 {
   const double bo_cut = 0.10;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(static) default(shared)   \
-  private(i)
+#pragma omp parallel for schedule(static) default(shared)
 #endif
-  for (i = 0; i < system->n; i++) {
+  for (int i = 0; i < system->n; i++) {
     int j, pj, nj;
     double bo_tmp;
     bond_data *bo_ij;

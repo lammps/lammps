@@ -265,12 +265,12 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list **lists,
                        int step, int n, int N, int numH, MPI_Comm /*comm*/)
 {
-  int i, comp, Hindex;
+  int comp, Hindex;
   reax_list *bonds, *hbonds;
   double saferzone = system->saferzone;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared) private(i, comp, Hindex)
+#pragma omp parallel default(shared) private(comp,Hindex)
 #endif
   {
 
@@ -281,7 +281,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for( i = 0; i < N; ++i ) {
+    for(int i = 0; i < N; ++i ) {
       system->my_atoms[i].num_bonds = MAX(Num_Entries(i,bonds)*2, MIN_BONDS);
 
       if (i < N-1)
@@ -305,7 +305,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for( i = 0; i < n; ++i ) {
+    for(int i = 0; i < n; ++i ) {
       Hindex = system->my_atoms[i].Hindex;
       if (Hindex > -1) {
         system->my_atoms[i].num_hbonds =
@@ -338,7 +338,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
   startTimeBase = MPI_Wtime();
 #endif
 
-  int i, j, pj;
+  int j, pj;
   int start_i, end_i;
   int type_i, type_j;
   int ihb, jhb, ihb_top, jhb_top;
@@ -367,7 +367,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 
 #if defined(_OPENMP)
 #pragma omp parallel default(shared) \
-  private(i, atom_i, type_i, start_i, end_i, sbp_i, btop_i, ihb, ihb_top, \
+  private(atom_i, type_i, start_i, end_i, sbp_i, btop_i, ihb, ihb_top, \
           j, atom_j, type_j, pj, sbp_j, nbr_pj, jhb, twbp)
 #endif
   {
@@ -382,9 +382,9 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
     long totalReductionSize = system->N * nthreads;
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50) reduction(+ : num_bonds)
+#pragma omp for schedule(dynamic,50) reduction(+:num_bonds)
 #endif
-  for (i = 0; i < system->N; ++i) {
+  for (int i = 0; i < system->N; ++i) {
     atom_i = &(system->my_atoms[i]);
     type_i  = atom_i->type;
     sbp_i = &(system->reax_param.sbp[type_i]);
@@ -490,7 +490,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-  for(i=0; i<system->N; i++)
+  for(int i=0; i<system->N; i++)
     for(int t=0; t<nthreads; t++) {
       const int indx = t*system->N + i;
       workspace->dDeltap_self[i][0]  += tmp_ddelta[indx][0];
@@ -506,7 +506,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50) reduction(+ : num_hbonds)
 #endif
-     for (i = 0; i < system->n; ++i) {
+     for (int i = 0; i < system->n; ++i) {
        atom_i = &(system->my_atoms[i]);
        type_i  = atom_i->type;
        sbp_i = &(system->reax_param.sbp[type_i]);
@@ -572,7 +572,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-  for(i=0; i<totalReductionSize; i++) {
+  for(int i=0; i<totalReductionSize; i++) {
     tmp_ddelta[i][0]  = 0.0;
     tmp_ddelta[i][1]  = 0.0;
     tmp_ddelta[i][2]  = 0.0;

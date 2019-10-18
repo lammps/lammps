@@ -642,7 +642,7 @@ void PairAWPMDCut::read_restart_settings(FILE *fp)
    these arrays are stored locally by pair style
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
+void PairAWPMDCut::min_xf_pointers(int /* ignore */, double **xextra, double **fextra)
 {
   // grow arrays if necessary
   // need to be atom->nmax in length
@@ -665,7 +665,7 @@ void PairAWPMDCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
    calculate and store in min_eradius and min_erforce
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_xf_get(int ignore)
+void PairAWPMDCut::min_xf_get(int /* ignore */)
 {
   double *eradius = atom->eradius;
   double *erforce = atom->erforce;
@@ -704,7 +704,7 @@ void PairAWPMDCut::min_xf_get(int ignore)
    propagate the minimizer values to the atom values
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_x_set(int ignore)
+void PairAWPMDCut::min_x_set(int /* ignore */)
 {
   double *eradius = atom->eradius;
   double **v=atom->v;

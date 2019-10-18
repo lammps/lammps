@@ -63,7 +63,7 @@ namespace LAMMPS_NS {
      *  \param s        buffer for storing the result of fgets()
      *  \param size     size of buffer s (max number of bytes read by fgets())
      *  \param fp       file pointer used by fgets()
-     *  \param filename file name associated with fp (for error message)
+     *  \param filename file name associated with fp (may be NULL; then LAMMPS will try to detect)
      *  \param error    pointer to Error class instance (for abort)
      */
     void sfgets(const char *srcname, int srcline, char *s, int size,

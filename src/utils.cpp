@@ -107,13 +107,42 @@ int utils::cfvarg(std::string mode, const char *arg, char *&cfv_id)
   return rv;
 }
 
+/** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
+ *
+ *  \param buf  storage buffer for pathname. output will be truncated if not large enough
+ *  \param len  size of storage buffer. output will be truncated to this length - 1
+ *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
+ *  \return pointer to the storage buffer, i.e. buf
+ */
+static const char *guesspath(char *buf, int len, FILE *fp)
+{
+  memset(buf,0,len);
+
+#if defined(__linux)
+  char procpath[32];
+  int fd = fileno(fp);
+  snprintf(procpath,32,"/proc/self/fd/%d",fd);
+  // get pathname from /proc or copy (unknown)
+  if (readlink(procpath,buf,len-1) <= 0) strcpy(buf,"(unknown)");
+#else
+  strcpy(buf,"(unknown)");
+#endif
+  return buf;
+}
+
+#define MAXPATHLENBUF 1024
 /* like fgets() but aborts with an error or EOF is encountered */
 void utils::sfgets(const char *srcname, int srcline, char *s, int size,
                    FILE *fp, const char *filename, Error *error)
 {
   char *rv = fgets(s,size,fp);
   if (rv == NULL) { // something went wrong
+    char buf[MAXPATHLENBUF];
     std::string errmsg;
+
+    // try to figure out the file name from the file pointer
+    if (!filename)
+      filename = guesspath(buf,MAXPATHLENBUF,fp);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -131,32 +160,18 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
   return;
 }
 
-#define MAXFILEBUF 1024
 /* like fread() but aborts with an error or EOF is encountered */
 void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
                    size_t num, FILE *fp, const char *filename, Error *error)
 {
-  char inferred_name[MAXFILEBUF];
   size_t rv = fread(s,size,num,fp);
   if (rv != num) { // something went wrong
+    char buf[MAXPATHLENBUF];
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) {
-      // on Linux we can infer the name of the open file from /proc
-      // otherwise we set it to "(unknown)"
-#if defined(__linux)
-      char procpath[32];
-      int fd = fileno(fp);
-      snprintf(procpath,32,"/proc/self/fd/%d",fd);
-      memset(inferred_name,0,MAXFILEBUF);
-      if (readlink(procpath,inferred_name,MAXFILEBUF) <= 0)
-        strcpy(inferred_name,"(unknown)");
-#else
-      strcpy(inferred_name,"(unknown)");
-#endif
-      filename = inferred_name;
-    }
+    if (!filename)
+      filename = guesspath(buf,MAXPATHLENBUF,fp);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";

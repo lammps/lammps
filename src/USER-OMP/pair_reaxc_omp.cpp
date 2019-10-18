@@ -325,9 +325,10 @@ void PairReaxCOMP::init_style( )
 
   // firstwarn = 1;
 
-  int iqeq = modify->find_fix_by_style("qeq/reax/omp");
-  if (iqeq < 0 && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c/omp requires use of fix qeq/reax/omp");
+  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
+                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
+  if (!have_qeq && qeqflag == 1)
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts

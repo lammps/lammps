@@ -524,9 +524,9 @@ void PairPeriEPS::init_style()
   // find associated PERI_NEIGH fix that must exist
   // could have changed locations in fix list since created
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
-  if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
+  ifix_peri = modify->find_fix_by_style("^PERI_NEIGH");
+  if (ifix_peri == -1)
+    error->all(FLERR,"Fix peri neigh does not exist");
 
   neighbor->request(this,instance_me);
 }

@@ -45,9 +45,9 @@ extern int Init_Workspace(reax_system*, control_params*, storage*, char*);
 
 /* ---------------------------------------------------------------------- */
 
-int Init_ListsOMP( reax_system *system, control_params *control,
-                 simulation_data * /* data */, storage * /* workspace */,
-                 reax_list **lists, mpi_datatypes *mpi_data, char * /* msg */)
+int Init_ListsOMP(reax_system *system, control_params *control,
+		  simulation_data * /* data */, storage * /* workspace */,
+		  reax_list **lists, mpi_datatypes * /* mpi_data */, char * /* msg */)
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;

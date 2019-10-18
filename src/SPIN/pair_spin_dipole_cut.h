@@ -29,12 +29,11 @@ class PairSpinDipoleCut : public PairSpin {
   double cut_coul;
   double **sigma;
 
-  PairSpinDipoleCut(class LAMMPS *);
-  ~PairSpinDipoleCut();
+  PairSpinDipoleCut(LAMMPS *);
+  virtual ~PairSpinDipoleCut();
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
-  void init_style();
   void *extract(const char *, int &); 
   
   void compute(int, int);
@@ -53,7 +52,7 @@ class PairSpinDipoleCut : public PairSpin {
   double cut_spin_long_global;	// global long cutoff distance 
 
  protected:
-  double hbar;	 		// reduced Planck's constant
+  double hbar;			// reduced Planck's constant
   double mub;			// Bohr's magneton
   double mu_0;			// vacuum permeability
   double mub2mu0;		// prefactor for mech force
@@ -63,9 +62,6 @@ class PairSpinDipoleCut : public PairSpin {
 
   double g_ewald;
   int ewald_order;
-
-  int lattice_flag;			// flag for mech force computation
-  class FixNVESpin *lockfixnvespin;	// ptr for setups
 
   void allocate();
 };

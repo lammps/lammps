@@ -1,4 +1,7 @@
 if(PKG_MESSAGE)
+  if(LAMMPS_SIZES STREQUAL BIGBIG)
+    message(FATAL_ERROR "The MESSAGE Package is not compatible with -DLAMMPS_BIGBIG")
+  endif()
   option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)
   file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.F
       ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.c

@@ -549,7 +549,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,rhosq1,exp0,exp1,r2inv,Tap,dTap,Vkc;
+  double rsq,r,rhosq1,exp0,exp1,Tap,dTap,Vkc;
   double frho_ij,sumC1,sumC11,sumCff,fsum,rho_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *KC_neighs_i;
@@ -606,7 +606,6 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
         Param& p = params[iparam_ij];
 
         r = sqrt(rsq);
-        r2inv = 1.0/rsq;
 
 	// turn on/off taper function
 	if (tap_flag) {

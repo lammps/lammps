@@ -33,6 +33,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -705,8 +706,8 @@ void PairMultiLucy::write_restart_settings(FILE *fp)
 void PairMultiLucy::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);

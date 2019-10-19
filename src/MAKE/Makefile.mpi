@@ -26,12 +26,12 @@ SHLIBFLAGS =	-shared
 # if you change any -D setting, do full re-compile after "make clean"
 
 # LAMMPS ifdef settings
-# see possible settings in Section 2.2 (step 4) of manual
+# see possible settings in Section 3.5 of the manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64  # -DLAMMPS_CXX98
 
 # MPI library
-# see discussion in Section 2.2 (step 5) of manual
+# see discussion in Section 3.4 of the manual
 # MPI wrapper compiler/linker can provide this info
 # can point to dummy MPI library in src/STUBS as in Makefile.serial
 # use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts

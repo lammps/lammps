@@ -1,0 +1,9 @@
+BootStrap: docker
+From: ubuntu:18.04
+
+%post
+	apt-get update -y
+	env DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake git gcc g++ gfortran libfftw3-dev libjpeg-dev libpng-dev libblas-dev liblapack-dev mpi-default-bin mpi-default-dev libeigen3-dev libgsl-dev libopenblas-dev virtualenv python-dev enchant vim-nox ccache voro++-dev
+
+%labels
+	Author akohlmey

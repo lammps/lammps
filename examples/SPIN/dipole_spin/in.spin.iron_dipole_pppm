@@ -36,7 +36,7 @@ fix 		1 all precession/spin cubic 0.001 0.0005 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1
 fix_modify 	1 energy yes
 fix 		2 all langevin/spin 0.0 0.0 21
 
-fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice moving
 timestep	0.0001
 
 # compute and output options

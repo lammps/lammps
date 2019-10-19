@@ -76,9 +76,10 @@ Post-processing tools :h3
 "pymol_asphere"_#pymol,
 "python"_#pythontools,
 "reax"_#reax_tool,
+"replica"_#replica,
 "smd"_#smd,
 "spin"_#spin,
-"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
+"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l) 
 
 Miscellaneous tools :h3
 
@@ -86,6 +87,7 @@ Miscellaneous tools :h3
 "emacs"_#emacs,
 "i-pi"_#ipi,
 "kate"_#kate,
+"singularity"_#singularity_tool,
 "vim"_#vim :tb(c=5,ea=c,a=l)
 
 :line
@@ -485,6 +487,21 @@ README for more info on Pizza.py and how to use these scripts.
 
 :line
 
+replica tool :h4,link(replica)
+
+The tools/replica directory contains the reorder_remd_traj python script which
+can be used to reorder the replica trajectories (resulting from the use of the 
+temper command) according to temperature. This will produce discontinuous
+trajectories with all frames at the same temperature in each trajectory.
+Additional options can be used to calculate the canonical configurational
+log-weight for each frame at each temperature using the pymbar package. See
+the README.md file for further details. Try out the peptide example provided.
+
+This tool was written by (and is maintained by) Tanmoy Sanyal, 
+while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com) 
+
+:line
+
 reax tool :h4,link(reax_tool)
 
 The reax sub-directory contains stand-alone codes that can
@@ -515,14 +532,23 @@ Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 spin tool :h4,link(spin)
 
 The spin sub-directory contains a C file interpolate.c which can
-be compiled and used to perform a cubic polynomial interpolation of 
+be compiled and used to perform a cubic polynomial interpolation of
 the MEP following a GNEB calculation.
 
 See the README file in tools/spin/interpolate_gneb for more details.
 
 This tool was written by the SPIN package author, Julien
-Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei 
+Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
 Ivanov, at University of Iceland (ali5 at hi.is).
+
+:line
+
+singularity tool :h4,link(singularity_tool)
+
+The singularity sub-directory contains container definitions files
+that can be used to build container images for building and testing
+LAMMPS on specific OS variants using the "Singularity"_https://sylabs.io
+container software. Contributions for additional variants are welcome.
 
 :line
 
@@ -549,3 +575,4 @@ simulation.
 See the README file for details.
 
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
+

@@ -354,10 +354,9 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
 void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 {
-  //int i,j,jj,jnum,itype,jtype;  
   int j,jj,jnum,itype,jtype,ntypes; 
   int k,locflag;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
+  int *jlist,*numneigh,**firstneigh;  
   double r,rinv,r2inv,rsq,grij,expm2,t,erfc;
   double local_cut2,pre1,pre2,pre3;
   double bij[4],xi[3],rij[3],eij[3],spi[4],spj[4];
@@ -367,7 +366,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
   double **sp = atom->sp;       
   double **fm_long = atom->fm_long;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
@@ -405,7 +403,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
     // computation of the exchange interaction
     // loop over neighbors of atom i
       
-    //i = ilist[ii];
     xi[0] = x[ii][0];
     xi[1] = x[ii][1];
     xi[2] = x[ii][2];

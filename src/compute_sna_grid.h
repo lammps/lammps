@@ -20,18 +20,19 @@ ComputeStyle(sna/grid,ComputeSNAGrid)
 #ifndef LMP_COMPUTE_SNA_GRID_H
 #define LMP_COMPUTE_SNA_GRID_H
 
-#include "compute.h"
+#include "compute_grid.h"
 
 namespace LAMMPS_NS {
 
-class ComputeSNAGrid : public Compute {
+class ComputeSNAGrid : public ComputeGrid {
  public:
   ComputeSNAGrid(class LAMMPS *, int, char **);
   ~ComputeSNAGrid();
   void init();
   void init_list(int, class NeighList *);
-  void compute_grid();
+  void compute_array();
   double memory_usage();
+  void allocate();
 
  private:
   int nmax;
@@ -43,7 +44,6 @@ class ComputeSNAGrid : public Compute {
   double *radelem;
   double *wjelem;
   class SNA* snaptr;
-  double cutmax;
   int quadraticflag;
 };
 

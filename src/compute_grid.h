@@ -11,12 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
-
-ComputeStyle(grid,ComputeGrid)
-
-#else
-
 #ifndef LMP_COMPUTE_GRID_H
 #define LMP_COMPUTE_GRID_H
 
@@ -26,36 +20,39 @@ namespace LAMMPS_NS {
 
 class ComputeGrid : public Compute {
  public:
-  char *idchunk;              // fields accessed by other classes
-  double *masstotal;
 
   ComputeGrid(class LAMMPS *, int, char **);
-  ~ComputeGrid();
+  virtual ~ComputeGrid();
   void init();
   void setup();
-  void compute_array();
-
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  virtual void compute_array() = 0;
 
   double memory_usage();
 
+ protected:
+  int nx, ny, nz;                      // grid dimensions
+  int nxfull, nyfull, nzfull;          // grid dimensions with ghost points
+  int nxyfull;                         // nx_full*ny_full 
+  int ngridfull;                       // number of full grid points
+  double **gridfull;                   // full grid points
+  int mx, my, mz;                      // cutmax stencil dimensions
+  int triclinic;                       // triclinic flag
+  double *boxlo, *prd;                 // box info (units real/ortho or reduced/tri)
+  double delxinv,delyinv,delzinv;      // inverse grid spacing
+  double delx,dely,delz;               // grid spacing
+  double x0full, y0full, z0full;       // origin of full grid
+  int nargbase;                        // number of base class args 
+  double cutmax;                       // largest cutoff distance
+  virtual void allocate();
+  void igridfull2x(int, double*);      // convert full grid point to coord
+  void gather_global_array();          // gather global array from full grid
+  int igridfull2iarray(int);           // convert full grid index to compute array index
+
  private:
-  int nchunk,maxchunk;
-  int firstflag,massneed;
-
-  double *massproc;
-  double **com,**comall;
-
-  void allocate();
 };
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

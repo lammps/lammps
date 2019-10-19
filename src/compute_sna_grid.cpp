@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_grid.h"
 #include "compute_sna_grid.h"
 #include <cstring>
 #include <cstdlib>
@@ -30,13 +31,20 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL),
+  ComputeGrid(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL),
   radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
   int twojmax, switchflag, bzeroflag;
   radelem = NULL;
   wjelem = NULL;
+
+  // skip over arguments used by base class
+  // so that argument positions are identical to 
+  // regular per-atom compute
+
+  arg += nargbase;
+  narg -= nargbase;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -58,6 +66,7 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
+  printf("rcutfac = %g rfac0 = %g twojmax = %d\n",rcutfac, rfac0, twojmax);
 
   for(int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
@@ -73,6 +82,7 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
+    printf("i = %d cutsq[i][i] = %g\n",i,cutsq[i][i]);
     for(int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
@@ -84,6 +94,7 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nargmin;
 
   while (iarg < narg) {
+    printf("iarg = %d arg = %s\n",iarg, arg[iarg]);
     if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute sna/grid command");
@@ -105,18 +116,19 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/grid command");
+
   }
+
+  printf("rmin0 = %g, bzeroflag = %d, quadraticflag = %d\n",
+         rmin0, bzeroflag, quadraticflag);
 
   snaptr = new SNA(lmp,rfac0,twojmax,
                    rmin0,switchflag,bzeroflag);
 
   ncoeff = snaptr->ncoeff;
-  size_peratom_cols = ncoeff;
-  if (quadraticflag) size_peratom_cols += (ncoeff*(ncoeff+1))/2;
-  peratom_flag = 1;
-
-  nmax = 0;
-  sna = NULL;
+  size_array_cols = ncoeff;
+  if (quadraticflag) size_array_cols += (ncoeff*(ncoeff+1))/2;
+  array_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,101 +178,101 @@ void ComputeSNAGrid::init_list(int /*id*/, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAGrid::compute_pergrid()
+void ComputeSNAGrid::compute_array()
 {
-  invoked_peratom = update->ntimestep;
+  invoked_array = update->ntimestep;
 
-  // grow sna array if necessary
+//   // invoke full neighbor list (will copy or build if necessary)
 
-  if (atom->nmax > nmax) {
-    memory->destroy(sna);
-    nmax = atom->nmax;
-    memory->create(sna,nmax,size_peratom_cols,"sna/grid:sna");
-    array_atom = sna;
-  }
+//   neighbor->build_one(list);
 
-  // invoke full neighbor list (will copy or build if necessary)
+//   const int inum = list->inum;
+//   const int* const ilist = list->ilist;
+//   const int* const numneigh = list->numneigh;
+//   int** const firstneigh = list->firstneigh;
 
-  neighbor->build_one(list);
-
-  const int inum = list->inum;
-  const int* const ilist = list->ilist;
-  const int* const numneigh = list->numneigh;
-  int** const firstneigh = list->firstneigh;
   int * const type = atom->type;
 
-  // compute sna for each atom in group
-  // use full neighbor list to count atoms less than cutoff
+  // compute sna for each gridpoint
 
   double** const x = atom->x;
   const int* const mask = atom->mask;
+  const int ntotal = atom->nlocal + atom->nghost;
 
-  for (int ii = 0; ii < inum; ii++) {
-    const int i = ilist[ii];
-    if (mask[i] & groupbit) {
+  printf("ngridfull = %d\n",ngridfull);
+  for (int igrid = 0; igrid < ngridfull; igrid++) {
+    printf("igrid = %d\n",igrid);
+    double rtmp[3];
+    igridfull2x(igrid, rtmp);
+    const double xtmp = rtmp[0];
+    const double ytmp = rtmp[1];
+    const double ztmp = rtmp[2];
 
-      const double xtmp = x[i][0];
-      const double ytmp = x[i][1];
-      const double ztmp = x[i][2];
-      const int itype = type[i];
-      const double radi = radelem[itype];
-      const int* const jlist = firstneigh[i];
-      const int jnum = numneigh[i];
+    // rij[][3] = displacements between atom I and those neighbors
+    // inside = indices of neighbors of I within cutoff
+    // typej = types of neighbors of I within cutoff
 
-      // insure rij, inside, and typej  are of size jnum
+    int ninside = 0;
+    for (int j = 0; j < ntotal; j++) {
 
-      snaptr->grow_rij(jnum);
+      // check that j is in comute group
 
-      // rij[][3] = displacements between atom I and those neighbors
-      // inside = indices of neighbors of I within cutoff
-      // typej = types of neighbors of I within cutoff
+      if (!(mask[j] & groupbit)) continue;
 
-      int ninside = 0;
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
+      // insure rij, inside, and typej are of size jnum
 
-        const double delx = xtmp - x[j][0];
-        const double dely = ytmp - x[j][1];
-        const double delz = ztmp - x[j][2];
-        const double rsq = delx*delx + dely*dely + delz*delz;
-        int jtype = type[j];
-        if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
-          snaptr->rij[ninside][0] = delx;
-          snaptr->rij[ninside][1] = dely;
-          snaptr->rij[ninside][2] = delz;
-          snaptr->inside[ninside] = j;
-          snaptr->wj[ninside] = wjelem[jtype];
-          snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          ninside++;
-        }
+      snaptr->grow_rij(ninside+1);
+
+      const double delx = xtmp - x[j][0];
+      const double dely = ytmp - x[j][1];
+      const double delz = ztmp - x[j][2];
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      int jtype = type[j];
+      if (rsq < cutsq[jtype][jtype] && rsq>1e-20) {
+        printf("ninside = %d\n",ninside);
+        snaptr->rij[ninside][0] = delx;
+        snaptr->rij[ninside][1] = dely;
+        snaptr->rij[ninside][2] = delz;
+        snaptr->inside[ninside] = j;
+        snaptr->wj[ninside] = wjelem[jtype];
+        snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
+        ninside++;
       }
+    }
 
-      snaptr->compute_ui(ninside);
-      snaptr->compute_zi();
-      snaptr->compute_bi();
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-        sna[i][icoeff] = snaptr->blist[icoeff];
-      if (quadraticflag) {
-        int ncount = ncoeff;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bi = snaptr->blist[icoeff];
+    snaptr->compute_ui(ninside);
+    snaptr->compute_zi();
+    snaptr->compute_bi();
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+      sna[igrid][icoeff] = snaptr->blist[icoeff];
+    printf("igrid = %d B0 = %g\n",igrid,sna[igrid][0]);
+    if (quadraticflag) {
+      int ncount = ncoeff;
+      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+        double bi = snaptr->blist[icoeff];
 
-          // diagonal element of quadratic matrix
+        // diagonal element of quadratic matrix
 
-          sna[i][ncount++] = 0.5*bi*bi;
+        sna[igrid][ncount++] = 0.5*bi*bi;
 
-          // upper-triangular elements of quadratic matrix
+        // upper-triangular elements of quadratic matrix
 
-          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-            sna[i][ncount++] = bi*snaptr->blist[jcoeff];
-        }
+        for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
+          sna[igrid][ncount++] = bi*snaptr->blist[jcoeff];
       }
-    } else {
-      for (int icoeff = 0; icoeff < size_peratom_cols; icoeff++)
-        sna[i][icoeff] = 0.0;
     }
   }
+  gather_global_array();
+}
+
+/* ----------------------------------------------------------------------
+   allocate array in base class and then set up pointers
+------------------------------------------------------------------------- */
+
+void ComputeSNAGrid::allocate()
+{
+  ComputeGrid::allocate();
+  sna = gridfull;
 }
 
 /* ----------------------------------------------------------------------
@@ -269,7 +281,7 @@ void ComputeSNAGrid::compute_pergrid()
 
 double ComputeSNAGrid::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double); // sna
+  double bytes = size_array_rows*size_array_cols * sizeof(double); // grid
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

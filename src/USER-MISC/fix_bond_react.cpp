@@ -1857,7 +1857,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     if (dedup_mode == 1) ghostly_rxn_count[i] = 0;
   }
 
-  int dedup_size;
+  int dedup_size = 0;
   if (dedup_mode == 0) {
     dedup_size = local_num_mega;
   } else if (dedup_mode == 1) {
@@ -3177,8 +3177,8 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
-    int n = strlen(rxn_name[i]) + 1;
-    strncpy(set[i].rxn_name,rxn_name[i],n);
+    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE);
+    set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
   if (me == 0) {

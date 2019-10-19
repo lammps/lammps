@@ -368,7 +368,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 #if defined(_OPENMP)
 #pragma omp parallel default(shared) \
   private(atom_i, type_i, start_i, end_i, sbp_i, btop_i, ihb, ihb_top, \
-          j, atom_j, type_j, pj, sbp_j, nbr_pj, jhb, twbp)
+          atom_j, type_j, pj, sbp_j, nbr_pj, jhb, twbp)
 #endif
   {
 
@@ -395,7 +395,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
     for( pj = start_i; pj < end_i; ++pj ) {
       nbr_pj = &( far_nbrs->select.far_nbr_list[pj] );
       if (nbr_pj->d <= cutoff) {
-        j = nbr_pj->nbr;
+        int j = nbr_pj->nbr;
         atom_j = &(system->my_atoms[j]);
         type_j = atom_j->type;
         sbp_j = &(system->reax_param.sbp[type_j]);

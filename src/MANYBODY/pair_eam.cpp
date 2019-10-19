@@ -27,6 +27,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -466,10 +467,10 @@ void PairEAM::read_file(char *filename)
 
   int tmp,nwords;
   if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     sscanf(line,"%d %lg",&tmp,&file->mass);
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     nwords = sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -784,7 +785,7 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 
   int i = 0;
   while (i < n) {
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
     while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);

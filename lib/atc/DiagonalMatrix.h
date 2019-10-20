@@ -79,8 +79,8 @@ class DiagonalMatrix : public Matrix<T>
 
 protected:
   void _set_equal(const Matrix<T> &r);
-  DiagonalMatrix& operator=(const Vector<T> /* &c */) {}
-  DiagonalMatrix& operator=(const Matrix<T> /* &c */) {}
+  DiagonalMatrix& operator=(const Vector<T> & /* c */) {}
+  DiagonalMatrix& operator=(const Matrix<T> & /* c */) {}
 
 private: 
   void _delete();

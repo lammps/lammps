@@ -792,7 +792,7 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
 }
 
 /** write (ensight gold : ASCII "C" format) dictionary */
-void OutputManager::write_dictionary(double time, OUTPUT_LIST *data)
+void OutputManager::write_dictionary(double /* time */, OUTPUT_LIST *data)
 {
   // file names
   string dict_file_name = outputPrefix_ + ".case";

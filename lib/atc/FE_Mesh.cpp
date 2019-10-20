@@ -797,7 +797,7 @@ namespace ATC {
         {
           int node = element_connectivity_unique(ielem, inode);
           nodeSet.insert(node);
-          inode++;
+          inode++; // XXX: is this correct?
         }
       }
     }
@@ -832,7 +832,7 @@ namespace ATC {
         {
           int node = element_connectivity_unique(ielem, inode);
           nodeSet.erase(node);
-          inode++;
+          inode++; // XXX: is this correct?
         }
       }
     }
@@ -1788,7 +1788,7 @@ namespace ATC {
   // -------------------------------------------------------------
   //  setup_periodicity
   // -------------------------------------------------------------
-  void FE_3DMesh::setup_periodicity(double tol)
+  void FE_3DMesh::setup_periodicity(double /* tol */)
   {
     // unique <-> global id maps
     globalToUniqueMap_.reset(nNodes_);
@@ -2119,7 +2119,6 @@ namespace ATC {
       // divide between all processors, we get the next-highest
       // power of 2.
     vector<vector<int> > procEltLists = tree_->getElemIDs(depth);
-    int numEltLists = procEltLists.size();
     
     // Make sure the KD tree is behaving as expected.
     assert(numEltLists >= nProcs);

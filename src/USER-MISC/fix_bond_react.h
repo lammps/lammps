@@ -65,6 +65,7 @@ class FixBondReact : public Fix {
   int *stabilize_steps_flag;
   int *update_edges_flag;
   int nconstraints;
+  int narrhenius;
   double **constraints;
   int status;
   int *groupbits;
@@ -88,7 +89,8 @@ class FixBondReact : public Fix {
   Fix *fix2;              // properties/atom used to indicate 1) relaxing atoms
                           //                                  2) to which 'react' atom belongs
   Fix *fix3;              // property/atom used for system-wide thermostat
-  class RanMars **random;
+  class RanMars **random; // random number for 'prob' keyword
+  class RanMars **rrhandom; // random number for Arrhenius constraint
   class NeighList *list;
 
   int *reacted_mol,*unreacted_mol;
@@ -156,6 +158,7 @@ class FixBondReact : public Fix {
   void inner_crosscheck_loop();
   void ring_check();
   int check_constraints();
+  double get_temperature();
 
   void open(char *);
   void readline(char *);

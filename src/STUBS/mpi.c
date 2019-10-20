@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------ */
 
 /* Single-processor "stub" versions of MPI routines */
-/* -I. in Makefile insures dummy mpi.h in this dir is included */
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/time.h>
-#include <mpi.h>
+#include "mpi.h"
 #include "../version.h"
 
 /* data structure for double/int */

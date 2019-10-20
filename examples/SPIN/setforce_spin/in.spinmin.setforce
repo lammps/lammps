@@ -35,7 +35,7 @@ fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0 anisotropy 5e-05 0.0 0.0 1.0
 fix_modify	1 energy yes
 fix 		2 fixed_spin setforce/spin 0.0 0.0 0.0
 fix 		3 all langevin/spin 0.0 0.1 21
-fix		4 all nve/spin lattice no 
+fix		4 all nve/spin lattice frozen 
 
 timestep	0.0001
 

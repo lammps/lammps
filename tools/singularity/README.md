@@ -9,7 +9,13 @@ your development workstation, e.g. when bugs are reported that can only
 be reproduced on a specific OS or with specific (mostly older) versions
 of tools, compilers, or libraries.
 
-Here is a workflow for testing a compilation of LAMMPS with a CentOS 7.x container.
+Ready-to-use container images built from these definition files are
+occasionally uploaded to the container library at sylabs.io. They
+can be found here: https://cloud.sylabs.io/library/lammps/default/lammps_development#
+and will be signed with the key fingerprint: EEA103764C6C633EDC8AC428D9B44E93BF0C375A
+
+Here is a workflow for testing a compilation of LAMMPS with a locally
+built CentOS 7.x singularity container.
 
 ```
 cd some/work/directory
@@ -19,6 +25,20 @@ cd build-centos7
 sudo singularity build centos7.sif ../tools/singularity/centos7.def
 singularity shell centos7.sif
 cmake -C ../cmake/presets/most.cmake -D CMAKE_CXX_FLAGS="-O3 -g -fopenmp -std=c++11" ../cmake
+make
+```
+
+And here is the equivalent workflow for testing a compilation of LAMMPS
+using a pre-built Ubuntu 18.04LTS singularity container.
+
+```
+cd some/work/directory
+git clone --depth 500  git://github.com/lammps/lammps.git lammps
+mkdir build-ubuntu18
+cd build-ubuntu18
+singularity pull library://lammps/default/lammps_development:ubuntu18.04
+singularity shell lammps_development_ubuntu18.04.sif
+cmake -C ../cmake/presets/most.cmake ../cmake
 make
 ```
 

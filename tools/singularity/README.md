@@ -25,4 +25,6 @@ make
 | Currently available: |     |
 | --- | --- |
 | centos7.def | CentOS 7.x with EPEL enabled |
+| centos8.def | CentOS 8.x with EPEL enabled |
+| ubuntu16.04.def | Ubuntu 16.04LTS with default MPI == OpenMPI |
 | ubuntu18.04.def | Ubuntu 18.04LTS with default MPI == OpenMPI |

@@ -299,9 +299,9 @@ void ComputeADF::init()
   if (!(force->pair) || maxouter > force->pair->cutforce) {
     double skin = neighbor->skin;
     mycutneigh = maxouter + skin;
-    if (mycutneigh > comm->cutghostuser)
+    if (mycutneigh > comm->get_comm_cutoff())
       error->all(FLERR,"Compute adf outer cutoff exceeds ghost atom range - "
-                 "use comm_modify cutoff command");
+                 "use comm_modify cutoff command to increase it");
   }
 
   // assign ordinate values to 1st column of output array

@@ -250,11 +250,7 @@ void FixHyperLocal::init()
   // warn if no drift distance added to cutghost
 
   if (firstflag) {
-    double cutghost;
-    if (force->pair)
-      cutghost = MAX(force->pair->cutforce+neighbor->skin,comm->cutghostuser);
-    else
-      cutghost = comm->cutghostuser;
+    double cutghost = comm->get_comm_cutoff();
 
     if (cutghost < dcut)
       error->all(FLERR,"Fix hyper/local domain cutoff exceeds ghost atom range - "

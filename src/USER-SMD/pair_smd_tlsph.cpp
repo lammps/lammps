@@ -86,7 +86,7 @@ PairTlsph::PairTlsph(LAMMPS *lmp) :
         comm_forward = 22; // this pair style communicates 20 doubles to ghost atoms : PK1 tensor + F tensor + shepardWeight
         fix_tlsph_reference_configuration = NULL;
 
-        cut_comm = MAX(neighbor->cutneighmax, comm->cutghostuser); // cutoff radius within which ghost atoms are communicated.
+        cut_comm = comm->get_comm_cutoff();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -916,7 +916,7 @@ void PairTlsph::settings(int narg, char **arg) {
          * is the folowing.
          */
 
-        cut_comm = MAX(neighbor->cutneighmax, comm->cutghostuser); // cutoff radius within which ghost atoms are communicated.
+        cut_comm = comm->get_comm_cutoff();
         update_threshold = cut_comm;
         update_method = UPDATE_NONE;
 

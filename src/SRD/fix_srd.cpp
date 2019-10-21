@@ -3097,7 +3097,7 @@ void FixSRD::setup_bounds()
   //     max distance to move without being lost during comm->exchange()
   //   subsize = perp distance between sub-domain faces (orthog or triclinic)
 
-  double cut = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  double cut = comm->get_comm_cutoff();
   double onemove = dt_big*vmax;
 
   if (bigexist) {

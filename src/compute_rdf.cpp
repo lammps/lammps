@@ -161,17 +161,12 @@ void ComputeRDF::init()
 
   if (cutflag) {
     double skin = neighbor->skin;
+    double cutghost = comm->get_comm_cutoff();
     mycutneigh = cutoff_user + skin;
 
-    double cutghost;            // as computed by Neighbor and Comm
-    if (force->pair)
-      cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
-    else
-      cutghost = comm->cutghostuser;
-
     if (mycutneigh > cutghost)
-      error->all(FLERR,"Compute rdf cutoff exceeds ghost atom range - "
-                 "use comm_modify cutoff command");
+      error->all(FLERR,"Compute rdf cutoff plus skin exceeds ghost atom range - "
+                 "use comm_modify cutoff command to increase it");
     if (force->pair && mycutneigh < force->pair->cutforce + skin)
       if (comm->me == 0)
         error->warning(FLERR,"Compute rdf cutoff less than neighbor cutoff - "

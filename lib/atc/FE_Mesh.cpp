@@ -2121,7 +2121,7 @@ namespace ATC {
     vector<vector<int> > procEltLists = tree_->getElemIDs(depth);
     
     // Make sure the KD tree is behaving as expected.
-    assert(numEltLists >= nProcs);
+    assert(procEltLists.size() >= nProcs);
  
     // If the KD-tree was not able to return enough divisions,
     // duplicate the largest list.

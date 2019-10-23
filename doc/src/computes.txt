@@ -45,6 +45,7 @@ Computes :h1
    compute_gyration
    compute_gyration_chunk
    compute_gyration_shape
+   compute_gyration_shape_chunk
    compute_heat_flux
    compute_hexorder_atom
    compute_hma

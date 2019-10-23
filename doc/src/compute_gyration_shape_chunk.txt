@@ -84,6 +84,5 @@ package"_Build_package.html doc page for more info.
 
 :line
 
-:link(Theodorou)
 [(Theodorou)] Theodorou, Suter, Macromolecules, 18, 1206 (1985).
 

@@ -148,7 +148,8 @@ void FixPrint::init()
 
 void FixPrint::end_of_step()
 {
-  if (update->ntimestep != next_print) return;
+  //Only execute if we have advanced one step (normal run) or we are on the same step (rerun)
+  if ((update->ntimestep != next_print) & (update->ntimestep != next_print-nevery)) return;
 
   // make a copy of string to work on
   // substitute for $ variables (no printing)

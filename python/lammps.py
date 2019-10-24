@@ -399,14 +399,9 @@ class lammps(object):
       ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr
     if type == 2:
-      if style == 0:
-        self.lib.lammps_extract_compute.restype = POINTER(c_int)
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr[0]
-      else:
-        self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr
+      self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+      return ptr
     return None
 
   # extract fix info

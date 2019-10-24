@@ -26,7 +26,7 @@ keyword = {dmax} or {line} or {norm} or {alpha_damp} or {discrete_factor} or {in
     damping = fictitious Gilbert damping for spin minimization (adim)
   {discrete_factor} value = factor
     factor = discretization factor for adaptive spin timestep (adim)
-  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet}
+  {integrator} value = {eulerimplicit} or {verlet}
     time integration scheme for fire2 minimization
   {tmax} value = factor
     factor = maximum adaptive timestep for fire2 minimization :pre
@@ -122,8 +122,8 @@ and {spin/cg}. Convergence of {spin/lbfgs} can be more robust if
 {spin_cubic} line search is used.
 
 The Newton {integrator} used for {fire2} minimization can be selected to be
-either the symplectic Euler ({eulerimplicit}), explicit Euler (eulerexplicit)
-or velocity Verlet ({verlet}). Note that explicit Euler is not recommended 
+either the symplectic Euler ({eulerimplicit}) or velocity Verlet ({verlet}). 
+Note that explicit Euler is not recommended 
 as it will lead to results similar to a {fire} minimization.
 {tmax} define the maximum value for the adaptive timestep 
 during a {fire2} minimization. It is multiplication factor applied 

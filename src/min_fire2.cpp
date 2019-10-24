@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include "min_adaptglok.h"
+#include "min_fire2.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
@@ -35,11 +35,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MinAdaptGlok::MinAdaptGlok(LAMMPS *lmp) : Min(lmp) {}
+MinFire2::MinFire2(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void MinAdaptGlok::init()
+void MinFire2::init()
 {
   Min::init();
 
@@ -60,18 +60,18 @@ void MinAdaptGlok::init()
 
 /* ---------------------------------------------------------------------- */
 
-void MinAdaptGlok::setup_style()
+void MinFire2::setup_style()
 {
   double **v = atom->v;
   int nlocal = atom->nlocal;
 
-  // print the parameters used within adaptglok into the log
+  // print the parameters used within fire2 into the log
 
   const char *s1[] = {"eulerimplicit","verlet","leapfrog","eulerexplicit"};
   const char *s2[] = {"no","yes"};
 
   if (comm->me == 0 && logfile) {
-      fprintf(logfile,"  Parameters for adaptglok: \n"
+      fprintf(logfile,"  Parameters for fire2: \n"
       "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
       "   integrator halfstepback relaxbox relaxbox_mod relaxbox_rate ptol \n"
       "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s \n",
@@ -90,7 +90,7 @@ void MinAdaptGlok::setup_style()
    called after atoms have migrated
 ------------------------------------------------------------------------- */
 
-void MinAdaptGlok::reset_vectors()
+void MinFire2::reset_vectors()
 {
   // atomic dof
 
@@ -101,7 +101,7 @@ void MinAdaptGlok::reset_vectors()
 
 /* ---------------------------------------------------------------------- */
 
-int MinAdaptGlok::iterate(int maxiter)
+int MinFire2::iterate(int maxiter)
 {
   bigint ntimestep;
   double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;

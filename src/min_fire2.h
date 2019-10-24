@@ -13,21 +13,21 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(adaptglok,MinAdaptGlok)
+MinimizeStyle(fire2,MinFire2)
 
 #else
 
-#ifndef LMP_MIN_ADAPTGLOK_H
-#define LMP_MIN_ADAPTGLOK_H
+#ifndef LMP_MIN_FIRE2_H
+#define LMP_MIN_FIRE2_H
 
 #include "min.h"
 
 namespace LAMMPS_NS {
 
-class MinAdaptGlok : public Min {
+class MinFire2 : public Min {
  public:
-  MinAdaptGlok(class LAMMPS *);
-  ~MinAdaptGlok() {}
+  MinFire2(class LAMMPS *);
+  ~MinFire2() {}
   void init();
   void setup_style();
   void reset_vectors();

@@ -15,7 +15,7 @@ pair_style spin/neel cutoff :pre
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
 :ule
-	
+
 [Examples:]
 
 pair_style spin/neel 4.0

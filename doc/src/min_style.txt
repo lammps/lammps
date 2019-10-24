@@ -11,7 +11,7 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {cg/kk} or {hftn} or {sd} or {quickmin} or {fire} or {spin} or {adaptglok} :ul
+style = {cg} or {hftn} or {sd} or {quickmin} or {fire} or {fire2} or {spin} or {spin/cg} or {spin/lbfgs} :ul
 
 [Examples:]
 
@@ -62,26 +62,40 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
-Style {adaptglok} is a re-implementation of the style {fire} with
+Style {fire2} is a re-implementation of the style {fire} with
 additional optimizations of the method described
 in "(Bitzek)"_#Bitzek, including different time integration schemes.
 
-Style {spin} is a damped spin dynamics with an adaptive 
+Style {spin} is a damped spin dynamics with an adaptive
 timestep.
-See the "min/spin"_min_spin.html doc page for more information.
 
-Either the {quickmin}, {fire} and {adaptglok} styles are useful in the context of
+Style {spin/cg} uses an orthogonal spin optimization (OSO)
+combined to a conjugate gradient (CG) approach to minimize spin
+configurations. 
+
+Style {spin/lbfgs} uses an orthogonal spin optimization (OSO)
+combined to a limited-memory Broyden-Fletcher-Goldfarb-Shanno
+(LBFGS) approach to minimize spin configurations. 
+
+See the "min/spin"_min_spin.html doc page for more information
+about the {spin}, {spin/cg} and {spin/lbfgs} styles.
+
+Either the {quickmin}, {fire} and {fire2} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.
+
+Either the {spin}, {spin/cg} and {spin/lbfgs} styles are useful 
+in the context of magnetic geodesic nudged elastic band (GNEB) calculations 
+via the "neb/spin"_neb_spin.html command.
 
 NOTE: The damped dynamic minimizers use whatever timestep you have
 defined via the "timestep"_timestep.html command.  Often they will
 converge more quickly if you use a timestep about 10x larger than you
 would normally use for dynamics simulations.
 
-NOTE: The {quickmin}, {fire}, {hftn}, and {cg/kk} styles do not yet 
-support the use of the "fix box/relax"_fix_box_relax.html command or 
-minimizations involving the electron radius in "eFF"_pair_eff.html 
-models. 
+NOTE: The {quickmin}, {fire}, {hftn}, and {cg/kk} styles do not yet
+support the use of the "fix box/relax"_fix_box_relax.html command or
+minimizations involving the electron radius in "eFF"_pair_eff.html
+models.
 
 :line
 

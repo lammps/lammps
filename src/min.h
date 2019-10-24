@@ -39,8 +39,16 @@ class Min : protected Pointers {
   virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
   virtual int modify_param(int, char **) {return 0;}
-  virtual double fnorm_sqr();
-  virtual double fnorm_inf();
+  double fnorm_sqr();
+  double fnorm_inf();
+  double fnorm_max();
+
+  enum{TWO,MAX,INF};
+
+  // methods for spin minimizers
+  double total_torque();
+  double inf_torque(); 
+  double max_torque(); 
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
@@ -56,11 +64,15 @@ class Min : protected Pointers {
   int virial_style;           // compute virial explicitly or implicitly
   int external_force_clear;   // clear forces locally or externally
 
-  double dmax;                // max dist to move any atom in one step
-  int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
+  double dmax;			// max dist to move any atom in one step
+  int linestyle;		// 0 = backtrack, 1 = quadratic, 2 = forcezero 
+  				// 3 = spin_cubic, 4 = spin_none
+
+  int normstyle;		// TWO, MAX or INF flag for force norm evaluation
+
   double dtinit;              // store the default timestep
 
-  // only for minimize style adaptglok
+  // only for minimize style fire2
   int delaystep;              // minium steps of dynamics
   double dtgrow,dtshrink;     // timestep increase, decrease 
   double alpha0,alphashrink;  // mixing velocities+forces coefficient
@@ -114,9 +126,6 @@ class Min : protected Pointers {
 
   virtual double energy_force(int);
   virtual void force_clear();
-
-  double compute_force_norm_sqr();
-  double compute_force_norm_inf();
 
   void ev_setup();
   void ev_set(bigint);

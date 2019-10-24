@@ -214,18 +214,18 @@ void DumpCACNodalVirial::pack(tagint *ids)
       buf[m++] = 0;
 		  buf[m++] = 0;
 		  buf[m++] = 0;
-
-	  for (int j = 0; j < nodes_per_element_list[element_type[i]]; j++) {
-		  for (int k = 0; k < poly_count[i]; k++) {
+      
+    for (int k = 0; k < poly_count[i]; k++) {
+	    for (int j = 0; j < nodes_per_element_list[element_type[i]]; j++) {
 			  buf[m++] = double(j + 1);
 			  buf[m++] = double(k + 1);
 			  buf[m++] = double(node_types[i][k]);
-			  buf[m++] = nktv2p*nodal_virial[i][j][k][0];
-			  buf[m++] = nktv2p*nodal_virial[i][j][k][1];
-			  buf[m++] = nktv2p*nodal_virial[i][j][k][2];
-			  buf[m++] = nktv2p*nodal_virial[i][j][k][3];
-			  buf[m++] = nktv2p*nodal_virial[i][j][k][4];
-			  buf[m++] = nktv2p*nodal_virial[i][j][k][5];
+			  buf[m++] = nktv2p*nodal_virial[i][k][j][0];
+			  buf[m++] = nktv2p*nodal_virial[i][k][j][1];
+			  buf[m++] = nktv2p*nodal_virial[i][k][j][2];
+			  buf[m++] = nktv2p*nodal_virial[i][k][j][3];
+			  buf[m++] = nktv2p*nodal_virial[i][k][j][4];
+			  buf[m++] = nktv2p*nodal_virial[i][k][j][5];
 		  }
 		  }
 	  }

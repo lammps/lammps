@@ -233,9 +233,9 @@ int CACMinFire::iterate(int maxiter)
         int dense = 0;
         // nodal loops required to get mass
         for(int element_counter=0; element_counter < atom->nlocal; element_counter++) {
-          for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
-            for (int poly_counter = 0; poly_counter < npoly[element_counter]; poly_counter++) {
-              dtfm = dtf / mass[node_types[element_counter][poly_counter]];
+          for (int poly_counter = 0; poly_counter < npoly[element_counter]; poly_counter++) {
+            dtfm = dtf / mass[node_types[element_counter][poly_counter]];
+            for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
 
               x[dense+0] += dtv * v[dense+0];
               x[dense+1] += dtv * v[dense+1];
@@ -326,17 +326,17 @@ int *npoly = atom->poly_count;
   int dense_count_f=0;
   int dense_count_v=0;
   for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
-     for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
-       for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
-         nodal_positions[element_counter][node_counter][poly_counter][0] = min_x[dense_count_x++];
-         nodal_positions[element_counter][node_counter][poly_counter][1] = min_x[dense_count_x++];
-         nodal_positions[element_counter][node_counter][poly_counter][2] = min_x[dense_count_x++];
-         nodal_forces[element_counter][node_counter][poly_counter][0] = min_f[dense_count_f++];
-         nodal_forces[element_counter][node_counter][poly_counter][1] = min_f[dense_count_f++];
-         nodal_forces[element_counter][node_counter][poly_counter][2] = min_f[dense_count_f++];         
-         nodal_velocities[element_counter][node_counter][poly_counter][0] = min_v[dense_count_v++];
-         nodal_velocities[element_counter][node_counter][poly_counter][1] = min_v[dense_count_v++];
-         nodal_velocities[element_counter][node_counter][poly_counter][2] = min_v[dense_count_v++];
+    for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
+      for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
+         nodal_positions[element_counter][poly_counter][node_counter][0] = min_x[dense_count_x++];
+         nodal_positions[element_counter][poly_counter][node_counter][1] = min_x[dense_count_x++];
+         nodal_positions[element_counter][poly_counter][node_counter][2] = min_x[dense_count_x++];
+         nodal_forces[element_counter][poly_counter][node_counter][0] = min_f[dense_count_f++];
+         nodal_forces[element_counter][poly_counter][node_counter][1] = min_f[dense_count_f++];
+         nodal_forces[element_counter][poly_counter][node_counter][2] = min_f[dense_count_f++];         
+         nodal_velocities[element_counter][poly_counter][node_counter][0] = min_v[dense_count_v++];
+         nodal_velocities[element_counter][poly_counter][node_counter][1] = min_v[dense_count_v++];
+         nodal_velocities[element_counter][poly_counter][node_counter][2] = min_v[dense_count_v++];
        }
      }
   }
@@ -350,14 +350,13 @@ int *npoly = atom->poly_count;
     x[i][1] = 0;
     x[i][2] = 0;
 
-    for(int k=0; k<nodes_per_element; k++){
     for (int poly_counter = 0; poly_counter < npoly[i];poly_counter++) {
-      
-        x[i][0] += nodal_positions[i][k][poly_counter][0];
-        x[i][1] += nodal_positions[i][k][poly_counter][1];
-        x[i][2] += nodal_positions[i][k][poly_counter][2];
-      }
-    }
+      for(int k=0; k<nodes_per_element; k++){
+				x[i][0] += nodal_positions[i][poly_counter][k][0];
+				x[i][1] += nodal_positions[i][poly_counter][k][1];
+				x[i][2] += nodal_positions[i][poly_counter][k][2];
+			}
+		}
   x[i][0] = x[i][0] / nodes_per_element / npoly[i];
   x[i][1] = x[i][1] / nodes_per_element / npoly[i];
   x[i][2] = x[i][2] / nodes_per_element / npoly[i];

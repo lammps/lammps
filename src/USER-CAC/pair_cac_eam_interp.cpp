@@ -78,10 +78,12 @@ PairCACEAMInterp::PairCACEAMInterp(LAMMPS *lmp) : PairCAC(lmp)
   nmax = 0;
   
   pre_force_flag=1;
+  sector_flag = 1;
+  quad_electron_densities = NULL;
   interior_scales = NULL;
   surface_counts = NULL;
-  nodal_electron_densities = NULL;
   max_density = 0;
+  ghost_quad = 1;
 
   surface_counts_max[0] = 0;
   surface_counts_max[1] = 0;
@@ -729,40 +731,40 @@ void PairCACEAMInterp::pre_force_densities() {
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
-   //grow nodal electron densities array as needed
-  if(atom->nlocal + atom->nghost > max_density){
-      max_density = atom->nlocal + atom->nghost;
-      memory->grow(nodal_electron_densities, max_density ,atom->nodes_per_element,atom->maxpoly, "Pair CACEAMInterp:nodal_electron_densities");
-  }
-     for (int i = 0; i < atom->nlocal; i++) {
-      atomic_flag = 0;
-      current_list_index = i;
-      current_element_type = element_type[i];
-      current_element_scale = element_scale[i];
-      current_poly_count = poly_count[i];
-      type_array = node_types[i];
-      current_nodal_positions = nodal_positions[i];
-      current_x = x[i];
+  for (int i = 0; i < atom->nlocal; i++) {
+    atomic_flag = 0;
+    current_list_index = i;
+    current_element_type = element_type[i];
+    current_element_scale = element_scale[i];
+    current_poly_count = poly_count[i];
+    type_array = node_types[i];
+      
+    current_x = x[i];
  
-      //determine element type
-      if (current_element_type == 0) atomic_counter += 1;
-      if (current_element_type == 0) {
-      atomic_flag = 1;
-      }
-      neigh_quad_counter = 0;
-      //NOTE:might have to change matrices so they dont have zeros due to maximum node count; ill condition.
-      if(atomic_flag){
-      poly_counter = 0;
-      compute_electron_densities(i);
-      }
-      else{
-      for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++) 
-        compute_electron_densities(i);
-      }
+    //determine element type
+    if (current_element_type == 0) atomic_counter += 1;
+    if (current_element_type == 0) {
+    atomic_flag = 1;
     }
-
-    //commmunicate nodal electron densities of atoms/elements that are ghosts of other tasks
-    comm->forward_comm_pair(this);
+    neigh_quad_counter = 0;
+    //NOTE:might have to change matrices so they dont have zeros due to maximum node count; ill condition.
+    if(atomic_flag){
+    poly_counter = 0;
+    current_nodal_positions = nodal_positions[i][poly_counter];
+    compute_electron_densities(i);
+    }
+    else{
+    for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++){
+      current_nodal_positions = nodal_positions[i][poly_counter];
+      compute_electron_densities(i);
+    }
+    }
+  }
+  //test if maxexchange atom is large enough for quadrature count of each element
+  if(max_quad_per_element*atom->maxpoly > comm->maxexchange_atom)
+  comm->maxexchange_atom = max_quad_per_element*atom->maxpoly;
+  //commmunicate nodal electron densities of atoms/elements that are ghosts of other tasks
+  comm->forward_comm_pair(this);
 }
 
 //-----------------------------------------------------------------------
@@ -779,16 +781,9 @@ void PairCACEAMInterp::compute_electron_densities(int i) {
 
 	nodes_per_element = nodes_count_list[current_element_type];
   
-	for (int js = 0; js<nodes_per_element; js++) {
-			nodal_electron_densities[i][js][poly_counter] = 0;
-	}
-
-	double electron_density;
-	
     //sum over quadrature points to compute force density
 	 
   for (int quad_loop=0; quad_loop < quadrature_counts[i] ; quad_loop++){
-	electron_density = 0;
   if(!atomic_flag){
 	s = quadrature_point_data[init_quad_list_counter+quad_loop][0];
 	t = quadrature_point_data[init_quad_list_counter+quad_loop][1];
@@ -799,19 +794,10 @@ void PairCACEAMInterp::compute_electron_densities(int i) {
 	coefficients = quadrature_point_data[init_quad_list_counter+quad_loop][6];
   }
 	if(!atomic_flag)
-	quad_electron_density(i, s, t, w, electron_density);
+	quad_electron_density(i, s, t, w);
 	else
-	quad_electron_density(i, current_x[0], current_x[1], current_x[2], electron_density);
-	  neigh_quad_counter = neigh_quad_counter + 1;
-	if(!atomic_flag){
-	for (int js = 0; js < nodes_per_element; js++) {
-		nodal_electron_densities[i][js][poly_counter] += coefficients*electron_density * shape_function(sq, tq, wq, 2, js + 1);
-	}
-	}
-	else{
-		nodal_electron_densities[i][0][0] = electron_density;
-	}
-
+	quad_electron_density(i, current_x[0], current_x[1], current_x[2]);
+	neigh_quad_counter = neigh_quad_counter + 1;
 	quad_list_counter++;
   }
     
@@ -819,7 +805,7 @@ void PairCACEAMInterp::compute_electron_densities(int i) {
 
 //-----------------------------------------------------------------------
 
-void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w, double &edensity) 
+void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w) 
 { 
   double delx,dely,delz;
   double shape_func;
@@ -847,9 +833,9 @@ void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w
     for (int kkk = 0; kkk < nodes_per_element; kkk++) {
       shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
         //shape_func = (this->*shape_functions[kkk])(unit_cell[0], unit_cell[1], unit_cell[2]);
-        current_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-        current_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-        current_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+        current_position[0] += current_nodal_positions[kkk][0] * shape_func;
+        current_position[1] += current_nodal_positions[kkk][1] * shape_func;
+        current_position[2] += current_nodal_positions[kkk][2] * shape_func;
       }
     }
   else {
@@ -868,10 +854,11 @@ void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w
   int element_index;
   int neigh_max_inner = inner_quad_lists_counts[i][neigh_quad_counter];
   int jtype, ktype;
+  int **inner_quad_indices = inner_quad_lists_index[i][neigh_quad_counter];
   double rsq, r, p, rhoip, rhojp, z2, z2p, recip, phip, psip, phi;
   double *coeff;
   int m;
-
+  
   if(neigh_max_inner>local_inner_max){
     memory->grow(rho, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:rho");
     memory->grow(fp, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:fp");
@@ -881,33 +868,23 @@ void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w
     }
   
   
-  for (int l = 0; l < neigh_max_inner+1; l++) {
-        rho[l] = 0;
-        fp[l] = 0;
-  }
   
+  rho[0] = 0;
   double ****nodal_positions = atom->nodal_positions;
   int **node_types = atom->node_types;
   origin_type = type_array[poly_counter];
   double inner_scan_position[3];
   //precompute virtual neighbor atom locations
     
-  for (int l = 0; l < neigh_max_inner; l++) {
-    scanning_unit_cell[0] = inner_quad_lists_ucell[i][neigh_quad_counter][l][0];
-    scanning_unit_cell[1] = inner_quad_lists_ucell[i][neigh_quad_counter][l][1];
-    scanning_unit_cell[2] = inner_quad_lists_ucell[i][neigh_quad_counter][l][2];
-    listindex = inner_quad_lists_index[i][neigh_quad_counter][l][0];
-    poly_index = inner_quad_lists_index[i][neigh_quad_counter][l][1];
-    element_index = listindex;
-    element_index &= NEIGHMASK;
-    inner_neighbor_types[l] = node_types[element_index][poly_index];
-    neigh_list_cord(inner_neighbor_coords[l][0], inner_neighbor_coords[l][1], inner_neighbor_coords[l][2],
-      element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
-
-    }
+  for (int l = 0; l < neigh_max_inner; l++){ 
+      element_index = inner_quad_indices[l][0];
+      poly_index = inner_quad_indices[l][1];
+      inner_neighbor_types[l] = node_types[element_index][poly_index];
+  }
+  //interpolate virtual atom coordinates from shape functions corresponding to unit cells
+  interpolation(i);
   
-
-    //two body accumulation of electron densities to quadrature site
+  //two body accumulation of electron densities to quadrature site
   for (int l = 0; l < neigh_max_inner; l++) {
     scan_type = inner_neighbor_types[l];
     scan_position[0] = inner_neighbor_coords[l][0];
@@ -929,39 +906,13 @@ void PairCACEAMInterp::quad_electron_density(int i, double s, double t, double w
       coeff = rhor_spline[type2rhor[scan_type][origin_type]][m];
       rho[0] += ((coeff[3] * p + coeff[4])*p + coeff[5])*p + coeff[6];
     }
-   edensity = rho[0];      
+   quad_electron_densities[i][neigh_quad_counter] = rho[0];      
   }
-
-//-----------------------------------------------------------------------
-
-void PairCACEAMInterp::assign_electron_density(double& edensity, int e_index,
-  int p_index, double ucells, double ucellt, double ucellw){
-
-	edensity = 0;
-	double shape_func;
-	double ****nodal_positions = atom->nodal_positions;
-	int *element_type = atom->element_type;
-	int etype = element_type[e_index];
-	int *nodes_count_list = atom->nodes_per_element_list;	
-	int list_nodes_per_element;
-		if (etype != 0) {
-			list_nodes_per_element = nodes_count_list[etype];
-			for (int kk = 0; kk < list_nodes_per_element; kk++) {
-				shape_func = shape_function(ucells, ucellt, ucellw, 2, kk + 1);
-				//shape_func=(this->*shape_functions[kk])(ucells, ucellt, ucellw);
-				edensity += nodal_electron_densities[e_index][kk][p_index] * shape_func;
-			}
-		}
-		else {
-			edensity = nodal_electron_densities[e_index][0][0];
-		}
-}
 
 //-----------------------------------------------------------------------
 
 void PairCACEAMInterp::force_densities(int iii, double s, double t, double w, double coefficients,
     double &force_densityx, double &force_densityy, double &force_densityz) {
-
 
 double delx,dely,delz;
 
@@ -976,6 +927,7 @@ double distancesq;
 double current_position[3];
 double scan_position[3];
 double rcut;
+int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
 
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;	
@@ -999,9 +951,9 @@ int distanceflag=0;
         for (int kkk = 0; kkk < nodes_per_element; kkk++) {
             shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
             //shape_func = (this->*shape_functions[kkk])(unit_cell[0], unit_cell[1], unit_cell[2]);
-            current_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-            current_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-            current_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+            current_position[0] += current_nodal_positions[kkk][0] * shape_func;
+            current_position[1] += current_nodal_positions[kkk][1] * shape_func;
+            current_position[2] += current_nodal_positions[kkk][2] * shape_func;
         }
     }
     else {
@@ -1021,16 +973,19 @@ int distanceflag=0;
     int element_index;
     int neigh_max_inner = inner_quad_lists_counts[iii][neigh_quad_counter];
     int jtype, ktype;
+    int quad_index;
     double rsq, r, p, rhoip, rhojp, z2, z2p, recip, phip, psip, phi;
     double *coeff;
     int m;
+  /*
   if(neigh_max_inner>local_inner_max){
     memory->grow(rho, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:rho");
     memory->grow(fp, neigh_max_inner + 1+EXPAND, "Pair_CAC_eam:fp");
     memory->grow(inner_neighbor_types, neigh_max_inner+EXPAND, "Pair_CAC_eam:inner_neighbor_types");
     memory->grow(inner_neighbor_coords, neigh_max_inner+EXPAND, 3, "Pair_CAC_eam:inner_neighbor_coords");
     local_inner_max=neigh_max_inner+EXPAND;
-    }
+  }
+  */
   
     for (int l = 0; l < neigh_max_inner+1; l++) {
         rho[l] = 0;
@@ -1044,24 +999,16 @@ int distanceflag=0;
     //precompute virtual neighbor atom locations
       
     //assign electron density to quadrature origin
-    assign_electron_density(rho[0],iii, poly_counter,
-          s, t, w);
+    rho[0] = quad_electron_densities[iii][neigh_quad_counter];
     for (int l = 0; l < neigh_max_inner; l++) {
-        scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
-        scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
-        scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
-        //listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
-        listindex = inner_quad_lists_index[iii][neigh_quad_counter][l][0];
-        poly_index = inner_quad_lists_index[iii][neigh_quad_counter][l][1];
-        element_index = listindex;
-        element_index &= NEIGHMASK;
-        inner_neighbor_types[l] = node_types[element_index][poly_index];
-        neigh_list_cord(inner_neighbor_coords[l][0], inner_neighbor_coords[l][1], inner_neighbor_coords[l][2],
-            element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
-        assign_electron_density(rho[l+1],element_index, poly_index,
-          scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
+      element_index = inner_quad_indices[l][0];
+      poly_index = inner_quad_indices[l][1];
+      quad_index = inner_quad_indices[l][2];
+      inner_neighbor_types[l] = node_types[element_index][poly_index];
+      rho[l+1] = quad_electron_densities[element_index][quad_index];
     }
-
+    //interpolate virtual atom coordinates from shape functions corresponding to unit cells
+    interpolation(iii);
     //compute derivative of the embedding energy for the origin atom
     scan_type = node_types[element_index][poly_index];
     p = rho[0] * rdrho + 1.0;
@@ -1148,12 +1095,12 @@ int distanceflag=0;
         force_densityy += dely*fpair;
         force_densityz += delz*fpair;
         if(atom->CAC_virial){
-		    virial_density[0] +=0.5*delx*delx*fpair;
-		    virial_density[1] +=0.5*dely*dely*fpair;
-		    virial_density[2] +=0.5*delz*delz*fpair;
-		    virial_density[3] +=0.5*delx*dely*fpair;
-		    virial_density[4] +=0.5*delx*delz*fpair;
-		    virial_density[5] +=0.5*dely*delz*fpair;
+		    virial_density[0] += 0.5*delx*delx*fpair;
+		    virial_density[1] += 0.5*dely*dely*fpair;
+		    virial_density[2] += 0.5*delz*delz*fpair;
+		    virial_density[3] += 0.5*delx*dely*fpair;
+		    virial_density[4] += 0.5*delx*delz*fpair;
+		    virial_density[5] += 0.5*dely*delz*fpair;
 		    }
         if (quad_eflag) 
           quadrature_energy += 0.5*scale[origin_type][scan_type]*phi;
@@ -1179,12 +1126,15 @@ int PairCACEAMInterp::pack_forward_comm(int n, int *list, double *buf,
   m = 0;
     for (i = 0; i < n; i++) {
       j = list[i];
-      for (int nodecount = 0; nodecount< nodes_count_list[element_type[j]]; nodecount++){
-          for (int poly_index = 0; poly_index < poly_count[j]; poly_index++)
-          {
-            buf[m++] = nodal_electron_densities[j][nodecount][poly_index];
-          }
-          }
+      if(element_type[j]==0){
+        buf[m++] = quad_electron_densities[j][0];
+      }
+      else{
+        for (int quad_index = 0; quad_index < max_quad_per_element*atom->maxpoly; quad_index++)
+        {
+          buf[m++] = quad_electron_densities[j][quad_index];
+        }
+      }
     }
   return m;
 }
@@ -1200,13 +1150,42 @@ void PairCACEAMInterp::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    for (int nodecount = 0; nodecount < nodes_count_list[element_type[i]]; nodecount++) {
-        for (int poly_index = 0; poly_index < poly_count[i]; poly_index++)
-        {
-          nodal_electron_densities[i][nodecount][poly_index] = buf[m++];
-        }
+    if(element_type[i]==0){
+      quad_electron_densities[i][0] = buf[m++];
+    }
+    else{
+      for (int quad_index = 0; quad_index < max_quad_per_element*atom->maxpoly; quad_index++)
+      {
+        quad_electron_densities[i][quad_index] = buf[m++];
+      }
+    
     }
   }
+}
+
+//allocate array storing electron densities for quadrature points and atoms
+
+void PairCACEAMInterp::allocate_quad_attribute(int n1,int n2,int n3) {
+	int *element_type = atom->element_type;
+  int quad = quadrature_node_count;
+	
+	// initialize quadrature point neighbor list vectors
+	if (quad_allocated) {
+		for (int init = 0; init < old_all_atom_count; init++) {
+			memory->destroy(quad_electron_densities[init]);
+		}
+		memory->sfree(quad_electron_densities);
+	}
+
+		quad_electron_densities= (double **) memory->smalloc(sizeof(double *)*(atom->nlocal+atom->nghost), "Pair CACEAMInterp:quad_electron_densities");
+		for (int init = 0; init < atom->nlocal+atom->nghost; init++) {
+			if (element_type[init] == 0) {
+				memory->create(quad_electron_densities[init],1, "Pair CACEAMInterp:quad_electron_densities");
+			}
+			else {
+				memory->create(quad_electron_densities[init],max_quad_per_element*atom->maxpoly, "Pair CACEAMInterp:quad_electron_densities");
+			}
+		}
 }
 
 

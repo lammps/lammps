@@ -244,7 +244,7 @@ void DumpCACXYZ::pack(tagint *ids)
       current_nodal_positions=nodal_positions[i];
       nodes_per_element=8;
 
-      for (int polyscan = 0; polyscan < poly_count[i]; polyscan++) {
+      
         for (int e1 = 0; e1 < element_scale[i][0]; e1++) {
           for (int e2 = 0; e2 < element_scale[i][1]; e2++) {
             for (int e3 = 0; e3 < element_scale[i][2]; e3++) {
@@ -254,12 +254,13 @@ void DumpCACXYZ::pack(tagint *ids)
               xmap[0]=0;
               xmap[1]=0;
               xmap[2]=0;
-              for (int kk = 0; kk < nodes_per_element; kk++) {
-            	  shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
-				        xmap[0] += current_nodal_positions[kk][polyscan][0] * shape_func;
-				        xmap[1] += current_nodal_positions[kk][polyscan][1] * shape_func;
-				        xmap[2] += current_nodal_positions[kk][polyscan][2] * shape_func;
-              }
+              for (int polyscan = 0; polyscan < poly_count[i]; polyscan++) {
+                for (int kk = 0; kk < nodes_per_element; kk++) {
+            	    shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
+				          xmap[0] += current_nodal_positions[polyscan][kk][0] * shape_func;
+				          xmap[1] += current_nodal_positions[polyscan][kk][1] * shape_func;
+				          xmap[2] += current_nodal_positions[polyscan][kk][2] * shape_func;
+                }
               //test if mapped particle is in box and remap otherwise
               if(periodicity[0]){
                 if(xmap[0]>boxhi[0]) xmap[0]-=prd[0];

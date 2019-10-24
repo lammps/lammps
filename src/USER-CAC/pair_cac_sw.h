@@ -56,10 +56,6 @@ class PairCACSW : public PairCAC {
   Param *params;                // parameter set for an I-J-K interaction
 
   double **cut;
-  double **inner_neighbor_coords;
-  double **outer_neighbor_coords;
-  int *inner_neighbor_types;
-  int *outer_neighbor_types;
  
   void allocate();
   void read_file(char *);

@@ -35,9 +35,6 @@ class PairCACCoulWolf : public PairCAC {
 
  protected:
 
-  double **inner_neighbor_coords;
-  int *inner_neighbor_types;
-  double *inner_neighbor_charges;
   double cut_coul, cut_coulsq, alf;
   
   void allocate();

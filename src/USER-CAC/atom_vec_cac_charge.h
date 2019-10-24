@@ -51,7 +51,7 @@ class AtomVecCAC_Charge : public AtomVecCAC {
   void data_atom(double *, imageint, char **);
   void pack_data(double **);
   void write_data(FILE *, int, double **);
-  bigint memory_usage();
+  virtual bigint memory_usage();
   virtual void shrink_array(int);
   
  protected:

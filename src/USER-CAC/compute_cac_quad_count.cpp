@@ -102,9 +102,9 @@ void ComputeCACQuadCount::compute_peratom()
 	  if(atom->neigh_weight_flag==0){
 			//if(1){
 	  current_element_scale = element_scale[i];
-	  current_nodal_positions = nodal_positions[i];
 	  current_element_type = element_type[i];
 	  current_poly_count = poly_count[i];
+	  current_nodal_positions = nodal_positions[i][0];
 	  if (current_element_type == 0) quad_count[i]=1;
       if (current_element_type != 0) {
         compute_surface_depths(interior_scales[0], interior_scales[1], interior_scales[2],
@@ -150,31 +150,31 @@ void ComputeCACQuadCount::compute_surface_depths(double &scalex, double &scaley,
 	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-	double ds_x = (current_nodal_positions[0][poly][0] - current_nodal_positions[1][poly][0])*
-		(current_nodal_positions[0][poly][0] - current_nodal_positions[1][poly][0]);
-	double ds_y = (current_nodal_positions[0][poly][1] - current_nodal_positions[1][poly][1])*
-		(current_nodal_positions[0][poly][1] - current_nodal_positions[1][poly][1]);
-	double ds_z = (current_nodal_positions[0][poly][2] - current_nodal_positions[1][poly][2])*
-		(current_nodal_positions[0][poly][2] - current_nodal_positions[1][poly][2]);
+	double ds_x = (current_nodal_positions[0][0] - current_nodal_positions[1][0])*
+		(current_nodal_positions[0][0] - current_nodal_positions[1][0]);
+	double ds_y = (current_nodal_positions[0][1] - current_nodal_positions[1][1])*
+		(current_nodal_positions[0][1] - current_nodal_positions[1][1]);
+	double ds_z = (current_nodal_positions[0][2] - current_nodal_positions[1][2])*
+		(current_nodal_positions[0][2] - current_nodal_positions[1][2]);
 	double ds_surf = 2 * rcut / sqrt(ds_x + ds_y + ds_z);
 	ds_surf = unit_cell_mapped[0] * (int)(ds_surf / unit_cell_mapped[0]) + unit_cell_mapped[0];
 
-	double dt_x = (current_nodal_positions[0][poly][0] - current_nodal_positions[3][poly][0])*
-		(current_nodal_positions[0][poly][0] - current_nodal_positions[3][poly][0]);
-	double dt_y = (current_nodal_positions[0][poly][1] - current_nodal_positions[3][poly][1])*
-		(current_nodal_positions[0][poly][1] - current_nodal_positions[3][poly][1]);
-	double dt_z = (current_nodal_positions[0][poly][2] - current_nodal_positions[3][poly][2])*
-		(current_nodal_positions[0][poly][2] - current_nodal_positions[3][poly][2]);
+	double dt_x = (current_nodal_positions[0][0] - current_nodal_positions[3][0])*
+		(current_nodal_positions[0][0] - current_nodal_positions[3][0]);
+	double dt_y = (current_nodal_positions[0][1] - current_nodal_positions[3][1])*
+		(current_nodal_positions[0][1] - current_nodal_positions[3][1]);
+	double dt_z = (current_nodal_positions[0][2] - current_nodal_positions[3][2])*
+		(current_nodal_positions[0][2] - current_nodal_positions[3][2]);
 
 	double dt_surf = 2 * rcut / sqrt(dt_x + dt_y + dt_z);
 	dt_surf = unit_cell_mapped[1] * (int)(dt_surf / unit_cell_mapped[1]) + unit_cell_mapped[1];
 
-	double dw_x = (current_nodal_positions[0][poly][0] - current_nodal_positions[4][poly][0])*
-		(current_nodal_positions[0][poly][0] - current_nodal_positions[4][poly][0]);
-	double dw_y = (current_nodal_positions[0][poly][1] - current_nodal_positions[4][poly][1])*
-		(current_nodal_positions[0][poly][1] - current_nodal_positions[3][poly][1]);
-	double dw_z = (current_nodal_positions[0][poly][2] - current_nodal_positions[4][poly][2])*
-		(current_nodal_positions[0][poly][2] - current_nodal_positions[4][poly][2]);
+	double dw_x = (current_nodal_positions[0][0] - current_nodal_positions[4][0])*
+		(current_nodal_positions[0][0] - current_nodal_positions[4][0]);
+	double dw_y = (current_nodal_positions[0][1] - current_nodal_positions[4][1])*
+		(current_nodal_positions[0][1] - current_nodal_positions[3][1]);
+	double dw_z = (current_nodal_positions[0][2] - current_nodal_positions[4][2])*
+		(current_nodal_positions[0][2] - current_nodal_positions[4][2]);
 
 	double dw_surf = 2 * rcut / sqrt(dw_x + dw_y + dw_z);
 	dw_surf = unit_cell_mapped[2] * (int)(dw_surf / unit_cell_mapped[2]) + unit_cell_mapped[2];

@@ -130,7 +130,6 @@ void NPairCAC::build(NeighList *list)
 			surface_counts_max_old[1] = surface_counts_max[1];
 			surface_counts_max_old[2] = surface_counts_max[2];
 			for (i = 0; i < atom->nlocal; i++) {
-			current_nodal_positions = nodal_positions[i];
 			current_element_scale[0] = element_scale[i][0];
 			current_element_scale[1] = element_scale[i][1];
 			current_element_scale[2] = element_scale[i][2];	
@@ -138,6 +137,7 @@ void NPairCAC::build(NeighList *list)
 					
 					for (current_poly_counter = 0; current_poly_counter < poly_count[i]; current_poly_counter++) {
 						int poly_surface_count[3];
+			            current_nodal_positions = nodal_positions[i][current_poly_counter];
 						compute_surface_depths(interior_scale[0], interior_scale[1], interior_scale[2],
 							poly_surface_count[0], poly_surface_count[1], poly_surface_count[2], 1);
 						if(current_poly_counter==0){
@@ -335,31 +335,31 @@ void NPairCAC::compute_surface_depths(double &scalex, double &scaley, double &sc
 	unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
 	unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-	double ds_x = (current_nodal_positions[0][poly][0] - current_nodal_positions[1][poly][0])*
-		(current_nodal_positions[0][poly][0] - current_nodal_positions[1][poly][0]);
-	double ds_y = (current_nodal_positions[0][poly][1] - current_nodal_positions[1][poly][1])*
-		(current_nodal_positions[0][poly][1] - current_nodal_positions[1][poly][1]);
-	double ds_z = (current_nodal_positions[0][poly][2] - current_nodal_positions[1][poly][2])*
-		(current_nodal_positions[0][poly][2] - current_nodal_positions[1][poly][2]);
+	double ds_x = (current_nodal_positions[0][0] - current_nodal_positions[1][0])*
+		(current_nodal_positions[0][0] - current_nodal_positions[1][0]);
+	double ds_y = (current_nodal_positions[0][1] - current_nodal_positions[1][1])*
+		(current_nodal_positions[0][1] - current_nodal_positions[1][1]);
+	double ds_z = (current_nodal_positions[0][2] - current_nodal_positions[1][2])*
+		(current_nodal_positions[0][2] - current_nodal_positions[1][2]);
 	double ds_surf = 2 * rcut / sqrt(ds_x + ds_y + ds_z);
 	ds_surf = unit_cell_mapped[0] * (int)(ds_surf / unit_cell_mapped[0]) + unit_cell_mapped[0];
 
-	double dt_x = (current_nodal_positions[0][poly][0] - current_nodal_positions[3][poly][0])*
-		(current_nodal_positions[0][poly][0] - current_nodal_positions[3][poly][0]);
-	double dt_y = (current_nodal_positions[0][poly][1] - current_nodal_positions[3][poly][1])*
-		(current_nodal_positions[0][poly][1] - current_nodal_positions[3][poly][1]);
-	double dt_z = (current_nodal_positions[0][poly][2] - current_nodal_positions[3][poly][2])*
-		(current_nodal_positions[0][poly][2] - current_nodal_positions[3][poly][2]);
+	double dt_x = (current_nodal_positions[0][0] - current_nodal_positions[3][0])*
+		(current_nodal_positions[0][0] - current_nodal_positions[3][0]);
+	double dt_y = (current_nodal_positions[0][1] - current_nodal_positions[3][1])*
+		(current_nodal_positions[0][1] - current_nodal_positions[3][1]);
+	double dt_z = (current_nodal_positions[0][2] - current_nodal_positions[3][2])*
+		(current_nodal_positions[0][2] - current_nodal_positions[3][2]);
 
 	double dt_surf = 2 * rcut / sqrt(dt_x + dt_y + dt_z);
 	dt_surf = unit_cell_mapped[1] * (int)(dt_surf / unit_cell_mapped[1]) + unit_cell_mapped[1];
 
-	double dw_x = (current_nodal_positions[0][poly][0] - current_nodal_positions[4][poly][0])*
-		(current_nodal_positions[0][poly][0] - current_nodal_positions[4][poly][0]);
-	double dw_y = (current_nodal_positions[0][poly][1] - current_nodal_positions[4][poly][1])*
-		(current_nodal_positions[0][poly][1] - current_nodal_positions[3][poly][1]);
-	double dw_z = (current_nodal_positions[0][poly][2] - current_nodal_positions[4][poly][2])*
-		(current_nodal_positions[0][poly][2] - current_nodal_positions[4][poly][2]);
+	double dw_x = (current_nodal_positions[0][0] - current_nodal_positions[4][0])*
+		(current_nodal_positions[0][0] - current_nodal_positions[4][0]);
+	double dw_y = (current_nodal_positions[0][1] - current_nodal_positions[4][1])*
+		(current_nodal_positions[0][1] - current_nodal_positions[3][1]);
+	double dw_z = (current_nodal_positions[0][2] - current_nodal_positions[4][2])*
+		(current_nodal_positions[0][2] - current_nodal_positions[4][2]);
 
 	double dw_surf = 2 * rcut / sqrt(dw_x + dw_y + dw_z);
 	dw_surf = unit_cell_mapped[2] * (int)(dw_surf / unit_cell_mapped[2]) + unit_cell_mapped[2];
@@ -467,7 +467,6 @@ int NPairCAC::compute_quad_points(int element_index){
 	unit_cell_mapped[0] = 2 / double(element_scale[element_index][0]);
 	unit_cell_mapped[1] = 2 / double(element_scale[element_index][1]);
 	unit_cell_mapped[2] = 2 / double(element_scale[element_index][2]);
-	double ***current_nodal_positions = nodal_positions[element_index];
 	int current_poly_count = poly_count[element_index];
   int quadrature_counter=0;
 	int signs, signt, signw;
@@ -484,7 +483,7 @@ int NPairCAC::compute_quad_points(int element_index){
   interior_scale[1]= interior_scales[element_index][1];
   interior_scale[2]= interior_scales[element_index][2];
 	for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
-		
+		current_nodal_positions = nodal_positions[element_index][poly_counter];
 		//interior contributions
 
 		for (int i = 0; i < quadrature_node_count; i++) {
@@ -523,9 +522,9 @@ int NPairCAC::compute_quad_points(int element_index){
 					quad_position[2] = 0;
 					for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 						shape_func = shape_function(s, t, w, 2, kkk + 1);
-						quad_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-						quad_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-						quad_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+						quad_position[0] += current_nodal_positions[kkk][0] * shape_func;
+						quad_position[1] += current_nodal_positions[kkk][1] * shape_func;
+						quad_position[2] += current_nodal_positions[kkk][2] * shape_func;
 					}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
@@ -568,9 +567,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						quad_position[2] = 0;
 						for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 							shape_func = shape_function(s, t, w, 2, kkk + 1);
-							quad_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-							quad_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-							quad_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+							quad_position[0] += current_nodal_positions[kkk][0] * shape_func;
+							quad_position[1] += current_nodal_positions[kkk][1] * shape_func;
+							quad_position[2] += current_nodal_positions[kkk][2] * shape_func;
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
@@ -614,9 +613,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						quad_position[2] = 0;
 						for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 							shape_func = shape_function(s, t, w, 2, kkk + 1);
-							quad_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-							quad_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-							quad_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+							quad_position[0] += current_nodal_positions[kkk][0] * shape_func;
+							quad_position[1] += current_nodal_positions[kkk][1] * shape_func;
+							quad_position[2] += current_nodal_positions[kkk][2] * shape_func;
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
@@ -662,9 +661,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						quad_position[2] = 0;
 						for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 							shape_func = shape_function(s, t, w, 2, kkk + 1);
-							quad_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-							quad_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-							quad_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+							quad_position[0] += current_nodal_positions[kkk][0] * shape_func;
+							quad_position[1] += current_nodal_positions[kkk][1] * shape_func;
+							quad_position[2] += current_nodal_positions[kkk][2] * shape_func;
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
@@ -858,9 +857,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						quad_position[2] = 0;
 						for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 							shape_func = shape_function(s, t, w, 2, kkk + 1);
-							quad_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-							quad_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-							quad_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+							quad_position[0] += current_nodal_positions[kkk][0] * shape_func;
+							quad_position[1] += current_nodal_positions[kkk][1] * shape_func;
+							quad_position[2] += current_nodal_positions[kkk][2] * shape_func;
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
@@ -927,9 +926,9 @@ int NPairCAC::compute_quad_points(int element_index){
 						quad_position[2] = 0;
 						for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 							shape_func = shape_function(s, t, w, 2, kkk + 1);
-							quad_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-							quad_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-							quad_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+							quad_position[0] += current_nodal_positions[kkk][0] * shape_func;
+							quad_position[1] += current_nodal_positions[kkk][1] * shape_func;
+							quad_position[2] += current_nodal_positions[kkk][2] * shape_func;
 						}
 
 				 current_element_quad_points[quadrature_counter][0]=quad_position[0];
@@ -951,24 +950,11 @@ int NPairCAC::compute_quad_points(int element_index){
 //decide if an atom or quadrature point is close enough to an element to consider for nonlocal quadrature calculation
 
 int NPairCAC::CAC_decide_quad2element(int neighbor_element_index) {
-
-	double unit_cell_mapped[3];
-	double interior_scale[3];
-	
 	int found_flag = 0;
-	double s, t, w;
-	double **x = atom->x;
-
-	
-	double ****nodal_positions = atom->nodal_positions;
-	double shape_func;
-	int *element_type = atom->element_type;
-	int *poly_count = atom->poly_count;
 	double **eboxes=atom->eboxes;
 	int *ebox_ref=atom->ebox_ref;
 	double bounding_boxlo[3];
 	double bounding_boxhi[3];
-	int *nodes_per_element_list = atom->nodes_per_element_list;
   double *current_ebox;
   
   current_ebox = eboxes[ebox_ref[neighbor_element_index]];

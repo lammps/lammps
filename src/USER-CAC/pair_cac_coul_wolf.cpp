@@ -291,9 +291,9 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
 		nodes_per_element = nodes_count_list[current_element_type];
 		for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 			shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
-			current_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-			current_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-			current_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+			current_position[0] += current_nodal_positions[kkk][0] * shape_func;
+			current_position[1] += current_nodal_positions[kkk][1] * shape_func;
+			current_position[2] += current_nodal_positions[kkk][2] * shape_func;
 		}
 	}
 	else {
@@ -326,34 +326,26 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
 			double **node_charges = atom->node_charges;
 			double origin_element_charge= node_charges[iii][poly_counter];
 			double neighbor_element_charge;
+      int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
 			qisq = origin_element_charge*origin_element_charge;
 			e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
 			
-		    if(neigh_max>local_inner_max){
-          memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_coul_wolf:neighbor_coords");
-		      memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_types");
-		      memory->grow(inner_neighbor_charges, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_charges");
-	          local_inner_max=neigh_max+EXPAND;
-	        }      
+		  if(neigh_max>local_inner_max){
+        memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_coul_wolf:neighbor_coords");
+		    memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_types");
+		    memory->grow(inner_neighbor_charges, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_charges");
+	      local_inner_max=neigh_max+EXPAND;
+	    }      
 			for (int l = 0; l < neigh_max; l++) {
-			  scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
-		    scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
-		    scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
-		     //listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
-		     listindex = inner_quad_lists_index[iii][neigh_quad_counter][l][0];
-		    poly_index = inner_quad_lists_index[iii][neigh_quad_counter][l][1];
-		    element_index = listindex;
-		    element_index &= NEIGHMASK;
+			  element_index = inner_quad_indices[l][0];
+        poly_index = inner_quad_indices[l][1];
 		    inner_neighbor_types[l] = node_types[element_index][poly_index];
 			  inner_neighbor_charges[l] = node_charges[element_index][poly_index];
-		    neigh_list_cord(inner_neighbor_coords[l][0], inner_neighbor_coords[l][1], inner_neighbor_coords[l][2],
-			  element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
-
 			}
 
-
+      //interpolate virtual atom coordinates from shape functions corresponding to unit cells
+      interpolation(iii);
 			for (int l = 0; l < neigh_max; l++) {
-
 	
 				scan_type = inner_neighbor_types[l];
 				scan_position[0] = inner_neighbor_coords[l][0];
@@ -389,7 +381,7 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
 		      }
 
 					if (quad_eflag) 
-                    quadrature_energy += v_sh/2;
+            quadrature_energy += v_sh/2;
           
 				}
 			}

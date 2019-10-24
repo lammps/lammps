@@ -332,6 +332,8 @@ double distancesq;
 double current_position[3];
 double scan_position[3];
 double rcut;
+int *element_type = atom->element_type;
+double ****nodal_positions = atom->nodal_positions;
 
 int nodes_per_element;
 int *nodes_count_list = atom->nodes_per_element_list;	
@@ -356,12 +358,12 @@ unit_cell[2] = w;
   current_position[2]=0;
 
 	if (!atomic_flag) {
-		nodes_per_element = nodes_count_list[current_element_type];
+    nodes_per_element = nodes_count_list[current_element_type];
 		for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 			shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
-			current_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-			current_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-			current_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+			current_position[0] += current_nodal_positions[kkk][0] * shape_func;
+			current_position[1] += current_nodal_positions[kkk][1] * shape_func;
+			current_position[2] += current_nodal_positions[kkk][2] * shape_func;
 		}
 	}
 	else {
@@ -385,35 +387,27 @@ unit_cell[2] = w;
 			int *ilist, *jlist, *numneigh, **firstneigh;
 			int neigh_max = inner_quad_lists_counts[iii][neigh_quad_counter];
 			int **node_types = atom->node_types;
+      int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
 			ilist = list->ilist;
 			numneigh = list->numneigh;
 			firstneigh = list->firstneigh;
 			jlist = firstneigh[iii];
-			double ****nodal_positions = atom->nodal_positions;
 				//if(update->ntimestep==1)
       
       if(neigh_max>local_inner_max){
-			memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_lj:inner_neighbor_coords");
-
+			memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3,"Pair_CAC_lj:inner_neighbor_coords");
 			memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_lj:inner_neighbor_types");
 	     local_inner_max=neigh_max+EXPAND;
-	     }
+	    }
       
-			for (int l = 0; l < neigh_max; l++) {
-				scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
-		    scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
-		    scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
-		     //listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
-		     listindex = inner_quad_lists_index[iii][neigh_quad_counter][l][0];
-		    poly_index = inner_quad_lists_index[iii][neigh_quad_counter][l][1];
-		    element_index = listindex;
-		    element_index &= NEIGHMASK;
-		    inner_neighbor_types[l] = node_types[element_index][poly_index];
-		    neigh_list_cord(inner_neighbor_coords[l][0], inner_neighbor_coords[l][1], inner_neighbor_coords[l][2],
-			  element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
+      for (int l = 0; l < neigh_max; l++){ 
+      element_index = inner_quad_indices[l][0];
+      poly_index = inner_quad_indices[l][1];
+      inner_neighbor_types[l] = node_types[element_index][poly_index];
+      }
+      //interpolate virtual atom coordinates from shape functions corresponding to unit cells
+      interpolation(iii);
 
-			}
-			
 			for (int l = 0; l < neigh_max; l++) {
 
 				scan_type = inner_neighbor_types[l];
@@ -435,17 +429,16 @@ unit_cell[2] = w;
 				force_densityy += dely*fpair;
 				force_densityz += delz*fpair;
         if(atom->CAC_virial){
-		    virial_density[0] +=0.5*delx*delx*fpair;
-		    virial_density[1] +=0.5*dely*dely*fpair;
-		    virial_density[2] +=0.5*delz*delz*fpair;
-		    virial_density[3] +=0.5*delx*dely*fpair;
-		    virial_density[4] +=0.5*delx*delz*fpair;
-		    virial_density[5] +=0.5*dely*delz*fpair;
+		    virial_density[0] += 0.5*delx*delx*fpair;
+		    virial_density[1] += 0.5*dely*dely*fpair;
+		    virial_density[2] += 0.5*delz*delz*fpair;
+		    virial_density[3] += 0.5*delx*dely*fpair;
+		    virial_density[4] += 0.5*delx*delz*fpair;
+		    virial_density[5] += 0.5*dely*delz*fpair;
 		    }
         if (quad_eflag) 
 					quadrature_energy += r6inv*(lj3[origin_type][scan_type] * r6inv - lj4[origin_type][scan_type])/2 -
 						offset[origin_type][scan_type]/2;
-				
 				//end of energy portion
 			}
 //end of scanning loop

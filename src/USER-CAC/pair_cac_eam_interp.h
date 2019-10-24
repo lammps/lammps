@@ -67,15 +67,12 @@ class PairCACEAMInterp : public PairCAC {
 
 	// per-atom arrays
   double *rho, *fp;
-  double **inner_neighbor_coords;
-  double **outer_neighbor_coords;
-  int *inner_neighbor_types;
-  int *outer_neighbor_types;
   double density;
-  double ***nodal_electron_densities;
+  double **quad_electron_densities;
   int max_density;
  
   virtual void allocate();
+  virtual void allocate_quad_attribute(int, int, int);
   virtual void read_file(char *);
   virtual void array2spline();
   virtual void file2array();
@@ -120,9 +117,8 @@ class PairCACEAMInterp : public PairCAC {
   void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz);
   void pre_force_densities();
-  void assign_electron_density(double& edensity, int, int, double, double, double);
   void compute_electron_densities(int);
-  void quad_electron_density(int, double, double, double, double &edensity);
+  void quad_electron_density(int, double, double, double);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
 

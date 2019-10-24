@@ -14,6 +14,7 @@
 #include "asa_data.h"
 #include "asa_user.h"
 #include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -89,6 +90,13 @@ int Asa_Data::call_asa_cg(double *x,double *lo,double *hi, ASA_INT n,
   flag=asa_cg(x, lo, hi, n, NULL, cgParm, asaParm,
 	  grad_tol, NULL, Work, iWork, this);
 
+  if(flag>1){
+  if(class_flag==0)
+  sprintf(asa_error, "asa_cg iterations failed in finding a solution for quadrature neighboring processes. flag = %d ", flag);
+  if(class_flag==1)
+  sprintf(asa_error, "asa_cg iterations failed in finding a solution for reneighboring checks. flag = %d ", flag);
+  error->one(FLERR,asa_error);
+  }
   return flag;
 
 }
@@ -137,7 +145,7 @@ double Asa_Data::myvalue_surfmin(asa_objective *asa)
 	int *surf_select = pair_pointer->surf_select;
 	int neigh_nodes_per_element = pair_pointer->neigh_nodes_per_element;
 	int poly_min = pair_pointer->poly_min;
-	double ***neighbor_element_positions = pair_pointer->neighbor_element_positions;
+	double **neighbor_element_positions = pair_pointer->neighbor_element_positions[poly_min];
    
 	unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
@@ -186,9 +194,9 @@ double Asa_Data::myvalue_surfmin(asa_objective *asa)
 	
 	for (int kk = 0; kk < neigh_nodes_per_element; kk++) {
 		shape_func2 = pair_pointer->shape_function(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1);
-		px += neighbor_element_positions[kk][poly_min][0] * shape_func2;
-		py += neighbor_element_positions[kk][poly_min][1] * shape_func2;
-		pz += neighbor_element_positions[kk][poly_min][2] * shape_func2;
+		px += neighbor_element_positions[kk][0] * shape_func2;
+		py += neighbor_element_positions[kk][1] * shape_func2;
+		pz += neighbor_element_positions[kk][2] * shape_func2;
 	}
 
 
@@ -216,7 +224,7 @@ void Asa_Data::mygrad_surfmin(asa_objective *asa)
 	int *surf_select = pair_pointer->surf_select;
 	int neigh_nodes_per_element = pair_pointer->neigh_nodes_per_element;
 	int poly_min = pair_pointer->poly_min;
-	double ***neighbor_element_positions = pair_pointer->neighbor_element_positions;
+	double **neighbor_element_positions = pair_pointer->neighbor_element_positions[poly_min];
   
 	unit_cell_mapped[0] = 2 / double(neighbor_element_scale[0]);
 	unit_cell_mapped[1] = 2 / double(neighbor_element_scale[1]);
@@ -277,9 +285,9 @@ void Asa_Data::mygrad_surfmin(asa_objective *asa)
 	for (int kk = 0; kk < neigh_nodes_per_element; kk++) {
 		shape_func2 = pair_pointer->shape_function(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1);
 
-		px += neighbor_element_positions[kk][poly_min][0] * shape_func2;
-		py += neighbor_element_positions[kk][poly_min][1] * shape_func2;
-		pz += neighbor_element_positions[kk][poly_min][2] * shape_func2;
+		px += neighbor_element_positions[kk][0] * shape_func2;
+		py += neighbor_element_positions[kk][1] * shape_func2;
+		pz += neighbor_element_positions[kk][2] * shape_func2;
 	}
 	
 	px1 = 0;
@@ -291,12 +299,12 @@ void Asa_Data::mygrad_surfmin(asa_objective *asa)
 	for (int kk = 0; kk < neigh_nodes_per_element; kk++) {
 		shape_func1 = pair_pointer->shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1, deriv_select[0]);
 		shape_func2 = pair_pointer->shape_function_derivative(surf_args[0], surf_args[1], surf_args[2], 2, kk + 1, deriv_select[1]);
-		px1 += neighbor_element_positions[kk][poly_min][0] * shape_func1;
-		py1 += neighbor_element_positions[kk][poly_min][1] * shape_func1;
-		pz1 += neighbor_element_positions[kk][poly_min][2] * shape_func1;
-		px2 += neighbor_element_positions[kk][poly_min][0] * shape_func2;
-		py2 += neighbor_element_positions[kk][poly_min][1] * shape_func2;
-		pz2 += neighbor_element_positions[kk][poly_min][2] * shape_func2;
+		px1 += neighbor_element_positions[kk][0] * shape_func1;
+		py1 += neighbor_element_positions[kk][1] * shape_func1;
+		pz1 += neighbor_element_positions[kk][2] * shape_func1;
+		px2 += neighbor_element_positions[kk][0] * shape_func2;
+		py2 += neighbor_element_positions[kk][1] * shape_func2;
+		pz2 += neighbor_element_positions[kk][2] * shape_func2;
 	}
 
 
@@ -315,11 +323,11 @@ double Asa_Data::myvalue_neigh_check(asa_objective *asa)
 	double shape_func2;
     //get class data for current element
 	int min_element_index = avec_pointer->min_element_index;
-	double ***current_nodal_positions = avec_pointer->check_nodal_positions[min_element_index];
-	double ***current_hold_positions = avec_pointer->hold_nodal_positions[min_element_index];
     int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
 	int min_nodes_per_element = avec_pointer->min_nodes_per_element;
 	int poly_min = avec_pointer->poly_min;
+	double **current_hold_positions = avec_pointer->hold_nodal_positions[min_element_index][poly_min];
+	double **current_nodal_positions = avec_pointer->check_nodal_positions[min_element_index][poly_min];
 	ASA_INT i;
 	x = asa->x;
 	f = 0;
@@ -329,9 +337,9 @@ double Asa_Data::myvalue_neigh_check(asa_objective *asa)
 	pz = 0;
 	for (int kk = 0; kk < min_nodes_per_element; kk++) {
 		shape_func2 = avec_pointer->shape_function(x[0], x[1], x[2], 2, kk + 1);
-		px += (current_nodal_positions[kk][poly_min][0]-current_hold_positions[kk][poly_min][0]) * shape_func2;
-		py += (current_nodal_positions[kk][poly_min][1]-current_hold_positions[kk][poly_min][1]) * shape_func2;
-		pz += (current_nodal_positions[kk][poly_min][2]-current_hold_positions[kk][poly_min][2]) * shape_func2;
+		px += (current_nodal_positions[kk][0]-current_hold_positions[kk][0]) * shape_func2;
+		py += (current_nodal_positions[kk][1]-current_hold_positions[kk][1]) * shape_func2;
+		pz += (current_nodal_positions[kk][2]-current_hold_positions[kk][2]) * shape_func2;
 	}
 
 
@@ -351,11 +359,11 @@ void Asa_Data::mygrad_neigh_check(asa_objective *asa)
 	double shape_func3,shape_func2, shape_func1;
     //get class data for current element
 	int min_element_index = avec_pointer->min_element_index;
-	double ***current_nodal_positions = avec_pointer->check_nodal_positions[min_element_index];
-	double ***current_hold_positions = avec_pointer->hold_nodal_positions[min_element_index];
     int *current_element_scale = avec_pointer->check_element_scale[min_element_index];
 	int min_nodes_per_element = avec_pointer->min_nodes_per_element;
 	int poly_min = avec_pointer->poly_min;
+	double **current_hold_positions = avec_pointer->hold_nodal_positions[min_element_index][poly_min];
+    double **current_nodal_positions = avec_pointer->check_nodal_positions[min_element_index][poly_min];
 
 	ASA_INT i;
 	x = asa->x;
@@ -367,9 +375,9 @@ void Asa_Data::mygrad_neigh_check(asa_objective *asa)
 	pz = 0;
 	for (int kk = 0; kk < min_nodes_per_element; kk++) {
 		shape_func2 = avec_pointer->shape_function(x[0], x[1], x[2], 2, kk + 1);
-		px += (current_nodal_positions[kk][poly_min][0]-current_hold_positions[kk][poly_min][0]) * shape_func2;
-		py += (current_nodal_positions[kk][poly_min][1]-current_hold_positions[kk][poly_min][1]) * shape_func2;
-		pz += (current_nodal_positions[kk][poly_min][2]-current_hold_positions[kk][poly_min][2]) * shape_func2;
+		px += (current_nodal_positions[kk][0]-current_hold_positions[kk][0]) * shape_func2;
+		py += (current_nodal_positions[kk][1]-current_hold_positions[kk][1]) * shape_func2;
+		pz += (current_nodal_positions[kk][2]-current_hold_positions[kk][2]) * shape_func2;
 	}
 	
 	px1 = 0;
@@ -385,15 +393,15 @@ void Asa_Data::mygrad_neigh_check(asa_objective *asa)
 		shape_func1 = avec_pointer->shape_function_derivative(x[0], x[1], x[2], 2, kk + 1, 1);
 		shape_func2 = avec_pointer->shape_function_derivative(x[0], x[1], x[2], 2, kk + 1, 2);
 		shape_func3 = avec_pointer->shape_function_derivative(x[0], x[1], x[2], 2, kk + 1, 3);
-		px1 += (current_nodal_positions[kk][poly_min][0]-current_hold_positions[kk][poly_min][0]) * shape_func1;
-		py1 += (current_nodal_positions[kk][poly_min][1]-current_hold_positions[kk][poly_min][1]) * shape_func1;
-		pz1 += (current_nodal_positions[kk][poly_min][2]-current_hold_positions[kk][poly_min][2]) * shape_func1;
-		px2 += (current_nodal_positions[kk][poly_min][0]-current_hold_positions[kk][poly_min][0]) * shape_func2;
-		py2 += (current_nodal_positions[kk][poly_min][1]-current_hold_positions[kk][poly_min][1]) * shape_func2;
-		pz2 += (current_nodal_positions[kk][poly_min][2]-current_hold_positions[kk][poly_min][2]) * shape_func2;
-		px3 += (current_nodal_positions[kk][poly_min][0]-current_hold_positions[kk][poly_min][0]) * shape_func3;
-		py3 += (current_nodal_positions[kk][poly_min][1]-current_hold_positions[kk][poly_min][1]) * shape_func3;
-		pz3 += (current_nodal_positions[kk][poly_min][2]-current_hold_positions[kk][poly_min][2]) * shape_func3;
+		px1 += (current_nodal_positions[kk][0]-current_hold_positions[kk][0]) * shape_func1;
+		py1 += (current_nodal_positions[kk][1]-current_hold_positions[kk][1]) * shape_func1;
+		pz1 += (current_nodal_positions[kk][2]-current_hold_positions[kk][2]) * shape_func1;
+		px2 += (current_nodal_positions[kk][0]-current_hold_positions[kk][0]) * shape_func2;
+		py2 += (current_nodal_positions[kk][1]-current_hold_positions[kk][1]) * shape_func2;
+		pz2 += (current_nodal_positions[kk][2]-current_hold_positions[kk][2]) * shape_func2;
+		px3 += (current_nodal_positions[kk][0]-current_hold_positions[kk][0]) * shape_func3;
+		py3 += (current_nodal_positions[kk][1]-current_hold_positions[kk][1]) * shape_func3;
+		pz3 += (current_nodal_positions[kk][2]-current_hold_positions[kk][2]) * shape_func3;
 	}
 
 

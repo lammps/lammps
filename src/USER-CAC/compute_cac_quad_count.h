@@ -36,7 +36,7 @@ class ComputeCACQuadCount : public Compute {
  private:
   int nmax;
   double *quad_count;
-  double ***current_nodal_positions;
+  double **current_nodal_positions;
   int current_element_type, current_poly_count;
   int *current_element_scale;
 };

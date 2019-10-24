@@ -45,7 +45,8 @@ class Asa_Data : protected Pointers {
   double myvalue_neigh_check(asa_objective *asa);
   void mygrad_neigh_check(asa_objective *asa);  
   void allocate();
-  
+
+  char asa_error[100];
 };
 
 }

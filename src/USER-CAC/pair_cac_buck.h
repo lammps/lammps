@@ -35,8 +35,6 @@ class PairCACBuck : public PairCAC {
 
  protected:
 
-  double **inner_neighbor_coords;
-  int *inner_neighbor_types;
   double **cut;
   double **a, **rho, **c;
   double **rhoinv, **buck1, **buck2, **offset;

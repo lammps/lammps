@@ -260,24 +260,24 @@ void FixCAC_Set_Velocity::initial_integrate(int vflag)
 			  v[i][1] = 0;
 			  v[i][2] = 0;
         nodes_per_element = nodes_count_list[element_type[i]];
-			  for (int j = 0; j < nodes_per_element; j++) {
-				  for (int l = 0; l < poly_count[i]; l++) {
+				for (int l = 0; l < poly_count[i]; l++) {
+			    for (int j = 0; j < nodes_per_element; j++) {
 					  if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-					  voriginal[0] += nodal_velocities[i][j][l][0];
-					  voriginal[1] += nodal_velocities[i][j][l][1];
-					  voriginal[2] += nodal_velocities[i][j][l][2];
-					  if (xstyle) nodal_velocities[i][j][l][0] = xvalue;
-					  if (ystyle) nodal_velocities[i][j][l][1] = yvalue;
-					  if (zstyle) nodal_velocities[i][j][l][2] = zvalue;
-					  if (xstyle) nodal_positions[i][j][l][0] += xvalue*dt;
-					  if (ystyle) nodal_positions[i][j][l][1] += yvalue*dt;
-					  if (zstyle) nodal_positions[i][j][l][2] += zvalue*dt;
-					  if (xstyle) x[i][0] += nodal_positions[i][j][l][0];
-					  if (ystyle) x[i][1] += nodal_positions[i][j][l][1];
-					  if (zstyle) x[i][2] += nodal_positions[i][j][l][2];
-					  if (xstyle) v[i][0] += nodal_velocities[i][j][l][0];
-					  if (ystyle) v[i][1] += nodal_velocities[i][j][l][1];
-					  if (zstyle) v[i][2] += nodal_velocities[i][j][l][2];
+					  voriginal[0] += nodal_velocities[i][l][j][0];
+					  voriginal[1] += nodal_velocities[i][l][j][1];
+					  voriginal[2] += nodal_velocities[i][l][j][2];
+					  if (xstyle) nodal_velocities[i][l][j][0] = xvalue;
+					  if (ystyle) nodal_velocities[i][l][j][1] = yvalue;
+					  if (zstyle) nodal_velocities[i][l][j][2] = zvalue;
+					  if (xstyle) nodal_positions[i][l][j][0] += xvalue*dt;
+					  if (ystyle) nodal_positions[i][l][j][1] += yvalue*dt;
+					  if (zstyle) nodal_positions[i][l][j][2] += zvalue*dt;
+					  if (xstyle) x[i][0] += nodal_positions[i][l][j][0];
+					  if (ystyle) x[i][1] += nodal_positions[i][l][j][1];
+					  if (zstyle) x[i][2] += nodal_positions[i][l][j][2];
+					  if (xstyle) v[i][0] += nodal_velocities[i][l][j][0];
+					  if (ystyle) v[i][1] += nodal_velocities[i][l][j][1];
+					  if (zstyle) v[i][2] += nodal_velocities[i][l][j][2];
 				  }
 			  }
 			  x[i][0] = x[i][0] / nodes_per_element / poly_count[i];
@@ -309,20 +309,24 @@ void FixCAC_Set_Velocity::initial_integrate(int vflag)
     for (int i = 0; i < nlocal; i++){
       if (mask[i] & groupbit) {
         nodes_per_element = nodes_count_list[element_type[i]];
-			  for (int j = 0; j < nodes_per_element; j++) {
-				 for (int l = 0; l < poly_count[i]; l++) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        voriginal[0] += nodal_velocities[i][j][l][0];
-				voriginal[1] += nodal_velocities[i][j][l][1];
-				voriginal[2] += nodal_velocities[i][j][l][2];
-        if (xstyle == ATOM) nodal_velocities[i][j][l][0] = svelocity[i][0];
-        else if (xstyle) nodal_velocities[i][j][l][0] = xvalue;
-        if (ystyle == ATOM) nodal_velocities[i][j][l][1] = svelocity[i][1];
-        else if (ystyle) nodal_velocities[i][j][l][1] = yvalue;
-        if (zstyle == ATOM) nodal_velocities[i][j][l][2] = svelocity[i][2];
-        else if (zstyle) nodal_velocities[i][j][l][2] = zvalue;
+				for (int l = 0; l < poly_count[i]; l++) {
+			    for (int j = 0; j < nodes_per_element; j++) {
+            if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
+            voriginal[0] += nodal_velocities[i][l][j][0];
+				    voriginal[1] += nodal_velocities[i][l][j][1];
+				    voriginal[2] += nodal_velocities[i][l][j][2];
+            if (xstyle == ATOM) nodal_velocities[i][l][j][0] = svelocity[i][0];
+            else if (xstyle) nodal_velocities[i][l][j][0] = xvalue;
+            if (ystyle == ATOM) nodal_velocities[i][l][j][1] = svelocity[i][1];
+            else if (ystyle) nodal_velocities[i][l][j][1] = yvalue;
+            if (zstyle == ATOM) nodal_velocities[i][l][j][2] = svelocity[i][2];
+            else if (zstyle) nodal_velocities[i][l][j][2] = zvalue;
          }
         }
+        
+			  v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+			  v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+			  v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
       }
     }
   }

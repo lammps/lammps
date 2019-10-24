@@ -48,7 +48,9 @@ class PairCAC : public Pair {
 
   //functions for Asa_Data and class to obtain
   double shape_function(double, double, double,int,int);
+  void interpolation(int);
   double shape_function_derivative(double, double, double,int,int,int);
+  int quad_sector_select(double, double, double,int,int);
  
   //set of shape functions
   double quad_shape_one(double s, double t, double w){ return (1-s)*(1-t)*(1-w)/8;}
@@ -64,6 +66,8 @@ class PairCAC : public Pair {
 
  protected:
   int outer_neighflag;
+  int sector_flag;
+  int ghost_quad;
   double cutforcesq;
   double **scale;
   int *current_element_scale;
@@ -74,8 +78,9 @@ class PairCAC : public Pair {
 
   //stores quadrature point coordinates and calculation coefficients for all nlocal
   double ** quadrature_point_data;
-  double quadrature_point_max;
-  double *quadrature_counts;
+  int quadrature_point_max;
+  int *quadrature_counts;
+  int max_quad_per_element;
 	
   double cut_global_s;
   int   quadrature_node_count;
@@ -108,13 +113,12 @@ class PairCAC : public Pair {
   double *quadrature_abcissae;
   double *quadrature_result;
   double **shape_quad_result;
-  double ***current_nodal_positions;
-  double ***current_nodal_gradients;
+  double **current_nodal_positions;
   double **neighbor_copy_ucell;
   int **neighbor_copy_index;
   int neighbor_element_type;
-  int old_atom_count, old_quad_count;
-  int *old_atom_etype;
+  int old_atom_count,old_all_atom_count, old_quad_count;
+  int *old_atom_etype, *old_all_atom_etype;
   int ****inner_quad_lists_index;
   double ****inner_quad_lists_ucell;
   int **inner_quad_lists_counts;
@@ -126,7 +130,7 @@ class PairCAC : public Pair {
   double **interior_scales;
   int **surface_counts;
   int atomic_flag;
-  int nmax;
+  int nmax, nmax_surf;
   int expansion_count_inner, expansion_count_outer, max_expansion_count_inner, max_expansion_count_outer;
   int neighrefresh;
   int maxneigh;
@@ -145,6 +149,11 @@ class PairCAC : public Pair {
   int local_inner_max;
   int local_outer_max;
   int densemax;
+  double **inner_neighbor_coords;
+  double **outer_neighbor_coords;
+  int *inner_neighbor_types;
+  int *outer_neighbor_types;
+  double *inner_neighbor_charges;
 
 	virtual void allocate();
 	virtual void read_file(char *) {}
@@ -156,13 +165,13 @@ class PairCAC : public Pair {
   void quadrature_init(int degree);
   void check_existence_flags();
   //void init_asa_cg();
-  void allocate_quad_neigh_list(int,int,int,int);
+  void allocate_quad_neigh_list(int,int,int);
+  virtual void allocate_quad_attribute(int,int,int) {}
   void allocate_surface_counts();
   void compute_mass_matrix();
   void compute_quad_neighbors(int);
   void compute_forcev(int);
   void grow_quad_data();
-  void neigh_list_cord(double& coordx, double& coordy, double& coordz, int, int, double, double, double);
   void set_shape_functions();
   void compute_surface_depths(double &x, double &y, double &z, 
     int &xb, int &yb, int &zb, int flag);

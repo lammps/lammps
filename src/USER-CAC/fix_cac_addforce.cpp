@@ -248,15 +248,15 @@ void FixCAC_Add_Force::post_force(int vflag)
 	  for (int i = 0; i < nlocal; i++) {
 		  if (mask[i] & groupbit) {
         nodes_per_element = nodes_count_list[element_type[i]];
-			  for (int j = 0; j < nodes_per_element; j++) {
-				  for (int l = 0; l < poly_count[i]; l++) {
+        for (int l = 0; l < poly_count[i]; l++) {
+			    for (int j = 0; j < nodes_per_element; j++) {
 					  if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-					  foriginal[0] += nodal_forces[i][j][l][0];
-					  foriginal[1] += nodal_forces[i][j][l][1];
-					  foriginal[2] += nodal_forces[i][j][l][2];
-					  if (xstyle) nodal_forces[i][j][l][0] += xvalue;
-					  if (ystyle) nodal_forces[i][j][l][1] += yvalue;
-					  if (zstyle) nodal_forces[i][j][l][2] += zvalue;
+					  foriginal[0] += nodal_forces[i][l][j][0];
+					  foriginal[1] += nodal_forces[i][l][j][1];
+					  foriginal[2] += nodal_forces[i][l][j][2];
+					  if (xstyle) nodal_forces[i][l][j][0] += xvalue;
+					  if (ystyle) nodal_forces[i][l][j][1] += yvalue;
+					  if (zstyle) nodal_forces[i][l][j][2] += zvalue;
 				  }
 			  }
 		  }
@@ -282,20 +282,20 @@ void FixCAC_Add_Force::post_force(int vflag)
     for (int i = 0; i < nlocal; i++){
       if (mask[i] & groupbit) {
         nodes_per_element = nodes_count_list[element_type[i]];
+      for (int l = 0; l < poly_count[i]; l++) {
 			  for (int j = 0; j < nodes_per_element; j++) {
-				 for (int l = 0; l < poly_count[i]; l++) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        foriginal[0] += nodal_forces[i][j][l][0];
-        foriginal[1] += nodal_forces[i][j][l][1];
-        foriginal[2] += nodal_forces[i][j][l][2];
-        if (xstyle == ATOM) nodal_forces[i][j][l][0] += sforce[i][0];
-        else if (xstyle) nodal_forces[i][j][l][0] += xvalue;
-        if (ystyle == ATOM) nodal_forces[i][j][l][1] += sforce[i][1];
-        else if (ystyle) nodal_forces[i][j][l][1] += yvalue;
-        if (zstyle == ATOM) nodal_forces[i][j][l][2] += sforce[i][2];
-        else if (zstyle) nodal_forces[i][j][l][2] += zvalue;
-         }
+        foriginal[0] += nodal_forces[i][l][j][0];
+        foriginal[1] += nodal_forces[i][l][j][1];
+        foriginal[2] += nodal_forces[i][l][j][2];
+        if (xstyle == ATOM) nodal_forces[i][l][j][0] += sforce[i][0];
+        else if (xstyle) nodal_forces[i][l][j][0] += xvalue;
+        if (ystyle == ATOM) nodal_forces[i][l][j][1] += sforce[i][1];
+        else if (ystyle) nodal_forces[i][l][j][1] += yvalue;
+        if (zstyle == ATOM) nodal_forces[i][l][j][2] += sforce[i][2];
+        else if (zstyle) nodal_forces[i][l][j][2] += zvalue;
         }
+      }
       }
     }
   }

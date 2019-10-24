@@ -69,9 +69,9 @@ double ComputeCACKE::compute_scalar()
          nodes_per_element = nodes_count_list[element_type[i]];
 				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
 					  for (int n = 0; n < nodes_per_element; n++)
-						  ke += (nodal_velocities[i][n][ipoly][0] * nodal_velocities[i][n][ipoly][0]
-							  + nodal_velocities[i][n][ipoly][1] * nodal_velocities[i][n][ipoly][1]
-							  + nodal_velocities[i][n][ipoly][2] * nodal_velocities[i][n][ipoly][2])
+						  ke += (nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
+							  + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
+							  + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])
 						  * rmass[i]*element_scale[i][0]*element_scale[i][1]*element_scale[i][2]/nodes_per_element;
       }
     }
@@ -81,9 +81,9 @@ double ComputeCACKE::compute_scalar()
         nodes_per_element = nodes_count_list[element_type[i]];
 				  for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
 					  for (int n = 0; n < nodes_per_element; n++)
-						  ke += (nodal_velocities[i][n][ipoly][0] * nodal_velocities[i][n][ipoly][0]
-							  + nodal_velocities[i][n][ipoly][1] * nodal_velocities[i][n][ipoly][1]
-							  + nodal_velocities[i][n][ipoly][2] * nodal_velocities[i][n][ipoly][2])*
+						  ke += (nodal_velocities[i][ipoly][n][0] * nodal_velocities[i][ipoly][n][0]
+							  + nodal_velocities[i][ipoly][n][1] * nodal_velocities[i][ipoly][n][1]
+							  + nodal_velocities[i][ipoly][n][2] * nodal_velocities[i][ipoly][n][2])*
 						  mass[node_types[i][ipoly]]*element_scale[i][0]*element_scale[i][1]*element_scale[i][2]/nodes_per_element;
       }
     }

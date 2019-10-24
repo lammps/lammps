@@ -282,9 +282,9 @@ void CommCAC::setup()
 		for(int ipoly=0; ipoly < poly_count[element_index]; ipoly++){
 		for(i=0; i<nodetotal; i++){
 			for (j=i+1; j<nodetotal; j++){
-				dx=nodal_positions[element_index][i][ipoly][0]-nodal_positions[element_index][j][ipoly][0];
-				dy=nodal_positions[element_index][i][ipoly][1]-nodal_positions[element_index][j][ipoly][1];
-				dz=nodal_positions[element_index][i][ipoly][2]-nodal_positions[element_index][j][ipoly][2];
+				dx=nodal_positions[element_index][ipoly][i][0]-nodal_positions[element_index][ipoly][j][0];
+				dy=nodal_positions[element_index][ipoly][i][1]-nodal_positions[element_index][ipoly][j][1];
+				dz=nodal_positions[element_index][ipoly][i][2]-nodal_positions[element_index][ipoly][j][2];
 				current_distancesq=dx*dx+dy*dy+dz*dz;
 				if(current_distancesq>max_distancesq) max_distancesq=current_distancesq;
 			}
@@ -431,16 +431,19 @@ void CommCAC::setup()
         int oldmax = nprocmax[iswap];
         while (nprocmax[iswap] < noverlap) nprocmax[iswap] += DELTA_PROCS;
         grow_swap_send(iswap,nprocmax[iswap],oldmax);
-        if (idir == 0) {
-          if(nprocmax[iswap]>nrecv_procmax[iswap+1]){
-          nrecv_procmax[iswap+1]=nprocmax[iswap];
-          grow_swap_recv(iswap+1,nprocmax[iswap],oldmax);}
-        }
-        else {
-          if(nprocmax[iswap]>nrecv_procmax[iswap-1]){
-          nrecv_procmax[iswap-1]=nprocmax[iswap];
-          grow_swap_recv(iswap-1,nprocmax[iswap],oldmax);}
-        }
+      }
+
+      if (idir == 0) {
+          if(noverlap > nrecv_procmax[iswap+1]){
+          int oldmax = nrecv_procmax[iswap+1];  
+          while (nrecv_procmax[iswap+1] < noverlap) nrecv_procmax[iswap+1] += DELTA_PROCS;
+          grow_swap_recv(iswap+1,nrecv_procmax[iswap+1],oldmax);}
+      }
+      else {
+          if(noverlap > nrecv_procmax[iswap-1]){
+          int oldmax = nrecv_procmax[iswap-1]; 
+          while (nrecv_procmax[iswap-1] < noverlap) nrecv_procmax[iswap-1] += DELTA_PROCS;
+          grow_swap_recv(iswap-1,nrecv_procmax[iswap-1],oldmax);}
       }
 
       // overlap how has list of noverlap procs
@@ -1106,13 +1109,11 @@ void CommCAC::exchange()
   	xcom[0] = 0;
 		xcom[1] = 0;
 		xcom[2] = 0;
-    for(int k=0; k<nodes_per_element; k++){
-		  for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {
-			
-				xcom[0] += nodal_positions[i][k][poly_counter][0];
-				xcom[1] += nodal_positions[i][k][poly_counter][1];
-				xcom[2] += nodal_positions[i][k][poly_counter][2];
-
+    for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {
+      for(int k=0; k<nodes_per_element; k++){
+				xcom[0] += nodal_positions[i][poly_counter][k][0];
+				xcom[1] += nodal_positions[i][poly_counter][k][1];
+				xcom[2] += nodal_positions[i][poly_counter][k][2];
 			}
 		}
 	xcom[0] = xcom[0] / nodes_per_element / poly_count[i];
@@ -1126,10 +1127,10 @@ void CommCAC::exchange()
   else pbc_sign = -1;
   //if the difference exceeds the skin it was almost certainly remapped
   if(dx[dim]>neighbor->skin||dx[dim]<-neighbor->skin){
-    for(int k=0; k<nodes_per_element; k++){
-		  for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {
-		   nodal_positions[i][k][poly_counter][dim] += pbc_sign*prd[dim];
-       initial_nodal_positions[i][k][poly_counter][dim] += pbc_sign*prd[dim];
+    for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {
+      for(int k=0; k<nodes_per_element; k++){ 
+		  nodal_positions[i][poly_counter][k][dim] += pbc_sign*prd[dim];
+      initial_nodal_positions[i][poly_counter][k][dim] += pbc_sign*prd[dim];
 			}
 		}
   }
@@ -1301,11 +1302,11 @@ void CommCAC::compute_eboxes(int mode){
 	for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
 		for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 			for (int dim = 0; dim < 3; dim++) {
-				if (nodal_positions[kkk][poly_counter][dim] < eboxes[neboxes][dim]) {
-					eboxes[neboxes][dim] = nodal_positions[kkk][poly_counter][dim];
+				if (nodal_positions[poly_counter][kkk][dim] < eboxes[neboxes][dim]) {
+					eboxes[neboxes][dim] = nodal_positions[poly_counter][kkk][dim];
 				}
-				if (nodal_positions[kkk][poly_counter][dim] > eboxes[neboxes][3+dim]) {
-					eboxes[neboxes][3+dim] = nodal_positions[kkk][poly_counter][dim];
+				if (nodal_positions[poly_counter][kkk][dim] > eboxes[neboxes][3+dim]) {
+					eboxes[neboxes][3+dim] = nodal_positions[poly_counter][kkk][dim];
 				}
 			}
 		}
@@ -2015,11 +2016,11 @@ void CommCAC::borders()
 	for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
 		for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 			for (int dim = 0; dim < 3; dim++) {
-				if (nodal_positions[kkk][poly_counter][dim] < eboxes[neboxes][dim]) {
-					eboxes[neboxes][dim] = nodal_positions[kkk][poly_counter][dim];
+				if (nodal_positions[poly_counter][kkk][dim] < eboxes[neboxes][dim]) {
+					eboxes[neboxes][dim] = nodal_positions[poly_counter][kkk][dim];
 				}
-				if (nodal_positions[kkk][poly_counter][dim] > eboxes[neboxes][3+dim]) {
-					eboxes[neboxes][3+dim] = nodal_positions[kkk][poly_counter][dim];
+				if (nodal_positions[poly_counter][kkk][dim] > eboxes[neboxes][3+dim]) {
+					eboxes[neboxes][3+dim] = nodal_positions[poly_counter][kkk][dim];
 				}
 			}
 		}
@@ -2111,9 +2112,16 @@ void CommCAC::pair_comm_setup(Pair *pair)
   // wait on all procs except self and unpack received data
   // if comm_x_only set, exchange or copy directly to x, don't unpack
   //send first set of ghosts
-    int iswap = 0; 
-    nsend = nsendproc[iswap] - sendself[iswap];
-    nrecv = nrecvproc[iswap] - sendself[iswap];
+  int iswap = 0; 
+
+  //check if buffer is sized large enough 
+  int bufextra_old = bufextra;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+  if (bufextra > bufextra_old)
+   memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  nsend = nsendproc[iswap] - sendself[iswap];
+  nrecv = nrecvproc[iswap] - sendself[iswap];
   for (m = 0; m < nsendproc[iswap]; m++) {
     pair_sendsize[iswap][m]=0;
     pair_sendoffset[iswap][m]=0;

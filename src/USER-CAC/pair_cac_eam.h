@@ -67,10 +67,6 @@ class PairCACEAM : public PairCAC {
 
 	// per-atom arrays
   double *rho, *fp;
-  double **inner_neighbor_coords;
-  double **outer_neighbor_coords;
-  int *inner_neighbor_types;
-  int *outer_neighbor_types;
   double density;
  
   virtual void allocate();

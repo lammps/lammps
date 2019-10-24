@@ -38,8 +38,6 @@ class PairCACLJ : public PairCAC {
   double **cut;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
-  double **inner_neighbor_coords;
-  int *inner_neighbor_types;
   
   void allocate();
   void force_densities(int,double,double,double, double,double

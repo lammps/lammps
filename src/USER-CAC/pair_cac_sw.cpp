@@ -610,9 +610,9 @@ int distanceflag=0;
 		nodes_per_element = nodes_count_list[current_element_type];
 		for (int kkk = 0; kkk < nodes_per_element; kkk++) {
 			shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
-			current_position[0] += current_nodal_positions[kkk][poly_counter][0] * shape_func;
-			current_position[1] += current_nodal_positions[kkk][poly_counter][1] * shape_func;
-			current_position[2] += current_nodal_positions[kkk][poly_counter][2] * shape_func;
+			current_position[0] += current_nodal_positions[kkk][0] * shape_func;
+			current_position[1] += current_nodal_positions[kkk][1] * shape_func;
+			current_position[2] += current_nodal_positions[kkk][2] * shape_func;
 		}
 	}
 	else {
@@ -626,9 +626,8 @@ int distanceflag=0;
 
 	int listtype;
 	int scan_type, scan_type2;
-	int listindex;
-	int poly_index;
 	int element_index;
+	int poly_index;
 	int *ilist, *jlist, *numneigh, **firstneigh;
 	int neigh_max_inner = inner_quad_lists_counts[iii][neigh_quad_counter];
 	int neigh_max_outer = outer_quad_lists_counts[iii][neigh_quad_counter];
@@ -658,33 +657,23 @@ int distanceflag=0;
 	int **node_types = atom->node_types;
 	origin_type = map[type_array[poly_counter]];
 	double inner_scan_position[3];
+  int **inner_quad_indices = inner_quad_lists_index[iii][neigh_quad_counter];
+	int **outer_quad_indices = outer_quad_lists_index[iii][neigh_quad_counter];
 	//precompute virtual neighbor atom locations
 	for (int l = 0; l < neigh_max_inner; l++) {
-		scanning_unit_cell[0] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][0];
-		scanning_unit_cell[1] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][1];
-		scanning_unit_cell[2] = inner_quad_lists_ucell[iii][neigh_quad_counter][l][2];
 		//listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
-		listindex = inner_quad_lists_index[iii][neigh_quad_counter][l][0];
-		poly_index = inner_quad_lists_index[iii][neigh_quad_counter][l][1];
-		element_index = listindex;
-		element_index &= NEIGHMASK;
+		element_index = inner_quad_indices[l][0];
+		poly_index = inner_quad_indices[l][1];
 		inner_neighbor_types[l] = map[node_types[element_index][poly_index]];
-		neigh_list_cord(inner_neighbor_coords[l][0], inner_neighbor_coords[l][1], inner_neighbor_coords[l][2],
-			element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
 	}
 	for (int l = 0; l < neigh_max_outer; l++) {
-        scanning_unit_cell[0] = outer_quad_lists_ucell[iii][neigh_quad_counter][l][0];
-		scanning_unit_cell[1] = outer_quad_lists_ucell[iii][neigh_quad_counter][l][1];
-		scanning_unit_cell[2] = outer_quad_lists_ucell[iii][neigh_quad_counter][l][2];
 		//listtype = quad_list_container[iii].inner_list2ucell[neigh_quad_counter].cell_indexes[l][0];
-		listindex = outer_quad_lists_index[iii][neigh_quad_counter][l][0];
-		poly_index = outer_quad_lists_index[iii][neigh_quad_counter][l][1];
-		element_index = listindex;
-		element_index &= NEIGHMASK;
+		element_index = outer_quad_indices[l][0];
+		poly_index = outer_quad_indices[l][1];
 		outer_neighbor_types[l] = map[node_types[element_index][poly_index]];
-		neigh_list_cord(outer_neighbor_coords[l][0], outer_neighbor_coords[l][1], outer_neighbor_coords[l][2],
-			element_index, poly_index, scanning_unit_cell[0], scanning_unit_cell[1], scanning_unit_cell[2]);
 	}
+	//compute virtual neighbor positions at the current timestep
+	interpolation(iii);
 	//two body contribution
 	for (int l = 0; l < neigh_max_inner; l++) {
 
@@ -862,6 +851,7 @@ int distanceflag=0;
 		}
 
 	}
+
 //end of scanning loop
 }
 //------------------------------------------------------------------------

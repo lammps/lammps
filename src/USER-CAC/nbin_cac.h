@@ -49,7 +49,7 @@ class NBinCAC : public NBin {
 	int *neighbor_copy_index;
   int quadrature_counter;
   int   quadrature_node_count;
-  double ***current_nodal_positions;
+  double **current_nodal_positions;
   int **element_scale;
   int current_element_scale[3];
   int current_poly_counter;

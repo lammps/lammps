@@ -123,6 +123,10 @@ class Comm : protected Pointers {
 
   // extract data useful to other classes
   virtual void *extract(const char *, int &) {return NULL;}
+  
+  //called to increase the size of bufextra by altering maxexchange variables
+  void increase_max_atom(int);
+  void increase_max_fix(int);
 
  protected:
   int bordergroup;           // only communicate this group in borders

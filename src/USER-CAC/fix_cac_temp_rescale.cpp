@@ -173,11 +173,12 @@ void FixTempRescale_CAC::end_of_step()
     double efactor = 0.5 * force->boltz * temperature->dof;
 
     double ****nodal_velocities = atom->nodal_velocities;
-	int nodes_per_element;
-	int *nodes_count_list = atom->nodes_per_element_list;	
-	int *element_type = atom->element_type;
-	int *poly_count = atom->poly_count;
-	int **node_types = atom->node_types;
+    double **v = atom->v;
+	  int nodes_per_element;
+	  int *nodes_count_list = atom->nodes_per_element_list;	
+	  int *element_type = atom->element_type;
+	  int *poly_count = atom->poly_count;
+	  int **node_types = atom->node_types;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 

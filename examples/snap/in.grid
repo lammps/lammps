@@ -60,7 +60,11 @@ compute mygrid all sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 
 # define output
 
-thermo_style	custom step temp ke pe vol c_mygrid[1][1] c_mygrid[2][1] c_mygrid[3][1] c_mygrid[4][1] c_mygrid[5][1] c_mygrid[6][1] c_mygrid[7][1] c_mygrid[8][1]
+thermo_style	custom step temp ke pe vol &
+	c_mygrid[1][1] c_mygrid[2][1] c_mygrid[3][1] c_mygrid[4][1] c_mygrid[5][1] c_mygrid[6][1] c_mygrid[7][1] c_mygrid[8][1] &
+	c_mygrid[1][2] c_mygrid[2][2] c_mygrid[3][2] c_mygrid[4][2] c_mygrid[5][2] c_mygrid[6][2] c_mygrid[7][2] c_mygrid[8][2] &
+	c_mygrid[1][3] c_mygrid[2][3] c_mygrid[3][3] c_mygrid[4][3] c_mygrid[5][3] c_mygrid[6][3] c_mygrid[7][3] c_mygrid[8][3] &
+	c_mygrid[1][4] c_mygrid[2][4] c_mygrid[3][4] c_mygrid[4][4] c_mygrid[5][4] c_mygrid[6][4] c_mygrid[7][4] c_mygrid[8][4]
 thermo_modify norm yes
 
 dump mydump_b all custom 1000 dump_b id c_b[*]

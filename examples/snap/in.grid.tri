@@ -66,45 +66,45 @@ compute mygrid all sna/grid grid ${ngridx} ${ngridy} ${ngridz} &
 # define output
 
 thermo_style	custom step temp ke pe vol &
-		c_mygrid[1][1] c_mygrid[2][1] c_mygrid[3][1] c_mygrid[4][1] c_mygrid[5][1] c_mygrid[6][1] c_mygrid[7][1] c_mygrid[8][1] c_mygrid[9][1] &
-		c_mygrid[10][1] c_mygrid[11][1] c_mygrid[12][1] c_mygrid[13][1] c_mygrid[14][1] c_mygrid[15][1] c_mygrid[16][1] c_mygrid[17][1] c_mygrid[18][1] c_mygrid[19][1] &
- 		c_mygrid[20][1] c_mygrid[21][1] c_mygrid[22][1] c_mygrid[23][1] c_mygrid[24][1] c_mygrid[25][1] c_mygrid[26][1] c_mygrid[27][1] c_mygrid[28][1] c_mygrid[29][1] &
- 		c_mygrid[30][1] c_mygrid[31][1] c_mygrid[32][1] c_mygrid[33][1] c_mygrid[34][1] c_mygrid[35][1] c_mygrid[36][1] c_mygrid[37][1] c_mygrid[38][1] c_mygrid[39][1] &
- 		c_mygrid[40][1] c_mygrid[41][1] c_mygrid[42][1] c_mygrid[43][1] c_mygrid[44][1] c_mygrid[45][1] c_mygrid[46][1] c_mygrid[47][1] c_mygrid[48][1] c_mygrid[49][1] &
- 		c_mygrid[50][1] c_mygrid[51][1] c_mygrid[52][1] c_mygrid[53][1] c_mygrid[54][1] c_mygrid[55][1] c_mygrid[56][1] c_mygrid[57][1] c_mygrid[58][1] c_mygrid[59][1] &
- 		c_mygrid[60][1] c_mygrid[61][1] c_mygrid[62][1] c_mygrid[63][1] c_mygrid[64][1] c_mygrid[65][1] c_mygrid[66][1] c_mygrid[67][1] c_mygrid[68][1] c_mygrid[69][1] &
- 		c_mygrid[70][1] c_mygrid[71][1] c_mygrid[72][1] c_mygrid[73][1] c_mygrid[74][1] c_mygrid[75][1] c_mygrid[76][1] c_mygrid[77][1] c_mygrid[78][1] c_mygrid[79][1] &
- 		c_mygrid[80][1] c_mygrid[81][1] c_mygrid[82][1] c_mygrid[83][1] c_mygrid[84][1] c_mygrid[85][1] c_mygrid[86][1] c_mygrid[87][1] c_mygrid[88][1] c_mygrid[89][1] &
- 		c_mygrid[90][1] c_mygrid[91][1] c_mygrid[92][1] c_mygrid[93][1] c_mygrid[94][1] c_mygrid[95][1] c_mygrid[96][1] c_mygrid[97][1] c_mygrid[98][1] c_mygrid[99][1] &
-		c_mygrid[101][1] c_mygrid[102][1] c_mygrid[103][1] c_mygrid[104][1] c_mygrid[105][1] c_mygrid[106][1] c_mygrid[107][1] c_mygrid[108][1] c_mygrid[109][1] &
-		c_mygrid[110][1] c_mygrid[111][1] c_mygrid[112][1] c_mygrid[113][1] c_mygrid[114][1] c_mygrid[115][1] c_mygrid[116][1] c_mygrid[117][1] c_mygrid[118][1] c_mygrid[119][1] &
- 		c_mygrid[120][1] c_mygrid[121][1] c_mygrid[122][1] c_mygrid[123][1] c_mygrid[124][1] c_mygrid[125][1] c_mygrid[126][1] c_mygrid[127][1] c_mygrid[128][1] c_mygrid[129][1] &
- 		c_mygrid[130][1] c_mygrid[131][1] c_mygrid[132][1] c_mygrid[133][1] c_mygrid[134][1] c_mygrid[135][1] c_mygrid[136][1] c_mygrid[137][1] c_mygrid[138][1] c_mygrid[139][1] &
- 		c_mygrid[140][1] c_mygrid[141][1] c_mygrid[142][1] c_mygrid[143][1] c_mygrid[144][1] c_mygrid[145][1] c_mygrid[146][1] c_mygrid[147][1] c_mygrid[148][1] c_mygrid[149][1] &
- 		c_mygrid[150][1] c_mygrid[151][1] c_mygrid[152][1] c_mygrid[153][1] c_mygrid[154][1] c_mygrid[155][1] c_mygrid[156][1] c_mygrid[157][1] c_mygrid[158][1] c_mygrid[159][1] &
- 		c_mygrid[160][1] c_mygrid[161][1] c_mygrid[162][1] c_mygrid[163][1] c_mygrid[164][1] c_mygrid[165][1] c_mygrid[166][1] c_mygrid[167][1] c_mygrid[168][1] c_mygrid[169][1] &
- 		c_mygrid[170][1] c_mygrid[171][1] c_mygrid[172][1] c_mygrid[173][1] c_mygrid[174][1] c_mygrid[175][1] c_mygrid[176][1] c_mygrid[177][1] c_mygrid[178][1] c_mygrid[179][1] &
- 		c_mygrid[180][1] c_mygrid[181][1] c_mygrid[182][1] c_mygrid[183][1] c_mygrid[184][1] c_mygrid[185][1] c_mygrid[186][1] c_mygrid[187][1] c_mygrid[188][1] c_mygrid[189][1] &
- 		c_mygrid[190][1] c_mygrid[191][1] c_mygrid[192][1] c_mygrid[193][1] c_mygrid[194][1] c_mygrid[195][1] c_mygrid[196][1] c_mygrid[197][1] c_mygrid[198][1] c_mygrid[199][1] &
-		c_mygrid[201][1] c_mygrid[202][1] c_mygrid[203][1] c_mygrid[204][1] c_mygrid[205][1] c_mygrid[206][1] c_mygrid[207][1] c_mygrid[208][1] c_mygrid[209][1] &
-		c_mygrid[210][1] c_mygrid[211][1] c_mygrid[212][1] c_mygrid[213][1] c_mygrid[214][1] c_mygrid[215][1] c_mygrid[216][1] c_mygrid[217][1] c_mygrid[218][1] c_mygrid[219][1] &
- 		c_mygrid[220][1] c_mygrid[221][1] c_mygrid[222][1] c_mygrid[223][1] c_mygrid[224][1] c_mygrid[225][1] c_mygrid[226][1] c_mygrid[227][1] c_mygrid[228][1] c_mygrid[229][1] &
- 		c_mygrid[230][1] c_mygrid[231][1] c_mygrid[232][1] c_mygrid[233][1] c_mygrid[234][1] c_mygrid[235][1] c_mygrid[236][1] c_mygrid[237][1] c_mygrid[238][1] c_mygrid[239][1] &
- 		c_mygrid[240][1] c_mygrid[241][1] c_mygrid[242][1] c_mygrid[243][1] c_mygrid[244][1] c_mygrid[245][1] c_mygrid[246][1] c_mygrid[247][1] c_mygrid[248][1] c_mygrid[249][1] &
- 		c_mygrid[250][1] c_mygrid[251][1] c_mygrid[252][1] c_mygrid[253][1] c_mygrid[254][1] c_mygrid[255][1] c_mygrid[256][1] c_mygrid[257][1] c_mygrid[258][1] c_mygrid[259][1] &
- 		c_mygrid[260][1] c_mygrid[261][1] c_mygrid[262][1] c_mygrid[263][1] c_mygrid[264][1] c_mygrid[265][1] c_mygrid[266][1] c_mygrid[267][1] c_mygrid[268][1] c_mygrid[269][1] &
- 		c_mygrid[270][1] c_mygrid[271][1] c_mygrid[272][1] c_mygrid[273][1] c_mygrid[274][1] c_mygrid[275][1] c_mygrid[276][1] c_mygrid[277][1] c_mygrid[278][1] c_mygrid[279][1] &
- 		c_mygrid[280][1] c_mygrid[281][1] c_mygrid[282][1] c_mygrid[283][1] c_mygrid[284][1] c_mygrid[285][1] c_mygrid[286][1] c_mygrid[287][1] c_mygrid[288][1] c_mygrid[289][1] &
- 		c_mygrid[290][1] c_mygrid[291][1] c_mygrid[292][1] c_mygrid[293][1] c_mygrid[294][1] c_mygrid[295][1] c_mygrid[296][1] c_mygrid[297][1] c_mygrid[298][1] c_mygrid[299][1] &
-		c_mygrid[301][1] c_mygrid[302][1] c_mygrid[303][1] c_mygrid[304][1] c_mygrid[305][1] c_mygrid[306][1] c_mygrid[307][1] c_mygrid[308][1] c_mygrid[309][1] &
-		c_mygrid[310][1] c_mygrid[311][1] c_mygrid[312][1] c_mygrid[313][1] c_mygrid[314][1] c_mygrid[315][1] c_mygrid[316][1] c_mygrid[317][1] c_mygrid[318][1] c_mygrid[319][1] &
- 		c_mygrid[320][1] c_mygrid[321][1] c_mygrid[322][1] c_mygrid[323][1] c_mygrid[324][1] c_mygrid[325][1] c_mygrid[326][1] c_mygrid[327][1] c_mygrid[328][1] c_mygrid[329][1] &
- 		c_mygrid[330][1] c_mygrid[331][1] c_mygrid[332][1] c_mygrid[333][1] c_mygrid[334][1] c_mygrid[335][1] c_mygrid[336][1] c_mygrid[337][1] c_mygrid[338][1] c_mygrid[339][1] &
- 		c_mygrid[340][1] c_mygrid[341][1] c_mygrid[342][1] c_mygrid[343][1] c_mygrid[344][1] c_mygrid[345][1] c_mygrid[346][1] c_mygrid[347][1] c_mygrid[348][1] c_mygrid[349][1] &
- 		c_mygrid[350][1] c_mygrid[351][1] c_mygrid[352][1] c_mygrid[353][1] c_mygrid[354][1] c_mygrid[355][1] c_mygrid[356][1] c_mygrid[357][1] c_mygrid[358][1] c_mygrid[359][1] &
- 		c_mygrid[360][1] c_mygrid[361][1] c_mygrid[362][1] c_mygrid[363][1] c_mygrid[364][1] c_mygrid[365][1] c_mygrid[366][1] c_mygrid[367][1] c_mygrid[368][1] c_mygrid[369][1] &
- 		c_mygrid[370][1] c_mygrid[371][1] c_mygrid[372][1] c_mygrid[373][1] c_mygrid[374][1] c_mygrid[375][1] c_mygrid[376][1] c_mygrid[377][1] c_mygrid[378][1] c_mygrid[379][1] &
- 		c_mygrid[380][1] c_mygrid[381][1] c_mygrid[382][1] c_mygrid[383][1] c_mygrid[384][1] 
+		c_mygrid[1][4] c_mygrid[2][4] c_mygrid[3][4] c_mygrid[4][4] c_mygrid[5][4] c_mygrid[6][4] c_mygrid[7][4] c_mygrid[8][4] c_mygrid[9][4] &
+		c_mygrid[10][4] c_mygrid[11][4] c_mygrid[12][4] c_mygrid[13][4] c_mygrid[14][4] c_mygrid[15][4] c_mygrid[16][4] c_mygrid[17][4] c_mygrid[18][4] c_mygrid[19][4] &
+ 		c_mygrid[20][4] c_mygrid[21][4] c_mygrid[22][4] c_mygrid[23][4] c_mygrid[24][4] c_mygrid[25][4] c_mygrid[26][4] c_mygrid[27][4] c_mygrid[28][4] c_mygrid[29][4] &
+ 		c_mygrid[30][4] c_mygrid[31][4] c_mygrid[32][4] c_mygrid[33][4] c_mygrid[34][4] c_mygrid[35][4] c_mygrid[36][4] c_mygrid[37][4] c_mygrid[38][4] c_mygrid[39][4] &
+ 		c_mygrid[40][4] c_mygrid[41][4] c_mygrid[42][4] c_mygrid[43][4] c_mygrid[44][4] c_mygrid[45][4] c_mygrid[46][4] c_mygrid[47][4] c_mygrid[48][4] c_mygrid[49][4] &
+ 		c_mygrid[50][4] c_mygrid[51][4] c_mygrid[52][4] c_mygrid[53][4] c_mygrid[54][4] c_mygrid[55][4] c_mygrid[56][4] c_mygrid[57][4] c_mygrid[58][4] c_mygrid[59][4] &
+ 		c_mygrid[60][4] c_mygrid[61][4] c_mygrid[62][4] c_mygrid[63][4] c_mygrid[64][4] c_mygrid[65][4] c_mygrid[66][4] c_mygrid[67][4] c_mygrid[68][4] c_mygrid[69][4] &
+ 		c_mygrid[70][4] c_mygrid[71][4] c_mygrid[72][4] c_mygrid[73][4] c_mygrid[74][4] c_mygrid[75][4] c_mygrid[76][4] c_mygrid[77][4] c_mygrid[78][4] c_mygrid[79][4] &
+ 		c_mygrid[80][4] c_mygrid[81][4] c_mygrid[82][4] c_mygrid[83][4] c_mygrid[84][4] c_mygrid[85][4] c_mygrid[86][4] c_mygrid[87][4] c_mygrid[88][4] c_mygrid[89][4] &
+ 		c_mygrid[90][4] c_mygrid[91][4] c_mygrid[92][4] c_mygrid[93][4] c_mygrid[94][4] c_mygrid[95][4] c_mygrid[96][4] c_mygrid[97][4] c_mygrid[98][4] c_mygrid[99][4] &
+		c_mygrid[101][4] c_mygrid[102][4] c_mygrid[103][4] c_mygrid[104][4] c_mygrid[105][4] c_mygrid[106][4] c_mygrid[107][4] c_mygrid[108][4] c_mygrid[109][4] &
+		c_mygrid[110][4] c_mygrid[111][4] c_mygrid[112][4] c_mygrid[113][4] c_mygrid[114][4] c_mygrid[115][4] c_mygrid[116][4] c_mygrid[117][4] c_mygrid[118][4] c_mygrid[119][4] &
+ 		c_mygrid[120][4] c_mygrid[121][4] c_mygrid[122][4] c_mygrid[123][4] c_mygrid[124][4] c_mygrid[125][4] c_mygrid[126][4] c_mygrid[127][4] c_mygrid[128][4] c_mygrid[129][4] &
+ 		c_mygrid[130][4] c_mygrid[131][4] c_mygrid[132][4] c_mygrid[133][4] c_mygrid[134][4] c_mygrid[135][4] c_mygrid[136][4] c_mygrid[137][4] c_mygrid[138][4] c_mygrid[139][4] &
+ 		c_mygrid[140][4] c_mygrid[141][4] c_mygrid[142][4] c_mygrid[143][4] c_mygrid[144][4] c_mygrid[145][4] c_mygrid[146][4] c_mygrid[147][4] c_mygrid[148][4] c_mygrid[149][4] &
+ 		c_mygrid[150][4] c_mygrid[151][4] c_mygrid[152][4] c_mygrid[153][4] c_mygrid[154][4] c_mygrid[155][4] c_mygrid[156][4] c_mygrid[157][4] c_mygrid[158][4] c_mygrid[159][4] &
+ 		c_mygrid[160][4] c_mygrid[161][4] c_mygrid[162][4] c_mygrid[163][4] c_mygrid[164][4] c_mygrid[165][4] c_mygrid[166][4] c_mygrid[167][4] c_mygrid[168][4] c_mygrid[169][4] &
+ 		c_mygrid[170][4] c_mygrid[171][4] c_mygrid[172][4] c_mygrid[173][4] c_mygrid[174][4] c_mygrid[175][4] c_mygrid[176][4] c_mygrid[177][4] c_mygrid[178][4] c_mygrid[179][4] &
+ 		c_mygrid[180][4] c_mygrid[181][4] c_mygrid[182][4] c_mygrid[183][4] c_mygrid[184][4] c_mygrid[185][4] c_mygrid[186][4] c_mygrid[187][4] c_mygrid[188][4] c_mygrid[189][4] &
+ 		c_mygrid[190][4] c_mygrid[191][4] c_mygrid[192][4] c_mygrid[193][4] c_mygrid[194][4] c_mygrid[195][4] c_mygrid[196][4] c_mygrid[197][4] c_mygrid[198][4] c_mygrid[199][4] &
+		c_mygrid[201][4] c_mygrid[202][4] c_mygrid[203][4] c_mygrid[204][4] c_mygrid[205][4] c_mygrid[206][4] c_mygrid[207][4] c_mygrid[208][4] c_mygrid[209][4] &
+		c_mygrid[210][4] c_mygrid[211][4] c_mygrid[212][4] c_mygrid[213][4] c_mygrid[214][4] c_mygrid[215][4] c_mygrid[216][4] c_mygrid[217][4] c_mygrid[218][4] c_mygrid[219][4] &
+ 		c_mygrid[220][4] c_mygrid[221][4] c_mygrid[222][4] c_mygrid[223][4] c_mygrid[224][4] c_mygrid[225][4] c_mygrid[226][4] c_mygrid[227][4] c_mygrid[228][4] c_mygrid[229][4] &
+ 		c_mygrid[230][4] c_mygrid[231][4] c_mygrid[232][4] c_mygrid[233][4] c_mygrid[234][4] c_mygrid[235][4] c_mygrid[236][4] c_mygrid[237][4] c_mygrid[238][4] c_mygrid[239][4] &
+ 		c_mygrid[240][4] c_mygrid[241][4] c_mygrid[242][4] c_mygrid[243][4] c_mygrid[244][4] c_mygrid[245][4] c_mygrid[246][4] c_mygrid[247][4] c_mygrid[248][4] c_mygrid[249][4] &
+ 		c_mygrid[250][4] c_mygrid[251][4] c_mygrid[252][4] c_mygrid[253][4] c_mygrid[254][4] c_mygrid[255][4] c_mygrid[256][4] c_mygrid[257][4] c_mygrid[258][4] c_mygrid[259][4] &
+ 		c_mygrid[260][4] c_mygrid[261][4] c_mygrid[262][4] c_mygrid[263][4] c_mygrid[264][4] c_mygrid[265][4] c_mygrid[266][4] c_mygrid[267][4] c_mygrid[268][4] c_mygrid[269][4] &
+ 		c_mygrid[270][4] c_mygrid[271][4] c_mygrid[272][4] c_mygrid[273][4] c_mygrid[274][4] c_mygrid[275][4] c_mygrid[276][4] c_mygrid[277][4] c_mygrid[278][4] c_mygrid[279][4] &
+ 		c_mygrid[280][4] c_mygrid[281][4] c_mygrid[282][4] c_mygrid[283][4] c_mygrid[284][4] c_mygrid[285][4] c_mygrid[286][4] c_mygrid[287][4] c_mygrid[288][4] c_mygrid[289][4] &
+ 		c_mygrid[290][4] c_mygrid[291][4] c_mygrid[292][4] c_mygrid[293][4] c_mygrid[294][4] c_mygrid[295][4] c_mygrid[296][4] c_mygrid[297][4] c_mygrid[298][4] c_mygrid[299][4] &
+		c_mygrid[301][4] c_mygrid[302][4] c_mygrid[303][4] c_mygrid[304][4] c_mygrid[305][4] c_mygrid[306][4] c_mygrid[307][4] c_mygrid[308][4] c_mygrid[309][4] &
+		c_mygrid[310][4] c_mygrid[311][4] c_mygrid[312][4] c_mygrid[313][4] c_mygrid[314][4] c_mygrid[315][4] c_mygrid[316][4] c_mygrid[317][4] c_mygrid[318][4] c_mygrid[319][4] &
+ 		c_mygrid[320][4] c_mygrid[321][4] c_mygrid[322][4] c_mygrid[323][4] c_mygrid[324][4] c_mygrid[325][4] c_mygrid[326][4] c_mygrid[327][4] c_mygrid[328][4] c_mygrid[329][4] &
+ 		c_mygrid[330][4] c_mygrid[331][4] c_mygrid[332][4] c_mygrid[333][4] c_mygrid[334][4] c_mygrid[335][4] c_mygrid[336][4] c_mygrid[337][4] c_mygrid[338][4] c_mygrid[339][4] &
+ 		c_mygrid[340][4] c_mygrid[341][4] c_mygrid[342][4] c_mygrid[343][4] c_mygrid[344][4] c_mygrid[345][4] c_mygrid[346][4] c_mygrid[347][4] c_mygrid[348][4] c_mygrid[349][4] &
+ 		c_mygrid[350][4] c_mygrid[351][4] c_mygrid[352][4] c_mygrid[353][4] c_mygrid[354][4] c_mygrid[355][4] c_mygrid[356][4] c_mygrid[357][4] c_mygrid[358][4] c_mygrid[359][4] &
+ 		c_mygrid[360][4] c_mygrid[361][4] c_mygrid[362][4] c_mygrid[363][4] c_mygrid[364][4] c_mygrid[365][4] c_mygrid[366][4] c_mygrid[367][4] c_mygrid[368][4] c_mygrid[369][4] &
+ 		c_mygrid[370][4] c_mygrid[371][4] c_mygrid[372][4] c_mygrid[373][4] c_mygrid[374][4] c_mygrid[375][4] c_mygrid[376][4] c_mygrid[377][4] c_mygrid[378][4] c_mygrid[379][4] &
+ 		c_mygrid[380][4] c_mygrid[381][4] c_mygrid[382][4] c_mygrid[383][4] c_mygrid[384][4]
 
 thermo_modify norm yes
 

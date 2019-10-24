@@ -120,7 +120,7 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
                    rmin0,switchflag,bzeroflag);
 
   ncoeff = snaptr->ncoeff;
-  size_array_cols = ncoeff;
+  size_array_cols = size_array_cols_base + ncoeff;
   if (quadraticflag) size_array_cols += (ncoeff*(ncoeff+1))/2;
   array_flag = 1;
 }
@@ -237,8 +237,8 @@ void ComputeSNAGrid::compute_array()
     snaptr->compute_zi();
     snaptr->compute_bi();
     for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      sna[igrid][icoeff] = snaptr->blist[icoeff];
-    //    printf("igrid = %d %g %g %g %d B0 = %g\n",igrid,xtmp,ytmp,ztmp,ninside,sna[igrid][0]);
+      sna[igrid][size_array_cols_base+icoeff] = snaptr->blist[icoeff];
+    //    printf("igrid = %d %g %g %g %d B0 = %g\n",igrid,xtmp,ytmp,ztmp,ninside,sna[igrid][size_array_cols_base+0]);
     if (quadraticflag) {
       int ncount = ncoeff;
       for (int icoeff = 0; icoeff < ncoeff; icoeff++) {

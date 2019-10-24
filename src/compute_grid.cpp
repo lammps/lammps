@@ -51,6 +51,7 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
   nargbase = iarg - iarg0;
 
   size_array_rows = nx*ny*nz;
+  size_array_cols_base = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,6 +132,7 @@ void ComputeGrid::setup()
   z0full = boxlo[2] - mz*delz;
 
   allocate();
+  assign_coords_array();
 }
 
 /* ----------------------------------------------------------------------
@@ -154,6 +156,26 @@ void ComputeGrid::igridfull2x(int igrid, double *x)
 }
 
 /* ----------------------------------------------------------------------
+   convert array index to box coords
+------------------------------------------------------------------------- */
+
+void ComputeGrid::iarray2x(int iarray, double *x)
+{
+  int iz = iarray / (nx*ny);
+  iarray -= iz * (nx*ny);
+  int iy = iarray / nx;
+  iarray -= iy * nx;
+  int ix = iarray;
+
+  x[0] = ix*delx;
+  x[1] = iy*dely;
+  x[2] = iz*delz;
+
+  if (triclinic) domain->lamda2x(x, x);
+
+}
+
+/* ----------------------------------------------------------------------
    copy local grid to global array
 ------------------------------------------------------------------------- */
 
@@ -162,8 +184,23 @@ void ComputeGrid::copy_local_grid()
   int igridfull;
   for (int iarray = 0; iarray < size_array_rows; iarray++) {
     igridfull = iarray2igridfull(iarray);
-    for (int icol = 0; icol < size_array_cols; icol++)
+    for (int icol = size_array_cols_base; icol < size_array_cols; icol++)
       array[iarray][icol] = gridfull[igridfull][icol];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   copy coords to global array
+------------------------------------------------------------------------- */
+
+void ComputeGrid::assign_coords_array()
+{
+  double x[3];
+  for (int iarray = 0; iarray < size_array_rows; iarray++) {
+    iarray2x(iarray,x);
+    array[iarray][0] = x[0];
+    array[iarray][1] = x[1];
+    array[iarray][2] = x[2];
   }
 }
 
@@ -181,7 +218,7 @@ void ComputeGrid::gather_global_array()
     // inefficient, should exploit shared ix structure
 
     iarray = igridfull2iarray(igrid);
-    for (int icol = 0; icol < size_array_cols; icol++)
+    for (int icol = size_array_cols_base; icol < size_array_cols; icol++)
       array[iarray][icol] += gridfull[igrid][icol];
   }
 }

@@ -122,9 +122,7 @@ and {spin/cg}. Convergence of {spin/lbfgs} can be more robust if
 {spin_cubic} line search is used.
 
 The Newton {integrator} used for {fire2} minimization can be selected to be
-either the symplectic Euler ({eulerimplicit}) or velocity Verlet ({verlet}). 
-Note that explicit Euler is not recommended 
-as it will lead to results similar to a {fire} minimization.
+either the symplectic Euler ({eulerimplicit}) or velocity Verlet ({verlet}).
 {tmax} define the maximum value for the adaptive timestep 
 during a {fire2} minimization. It is multiplication factor applied 
 to the current "timestep"_timestep.html (not in time unit). For example, 

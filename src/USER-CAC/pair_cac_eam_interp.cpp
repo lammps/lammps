@@ -761,7 +761,6 @@ void PairCACEAMInterp::pre_force_densities() {
     }
   }
   //test if maxexchange atom is large enough for quadrature count of each element
-  if(max_quad_per_element*atom->maxpoly > comm->maxexchange_atom)
   comm->increase_max_atom(max_quad_per_element*atom->maxpoly);
   
   //commmunicate nodal electron densities of atoms/elements that are ghosts of other tasks

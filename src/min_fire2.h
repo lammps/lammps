@@ -38,7 +38,6 @@ class MinFire2 : public Min {
   double alpha;
   bigint last_negative,ntimestep_start;
   int vdotf_negatif;
-  class Compute *temperature,*pressure;
 };
 
 }

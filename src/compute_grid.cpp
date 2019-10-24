@@ -34,7 +34,7 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   size_array_cols = 0;
   size_array_rows = 0;
-  extarray = 1;
+  extarray = 0;
 
   int iarg0 = 3;
   int iarg = iarg0;
@@ -119,20 +119,12 @@ void ComputeGrid::setup()
                             + pow(delxy*my,2))*delxinvtmp + 1;
   }
 
-  printf("mx = %d\n",mx);
-  printf("my = %d\n",my);
-  printf("mz = %d\n",mz);
-
   // size global grid to accomodate periodic interactions
   
   nxfull = nx + 2*mx;
   nyfull = ny + 2*my;
   nzfull = nz + 2*mz;
   nxyfull = nxfull * nyfull;
-
-  printf("nxfull = %d\n",nxfull);
-  printf("nyfull = %d\n",nyfull);
-  printf("nzfull = %d\n",nzfull);
 
   x0full = boxlo[0] - mx*delx;
   y0full = boxlo[1] - my*dely;
@@ -148,9 +140,9 @@ void ComputeGrid::setup()
 void ComputeGrid::igridfull2x(int igrid, double *x)
 {
   int iz = igrid / nxyfull;
-  igrid -= iz*nxyfull;
+  igrid -= iz * nxyfull;
   int iy = igrid / nxfull;
-  igrid -= igrid*nxfull;
+  igrid -= iy * nxfull;
   int ix = igrid;
 
   x[0] = x0full+ix*delx;
@@ -162,13 +154,27 @@ void ComputeGrid::igridfull2x(int igrid, double *x)
 }
 
 /* ----------------------------------------------------------------------
+   copy local grid to global array
+------------------------------------------------------------------------- */
+
+void ComputeGrid::copy_local_grid()
+{
+  int igridfull;
+  for (int iarray = 0; iarray < size_array_rows; iarray++) {
+    igridfull = iarray2igridfull(iarray);
+    for (int icol = 0; icol < size_array_cols; icol++)
+      array[iarray][icol] = gridfull[igridfull][icol];
+  }
+}
+
+/* ----------------------------------------------------------------------
    gather global array from full grid
 ------------------------------------------------------------------------- */
 
 void ComputeGrid::gather_global_array()
 {
-  int iarray;
-  memset(&array[0][0],0,size_array_rows*size_array_cols*sizeof(double));
+   int iarray;
+   memset(&array[0][0],0,size_array_rows*size_array_cols*sizeof(double));
 
   for (int igrid = 0; igrid < ngridfull; igrid++) {
 
@@ -190,7 +196,7 @@ int ComputeGrid::igridfull2iarray(int igrid)
   int iz = igrid / nxyfull;
   igrid -= iz*nxyfull;
   int iy = igrid / nxfull;
-  igrid -= igrid*nxfull;
+  igrid -= iy*nxfull;
   int ix = igrid;
 
   ix -= mx;
@@ -208,6 +214,28 @@ int ComputeGrid::igridfull2iarray(int igrid)
   int iarray = (iz * ny + iy) * nx + ix;
 
   return iarray;
+}
+
+/* ----------------------------------------------------------------------
+   convert compute array index to full grid index
+   inefficient, should exploit shared ix structure
+------------------------------------------------------------------------- */
+
+int ComputeGrid::iarray2igridfull(int iarray)
+{
+  int iz = iarray / (nx*ny);
+  iarray -= iz*(nx*ny);
+  int iy = iarray / nx;
+  iarray -= iy*nx;
+  int ix = iarray;
+
+  ix += mx;
+  iy += my;
+  iz += mz;
+
+  int igrid = (iz * nyfull + iy) * nxfull + ix;
+
+  return igrid;
 }
 
 /* ----------------------------------------------------------------------

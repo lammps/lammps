@@ -46,7 +46,9 @@ class ComputeGrid : public Compute {
   virtual void allocate();
   void igridfull2x(int, double*);      // convert full grid point to coord
   void gather_global_array();          // gather global array from full grid
+  void copy_local_grid();              // copy local grid to global array
   int igridfull2iarray(int);           // convert full grid index to compute array index
+  int iarray2igridfull(int);           // convert compute array index to full grid index
 
  private:
 };

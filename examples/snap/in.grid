@@ -1,0 +1,71 @@
+# Demonstrate bispectrum computes
+
+# Initialize simulation
+
+variable nsteps index 0
+variable nrep index 1
+variable a index 3.316
+variable ngrid index 2
+
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable ny equal ${nrep}
+variable nz equal ${nrep}
+
+boundary	p p p
+
+lattice		custom $a &
+		a1 1 0 0 &
+		a2 0 1 0  &
+		a3 0 0 1 &
+		basis 0 0 0 &
+		basis 0.5 0.5 0.5 &
+#		origin 0.25 0.25 0.25
+
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box	1 box
+create_atoms	1 box
+
+mass 1 180.88
+
+# choose potential
+
+include Ta06A.snap
+
+# define grid compute and atom compute
+
+group 		snapgroup type 1
+variable 	twojmax equal 2
+variable 	rcutfac equal 4.67637
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	wj equal 1
+variable 	radelem equal 0.5
+variable 	bzero equal 0
+variable 	quad equal 0
+variable 	switch equal 0
+
+compute b all sna/atom &
+	${rcutfac} ${rfac0} ${twojmax} ${radelem} &
+	${wj} rmin0 ${rmin0} bzeroflag ${bzero} &
+	quadraticflag ${quad} switchflag ${switch}
+
+compute mygrid all sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
+	${rcutfac} ${rfac0} ${twojmax} ${radelem} &
+	${wj} rmin0 ${rmin0} bzeroflag ${bzero} &
+	quadraticflag ${quad} switchflag ${switch}
+
+# define output
+
+thermo_style	custom step temp ke pe vol c_mygrid[1][1] c_mygrid[2][1] c_mygrid[3][1] c_mygrid[4][1] c_mygrid[5][1] c_mygrid[6][1] c_mygrid[7][1] c_mygrid[8][1]
+thermo_modify norm yes
+
+dump mydump_b all custom 1000 dump_b id c_b[*]
+
+# run
+
+run 0
+

@@ -1,0 +1,116 @@
+# Demonstrate bispectrum computes
+
+# Initialize simulation
+
+variable nsteps index 0
+variable nrep index 1
+variable a index 3.316
+variable ngrid index 4
+
+variable ngridx equal 3*${ngrid}
+variable ngridy equal 2*${ngrid}
+variable ngridz equal 1*${ngrid}
+
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable ny equal ${nrep}
+variable nz equal ${nrep}
+
+boundary	p p p
+
+lattice		custom $a &
+		a1 1 0 0 &
+		a2 1 1 0  &
+		a3 1 1 1 &
+		basis 0 0 0 &
+		basis 0.0 0.0 0.5 &
+#		origin 0.25 0.25 0.25
+
+box 		tilt large
+region		box prism 0 ${nx} 0 ${ny} 0 ${nz} ${ny} ${nz} ${nz}
+create_box	1 box
+create_atoms	1 box
+
+mass 1 180.88
+
+# choose potential
+
+include Ta06A.snap
+
+# define grid compute and atom compute
+
+group 		snapgroup type 1
+variable 	twojmax equal 2
+variable 	rcutfac equal 4.67637
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	wj equal 1
+variable 	radelem equal 0.5
+variable 	bzero equal 0
+variable 	quad equal 0
+variable 	switch equal 0
+
+compute b all sna/atom &
+	${rcutfac} ${rfac0} ${twojmax} ${radelem} &
+	${wj} rmin0 ${rmin0} bzeroflag ${bzero} &
+	quadraticflag ${quad} switchflag ${switch}
+
+compute mygrid all sna/grid grid ${ngridx} ${ngridy} ${ngridz} &
+	${rcutfac} ${rfac0} ${twojmax} ${radelem} &
+	${wj} rmin0 ${rmin0} bzeroflag ${bzero} &
+	quadraticflag ${quad} switchflag ${switch}
+
+# define output
+
+thermo_style	custom step temp ke pe vol &
+		c_mygrid[1][1] c_mygrid[2][1] c_mygrid[3][1] c_mygrid[4][1] c_mygrid[5][1] c_mygrid[6][1] c_mygrid[7][1] c_mygrid[8][1] c_mygrid[9][1] &
+		c_mygrid[10][1] c_mygrid[11][1] c_mygrid[12][1] c_mygrid[13][1] c_mygrid[14][1] c_mygrid[15][1] c_mygrid[16][1] c_mygrid[17][1] c_mygrid[18][1] c_mygrid[19][1] &
+ 		c_mygrid[20][1] c_mygrid[21][1] c_mygrid[22][1] c_mygrid[23][1] c_mygrid[24][1] c_mygrid[25][1] c_mygrid[26][1] c_mygrid[27][1] c_mygrid[28][1] c_mygrid[29][1] &
+ 		c_mygrid[30][1] c_mygrid[31][1] c_mygrid[32][1] c_mygrid[33][1] c_mygrid[34][1] c_mygrid[35][1] c_mygrid[36][1] c_mygrid[37][1] c_mygrid[38][1] c_mygrid[39][1] &
+ 		c_mygrid[40][1] c_mygrid[41][1] c_mygrid[42][1] c_mygrid[43][1] c_mygrid[44][1] c_mygrid[45][1] c_mygrid[46][1] c_mygrid[47][1] c_mygrid[48][1] c_mygrid[49][1] &
+ 		c_mygrid[50][1] c_mygrid[51][1] c_mygrid[52][1] c_mygrid[53][1] c_mygrid[54][1] c_mygrid[55][1] c_mygrid[56][1] c_mygrid[57][1] c_mygrid[58][1] c_mygrid[59][1] &
+ 		c_mygrid[60][1] c_mygrid[61][1] c_mygrid[62][1] c_mygrid[63][1] c_mygrid[64][1] c_mygrid[65][1] c_mygrid[66][1] c_mygrid[67][1] c_mygrid[68][1] c_mygrid[69][1] &
+ 		c_mygrid[70][1] c_mygrid[71][1] c_mygrid[72][1] c_mygrid[73][1] c_mygrid[74][1] c_mygrid[75][1] c_mygrid[76][1] c_mygrid[77][1] c_mygrid[78][1] c_mygrid[79][1] &
+ 		c_mygrid[80][1] c_mygrid[81][1] c_mygrid[82][1] c_mygrid[83][1] c_mygrid[84][1] c_mygrid[85][1] c_mygrid[86][1] c_mygrid[87][1] c_mygrid[88][1] c_mygrid[89][1] &
+ 		c_mygrid[90][1] c_mygrid[91][1] c_mygrid[92][1] c_mygrid[93][1] c_mygrid[94][1] c_mygrid[95][1] c_mygrid[96][1] c_mygrid[97][1] c_mygrid[98][1] c_mygrid[99][1] &
+		c_mygrid[101][1] c_mygrid[102][1] c_mygrid[103][1] c_mygrid[104][1] c_mygrid[105][1] c_mygrid[106][1] c_mygrid[107][1] c_mygrid[108][1] c_mygrid[109][1] &
+		c_mygrid[110][1] c_mygrid[111][1] c_mygrid[112][1] c_mygrid[113][1] c_mygrid[114][1] c_mygrid[115][1] c_mygrid[116][1] c_mygrid[117][1] c_mygrid[118][1] c_mygrid[119][1] &
+ 		c_mygrid[120][1] c_mygrid[121][1] c_mygrid[122][1] c_mygrid[123][1] c_mygrid[124][1] c_mygrid[125][1] c_mygrid[126][1] c_mygrid[127][1] c_mygrid[128][1] c_mygrid[129][1] &
+ 		c_mygrid[130][1] c_mygrid[131][1] c_mygrid[132][1] c_mygrid[133][1] c_mygrid[134][1] c_mygrid[135][1] c_mygrid[136][1] c_mygrid[137][1] c_mygrid[138][1] c_mygrid[139][1] &
+ 		c_mygrid[140][1] c_mygrid[141][1] c_mygrid[142][1] c_mygrid[143][1] c_mygrid[144][1] c_mygrid[145][1] c_mygrid[146][1] c_mygrid[147][1] c_mygrid[148][1] c_mygrid[149][1] &
+ 		c_mygrid[150][1] c_mygrid[151][1] c_mygrid[152][1] c_mygrid[153][1] c_mygrid[154][1] c_mygrid[155][1] c_mygrid[156][1] c_mygrid[157][1] c_mygrid[158][1] c_mygrid[159][1] &
+ 		c_mygrid[160][1] c_mygrid[161][1] c_mygrid[162][1] c_mygrid[163][1] c_mygrid[164][1] c_mygrid[165][1] c_mygrid[166][1] c_mygrid[167][1] c_mygrid[168][1] c_mygrid[169][1] &
+ 		c_mygrid[170][1] c_mygrid[171][1] c_mygrid[172][1] c_mygrid[173][1] c_mygrid[174][1] c_mygrid[175][1] c_mygrid[176][1] c_mygrid[177][1] c_mygrid[178][1] c_mygrid[179][1] &
+ 		c_mygrid[180][1] c_mygrid[181][1] c_mygrid[182][1] c_mygrid[183][1] c_mygrid[184][1] c_mygrid[185][1] c_mygrid[186][1] c_mygrid[187][1] c_mygrid[188][1] c_mygrid[189][1] &
+ 		c_mygrid[190][1] c_mygrid[191][1] c_mygrid[192][1] c_mygrid[193][1] c_mygrid[194][1] c_mygrid[195][1] c_mygrid[196][1] c_mygrid[197][1] c_mygrid[198][1] c_mygrid[199][1] &
+		c_mygrid[201][1] c_mygrid[202][1] c_mygrid[203][1] c_mygrid[204][1] c_mygrid[205][1] c_mygrid[206][1] c_mygrid[207][1] c_mygrid[208][1] c_mygrid[209][1] &
+		c_mygrid[210][1] c_mygrid[211][1] c_mygrid[212][1] c_mygrid[213][1] c_mygrid[214][1] c_mygrid[215][1] c_mygrid[216][1] c_mygrid[217][1] c_mygrid[218][1] c_mygrid[219][1] &
+ 		c_mygrid[220][1] c_mygrid[221][1] c_mygrid[222][1] c_mygrid[223][1] c_mygrid[224][1] c_mygrid[225][1] c_mygrid[226][1] c_mygrid[227][1] c_mygrid[228][1] c_mygrid[229][1] &
+ 		c_mygrid[230][1] c_mygrid[231][1] c_mygrid[232][1] c_mygrid[233][1] c_mygrid[234][1] c_mygrid[235][1] c_mygrid[236][1] c_mygrid[237][1] c_mygrid[238][1] c_mygrid[239][1] &
+ 		c_mygrid[240][1] c_mygrid[241][1] c_mygrid[242][1] c_mygrid[243][1] c_mygrid[244][1] c_mygrid[245][1] c_mygrid[246][1] c_mygrid[247][1] c_mygrid[248][1] c_mygrid[249][1] &
+ 		c_mygrid[250][1] c_mygrid[251][1] c_mygrid[252][1] c_mygrid[253][1] c_mygrid[254][1] c_mygrid[255][1] c_mygrid[256][1] c_mygrid[257][1] c_mygrid[258][1] c_mygrid[259][1] &
+ 		c_mygrid[260][1] c_mygrid[261][1] c_mygrid[262][1] c_mygrid[263][1] c_mygrid[264][1] c_mygrid[265][1] c_mygrid[266][1] c_mygrid[267][1] c_mygrid[268][1] c_mygrid[269][1] &
+ 		c_mygrid[270][1] c_mygrid[271][1] c_mygrid[272][1] c_mygrid[273][1] c_mygrid[274][1] c_mygrid[275][1] c_mygrid[276][1] c_mygrid[277][1] c_mygrid[278][1] c_mygrid[279][1] &
+ 		c_mygrid[280][1] c_mygrid[281][1] c_mygrid[282][1] c_mygrid[283][1] c_mygrid[284][1] c_mygrid[285][1] c_mygrid[286][1] c_mygrid[287][1] c_mygrid[288][1] c_mygrid[289][1] &
+ 		c_mygrid[290][1] c_mygrid[291][1] c_mygrid[292][1] c_mygrid[293][1] c_mygrid[294][1] c_mygrid[295][1] c_mygrid[296][1] c_mygrid[297][1] c_mygrid[298][1] c_mygrid[299][1] &
+		c_mygrid[301][1] c_mygrid[302][1] c_mygrid[303][1] c_mygrid[304][1] c_mygrid[305][1] c_mygrid[306][1] c_mygrid[307][1] c_mygrid[308][1] c_mygrid[309][1] &
+		c_mygrid[310][1] c_mygrid[311][1] c_mygrid[312][1] c_mygrid[313][1] c_mygrid[314][1] c_mygrid[315][1] c_mygrid[316][1] c_mygrid[317][1] c_mygrid[318][1] c_mygrid[319][1] &
+ 		c_mygrid[320][1] c_mygrid[321][1] c_mygrid[322][1] c_mygrid[323][1] c_mygrid[324][1] c_mygrid[325][1] c_mygrid[326][1] c_mygrid[327][1] c_mygrid[328][1] c_mygrid[329][1] &
+ 		c_mygrid[330][1] c_mygrid[331][1] c_mygrid[332][1] c_mygrid[333][1] c_mygrid[334][1] c_mygrid[335][1] c_mygrid[336][1] c_mygrid[337][1] c_mygrid[338][1] c_mygrid[339][1] &
+ 		c_mygrid[340][1] c_mygrid[341][1] c_mygrid[342][1] c_mygrid[343][1] c_mygrid[344][1] c_mygrid[345][1] c_mygrid[346][1] c_mygrid[347][1] c_mygrid[348][1] c_mygrid[349][1] &
+ 		c_mygrid[350][1] c_mygrid[351][1] c_mygrid[352][1] c_mygrid[353][1] c_mygrid[354][1] c_mygrid[355][1] c_mygrid[356][1] c_mygrid[357][1] c_mygrid[358][1] c_mygrid[359][1] &
+ 		c_mygrid[360][1] c_mygrid[361][1] c_mygrid[362][1] c_mygrid[363][1] c_mygrid[364][1] c_mygrid[365][1] c_mygrid[366][1] c_mygrid[367][1] c_mygrid[368][1] c_mygrid[369][1] &
+ 		c_mygrid[370][1] c_mygrid[371][1] c_mygrid[372][1] c_mygrid[373][1] c_mygrid[374][1] c_mygrid[375][1] c_mygrid[376][1] c_mygrid[377][1] c_mygrid[378][1] c_mygrid[379][1] &
+ 		c_mygrid[380][1] c_mygrid[381][1] c_mygrid[382][1] c_mygrid[383][1] c_mygrid[384][1] 
+
+thermo_modify norm yes
+
+dump mydump_b all custom 1000 dump_b id c_b[*]
+
+# run
+
+run 0
+

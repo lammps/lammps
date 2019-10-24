@@ -1750,11 +1750,12 @@ USER-PHONON package :link(PKG-USER-PHONON),h4
 A "fix phonon"_fix_phonon.html command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
-And a "dynamical_matrix" command to compute the dynamical matrix
-from finite differences.
+And a "dynamical_matrix"_dynamical_matrix.html as well as a
+"third_order"_third_order.html command to compute the dynamical matrix
+and third order tensor from finite differences.
 
 [Authors:] Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
-and Charlie Sievers (UC Davis) for "dynamical_matrix"
+and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 
 
 [Supporting info:]
@@ -1763,6 +1764,7 @@ src/USER-PHONON: filenames -> commands
 src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
 "dynamical_matrix"_dynamical_matrix.html
+"third_order"_third_order.html
 examples/USER/phonon :ul
 
 :line

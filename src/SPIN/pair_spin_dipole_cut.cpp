@@ -325,7 +325,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
 void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
 {
   int j,jnum,itype,jtype,ntypes; 
-  int *ilist,*jlist,*numneigh,**firstneigh;  
+  int *jlist,*numneigh,**firstneigh;  
   double rsq,rinv,r2inv,r3inv,local_cut2;
   double xi[3],rij[3],eij[3],spi[4],spj[4];
 

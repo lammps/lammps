@@ -29,7 +29,7 @@ neigh_modify 	every 10 check yes delay 20
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 100.0 0.01 21
 
-fix 		3 all nve/spin lattice no
+fix 		3 all nve/spin lattice frozen
 timestep	0.0001
 
 # compute and output options

@@ -20,6 +20,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "comm.h"
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -283,6 +284,7 @@ void SNA::build_indexlist()
 void SNA::init()
 {
   init_clebsch_gordan();
+  //   print_clebsch_gordan();
   init_rootpqarray();
 }
 
@@ -1513,6 +1515,40 @@ void SNA::init_clebsch_gordan()
           }
         }
       }
+}
+
+/* ----------------------------------------------------------------------
+   print out values of Clebsch-Gordan coefficients
+   format and notation follows VMK Table 8.11
+------------------------------------------------------------------------- */
+
+void SNA::print_clebsch_gordan()
+{
+  if (comm->me) return;
+
+  int aa2, bb2, cc2;
+  for (int j = 0; j <= twojmax; j += 1) {
+    printf("c = %g\n",j/2.0);
+    printf("a alpha b beta C_{a alpha b beta}^{c alpha+beta}\n");
+    for (int j1 = 0; j1 <= twojmax; j1++)
+      for (int j2 = 0; j2 <= j1; j2++)
+        if (j1-j2 <= j && j1+j2 >= j && (j1+j2+j)%2 == 0) {
+          int idxcg_count = idxcg_block[j1][j2][j]; 
+          for (int m1 = 0; m1 <= j1; m1++) {
+            aa2 = 2*m1-j1;
+            for (int m2 = 0; m2 <= j2; m2++) {
+              bb2 = 2*m2-j2;
+              double cgtmp = cglist[idxcg_count];
+              cc2 = aa2+bb2;
+              if (cc2 >= -j && cc2 <= j)
+                if (j1 != j2 || (aa2 > bb2 && aa2 >= -bb2) || (aa2 == bb2 && aa2 >= 0))
+                  printf("%4g %4g %4g %4g %10.6g\n",
+                         j1/2.0,aa2/2.0,j2/2.0,bb2/2.0,cgtmp);
+              idxcg_count++;
+            }
+          }
+        }
+  }
 }
 
 /* ----------------------------------------------------------------------

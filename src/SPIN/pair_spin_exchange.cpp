@@ -513,7 +513,7 @@ void PairSpinExchange::read_restart(FILE *fp)
           fread(&J1_mag[i][j],sizeof(double),1,fp);
           fread(&J1_mech[i][j],sizeof(double),1,fp);
           fread(&J2[i][j],sizeof(double),1,fp);
-          fread(&J2[i][j],sizeof(double),1,fp);
+          fread(&J3[i][j],sizeof(double),1,fp);
           fread(&cut_spin_exchange[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&J1_mag[i][j],1,MPI_DOUBLE,0,world);

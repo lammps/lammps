@@ -66,7 +66,6 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
-  printf("rcutfac = %g rfac0 = %g twojmax = %d\n",rcutfac, rfac0, twojmax);
 
   for(int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
@@ -82,7 +81,6 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
-    printf("i = %d cutsq[i][i] = %g\n",i,cutsq[i][i]);
     for(int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
@@ -94,7 +92,6 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nargmin;
 
   while (iarg < narg) {
-    printf("iarg = %d arg = %s\n",iarg, arg[iarg]);
     if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute sna/grid command");
@@ -118,9 +115,6 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute sna/grid command");
 
   }
-
-  printf("rmin0 = %g, bzeroflag = %d, quadraticflag = %d\n",
-         rmin0, bzeroflag, quadraticflag);
 
   snaptr = new SNA(lmp,rfac0,twojmax,
                    rmin0,switchflag,bzeroflag);
@@ -199,9 +193,12 @@ void ComputeSNAGrid::compute_array()
   const int* const mask = atom->mask;
   const int ntotal = atom->nlocal + atom->nghost;
 
+  // insure rij, inside, and typej are of size jnum
+  
+  snaptr->grow_rij(ntotal);
+
   printf("ngridfull = %d\n",ngridfull);
   for (int igrid = 0; igrid < ngridfull; igrid++) {
-    printf("igrid = %d\n",igrid);
     double rtmp[3];
     igridfull2x(igrid, rtmp);
     const double xtmp = rtmp[0];
@@ -215,13 +212,9 @@ void ComputeSNAGrid::compute_array()
     int ninside = 0;
     for (int j = 0; j < ntotal; j++) {
 
-      // check that j is in comute group
+      // check that j is in compute group
 
       if (!(mask[j] & groupbit)) continue;
-
-      // insure rij, inside, and typej are of size jnum
-
-      snaptr->grow_rij(ninside+1);
 
       const double delx = xtmp - x[j][0];
       const double dely = ytmp - x[j][1];
@@ -229,7 +222,7 @@ void ComputeSNAGrid::compute_array()
       const double rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
       if (rsq < cutsq[jtype][jtype] && rsq>1e-20) {
-        printf("ninside = %d\n",ninside);
+	//        printf("ninside = %d\n",ninside);
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
@@ -245,7 +238,7 @@ void ComputeSNAGrid::compute_array()
     snaptr->compute_bi();
     for (int icoeff = 0; icoeff < ncoeff; icoeff++)
       sna[igrid][icoeff] = snaptr->blist[icoeff];
-    printf("igrid = %d B0 = %g\n",igrid,sna[igrid][0]);
+    //    printf("igrid = %d %g %g %g %d B0 = %g\n",igrid,xtmp,ytmp,ztmp,ninside,sna[igrid][0]);
     if (quadraticflag) {
       int ncount = ncoeff;
       for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
@@ -262,7 +255,8 @@ void ComputeSNAGrid::compute_array()
       }
     }
   }
-  gather_global_array();
+  //  gather_global_array();
+  copy_local_grid();
 }
 
 /* ----------------------------------------------------------------------

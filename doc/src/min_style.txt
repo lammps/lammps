@@ -62,9 +62,8 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
-Style {fire2} is a re-implementation of the style {fire} with
-additional optimizations of the method described
-in "(Bitzek)"_#Bitzek, including different time integration schemes.
+Style {fire2} is an optimization of the style {fire}, including different
+time integration schemes, described in "(Guenole)"_#Guenole.
 
 Style {spin} is a damped spin dynamics with an adaptive
 timestep.
@@ -142,3 +141,6 @@ Jonsson, Mills, Jacobsen.
 [(Bitzek)] Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
 97, 170201 (2006).
 
+:link(Guenole)
+[(Guenole)] Guenole, Nöhring, Vaid, Houllé, Xie, Prakash, Bitzek,
+Preprint, arXiv:190802038 (2019).

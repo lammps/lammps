@@ -13,7 +13,7 @@ min_modify command :h3
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {dmax} or {line} or {norm} or {alpha_damp} or {discrete_factor}
+keyword = {dmax} or {line} or {norm} or {alpha_damp} or {discrete_factor} or {integrator} or {tmax}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic} or {forcezero} or {spin_cubic} or {spin_none}
@@ -25,38 +25,17 @@ keyword = {dmax} or {line} or {norm} or {alpha_damp} or {discrete_factor}
   {alpha_damp} value = damping
     damping = fictitious Gilbert damping for spin minimization (adim)
   {discrete_factor} value = factor
-    factor = discretization factor for adaptive spin timestep (adim) :pre
-:ule
-
-these keywords apply only to the "min_style"_min_style.html {fire2} :ulb,l
-keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} 
-          or {alpha0} or {alphashrink} or {halfstepback} or {initialdelay} or {vdfmax}
-  {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet}
-    eulerimplicit,eulerexplicit,verlet = integration scheme
-  {tmax} arg = coef
-    coef = factor defining the maximum timestep
-  {tmin} arg = coef
-    coef = factor defining the minimum timestep
-  {delaystep} arg = delay
-    delay = number of steps for dynamics delay
-  {dtgrow} arg = grow
-    grow = factor increasing the timestep
-  {dtshrink} arg = shrink
-    shrink = factor decreasing the timestep
-  {alpha0} arg = alpha
-    alpha = coefficient mixing velocities and forces
-  {alphashrink} arg = shrink
-    shrink = factor decreasing alpha
-  {vdfmax} arg = max 
-    max = maximum number of consecutive iterations with P(t) < 0 before forced interruption 
-  {halfstepback} arg = {yes} or {no}
-  {initialdelay} arg = {yes} or {no} :pre
+    factor = discretization factor for adaptive spin timestep (adim)
+  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet}
+    time integration scheme for fire2 minimization
+  {tmax} value = factor
+    factor = maximum adaptive timestep for fire2 minimization :pre
 :ule
 
 [Examples:]
 
 min_modify dmax 0.2
-min_modify integrator verlet tmax 0.4 :pre
+min_modify integrator verlet tmax 4 :pre
 
 [Description:]
 
@@ -142,20 +121,23 @@ The {spin_none} is a default value for {line} keyword for both {spin/lbfgs}
 and {spin/cg}. Convergence of {spin/lbfgs} can be more robust if
 {spin_cubic} line search is used.
 
-The style {fire2} has several parameters that can be tuned in order
-to optimize the relaxation: {integrator}, {tmax}, {tmin}, {delaystep}, {dtgrow}, {dtshrink}, 
-{alpha0}, and {alphashrink}.
-Different Newton {integrator} can be selected: explicit Euler, 
-semi-implicit Euler (= symplectic Euler) and velocity Verlet.
-The parameters {tmax} and {tmin} define the maximum and minimum timestep 
-allowed during an fire2 minimization. Those are not in time unit, but are 
-multiplication factor applied to the "timestep"_timestep.html. Thus 
-{tmax} = 10.0 in metal "units"_units.html means that the maximum value
-the timestep can be reached during the relaxation is 10 fs (with the default
-"timestep"_timestep.html value).
-Note that even with the default parameters being chosen to be reliable in most
-cases, adjusting "timestep"_timestep.html, {tmax} and {tmin} should be consider
-to optimize the minimization, in particular for large/complex system.
+The Newton {integrator} used for {fire2} minimization can be selected to be
+either the symplectic Euler ({eulerimplicit}), explicit Euler (eulerexplicit)
+or velocity Verlet ({verlet}). Note that explicit Euler is not recommended 
+as it will lead to results similar to a {fire} minimization.
+{tmax} define the maximum value for the adaptive timestep 
+during a {fire2} minimization. It is multiplication factor applied 
+to the current "timestep"_timestep.html (not in time unit). For example, 
+{tmax} = 4.0 in metal "units"_units.html means that the maximum value
+the timestep can reach during a minimization is 4fs (with the default
+"timestep"_timestep.html value). Note that parameters defaults has been 
+chosen to be reliable in most cases, but one should consider adjusting 
+"timestep"_timestep.html and {tmax} to optimize the minimization for large 
+or complex systems.
+Others parameters of the {fire2} minimization can be tuned ({tmin}, {delaystep},
+{dtgrow}, {dtshrink}, {alpha0}, and {alphashrink}). Please refer to the article
+describing the {fire2} "min_style"_min_style.html.
+
 An additional stopping criteria {vdfmax} is added in order to avoid unnecessary looping
 when it is reasonable to think the system will not be relaxed further.
 Note that in this case the system will NOT be relaxed. This could

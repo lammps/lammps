@@ -50,6 +50,9 @@ settings in Makefile.common should work.
 Note: some Colvars functions use the Lepton mathematical expression parser,
 which is here included (no additional steps required).  For more details, see:
   https://simtk.org/projects/lepton
+Starting from 2019-06-02, Lepton requires C++11.  Please see:
+  https://colvars.github.io/README-c++11.html
+  https://lammps.sandia.gov/doc/Build_settings.html#cxx11
 
 
 ## Documentation

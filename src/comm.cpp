@@ -667,7 +667,10 @@ double Comm::get_comm_cutoff()
 
   // always take the larger of max neighbor list and user specified cutoff
 
-  maxcommcutoff = MAX(cutghostuser,neighbor->cutneighmax);
+  if (force->pair)
+    maxcommcutoff = MAX(neighbor->cutneighmax,pair->cutforce+neighbor->skin);
+
+  maxcommcutoff = MAX(maxcommcutoff,cutghostuser);
 
   // use cutoff estimate from bond length only if no user specified
   // cutoff was given and no pair style present. Otherwise print a

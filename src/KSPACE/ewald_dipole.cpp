@@ -410,7 +410,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   int kx,ky,kz;
   double cypz,sypz,exprl,expim;
-  double partial,partial2,partial_peratom;
+  double partial,partial_peratom;
   double vcik[6];
   double mudotk;
 
@@ -503,7 +503,7 @@ void EwaldDipole::compute(int eflag, int vflag)
   // global virial
 
   if (vflag_global) {
-    double uk, vk;
+    double uk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
       for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] - vc[k][j];
@@ -777,12 +777,10 @@ void EwaldDipole::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double **x = atom->x;
-  double zprd = domain->zprd;
-  int nlocal = atom->nlocal;
-
   double dipole = 0.0;
   double **mu = atom->mu;
+  int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
 
   // sum local contributions to get global dipole moment

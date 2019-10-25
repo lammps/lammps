@@ -76,7 +76,7 @@ void MinQuickMin::reset_vectors()
 int MinQuickMin::iterate(int maxiter)
 {
   bigint ntimestep;
-  double vmax,vdotf,vdotfall,fdotf,fdotfloc,fdotfall,scale;
+  double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
   double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
 
@@ -216,9 +216,9 @@ int MinQuickMin::iterate(int maxiter)
     // sync across replicas if running multi-replica minimization
 
     if (update->ftol > 0.0) {
-      if (normstyle == MAX) fdotfloc = fnorm_max();		// max force norm
-      else if (normstyle == INF) fdotfloc = fnorm_inf();	// inf force norm
-      else if (normstyle == TWO) fdotfloc = fnorm_sqr();	// Euclidean force 2-norm
+      if (normstyle == MAX) fdotf = fnorm_max();     // max force norm
+      else if (normstyle == INF) fdotf = fnorm_inf(); // inf force norm
+      else if (normstyle == TWO) fdotf = fnorm_sqr(); // Euclidean force 2-norm
       else error->all(FLERR,"Illegal min_modify command");
       if (update->multireplica == 0) {
         if (fdotf < update->ftol*update->ftol) return FTOL;

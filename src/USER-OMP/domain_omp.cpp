@@ -44,11 +44,10 @@ void DomainOMP::pbc()
   imageint    * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
 
-  int i;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     imageint idim,otherdims;
 
     if (xperiodic) {
@@ -142,12 +141,11 @@ void DomainOMP::lamda2x(int n)
 {
   dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (i = 0; i < num; i++) {
+  for (int i = 0; i < num; i++) {
     x[i].x = h[0]*x[i].x + h[5]*x[i].y + h[4]*x[i].z + boxlo[0];
     x[i].y = h[1]*x[i].y + h[3]*x[i].z + boxlo[1];
     x[i].z = h[2]*x[i].z + boxlo[2];
@@ -163,12 +161,11 @@ void DomainOMP::x2lamda(int n)
 {
   dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for default(none) schedule(static)
 #endif
-  for (i = 0; i < num; i++) {
+  for (int i = 0; i < num; i++) {
     double delta0 = x[i].x - boxlo[0];
     double delta1 = x[i].y - boxlo[1];
     double delta2 = x[i].z - boxlo[2];

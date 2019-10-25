@@ -29,27 +29,14 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_nve_spin.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp),
-lockfixnvespin(NULL)
-{
-  single_enable = 0;
-  no_virial_fdotr_compute = 1;
-  lattice_flag = 0;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,11 +59,7 @@ PairSpinExchange::~PairSpinExchange()
 
 void PairSpinExchange::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 7) 
-    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
-
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
+  PairSpin::settings(narg,arg);
 
   cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
 
@@ -90,7 +73,6 @@ void PairSpinExchange::settings(int narg, char **arg)
           cut_spin_exchange[i][j] = cut_spin_exchange_global;
         }
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -133,43 +115,6 @@ void PairSpinExchange::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairSpinExchange::init_style()
-{
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-  // checking if nve/spin or neb/spin are a listed fix
-
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
-    ifix++;
-  }
-  if ((ifix == modify->nfix) && (comm->me == 0))
-    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------

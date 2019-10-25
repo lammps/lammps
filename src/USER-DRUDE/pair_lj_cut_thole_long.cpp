@@ -358,7 +358,7 @@ void PairLJCutTholeLong::init_style()
       error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
-  int irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 

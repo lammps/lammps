@@ -81,7 +81,7 @@ void MinFire::reset_vectors()
 int MinFire::iterate(int maxiter)
 {
   bigint ntimestep;
-  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfloc,fdotfall;
+  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
   double scale1,scale2;
   double dtvone,dtv,dtf,dtfm;
   int flag,flagall;

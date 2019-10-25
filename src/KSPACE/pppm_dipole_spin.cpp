@@ -663,13 +663,11 @@ void PPPMDipoleSpin::slabcorr()
 {
   // compute local contribution to global spin moment
 
-  double **x = atom->x;
-  double zprd = domain->zprd;
-  int nlocal = atom->nlocal;
-
   double spin = 0.0;
   double **sp = atom->sp;
-  double spx,spy,spz;
+  double spz;
+  int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; i++) { 
     spz = sp[i][2]*sp[i][3];
     spin += spz;

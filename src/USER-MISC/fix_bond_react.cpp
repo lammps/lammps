@@ -114,7 +114,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = (char *) "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->find_fix_by_style("bond/react") != -1)
+  if (modify->find_fix_by_style("^bond/react") != -1)
     error->all(FLERR,"Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -1910,7 +1910,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     if (dedup_mode == 1) ghostly_rxn_count[i] = 0;
   }
 
-  int dedup_size;
+  int dedup_size = 0;
   if (dedup_mode == 0) {
     dedup_size = local_num_mega;
   } else if (dedup_mode == 1) {
@@ -2880,7 +2880,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, edgeflag = 0, bondflag = 0, customedgesflag = 0;
+  int equivflag = 0, bondflag = 0, customedgesflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -2889,7 +2889,6 @@ void FixBondReact::read(int myrxn)
       readline(line);
       sscanf(line,"%d",&jbonding[myrxn]);
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
-      edgeflag = 1;
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
@@ -3239,8 +3238,8 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
-    int n = strlen(rxn_name[i]) + 1;
-    strncpy(set[i].rxn_name,rxn_name[i],n);
+    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE);
+    set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
   if (me == 0) {

@@ -30,7 +30,7 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax',
+    'sphinx.ext.mathjax', 'sphinx.ext.imgmath'
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
@@ -200,6 +200,11 @@ html_show_sourcelink = False
 htmlhelp_basename = 'LAMMPSdoc'
 
 html_add_permalinks = ''
+
+if 'epub' in sys.argv:
+  html_math_renderer = 'imgmath'
+else:
+  html_math_renderer = 'mathjax'
 
 # -- Options for LaTeX output ---------------------------------------------
 

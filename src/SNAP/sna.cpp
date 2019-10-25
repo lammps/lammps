@@ -350,7 +350,6 @@ void SNA::compute_ui(int jnum)
 void SNA::compute_zi()
 {
 
-  int ma2, mb2;
   for(int jjz = 0; jjz < idxz_max; jjz++) {
     const int j1 = idxz[jjz].j1;
     const int j2 = idxz[jjz].j2;
@@ -407,8 +406,6 @@ void SNA::compute_zi()
 
 void SNA::compute_yi(const double* beta)
 {
-  int j;
-  int jjz;
   int jju;
   double betaj;
 
@@ -422,7 +419,6 @@ void SNA::compute_yi(const double* beta)
       } // end loop over ma, mb
   } // end loop over j
 
-  int ma2, mb2;
   for(int jjz = 0; jjz < idxz_max; jjz++) {
     const int j1 = idxz[jjz].j1;
     const int j2 = idxz[jjz].j2;
@@ -435,8 +431,6 @@ void SNA::compute_yi(const double* beta)
     const int nb = idxz[jjz].nb;
 
     const double* cgblock = cglist + idxcg_block[j1][j2][j];
-    int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
-    int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
     double ztmp_r = 0.0;
     double ztmp_i = 0.0;
@@ -549,7 +543,6 @@ void SNA::compute_deidrj(double* dedr)
         jju++;
       }
 
-      int ma = mb;
       double* dudr_r = dulist_r[jju];
       double* dudr_i = dulist_i[jju];
       double jjjmambyarray_r = ylist_r[jju];
@@ -658,10 +651,6 @@ void SNA::compute_dbidrj()
   double* dbdr;
   double* dudr_r, *dudr_i;
   double sumzdu_r[3];
-  double** jjjzarray_r;
-  double** jjjzarray_i;
-  double jjjmambzarray_r;
-  double jjjmambzarray_i;
   int jjz, jju;
 
   for(int jjb = 0; jjb < idxb_max; jjb++) {
@@ -708,7 +697,6 @@ void SNA::compute_dbidrj()
         jjz++;
         jju++;
       }
-      int ma = mb;
       dudr_r = dulist_r[jju];
       dudr_i = dulist_i[jju];
       for(int k = 0; k < 3; k++)
@@ -758,7 +746,6 @@ void SNA::compute_dbidrj()
         jjz++;
         jju++;
       }
-      int ma = mb;
       dudr_r = dulist_r[jju];
       dudr_i = dulist_i[jju];
       for(int k = 0; k < 3; k++)
@@ -808,7 +795,6 @@ void SNA::compute_dbidrj()
         jjz++;
         jju++;
       }
-      int ma = mb;
       dudr_r = dulist_r[jju];
       dudr_i = dulist_i[jju];
       for(int k = 0; k < 3; k++)

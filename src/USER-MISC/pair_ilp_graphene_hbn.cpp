@@ -446,9 +446,9 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
-void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
+void PairILPGrapheneHBN::calc_FvdW(int eflag, int /* vflag */)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,Rcut,r2inv,r6inv,r8inv,Tap,dTap,Vilp,TSvdw,TSvdw2inv,fsum;
@@ -544,15 +544,15 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
-void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
+void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,Rcut,rhosq1,exp0,exp1,r2inv,r6inv,r8inv,Tap,dTap,Vilp;
-  double frho1,TSvdw,TSvdw2inv,Erep,fsum,rdsq1;
+  double rsq,r,Rcut,rhosq1,exp0,exp1,Tap,dTap,Vilp;
+  double frho1,Erep,fsum,rdsq1;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *ILP_neighs_i,*ILP_neighs_j;
+  int *ILP_neighs_i;
 
   evdwl = 0.0;
 

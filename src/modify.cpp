@@ -1029,7 +1029,7 @@ int Modify::find_fix_by_style(const char *style)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(style,fix[ifix]->style) == 0) break;
+    if (utils::strmatch(fix[ifix]->style,style)) break;
   if (ifix == nfix) return -1;
   return ifix;
 }

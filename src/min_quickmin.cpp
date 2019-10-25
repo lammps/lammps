@@ -76,7 +76,7 @@ void MinQuickMin::reset_vectors()
 int MinQuickMin::iterate(int maxiter)
 {
   bigint ntimestep;
-  double vmax,vdotf,vdotfall,fdotf,fdotfloc,fdotfall,scale;
+  double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
   double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
 

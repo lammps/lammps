@@ -35,7 +35,7 @@ MinSD::MinSD(LAMMPS *lmp) : MinLineSearch(lmp) {}
 int MinSD::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
-  double fdotf,fdotfloc;
+  double fdotf;
   double *fatom,*hatom;
 
   // initialize working vectors

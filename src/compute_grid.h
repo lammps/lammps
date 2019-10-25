@@ -31,28 +31,24 @@ class ComputeGrid : public Compute {
 
  protected:
   int nx, ny, nz;                      // grid dimensions
-  int nxfull, nyfull, nzfull;          // grid dimensions with ghost points
-  int nxyfull;                         // nx_full*ny_full 
-  int ngridfull;                // number of full grid points
-  double **gridfull;                   // full grid points
-  int mx, my, mz;                      // cutmax stencil dimensions
+  int ngrid;                           // number of grid points
+  int nvalues;                         // number of values per grid point
+  double **grid;                       // global grid
+  double **gridall;                    // global grid summed over procs
   int triclinic;                       // triclinic flag
   double *boxlo, *prd;                 // box info (units real/ortho or reduced/tri)
+  double *sublo, *subhi;               // subdomain info (units real/ortho or reduced/tri)
   double delxinv,delyinv,delzinv;      // inverse grid spacing
   double delx,dely,delz;               // grid spacing
-  double x0full, y0full, z0full;       // origin of full grid
   int nargbase;                        // number of base class args 
   double cutmax;                       // largest cutoff distance
   int size_array_cols_base;            // number of columns used for coords, etc.
-  virtual void allocate();
-  void igridfull2x(int, double*);      // convert full grid point to coord
-  void iarray2x(int, double*);         // convert array point to coord
-  void gather_global_array();          // gather global array from full grid
-  void copy_local_grid();              // copy local grid to global array
-  void assign_coords_array();          // assign coords to global array
-  int igridfull2iarray(int);           // convert full grid index to compute array index
-  int iarray2igridfull(int);           // convert compute array index to full grid index
-
+  int *grid_local;                     // local flag for each grid point
+  void allocate();
+  void grid2x(int, double*);           // convert grid point to coord
+  void assign_grid_coords();           // assign coords for grid
+  void assign_grid_local();            // set local flag for each grid point
+  int check_grid_local(int);           // check if grid point is local
  private:
 };
 

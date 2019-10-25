@@ -31,7 +31,7 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
-  ComputeGrid(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL),
+  ComputeGrid(lmp, narg, arg), cutsq(NULL), sna(NULL),
   radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
@@ -120,8 +120,9 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
                    rmin0,switchflag,bzeroflag);
 
   ncoeff = snaptr->ncoeff;
-  size_array_cols = size_array_cols_base + ncoeff;
-  if (quadraticflag) size_array_cols += (ncoeff*(ncoeff+1))/2;
+  nvalues = ncoeff;
+  if (quadraticflag) nvalues += (ncoeff*(ncoeff+1))/2;
+  size_array_cols = size_array_cols_base + nvalues;
   array_flag = 1;
 }
 
@@ -165,25 +166,9 @@ void ComputeSNAGrid::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAGrid::init_list(int /*id*/, NeighList *ptr)
-{
-  list = ptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputeSNAGrid::compute_array()
 {
   invoked_array = update->ntimestep;
-
-//   // invoke full neighbor list (will copy or build if necessary)
-
-//   neighbor->build_one(list);
-
-//   const int inum = list->inum;
-//   const int* const ilist = list->ilist;
-//   const int* const numneigh = list->numneigh;
-//   int** const firstneigh = list->firstneigh;
 
   int * const type = atom->type;
 
@@ -197,13 +182,12 @@ void ComputeSNAGrid::compute_array()
   
   snaptr->grow_rij(ntotal);
 
-  printf("ngridfull = %d\n",ngridfull);
-  for (int igrid = 0; igrid < ngridfull; igrid++) {
-    double rtmp[3];
-    igridfull2x(igrid, rtmp);
-    const double xtmp = rtmp[0];
-    const double ytmp = rtmp[1];
-    const double ztmp = rtmp[2];
+  printf("ngrid = %d\n",ngrid);
+  for (int igrid = 0; igrid < ngrid; igrid++) {
+    if (!grid_local[igrid]) continue;
+    const double xtmp = grid[igrid][0];
+    const double ytmp = grid[igrid][1];
+    const double ztmp = grid[igrid][2];
 
     // rij[][3] = displacements between atom I and those neighbors
     // inside = indices of neighbors of I within cutoff
@@ -237,7 +221,7 @@ void ComputeSNAGrid::compute_array()
     snaptr->compute_zi();
     snaptr->compute_bi();
     for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      sna[igrid][size_array_cols_base+icoeff] = snaptr->blist[icoeff];
+      grid[igrid][size_array_cols_base+icoeff] = snaptr->blist[icoeff];
     //    printf("igrid = %d %g %g %g %d B0 = %g\n",igrid,xtmp,ytmp,ztmp,ninside,sna[igrid][size_array_cols_base+0]);
     if (quadraticflag) {
       int ncount = ncoeff;
@@ -246,27 +230,16 @@ void ComputeSNAGrid::compute_array()
 
         // diagonal element of quadratic matrix
 
-        sna[igrid][ncount++] = 0.5*bi*bi;
+        grid[igrid][size_array_cols_base+ncount++] = 0.5*bi*bi;
 
         // upper-triangular elements of quadratic matrix
 
         for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-          sna[igrid][ncount++] = bi*snaptr->blist[jcoeff];
+          grid[igrid][size_array_cols_base+ncount++] = bi*snaptr->blist[jcoeff];
       }
     }
   }
-  //  gather_global_array();
-  copy_local_grid();
-}
-
-/* ----------------------------------------------------------------------
-   allocate array in base class and then set up pointers
-------------------------------------------------------------------------- */
-
-void ComputeSNAGrid::allocate()
-{
-  ComputeGrid::allocate();
-  sna = gridfull;
+  MPI_Allreduce(&grid[0][0],&gridall[0][0],ngrid*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -275,9 +248,8 @@ void ComputeSNAGrid::allocate()
 
 double ComputeSNAGrid::memory_usage()
 {
-  double bytes = size_array_rows*size_array_cols * sizeof(double); // grid
-  bytes += snaptr->memory_usage();                        // SNA object
+  double nbytes = snaptr->memory_usage();                        // SNA object
 
-  return bytes;
+  return nbytes;
 }
 

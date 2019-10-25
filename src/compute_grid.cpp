@@ -50,7 +50,7 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
 
   nargbase = iarg - iarg0;
 
-  size_array_rows = nx*ny*nz;
+  size_array_rows = ngrid = nx*ny*nz;
   size_array_cols_base = 3;
 }
 
@@ -58,6 +58,8 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeGrid::~ComputeGrid()
 {
+  memory->destroy(grid);
+  memory->destroy(grid_local);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,9 +80,13 @@ void ComputeGrid::setup()
   if (triclinic == 0) {
     prd = domain->prd;
     boxlo = domain->boxlo;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
   } else {
     prd = domain->prd_lamda;
     boxlo = domain->boxlo_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
   }
 
   double xprd = prd[0];
@@ -95,77 +101,22 @@ void ComputeGrid::setup()
   dely = 1.0/delyinv;
   delz = 1.0/delzinv;
 
-  // sufficient conditions for stencil bounding rcut
-
-  // require |delz*mz|^2 <= rcut^2
-  // require |dely*my|^2 <= rcut^2 + |delyz*mz_max|^2
-  // require |delx*mx|^2 <= rcut^2 + |delxz*mz_max|^2 + |delxy*my_max|^2
-
-  double delxy = domain->xy/ny;
-  double delxz = domain->xz/nz;
-  double delyz = domain->yz/nz;
-  
-  if (!triclinic) {
-    mz = cutmax*delzinv + 1;
-    my = sqrt(cutmax*cutmax + pow(delyz*mz,2))*delyinv + 1;
-    mx = sqrt(cutmax*cutmax + pow(delxz*mz,2) 
-                            + pow(delxy*my,2))*delxinv + 1;
-  } else {
-    double delxinvtmp = nx/domain->xprd;
-    double delyinvtmp = ny/domain->yprd;
-    double delzinvtmp = nz/domain->zprd;
-    mz = cutmax*delzinvtmp + 1;
-    my = sqrt(cutmax*cutmax + pow(delyz*mz,2))*delyinvtmp + 1;
-    mx = sqrt(cutmax*cutmax + pow(delxz*mz,2) 
-                            + pow(delxy*my,2))*delxinvtmp + 1;
-  }
-
-  // size global grid to accomodate periodic interactions
-  
-  nxfull = nx + 2*mx;
-  nyfull = ny + 2*my;
-  nzfull = nz + 2*mz;
-  nxyfull = nxfull * nyfull;
-
-  x0full = boxlo[0] - mx*delx;
-  y0full = boxlo[1] - my*dely;
-  z0full = boxlo[2] - mz*delz;
-
   allocate();
-  assign_coords_array();
+  assign_grid_coords();
+  assign_grid_local();
 }
 
 /* ----------------------------------------------------------------------
-   convert grid index to box coords
+   convert global array index to box coords
 ------------------------------------------------------------------------- */
 
-void ComputeGrid::igridfull2x(int igrid, double *x)
+void ComputeGrid::grid2x(int igrid, double *x)
 {
-  int iz = igrid / nxyfull;
-  igrid -= iz * nxyfull;
-  int iy = igrid / nxfull;
-  igrid -= iy * nxfull;
+  int iz = igrid / (nx*ny);
+  igrid -= iz * (nx*ny);
+  int iy = igrid / nx;
+  igrid -= iy * nx;
   int ix = igrid;
-
-  x[0] = x0full+ix*delx;
-  x[1] = y0full+iy*dely;
-  x[2] = z0full+iz*delz;
-
-  if (triclinic) domain->lamda2x(x, x);
-
-}
-
-/* ----------------------------------------------------------------------
-   convert array index to box coords
-------------------------------------------------------------------------- */
-
-void ComputeGrid::iarray2x(int iarray, double *x)
-{
-  int iz = iarray / (nx*ny);
-  iarray -= iz * (nx*ny);
-  int iy = iarray / nx;
-  iarray -= iy * nx;
-  int ix = iarray;
 
   x[0] = ix*delx;
   x[1] = iy*dely;
@@ -176,16 +127,43 @@ void ComputeGrid::iarray2x(int iarray, double *x)
 }
 
 /* ----------------------------------------------------------------------
-   copy local grid to global array
+   check if grid point is local
 ------------------------------------------------------------------------- */
 
-void ComputeGrid::copy_local_grid()
+int ComputeGrid::check_grid_local(int igrid)
 {
-  int igridfull;
-  for (int iarray = 0; iarray < size_array_rows; iarray++) {
-    igridfull = iarray2igridfull(iarray);
-    for (int icol = size_array_cols_base; icol < size_array_cols; icol++)
-      array[iarray][icol] = gridfull[igridfull][icol];
+  double x[3];
+
+  int iz = igrid / (nx*ny);
+  igrid -= iz * (nx*ny);
+  int iy = igrid / nx;
+  igrid -= iy * nx;
+  int ix = igrid;
+
+  x[0] = ix*delx;
+  x[1] = iy*dely;
+  x[2] = iz*delz;
+
+  int islocal = 
+    x[0] >= sublo[0] && x[0] < subhi[0] &&
+    x[1] >= sublo[1] && x[1] < subhi[1] &&
+    x[2] >= sublo[2] && x[2] < subhi[2];
+
+  return islocal;
+}
+
+/* ----------------------------------------------------------------------
+   copy coords to global array
+------------------------------------------------------------------------- */
+
+void ComputeGrid::assign_grid_coords()
+{
+  double x[3];
+  for (int igrid = 0; igrid < ngrid; igrid++) {
+    grid2x(igrid,x);
+    grid[igrid][0] = x[0];
+    grid[igrid][1] = x[1];
+    grid[igrid][2] = x[2];
   }
 }
 
@@ -193,86 +171,17 @@ void ComputeGrid::copy_local_grid()
    copy coords to global array
 ------------------------------------------------------------------------- */
 
-void ComputeGrid::assign_coords_array()
+void ComputeGrid::assign_grid_local()
 {
   double x[3];
-  for (int iarray = 0; iarray < size_array_rows; iarray++) {
-    iarray2x(iarray,x);
-    array[iarray][0] = x[0];
-    array[iarray][1] = x[1];
-    array[iarray][2] = x[2];
+  for (int igrid = 0; igrid < ngrid; igrid++) {
+    if (check_grid_local(igrid))
+      grid_local[igrid] = 1;
+    else {
+      grid_local[igrid] = 0;
+      memset(grid[igrid],0,size_array_cols);
+    }
   }
-}
-
-/* ----------------------------------------------------------------------
-   gather global array from full grid
-------------------------------------------------------------------------- */
-
-void ComputeGrid::gather_global_array()
-{
-   int iarray;
-   memset(&array[0][0],0,size_array_rows*size_array_cols*sizeof(double));
-
-  for (int igrid = 0; igrid < ngridfull; igrid++) {
-
-    // inefficient, should exploit shared ix structure
-
-    iarray = igridfull2iarray(igrid);
-    for (int icol = size_array_cols_base; icol < size_array_cols; icol++)
-      array[iarray][icol] += gridfull[igrid][icol];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   convert full grid index to compute array index
-   inefficient, should exploit shared ix structure
-------------------------------------------------------------------------- */
-
-int ComputeGrid::igridfull2iarray(int igrid)
-{
-  int iz = igrid / nxyfull;
-  igrid -= iz*nxyfull;
-  int iy = igrid / nxfull;
-  igrid -= iy*nxfull;
-  int ix = igrid;
-
-  ix -= mx;
-  iy -= my;
-  iz -= mz;
-
-  while (ix < 0) ix += nx;
-  while (iy < 0) iy += ny;
-  while (iz < 0) iz += nz;
-
-  while (ix >= nx) ix -= nx;
-  while (iy >= ny) iy -= ny;
-  while (iz >= nz) iz -= nz;
-
-  int iarray = (iz * ny + iy) * nx + ix;
-
-  return iarray;
-}
-
-/* ----------------------------------------------------------------------
-   convert compute array index to full grid index
-   inefficient, should exploit shared ix structure
-------------------------------------------------------------------------- */
-
-int ComputeGrid::iarray2igridfull(int iarray)
-{
-  int iz = iarray / (nx*ny);
-  iarray -= iz*(nx*ny);
-  int iy = iarray / nx;
-  iarray -= iy*nx;
-  int ix = iarray;
-
-  ix += mx;
-  iy += my;
-  iz += mz;
-
-  int igrid = (iz * nyfull + iy) * nxfull + ix;
-
-  return igrid;
 }
 
 /* ----------------------------------------------------------------------
@@ -281,13 +190,14 @@ int ComputeGrid::iarray2igridfull(int iarray)
 
 void ComputeGrid::allocate()
 {
-  ngridfull = nxfull*nyfull*nzfull;
-
   // grow global array if necessary
 
-  memory->destroy(array);
-  memory->create(array,size_array_rows,size_array_cols,"sna/grid:array");
-  memory->create(gridfull,ngridfull,size_array_cols,"sna/grid:gridfull");
+  memory->destroy(grid);
+  memory->destroy(grid_local);
+  memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
+  memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
+  memory->create(grid_local,size_array_rows,"grid:grid_local");
+  array = gridall;
 }
 /* ----------------------------------------------------------------------
    memory usage of local data
@@ -295,6 +205,8 @@ void ComputeGrid::allocate()
 
 double ComputeGrid::memory_usage()
 {
-  int nbytes = 0;
+  double nbytes = size_array_rows*size_array_cols * 
+    sizeof(double);                             // grid
+  nbytes += size_array_rows*sizeof(int); // grid_local
   return nbytes;
 }

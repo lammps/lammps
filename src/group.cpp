@@ -31,6 +31,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <map>
 
@@ -735,7 +736,7 @@ void Group::read_restart(FILE *fp)
 
   for (i = 0; i < MAX_GROUP; i++) delete [] names[i];
 
-  if (me == 0) fread(&ngroup,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&ngroup,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
 
   // use count to not change restart format with deleted groups
@@ -747,11 +748,11 @@ void Group::read_restart(FILE *fp)
       names[i] = NULL;
       continue;
     }
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
       names[i] = new char[n];
-      if (me == 0) fread(names[i],sizeof(char),n,fp);
+      if (me == 0) utils::sfread(FLERR,names[i],sizeof(char),n,fp,NULL,error);
       MPI_Bcast(names[i],n,MPI_CHAR,0,world);
       count++;
     } else names[i] = NULL;

@@ -35,6 +35,7 @@
 #include "mpiio.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -302,24 +303,24 @@ void ReadRestart::command(int narg, char **arg)
         error->one(FLERR,str);
       }
 
-      fread(&flag,sizeof(int),1,fp);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       int procsperfile;
-      fread(&procsperfile,sizeof(int),1,fp);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
 
       for (int i = 0; i < procsperfile; i++) {
-        fread(&flag,sizeof(int),1,fp);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        fread(&n,sizeof(int),1,fp);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        fread(buf,sizeof(double),n,fp);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
 
         m = 0;
         while (m < n) m += avec->unpack_restart(&buf[m]);
@@ -379,10 +380,10 @@ void ReadRestart::command(int narg, char **arg)
     int flag,procsperfile;
 
     if (filereader) {
-      fread(&flag,sizeof(int),1,fp);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
-      fread(&procsperfile,sizeof(int),1,fp);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
     }
     MPI_Bcast(&procsperfile,1,MPI_INT,0,clustercomm);
 
@@ -391,17 +392,17 @@ void ReadRestart::command(int narg, char **arg)
 
     for (int i = 0; i < procsperfile; i++) {
       if (filereader) {
-        fread(&flag,sizeof(int),1,fp);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        fread(&n,sizeof(int),1,fp);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        fread(buf,sizeof(double),n,fp);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
 
         if (i % nclusterprocs) {
           iproc = me + (i % nclusterprocs);
@@ -1105,7 +1106,7 @@ void ReadRestart::file_layout()
           memory->create(nproc_chunk_number,nprocs,
                          "write_restart:nproc_chunk_number");
 
-          fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
+          utils::sfread(FLERR,all_written_send_sizes,sizeof(int),nprocs_file,fp,NULL,error);
 
           if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
             // nprocs differ, but atom sizes are fixed length, yeah!
@@ -1287,7 +1288,7 @@ char *ReadRestart::read_string()
   int n = read_int();
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (me == 0) fread(value,sizeof(char),n,fp);
+  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,NULL,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -1299,7 +1300,7 @@ char *ReadRestart::read_string()
 void ReadRestart::read_int_vec(int n, int *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
-  if (me == 0) fread(vec,sizeof(int),n,fp);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(int),n,fp,NULL,error);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
@@ -1310,6 +1311,6 @@ void ReadRestart::read_int_vec(int n, int *vec)
 void ReadRestart::read_double_vec(int n, double *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
-  if (me == 0) fread(vec,sizeof(double),n,fp);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(double),n,fp,NULL,error);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

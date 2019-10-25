@@ -1,4 +1,4 @@
-LAMMPS (18 Jun 2019)
+LAMMPS (7 Aug 2019)
 variable number	equal 1
 variable ofreq	equal 1000
 variable efreq	equal 1000
@@ -35,8 +35,8 @@ read_data data.duplex3
   2 = max # of 1-3 neighbors
   2 = max # of 1-4 neighbors
   4 = max # of special neighbors
-  special bonds CPU = 0.000189 secs
-  read_data CPU = 0.003302 secs
+  special bonds CPU = 0.000188 secs
+  read_data CPU = 0.002791 secs
 
 set atom * mass 1.0
   10 settings made for mass
@@ -44,15 +44,15 @@ set atom * mass 1.0
 group all type 1 4
 10 atoms in group all
 
-# oxDNA bond interactions - FENE backbone
+# oxDNA2 bond interactions - FENE backbone
 bond_style oxdna2/fene
 bond_coeff * 2.0 0.25 0.7564
 
-# oxDNA pair interactions
+# oxDNA2 pair interactions
 pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
 pair_coeff * * oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
-pair_coeff * * oxdna2/stk     seqdep ${T} 1.3523 2.6717 6.0 0.4 0.9 0.32 0.6 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
-pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.6 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep ${T} 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
 pair_coeff * * oxdna2/hbond   seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
 pair_coeff 1 4 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
 pair_coeff 2 3 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
@@ -135,7 +135,7 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 7.652 | 7.834 | 8.016 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 7.653 | 7.835 | 8.018 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -1.4720158  0.009525411   -1.4624904 3.1370518e-06 
 1000  ekin = 0.00366431201929595 |  erot = 0.00193726360268106 | epot = -14.630505317301 | etot = -14.624903741679
@@ -1139,21 +1139,21 @@ Step Temp E_pair E_mol TotEng Press
 999000  ekin = 0.330110494517446 |  erot = 0.658973630822486 | epot = -15.613987867725 | etot = -14.6249037423851
 1000000  ekin = 0.345190458651126 |  erot = 0.66113833946702 | epot = -15.6312325406162 | etot = -14.624903742498
  1000000  0.025569664   -1.5839232  0.020799898   -1.5286042 -3.5789082e-06 
-Loop time of 30.1999 on 4 procs for 1000000 steps with 10 atoms
+Loop time of 20.0167 on 4 procs for 1000000 steps with 10 atoms
 
-Performance: 28609.339 tau/day, 33112.661 timesteps/s
-96.4% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 43164.007 tau/day, 49958.342 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.90762    | 10.291     | 18.476     | 234.3 | 34.08
-Bond    | 0.11783    | 0.39332    | 0.61914    |  34.0 |  1.30
+Pair    | 0.59089    | 7.5652     | 13.908     | 205.5 | 37.79
+Bond    | 0.090803   | 0.29363    | 0.47758    |  29.6 |  1.47
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 2.8711     | 3.8042     | 4.7159     |  34.0 | 12.60
-Output  | 2e-05      | 3.15e-05   | 3.6e-05    |   0.0 |  0.00
-Modify  | 0.27052    | 1.1583     | 1.9428     |  63.9 |  3.84
-Other   |            | 14.55      |            |       | 48.19
+Comm    | 1.7298     | 2.0312     | 2.2983     |  16.6 | 10.15
+Output  | 1.4e-05    | 2.075e-05  | 2.3e-05    |   0.0 |  0.00
+Modify  | 0.17638    | 0.90613    | 1.5893     |  60.1 |  4.53
+Other   |            | 9.22       |            |       | 46.06
 
 Nlocal:    2.5 ave 5 max 0 min
 Histogram: 1 0 1 0 0 0 0 0 1 1
@@ -1169,4 +1169,4 @@ Neighbor list builds = 0
 Dangerous builds = 0
 
 #write_restart config.${number}.*
-Total wall time: 0:00:30
+Total wall time: 0:00:20

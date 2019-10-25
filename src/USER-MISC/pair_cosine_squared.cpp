@@ -30,6 +30,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -275,14 +276,14 @@ void PairCosineSquared::read_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0)
-        fread(&setflag[i][j], sizeof(int), 1, fp);
+        utils::sfread(FLERR,&setflag[i][j], sizeof(int), 1, fp,NULL,error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j], sizeof(double), 1, fp);
-          fread(&sigma[i][j], sizeof(double), 1, fp);
-          fread(&cut[i][j], sizeof(double), 1, fp);
-          fread(&wcaflag[i][j], sizeof(int), 1, fp);
+          utils::sfread(FLERR,&epsilon[i][j], sizeof(double), 1, fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j], sizeof(double), 1, fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j], sizeof(double), 1, fp,NULL,error);
+          utils::sfread(FLERR,&wcaflag[i][j], sizeof(int), 1, fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&sigma[i][j], 1, MPI_DOUBLE, 0, world);
@@ -310,7 +311,7 @@ void PairCosineSquared::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global, sizeof(double), 1, fp);
+    utils::sfread(FLERR,&cut_global, sizeof(double), 1, fp,NULL,error);
   }
   MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
 }

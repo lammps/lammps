@@ -109,6 +109,7 @@ Archlinux
 arcsin
 arg
 args
+arrhenius
 Arun
 arXiv
 asin

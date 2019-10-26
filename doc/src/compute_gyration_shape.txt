@@ -10,7 +10,7 @@ compute gyration/shape command :h3
 
 [Syntax:]
 
-compute ID group-ID gyration compute-ID :pre
+compute ID group-ID gyration/shape compute-ID :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 gyration/shape = style name of this compute command
@@ -24,14 +24,16 @@ compute 1 molecule gyration/shape pe :pre
 
 Define a computation that calculates the eigenvalues of the gyration tensor of a
 group of atoms and three shape parameters. The computation includes all effects
-due to atoms passing thru periodic boundaries.
+due to atoms passing through periodic boundaries.
 
 The three computed shape parameters are the asphericity, b, the acylindricity, c,
 and the relative shape anisotropy, k:
 
 :c,image(Eqs/compute_shape_parameters.jpg)
 
-where lx <= ly <= lz are the three eigenvalues of the gyration tensor.
+where lx <= ly <= lz are the three eigenvalues of the gyration tensor. A general description 
+of these parameters is provided in "(Mattice)"_#Mattice while an application to polymer systems 
+can be found in "(Theodorou)"_#Theodorou.
 The asphericity  is always non-negative and zero only when the three principal
 moments are equal. This zero condition is met when the distribution of particles
 is spherically symmetric (hence the name asphericity) but also whenever the particle
@@ -81,7 +83,9 @@ package"_Build_package.html doc page for more info.
 
 :line
 
-[(Theodorou)] Theodorou, Suter, Macromolecules, 18, 1206 (1985).
-
+:link(Mattice)
 [(Mattice)] Mattice, Suter, Conformational Theory of Large Molecules, Wiley, New York, 1994. 
+
+:link(Theodorou)
+[(Theodorou)] Theodorou, Suter, Macromolecules, 18, 1206 (1985).
 

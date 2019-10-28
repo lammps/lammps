@@ -384,7 +384,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
 
   int kx,ky,kz;
   double cypz,sypz,exprl,expim;
-  double partial,partial2,partial_peratom;
+  double partial,partial_peratom;
   double vcik[6];
   double mudotk;
 
@@ -427,19 +427,19 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
       // compute field for torque calculation
 
       partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
-      tk[i][0] += partial2*eg[k][0];
-      tk[i][1] += partial2*eg[k][1];
-      tk[i][2] += partial2*eg[k][2];
+      tk[i][0] += partial_peratom*eg[k][0];
+      tk[i][1] += partial_peratom*eg[k][1];
+      tk[i][2] += partial_peratom*eg[k][2];
 
       // total and per-atom virial correction
-      
+
       vc[k][0] += vcik[0] = -(partial_peratom * spx * eg[k][0]);
       vc[k][1] += vcik[1] = -(partial_peratom * spy * eg[k][1]);
       vc[k][2] += vcik[2] = -(partial_peratom * spz * eg[k][2]);
       vc[k][3] += vcik[3] = -(partial_peratom * spx * eg[k][1]);
       vc[k][4] += vcik[4] = -(partial_peratom * spx * eg[k][2]);
       vc[k][5] += vcik[5] = -(partial_peratom * spy * eg[k][2]);
-      
+
       // taking re-part of struct_fact x exp(i*k*ri) 
       // (for per-atom energy and virial calc.)
 

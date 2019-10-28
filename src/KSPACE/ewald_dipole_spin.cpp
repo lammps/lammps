@@ -41,12 +41,12 @@ EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp) :
 {
   dipoleflag = 0;
   spinflag = 1;
-  
-  hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
-  mub = 9.274e-4;                     		// in A.Ang^2
-  mu_0 = 785.15;               			// in eV/Ang/A^2
-  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV.Ang^3
-  mub2mu0hbinv = mub2mu0 / hbar;        	// in rad.THz
+
+  hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
+  mub = 9.274e-4;                               // in A.Ang^2
+  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
+  mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
 }
 
 /* ----------------------------------------------------------------------
@@ -67,17 +67,17 @@ void EwaldDipoleSpin::init()
   }
 
   // error check
-  
+
   spinflag = atom->sp?1:0;
 
   triclinic_check();
-  
+
   // no triclinic ewald spin (yet)
-  
+
   triclinic = domain->triclinic;
   if (triclinic)
     error->all(FLERR,"Cannot (yet) use EwaldDipoleSpin with triclinic box");
-  
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDipoleSpin with 2d simulation");
 
@@ -85,7 +85,7 @@ void EwaldDipoleSpin::init()
 
   if ((spinflag && strcmp(update->unit_style,"metal")) != 0)
     error->all(FLERR,"'metal' units have to be used with spins");
-  
+
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldDipoleSpin");
   if (slabflag) {
@@ -144,13 +144,13 @@ void EwaldDipoleSpin::init()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
-    
+
     // initial guess with old method
-    
+
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*mu2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
-    
+
     // try Newton solver
 
     double g_ewald_new =
@@ -236,7 +236,7 @@ void EwaldDipoleSpin::setup()
     double err;
     kxmax = 1;
     kymax = 1;
-    kzmax = 1;	
+    kzmax = 1;  
 
     // set kmax in 3 directions to respect accuracy
 
@@ -404,7 +404,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
       for (j = 0; j<6; j++) vcik[j] = 0.0;
 
       // re-evaluating sp dot k
-      
+
       spx = sp[i][0]*sp[i][3];
       spy = sp[i][1]*sp[i][3];
       spz = sp[i][2]*sp[i][3];
@@ -447,13 +447,13 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
         if (eflag_atom) eatom[i] += mudotk*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
-	    vatom[i][j] += (ug[k]*mudotk*vg[k][j]*partial_peratom - vcik[j]);
+            vatom[i][j] += (ug[k]*mudotk*vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }
 
   // force and mag. precession vectors calculation
-  
+
   const double spscale = mub2mu0 * scale;
   const double spscale2 = mub2mu0hbinv * scale;
 
@@ -465,7 +465,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     fm_long[i][1] += spscale2 * tk[i][1];
     if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][3];
   }
-  
+
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j
   // substracting self energy and scaling
@@ -496,11 +496,11 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
   if (evflag_atom) {
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
-	spx = sp[i][0]*sp[i][3];
-	spy = sp[i][1]*sp[i][3];
-	spz = sp[i][2]*sp[i][3];
+        spx = sp[i][0]*sp[i][3];
+        spy = sp[i][1]*sp[i][3];
+        spz = sp[i][2]*sp[i][3];
         eatom[i] -= (spx*spx + spy*spy + spz*spz)
-	  *2.0*g3/3.0/MY_PIS;
+          *2.0*g3/3.0/MY_PIS;
         eatom[i] *= spscale;
       }
     }
@@ -540,7 +540,7 @@ void EwaldDipoleSpin::eik_dot_r()
   // store n values of sum_j[ (mu_j dot k) exp(-k dot r_j) ]
 
   // (k,0,0), (0,l,0), (0,0,m)
-  
+
   // loop 1: k=1, l=1, m=1
   // define first val. of cos and sin
 
@@ -556,7 +556,7 @@ void EwaldDipoleSpin::eik_dot_r()
         sn[1][ic][i] = sin(unitk[ic]*x[i][ic]);
         cs[-1][ic][i] = cs[1][ic][i];
         sn[-1][ic][i] = -sn[1][ic][i];
-	spi = sp[i][ic]*sp[i][3];
+        spi = sp[i][ic]*sp[i][3];
         mudotk = (spi*unitk[ic]);
         cstr1 += mudotk*cs[1][ic][i];
         sstr1 += mudotk*sn[1][ic][i];
@@ -581,8 +581,8 @@ void EwaldDipoleSpin::eik_dot_r()
             cs[m-1][ic][i]*sn[1][ic][i];
           cs[-m][ic][i] = cs[m][ic][i];
           sn[-m][ic][i] = -sn[m][ic][i];
-	  spi = sp[i][ic]*sp[i][3];
-	  mudotk = (spi*m*unitk[ic]);
+          spi = sp[i][ic]*sp[i][3];
+          mudotk = (spi*m*unitk[ic]);
           cstr1 += mudotk*cs[m][ic][i];
           sstr1 += mudotk*sn[m][ic][i];
         }
@@ -603,19 +603,19 @@ void EwaldDipoleSpin::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-	  spx = sp[i][0]*sp[i][3];
-	  spy = sp[i][1]*sp[i][3];
+          spx = sp[i][0]*sp[i][3];
+          spy = sp[i][1]*sp[i][3];
 
-	  // dir 1: (k,l,0)
-	  mudotk = (spx*k*unitk[0] + spy*l*unitk[1]);
+          // dir 1: (k,l,0)
+          mudotk = (spx*k*unitk[0] + spy*l*unitk[1]);
           cstr1 += mudotk*(cs[k][0][i]*cs[l][1][i]-sn[k][0][i]*sn[l][1][i]);
           sstr1 += mudotk*(sn[k][0][i]*cs[l][1][i]+cs[k][0][i]*sn[l][1][i]);
-	  
-	  // dir 2: (k,-l,0)
-	  mudotk = (spx*k*unitk[0] - spy*l*unitk[1]);
+
+          // dir 2: (k,-l,0)
+          mudotk = (spx*k*unitk[0] - spy*l*unitk[1]);
           cstr2 += mudotk*(cs[k][0][i]*cs[l][1][i]+sn[k][0][i]*sn[l][1][i]);
           sstr2 += mudotk*(sn[k][0][i]*cs[l][1][i]-cs[k][0][i]*sn[l][1][i]);
-	}
+        }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
         sfacrl[n] = cstr2;
@@ -635,16 +635,16 @@ void EwaldDipoleSpin::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-	  spy = sp[i][1]*sp[i][3];
-	  spz = sp[i][2]*sp[i][3];
+          spy = sp[i][1]*sp[i][3];
+          spz = sp[i][2]*sp[i][3];
 
-	  // dir 1: (0,l,m)
-      	  mudotk = (spy*l*unitk[1] + spz*m*unitk[2]); 
+          // dir 1: (0,l,m)
+          mudotk = (spy*l*unitk[1] + spz*m*unitk[2]); 
           cstr1 += mudotk*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
           sstr1 += mudotk*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
-	  
-	  // dir 2: (0,l,-m)
-	  mudotk = (spy*l*unitk[1] - spz*m*unitk[2]); 
+
+          // dir 2: (0,l,-m)
+          mudotk = (spy*l*unitk[1] - spz*m*unitk[2]); 
           cstr2 += mudotk*(cs[l][1][i]*cs[m][2][i]+sn[l][1][i]*sn[m][2][i]);
           sstr2 += mudotk*(sn[l][1][i]*cs[m][2][i]-cs[l][1][i]*sn[m][2][i]);
         }
@@ -667,16 +667,16 @@ void EwaldDipoleSpin::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-      	  spx = sp[i][0]*sp[i][3];
-	  spz = sp[i][2]*sp[i][3];
+          spx = sp[i][0]*sp[i][3];
+          spz = sp[i][2]*sp[i][3];
 
-	  // dir 1: (k,0,m)
-	  mudotk = (spx*k*unitk[0] + spz*m*unitk[2]); 
+          // dir 1: (k,0,m)
+          mudotk = (spx*k*unitk[0] + spz*m*unitk[2]); 
           cstr1 += mudotk*(cs[k][0][i]*cs[m][2][i]-sn[k][0][i]*sn[m][2][i]);
           sstr1 += mudotk*(sn[k][0][i]*cs[m][2][i]+cs[k][0][i]*sn[m][2][i]);
-	  
-	  // dir 2: (k,0,-m)
-	  mudotk = (spx*k*unitk[0] - spz*m*unitk[2]); 
+
+          // dir 2: (k,0,-m)
+          mudotk = (spx*k*unitk[0] - spz*m*unitk[2]); 
           cstr2 += mudotk*(cs[k][0][i]*cs[m][2][i]+sn[k][0][i]*sn[m][2][i]);
           sstr2 += mudotk*(sn[k][0][i]*cs[m][2][i]-cs[k][0][i]*sn[m][2][i]);
         }
@@ -705,33 +705,33 @@ void EwaldDipoleSpin::eik_dot_r()
           cstr4 = 0.0;
           sstr4 = 0.0;
           for (i = 0; i < nlocal; i++) {
-      	    spx = sp[i][0]*sp[i][3];
-	    spy = sp[i][1]*sp[i][3];
-	    spz = sp[i][2]*sp[i][3];
+            spx = sp[i][0]*sp[i][3];
+            spy = sp[i][1]*sp[i][3];
+            spz = sp[i][2]*sp[i][3];
 
-	    // dir 1: (k,l,m)
-	    mudotk = (spx*k*unitk[0] + spy*l*unitk[1] + spz*m*unitk[2]); 
+            // dir 1: (k,l,m)
+            mudotk = (spx*k*unitk[0] + spy*l*unitk[1] + spz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
             cstr1 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr1 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
-	    // dir 2: (k,-l,m)
-	    mudotk = (spx*k*unitk[0] - spy*l*unitk[1] + spz*m*unitk[2]); 
+            // dir 2: (k,-l,m)
+            mudotk = (spx*k*unitk[0] - spy*l*unitk[1] + spz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
             cstr2 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr2 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
-	    // dir 3: (k,l,-m)
-	    mudotk = (spx*k*unitk[0] + spy*l*unitk[1] - spz*m*unitk[2]); 
+            // dir 3: (k,l,-m)
+            mudotk = (spx*k*unitk[0] + spy*l*unitk[1] - spz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
             cstr3 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr3 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
-	    // dir 4: (k,-l,-m)
-	    mudotk = (spx*k*unitk[0] - spy*l*unitk[1] - spz*m*unitk[2]); 
+            // dir 4: (k,-l,-m)
+            mudotk = (spx*k*unitk[0] - spy*l*unitk[1] - spz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
             cstr4 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);

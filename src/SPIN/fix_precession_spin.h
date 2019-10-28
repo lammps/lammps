@@ -41,14 +41,17 @@ class FixPrecessionSpin : public Fix {
 
   int zeeman_flag, aniso_flag, cubic_flag;
   void compute_single_precession(int, double *, double *);
+  
+  // zeeman calculation
+  
   void compute_zeeman(int, double *);
   
-  // uniaxial aniso calculations
+  // uniaxial aniso calculation
 
   void compute_anisotropy(double *, double *);
   double compute_anisotropy_energy(double *);
 
-  // cubic aniso calculations
+  // cubic aniso calculation
 
   void compute_cubic(double *, double *);
   double compute_cubic_energy(double *);

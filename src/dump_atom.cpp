@@ -15,9 +15,9 @@
 #include <cstring>
 #include "domain.h"
 #include "atom.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -213,6 +213,8 @@ void DumpAtom::header_item(bigint ndump)
     ++unit_count;
     fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
   }
+  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -232,6 +234,8 @@ void DumpAtom::header_item_triclinic(bigint ndump)
     ++unit_count;
     fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
   }
+  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");

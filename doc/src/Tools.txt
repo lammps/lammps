@@ -87,6 +87,7 @@ Miscellaneous tools :h3
 "emacs"_#emacs,
 "i-pi"_#ipi,
 "kate"_#kate,
+"singularity"_#singularity_tool,
 "vim"_#vim :tb(c=5,ea=c,a=l)
 
 :line
@@ -539,6 +540,15 @@ See the README file in tools/spin/interpolate_gneb for more details.
 This tool was written by the SPIN package author, Julien
 Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
 Ivanov, at University of Iceland (ali5 at hi.is).
+
+:line
+
+singularity tool :h4,link(singularity_tool)
+
+The singularity sub-directory contains container definitions files
+that can be used to build container images for building and testing
+LAMMPS on specific OS variants using the "Singularity"_https://sylabs.io
+container software. Contributions for additional variants are welcome.
 
 :line
 

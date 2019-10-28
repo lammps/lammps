@@ -1129,7 +1129,7 @@ namespace ATC {
   FluctuatingKineticTensor::FluctuatingKineticTensor(ATC_Method * atc,
      PerAtomQuantity<double> * atomVelocities,
      PerAtomQuantity<double> * atomMasses,
-     PerAtomQuantity<double> * atomMeanVelocities,
+                                                     PerAtomQuantity<double> * /* atomMeanVelocities */,
      AtomType atomType) :
     ProtectedAtomQuantity<double>(atc,6,atomType),
     atomVelocities_(atomVelocities),

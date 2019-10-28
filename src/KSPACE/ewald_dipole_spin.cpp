@@ -482,7 +482,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
   // global virial
 
   if (vflag_global) {
-    double uk, vk;
+    double uk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
       for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] - vc[k][j];
@@ -763,13 +763,11 @@ void EwaldDipoleSpin::slabcorr()
 {
   // compute local contribution to global dipole/spin moment
 
-  double **x = atom->x;
-  double zprd = domain->zprd;
-  int nlocal = atom->nlocal;
-
   double spin = 0.0;
   double **sp = atom->sp;
-  double spx,spy,spz;
+  double spz;
+  int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; i++) { 
     spz = sp[i][2]*sp[i][3];
     spin += spz;

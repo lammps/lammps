@@ -15,7 +15,7 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {maxfiles} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {maxfiles} or {nfile} or {pad} or {pbc} or {precision} or {region} or {refresh} or {scale} or {sfactor} or {sort} or {tfactor} or {thermo} or {thresh} or {time} or {units} or {unwrap} :l
   {append} arg = {yes} or {no}
   {at} arg = N
     N = index of frame written upon first dump
@@ -30,10 +30,10 @@ keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fi
   {fileper} arg = Np
     Np = write one file for every this many processors
   {first} arg = {yes} or {no}
+  {flush} arg = {yes} or {no}
   {format} args = {line} string, {int} string, {float} string, M string, or {none}
     string = C-style format string
     M = integer from 1 to N, where N = # of per-atom quantities being output
-  {flush} arg = {yes} or {no}
   {image} arg = {yes} or {no}
   {label} arg = string
     string = character string (e.g. BONDS) to use in header of dump local file
@@ -48,19 +48,20 @@ keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fi
   {refresh} arg = c_ID = compute ID that supports a refresh operation
   {scale} arg = {yes} or {no}
   {sfactor} arg = coordinate scaling factor (> 0.0)
-  {thermo} arg = {yes} or {no}
-  {tfactor} arg = time scaling factor (> 0.0)
-  {units} arg = {yes} or {no}
   {sort} arg = {off} or {id} or N or -N
      off = no sorting of per-atom lines within a snapshot
      id = sort per-atom lines by atom ID
      N = sort per-atom lines in ascending order by the Nth column
      -N = sort per-atom lines in descending order by the Nth column
+  {tfactor} arg = time scaling factor (> 0.0)
+  {thermo} arg = {yes} or {no}
+  {time} arg = {yes} or {no}
   {thresh} args = attribute operator value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
     operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "|^"
     value = numeric value to compare to, or LAST
     these 3 args can be replaced by the word "none" to turn off thresholding
+  {units} arg = {yes} or {no}
   {unwrap} arg = {yes} or {no} :pre
 these keywords apply only to the {image} and {movie} "styles"_dump_image.html :l
 keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or {boxcolor} or {color} or {bitrate} or {framerate} :l
@@ -618,6 +619,22 @@ operators.  The XOR operation (exclusive or) is also included as "|^".
 In this context, XOR means that if either the attribute or value is
 0.0 and the other is non-zero, then the result is "true" and the
 threshold criterion is met.  Otherwise it is not met.
+
+:line
+
+The {time} keyword only applies to the dump {atom}, {custom}, and
+{local} styles (and their COMPRESS package versions {atom/gz},
+{custom/gz} and {local/gz}). If set to {yes}, each frame will will
+contain two extra lines before the "ITEM: TIMESTEP" entry:
+
+ITEM: TIME
+\<elapsed time\> :pre
+
+This will output the current elapsed simulation time in current
+time units equivalent to the "thermo keyword"_thermo_style.html {time}.
+This is to simplify post-processing of trajectories using a variable time
+step, e.g. when using "fix dt/reset"_fix_dt_reset.html.
+The default setting is {no}.
 
 :line
 

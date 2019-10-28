@@ -3391,8 +3391,8 @@ void PairAIREBO::read_file(char *filename)
 
     // skip initial comment line and check for potential file style identifier comment
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
     if (((variant == AIREBO) && (strncmp(s,"# AIREBO ",9) != 0))
         || ((variant == REBO_2) && (strncmp(s,"# REBO2 ",8) != 0))

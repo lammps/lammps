@@ -23,6 +23,7 @@ under
 #include <vector>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -81,6 +82,9 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
       PTM_CHECK_GRAPHENE,
       PTM_CHECK_ALL,
       PTM_CHECK_FCC | PTM_CHECK_HCP | PTM_CHECK_BCC | PTM_CHECK_ICO};
+
+  if (lmp->citeme)
+    lmp->citeme->add(cite_user_ptm_package);
 
   input_flags = 0;
   while (*ptr != '\0') {

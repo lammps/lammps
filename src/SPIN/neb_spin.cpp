@@ -43,6 +43,8 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -186,8 +188,8 @@ void NEBSpin::run()
 
   if (update->minimize->searchflag)
     error->all(FLERR,"NEBSpin requires damped dynamics minimizer");
-  if (strcmp(update->minimize_style,"spin") != 0)
-    error->all(FLERR,"NEBSpin requires spin minimizer");
+  if (!utils::strmatch(update->minimize_style,"^spin"))
+    error->all(FLERR,"NEBSpin requires a spin minimizer");
 
   // setup regular NEBSpin minimization
 
@@ -242,6 +244,8 @@ void NEBSpin::run()
 
   timer->init();
   timer->barrier_start();
+
+  // if(ireplica != 0 && ireplica != nreplica -1)
 
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
@@ -639,7 +643,7 @@ int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
   kcrossy = kz*spix - kx*spiz;
   kcrossz = kx*spiy - ky*spix;
 
-  kdots = kx*spix + ky*spiz + kz*spiz;
+  kdots = kx*spix + ky*spiy + kz*spiz;
 
   omega = acos(sidotsf);
   omega *= fraction;

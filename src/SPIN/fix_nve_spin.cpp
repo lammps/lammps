@@ -91,12 +91,17 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // defining lattice_flag
 
+  // changing the lattice option, from (yes,no) -> (moving,frozen)
+  // for now, (yes,no) still works (to avoid user's confusions).
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"lattice") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix/NVE/spin command");
       if (strcmp(arg[iarg+1],"no") == 0) lattice_flag = 0;
+      else if (strcmp(arg[iarg+1],"frozen") == 0) lattice_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) lattice_flag = 1;
+      else if (strcmp(arg[iarg+1],"moving") == 0) lattice_flag = 1;
       else error->all(FLERR,"Illegal fix/NVE/spin command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix/NVE/spin command");

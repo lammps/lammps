@@ -33,6 +33,7 @@
 #include "error.h"
 #include "domain.h"
 #include "citeme.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -374,7 +375,7 @@ void PairLocalDensity::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLocalDensity::settings(int narg, char **arg)
+void PairLocalDensity::settings(int narg, char ** /* arg */)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -438,7 +439,7 @@ void PairLocalDensity::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLocalDensity::init_one(int i, int j)
+double PairLocalDensity::init_one(int /* i */, int /* j */)
 {
   // single global cutoff = max of all uppercuts read in from LD file
 
@@ -457,9 +458,9 @@ double PairLocalDensity::init_one(int i, int j)
   of the LD potential without doing an actual MD run
  ---------------------------------------------------------------------------*/
 
-double PairLocalDensity::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
-                         double &fforce)
+double PairLocalDensity::single(int /* i */, int /* j */, int itype, int jtype,
+				double rsq, double /* factor_coul */,
+				double /* factor_lj */, double &fforce)
 {
     int m, k, index;
     double rsqinv, p, uLD;
@@ -683,14 +684,14 @@ void PairLocalDensity::parse_file(char *filename) {
  // broadcast number of LD potentials and number of (rho,frho) pairs
  if (me == 0) {
     
-    // first 2 comment lines ignored	
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
+   // first 2 comment lines ignored	
+   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     
-    // extract number of potentials and number of (frho, rho) points
-    fgets(line,MAXLINE,fptr);	
-    sscanf(line, "%d %d", &nLD, &nrho);
-    fgets(line,MAXLINE,fptr);
+   // extract number of potentials and number of (frho, rho) points
+   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);	
+   sscanf(line, "%d %d", &nLD, &nrho);
+   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
   }
 
   MPI_Bcast(&nLD,1,MPI_INT,0,world);
@@ -732,7 +733,7 @@ void PairLocalDensity::parse_file(char *filename) {
         sscanf(line, "%lf %lf", &lowercut[k], &uppercut[k]);
     
         // parse and broadcast central atom filter
-        fgets(line, MAXLINE, fptr);
+        utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         char *tmp = strtok(line, " /t/n/r/f");
         while (tmp != NULL) {
             a[k][atoi(tmp)] = 1;
@@ -740,7 +741,7 @@ void PairLocalDensity::parse_file(char *filename) {
         }
         
         // parse neighbor atom filter
-        fgets(line, MAXLINE, fptr);
+        utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         tmp = strtok(line, " /t/n/r/f");
         while (tmp != NULL) {			
             b[k][atoi(tmp)] = 1;
@@ -748,19 +749,19 @@ void PairLocalDensity::parse_file(char *filename) {
         }
     
         // parse min, max and delta rho values
-        fgets(line, MAXLINE, fptr);
+        utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         sscanf(line, "%lf %lf %lf", &rho_min[k], &rho_max[k], &delta_rho[k]);
         // recompute delta_rho from scratch for precision
         delta_rho[k] = (rho_max[k] - rho_min[k]) / (nrho - 1);
         
         // parse tabulated frho values from each line into temporary array
         for (n = 0; n < nrho; n++) {  
-            fgets(line,MAXLINE,fptr);
+          utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
             sscanf(line, "%lf", &ftmp[k*nrho + n]);
         }
         
         // ignore blank line at the end of every block
-        fgets(line,MAXLINE,fptr);
+        utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
 
         // set coefficients for local density indicator function
         uc2 = uppercut[k] * uppercut[k];
@@ -816,7 +817,8 @@ void PairLocalDensity::parse_file(char *filename) {
    communication routines
 ------------------------------------------------------------------------- */
 
-int PairLocalDensity::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int PairLocalDensity::pack_comm(int n, int *list, double *buf,
+				int /* pbc_flag */, int * /* pbc */) {
   int i,j,k;
   int m; 	
 

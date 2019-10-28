@@ -59,11 +59,11 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
 PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
   densityx_brick_dipole(NULL), densityy_brick_dipole(NULL), 
-  densityz_brick_dipole(NULL), ux_brick_dipole(NULL), 
-  uy_brick_dipole(NULL), uz_brick_dipole(NULL), vdxx_brick_dipole(NULL), 
-  vdxy_brick_dipole(NULL), vdyy_brick_dipole(NULL), 
-  vdxz_brick_dipole(NULL), vdyz_brick_dipole(NULL), 
-  vdzz_brick_dipole(NULL), v0x_brick_dipole(NULL), v1x_brick_dipole(NULL), 
+  densityz_brick_dipole(NULL),
+  vdxx_brick_dipole(NULL), vdyy_brick_dipole(NULL), vdzz_brick_dipole(NULL),
+  vdxy_brick_dipole(NULL), vdxz_brick_dipole(NULL), vdyz_brick_dipole(NULL),
+  ux_brick_dipole(NULL), uy_brick_dipole(NULL), uz_brick_dipole(NULL),
+  v0x_brick_dipole(NULL), v1x_brick_dipole(NULL),
   v2x_brick_dipole(NULL), v3x_brick_dipole(NULL), v4x_brick_dipole(NULL), 
   v5x_brick_dipole(NULL), v0y_brick_dipole(NULL), v1y_brick_dipole(NULL), 
   v2y_brick_dipole(NULL), v3y_brick_dipole(NULL), v4y_brick_dipole(NULL), 
@@ -534,10 +534,8 @@ void PPPMDipole::compute(int eflag, int vflag)
   // energy includes self-energy correction
 
   if (evflag_atom) {
-    double *q = atom->q;
     double **mu = atom->mu;
     int nlocal = atom->nlocal;
-    int ntotal = nlocal;
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
@@ -926,11 +924,10 @@ double PPPMDipole::compute_qopt_dipole()
   const double unitkz = (MY_2PI/zprd_slab);
 
   double snx,sny,snz;
-  double cnx,cny,cnz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,sum2,dot1,dot2;
-  double numerator,denominator;
-  double u1,u2,u3,sqk;
+  double denominator;
+  double u1,sqk;
 
   int k,l,m,nx,ny,nz,kper,lper,mper;
 
@@ -943,22 +940,18 @@ double PPPMDipole::compute_qopt_dipole()
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
-    cnz = cos(0.5*unitkz*mper*zprd_slab/nz_pppm);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
       sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
-      cny = cos(0.5*unitky*lper*yprd/ny_pppm);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
         snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
-        cnx = cos(0.5*unitkx*kper*xprd/nx_pppm);
 
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = MY_4PI/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
           sum2 = 0.0;
@@ -1021,10 +1014,9 @@ void PPPMDipole::compute_gf_dipole()
   const double unitkz = (MY_2PI/zprd_slab);
 
   double snx,sny,snz;
-  double cnx,cny,cnz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,dot1,dot2;
-  double numerator,denominator;
+  double denominator;
   double sqk;
 
   int k,l,m,n,nx,ny,nz,kper,lper,mper;
@@ -1044,22 +1036,18 @@ void PPPMDipole::compute_gf_dipole()
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
-    cnz = cos(0.5*unitkz*mper*zprd_slab/nz_pppm);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
       sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
-      cny = cos(0.5*unitky*lper*yprd/ny_pppm);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
         snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
-        cnx = cos(0.5*unitkx*kper*xprd/nx_pppm);
 
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = MY_4PI/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
 
@@ -2389,12 +2377,10 @@ void PPPMDipole::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double **x = atom->x;
-  double zprd = domain->zprd;
-  int nlocal = atom->nlocal;
-
   double dipole = 0.0;
   double **mu = atom->mu;
+  int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
 
   // sum local contributions to get global dipole moment

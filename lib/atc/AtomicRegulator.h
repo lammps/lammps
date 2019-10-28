@@ -90,7 +90,7 @@ namespace ATC {
         
     /** add output information */
     virtual void output(OUTPUT_LIST & outputData) const;
-    virtual double compute_vector(int n) const {return 0;}
+    virtual double compute_vector(int /* n */) const {return 0;}
     
     /** final work at the end of a run */
     virtual void finish();
@@ -123,14 +123,15 @@ namespace ATC {
     virtual void pack_fields(RESTART_LIST & data);
 
     /** thermo output */
-    virtual int size_vector(int s) const {return 0;};
+    virtual int size_vector(int /* s */) const {return 0;};
 
     // coupling to FE state
     /** FE state variable regulator is applied to */
     virtual RegulatorTargetType regulator_target() const {return regulatorTarget_;};
     /** type of boundary coupling */
     //TEMP_JAT field variable should be removed
-    virtual RegulatorCouplingType coupling_mode(const FieldName field=NUM_TOTAL_FIELDS) const {return couplingMode_;};
+    virtual RegulatorCouplingType coupling_mode(const FieldName /* field */) const {return couplingMode_;};
+    virtual RegulatorCouplingType coupling_mode() const {return couplingMode_;};
     /** compute the thermal boundary flux, must be consistent with regulator */
     virtual void compute_boundary_flux(FIELDS & fields);
     /** add contributions (if any) to the finite element right-hand side */
@@ -140,7 +141,7 @@ namespace ATC {
     /** returns a pointer to the DENS_MAN associated with the tag, creates a new data member if necessary */
     DENS_MAN * regulator_data(const std::string tag, int nCols);
     /** can externally set regulator dynamic contributions */
-    virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field) {};
+    virtual void reset_lambda_contribution(const DENS_MAT & /* target */, const FieldName /* field */) {};
     virtual void reset_lambda_contribution(const DENS_MAT & target) { reset_lambda_contribution(target,NUM_TOTAL_FIELDS); }
     /** returns a const pointer to the DENS_MAN associated with the tag, or NULL */
     const DENS_MAN * regulator_data(const std::string tag) const;
@@ -291,29 +292,29 @@ namespace ATC {
     virtual void reset_nlocal(){};
 
     /** set up atom to material identification */
-    virtual void reset_atom_materials(const Array<int> & elementToMaterialMap,
-                                      const MatrixDependencyManager<DenseMatrix, int> * atomElement){};
+    virtual void reset_atom_materials(const Array<int> & /* elementToMaterialMap */,
+                                      const MatrixDependencyManager<DenseMatrix, int> * /* atomElement */){};
         
     /** applies regulator to atoms in the pre-predictor phase */
-    virtual void apply_pre_predictor(double dt){};
+    virtual void apply_pre_predictor(double /* dt */){};
 
     /** applies regulator to atoms in the mid-predictor phase */
-    virtual void apply_mid_predictor(double dt){};
+    virtual void apply_mid_predictor(double /* dt */){};
 
     /** applies regulator to atoms in the post-predictor phase */
-    virtual void apply_post_predictor(double dt){};
+    virtual void apply_post_predictor(double /* dt */){};
 
     /** applies regulator to atoms in the pre-corrector phase */
-    virtual void apply_pre_corrector(double dt){};
+    virtual void apply_pre_corrector(double /* dt */){};
 
     /** applies regulator to atoms in the post-corrector phase */
-    virtual void apply_post_corrector(double dt){};
+    virtual void apply_post_corrector(double /* dt */){};
 
     /** applies regulator to atoms in the pre-corrector phase */
-    virtual void apply_pre_force(double dt){};
+    virtual void apply_pre_force(double /* dt */){};
 
     /** applies regulator to atoms in the post-corrector phase */
-    virtual void apply_post_force(double dt){};
+    virtual void apply_post_force(double /* dt */){};
 
     /** applies regulator in pre-force phase */
     virtual void pre_force(){};
@@ -328,17 +329,17 @@ namespace ATC {
     virtual void compute_boundary_flux(FIELDS & fields);
 
     /** add contributions (if any) to the finite element right-hand side */
-    virtual void add_to_rhs(FIELDS & rhs){};
+    virtual void add_to_rhs(FIELDS & /* rhs */){};
 
     /** get data for output */
-    virtual void output(OUTPUT_LIST & outputData){};
-    virtual double compute_vector(int n) const {return 0;}
+    virtual void output(OUTPUT_LIST & /* outputData */){};
+    virtual double compute_vector(int /* n */) const {return 0;}
 
     /** final work at the end of a run */
     virtual void finish(){};
 
     /** pack fields for restart */
-    virtual void pack_fields(RESTART_LIST & data){};
+    virtual void pack_fields(RESTART_LIST & /* data */){};
         
   protected:
 

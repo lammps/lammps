@@ -210,6 +210,7 @@ Berne
 Bertotti
 Bessarab
 Beutler
+Bext
 bgq
 Bh
 Biersack
@@ -726,6 +727,7 @@ Elsner
 Elstner
 elt
 emacs
+emag
 emax
 Emax
 Embt
@@ -1033,6 +1035,7 @@ Gunsteren
 Gunzenmuller
 Guo
 gw
+gyromagnetic
 gz
 gzipped
 Haak
@@ -1052,6 +1055,7 @@ Haswell
 Haugk
 Hayoun
 Hayre
+hbar
 hbcut
 hbn
 hbnewflag
@@ -1391,6 +1395,7 @@ Lammps
 LAMMPS
 lammpsplot
 Lamoureux
+Lande
 Landron
 langevin
 Langevin
@@ -1761,6 +1766,7 @@ Mtotal
 muB
 Muccioli
 Mukherjee
+mui
 Mulders
 multi
 multibody

@@ -19,7 +19,7 @@ input = one or more atom attributes :l
                         x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
                         vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz, mu,
-                        sp, spx, spy, spz, fmx, fmy, fmz,
+                        sp, spx, spy, spz, fmx, fmy, fmz, emag,
                         radius, diameter, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz,
                         shapex,shapey, shapez,
@@ -50,6 +50,7 @@ input = one or more atom attributes :l
       sp = atomic magnetic spin moment
       spx, spy, spz = direction of the atomic magnetic spin
       fmx, fmy, fmz = magnetic force
+      emag = magnetic energy of particle
       radius,diameter = radius,diameter of spherical particle
       omegax,omegay,omegaz = angular velocity of spherical particle
       angmomx,angmomy,angmomz = angular momentum of aspherical particle
@@ -142,6 +143,14 @@ floating-point properties that have been added to each atom via the
 is used specific names are given to each attribute which are what is
 specified as the "name" portion of {i_name} or {d_name}.
 
+For the spin quantities, sp is the atomic moment of the particle 
+accounted for in multiples of the Bohr magneton (for example, sp
+~ 2.2 for bulk iron), spx, spy, and spz are unitless quantities
+defining the direction of the spin vector of the particle, 
+and fmx, fmy and fmz are the precession frequency applied to the
+spin of the particle (in rad/THz).
+emag is the magnetic energy of the particle (in eV).
+
 [Output info:]
 
 This compute calculates a per-atom vector or per-atom array depending
@@ -156,10 +165,6 @@ options.
 The vector or array values will be in whatever "units"_units.html the
 corresponding attribute is in, e.g. velocity units for vx, charge
 units for q, etc.
-
-For the spin quantities, sp is in the units of the Bohr magneton, spx,
-spy, and spz are unitless quantities, and fmx, fmy and fmz are given
-in rad/THz.
 
 [Restrictions:] none
 

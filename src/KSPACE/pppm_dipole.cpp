@@ -834,7 +834,7 @@ void PPPMDipole::set_grid_global()
     while (1) {
 
       // set grid dimension
-      
+
       nx_pppm = static_cast<int> (xprd/h_x);
       ny_pppm = static_cast<int> (yprd/h_y);
       nz_pppm = static_cast<int> (zprd_slab/h_z);
@@ -844,7 +844,7 @@ void PPPMDipole::set_grid_global()
       if (nz_pppm <= 1) nz_pppm = 2;
 
       // set local grid dimension
-      
+
       int npey_fft,npez_fft;
       if (nz_pppm >= nprocs) {
         npey_fft = 1;
@@ -2505,7 +2505,7 @@ double PPPMDipole::memory_usage()
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += 6 * nfft_both * sizeof(double);   // vg
-  bytes += nfft_both * sizeof(double); 	     // greensfn
+  bytes += nfft_both * sizeof(double);       // greensfn
   bytes += nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
   bytes += 9 * nbrick * sizeof(FFT_SCALAR);  // ubrick*3 + vdbrick*6
   bytes += nfft_both*7 * sizeof(FFT_SCALAR); // density_ffx*3 + work*2*2

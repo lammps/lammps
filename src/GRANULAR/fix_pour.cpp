@@ -782,25 +782,27 @@ int FixPour::overlap(int i)
    return 1 if value is outside, 0 if inside
 ------------------------------------------------------------------------- */
 
-int FixPour::outside(int dim, double value, double lo, double hi)
+bool FixPour::outside(int dim, double value, double lo, double hi)
 {
   double boxlo = domain->boxlo[dim];
   double boxhi = domain->boxhi[dim];
+  bool outside_pbc_range = true;
+  bool outside_regular_range = (value < lo || value > hi);
 
   if (domain->periodicity[dim]) {
     if (lo < boxlo && hi > boxhi) {
-      return 0;
+      // value is always inside
+      outside_pbc_range = false;
     } else if (lo < boxlo) {
-      if (value > hi && value < lo + domain->prd[dim]) return 1;
+      // lower boundary crosses periodic boundary
+      outside_pbc_range = (value > hi && value < lo + domain->prd[dim]);
     } else if (hi > boxhi) {
-      if (value > hi - domain->prd[dim] && value < lo) return 1;
-    } else {
-      if (value < lo || value > hi) return 1;
+      // upper boundary crosses periodic boundary
+      outside_pbc_range = (value < lo && value > hi - domain->prd[dim]);
     }
   }
 
-  if (value < lo || value > hi) return 1;
-  return 0;
+  return (outside_pbc_range && outside_regular_range);
 }
 
 /* ---------------------------------------------------------------------- */

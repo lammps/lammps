@@ -790,7 +790,7 @@ bool FixPour::outside(int dim, double value, double lo, double hi)
   bool outside_regular_range = (value < lo || value > hi);
 
   if (domain->periodicity[dim]) {
-    if (lo < boxlo && hi > boxhi) {
+    if ((lo < boxlo && hi > boxhi) || (hi - lo) > domain->prd[dim]) {
       // value is always inside
       outside_pbc_range = false;
     } else if (lo < boxlo) {

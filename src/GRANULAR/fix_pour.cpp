@@ -167,8 +167,11 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (idnext) find_maxid();
 
   // random number generator, same for all procs
+  // warm up the generator 30x to avoid correlations in first-particle
+  // positions if runs are repeated with consecutive seeds
 
   random = new RanPark(lmp,seed);
+  for (int ii=0; ii < 30; ii++) random->uniform();
 
   // allgather arrays
 

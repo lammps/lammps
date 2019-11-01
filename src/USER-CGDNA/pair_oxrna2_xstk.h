@@ -13,23 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(oxdna2/dh,PairOxdna2Dh)
+PairStyle(oxrna2/xstk,PairOxrna2Xstk)
 
 #else
 
-#ifndef LMP_PAIR_OXDNA2_DH_H
-#define LMP_PAIR_OXDNA2_DH_H
+#ifndef LMP_PAIR_OXRNA2_XSTK_H
+#define LMP_PAIR_OXRNA2_XSTK_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairOxdna2Dh : public Pair {
+class PairOxrna2Xstk : public Pair {
  public:
-  PairOxdna2Dh(class LAMMPS *);
-  virtual ~PairOxdna2Dh();
-  virtual void compute_interaction_sites(double *, double *, double *, 
-    double *);
+  PairOxrna2Xstk(class LAMMPS *);
+  virtual ~PairOxrna2Xstk();
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -44,12 +42,27 @@ class PairOxdna2Dh : public Pair {
   void *extract(const char *, int &);
 
  protected:
+  // cross-stacking interaction
+  double **k_xst, **cut_xst_0, **cut_xst_c, **cut_xst_lo, **cut_xst_hi;
+  double **cut_xst_lc, **cut_xst_hc, **b_xst_lo, **b_xst_hi;
+  double **cutsq_xst_hc;
 
-  double **qeff_dh_pf,**kappa_dh;
-  double **b_dh,**cut_dh_ast,**cutsq_dh_ast,**cut_dh_c,**cutsq_dh_c;
+  double **a_xst1, **theta_xst1_0, **dtheta_xst1_ast;
+  double **b_xst1, **dtheta_xst1_c;
+
+  double **a_xst2, **theta_xst2_0, **dtheta_xst2_ast;
+  double **b_xst2, **dtheta_xst2_c;
+
+  double **a_xst3, **theta_xst3_0, **dtheta_xst3_ast;
+  double **b_xst3, **dtheta_xst3_c;
+
+  double **a_xst7, **theta_xst7_0, **dtheta_xst7_ast;
+  double **b_xst7, **dtheta_xst7_c;
+
+  double **a_xst8, **theta_xst8_0, **dtheta_xst8_ast;
+  double **b_xst8, **dtheta_xst8_c;
 
   virtual void allocate();
-
 };
 
 }

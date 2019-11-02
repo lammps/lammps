@@ -251,10 +251,10 @@ void DumpCACXYZ::pack(tagint *ids)
               unit_cell[0]=unit_cell_mapped[0]/2+e1*unit_cell_mapped[0]-1;
               unit_cell[1]=unit_cell_mapped[1]/2+e2*unit_cell_mapped[1]-1;
               unit_cell[2]=unit_cell_mapped[2]/2+e3*unit_cell_mapped[2]-1;
-              xmap[0]=0;
-              xmap[1]=0;
-              xmap[2]=0;
               for (int polyscan = 0; polyscan < poly_count[i]; polyscan++) {
+                xmap[0]=0;
+                xmap[1]=0;
+                xmap[2]=0;
                 for (int kk = 0; kk < nodes_per_element; kk++) {
             	    shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
 				          xmap[0] += current_nodal_positions[polyscan][kk][0] * shape_func;

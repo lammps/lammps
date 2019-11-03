@@ -198,7 +198,7 @@ accelerated styles exist.
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
 * :doc:`client/md <fix_client_md>` - MD client for client/server simulations
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
-* :doc:`colvars <fix_colvars>` - interface to the collective variables “Colvars” library
+* :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
@@ -231,7 +231,7 @@ accelerated styles exist.
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
-* :doc:`imd <fix_imd>` - implements the “Interactive MD” (IMD) protocol
+* :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations
 * :doc:`langevin <fix_langevin>` - Langevin temperature control

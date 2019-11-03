@@ -221,7 +221,7 @@ described by the following piece of python code:
 .. note::
 
    the *diagonal* keyword allowing other possible choices
-   for the number of bispectrum components was removed in 2019, 
+   for the number of bispectrum components was removed in 2019,
    since all potentials use the value of 3, corresponding to the
    above set of bispectrum components.
 

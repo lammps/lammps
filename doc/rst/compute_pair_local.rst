@@ -76,6 +76,23 @@ which calculate the tangential force between two particles and return
 its components and magnitude acting on atom I for N = 1,2,3,4.  See
 individual pair styles for details.
 
+When using *pN* with pair style *hybrid*\ , the output will be the Nth
+quantity from the sub-style that computes the pairwise interaction
+(based on atom types).  If that sub-style does not define a *pN*\ ,
+the output will be 0.0.  The maximum allowed N is the maximum number
+of quantities provided by any sub-style.
+
+When using *pN* with pair style *hybrid/overlay* the quantities
+from all sub-styles that provide them are concatenated together
+into one long list. For example, if there are 3 sub-styles and
+2 of them have additional output (with 3 and 4 quantities,
+respectively), then 7 values (\ *p1* up to *p7*\ ) are defined.
+The values *p1* to *p3* refer to quantities defined by the first
+of the two sub-styles.  Values *p4* to *p7* refer to quantities
+from the second of the two sub-styles.  If the referenced *pN*
+is not computed for the specific pairwise interaction (based on
+atom types), then the output will be 0.0.
+
 The value *dist* will be in distance :doc:`units <units>`.  The value
 *eng* will be in energy :doc:`units <units>`.  The values *force*\ , *fx*\ ,
 *fy*\ , and *fz* will be in force :doc:`units <units>`.  The values *pN*
@@ -140,7 +157,7 @@ options.
 The output for *dist* will be in distance :doc:`units <units>`.  The
 output for *eng* will be in energy :doc:`units <units>`.  The output for
 *force*\ , *fx*\ , *fy*\ , and *fz* will be in force :doc:`units <units>`.
-The outpur for *pN* will be in whatever units the pair style defines.
+The output for *pN* will be in whatever units the pair style defines.
 
 Restrictions
 """"""""""""

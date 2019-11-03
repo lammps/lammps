@@ -21,7 +21,7 @@ Examples
 .. parsed-literal::
 
    improper_style fourier
-   improper_coeff 1 100.0 180.0
+   improper_coeff 1 100.0 0.0 1.0 0.5 1
 
 Description
 """""""""""
@@ -31,13 +31,13 @@ The *fourier* improper style uses the following potential:
 .. image:: Eqs/improper_fourier.jpg
    :align: center
 
-where K is the force constant and omega is the angle between the IL
-axis and the IJK plane:
+where K is the force constant, C0, C1, C2 are dimensionless coefficients,
+and omega is the angle between the IL axis and the IJK plane:
 
 .. image:: JPG/umbrella.jpg
    :align: center
 
-If all parameter (see bellow) is not zero, the all the three possible angles will taken in account.
+If all parameter (see below) is not zero, the all the three possible angles will taken in account.
 
 The following coefficients must be defined for each improper type via
 the :doc:`improper\_coeff <improper_coeff>` command as in the example
@@ -46,10 +46,10 @@ above, or in the data file or restart files read by the
 commands:
 
 * K (energy)
-* C0 (real)
-* C1 (real)
-* C2 (real)
-* all  (integer >= 0)
+* C0 (unitless)
+* C1 (unitless)
+* C2 (unitless)
+* all  (0 or 1, optional)
 
 
 ----------

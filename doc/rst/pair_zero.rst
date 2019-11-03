@@ -75,9 +75,8 @@ shift, table, and tail options.
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+This pair style supports the use of the *inner*\ , *middle*\ ,
+and *outer* keywords of the :doc:`run\_style respa <run_style>` command.
 
 
 ----------

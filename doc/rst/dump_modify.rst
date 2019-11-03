@@ -14,7 +14,7 @@ Syntax
 * dump-ID = ID of dump to modify
 * one or more keyword/value pairs may be appended
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *precision* or *region* or *scale* or *sort* or *thresh* or *unwrap*
+* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
   
   .. parsed-literal::
   
@@ -32,10 +32,10 @@ Syntax
        *fileper* arg = Np
          Np = write one file for every this many processors
        *first* arg = *yes* or *no*
+       *flush* arg = *yes* or *no*
        *format* args = *line* string, *int* string, *float* string, M string, or *none*
          string = C-style format string
          M = integer from 1 to N, where N = # of per-atom quantities being output
-       *flush* arg = *yes* or *no*
        *image* arg = *yes* or *no*
        *label* arg = string
          string = character string (e.g. BONDS) to use in header of dump local file
@@ -50,18 +50,20 @@ Syntax
        *refresh* arg = c_ID = compute ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
-       *thermo* arg = *yes* or *no*
-       *tfactor* arg = time scaling factor (> 0.0)
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
           id = sort per-atom lines by atom ID
           N = sort per-atom lines in ascending order by the Nth column
           -N = sort per-atom lines in descending order by the Nth column
+       *tfactor* arg = time scaling factor (> 0.0)
+       *thermo* arg = *yes* or *no*
+       *time* arg = *yes* or *no*
        *thresh* args = attribute operator value
          attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
          operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
          value = numeric value to compare to, or LAST
          these 3 args can be replaced by the word "none" to turn off thresholding
+       *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
@@ -716,6 +718,47 @@ threshold criterion is met.  Otherwise it is not met.
 ----------
 
 
+The *time* keyword only applies to the dump *atom*\ , *custom*\ , and
+*local* styles (and their COMPRESS package versions *atom/gz*\ ,
+*custom/gz* and *local/gz*\ ). If set to *yes*\ , each frame will will
+contain two extra lines before the "ITEM: TIMESTEP" entry:
+
+
+.. parsed-literal::
+
+   ITEM: TIME
+   \<elapsed time\>
+
+This will output the current elapsed simulation time in current
+time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
+This is to simplify post-processing of trajectories using a variable time
+step, e.g. when using :doc:`fix dt/reset <fix_dt_reset>`.
+The default setting is *no*\ .
+
+
+----------
+
+
+The *units* keyword only applies to the dump *atom*\ , *custom*\ , and
+*local* styles (and their COMPRESS package versions *atom/gz*\ ,
+*custom/gz* and *local/gz*\ ). If set to *yes*\ , each individual dump
+file will contain two extra lines at the very beginning with:
+
+
+.. parsed-literal::
+
+   ITEM: UNITS
+   \<units style\>
+
+This will output the current selected :doc:`units <units>` style
+to the dump file and thus allows visualization and post-processing
+tools to determine the choice of units of the data in the dump file.
+The default setting is *no*\ .
+
+
+----------
+
+
 The *unwrap* keyword only applies to the dump *dcd* and *xtc* styles.
 If set to *yes*\ , coordinates will be written "unwrapped" by the image
 flags for each atom.  Unwrapped means that if the atom has passed through
@@ -1050,6 +1093,7 @@ The option defaults are
 * sort = off for dump styles *atom*\ , *custom*\ , *cfg*\ , and *local*
 * sort = id for dump styles *dcd*\ , *xtc*\ , and *xyz*
 * thresh = none
+* units = no
 * unwrap = no
 
 * acolor = \* red/green/blue/yellow/aqua/cyan

@@ -38,9 +38,16 @@ Description
 """""""""""
 
 Define a calculation that "spreads" one or more per-chunk values to
-each atom in the chunk.  This can be useful for creating a :doc:`dump file <dump>` where each atom lists info about the chunk it is in,
-e.g. for post-processing purposes.  It can also be used in :doc:`atom-style variables <variable>` that need info about the chunk each atom is
-in.  Examples are given below.
+each atom in the chunk.  This can be useful in several scenarios:
+
+* For creating a :doc:`dump file <dump>` where each atom lists info about
+  the chunk it is in, e.g. for post-processing purposes.
+* To access chunk value in :doc:`atom-style variables <variable>` that
+  need info about the chunk each atom is in.
+* To use the :doc:`fix ave/chunk <fix_ave_chunk>` command to spatially
+  average per-chunk values calculated by a per-chunk compute.
+
+Examples are given below.
 
 In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
@@ -166,6 +173,33 @@ in the 32000 atom system:
         800    22.584683    4.9691734    4.6000016
         900     22.59128    5.0247538    4.5611513
        1000    22.586832      4.94697    4.5238362
+
+
+----------
+
+
+Here is an example for using one set of chunks, defined for molecules,
+to compute the dipole moment vector for each chunk.  E.g. for water
+molecules. Then spreading those values to each atom in each chunk.
+Then defining a second set of chunks based on spatial bins.  And
+finally, using the :doc:`fix ave/chunk <fix_ave_chunk>` command to
+calculate an average dipole moment vector per spatial bin.
+
+
+.. parsed-literal::
+
+   compute       cmol all chunk/atom molecule
+   compute       dipole all dipole/chunk cmol
+   compute       spread all chunk/spread/atom cmol c_dipole[1] c_dipole[2] c_dipole[3]
+   compute       cspatial all chunk/atom bin/1d z lower 0.1 units reduced
+   fix           ave all ave/chunk 100 10 1000 cspatial c_spread[\*]
+
+Note that the :doc:`fix ave/chunk <fix_ave_chunk>` command requires
+per-atom values as input.  That is why the compute chunk/spread/atom
+command is used to assign per-chunk values to each atom in the chunk.
+If a molecule straddles bin boundaries, each of its atoms contributes
+in a weighted manner to the average dipole moment of the spatial bin
+it is in.
 
 
 ----------

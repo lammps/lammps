@@ -3702,6 +3702,18 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix langevin angmom requires extended particles*
    This fix option cannot be used with point particles.
 
+*Fix langevin gjf and respa are not compatible*
+   Self-explanatory.
+
+*Fix langevin gjf cannot have period equal to dt/2*
+   If the period is equal to dt/2 then division by zero will happen.
+
+*Fix langevin gjf should come before fix nve*
+   Self-explanatory.
+
+*Fix langevin gjf with tbias is not yet implemented with kokkos*
+   This option is not yet available.
+
 *Fix langevin omega is not yet implemented with kokkos*
    This option is not yet available.
 

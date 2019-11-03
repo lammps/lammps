@@ -28,7 +28,7 @@ Description
 
 Define a computation that calculates the eigenvalues of the gyration tensor of a
 group of atoms and three shape parameters. The computation includes all effects
-due to atoms passing thru periodic boundaries.
+due to atoms passing through periodic boundaries.
 
 The three computed shape parameters are the asphericity, b, the acylindricity, c,
 and the relative shape anisotropy, k:
@@ -96,6 +96,12 @@ Related commands
 
 
 **(Theodorou)** Theodorou, Suter, Macromolecules, 18, 1206 (1985).
+
+.. _Mattice:
+
+
+
+**(Mattice)** Mattice, Suter, Conformational Theory of Large Molecules, Wiley, New York, 1994.
 
 
 .. _lws: http://lammps.sandia.gov

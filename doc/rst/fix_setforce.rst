@@ -81,15 +81,15 @@ to it.
 ----------
 
 
-Style *spin* suffix sets the components of the magnetic precession 
-vectors instead of the mechanical forces. This also erases all 
-previously computed magnetic precession vectors on the atom, though 
+Style *spin* suffix sets the components of the magnetic precession
+vectors instead of the mechanical forces. This also erases all
+previously computed magnetic precession vectors on the atom, though
 additional magnetic fixes could add new forces.
 
-This command can be used to freeze the magnetic moment of certain 
+This command can be used to freeze the magnetic moment of certain
 atoms in the simulation by zeroing their precession vector.
 
-All options defined above remain valid, they just apply to the magnetic 
+All options defined above remain valid, they just apply to the magnetic
 precession vectors instead of the forces.
 
 

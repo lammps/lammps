@@ -62,15 +62,17 @@ Post-processing tools
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
 | :ref:`lmp2arc <arc>`     | :ref:`lmp2cfg <cfg>`       | :ref:`matlab <matlab>` | :ref:`phonon <phonon>`   | :ref:`pymol\_asphere <pymol>` | :ref:`python <pythontools>` |
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`reax <reax_tool>`  | :ref:`smd <smd>`           | :ref:`spin <spin>`     | :ref:`xmgrace <xmgrace>` |                               |                             |
+| :ref:`reax <reax_tool>`  | :ref:`replica <replica>`   | :ref:`smd <smd>`       | :ref:`spin <spin>`       | :ref:`xmgrace <xmgrace>`      |                             |
 +--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
 
 Miscellaneous tools
 ===================
 
-+--------------------------+----------------------+-------------------+--------------------+------------------+
-| :ref:`doxygen <doxygen>` | :ref:`emacs <emacs>` | :ref:`i-pi <ipi>` | :ref:`kate <kate>` | :ref:`vim <vim>` |
-+--------------------------+----------------------+-------------------+--------------------+------------------+
++--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
+| :ref:`doxygen <doxygen>` | :ref:`emacs <emacs>` | :ref:`i-pi <ipi>` | :ref:`kate <kate>` | :ref:`singularity <singularity_tool>` |
++--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
+| :ref:`vim <vim>`         |                      |                   |                    |                                       |
++--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
 
 
 ----------
@@ -618,6 +620,26 @@ README for more info on Pizza.py and how to use these scripts.
 ----------
 
 
+.. _replica:
+
+replica tool
+--------------------------
+
+The tools/replica directory contains the reorder\_remd\_traj python script which
+can be used to reorder the replica trajectories (resulting from the use of the 
+temper command) according to temperature. This will produce discontinuous
+trajectories with all frames at the same temperature in each trajectory.
+Additional options can be used to calculate the canonical configurational
+log-weight for each frame at each temperature using the pymbar package. See
+the README.md file for further details. Try out the peptide example provided.
+
+This tool was written by (and is maintained by) Tanmoy Sanyal, 
+while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
+
+
+----------
+
+
 .. _reax\_tool:
 
 reax tool
@@ -661,14 +683,28 @@ spin tool
 --------------------
 
 The spin sub-directory contains a C file interpolate.c which can
-be compiled and used to perform a cubic polynomial interpolation of 
+be compiled and used to perform a cubic polynomial interpolation of
 the MEP following a GNEB calculation.
 
 See the README file in tools/spin/interpolate\_gneb for more details.
 
 This tool was written by the SPIN package author, Julien
-Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei 
+Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
 Ivanov, at University of Iceland (ali5 at hi.is).
+
+
+----------
+
+
+.. _singularity\_tool:
+
+singularity tool
+----------------------------------------
+
+The singularity sub-directory contains container definitions files
+that can be used to build container images for building and testing
+LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
+container software. Contributions for additional variants are welcome.
 
 
 ----------

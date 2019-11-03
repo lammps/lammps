@@ -50,8 +50,8 @@ can be found in pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 .. note::
 
    This potential (ILP) is intended for interlayer interactions between two
-   different layers of graphene. To perform a realistic simulation, this potential 
-   must be used in combination with intralayer potential, such as 
+   different layers of graphene. To perform a realistic simulation, this potential
+   must be used in combination with intralayer potential, such as
    :doc:`AIREBO <pair_airebo>` or :doc:`Tersoff <pair_tersoff>` potential.
    To keep the intralayer properties unaffected, the interlayer interaction
    within the same layers should be avoided. Hence, each atom has to have a layer

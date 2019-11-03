@@ -26,8 +26,8 @@ Syntax
 .. parsed-literal::
 
      *preset* arg = *2011* or *2015* = which set of predefined parameters to use
-     	   2011 = use the potential parameters from :ref:`(Tainter 2011) <Tainter2011>`
-     	   2015 = use the potential parameters from :ref:`(Tainter 2015) <Tainter2015>`
+              2011 = use the potential parameters from :ref:`(Tainter 2011) <Tainter2011>`
+              2015 = use the potential parameters from :ref:`(Tainter 2015) <Tainter2015>`
      *Ea* arg = three-body energy for type A hydrogen bonding interactions (energy units)
      *Eb* arg = three-body energy for type B hydrogen bonding interactions (energy units)
      *Ec* arg = three-body energy for type C hydrogen bonding interactions (energy units)

@@ -208,6 +208,8 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | SPIN       | examples for features of the SPIN package                                                        |
 +------------+--------------------------------------------------------------------------------------------------+
+| UNITS      | examples that run the same simulation in lj, real, metal units                                   |
++------------+--------------------------------------------------------------------------------------------------+
 | USER       | examples for USER packages and USER-contributed commands                                         |
 +------------+--------------------------------------------------------------------------------------------------+
 | VISCOSITY  | compute viscosity via several methods                                                            |

@@ -47,14 +47,14 @@ thermo\_style commands, for example:
 
 .. parsed-literal::
 
-   compute out_mag		all spin
+   compute out_mag         all spin
 
-   variable mag_z      	equal c_out_mag[3]
-   variable mag_norm	equal c_out_mag[4]
-   variable temp_mag      	equal c_out_mag[6]
+   variable mag_z          equal c_out_mag[3]
+   variable mag_norm       equal c_out_mag[4]
+   variable temp_mag       equal c_out_mag[6]
 
-   thermo          	10
-   thermo_style    	custom step v_mag_z v_mag_norm v_temp_mag
+   thermo                  10
+   thermo_style            custom step v_mag_z v_mag_norm v_temp_mag
 
 This series of commands evaluates the total magnetization along z, the norm of
 the total magnetization, and the magnetic temperature. Three variables are

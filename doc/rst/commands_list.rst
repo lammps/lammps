@@ -108,6 +108,7 @@ Commands
    thermo
    thermo_modify
    thermo_style
+   third_order
    timer
    timestep
    uncompute

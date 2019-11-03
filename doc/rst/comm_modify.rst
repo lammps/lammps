@@ -50,11 +50,12 @@ processors and stored as properties of ghost atoms.
 .. note::
 
    These options apply to the currently defined comm style.  When
-   you specify a :doc:`comm\_style <comm_style>` command, all communication
-   settings are restored to their default values, including those
+   you specify a :doc:`comm\_style <comm_style>` or
+   :doc:`read\_restart <read_restart>` command, all communication settings
+   are restored to their default or stored values, including those
    previously reset by a comm\_modify command.  Thus if your input script
-   specifies a comm\_style command, you should use the comm\_modify command
-   after it.
+   specifies a comm\_style or read\_restart command, you should use the
+   comm\_modify command after it.
 
 The *mode* keyword determines whether a single or multiple cutoff
 distances are used to determine which atoms to communicate.

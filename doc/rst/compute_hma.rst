@@ -40,7 +40,7 @@ Description
 
 Define a computation that calculates the properties of a solid (potential
 energy, pressure or heat capacity), using the harmonically-mapped averaging
-(HMA) method. 
+(HMA) method.
 This command yields much higher precision than the equivalent compute commands
 (:doc:`compute pe <compute_pe>`, :doc:`compute pressure <compute_pressure>`, etc.)
 commands during a canonical simulation of an atomic crystal. Specifically,
@@ -58,7 +58,7 @@ restricted to simulations in the NVT ensemble.  While this compute may be
 used with any potential in LAMMPS, it will provide inaccurate results
 for potentials that do not go to 0 at the truncation distance;
 :doc:`pair\_lj\_smooth\_linear <pair_lj_smooth_linear>` and Ewald summation should
-work fine, while :doc:`pair\_lj <pair_lj>` will perform poorly unless 
+work fine, while :doc:`pair\_lj <pair_lj>` will perform poorly unless
 the potential is shifted (via :doc:`pair\_modify <pair_modify>` shift) or the cutoff is large.  Furthermore, computation of the heat capacity with
 this compute is restricted to those that implement the single\_hessian method
 in Pair.  Implementing single\_hessian in additional pair styles is simple.
@@ -70,8 +70,8 @@ the list of pair styles that currently implement pair\_hessian:
 
 
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble
-averages, which leads to an accurate and precise measurement of the anharmonic contributions without contamination 
-by noise produced by the already-known harmonic behavior. 
+averages, which leads to an accurate and precise measurement of the anharmonic contributions without contamination
+by noise produced by the already-known harmonic behavior.
 A detailed description of this method can be found in (:ref:`Moustafa <hma-Moustafa>`). The potential energy is computed by the formula:
 
 
@@ -81,8 +81,8 @@ A detailed description of this method can be found in (:ref:`Moustafa <hma-Moust
 
 where :math:`N` is the number of atoms in the system, :math:`k_B` is Boltzmann's
 constant, :math:`T` is the temperature, :math:`d` is the
-dimensionality of the system (2 or 3 for 2d/3d), :math:`F\bullet\Delta r` is the sum of dot products of the 
-atomic force vectors and displacement (from lattice sites) vectors, and :math:`U` is the sum of 
+dimensionality of the system (2 or 3 for 2d/3d), :math:`F\bullet\Delta r` is the sum of dot products of the
+atomic force vectors and displacement (from lattice sites) vectors, and :math:`U` is the sum of
 pair, bond, angle, dihedral, improper, kspace (long-range), and fix energies.
 
 The pressure is computed by the formula:
@@ -130,14 +130,14 @@ When using this keyword, the compute must be first active (it must be included
 via a :doc:`thermo\_style custom <thermo_style>` command) while the atoms are
 still at their lattice sites (before equilibration).
 
-The temp-ID specified with compute hma command should be same as the fix-ID of Nose-Hoover (:doc:`fix nvt <fix_nh>`) or 
-Berendsen (:doc:`fix temp/berendsen <fix_temp_berendsen>`) thermostat used for the simulation. While using this command, Langevin thermostat 
-(:doc:`fix langevin <fix_langevin>`) 
+The temp-ID specified with compute hma command should be same as the fix-ID of Nose-Hoover (:doc:`fix nvt <fix_nh>`) or
+Berendsen (:doc:`fix temp/berendsen <fix_temp_berendsen>`) thermostat used for the simulation. While using this command, Langevin thermostat
+(:doc:`fix langevin <fix_langevin>`)
 should be avoided as its extra forces interfere with the HMA implementation.
 
 .. note::
 
-   Compute hma command should be used right after the energy minimization, when the atoms are at their lattice sites. 
+   Compute hma command should be used right after the energy minimization, when the atoms are at their lattice sites.
    The simulation should not be started before this command has been used in the input script.
 
 The following example illustrates the placement of this command in the input script:
@@ -145,8 +145,8 @@ The following example illustrates the placement of this command in the input scr
 
 .. parsed-literal::
 
-   min_style cg 
-   minimize 1e-35 1e-15 50000 500000 
+   min_style cg
+   minimize 1e-35 1e-15 50000 500000
    compute 1 all hma thermostatid u
    fix thermostatid all nvt temp 600.0 600.0 100.0
 
@@ -200,7 +200,7 @@ this compute.
 
 
 
-**(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ , 
+**(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ ,
 `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
 
 

@@ -123,7 +123,13 @@ manner:
    dump file with snapshots at 300K (from all replicas), another with
    snapshots at 310K, etc.  Note that these new dump files will not
    contain "continuous trajectories" for individual atoms, because two
-   successive snapshots (in time) may be from different replicas.
+   successive snapshots (in time) may be from different replicas. The 
+   reorder\_remd\_traj python script can do the reordering for you 
+   (and additionally also calculated configurational log-weights of 
+   trajectory snapshots in the canonical ensemble). The script can be found
+   in the tools/replica directory while instructions on how to use it is
+   available in doc/Tools (in brief) and as a README file in tools/replica
+   (in detail).
 
 The last argument *index* in the temper command is optional and is
 used when restarting a tempering run from a set of restart files (one

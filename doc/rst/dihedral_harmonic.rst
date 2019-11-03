@@ -6,6 +6,9 @@ dihedral\_style harmonic command
 dihedral\_style harmonic/intel command
 ======================================
 
+dihedral\_style harmonic/kk command
+===================================
+
 dihedral\_style harmonic/omp command
 ====================================
 

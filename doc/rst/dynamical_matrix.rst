@@ -38,16 +38,33 @@ Examples
 Description
 """""""""""
 
-Calculate the dynamical matrix of the selected group.
+Calculate the dynamical matrix by finite difference of the selected group,
+
+.. image:: JPG/dynamical_matrix_dynmat.jpg
+   :align: center
+
+where D is the dynamical matrix and Phi is the force constant matrix defined by
+
+.. image:: JPG/dynamical_matrix_force_constant.jpg
+   :align: center
+
+The output for the dynamical matrix is printed three elements at a time. The
+three elements are the three beta elements for a respective i/alpha/j combination. 
+Each line is printed in order of j increasing first, alpha second, and i last.
+
+If the style eskm is selected, the dynamical matrix will be in units of inverse squared
+femtoseconds. These units will then conveniently leave frequencies in THz, where
+frequencies, represented as omega, can be calculated from
+
+:c, image(Eqs/dynamical\_matrix\_phonons.jpg)
 
 Restrictions
 """"""""""""
 
 
-The command collects the entire dynamical matrix a single MPI rank,
-so the memory requirements can be very significant for large systems.
-
-This command assumes a periodic system.
+The command collects an array of nine times the number of atoms in a group
+on every single MPI rank, so the memory requirements can be very significant
+for large systems.
 
 This command is part of the USER-PHONON package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

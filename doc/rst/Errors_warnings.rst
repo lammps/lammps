@@ -40,6 +40,10 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Angle style in data file differs from currently defined angle style*
    Self-explanatory.
 
+*Angles are defined but no angle style is set*
+   The topology contains angles, but there are no angle forces computed
+   since there was no angle\_style command.
+
 *Atom style in data file differs from currently defined atom style*
    Self-explanatory.
 
@@ -60,6 +64,10 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 
 *Bond style in data file differs from currently defined bond style*
    Self-explanatory.
+
+*Bonds are defined but no bond style is set*
+   The topology contains bonds, but there are no bond forces computed
+   since there was no bond\_style command.
 
 *Bond/angle/dihedral extent > half of periodic box length*
    This is a restriction because LAMMPS can be confused about which image
@@ -153,6 +161,10 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Dihedral style in data file differs from currently defined dihedral style*
    Self-explanatory.
 
+*Dihedrals are defined but no dihedral style is set*
+   The topology contains dihedrals, but there are no dihedral forces computed
+   since there was no dihedral\_style command.
+
 *Dump dcd/xtc timestamp may be wrong with fix dt/reset*
    If the fix changes the timestep, the dump dcd file will not
    reflect the change.
@@ -202,6 +214,9 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    included one or more of the following: kspace, triclinic, a hybrid
    pair style, an eam pair style, or no "single" function for the pair
    style.
+
+*Fix langevin gjf using random gaussians is not implemented with kokkos*
+This will most likely cause errors in kinetic fluctuations.
 
 *Fix property/atom mol or charge w/out ghost communication*
    A model typically needs these properties defined for ghost atoms.
@@ -281,6 +296,10 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Improper style in data file differs from currently defined improper style*
    Self-explanatory.
 
+*Impropers are defined but no improper style is set*
+   The topology contains impropers, but there are no improper forces computed
+   since there was no improper\_style command.
+
 *Inconsistent image flags*
    The image flags for a pair on bonded atoms appear to be inconsistent.
    Inconsistent means that when the coordinates of the two atoms are
@@ -297,6 +316,10 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    have fully consistent image flags, since some bonds will cross
    periodic boundaries and connect two atoms with the same image
    flag.
+
+*Increasing communication cutoff for GPU style*
+   The pair style has increased the communication cutoff to be consistent with
+   the communication cutoff requirements for this pair style when run on the GPU.
 
 *KIM Model does not provide 'energy'; Potential energy will be zero*
    Self-explanatory.
@@ -326,6 +349,27 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    This library function cannot be used if atom IDs are not defined or
    are not consecutively numbered, or if no atom map is defined.  See the
    atom\_modify command for details about atom maps.
+
+*Likewise 1-2 special neighbor interactions != 1.0*
+   The topology contains bonds, but there is no bond style defined
+   and a 1-2 special neighbor scaling factor was not 1.0. This
+   means that pair style interactions may have scaled or missing
+   pairs in the neighbor list in expectation of interactions for
+   those pairs being computed from the bond style.
+
+*Likewise 1-3 special neighbor interactions != 1.0*
+   The topology contains angles, but there is no angle style defined
+   and a 1-3 special neighbor scaling factor was not 1.0. This
+   means that pair style interactions may have scaled or missing
+   pairs in the neighbor list in expectation of interactions for
+   those pairs being computed from the angle style.
+
+*Likewise 1-4 special neighbor interactions != 1.0*
+   The topology contains dihedrals, but there is no dihedral style defined
+   and a 1-4 special neighbor scaling factor was not 1.0. This
+   means that pair style interactions may have scaled or missing
+   pairs in the neighbor list in expectation of interactions for
+   those pairs being computed from the dihedral style.
 
 *Lost atoms via change\_box: original %ld current %ld*
    The command options you have used caused atoms to be lost.

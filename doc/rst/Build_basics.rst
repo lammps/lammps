@@ -55,7 +55,7 @@ Serial build (see src/MAKE/Makefile.serial):
 
    MPI_INC =       -I../STUBS
    MPI_PATH =      -L../STUBS
-   MPI_LIB =	-lmpi_stubs
+   MPI_LIB =       -lmpi_stubs
 
 For a parallel build, if MPI is installed on your system in the usual
 place (e.g. under /usr/local), you do not need to specify the 3
@@ -205,20 +205,20 @@ Parallel build (see src/MAKE/Makefile.mpi):
 
 .. parsed-literal::
 
-   CC =		mpicxx
-   CCFLAGS =	-g -O3
-   LINK =		mpicxx
-   LINKFLAGS =	-g -O
+   CC =            mpicxx
+   CCFLAGS =       -g -O3
+   LINK =          mpicxx
+   LINKFLAGS =     -g -O
 
 Serial build (see src/MAKE/Makefile.serial):
 
 
 .. parsed-literal::
 
-   CC =		g++
-   CCFLAGS =	-g -O3
-   LINK =		g++
-   LINKFLAGS =	-g -O
+   CC =            g++
+   CCFLAGS =       -g -O3
+   LINK =          g++
+   LINKFLAGS =     -g -O
 
 The "compiler/linker settings" section of a Makefile.machine lists
 compiler and linker settings for your C++ compiler, including

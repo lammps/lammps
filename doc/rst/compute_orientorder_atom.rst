@@ -21,6 +21,8 @@ Syntax
        *cutoff* value = distance cutoff
        *nnn* value = number of nearest neighbors
        *degrees* values = nlvalues, l1, l2,...
+       *wl* value = yes or no
+       *wl/hat* value = yes or no
        *components* value = ldegree
 
 
@@ -33,7 +35,8 @@ Examples
 
    compute 1 all orientorder/atom
    compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
-   compute 1 all orientorder/atom degrees 4 6 components 6 nnn NULL cutoff 3.0
+   compute 1 all orientorder/atom wl/hat yes
+   compute 1 all orientorder/atom components 6
 
 Description
 """""""""""
@@ -56,7 +59,7 @@ neighbors of the central atom.
 The angles theta and phi are the standard spherical polar angles
 defining the direction of the bond vector *rij*\ .
 The second equation defines *Ql*\ , which is a
-rotationally invariant scalar quantity obtained by summing
+rotationally invariant non-negative amplitude obtained by summing
 over all the components of degree *l*\ .
 
 The optional keyword *cutoff* defines the distance cutoff
@@ -71,14 +74,27 @@ specified distance cutoff are used.
 
 The optional keyword *degrees* defines the list of order parameters to
 be computed.  The first argument *nlvalues* is the number of order
-parameters. This is followed by that number of integers giving the
+parameters. This is followed by that number of non-negative integers giving the
 degree of each order parameter. Because *Q*\ 2 and all odd-degree order
 parameters are zero for atoms in cubic crystals (see
 :ref:`Steinhardt <Steinhardt>`), the default order parameters are *Q*\ 4,
 *Q*\ 6, *Q*\ 8, *Q*\ 10, and *Q*\ 12. For the FCC crystal with *nnn* =12, *Q*\ 4
 = sqrt(7/3)/8 = 0.19094....  The numerical values of all order
 parameters up to *Q*\ 12 for a range of commonly encountered
-high-symmetry structures are given in Table I of :ref:`Mickel et al. <Mickel>`.
+high-symmetry structures are given in Table I of :ref:`Mickel et al. <Mickel>`, and these can be reproduced with this compute
+
+The optional keyword *wl* will output the third-order invariants *Wl*
+(see Eq. 1.4 in :ref:`Steinhardt <Steinhardt>`) for the same degrees as
+for the *Ql* parameters. For the FCC crystal with *nnn* =12,
+*W*\ 4 = -sqrt(14/143).(49/4096)/Pi\^1.5 = -0.0006722136...
+
+The optional keyword *wl/hat* will output the normalized third-order
+invariants *Wlhat* (see Eq. 2.2 in :ref:`Steinhardt <Steinhardt>`)
+for the same degrees as for the *Ql* parameters. For the FCC crystal
+with *nnn* =12, *W*\ 4hat = -7/3\*sqrt(2/429) = -0.159317...The numerical
+values of *Wlhat* for a range of commonly encountered high-symmetry
+structures are given in Table I of :ref:`Steinhardt <Steinhardt>`, and these
+can be reproduced with this keyword.
 
 The optional keyword *components* will output the components of the
 normalized complex vector *Ybar\_lm* of degree *ldegree*\ , which must be
@@ -89,7 +105,7 @@ particles, as discussed in :ref:`ten Wolde <tenWolde2>`.
 
 The value of *Ql* is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than
-*nnn* neighbors within the distance cutoff.
+*nnn* neighbors within the distance cutoff, unless *nnn* is NULL.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
@@ -117,6 +133,12 @@ This compute calculates a per-atom array with *nlvalues* columns,
 giving the *Ql* values for each atom, which are real numbers on the
 range 0 <= *Ql* <= 1.
 
+If the keyword *wl* is set to yes, then the *Wl* values for each
+atom will be added to the output array, which are real numbers.
+
+If the keyword *wl/hat* is set to yes, then the *Wl\_hat*
+values for each atom will be added to the output array, which are real numbers.
+
 If the keyword *components* is set, then the real and imaginary parts
 of each component of (normalized) *Ybar\_lm* will be added to the
 output array in the following order: Re(*Ybar\_-m*) Im(*Ybar\_-m*)
@@ -141,7 +163,8 @@ Default
 """""""
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
-*degrees* = 5 4 6 8 10 12 i.e. *Q*\ 4, *Q*\ 6, *Q*\ 8, *Q*\ 10, and *Q*\ 12.
+*degrees* = 5 4 6 8 10 12 i.e. *Q*\ 4, *Q*\ 6, *Q*\ 8, *Q*\ 10, and *Q*\ 12,
+*wl* = no, *wl/hat* = no, and *components* off
 
 
 ----------

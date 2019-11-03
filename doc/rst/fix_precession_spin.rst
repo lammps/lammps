@@ -27,7 +27,7 @@ Syntax
   
   .. parsed-literal::
   
-       *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z 
+       *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z
          K1 and K2c = intensity of the magnetic anisotropy (in eV)
          n1x to n3z = three direction vectors of the cubic anisotropy
 
@@ -74,20 +74,20 @@ possible easy axis for the magnetic spins in the defined group:
 .. image:: Eqs/fix_spin_cubic.jpg
    :align: center
 
-with K1 and K2c (in eV) the intensity coefficients and 
+with K1 and K2c (in eV) the intensity coefficients and
 n1, n2 and n3 defining the three anisotropic directions
-defined by the command (from n1x to n3z). 
-For n1 = (100), n2 = (010), and n3 = (001), K1 < 0 defines an 
+defined by the command (from n1x to n3z).
+For n1 = (100), n2 = (010), and n3 = (001), K1 < 0 defines an
 iron type anisotropy (easy axis along the (001)-type cube
 edges), and K1 > 0 defines a nickel type anisotropy (easy axis
-along the (111)-type cube diagonals). 
+along the (111)-type cube diagonals).
 K2\^c > 0 also defines easy axis along the (111)-type cube
 diagonals.
 See chapter 2 of :ref:`(Skomski) <Skomski1>` for more details on cubic
 anisotropies.
 
 In all cases, the choice of (x y z) only imposes the vector
-directions for the forces. Only the direction of the vector is 
+directions for the forces. Only the direction of the vector is
 important; it's length is ignored (the entered vectors are
 normalized).
 

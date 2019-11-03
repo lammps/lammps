@@ -131,10 +131,10 @@ used without a cutoff, i.e. they become full long-range potentials.
 The *ewald/disp* style can also be used with point-dipoles, see
 :ref:`(Toukmaji) <Toukmaji>`.
 
-The *ewald/dipole* style adds long-range standard Ewald summations 
+The *ewald/dipole* style adds long-range standard Ewald summations
 for dipole-dipole interactions, see :ref:`(Toukmaji) <Toukmaji>`.
 
-The *ewald/dipole/spin* style adds long-range standard Ewald 
+The *ewald/dipole/spin* style adds long-range standard Ewald
 summations for magnetic dipole-dipole interactions between
 magnetic spins.
 
@@ -159,10 +159,10 @@ The optional *smallq* argument defines the cutoff for the absolute
 charge value which determines whether a particle is considered charged
 or not.  Its default value is 1.0e-5.
 
-The *pppm/dipole* style invokes a particle-particle particle-mesh solver 
+The *pppm/dipole* style invokes a particle-particle particle-mesh solver
 for dipole-dipole interactions, following the method of :ref:`(Cerda) <Cerda2008>`.
 
-The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver 
+The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver
 for magnetic dipole-dipole interactions between magnetic spins.
 
 The *pppm/tip4p* style is identical to the *pppm* style except that it

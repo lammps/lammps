@@ -14,7 +14,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *engpot* or *force* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v\_name*
+* value = *dist* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v\_name*
 
 .. parsed-literal::
 
@@ -22,6 +22,7 @@ Syntax
      *engpot* = bond potential energy
      *force* = bond force
 
+     *fx*\ ,\ *fy*\ ,\ *fz* = components of bond force
      *engvib* = bond kinetic energy of vibration
      *engrot* = bond kinetic energy of rotation
      *engtrans* = bond kinetic energy of translation
@@ -51,6 +52,8 @@ Examples
    compute 1 all bond/local engpot
    compute 1 all bond/local dist engpot force
 
+   compute 1 all bond/local dist fx fy fz
+
    compute 1 all angle/local dist v_distsq set dist d
 
 Description
@@ -72,6 +75,9 @@ based on the current separation of the pair of atoms in the bond.
 
 The value *force* is the magnitude of the force acting between the
 pair of atoms in the bond.
+
+The values *fx*\ , *fy*\ , and *fz* are the xyz components of
+*force* between the pair of atoms in the bond.
 
 The remaining properties are all computed for motion of the two atoms
 relative to the center of mass (COM) velocity of the 2 atoms in the

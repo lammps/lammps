@@ -17,7 +17,9 @@ Syntax
   
   .. parsed-literal::
   
-       *lattice* value = *no* or *yes*
+       *lattice* value = *moving* or *frozen*
+         moving = integrate both spin and atomic degress of freedom
+         frozen = integrate spins on a fixed lattice
 
 
 
@@ -27,8 +29,8 @@ Examples
 
 .. parsed-literal::
 
-   fix 3 all nve/spin lattice yes
-   fix 1 all nve/spin lattice no
+   fix 3 all nve/spin lattice moving
+   fix 1 all nve/spin lattice frozen
 
 Description
 """""""""""
@@ -36,9 +38,11 @@ Description
 Perform a symplectic integration for the spin or spin-lattice system.
 
 The *lattice* keyword defines if the spins are integrated on a lattice
-of fixed atoms (lattice = no), or if atoms are moving (lattice = yes).
-
-By default (lattice = yes), a spin-lattice integration is performed.
+of fixed atoms (lattice = frozen), or if atoms are moving
+(lattice = moving).
+The first case corresponds to a spin dynamics calculation, and
+the second to a spin-lattice calculation.
+By default a spin-lattice integration is performed (lattice = moving).
 
 The *nve/spin* fix applies a Suzuki-Trotter decomposition to
 the equations of motion of the spin lattice system, following the scheme:
@@ -80,7 +84,10 @@ Related commands
 
 :doc:`atom\_style spin <atom_style>`, :doc:`fix nve <fix_nve>`
 
-**Default:** none
+Default
+"""""""
+
+The option default is lattice = moving.
 
 
 ----------

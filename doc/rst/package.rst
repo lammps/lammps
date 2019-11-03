@@ -441,113 +441,113 @@ processes/threads used for LAMMPS.
 ----------
 
 
-The *kokkos* style invokes settings associated with the use of the 
+The *kokkos* style invokes settings associated with the use of the
 KOKKOS package.
 
-All of the settings are optional keyword/value pairs. Each has a default 
+All of the settings are optional keyword/value pairs. Each has a default
 value as listed below.
 
-The *neigh* keyword determines how neighbor lists are built. A value of 
-*half* uses a thread-safe variant of half-neighbor lists, the same as 
-used by most pair styles in LAMMPS, which is the default when running on 
+The *neigh* keyword determines how neighbor lists are built. A value of
+*half* uses a thread-safe variant of half-neighbor lists, the same as
+used by most pair styles in LAMMPS, which is the default when running on
 CPUs (i.e. the Kokkos CUDA back end is not enabled).
 
-A value of *full* uses a full neighbor lists and is the default when 
-running on GPUs. This performs twice as much computation as the *half* 
-option, however that is often a win because it is thread-safe and 
-doesn't require atomic operations in the calculation of pair forces. For 
-that reason, *full* is the default setting for GPUs. However, when 
-running on CPUs, a *half* neighbor list is the default because it are 
-often faster, just as it is for non-accelerated pair styles. Similarly, 
-the *neigh/qeq* keyword determines how neighbor lists are built for :doc:`fix  qeq/reax/kk <fix_qeq_reax>`. If not explicitly set, the value of 
+A value of *full* uses a full neighbor lists and is the default when
+running on GPUs. This performs twice as much computation as the *half*
+option, however that is often a win because it is thread-safe and
+doesn't require atomic operations in the calculation of pair forces. For
+that reason, *full* is the default setting for GPUs. However, when
+running on CPUs, a *half* neighbor list is the default because it are
+often faster, just as it is for non-accelerated pair styles. Similarly,
+the *neigh/qeq* keyword determines how neighbor lists are built for :doc:`fix qeq/reax/kk <fix_qeq_reax>`. If not explicitly set, the value of
 *neigh/qeq* will match *neigh*\ .
 
-If the *neigh/thread* keyword is set to *off*\ , then the KOKKOS package 
-threads only over atoms. However, for small systems, this may not expose 
-enough parallelism to keep a GPU busy. When this keyword is set to *on*\ , 
-the KOKKOS package threads over both atoms and neighbors of atoms. When 
-using *neigh/thread* *on*\ , a full neighbor list must also be used. Using 
-*neigh/thread* *on* may be slower for large systems, so this this option 
-is turned on by default only when there are 16K atoms or less owned by 
-an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled 
-potentials support this keyword yet, and only thread over atoms. Many 
-simple pair-wise potentials such as Lennard-Jones do support threading 
+If the *neigh/thread* keyword is set to *off*\ , then the KOKKOS package
+threads only over atoms. However, for small systems, this may not expose
+enough parallelism to keep a GPU busy. When this keyword is set to *on*\ ,
+the KOKKOS package threads over both atoms and neighbors of atoms. When
+using *neigh/thread* *on*\ , a full neighbor list must also be used. Using
+*neigh/thread* *on* may be slower for large systems, so this this option
+is turned on by default only when there are 16K atoms or less owned by
+an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled
+potentials support this keyword yet, and only thread over atoms. Many
+simple pair-wise potentials such as Lennard-Jones do support threading
 over both atoms and neighbors.
 
-The *newton* keyword sets the Newton flags for pairwise and bonded 
-interactions to *off* or *on*\ , the same as the :doc:`newton <newton>` 
-command allows. The default for GPUs is *off* because this will almost 
-always give better performance for the KOKKOS package. This means more 
-computation is done, but less communication. However, when running on 
-CPUs a value of *on* is the default since it can often be faster, just 
+The *newton* keyword sets the Newton flags for pairwise and bonded
+interactions to *off* or *on*\ , the same as the :doc:`newton <newton>`
+command allows. The default for GPUs is *off* because this will almost
+always give better performance for the KOKKOS package. This means more
+computation is done, but less communication. However, when running on
+CPUs a value of *on* is the default since it can often be faster, just
 as it is for non-accelerated pair styles
 
-The *binsize* keyword sets the size of bins used to bin atoms in 
-neighbor list builds. The same value can be set by the :doc:`neigh\_modify  binsize <neigh_modify>` command. Making it an option in the package 
-kokkos command allows it to be set from the command line. The default 
-value for CPUs is 0.0, which means the LAMMPS default will be used, 
-which is bins = 1/2 the size of the pairwise cutoff + neighbor skin 
-distance. This is fine when neighbor lists are built on the CPU. For GPU 
-builds, a 2x larger binsize equal to the pairwise cutoff + neighbor skin 
-is often faster, which is the default. Note that if you use a 
-longer-than-usual pairwise cutoff, e.g. to allow for a smaller fraction 
-of KSpace work with a :doc:`long-range Coulombic solver <kspace_style>` 
-because the GPU is faster at performing pairwise interactions, then this 
-rule of thumb may give too large a binsize and the default should be 
+The *binsize* keyword sets the size of bins used to bin atoms in
+neighbor list builds. The same value can be set by the :doc:`neigh\_modify binsize <neigh_modify>` command. Making it an option in the package
+kokkos command allows it to be set from the command line. The default
+value for CPUs is 0.0, which means the LAMMPS default will be used,
+which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
+distance. This is fine when neighbor lists are built on the CPU. For GPU
+builds, a 2x larger binsize equal to the pairwise cutoff + neighbor skin
+is often faster, which is the default. Note that if you use a
+longer-than-usual pairwise cutoff, e.g. to allow for a smaller fraction
+of KSpace work with a :doc:`long-range Coulombic solver <kspace_style>`
+because the GPU is faster at performing pairwise interactions, then this
+rule of thumb may give too large a binsize and the default should be
 overridden with a smaller value.
 
-The *comm* and *comm/exchange* and *comm/forward* and *comm/reverse* 
-keywords determine whether the host or device performs the packing and 
-unpacking of data when communicating per-atom data between processors. 
-"Exchange" communication happens only on timesteps that neighbor lists 
-are rebuilt. The data is only for atoms that migrate to new processors. 
-"Forward" communication happens every timestep. "Reverse" communication 
-happens every timestep if the *newton* option is on. The data is for 
-atom coordinates and any other atom properties that needs to be updated 
+The *comm* and *comm/exchange* and *comm/forward* and *comm/reverse*
+keywords determine whether the host or device performs the packing and
+unpacking of data when communicating per-atom data between processors.
+"Exchange" communication happens only on timesteps that neighbor lists
+are rebuilt. The data is only for atoms that migrate to new processors.
+"Forward" communication happens every timestep. "Reverse" communication
+happens every timestep if the *newton* option is on. The data is for
+atom coordinates and any other atom properties that needs to be updated
 for ghost atoms owned by each processor.
 
-The *comm* keyword is simply a short-cut to set the same value for both 
+The *comm* keyword is simply a short-cut to set the same value for both
 the *comm/exchange* and *comm/forward* and *comm/reverse* keywords.
 
-The value options for all 3 keywords are *no* or *host* or *device*\ . A 
-value of *no* means to use the standard non-KOKKOS method of 
-packing/unpacking data for the communication. A value of *host* means to 
-use the host, typically a multi-core CPU, and perform the 
-packing/unpacking in parallel with threads. A value of *device* means to 
-use the device, typically a GPU, to perform the packing/unpacking 
+The value options for all 3 keywords are *no* or *host* or *device*\ . A
+value of *no* means to use the standard non-KOKKOS method of
+packing/unpacking data for the communication. A value of *host* means to
+use the host, typically a multi-core CPU, and perform the
+packing/unpacking in parallel with threads. A value of *device* means to
+use the device, typically a GPU, to perform the packing/unpacking
 operation.
 
-The optimal choice for these keywords depends on the input script and 
-the hardware used. The *no* value is useful for verifying that the 
-Kokkos-based *host* and *device* values are working correctly. It is the 
+The optimal choice for these keywords depends on the input script and
+the hardware used. The *no* value is useful for verifying that the
+Kokkos-based *host* and *device* values are working correctly. It is the
 default when running on CPUs since it is usually the fastest.
 
-When running on CPUs or Xeon Phi, the *host* and *device* values work 
-identically. When using GPUs, the *device* value is the default since it 
-will typically be optimal if all of your styles used in your input 
-script are supported by the KOKKOS package. In this case data can stay 
-on the GPU for many timesteps without being moved between the host and 
-GPU, if you use the *device* value. If your script uses styles (e.g. 
-fixes) which are not yet supported by the KOKKOS package, then data has 
-to be move between the host and device anyway, so it is typically faster 
-to let the host handle communication, by using the *host* value. Using 
-*host* instead of *no* will enable use of multiple threads to 
-pack/unpack communicated data. When running small systems on a GPU, 
-performing the exchange pack/unpack on the host CPU can give speedup 
+When running on CPUs or Xeon Phi, the *host* and *device* values work
+identically. When using GPUs, the *device* value is the default since it
+will typically be optimal if all of your styles used in your input
+script are supported by the KOKKOS package. In this case data can stay
+on the GPU for many timesteps without being moved between the host and
+GPU, if you use the *device* value. If your script uses styles (e.g.
+fixes) which are not yet supported by the KOKKOS package, then data has
+to be move between the host and device anyway, so it is typically faster
+to let the host handle communication, by using the *host* value. Using
+*host* instead of *no* will enable use of multiple threads to
+pack/unpack communicated data. When running small systems on a GPU,
+performing the exchange pack/unpack on the host CPU can give speedup
 since it reduces the number of CUDA kernel launches.
 
-The *cuda/aware* keyword chooses whether CUDA-aware MPI will be used. When 
-this keyword is set to *on*\ , buffers in GPU memory are passed directly 
-through MPI send/receive calls. This reduces overhead of first copying 
-the data to the host CPU. However CUDA-aware MPI is not supported on all 
-systems, which can lead to segmentation faults and would require using a 
-value of *off*\ . If LAMMPS can safely detect that CUDA-aware MPI is not 
-available (currently only possible with OpenMPI v2.0.0 or later), then 
-the *cuda/aware* keyword is automatically set to *off* by default. When 
-the *cuda/aware* keyword is set to *off* while any of the *comm* 
-keywords are set to *device*\ , the value for these *comm* keywords will 
-be automatically changed to *host*\ . This setting has no effect if not 
-running on GPUs. CUDA-aware MPI is available for OpenMPI 1.8 (or later 
+The *cuda/aware* keyword chooses whether CUDA-aware MPI will be used. When
+this keyword is set to *on*\ , buffers in GPU memory are passed directly
+through MPI send/receive calls. This reduces overhead of first copying
+the data to the host CPU. However CUDA-aware MPI is not supported on all
+systems, which can lead to segmentation faults and would require using a
+value of *off*\ . If LAMMPS can safely detect that CUDA-aware MPI is not
+available (currently only possible with OpenMPI v2.0.0 or later), then
+the *cuda/aware* keyword is automatically set to *off* by default. When
+the *cuda/aware* keyword is set to *off* while any of the *comm*
+keywords are set to *device*\ , the value for these *comm* keywords will
+be automatically changed to *host*\ . This setting has no effect if not
+running on GPUs. CUDA-aware MPI is available for OpenMPI 1.8 (or later
 versions), Mvapich2 1.9 (or later) when the "MV2\_USE\_CUDA" environment
 variable is set to "1", CrayMPI, and IBM Spectrum MPI when the "-gpu"
 flag is used.
@@ -665,16 +665,16 @@ Phi co-processor support.  These settings are made automatically if the
 not used, you must invoke the package intel command in your input
 script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
 
-For the KOKKOS package, the option defaults for GPUs are neigh = full, 
-neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default 
-value, comm = device, cuda/aware = on. When LAMMPS can safely detect 
-that CUDA-aware MPI is not available, the default value of cuda/aware 
-becomes "off". For CPUs or Xeon Phis, the option defaults are neigh = 
-half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The 
-option neigh/thread = on when there are 16K atoms or less on an MPI 
-rank, otherwise it is "off". These settings are made automatically by 
-the required "-k on" :doc:`command-line switch <Run_options>`. You can 
-change them by using the package kokkos command in your input script or 
+For the KOKKOS package, the option defaults for GPUs are neigh = full,
+neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default
+value, comm = device, cuda/aware = on. When LAMMPS can safely detect
+that CUDA-aware MPI is not available, the default value of cuda/aware
+becomes "off". For CPUs or Xeon Phis, the option defaults are neigh =
+half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The
+option neigh/thread = on when there are 16K atoms or less on an MPI
+rank, otherwise it is "off". These settings are made automatically by
+the required "-k on" :doc:`command-line switch <Run_options>`. You can
+change them by using the package kokkos command in your input script or
 via the :doc:`-pk kokkos command-line switch <Run_options>`.
 
 For the OMP package, the default is Nthreads = 0 and the option

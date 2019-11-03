@@ -44,13 +44,13 @@ compatible with specific hardware.
 
 .. note::
 
-   Kokkos with CUDA currently implicitly assumes that the MPI library 
-   is CUDA-aware. This is not always the case, especially when using 
-   pre-compiled MPI libraries provided by a Linux distribution. This is not 
-   a problem when using only a single GPU with a single MPI rank. When 
-   running with multiple MPI ranks, you may see segmentation faults without 
-   CUDA-aware MPI support. These can be avoided by adding the flags :doc:`-pk  kokkos cuda/aware off <Run_options>` to the LAMMPS command line or by 
-   using the command :doc:`package kokkos cuda/aware off <package>` in the 
+   Kokkos with CUDA currently implicitly assumes that the MPI library
+   is CUDA-aware. This is not always the case, especially when using
+   pre-compiled MPI libraries provided by a Linux distribution. This is not
+   a problem when using only a single GPU with a single MPI rank. When
+   running with multiple MPI ranks, you may see segmentation faults without
+   CUDA-aware MPI support. These can be avoided by adding the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the LAMMPS command line or by
+   using the command :doc:`package kokkos cuda/aware off <package>` in the
    input file.
 
 **Building LAMMPS with the KOKKOS package:**
@@ -116,9 +116,9 @@ below.
 
 .. note::
 
-   Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to 
-   change the default :doc:`package kokkos <package>` options. See its doc 
-   page for details and default settings. Experimenting with its options 
+   Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to
+   change the default :doc:`package kokkos <package>` options. See its doc
+   page for details and default settings. Experimenting with its options
    can provide a speed-up for specific calculations. For example:
 
 
@@ -200,14 +200,14 @@ threads/task as Nt. The product of these two values should be N, i.e.
 
 .. note::
 
-   The default for the :doc:`package kokkos <package>` command when 
-   running on KNL is to use "half" neighbor lists and set the Newton flag 
-   to "on" for both pairwise and bonded interactions. This will typically 
-   be best for many-body potentials. For simpler pair-wise potentials, it 
-   may be faster to use a "full" neighbor list with Newton flag to "off". 
-   Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to change 
-   the default :doc:`package kokkos <package>` options. See its doc page for 
-   details and default settings. Experimenting with its options can provide 
+   The default for the :doc:`package kokkos <package>` command when
+   running on KNL is to use "half" neighbor lists and set the Newton flag
+   to "on" for both pairwise and bonded interactions. This will typically
+   be best for many-body potentials. For simpler pair-wise potentials, it
+   may be faster to use a "full" neighbor list with Newton flag to "off".
+   Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to change
+   the default :doc:`package kokkos <package>` options. See its doc page for
+   details and default settings. Experimenting with its options can provide
    a speed-up for specific calculations. For example:
 
 
@@ -230,19 +230,19 @@ threads/task as Nt. The product of these two values should be N, i.e.
 
 **Running on GPUs:**
 
-Use the "-k" :doc:`command-line switch <Run_options>` to specify the 
-number of GPUs per node. Typically the -np setting of the mpirun command 
-should set the number of MPI tasks/node to be equal to the number of 
-physical GPUs on the node. You can assign multiple MPI tasks to the same 
-GPU with the KOKKOS package, but this is usually only faster if some 
-portions of the input script have not been ported to use Kokkos. In this 
-case, also packing/unpacking communication buffers on the host may give 
-speedup (see the KOKKOS :doc:`package <package>` command). Using CUDA MPS 
+Use the "-k" :doc:`command-line switch <Run_options>` to specify the
+number of GPUs per node. Typically the -np setting of the mpirun command
+should set the number of MPI tasks/node to be equal to the number of
+physical GPUs on the node. You can assign multiple MPI tasks to the same
+GPU with the KOKKOS package, but this is usually only faster if some
+portions of the input script have not been ported to use Kokkos. In this
+case, also packing/unpacking communication buffers on the host may give
+speedup (see the KOKKOS :doc:`package <package>` command). Using CUDA MPS
 is recommended in this scenario.
 
-Using a CUDA-aware MPI library is highly recommended. CUDA-aware MPI use can be 
-avoided by using :doc:`-pk kokkos cuda/aware no <package>`. As above for 
-multi-core CPUs (and no GPU), if N is the number of physical cores/node, 
+Using a CUDA-aware MPI library is highly recommended. CUDA-aware MPI use can be
+avoided by using :doc:`-pk kokkos cuda/aware no <package>`. As above for
+multi-core CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 
 
@@ -261,17 +261,17 @@ one or more nodes, each with two GPUs:
 
 .. note::
 
-   The default for the :doc:`package kokkos <package>` command when 
-   running on GPUs is to use "full" neighbor lists and set the Newton flag 
-   to "off" for both pairwise and bonded interactions, along with threaded 
-   communication. When running on Maxwell or Kepler GPUs, this will 
-   typically be best. For Pascal GPUs, using "half" neighbor lists and 
-   setting the Newton flag to "on" may be faster. For many pair styles, 
-   setting the neighbor binsize equal to twice the CPU default value will 
-   give speedup, which is the default when running on GPUs. Use the "-pk 
-   kokkos" :doc:`command-line switch <Run_options>` to change the default 
-   :doc:`package kokkos <package>` options. See its doc page for details and 
-   default settings. Experimenting with its options can provide a speed-up 
+   The default for the :doc:`package kokkos <package>` command when
+   running on GPUs is to use "full" neighbor lists and set the Newton flag
+   to "off" for both pairwise and bonded interactions, along with threaded
+   communication. When running on Maxwell or Kepler GPUs, this will
+   typically be best. For Pascal GPUs, using "half" neighbor lists and
+   setting the Newton flag to "on" may be faster. For many pair styles,
+   setting the neighbor binsize equal to twice the CPU default value will
+   give speedup, which is the default when running on GPUs. Use the "-pk
+   kokkos" :doc:`command-line switch <Run_options>` to change the default
+   :doc:`package kokkos <package>` options. See its doc page for details and
+   default settings. Experimenting with its options can provide a speed-up
    for specific calculations. For example:
 
 

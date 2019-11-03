@@ -77,7 +77,7 @@ liquid Ar via the GK formalism:
 
    # convert from LAMMPS real units to SI
 
-   variable    kB equal 1.3806504e-23    # [J/K/** Boltzmann
+   variable    kB equal 1.3806504e-23    # [J/K] Boltzmann
    variable    atm2Pa equal 101325.0
    variable    A2m equal 1.0e-10
    variable    fs2s equal 1.0e-15

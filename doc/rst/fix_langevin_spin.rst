@@ -58,7 +58,7 @@ As an example:
 
    fix 1 all precession/spin zeeman 0.01 0.0 0.0 1.0
    fix 2 all langevin/spin 300.0 0.01 21
-   fix 3 all nve/spin lattice yes
+   fix 3 all nve/spin lattice moving
 
 is correct, but defining a force/spin command after the langevin/spin command
 would give an error message.

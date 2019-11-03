@@ -100,7 +100,7 @@ on particle *i* due to contact with particle *j* is given by:
 
    \begin{equation}\mathbf{F}_{ne, Hooke} = k_N \delta_{ij} \mathbf{n}\end{equation}
 
-Where :math:`\delta = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
+Where :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
 overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
 particle centers (note the i-j ordering so that :math:`F_{ne}` is
 positive for repulsion), and :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}`.  Therefore,
@@ -181,7 +181,7 @@ following general form:
 
    \begin{equation}\mathbf{F}_{n,damp} = -\eta_n \mathbf{v}_{n,rel}\end{equation}
 
-Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n}` is the component of relative velocity along
+Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n} \mathbf{n}` is the component of relative velocity along
 :math:`\mathbf{n}`.
 
 The optional *damping* keyword to the *pair\_coeff* command followed by
@@ -312,15 +312,16 @@ the normal damping :math:`\eta_n` (see above):
 
    \begin{equation}\eta_t = -x_{\gamma,t} \eta_n\end{equation}
 
-The normal damping prefactor :math:`\eta_n` is determined by the choice of
-the *damping* keyword, as discussed above.  Thus, the *damping*
+The normal damping prefactor :math:`\eta_n` is determined by the choice
+of the *damping* keyword, as discussed above.  Thus, the *damping*
 keyword also affects the tangential damping.  The parameter
 :math:`x_{\gamma,t}` is a scaling coefficient. Several works in the
 literature use :math:`x_{\gamma,t} = 1` (:ref:`Marshall <Marshall2009>`,
 :ref:`Tsuji et al <Tsuji1992>`, :ref:`Silbert et al <Silbert2001>`).  The relative
 tangential velocity at the point of contact is given by
-:math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\Omega_i + R_j\Omega_j) \times \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}`, :math:`\mathbf{v}_r = \mathbf{v}_j - \mathbf{v}_i`. The direction of the applied force
-is :math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|`.
+:math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\Omega_i + R_j\Omega_j) \times \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}{n}`,
+:math:`\mathbf{v}_r = \mathbf{v}_j - \mathbf{v}_i`.
+The direction of the applied force is :math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|` .
 
 The normal force value :math:`F_{n0}` used to compute the critical force
 depends on the form of the contact model. For non-cohesive models
@@ -428,7 +429,8 @@ option by an additional factor of *a*\ , the radius of the contact region. The t
 
    \begin{equation}\mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}\end{equation}
 
-Here, *a* is the radius of the contact region, given by :math:`a = \delta R` for all normal contact models, except for *jkr*\ , where it is given
+Here, *a* is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
+for all normal contact models, except for *jkr*\ , where it is given
 implicitly by :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`, see
 discussion above. To match the Mindlin solution, one should set :math:`k_t = 8G`, where :math:`G` is the shear modulus, related to Young's modulus
 :math:`E` by :math:`G = E/(2(1+\nu))`, where :math:`\nu` is Poisson's ratio. This
@@ -716,7 +718,7 @@ The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
-calculates 10 extra pairwise quantities.  The first 3 are the
+calculates 12 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
 on particle I.  The 4th is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the rolling torque acting on

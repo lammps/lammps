@@ -34,15 +34,15 @@ The magnetic Gilbert damping can also be applied using :doc:`fix langevin/spin <
 the thermal energy of the Langevin thermostat, or to perform a
 relaxation of the magnetic configuration toward an equilibrium state.
 
-The command :doc:`fix setforce/spin <fix_setforce>` allows to set the 
-components of the magnetic precession vectors (while erasing and 
-replacing the previously computed magnetic precession vectors on 
-the atom). 
-This command can be used to freeze the magnetic moment of certain 
+The command :doc:`fix setforce/spin <fix_setforce>` allows to set the
+components of the magnetic precession vectors (while erasing and
+replacing the previously computed magnetic precession vectors on
+the atom).
+This command can be used to freeze the magnetic moment of certain
 atoms in the simulation by zeroing their precession vector.
 
 The command :doc:`fix nve/spin <fix_nve_spin>` can be used to
-perform a symplectic integration of the combined dynamics of spins 
+perform a symplectic integration of the combined dynamics of spins
 and atomic motions.
 
 The minimization style :doc:`min/spin <min_spin>` can be applied

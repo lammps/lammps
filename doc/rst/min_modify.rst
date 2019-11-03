@@ -15,11 +15,15 @@ Syntax
   
   .. parsed-literal::
   
-     keyword = *dmax* or *line* or *alpha_damp* or *discrete_factor*
+     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor*
        *dmax* value = max
          max = maximum distance for line search to move (distance units)
-       *line* value = *backtrack* or *quadratic* or *forcezero*
-         backtrack,quadratic,forcezero = style of linesearch to use 
+       *line* value = *backtrack* or *quadratic* or *forcezero* or *spin_cubic* or *spin_none*
+         backtrack,quadratic,forcezero,spin_cubic,spin_none = style of linesearch to use 
+       *norm* value = *two* or *max*
+         two = Euclidean two-norm (length of 3N vector)
+         inf = max force component across all 3-vectors
+         max = max force norm across all 3-vectors
        *alpha_damp* value = damping
          damping = fictitious Gilbert damping for spin minimization (adim)
        *discrete_factor* value = factor
@@ -77,20 +81,59 @@ difference of two large values (energy before and energy after) and
 that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 
+The choice of a norm can be modified for the min styles *cg*\ , *sd*\ , 
+*quickmin*\ , *fire*\ , *spin*\ , *spin/cg* and *spin/lbfgs* using 
+the *norm* keyword.
+The default *two* norm computes the 2-norm (Euclidean length) of the
+global force vector:
+
+.. image:: Eqs/norm_two.jpg
+   :align: center
+
+The *max* norm computes the length of the 3-vector force 
+for each atom  (2-norm), and takes the maximum value of those across 
+all atoms
+
+.. image:: Eqs/norm_max.jpg
+   :align: center
+
+The *inf* norm takes the maximum component across the forces of
+all atoms in the system:
+
+.. image:: Eqs/norm_inf.jpg
+   :align: center
+
+For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
+norm is replaced by the spin-torque norm.
+
 Keywords *alpha\_damp* and *discrete\_factor* only make sense when
-a :doc:`min\_spin <min_spin>` command is declared. 
+a :doc:`min\_spin <min_spin>` command is declared.
 Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
 damping. It defines a relaxation rate toward an equilibrium for
-a given magnetic system. 
+a given magnetic system.
 Keyword *discrete\_factor* defines a discretization factor for the
-adaptive timestep used in the *spin* minimization. 
+adaptive timestep used in the *spin* minimization.
 See :doc:`min\_spin <min_spin>` for more information about those
-quantities. 
-Default values are *alpha\_damp* = 1.0 and *discrete\_factor* = 10.0.
+quantities.
+
+The choice of a line search algorithm for the *spin/cg* and
+*spin/lbfgs* styles can be specified via the *line* keyword.
+The *spin\_cubic* and  *spin\_none* only make sense when one of those 
+two minimization styles is declared.
+The *spin\_cubic* performs the line search based on a cubic interpolation
+of the energy along the search direction. The *spin\_none* keyword
+deactivates the line search procedure.
+The *spin\_none* is a default value for *line* keyword for both *spin/lbfgs*
+and *spin/cg*\ . Convergence of *spin/lbfgs* can be more robust if
+*spin\_cubic* line search is used.
 
 Restrictions
 """"""""""""
- none
+
+
+For magnetic GNEB calculations, only *spin\_none* value for *line* keyword can be used
+when styles *spin/cg* and *spin/lbfgs* are employed.
+See :doc:`neb/spin <neb_spin>` for more explanation.
 
 Related commands
 """"""""""""""""
@@ -100,7 +143,11 @@ Related commands
 Default
 """""""
 
-The option defaults are dmax = 0.1 and line = quadratic.
+The option defaults are dmax = 0.1, line = quadratic and norm = two.
+
+For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the
+option defaults are alpha\_damp = 1.0, discrete\_factor = 10.0,
+line = spin\_none, and norm = euclidean.
 
 
 .. _lws: http://lammps.sandia.gov

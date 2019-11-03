@@ -457,7 +457,7 @@ double ComputeHMA::virial_compute(int n)
 /* ---------------------------------------------------------------------- */
 
 int ComputeHMA::pack_forward_comm(int n, int *list, double *buf,
-				  int /* pbc_flag */, int * /* pbc */)
+                                  int /* pbc_flag */, int * /* pbc */)
 {
   int m = 0;
   for (int ii = 0; ii < n; ii++) {

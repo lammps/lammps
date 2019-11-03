@@ -61,7 +61,7 @@ static const char cite_pair_local_density[] =
 PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
-  one_coeff = 1; 	
+  one_coeff = 1;        
   single_enable = 1;
   
   // stuff read from tabulated file
@@ -117,7 +117,7 @@ PairLocalDensity::~PairLocalDensity()
   
   memory->destroy(rho_min);  
   memory->destroy(rho_max);
-  memory->destroy(delta_rho);	
+  memory->destroy(delta_rho);   
   memory->destroy(c0);
   memory->destroy(c2);
   memory->destroy(c4);
@@ -144,7 +144,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
   double p, *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  phi = uLD = evdwl = fpair = rsqinv = 0.0;		
+  phi = uLD = evdwl = fpair = rsqinv = 0.0;             
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
@@ -180,11 +180,11 @@ void PairLocalDensity::compute(int eflag, int vflag)
   if (newton_pair) {
     m = nlocal + atom->nghost;
     for (k = 0; k < nLD; k++) { 
-        for (i = 0; i < m; i++)	{ 		
+        for (i = 0; i < m; i++) {               
             localrho[k][i] = 0.0;
             fp[k][i] = 0.0;
         }
-    }	
+    }   
   } 
   else {
     for (k = 0; k < nLD; k++){
@@ -209,14 +209,14 @@ void PairLocalDensity::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtype = type[j];	
+      jtype = type[j];  
 
       // calculate distance-squared between i,j atom-types
       
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;	
+      rsq = delx*delx + dely*dely + delz*delz;  
       
       // calculating LDs based on central and neigh filters
 
@@ -239,7 +239,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
             localrho[k][j] += (phi * b[k][itype]); 
         }
       }
-    }	       
+    }          
   }
 
   // communicate and sum LDs over all procs
@@ -247,10 +247,10 @@ void PairLocalDensity::compute(int eflag, int vflag)
 
   // 
 
-  for (ii = 0; ii < inum; ii++) {	
+  for (ii = 0; ii < inum; ii++) {       
     i = ilist[ii];
     itype = type[i];
-    uLD = 0.0;	
+    uLD = 0.0;  
 
     for (k = 0; k < nLD; k++) {
 
@@ -284,7 +284,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
 
     if (eflag) {
         if (eflag_global) eng_vdwl += uLD;
-        if (eflag_atom) eatom[i] += uLD;	
+        if (eflag_atom) eatom[i] += uLD;        
     }
  }
 
@@ -306,7 +306,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];	
+      j = jlist[jj];    
       j &= NEIGHMASK;
       jtype = type[j];
 
@@ -326,7 +326,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
                dphi = rsq * (2.0*c2[k] + rsq * (4.0*c4[k] + 6.0*c6[k]*rsq));
                fpair += -(a[k][itype]*b[k][jtype]*fp[k][i] + a[k][jtype]*b[k][itype]*fp[k][j]) * dphi; 
             }
-        }	
+        }       
         fpair *= rsqinv; 
         
         f[i][0] += delx*fpair;
@@ -459,8 +459,8 @@ double PairLocalDensity::init_one(int /* i */, int /* j */)
  ---------------------------------------------------------------------------*/
 
 double PairLocalDensity::single(int /* i */, int /* j */, int itype, int jtype,
-				double rsq, double /* factor_coul */,
-				double /* factor_lj */, double &fforce)
+                                double rsq, double /* factor_coul */,
+                                double /* factor_lj */, double &fforce)
 {
     int m, k, index;
     double rsqinv, p, uLD;
@@ -473,7 +473,7 @@ double PairLocalDensity::single(int /* i */, int /* j */, int itype, int jtype,
     for (k = 0; k < nLD; k++) {
         LD[k][1] = 0.0; // itype:- 1
         LD[k][2] = 0.0; // jtype:- 2
-        }	
+        }       
 
     rsqinv = 1.0/rsq;
     for (k = 0; k < nLD; k++) {
@@ -556,24 +556,24 @@ void PairLocalDensity::interpolate_cbspl(int n, double delta,
 {
 /*   inputs:
           n         number of interpolating points
-	
-          f		    array containing function values to
-			        be interpolated;  f[i] is the function
-			        value corresponding to x[i]
-				    ('x' refers to the independent var)
-	 
-	      delta     difference in tabulated values of x
+        
+          f                 array containing function values to
+                                be interpolated;  f[i] is the function
+                                value corresponding to x[i]
+                                    ('x' refers to the independent var)
+         
+              delta     difference in tabulated values of x
      
-	 outputs: (packaged as columns of the coeff matrix)
-          coeff_b	coeffs of linear terms
-	      coeff_c	coeffs of quadratic terms
-	      coeff_d	coeffs of cubic terms
+         outputs: (packaged as columns of the coeff matrix)
+          coeff_b       coeffs of linear terms
+              coeff_c   coeffs of quadratic terms
+              coeff_d   coeffs of cubic terms
           spline    matrix that collects b,c,d
      
-	 
-	 other parameters:
-          fpa		derivative of function at x=a
-          fpb		derivative of function at x=b
+         
+         other parameters:
+          fpa           derivative of function at x=a
+          fpb           derivative of function at x=b
 */
                      
      double *dl, *dd, *du;
@@ -684,12 +684,12 @@ void PairLocalDensity::parse_file(char *filename) {
  // broadcast number of LD potentials and number of (rho,frho) pairs
  if (me == 0) {
     
-   // first 2 comment lines ignored	
+   // first 2 comment lines ignored     
    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     
    // extract number of potentials and number of (frho, rho) points
-   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);	
+   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);       
    sscanf(line, "%d %d", &nLD, &nrho);
    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
   }
@@ -711,9 +711,9 @@ void PairLocalDensity::parse_file(char *filename) {
   memory->create(delta_rho, nLD,"pairLD:delta_rho");
   memory->create(ftmp, nrho*nLD, "pairLD:ftmp");
   
-  // setting up central and neighbor atom filters		
+  // setting up central and neighbor atom filters               
   memory->create(a, nLD, atom->ntypes+1 , "pairLD:a");
-  memory->create(b, nLD, atom->ntypes+1, "pairLD:b"); 	
+  memory->create(b, nLD, atom->ntypes+1, "pairLD:b");   
   if (me == 0) {
     for (n = 1; n <= atom->ntypes; n++){
         for (k = 0; k < nLD; k++) {
@@ -721,14 +721,14 @@ void PairLocalDensity::parse_file(char *filename) {
             b[k][n] = 0;
         }
     }
-  }	
+  }     
   
  // read file block by block
   
   if (me == 0) {
     for (k = 0; k < nLD; k++) {
     
-        // parse upper and lower cut values	
+        // parse upper and lower cut values     
         if (fgets(line,MAXLINE,fptr)==NULL) break;
         sscanf(line, "%lf %lf", &lowercut[k], &uppercut[k]);
     
@@ -743,7 +743,7 @@ void PairLocalDensity::parse_file(char *filename) {
         // parse neighbor atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         tmp = strtok(line, " /t/n/r/f");
-        while (tmp != NULL) {			
+        while (tmp != NULL) {                   
             b[k][atoi(tmp)] = 1;
             tmp = strtok(NULL, " /t/n/r/f");
         }
@@ -778,7 +778,7 @@ void PairLocalDensity::parse_file(char *filename) {
       }
   }
 
-  // Broadcast all parsed arrays	
+  // Broadcast all parsed arrays        
   MPI_Bcast(&lowercut[0], nLD, MPI_DOUBLE, 0, world);
   MPI_Bcast(&uppercut[0], nLD, MPI_DOUBLE, 0, world);
   MPI_Bcast(&lowercutsq[0], nLD, MPI_DOUBLE, 0, world);
@@ -818,16 +818,16 @@ void PairLocalDensity::parse_file(char *filename) {
 ------------------------------------------------------------------------- */
 
 int PairLocalDensity::pack_comm(int n, int *list, double *buf,
-				int /* pbc_flag */, int * /* pbc */) {
+                                int /* pbc_flag */, int * /* pbc */) {
   int i,j,k;
-  int m; 	
+  int m;        
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i]; 
     for (k = 0; k < nLD; k++) {
       buf[m++] = fp[k][j];  
-    }		
+    }           
   }
   
   return nLD;
@@ -845,7 +845,7 @@ void PairLocalDensity::unpack_comm(int n, int first, double *buf) {
     for (k = 0; k < nLD; k++) {
       fp[k][i] = buf[m++];
     }
- }		
+ }              
 }
 
 /* ---------------------------------------------------------------------- */
@@ -876,7 +876,7 @@ void PairLocalDensity::unpack_reverse_comm(int n, int *list, double *buf) {
     j = list[i];
     for (k = 0; k < nLD; k++) {
       localrho[k][j] += buf[m++];
-    }	
+    }   
   }
 }
 

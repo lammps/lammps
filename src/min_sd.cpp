@@ -78,9 +78,9 @@ int MinSD::iterate(int maxiter)
 
     // force tolerance criterion
 
-    if (normstyle == MAX) fdotf = fnorm_max();		// max force norm
-    else if (normstyle == INF) fdotf = fnorm_inf();	// infinite force norm
-    else if (normstyle == TWO) fdotf = fnorm_sqr();	// Euclidean force 2-norm
+    if (normstyle == MAX) fdotf = fnorm_max();          // max force norm
+    else if (normstyle == INF) fdotf = fnorm_inf();     // infinite force norm
+    else if (normstyle == TWO) fdotf = fnorm_sqr();     // Euclidean force 2-norm
     else error->all(FLERR,"Illegal min_modify command");
     if (fdotf < update->ftol*update->ftol) return FTOL;
 

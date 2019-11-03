@@ -33,8 +33,8 @@ friend class FixNVESpin;
   virtual void compute_single_pair(int, double *) {}
 
  protected:
-  double hbar;				// Planck constant (eV.ps.rad-1)
-  int lattice_flag;			// flag for mech force computation
+  double hbar;                          // Planck constant (eV.ps.rad-1)
+  int lattice_flag;                     // flag for mech force computation
 
   virtual void allocate() {}
 };

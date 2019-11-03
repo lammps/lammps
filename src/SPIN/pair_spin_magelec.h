@@ -44,12 +44,12 @@ class PairSpinMagelec : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_magelec_global;	// global me cutoff
+  double cut_spin_magelec_global;       // global me cutoff
 
  protected:
-  double **ME, **ME_mech;		// magelec coeff in eV
-  double **v_mex, **v_mey, **v_mez;	// magelec direction
-  double **cut_spin_magelec;		// magelec cutoff distance
+  double **ME, **ME_mech;               // magelec coeff in eV
+  double **v_mex, **v_mey, **v_mez;     // magelec direction
+  double **cut_spin_magelec;            // magelec cutoff distance
 
   void allocate();
 };

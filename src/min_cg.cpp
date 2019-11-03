@@ -100,7 +100,7 @@ int MinCG::iterate(int maxiter)
         for (i = 0; i < n; i++) {
           dot[0] += fatom[i]*fatom[i];
           dot[1] += fatom[i]*gatom[i];
-	  fmax = MAX(fmax,fatom[i]*fatom[i]);
+          fmax = MAX(fmax,fatom[i]*fatom[i]);
         }
       }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
@@ -111,13 +111,13 @@ int MinCG::iterate(int maxiter)
       }
 
     fmax = 0.0;
-    if (normstyle == MAX) {		// max force norm
+    if (normstyle == MAX) {             // max force norm
       fmax = fnorm_max();
       if (fmax < update->ftol*update->ftol) return FTOL;
-    } else if (normstyle == INF) {	// infinite force norm
+    } else if (normstyle == INF) {      // infinite force norm
       fmax = fnorm_inf();
       if (fmax < update->ftol*update->ftol) return FTOL;
-    } else if (normstyle == TWO) {	// Euclidean force 2-norm
+    } else if (normstyle == TWO) {      // Euclidean force 2-norm
       if (dotall[0] < update->ftol*update->ftol) return FTOL;
     } else error->all(FLERR,"Illegal min_modify command"); 
 

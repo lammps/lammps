@@ -72,13 +72,13 @@ class PairLocalDensity : public Pair {
     
     void allocate();
     
-	// read tabulated input file
-	void parse_file(char *);
+        // read tabulated input file
+        void parse_file(char *);
     
-	// convert array to spline
-	void array2spline();
-	
-	// cubic spline interpolation
+        // convert array to spline
+        void array2spline();
+        
+        // cubic spline interpolation
     void interpolate_cbspl(int, double, double *, double **);
 };
 

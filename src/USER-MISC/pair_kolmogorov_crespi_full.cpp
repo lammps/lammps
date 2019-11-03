@@ -444,7 +444,7 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
@@ -540,7 +540,7 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int /* vflag */)
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
@@ -790,7 +790,7 @@ void PairKolmogorovCrespiFull::calc_normal()
     memory->create(dnormal,3,3,3,nmax,"KolmogorovCrespiFull:dnormal");
   }
 
-  inum = list->inum;    
+  inum = list->inum;
   ilist = list->ilist;
   //Calculate normals
   for (ii = 0; ii < inum; ii++) {

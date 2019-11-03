@@ -34,22 +34,22 @@ class PairSpinDipoleCut : public PairSpin {
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
-  void *extract(const char *, int &); 
-  
+  void *extract(const char *, int &);
+
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_dipolar(int, int, double *, double *, double *, 
+  void compute_dipolar(int, int, double *, double *, double *,
       double *, double);
-  void compute_dipolar_mech(int, int, double *, double *, double *, 
+  void compute_dipolar_mech(int, int, double *, double *, double *,
       double *, double);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  
-  double cut_spin_long_global;  // global long cutoff distance 
+
+  double cut_spin_long_global;  // global long cutoff distance
 
  protected:
   double hbar;                  // reduced Planck's constant

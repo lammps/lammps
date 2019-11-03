@@ -898,7 +898,7 @@ double Min::total_torque()
   MPI_Allreduce(&ftotsqone,&ftotsqall,1,MPI_DOUBLE,MPI_SUM,world);
 
   // multiply it by hbar so that units are in eV
-  
+
   return sqrt(ftotsqall) * hbar;
 }
 

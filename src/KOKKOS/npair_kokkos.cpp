@@ -101,7 +101,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
     // copy stencil to device as it may have changed
 
     int maxstencil = ns->get_maxstencil();
-    
+
     if (maxstencil > k_stencil.extent(0))
       k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
     for (int k = 0; k < maxstencil; k++)

@@ -664,19 +664,19 @@ void PairLJClass2CoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
                "Pair style lj/class2/coul/long requires atom attribute q");
-  
+
   // request regular or rRESPA neighbor list
-  
+
   int irequest;
   int respa = 0;
-  
+
   if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
         if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
-  
+
   irequest = neighbor->request(this,instance_me);
-  
+
   if (respa >= 1) {
     neighbor->requests[irequest]->respaouter = 1;
         neighbor->requests[irequest]->respainner = 1;
@@ -684,13 +684,13 @@ void PairLJClass2CoulLong::init_style()
   if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   cut_coulsq = cut_coul * cut_coul;
-  
+
   // set rRESPA cutoffs
-  
+
   if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;        
+  else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -739,9 +739,9 @@ double PairLJClass2CoulLong::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
-  
+
   // check interior rRESPA cutoff
-  
+
   if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
     error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 

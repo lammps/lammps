@@ -91,7 +91,7 @@ int MinCG::iterate(int maxiter)
       dot[0] += fvec[i]*fvec[i];
       dot[1] += fvec[i]*g[i];
     }
-    
+
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
         fatom = fextra_atom[m];
@@ -119,7 +119,7 @@ int MinCG::iterate(int maxiter)
       if (fmax < update->ftol*update->ftol) return FTOL;
     } else if (normstyle == TWO) {      // Euclidean force 2-norm
       if (dotall[0] < update->ftol*update->ftol) return FTOL;
-    } else error->all(FLERR,"Illegal min_modify command"); 
+    } else error->all(FLERR,"Illegal min_modify command");
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

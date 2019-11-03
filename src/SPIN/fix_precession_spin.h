@@ -42,7 +42,7 @@ class FixPrecessionSpin : public Fix {
   int zeeman_flag, aniso_flag, cubic_flag;
   void compute_single_precession(int, double *, double *);
   void compute_zeeman(int, double *);
-  
+
   // uniaxial aniso calculations
 
   void compute_anisotropy(double *, double *);
@@ -52,7 +52,7 @@ class FixPrecessionSpin : public Fix {
 
   void compute_cubic(double *, double *);
   double compute_cubic_energy(double *);
- 
+
  protected:
   int style;                    // style of the magnetic precession
 

@@ -47,8 +47,8 @@ class Min : protected Pointers {
 
   // methods for spin minimizers
   double total_torque();
-  double inf_torque(); 
-  double max_torque(); 
+  double inf_torque();
+  double max_torque();
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
@@ -65,7 +65,7 @@ class Min : protected Pointers {
   int external_force_clear;   // clear forces locally or externally
 
   double dmax;                  // max dist to move any atom in one step
-  int linestyle;                // 0 = backtrack, 1 = quadratic, 2 = forcezero 
+  int linestyle;                // 0 = backtrack, 1 = quadratic, 2 = forcezero
                                 // 3 = spin_cubic, 4 = spin_none
 
   int normstyle;                // TWO, MAX or INF flag for force norm evaluation

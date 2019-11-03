@@ -33,6 +33,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "dihedral_table.h"
 #include "utils.h"
 
@@ -1042,8 +1043,8 @@ void DihedralTable::write_restart_settings(FILE *fp)
 void DihedralTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);

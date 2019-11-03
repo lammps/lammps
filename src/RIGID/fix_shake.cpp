@@ -32,6 +32,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -360,9 +361,8 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
-    for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ifix_respa = modify->find_fix_by_style("^RESPA");
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     loop_respa = ((Respa *) update->integrate)->loop;
     step_respa = ((Respa *) update->integrate)->step;

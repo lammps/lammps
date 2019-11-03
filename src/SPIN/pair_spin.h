@@ -34,6 +34,7 @@ friend class FixNVESpin;
 
  protected:
   double hbar;				// Planck constant (eV.ps.rad-1)
+  int lattice_flag;			// flag for mech force computation
 
   virtual void allocate() {}
 };

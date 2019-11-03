@@ -112,19 +112,15 @@ void ComputeGyrationShape::compute_vector()
   }
 
   // compute the shape parameters of the gyration tensor
-  double sq_eigen_x = MathSpecial::square(evalues[0]);
-  double sq_eigen_y = MathSpecial::square(evalues[1]);
-  double sq_eigen_z = MathSpecial::square(evalues[2]);
-
-  double nominator = MathSpecial::square(sq_eigen_x)
-    + MathSpecial::square(sq_eigen_y)
-    + MathSpecial::square(sq_eigen_z);
-  double denominator = MathSpecial::square(sq_eigen_x+sq_eigen_y+sq_eigen_z);
+  double nominator = MathSpecial::square(evalues[0])
+    + MathSpecial::square(evalues[1])
+    + MathSpecial::square(evalues[2]);
+  double denominator = MathSpecial::square(evalues[0]+evalues[1]+evalues[2]);
 
   vector[0] = evalues[0];
   vector[1] = evalues[1];
   vector[2] = evalues[2];
-  vector[3] = sq_eigen_z - 0.5*(sq_eigen_x + sq_eigen_y);
-  vector[4] = sq_eigen_y - sq_eigen_x;
-  vector[5] = 0.5*(3*nominator/denominator - 1.0);
+  vector[3] = evalues[0] - 0.5*(evalues[1] + evalues[2]);
+  vector[4] = evalues[1] - evalues[2];
+  vector[5] = 1.5*nominator/denominator - 0.5;
 }

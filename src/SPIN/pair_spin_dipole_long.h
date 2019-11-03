@@ -29,12 +29,12 @@ class PairSpinDipoleLong : public PairSpin {
   double cut_coul;
   double **sigma;
 
-  PairSpinDipoleLong(class LAMMPS *);
-  ~PairSpinDipoleLong();
+  PairSpinDipoleLong(LAMMPS *);
+  virtual ~PairSpinDipoleLong();
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  double init_one(int, int);
   void *extract(const char *, int &); 
   
   void compute(int, int);
@@ -63,9 +63,6 @@ class PairSpinDipoleLong : public PairSpin {
 
   double g_ewald;
   int ewald_order;
-
-  int lattice_flag;			// flag for mech force computation
-  class FixNVESpin *lockfixnvespin;	// ptr for setups
 
   void allocate();
 };

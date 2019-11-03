@@ -39,7 +39,7 @@ ElectronDragPowerLinear::ElectronDragPowerLinear(fstream &fileId,
 }
 
   bool ElectronDragPowerLinear::electron_drag_power(const FIELD_MATS &fields,
-                                                    const GRAD_FIELD_MATS &gradFields,
+                                                    const GRAD_FIELD_MATS & /* gradFields */,
                                                     DENS_MAT & flux)
 {
   

@@ -214,7 +214,7 @@ void ComputeHMA::init() {
   neighbor->requests[irequest]->occasional = 1; 
 }
 
-void ComputeHMA::init_list(int id, NeighList *ptr)
+void ComputeHMA::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -318,11 +318,9 @@ void ComputeHMA::compute_vector()
   double phiSum = 0.0;
   if (computeCv>-1) {
     comm->forward_comm_compute(this);
-    int *type = atom->type;
     double** cutsq = force->pair->cutsq;
     if (force->pair) {
       double **x = atom->x;
-      double **f = atom->f;
       int *type = atom->type;
       int nlocal = atom->nlocal;
       double *special_lj = force->special_lj;
@@ -459,16 +457,8 @@ double ComputeHMA::virial_compute(int n)
 /* ---------------------------------------------------------------------- */
 
 int ComputeHMA::pack_forward_comm(int n, int *list, double *buf,
-                                        int pbc_flag, int *pbc)
+				  int /* pbc_flag */, int * /* pbc */)
 {
-  double **xoriginal = fix->astore;
-  imageint *image = atom->image;
-  double **x = atom->x;
-  double *h = domain->h;
-  double xprd = domain->xprd;   
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   int m = 0;
   for (int ii = 0; ii < n; ii++) {
     int i = list[ii];
@@ -483,7 +473,6 @@ int ComputeHMA::pack_forward_comm(int n, int *list, double *buf,
 
 void ComputeHMA::unpack_forward_comm(int n, int first, double *buf)
 {
-  double **xoriginal = fix->astore;
   int i,m,last;
 
   m = 0;

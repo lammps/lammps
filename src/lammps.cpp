@@ -444,6 +444,19 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && !helpflag) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
+#if defined(LAMMPS_CXX98)
+      const char warning[] = "\nWARNING-WARNING-WARNING-WARNING-WARNING\n"
+        "This LAMMPS executable was compiled using C++98 compatibility.\n"
+        "Please report the compiler info below at https://github.com/lammps/lammps/issues/1659\n";
+      const char *infobuf = Info::get_compiler_info();
+      if (screen)
+         fprintf(screen,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
+                 warning,infobuf);
+      if (logfile)
+         fprintf(logfile,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
+                 warning,infobuf);
+      delete[] infobuf;
+#endif
     }
 
   // universe is one or more worlds, as setup by partition switch
@@ -1263,8 +1276,9 @@ void LAMMPS::print_config(FILE *fp)
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
+  fprintf(fp,"Compiler: %s with %s\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
+  fprintf(fp,"C++ standard: %s\n\n",Info::get_cxx_info());
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

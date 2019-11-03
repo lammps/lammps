@@ -71,6 +71,7 @@ html: $(OBJECTS) $(ANCHORCHECK)
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		doc_anchor_check src/*.txt ;\
+		env LC_ALL=C grep -n '[^ -~]' src/*.txt ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)

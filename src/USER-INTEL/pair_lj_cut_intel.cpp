@@ -236,7 +236,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
         #endif

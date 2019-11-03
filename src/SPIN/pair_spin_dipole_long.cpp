@@ -22,11 +22,8 @@
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "fix.h"
-#include "fix_nve_spin.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -34,7 +31,7 @@
 #include "modify.h"
 #include "error.h"
 #include "update.h"
-
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -49,14 +46,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) : PairSpin(lmp),
-lockfixnvespin(NULL)
+PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) : PairSpin(lmp)
 {
-  single_enable = 0;
   ewaldflag = pppmflag = spinflag = 1;
-  respa_enable = 0;
-  no_virial_fdotr_compute = 1;
-  lattice_flag = 0;
 
   hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
   mub = 9.274e-4;                               // in A.Ang^2
@@ -86,11 +78,7 @@ PairSpinDipoleLong::~PairSpinDipoleLong()
 
 void PairSpinDipoleLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2)
-    error->all(FLERR,"Incorrect args in pair_style command");
-
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
+  PairSpin::settings(narg,arg);
 
   cut_spin_long_global = force->numeric(FLERR,arg[0]);
   
@@ -106,7 +94,6 @@ void PairSpinDipoleLong::settings(int narg, char **arg)
       }
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -144,34 +131,7 @@ void PairSpinDipoleLong::coeff(int narg, char **arg)
 
 void PairSpinDipoleLong::init_style()
 {
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-  
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  
-  // checking if nve/spin or neb/spin are a listed fix
-
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    if (strcmp(modify->fix[ifix]->style,"neb/spin") == 0) break;
-    ifix++;
-  }
-  if ((ifix == modify->nfix) && (comm->me == 0))
-    error->warning(FLERR,"Using pair/spin style without nve/spin or neb/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
+  PairSpin::init_style();
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -354,10 +314,9 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
 void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 {
-  //int i,j,jj,jnum,itype,jtype;  
   int j,jj,jnum,itype,jtype,ntypes; 
   int k,locflag;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
+  int *jlist,*numneigh,**firstneigh;  
   double r,rinv,r2inv,rsq,grij,expm2,t,erfc;
   double local_cut2,pre1,pre2,pre3;
   double bij[4],xi[3],rij[3],eij[3],spi[4],spj[4];
@@ -367,7 +326,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
   double **sp = atom->sp;       
   double **fm_long = atom->fm_long;
 
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
@@ -405,7 +363,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
     // computation of the exchange interaction
     // loop over neighbors of atom i
       
-    //i = ilist[ii];
     xi[0] = x[ii][0];
     xi[1] = x[ii][1];
     xi[2] = x[ii][2];
@@ -471,7 +428,7 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipoleLong::compute_long(int i, int j, double eij[3], 
+void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3], 
     double bij[4], double fmi[3], double spi[4], double spj[4])
 {
   double sjeij,pre;
@@ -494,7 +451,7 @@ void PairSpinDipoleLong::compute_long(int i, int j, double eij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipoleLong::compute_long_mech(int i, int j, double eij[3],
+void PairSpinDipoleLong::compute_long_mech(int /* i */, int /* j */, double eij[3],
     double bij[4], double fi[3], double spi[3], double spj[3])
 {
   double sisj,sieij,sjeij,b2,b3;
@@ -569,11 +526,11 @@ void PairSpinDipoleLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&cut_spin_long[i][j],sizeof(int),1,fp);
+          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,NULL,error);
         }
         MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
@@ -598,8 +555,8 @@ void PairSpinDipoleLong::write_restart_settings(FILE *fp)
 void PairSpinDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_long_global,sizeof(double),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_spin_long_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

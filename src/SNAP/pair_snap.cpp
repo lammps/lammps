@@ -273,7 +273,7 @@ void PairSNAP::compute_bispectrum()
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
-  int *jlist,*numneigh,**firstneigh;
+  int *jlist;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -350,9 +350,9 @@ void PairSNAP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSNAP::settings(int narg, char **arg)
+void PairSNAP::settings(int narg, char ** /* arg */)
 {
-  for (int i=0; i < narg; i++)
+  if (narg > 0)
     error->all(FLERR,"Illegal pair_style command");
 }
 

@@ -281,7 +281,6 @@ void BondMatrixKernel::reset(void) const
   int nNodes = feMesh_->num_nodes_unique(); 
   quantity_.reset(nNodes,nPairs);
   double lam1,lam2;
-  std::pair< int,int > pair_jk;
   int heartbeatFreq = (nNodes <= 10 ? 1 : (int) nNodes / 10);
   HeartBeat beat("computing bond matrix ",heartbeatFreq);
   beat.start();
@@ -337,7 +336,6 @@ void BondMatrixPartitionOfUnity::reset(void) const
   int nodes_per_element = feMesh_->num_nodes_per_element(); 
   Array<int> node_list(nodes_per_element); 
   DENS_VEC shp(nodes_per_element);
-  std::pair< int,int > pair_jk;
   int heartbeatFreq = (int) nPairs / 10;
   HeartBeat beat("computing bond matrix ",heartbeatFreq);
   beat.start();

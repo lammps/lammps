@@ -186,19 +186,24 @@ reacting atoms.
 
 Some atoms in the pre-reacted template that are not reacting may have
 missing topology with respect to the simulation. For example, the
-pre-reacted template may contain an atom that would connect to the
-rest of a long polymer chain. These are referred to as edge atoms, and
-are also specified in the map file. When the pre-reaction template
-contains edge atoms, not all atoms, bonds, charges, etc. specified in
-the reaction templates will be updated. Specifically, topology that
-involves only atoms that are 'too near' to template edges will not be
-updated. The definition of 'too near the edge' depends on which
-interactions are defined in the simulation. If the simulation has
-defined dihedrals, atoms within two bonds of edge atoms are considered
-'too near the edge.' If the simulation defines angles, but not
-dihedrals, atoms within one bond of edge atoms are considered 'too
-near the edge.' If just bonds are defined, only edge atoms are
+pre-reacted template may contain an atom that, in the simulation, is
+currently connected to the rest of a long polymer chain. These are
+referred to as edge atoms, and are also specified in the map file. All
+pre-reaction template atoms should be linked to a bonding atom, via at
+least one path that does not involve edge atoms. When the pre-reaction
+template contains edge atoms, not all atoms, bonds, charges, etc.
+specified in the reaction templates will be updated. Specifically,
+topology that involves only atoms that are 'too near' to template
+edges will not be updated. The definition of 'too near the edge'
+depends on which interactions are defined in the simulation. If the
+simulation has defined dihedrals, atoms within two bonds of edge atoms
+are considered 'too near the edge.' If the simulation defines angles,
+but not dihedrals, atoms within one bond of edge atoms are considered
+'too near the edge.' If just bonds are defined, only edge atoms are
 considered 'too near the edge.'
+
+NOTE: Small molecules, i.e. ones that have all their atoms contained
+within the reaction templates, never have edge atoms.
 
 Note that some care must be taken when a building a molecule template
 for a given simulation. All atom types in the pre-reacted template
@@ -261,7 +266,7 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update_edges' keyword. The fourth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there is one type of constraint available, as discussed below.
+there are three types of constraints available, as discussed below.
 
 A sample map file is given below:
 
@@ -295,16 +300,46 @@ Equivalences :pre
 :line
 
 Any number of additional constraints may be specified in the
-Constraints section of the map file. Currently there is one type of
-additional constraint, of type 'distance', whose syntax is as follows:
+Constraints section of the map file. The constraint of type 'distance'
+has syntax as follows:
 
 distance {ID1} {ID2} {rmin} {rmax} :pre
 
 where 'distance' is the required keyword, {ID1} and {ID2} are
 pre-reaction atom IDs, and these two atoms must be separated by a
-distance between {rmin} and {rmax} for the reaction to occur. This
+distance between {rmin} and {rmax} for the reaction to occur.
+
+The constraint of type 'angle' has the following syntax:
+
+angle {ID1} {ID2} {ID3} {amin} {amax} :pre
+
+where 'angle' is the required keyword, {ID1}, {ID2} and {ID3} are
+pre-reaction atom IDs, and these three atoms must form an angle
+between {amin} and {amax} for the reaction to occur (where {ID2} is
+the central atom). Angles must be specified in degrees. This
 constraint can be used to enforce a certain orientation between
 reacting molecules.
+
+The constraint of type 'arrhenius' imposes an additional reaction
+probability according to the temperature-dependent Arrhenius equation:
+
+:c,image(Eqs/fix_bond_react.jpg)
+
+The Arrhenius constraint has the following syntax:
+
+arrhenius {A} {n} {E_a} {seed} :pre
+
+where 'arrhenius' is the required keyword, {A} is the pre-exponential
+factor, {n} is the exponent of the temperature dependence, {E_a} is
+the activation energy ("units"_units.html of energy), and {seed} is a
+random number seed. The temperature is defined as the instantaneous
+temperature averaged over all atoms in the reaction site, and is
+calculated in the same manner as for example
+"compute_temp_chunk"_compute_temp_chunk.html. Currently, there are no
+options for additional temperature averaging or velocity-biased
+temperature calculations. A uniform random number between 0 and 1 is
+generated using {seed}; if this number is less than the result of the
+Arrhenius equation above, the reaction is permitted to occur.
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the
@@ -381,7 +416,7 @@ will apply to all reactions.
 Computationally, each timestep this fix operates, it loops over
 neighbor lists (for bond-forming reactions) and computes distances
 between pairs of atoms in the list. It also communicates between
-neighboring processors to coordinate which bonds  are created and/or
+neighboring processors to coordinate which bonds are created and/or
 removed. All of these operations increase the cost of a timestep. Thus
 you should be cautious about invoking this fix too frequently.
 
@@ -392,10 +427,11 @@ local command.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html, aside from internally-created per-atom
-properties. None of the "fix_modify"_fix_modify.html options are
-relevant to this fix.
+Cumulative reaction counts for each reaction are written to "binary
+restart files"_restart.html. These values are associated with the
+reaction name (react-ID). Additionally, internally-created per-atom
+properties are stored to allow for smooth restarts. None of the
+"fix_modify"_fix_modify.html options are relevant to this fix.
 
 This fix computes one statistic for each {react} argument that it
 stores in a global vector, of length 'number of react arguments', that
@@ -406,8 +442,8 @@ These is 1 quantity for each react argument:
 
 (1) cumulative # of reactions occurred :ul
 
-No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
+No parameter of this fix can be used with the {start/stop} keywords
+of the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 When fix bond/react is 'unfixed,' all internally-created groups are
@@ -417,18 +453,20 @@ all other fixes that use any group created by fix bond/react.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.
+LAMMPS was built with that package.  See the
+"Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"fix bond/create"_fix_bond_create.html, "fix
-bond/break"_fix_bond_break.html, "fix bond/swap"_fix_bond_swap.html,
+"fix bond/create"_fix_bond_create.html,
+"fix bond/break"_fix_bond_break.html,
+"fix bond/swap"_fix_bond_swap.html,
 "dump local"_dump.html, "special_bonds"_special_bonds.html
 
 [Default:]
 
-The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60, update_edges = none
+The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
+update_edges = none
 
 :line
 

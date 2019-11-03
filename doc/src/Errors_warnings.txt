@@ -47,6 +47,11 @@ too far away. :dd
 
 Self-explanatory. :dd
 
+{Angles are defined but no angle style is set} :dt
+
+The topology contains angles, but there are no angle forces computed
+since there was no angle_style command. :dd
+
 {Atom style in data file differs from currently defined atom style} :dt
 
 Self-explanatory. :dd
@@ -72,6 +77,11 @@ short or the bond has blown apart and an atom is too far away. :dd
 {Bond style in data file differs from currently defined bond style} :dt
 
 Self-explanatory. :dd
+
+{Bonds are defined but no bond style is set} :dt
+
+The topology contains bonds, but there are no bond forces computed
+since there was no bond_style command. :dd
 
 {Bond/angle/dihedral extent > half of periodic box length} :dt
 
@@ -186,6 +196,11 @@ to check your simulation geometry. :dd
 
 Self-explanatory. :dd
 
+{Dihedrals are defined but no dihedral style is set} :dt
+
+The topology contains dihedrals, but there are no dihedral forces computed
+since there was no dihedral_style command. :dd
+
 {Dump dcd/xtc timestamp may be wrong with fix dt/reset} :dt
 
 If the fix changes the timestep, the dump dcd file will not
@@ -247,6 +262,10 @@ is required for systems like the one specified by the user. User input
 included one or more of the following: kspace, triclinic, a hybrid
 pair style, an eam pair style, or no "single" function for the pair
 style. :dd
+
+{Fix langevin gjf using random gaussians is not implemented with kokkos} :dt
+
+This will most likely cause errors in kinetic fluctuations.
 
 {Fix property/atom mol or charge w/out ghost communication} :dt
 
@@ -348,6 +367,11 @@ to check your simulation geometry. :dd
 
 Self-explanatory. :dd
 
+{Impropers are defined but no improper style is set} :dt
+
+The topology contains impropers, but there are no improper forces computed
+since there was no improper_style command. :dd
+
 {Inconsistent image flags} :dt
 
 The image flags for a pair on bonded atoms appear to be inconsistent.
@@ -365,6 +389,11 @@ have an infinite periodic crystal with bonds then it is impossible to
 have fully consistent image flags, since some bonds will cross
 periodic boundaries and connect two atoms with the same image
 flag. :dd
+
+{Increasing communication cutoff for GPU style} :dt
+
+The pair style has increased the communication cutoff to be consistent with
+the communication cutoff requirements for this pair style when run on the GPU. :dd
 
 {KIM Model does not provide 'energy'; Potential energy will be zero} :dt
 
@@ -402,6 +431,30 @@ or are not consecutively numbered. :dd
 This library function cannot be used if atom IDs are not defined or
 are not consecutively numbered, or if no atom map is defined.  See the
 atom_modify command for details about atom maps. :dd
+
+{Likewise 1-2 special neighbor interactions != 1.0} :dt
+
+The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style. :dd
+
+{Likewise 1-3 special neighbor interactions != 1.0} :dt
+
+The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style. :dd
+
+{Likewise 1-4 special neighbor interactions != 1.0} :dt
+
+The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style. :dd
 
 {Lost atoms via change_box: original %ld current %ld} :dt
 

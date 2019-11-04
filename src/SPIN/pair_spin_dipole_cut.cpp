@@ -46,11 +46,11 @@ PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp)
 {
   spinflag = 1;
 
-  hbar = force->hplanck/MY_2PI;			      // eV/(rad.THz)
+  hbar = force->hplanck/MY_2PI;                       // eV/(rad.THz)
   mub = 9.274e-4;                             // in A.Ang^2
   mu_0 = 785.15;                              // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV.Ang^3
-  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
+  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
   mub2mu0hbinv = mub2mu0 / hbar;              // in rad.THz
 }
 
@@ -178,7 +178,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;       
 
   inum = list->inum;
   ilist = list->ilist;
@@ -228,36 +228,36 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
 
       if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
-	r3inv = r2inv*rinv;
-	
-	compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
-	if (lattice_flag) compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
+        r3inv = r2inv*rinv;
+        
+        compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
+        if (lattice_flag) compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
       }
 
       // force accumulation
 
       f[i][0] += fi[0]; 
-      f[i][1] += fi[1];  	  
+      f[i][1] += fi[1];           
       f[i][2] += fi[2];
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fi[0];	 
-        f[j][1] -= fi[1];	  	  
+        f[j][0] -= fi[0];        
+        f[j][1] -= fi[1];                 
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
-	if (rsq <= local_cut2) {
-	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	  evdwl *= hbar;
-	}
+        if (rsq <= local_cut2) {
+          evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+          evdwl *= hbar;
+        }
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
 
     }
   }
@@ -277,7 +277,7 @@ void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
   int k,locflag;
   int *type = atom->type;  
   double **x = atom->x;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;       
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -427,7 +427,7 @@ void PairSpinDipoleCut::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&cut_spin_long[i][j],sizeof(int),1,fp);
+        fwrite(&cut_spin_long[i][j],sizeof(int),1,fp);
       }
     }
   }
@@ -450,10 +450,10 @@ void PairSpinDipoleCut::read_restart(FILE *fp)
       if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,NULL,error);
-	}
-	MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
+        if (me == 0) {
+          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,NULL,error);
+        }
+        MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
     }
   }

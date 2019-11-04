@@ -173,9 +173,9 @@ int FixPrecessionSpin::setmask()
 
 void FixPrecessionSpin::init()
 {
-  const double hbar = force->hplanck/MY_2PI;	// eV/(rad.THz)
-  const double mub = 5.78901e-5;		// in eV/T
-  const double gyro = 2.0*mub/hbar;		// in rad.THz/T
+  const double hbar = force->hplanck/MY_2PI;    // eV/(rad.THz)
+  const double mub = 5.78901e-5;                // in eV/T
+  const double gyro = 2.0*mub/hbar;             // in rad.THz/T
 
   // convert field quantities to rad.THz
 
@@ -236,7 +236,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     modify->addstep_compute(update->ntimestep + 1);
-    set_magneticprecession();		// update mag. field if time-dep.
+    set_magneticprecession();           // update mag. field if time-dep.
   }
 
   int *mask = atom->mask;
@@ -266,9 +266,9 @@ void FixPrecessionSpin::post_force(int /* vflag */)
         epreci -= compute_anisotropy_energy(spi);
       }
 
-      if (cubic_flag) {		// compute cubic anisotropy
-	compute_cubic(spi,fmi);
-	epreci -= compute_cubic_energy(spi);
+      if (cubic_flag) {         // compute cubic anisotropy
+        compute_cubic(spi,fmi);
+        epreci -= compute_cubic_energy(spi);
       }
 
       eprec += epreci;

@@ -270,9 +270,9 @@ int MinSpinCG::iterate(int maxiter)
 
     fmdotfm = fmsq = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == MAX) fmsq = max_torque();	// max torque norm
-      else if (normstyle == INF) fmsq = inf_torque();	// inf torque norm
-      else if (normstyle == TWO) fmsq = total_torque();	// Euclidean torque 2-norm
+      if (normstyle == MAX) fmsq = max_torque();        // max torque norm
+      else if (normstyle == INF) fmsq = inf_torque();   // inf torque norm
+      else if (normstyle == TWO) fmsq = total_torque(); // Euclidean torque 2-norm
       else error->all(FLERR,"Illegal min_modify command");
       fmdotfm = fmsq*fmsq;
       if (update->multireplica == 0) {
@@ -347,12 +347,12 @@ void MinSpinCG::calc_search_direction()
       factor = 0.0;
 
 
-  if (local_iter == 0 || local_iter % 5 == 0){ 	// steepest descent direction
+  if (local_iter == 0 || local_iter % 5 == 0){  // steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i] * factor;
       g_old[i] = g_cur[i] * factor;
     }
-  } else { 				// conjugate direction
+  } else {                              // conjugate direction
     for (int i = 0; i < 3 * nlocal; i++) {
       g2old += g_old[i] * g_old[i];
       g2 += g_cur[i] * g_cur[i];
@@ -394,7 +394,7 @@ void MinSpinCG::advance_spins()
 {
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
-  double rot_mat[9];	// exponential of matrix made of search direction
+  double rot_mat[9];    // exponential of matrix made of search direction
   double s_new[3];
 
   // loop on all spins on proc.

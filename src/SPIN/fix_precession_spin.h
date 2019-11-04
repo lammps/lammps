@@ -54,7 +54,7 @@ class FixPrecessionSpin : public Fix {
   double compute_cubic_energy(double *);
  
  protected:
-  int style; 			// style of the magnetic precession
+  int style;                    // style of the magnetic precession
 
   double degree2rad;
   double hbar;
@@ -72,19 +72,19 @@ class FixPrecessionSpin : public Fix {
 
   double H_field;
   double nhx, nhy, nhz;
-  double hx, hy, hz; 		// temp. force variables
+  double hx, hy, hz;            // temp. force variables
 
   // magnetic anisotropy intensity and direction
 
-  double Ka;			// aniso const. in eV
-  double Kah;			// aniso const. in rad.THz
+  double Ka;                    // aniso const. in eV
+  double Kah;                   // aniso const. in rad.THz
   double nax, nay, naz;
-  double Kax, Kay, Kaz; 	// temp. force variables
+  double Kax, Kay, Kaz;         // temp. force variables
 
   // cubic anisotropy intensity
 
-  double k1c,k2c;		// cubic const. in eV
-  double k1ch,k2ch;		// cubic const. in rad.THz
+  double k1c,k2c;               // cubic const. in eV
+  double k1ch,k2ch;             // cubic const. in rad.THz
   double nc1x,nc1y,nc1z;
   double nc2x,nc2y,nc2z;
   double nc3x,nc3y,nc3z;

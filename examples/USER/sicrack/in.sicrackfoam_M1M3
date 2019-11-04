@@ -1,0 +1,67 @@
+log		log.sicrackfoam  # Name of log file to write to
+
+#Test relaxation script for Nathan 
+
+boundary    s s p
+
+units       metal
+atom_style  atomic
+neighbor    2.0 bin
+neigh_modify    delay 5
+
+## create geometry
+region region_name1 block -40.8 40.8 -40.8 40.8 -40.8 40.8
+create_box 2 region_name1
+
+lattice fcc 4.08 origin 0.0 0.0 0.0 
+region crackblock sphere 0.0 0.0 0.0 380.09 side in units box
+create_atoms 1 region crackblock
+
+# define groups
+
+region	    mobile block -8.0 8.0 -8.0 8.0 INF INF
+group		mobile region mobile
+group		boundary subtract all mobile
+
+pair_style eam
+pair_coeff * * Au_u3.eam
+
+# computes
+
+compute     myTemp mobile temp
+compute     pot mobile pe/atom
+compute     kin all ke/atom
+compute     stress mobile stress/atom myTemp virial
+variable    mises atom "0.707106781 * sqrt( (c_stress[1] - c_stress[2])^2 + (c_stress[2] - c_stress[3])^2 + (c_stress[1] - c_stress[3])^2 + 6*(c_stress[4]^2 + c_stress[5]^2 + c_stress[6]^2) )"
+
+# initial velocities
+
+velocity	mobile create 300.0 887723 temp myTemp
+velocity	boundary set 0.0 0.0 0.0
+
+#initial fixes
+
+fix     1 boundary setforce 0.0 0.0 0.0
+fix     2 all sicrack 0.0  0.0  27.0 0.44 M1 1.29 0.0
+fix     3 all sicrack 0.0  0.0  27.0 0.44 M3 1.29 0.0
+
+# Run to introduce crack
+
+dump            1 all custom 500 dump.sicrackfoam_1.29_ModeCombo_M1M3_* id type xs ys zs c_pot v_mises c_kin
+
+run             1
+
+#Run to increase stress intensity
+
+timestep        0.001
+thermo          50
+thermo_style    custom step temp etotal press vol pxx pyy pzz ly
+thermo_modify   temp myTemp
+
+unfix 2
+unfix 3
+fix     4 mobile nvt temp 300.0 300.0 100.0 drag 0.2
+fix     5 boundary sicrack 0.0  0.0  27.0 0.44 M1 0.0 0.0001
+fix     6 all sicrack 0.0  0.0  27.0 0.44 M3 0.0 0.0001
+
+run             50000

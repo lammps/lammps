@@ -250,6 +250,7 @@ int MinFire::iterate(int maxiter)
     // force tolerance criterion
     // sync across replicas if running multi-replica minimization
 
+    fdotf = 0.0;
     if (update->ftol > 0.0) {
       if (normstyle == MAX) fdotf = fnorm_max();        // max force norm
       else if (normstyle == INF) fdotf = fnorm_inf();   // inf force norm

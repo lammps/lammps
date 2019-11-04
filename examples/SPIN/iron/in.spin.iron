@@ -48,10 +48,11 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe etotal
+thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe press etotal
 thermo          50
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+# dump 		100 all custom 1 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+dump 		1 all custom 100 dump_iron.lammpstrj type x y z fx fy fz
 
 run 		50000

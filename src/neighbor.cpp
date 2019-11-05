@@ -34,6 +34,7 @@
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "domain.h"
 #include "group.h"
 #include "modify.h"
@@ -374,9 +375,32 @@ void Neighbor::init()
     special_flag[3] = 1;
   else special_flag[3] = 2;
 
-  if (force->kspace || force->pair_match("coul/wolf",0) ||
-      force->pair_match("coul/dsf",0) || force->pair_match("thole",0))
-     special_flag[1] = special_flag[2] = special_flag[3] = 2;
+  // We cannot remove special neighbors with kspace or kspace-like pair styles
+  // as the exclusion needs to remove the full coulomb and not the damped interaction.
+  // Special treatment is required for hybrid pair styles since Force::pair_match()
+  // will only return a non-NULL pointer if there is only one substyle of the kind.
+
+  if (force->kspace) {
+    special_flag[1] = special_flag[2] = special_flag[3] = 2;
+  } else {
+    PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid",0));
+    if (ph) {
+      int flag=0;
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("coul/wolf",0,isub)
+            || force->pair_match("coul/dsf",0,isub)
+            || force->pair_match("thole",0,isub))
+          ++flag;
+      }
+      if (flag)
+        special_flag[1] = special_flag[2] = special_flag[3] = 2;
+    } else {
+      if (force->pair_match("coul/wolf",0)
+          || force->pair_match("coul/dsf",0)
+          || force->pair_match("thole",0))
+        special_flag[1] = special_flag[2] = special_flag[3] = 2;
+    }
+  }
 
   // maxwt = max multiplicative factor on atom indices stored in neigh list
 

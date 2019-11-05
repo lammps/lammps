@@ -954,6 +954,46 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 }
 
 /* ----------------------------------------------------------------------
+   replace replaceID fix with a new fix
+   this is used by callers to preserve ordering of fixes
+   e.g. create replaceID as a FixDummy instance early in the input script
+        replace it later with the desired Fix instance
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const char *replaceID, 
+                         int narg, char **arg, int trysuffix)
+{
+  int ifix = find_fix(replaceID);
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+ 
+  // change ID, igroup, style of fix being replaced to match new fix
+  // requires some error checking on arguments for new fix
+
+  if (narg < 3) error->all(FLERR,"Illegal replace_fix invocation");
+  int jfix = find_fix(arg[0]);
+  if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
+
+  delete [] fix[ifix]->id;
+  int n = strlen(arg[0]) + 1;
+  fix[ifix]->id = new char[n];
+  strcpy(fix[ifix]->id,arg[0]);
+
+  int jgroup = group->find(arg[1]);
+  if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
+  fix[ifix]->igroup = jgroup;
+
+  delete [] fix[ifix]->style;
+  n = strlen(arg[2]) + 1;
+  fix[ifix]->style = new char[n];
+  strcpy(fix[ifix]->style,arg[2]);
+
+  // invoke add_fix
+  // it will find and overwrite the replaceID fix
+
+  add_fix(narg,arg,trysuffix);
+}
+
+/* ----------------------------------------------------------------------
    one instance per fix in style_fix.h
 ------------------------------------------------------------------------- */
 

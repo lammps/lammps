@@ -24,6 +24,7 @@
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -43,7 +44,6 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   history = 1;
   size_history = 3;
-  fix_history = NULL;
 
   single_extra = 10;
   svector = new double[10];
@@ -60,6 +60,19 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // keep default behavior of history[i][j] = -history[j][i]
 
   nondefault_history_transfer = 0;
+
+  // create dummy fix as placeholder for FixNeighHistory
+  // this is so final order of Modify:fix will conform to input script
+
+  fix_history = NULL;
+
+  char **fixarg = new char*[3];
+  fixarg[0] = (char *) "NEIGH_HISTORY_DUMMY";
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "DUMMY";
+  modify->add_fix(3,fixarg,1);
+  delete [] fixarg;
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +82,9 @@ PairGranHookeHistory::~PairGranHookeHistory()
   if (copymode) return;
 
   delete [] svector;
-  if (fix_history) modify->delete_fix("NEIGH_HISTORY");
+
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -412,7 +427,9 @@ void PairGranHookeHistory::init_style()
 
   dt = update->dt;
 
-  // if first init, create Fix needed for storing shear history
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
 
   if (history && fix_history == NULL) {
     char dnumstr[16];
@@ -422,7 +439,7 @@ void PairGranHookeHistory::init_style()
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_DUMMY",4,fixarg,1);
     delete [] fixarg;
     fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
     fix_history->pair = this;

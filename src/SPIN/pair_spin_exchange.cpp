@@ -351,6 +351,8 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
   Jex *= (1.0-J2[itype][jtype]*ra);
   Jex *= exp(-ra);
 
+  printf("Exchange : %g %g \n",Jex,Jex*hbar);
+
   fmi[0] += 2.0*Jex*spj[0];
   fmi[1] += 2.0*Jex*spj[1];
   fmi[2] += 2.0*Jex*spj[2];

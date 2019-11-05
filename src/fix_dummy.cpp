@@ -29,7 +29,7 @@ FixDummy::FixDummy(LAMMPS *lmp, int narg, char **arg) :
   // (a) the real fix you are placeholding for defines the method
   // (b) the real fix will be defined so late in run initialization
   //     that the dummy fix will have already been processed by Modify::init()
-  //     to add its index to its lists of fixes to invoke during timestepping
+  //     so its index needs to be added to lists of fixes invoked during a run
 
   initial_integrate_flag = final_integrate_flag = 0;
   pre_exchange_flag = pre_neighbor_flag = 0;
@@ -40,10 +40,11 @@ FixDummy::FixDummy(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"initial_integrate") == 0) initial_integrate_flag = 1;
     else if (strcmp(arg[iarg],"final_integrate") == 0) final_integrate_flag = 1;
-    else if (strcmp(arg[iarg],"final_integrate") == 0) final_integrate_flag = 1;
-    else if (strcmp(arg[iarg],"final_integrate") == 0) final_integrate_flag = 1;
-    else if (strcmp(arg[iarg],"final_integrate") == 0) final_integrate_flag = 1;
-    else if (strcmp(arg[iarg],"final_integrate") == 0) final_integrate_flag = 1;
+    else if (strcmp(arg[iarg],"pre_exchange") == 0) pre_exchange_flag = 1;
+    else if (strcmp(arg[iarg],"pre_neighbor") == 0) pre_neighbor_flag = 1;
+    else if (strcmp(arg[iarg],"pre_force") == 0) pre_force_flag = 1;
+    else if (strcmp(arg[iarg],"post_force") == 0) post_force_flag = 1;
+    else if (strcmp(arg[iarg],"end_of_step") == 0) end_of_step_flag = 1;
     else error->all(FLERR,"Illegal fix DUMMY command");
     iarg++;
   }

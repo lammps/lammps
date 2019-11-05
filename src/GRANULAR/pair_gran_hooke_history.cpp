@@ -441,7 +441,8 @@ void PairGranHookeHistory::init_style()
     fixarg[3] = dnumstr;
     modify->replace_fix("NEIGH_HISTORY_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY");
+    fix_history = (FixNeighHistory *) modify->fix[modify->ifix];
     fix_history->pair = this;
   }
 

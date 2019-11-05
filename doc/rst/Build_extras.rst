@@ -1254,7 +1254,7 @@ lib/quip/README file for details on how to do this.
 
 .. parsed-literal::
 
-   -D QUIP_LIBRARIES=path     # path to libquip.a (only needed if a custom location)
+   -D QUIP_LIBRARY=path     # path to libquip.a (only needed if a custom location)
 
 CMake will not download and build the QUIP library.  But once you have
 done that, a CMake build of LAMMPS with "-D PKG\_USER-QUIP=yes" should

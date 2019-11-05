@@ -1,8 +1,8 @@
 LAMMPS Documentation
 ####################
 
-30 Oct 2019 version
-*******************
+|version| version
+*****************
 
 :doc:`What is a LAMMPS version? <Manual_version>`
 

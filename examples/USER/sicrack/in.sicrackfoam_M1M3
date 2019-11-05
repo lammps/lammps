@@ -62,6 +62,6 @@ unfix 2
 unfix 3
 fix     4 mobile nvt temp 300.0 300.0 100.0 drag 0.2
 fix     5 boundary sicrack 0.0  0.0  27.0 0.44 M1 0.0 0.0001
-fix     6 all sicrack 0.0  0.0  27.0 0.44 M3 0.0 0.0001
+fix     6 boundary sicrack 0.0  0.0  27.0 0.44 M3 0.0 0.0001
 
 run             50000

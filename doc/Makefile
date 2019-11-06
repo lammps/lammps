@@ -1,11 +1,12 @@
 # Makefile for LAMMPS documentation
 
 SHELL         = /bin/bash
-BUILDDIR      = ${PWD}
-RSTDIR        = $(BUILDDIR)/rst
+BUILDDIR      = ${CURDIR}
+RSTDIR        = $(BUILDDIR)/src
+TXTDIR        = $(BUILDDIR)/txt
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
-ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
+ANCHORCHECK   = $(VENV)/bin/rst_anchor_check
 
 PYTHON        = $(shell which python3)
 VIRTUALENV     = virtualenv
@@ -27,8 +28,8 @@ HAS_VIRTUALENV = YES
 endif
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
-SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
-OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
+SOURCES=$(filter-out $(wildcard $(TXTDIR)/lammps_commands*.txt) $(TXTDIR)/lammps_support.txt $(TXTDIR)/lammps_tutorials.txt,$(wildcard $(TXTDIR)/*.txt))
+OBJECTS=$(SOURCES:$(TXTDIR)/%.txt=$(RSTDIR)/%.rst)
 
 .PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check
 
@@ -53,7 +54,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees
 
 clean:
-	rm -rf $(RSTDIR)/{Eqs,JPG,*.rst} html epub latex
+	rm -rf html epub latex
 	rm -rf spelling
 
 clean-spelling:
@@ -64,12 +65,10 @@ rst: clean $(OBJECTS) $(ANCHORCHECK)
 html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-	    cp -r src/JPG $(RSTDIR)/ ;\
-	    cp -r src/Eqs $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
-		doc_anchor_check src/*.txt ;\
-		env LC_ALL=C grep -n '[^ -~]' src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -89,7 +88,7 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
-        cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
@@ -126,7 +125,7 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
                 . $(VENV)/bin/activate ;\
                 sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
                 echo "############################################" ;\
-                doc_anchor_check src/*.txt ;\
+                rst_anchor_check src/*.rst ;\
                 echo "############################################" ;\
                 deactivate ;\
 	)
@@ -163,7 +162,7 @@ fetch:
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		doc_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.txt ;\
 		deactivate ;\
 	)
 

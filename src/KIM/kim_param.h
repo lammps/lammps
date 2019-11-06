@@ -12,10 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U),
+   Contributing authors: Yaser Afshar (UMN),
                          Ryan S. Elliott (UMN),
-                         Ellad B. Tadmor (UMN),
-                         Yaser Afshar (UMN)
+                         Ellad B. Tadmor (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -58,78 +57,44 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(kim_init,KimInit)
+CommandStyle(kim_param, KimParam)
 
 #else
 
-#ifndef LMP_KIM_INIT_H
-#define LMP_KIM_INIT_H
+#ifndef LMP_KIM_PARAM_H
+#define LMP_KIM_PARAM_H
 
 #include "pointers.h"
 #include <string>
 
-// Forward declaration.
-class KIM_Model;
+namespace LAMMPS_NS
+{
 
-namespace LAMMPS_NS {
+class KimParam : protected Pointers
+{
+public:
+  KimParam(class LAMMPS *lmp);
 
-class KimInit : protected Pointers {
- public:
-  KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
+  ~KimParam();
+
   void command(int, char **);
- private:
-  enum model_type_enum {MO, SM};
-  model_type_enum model_type;
-  bool unit_conversion_mode;
 
-  void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
-  void write_log_cite(char *);
-  void do_init(char *, char *, char *, KIM_Model *&);
-  void do_variables(char*, char*);
-  void kim_init_log_delimiter(std::string const &begin_end) const;
+private:
+  void kim_param_log_delimiter(std::string const &begin_end) const;
+
+  void echo_var_assign(std::string const &name, std::string const &value)
+      const;
+
+private:
+  bool kim_param_get;
+  bool kim_param_set;
 };
 
-}
+} // namespace LAMMPS_NS
 
-#endif
-#endif
+#endif // LMP_KIM_PARAM_H
+#endif // COMMAND_CLASS
 
 /* ERROR/WARNING messages:
-
-E: Illegal kim_init command
-
-Incorrect number or kind of arguments to kim_init.
-
-E: Must use 'kim_init' command before simulation box is defined
-
-Self-explanatory.
-
-E: KIM Model does not support the requested unit system
-
-Self-explanatory.
-
-E: KIM Model does not support any lammps unit system
-
-Self-explanatory.
-
-E: KIM model name not found
-
-Self-explanatory.
-
-E: Incompatible KIM Simulator Model
-
-The requested KIM Simulator Model was defined for a different MD code
-and thus is not compatible with LAMMPS.
-
-E: Incompatible units for KIM Simulator Model
-
-The selected unit style is not compatible with the requested KIM
-Simulator Model.
-
-E: KIM Simulator Model has no Model definition
-
-There is no model definition (key: model-defn) in the KIM Simulator
-Model.  Please contact the OpenKIM database maintainers to verify
-and potentially correct this.
 
 */

@@ -1258,7 +1258,7 @@ lib/quip/README file for details on how to do this.
 
 CMake will not download and build the QUIP library.  But once you have
 done that, a CMake build of LAMMPS with "-D PKG\_USER-QUIP=yes" should
-work.  Set QUIP\_LIBRARIES if CMake cannot find the QUIP library.
+work.  Set QUIP\_LIBRARY if CMake cannot find the QUIP library.
 
 **Traditional make**\ :
 

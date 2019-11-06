@@ -91,7 +91,7 @@ int MinCG::iterate(int maxiter)
       dot[0] += fvec[i]*fvec[i];
       dot[1] += fvec[i]*g[i];
     }
-    
+
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
         fatom = fextra_atom[m];

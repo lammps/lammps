@@ -133,7 +133,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
- 
+
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
@@ -204,7 +204,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
             if (r>cut_lj[itype][jtype]-truncw) {
               trx = (cut_lj[itype][jtype]-r)*truncwi;
               tr = trx*trx*(3.0-2.0*trx);
-              ftr = 6.0*trx*(1.0-trx)*r*truncwi;    
+              ftr = 6.0*trx*(1.0-trx)*r*truncwi;
               forcelj = forcelj*tr + evdwl*ftr;
               evdwl *= tr;
             }
@@ -683,7 +683,7 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
       if (r>cut_lj[itype][jtype]-truncw) {
         trx = (cut_lj[itype][jtype]-r)*truncwi;
         tr = trx*trx*(3.0-2.0*trx);
-        ftr = 6.0*trx*(1.0-trx)*r*truncwi;    
+        ftr = 6.0*trx*(1.0-trx)*r*truncwi;
         forcelj = forcelj*tr + evdwl*ftr;
         evdwl *= tr;
       }

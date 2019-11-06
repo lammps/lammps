@@ -188,8 +188,8 @@ void PairLJClass2::compute_inner()
 
       if (rsq < cut_out_off_sq) {
         r2inv = 1.0/rsq;
-		rinv = sqrt(r2inv);
-		r3inv = r2inv*rinv;
+                rinv = sqrt(r2inv);
+                r3inv = r2inv*rinv;
         r6inv = r3inv*r3inv;
         jtype = type[j];
         forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
@@ -268,8 +268,8 @@ void PairLJClass2::compute_middle()
 
       if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
         r2inv = 1.0/rsq;
-		rinv = sqrt(r2inv);
-		r3inv = r2inv*rinv;
+                rinv = sqrt(r2inv);
+                r3inv = r2inv*rinv;
         r6inv = r3inv*r3inv;
         jtype = type[j];
         forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
@@ -352,8 +352,8 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         if (rsq > cut_in_off_sq) {
           r2inv = 1.0/rsq;
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           fpair = factor_lj*forcelj*r2inv;
@@ -374,8 +374,8 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
 
         if (eflag) {
           r2inv = 1.0/rsq;
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
             offset[itype][jtype];
@@ -385,8 +385,8 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
         if (vflag) {
           if (rsq <= cut_in_off_sq) {
             r2inv = 1.0/rsq;
-			rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
+                        rinv = sqrt(r2inv);
+                        r3inv = r2inv*rinv;
             r6inv = r3inv*r3inv;
             forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
             fpair = factor_lj*forcelj*r2inv;

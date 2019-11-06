@@ -82,7 +82,7 @@ void PairSpin::init_style()
 
   bool have_fix = ((modify->find_fix_by_style("^nve/spin") != -1)
                    || (modify->find_fix_by_style("^neb/spin") != -1));
-  
+
   if (!have_fix && (comm->me == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
 

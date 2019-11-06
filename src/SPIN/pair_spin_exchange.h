@@ -44,13 +44,13 @@ class PairSpinExchange : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_exchange_global;	// global exchange cutoff distance
+  double cut_spin_exchange_global;      // global exchange cutoff distance
 
  protected:
-  double **J1_mag;			// exchange coeffs in eV
-  double **J1_mech;			// mech exchange coeffs in
+  double **J1_mag;                      // exchange coeffs in eV
+  double **J1_mech;                     // mech exchange coeffs in
   double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
-  double **cut_spin_exchange;		// cutoff distance exchange
+  double **cut_spin_exchange;           // cutoff distance exchange
 
   void allocate();
 };

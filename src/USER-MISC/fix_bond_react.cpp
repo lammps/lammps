@@ -259,12 +259,12 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                        "probability seed must be positive");
         iarg += 3;
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
-	      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-	      			                        "'max_rxn' has too few arguments");
-	      max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
-	      if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
-	      				                         "'max_rxn' cannot be negative");
-	      iarg += 2;
+              if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                                        "'max_rxn' has too few arguments");
+              max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+              if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
+                                                                 "'max_rxn' cannot be negative");
+              iarg += 2;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");

@@ -98,7 +98,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   fix_history = NULL;
 
   char **fixarg = new char*[3];
-  fixarg[0] = (char *) "NEIGH_HISTORY_DUMMY";
+  fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR_DUMMY";
   fixarg[1] = (char *) "all";
   fixarg[2] = (char *) "DUMMY";
   modify->add_fix(3,fixarg,1);
@@ -112,8 +112,8 @@ PairGranular::~PairGranular()
 {
   delete [] svector;
 
-  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_DUMMY");
-  else modify->delete_fix("NEIGH_HISTORY");
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -1045,13 +1045,13 @@ void PairGranular::init_style()
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_DUMMY",4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    int ifix = modify->find_fix("NEIGH_HISTORY");
+    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
     fix_history = (FixNeighHistory *) modify->fix[modify->ifix];
     fix_history->pair = this;
   }
@@ -1122,7 +1122,7 @@ void PairGranular::init_style()
   // set fix which stores history info
 
   if (size_history > 0) {
-    int ifix = modify->find_fix("NEIGH_HISTORY");
+    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }

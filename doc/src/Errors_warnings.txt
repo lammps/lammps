@@ -390,6 +390,11 @@ have fully consistent image flags, since some bonds will cross
 periodic boundaries and connect two atoms with the same image
 flag. :dd
 
+{Increasing communication cutoff for GPU style} :dt
+
+The pair style has increased the communication cutoff to be consistent with
+the communication cutoff requirements for this pair style when run on the GPU. :dd
+
 {KIM Model does not provide 'energy'; Potential energy will be zero} :dt
 
 Self-explanatory. :dd

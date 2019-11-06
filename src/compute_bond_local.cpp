@@ -130,7 +130,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   singleflag = 0;
   velflag = 0;
   for (int i = 0; i < nvalues; i++) {
-    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE || bstyle[i] == FX       || 
+    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE || bstyle[i] == FX       ||
         bstyle[i] == FY     || bstyle[i] == FZ) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
         bstyle[i] == ENGVIB || bstyle[i] == ENGROT) velflag = 1;

@@ -1013,7 +1013,7 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef REGION_CLASS
 }
 
-bool LAMMPS::is_installed_pkg(const char *pkg) 
+bool LAMMPS::is_installed_pkg(const char *pkg)
 {
   for (int i=0; installed_packages[i] != NULL; ++i)
     if (strcmp(installed_packages[i],pkg) == 0) return true;

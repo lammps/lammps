@@ -757,7 +757,7 @@ void PairExTeP::read_file(char *file)
     // skip line if it is a leftover from the previous section,
     // which can be identified by having 3 elements (instead of 2)
     // as first words.
-     
+
     if (isupper(words[0][0]) && isupper(words[1][0]) && isupper(words[2][0]))
       continue;
 

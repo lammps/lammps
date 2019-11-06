@@ -614,8 +614,8 @@ void VerletKokkos::force_clear()
       atomKK->modified(Device,F_MASK);
 
       if (torqueflag) {
-	Kokkos::parallel_for(range, Zero<typename ArrayTypes<LMPDeviceType>::t_f_array>(atomKK->k_torque.view<LMPDeviceType>()));
-	atomKK->modified(Device,TORQUE_MASK);
+        Kokkos::parallel_for(range, Zero<typename ArrayTypes<LMPDeviceType>::t_f_array>(atomKK->k_torque.view<LMPDeviceType>()));
+        atomKK->modified(Device,TORQUE_MASK);
       }
     }
   }

@@ -274,26 +274,26 @@ namespace ATC {
     virtual int memory_usage() const {return 0;};
 
     /** packs up data for parallel transfer when atoms change processors */
-    virtual int pack_exchange(int i, double *buffer) {return 0;};
+    virtual int pack_exchange(int /* i */, double */* buffer */) {return 0;};
 
     /** unpacks data after parallel transfer when atoms change processors */
-    virtual int unpack_exchange(int i, double *buffer) {return 0;};
+    virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    virtual int pack_comm(int index, double *buf, 
-                          int pbc_flag, int *pbc) {return 0;};
+    virtual int pack_comm(int /* index */, double * /* buf */, 
+                          int /* pbc_flag */, int * /* pbc */) {return 0;};
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
-    virtual int unpack_comm(int index, double *buf) {return 0;};
+    virtual int unpack_comm(int /* index */, double * /* buf */) {return 0;};
 
     /** returns size of per-atom communication */
     virtual int size_comm() const {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
+    virtual void grow_lammps_array(int /* nmax */, const std::string & /* tag */) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
-    virtual void copy_lammps_array(int i, int j) {};
+    virtual void copy_lammps_array(int /* i */, int /* j */) {};
 
   protected:
 
@@ -396,43 +396,43 @@ namespace ATC {
       {throw ATC_Error("ProtectedClonedAtomQuantity::set_quantity - Cannot modify protected per atom quantities"); return this->quantity_;};
 
     /** sets the quantity to a given value */
-    virtual void operator=(const DenseMatrix<T> & target)
+    virtual void operator=(const DenseMatrix<T> & /* target */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::set_quantity - Cannot modify protected per atom quantities");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator= - Cannot modify protected per atom quantities");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DenseMatrix<T> & addition)
+    virtual void operator+=(const DenseMatrix<T> & /* addition */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator+= - Cannot modify protected per atom quantities");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator+= - Cannot modify protected per atom quantities");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DenseMatrix<T> & subtraction)
+    virtual void operator-=(const DenseMatrix<T> & /* subtraction */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator-= - Cannot modify protected per atom quantities");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator-= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DenseMatrix<T> & multiplier)
+    virtual void operator*=(const DenseMatrix<T> & /* multiplier */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DenseMatrix<T> & divisor)
+    virtual void operator/=(const DenseMatrix<T> & /* divisor */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator/= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("ProtectedClonedAtomQuantity::operator/= - Cannot modify protected per atom quantities");};
 
   protected:
@@ -517,43 +517,43 @@ namespace ATC {
       {throw ATC_Error("ProtectedAtomQuantity::set_quantity - Cannot modify protected per atom quantities"); return this->quantity_;};
 
     /** sets the quantity to a given value */
-    virtual void operator=(const DenseMatrix<T> & target)
+    virtual void operator=(const DenseMatrix<T> & /* target */)
       {throw ATC_Error("ProtectedAtomQuantity::set_quantity - Cannot modify protected per atom quantities");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("ProtectedAtomQuantity::operator= - Cannot modify protected per atom quantities");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DenseMatrix<T> & addition)
+    virtual void operator+=(const DenseMatrix<T> & /* addition */)
       {throw ATC_Error("ProtectedAtomQuantity::operator+= - Cannot modify protected per atom quantities");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("ProtectedAtomQuantity::operator+= - Cannot modify protected per atom quantities");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DenseMatrix<T> & subtraction)
+    virtual void operator-=(const DenseMatrix<T> & /* subtraction */)
       {throw ATC_Error("ProtectedAtomQuantity::operator-= - Cannot modify protected per atom quantities");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("ProtectedAtomQuantity::operator-= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DenseMatrix<T> & multiplier)
+    virtual void operator*=(const DenseMatrix<T> & /* multiplier */)
       {throw ATC_Error("ProtectedAtomQuantity::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("ProtectedAtomQuantity::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DenseMatrix<T> & divisor)
+    virtual void operator/=(const DenseMatrix<T> & /* divisor */)
       {throw ATC_Error("ProtectedAtomQuantity::operator/= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("ProtectedAtomQuantity::operator/= - Cannot modify protected per atom quantities");};
 
   protected:
@@ -646,43 +646,43 @@ namespace ATC {
       {throw ATC_Error("ProtectedLammpsAtomQuantity::set_quantity - Cannot modify protected per atom quantities"); return this->quantity_;};
 
         /** sets the quantity to a given value */
-    virtual void operator=(const DenseMatrix<T> & target)
+    virtual void operator=(const DenseMatrix<T> & /* target */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::set_quantity - Cannot modify protected per atom quantities");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator= - Cannot modify protected per atom quantities");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DenseMatrix<T> & addition)
+    virtual void operator+=(const DenseMatrix<T> & /* addition */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator+= - Cannot modify protected per atom quantities");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator+= - Cannot modify protected per atom quantities");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DenseMatrix<T> & subtraction)
+    virtual void operator-=(const DenseMatrix<T> & /* subtraction */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator-= - Cannot modify protected per atom quantities");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator-= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DenseMatrix<T> & multiplier)
+    virtual void operator*=(const DenseMatrix<T> & /* multiplier */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DenseMatrix<T> & divisor)
+    virtual void operator/=(const DenseMatrix<T> & /* divisor */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator/= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("ProtectedLammpsAtomQuantity::operator/= - Cannot modify protected per atom quantities");};
 
   protected:
@@ -734,16 +734,16 @@ namespace ATC {
     virtual int memory_usage() const {return 0;};
 
     /** packs up data for parallel transfer */
-    virtual int pack_exchange(int i, double *buffer) {return 0;};
+    virtual int pack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** unpacks data after parallel transfer */
-    virtual int unpack_exchange(int i, double *buffer) {return 0;};
+    virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
+    virtual void grow_lammps_array(int /* nmax */, const std::string & /* tag */) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
-    virtual void copy_lammps_array(int i, int j) {};
+    virtual void copy_lammps_array(int /* i */, int /* j */) {};
 
   protected:
 
@@ -791,16 +791,16 @@ namespace ATC {
     virtual int memory_usage() const {return 0;};
 
     /** packs up data for parallel transfer */
-    virtual int pack_exchange(int i, double *buffer) {return 0;};
+    virtual int pack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** unpacks data after parallel transfer */
-    virtual int unpack_exchange(int i, double *buffer) {return 0;};
+    virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
+    virtual void grow_lammps_array(int /* nmax */, const std::string & /* tag */) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
-    virtual void copy_lammps_array(int i, int j) {};
+    virtual void copy_lammps_array(int /* i */, int /* j */) {};
 
   protected:
 
@@ -1066,43 +1066,43 @@ namespace ATC {
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::set_quantity - Cannot modify protected per atom quantities"); return this->quantity_;};
 
     /** sets the quantity to a given value */
-    virtual void operator=(const DiagonalMatrix<T> & target)
+    virtual void operator=(const DiagonalMatrix<T> & /* target */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::set_quantity - Cannot modify protected per atom quantities");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator= - Cannot modify protected per atom quantities");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DiagonalMatrix<T> & addition)
+    virtual void operator+=(const DiagonalMatrix<T> & /* addition */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator+= - Cannot modify protected per atom quantities");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator+= - Cannot modify protected per atom quantities");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DiagonalMatrix<T> & subtraction)
+    virtual void operator-=(const DiagonalMatrix<T> & /* subtraction */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator-= - Cannot modify protected per atom quantities");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator-= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DiagonalMatrix<T> & multiplier)
+    virtual void operator*=(const DiagonalMatrix<T> & /* multiplier */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DiagonalMatrix<T> & divisor)
+    virtual void operator/=(const DiagonalMatrix<T> & /* divisor */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator/= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("ProtectedAtomDiagonalMatrix::operator/= - Cannot modify protected per atom quantities");};
 
   protected:
@@ -1331,43 +1331,43 @@ namespace ATC {
       {throw ATC_Error("ProtectedAtomSparseMatrix::set_quantity - Cannot modify protected per atom quantities"); return this->quantity_;};
 
     /** sets the quantity to a given value */
-    virtual void operator=(const SparseMatrix<T> & target)
+    virtual void operator=(const SparseMatrix<T> & /* target */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::set_quantity - Cannot modify protected per atom quantities");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const T & target)
+    virtual void operator=(const T & /* target */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator= - Cannot modify protected per atom quantities");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const SparseMatrix<T> & addition)
+    virtual void operator+=(const SparseMatrix<T> & /* addition */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator+= - Cannot modify protected per atom quantities");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(T addition)
+    virtual void operator+=(T /* addition */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator+= - Cannot modify protected per atom quantities");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const SparseMatrix<T> & subtraction)
+    virtual void operator-=(const SparseMatrix<T> & /* subtraction */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator-= - Cannot modify protected per atom quantities");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(T subtraction)
+    virtual void operator-=(T /* subtraction */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator-= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const SparseMatrix<T> & multiplier)
+    virtual void operator*=(const SparseMatrix<T> & /* multiplier */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(T multiplier)
+    virtual void operator*=(T /* multiplier */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator*= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const SparseMatrix<T> & divisor)
+    virtual void operator/=(const SparseMatrix<T> & /* divisor */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator/= - Cannot modify protected per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(T divisor)
+    virtual void operator/=(T /* divisor */)
       {throw ATC_Error("ProtectedAtomSparseMatrix::operator/= - Cannot modify protected per atom quantities");};
 
   protected:
@@ -1420,27 +1420,27 @@ namespace ATC {
     virtual int memory_usage() const {return 0;};
 
     /** packs up data for parallel transfer when atoms change processors */
-    virtual int pack_exchange(int i, double *buffer) {return 0;};
+    virtual int pack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** unpacks data after parallel transfer when atoms change processors */
-    virtual int unpack_exchange(int i, double *buffer) {return 0;};
+    virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     // pack/unpack_comm only valid if the quantity is over all real and processor ghost atoms
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    virtual int pack_comm(int index, double *buf,
-                          int pbc_flag, int *pbc) {return 0;};
+    virtual int pack_comm(int /* index */, double * /* buf */,
+                          int /* pbc_flag */, int * /* pbc */) {return 0;};
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
-    virtual int unpack_comm(int index, double *buf) {return 0;};
+    virtual int unpack_comm(int /* index */, double * /* buf */) {return 0;};
 
     /** returns per-atom size of communicated data */
     virtual int size_comm() const {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
+    virtual void grow_lammps_array(int /* nmax */, const std::string & /* tag */) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
-    virtual void copy_lammps_array(int i, int j) {};
+    virtual void copy_lammps_array(int /* i */, int /* j */) {};
 
   protected:
 

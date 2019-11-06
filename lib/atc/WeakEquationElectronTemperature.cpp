@@ -26,7 +26,7 @@ WeakEquationElectronTemperature::~WeakEquationElectronTemperature(void)
 //---------------------------------------------------------------------
 void WeakEquationElectronTemperature::E_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT & energy ) const
 {
@@ -61,7 +61,7 @@ void WeakEquationElectronTemperature::B_integrand(
 //---------------------------------------------------------------------
 bool WeakEquationElectronTemperature::N_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT &flux) const
 {

@@ -39,6 +39,7 @@
 #    20161001   Added instructions in CMAP section to fix problem if 'ter'
 #                 is not designated in the .pdb file to identify last amino acid
 #    20161005   Added tweak to embed command line in generated LAMMPS input
+#    20181120   Fix topology parsing bug
 #
 #    General    Many thanks to Paul S. Crozier for checking script validity
 #               against his projects.
@@ -86,8 +87,8 @@
     my $notes;
 
     $program            = "charmm2lammps";
-    $version            = "1.9.1";
-    $year               = "2016";
+    $version            = "1.9.2";
+    $year               = "2018";
     $add                = 1;
     $water_dens         = 0;
     $ions               = 0;

@@ -1,8 +1,7 @@
 # Makefile for LAMMPS documentation
 
 SHELL         = /bin/bash
-SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
-BUILDDIR      = /tmp/lammps-docs-$(SHA1)
+BUILDDIR      = ${PWD}
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
@@ -31,7 +30,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub mobi html pdf old venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi rst html pdf venv spelling anchor_check
 
 # ------------------------------------------
 
@@ -39,33 +38,34 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       create HTML doc pages in html dir"
 	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  old        create old-style HTML doc pages and Manual.pdf in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
 	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
-	@echo "  txt2html   build txt2html tool"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees
 
 clean:
-	rm -rf $(RSTDIR) html old epub latex
+	rm -rf $(RSTDIR)/{Eqs,JPG,*.rst} html epub latex
 	rm -rf spelling
 
 clean-spelling:
 	rm -rf spelling
 
+rst: clean $(OBJECTS) $(ANCHORCHECK)
+
 html: $(OBJECTS) $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
+	    cp -r src/JPG $(RSTDIR)/ ;\
+	    cp -r src/Eqs $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		echo "############################################" ;\
 		doc_anchor_check src/*.txt ;\
@@ -89,7 +89,6 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
 		pip install sphinxcontrib-spelling ;\
-		cp -r src/* $(RSTDIR)/ ;\
         cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
@@ -103,7 +102,6 @@ epub: $(OBJECTS)
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
@@ -126,7 +124,6 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 	)
 	@(\
                 . $(VENV)/bin/activate ;\
-                cp -r src/* $(RSTDIR)/ ;\
                 sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
                 echo "############################################" ;\
                 doc_anchor_check src/*.txt ;\
@@ -155,27 +152,6 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
 	@rm -rf latex/USER/*/*.[sg]*
 	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
 
-old: utils/txt2html/txt2html.exe
-	@rm -rf old
-	@mkdir old; mkdir old/Eqs; mkdir old/JPG; mkdir old/PDF
-	@cd src; ../utils/txt2html/txt2html.exe -b *.txt; \
-	  mv *.html ../old; \
-	  cp Eqs/*.jpg ../old/Eqs; \
-	  cp JPG/* ../old/JPG; \
-	  cp PDF/* ../old/PDF;
-	@(      set -e;\
-		cd src/Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
-		mv developer.pdf ../../old/Developer.pdf; \
-		cd ../../old; \
-	        for s in `echo ../src/*.txt | sed -e 's,\.\./src/,,g' -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q ^$$s ../src/lammps.book || \
-			echo WARNING: doc file $$s missing in src/lammps.book; done; \
-		htmldoc --batch ../src/lammps.book;          \
-	)
-
-
 fetch:
 	@rm -rf html_www Manual_www.pdf Developer_www.pdf
 	@curl -s -o Manual_www.pdf http://lammps.sandia.gov/doc/Manual.pdf
@@ -183,8 +159,6 @@ fetch:
 	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
 	@tar xzf lammps-doc.tar.gz
 	@rm -f lammps-doc.tar.gz
-
-txt2html: utils/txt2html/txt2html.exe
 
 anchor_check : $(ANCHORCHECK)
 	@(\
@@ -194,9 +168,6 @@ anchor_check : $(ANCHORCHECK)
 	)
 
 # ------------------------------------------
-
-utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp
-	g++ -O -Wall -o $@ $<
 
 $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\

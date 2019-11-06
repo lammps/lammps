@@ -30,7 +30,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "random_park.h"
+// #include "random_park.h"
+#include "random_mars.h"
 #include "respa.h"
 #include "update.h"
 #include "utils.h"
@@ -74,7 +75,8 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  random = new RanPark(lmp,seed + comm->me);
+  // random = new RanPark(lmp,seed + comm->me);
+  random = new RanMars(lmp,seed + comm->me);
 
 }
 
@@ -82,8 +84,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
 FixLangevinSpin::~FixLangevinSpin()
 {
-  memory->destroy(spi);
-  memory->destroy(fmi);
   delete random;
 }
 
@@ -113,15 +113,14 @@ void FixLangevinSpin::init()
   }
   if (flag_force >= flag_lang) error->all(FLERR,"Fix langevin/spin has to come after all other spin fixes");
 
-  memory->create(spi,3,"langevin:spi");
-  memory->create(fmi,3,"langevin:fmi");
-
   gil_factor = 1.0/(1.0+(alpha_t)*(alpha_t));
-  dts = update->dt;
+  dts = 0.25 * update->dt;
 
   double hbar = force->hplanck/MY_2PI;  // eV/(rad.THz)
   double kb = force->boltz;             // eV/K
-  D = (MY_2PI*alpha_t*gil_factor*kb*temp);
+  // D = (MY_2PI*alpha_t*gil_factor*kb*temp);
+  D = (1.0/MY_2PI)*(MY_2PI*alpha_t*gil_factor*kb*temp);
+  // D = (12.0/MY_2PI)*(MY_2PI*alpha_t*gil_factor*kb*temp);
   D /= (hbar*dts);
   sigma = sqrt(2.0*D);
 }
@@ -157,9 +156,12 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 void FixLangevinSpin::add_temperature(double fmi[3])
 {
 
-  double rx = sigma*(2.0*random->uniform() - 1.0);
-  double ry = sigma*(2.0*random->uniform() - 1.0);
-  double rz = sigma*(2.0*random->uniform() - 1.0);
+  // double rx = sigma*(2.0*random->uniform() - 1.0);
+  // double ry = sigma*(2.0*random->uniform() - 1.0);
+  // double rz = sigma*(2.0*random->uniform() - 1.0);
+  double rx = sigma*random->gaussian();
+  double ry = sigma*random->gaussian();
+  double rz = sigma*random->gaussian();
 
   // adding the random field
 

@@ -257,7 +257,8 @@ void FixPrecessionSpin::post_force(int /* vflag */)
 
       if (zeeman_flag) {          // compute Zeeman interaction
         compute_zeeman(i,fmi);
-        epreci -= 2.0*hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        // epreci -= 2.0*hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        epreci -= hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
       }
 
       if (aniso_flag) {           // compute magnetic anisotropy
@@ -295,9 +296,12 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
   double **sp = atom->sp;
-  fmi[0] += 0.5*sp[i][3]*hx;
-  fmi[1] += 0.5*sp[i][3]*hy;
-  fmi[2] += 0.5*sp[i][3]*hz;
+  // fmi[0] += 0.5*sp[i][3]*hx;
+  // fmi[1] += 0.5*sp[i][3]*hy;
+  // fmi[2] += 0.5*sp[i][3]*hz;
+  fmi[0] += sp[i][3]*hx;
+  fmi[1] += sp[i][3]*hy;
+  fmi[2] += sp[i][3]*hz;
 }
 
 /* ---------------------------------------------------------------------- */

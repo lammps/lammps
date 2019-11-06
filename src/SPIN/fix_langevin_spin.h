@@ -32,12 +32,11 @@ class FixLangevinSpin : public Fix {
   void init();
   void setup(int);
   void post_force_respa(int, int, int);
-  void add_tdamping(double spi[3], double fmi[3]);      // add transverse damping
-  void add_temperature(double fmi[3]);                  // add temperature
-  int tdamp_flag, ldamp_flag, temp_flag;                // damping and temperature flags
+  void add_tdamping(double *, double *);                 // add transverse damping
+  void add_temperature(double *);                        // add temperature
+  int tdamp_flag, ldamp_flag, temp_flag;                 // damping and temperature flags
 
  protected:
-  double *spi, *fmi;
   double alpha_t;               // transverse mag. damping
   double dts;                   // magnetic timestep
   double temp;                  // spin bath temperature
@@ -48,7 +47,8 @@ class FixLangevinSpin : public Fix {
   class Compute *temperature;
 
   int nlevels_respa;
-  class RanPark *random;
+  // class RanPark *random;
+  class RanMars *random;
   int seed;
 
 };

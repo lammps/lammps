@@ -187,7 +187,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   binsize = 0.0;
 #ifdef KOKKOS_ENABLE_CUDA
-  cuda_aware_flag = 1; 
+  cuda_aware_flag = 1;
 #else
   cuda_aware_flag = 0;
 #endif

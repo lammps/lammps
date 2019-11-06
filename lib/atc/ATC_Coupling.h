@@ -131,7 +131,7 @@ namespace ATC {
     virtual void initialize_mesh_data(void);  
 
 // public for FieldIntegrator
-    bool source_atomic_quadrature(FieldName field)  
+    bool source_atomic_quadrature(FieldName /* field */)  
       { return (sourceIntegration_ == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE); }
     ATC::IntegrationDomainType source_integration() 
       { return sourceIntegration_; }

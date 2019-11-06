@@ -171,7 +171,7 @@ void SNA::build_indexlist()
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-        idxcg_block[j1][j2][j] = idxcg_count; 
+        idxcg_block[j1][j2][j] = idxcg_count;
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
             idxcg_count++;
@@ -185,9 +185,9 @@ void SNA::build_indexlist()
                  "sna:idxu_block");
 
   int idxu_count = 0;
-  
+
   for(int j = 0; j <= twojmax; j++) {
-    idxu_block[j] = idxu_count; 
+    idxu_block[j] = idxu_count;
     for(int mb = 0; mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++)
         idxu_count++;
@@ -196,15 +196,15 @@ void SNA::build_indexlist()
 
   // index list for beta and B
 
-  int idxb_count = 0;  
+  int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) idxb_count++;
-  
+
   idxb_max = idxb_count;
   idxb = new SNA_BINDICES[idxb_max];
-  
+
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
@@ -225,7 +225,7 @@ void SNA::build_indexlist()
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         if (j >= j1) {
-          idxb_block[j1][j2][j] = idxb_count; 
+          idxb_block[j1][j2][j] = idxb_count;
           idxb_count++;
         }
       }
@@ -240,18 +240,18 @@ void SNA::build_indexlist()
         for (int mb = 0; 2*mb <= j; mb++)
           for (int ma = 0; ma <= j; ma++)
             idxz_count++;
-  
+
   idxz_max = idxz_count;
   idxz = new SNA_ZINDICES[idxz_max];
-  
+
   memory->create(idxz_block, jdim, jdim, jdim,
                  "sna:idxz_block");
-  
+
   idxz_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-        idxz_block[j1][j2][j] = idxz_count; 
+        idxz_block[j1][j2][j] = idxz_count;
 
         // find right beta[jjb] entry
         // multiply and divide by j+1 factors
@@ -350,7 +350,6 @@ void SNA::compute_ui(int jnum)
 void SNA::compute_zi()
 {
 
-  int ma2, mb2;
   for(int jjz = 0; jjz < idxz_max; jjz++) {
     const int j1 = idxz[jjz].j1;
     const int j2 = idxz[jjz].j2;
@@ -407,8 +406,6 @@ void SNA::compute_zi()
 
 void SNA::compute_yi(const double* beta)
 {
-  int j;
-  int jjz;
   int jju;
   double betaj;
 
@@ -422,7 +419,6 @@ void SNA::compute_yi(const double* beta)
       } // end loop over ma, mb
   } // end loop over j
 
-  int ma2, mb2;
   for(int jjz = 0; jjz < idxz_max; jjz++) {
     const int j1 = idxz[jjz].j1;
     const int j2 = idxz[jjz].j2;
@@ -435,8 +431,6 @@ void SNA::compute_yi(const double* beta)
     const int nb = idxz[jjz].nb;
 
     const double* cgblock = cglist + idxcg_block[j1][j2][j];
-    int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
-    int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
     double ztmp_r = 0.0;
     double ztmp_i = 0.0;
@@ -487,7 +481,7 @@ void SNA::compute_yi(const double* beta)
       if (j1 == j) {
         if (j2 == j) betaj = 3*beta[jjb];
         else betaj = 2*beta[jjb];
-      } else betaj = beta[jjb]; 
+      } else betaj = beta[jjb];
     } else if (j >= j2) {
       const int jjb = idxb_block[j][j2][j1];
       if (j2 == j) betaj = 2*beta[jjb]*(j1+1)/(j+1.0);
@@ -549,14 +543,13 @@ void SNA::compute_deidrj(double* dedr)
         jju++;
       }
 
-      int ma = mb;
       double* dudr_r = dulist_r[jju];
       double* dudr_i = dulist_i[jju];
       double jjjmambyarray_r = ylist_r[jju];
       double jjjmambyarray_i = ylist_i[jju];
 
       for(int k = 0; k < 3; k++)
-        dedr[k] += 
+        dedr[k] +=
           (dudr_r[k] * jjjmambyarray_r +
            dudr_i[k] * jjjmambyarray_i)*0.5;
       jju++;
@@ -595,24 +588,24 @@ void SNA::compute_bi()
     double sumzu = 0.0;
     for (int mb = 0; 2*mb < j; mb++)
       for (int ma = 0; ma <= j; ma++) {
-        sumzu += ulisttot_r[jju]*zlist_r[jjz] + 
+        sumzu += ulisttot_r[jju]*zlist_r[jjz] +
           ulisttot_i[jju]*zlist_i[jjz];
         jjz++;
         jju++;
-      } // end loop over ma, mb                                                                                                   
+      } // end loop over ma, mb
 
     // For j even, handle middle column
 
     if (j%2 == 0) {
       int mb = j/2;
       for(int ma = 0; ma < mb; ma++) {
-        sumzu += ulisttot_r[jju]*zlist_r[jjz] + 
+        sumzu += ulisttot_r[jju]*zlist_r[jjz] +
           ulisttot_i[jju]*zlist_i[jjz];
         jjz++;
         jju++;
       }
 
-      sumzu += 0.5*(ulisttot_r[jju]*zlist_r[jjz] + 
+      sumzu += 0.5*(ulisttot_r[jju]*zlist_r[jjz] +
                    ulisttot_i[jju]*zlist_i[jjz]);
     } // end if jeven
 
@@ -658,10 +651,6 @@ void SNA::compute_dbidrj()
   double* dbdr;
   double* dudr_r, *dudr_i;
   double sumzdu_r[3];
-  double** jjjzarray_r;
-  double** jjjzarray_i;
-  double jjjmambzarray_r;
-  double jjjmambzarray_i;
   int jjz, jju;
 
   for(int jjb = 0; jjb < idxb_max; jjb++) {
@@ -708,7 +697,6 @@ void SNA::compute_dbidrj()
         jjz++;
         jju++;
       }
-      int ma = mb;
       dudr_r = dulist_r[jju];
       dudr_i = dulist_i[jju];
       for(int k = 0; k < 3; k++)
@@ -758,7 +746,6 @@ void SNA::compute_dbidrj()
         jjz++;
         jju++;
       }
-      int ma = mb;
       dudr_r = dulist_r[jju];
       dudr_i = dulist_i[jju];
       for(int k = 0; k < 3; k++)
@@ -808,7 +795,6 @@ void SNA::compute_dbidrj()
         jjz++;
         jju++;
       }
-      int ma = mb;
       dudr_r = dulist_r[jju];
       dudr_i = dulist_i[jju];
       for(int k = 0; k < 3; k++)
@@ -1499,7 +1485,7 @@ void SNA::init_clebsch_gordan()
                  factorial((j - j2 + aa2) / 2 + z) *
                  factorial((j - j1 - bb2) / 2 + z));
             }
-            
+
             cc2 = 2 * m - j;
             dcg = deltacg(j1, j2, j);
             sfaccg = sqrt(factorial((j1 + aa2) / 2) *
@@ -1509,7 +1495,7 @@ void SNA::init_clebsch_gordan()
                           factorial((j  + cc2) / 2) *
                           factorial((j  - cc2) / 2) *
                           (j + 1));
-            
+
             cglist[idxcg_count] = sum * dcg * sfaccg;
             idxcg_count++;
           }
@@ -1533,7 +1519,7 @@ void SNA::print_clebsch_gordan()
     for (int j1 = 0; j1 <= twojmax; j1++)
       for (int j2 = 0; j2 <= j1; j2++)
         if (j1-j2 <= j && j1+j2 >= j && (j1+j2+j)%2 == 0) {
-          int idxcg_count = idxcg_block[j1][j2][j]; 
+          int idxcg_count = idxcg_block[j1][j2][j];
           for (int m1 = 0; m1 <= j1; m1++) {
             aa2 = 2*m1-j1;
             for (int m2 = 0; m2 <= j2; m2++) {

@@ -34,7 +34,7 @@ ViscousStressConstant::ViscousStressConstant(fstream &fileId)
 // compute the stress at N integration points from the velocity gradients
 // T_{ij} = viscosity * du_i/dx_j
 //=============================================================================
-void ViscousStressConstant::viscous_stress(const FIELD_MATS      &fields,
+  void ViscousStressConstant::viscous_stress(const FIELD_MATS      & /* fields */,
                                            const GRAD_FIELD_MATS &gradFields,
                                            DENS_MAT_VEC &sigma)
 {

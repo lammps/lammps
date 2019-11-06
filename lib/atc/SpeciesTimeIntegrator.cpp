@@ -37,7 +37,7 @@ namespace ATC {
   //  modify
   //    parses inputs and modifies state of the filter
   //--------------------------------------------------------
-  bool SpeciesTimeIntegrator::modify(int narg, char **arg)
+  bool SpeciesTimeIntegrator::modify(int /* narg */, char ** /* arg */)
   {
     bool match = false;
 
@@ -185,7 +185,7 @@ namespace ATC {
   //    first time integration computations 
   //    before FractionalStep step 2
   //--------------------------------------------------------
-  void SpeciesTimeIntegratorFractionalStep::pre_final_integrate1(double dt)
+  void SpeciesTimeIntegratorFractionalStep::pre_final_integrate1(double /* dt */)
   {
     // Compute MD contribution to FEM equation
     
@@ -244,7 +244,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  pre_initial_integrate1
   //--------------------------------------------------------
-  void SpeciesTimeIntegratorFractionalStepFiltered::pre_final_integrate1(double dt)
+  void SpeciesTimeIntegratorFractionalStepFiltered::pre_final_integrate1(double /* dt */)
   {
   }
 

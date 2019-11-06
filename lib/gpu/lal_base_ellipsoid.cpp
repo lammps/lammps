@@ -33,12 +33,25 @@ BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
+  nbor_program=NULL;
+  ellipsoid_program=NULL;
+  lj_program=NULL;
 }
 
 template <class numtyp, class acctyp>
 BaseEllipsoidT::~BaseEllipsoid() {
   delete ans;
   delete nbor;
+  k_nbor_fast.clear();
+  k_nbor.clear();
+  k_ellipsoid.clear();
+  k_ellipsoid_sphere.clear();
+  k_sphere_ellipsoid.clear();
+  k_lj_fast.clear();
+  k_lj.clear();
+  if (nbor_program) delete nbor_program;
+  if (ellipsoid_program) delete ellipsoid_program;
+  if (lj_program) delete lj_program;
 }
 
 template <class numtyp, class acctyp>
@@ -146,20 +159,6 @@ void BaseEllipsoidT::clear_base() {
   output_times();
   host_olist.clear();
 
-  if (_compiled) {
-    k_nbor_fast.clear();
-    k_nbor.clear();
-    k_ellipsoid.clear();
-    k_ellipsoid_sphere.clear();
-    k_sphere_ellipsoid.clear();
-    k_lj_fast.clear();
-    k_lj.clear();
-    delete nbor_program;
-    delete ellipsoid_program;
-    delete lj_program;
-    _compiled=false;
-  }
-
   time_nbor1.clear();
   time_ellipsoid.clear();
   time_nbor2.clear();
@@ -171,7 +170,6 @@ void BaseEllipsoidT::clear_base() {
 
   nbor->clear();
   ans->clear();
-  device->clear();
 }
 
 template <class numtyp, class acctyp>
@@ -437,6 +435,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
   ans->copy_answers(eflag,vflag,eatom,vatom);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
+
   return nbor->host_jlist.begin()-host_start;
 }
 
@@ -462,18 +461,21 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 
   std::string flags=device->compile_string();
 
+  if (nbor_program) delete nbor_program;
   nbor_program=new UCL_Program(dev);
   nbor_program->load_string(ellipsoid_nbor,flags.c_str());
   k_nbor_fast.set_function(*nbor_program,"kernel_nbor_fast");
   k_nbor.set_function(*nbor_program,"kernel_nbor");
   neigh_tex.get_texture(*nbor_program,"pos_tex");
 
+  if (ellipsoid_program) delete ellipsoid_program;
   ellipsoid_program=new UCL_Program(dev);
   ellipsoid_program->load_string(ellipsoid_string,flags.c_str());
   k_ellipsoid.set_function(*ellipsoid_program,kname);
   pos_tex.get_texture(*ellipsoid_program,"pos_tex");
   quat_tex.get_texture(*ellipsoid_program,"quat_tex");
 
+  if (lj_program) delete lj_program;
   lj_program=new UCL_Program(dev);
   lj_program->load_string(lj_string,flags.c_str());
   k_sphere_ellipsoid.set_function(*lj_program,s_sphere_ellipsoid.c_str());

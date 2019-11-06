@@ -30,6 +30,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -755,7 +756,7 @@ void DihedralSpherical::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    fread(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -775,16 +776,16 @@ void DihedralSpherical::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      fread(Ccoeff[i],sizeof(double),nterms[i],fp);
-      fread(phi_mult[i],sizeof(double),nterms[i],fp);
-      fread(phi_shift[i],sizeof(double),nterms[i],fp);
-      fread(phi_offset[i],sizeof(double),nterms[i],fp);
-      fread(theta1_mult[i],sizeof(double),nterms[i],fp);
-      fread(theta1_shift[i],sizeof(double),nterms[i],fp);
-      fread(theta1_offset[i],sizeof(double),nterms[i],fp);
-      fread(theta2_mult[i],sizeof(double),nterms[i],fp);
-      fread(theta2_shift[i],sizeof(double),nterms[i],fp);
-      fread(theta2_offset[i],sizeof(double),nterms[i],fp);
+      utils::sfread(FLERR,Ccoeff[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,phi_mult[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,phi_shift[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,phi_offset[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,theta1_mult[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,theta1_shift[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,theta1_offset[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,theta2_mult[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,theta2_shift[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,theta2_offset[i],sizeof(double),nterms[i],fp,NULL,error);
     }
   }
 

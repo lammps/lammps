@@ -1658,7 +1658,7 @@ namespace ATC {
   }
   //--------------------------------------------------------------------
   void ATC_Transfer::compute_vacancy_concentration(DENS_MAT & Cv,
-    const DENS_MAT & H, const DENS_MAT & rhoN)
+                                                   const DENS_MAT & H, const DENS_MAT & /* rhoN */)
   {
     int * type = lammpsInterface_->atom_type();
     DENS_MAT new_rho(nNodes_,1);

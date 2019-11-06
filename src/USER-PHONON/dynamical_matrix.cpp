@@ -259,7 +259,7 @@ void DynamicalMatrix::calculateMatrix()
         fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
         fprintf(screen,"  Total dynamical matrix elements = " BIGINT_FORMAT "\n", (dynlen*dynlen) );
     }
-    
+
     // emit dynlen rows of dimalpha*dynlen*dimbeta elements
 
     update->nsteps = 0;

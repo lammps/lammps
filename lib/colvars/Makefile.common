@@ -54,7 +54,7 @@ LEPTON_SRCS = \
 
 
 # Allow to selectively turn off Lepton
-ifeq ($(ENABLE_LEPTON),no)
+ifeq ($(COLVARS_LEPTON),no)
 LEPTON_INCFLAGS = 
 COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
 else

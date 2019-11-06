@@ -103,7 +103,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   fixarg[2] = (char *) "DUMMY";
   modify->add_fix(3,fixarg,1);
   delete [] fixarg;
-  fix_dummy = (FixDummy *) modify->fix[nfix-1];
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */

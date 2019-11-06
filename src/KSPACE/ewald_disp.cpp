@@ -131,7 +131,7 @@ void EwaldDisp::init()
           else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
           error->all(FLERR,
                      "Unsupported mixing rule in kspace_style ewald/disp");
-	  break;
+          break;
         default:
           error->all(FLERR,"Unsupported order in kspace_style ewald/disp");
       }

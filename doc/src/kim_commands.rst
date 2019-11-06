@@ -9,6 +9,9 @@ kim\_interactions command
 kim\_query command
 ==================
 
+kim\_param command
+==================
+
 Syntax
 """"""
 
@@ -18,15 +21,36 @@ Syntax
    kim_init model user_units unitarg
    kim_interactions typeargs
    kim_query variable formatarg query_function queryargs
+   kim_param get param_name index_range variables formatarg
+   kim_param set param_name index_range values
+
+.. _formatarg\_options:
+
+
 
 * model = name of the KIM interatomic model (the KIM ID for models archived in OpenKIM)
 * user\_units = the LAMMPS :doc:`units <units>` style assumed in the LAMMPS input script
 * unitarg = *unit\_conversion\_mode* (optional)
 * typeargs = atom type to species mapping (one entry per atom type) or *fixed\_types* for models with a preset fixed mapping
-* variable = name of a (string style) variable where the result of the query is stored
-* formatarg = *split* (optional)
+* variable(s) = single name or list of names of (string style) LAMMPS variable(s) where a query result or parameter get result is stored. Variables that do not exist will be created by the command.
+* formatarg = *list, split, or explicit* (optional):
+  
+  .. parsed-literal::
+  
+     *list* = returns a single string with a list of space separated values
+            (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
+            defined by the *variable* argument. [default for *kim_query*]
+     *split* = returns the values separately in new variables with names based
+            on the prefix specified in *variable* and a number appended to
+            indicate which element in the list of values is in the variable.
+     *explicit* = returns the values separately in one more more variable names
+            provided as arguments that preceed *formatarg*\ . [default for *kim_param*]
+
 * query\_function = name of the OpenKIM web API query function to be used
 * queryargs = a series of *keyword=value* pairs that represent the web query; supported keywords depend on the query function
+* param\_name = name of a KIM portable model parameter
+* index\_range = KIM portable model parameter index range (an integer for a single element, or pair of integers separated by a colon for a range of elements)
+* values = new value(s) to replace the current value(s) of a KIM portable model parameter
 
 Examples
 """"""""
@@ -39,9 +63,11 @@ Examples
    kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
    kim_init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 metal unit_conversion_mode
    kim_interactions C H O
-   Sim_LAMMPS_IFF_PCFF_HeinzMishraLinEmami_2015Ver1v5_FccmetalsMineralsSolvents Polymers__SM_039297821658_000 real
+   kim_init Sim_LAMMPS_IFF_PCFF_HeinzMishraLinEmami_2015Ver1v5_FccmetalsMineralsSolventsPolymers__SM_039297821658_000 real
    kim_interactions fixed_types
    kim_query a0 get_lattice_constant_cubic crystal=["fcc"] species=["Al"] units=["angstrom"]
+   kim_param get gamma 1 varGamma
+   kim_param set gamma 1 3.0
 
 Description
 """""""""""
@@ -90,6 +116,10 @@ Types of IMs in OpenKIM
 
 There are two types of IMs archived in OpenKIM:
 
+.. _PM\_type:
+
+
+
 1. The first type is called a *KIM Portable Model* (PM). A KIM PM is an independent computer implementation of an IM written in one of the languages supported by KIM (C, C++, Fortran) that conforms to the KIM Application Programming Interface (`KIM API <https://openkim.org/kim-api/>`_) Portable Model Interface (PMI) standard. A KIM PM will work seamlessly with any simulation code that supports the KIM API/PMI standard (including LAMMPS; see `complete list of supported codes <https://openkim.org/projects-using-kim/>`_).
 2. The second type is called a *KIM Simulator Model* (SM). A KIM SM is an IM that is implemented natively within a simulation code (\ *simulator*\ ) that supports the KIM API Simulator Model Interface (SMI); in this case LAMMPS. A separate SM package is archived in OpenKIM for each parameterization of the IM, which includes all of the necessary parameter files, LAMMPS commands, and metadata (supported species, units, etc.) needed to run the IM in LAMMPS.
 
@@ -126,7 +156,7 @@ The URL for the Model Page is constructed from the
 
    https://openkim.org/id/extended_KIM_ID
 
-For example for the Stillinger-Weber potential
+For example, for the Stillinger--Weber potential
 listed above the Model Page is located at:
 
 
@@ -224,7 +254,8 @@ potential for Al:
 
 The above script will end with an error in the *kim\_init* line if the
 IM is changed to another potential for Al that does not work with *metal*
-units. To address this *kim\_init* offers the *unit\_conversion\_mode*.
+units. To address this *kim\_init* offers the *unit\_conversion\_mode*
+as shown below.
 If unit conversion mode *is* active, then *kim\_init* calls the LAMMPS
 :doc:`units <units>` command to set the units to the IM's required or
 preferred units. Conversion factors between the IM's units and the *user\_units*
@@ -284,7 +315,7 @@ will work correctly for any IM for Al (KIM PM or SM) selected by the
 *kim\_init* command.
 
 Care must be taken to apply unit conversion to dimensional variables read in
-from a file. For example if a configuration of atoms is read in from a
+from a file. For example, if a configuration of atoms is read in from a
 dump file using the :doc:`read\_dump <read_dump>` command, the following can
 be done to convert the box and all atomic positions to the correct units:
 
@@ -408,14 +439,40 @@ Using OpenKIM Web Queries in LAMMPS (*kim\_query*)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The *kim\_query* command performs a web query to retrieve the predictions
-of the IM set by *kim\_init* for material properties archived in
-`OpenKIM <https://openkim.org>`_.  The *kim\_query* command must be preceded
-by a *kim\_init* command. The result of the query is stored in a
-:doc:`string style variable <variable>`, the name of which is given as the first
-argument of the *kim\_query command*.  (For the case of multiple
-return values, the optional *split* keyword can be used after the
-variable name to separate the results into multiple variables; see
-the :ref:`example <split_example>` below.)
+of an IM set by *kim\_init* for material properties archived in
+`OpenKIM <https://openkim.org>`_.
+
+.. note::
+
+   The *kim\_query* command must be preceded by a *kim\_init* command.
+
+The syntax for the *kim\_query* command is as follows:
+
+
+.. parsed-literal::
+
+   kim_query variable formatarg query_function queryargs
+
+The result of the query is stored in one or more
+:doc:`string style variables <variable>` as determined by the
+optional *formatarg* argument :ref:`documented above <formatarg_options>`.
+For the "list" setting of *formatarg* (or if *formatarg* is not
+specified), the result is returned as a space-separated list of
+values in *variable*\ .
+The *formatarg* keyword "split" separates the result values into
+individual variables of the form *prefix\_I*, where *prefix* is set to the
+*kim\_query* *variable* argument and *I* ranges from 1 to the number of
+returned values. The number and order of the returned values is determined
+by the type of query performed.  (Note that the "explicit" setting of
+*formatarg* is not supported by *kim\_query*.)
+
+.. note::
+
+   *kim\_query* only supports queries that return a single result or
+   an array of values. More complex queries that return a JSON structure
+   are not currently supported. An attempt to use *kim\_query* in such
+   cases will generate an error.
+
 The second required argument *query\_function* is the name of the
 query function to be called (e.g. *get\_lattice\_constant\_cubic*).
 All following :doc:`arguments <Commands_parse>` are parameters handed over to
@@ -443,8 +500,8 @@ is available on the OpenKIM webpage at
    `query documentation <https://openkim.org/doc/repository/kim-query>`_
    to see which methods are available for a given *query function*\ .
 
-*kim\_query* Usage Examples and Further Clarifications:
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+*kim\_query* Usage Examples and Further Clarifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The data obtained by *kim\_query* commands can be used as part of the setup
 or analysis phases of LAMMPS simulations. Some examples are given below.
@@ -473,10 +530,6 @@ Note that in *unit\_conversion\_mode* the results obtained from a
 For example, in the above script, the lattice command would need to be
 changed to: "lattice fcc ${a0}\*${\_u_distance}".
 
-.. _split\_example:
-
-
-
 **Define an equilibrium hcp crystal**
 
 
@@ -494,12 +547,11 @@ changed to: "lattice fcc ${a0}\*${\_u_distance}".
 
 In this case the *kim\_query* returns two arguments (since the hexagonal
 close packed (hcp) structure has two independent lattice constants).
-The default behavior of *kim\_query* returns the result as a string
-with the values separated by commas. The optional keyword *split*
-separates the result values into individual variables of the form
-*prefix\_I*, where *prefix* is set to the the *kim\_query* *variable* argument
-and *I* ranges from 1 to the number of returned values. The number and order of
-the returned values is determined by the type of query performed.
+The *formatarg* keyword "split" places the two values into
+the variables *latconst\_1* and *latconst\_2*. (These variables are
+created if they do not already exist.) For convenience the variables
+*a0* and *c0* are created in order to make the remainder of the
+input script more readable.
 
 **Define a crystal at finite temperature accounting for thermal expansion**
 
@@ -559,6 +611,254 @@ ideal fcc cohesive energy of the atoms in the system obtained from
    In order to give credit to Test developers, the number of times results
    from these programs are queried is tracked. No other information about
    the nature of the query or its source is recorded.
+
+Accessing KIM Model Parameters from LAMMPS (*kim\_param*)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+All IMs are functional forms containing a set of
+parameters.  The values of these parameters are typically
+selected to best reproduce a training set of quantum mechanical
+calculations or available experimental data.  For example, a
+Lennard-Jones potential intended to model argon might have the values of
+its two parameters, epsilon and sigma, fit to the
+dimer dissociation energy or thermodynamic properties at a critical point
+of the phase diagram.
+
+Normally a user employing an IM should not modify its parameters since,
+as noted above, these are selected to reproduce material properties.
+However, there are cases where accessing and modifying IM parameters
+is desired, such as for assessing uncertainty, fitting an IM,
+or working with an ensemble of IMs. As explained :ref:`above <IM_types>`,
+IMs archived in OpenKIM are either Portable Models (PMs) or
+Simulator Models (SMs). KIM PMs are complete independent implementations
+of an IM, whereas KIM SMs are wrappers to an IM implemented within LAMMPS.
+Two different mechanisms are provided for accessing IM parameters in these
+two cases:
+
+* For a KIM PM, the *kim\_param* command can be used to *get* and *set* the values of the PM's parameters as explained below.
+* For a KIM SM, the user should consult the documentation page for the specific IM and follow instructions there for how to modify its parameters (if possible).
+
+The *kim\_param get* and *kim\_param set* commands provide an interface
+to access and change the parameters of a KIM PM that "publishes" its
+parameters and makes them publicly available (see the
+`KIM API documentation <https://kim-api.readthedocs.io/en/devel/features.html>`_
+for details).
+
+.. note::
+
+   The *kim\_param get/set* commands must be preceded by *kim\_init*.
+   The *kim\_param set* command must additionally be preceded by a
+   *kim\_interactions* command (or alternatively by a *pair\_style kim*
+   and *pair\_coeff* commands).  The *kim\_param set* command may be used wherever a *pair\_coeff* command may occur.
+
+The syntax for the *kim\_param* command is as follows:
+
+
+.. parsed-literal::
+
+   kim_param get param_name index_range variable formatarg
+   kim_param set param_name index_range values
+
+Here, *param\_name* is the name of a KIM PM parameter (which is published
+by the PM and available for access). The specific string used to identify
+a parameter is defined by the PM. For example, for the
+`Stillinger--Weber (SW) potential in OpenKIM <https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005>`_,
+the parameter names are *A, B, p, q, sigma, gamma, cutoff, lambda, costheta0*\ .
+
+.. note::
+
+   The list of all the parameters that a PM exposes for access/mutation are
+   automatically written to the lammps log file when *kim\_init* is called.
+
+Each published parameter of a KIM PM takes the form of an array of
+numerical values. The array can contain one element for a single-valued
+parameter, or a set of values. For example, the
+`multispecies SW potential for the Zn-Cd-Hg-S-Se-Te system <https://openkim.org/id/SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002>`_
+has the same parameter names as the
+`single-species SW potential <https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005>`_,
+but each parameter array contains 21 entries that correspond to the parameter
+values used for each pairwise combination of the model's six supported species
+(this model does not have parameters specific to individual ternary
+combinations of its supported species).
+
+The *index\_range* argument may either be an integer referring to
+a specific element within the array associated with the parameter
+specified by *param\_name*, or a pair of integers separated by a colon
+that refer to a slice of this array.  In both cases, one-based indexing is
+used to refer to the entries of the array.
+
+The result of a *get* operation for a specific *index\_range* is stored in
+one or more :doc:`LAMMPS string style variables <variable>` as determined
+by the optional *formatarg* argument :ref:`documented above. <formatarg_options>`
+If not specified, the default for *formatarg* is "explicit" for the
+*kim\_param* command.
+
+For the case where the result is an array with multiple values
+(i.e. *index\_range* contains a range), the optional "split" or "explicit"
+*formatarg* keywords can be used to separate the results into multiple
+variables; see the examples below.
+Multiple parameters can be retrieved with a single call to *kim\_param get*
+by repeating the argument list following *get*\ .
+
+For a *set* operation, the *values* argument contains the new value(s)
+for the element(s) of the parameter specified by *index\_range*. For the case
+where multiple values are being set, *values* contains a set of values
+separated by spaces. Multiple parameters can be set with a single call to
+*kim\_param set* by repeating the argument list following *set*\ .
+
+*kim\_param* Usage Examples and Further Clarifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Examples of getting and setting KIM PM parameters with further
+clarifications are provided below.
+
+**Getting a scalar parameter**
+
+
+.. parsed-literal::
+
+   kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
+   ...
+   kim_param        get A 1 VARA
+
+In this case, the value of the SW *A* parameter is retrieved and placed
+in the LAMMPS variable *VARA*\ . The variable *VARA* can be used
+in the remainder of the input script in the same manner as any other
+LAMMPS variable.
+
+**Getting multiple scalar parameters with a single call**
+
+
+.. parsed-literal::
+
+   kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
+   ...
+   kim_param        get A 1 VARA B 1 VARB
+
+This retrieves the *A* and *B* parameters of the SW potential and stores
+them in the LAMMPS variables *VARA* and *VARB*\ .
+
+**Getting a range of values from a parameter**
+
+There are several options when getting a range of values from a parameter
+determined by the *formatarg* argument.
+
+
+.. parsed-literal::
+
+   kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
+   ...
+   kim_param        get lambda 7:9 LAM_TeTe LAM_TeZn LAM_TeSe
+
+In this case, *formatarg* is not specified and therefore the default
+"explicit" mode is used. (The behavior would be the same if the word
+*explicit* were added after *LAM\_TeSe*.) Elements 7, 8 and 9 of parameter
+lambda retrieved by the *get* operation are placed in the LAMMPS variables
+*LAM\_TeTe*, *LAM\_TeZn* and *LAM\_TeSe*, respectively.
+
+.. note::
+
+   In the above example, elements 7--9 of the lambda parameter correspond
+   to Te-Te, Te-Zm and Te-Se interactions. This can be determined by visiting
+   the `model page for the specified potential <https://openkim.org/id/SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002>`_
+   and looking at its parameter file linked to at the bottom of the page
+   (file with .param ending) and consulting the README documentation
+   provided with the driver for the PM being used. A link to the driver
+   is provided at the top of the model page.
+
+
+.. parsed-literal::
+
+   kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
+   ...
+   kim_param        get lambda 15:17 LAMS list
+   variable         LAM_VALUE index ${LAMS}
+   label            loop_on_lambda
+   ...
+   ... do something with current value of lambda
+   ...
+   next             LAM_VALUE
+   jump             SELF loop_on_lambda
+
+In this case, the "list" mode of *formatarg* is used.
+The result of the *get* operation is stored in the LAMMPS variable
+*LAMS* as a string containing the three retrieved values separated
+by spaces, e.g "1.0 2.0 3.0". This can be used in LAMMPS with an
+*index* variable to access the values one at a time within a loop
+as shown in the example. At each iteration of the loop *LAM\_VALUE*
+contains the current value of lambda.
+
+
+.. parsed-literal::
+
+   kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
+   ...
+   kim_param        get lambda 15:17 LAM split
+
+In this case, the "split" mode of *formatarg* is used.
+The three values retrieved by the *get* operation are stored in
+the three LAMMPS variables *LAM\_15*, *LAM\_16* and *LAM\_17*.
+The provided name "LAM" is used as prefix and the location in
+the lambda array is appended to create the variable names.
+
+**Setting a scalar parameter**
+
+
+.. parsed-literal::
+
+   kim_init         SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
+   ...
+   kim_interactions Si
+   kim_param        set gamma 1 2.6
+
+Here, the SW potential's gamma parameter is set to 2.6.  Note that the *get*
+and *set* commands work together, so that a *get* following a *set*
+operation will return the new value that was set. For example:
+
+
+.. parsed-literal::
+
+   ...
+   kim_interactions Si
+   kim_param        get gamma 1 ORIG_GAMMA
+   kim_param        set gamma 1 2.6
+   kim_param        get gamma 1 NEW_GAMMA
+   ...
+   print            "original gamma = ${ORIG_GAMMA}, new gamma = ${NEW_GAMMA}"
+
+Here, *ORIG\_GAMMA* will contain the original gamma value for the SW
+potential, while *NEW\_GAMMA* will contain the value 2.6.
+
+**Setting multiple scalar parameters with a single call**
+
+
+.. parsed-literal::
+
+   kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
+   ...
+   kim_interactions Cd Te
+   variable        VARG equal 2.6
+   variable        VARS equal 2.0951
+   kim_param       set gamma 1 ${VARG} sigma 3 ${VARS}
+
+In this case, the first element of the *gamma* parameter and
+third element of the *sigma* parameter are set to 2.6 and 2.0951,
+respectively. This example also shows how LAMMPS variables can
+be used when setting parameters.
+
+**Setting a range of values of a parameter**
+
+
+.. parsed-literal::
+
+   kim_init         SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
+   ...
+   kim_interactions Cd Te Zn Se Hg S
+   kim_param        set sigma 2:6 2.35214 2.23869 2.04516 2.43269 1.80415
+
+In this case, elements 2 through 6 of the parameter *sigma*
+are set to the values 2.35214, 2.23869, 2.04516, 2.43269 and 1.80415 in
+order.
 
 Citation of OpenKIM IMs
 -----------------------

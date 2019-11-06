@@ -125,7 +125,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR, "Incorrect args for pair coefficients (too few or too many)");
-  
+
   if (!allocated)
     allocate();
 
@@ -459,7 +459,7 @@ double PairCosineSquared::single(int /* i */, int /* j */, int itype, int jtype,
                          double &fforce)
 {
   double r, r2inv, r6inv, cosone, force, energy;
-  
+
   r = sqrt(rsq);
 
   if (r <= sigma[itype][jtype]) {
@@ -478,7 +478,7 @@ double PairCosineSquared::single(int /* i */, int /* j */, int itype, int jtype,
     }
   } else {
     cosone = cos(MY_PI*(r-sigma[itype][jtype]) / (2.0*w[itype][jtype]));
-    force = -(MY_PI*epsilon[itype][jtype] / (2.0*w[itype][jtype])) * 
+    force = -(MY_PI*epsilon[itype][jtype] / (2.0*w[itype][jtype])) *
                  sin(MY_PI*(r-sigma[itype][jtype]) / w[itype][jtype]) / r;
     energy = -epsilon[itype][jtype]*cosone*cosone;
   }

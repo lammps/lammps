@@ -13,8 +13,9 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
-                         Ellad B. Tadmor (UMN)
+                         Ryan S. Elliott (UMN),
+                         Ellad B. Tadmor (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -67,6 +68,9 @@ CommandStyle(kim_init,KimInit)
 #include "pointers.h"
 #include <string>
 
+// Forward declaration.
+class KIM_Model;
+
 namespace LAMMPS_NS {
 
 class KimInit : protected Pointers {
@@ -78,11 +82,11 @@ class KimInit : protected Pointers {
   model_type_enum model_type;
   bool unit_conversion_mode;
 
-  void determine_model_type_and_units(char *, char *, char **);
+  void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
   void write_log_cite(char *);
-  void do_init(char *, char *, char *);
+  void do_init(char *, char *, char *, KIM_Model *&);
   void do_variables(char*, char*);
-  void kim_init_log_delimiter(std::string const begin_end) const;
+  void kim_init_log_delimiter(std::string const &begin_end) const;
 };
 
 }

@@ -38,7 +38,7 @@ class PPPMDipole : public PPPM {
 
  protected:
   void set_grid_global();
-  double newton_raphson_f(); 
+  double newton_raphson_f();
 
   void allocate();
   void allocate_peratom();

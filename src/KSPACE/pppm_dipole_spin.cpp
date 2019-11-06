@@ -52,7 +52,7 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) : 
+PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) :
   PPPMDipole(lmp)
 {
   dipoleflag = 0;
@@ -147,7 +147,7 @@ void PPPMDipoleSpin::init()
   // kspace TIP4P not yet supported
   // qdist = offset only for TIP4P fictitious charge
 
-  qdist = 0.0; 
+  qdist = 0.0;
   if (tip4pflag)
     error->all(FLERR,"Cannot yet use TIP4P with PPPMDipoleSpin");
 
@@ -668,7 +668,7 @@ void PPPMDipoleSpin::slabcorr()
   double spz;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) { 
+  for (int i = 0; i < nlocal; i++) {
     spz = sp[i][2]*sp[i][3];
     spin += spz;
   }
@@ -729,7 +729,7 @@ void PPPMDipoleSpin::spsum_spsq()
       spsqsum_local += spx*spx + spy*spy + spz*spz;
     }
 
-    // store results into pppm_dipole quantities 
+    // store results into pppm_dipole quantities
 
     MPI_Allreduce(&spsum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&spsqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);

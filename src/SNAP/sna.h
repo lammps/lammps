@@ -81,8 +81,8 @@ private:
   int idxcg_max, idxu_max, idxz_max, idxb_max;
 
   double** rootpqarray;
-  double* cglist;  
-  int*** idxcg_block; 
+  double* cglist;
+  int*** idxcg_block;
 
   double* ulisttot_r, * ulisttot_i;
   double** ulist_r_ij, ** ulist_i_ij;

@@ -16,8 +16,8 @@
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
-   Ivanov, A. V., Uzdin, V. M., & Jónsson, H. (2019). Fast and Robust 
-   Algorithm for the Minimisation of the Energy of Spin Systems. arXiv 
+   Ivanov, A. V., Uzdin, V. M., & Jónsson, H. (2019). Fast and Robust
+   Algorithm for the Minimisation of the Energy of Spin Systems. arXiv
    preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
 
@@ -213,10 +213,10 @@ int MinSpinLBFGS::iterate(int maxiter)
 
     if (timer->check_timeout(niter))
       return TIMEOUT;
-  
+
     ntimestep = ++update->ntimestep;
     niter++;
-  
+
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
 
@@ -264,7 +264,7 @@ int MinSpinLBFGS::iterate(int maxiter)
     // energy tolerance criterion
     // only check after DELAYSTEP elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
-  
+
     if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
@@ -372,7 +372,7 @@ void MinSpinLBFGS::calc_search_direction()
     factor = 1.0;
   }
 
-  if (local_iter == 0){ 	// steepest descent direction
+  if (local_iter == 0){         // steepest descent direction
 
     //if no line search then calculate maximum rotation
     if (use_line_search == 0)
@@ -526,9 +526,9 @@ void MinSpinLBFGS::advance_spins()
 
   for (int i = 0; i < nlocal; i++) {
     rodrigues_rotation(p_s + 3 * i, rot_mat);
-    
+
     // rotate spins
-    
+
     vm3(rot_mat, sp[i], s_new);
     for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
   }
@@ -539,7 +539,7 @@ void MinSpinLBFGS::advance_spins()
   (R. Murray, Z. Li, and S. Shankar Sastry,
   A Mathematical Introduction to
   Robotic Manipulation (1994), p. 28 and 30).
-  
+
   upp_tr - vector x, y, z so that one calculate
   U = exp(A) with A= [[0, x, y],
                       [-x, 0, z],

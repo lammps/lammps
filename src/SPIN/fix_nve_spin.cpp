@@ -247,7 +247,7 @@ void FixNVESpin::init()
       locksetforcespin = (FixSetForceSpin *) modify->fix[iforce];
     }
   }
-  
+
   // setting the sector variables/lists
 
   nsectors = 0;
@@ -307,7 +307,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
           i = forward_stacks[i];
-	}
+        }
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
@@ -318,7 +318,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
           i = backward_stacks[i];
-	}
+        }
       }
     }
   } else if (sector_flag == 0) {                // serial seq. update
@@ -360,7 +360,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
           i = forward_stacks[i];
-	}
+        }
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
@@ -371,7 +371,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
           i = backward_stacks[i];
-	}
+        }
       }
     }
   } else if (sector_flag == 0) {                // serial seq. update

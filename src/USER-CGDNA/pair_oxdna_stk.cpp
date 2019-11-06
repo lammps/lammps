@@ -43,7 +43,7 @@ PairOxdnaStk::PairOxdnaStk(LAMMPS *lmp) : Pair(lmp)
   // sequence-specific stacking strength
   // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
 
-  eta_st[0][0] = 1.11960; 
+  eta_st[0][0] = 1.11960;
   eta_st[0][1] = 1.00852;
   eta_st[0][2] = 0.96950;
   eta_st[0][3] = 0.99632;
@@ -121,7 +121,7 @@ PairOxdnaStk::~PairOxdnaStk()
    tally energy and virial into global and per-atom accumulators
 
    NOTE: Although this is a pair style interaction, the algorithm below
-   follows the virial incrementation of the bond style. This is because 
+   follows the virial incrementation of the bond style. This is because
    the bond topology is used in the main compute loop.
 ------------------------------------------------------------------------- */
 

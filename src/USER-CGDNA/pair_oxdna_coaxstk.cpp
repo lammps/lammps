@@ -59,7 +59,7 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
     memory->destroy(cut_cxst_hi);
     memory->destroy(cut_cxst_lc);
     memory->destroy(cut_cxst_hc);
-    memory->destroy(cutsq_cxst_hc); 
+    memory->destroy(cutsq_cxst_hc);
     memory->destroy(b_cxst_lo);
     memory->destroy(b_cxst_hi);
 

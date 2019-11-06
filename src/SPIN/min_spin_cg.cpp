@@ -16,8 +16,8 @@
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
-   Ivanov, A. V., Uzdin, V. M., & Jónsson, H. (2019). Fast and Robust 
-   Algorithm for the Minimisation of the Energy of Spin Systems. arXiv 
+   Ivanov, A. V., Uzdin, V. M., & Jónsson, H. (2019). Fast and Robust
+   Algorithm for the Minimisation of the Energy of Spin Systems. arXiv
    preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
 
@@ -105,7 +105,7 @@ void MinSpinCG::init()
     error->warning(FLERR,"Line search incompatible gneb");
 
   // set back use_line_search to 0 if more than one replica
-  
+
   if (linestyle == 3 && nreplica == 1){
     use_line_search = 1;
   }
@@ -201,10 +201,10 @@ int MinSpinCG::iterate(int maxiter)
 
     if (timer->check_timeout(niter))
       return TIMEOUT;
-  
+
     ntimestep = ++update->ntimestep;
     niter++;
-  
+
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
 
@@ -249,7 +249,7 @@ int MinSpinCG::iterate(int maxiter)
     // energy tolerance criterion
     // only check after DELAYSTEP elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
-  
+
     if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {
         if (fabs(ecurrent-eprevious) <
@@ -347,12 +347,12 @@ void MinSpinCG::calc_search_direction()
       factor = 0.0;
 
 
-  if (local_iter == 0 || local_iter % 5 == 0){ 	// steepest descent direction
+  if (local_iter == 0 || local_iter % 5 == 0){  // steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i] * factor;
       g_old[i] = g_cur[i] * factor;
     }
-  } else { 				// conjugate direction
+  } else {                              // conjugate direction
     for (int i = 0; i < 3 * nlocal; i++) {
       g2old += g_old[i] * g_old[i];
       g2 += g_cur[i] * g_cur[i];
@@ -365,7 +365,7 @@ void MinSpinCG::calc_search_direction()
     MPI_Allreduce(&g2old,&g2old_global,1,MPI_DOUBLE,MPI_SUM,world);
 
     // Sum over all replicas. Good for GNEB.
-    
+
     if (nreplica > 1) {
       g2 = g2_global * factor;
       g2old = g2old_global * factor;
@@ -374,9 +374,9 @@ void MinSpinCG::calc_search_direction()
     }
     if (fabs(g2_global) < 1.0e-60) beta = 0.0;
     else beta = g2_global / g2old_global;
-    
+
     // calculate conjugate direction
-    
+
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = (beta * p_s[i] - g_cur[i]) * factor;
       g_old[i] = g_cur[i] * factor;
@@ -394,16 +394,16 @@ void MinSpinCG::advance_spins()
 {
   int nlocal = atom->nlocal;
   double **sp = atom->sp;
-  double rot_mat[9];	// exponential of matrix made of search direction
+  double rot_mat[9];    // exponential of matrix made of search direction
   double s_new[3];
 
   // loop on all spins on proc.
 
   for (int i = 0; i < nlocal; i++) {
     rodrigues_rotation(p_s + 3 * i, rot_mat);
-    
+
     // rotate spins
-    
+
     vm3(rot_mat, sp[i], s_new);
     for (int j = 0; j < 3; j++) sp[i][j] = s_new[j];
   }
@@ -414,7 +414,7 @@ void MinSpinCG::advance_spins()
   (R. Murray, Z. Li, and S. Shankar Sastry,
   A Mathematical Introduction to
   Robotic Manipulation (1994), p. 28 and 30).
-  
+
   upp_tr - vector x, y, z so that one calculate
   U = exp(A) with A= [[0, x, y],
                       [-x, 0, z],
@@ -431,7 +431,7 @@ void MinSpinCG::rodrigues_rotation(const double *upp_tr, double *out)
       fabs(upp_tr[2]) < 1.0e-40){
 
     // if upp_tr is zero, return unity matrix
-    
+
     for(int k = 0; k < 3; k++){
       for(int m = 0; m < 3; m++){
         if (m == k) out[3 * k + m] = 1.0;

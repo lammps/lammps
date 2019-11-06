@@ -167,7 +167,7 @@ void EwaldDipole::init()
       NewtonSolve(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
     if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
     else error->warning(FLERR,"Ewald/disp Newton solver failed, "
-                        "using old method to estimate g_ewald");  
+                        "using old method to estimate g_ewald");
   }
 
   // setup EwaldDipole coefficients so can print stats
@@ -246,7 +246,7 @@ void EwaldDipole::setup()
     double err;
     kxmax = 1;
     kymax = 1;
-    kzmax = 1;  
+    kzmax = 1;
 
     // set kmax in 3 directions to respect accuracy
 
@@ -462,7 +462,7 @@ void EwaldDipole::compute(int eflag, int vflag)
       vc[k][4] += vcik[4] = -(partial_peratom * mu[i][0] * eg[k][2]);
       vc[k][5] += vcik[5] = -(partial_peratom * mu[i][1] * eg[k][2]);
 
-      // taking re-part of struct_fact x exp(i*k*ri) 
+      // taking re-part of struct_fact x exp(i*k*ri)
       // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
@@ -653,12 +653,12 @@ void EwaldDipole::eik_dot_r()
           muz = mu[i][2];
 
           // dir 1: (0,l,m)
-          mudotk = (muy*l*unitk[1] + muz*m*unitk[2]); 
+          mudotk = (muy*l*unitk[1] + muz*m*unitk[2]);
           cstr1 += mudotk*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
           sstr1 += mudotk*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
 
           // dir 2: (0,l,-m)
-          mudotk = (muy*l*unitk[1] - muz*m*unitk[2]); 
+          mudotk = (muy*l*unitk[1] - muz*m*unitk[2]);
           cstr2 += mudotk*(cs[l][1][i]*cs[m][2][i]+sn[l][1][i]*sn[m][2][i]);
           sstr2 += mudotk*(sn[l][1][i]*cs[m][2][i]-cs[l][1][i]*sn[m][2][i]);
         }
@@ -685,12 +685,12 @@ void EwaldDipole::eik_dot_r()
           muz = mu[i][2];
 
           // dir 1: (k,0,m)
-          mudotk = (mux*k*unitk[0] + muz*m*unitk[2]); 
+          mudotk = (mux*k*unitk[0] + muz*m*unitk[2]);
           cstr1 += mudotk*(cs[k][0][i]*cs[m][2][i]-sn[k][0][i]*sn[m][2][i]);
           sstr1 += mudotk*(sn[k][0][i]*cs[m][2][i]+cs[k][0][i]*sn[m][2][i]);
 
           // dir 2: (k,0,-m)
-          mudotk = (mux*k*unitk[0] - muz*m*unitk[2]); 
+          mudotk = (mux*k*unitk[0] - muz*m*unitk[2]);
           cstr2 += mudotk*(cs[k][0][i]*cs[m][2][i]+sn[k][0][i]*sn[m][2][i]);
           sstr2 += mudotk*(sn[k][0][i]*cs[m][2][i]-cs[k][0][i]*sn[m][2][i]);
         }
@@ -724,28 +724,28 @@ void EwaldDipole::eik_dot_r()
             muz = mu[i][2];
 
             // dir 1: (k,l,m)
-            mudotk = (mux*k*unitk[0] + muy*l*unitk[1] + muz*m*unitk[2]); 
+            mudotk = (mux*k*unitk[0] + muy*l*unitk[1] + muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
             cstr1 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr1 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
             // dir 2: (k,-l,m)
-            mudotk = (mux*k*unitk[0] - muy*l*unitk[1] + muz*m*unitk[2]); 
+            mudotk = (mux*k*unitk[0] - muy*l*unitk[1] + muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
             cstr2 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr2 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
             // dir 3: (k,l,-m)
-            mudotk = (mux*k*unitk[0] + muy*l*unitk[1] - muz*m*unitk[2]); 
+            mudotk = (mux*k*unitk[0] + muy*l*unitk[1] - muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
             cstr3 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr3 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
             // dir 4: (k,-l,-m)
-            mudotk = (mux*k*unitk[0] - muy*l*unitk[1] - muz*m*unitk[2]); 
+            mudotk = (mux*k*unitk[0] - muy*l*unitk[1] - muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
             cstr4 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);

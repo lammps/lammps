@@ -78,21 +78,21 @@ using namespace LAMMPS_NS;
 ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), id_temp(NULL), deltaR(NULL)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute hma command");                    
+  if (narg < 4) error->all(FLERR,"Illegal compute hma command");
   if (igroup) error->all(FLERR,"Compute hma must use group all");
-  if (strcmp(arg[3],"NULL") == 0) {error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");}       
+  if (strcmp(arg[3],"NULL") == 0) {error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");}
   else {
-    int n = strlen(arg[3]) + 1;                  
-    id_temp = new char[n];   
-    strcpy(id_temp,arg[3]);                         
+    int n = strlen(arg[3]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[3]);
   }
- 
-  create_attribute = 1;                  
-  extscalar = 1;                         
-  timeflag = 1;                         
 
-  // (from compute displace/atom) create a new fix STORE style  
-  // our new fix's id (id_fix)= compute-ID + COMPUTE_STORE 
+  create_attribute = 1;
+  extscalar = 1;
+  timeflag = 1;
+
+  // (from compute displace/atom) create a new fix STORE style
+  // our new fix's id (id_fix)= compute-ID + COMPUTE_STORE
   // our new fix's group = same as compute group
 
   int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
@@ -100,30 +100,30 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_fix,id);
   strcat(id_fix,"_COMPUTE_STORE");
 
-  char **newarg = new char*[6];     
+  char **newarg = new char*[6];
   newarg[0] = id_fix;
   newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";              
+  newarg[2] = (char *) "STORE";
   newarg[3] = (char *) "peratom";
   newarg[4] = (char *) "1";
   newarg[5] = (char *) "3";
-  modify->add_fix(6,newarg);        
-  fix = (FixStore *) modify->fix[modify->nfix-1];    
- 
-  delete [] newarg;                               
+  modify->add_fix(6,newarg);
+  fix = (FixStore *) modify->fix[modify->nfix-1];
+
+  delete [] newarg;
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
 
-  if (fix->restart_reset) fix->restart_reset = 0;   
+  if (fix->restart_reset) fix->restart_reset = 0;
   else {
-    double **xoriginal = fix->astore;            
+    double **xoriginal = fix->astore;
     double **x = atom->x;
     imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      domain->unmap(x[i],image[i],xoriginal[i]);          
+      domain->unmap(x[i],image[i],xoriginal[i]);
   }
 
   vector_flag = 1;
@@ -175,7 +175,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   memory->create(vector, size_vector, "hma:vector");
 
   if (computeU>-1 || computeCv>-1) {
-    peflag = 1;                             
+    peflag = 1;
   }
   if (computeP>-1) {
     pressflag = 1;
@@ -209,9 +209,9 @@ void ComputeHMA::init() {
   }
 
   int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0; 
-  neighbor->requests[irequest]->compute = 1; 
-  neighbor->requests[irequest]->occasional = 1; 
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->compute = 1;
+  neighbor->requests[irequest]->occasional = 1;
 }
 
 void ComputeHMA::init_list(int /* id */, NeighList *ptr)
@@ -224,22 +224,22 @@ void ComputeHMA::setup()
   int dummy=0;
   int ifix = modify->find_fix(id_temp);
   if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
-  double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);      
+  double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
   if (temperat==NULL) error->all(FLERR,"Could not find compute hma temperature ID");
-  finaltemp = * temperat;       
+  finaltemp = * temperat;
 
   // set fix which stores original atom coords
 
   int ifix2 = modify->find_fix(id_fix);
   if (ifix2 < 0) error->all(FLERR,"Could not find hma store fix ID");
-  fix = (FixStore *) modify->fix[ifix2];             
+  fix = (FixStore *) modify->fix[ifix2];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeHMA::compute_vector()
 {
-  invoked_vector = update->ntimestep;         
+  invoked_vector = update->ntimestep;
 
   // grow deltaR array if necessary
   if (comm_forward>0 && atom->nmax > nmax) {
@@ -257,7 +257,7 @@ void ComputeHMA::compute_vector()
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
-  double xprd = domain->xprd;   
+  double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
@@ -457,7 +457,7 @@ double ComputeHMA::virial_compute(int n)
 /* ---------------------------------------------------------------------- */
 
 int ComputeHMA::pack_forward_comm(int n, int *list, double *buf,
-				  int /* pbc_flag */, int * /* pbc */)
+                                  int /* pbc_flag */, int * /* pbc */)
 {
   int m = 0;
   for (int ii = 0; ii < n; ii++) {

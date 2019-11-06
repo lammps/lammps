@@ -58,19 +58,19 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
-  densityx_brick_dipole(NULL), densityy_brick_dipole(NULL), 
+  densityx_brick_dipole(NULL), densityy_brick_dipole(NULL),
   densityz_brick_dipole(NULL),
   vdxx_brick_dipole(NULL), vdyy_brick_dipole(NULL), vdzz_brick_dipole(NULL),
   vdxy_brick_dipole(NULL), vdxz_brick_dipole(NULL), vdyz_brick_dipole(NULL),
   ux_brick_dipole(NULL), uy_brick_dipole(NULL), uz_brick_dipole(NULL),
   v0x_brick_dipole(NULL), v1x_brick_dipole(NULL),
-  v2x_brick_dipole(NULL), v3x_brick_dipole(NULL), v4x_brick_dipole(NULL), 
-  v5x_brick_dipole(NULL), v0y_brick_dipole(NULL), v1y_brick_dipole(NULL), 
-  v2y_brick_dipole(NULL), v3y_brick_dipole(NULL), v4y_brick_dipole(NULL), 
-  v5y_brick_dipole(NULL), v0z_brick_dipole(NULL), v1z_brick_dipole(NULL), 
-  v2z_brick_dipole(NULL), v3z_brick_dipole(NULL), v4z_brick_dipole(NULL), 
-  v5z_brick_dipole(NULL), work3(NULL), work4(NULL), 
-  densityx_fft_dipole(NULL), densityy_fft_dipole(NULL), 
+  v2x_brick_dipole(NULL), v3x_brick_dipole(NULL), v4x_brick_dipole(NULL),
+  v5x_brick_dipole(NULL), v0y_brick_dipole(NULL), v1y_brick_dipole(NULL),
+  v2y_brick_dipole(NULL), v3y_brick_dipole(NULL), v4y_brick_dipole(NULL),
+  v5y_brick_dipole(NULL), v0z_brick_dipole(NULL), v1z_brick_dipole(NULL),
+  v2z_brick_dipole(NULL), v3z_brick_dipole(NULL), v4z_brick_dipole(NULL),
+  v5z_brick_dipole(NULL), work3(NULL), work4(NULL),
+  densityx_fft_dipole(NULL), densityy_fft_dipole(NULL),
   densityz_fft_dipole(NULL)
 {
   dipoleflag = 1;

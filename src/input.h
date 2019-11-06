@@ -39,7 +39,7 @@ class Input : protected Pointers {
                                  // substitute for variables in a string
   int expand_args(int, char **, int, char **&);  // expand args due to wildcard
   void write_echo(const char *); // send text to active echo file pointers
-  
+
  protected:
   char *command;               // ptr to current command
   int echo_screen;             // 0 = no, 1 = yes

@@ -108,7 +108,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
   // compute dE_i/dB_i = beta_i for all i in list
 
-  if (quadraticflag || eflag) 
+  if (quadraticflag || eflag)
     compute_bispectrum();
   compute_beta();
 
@@ -165,7 +165,7 @@ void PairSNAP::compute(int eflag, int vflag)
     snaptr->compute_ui(ninside);
 
     // for neighbors of I within cutoff:
-    // compute Fij = dEi/dRj = -dEi/dRi 
+    // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);

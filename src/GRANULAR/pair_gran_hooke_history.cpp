@@ -67,12 +67,12 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   fix_history = NULL;
 
   char **fixarg = new char*[3];
-  fixarg[0] = (char *) "NEIGH_HISTORY_HOOKE_HERTZ_DUMMY";
+  fixarg[0] = (char *) "NEIGH_HISTORY_HH_DUMMY";
   fixarg[1] = (char *) "all";
   fixarg[2] = (char *) "DUMMY";
   modify->add_fix(3,fixarg,1);
   delete [] fixarg;
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->fix[nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,8 +83,8 @@ PairGranHookeHistory::~PairGranHookeHistory()
 
   delete [] svector;
 
-  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HOOKE_HERTZ_DUMMY");
-  else modify->delete_fix("NEIGH_HISTORY_HOOKE_HERTZ");
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY_HH");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -435,14 +435,14 @@ void PairGranHookeHistory::init_style()
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_HOOKE_HERTZ";
+    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_HOOKE_HERTZ_DUMMY",4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    int ifix = modify->find_fix("NEIGH_HISTORY_HOOKE_HERTZ");
-    fix_history = (FixNeighHistory *) modify->fix[modify->ifix];
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 
@@ -509,7 +509,7 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY_HOOKE_HERTZ");
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }

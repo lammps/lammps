@@ -103,7 +103,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   fixarg[2] = (char *) "DUMMY";
   modify->add_fix(3,fixarg,1);
   delete [] fixarg;
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->fix[nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1052,7 +1052,7 @@ void PairGranular::init_style()
     modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",4,fixarg,1);
     delete [] fixarg;
     int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    fix_history = (FixNeighHistory *) modify->fix[modify->ifix];
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 

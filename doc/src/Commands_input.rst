@@ -17,7 +17,7 @@ one line at a time and each command takes effect when it is read.
 Thus this sequence of commands:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 0.5
    run      100
@@ -26,7 +26,7 @@ Thus this sequence of commands:
 does something different than this sequence:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run      100
    timestep 0.5

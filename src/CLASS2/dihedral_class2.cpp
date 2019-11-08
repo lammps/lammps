@@ -2,12 +2,10 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
-
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -27,6 +25,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -840,45 +839,45 @@ void DihedralClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi3[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&phi1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&phi2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&phi3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&mbt_f1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_f2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_f3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_r0[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&mbt_f1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&mbt_f2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&mbt_f3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&mbt_r0[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&ebt_f1_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f2_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f3_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_r0_1[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&ebt_f1_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f2_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f3_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_r0_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&ebt_f1_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f2_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f3_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_r0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&ebt_f1_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f2_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f3_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_r0_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&at_f1_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f2_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f3_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&at_f1_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f2_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f3_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&at_f1_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f2_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f3_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&at_f1_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f2_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f3_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&aat_k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&bb13t_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bb13t_r10[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bb13t_r30[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&bb13t_k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb13t_r10[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb13t_r30[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
   }
 
   MPI_Bcast(&k1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
@@ -963,4 +962,3 @@ void DihedralClass2::write_data(FILE *fp)
             at_f1_2[i],at_f2_2[i],at_f3_2[i],
             at_theta0_1[i]*180.0/MY_PI,at_theta0_2[i]*180.0/MY_PI);
 }
-

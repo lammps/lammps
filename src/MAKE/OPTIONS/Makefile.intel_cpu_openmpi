@@ -7,15 +7,16 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 export OMPI_CXX = icc
-CC =		mpicxx
+CC =		mpicxx -std=c++11
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high
-CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
-                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
+                -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpicxx
+LINK =		mpicxx -std=c++11
 LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
 LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size

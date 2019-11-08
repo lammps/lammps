@@ -24,12 +24,15 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {}
+PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
+  single_hessian_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -282,13 +285,13 @@ void PairLJSmoothLinear::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -315,8 +318,8 @@ void PairLJSmoothLinear::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -343,5 +346,28 @@ double PairLJSmoothLinear::single(int /*i*/, int /*j*/, int itype, int jtype,
   philj = philj - ljcut[itype][jtype]
                 + (r-cut[itype][jtype])*dljcut[itype][jtype];
 
+  return factor_lj*philj;
+}
+
+double PairLJSmoothLinear::single_hessian(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double delr[3], double /*factor_coul*/, double factor_lj,
+                         double &fforce, double d2u[6])
+{
+  double r2inv,r6inv,forcelj,philj,r,rinv;
+
+  r2inv = 1.0/rsq;
+  r6inv = r2inv*r2inv*r2inv;
+  rinv  = sqrt(r2inv);
+  r     = sqrt(rsq);
+  forcelj = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+  forcelj = rinv*forcelj - dljcut[itype][jtype];
+  fforce = factor_lj*forcelj*rinv;
+
+  philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+  philj = philj - ljcut[itype][jtype]
+                + (r-cut[itype][jtype])*dljcut[itype][jtype];
+
+  double d2r = factor_lj * r6inv * (13.0*lj1[itype][jtype]*r6inv - 7.0*lj2[itype][jtype])/rsq;
+  hessian_twobody(fforce, -(fforce + d2r) / rsq, delr, d2u);
   return factor_lj*philj;
 }

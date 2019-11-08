@@ -150,8 +150,8 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int nlocal = atom->nlocal;
 
   #ifndef _LMP_INTEL_OFFLOAD
-  int * const mask = atom->mask;
-  tagint * const molecule = atom->molecule;
+  int * _noalias const mask = atom->mask;
+  tagint * _noalias const molecule = atom->molecule;
   #endif
 
   int moltemplate;
@@ -162,7 +162,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
                "Can't use moltemplate with npair style full/bin/ghost/intel.");
 
   int tnum;
-  int *overflow;
+  int * _noalias overflow;
   #ifdef _LMP_INTEL_OFFLOAD
   double *timer_compute;
   if (offload) {
@@ -200,7 +200,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int mbinx = this->mbinx;
   const int mbiny = this->mbiny;
   const int mbinz = this->mbinz;
-  const int * const stencilxyz = &this->stencilxyz[0][0];
+  const int * _noalias const stencilxyz = &this->stencilxyz[0][0];
 
   int sb = 1;
   if (special_flag[1] == 0) {
@@ -295,7 +295,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 
       int pack_offset = maxnbors;
       int ct = (ifrom + tid * 2) * maxnbors;
-      int *neighptr = intel_list + ct;
+      int * _noalias neighptr = intel_list + ct;
       const int obound = pack_offset + maxnbors * 2;
 
       const int toffs = tid * ncache_stride;
@@ -370,7 +370,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 
         int n = maxnbors;
         int n2 = n * 2;
-        int *neighptr2 = neighptr;
+        int * _noalias neighptr2 = neighptr;
         const flt_t * _noalias cutsq;
         if (i < nlocal) cutsq = cutneighsq;
         else cutsq = cutneighghostsq;

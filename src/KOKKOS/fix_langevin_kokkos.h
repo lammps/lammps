@@ -56,6 +56,9 @@ namespace LAMMPS_NS {
   template<class DeviceType>
     class FixLangevinKokkos;
 
+  template <class DeviceType>
+  class FixLangevinKokkosInitialIntegrateFunctor;
+
   template<class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
     class FixLangevinKokkosPostForceFunctor;
@@ -72,12 +75,19 @@ namespace LAMMPS_NS {
 
     void cleanup_copy();
     void init();
+    void initial_integrate(int);
     void post_force(int);
     void reset_dt();
     void grow_arrays(int);
     void copy_arrays(int i, int j, int delflag);
     double compute_scalar();
     void end_of_step();
+
+    KOKKOS_INLINE_FUNCTION
+      void initial_integrate_item(int) const;
+
+    KOKKOS_INLINE_FUNCTION
+      void initial_integrate_rmass_item(int) const;
 
     template<int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
       int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
@@ -90,13 +100,24 @@ namespace LAMMPS_NS {
     KOKKOS_INLINE_FUNCTION
       double compute_energy_item(int) const;
 
+    KOKKOS_INLINE_FUNCTION
+      void end_of_step_item(int) const;
+
+    KOKKOS_INLINE_FUNCTION
+      void end_of_step_rmass_item(int) const;
+
   private:
     class CommKokkos *commKK;
 
     typename ArrayTypes<DeviceType>::t_float_1d rmass;
+    typename ArrayTypes<DeviceType>::t_float_1d mass;
     typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;
     typename ArrayTypes<DeviceType>::t_double_2d d_franprev;
     HAT::t_double_2d h_franprev;
+
+    typename ArrayTypes<DeviceType>::tdual_double_2d k_lv;
+    typename ArrayTypes<DeviceType>::t_double_2d d_lv;
+    HAT::t_double_2d h_lv;
 
     typename ArrayTypes<DeviceType>::tdual_double_2d k_flangevin;
     typename ArrayTypes<DeviceType>::t_double_2d d_flangevin;
@@ -129,6 +150,21 @@ namespace LAMMPS_NS {
     typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 
   };
+
+  template <class DeviceType>
+  struct FixLangevinKokkosInitialIntegrateFunctor  {
+    typedef DeviceType  device_type ;
+    FixLangevinKokkos<DeviceType> c;
+
+  FixLangevinKokkosInitialIntegrateFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+    c(*c_ptr) {c.cleanup_copy();};
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int i) const {
+      c.initial_integrate_item(i);
+    }
+  };
+
 
   template <class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
@@ -207,6 +243,21 @@ namespace LAMMPS_NS {
         update += source;
       }
     };
+
+  template <class DeviceType, int RMass>
+  struct FixLangevinKokkosEndOfStepFunctor {
+    typedef DeviceType  device_type ;
+    FixLangevinKokkos<DeviceType> c;
+
+    FixLangevinKokkosEndOfStepFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+      c(*c_ptr) {c.cleanup_copy();}
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int i) const {
+      if (RMass) c.end_of_step_rmass_item(i);
+      else c.end_of_step_item(i);
+    }
+  };
 }
 
 #endif
@@ -230,5 +281,13 @@ be zeroed.
 E: Fix langevin variable returned negative temperature
 
 Self-explanatory.
+
+E: Fix langevin gjf with tbias is not yet implemented with kokkos
+
+This option is not yet available.
+
+W: Fix langevin gjf using random gaussians is not implemented with kokkos
+
+This will most likely cause errors in kinetic fluctuations.
 
 */

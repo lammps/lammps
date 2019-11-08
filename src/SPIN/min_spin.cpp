@@ -41,15 +41,15 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {}
+MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {
+  alpha_damp = 1.0;
+  discrete_factor = 10.0;
+}
 
 /* ---------------------------------------------------------------------- */
 
 void MinSpin::init()
 {
-  alpha_damp = 1.0;
-  discrete_factor = 10.0;
-
   Min::init();
 
   dts = dt = update->dt;
@@ -77,12 +77,12 @@ void MinSpin::setup_style()
 int MinSpin::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"alpha_damp") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     alpha_damp = force->numeric(FLERR,arg[1]);
     return 2;
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     discrete_factor = force->numeric(FLERR,arg[1]);
     return 2;
   }
@@ -116,7 +116,7 @@ void MinSpin::reset_vectors()
 int MinSpin::iterate(int maxiter)
 {
   bigint ntimestep;
-  double fmdotfm;
+  double fmdotfm,fmsq;
   int flag,flagall;
 
   for (int iter = 0; iter < maxiter; iter++) {
@@ -130,7 +130,7 @@ int MinSpin::iterate(int maxiter)
     // optimize timestep accross processes / replicas
     // need a force calculation for timestep optimization
 
-    energy_force(0);
+    if (iter == 0) energy_force(0);
     dts = evaluate_dt();
 
     // apply damped precessional dynamics to the spins
@@ -163,8 +163,13 @@ int MinSpin::iterate(int maxiter)
     // magnetic torque tolerance criterion
     // sync across replicas if running multi-replica minimization
 
+    fmdotfm = fmsq = 0.0;
     if (update->ftol > 0.0) {
-      fmdotfm = fmnorm_sqr();
+      if (normstyle == MAX) fmsq = max_torque();        // max torque norm
+      else if (normstyle == INF) fmsq = inf_torque();   // inf torque norm
+      else if (normstyle == TWO) fmsq = total_torque(); // Euclidean torque 2-norm
+      else error->all(FLERR,"Illegal min_modify command");
+      fmdotfm = fmsq*fmsq;
       if (update->multireplica == 0) {
         if (fmdotfm < update->ftol*update->ftol) return FTOL;
       } else {
@@ -242,7 +247,7 @@ void MinSpin::advance_spins(double dts)
   double **sp = atom->sp;
   double **fm = atom->fm;
   double tdampx,tdampy,tdampz;
-  double msq,scale,fm2,energy,dts2;
+  double fm2,energy,dts2;
   double cp[3],g[3];
 
   dts2 = dts*dts;
@@ -288,37 +293,3 @@ void MinSpin::advance_spins(double dts)
     // because no need for simplecticity
   }
 }
-
-/* ----------------------------------------------------------------------
-   compute and return ||mag. torque||_2^2
-------------------------------------------------------------------------- */
-
-double MinSpin::fmnorm_sqr()
-{
-  int nlocal = atom->nlocal;
-  double tx,ty,tz;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
-
-  // calc. magnetic torques
-
-  double local_norm2_sqr = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    tx = (fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1]);
-    ty = (fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2]);
-    tz = (fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0]);
-
-    local_norm2_sqr += tx*tx + ty*ty + tz*tz;
-  }
-
-  // no extra atom calc. for spins
-
-  if (nextra_atom)
-    error->all(FLERR,"extra atom option not available yet");
-
-  double norm2_sqr = 0.0;
-  MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
-
-  return norm2_sqr;
-}
-

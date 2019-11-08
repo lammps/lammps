@@ -1143,31 +1143,27 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     a2 = a*a;
     knfac = normal_coeffs[0]*a;
     Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
-  }
-  else{
+  } else {
     knfac = E; //Hooke
     a = sqrt(dR);
+    Fne = knfac*delta;
     if (normal_model != HOOKE) {
       Fne *= a;
       knfac *= a;
     }
-    Fne = knfac*delta;
     if (normal_model == DMT)
       Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
   }
 
   if (damping_model == VELOCITY) {
     damp_normal = 1;
-  }
-  else if (damping_model == MASS_VELOCITY) {
+  } else if (damping_model == MASS_VELOCITY) {
     damp_normal = meff;
-  }
-  else if (damping_model == VISCOELASTIC) {
+  } else if (damping_model == VISCOELASTIC) {
     damp_normal = a*meff;
-  }
-  else if (damping_model == TSUJI) {
+  } else if (damping_model == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;
@@ -1292,10 +1288,12 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   // rolling resistance
   //****************************************
 
-  if (roll_model != ROLL_NONE) {
+  if (roll_model != ROLL_NONE || twist_model != NONE) {
     relrot1 = omega[0];
     relrot2 = omega[1];
     relrot3 = omega[2];
+  }
+  if (roll_model != ROLL_NONE){
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,

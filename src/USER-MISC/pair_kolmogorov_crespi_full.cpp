@@ -444,13 +444,13 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
+void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int /* vflag */)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,Rcut,r2inv,r6inv,r8inv,Tap,dTap,Vkc,fsum;
@@ -519,11 +519,11 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
           dTap = calc_dTap(r,Rcut);
         } else {Tap = 1.0; dTap = 0.0;}
 
-	Vkc = -p.A*p.z06*r6inv;
+        Vkc = -p.A*p.z06*r6inv;
 
         // derivatives
         fpair = -6.0*p.A*p.z06*r8inv;
-	fsum = fpair*Tap - Vkc*dTap/r;
+        fsum = fpair*Tap - Vkc*dTap/r;
 
         f[i][0] += fsum*delx;
         f[i][1] += fsum*dely;
@@ -540,19 +540,19 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
+void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,rhosq1,exp0,exp1,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
+  double rsq,r,rhosq1,exp0,exp1,Tap,dTap,Vkc;
   double frho_ij,sumC1,sumC11,sumCff,fsum,rho_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *KC_neighs_i,*KC_neighs_j;
+  int *KC_neighs_i;
 
   evdwl = 0.0;
 
@@ -606,14 +606,12 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
         Param& p = params[iparam_ij];
 
         r = sqrt(rsq);
-        r2inv = 1.0/rsq;
-        r6inv = r2inv*r2inv*r2inv;
-        r8inv = r2inv*r6inv;
-	// turn on/off taper function
-	if (tap_flag) {
-	  Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-	  dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
-	} else {Tap = 1.0; dTap = 0.0;}
+
+        // turn on/off taper function
+        if (tap_flag) {
+          Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
+          dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
+        } else {Tap = 1.0; dTap = 0.0;}
 
         // Calculate the transverse distance
         prodnorm1 = normal[i][0]*delx + normal[i][1]*dely + normal[i][2]*delz;
@@ -628,7 +626,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
         sumC11 = (p.C2 + 2.0*p.C4*rho_ij)*p.delta2inv;
         frho_ij = exp1*sumC1;
         sumCff = 0.5*p.C + frho_ij;
-	Vkc = exp0*sumCff;
+        Vkc = exp0*sumCff;
 
         // derivatives
         fpair =  p.lambda*exp0/r*sumCff;
@@ -655,10 +653,10 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
         f[j][1] -= fkcy;
         f[j][2] -= fkcz;
 
-	// calculate the forces acted on the neighbors of atom i from atom j
-	KC_neighs_i = KC_firstneigh[i];
-	for (kk = 0; kk < KC_numneigh[i]; kk++) {
-	  k = KC_neighs_i[kk];
+        // calculate the forces acted on the neighbors of atom i from atom j
+        KC_neighs_i = KC_firstneigh[i];
+        for (kk = 0; kk < KC_numneigh[i]; kk++) {
+          k = KC_neighs_i[kk];
           if (k == i) continue;
           // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
           dprodnorm1[0] = dnormal[0][0][kk][i]*delx + dnormal[1][0][kk][i]*dely + dnormal[2][0][kk][i]*delz;
@@ -674,7 +672,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
           delkj[1] = x[k][1] - x[j][1];
           delkj[2] = x[k][2] - x[j][2];
           if (evflag) ev_tally_xyz(k,j,nlocal,newton_pair,0.0,0.0,fk[0],fk[1],fk[2],delkj[0],delkj[1],delkj[2]);
-	}
+        }
 
         if (eflag) {
           if (tap_flag) pvector[1] += evdwl = Tap*Vkc;
@@ -792,7 +790,7 @@ void PairKolmogorovCrespiFull::calc_normal()
     memory->create(dnormal,3,3,3,nmax,"KolmogorovCrespiFull:dnormal");
   }
 
-  inum = list->inum;	
+  inum = list->inum;
   ilist = list->ilist;
   //Calculate normals
   for (ii = 0; ii < inum; ii++) {

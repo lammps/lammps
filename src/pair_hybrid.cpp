@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "error.h"
 #include "respa.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -362,13 +363,21 @@ void PairHybrid::flags()
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
   }
+  init_svector();
+}
 
-  // single_extra = min of all sub-style single_extra
+/* ----------------------------------------------------------------------
+   initialize Pair::svector array
+------------------------------------------------------------------------- */
+
+void PairHybrid::init_svector()
+{
+  // single_extra = list all sub-style single_extra
   // allocate svector
 
-  single_extra = styles[0]->single_extra;
-  for (m = 1; m < nstyles; m++)
-    single_extra = MIN(single_extra,styles[m]->single_extra);
+  single_extra = 0;
+  for (int m = 0; m < nstyles; m++)
+    single_extra = MAX(single_extra,styles[m]->single_extra);
 
   if (single_extra) {
     delete [] svector;
@@ -673,7 +682,7 @@ void PairHybrid::write_restart(FILE *fp)
 void PairHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
   // allocate list of sub-styles
@@ -696,32 +705,32 @@ void PairHybrid::read_restart(FILE *fp)
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
-  if (me == 0) fread(compute_tally,sizeof(int),nstyles,fp);
+  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,NULL,error);
   MPI_Bcast(compute_tally,nstyles,MPI_INT,0,world);
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = NULL;
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_lj[m] = new double[4];
-      if (me == 0) fread(special_lj[m],sizeof(double),4,fp);
+      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,NULL,error);
       MPI_Bcast(special_lj[m],4,MPI_DOUBLE,0,world);
     }
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_coul[m] = new double[4];
-      if (me == 0) fread(special_coul[m],sizeof(double),4,fp);
+      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,NULL,error);
       MPI_Bcast(special_coul[m],4,MPI_DOUBLE,0,world);
     }
   }
@@ -772,16 +781,27 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       esum += styles[map[itype][jtype][m]]->
         single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
       fforce += fone;
-
-      // copy substyle extra values into hybrid's svector
-
-      if (single_extra && styles[map[itype][jtype][m]]->single_extra)
-        for (m = 0; m < single_extra; m++)
-          svector[m] = styles[map[itype][jtype][m]]->svector[m];
     }
   }
 
+  if (single_extra) copy_svector(itype,jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   copy Pair::svector data
+------------------------------------------------------------------------- */
+
+void PairHybrid::copy_svector(int itype, int jtype)
+{
+  memset(svector,0,single_extra*sizeof(double));
+
+  // there is only one style in pair style hybrid for a pair of atom types
+  Pair *this_style = styles[map[itype][jtype][0]];
+
+  for (int l = 0; this_style->single_extra; ++l) {
+    svector[l] = this_style->svector[l];
+  }
 }
 
 /* ----------------------------------------------------------------------

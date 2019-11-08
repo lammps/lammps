@@ -154,12 +154,12 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int nlocal = atom->nlocal;
 
   #ifndef _LMP_INTEL_OFFLOAD
-  int * const mask = atom->mask;
-  tagint * const molecule = atom->molecule;
+  int * _noalias const mask = atom->mask;
+  tagint * _noalias const molecule = atom->molecule;
   #endif
 
   int tnum;
-  int *overflow;
+  int * _noalias overflow;
   #ifdef _LMP_INTEL_OFFLOAD
   double *timer_compute;
   if (offload) {
@@ -298,8 +298,8 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
       const int obound = maxnbors * 3;
       #endif
       int ct = (ifrom + tid * 2) * maxnbors;
-      int *neighptr = intel_list + ct;
-      int *neighptr2;
+      int * _noalias neighptr = intel_list + ct;
+      int * _noalias neighptr2;
       if (THREE) neighptr2 = neighptr;
 
       const int toffs = tid * ncache_stride;

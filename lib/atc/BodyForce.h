@@ -18,8 +18,8 @@ namespace ATC {
     public:
       BodyForce()   {};
       virtual ~BodyForce() {};
-      virtual bool body_force(const FIELD_MATS &fields,
-                                    DENS_MAT &flux) const { return false; };
+      virtual bool body_force(const FIELD_MATS & /* fields */,
+                              DENS_MAT & /* flux */) const { return false; };
   };
 
   /**
@@ -49,7 +49,7 @@ namespace ATC {
   class BodyForceElectricField : public BodyForce
   {
     public:
-      BodyForceElectricField(std::fstream &matfile,std::map<std::string,double> & parameters) 
+    BodyForceElectricField(std::fstream & /* matfile */,std::map<std::string,double> & /* parameters */) 
         { throw ATC_Error("unimplemented due to issues with accessing electric field"); }
       virtual ~BodyForceElectricField() {};
       virtual bool body_force(const FIELD_MATS &fields,

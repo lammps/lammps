@@ -281,6 +281,7 @@ void Info::command(int narg, char **arg)
     infobuf = get_compiler_info();
     fprintf(out,"\nCompiler: %s with %s\n",infobuf,get_openmp_info());
     delete[] infobuf;
+    fprintf(out,"C++ standard: %s\n",get_cxx_info());
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -1205,6 +1206,23 @@ const char *Info::get_openmp_info()
   return (const char *)"unknown OpenMP version";
 #endif
 
+#endif
+}
+
+const char *Info::get_cxx_info()
+{
+#if __cplusplus > 201703L
+  return (const char *)"newer than C++17";
+#elif __cplusplus == 201703L
+  return (const char *)"C++17";
+#elif __cplusplus == 201402L
+  return (const char *)"C++14";
+#elif __cplusplus == 201103L
+  return (const char *)"C++11";
+#elif __cplusplus == 199711L
+  return (const char *)"C++98";
+#else
+  return (const char *)"unknown";
 #endif
 }
 

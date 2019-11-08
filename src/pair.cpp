@@ -54,6 +54,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
@@ -1741,6 +1742,18 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   masklo = rsq_lookup.i & ~(nmask);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+  int m = 0;
+  for (int k=0; k<3; k++) {
+    phiTensor[m] = fforce;
+    for (int l=k; l<3; l++) {
+      if (l>k) phiTensor[m] = 0;
+      phiTensor[m++] += delr[k]*delr[l] * dfac;
+    }
+  }
+}
 /* ---------------------------------------------------------------------- */
 
 double Pair::memory_usage()

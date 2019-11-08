@@ -39,6 +39,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -372,12 +373,10 @@ void PairReaxC::init_style( )
 
   // firstwarn = 1;
 
-  int iqeq;
-  for (iqeq = 0; iqeq < modify->nfix; iqeq++)
-    if (strstr(modify->fix[iqeq]->style,"qeq/reax")
-       || strstr(modify->fix[iqeq]->style,"qeq/shielded")) break;
-  if (iqeq == modify->nfix && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
+  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
+                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
+  if (!have_qeq && qeqflag == 1)
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts

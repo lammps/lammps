@@ -498,7 +498,7 @@ TRIPLET<T> SparseMatrix<T>::triplet(INDEX i) const
 // full reset - completely wipes out all SparseMatrix data, zero is ignored
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::reset(INDEX rows, INDEX cols, bool zero)
+void SparseMatrix<T>::reset(INDEX rows, INDEX cols, bool /* zero */)
 {
   _delete();
   _nRows = rows;
@@ -545,7 +545,7 @@ void SparseMatrix<T>::reset(const DenseMatrix<T>& D, double TOL)
 // copy - dangerous: ignores rows & columns
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::copy(const T * ptr, INDEX rows, INDEX cols)
+void SparseMatrix<T>::copy(const T * /* ptr */, INDEX /* rows */, INDEX /* cols */)
 {
   std::cout << "SparseMatrix<T>::copy() has no effect.\n";
   throw;

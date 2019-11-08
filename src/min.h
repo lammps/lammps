@@ -31,9 +31,9 @@ class Min : protected Pointers {
   Min(class LAMMPS *);
   virtual ~Min();
   virtual void init();
-  void setup(int flag=1);
-  void setup_minimal(int);
-  void run(int);
+  virtual void setup(int flag=1);
+  virtual void setup_minimal(int);
+  virtual void run(int);
   void cleanup();
   int request(class Pair *, int, double);
   virtual bigint memory_usage() {return 0;}
@@ -41,6 +41,14 @@ class Min : protected Pointers {
   virtual int modify_param(int, char **) {return 0;}
   double fnorm_sqr();
   double fnorm_inf();
+  double fnorm_max();
+
+  enum{TWO,MAX,INF};
+
+  // methods for spin minimizers
+  double total_torque();
+  double inf_torque();
+  double max_torque();
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
@@ -56,8 +64,11 @@ class Min : protected Pointers {
   int virial_style;           // compute virial explicitly or implicitly
   int external_force_clear;   // clear forces locally or externally
 
-  double dmax;                // max dist to move any atom in one step
-  int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
+  double dmax;                  // max dist to move any atom in one step
+  int linestyle;                // 0 = backtrack, 1 = quadratic, 2 = forcezero
+                                // 3 = spin_cubic, 4 = spin_none
+
+  int normstyle;                // TWO, MAX or INF flag for force norm evaluation
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;
@@ -97,13 +108,12 @@ class Min : protected Pointers {
   double *extra_max;          // max allowed change per iter for atom's var
   class Pair **requestor;     // Pair that stores/manipulates the variable
 
+  int kokkosable;             // 1 if this min style supports Kokkos
+
   int neigh_every,neigh_delay,neigh_dist_check;  // neighboring params
 
-  double energy_force(int);
-  void force_clear();
-
-  double compute_force_norm_sqr();
-  double compute_force_norm_inf();
+  virtual double energy_force(int);
+  virtual void force_clear();
 
   void ev_setup();
   void ev_set(bigint);

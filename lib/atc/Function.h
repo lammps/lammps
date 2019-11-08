@@ -29,8 +29,8 @@ namespace ATC {
     virtual inline ARG_NAMES args(void) {ARG_NAMES names; return names;};
 
     /** (1st) derivative of function wrt to a field */
-    virtual inline double dfd(FieldName field, ARGS& args ) {return 0.0;};
-    virtual inline void   dfd(FieldName field, ARGS& args, DENS_MAT vals ) {};
+    virtual inline double dfd(FieldName /* field */, ARGS& /* args */) {return 0.0;};
+    virtual inline void   dfd(FieldName /* field */, ARGS& /* args */, DENS_MAT /* vals */ ) {};
 
     // addl: d2fd2(field1, field2, args), linearization(), grad_args
 
@@ -70,8 +70,8 @@ namespace ATC {
     LinearFieldFunction(int nargs, char** args);
     virtual ~LinearFieldFunction(void) {};
   
-    inline double f(double* u, double* x, double t) {return c1_*u[0]-c0_;}
-    inline double dfd(FieldName field, ARGS& args) {return c1_;}
+    inline double f(double* u, double* /* x */, double /* t */) {return c1_*u[0]-c0_;}
+    inline double dfd(FieldName /* field */, ARGS& /* args */) {return c1_;}
 
     private :
       double c0_,c1_;
@@ -90,9 +90,9 @@ namespace ATC {
     const std::string & tag() { return tag_;}
 
     /** function value */
-    virtual inline double f(double * u, double* x, double t) {return 0.0;};
+    virtual inline double f(double * /* u */, double* /* x */, double /* t */) {return 0.0;};
     /** derivative of function wrt to field */
-    virtual inline double dfdu(double * u, double* x, double t) {return 0.0;};
+    virtual inline double dfdu(double * /* u */, double* /* x */, double /* t */) {return 0.0;};
 
   protected:
     /** tag : name of function */
@@ -136,8 +136,8 @@ namespace ATC {
   
     //inline double f(double* u, double* x, double t) {return c1_*(u[0]-c0_);}
 
-    inline double f(double* u, double* x, double t) {return c1_*u[0]+c0_;}
-    inline double dfdu(double* u, double* x, double t) {return c1_;}
+    inline double f(double* u, double* /* x */, double /* t */) {return c1_*u[0]+c0_;}
+    inline double dfdu(double* /* u */, double* /* x */, double /* t */) {return c1_;}
 
     private :
       double c0_,c1_;
@@ -156,13 +156,13 @@ namespace ATC {
     const std::string & tag() { return tag_;}
 
     /** function value */
-    virtual inline double f(double* x, double t) {return 0.0;};
+    virtual inline double f(double* /* x */, double /* t */) {return 0.0;};
     /** time derivative of function */
-    virtual inline double dfdt(double* x, double t) {return 0.0;};
+    virtual inline double dfdt(double* /* x */, double /* t */) {return 0.0;};
     /** 2nd time derivative of function */
-    virtual inline double ddfdt(double* x, double t) {return 0.0;};
+    virtual inline double ddfdt(double* /* x */, double /* t */) {return 0.0;};
     /** 3rd time derivative of function */
-    virtual inline double dddfdt(double* x, double t) {return 0.0;};
+    virtual inline double dddfdt(double* /* x */, double /* t */) {return 0.0;};
 
   protected:
     /** mask : masks x,y,z dependence, x0 : origin */
@@ -210,7 +210,7 @@ namespace ATC {
     ConstantFunction(double arg);
     virtual ~ConstantFunction(void) {};
   
-    inline double f(double* x, double t) 
+    inline double f(double* /* x */, double /* t */) 
     {return C0;};
 
     private :
@@ -227,7 +227,7 @@ namespace ATC {
     LinearFunction(int nargs, double* args);
     virtual ~LinearFunction(void) {};
   
-    double f(double* x, double t) 
+    double f(double* x, double /* t */) 
       {return mask[0]*(x[0]-x0[0])+mask[1]*(x[1]-x0[1])+mask[2]*(x[2]-x0[2]) + C0;};
 
     private :
@@ -280,7 +280,7 @@ namespace ATC {
     QuadraticFunction(int nargs, double* args);
     virtual ~QuadraticFunction(void) {};
   
-    inline double f(double* x, double t) 
+    inline double f(double* x, double /* t */) 
       {return 
        C2[0]*(x[0]-x0[0])*(x[0]-x0[0])+
        C2[1]*(x[1]-x0[1])*(x[1]-x0[1])+
@@ -324,7 +324,7 @@ namespace ATC {
     virtual ~GaussianFunction(void){};
 
     // 1/(2 pi \sigma)^(n/2) exp(-1/2 x.x/\sigma^2 ) for n = dimension
-    inline double f(double* x, double t) 
+    inline double f(double* x, double /* t */) 
       {return  C*exp(-(mask[0]*(x[0]-x0[0])*(x[0]-x0[0])
                       +mask[1]*(x[1]-x0[1])*(x[1]-x0[1])
                       +mask[2]*(x[2]-x0[2])*(x[2]-x0[2]))/tau/tau) + C0;};
@@ -362,10 +362,10 @@ namespace ATC {
     TemporalRamp(int nargs, double* args);
     virtual ~TemporalRamp(void) {};
   
-    inline double f(double* x, double t) 
+    inline double f(double* /* x */, double t) 
     {return f_initial + slope*t;};
 
-    inline double dfdt(double* x, double t) 
+    inline double dfdt(double* /* x */, double /* t */) 
     {return slope;};
 
     private :
@@ -382,7 +382,7 @@ namespace ATC {
     RadialPower(int nargs, double* args);
     virtual ~RadialPower(void) {};
     
-    inline double f(double* x, double t) 
+    inline double f(double* x, double /* t */) 
     {
       double dx = x[0]-x0[0]; double dy = x[1]-x0[1]; double dz = x[2]-x0[2];
       double r = mask[0]*dx*dx+mask[1]*dy*dy+mask[2]*dz*dz; r = sqrt(r);

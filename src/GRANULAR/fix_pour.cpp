@@ -54,7 +54,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
-  if (lmp->kokkos) error->all(FLERR,"Cannot yet use fix pour with the KOKKOS package");
+  if (lmp->kokkos) 
+    error->all(FLERR,"Cannot yet use fix pour with the KOKKOS package");
 
   time_depend = 1;
 
@@ -789,23 +790,30 @@ bool FixPour::outside(int dim, double value, double lo, double hi)
 {
   double boxlo = domain->boxlo[dim];
   double boxhi = domain->boxhi[dim];
-  bool outside_pbc_range = true;
-  bool outside_regular_range = (value < lo || value > hi);
 
-  if (domain->periodicity[dim]) {
-    if ((lo < boxlo && hi > boxhi) || (hi - lo) > domain->prd[dim]) {
-      // value is always inside
-      outside_pbc_range = false;
-    } else if (lo < boxlo) {
-      // lower boundary crosses periodic boundary
-      outside_pbc_range = (value > hi && value < lo + domain->prd[dim]);
-    } else if (hi > boxhi) {
-      // upper boundary crosses periodic boundary
-      outside_pbc_range = (value < lo && value > hi - domain->prd[dim]);
-    }
+  // check for value inside/outside range, ignoring periodicity
+  // if inside or dim is non-periodic, only this test is needed
+
+  bool outside_range = (value < lo || value > hi);
+  if (!outside_range || !domain->periodicity[dim]) return outside_range;
+
+  // for periodic dimension: 
+  // must perform additional tests if range wraps around the periodic box
+
+  bool outside_pbc_range = true;
+
+  if ((lo < boxlo && hi > boxhi) || (hi - lo) > domain->prd[dim]) {
+    // value is always inside
+    outside_pbc_range = false;
+  } else if (lo < boxlo) {
+    // lower boundary crosses periodic boundary
+    outside_pbc_range = (value > hi && value < lo + domain->prd[dim]);
+  } else if (hi > boxhi) {
+    // upper boundary crosses periodic boundary
+    outside_pbc_range = (value < lo && value > hi - domain->prd[dim]);
   }
 
-  return (outside_pbc_range && outside_regular_range);
+  return outside_pbc_range;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -210,7 +210,7 @@ void CommKokkos::forward_comm_device(int dummy)
             MPI_Send(k_buf_send.view<DeviceType>().data(),
                      n,MPI_DOUBLE,sendproc[iswap],0,world);
           }
-    
+
           if (size_forward_recv[iswap]) {
             MPI_Wait(&request,MPI_STATUS_IGNORE);
             atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::

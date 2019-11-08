@@ -32,7 +32,6 @@ class PairOxdnaStk : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);
@@ -45,6 +44,7 @@ class PairOxdnaStk : public Pair {
 
  protected:
   // stacking interaction
+  double eta_st[4][4];
   double stacking_strength(double, double, double);
   double **epsilon_st, **a_st, **cut_st_0, **cut_st_c;
   double **cut_st_lo, **cut_st_hi;

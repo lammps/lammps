@@ -248,8 +248,10 @@ DumpCustom::~DumpCustom()
     delete [] vformat;
   }
 
-  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  if (format_column_user) {
+    for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
+    delete [] format_column_user;
+  }
 
   delete [] columns;
 }

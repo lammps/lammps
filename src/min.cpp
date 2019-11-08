@@ -852,20 +852,22 @@ double Min::fnorm_max()
     for (int m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
       n = extra_nlen[m];
-      for (i = 0; i < n; i+=3)
-        fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+      for (i = 0; i < n; i+=3) {
+        fdotf = fatom[i]*fatom[i]+fatom[i+1]*fatom[i+1]+fatom[i+2]*fatom[i+2];
         local_norm_max = MAX(fdotf,local_norm_max);
+      }
     }
   }
 
   double norm_max = 0.0;
   MPI_Allreduce(&local_norm_max,&norm_max,1,MPI_DOUBLE,MPI_MAX,world);
 
-  if (nextra_global)
-    for (i = 0; i < n; i+=3)
-      fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+  if (nextra_global) {
+    for (i = 0; i < nextra_global; i+=3) {
+      fdotf = fextra[i]*fextra[i];
       norm_max = MAX(fdotf,norm_max);
-
+    }
+  }
   return norm_max;
 }
 
@@ -896,7 +898,7 @@ double Min::total_torque()
   MPI_Allreduce(&ftotsqone,&ftotsqall,1,MPI_DOUBLE,MPI_SUM,world);
 
   // multiply it by hbar so that units are in eV
-  
+
   return sqrt(ftotsqall) * hbar;
 }
 
@@ -906,14 +908,14 @@ double Min::total_torque()
 
 double Min::inf_torque()
 {
-  double fmsq,fmaxsqone,fmaxsqall;
+  double fmaxsqone,fmaxsqall;
   int nlocal = atom->nlocal;
   double hbar = force->hplanck/MY_2PI;
   double tx,ty,tz;
   double **sp = atom->sp;
   double **fm = atom->fm;
 
-  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  fmaxsqone = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
     ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];

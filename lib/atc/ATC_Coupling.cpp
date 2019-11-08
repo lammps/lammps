@@ -1693,7 +1693,7 @@ namespace ATC {
     extrinsicModelManager_.construct_transfers();
   }
   //--------------------------------------------------
-  void ATC_Coupling::delete_mass_mat_time_filter(FieldName thisField)
+  void ATC_Coupling::delete_mass_mat_time_filter(FieldName /* thisField */)
   {
   }
   //--------------------------------------------------

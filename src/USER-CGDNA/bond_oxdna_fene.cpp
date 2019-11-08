@@ -24,6 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -379,9 +380,9 @@ void BondOxdnaFene::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&Delta[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&Delta[1],atom->nbondtypes,MPI_DOUBLE,0,world);

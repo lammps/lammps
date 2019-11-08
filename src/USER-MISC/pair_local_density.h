@@ -13,8 +13,8 @@
    pair_LocalDensity written by:
    Tanmoy Sanyal and M. Scott Shell from UC Santa Barbara
    David Rosenberger: TU Darmstadt
--------------------------------------------------------------------------*/   
-    
+-------------------------------------------------------------------------*/
+
 
 #ifdef PAIR_CLASS
 
@@ -40,7 +40,7 @@ class PairLocalDensity : public Pair {
     void init_style();
     double init_one(int, int);
     double single(int, int, int, int, double, double, double, double &);
-    
+
     virtual int pack_comm(int, int *, double *, int, int *);
     virtual void unpack_comm(int, int, double *);
     int pack_reverse_comm(int, int, double *);
@@ -51,7 +51,7 @@ class PairLocalDensity : public Pair {
   protected:
     //------------------------------------------------------------------------
     //This information is read from the tabulated input file
-    
+
     int nLD, nrho;                          // number of LD types
     int **a, **b;                           // central and neigh atom filters
     double *uppercut, *lowercut;            // upper and lower cutoffs
@@ -59,26 +59,26 @@ class PairLocalDensity : public Pair {
     double *c0, *c2, *c4, *c6;              // coeffs for indicator function
     double *rho_min, *rho_max, *delta_rho;  // min, max & grid-size for LDs
     double **rho, **frho;                   // LD and LD function tables
-    
+
     //------------------------------------------------------------------------
-    
+
     double ***frho_spline; // splined LD potentials
     double cutmax;          // max cutoff for all elements
     double cutforcesq;      // square of global upper cutoff
-    
+
     int nmax;               // max size of per-atom arrays
     double **localrho;     // per-atom LD
     double **fp;           // per-atom LD potential function derivative
-    
+
     void allocate();
-    
-	// read tabulated input file
-	void parse_file(char *);
-    
-	// convert array to spline
-	void array2spline();
-	
-	// cubic spline interpolation
+
+        // read tabulated input file
+        void parse_file(char *);
+
+        // convert array to spline
+        void array2spline();
+
+        // cubic spline interpolation
     void interpolate_cbspl(int, double, double *, double **);
 };
 

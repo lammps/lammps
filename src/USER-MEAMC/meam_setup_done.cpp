@@ -454,7 +454,7 @@ MEAM::phi_meam(double r, int a, int b)
 
   F1 = embedding(this->A_meam[a], this->Ec_meam[a][a], rhobar1, dF);
   F2 = embedding(this->A_meam[b], this->Ec_meam[b][b], rhobar2, dF);
-  
+
 
   // compute Rose function, I.16
   Eu = erose(r, this->re_meam[a][b], this->alpha_meam[a][b], this->Ec_meam[a][b], this->repuls_meam[a][b],

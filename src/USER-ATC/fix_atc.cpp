@@ -581,7 +581,7 @@ void FixATC::min_setup(int vflag)
   setup(vflag);
 }
 
-void FixATC::setup(int vflag)
+void FixATC::setup(int /* vflag */)
 {
   comm->forward_comm_fix(this);
 
@@ -642,7 +642,7 @@ void FixATC::grow_arrays(int nmax)
   atc_->grow_arrays(nmax);
 }
 
-void FixATC::copy_arrays(int i, int j, int delflag)
+void FixATC::copy_arrays(int i, int j, int /* delflag */)
 {
   atc_->copy_arrays(i,j);
 }
@@ -675,7 +675,7 @@ void FixATC::unpack_forward_comm(int n, int first, double *buf)
    pack values in local atom-based arrays for restart file
    ------------------------------------------------------------------------- */
 
-int FixATC::pack_restart(int i, double *buf){
+int FixATC::pack_restart(int /* i */, double * /* buf */){
   return 0;
 }
 
@@ -683,7 +683,7 @@ int FixATC::pack_restart(int i, double *buf){
    unpack values from atom->extra array to restart the fix
    ------------------------------------------------------------------------- */
 
-void FixATC::unpack_restart(int nlocal, int nth){
+void FixATC::unpack_restart(int /* nlocal */, int /* nth */){
 }
 
 /* ----------------------------------------------------------------------
@@ -698,7 +698,7 @@ int FixATC::maxsize_restart(){
    size of atom nlocal's restart data
    ------------------------------------------------------------------------- */
 
-int FixATC::size_restart(int nlocal){
+int FixATC::size_restart(int /* nlocal */){
   return 0;
 }
 
@@ -706,7 +706,7 @@ int FixATC::size_restart(int nlocal){
    pack entire state of Fix into one write
    ------------------------------------------------------------------------- */
 
-void FixATC::write_restart(FILE *fp){
+void FixATC::write_restart(FILE * /* fp */){
 
   char ** args = new char*[2];
   args[0] = new char[50];
@@ -728,7 +728,7 @@ void FixATC::write_restart(FILE *fp){
    use state info from restart file to restart the Fix
    ------------------------------------------------------------------------- */
 
-void FixATC::restart(char *buf){
+void FixATC::restart(char * /* buf */){
 
   char ** args = new char*[2];
   args[0] = new char[50];
@@ -750,7 +750,7 @@ void FixATC::restart(char *buf){
    allow for both per-type and per-atom mass
    ------------------------------------------------------------------------- */
 
-void FixATC::initial_integrate(int vflag)
+void FixATC::initial_integrate(int /* vflag */)
 {
   try {
     atc_->pre_init_integrate();
@@ -836,7 +836,7 @@ void FixATC::pre_neighbor()
   }
 }
 /* ---------------------------------------------------------------------- */
-void FixATC::pre_force(int vflag)
+void FixATC::pre_force(int /* vflag */)
 {
 
   try {
@@ -848,7 +848,7 @@ void FixATC::pre_force(int vflag)
   }
 }
 /* ---------------------------------------------------------------------- */
-void FixATC::post_force(int vflag)
+void FixATC::post_force(int /* vflag */)
 {
 
   try {
@@ -884,7 +884,7 @@ void FixATC::setup_pre_neighbor()
   }
 }
 /* ---------------------------------------------------------------------- */
-void FixATC::min_pre_force(int vflag)
+void FixATC::min_pre_force(int /* vflag */)
 {
   try {
     atc_->min_pre_force();
@@ -896,7 +896,7 @@ void FixATC::min_pre_force(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void FixATC::min_post_force(int vflag)
+void FixATC::min_post_force(int /* vflag */)
 {
   try {
     atc_->min_post_force();

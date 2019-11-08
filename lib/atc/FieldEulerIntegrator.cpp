@@ -46,7 +46,7 @@ FieldExplicitEulerIntegrator::FieldExplicitEulerIntegrator(
 // --------------------------------------------------------------------
 // update 
 // --------------------------------------------------------------------
-void FieldExplicitEulerIntegrator::update(const double dt, double time,
+  void FieldExplicitEulerIntegrator::update(const double dt, double /* time */,
   FIELDS & fields, FIELDS & rhs)
 { 
   // write and add update mass matrix to handled time variation
@@ -81,7 +81,7 @@ FieldImplicitEulerIntegrator::FieldImplicitEulerIntegrator(
 // update 
 // --------------------------------------------------------------------
 void FieldImplicitEulerIntegrator::update(const double dt, double time,
-  FIELDS & fields, FIELDS & rhs) 
+                                          FIELDS & fields, FIELDS & /* rhs */) 
 { // solver handles bcs
   FieldImplicitSolveOperator solver(atc_, 
     fields, fieldName_, rhsMask_, physicsModel_,
@@ -127,8 +127,8 @@ FieldImplicitDirectEulerIntegrator::~FieldImplicitDirectEulerIntegrator()
 // --------------------------------------------------------------------
 // initialize 
 // --------------------------------------------------------------------
-void FieldImplicitDirectEulerIntegrator::initialize(const double dt, double time,
-  FIELDS & fields) 
+  void FieldImplicitDirectEulerIntegrator::initialize(const double dt, double /* time */,
+                                                      FIELDS & /* fields */) 
 { 
    std::pair<FieldName,FieldName> p(fieldName_,fieldName_);
    Array2D <bool>  rmask = atc_->rhs_mask();
@@ -140,7 +140,7 @@ void FieldImplicitDirectEulerIntegrator::initialize(const double dt, double time
 // --------------------------------------------------------------------
 // update 
 // --------------------------------------------------------------------
-void FieldImplicitDirectEulerIntegrator::update(const double dt, double time,
+  void FieldImplicitDirectEulerIntegrator::update(const double /* dt */, double /* time */,
   FIELDS & fields, FIELDS & rhs) 
 { 
   atc_->compute_rhs_vector(rhsMask_, fields, rhs,

@@ -412,9 +412,10 @@ fix_wall_gran.html
 fix_wall_gran_region.html
 fix_wall_piston.html
 fix_wall_reflect.html
+fix_wall_reflect_stochastic.html
 fix_wall_region.html
 fix_wall_srd.html
-fix_wall_stochastic.html
+
 
 lammps_commands_compute.html
 compute.html

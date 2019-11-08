@@ -238,4 +238,4 @@ OPT.
 "wall/region"_fix_wall_region.html,
 "wall/region/ees"_fix_wall_ees.html,
 "wall/srd"_fix_wall_srd.html,
-"wall/stochastic"_fix_wall_stochastic.html :tb(c=6,ea=c)
+"wall/reflect/stochastic"_fix_wall_reflect_stochastic.html :tb(c=6,ea=c)

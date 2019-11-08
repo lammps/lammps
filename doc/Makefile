@@ -168,7 +168,7 @@ anchor_check : $(ANCHORCHECK)
 
 # ------------------------------------------
 
-$(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
+$(RSTDIR)/%.rst : $(TXTDIR)/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\

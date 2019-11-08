@@ -373,7 +373,8 @@ accelerated styles exist.
 "wall/lj93"_fix_wall.html - Lennard-Jones 9-3 wall
 "wall/morse"_fix_wall.html - Morse potential wall
 "wall/piston"_fix_wall_piston.html - moving reflective piston wall
-"wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
+"wall/reflect"_fix_wall_reflect.html - wall(s) with specular reflection velocity
+"wall/reflect/stochastic"_fix_wall_reflect_stochastic.html - wall(s) with random reflection velocity
 "wall/region"_fix_wall_region.html - use region surface as wall
 "wall/region/ees"_fix_wall_ees.html - use region surface as wall for ellipsoidal particles
 "wall/srd"_fix_wall_srd.html - slip/no-slip wall for SRD particles :ul

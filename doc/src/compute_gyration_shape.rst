@@ -9,7 +9,7 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID gyration compute-ID
+   compute ID group-ID gyration/shape compute-ID
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * gyration/shape = style name of this compute command
@@ -36,7 +36,9 @@ and the relative shape anisotropy, k:
 .. image:: Eqs/compute_shape_parameters.jpg
    :align: center
 
-where lx <= ly <= lz are the three eigenvalues of the gyration tensor.
+where lx <= ly <= lz are the three eigenvalues of the gyration tensor. A general description 
+of these parameters is provided in :ref:`(Mattice) <Mattice1>` while an application to polymer systems 
+can be found in :ref:`(Theodorou) <Theodorou1>`.
 The asphericity  is always non-negative and zero only when the three principal
 moments are equal. This zero condition is met when the distribution of particles
 is spherically symmetric (hence the name asphericity) but also whenever the particle
@@ -91,17 +93,17 @@ Related commands
 ----------
 
 
-.. _Theodorou:
-
-
-
-**(Theodorou)** Theodorou, Suter, Macromolecules, 18, 1206 (1985).
-
-.. _Mattice:
+.. _Mattice1:
 
 
 
 **(Mattice)** Mattice, Suter, Conformational Theory of Large Molecules, Wiley, New York, 1994.
+
+.. _Theodorou1:
+
+
+
+**(Theodorou)** Theodorou, Suter, Macromolecules, 18, 1206 (1985).
 
 
 .. _lws: http://lammps.sandia.gov

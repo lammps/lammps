@@ -70,6 +70,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "heat/flux"_compute_heat_flux.html,
 "heat/flux/tally"_compute_tally.html,
 "hexorder/atom"_compute_hexorder_atom.html,
+"hma"_compute_hma.html,
 "improper"_compute_improper.html,
 "improper/local"_compute_improper_local.html,
 "inertia/chunk"_compute_inertia_chunk.html,

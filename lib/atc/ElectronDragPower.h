@@ -21,9 +21,9 @@ namespace ATC {
     ElectronDragPower() {};
     virtual ~ElectronDragPower() {};
     /** computes drag power */
-    virtual bool electron_drag_power(const FIELD_MATS &fields,
-                                     const GRAD_FIELD_MATS &gradFields,
-                                           DENS_MAT & flux)
+    virtual bool electron_drag_power(const FIELD_MATS & /* fields */,
+                                     const GRAD_FIELD_MATS & /* gradFields */,
+                                     DENS_MAT & /* flux */)
     {
       return false;
     };

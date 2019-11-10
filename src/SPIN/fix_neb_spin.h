@@ -60,20 +60,20 @@ class FixNEBSpin : public Fix {
   double **spprev,**spnext,**fmnext;
   double **springF;
   double **tangent;
-  double **xsend,**xrecv;      	// coords to send/recv to/from other replica
-  double **fsend,**frecv;	// coords to send/recv to/from other replica
-  double **spsend,**sprecv;	// sp to send/recv to/from other replica
-  double **fmsend,**fmrecv;	// fm to send/recv to/from other replica
-  tagint *tagsend,*tagrecv;	// ditto for atom IDs
+  double **xsend,**xrecv;       // coords to send/recv to/from other replica
+  double **fsend,**frecv;       // coords to send/recv to/from other replica
+  double **spsend,**sprecv;     // sp to send/recv to/from other replica
+  double **fmsend,**fmrecv;     // fm to send/recv to/from other replica
+  tagint *tagsend,*tagrecv;     // ditto for atom IDs
 
-  				// info gathered from all procs in my replica
-  double **xsendall,**xrecvall;		// coords to send/recv to/from other replica
-  double **fsendall,**frecvall;		// force to send/recv to/from other replica
-  double **spsendall,**sprecvall;	// sp to send/recv to/from other replica
-  double **fmsendall,**fmrecvall;	// fm to send/recv to/from other replica
-  tagint *tagsendall,*tagrecvall;	// ditto for atom IDs
+                                // info gathered from all procs in my replica
+  double **xsendall,**xrecvall;         // coords to send/recv to/from other replica
+  double **fsendall,**frecvall;         // force to send/recv to/from other replica
+  double **spsendall,**sprecvall;       // sp to send/recv to/from other replica
+  double **fmsendall,**fmrecvall;       // fm to send/recv to/from other replica
+  tagint *tagsendall,*tagrecvall;       // ditto for atom IDs
 
-  int *counts,*displacements;		// used for MPI_Gather
+  int *counts,*displacements;           // used for MPI_Gather
 
   double geodesic_distance(double *, double *);
   void inter_replica_comm();

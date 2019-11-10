@@ -8,82 +8,83 @@ The module itself implements a variety of functions and algorithms, including
 free-energy estimators based on thermodynamic forces, non-equilibrium work and
 probability distributions.
 
-For a brief description see:
-  http://colvars.github.io/
-  https://github.com/colvars/colvars/
-
-
-## How to build
-
-This directory has source files to build a library that LAMMPS
-links against when using the USER-COLVARS package.
-
-This library must be built with a C++ compiler, *before* LAMMPS is built and
-*after* packages are configured, so that LAMMPS can link against it.
-You can use the provided Makefile.* files or create your own, specific to your
-compiler and system.  For example:
-
-  cd src
-  make yes-user-colvars
-  cd ../lib/colvars
-  make -f Makefile.g++
-
-where Makefile.g++ uses the GNU C++ compiler and is a good template to start.
-
-**Optional**: if you use the Install.py script provided in this folder, you
-can give the machine name as the '-m' argument.  This can be the suffix of one
-of the files from either this folder, or from src/MAKE/MACHINES.
-*This is only supported by the Install.py within the lib/colvars folder*.
-
-When you are done building this library, two files should
-exist in this directory:
-
-libcolvars.a		the library LAMMPS will link against
-Makefile.lammps		settings the LAMMPS Makefile will import
-
-IMPORTANT: You must examine the final Makefile.lammps to insure it is
-correct for your system, else the LAMMPS build will likely fail.
-
-If you want to set a debug flag recognized by the library, the
-settings in Makefile.common should work.
-
-Note: some Colvars functions use the Lepton mathematical expression parser,
-which is here included (no additional steps required).  For more details, see:
-  https://simtk.org/projects/lepton
-Starting from 2019-06-02, Lepton requires C++11.  Please see:
-  https://colvars.github.io/README-c++11.html
-  https://lammps.sandia.gov/doc/Build_settings.html#cxx11
-
 
 ## Documentation
+
+For a brief description see:
+  https://colvars.github.io/
+  https://github.com/Colvars/colvars/
 
 For the reference manual see:
   http://colvars.github.io/colvars-refman-lammps
 
-A copy of the reference manual is also in:
+A PDF copy is also at:
   doc/PDF/colvars-refman-lammps.pdf
 
 Also available is a Doxygen-based developer documentation:
   http://colvars.github.io/doxygen/html/
 
 The reference article is:
-  G. Fiorin, M. L. Klein, and J. Henin,
+  G. Fiorin, M. L. Klein, and J. Hénin,
   Molecular Physics 111, 3345 (2013).
   http://dx.doi.org/10.1080/00268976.2013.813594
 
 
-## Updating to the latest version
+## Requirements
 
-To recompile LAMMPS with the most recent version of this module, the `master`
-branch of this repository from GitHub, or clone it via git:
+The Colvars library can be built for the most part with all major versions of
+the C++ language.
 
-  git clone https://github.com/colvars/colvars.git
+A few of the most recent features require C++11 support.  In particular, the
+library is optionally built together with the
+"Lepton"_https://simtk.org/projects/lepton library, a copy of which is also
+included in the LAMMPS distribution.  Lepton implements the
+"customFunction"_http://colvars.github.io/colvars-refman-lammps/colvars-refman-lammps.html#colvar|customFunction
+feature, and requires C++11 support.
 
-and run the provided `update-colvars-code.sh` script against the unpacked
-LAMMPS source tree:
+See "here"_https://colvars.github.io/README-c++11.html for a detailed list of
+C++11-only features.
 
-  ./update-colvars-code.sh /path/to/lammps/folder
 
-Please report bugs and request new features at:
-https://github.com/colvars/colvars/issues
+## How to build (CMake)
 
+This is the recommended build recipe: no additional settings are normally
+needed besides "-D PKG_USER-COLVARS=yes".
+
+Building and linking of Lepton (or other C++11-only features) is enabled
+automatically when compilation is carried out with C++11 support, and disabled
+otherwise.  Optionally, Lepton build may be manually controlled with the flag
+"-D COLVARS_LEPTON=yes|no".
+
+
+## How to build (traditional make)
+
+Before building LAMMPS, one must build the Colvars library in lib/colvars.
+
+This can be done manually in the same folder by using or adapting one of the
+provided Makefiles: for example, Makefile.g++ for the GNU compiler.
+
+In general, it is safer to use build setting consistent with the rest of
+LAMMPS.  This is best carried out from the LAMMPS src directory using a
+command like these, which simply invoke the lib/colvars/Install.py script with
+the specified args:
+
+make lib-colvars                      # print help message
+make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+make lib-colvars args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+make lib-colvars args="-m g++-debug"  # build with GNU g++ compiler and colvars debugging enabled :pre
+
+The "machine" argument of the "-m" flag is used to find a Makefile.machine to
+use as build recipe.  If it does not already exist in lib/colvars, it will be
+auto-generated by using compiler flags consistent with those parsed from the
+core LAMMPS makefiles.
+
+Optional flags may be specified as environment variables:
+
+COLVARS_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
+COLVARS_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
+
+The build should produce two files: the library lib/colvars/libcolvars.a
+(which also includes Lepton objects if enabled) and the specification file
+lib/colvars/Makefile.lammps.  The latter is auto-generated, and normally does
+not need to be edited.

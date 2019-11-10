@@ -29,6 +29,7 @@
 #include "neighbor.h"
 #include "modify.h"
 #include "compute.h"
+
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 #define GOLD 1.618034

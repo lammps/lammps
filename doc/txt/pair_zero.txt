@@ -1,0 +1,86 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+pair_style zero command :h3
+
+[Syntax:]
+
+pair_style zero cutoff {nocoeff} :pre
+
+zero = style name of this pair style
+cutoff = global cutoff (distance units)
+nocoeff = ignore all pair_coeff parameters (optional) :ul
+
+[Examples:]
+
+pair_style zero 10.0
+pair_style zero 5.0 nocoeff
+pair_coeff * *
+pair_coeff 1 2*4 3.0 :pre
+
+[Description:]
+
+Define a global or per-type cutoff length for the purpose of
+building a neighbor list and acquiring ghost atoms, but do
+not compute any pairwise forces or energies.
+
+This can be useful for fixes or computes which require a neighbor list
+to enumerate pairs of atoms within some cutoff distance, but when
+pairwise forces are not otherwise needed.  Examples are the "fix
+bond/create"_fix_bond_create.html, "compute rdf"_compute_rdf.html,
+"compute voronoi/atom"_compute_voronoi_atom.html commands.
+
+Note that the "comm_modify cutoff"_comm_modify.html command can be
+used to insure communication of ghost atoms even when a pair style is
+not defined, but it will not trigger neighbor list generation.
+
+The optional {nocoeff} flag allows to read data files with a PairCoeff
+section for any pair style. Similarly, any pair_coeff commands
+will only be checked for the atom type numbers and the rest ignored.
+In this case, only the global cutoff will be used.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+cutoff (distance units) :ul
+
+This coefficient is optional.  If not specified, the global cutoff
+specified in the pair_style command is used. If the pair_style has
+been specified with the optional {nocoeff} flag, then a cutoff
+pair coefficient is ignored.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+The cutoff distance for this pair style can be mixed.  The default mix
+value is {geometric}.  See the "pair_modify" command for details.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+This pair style supports the use of the {inner}, {middle},
+and {outer} keywords of the "run_style respa"_run_style.html command.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_style none"_pair_none.html
+
+[Default:] none
+

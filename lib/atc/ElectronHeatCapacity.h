@@ -51,7 +51,7 @@ namespace ATC {
         capacity = electronHeatCapacity_;
       };
       virtual void D_electron_heat_capacity(const FIELD_MATS &fields,
-                                            const GRAD_FIELD_MATS &gradFields,
+                                            const GRAD_FIELD_MATS & /* gradFields */,
                                                   DENS_MAT_VEC & Dcapacity)
       {
         FIELD_MATS::const_iterator etField = fields.find(ELECTRON_TEMPERATURE);
@@ -91,7 +91,7 @@ namespace ATC {
         const DENS_MAT & T = etField->second;
         capacity = electronHeatCapacity_*T;
       };
-      virtual void D_electron_heat_capacity(const FIELD_MATS &fields,
+      virtual void D_electron_heat_capacity(const FIELD_MATS & /* fields */,
                                             const GRAD_FIELD_MATS &gradFields,
                                                   DENS_MAT_VEC &Dcapacity)
       {

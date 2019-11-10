@@ -2,9 +2,10 @@ Download an executable for Mac
 ==============================
 
 LAMMPS can be downloaded, built, and configured for OS X on a Mac with
-`Homebrew <homebrew_>`_.  The following LAMMPS packages are unavailable at this
-time because of additional needs not yet met: GPU, KOKKOS, LATTE, MSCG,
-MESSAGE, MPIIO POEMS VORONOI.
+`Homebrew <homebrew_>`_.  (Alternatively, see the install instructions for
+:doc:`Download an executable via Conda <Install_conda>`.)  The following LAMMPS
+packages are unavailable at this time because of additional needs not yet met:
+GPU, KOKKOS, LATTE, MSCG, MESSAGE, MPIIO POEMS VORONOI.
 
 After installing Homebrew, you can install LAMMPS on your system with
 the following commands:
@@ -45,7 +46,6 @@ up the Homebrew capability.
 
 
 .. _openkim: https://openkim.org
-
 
 
 

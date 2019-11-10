@@ -1,0 +1,53 @@
+Download an executable for Linux or Mac via Conda
+=================================================
+
+Binaries are available for macOS or Linux via `Conda <conda_>`_.
+
+First, one must setup the Conda package manager on your system.  Follow the
+instructions to install `Miniconda <mini_conda_install_>`_, then create a conda
+environment (named `my-lammps-env` or whatever you prefer) for your lammps
+install:
+
+.. parsed-literal::
+
+   % conda config --add channels conda-forge
+   % conda create -n my-lammps-env
+
+Then, you can install lammps on your system with the following command:
+
+.. parsed-literal::
+
+   % conda activate my-lammps-env
+   % conda install lammps
+
+The LAMMPS binary is built with the :ref:`KIM package <kim>` which
+results in Conda also installing the `kim-api` binaries when LAMMPS is
+installed.  In order to use potentials from `openkim.org <openkim_>`_, you can
+install the `openkim-models` package
+
+
+.. parsed-literal::
+
+   % conda install openkim-models
+
+If you have problems with the installation you can post issues to
+`this link <conda_forge_lammps_>`_.
+
+.. _conda_forge_lammps: https://github.com/conda-forge/lammps-feedstock/issues
+
+Thanks to Jan Janssen (Max-Planck-Institut für Eisenforschung) for setting
+up the Conda capability.
+
+
+.. _openkim: https://openkim.org
+
+.. _conda: https://docs.conda.io/en/latest/index.html
+
+.. _mini_conda_install: https://docs.conda.io/en/latest/miniconda.html
+
+
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Commands_all.html

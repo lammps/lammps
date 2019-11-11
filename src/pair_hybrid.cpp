@@ -40,6 +40,10 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   outerflag = 0;
   respaflag = 0;
+
+  // assume pair hybrid always supports centroid atomic stress,
+  // so that cflag_atom gets set when needed
+  cntratmstressflag = 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,6 +163,24 @@ void PairHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_pair) n += atom->nghost;
+      if (styles[m]->cntratmstressflag & 2) {
+        double **cvatom_substyle = styles[m]->cvatom;
+        for (i = 0; i < n; i++)
+          for (j = 0; j < 9; j++)
+            cvatom[i][j] += cvatom_substyle[i][j];
+      } else {
+        double **vatom_substyle = styles[m]->vatom;
+        for (i = 0; i < n; i++)
+          for (j = 0; j < 6; j++)
+            cvatom[i][j] += vatom_substyle[i][j];
+          for (j = 6; j < 9; j++)
+            cvatom[i][j] += vatom_substyle[i][j-3];
+      }
+    }
+
   }
 
   delete [] saved_special;
@@ -362,6 +384,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
+    cntratmstressflag |= styles[m]->cntratmstressflag;
   }
   init_svector();
 }
@@ -1015,6 +1038,7 @@ double PairHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
 }

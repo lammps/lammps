@@ -2,6 +2,8 @@
 
 compute stress/atom command
 ===========================
+compute centroid/stress/atom command
+====================================
 
 Syntax
 """"""
@@ -9,10 +11,10 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID stress/atom temp-ID keyword ...
+   compute ID group-ID style temp-ID keyword ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* stress/atom = style name of this compute command
+* style = *stress/atom* or *centroid/stress/atom*
 * temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 * zero or more keywords may be appended
 * keyword = *ke* or *pair* or *bond* or *angle* or *dihedral* or *improper* or *kspace* or *fix* or *virial*
@@ -26,38 +28,62 @@ Examples
    compute 1 mobile stress/atom NULL
    compute 1 mobile stress/atom myRamp
    compute 1 all stress/atom NULL pair bond
+   compute 1 all centroid/stress/atom NULL bond dihedral improper
 
 Description
 """""""""""
 
-Define a computation that computes the symmetric per-atom stress
-tensor for each atom in a group.  The tensor for each atom has 6
+Define a computation that computes per-atom stress
+tensor for each atom in a group.  In case of compute *stress/atom*,
+the tensor for each atom is symmetric with 6
 components and is stored as a 6-element vector in the following order:
-xx, yy, zz, xy, xz, yz.  See the :doc:`compute pressure <compute_pressure>` command if you want the stress tensor
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
+In case of compute *centroid/stress/atom*,
+the tensor for each atom is asymmetric with 9 components
+and is stored as a 9-element vector in the following order:
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`,
+:math:`yx`, :math:`zx`, :math:`zy`.
+See the :doc:`compute pressure <compute_pressure>` command if you want the stress tensor
 (pressure) of the entire system.
 
-The stress tensor for atom *I* is given by the following formula,
-where *a* and *b* take on values x,y,z to generate the 6 components of
-the symmetric tensor:
+The stress tensor for atom :math:`I` is given by the following formula,
+where :math:`a` and :math:`b` take on values :math:`x`, :math:`y`, :math:`z`
+to generate the components of the tensor:
 
-.. image:: Eqs/stress_tensor.jpg
-   :align: center
+.. math::
 
-The first term is a kinetic energy contribution for atom *I*\ .  See
+   S_{ab}  =  - m v_a v_b - W_{ab}
+
+The first term is a kinetic energy contribution for atom :math:`I`.  See
 details below on how the specified *temp-ID* can affect the velocities
-used in this calculation.  The second term is a pairwise energy
-contribution where *n* loops over the *Np* neighbors of atom *I*\ , *r1*
-and *r2* are the positions of the 2 atoms in the pairwise interaction,
-and *F1* and *F2* are the forces on the 2 atoms resulting from the
-pairwise interaction.  The third term is a bond contribution of
-similar form for the *Nb* bonds which atom *I* is part of.  There are
-similar terms for the *Na* angle, *Nd* dihedral, and *Ni* improper
-interactions atom *I* is part of.  There is also a term for the KSpace
-contribution from long-range Coulombic interactions, if defined.
-Finally, there is a term for the *Nf* :doc:`fixes <fix>` that apply
-internal constraint forces to atom *I*\ .  Currently, only the :doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>` commands
-contribute to this term.
+used in this calculation. The second term is the virial
+contribution due to intra and intermolecular interactions,
+where the exact computation details are determined by the compute style.
 
+In case of compute *stress/atom*, the virial contribution is:
+
+.. math::
+
+   W_{ab} & = \frac{1}{2} \sum_{n = 1}^{N_p} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b}) + \frac{1}{2} \sum_{n = 1}^{N_b} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b})  \\
+  & + \frac{1}{3} \sum_{n = 1}^{N_a} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b}) + \frac{1}{4} \sum_{n = 1}^{N_d} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) \\
+  & + \frac{1}{4} \sum_{n = 1}^{N_i} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
+
+The first term is a pairwise energy
+contribution where :math:`n` loops over the :math:`N_p`
+neighbors of atom :math:`I`, :math:`\mathbf{r}_1` and :math:`\mathbf{r}_2`
+are the positions of the 2 atoms in the pairwise interaction,
+and :math:`\mathbf{F}_1` and :math:`\mathbf{F}_2` are the forces
+on the 2 atoms resulting from the pairwise interaction.
+The second term is a bond contribution of
+similar form for the :math:`N_b` bonds which atom :math:`I` is part of.
+There are similar terms for the :math:`N_a` angle, :math:`N_d` dihedral,
+and :math:`N_i` improper interactions atom :math:`I` is part of.
+There is also a term for the KSpace
+contribution from long-range Coulombic interactions, if defined.
+Finally, there is a term for the :math:`N_f` :doc:`fixes <fix>` that apply
+internal constraint forces to atom :math:`I`. Currently, only the
+:doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>` commands
+contribute to this term.
 As the coefficients in the formula imply, a virial contribution
 produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
 atoms in a Tersoff 3-body interaction) is assigned in equal portions
@@ -66,7 +92,32 @@ the 4 atoms, or 1/3 of the fix virial due to SHAKE constraints applied
 to atoms in a water molecule via the :doc:`fix shake <fix_shake>`
 command.
 
-If no extra keywords are listed, all of the terms in this formula are
+In case of compute *centroid/stress/atom*, the virial contribution is:
+
+.. math::
+
+   W_{ab} & = \sum_{n = 1}^{N_p} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_b} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_a} r_{I0_a}  F_{I_b} + \sum_{n = 1}^{N_d} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_i} r_{I0_a} F_{I_b} \\
+  & + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
+
+As with compute *stress/atom*, the first, second, third, forth and fifth terms
+are pairwise, bond, angle, dihedral and improper contributions,
+but instead of assigning the virial contribution equally to each atom,
+only the force :math:`\mathbf{F}_I` acting on atom :math:`I`
+due to the interaction and the relative
+position :math:`\mathbf{r}_{I0}` of the atom :math:`I` to the geometric center
+of the interacting atoms, i.e. centroid, is used.
+As the geometric center is different
+for each interaction, the :math:`\mathbf{r}_{I0}` also differs.
+The sixth and seventh terms, Kspace and :doc:`fix <fix>` contribution
+respectively, are computed identical to compute *stress/atom*.
+Although the total system virial is the same as compute *stress/atom*,
+compute *centroid/stress/atom* is know to result in more consistent
+heat flux values for three and larger many-body interactions
+such as angles, dihedrals and impropers,
+when computed via :doc:`compute heat/flux <compute_heat_flux>`.
+
+If no extra keywords are listed, the kinetic contribution
+all of the virial contribution terms are
 included in the per-atom stress tensor.  If any extra keywords are
 listed, only those terms are summed to compute the tensor.  The
 *virial* keyword means include all terms except the kinetic energy
@@ -75,17 +126,28 @@ listed, only those terms are summed to compute the tensor.  The
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
 
-Details of how LAMMPS computes the virial for individual atoms for
+Details of how compute *stress/atom* obtains the virial for individual atoms for
 either pairwise or many-body potentials, and including the effects of
 periodic boundary conditions is discussed in :ref:`(Thompson) <Thompson2>`.
 The basic idea for many-body potentials is to treat each component of
 the force computation between a small cluster of atoms in the same
 manner as in the formula above for bond, angle, dihedral, etc
-interactions.  Namely the quantity R dot F is summed over the atoms in
-the interaction, with the R vectors unwrapped by periodic boundaries
+interactions.  Namely the quantity :math:`\mathbf{r} \cdot \mathbf{F}`
+is summed over the atoms in
+the interaction, with the :math:`r` vectors unwrapped by periodic boundaries
 so that the cluster of atoms is close together.  The total
 contribution for the cluster interaction is divided evenly among those
-atoms.
+atoms. Details of how compute *centroid/stress/atom* obtains
+the virial for individual atoms for many-body potentials
+is given in :ref:`(Surblys) <Surblys1>`,
+where the idea is that the virial of the atom :math:`I`
+is the result of only the force :math:`\mathbf{F}_I` on the atom due
+to the many-body interaction
+and its positional vector :math:`\mathbf{r}_{I0}`,
+relative to the geometric center of the
+interacting atoms. The periodic boundary treatment is identical to
+that of compute *stress/atom*, and both of them reduce to identical
+expressions for pairwise interactions.
 
 The :doc:`dihedral\_style charmm <dihedral_charmm>` style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
@@ -126,12 +188,13 @@ See the :doc:`compute voronoi/atom <compute_voronoi_atom>` command for
 one possible way to estimate a per-atom volume.
 
 Thus, if the diagonal components of the per-atom stress tensor are
-summed for all atoms in the system and the sum is divided by dV, where
-d = dimension and V is the volume of the system, the result should be
--P, where P is the total pressure of the system.
+summed for all atoms in the system and the sum is divided by :math:`dV`, where
+:math:`d` = dimension and :math:`V` is the volume of the system,
+the result should be :math:`-P`, where :math:`P`
+is the total pressure of the system.
 
 These lines in an input script for a 3d system should yield that
-result.  I.e. the last 2 columns of thermo output will be the same:
+result. I.e. the last 2 columns of thermo output will be the same:
 
 
 .. parsed-literal::
@@ -149,9 +212,12 @@ result.  I.e. the last 2 columns of thermo output will be the same:
 
 **Output info:**
 
-This compute calculates a per-atom array with 6 columns, which can be
+This compute *stress/atom* calculates a per-atom array with 6 columns, which can be
 accessed by indices 1-6 by any command that uses per-atom values from
-a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
+a compute as input.
+The compute "centroid/stress/atom* produces a per-atom array with 9 columns,
+but otherwise can be used in an identical manner to compute *stress/atom*.
+See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
 The per-atom array values will be in pressure\*volume
@@ -159,7 +225,10 @@ The per-atom array values will be in pressure\*volume
 
 Restrictions
 """"""""""""
- none
+Pair styles with three and larger many-body interactions,
+such as Tersoff do not currently support
+compute *centroid/stress/atom* and LAMMPS will generate an error
+in such cases.
 
 Related commands
 """"""""""""""""
@@ -176,7 +245,7 @@ Related commands
 
 
 
-**(Heyes)** Heyes, Phys Rev B 49, 755 (1994),
+**(Heyes)** Heyes, Phys Rev B, 49, 755 (1994).
 
 .. _Sirk1:
 
@@ -189,6 +258,12 @@ Related commands
 
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
+
+.. _Surblys1:
+
+
+
+**(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
 
 
 .. _lws: http://lammps.sandia.gov

@@ -97,6 +97,7 @@ class ThrData {
   double **vatom_dihed;
   double **vatom_imprp;
   double **vatom_kspce;
+  double **cvatom_pair;
   double **cvatom_angle;
   double **cvatom_dihed;
   double **cvatom_imprp;

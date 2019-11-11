@@ -82,6 +82,15 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
     }
+    // check cvatom_pair, because can't access cntratmstressflag
+    if ((vflag & 8) && cvatom) {
+      thr->cvatom_pair = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_pair[0][0]),0,nall*9*sizeof(double));
+    } else {
+      thr->cvatom_pair = NULL;
+    }
+
   }
 
   if (thr_style & THR_BOND) {
@@ -234,6 +243,10 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       if (vflag & 12) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
+      // check cvatom_pair, because can't access cntratmstressflag
+      if ((vflag & 8) && thr->cvatom_pair) {
+        data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
     }
   }
     break;
@@ -380,6 +393,10 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
       // many-body pair styles not yet implemented
       if (vflag & 12) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      // check cvatom_pair, because can't access cntratmstressflag
+      if ((vflag & 8) && thr->cvatom_pair) {
+        data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
       }
     }
     break;

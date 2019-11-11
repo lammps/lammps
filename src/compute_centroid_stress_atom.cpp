@@ -173,12 +173,19 @@ void ComputeCentroidStressAtom::compute_peratom()
   // per-atom virial and per-atom centroid virial are the same for pairwise
   // many-body pair styles not yet implemented
   if (pairflag && force->pair) {
-    double **vatom = force->pair->vatom;
-    for (i = 0; i < npair; i++) {
-      for (j = 0; j < 6; j++)
-        stress[i][j] += vatom[i][j];
-      for (j = 6; j < 9; j++)
-        stress[i][j] += vatom[i][j-3];
+    if (force->pair->cntratmstressflag & 2) {
+      double **cvatom = force->pair->cvatom;
+      for (i = 0; i < npair; i++)
+        for (j = 0; j < 9; j++)
+          stress[i][j] += cvatom[i][j];
+    } else {
+      double **vatom = force->pair->vatom;
+      for (i = 0; i < npair; i++) {
+        for (j = 0; j < 6; j++)
+          stress[i][j] += vatom[i][j];
+        for (j = 6; j < 9; j++)
+          stress[i][j] += vatom[i][j-3];
+      }
     }
   }
 

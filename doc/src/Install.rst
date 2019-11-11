@@ -15,6 +15,7 @@ need the source code.
    Install_linux
    Install_mac
    Install_windows
+   Install_conda
 
    Install_tarball
    Install_git

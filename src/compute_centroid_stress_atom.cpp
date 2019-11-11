@@ -123,6 +123,11 @@ void ComputeCentroidStressAtom::init()
     if (temperature->tempbias) biasflag = BIAS;
     else biasflag = NOBIAS;
   } else biasflag = NOBIAS;
+
+  // check if pair styles support centroid atom stress
+  if (pairflag && force->pair)
+    if (force->pair->cntratmstressflag & 4)
+      error->all(FLERR, "Pair style does not support compute centroid/stress/atom");
 }
 
 /* ---------------------------------------------------------------------- */

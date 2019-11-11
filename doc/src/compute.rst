@@ -222,7 +222,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`group/group <compute_group_group>` - energy/force between two groups of atoms
 * :doc:`gyration <compute_gyration>` - radius of gyration of group of atoms
 * :doc:`gyration/chunk <compute_gyration_chunk>` - radius of gyration for each chunk
-* :doc:`gyration/shape <compute_gyration_shape>` - compute shape parameters from radius of gyration tensor
+* :doc:`gyration/shape <compute_gyration_shape>` - shape parameters from gyration tensor
+* :doc:`gyration/shape/chunk <compute_gyration_shape_chunk>` - shape parameters from gyration tensor for each chunk
 * :doc:`heat/flux <compute_heat_flux>` - heat flux through a group of atoms
 * :doc:`heat/flux/tally <compute_tally>` -
 * :doc:`hexorder/atom <compute_hexorder_atom>` - bond orientational order parameter q6

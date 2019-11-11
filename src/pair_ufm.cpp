@@ -36,6 +36,7 @@ using namespace LAMMPS_NS;
 PairUFM::PairUFM(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  cntratmstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

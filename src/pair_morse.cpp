@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  cntratmstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -32,7 +32,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) : Pair(lmp) {
+  cntratmstressflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

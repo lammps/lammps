@@ -34,6 +34,7 @@ using namespace LAMMPS_NS;
 PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  cntratmstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

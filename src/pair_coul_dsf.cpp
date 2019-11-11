@@ -43,7 +43,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {
+  cntratmstressflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

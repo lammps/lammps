@@ -32,6 +32,7 @@ using namespace MathConst;
 PairBuck::PairBuck(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  cntratmstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

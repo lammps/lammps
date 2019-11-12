@@ -472,6 +472,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
 			} // if cut_coulsqplus
 		} // for nbor
 		if (t_per_atom>1) {
+#if (ARCH < 300)
 			__local acctyp red_acc[6][BLOCK_PAIR];
 			red_acc[0][tid]=fO.x;
 			red_acc[1][tid]=fO.y;
@@ -497,6 +498,20 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
 				}
 				for (int r=0; r<6; r++) vO[r]=red_acc[r][tid];
 			}
+#else
+			for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+				fO.x += shfl_xor(fO.x, s, t_per_atom);
+				fO.y += shfl_xor(fO.y, s, t_per_atom);
+				fO.z += shfl_xor(fO.z, s, t_per_atom);
+				fO.w += shfl_xor(fO.w, s, t_per_atom);
+			}
+			if (vflag>0) {
+				for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+						for (int r=0; r<6; r++)
+							vO[r] += shfl_xor(vO[r], s, t_per_atom);
+				}
+			}
+#endif
 		}
 		if(offset == 0) {
 			ansO[i] = fO;

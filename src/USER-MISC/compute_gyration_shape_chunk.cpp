@@ -39,7 +39,7 @@ ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char
   int n = strlen(arg[3]) + 1;
   id_gyration_chunk = new char[n];
   strcpy(id_gyration_chunk,arg[3]);
- 
+
   init();
 
   array_flag = 1;

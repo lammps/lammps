@@ -54,7 +54,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
-  if (lmp->kokkos) 
+  if (lmp->kokkos)
     error->all(FLERR,"Cannot yet use fix pour with the KOKKOS package");
 
   time_depend = 1;
@@ -797,7 +797,7 @@ bool FixPour::outside(int dim, double value, double lo, double hi)
   bool outside_range = (value < lo || value > hi);
   if (!outside_range || !domain->periodicity[dim]) return outside_range;
 
-  // for periodic dimension: 
+  // for periodic dimension:
   // must perform additional tests if range wraps around the periodic box
 
   bool outside_pbc_range = true;

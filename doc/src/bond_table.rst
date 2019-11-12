@@ -119,8 +119,9 @@ the bond length r (in distance units), the 3rd value is the energy (in
 energy units), and the 4th is the force (in force units).  The bond
 lengths must range from a LO value to a HI value, and increase from
 one line to the next.  If the actual bond length is ever smaller than
-the LO value or larger than the HI value, then the bond energy and
-force is evaluated as if the bond were the LO or HI length.
+the LO value or larger than the HI value, then the calculation is
+aborted with an error, so it is advisable to cover the whole range
+of possible bond lengths.
 
 Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds

@@ -134,7 +134,10 @@ void FixPrint::init()
     if (next_print <= update->ntimestep)
       error->all(FLERR,"Fix print timestep variable returned a bad timestep");
   } else {
-     next_print = (update->ntimestep/nevery)*nevery + nevery;
+    if (update->ntimestep % nevery)
+      next_print = (update->ntimestep/nevery)*nevery + nevery;
+    else 
+      next_print = update->ntimestep;
   }
 
   // add next_print to all computes that store invocation times
@@ -146,10 +149,16 @@ void FixPrint::init()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPrint::setup(int vflag)
+{
+  end_of_step();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPrint::end_of_step()
 {
-  //Only execute if we have advanced one step (normal run) or we are on the same step (rerun)
-  if ((update->ntimestep != next_print) & (update->ntimestep != next_print-nevery)) return;
+  if (update->ntimestep != next_print) return;
 
   // make a copy of string to work on
   // substitute for $ variables (no printing)
@@ -169,6 +178,7 @@ void FixPrint::end_of_step()
   } else {
     next_print = (update->ntimestep/nevery)*nevery + nevery;
   }
+
   modify->addstep_compute(next_print);
 
   if (me == 0) {

@@ -63,11 +63,26 @@ namespace LAMMPS_NS {
      *  \param s        buffer for storing the result of fgets()
      *  \param size     size of buffer s (max number of bytes read by fgets())
      *  \param fp       file pointer used by fgets()
-     *  \param filename file name associated with fp (for error message)
+     *  \param filename file name associated with fp (may be NULL; then LAMMPS will try to detect)
      *  \param error    pointer to Error class instance (for abort)
      */
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
+
+    /** \brief safe wrapper around fread() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging
+     *
+     *  \param srcname  name of the calling source file (from FLERR macro)
+     *  \param srcline  line in the calling source file (from FLERR macro)
+     *  \param s        buffer for storing the result of fread()
+     *  \param size     size of data elements read by fread()
+     *  \param num      number of data elements read by fread()
+     *  \param fp       file pointer used by fread()
+     *  \param filename file name associated with fp (may be NULL; then LAMMPS will try to detect)
+     *  \param error    pointer to Error class instance (for abort)
+     */
+    void sfread(const char *srcname, int srcline, void *s, size_t size,
+                size_t num, FILE *fp, const char *filename, Error *error);
 
     /** \brief Report if a requested style is in a package or may have a typo
      *

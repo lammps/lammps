@@ -17,7 +17,7 @@
 */
 
 #include <mpi.h>
-#ifdef LAMMPS_BIGBIG
+#if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h>  /* for int64_t */
 #endif
 
@@ -60,6 +60,9 @@ void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
 #ifdef LAMMPS_BIGBIG
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#elif LAMMPS_SMALLBIG
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #else
 typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);

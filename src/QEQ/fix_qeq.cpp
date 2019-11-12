@@ -476,6 +476,7 @@ int FixQEq::pack_forward_comm(int n, int *list, double *buf,
     for(m = 0; m < n; m++) buf[m] = t[list[m]];
   else if( pack_flag == 4 )
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else m = 0;
 
   return m;
 }

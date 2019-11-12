@@ -5,7 +5,7 @@
 variable nsteps index 100
 variable nrep equal 4
 variable a equal 3.316
-units		metal
+units           metal
 
 # generate the box and atom positions using a BCC lattice
 
@@ -13,12 +13,12 @@ variable nx equal ${nrep}
 variable ny equal ${nrep}
 variable nz equal ${nrep}
 
-boundary	p p p
+boundary        p p p
 
 lattice         bcc $a
-region		box block 0 ${nx} 0 ${ny} 0 ${nz}
-create_box	1 box
-create_atoms	1 box
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box      1 box
+create_atoms    1 box
 
 mass 1 180.88
 
@@ -28,7 +28,7 @@ include Ta06A.snap
 
 # Setup output
 
-thermo		10
+thermo          10
 thermo_modify norm yes
 
 # Set up NVE run

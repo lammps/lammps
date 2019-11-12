@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+                         Ryan S. Elliott (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -105,12 +106,22 @@ void KimQuery::command(int narg, char **arg)
     model_name = (char *)fix_store->getptr("model_name");
   } else error->all(FLERR,"Must use 'kim_init' before 'kim_query'");
 
-
   varname = arg[0];
   bool split = false;
   if (0 == strcmp("split",arg[1])) {
     if (narg == 2) error->all(FLERR,"Illegal kim_query command");
+    if (0 == strcmp("list",arg[2]))
+      error->all(FLERR,"Illegal kim_query command");
     split = true;
+    arg++;
+    narg--;
+  }
+
+  // The “list” is the default setting
+  // the result is returned as a space-separated list of values in variable
+  if (0 == strcmp("list",arg[1])) {
+    if (narg == 2) error->all(FLERR,"Illegal kim_query command");
+    if (split) error->all(FLERR,"Illegal kim_query command");
     arg++;
     narg--;
   }
@@ -143,12 +154,13 @@ void KimQuery::command(int narg, char **arg)
 
   kim_query_log_delimiter("begin");
   char **varcmd = new char*[3];
+  varcmd[1] = (char *) "string";
+
+  std::stringstream ss(value);
+  std::string token;
+
   if (split) {
     int counter = 1;
-    std::stringstream ss(value);
-    std::string token;
-    varcmd[1] = (char *) "string";
-
     while(std::getline(ss, token, ',')) {
       token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
       token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
@@ -161,11 +173,17 @@ void KimQuery::command(int narg, char **arg)
     }
   } else {
     varcmd[0] = varname;
-    varcmd[1] = (char *) "string";
-    varcmd[2] = value;
+    std::string value_string;
+    while(std::getline(ss, token, ',')) {
+      token.erase(0,token.find_first_not_of(" \n\r\t"));  // ltrim
+      token.erase(token.find_last_not_of(" \n\r\t") + 1);  // rtrim
+      if (value_string.size() && token.size())
+        value_string += " ";
+      value_string += token;
+    }
+    varcmd[2] = const_cast<char *>(value_string.c_str());;
     input->variable->set(3,varcmd);
-
-    echo_var_assign(varname, value);
+    echo_var_assign(varname, value_string);
   }
   kim_query_log_delimiter("end");
 

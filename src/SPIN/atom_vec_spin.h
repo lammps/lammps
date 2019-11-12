@@ -67,13 +67,13 @@ class AtomVecSpin : public AtomVec {
   tagint *tag;
   int *type,*mask;
   imageint *image;
-  double **x,**v,**f;		// lattice quantities
-  
-  				// spin quantities
-  double **sp;			// sp[i][0-2] direction of the spin i
-				// sp[i][3] atomic magnetic moment of the spin i
-  double **fm;			// fm[i][0-2] direction of magnetic precession
-  double **fm_long;		// storage of long-range spin prec. components
+  double **x,**v,**f;           // lattice quantities
+
+                                // spin quantities
+  double **sp;                  // sp[i][0-2] direction of the spin i
+                                // sp[i][3] atomic magnetic moment of the spin i
+  double **fm;                  // fm[i][0-2] direction of magnetic precession
+  double **fm_long;             // storage of long-range spin prec. components
 };
 
 }

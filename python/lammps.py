@@ -458,23 +458,23 @@ class lammps(object):
   def extract_compute(self,id,style,type):
     if id: id = id.encode()
     if type == 0:
-      if style > 0: return None
-      self.lib.lammps_extract_compute.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-      return ptr[0]
+      if style == 0:
+        self.lib.lammps_extract_compute.restype = POINTER(c_double)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+      elif style == 1:
+        return None
+      elif style == 2:
+        self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        return ptr[0]
     if type == 1:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr
     if type == 2:
-      if style == 0:
-        self.lib.lammps_extract_compute.restype = POINTER(c_int)
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr[0]
-      else:
-        self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-        return ptr
+      self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+      return ptr
     return None
 
   # extract fix info

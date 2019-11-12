@@ -293,7 +293,7 @@ struct PairComputeFunctor  {
         const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
         if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
-    
+
           const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
           ftmp.x += delx*fpair;
@@ -412,7 +412,7 @@ struct PairComputeFunctor  {
         const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
         if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
-    
+
           const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
           fev_tmp.f[0] += delx*fpair;

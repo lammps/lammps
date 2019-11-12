@@ -493,7 +493,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   }
 
   // calculate Q_l
-  // NOTE: optional W_l_hat and components of Q_qlcomp use these stored Q_l values 
+  // NOTE: optional W_l_hat and components of Q_qlcomp use these stored Q_l values
 
   int jj = 0;
   for (int il = 0; il < nqlist; il++) {
@@ -505,7 +505,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     qn[jj++] = qnormfac * sqrt(qm_sum);
   }
 
-  // TODO: 
+  // TODO:
   // 1. [done]Need to allocate extra memory in qnarray[] for this option
   // 2. [done]Need to add keyword option
   // 3. [done]Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
@@ -673,7 +673,7 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
         for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
           bb2 = m2 - l;
           m = aa2 + bb2 + l;
-          
+
           sum = 0.0;
           for (int z = MAX(0, MAX(-aa2, bb2));
                z <= MIN(l, MIN(l - aa2, l + bb2)); z++) {
@@ -686,7 +686,7 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
                factorial(aa2 + z) *
                factorial(-bb2 + z));
           }
-          
+
           cc2 = m - l;
           sfaccg = sqrt(factorial(l + aa2) *
                         factorial(l - aa2) *
@@ -695,7 +695,7 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
                         factorial(l + cc2) *
                         factorial(l - cc2) *
                         (2*l + 1));
-          
+
           sfac1 = factorial(3*l + 1);
           sfac2 = factorial(l);
           dcg = sqrt(sfac2*sfac2*sfac2 / sfac1);

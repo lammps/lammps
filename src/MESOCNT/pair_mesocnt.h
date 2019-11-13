@@ -2,13 +2,12 @@
 
 PairStyle(mesocnt, PairMesoCNT)
 
-#else
+#else 
 
 #ifndef LMP_PAIR_MESOCNT_H
 #define LMP_PAIR_MESOCNT_H
 
 #include "pair.h"
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -21,73 +20,78 @@ class PairMesoCNT : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
- 
+
  protected:
-  int me, n, gamma_points, pot_points;
-  int uinf_points, usemi_points, phi_points;
-  int redlist_size,chain_size,end_size;
-  int *redlist,*nchain,*end;
-  int **chain;
-  double cutoff, cutoffsq;
-  double angstrom, angstromrec, qelectron, qelectronrec, forceunit;
-  double diameter_angstrom, cutoff_angstrom, cutoffsq_angstrom;
-  double sigma, epsilon, n_sigma, radius, radiussq, diameter, rc, rc0, comega, ctheta;
-  double start_gamma, start_uinf, startxi_usemi, starth_phi;
-  double del_gamma, del_uinf, delxi_usemi, delh_phi;
-  double *starth_usemi, *startzeta_phi;
-  double *delh_usemi, *delzeta_phi;
-  double *gamma_data, *uinf_data;
-  double *p1, *p2, *param;
-  double **usemi_data, **phi_data;
-  double **gamma_coeff, **uinf_coeff;
+  int uinf_points,gamma_points,phi_points,usemi_points;
+  double ang,angrec,e,erec,funit;
+  double r,r2,d,rc,rc2,rc0;
+  double d_ang,rc_ang,rc2_ang;
+  double sig,eps,n_sig,comega,ctheta;
+  double hstart_gamma,hstart_uinf,
+	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
+  double delh_gamma,delh_uinf,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
+  
+  double **uinf_coeff,**gamma_coeff,****phi_coeff,****usemi_coeff;
+  double *p1,*p2,*param;
   double **flocal,**fglobal,**basis;
-  double ***usemi_coeff, ****phi_coeff;
-  char *gamma_file, *uinf_file, *usemi_file, *phi_file;
 
   void allocate();
-  
-  double spline(double, double, double, double **, int);
-  double spline(double, double, double *, double, double *, 
-		  double, double ***, int);
-  double spline(double, double, double, double, double, 
-		  double, double ****, int);
-  double dspline(double, double, double, double **, int);
-  double dxspline(double, double, double *, double, double *, 
-		  double, double ***, int);
-  double dyspline(double, double, double *, double, double *, 
-		  double, double ***, int);
-  double dxspline(double, double, double, double, double, 
-		  double, double ****, int);
-  double dyspline(double, double, double, double, double, 
-		  double, double ****, int);
+  void sort(int *, int);
+  void read_file(char *, double *, double &, double &, int);
+  void read_file(char *, double **, double &, double &, 
+		  double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);
-  void spline_coeff(double **, double ***, int);
   void spline_coeff(double **, double ****, double, double, int);
-  
-  void read_file(char *, double *, double *, double *, int);
-  void read_file(char *, double **, double *, double *, 
-		  double *, double *, int);
 
-  double uinf(double *);
-  double usemi(double *);
-  void finf(double *, double **);
-  void fsemi(double *, double **);
+  double spline(double, double, double, double **, int);
+  double dspline(double, double, double, double **, int);
+  double spline(double, double, double, double, double, double, 
+		  double ****, int);
+  double dxspline(double, double, double, double, double, double, 
+		  double ****, int);
+  double dyspline(double, double, double, double, double, double, 
+		  double ****, int);
 
   void geominf(const double *, const double *, const double *, 
 		  const double *, double *, double **);
-  void geomsemi(const double *, const double *, const double *, const double *, 
-		  const double *, double *, double **);
-  double weight(const double *, const double *,
-		  const double *, const double *);
-  int heaviside(double);
-  double s(double);
-  double ds(double);
-  double s5(double);
-  double ds5(double);
-  void sort(int *, int);
+  void geomsemi(const double *, const double *, const double *,
+		  const double *, const double *, double *, double **);
+  double weight(const double *, const double *, const double *,
+		  const double *);
+
+  double uinf(const double *);
+  double usemi(const double *);
+  void finf(const double *, double **);
+  void fsemi(const double *, double **);
+
+  // inlined functions for efficiency
+
+  inline int heaviside(double x) {
+    if (x > 0) return 1;
+    else return 0;
+  }
+
+  inline double s(double x) {
+    return heaviside(-x) + heaviside(x)*heaviside(1-x)*(1 - x*x*(3 - 2*x));
+  }
+
+  inline double ds(double x) {
+    return 6 * heaviside(x) * heaviside(1-x) * x * (x-1);
+  }
+
+  inline double s5(double x) {
+    double x2 = x * x;
+    return heaviside(-x) + heaviside(1-x)*(1 - x2*x*(6*x2 - 15*x + 10));
+  }
+
+  inline double ds5(double x) {
+    double x2 = x * x;
+    return -30 * heaviside(x) * heaviside(1-x) * x2 * (x2 - 2*x + 1);
+  }
 };
 
 }
+
 #endif
 #endif

@@ -1731,12 +1731,31 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
 
 #endif
 
-/* ----------------------------------------------------------------------
-   Find neighbor list index for pair style
-------------------------------------------------------------------------- */
-int lammps_find_pair_neighlist(void* ptr, char * style, int nsub, int request) {
+/*******************************************************************************
+ * Find neighbor list index of pair style neighbor list
+ *
+ * Try finding pair instance that matches style. If exact is set, the pair must
+ * match style exactly. If exact is 0, style must only be contained. If pair is
+ * of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+ *
+ * Once the pair instance has been identified, multiple neighbor list requests
+ * may be found. Every neighbor list is uniquely identified by its request
+ * index. Thus, providing this request index ensures that the correct neighbor
+ * list index is returned.
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param style    String used to search for pair style instance
+ * @param exact    Flag to control whether style should match exactly or only
+ *                 must be contained in pair style name
+ * @param nsub     match nsub-th hybrid sub-style
+ * @param request  request index that specifies which neighbor list should be
+ *                 returned, in case there are multiple neighbor lists requests
+ *                 for the found pair style
+ * @return         return neighbor list index if found, otherwise -1
+ ******************************************************************************/
+int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
-  Pair* pair = lmp->force->pair_match(style, 1, nsub);
+  Pair* pair = lmp->force->pair_match(style, exact, nsub);
 
   if (pair != NULL) {
     // find neigh list
@@ -1752,11 +1771,15 @@ int lammps_find_pair_neighlist(void* ptr, char * style, int nsub, int request) {
   return -1;
 }
 
-/* ----------------------------------------------------------------------
-   Find neighbor list index for compute with given fix ID
-   The request ID identifies which request it is in case of there are
-   multiple neighbor lists for this fix
-------------------------------------------------------------------------- */
+/*******************************************************************************
+ * Find neighbor list index of fix neighbor list
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param id       Identifier of fix instance
+ * @param request  request index that specifies which request should be returned,
+ *                 in case there are multiple neighbor lists for this fix
+ * @return         return neighbor list index if found, otherwise -1
+ ******************************************************************************/
 int lammps_find_fix_neighlist(void* ptr, char * id, int request) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
   Fix* fix = NULL;
@@ -1784,12 +1807,15 @@ int lammps_find_fix_neighlist(void* ptr, char * id, int request) {
   return -1;
 }
 
-/* ----------------------------------------------------------------------
-   Find neighbor list index for compute with given compute ID
-   The request ID identifies which request it is in case of there are
-   multiple neighbor lists for this compute
-------------------------------------------------------------------------- */
-
+/*******************************************************************************
+ * Find neighbor list index of compute neighbor list
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param id       Identifier of fix instance
+ * @param request  request index that specifies which request should be returned,
+ *                 in case there are multiple neighbor lists for this fix
+ * @return         return neighbor list index if found, otherwise -1
+ ******************************************************************************/
 int lammps_find_compute_neighlist(void* ptr, char * id, int request) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
   Compute* compute = NULL;
@@ -1817,10 +1843,14 @@ int lammps_find_compute_neighlist(void* ptr, char * id, int request) {
   return -1;
 }
 
-/* ----------------------------------------------------------------------
-   Return the number of entries in the neighbor list with given index
-------------------------------------------------------------------------- */
-
+/*******************************************************************************
+ * Return the number of entries in the neighbor list with given index
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param idx      neighbor list index
+ * @return         return number of entries in neighbor list, -1 if idx is
+ *                 not a valid index
+ ******************************************************************************/
 int lammps_neighlist_num_elements(void * ptr, int idx) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
   Neighbor * neighbor = lmp->neighbor;
@@ -1833,11 +1863,19 @@ int lammps_neighlist_num_elements(void * ptr, int idx) {
   return list->inum;
 }
 
-/* ----------------------------------------------------------------------
-   Return atom index, number of neighbors and neighbor array for neighbor
-   list entry
-------------------------------------------------------------------------- */
-
+/*******************************************************************************
+ * Return atom local index, number of neighbors, and array of neighbor local
+ * atom indices of neighbor list entry
+ *
+ * @param ptr             Pointer to LAMMPS instance
+ * @param idx             neighbor list index
+ * @param element         neighbor list element index
+ * @param[out] iatom      atom local index in range [0, nlocal + nghost), -1 if
+                          invalid idx or element index
+ * @param[out] numneigh   number of neighbors of atom i or 0
+ * @param[out] neighbors  pointer to array of neighbor atom local indices or
+ *                        NULL
+ ******************************************************************************/
 void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
   Neighbor * neighbor = lmp->neighbor;

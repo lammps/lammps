@@ -70,6 +70,7 @@ class PairEAM : public Pair {
   // per-atom arrays
 
   double *rho,*fp;
+  int *need_embed;
 
   // potentials as file data
 

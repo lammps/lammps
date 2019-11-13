@@ -43,6 +43,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = NULL;
   fp = NULL;
+  need_embed = NULL;
   map = NULL;
   type2frho = NULL;
 
@@ -77,6 +78,7 @@ PairEAM::~PairEAM()
 
   memory->destroy(rho);
   memory->destroy(fp);
+  memory->destroy(need_embed);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -151,9 +153,11 @@ void PairEAM::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(rho);
     memory->destroy(fp);
+    memory->destroy(need_embed);
     nmax = atom->nmax;
     memory->create(rho,nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
+    memory->create(need_embed,nmax,"pair:need_embed");
   }
 
   double **x = atom->x;
@@ -230,6 +234,7 @@ void PairEAM::compute(int eflag, int vflag)
     p = MIN(p,1.0);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    need_embed[i] = 1;
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
@@ -802,6 +807,18 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
 
+  if (need_embed[i]) {
+    p = rho[i]*rdrho + 1.0;
+    m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
+    coeff = frho_spline[type2frho[itype]][m];
+    phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+    need_embed[i] = 0;
+  } else phi = 0.0;
+
   r = sqrt(rsq);
   p = r*rdr + 1.0;
   m = static_cast<int> (p);
@@ -818,7 +835,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
   recip = 1.0/r;
-  phi = z2*recip;
+  phi += z2*recip;
   phip = z2p*recip - phi*recip;
   psip = fp[i]*rhojp + fp[j]*rhoip + phip;
   fforce = -psip*recip;

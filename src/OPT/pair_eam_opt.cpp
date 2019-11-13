@@ -80,11 +80,13 @@ void PairEAMOpt::eval()
   // grow energy array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
+    memory->destroy(count_embed);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
+    memory->create(count_embed,nmax,"pair:count_embed");
   }
 
   double** _noalias x = atom->x;
@@ -238,6 +240,7 @@ void PairEAMOpt::eval()
     ++m;
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    count_embed[i] = 0;
     if (EFLAG) {
       double phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
@@ -280,6 +283,7 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < tmp_cutforcesq) {
+        ++count_embed[i];
         jtype = type[j] - 1;
         double r = sqrt(rsq);
         double rhoip,rhojp,z2,z2p;

@@ -384,7 +384,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
-    centroidstressflag |= styles[m]->centroidstressflag;
+    if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
   init_svector();
 }

@@ -99,7 +99,7 @@ In case of compute *centroid/stress/atom*, the virial contribution is:
    W_{ab} & = \sum_{n = 1}^{N_p} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_b} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_a} r_{I0_a}  F_{I_b} + \sum_{n = 1}^{N_d} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_i} r_{I0_a} F_{I_b} \\
   & + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
 
-As with compute *stress/atom*, the first, second, third, forth and fifth terms
+As with compute *stress/atom*, the first, second, third, fourth and fifth terms
 are pairwise, bond, angle, dihedral and improper contributions,
 but instead of assigning the virial contribution equally to each atom,
 only the force :math:`\mathbf{F}_I` acting on atom :math:`I`

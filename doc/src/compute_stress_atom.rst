@@ -112,7 +112,7 @@ The sixth and seventh terms, Kspace and :doc:`fix <fix>` contribution
 respectively, are computed identical to compute *stress/atom*.
 Although the total system virial is the same as compute *stress/atom*,
 compute *centroid/stress/atom* is know to result in more consistent
-heat flux values for angle, dihedras and improper contributions
+heat flux values for angle, dihedrals and improper contributions
 when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
 If no extra keywords are listed, the kinetic contribution

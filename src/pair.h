@@ -67,8 +67,8 @@ class Pair : protected Pointers {
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
   int centroidstressflag;        // compatibility with centroid atomic stress
-                                 // 1 if same as pairwise atomic stress
-                                 // 2 if implemented and different from pairwise
+                                 // 1 if same as two-body atomic stress
+                                 // 2 if implemented and different from two-body
                                  // 4 if not compatible/implemented
 
   int tail_flag;                 // pair_modify flag for LJ tail correction

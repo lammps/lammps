@@ -175,7 +175,7 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   // add in per-atom contributions from each force
 
-  // per-atom virial and per-atom centroid virial are the same for pairwise
+  // per-atom virial and per-atom centroid virial are the same for two-body
   // many-body pair styles not yet implemented
   if (pairflag && force->pair) {
     if (force->pair->centroidstressflag & 2) {

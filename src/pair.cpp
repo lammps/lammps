@@ -72,7 +72,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
-  cntratmstressflag = 4;
+  centroidstressflag = 4;
 
   // pair_modify settings
 
@@ -786,13 +786,13 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   vflag_atom = vflag & 4;
 
   if (vflag & 8) {
-    if (cntratmstressflag & 2) {
+    if (centroidstressflag & 2) {
       cvflag_atom = 1;
     } else {
       vflag_atom = 1;
     }
     // extra check, because both bits might be set
-    if (cntratmstressflag & 1) vflag_atom = 1;
+    if (centroidstressflag & 1) vflag_atom = 1;
   }
 
   vflag_either = vflag_global || vflag_atom;

@@ -43,7 +43,7 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   // assume pair hybrid always supports centroid atomic stress,
   // so that cflag_atom gets set when needed
-  cntratmstressflag = 2;
+  centroidstressflag = 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,7 +166,7 @@ void PairHybrid::compute(int eflag, int vflag)
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
-      if (styles[m]->cntratmstressflag & 2) {
+      if (styles[m]->centroidstressflag & 2) {
         double **cvatom_substyle = styles[m]->cvatom;
         for (i = 0; i < n; i++)
           for (j = 0; j < 9; j++)
@@ -384,7 +384,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
-    cntratmstressflag |= styles[m]->cntratmstressflag;
+    centroidstressflag |= styles[m]->centroidstressflag;
   }
   init_svector();
 }

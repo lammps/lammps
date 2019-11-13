@@ -35,7 +35,7 @@ PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   writedata = 1;
-  cntratmstressflag = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

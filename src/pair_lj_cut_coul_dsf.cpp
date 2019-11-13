@@ -46,7 +46,7 @@ using namespace MathConst;
 PairLJCutCoulDSF::PairLJCutCoulDSF(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
-  cntratmstressflag = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

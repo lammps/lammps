@@ -66,7 +66,7 @@ class Pair : protected Pointers {
   int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
-  int cntratmstressflag;         // compatibility with centroid atomic stress
+  int centroidstressflag;        // compatibility with centroid atomic stress
                                  // 1 if same as pairwise atomic stress
                                  // 2 if implemented and different from pairwise
                                  // 4 if not compatible/implemented

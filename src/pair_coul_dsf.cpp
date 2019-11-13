@@ -44,7 +44,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {
-  cntratmstressflag = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

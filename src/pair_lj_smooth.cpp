@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 PairLJSmooth::PairLJSmooth(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-  cntratmstressflag = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

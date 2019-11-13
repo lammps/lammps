@@ -112,8 +112,7 @@ The sixth and seventh terms, Kspace and :doc:`fix <fix>` contribution
 respectively, are computed identical to compute *stress/atom*.
 Although the total system virial is the same as compute *stress/atom*,
 compute *centroid/stress/atom* is know to result in more consistent
-heat flux values for three and larger many-body interactions
-such as angles, dihedrals and impropers,
+heat flux values for angle, dihedras and improper contributions
 when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
 If no extra keywords are listed, the kinetic contribution
@@ -138,16 +137,20 @@ the interaction, with the :math:`r` vectors unwrapped by periodic boundaries
 so that the cluster of atoms is close together.  The total
 contribution for the cluster interaction is divided evenly among those
 atoms. Details of how compute *centroid/stress/atom* obtains
-the virial for individual atoms for many-body potentials
+the virial for individual atoms
 is given in :ref:`(Surblys) <Surblys1>`,
 where the idea is that the virial of the atom :math:`I`
 is the result of only the force :math:`\mathbf{F}_I` on the atom due
-to the many-body interaction
+to the interaction
 and its positional vector :math:`\mathbf{r}_{I0}`,
 relative to the geometric center of the
-interacting atoms. The periodic boundary treatment is identical to
+interacting atoms, regardless of the number of participating atoms.
+The periodic boundary treatment is identical to
 that of compute *stress/atom*, and both of them reduce to identical
-expressions for pairwise interactions.
+expressions for two-body interactions,
+i.e. computed values for contributions from bonds and two-body pair styles,
+such as :doc:`Lennard-Jones <pair_lj>`, will be the same,
+while contributions from angles, dihedrals and impropers will be different.
 
 The :doc:`dihedral\_style charmm <dihedral_charmm>` style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
@@ -225,10 +228,15 @@ The per-atom array values will be in pressure\*volume
 
 Restrictions
 """"""""""""
-Pair styles with three and larger many-body interactions,
-such as Tersoff do not currently support
-compute *centroid/stress/atom* and LAMMPS will generate an error
-in such cases.
+Currently, compute *centroid/stress/atom* does not support
+pair styles with many-body interactions,
+such as :doc:`Tersoff <pair_tersoff>`,
+and LAMMPS will generate an error in such cases.
+In principal, equivalent formulation
+to that of angle, dihedral and improper contributions
+in the virial :math:`W_{ab}` formula
+can also be applied to the many-body pair styles,
+and is planned in the future.
 
 Related commands
 """"""""""""""""

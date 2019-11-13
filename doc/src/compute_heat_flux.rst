@@ -54,7 +54,7 @@ third calculates per-atom stress (\ *stress-ID*\ ).
    (or any group whose atoms are superset of the atoms in this compute's
    group).  LAMMPS does not check for this.
 
-In case of pairwise interactions the heat flux is defined as:
+In case of two-body interactions, the heat flux is defined as:
 
 .. math::
    \mathbf{J} &= \frac{1}{V} \left[ \sum_i e_i \mathbf{v}_i - \sum_{i} \mathbf{S}_{i} \mathbf{v}_i \right] \\
@@ -69,10 +69,10 @@ per-atom stress tensor calculated by the compute *stress-ID*.
 See :doc:`compute stress/atom <compute_stress_atom>`
 and :doc:`compute centroid/stress/atom <compute_stress_atom>`
 for possible definitions of atomic stress :math:`\mathbf{S}_i`
-in the case of thee-body and larger many-body interactions.
+in the case of bonded and many-body interactions.
 The tensor multiplies :math:`\mathbf{v}_i` as a 3x3 matrix-vector multiply
 to yield a vector.
-Note that as discussed below, the :math:`\frac{1}{V}` scaling factor in the
+Note that as discussed below, the 1/:math:`{V}` scaling factor in the
 equation for :math:`\mathbf{J}` is NOT included in the calculation performed by
 these computes; you need to add it for a volume appropriate to the atoms
 included in the calculation.
@@ -92,8 +92,7 @@ included in the calculation.
 .. warning::
 
    The compute *heat/flux* has been reported to produce unphysical
-   values for three and larger many-body interactions such
-   as angles, dihedrals and torsions,
+   values for angle, dihedral and improper contributions
    when used with :doc:`compute stress/atom <compute_stress_atom>`,
    as discussed in :ref:`(Surblys) <Surblys2>` and :ref:`(Boone) <Boone>`.
    You are strongly advised to

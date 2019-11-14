@@ -149,7 +149,7 @@ void FixPrint::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrint::setup(int vflag)
+void FixPrint::setup(int /* vflag */)
 {
   end_of_step();
 }

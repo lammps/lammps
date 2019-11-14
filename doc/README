@@ -5,7 +5,7 @@ sub-directories and optionally 2 PDF files and an ePUB file:
 
 src             content files for LAMMPS documentation
 html            HTML version of the LAMMPS manual (see html/Manual.html)
-tools           tools and settings for building the documentation
+utils           utilities and settings for building the documentation
 Manual.pdf      large PDF version of entire manual
 Developer.pdf   small PDF with info about how LAMMPS is structured
 LAMMPS.epub     Manual in ePUB format
@@ -25,17 +25,12 @@ the fetched documentation will include those changes (but your source
 code will not, unless you update your local repository).
 
 (b) You can build the HTML and PDF files yourself, by typing "make
-html" followed by "make pdf".  Note that the PDF make requires the
-HTML files already exist.  This requires various tools including
-Sphinx, which the build process will attempt to download and install
-on your system, if not already available.  See more details below.
-
-(c) You can genererate an older, simpler, less-fancy style of HTML
-documentation by typing "make old".  This will create an "old"
-directory.  This can be useful if (b) does not work on your box for
-some reason, or you want to quickly view the HTML version of a doc
-page you have created or edited yourself within the src directory.
-E.g. if you are planning to submit a new feature to LAMMPS.
+html" or by "make pdf", respectively.  This requires various tools
+including the Python documentation processing tool Sphinx, which the
+build process will attempt to download and install on your system into
+a python virtual environment, if not already available.  The PDF file
+will require a working LaTeX installation with several add-on packages
+in addition to the Python/Sphinx setup.  See more details below.
 
 ----------------
 
@@ -47,10 +42,9 @@ Options:
 make html         # generate HTML in html dir using Sphinx
 make pdf          # generate 2 PDF files (Manual.pdf,Developer.pdf)
                   #   in this dir via htmldoc and pdflatex
-make old          # generate old-style HTML pages in old dir via txt2html
 make fetch        # fetch HTML doc pages and 2 PDF files from web site
                   #   as a tarball and unpack into html dir and 2 PDFs
-make epub         # generate LAMMPS.epub in ePUB format using Sphinx 
+make epub         # generate LAMMPS.epub in ePUB format using Sphinx
 make clean        # remove intermediate RST files created by HTML build
 make clean-all    # remove entire build folder and any cached data
 
@@ -103,7 +97,11 @@ Installing prerequisites for epub build
 ## ePUB
 
 Same as for HTML. This uses the same tools and configuration
-files as the HTML tree.
+files as the HTML tree. The ePUB format conversion currently
+does not support processing mathematical expressions via MathJAX,
+so there will be limitations on some pages. For the time being
+until this is resolved, building and using the PDF format file
+is recommended instead.
 
 For converting the generated ePUB file to a mobi format file
 (for e-book readers like Kindle, that cannot read ePUB), you

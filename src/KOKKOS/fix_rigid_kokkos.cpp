@@ -1364,7 +1364,7 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
     int l_vflag_atom = vflag_atom;
     int l_vflag_global = vflag_global;
 
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
+    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
       int ibody = l_body[i];
 
@@ -1796,8 +1796,6 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     int l_extended = extended;
     int l_triclinic = triclinic;
 
-    // TODO: This needs rewriting in a thread-safe way. f needs to be properly
-    // reduced into l_sum because multiple i will write to the same ibody!
     Kokkos::parallel_for(nbody, LAMMPS_LAMBDA(const int &ibody) {
       l_sum(ibody,0) = 0;
       l_sum(ibody,1) = 0;
@@ -1808,15 +1806,13 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     });
 
 
-
-    // TODO: This needs to become parallel_reduce!
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int &i) {
       if (l_body[i] < 0) return;
 
       int ibody = l_body[i];
-      l_sum(ibody,0) += l_f(i,0);
-      l_sum(ibody,1) += l_f(i,1);
-      l_sum(ibody,2) += l_f(i,2);
+      Kokkos::atomic_add(&l_sum(ibody,0), l_f(i,0));
+      Kokkos::atomic_add(&l_sum(ibody,1), l_f(i,1));
+      Kokkos::atomic_add(&l_sum(ibody,2), l_f(i,2));
 
       Few<double,3> xi;
 
@@ -1831,9 +1827,14 @@ void FixRigidKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       double dy = unwrap[1] - l_xcm(ibody,1);
       double dz = unwrap[2] - l_xcm(ibody,2);
 
-      l_sum(ibody,3) += dy*l_f(i,2) - dz*l_f(i,1);
-      l_sum(ibody,4) += dz*l_f(i,0) - dx*l_f(i,2);
-      l_sum(ibody,5) += dx*l_f(i,1) - dy*l_f(i,0);
+      double l_torque[3] = { dy*l_f(i,2) - dz*l_f(i,1),
+                             dz*l_f(i,0) - dx*l_f(i,2),
+                             dx*l_f(i,1) - dy*l_f(i,0) };
+
+      Kokkos::atomic_add(&l_sum(ibody,3), l_torque[0]);
+      Kokkos::atomic_add(&l_sum(ibody,4), l_torque[1]);
+      Kokkos::atomic_add(&l_sum(ibody,5), l_torque[2]);
+
     });
 
     // If particles are extended, second loop over their torques:
@@ -2112,12 +2113,6 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
 template <class DeviceType>
 void FixRigidKokkos<DeviceType>::post_force(int vflag)
 {
-  sync_all<HOST>();
-  FixRigid::post_force(vflag);
-  modify_all<HOST>();
-  sync_all<DEVICE>();
-  return;
-
   if (langflag) apply_langevin_thermostat_kokkos();
   if (earlyflag) compute_forces_and_torques_kokkos();
 }
@@ -2185,27 +2180,11 @@ void FixRigidKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
 
 
 template <class DeviceType>
-double FixRigidKokkos<DeviceType>::extract_ke()
-{
-  sync_all<HOST>();
-  return FixRigid::extract_ke();
-}
-
-template <class DeviceType>
-double FixRigidKokkos<DeviceType>::extract_erotational()
-{
-  sync_all<HOST>();
-  return FixRigid::extract_erotational();
-}
-
-
-template <class DeviceType>
 int FixRigidKokkos<DeviceType>::dof(int tgroup)
 {
-  sync_all<HOST>();
+  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space, datamask_read);
   return FixRigid::dof(tgroup);
 }
-
 
 
 /*

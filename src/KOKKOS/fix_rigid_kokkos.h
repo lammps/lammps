@@ -87,11 +87,6 @@ class FixRigidKokkos : public FixRigid {
   template <int space> void sync_all();
   template <int space> void modify_all();
 
-  virtual double extract_ke();
-  virtual double extract_erotational();
-
-
-
  private:
   // We need Kokkos style containers for everything in the innner loops:
   DAT::tdual_x_array k_xcm;

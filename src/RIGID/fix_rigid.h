@@ -40,7 +40,7 @@ class FixRigid : public Fix {
   virtual double compute_scalar();
 
   double memory_usage();
-  void grow_arrays(int);
+  virtual void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
   int pack_exchange(int, double *);
@@ -114,7 +114,7 @@ class FixRigid : public Fix {
 
   double tfactor;           // scale factor on temperature of rigid bodies
   int langflag;             // 0/1 = no/yes Langevin thermostat
-	int seed;                 // seed for Langevin random number generator
+  int seed;                 // seed for Langevin random number generator
 
   int tstat_flag;           // NVT settings
   double t_start,t_stop,t_target;

@@ -52,8 +52,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
   tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
   remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
-  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL),
-  avec_line(NULL), avec_tri(NULL)
+  dorient(NULL), id_dilate(NULL), seed(0), random(NULL),
+  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
 
@@ -2641,24 +2641,6 @@ int FixRigid::modify_param(int narg, char **arg)
 double FixRigid::compute_scalar()
 {
   double wbody[3],rot[3][3];
-
-  if (comm->me == 0) {
-	  fprintf(screen, "  ** --> This is compute_scalar().\n");
-    fprintf(screen, "         masstotal, fflag, cvm: ");
-    for (int i = 0; i < nbody; ++i) {
-      fprintf(screen, " %g", masstotal[i]);
-    }
-    fprintf(screen, "\n");
-    for (int i = 0; i < nbody; ++i) {
-      fprintf(screen, " (%g, %g, %g)", fflag[i][0], fflag[i][1], fflag[i][2]);
-    }
-    fprintf(screen, "\n");
-    for (int i = 0; i < nbody; ++i) {
-      fprintf(screen, " (%g, %g, %g)", vcm[i][0], vcm[i][1], vcm[i][2]);
-    }
-    fprintf(screen, "\n");
-  }
-
 
   double t = 0.0;
   for (int i = 0; i < nbody; i++) {

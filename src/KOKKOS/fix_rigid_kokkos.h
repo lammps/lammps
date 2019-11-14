@@ -55,6 +55,8 @@ class FixRigidKokkos : public FixRigid {
 
   // pre_neighbor gets called explicitly during init. At this time, not all
   // kokkos-able arrays and stuff is set. We have to bypass this somehow.
+  // No need for explicit setup_pre_neighbor, it only calls this method
+  // which is virtual.
   virtual void pre_neighbor();
   virtual double compute_scalar();
 

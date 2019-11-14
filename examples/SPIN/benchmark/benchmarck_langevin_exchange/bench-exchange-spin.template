@@ -1,0 +1,41 @@
+#LAMMPS in.run 
+ 
+units           metal
+atom_style      spin
+atom_modify     map array
+boundary        p p p
+
+lattice         sc 3.0
+region          box block 0.0 2.0 0.0 2.0 0.0 2.0
+create_box      1 box
+create_atoms    1 box
+
+mass            1 1.0
+set             type 1 spin 1.0 0.0 0.0 1.0
+
+# defines a pair/style for neighbor list, but do not use it
+pair_style      spin/exchange 3.1
+pair_coeff  	* * exchange 3.1 11.254 0.0 1.0
+
+variable        H equal 0.0
+variable        Kan equal 0.0
+variable        Temperature equal temperature
+variable        RUN equal 100000
+
+fix             1 all nve/spin lattice no
+fix             2 all precession/spin zeeman ${H} 0.0 0.0 1.0 anisotropy ${Kan} 0.0 0.0 1.0
+fix             3 all langevin/spin ${Temperature} 0.01 12345
+
+thermo          500000
+thermo_style    custom step time temp vol 
+timestep        0.1
+
+compute         compute_spin all spin
+variable 	mag_energy equal c_compute_spin[5]
+variable 	AVEs equal c_compute_spin[4]
+
+fix 		avespin all ave/time 1 ${RUN} ${RUN} v_Temperature v_H v_Kan v_AVEs v_mag_energy file _av_spin
+
+run             ${RUN}
+
+shell           cat _av_spin

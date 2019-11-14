@@ -25,7 +25,6 @@ velocity 	all create 100 4928459 rot yes dist gaussian
 
 #pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/neel 4.0
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-# pair_coeff 	* * eam/alloy ../examples/SPIN/cobalt_hcp/Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * spin/exchange exchange 4.0 -0.3593 1.135028015e-05 1.064568567
 #pair_coeff 	* * spin/neel neel 4.0 0.0048 0.234 1.168 2.6905 0.705 0.652  
@@ -56,6 +55,6 @@ thermo_style    custom step time v_magnorm v_emag temp press etotal
 thermo          10
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump_cobalt_hcp.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+dump 		1 all custom 100 dump_cobalt_hcp.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
 run 		20000

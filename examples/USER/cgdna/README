@@ -1,6 +1,6 @@
 This directory contains example data and input files 
 as well as utility scripts for the oxDNA/oxDNA2/oxRNA2 
-coarse-grained model for DNA and RNA.
+coarse-grained model of DNA and RNA.
 
 /******************************************************************************/
 
@@ -40,15 +40,14 @@ are sequence-averaged (cf. keyword 'seqav' in according pair styles).
 
 /examples/oxDNA2/duplex3:
 
-This is the duplex1 run with sequence-dependent stacking and
-hydrogen-bonding strengths enabled and both nucleotide mass and 
-moment of inertia set to the value of the standalone implementation 
-of oxDNA (M = I = 1). To achieve this, the masses can be set directly 
-in the input and data file, whereas the moment of inertia is set via 
-the diameter of the ellipsoid in the data file and has a value of 3.16227766.
+This example uses the duplex1 with sequence-dependent stacking and
+hydrogen-bonding interactions and both nucleotide mass and 
+moment of inertia set to the value used in the standalone implementation 
+of oxDNA (M = I = 1). The masses can be set directly in the input and 
+data file, whereas the moment of inertia is set via the diameter of the 
+ellipsoid in the data file and has a value of 3.16227766.
 The change of mass and moment of inertia allows direct comparision of 
-e.g. trajectory data, energies or time-dependent observables on a per-timestep 
-basis until numerical noise causes deviations at later simulation times. 
+trajectory data or time-dependent observables on a per-timestep basis. 
 
 As mentioned above, the stacking and hydrogen-bonding interactions 
 are sequence-dependent (cf. keyword 'seqdep' in according pair styles).
@@ -60,8 +59,6 @@ are sequence-dependent (cf. keyword 'seqdep' in according pair styles).
 This example uses atom types 1-8 to model a 13 base pair duplex.
 The nucleotide types are assigned as follows:
 A = 1,5; C = 2,6; G = 3,7; T = 4,8
-When a large number of atom types is used, this feature allows
-quasi-unique base pairing between two individual nucleotides.
 
 The topology is
 A   C   G   T   A   C   G   T   A   C   G   T   A
@@ -70,13 +67,16 @@ A   C   G   T   A   C   G   T   A   C   G   T   A
 4 - 3 - 2 - 1 - 8 - 7 - 6 - 5 - 4 - 3 - 6 - 5 - 4
 T   G   C   A   T   G   C   A   T   G   C   A   T
 
+With a large (32 or 64) number of atom types quasi-unique base pairing 
+between two individual nucleotides can be established.
+
 /******************************************************************************/
 
 /examples/oxRNA2/duplex4
 
-This is the duplex2 run with the oxRNA2 force field instead of the oxDNA or 
-oxDNA2 force field  and sequence-dependent stacking and hydrogen-bonding 
-strengths enabled.
+This example uses the duplex2 with the oxRNA2 force field instead of oxDNA or 
+oxDNA2 force field. Sequence-dependent stacking and hydrogen-bonding 
+strengths enabled (cf. keyword 'seqdep' in according pair styles).
 
 /******************************************************************************/
 

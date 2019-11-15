@@ -55,6 +55,23 @@ are sequence-dependent (cf. keyword 'seqdep' in according pair styles).
 
 /******************************************************************************/
 
+/examples/oxDNA2/unique_bp:
+
+This example uses atom types 1-8 to model a 13 base pair duplex.
+The nucleotide types are assigned as follows:
+A = 1,5; C = 2,6; G = 3,7; T = 4,8
+When a large number of atom types is used, this feature allows
+quasi-unique base pairing between two individual nucleotides.
+
+The topology is
+A   C   G   T   A   C   G   T   A   C   G   T   A
+1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 1 - 2 - 7 - 8 - 1
+|   |   |   |   |   |   |   |   |   |   |   |   |
+4 - 3 - 2 - 1 - 8 - 7 - 6 - 5 - 4 - 3 - 6 - 5 - 4
+T   G   C   A   T   G   C   A   T   G   C   A   T
+
+/******************************************************************************/
+
 /examples/oxRNA2/duplex4
 
 This is the duplex2 run with the oxRNA2 force field instead of the oxDNA or 

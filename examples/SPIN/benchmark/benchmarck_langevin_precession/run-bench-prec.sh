@@ -14,9 +14,9 @@ do
     bench-prec-spin.in
   ./../../../../src/lmp_serial \
     -in bench-prec-spin.in 
-  Hz="$(tail -n 1 _av_spin | awk -F " " '{print $3}')"
-  sz="$(tail -n 1 _av_spin | awk -F " " '{print $5}')"
-  en="$(tail -n 1 _av_spin | awk -F " " '{print $6}')"
+  Hz="$(tail -n 1 average_spin | awk -F " " '{print $3}')"
+  sz="$(tail -n 1 average_spin | awk -F " " '{print $5}')"
+  en="$(tail -n 1 average_spin | awk -F " " '{print $6}')"
   echo $temp $Hz $sz $en >> res_lammps.dat
 done
 

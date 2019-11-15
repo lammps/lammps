@@ -15,7 +15,6 @@ create_atoms    1 box
 mass            1 1.0
 set             type 1 spin 2.0 1.0 0.0 0.0
 
-# defines a pair/style for neighbor list, but do not use it
 pair_style      spin/exchange 4.0
 pair_coeff      * * exchange 1.0 0.0 0.0 1.0
 
@@ -24,7 +23,7 @@ group bead      type 1
 variable        H equal 10.0
 variable        Kan equal 0.0
 variable        Temperature equal 0.0 
-variable        RUN equal 100000
+variable        Nsteps equal 500000
 
 fix             1 all nve/spin lattice no
 fix             2 all precession/spin zeeman ${H} 0.0 0.0 1.0 anisotropy ${Kan} 0.0 0.0 1.0
@@ -45,4 +44,4 @@ thermo          100
 
 timestep	0.0001
 
-run             ${RUN}
+run             ${Nsteps}

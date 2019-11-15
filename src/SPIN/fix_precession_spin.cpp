@@ -257,7 +257,6 @@ void FixPrecessionSpin::post_force(int /* vflag */)
 
       if (zeeman_flag) {          // compute Zeeman interaction
         compute_zeeman(i,fmi);
-        // epreci -= 2.0*hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
         epreci -= hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
       }
 
@@ -296,9 +295,6 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
   double **sp = atom->sp;
-  // fmi[0] += 0.5*sp[i][3]*hx;
-  // fmi[1] += 0.5*sp[i][3]*hy;
-  // fmi[2] += 0.5*sp[i][3]*hz;
   fmi[0] += sp[i][3]*hx;
   fmi[1] += sp[i][3]*hy;
   fmi[2] += sp[i][3]*hz;
@@ -309,9 +305,9 @@ void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 {
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
-  fmi[0] += 0.5*scalar*Kax;
-  fmi[1] += 0.5*scalar*Kay;
-  fmi[2] += 0.5*scalar*Kaz;
+  fmi[0] += scalar*Kax;
+  fmi[1] += scalar*Kay;
+  fmi[2] += scalar*Kaz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -320,7 +316,7 @@ double FixPrecessionSpin::compute_anisotropy_energy(double spi[3])
 {
   double energy = 0.0;
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
-  energy = 2.0*Ka*scalar*scalar;
+  energy = Ka*scalar*scalar;
   return energy; 
 }
 
@@ -358,9 +354,9 @@ void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3])
   sixy = k2ch*(nc1y*six1 + nc2y*six2 + nc3y*six3);
   sixz = k2ch*(nc1z*six1 + nc2z*six2 + nc3z*six3);
   
-  fmi[0] += 0.5*(fourx + sixx);
-  fmi[1] += 0.5*(foury + sixy);
-  fmi[2] += 0.5*(fourz + sixz);
+  fmi[0] += (fourx + sixx);
+  fmi[1] += (foury + sixy);
+  fmi[2] += (fourz + sixz);
 }
 
 /* ----------------------------------------------------------------------
@@ -379,7 +375,7 @@ double FixPrecessionSpin::compute_cubic_energy(double spi[3])
   energy = k1c*(skx*skx*sky*sky + sky*sky*skz*skz + skx*skx*skz*skz);
   energy += k2c*skx*skx*sky*sky*skz*skz;
 
-  return 2.0*energy;
+  return energy;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -33,14 +33,14 @@ fix             3 all langevin/spin ${Temperature} 0.01 12345
 
 compute         compute_spin all spin
 compute         outsp all property/atom spx spy spz sp
-compute         AVEsz all reduce ave c_outsp[3]
+compute         magsz all reduce ave c_outsp[3]
 
 thermo          50000
 thermo_style    custom step time temp vol pe c_compute_spin[5] etotal  
 
 variable        magnetic_energy equal c_compute_spin[5]
 
-fix             avespin all ave/time 1 ${RUN} ${RUN} v_Temperature v_H v_Kan c_AVEsz v_magnetic_energy file _av_spin
+fix             avespin all ave/time 1 ${RUN} ${RUN} v_Temperature v_H v_Kan c_magsz v_magnetic_energy file average_spin
 
 timestep        0.1
 run             ${RUN}

@@ -17,7 +17,7 @@ Bext = np.array([0.0, 0.0, 1.0])
 Sn = 2.0                # spin norm (in # of muB)
 S = np.array([1.0, 0.0, 0.0])
 
-N=100000                # number of timesteps
+N=500000                # number of timesteps
 dt=0.1                  # timestep (fs)
 
 # Rodrigues rotation formula
@@ -46,6 +46,7 @@ for t in range (0,N):
   theta=dt*np.linalg.norm(wf)
   axis=wf/np.linalg.norm(wf)
   S = np.dot(rotation_matrix(axis, theta), S)
+  en = -hbar*gyro*Sn*Bnrm*np.dot(S,Bext)
   # print res. in ps for comparison with LAMMPS
-  print(t*dt/1000.0,S[0],S[1],S[2])
+  print(t*dt/1000.0,S[0],S[1],S[2],en)
 

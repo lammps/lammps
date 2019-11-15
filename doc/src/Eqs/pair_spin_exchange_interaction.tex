@@ -1,11 +1,15 @@
 \documentclass[preview]{standalone}
 \usepackage{varwidth}
 \usepackage[utf8x]{inputenc}
-\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{amsmath, amssymb, graphics, setspace}
+
 \begin{document}
 \begin{varwidth}{50in}
   \begin{equation}
-    \bm{H}_{ex} ~=~ -\sum_{i,j,i\neq j}^{N} {J} \left(r_{ij} \right)\, \vec{s}_{i}\cdot \vec{s}_{j} \nonumber
+    H_{ex} = 
+    -\sum_{i,j}^N J_{ij} (r_{ij}) \,\vec{s}_i \cdot \vec{s}_j 
+    %&{\rm ~if~}& \vec{m}_i^I \times \vec{m}_i^F  
+  , \nonumber
   \end{equation}
 \end{varwidth}
 \end{document}

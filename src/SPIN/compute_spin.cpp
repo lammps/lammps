@@ -129,7 +129,8 @@ void ComputeSpin::compute_vector()
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
   spintemperature = hbar*tempnumtot;
-  spintemperature /= (kb*tempdenomtot);
+  // spintemperature /= (kb*tempdenomtot);
+  spintemperature /= (2.0*kb*tempdenomtot);
 
   vector[0] = magtot[0];
   vector[1] = magtot[1];

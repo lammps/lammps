@@ -86,7 +86,7 @@ PairOxdnaExcv::~PairOxdnaExcv()
 /* ----------------------------------------------------------------------
     compute vector COM-excluded volume interaction sites in oxDNA
 ------------------------------------------------------------------------- */
-void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3], 
+void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3],
     double /*e3*/[3], double rs[3], double rb[3])
 {
   double d_cs=-0.4, d_cb=+0.4;

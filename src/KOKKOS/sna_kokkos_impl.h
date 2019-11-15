@@ -83,7 +83,7 @@ void SNAKokkos<DeviceType>::build_indexlist()
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-        h_idxcg_block(j1,j2,j) = idxcg_count; 
+        h_idxcg_block(j1,j2,j) = idxcg_count;
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
             idxcg_count++;
@@ -98,9 +98,9 @@ void SNAKokkos<DeviceType>::build_indexlist()
   auto h_idxu_block = Kokkos::create_mirror_view(idxu_block);
 
   int idxu_count = 0;
-  
+
   for(int j = 0; j <= twojmax; j++) {
-    h_idxu_block[j] = idxu_count; 
+    h_idxu_block[j] = idxu_count;
     for(int mb = 0; mb <= j; mb++)
       for(int ma = 0; ma <= j; ma++)
         idxu_count++;
@@ -110,16 +110,16 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
   // index list for beta and B
 
-  int idxb_count = 0;  
+  int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) idxb_count++;
-  
+
   idxb_max = idxb_count;
   idxb = Kokkos::View<int*[3], DeviceType>("SNAKokkos::idxb",idxb_max);
   auto h_idxb = Kokkos::create_mirror_view(idxb);
-  
+
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
@@ -142,7 +142,7 @@ void SNAKokkos<DeviceType>::build_indexlist()
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         if (j >= j1) {
-          h_idxb_block(j1,j2,j) = idxb_count; 
+          h_idxb_block(j1,j2,j) = idxb_count;
           idxb_count++;
         }
       }
@@ -158,19 +158,19 @@ void SNAKokkos<DeviceType>::build_indexlist()
         for (int mb = 0; 2*mb <= j; mb++)
           for (int ma = 0; ma <= j; ma++)
             idxz_count++;
-  
+
   idxz_max = idxz_count;
   idxz = Kokkos::View<int*[10], DeviceType>("SNAKokkos::idxz",idxz_max);
   auto h_idxz = Kokkos::create_mirror_view(idxz);
 
   idxz_block = Kokkos::View<int***, DeviceType>("SNAKokkos::idxz_block", jdim,jdim,jdim);
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
-  
+
   idxz_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-        h_idxz_block(j1,j2,j) = idxz_count; 
+        h_idxz_block(j1,j2,j) = idxz_count;
 
         // find right beta(ii,jjb) entry
         // multiply and divide by j+1 factors
@@ -226,7 +226,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
 
   blist = t_sna_2d("sna:blist",natom,idxb_max);
   ulisttot = t_sna_2c("sna:ulisttot",natom,idxu_max);
-  if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value) 
+  if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
     ulisttot_lr = t_sna_2c_lr("sna:ulisttot_lr",natom,idxu_max);
   zlist = t_sna_2c("sna:zlist",natom,idxz_max);
 
@@ -306,7 +306,7 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
 
   const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
 
-  zlist(iatom,jjz).re = 0.0; 
+  zlist(iatom,jjz).re = 0.0;
   zlist(iatom,jjz).im = 0.0;
 
   int jju1 = idxu_block[j1] + (j1+1)*mb1min;
@@ -419,7 +419,7 @@ void SNAKokkos<DeviceType>::compute_yi(int iter,
     if (j1 == j) {
       if (j2 == j) betaj = 3*beta(iatom,jjb);
       else betaj = 2*beta(iatom,jjb);
-    } else betaj = beta(iatom,jjb); 
+    } else betaj = beta(iatom,jjb);
   } else if (j >= j2) {
     const int jjb = idxb_block(j,j2,j1);
     if (j2 == j) betaj = 2*beta(iatom,jjb)*(j1+1)/(j+1.0);
@@ -1176,7 +1176,7 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
                           factorial((j  + cc2) / 2) *
                           factorial((j  - cc2) / 2) *
                           (j + 1));
-            
+
             h_cglist[idxcg_count] = sum * dcg * sfaccg;
             idxcg_count++;
           }
@@ -1278,7 +1278,7 @@ double SNAKokkos<DeviceType>::memory_usage()
   if (!Kokkos::Impl::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
     bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
   bytes += natom * idxu_max * 3 * sizeof(double) * 2;    // dulist
-                                                       
+
   bytes += natom * idxz_max * sizeof(double) * 2;        // zlist
   bytes += natom * idxb_max * sizeof(double);            // blist
   bytes += natom * idxu_max * sizeof(double) * 2;        // ylist

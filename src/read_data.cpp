@@ -2151,7 +2151,7 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
   // to avoid segfaults on empty lines
 
   if (narg == 0) return;
-  
+
   if (noffset) {
     int value = force->inumeric(FLERR,arg[0]);
     sprintf(argoffset1,"%d",value+offset);

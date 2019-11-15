@@ -29,6 +29,7 @@ class PairHybrid : public Pair {
   friend class FixIntel;
   friend class FixOMP;
   friend class Force;
+  friend class Neighbor;
   friend class Respa;
   friend class Info;
   friend class PairDeprecated;

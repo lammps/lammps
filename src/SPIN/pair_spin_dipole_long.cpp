@@ -81,9 +81,9 @@ void PairSpinDipoleLong::settings(int narg, char **arg)
   PairSpin::settings(narg,arg);
 
   cut_spin_long_global = force->numeric(FLERR,arg[0]);
-  
+
   // reset cutoffs that have been explicitly set
-  
+
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++) {
@@ -103,10 +103,10 @@ void PairSpinDipoleLong::settings(int narg, char **arg)
 void PairSpinDipoleLong::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-  
+
   if (narg != 3)
     error->all(FLERR,"Incorrect args in pair_style command");
-  
+
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
@@ -148,9 +148,9 @@ void PairSpinDipoleLong::init_style()
 double PairSpinDipoleLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  
+
   cut_spin_long[j][i] = cut_spin_long[i][j];
-  
+
   return cut_spin_long_global;
 }
 
@@ -183,7 +183,7 @@ void *PairSpinDipoleLong::extract(const char *str, int &dim)
 
 void PairSpinDipoleLong::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;  
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double r,rinv,r2inv,rsq;
   double grij,expm2,t,erfc;
   double evdwl,ecoul;
@@ -193,7 +193,7 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
   double fi[3],fmi[3];
   double local_cut2;
   double pre1,pre2,pre3;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -202,9 +202,9 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;       
-  int *type = atom->type;  
-  int nlocal = atom->nlocal;  
+  double **sp = atom->sp;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -225,9 +225,9 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
     xi[1] = x[i][1];
     xi[2] = x[i][2];
     jlist = firstneigh[i];
-    jnum = numneigh[i]; 
-    spi[0] = sp[i][0]; 
-    spi[1] = sp[i][1]; 
+    jnum = numneigh[i];
+    spi[0] = sp[i][0];
+    spi[1] = sp[i][1];
     spi[2] = sp[i][2];
     spi[3] = sp[i][3];
     itype = type[i];
@@ -237,17 +237,17 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtype = type[j];
 
-      spj[0] = sp[j][0]; 
-      spj[1] = sp[j][1]; 
-      spj[2] = sp[j][2]; 
-      spj[3] = sp[j][3]; 
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+      spj[3] = sp[j][3];
 
       evdwl = 0.0;
 
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
-     
+
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
@@ -279,22 +279,22 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
       // force accumulation
 
-      f[i][0] += fi[0];  
-      f[i][1] += fi[1];           
+      f[i][0] += fi[0];
+      f[i][1] += fi[1];
       f[i][2] += fi[2];
-      fm[i][0] += fmi[0];        
-      fm[i][1] += fmi[1];                 
+      fm[i][0] += fmi[0];
+      fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];        
-        f[j][1] -= fi[1];                 
+        f[j][0] -= fi[0];
+        f[j][1] -= fi[1];
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
         if (rsq <= local_cut2) {
-          evdwl -= spi[0]*fmi[0] + spi[1]*fmi[1] + 
+          evdwl -= spi[0]*fmi[0] + spi[1]*fmi[1] +
             spi[2]*fmi[2];
           evdwl *= hbar;
         }
@@ -314,21 +314,21 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
 void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 {
-  int j,jj,jnum,itype,jtype,ntypes; 
+  int j,jj,jnum,itype,jtype,ntypes;
   int k,locflag;
-  int *jlist,*numneigh,**firstneigh;  
+  int *jlist,*numneigh,**firstneigh;
   double r,rinv,r2inv,rsq,grij,expm2,t,erfc;
   double local_cut2,pre1,pre2,pre3;
   double bij[4],xi[3],rij[3],eij[3],spi[4],spj[4];
 
-  int *type = atom->type;  
+  int *type = atom->type;
   double **x = atom->x;
-  double **sp = atom->sp;       
+  double **sp = atom->sp;
   double **fm_long = atom->fm_long;
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // check if interaction applies to type of ii
 
   itype = type[ii];
@@ -362,16 +362,16 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 
     // computation of the exchange interaction
     // loop over neighbors of atom i
-      
+
     xi[0] = x[ii][0];
     xi[1] = x[ii][1];
     xi[2] = x[ii][2];
-    spi[0] = sp[ii][0]; 
-    spi[1] = sp[ii][1]; 
+    spi[0] = sp[ii][0];
+    spi[1] = sp[ii][1];
     spi[2] = sp[ii][2];
     spi[3] = sp[ii][3];
     jlist = firstneigh[ii];
-    jnum = numneigh[ii]; 
+    jnum = numneigh[ii];
     //itype = type[i];
 
     for (jj = 0; jj < jnum; jj++) {
@@ -379,14 +379,14 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
       j &= NEIGHMASK;
       jtype = type[j];
 
-      spj[0] = sp[j][0]; 
-      spj[1] = sp[j][1]; 
-      spj[2] = sp[j][2]; 
-      spj[3] = sp[j][3]; 
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+      spj[3] = sp[j][3];
 
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
-     
+
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
@@ -417,7 +417,7 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
     }
 
     // adding the kspace components to fm
-    
+
     fmi[0] += fm_long[ii][0];
     fmi[1] += fm_long[ii][1];
     fmi[2] += fm_long[ii][2];
@@ -428,7 +428,7 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3], 
+void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3],
     double bij[4], double fmi[3], double spi[4], double spj[4])
 {
   double sjeij,pre;
@@ -447,7 +447,7 @@ void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3],
 }
 
 /* ----------------------------------------------------------------------
-   compute the mechanical force due to the dipolar interaction between 
+   compute the mechanical force due to the dipolar interaction between
    atom i and atom j
 ------------------------------------------------------------------------- */
 

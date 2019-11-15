@@ -42,7 +42,7 @@ PairOxdnaHbond::PairOxdnaHbond(LAMMPS *lmp) : Pair(lmp)
 
   // sequence-specific base-pairing strength
   // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
-   
+
   alpha_hb[0][0] = 1.00000;
   alpha_hb[0][1] = 1.00000;
   alpha_hb[0][2] = 1.00000;

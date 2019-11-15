@@ -317,3 +317,9 @@ if spelling_spec:
 
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+import LAMMPSLexer
+from sphinx.highlighting import lexers
+
+lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)

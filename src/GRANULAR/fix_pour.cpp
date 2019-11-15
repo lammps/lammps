@@ -54,7 +54,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
-  if (lmp->kokkos) error->all(FLERR,"Cannot yet use fix pour with the KOKKOS package");
+  if (lmp->kokkos) 
+    error->all(FLERR,"Cannot yet use fix pour with the KOKKOS package");
 
   time_depend = 1;
 
@@ -167,8 +168,11 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (idnext) find_maxid();
 
   // random number generator, same for all procs
+  // warm up the generator 30x to avoid correlations in first-particle
+  // positions if runs are repeated with consecutive seeds
 
   random = new RanPark(lmp,seed);
+  for (int ii=0; ii < 30; ii++) random->uniform();
 
   // allgather arrays
 
@@ -782,25 +786,34 @@ int FixPour::overlap(int i)
    return 1 if value is outside, 0 if inside
 ------------------------------------------------------------------------- */
 
-int FixPour::outside(int dim, double value, double lo, double hi)
+bool FixPour::outside(int dim, double value, double lo, double hi)
 {
   double boxlo = domain->boxlo[dim];
   double boxhi = domain->boxhi[dim];
 
-  if (domain->periodicity[dim]) {
-    if (lo < boxlo && hi > boxhi) {
-      return 0;
-    } else if (lo < boxlo) {
-      if (value > hi && value < lo + domain->prd[dim]) return 1;
-    } else if (hi > boxhi) {
-      if (value > hi - domain->prd[dim] && value < lo) return 1;
-    } else {
-      if (value < lo || value > hi) return 1;
-    }
+  // check for value inside/outside range, ignoring periodicity
+  // if inside or dim is non-periodic, only this test is needed
+
+  bool outside_range = (value < lo || value > hi);
+  if (!outside_range || !domain->periodicity[dim]) return outside_range;
+
+  // for periodic dimension: 
+  // must perform additional tests if range wraps around the periodic box
+
+  bool outside_pbc_range = true;
+
+  if ((lo < boxlo && hi > boxhi) || (hi - lo) > domain->prd[dim]) {
+    // value is always inside
+    outside_pbc_range = false;
+  } else if (lo < boxlo) {
+    // lower boundary crosses periodic boundary
+    outside_pbc_range = (value > hi && value < lo + domain->prd[dim]);
+  } else if (hi > boxhi) {
+    // upper boundary crosses periodic boundary
+    outside_pbc_range = (value < lo && value > hi - domain->prd[dim]);
   }
 
-  if (value < lo || value > hi) return 1;
-  return 0;
+  return outside_pbc_range;
 }
 
 /* ---------------------------------------------------------------------- */

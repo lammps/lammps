@@ -584,7 +584,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeDeidrj,const type
   const int jj = team.league_rank() / ((inum+team.team_size()-1)/team.team_size());
   const int ninside = d_ninside(ii);
   if (jj >= ninside) return;
- 
+
   my_sna.compute_deidrj(team,ii,jj);
 }
 
@@ -619,9 +619,9 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
       a_f(j,0) -= fij[0];
       a_f(j,1) -= fij[1];
       a_f(j,2) -= fij[2];
-      
+
       // tally global and per-atom virial contribution
-      
+
       if (EVFLAG) {
         if (vflag_either) {
           v_tally_xyz<NEIGHFLAG>(ev,i,j,
@@ -630,7 +630,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
             -my_sna.rij(ii,jj,2));
         }
       }
-      
+
     });
   });
 
@@ -649,16 +649,16 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
         // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
         double evdwl = d_coeffi[0];
-        
+
         // E = beta.B + 0.5*B^t.alpha.B
 
         // linear contributions
-        
+
         for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           evdwl += d_coeffi[icoeff+1]*my_sna.blist(ii,icoeff);
-        
+
         // quadratic contributions
-        
+
         if (quadraticflag) {
           int k = ncoeff+1;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {

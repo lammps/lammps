@@ -140,7 +140,7 @@ void PairGranular::compute(int eflag, int vflag)
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
 
-  double knfac, damp_normal, damp_normal_prefactor;
+  double knfac, damp_normal=0.0, damp_normal_prefactor;
   double k_tangential, damp_tangential;
   double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
   double fs, fs1, fs2, fs3, tor1, tor2, tor3;
@@ -307,7 +307,7 @@ void PairGranular::compute(int eflag, int vflag)
         delta = radsum - r;
         dR = delta*Reff;
 
-	if (normal_model[itype][jtype] == JKR) {
+        if (normal_model[itype][jtype] == JKR) {
           touch[jj] = 1;
           R2=Reff*Reff;
           coh = normal_coeffs[itype][jtype][3];
@@ -393,7 +393,7 @@ void PairGranular::compute(int eflag, int vflag)
         } else {
           Fncrit = fabs(Fntot);
         }
-		Fscrit = tangential_coeffs[itype][jtype][2] * Fncrit;
+        Fscrit = tangential_coeffs[itype][jtype][2] * Fncrit;
 
         //------------------------------
         // tangential forces
@@ -474,12 +474,12 @@ void PairGranular::compute(int eflag, int vflag)
           fs3 = -Ft*vtr3;
         }
 
-	if (roll_model[itype][jtype] != ROLL_NONE ||
-	    twist_model[itype][jtype] != TWIST_NONE){
+        if (roll_model[itype][jtype] != ROLL_NONE ||
+            twist_model[itype][jtype] != TWIST_NONE){
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
-	  // rolling velocity,
+          // rolling velocity,
           // see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
           // this is different from the Marshall papers,
           // which use the Bagi/Kuhn formulation
@@ -487,7 +487,7 @@ void PairGranular::compute(int eflag, int vflag)
           // - 0.5*((radj-radi)/radsum)*vtr1;
           // - 0.5*((radj-radi)/radsum)*vtr2;
           // - 0.5*((radj-radi)/radsum)*vtr3;
-	}
+        }
         //****************************************
         // rolling resistance
         //****************************************
@@ -1116,7 +1116,7 @@ void PairGranular::init_style()
 
 double PairGranular::init_one(int i, int j)
 {
-  double cutoff;
+  double cutoff=0.0;
 
   if (setflag[i][j] == 0) {
     if ((normal_model[i][i] != normal_model[j][j]) ||
@@ -1527,7 +1527,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         fs1 *= Fscrit/fs;
         fs2 *= Fscrit/fs;
         fs3 *= Fscrit/fs;
-		fs *= Fscrit/fs;
+                fs *= Fscrit/fs;
       } else fs1 = fs2 = fs3 = fs = 0.0;
     }
 
@@ -1539,7 +1539,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     fs1 = -Ft*vtr1;
     fs2 = -Ft*vtr2;
     fs3 = -Ft*vtr3;
-	fs = Ft*vrel;
+    fs = Ft*vrel;
   }
 
   //****************************************
@@ -1585,11 +1585,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         fr1 *= Frcrit/fr;
         fr2 *= Frcrit/fr;
         fr3 *= Frcrit/fr;
-		fr *= Frcrit/fr;
+                fr *= Frcrit/fr;
       } else fr1 = fr2 = fr3 = fr = 0.0;
     }
-
-  }
+  } else fr1 = fr2 = fr3 = fr = 0.0;
 
   //****************************************
   // twisting torque, including history effects
@@ -1614,12 +1613,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     if (fabs(magtortwist) > Mtcrit) {
       magtortwist = -Mtcrit * signtwist; // eq 34
     } else magtortwist = 0.0;
-  }
-	
+  } else magtortwist = 0.0;
+
   // set force and return no energy
-	
+
   fforce = Fntot*rinv;
-	
+
   // set single_extra quantities
 
   svector[0] = fs1;

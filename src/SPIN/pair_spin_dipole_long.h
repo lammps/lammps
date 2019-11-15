@@ -35,14 +35,14 @@ class PairSpinDipoleLong : public PairSpin {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
-  void *extract(const char *, int &); 
-  
+  void *extract(const char *, int &);
+
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_long(int, int, double *, double *, double *, 
+  void compute_long(int, int, double *, double *, double *,
       double *, double *);
-  void compute_long_mech(int, int, double *, double *, double *, 
+  void compute_long_mech(int, int, double *, double *, double *,
       double *, double *);
 
   void write_restart(FILE *);

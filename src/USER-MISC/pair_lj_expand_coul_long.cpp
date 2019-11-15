@@ -786,9 +786,9 @@ double PairLJExpandCoulLong::init_one(int i, int j)
        (1.0/3.0 + 2.0*shift1/(4.0*rc1) + shift2/(5.0*rc2))/rc3);
     ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * sig6 *
       ((1.0/9.0 + 3.0*shift1/(10.0*rc1) +
-	3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
+        3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
        (1.0/3.0 + 3.0*shift1/(4.0*rc1) +
-	3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
+        3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
   }
 
   return cut;

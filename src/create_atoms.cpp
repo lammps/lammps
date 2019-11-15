@@ -606,8 +606,11 @@ void CreateAtoms::add_random()
   double *boxlo,*boxhi;
 
   // random number generator, same for all procs
+  // warm up the generator 30x to avoid correlations in first-particle
+  // positions if runs are repeated with consecutive seeds
 
   RanPark *random = new RanPark(lmp,seed);
+  for (int ii=0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation
   // in real units, even if triclinic

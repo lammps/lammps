@@ -644,10 +644,10 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   dchi[2] = temp2*(iota[2]-temp1*r12hat[2]);
 
   temp1 = -eta*u_r;
-  temp2 = eta*chi;
-  fforce[0] = temp1*dchi[0]-temp2*dUr[0];
-  fforce[1] = temp1*dchi[1]-temp2*dUr[1];
-  fforce[2] = temp1*dchi[2]-temp2*dUr[2];
+  temp3 = eta*chi;
+  fforce[0] = temp1*dchi[0]-temp3*dUr[0];
+  fforce[1] = temp1*dchi[1]-temp3*dUr[1];
+  fforce[2] = temp1*dchi[2]-temp3*dUr[2];
 
   // torque for particle 1 and 2
   // compute dUr
@@ -668,18 +668,17 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
 
   MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
-  temp1 = -4.0/rsq;
-  dchi[0] *= temp1;
-  dchi[1] *= temp1;
-  dchi[2] *= temp1;
+  dchi[0] *= temp2;
+  dchi[1] *= temp2;
+  dchi[2] *= temp2;
   double dchi2[3];
 
   if (newton_pair || j < nlocal) {
     MathExtra::vecmat(iota,b2,tempv);
     MathExtra::cross3(tempv,iota,dchi2);
-    dchi2[0] *= temp1;
-    dchi2[1] *= temp1;
-    dchi2[2] *= temp1;
+    dchi2[0] *= temp2;
+    dchi2[1] *= temp2;
+    dchi2[2] *= temp2;
   }
 
   // compute d_eta

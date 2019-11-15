@@ -503,7 +503,7 @@ void ReadDump::header(int fieldinfo)
     yhi = box[1][1];
     zlo = box[2][0];
     zhi = box[2][1];
-    
+
     if (triclinic_snap) {
       xy = box[0][2];
       xz = box[1][2];

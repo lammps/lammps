@@ -113,7 +113,7 @@ void ReaderNative::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic, 
+bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
                                  int fieldinfo, int nfield,
                                  int *fieldtype, char **fieldlabel,
                                  int scaleflag, int wrapflag, int &fieldflag,

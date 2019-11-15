@@ -47,7 +47,6 @@ class FixLangevinSpin : public Fix {
   class Compute *temperature;
 
   int nlevels_respa;
-  // class RanPark *random;
   class RanMars *random;
   int seed;
 

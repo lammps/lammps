@@ -673,7 +673,7 @@ double Comm::get_comm_cutoff()
   // cutoff was given and no pair style present. Otherwise print a
   // warning, if the estimated bond based cutoff is larger than what
   // is currently used.
-  
+
   if (!force->pair && (cutghostuser == 0.0)) {
     maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
   } else {

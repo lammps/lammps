@@ -247,7 +247,7 @@ void FixNVESpin::init()
       locksetforcespin = (FixSetForceSpin *) modify->fix[iforce];
     }
   }
-  
+
   // setting the sector variables/lists
 
   nsectors = 0;

@@ -126,7 +126,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
     nay *= inorm;
     naz *= inorm;
   }
-  
+
   if (cubic_flag) {
     inorm = 1.0/sqrt(nc1x*nc1x + nc1y*nc1y + nc1z*nc1z);
     nc1x *= inorm;
@@ -244,7 +244,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   double **sp = atom->sp;
   const int nlocal = atom->nlocal;
   double spi[3], fmi[3], epreci;
-  
+
   eflag = 0;
   eprec = 0.0;
   for (int i = 0; i < nlocal; i++) {
@@ -317,7 +317,7 @@ double FixPrecessionSpin::compute_anisotropy_energy(double spi[3])
   double energy = 0.0;
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
   energy = Ka*scalar*scalar;
-  return energy; 
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -349,7 +349,7 @@ void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3])
   six1 = 2.0*skx*sky2*skz2;
   six2 = 2.0*sky*skx2*skz2;
   six3 = 2.0*skz*skx2*sky2;
-  
+
   sixx = k2ch*(nc1x*six1 + nc2x*six2 + nc3x*six3);
   sixy = k2ch*(nc1y*six1 + nc2y*six2 + nc3y*six3);
   sixz = k2ch*(nc1z*six1 + nc2z*six2 + nc3z*six3);

@@ -38,10 +38,10 @@ The *class2* angle style uses the potential
 
 .. math::
 
-   E & = & E_a + E_{bb} + E_{ba} \\
-   E_a & = & K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4 (\theta - \theta_0)^4 \\
-   E_{bb} & = & M (r_{ij} - r_1) (r_{jk} - r_2) \\
-   E_{ba} & = & N_1 (r_{ij} - r_1) (\theta - \theta_0) + N_2 (r_{jk} - r_2) (\theta - \theta_0)
+   E & = E_a + E_{bb} + E_{ba} \\
+   E_a & = K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4(\theta - \theta_0)^4 \\
+   E_{bb} & = M (r_{ij} - r_1) (r_{jk} - r_2) \\
+   E_{ba} & = N_1 (r_{ij} - r_1) (\theta - \theta_0) + N_2(r_{jk} - r_2)(\theta - \theta_0)
 
 
 where :math:`E_a` is the angle term, :math:`E_{bb}` is a bond-bond term, and :math:`E_{ba}` is a

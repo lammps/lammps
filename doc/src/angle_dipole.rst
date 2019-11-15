@@ -71,8 +71,8 @@ couple generating a torque equivalent to the opposite of :math:`\vec{T_j}`:
 
 .. math::
 
-   -\vec{T_j} & = & \vec{r_{ij}} \times \vec{F_i}\\
-   \vec{F_j} & = & -\vec{F_i} \\
+   -\vec{T_j} & = \vec{r_{ij}} \times \vec{F_i} \\
+   \vec{F_j}  & = -\vec{F_i}
 
 
 where :math:`\vec{F_i}` and :math:`\vec{F_j}` are applied on atoms :math:`i`

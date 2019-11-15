@@ -75,7 +75,7 @@ excluded volume interaction *oxrna2/excv*\ , the stacking *oxrna2/stk*\ , cross-
 and coaxial stacking interaction *oxrna2/coaxstk*\ , electrostatic Debye-Hueckel interaction *oxrna2/dh*
 as well as the hydrogen-bonding interaction *oxrna2/hbond* between complementary pairs of nucleotides on
 opposite strands. Average sequence or sequence-dependent stacking and base-pairing strengths
-are supported :ref:`(Sulc) <Sulc2>`. Quasi-unique base-pairing between nucleotides can be achieved by using 
+are supported :ref:`(Sulc2) <Sulc32>`. Quasi-unique base-pairing between nucleotides can be achieved by using 
 more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc. 
 This prevents the hybridization of in principle complementary bases within Ntypes/4 bases 
 up and down along the backbone.
@@ -84,8 +84,8 @@ The exact functional form of the pair styles is rather complex.
 The individual potentials consist of products of modulation factors,
 which themselves are constructed from a number of more basic potentials
 (Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic smoothing and modulation terms.
-We refer to :ref:`(Snodin) <Snodin2>` and the original oxDNA publications :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil2>`
-and  :ref:`(Ouldridge) <Ouldridge2>` for a detailed description of the oxDNA2 force field.
+We refer to :ref:`(Sulc1) <Sulc31>` and the original oxDNA publications :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil3>`
+and  :ref:`(Ouldridge) <Ouldridge3>` for a detailed description of the oxRNA2 force field.
 
 .. note::
 
@@ -103,7 +103,7 @@ Example input and data files for DNA duplexes can be found in examples/USER/cgdn
 A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
 
-Please cite :ref:`(Henrich) <Henrich2>` in any publication that uses
+Please cite :ref:`(Henrich) <Henrich3>` in any publication that uses
 this implementation.  The article contains general information
 on the model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be found
@@ -146,6 +146,14 @@ Related commands
 .. _Sulc32:
 
 **(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
+
+.. _Ouldridge-DPhil3:
+
+**(Ouldridge-DPhil)** T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).
+
+.. _Ouldridge3:
+
+**(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
 
 
 .. _lws: http://lammps.sandia.gov

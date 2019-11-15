@@ -2,7 +2,11 @@ This package contains a LAMMPS implementation of coarse-grained
 models of DNA, which can be used to model sequence-specific
 DNA strands.
 
-Please cite [1] and the relevant oxDNA, oxDNA2 and oxRNA2 articles 
+Please cite 
+
+[![DOI](https://zenodo.org/badge/132764768.svg)](https://zenodo.org/badge/latestdoi/132764768)
+
+as well as [1] and the relevant oxDNA, oxDNA2 and oxRNA2 articles 
 in any publication that uses this package.
 
 See the doc pages and [2,3,4,5,6] for the individual bond and pair styles. 

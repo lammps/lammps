@@ -1,16 +1,16 @@
-.. index:: angle\_style cosine/shift
+.. index:: angle_style cosine/shift
 
-angle\_style cosine/shift command
+angle_style cosine/shift command
 =================================
 
-angle\_style cosine/shift/omp command
-=====================================
+angle_style cosine/shift/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/shift
 
@@ -18,30 +18,33 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/shift
-   angle_coeff \* 10.0 45.0
+   angle_coeff * 10.0 45.0
 
 Description
 """""""""""
 
 The *cosine/shift* angle style uses the potential
 
-.. image:: Eqs/angle_cosine_shift.jpg
-   :align: center
+.. math::
 
-where theta0 is the equilibrium angle. The potential is bounded
-between -Umin and zero. In the neighborhood of the minimum E=- Umin +
-Umin/4(theta-theta0)\^2 hence the spring constant is umin/2.
+   E = -\frac{U_{\text{min}}}{2} \left[ 1 + \cos(\theta-\theta_0) \right]
+
+
+where :math:`\theta_0` is the equilibrium angle. The potential is bounded
+between :math:`-U_{\text{min}}` and zero. In the neighborhood of the minimum
+:math:`E = - U_{\text{min}} + U_{\text{min}}/4(\theta - \theta_0)^2` hence
+the spring constant is :math:`\frac{U_{\text{min}}}{2}`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* umin (energy)
-* theta (angle)
+* :math:`U_{\text{min}}` (energy)
+* :math:`\theta` (angle)
 
 
 ----------
@@ -83,8 +86,3 @@ Related commands
 :doc:`angle\_cosine\_shift\_exp <angle_cosine_shift_exp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

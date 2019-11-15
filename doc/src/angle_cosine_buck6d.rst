@@ -1,13 +1,13 @@
-.. index:: angle\_style cosine/buck6d
+.. index:: angle_style cosine/buck6d
 
-angle\_style cosine/buck6d command
-==================================
+angle_style cosine/buck6d command
+=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/buck6d
 
@@ -15,7 +15,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/buck6d
    angle_coeff 1  cosine/buck6d  1.978350  4  180.000000
@@ -25,22 +25,23 @@ Description
 
 The *cosine/buck6d* angle style uses the potential
 
-.. image:: Eqs/angle_cosine_buck6d.jpg
-   :align: center
+.. math::
 
-where K is the energy constant, n is the periodic multiplicity and
-Theta0 is the equilibrium angle.
+   E = K \left[ 1 + \cos(n\theta - \theta_0)\right]
+
+where :math:`K` is the energy constant, :math:`n` is the periodic multiplicity and
+:math:`\theta_0` is the equilibrium angle.
 
 The coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands in the following order:
 
-* K (energy)
-* n
-* Theta0 (degrees)
+* :math:`K` (energy)
+* :math:`n`
+* :math:`\theta_0` (degrees)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally.
 
 Additional to the cosine term the *cosine/buck6d* angle style computes
@@ -73,8 +74,3 @@ Related commands
 :doc:`angle\_coeff <angle_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,9 +6,6 @@ bond\_style oxdna/fene command
 bond\_style oxdna2/fene command
 ===============================
 
-bond\_style oxrna2/fene command
-===============================
-
 Syntax
 """"""
 
@@ -18,8 +15,6 @@ Syntax
    bond_style oxdna/fene
 
    bond_style oxdna2/fene
-
-   bond_style oxrna2/fene
 
 Examples
 """"""""
@@ -33,21 +28,18 @@ Examples
    bond_style oxdna2/fene
    bond_coeff \* 2.0 0.25 0.7564
 
-   bond_style oxrna2/fene
-   bond_coeff \* 2.0 0.25 0.76107
-
 Description
 """""""""""
 
-The *oxdna/fene* , *oxdna2/fene* and *oxrna2/fene* bond styles use the potential
+The *oxdna/fene* and *oxdna2/fene* bond styles use the potential
 
 .. image:: Eqs/bond_oxdna_fene.jpg
    :align: center
 
 to define a modified finite extensible nonlinear elastic (FENE)
-potential :ref:`(Ouldridge) <Ouldridge0>` to model the connectivity of the
-phosphate backbone in the oxDNA/oxRNA force field for coarse-grained
-modelling of DNA/RNA.
+potential :ref:`(Ouldridge) <oxdna_fene>` to model the connectivity of the
+phosphate backbone in the oxDNA force field for coarse-grained
+modelling of DNA.
 
 The following coefficients must be defined for the bond type via the
 :doc:`bond\_coeff <bond_coeff>` command as given in the above example, or
@@ -63,36 +55,27 @@ commands:
 
    The oxDNA bond style has to be used together with the
    corresponding oxDNA pair styles for excluded volume interaction
-   *oxdna/excv* , stacking *oxdna/stk* , cross-stacking *oxdna/xstk* and
+   *oxdna/excv*\ , stacking *oxdna/stk*\ , cross-stacking *oxdna/xstk* and
    coaxial stacking interaction *oxdna/coaxstk* as well as
    hydrogen-bonding interaction *oxdna/hbond* (see also documentation of
    :doc:`pair\_style oxdna/excv <pair_oxdna>`). For the oxDNA2
-   :ref:`(Snodin) <Snodin0>` bond style the analogous pair styles 
-   *oxdna2/excv* , *oxdna2/stk* , *oxdna2/xstk* , *oxdna2/coaxstk* ,
-   *oxdna2/hbond* and an additional Debye-Hueckel pair style 
-   *oxdna2/dh* have to be defined. The same applies to the oxRNA2
-   :ref:`(Sulc1) <Sulc01>` styles. 
+   :ref:`(Snodin) <oxdna2>` bond style the analogous pair styles and an
+   additional Debye-Hueckel pair style *oxdna2/dh* have to be defined.
    The coefficients in the above example have to be kept fixed and cannot
    be changed without reparameterizing the entire model.
 
-Example input and data files for DNA and RNA duplexes can be found in
-examples/USER/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python
-setup tool which creates single straight or helical DNA strands, DNA/RNA
-duplexes or arrays of DNA/RNA duplexes can be found in
+Example input and data files for DNA duplexes can be found in
+examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.  A simple python
+setup tool which creates single straight or helical DNA strands, DNA
+duplexes or arrays of DNA duplexes can be found in
 examples/USER/cgdna/util/.
 
-Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses 
-this implementation.  The article contains general information 
-on the model, its implementation and performance as well as the structure of 
-the data and input file. The preprint version of the article can be found
+Please cite :ref:`(Henrich) <Henrich2>` and the relevant oxDNA articles in
+any publication that uses this implementation.  The article contains
+more information on the model, the structure of the input file, the
+setup tool and the performance of the LAMMPS-implementation of oxDNA.
+The preprint version of the article can be found
 `here <PDF/USER-CGDNA.pdf>`_.
-Please cite also the relevant oxDNA/oxRNA publications. These are 
-:ref:`(Ouldridge) <Ouldridge0>` and 
-:ref:`(Ouldridge-DPhil) <Ouldridge-DPhil0>` for oxDNA, 
-:ref:`(Snodin) <Snodin0>` for oxDNA2, 
-:ref:`(Sulc1) <Sulc01>` for oxRNA2 
-and for sequence-specific hydrogen-bonding and stacking interactions 
-:ref:`(Sulc2) <Sulc02>`.
 
 
 ----------
@@ -109,37 +92,35 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style oxdna/excv <pair_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`, 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+:doc:`pair\_style oxdna/excv <pair_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`,
+:doc:`bond\_coeff <bond_coeff>`
 
 **Default:** none
 
 
 ----------
 
-.. _Henrich0:
 
-**(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
+.. _Henrich2:
 
-.. _Ouldridge-DPhil0:
 
-**(Ouldridge-DPhil)** T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).
 
-.. _Ouldridge0:
+**(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk,
+T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
 
-**(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
+.. _oxdna\_fene:
 
-.. _Snodin0:
 
-**(Snodin)** B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).
 
-.. _Sulc01:
+**(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye,
+J. Chem. Phys. 134, 085101 (2011).
 
-**(Sulc1)** P. Sulc, F. Romano, T. E. Ouldridge, et al., J. Chem. Phys. 140, 235102 (2014).
+.. _oxdna2:
 
-.. _Sulc02:
 
-**(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
+
+**(Snodin)** B.E. Snodin, F. Randisi, M. Mosayebi, et al.,
+J. Chem. Phys. 142, 234901 (2015).
 
 
 .. _lws: http://lammps.sandia.gov

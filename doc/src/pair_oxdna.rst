@@ -36,8 +36,8 @@ Syntax
      *oxdna/stk* args = seq T xi kappa 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
        seq = seqav (for average sequence stacking strength) or seqdep (for sequence-dependent stacking strength)
        T = temperature (oxDNA units, 0.1 = 300 K)
-       xi = 1.3448 (temperature-independent coefficient in stacking strength)
-       kappa = 2.6568 (coefficient of linear temperature dependence in stacking strength)
+       xi = temperature-independent coefficient in stacking strength
+       kappa = coefficient of linear temperature dependence in stacking strength
      *oxdna/hbond* args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
        seq = seqav (for average sequence base-pairing strength) or seqdep (for sequence-dependent base-pairing strength)
        eps = 1.077 (between base pairs A-T and C-G) or 0 (all other pairs)
@@ -94,15 +94,11 @@ Example input and data files for DNA duplexes can be found in examples/USER/cgdn
 A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
 
-Please cite :ref:`(Henrich) <Henrich1>` in any publication that uses
-this implementation.  The article contains general information
-on the model, its implementation and performance as well as the structure of
-the data and input file. The preprint version of the article can be found
-`here <PDF/USER-CGDNA.pdf>`_.
-Please cite also the relevant oxDNA publications
-:ref:`(Ouldridge) <Ouldridge1>`, 
-:ref:`(Ouldridge-DPhil) <Ouldridge-DPhil1>`
-and :ref:`(Sulc) <Sulc1>`.
+Please cite :ref:`(Henrich) <Henrich1>` and the relevant oxDNA articles in any publication that uses this implementation.
+The article contains more information on the model, the structure of the input file, the setup tool
+and the performance of the LAMMPS-implementation of oxDNA.
+The preprint version of the article can be found `here <PDF/USER-CGDNA.pdf>`_.
+
 
 ----------
 
@@ -118,31 +114,38 @@ USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`bond\_style oxdna/fene <bond_oxdna>`, :doc:`pair\_coeff <pair_coeff>`,
-:doc:`bond\_style oxdna2/fene <bond_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`,
-:doc:`bond\_style oxrna2/fene <bond_oxdna>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`,
-:doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
- 
+:doc:`bond\_style oxdna/fene <bond_oxdna>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`, :doc:`pair\_coeff <pair_coeff>`,
+:doc:`bond\_style oxdna2/fene <bond_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`
+
 **Default:** none
 
 
 ----------
 
+
 .. _Henrich1:
+
+
 
 **(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
 
+.. _Sulc1:
+
+
+
+**(Sulc)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
+
 .. _Ouldridge-DPhil1:
 
-**(Ouldridge-DPhil)** T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).
+
+
+**(Ouldrigde-DPhil)** T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).
 
 .. _Ouldridge1:
 
+
+
 **(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
-
-.. _Sulc1:
-
-**(Sulc)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
 
 
 .. _lws: http://lammps.sandia.gov

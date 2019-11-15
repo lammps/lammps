@@ -41,7 +41,7 @@ Options:
 
 make html         # generate HTML in html dir using Sphinx
 make pdf          # generate 2 PDF files (Manual.pdf,Developer.pdf)
-                  #   in this dir via htmldoc and pdflatex
+                  #   in this dir via Sphinx and PDFLaTeX
 make fetch        # fetch HTML doc pages and 2 PDF files from web site
                   #   as a tarball and unpack into html dir and 2 PDFs
 make epub         # generate LAMMPS.epub in ePUB format using Sphinx
@@ -88,8 +88,17 @@ This will install virtualenv from the Python Package Index.
 
 Installing prerequisites for PDF build
 
-[TBA]
-
+Same as for HTML plus a compatible LaTeX installation with
+support for PDFLaTeX. Also the following LaTeX packages need
+to be installed (e.g. from texlive):
+- amsmath
+- babel
+- cmap
+- fncychap
+- geometry
+- hyperref
+- hypcap
+- times
 ----------------
 
 Installing prerequisites for epub build

@@ -10,7 +10,17 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+/* IDEAS
 
+-Need to define a local array for snad on local and ghost atoms, in addition
+a local vector of (1+6)*size_array_cols scalars.  
+-Reverse communicate local array
+-MPI Allreduce on vector 
+-Copy vector and array into output array
+-size_array_cols = ncoeff
+-size_array_rows = total number of atoms
+-Boom!
+ */
 #include "compute_snap.h"
 #include <cstring>
 #include <cstdlib>
@@ -113,7 +123,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
   yoffset = nperdim;
   zoffset = 2*nperdim;
-  size_peratom_cols = 3*nperdim*atom->ntypes;
+  size_array_rows = total number of atoms
+  size_array_cols = 3*nperdim*atom->ntypes;
   comm_reverse = size_peratom_cols;
 
   nmax = 0;
@@ -178,7 +189,7 @@ void ComputeSnap::compute()
   if (atom->nmax > nmax) {
     memory->destroy(snap);
     nmax = atom->nmax;
-    memory->create(snap,nmax,size_peratom_cols,
+    memory->create(snap,size_array_rows,size_array_cols,
                    "snap:snap");
     array = snap;
   }

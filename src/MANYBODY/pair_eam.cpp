@@ -43,7 +43,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = NULL;
   fp = NULL;
-  count_embed = NULL;
+  numforce = NULL;
   map = NULL;
   type2frho = NULL;
 
@@ -78,7 +78,7 @@ PairEAM::~PairEAM()
 
   memory->destroy(rho);
   memory->destroy(fp);
-  memory->destroy(count_embed);
+  memory->destroy(numforce);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -153,11 +153,11 @@ void PairEAM::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(rho);
     memory->destroy(fp);
-    memory->destroy(count_embed);
+    memory->destroy(numforce);
     nmax = atom->nmax;
     memory->create(rho,nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
-    memory->create(count_embed,nmax,"pair:count_embed");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
   double **x = atom->x;
@@ -234,7 +234,6 @@ void PairEAM::compute(int eflag, int vflag)
     p = MIN(p,1.0);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
-    count_embed[i] = 0;
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
@@ -260,6 +259,7 @@ void PairEAM::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -271,7 +271,7 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-        ++count_embed[i];
+        ++numforce[i];
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;
@@ -808,7 +808,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
 
-  if (count_embed[i] > 0) {
+  if (numforce[i] > 0) {
     p = rho[i]*rdrho + 1.0;
     m = static_cast<int> (p);
     m = MAX(1,MIN(m,nrho-1));
@@ -817,7 +817,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
     coeff = frho_spline[type2frho[itype]][m];
     phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
     if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-    phi *= 1.0/static_cast<double>(count_embed[i]);
+    phi *= 1.0/static_cast<double>(numforce[i]);
   } else phi = 0.0;
 
   r = sqrt(rsq);

@@ -30,23 +30,28 @@ class ComputeSnap : public Compute {
   ~ComputeSnap();
   void init();
   void init_list(int, class NeighList *);
-  void compute();
+  void compute_array();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
  private:
-  int nmax;
+  int natoms, nmax, size_peratom;
   int ncoeff, nperdim, yoffset, zoffset;
+  int virialoffset, ndims_peratom;
   double **cutsq;
   class NeighList *list;
   double **snap;
+  double **snap_peratom;
   double rcutfac;
   double *radelem;
   double *wjelem;
   class SNA* snaptr;
   double cutmax;
   int quadraticflag;
+
+  Compute *c_pe;
+  Compute *c_virial;
 };
 
 }

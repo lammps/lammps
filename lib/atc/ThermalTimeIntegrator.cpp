@@ -28,7 +28,7 @@ namespace ATC {
   //  modify
   //    parses inputs and modifies state of the integrator
   //--------------------------------------------------------
-  bool ThermalTimeIntegrator::modify(int narg, char **arg)
+  bool ThermalTimeIntegrator::modify(int /* narg */, char **arg)
   {
     bool foundMatch = false;
     int argIndex = 0;
@@ -570,7 +570,7 @@ namespace ATC {
   //  compute_temperature_delta
   //--------------------------------------------------------
   void ThermalTimeIntegratorFractionalStep::compute_temperature_delta(const DENS_MAT & atomicEnergyDelta,
-                                                                      double dt)
+                                                                      double /* dt */)
   {
     DENS_MAT & myAtomicTemperatureDelta(atomicTemperatureDelta_.set_quantity());
     myAtomicTemperatureDelta = nodalAtomicEnergyOld_.quantity() + atomicEnergyDelta;

@@ -165,9 +165,9 @@ int MinSpin::iterate(int maxiter)
 
     fmdotfm = fmsq = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == MAX) fmsq = max_torque();	// max torque norm
-      else if (normstyle == INF) fmsq = inf_torque();	// inf torque norm
-      else if (normstyle == TWO) fmsq = total_torque();	// Euclidean torque 2-norm
+      if (normstyle == MAX) fmsq = max_torque();        // max torque norm
+      else if (normstyle == INF) fmsq = inf_torque();   // inf torque norm
+      else if (normstyle == TWO) fmsq = total_torque(); // Euclidean torque 2-norm
       else error->all(FLERR,"Illegal min_modify command");
       fmdotfm = fmsq*fmsq;
       if (update->multireplica == 0) {

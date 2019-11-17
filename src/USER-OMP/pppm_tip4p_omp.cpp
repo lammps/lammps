@@ -353,11 +353,11 @@ void PPPMTIP4POMP::particle_map()
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
-  int i, flag = 0;
+  int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     dbl3_t xM;
     int iH1,iH2;
 

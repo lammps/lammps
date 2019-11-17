@@ -31,6 +31,7 @@ compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
 compute entropy/atom, Pablo Piaggi (EPFL), pablo.piaggi at epfl.ch, 15 June 2018
 compute gyration/shape, Evangelos Voyiatzis, evoyiatzis at gmail.com, 25 July 2019
+compute gyration/shape/chunk, Evangelos Voyiatzis, evoyiatzis at gmail.com, 22 October 2019
 compute hma, Andrew Schultz & David Kofke (UB), ajs42 at buffalo.edu & kofke at buffalo.edu, 1 Jul 2019
 compute pressure/cylinder, Cody K. Addington (NCSU), , 2 Oct 2018
 compute momentum, Rupert Nash (University of Edinburgh), r.nash at epcc.ed.ac.uk, 28 June 2019

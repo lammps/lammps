@@ -53,14 +53,14 @@ include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict -std=c++11")
 endif()
 
 option(DISABLE_CXX11_REQUIREMENT "Disable check that requires C++11 for compiling LAMMPS" OFF)
 if(DISABLE_CXX11_REQUIREMENT)
   add_definitions(-DLAMMPS_CXX98)
-else()
-  set(CMAKE_CXX_STANDARD 11)
+# else()
+#  set(CMAKE_CXX_STANDARD 11)
 endif()
 
 # GNU compiler features
@@ -248,6 +248,7 @@ if(BUILD_OMP)
 endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
+  enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)

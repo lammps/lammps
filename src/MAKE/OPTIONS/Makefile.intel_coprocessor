@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc 
+CC =		mpiicpc -std=c++11
 MIC_OPT =       -qoffload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
 CCFLAGS =	-g -O3 -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
                 -xHost -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT \
@@ -14,7 +14,7 @@ CCFLAGS =	-g -O3 -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpiicpc
+LINK =		mpiicpc -std=c++11
 LINKFLAGS =	-g -O3 -xHost -qopenmp -qoffload
 LIB =           -ltbbmalloc
 SIZE =		size

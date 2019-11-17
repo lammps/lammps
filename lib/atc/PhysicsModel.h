@@ -47,7 +47,7 @@ namespace ATC
     void initialize(void); 
 
     // set timescale parameters based on a given lengthscale
-    virtual void set_timescales(const double lengthscale) {};
+    virtual void set_timescales(const double /* lengthscale */) {};
 
     /** access number of materials */
     int nMaterials(void) const { return materials_.size(); }

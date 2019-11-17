@@ -128,7 +128,7 @@ namespace ATC {
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
     /** get data for output */
@@ -540,7 +540,7 @@ namespace ATC {
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
     /** determine if local shape function matrices are needed */
@@ -917,7 +917,7 @@ namespace ATC {
     virtual void finish() {};
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
   protected:
@@ -1022,7 +1022,7 @@ namespace ATC {
     virtual void finish() {};
     
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};
 
   protected:

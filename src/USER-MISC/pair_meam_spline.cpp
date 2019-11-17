@@ -43,6 +43,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -439,13 +440,13 @@ void PairMEAMSpline::read_file(const char* filename)
     // Skip first line of file. It's a comment.
     char line[MAXLINE];
     char *ptr;
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
 
     // Second line holds potential type ("meam/spline")
     // in new potential format.
 
     bool isNewFormat = false;
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     ptr = strtok(line, " \t\n\r\f");
 
     if (strcmp(ptr, "meam/spline") == 0) {
@@ -475,7 +476,7 @@ void PairMEAMSpline::read_file(const char* filename)
       elements[0] = new char[1];
       strcpy(elements[0], "");
       rewind(fp);
-      fgets(line, MAXLINE, fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     }
 
     nmultichoose2 = ((nelements+1)*nelements)/2;
@@ -639,27 +640,27 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
 
   // If new format, read the spline format.  Should always be "spline3eq" for now.
   if (isNewFormat)
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
 
   // Parse number of spline knots.
-  fgets(line, MAXLINE, fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
   int n = atoi(line);
   if(n < 2)
     error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
   // Parse first derivatives at beginning and end of spline.
-  fgets(line, MAXLINE, fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
   double d0 = atof(strtok(line, " \t\n\r\f"));
   double dN = atof(strtok(NULL, " \t\n\r\f"));
   init(n, d0, dN);
 
   // Skip line in old format
   if (!isNewFormat)
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
 
   // Parse knot coordinates.
   for(int i=0; i<n; i++) {
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
     double x, y, y2;
     if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
       error->one(FLERR,"Invalid knot line in MEAM potential file");

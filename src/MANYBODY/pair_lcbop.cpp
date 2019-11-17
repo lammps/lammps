@@ -29,6 +29,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -978,43 +979,43 @@ void PairLCBOP::read_file(char *filename)
     // skip initial comment lines
 
     while (1) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
 
     // read parameters
 
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&r_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&r_2);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&gamma_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&A);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&B_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&B_2);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&alpha);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&beta_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&beta_2);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&d);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&C_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&C_4);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&C_6);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&L);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&kappa);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&R_0);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&R_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&r_0);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&r_1_LR);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&r_2_LR);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&v_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&v_2);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&eps_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&eps_2);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&lambda_1);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&lambda_2);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&eps);
-    fgets(s,MAXLINE,fp);    sscanf(s,"%lg",&delta);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_2);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&gamma_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&A);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&B_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&B_2);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&alpha);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&beta_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&beta_2);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&d);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&C_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&C_4);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&C_6);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&L);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&kappa);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&R_0);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&R_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_0);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_1_LR);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_2_LR);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&v_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&v_2);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps_2);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&lambda_1);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&lambda_2);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&delta);
 
     while (1) {
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
 
@@ -1023,27 +1024,27 @@ void PairLCBOP::read_file(char *filename)
     for (k = 0; k < 2; k++) { // 2 values of N_ij_conj
       for (l = 0; l < 3; l++) { // 3 types of data: f, dfdx, dfdy
         for (i = 0; i < 4; i++) { // 4x4 matrix
-          fgets(s,MAXLINE,fp);
+          utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
           sscanf(s,"%lg %lg %lg %lg",
             &F_conj_data[i][0][k][l],
             &F_conj_data[i][1][k][l],
             &F_conj_data[i][2][k][l],
             &F_conj_data[i][3][k][l]);
         }
-        while (1) { fgets(s,MAXLINE,fp); if (s[0] != '#') break; }
+        while (1) { utils::sfgets(FLERR,s,MAXLINE,fp,filename,error); if (s[0] != '#') break; }
       }
     }
 
     // G spline
 
     // x coordinates of mesh points
-    fgets(s,MAXLINE,fp);
+    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     sscanf( s,"%lg %lg %lg %lg %lg %lg",
       &gX[0], &gX[1], &gX[2],
       &gX[3], &gX[4], &gX[5] );
 
     for (i = 0; i < 6; i++) { // for each power in polynomial
-      fgets(s,MAXLINE,fp);
+      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       sscanf( s,"%lg %lg %lg %lg %lg",
         &gC[i][0], &gC[i][1], &gC[i][2],
         &gC[i][3], &gC[i][4] );

@@ -1,3 +1,20 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Vsevolod Nikolskiy (HSE)
+------------------------------------------------------------------------- */
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -34,35 +51,35 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                 double **host_lj2, double **host_lj3, double **host_lj4,
-                 double **offset, double *special_lj, const int nlocal,
-				 const int tH, const int tO, const double alpha, const double qdist,
-                 const int nall, const int max_nbors, const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen,
-				 double **host_cut_ljsq, const double host_cut_coulsq,
-				 const double host_cut_coulsqplus,
-				 double *host_special_coul, const double qqrd2e,
-				 const double g_ewald, int* tag,
-				 int *map_array, int map_size,
-				 int *sametag, int max_same);
+    double **host_lj2, double **host_lj3, double **host_lj4,
+    double **offset, double *special_lj, const int nlocal,
+    const int tH, const int tO, const double alpha, const double qdist,
+    const int nall, const int max_nbors, const int maxspecial,
+    const double cell_size, int &gpu_mode, FILE *screen,
+    double **host_cut_ljsq, const double host_cut_coulsq,
+    const double host_cut_coulsqplus, double *host_special_coul,
+    const double qqrd2e, const double g_ewald, int* tag,
+    int *map_array, int map_size,
+    int *sametag, int max_same);
 void ljtip4p_long_gpu_clear();
 int ** ljtip4p_long_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q,
-						 double *boxlo, double *prd);
+    const int nall, double **host_x, int *host_type,
+    double *sublo, double *subhi, tagint *tag, int **nspecial,
+    tagint **special, const bool eflag, const bool vflag,
+    const bool eatom, const bool vatom, int &host_start,
+    int **ilist, int **jnum,
+    const double cpu_time, bool &success, double *host_q,
+    double *boxlo, double *prd);
 void ljtip4p_long_gpu_compute(const int ago, const int inum, const int nall,
-                     double **host_x, int *host_type, int *ilist, int *numj,
-                     int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time,
-                     bool &success, double *host_q, const int nlocal,
-                     double *boxlo, double *prd);
+    double **host_x, int *host_type, int *ilist, int *numj,
+    int **firstneigh, const bool eflag, const bool vflag,
+    const bool eatom, const bool vatom, int &host_start,
+    const double cpu_time,
+    bool &success, double *host_q, const int nlocal,
+    double *boxlo, double *prd);
 double ljtip4p_long_gpu_bytes();
-void ljtip4p_long_copy_molecule_data(int **, double **, int, int* , int *, int, int *, int , int);
+void ljtip4p_long_copy_molecule_data(int **, double **, int, int* , int *,
+		int, int *, int , int);
 
 /* ---------------------------------------------------------------------- */
 
@@ -81,7 +98,7 @@ PairLJCutTIP4PLongGPU::PairLJCutTIP4PLongGPU(LAMMPS *lmp)
 
 PairLJCutTIP4PLongGPU::~PairLJCutTIP4PLongGPU()
 {
-	ljtip4p_long_gpu_clear();
+  ljtip4p_long_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,29 +113,29 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
   int inum, host_start;
 
   ljtip4p_long_copy_molecule_data(hneigh, newsite, nall, atom->tag,
-			 atom->get_map_array(), atom->get_map_size(),
-			 atom->sametag, atom->get_max_same(), neighbor->ago);
+      atom->get_map_array(), atom->get_map_size(),
+      atom->sametag, atom->get_max_same(), neighbor->ago);
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = ljtip4p_long_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, domain->sublo,
-                                   domain->subhi, atom->tag, atom->nspecial,
-                                   atom->special, eflag, vflag, eflag_atom,
-                                   vflag_atom, host_start, &ilist, &numneigh,
-								   cpu_time, success, atom->q, domain->boxlo,
-								   domain->prd);
+        atom->x, atom->type, domain->sublo,
+        domain->subhi, atom->tag, atom->nspecial,
+        atom->special, eflag, vflag, eflag_atom,
+        vflag_atom, host_start, &ilist, &numneigh,
+        cpu_time, success, atom->q, domain->boxlo,
+        domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     ljtip4p_long_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-                    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-                    vflag_atom, host_start, cpu_time, success, atom->q,
-					atom->nlocal, domain->boxlo, domain->prd);
+        ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+        vflag_atom, host_start, cpu_time, success, atom->q,
+        atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -149,7 +166,8 @@ void PairLJCutTIP4PLongGPU::init_style()
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
   if (atom->map_style == 2)
-	  error->all(FLERR,"GPU-accelerated lj/cut/tip4p/long currently requires map style 'array' (atom_modify map array)");
+    error->all(FLERR,"GPU-accelerated lj/cut/tip4p/long currently"
+        " requires map style 'array' (atom_modify map array)");
 
   //PairLJCutCoulLong::init_style();
   // Repeat cutsq calculation because done after call to init_style
@@ -189,25 +207,24 @@ void PairLJCutTIP4PLongGPU::init_style()
   cut_coulsq = cut_coul * cut_coul;
   double cut_coulsqplus = (cut_coul+qdist+blen) * (cut_coul+qdist+blen);
   if (maxcut < cut_coulsqplus) {
-	  cell_size = (cut_coul+qdist+blen) + neighbor->skin;
+    cell_size = (cut_coul+qdist+blen) + neighbor->skin;
   }
   if (comm->cutghostuser < cell_size) {
     comm->cutghostuser = cell_size;
     if (comm->me == 0)
-       error->warning(FLERR,"Increasing communication cutoff for TIP4P GPU style");
+      error->warning(FLERR,"Increasing communication cutoff for TIP4P GPU style");
   }
 
   int success = ljtip4p_long_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
-							 typeH, typeO, alpha, qdist,
+                             typeH, typeO, alpha, qdist,
                              atom->nlocal+atom->nghost, 300, maxspecial,
                              cell_size, gpu_mode, screen, cut_ljsq,
-							 cut_coulsq, cut_coulsqplus,
+                             cut_coulsq, cut_coulsqplus,
                              force->special_coul, force->qqrd2e,
-							 g_ewald,
-							 atom->tag,
-							 atom->get_map_array(), atom->get_map_size(),
-							 atom->sametag, atom->get_max_same());
+                             g_ewald,
+                             atom->tag, atom->get_map_array(), atom->get_map_size(),
+                             atom->sametag, atom->get_max_same());
   GPU_EXTRA::check_flag(success,error,world);
   if (gpu_mode == GPU_FORCE) {
     int irequest = neighbor->request(this,instance_me);
@@ -228,7 +245,3 @@ double PairLJCutTIP4PLongGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-//void PairLJCutTIP4PLongGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-//                               int *ilist, int *numneigh, int **firstneigh) {
-//	error->all(FLERR,"PairLJCutTIP4PLongGPU::cpu_compute not implemented");
-//}

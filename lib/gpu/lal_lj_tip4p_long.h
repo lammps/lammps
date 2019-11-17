@@ -1,3 +1,18 @@
+/**************************************************************************
+                               lj_tip4p_long.h
+                             -------------------
+                              V. Nikolskiy (HSE)
+
+  Class for acceleration of the lj/tip4p/long pair style
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                :
+    email                : thevsevak@gmail.com
+***************************************************************************/
+
 #ifndef LAL_LJ_TIP4P_LONG_H
 #define LAL_LJ_TIP4P_LONG_H
 
@@ -26,16 +41,16 @@ public:
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double **host_offset, double *host_special_lj,
            const int nlocal, const int tH, const int tO,
-		   const double alpha, const double qdist,
-		   const int nall, const int max_nbors,
+           const double alpha, const double qdist,
+           const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen,
-		   double **host_cut_ljsq,
-		   const double host_cut_coulsq, const double host_cut_coulsqplus,
-		   double *host_special_coul, const double qqrd2e,
-		   const double g_ewald, int* tag,
-			 int *map_array, int map_size,
-			 int *sametag, int max_same);
+           double **host_cut_ljsq,
+           const double host_cut_coulsq, const double host_cut_coulsqplus,
+           double *host_special_coul, const double qqrd2e,
+           const double g_ewald, int* tag,
+           int *map_array, int map_size,
+           int *sametag, int max_same);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -49,7 +64,7 @@ public:
 
   /// Copy data which is easier to compute in LAMMPS_NS
   void copy_relations_data(int **hn, double **m, int n,int* tag, int *map_array, int map_size,
-			 int *sametag, int max_same, int ago);
+      int *sametag, int max_same, int ago);
 
   // --------------------------- TYPE DATA --------------------------
 
@@ -77,7 +92,7 @@ public:
   UCL_D_Vec<int> hneight;
   UCL_D_Vec<numtyp4> m; // position and charge of virtual particle
   UCL_D_Vec<acctyp4> ansO; // force applied to virtual particle
-  UCL_D_Vec<acctyp4> force_comp;
+  // UCL_D_Vec<acctyp4> force_comp;
 
   UCL_D_Vec<int> tag;
   UCL_D_Vec<int> map_array;

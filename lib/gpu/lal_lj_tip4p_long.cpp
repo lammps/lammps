@@ -1,3 +1,18 @@
+/**************************************************************************
+                               lj_tip4p_long.cpp
+                             -------------------
+                              V. Nikolskiy (HSE)
+
+  Class for acceleration of the lj/tip4p/long pair style
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                :
+    email                : thevsevak@gmail.com
+***************************************************************************/
+
 #if defined(USE_OPENCL)
 #include "lj_tip4p_long_cl.h"
 #elif defined(USE_CUDART)
@@ -29,21 +44,21 @@ int LJ_TIP4PLong<numtyp, acctyp>::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int LJ_TIP4PLong<numtyp, acctyp>::init(const int ntypes,
-                          double **host_cutsq, double **host_lj1,
-                          double **host_lj2, double **host_lj3,
-                          double **host_lj4, double **host_offset,
-                          double *host_special_lj, const int nlocal,
-						  const int tH, const int tO,
-						  const double a, const double qd,
-                          const int nall, const int max_nbors,
-                          const int maxspecial, const double cell_size,
-                          const double gpu_split, FILE *_screen,
-						  double **host_cut_ljsq,
-						  const double host_cut_coulsq, const double host_cut_coulsqplus,
-						  double *host_special_coul, const double qqrd2e,
-						  const double g_ewald, int* tag,
-							 int *map_array, int map_size,
-							 int *sametag, int max_same) {
+    double **host_cutsq, double **host_lj1,
+    double **host_lj2, double **host_lj3,
+    double **host_lj4, double **host_offset,
+    double *host_special_lj, const int nlocal,
+    const int tH, const int tO,
+    const double a, const double qd,
+    const int nall, const int max_nbors,
+    const int maxspecial, const double cell_size,
+    const double gpu_split, FILE *_screen,
+    double **host_cut_ljsq,
+    const double host_cut_coulsq, const double host_cut_coulsqplus,
+    double *host_special_coul, const double qqrd2e,
+    const double g_ewald, int* tag,
+    int *map_array, int map_size,
+    int *sametag, int max_same) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                             _screen,lj_tip4p_long,"k_lj_tip4p_long");
@@ -91,7 +106,7 @@ int LJ_TIP4PLong<numtyp, acctyp>::init(const int ntypes,
   }
   ucl_copy(sp_lj,host_write,8,false);
 
-  force_comp.alloc(72*72, *(this->ucl_device), UCL_READ_WRITE);
+  //force_comp.alloc(72*72, *(this->ucl_device), UCL_READ_WRITE);
 
   _qqrd2e=qqrd2e;
   _g_ewald=g_ewald;
@@ -103,26 +118,26 @@ int LJ_TIP4PLong<numtyp, acctyp>::init(const int ntypes,
   ansO.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
 
   // Allocate a host write buffer for data initialization
-  UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
-  this->tag.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
+  UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_READ_WRITE);
+  this->tag.alloc(nall,*(this->ucl_device), UCL_READ_ONLY);
   for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
   ucl_copy(this->tag, host_tag_write, nall, false);
 
   //if(max_same>host_tag_write.cols()) host_tag_write.resize(max_same);
-  this->atom_sametag.alloc(nall, *(this->ucl_device), UCL_READ_WRITE);
+  this->atom_sametag.alloc(nall, *(this->ucl_device), UCL_READ_ONLY);
   for(int i=0; i<nall; ++i) host_tag_write[i] = sametag[i];
   ucl_copy(this->atom_sametag, host_tag_write, nall, false);
 
-  if(map_size>host_tag_write.cols()) host_tag_write.resize(map_size);
-  this->map_array.alloc(map_size,*(this->ucl_device), UCL_READ_WRITE);
+  host_tag_write.resize_ib(map_size);
+  this->map_array.alloc(map_size,*(this->ucl_device), UCL_READ_ONLY);
   for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
   ucl_copy(this->map_array, host_tag_write, map_size, false);
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+cutsq.row_bytes()+
-                   sp_lj.row_bytes() + hneight.row_bytes()+m.row_bytes()+
-				   this->tag.row_bytes()+this->atom_sametag.row_bytes() +
-				   this->map_array.row_bytes();
+      sp_lj.row_bytes() + hneight.row_bytes()+m.row_bytes()+
+      this->tag.row_bytes()+this->atom_sametag.row_bytes() +
+      this->map_array.row_bytes();
   return 0;
 }
 
@@ -143,7 +158,7 @@ void LJ_TIP4PLong<numtyp, acctyp>::clear() {
   atom_sametag.clear();
   map_array.clear();
   ansO.clear();
-  force_comp.clear();
+  //force_comp.clear();
 
   k_pair_distrib.clear();
 
@@ -192,47 +207,47 @@ void LJ_TIP4PLong<numtyp, acctyp>::loop(const bool _eflag, const bool _vflag) {
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
           &ainum, &nbor_pitch, &this->_threads_per_atom,
-			 &hneight, &m, &TypeO, &TypeH, &alpha,
-			 &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
-			 &cut_coulsq, &cut_coulsqplus, &tag, &map_array,
-			 &atom_sametag, &this->ansO);
+          &hneight, &m, &TypeO, &TypeH, &alpha,
+          &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
+          &cut_coulsq, &cut_coulsqplus, &tag, &map_array,
+          &atom_sametag, &this->ansO);
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
   this->k_pair_distrib.set_size(GX,BX);
   this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv, &eflag, &vflag,
-                     &ainum, &nbor_pitch, &this->_threads_per_atom,
-					 &hneight, &m, &TypeO, &TypeH, &alpha,
-					 &this->atom->q,  &this->ansO);
+      &ainum, &nbor_pitch, &this->_threads_per_atom,
+      &hneight, &m, &TypeO, &TypeH, &alpha,
+      &this->atom->q,  &this->ansO);
   this->time_pair.stop();
 }
 
 
 template <class numtyp, class acctyp>
 void LJ_TIP4PLong<numtyp, acctyp>::copy_relations_data(int **hn, double **newsite, int n,
-		int* tag, int *map_array, int map_size, int *sametag, int max_same, int ago){
-	int nall = n;
-	const int hn_sz = n*4; // matrix size = col size * col number
-	hneight.resize_ib(hn_sz+1);
-	if (ago == 0)
-		hneight.zero();
-	m.resize_ib(n+1);
-	m.zero();
+    int* tag, int *map_array, int map_size, int *sametag, int max_same, int ago){
+  int nall = n;
+  const int hn_sz = n*4; // matrix size = col size * col number
+  hneight.resize_ib(hn_sz);
+  if (ago == 0)
+    hneight.zero();
+  m.resize_ib(n);
+  m.zero();
 
-    UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
-    this->tag.resize_ib(nall);
-    for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
-    ucl_copy(this->tag, host_tag_write, nall, false);
+  UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
+  this->tag.resize_ib(nall);
+  for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
+  ucl_copy(this->tag, host_tag_write, nall, false);
 
-    if(max_same>host_tag_write.cols()) host_tag_write.resize(max_same);
-    this->atom_sametag.resize_ib(nall);
-    for(int i=0; i<nall; ++i) host_tag_write[i] = sametag[i];
-    ucl_copy(this->atom_sametag, host_tag_write, nall, false);
+  host_tag_write.resize_ib(max_same);
+  this->atom_sametag.resize_ib(nall);
+  for(int i=0; i<nall; ++i) host_tag_write[i] = sametag[i];
+  ucl_copy(this->atom_sametag, host_tag_write, nall, false);
 
-    if(map_size>host_tag_write.cols()) host_tag_write.resize(map_size);
-    this->map_array.resize_ib(map_size);
-    for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
-    ucl_copy(this->map_array, host_tag_write, map_size, false);
+  host_tag_write.resize_ib(map_size);
+  this->map_array.resize_ib(map_size);
+  for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
+  ucl_copy(this->map_array, host_tag_write, map_size, false);
 
-    host_tag_write.clear();
+  host_tag_write.clear();
 }
 
 template class LJ_TIP4PLong<PRECISION,ACC_PRECISION>;

@@ -1,3 +1,18 @@
+/***************************************************************************
+                            lj_tip4p_long_ext.cpp
+                             -------------------
+                              V. Nikolskiy (HSE)
+
+  Functions for LAMMPS access to lj/tip4p/long acceleration functions
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                :
+    email                : thevsevak@gmail.com
+ ***************************************************************************/
+
 #include <iostream>
 #include <cassert>
 #include <cmath>
@@ -13,18 +28,18 @@ static LJ_TIP4PLong<PRECISION,ACC_PRECISION> LJTIP4PLMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                 double **host_lj2, double **host_lj3, double **host_lj4,
-                 double **offset, double *special_lj, const int inum,
-				 const int tH, const int tO,
-				 const double alpha, const double qdist,
-                 const int nall, const int max_nbors,  const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen,
-				 double **host_cut_ljsq,
-				 const double host_cut_coulsq, const double host_cut_coulsqplus,
-				 double *host_special_coul, const double qqrd2e,
-				 const double g_ewald, int* tag,
-				 int *map_array, int map_size,
-				 int *sametag, int max_same) {
+    double **host_lj2, double **host_lj3, double **host_lj4,
+    double **offset, double *special_lj, const int inum,
+    const int tH, const int tO,
+    const double alpha, const double qdist,
+    const int nall, const int max_nbors,  const int maxspecial,
+    const double cell_size, int &gpu_mode, FILE *screen,
+    double **host_cut_ljsq,
+    const double host_cut_coulsq, const double host_cut_coulsqplus,
+    double *host_special_coul, const double qqrd2e,
+    const double g_ewald, int* tag,
+    int *map_array, int map_size,
+    int *sametag, int max_same) {
   LJTIP4PLMF.clear();
   gpu_mode=LJTIP4PLMF.device->gpu_mode();
   double gpu_split=LJTIP4PLMF.device->particle_split();
@@ -48,13 +63,13 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   int init_ok=0;
   if (world_me==0)
     init_ok=LJTIP4PLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                       host_lj4, offset, special_lj, inum,
-					   tH, tO, alpha, qdist, nall, 300,
-                       maxspecial, cell_size, gpu_split, screen,
-					   host_cut_ljsq, host_cut_coulsq, host_cut_coulsqplus,
-					   host_special_coul, qqrd2e, g_ewald, tag,
-						 map_array, map_size,
-						 sametag, max_same);
+        host_lj4, offset, special_lj, inum,
+        tH, tO, alpha, qdist, nall, 300,
+        maxspecial, cell_size, gpu_split, screen,
+        host_cut_ljsq, host_cut_coulsq, host_cut_coulsqplus,
+        host_special_coul, qqrd2e, g_ewald, tag,
+        map_array, map_size,
+        sametag, max_same);
 
   LJTIP4PLMF.device->world_barrier();
   if (message)
@@ -71,13 +86,13 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=LJTIP4PLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                         offset, special_lj, inum,
-						 tH, tO, alpha, qdist, nall, 300, maxspecial,
-                         cell_size, gpu_split, screen, host_cut_ljsq,
-	                     host_cut_coulsq, host_cut_coulsqplus,
-						 host_special_coul, qqrd2e, g_ewald,tag,
-						 map_array, map_size,
-						 sametag, max_same);
+          offset, special_lj, inum,
+          tH, tO, alpha, qdist, nall, 300, maxspecial,
+          cell_size, gpu_split, screen, host_cut_ljsq,
+          host_cut_coulsq, host_cut_coulsqplus,
+          host_special_coul, qqrd2e, g_ewald,tag,
+          map_array, map_size,
+          sametag, max_same);
 
     LJTIP4PLMF.device->gpu_barrier();
     if (message)
@@ -90,8 +105,6 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     LJTIP4PLMF.estimate_gpu_overhead();
   return init_ok;
 }
-
-
 
 void ljtip4p_long_gpu_clear() {
   LJTIP4PLMF.clear();
@@ -108,7 +121,7 @@ int ** ljtip4p_long_gpu_compute_n(const int ago, const int inum_full,
   return LJTIP4PLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
-					   host_q,boxlo, prd);
+                       host_q,boxlo, prd);
 }
 
 void ljtip4p_long_gpu_compute(const int ago, const int inum_full, const int nall,
@@ -116,10 +129,10 @@ void ljtip4p_long_gpu_compute(const int ago, const int inum_full, const int nall
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
                      const double cpu_time, bool &success,double *host_q,
-					 const int nlocal, double *boxlo, double *prd) {
+                     const int nlocal, double *boxlo, double *prd) {
   LJTIP4PLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,host_q,
-				nlocal,boxlo,prd);
+      firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,host_q,
+      nlocal,boxlo,prd);
 }
 
 double ljtip4p_long_gpu_bytes() {
@@ -127,9 +140,9 @@ double ljtip4p_long_gpu_bytes() {
 }
 
 void ljtip4p_long_copy_molecule_data(int **hn, double **m, int n, int* tag,
-		 int *map_array, int map_size,
-		 int *sametag, int max_same, int ago){
-	LJTIP4PLMF.copy_relations_data(hn, m, n, tag,map_array,map_size,sametag, max_same, ago);
+    int *map_array, int map_size,
+    int *sametag, int max_same, int ago){
+  LJTIP4PLMF.copy_relations_data(hn, m, n, tag,map_array,map_size,sametag, max_same, ago);
 }
 
 

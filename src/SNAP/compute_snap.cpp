@@ -20,7 +20,7 @@
 -DONE: size_peratom = (3+6)*nperdim*ntypes
 INCOMPLETE: Mappy from local to global
 INCOMPLETE: modify->find_compute() 
-INCOMPLETE: eliminate local peratom array for viral, replace with fdotr 
+DONE: eliminate local peratom array for viral, replace with fdotr 
 
  */
 #include "compute_snap.h"
@@ -129,14 +129,15 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
   if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
+  ndims_force = 3;
+  ndims_virial = 6;
   yoffset = nperdim;
   zoffset = 2*nperdim;
-  virialoffset = 3*nperdim;
   natoms = atom->natoms;
-  size_array_rows = 1+3*natoms+6;
-  size_array_cols = nperdim*atom->ntypes+1; // extra col for reference potential
-  ndims_peratom = 9;
-  size_peratom = ndims_peratom*nperdim*atom->ntypes; // local atom force and virial data
+  size_array_rows = 1+ndims_force*natoms+ndims_virial;
+  size_array_cols = nperdim*atom->ntypes+1;
+  ndims_peratom = ndims_force;
+  size_peratom = ndims_peratom*nperdim*atom->ntypes;
   comm_reverse = size_peratom;
 
   nmax = 0;
@@ -182,8 +183,6 @@ void ComputeSnap::init()
 
   // allocate memory for global array
 
-  //  printf("allocate memory for global array rows = %d cols = %d\n",
-  //         size_array_rows,size_array_cols);
   memory->create(snap,size_array_rows,size_array_cols,
                  "snap:snap");
   array = snap;
@@ -197,6 +196,8 @@ void ComputeSnap::init()
 
   char *id_pe = (char *) "thermo_pe";
   int ipe = modify->find_compute(id_pe);
+  if (ipe == -1)
+    error->all(FLERR,"compute thermo_pe does not exist.");
   c_pe = modify->compute[ipe];
 
   // add compute for reference virial tensor
@@ -204,7 +205,7 @@ void ComputeSnap::init()
   char *id_virial = (char *) "snap_press";
   int ivirial = modify->find_compute(id_virial);
   if (ivirial == -1)
-    error->all(FLERR,"compute snap requires that compute snap_press exists!");
+    error->all(FLERR,"compute snap requires that compute snap_press exists.");
   c_virial = modify->compute[ivirial];
 }
 
@@ -224,8 +225,6 @@ void ComputeSnap::compute_array()
 
   invoked_array = update->ntimestep;
 
-  //  printf("Invoking compute snap on timestep %d\n",invoked_array);
-
   // grow snap_peratom array if necessary
 
   if (atom->nmax > nmax) {
@@ -236,12 +235,12 @@ void ComputeSnap::compute_array()
   }
 
   // clear global array
-  // only need to zero out first row
+  // only need to zero out first row of bispectrum 
 
-  for (int icoeff = 0; icoeff < size_array_cols; icoeff++)
+  for (int icoeff = 0; icoeff < size_array_cols-1; icoeff++)
     snap[0][icoeff] = 0.0;
 
-  // clear peratom array
+  // clear local peratom array
 
   for (int i = 0; i < ntotal; i++)
     for (int icoeff = 0; icoeff < size_peratom; icoeff++) {
@@ -275,7 +274,8 @@ void ComputeSnap::compute_array()
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
-      const int typeoffset = ndims_peratom*nperdim*(atom->type[i]-1);
+      const int typeoffset_local = ndims_peratom*nperdim*(itype-1);
+      const int typeoffset_global = nperdim*(itype-1);
 
       // insure rij, inside, and typej  are of size jnum
 
@@ -309,9 +309,7 @@ void ComputeSnap::compute_array()
 
       snaptr->compute_ui(ninside);
       snaptr->compute_zi();
-      //      if (quadraticflag) {
       snaptr->compute_bi();
-      //      }
 
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
@@ -322,10 +320,8 @@ void ComputeSnap::compute_array()
 
         // Accumulate -dBi/dRi, -dBi/dRj
 
-        double *snadi = snap_peratom[i]+typeoffset;
-        double *snadj = snap_peratom[j]+typeoffset;
-        double *snavi = snadi+virialoffset;
-        double *snavj = snadj+virialoffset;
+        double *snadi = snap_peratom[i]+typeoffset_local;
+        double *snadj = snap_peratom[j]+typeoffset_local;
 
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           snadi[icoeff] += snaptr->dblist[icoeff][0];
@@ -334,27 +330,12 @@ void ComputeSnap::compute_array()
           snadj[icoeff] -= snaptr->dblist[icoeff][0];
           snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
           snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
-
-          snavi[icoeff]           += snaptr->dblist[icoeff][0]*xtmp;
-          snavi[icoeff+nperdim]   += snaptr->dblist[icoeff][1]*ytmp;
-          snavi[icoeff+2*nperdim] += snaptr->dblist[icoeff][2]*ztmp;
-          snavi[icoeff+3*nperdim] += snaptr->dblist[icoeff][1]*ztmp;
-          snavi[icoeff+4*nperdim] += snaptr->dblist[icoeff][0]*ztmp;
-          snavi[icoeff+5*nperdim] += snaptr->dblist[icoeff][0]*ytmp;
-          snavj[icoeff]           -= snaptr->dblist[icoeff][0]*x[j][0];
-          snavj[icoeff+nperdim]   -= snaptr->dblist[icoeff][1]*x[j][1];
-          snavj[icoeff+2*nperdim] -= snaptr->dblist[icoeff][2]*x[j][2];
-          snavj[icoeff+3*nperdim] -= snaptr->dblist[icoeff][1]*x[j][2];
-          snavj[icoeff+4*nperdim] -= snaptr->dblist[icoeff][0]*x[j][2];
-          snavj[icoeff+5*nperdim] -= snaptr->dblist[icoeff][0]*x[j][1];
         }
 
         if (quadraticflag) {
           const int quadraticoffset = ncoeff;
           snadi += quadraticoffset;
           snadj += quadraticoffset;
-          snavi += quadraticoffset;
-          snavj += quadraticoffset;
           int ncount = 0;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
             double bi = snaptr->blist[icoeff];
@@ -375,19 +356,6 @@ void ComputeSnap::compute_array()
             snadj[ncount+yoffset] -= dbytmp;
             snadj[ncount+zoffset] -= dbztmp;
 
-            snavi[ncount] +=           dbxtmp*xtmp;
-            snavi[ncount+nperdim] +=   dbytmp*ytmp;
-            snavi[ncount+2*nperdim] += dbztmp*ztmp;
-            snavi[ncount+3*nperdim] += dbytmp*ztmp;
-            snavi[ncount+4*nperdim] += dbxtmp*ztmp;
-            snavi[ncount+5*nperdim] += dbxtmp*ytmp;
-            snavj[ncount] -=            dbxtmp*x[j][0];
-            snavj[ncount+nperdim] -=    dbytmp*x[j][1];
-            snavj[ncount+2*nperdim] -=  dbztmp*x[j][2];
-            snavj[ncount+3*nperdim] -=  dbytmp*x[j][2];
-            snavj[ncount+4*nperdim] -=  dbxtmp*x[j][2];
-            snavj[ncount+5*nperdim] -=  dbxtmp*x[j][1];
-
             ncount++;
 
             // upper-triangular elements of quadratic matrix
@@ -407,22 +375,10 @@ void ComputeSnap::compute_array()
               snadj[ncount+yoffset] -= dbytmp;
               snadj[ncount+zoffset] -= dbztmp;
 
-              snavi[ncount] +=           dbxtmp*xtmp;
-              snavi[ncount+nperdim] +=   dbytmp*ytmp;
-              snavi[ncount+2*nperdim] += dbztmp*ztmp;
-              snavi[ncount+3*nperdim] += dbytmp*ztmp;
-              snavi[ncount+4*nperdim] += dbxtmp*ztmp;
-              snavi[ncount+5*nperdim] += dbxtmp*ytmp;
-              snavj[ncount] -=           dbxtmp*x[j][0];
-              snavj[ncount+nperdim] -=   dbytmp*x[j][1];
-              snavj[ncount+2*nperdim] -= dbztmp*x[j][2];
-              snavj[ncount+3*nperdim] -= dbytmp*x[j][2];
-              snavj[ncount+4*nperdim] -= dbxtmp*x[j][2];
-              snavj[ncount+5*nperdim] -= dbxtmp*x[j][1];
-
               ncount++;
             }
           }
+
         }
       }
 
@@ -448,65 +404,39 @@ void ComputeSnap::compute_array()
     }
   }
 
-  // INCOMPLETE
-  // can get rid of virial from snap_peratom by doing
-  // equivalent of Pair::virial_fdotr_compute()
-  // before reverse communicate of snap_peratom
+  // accumulate virial contributions before reverse compute
 
-  // communicate snap contributions between neighbor procs
+  dbdotr_compute();
+
+  // communicate local peratom contributions between neighbor procs
 
   comm->reverse_comm_compute(this);
 
-  // construct global array
+  // copy peratom data to global array
+  // INCOMPLETE ignore local-global mapping for now
 
   for (int itype = 0; itype < atom->ntypes; itype++) {
-    const int typeoffset = 3*nperdim*itype;
+    const int typeoffset_local = ndims_peratom*nperdim*itype;
+    const int typeoffset_global = nperdim*itype;
     for (int icoeff = 0; icoeff < nperdim; icoeff++) {
-
-      // assign force rows
-      // INCOMPLETE ignore local-global mapping for now
-
       int irow = 1;
       for (int i = 0; i < atom->nlocal; i++) {
-        double *snadi = snap_peratom[i]+typeoffset;
-        snap[irow++][icoeff+typeoffset] = snadi[icoeff];
-        snap[irow++][icoeff+typeoffset] = snadi[icoeff+yoffset];
-        snap[irow++][icoeff+typeoffset] = snadi[icoeff+zoffset];
-
+        double *snadi = snap_peratom[i]+typeoffset_local;
+        snap[irow++][icoeff+typeoffset_global] = snadi[icoeff];
+        snap[irow++][icoeff+typeoffset_global] = snadi[icoeff+yoffset];
+        snap[irow++][icoeff+typeoffset_global] = snadi[icoeff+zoffset];
       }
-
-      // assign virial row
-
-      int irow0 = irow;
-      snap[irow++][icoeff+typeoffset] = 0.0; 
-      snap[irow++][icoeff+typeoffset] = 0.0; 
-      snap[irow++][icoeff+typeoffset] = 0.0; 
-      snap[irow++][icoeff+typeoffset] = 0.0; 
-      snap[irow++][icoeff+typeoffset] = 0.0; 
-      snap[irow++][icoeff+typeoffset] = 0.0;
-
-      for (int i = 0; i < atom->nlocal; i++) {
-        double *snavi = snap_peratom[i]+typeoffset+virialoffset;
-        irow = irow0;
-        snap[irow++][icoeff+typeoffset] += snavi[icoeff];
-        snap[irow++][icoeff+typeoffset] += snavi[icoeff+1*nperdim];
-        snap[irow++][icoeff+typeoffset] += snavi[icoeff+2*nperdim];
-        snap[irow++][icoeff+typeoffset] += snavi[icoeff+3*nperdim];
-        snap[irow++][icoeff+typeoffset] += snavi[icoeff+4*nperdim];
-        snap[irow++][icoeff+typeoffset] += snavi[icoeff+5*nperdim];
-      }
-
     }
   }
 
-  // assign energy row
+  // assign energy to last column
 
   int icol = size_array_cols-1;
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
   snap[irow++][icol] = reference_energy; 
 
-  // assign force rows
+  // assign forces to last column
   // INCOMPLETE ignore local-global mapping for now
 
   for (int i = 0; i < atom->nlocal; i++) {
@@ -515,7 +445,7 @@ void ComputeSnap::compute_array()
     snap[irow++][icol] = atom->f[i][2];
   }
 
-  // assign virial row
+  // assign virial stress to last column
   // switch to Voigt notation
 
   c_virial->compute_vector();
@@ -554,6 +484,58 @@ void ComputeSnap::unpack_reverse_comm(int n, int *list, double *buf)
     for (icoeff = 0; icoeff < size_peratom; icoeff++)
       snap_peratom[j][icoeff] += buf[m++];
   }
+}
+
+/* ----------------------------------------------------------------------
+   compute global virial contributions via summing dB dot r over 
+   own & ghost atoms, before reverse comm.
+------------------------------------------------------------------------- */
+
+void ComputeSnap::dbdotr_compute()
+{
+  double **x = atom->x;
+  int irow0 = 1+ndims_peratom*natoms;
+
+  // zero virial entries
+
+  for (int itype = 0; itype < atom->ntypes; itype++) {
+    const int typeoffset_global = nperdim*itype;
+    for (int icoeff = 0; icoeff < size_array_cols-1; icoeff++) {
+      int irow = irow0;
+      snap[irow++][icoeff+typeoffset_global] = 0.0;
+      snap[irow++][icoeff+typeoffset_global] = 0.0;
+      snap[irow++][icoeff+typeoffset_global] = 0.0;
+      snap[irow++][icoeff+typeoffset_global] = 0.0;
+      snap[irow++][icoeff+typeoffset_global] = 0.0;
+      snap[irow++][icoeff+typeoffset_global] = 0.0;
+    }
+  }
+
+  // sum over force on all particles including ghosts
+
+  int nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < nall; i++)
+    for (int itype = 0; itype < atom->ntypes; itype++) {
+      const int typeoffset_local = ndims_peratom*nperdim*itype;
+      const int typeoffset_global = nperdim*itype;
+      double *snadi = snap_peratom[i]+typeoffset_local;
+      for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+        double dbdx = snadi[icoeff];
+        double dbdy = snadi[icoeff+yoffset];
+        double dbdz = snadi[icoeff+zoffset];
+        int irow = irow0;
+
+        // RHS is xi*dSum(b_j, j in itype)/dxi
+        // dSum(bj)/dxi is in first ntypes*3*nperdim elements of row snap_peratom[i]
+        // LHS is Sum(RHS, i), each row of length ntypes*nperdim
+        snap[irow++][icoeff+typeoffset_global] += dbdx*x[i][0];
+        snap[irow++][icoeff+typeoffset_global] += dbdy*x[i][1];
+        snap[irow++][icoeff+typeoffset_global] += dbdz*x[i][2];
+        snap[irow++][icoeff+typeoffset_global] += dbdz*x[i][1];
+        snap[irow++][icoeff+typeoffset_global] += dbdz*x[i][0];
+        snap[irow++][icoeff+typeoffset_global] += dbdy*x[i][0];
+      }
+    }
 }
 
 /* ----------------------------------------------------------------------

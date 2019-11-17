@@ -38,7 +38,7 @@ class ComputeSnap : public Compute {
  private:
   int natoms, nmax, size_peratom;
   int ncoeff, nperdim, yoffset, zoffset;
-  int virialoffset, ndims_peratom;
+  int ndims_peratom, ndims_force, ndims_virial;
   double **cutsq;
   class NeighList *list;
   double **snap;
@@ -52,6 +52,8 @@ class ComputeSnap : public Compute {
 
   Compute *c_pe;
   Compute *c_virial;
+
+  void dbdotr_compute();
 };
 
 }

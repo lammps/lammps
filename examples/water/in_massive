@@ -1,0 +1,80 @@
+#LAMMPS input file
+#All informations can be find on http://lammps.sandia.gov/
+
+#choose the system of unit (real, metal, SI...)
+units           real
+
+#define the boundary conditions, periodic here
+boundary        p p p
+
+#define the atom style, bond style and angle style
+atom_style      full
+bond_style      harmonic
+angle_style     harmonic
+atom_modify	map array
+
+#comm_modify cutoff 15
+#atom_modify first water
+#neigh_modify cluster yes
+
+#choose the interaction between water molecules:
+pair_style		lj/cut/tip4p/long 1 2 1 1 0.1546 9.0 9.0 
+pair_modify		table 0
+#water model is TIP4P/2005
+#water molecules less than 1nm from each other interact via a cut lennard jones potential 
+#water molecules interact via coulomb interactions calculated in real or conjugate space depending on the distance separating molecules
+
+#define the long-range solver (here for long range coulombic interaction)
+suffix off
+newton on
+kspace_style	pppm/tip4p 1.0e-5
+suffix on
+
+#neighbor 5.0 bin
+#neigh_modify	every 1 check yes
+
+#import the initial position of atoms, the coordinates of the box, etc
+read_data	data.spce
+replicate 2 2 2
+
+#define the pair coeff for LJ interaction
+pair_coeff      * * 0.0 0.0
+pair_coeff      1 1 0.1852 3.1589
+
+#define the coef for water molecule (distances between O-H and angle between H-O-H atoms)
+bond_coeff      1 0.0 0.9572
+angle_coeff     1 0.0 104.52
+
+#define groups
+group		water type 1 2
+
+#maintain the water molecule rigid
+fix             1 water shake 1.0e-4 200 0 b 1 a 1
+
+#udate position and velocity each timesteps using constant NVE integration
+fix		2 water nve
+
+#apply Langevin thermostat on water molecules
+#fix             3 water langevin 300.0 300.0 100.0 123
+
+#choose how often you want thermodynamic info to be print during the computation
+thermo          1000
+thermo_modify   flush yes
+thermo_style custom step etotal ke pe temp  evdwl ecoul elong press
+#thermo_modify  format float "%.15g"
+#give an initial random velocity to water molecule (corresponding to a temperature equal to 300K)
+velocity		water create 300 123
+
+#print the position of atoms to visualise it with VMD for example
+#dump			4 all atom 1 dump.lammpstrj
+#dump_modify		4 flush yes
+
+#if $(is_active(package,gpu)) &
+# then "dump 11 all custom 1 dump.force_gpu id type  x y z fx fy fz"&
+# else "dump 11 all custom 1 dump.force_cpu id type  x y z fx fy fz"
+
+#choose the timestep, 2fs is a common choice
+timestep		1
+
+#run during 50000 timestep (0.1 ns)
+run		50000

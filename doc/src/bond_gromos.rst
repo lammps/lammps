@@ -1,16 +1,16 @@
-.. index:: bond\_style gromos
+.. index:: bond_style gromos
 
-bond\_style gromos command
-==========================
+bond_style gromos command
+=========================
 
-bond\_style gromos/omp command
-==============================
+bond_style gromos/omp command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style gromos
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style gromos
    bond_coeff 5 80.0 1.2
@@ -28,19 +28,21 @@ Description
 
 The *gromos* bond style uses the potential
 
-.. image:: Eqs/bond_gromos.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium bond distance.  Note that the usual 1/4
-factor is included in K.
+   E = K (r^2 - r_0^2)^2
+
+
+where :math:`r_0` is the equilibrium bond distance.  Note that the usual 1/4
+factor is included in :math:`K`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/distance\^4)
-* r0 (distance)
+* :math:`K` (energy/distance\^4)
+* :math:`r_0` (distance)
 
 
 ----------
@@ -82,8 +84,3 @@ Related commands
 :doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

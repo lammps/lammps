@@ -182,11 +182,12 @@ void LJ_TIP4PLong<numtyp, acctyp>::loop(const bool _eflag, const bool _vflag) {
 
   this->k_pair.set_size(GX,BX);
   if (vflag){
-	  this->ansO.resize(ainum*3);
+	  this->ansO.resize_ib(ainum*3);
   } else {
-	  this->ansO.resize(ainum);
+	  this->ansO.resize_ib(ainum);
   }
   this->ansO.zero();
+  this->device->gpu->sync();
   this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
@@ -210,28 +211,24 @@ void LJ_TIP4PLong<numtyp, acctyp>::copy_relations_data(int **hn, double **newsit
 		int* tag, int *map_array, int map_size, int *sametag, int max_same, int ago){
 	int nall = n;
 	const int hn_sz = n*4; // matrix size = col size * col number
-	if(hn_sz > hneight.cols()){
-		hneight.resize(hn_sz+1);
-	}
+	hneight.resize_ib(hn_sz+1);
 	if (ago == 0)
 		hneight.zero();
-	if(n > m.cols()){
-		m.resize(n+1);
-	}
+	m.resize_ib(n+1);
 	m.zero();
 
     UCL_H_Vec<int> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
-    if(this->tag.cols() < nall) this->tag.resize(nall);
+    this->tag.resize_ib(nall);
     for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
     ucl_copy(this->tag, host_tag_write, nall, false);
 
     if(max_same>host_tag_write.cols()) host_tag_write.resize(max_same);
-    if(this->atom_sametag.cols() < nall) this->atom_sametag.resize(nall);
+    this->atom_sametag.resize_ib(nall);
     for(int i=0; i<nall; ++i) host_tag_write[i] = sametag[i];
     ucl_copy(this->atom_sametag, host_tag_write, nall, false);
 
     if(map_size>host_tag_write.cols()) host_tag_write.resize(map_size);
-    if(this->map_array.cols() < map_size) this->map_array.resize(map_size);
+    this->map_array.resize_ib(map_size);
     for(int i=0; i<map_size; ++i) host_tag_write[i] = map_array[i];
     ucl_copy(this->map_array, host_tag_write, map_size, false);
 

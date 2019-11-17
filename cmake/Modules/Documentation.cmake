@@ -9,9 +9,7 @@ if(BUILD_DOC)
 
   set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)
 
-  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.txt)
-  file(GLOB PDF_EXTRA_SOURCES ${LAMMPS_DOC_DIR}/src/lammps_commands*.txt ${LAMMPS_DOC_DIR}/src/lammps_support.txt ${LAMMPS_DOC_DIR}/src/lammps_tutorials.txt)
-  list(REMOVE_ITEM DOC_SOURCES ${PDF_EXTRA_SOURCES})
+  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
   add_custom_command(
     OUTPUT docenv
@@ -28,25 +26,10 @@ if(BUILD_DOC)
     COMMAND ${DOCENV_BINARY_DIR}/pip install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
   )
 
-  set(RST_FILES "")
-  set(RST_DIR ${CMAKE_BINARY_DIR}/rst)
-  file(MAKE_DIRECTORY ${RST_DIR})
-  foreach(TXT_FILE ${DOC_SOURCES})
-    get_filename_component(FILENAME ${TXT_FILE} NAME_WE)
-    set(RST_FILE ${RST_DIR}/${FILENAME}.rst)
-    list(APPEND RST_FILES ${RST_FILE})
-    add_custom_command(
-      OUTPUT ${RST_FILE}
-      DEPENDS requirements.txt docenv ${TXT_FILE}
-      COMMAND ${DOCENV_BINARY_DIR}/txt2rst -o ${RST_DIR} ${TXT_FILE}
-    )
-  endforeach()
-
   add_custom_command(
     OUTPUT html
-    DEPENDS ${RST_FILES}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DOC_DIR}/src ${RST_DIR}
-    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -j ${NPROCS} -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${RST_DIR} html
+    DEPENDS ${DOC_SOURCES} docenv requirements.txt
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -j ${NPROCS} -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
   )
 
   add_custom_target(

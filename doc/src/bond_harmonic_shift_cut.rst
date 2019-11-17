@@ -36,7 +36,7 @@ uses the potential
 
 where :math:`r_0` is the equilibrium bond distance, and rc the critical distance.
 The bond potential is zero for distances :math:`r > r_c`. The potential is :math:`-U_{\text{min}}`
-at :math:`r_0` and zero at :math:`r_c`. The spring constant is :math:`k = U_{\text{min}} / [ 2 (r_0-r_c)\^2]`.
+at :math:`r_0` and zero at :math:`r_c`. The spring constant is :math:`k = U_{\text{min}} / [ 2 (r_0-r_c)^2]`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond\_coeff <bond_coeff>` command as in the example above, or in

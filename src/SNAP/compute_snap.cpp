@@ -387,17 +387,17 @@ void ComputeSnap::compute_array()
       // linear contributions
 
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-        snap[0][icoeff] += snaptr->blist[icoeff];
+        snap[0][icoeff+typeoffset_global] += snaptr->blist[icoeff];
 
       // quadratic contributions
 
       if (quadraticflag) {
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bveci = snaptr->blist[icoeff];
-          snap[0][icoeff] += 0.5*bveci*bveci;
+          snap[0][icoeff+typeoffset_global] += 0.5*bveci*bveci;
           for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
             double bvecj = snaptr->blist[jcoeff];
-            snap[0][icoeff] += bveci*bvecj;
+            snap[0][icoeff+typeoffset_global] += bveci*bvecj;
           }
         }
       }

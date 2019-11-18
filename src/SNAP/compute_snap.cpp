@@ -494,13 +494,13 @@ void ComputeSnap::unpack_reverse_comm(int n, int *list, double *buf)
 void ComputeSnap::dbdotr_compute()
 {
   double **x = atom->x;
-  int irow0 = 1+ndims_peratom*natoms;
+  int irow0 = 1+ndims_force*natoms;
 
   // zero virial entries
 
   for (int itype = 0; itype < atom->ntypes; itype++) {
     const int typeoffset_global = nperdim*itype;
-    for (int icoeff = 0; icoeff < size_array_cols-1; icoeff++) {
+    for (int icoeff = 0; icoeff < nperdim; icoeff++) {
       int irow = irow0;
       snap[irow++][icoeff+typeoffset_global] = 0.0;
       snap[irow++][icoeff+typeoffset_global] = 0.0;

@@ -945,7 +945,7 @@ void FixGCMC::attempt_atomic_insertion()
   ninsertion_attempts += 1.0;
 
   if (ngas >= max_ngas) return;
-  
+
   // pick coordinates for insertion point
 
   double coord[3];
@@ -1300,7 +1300,7 @@ void FixGCMC::attempt_molecule_insertion()
   ninsertion_attempts += 1.0;
 
   if (ngas >= max_ngas) return;
-  
+
   double com_coord[3];
   if (regionflag) {
     int region_attempt = 0;
@@ -1634,7 +1634,7 @@ void FixGCMC::attempt_atomic_insertion_full()
   ninsertion_attempts += 1.0;
 
   if (ngas >= max_ngas) return;
-  
+
   double energy_before = energy_stored;
 
   double coord[3];

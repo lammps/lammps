@@ -1,13 +1,13 @@
-.. index:: atom\_modify
+.. index:: atom_modify
 
-atom\_modify command
-====================
+atom_modify command
+===================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_modify keyword values ...
 
@@ -29,7 +29,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_modify map yes
    atom_modify map hash sort 10000 2.0
@@ -188,8 +188,3 @@ defined, sorting will be turned off.
 
 
 **(Meloni)** Meloni, Rosati and Colombo, J Chem Phys, 126, 121102 (2007).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,16 +1,16 @@
-.. index:: bond\_style harmonic/shift/cut
+.. index:: bond_style harmonic/shift/cut
 
-bond\_style harmonic/shift/cut command
-======================================
+bond_style harmonic/shift/cut command
+=====================================
 
-bond\_style harmonic/shift/cut/omp command
-==========================================
+bond_style harmonic/shift/cut/omp command
+=========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic/shift/cut
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic/shift/cut
    bond_coeff 5 10.0 0.5 1.0
@@ -29,21 +29,23 @@ Description
 The *harmonic/shift/cut* bond style is a shifted harmonic bond that
 uses the potential
 
-.. image:: Eqs/bond_harmonic_shift_cut.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium bond distance, and rc the critical distance.
-The bond potential is zero for distances r > rc. The potential is -Umin
-at r0 and zero at rc. The spring constant is k = Umin / [ 2 (r0-rc)\^2].
+   E = \frac{U_{\text{min}}}{(r_0-r_c)^2} \left[ (r-r_0)^2-(r_c-r_0)^2 \right]
+
+
+where :math:`r_0` is the equilibrium bond distance, and rc the critical distance.
+The bond potential is zero for distances :math:`r > r_c`. The potential is :math:`-U_{\text{min}}`
+at :math:`r_0` and zero at :math:`r_c`. The spring constant is :math:`k = U_{\text{min}} / [ 2 (r_0-r_c)^2]`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* Umin (energy)
-* r0 (distance)
-* rc (distance)
+* :math:`U_{\text{min}}` (energy)
+* :math:`r_0` (distance)
+* :math:`r_c` (distance)
 
 
 ----------
@@ -87,8 +89,3 @@ Related commands
 :doc:`bond\_harmonic\_shift <bond_harmonic_shift>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,13 +1,13 @@
-.. index:: pair\_style list
+.. index:: pair_style list
 
-pair\_style list command
-========================
+pair_style list command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style list listfile cutoff keyword
 
@@ -19,14 +19,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style list restraints.txt 200.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
-   pair_coeff \* \* lj/cut 1.0 1.0
-   pair_coeff 3\* 3\* list
+   pair_coeff * * lj/cut 1.0 1.0
+   pair_coeff 3* 3* list
 
 Description
 """""""""""
@@ -77,36 +77,41 @@ Here is an example file:
 
 The style *lj126* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] \qquad r < r_c
+
 
 and the coefficients:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 
 The style *morse* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_morse.jpg
-   :align: center
+.. math::
+
+   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c
+
 
 and the coefficients:
 
-* D0 (energy units)
-* alpha (1/distance units)
-* r0 (distance units)
+* :math:`D_0` (energy units)
+* :math:`\alpha` (1/distance units)
+* :math:`r_0` (distance units)
 
 The style *harmonic* computes pairwise interactions with the formula
 
-.. image:: Eqs/bond_harmonic.jpg
-   :align: center
+.. math::
+
+   E = K (r - r_0)^2
 
 and the coefficients:
 
-* K (energy units)
-* r0 (distance units)
+* :math:`K` (energy units)
+* :math:`r_0` (distance units)
 
-Note that the usual 1/2 factor is included in K.
+Note that the usual 1/2 factor is included in :math:`K`.
 
 
 ----------
@@ -161,8 +166,3 @@ Related commands
 :doc:`bond\_style harmonic <bond_harmonic>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

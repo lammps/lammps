@@ -160,7 +160,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
 
   // file names
   uinf_file = arg[6];
-  uinf_file = arg[7];
+  gamma_file = arg[7];
   phi_file = arg[8];
   usemi_file = arg[9];
 
@@ -390,7 +390,7 @@ void PairMesoCNT::read_file(const char *file, double **data,
         error->one(FLERR,str.c_str());
       }
       if (j > 0) ytemp = y;
-      if (2 != sscanf(line,"%lg %lg %lg",&x,&y,&data[i][j])) cerror++;
+      if (3 != sscanf(line,"%lg %lg %lg",&x,&y,&data[i][j])) cerror++;
       if (j > 0) {
 	dytemp = y - ytemp;
     	if (j == 1) dy = dytemp;
@@ -411,7 +411,7 @@ void PairMesoCNT::read_file(const char *file, double **data,
     char str[128];
     sprintf(str,"%d of %d lines were incomplete\n"
 		    "  or could not be parsed completely\n" 
-		    "  in pair table ",cerror,ninput);
+		    "  in pair table ",cerror,ninput*ninput);
     std::string errstr = str;
     errstr += file;
     error->warning(FLERR,errstr.c_str());

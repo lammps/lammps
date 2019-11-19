@@ -35,6 +35,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "bond"_compute_bond.html,
 "bond/local"_compute_bond_local.html,
 "centro/atom"_compute_centro_atom.html,
+"centroid/stress/atom"_compute_stress_atom.html,
 "chunk/atom"_compute_chunk_atom.html,
 "chunk/spread/atom"_compute_chunk_spread_atom.html,
 "cluster/atom"_compute_cluster_atom.html,

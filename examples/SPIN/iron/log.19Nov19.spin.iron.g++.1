@@ -1,0 +1,136 @@
+LAMMPS (30 Oct 2019)
+# bcc iron in a 3d periodic box
+
+clear
+units 		metal
+atom_style 	spin
+
+dimension 	3
+boundary 	p p p
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array
+
+lattice 	bcc 2.8665
+Lattice spacing in x,y,z = 2.8665 2.8665 2.8665
+region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box 	1 box
+Created orthogonal box = (0 0 0) to (14.3325 14.3325 14.3325)
+  1 by 1 by 1 MPI processor grid
+create_atoms 	1 box
+Created 250 atoms
+  create_atoms CPU = 0.000509977 secs
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 55.845
+
+set 		group all spin/random 31 2.2
+  250 settings made for spin/random
+# set 		group all spin 2.2 0.0 0.0 1.0
+velocity 	all create 100 4928459 rot yes dist gaussian
+
+pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
+pair_coeff 	* * eam/alloy Fe_Mishin2006.eam.alloy Fe
+pair_coeff 	* * spin/exchange exchange 3.4 0.02726 0.2171 1.841
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix 		2 all langevin/spin 0.0 0.0 21
+
+fix 		3 all nve/spin lattice moving
+timestep	0.0001
+
+# compute and output options
+
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe press etotal
+thermo          50
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 100 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+
+run 		1000
+Neighbor list info ...
+  update every 10 steps, delay 20 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.77337
+  ghost atom cutoff = 5.77337
+  binsize = 2.88668, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair eam/alloy, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.82 | 7.82 | 7.82 Mbytes
+Step Time v_magnorm v_tmag Temp v_emag KinEng PotEng Press TotEng 
+       0            0  0.076456975    4554.5462    100.00358  -0.85791269    3.2186929   -1070.8579    394.43342   -1067.6392 
+      50        0.005  0.076456974     4658.383    96.663685  -0.86504718    3.1111957   -1070.7504    709.50826   -1067.6392 
+     100         0.01  0.076456983    4744.1872    86.965803  -0.88035771    2.7990619   -1070.4383    1466.6938   -1067.6392 
+     150        0.015  0.076456973    4794.5283    72.421197   -0.8996913    2.3309324   -1069.9702    2534.3867   -1067.6392 
+     200         0.02  0.076456944    4707.6548    55.633188    -0.921682    1.7905973   -1069.4298     3732.183   -1067.6392 
+     250        0.025  0.076456953    4439.4697    39.802206  -0.94649004    1.2810649   -1068.9203    4831.5559   -1067.6392 
+     300         0.03  0.076457027    4101.6694    27.882295  -0.97253854    0.8974133   -1068.5366    5612.0928   -1067.6392 
+     350        0.035  0.076457103    3860.1545    21.776538  -0.99708692   0.70089477   -1068.3401    5906.3057   -1067.6392 
+     400         0.04  0.076457117    3765.5341    21.857102   -1.0190244   0.70348778   -1068.3427    5682.0053   -1067.6392 
+     450        0.045  0.076457072    3739.9037    26.959407   -1.0389343   0.86770942   -1068.5069    5066.5077   -1067.6392 
+     500         0.05  0.076457001    3730.8342     34.92521   -1.0582008     1.124095   -1068.7633    4279.2424   -1067.6392 
+     550        0.055  0.076456962    3698.0556    43.405912   -1.0785156     1.397053   -1069.0363    3533.4153   -1067.6392 
+     600         0.06  0.076456997     3560.947    50.544844    -1.102048     1.626825   -1069.2661    2975.8479   -1067.6392 
+     650        0.065  0.076457079    3341.7402    55.261218   -1.1296588    1.7786252   -1069.4179    2683.3023   -1067.6392 
+     700         0.07  0.076457136    3156.8448     57.25083   -1.1595102    1.8426624   -1069.4819    2640.5967   -1067.6392 
+     750        0.075  0.076457132    3099.5181    56.934336   -1.1893875    1.8324758   -1069.4717    2778.3261   -1067.6392 
+     800         0.08  0.076457116    3132.9985    55.266343   -1.2181223    1.7787901    -1069.418    3020.1175   -1067.6392 
+     850        0.085  0.076457116    3163.2943    53.376453   -1.2443326    1.7179626   -1069.3572    3287.9042   -1067.6392 
+     900         0.09  0.076457121     3168.063    52.279557   -1.2676425    1.6826581   -1069.3219    3504.7334   -1067.6392 
+     950        0.095  0.076457122    3144.2102    52.667743   -1.2902335    1.6951522   -1069.3344    3622.1382   -1067.6392 
+    1000          0.1  0.076457135    3061.0811    54.684094    -1.314147      1.76005   -1069.3993    3625.2935   -1067.6392 
+Loop time of 2.06841 on 1 procs for 1000 steps with 250 atoms
+
+Performance: 4.177 ns/day, 5.746 hours/ns, 483.464 timesteps/s
+99.3% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.96898    | 0.96898    | 0.96898    |   0.0 | 46.85
+Neigh   | 0.005435   | 0.005435   | 0.005435   |   0.0 |  0.26
+Comm    | 0.028027   | 0.028027   | 0.028027   |   0.0 |  1.36
+Output  | 0.0051067  | 0.0051067  | 0.0051067  |   0.0 |  0.25
+Modify  | 1.0569     | 1.0569     | 1.0569     |   0.0 | 51.10
+Other   |            | 0.003989   |            |       |  0.19
+
+Nlocal:    250 ave 250 max 250 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1399 ave 1399 max 1399 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    7855 ave 7855 max 7855 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  15710 ave 15710 max 15710 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15710
+Ave neighs/atom = 62.84
+Neighbor list builds = 6
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:02

@@ -49,8 +49,8 @@ class PairSpinDipoleLong : public PairSpin {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  
-  double cut_spin_long_global;  // global long cutoff distance 
+
+  double cut_spin_long_global;  // global long cutoff distance
 
  protected:
   double hbar;                  // reduced Planck's constant

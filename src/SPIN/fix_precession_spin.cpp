@@ -353,7 +353,7 @@ void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3])
   sixx = k2ch*(nc1x*six1 + nc2x*six2 + nc3x*six3);
   sixy = k2ch*(nc1y*six1 + nc2y*six2 + nc3y*six3);
   sixz = k2ch*(nc1z*six1 + nc2z*six2 + nc3z*six3);
-  
+
   fmi[0] += (fourx + sixx);
   fmi[1] += (foury + sixy);
   fmi[2] += (fourz + sixz);

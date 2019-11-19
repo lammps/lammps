@@ -23,22 +23,25 @@ class PairMesoCNT : public Pair {
 
  protected:
   int uinf_points,gamma_points,phi_points,usemi_points;
+  int n;
   double ang,angrec,e,erec,funit;
-  double r,r2,d,rc,rc2,rc0;
-  double d_ang,rc_ang,rc2_ang;
-  double sig,eps,n_sig,comega,ctheta;
-  double hstart_gamma,hstart_uinf,
+  double r,rsq,d,rc,rcsq,rc0,cut,cutsq;
+  double d_ang,rc_ang,rcsq_ang,cut_ang,cutsq_ang;
+  double sig,eps,nsig,comega,ctheta;
+  double hstart_uinf,hstart_gamma,
 	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
-  double delh_gamma,delh_uinf,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
+  double delh_uinf,delh_gamma,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
   
   double **uinf_coeff,**gamma_coeff,****phi_coeff,****usemi_coeff;
   double *p1,*p2,*param;
-  double **flocal,**fglobal,**basis;
+  double **flocal,**basis;
+
+  char *uinf_file,*gamma_file,*phi_file,*usemi_file;
 
   void allocate();
   void sort(int *, int);
-  void read_file(char *, double *, double &, double &, int);
-  void read_file(char *, double **, double &, double &, 
+  void read_file(const char *, double *, double &, double &, int);
+  void read_file(const char *, double **, double &, double &, 
 		  double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);

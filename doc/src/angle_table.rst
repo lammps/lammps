@@ -1,16 +1,16 @@
-.. index:: angle\_style table
+.. index:: angle_style table
 
-angle\_style table command
-==========================
+angle_style table command
+=========================
 
-angle\_style table/omp command
-==============================
+angle_style table/omp command
+=============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style table style N
 
@@ -21,7 +21,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style table linear 1000
    angle_coeff 3 file.table ENTRY1
@@ -31,7 +31,7 @@ Description
 
 Style *table* creates interpolation tables of length *N* from angle
 potential and derivative values listed in a file(s) as a function of
-angle The files are read by the :doc:`angle\_coeff <angle_coeff>`
+angle The files are read by the :doc:`angle_coeff <angle_coeff>`
 command.
 
 The interpolation tables are created by fitting cubic splines to the
@@ -50,7 +50,7 @@ find the appropriate set of coefficients which are used to evaluate a
 cubic polynomial which computes the energy or derivative.
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above.
+:doc:`angle_coeff <angle_coeff>` command as in the example above.
 
 * filename
 * keyword
@@ -85,13 +85,13 @@ A section begins with a non-blank line whose 1st character is not a
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
 initial text must match the argument specified in the
-:doc:`angle\_coeff <angle_coeff>` command.  The next line lists (in any
+:doc:`angle_coeff <angle_coeff>` command.  The next line lists (in any
 order) one or more parameters for the table.  Each parameter is a
 keyword followed by one or more numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`angle\_style table <angle_style>` command.  Let
+specified in the :doc:`angle_style table <angle_style>` command.  Let
 Ntable = *N* in the angle\_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
@@ -176,11 +176,6 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,22 +1,22 @@
-.. index:: angle\_style harmonic
+.. index:: angle_style harmonic
 
-angle\_style harmonic command
-=============================
+angle_style harmonic command
+============================
 
-angle\_style harmonic/intel command
-===================================
+angle_style harmonic/intel command
+==================================
 
-angle\_style harmonic/kk command
+angle_style harmonic/kk command
+===============================
+
+angle_style harmonic/omp command
 ================================
-
-angle\_style harmonic/omp command
-=================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style harmonic
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style harmonic
    angle_coeff 1 300.0 107.0
@@ -34,22 +34,24 @@ Description
 
 The *harmonic* angle style uses the potential
 
-.. image:: Eqs/angle_harmonic.jpg
-   :align: center
+.. math::
 
-where theta0 is the equilibrium value of the angle, and K is a
-prefactor.  Note that the usual 1/2 factor is included in K.
+   E = K (\theta - \theta_0)^2
+
+
+where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
+prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/radian\^2)
-* theta0 (degrees)
+* :math:`K` (energy/radian\^2)
+* :math:`\theta_0` (degrees)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of :math:`K` are in energy/radian\^2.
 
 
 ----------
@@ -91,8 +93,3 @@ Related commands
 :doc:`angle\_coeff <angle_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

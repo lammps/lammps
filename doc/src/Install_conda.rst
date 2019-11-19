@@ -32,21 +32,16 @@ install the `openkim-models` package
 
 If you have problems with the installation you can post issues to
 `this link <conda_forge_lammps_>`_.
-
-.. _conda_forge_lammps: https://github.com/conda-forge/lammps-feedstock/issues
-
-Thanks to Jan Janssen (Max-Planck-Institut für Eisenforschung) for setting
+Thanks to Jan Janssen (Max-Planck-Institut fuer Eisenforschung) for setting
 up the Conda capability.
 
+.. _conda_forge_lammps: https://github.com/conda-forge/lammps-feedstock/issues
 
 .. _openkim: https://openkim.org
 
 .. _conda: https://docs.conda.io/en/latest/index.html
 
 .. _mini_conda_install: https://docs.conda.io/en/latest/miniconda.html
-
-
-
 
 .. _lws: http://lammps.sandia.gov
 .. _ld: Manual.html

@@ -1,29 +1,27 @@
-.. index:: bond\_style
+.. index:: bond_style
 
-bond\_style command
-===================
+bond_style command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style style args
 
 * style = *none* or *hybrid* or *class2* or *fene* or *fene/expand* or         *harmonic* or *morse* or *nonlinear* or *quartic*
 
+* args = none for any style except *hybrid*
 
-.. parsed-literal::
-
-     args = none for any style except *hybrid*
-     *hybrid* args = list of one or more styles
+  * *hybrid* args = list of one or more styles
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic
    bond_style fene
@@ -74,11 +72,11 @@ between the 2 atoms in the bond.
 
 Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated :doc:`bond\_coeff <bond_coeff>` command.
+specified by the associated :doc:`bond_coeff <bond_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
 arguments specified in the bond\_style command, and coefficients
-specified by the associated :doc:`bond\_coeff <bond_coeff>` command.
+specified by the associated :doc:`bond_coeff <bond_coeff>` command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
@@ -128,9 +126,6 @@ Related commands
 Default
 """""""
 
-bond\_style none
+.. code-block:: LAMMPS
 
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+   bond_style none

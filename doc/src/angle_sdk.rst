@@ -1,16 +1,16 @@
-.. index:: angle\_style sdk
+.. index:: angle_style sdk
 
-angle\_style sdk command
-========================
+angle_style sdk command
+=======================
 
-angle\_style sdk/omp command
-============================
+angle_style sdk/omp command
+===========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style sdk
 
@@ -20,7 +20,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style sdk
    angle_coeff 1 300.0 107.0
@@ -30,25 +30,27 @@ Description
 
 The *sdk* angle style is a combination of the harmonic angle potential,
 
-.. image:: Eqs/angle_harmonic.jpg
-   :align: center
+.. math::
 
-where theta0 is the equilibrium value of the angle and K a prefactor,
+   E = K (\theta - \theta_0)^2 
+
+
+where :math:`\theta_0` is the equilibrium value of the angle and :math:`K` a prefactor,
 with the *repulsive* part of the non-bonded *lj/sdk* pair style
 between the atoms 1 and 3.  This angle potential is intended for
 coarse grained MD simulations with the CMM parameterization using the
 :doc:`pair\_style lj/sdk <pair_sdk>`.  Relative to the pair\_style
 *lj/sdk*\ , however, the energy is shifted by *epsilon*\ , to avoid sudden
-jumps.  Note that the usual 1/2 factor is included in K.
+jumps.  Note that the usual 1/2 factor is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above:
 
-* K (energy/radian\^2)
-* theta0 (degrees)
+* :math:`K` (energy/radian\^2)
+* :math:`\theta_0` (degrees)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of :math:`K` are in energy/radian\^2.
 The also required *lj/sdk* parameters will be extracted automatically
 from the pair\_style.
 
@@ -93,8 +95,3 @@ Related commands
 :doc:`pair\_style lj/sdk/coul/long <pair_sdk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

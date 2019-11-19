@@ -934,7 +934,7 @@ funcs
 functionalities
 functionals
 funroll
-für
+fuer
 fx
 fy
 fz

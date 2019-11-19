@@ -45,7 +45,7 @@ enum{SCALAR,VECTOR,ARRAY};
 
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snap(NULL),
-  radelem(NULL), wjelem(NULL), snap_peratom(NULL)
+  radelem(NULL), wjelem(NULL), snap_peratom(NULL), snapall(NULL)
 {
 
   array_flag = 1;
@@ -136,9 +136,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   natoms = atom->natoms;
   size_array_rows = 1+ndims_force*natoms+ndims_virial;
   size_array_cols = nperdim*atom->ntypes+1;
+  lastcol = size_array_cols-1;
+
   ndims_peratom = ndims_force;
   size_peratom = ndims_peratom*nperdim*atom->ntypes;
-  comm_reverse = size_peratom;
 
   nmax = 0;
 }
@@ -148,6 +149,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 ComputeSnap::~ComputeSnap()
 {
   memory->destroy(snap);
+  memory->destroy(snapall);
   memory->destroy(snap_peratom);
   memory->destroy(radelem);
   memory->destroy(wjelem);
@@ -185,7 +187,9 @@ void ComputeSnap::init()
 
   memory->create(snap,size_array_rows,size_array_cols,
                  "snap:snap");
-  array = snap;
+  memory->create(snapall,size_array_rows,size_array_cols,
+                 "snap:snapall");
+  array = snapall;
 
   // INCOMPLETE: modify->find_compute() 
   // was called 223960 times by snappy Ta example
@@ -235,10 +239,10 @@ void ComputeSnap::compute_array()
   }
 
   // clear global array
-  // only need to zero out first row of bispectrum 
 
-  for (int icoeff = 0; icoeff < size_array_cols-1; icoeff++)
-    snap[0][icoeff] = 0.0;
+  for (int irow = 0; irow < size_array_rows; irow++)
+    for (int icoeff = 0; icoeff < size_array_cols; icoeff++)
+      snap[irow][icoeff] = 0.0;
 
   // clear local peratom array
 
@@ -318,7 +322,7 @@ void ComputeSnap::compute_array()
                                     snaptr->rcutij[jj],jj);
         snaptr->compute_dbidrj();
 
-        // Accumulate -dBi/dRi, -dBi/dRj
+        // Accumulate dBi/dRi, -dBi/dRj
 
         double *snadi = snap_peratom[i]+typeoffset_local;
         double *snadj = snap_peratom[j]+typeoffset_local;
@@ -404,91 +408,65 @@ void ComputeSnap::compute_array()
     }
   }
 
-  // accumulate virial contributions before reverse compute
-
-  dbdotr_compute();
-
-  // communicate local peratom contributions between neighbor procs
-
-  comm->reverse_comm_compute(this);
-
-  // copy peratom data to global array
-  // INCOMPLETE ignore local-global mapping for now
+  // accumulate bispectrum force contributions to global array
 
   for (int itype = 0; itype < atom->ntypes; itype++) {
     const int typeoffset_local = ndims_peratom*nperdim*itype;
     const int typeoffset_global = nperdim*itype;
     for (int icoeff = 0; icoeff < nperdim; icoeff++) {
       int irow = 1;
-      for (int i = 0; i < atom->nlocal; i++) {
+      for (int i = 0; i < ntotal; i++) {
         double *snadi = snap_peratom[i]+typeoffset_local;
-        snap[irow++][icoeff+typeoffset_global] = snadi[icoeff];
-        snap[irow++][icoeff+typeoffset_global] = snadi[icoeff+yoffset];
-        snap[irow++][icoeff+typeoffset_global] = snadi[icoeff+zoffset];
+        int iglobal = atom->tag[i];
+        int irow = 3*(iglobal-1)+1;
+        snap[irow][icoeff+typeoffset_global] += snadi[icoeff];
+        snap[irow+1][icoeff+typeoffset_global] += snadi[icoeff+yoffset];
+        snap[irow+2][icoeff+typeoffset_global] += snadi[icoeff+zoffset];
       }
     }
   }
 
-  // assign energy to last column
-
-  int icol = size_array_cols-1;
-  int irow = 0;
-  double reference_energy = c_pe->compute_scalar();
-  snap[irow++][icol] = reference_energy; 
-
-  // assign forces to last column
-  // INCOMPLETE ignore local-global mapping for now
+ // accumulate forces to global array
 
   for (int i = 0; i < atom->nlocal; i++) {
-    snap[irow++][icol] = atom->f[i][0];
-    snap[irow++][icol] = atom->f[i][1];
-    snap[irow++][icol] = atom->f[i][2];
+    int iglobal = atom->tag[i];
+    int irow = 3*(iglobal-1)+1;
+    snap[irow][lastcol] = atom->f[i][0];
+    snap[irow+1][lastcol] = atom->f[i][1];
+    snap[irow+2][lastcol] = atom->f[i][2];
   }
+
+  // accumulate bispectrum virial contributions to global array
+
+  dbdotr_compute();
+
+  // sum up over all processes
+
+  MPI_Allreduce(&snap[0][0],&snapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
+
+  // assign energy to last column
+
+  int irow = 0;
+  double reference_energy = c_pe->compute_scalar();
+  snapall[irow++][lastcol] = reference_energy; 
 
   // assign virial stress to last column
   // switch to Voigt notation
 
   c_virial->compute_vector();
-  snap[irow++][icol] = c_virial->vector[0]; 
-  snap[irow++][icol] = c_virial->vector[1]; 
-  snap[irow++][icol] = c_virial->vector[2]; 
-  snap[irow++][icol] = c_virial->vector[5]; 
-  snap[irow++][icol] = c_virial->vector[4]; 
-  snap[irow++][icol] = c_virial->vector[3]; 
+  irow += 3*natoms;
+  snapall[irow++][lastcol] = c_virial->vector[0]; 
+  snapall[irow++][lastcol] = c_virial->vector[1]; 
+  snapall[irow++][lastcol] = c_virial->vector[2]; 
+  snapall[irow++][lastcol] = c_virial->vector[5]; 
+  snapall[irow++][lastcol] = c_virial->vector[4]; 
+  snapall[irow++][lastcol] = c_virial->vector[3]; 
 
-}
-
-/* ---------------------------------------------------------------------- */
-
-int ComputeSnap::pack_reverse_comm(int n, int first, double *buf)
-{
-  int i,m,last,icoeff;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++)
-    for (icoeff = 0; icoeff < size_peratom; icoeff++)
-      buf[m++] = snap_peratom[i][icoeff];
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeSnap::unpack_reverse_comm(int n, int *list, double *buf)
-{
-  int i,j,m,icoeff;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    for (icoeff = 0; icoeff < size_peratom; icoeff++)
-      snap_peratom[j][icoeff] += buf[m++];
-  }
 }
 
 /* ----------------------------------------------------------------------
-   compute global virial contributions via summing dB dot r over 
-   own & ghost atoms, before reverse comm.
+   compute global virial contributions via summing r_i.dB^j/dr_i over 
+   own & ghost atoms
 ------------------------------------------------------------------------- */
 
 void ComputeSnap::dbdotr_compute()
@@ -496,22 +474,8 @@ void ComputeSnap::dbdotr_compute()
   double **x = atom->x;
   int irow0 = 1+ndims_force*natoms;
 
-  // zero virial entries
-
-  for (int itype = 0; itype < atom->ntypes; itype++) {
-    const int typeoffset_global = nperdim*itype;
-    for (int icoeff = 0; icoeff < nperdim; icoeff++) {
-      int irow = irow0;
-      snap[irow++][icoeff+typeoffset_global] = 0.0;
-      snap[irow++][icoeff+typeoffset_global] = 0.0;
-      snap[irow++][icoeff+typeoffset_global] = 0.0;
-      snap[irow++][icoeff+typeoffset_global] = 0.0;
-      snap[irow++][icoeff+typeoffset_global] = 0.0;
-      snap[irow++][icoeff+typeoffset_global] = 0.0;
-    }
-  }
-
-  // sum over force on all particles including ghosts
+  // sum over bispectrum contributions to forces
+  // on all particles including ghosts
 
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++)
@@ -524,10 +488,6 @@ void ComputeSnap::dbdotr_compute()
         double dbdy = snadi[icoeff+yoffset];
         double dbdz = snadi[icoeff+zoffset];
         int irow = irow0;
-
-        // RHS is xi*dSum(b_j, j in itype)/dxi
-        // dSum(bj)/dxi is in first ntypes*3*nperdim elements of row snap_peratom[i]
-        // LHS is Sum(RHS, i), each row of length ntypes*nperdim
         snap[irow++][icoeff+typeoffset_global] += dbdx*x[i][0];
         snap[irow++][icoeff+typeoffset_global] += dbdy*x[i][1];
         snap[irow++][icoeff+typeoffset_global] += dbdz*x[i][2];
@@ -547,6 +507,8 @@ double ComputeSnap::memory_usage()
 
   double bytes = size_array_rows*size_array_cols * 
     sizeof(double);                                     // snap
+  bytes += size_array_rows*size_array_cols * 
+    sizeof(double);                                     // snapall
   bytes += nmax*size_peratom * sizeof(double);          // snap_peratom
   bytes += snaptr->memory_usage();                      // SNA object
 

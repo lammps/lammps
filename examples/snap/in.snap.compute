@@ -1,0 +1,94 @@
+# Demonstrate bispectrum computes
+
+# Initialize simulation
+
+variable 	nsteps index 0
+variable 	nrep equal 1
+#variable 	a equal 3.316
+variable 	a equal 2.0
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable 	nx equal ${nrep}
+variable 	ny equal ${nrep}
+variable 	nz equal ${nrep}
+
+boundary	p p p
+
+lattice         bcc $a
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box	2 box
+create_atoms	2 box
+
+mass 		* 180.88
+
+displace_atoms 	all random 0.1 0.1 0.1 123456
+
+# choose SNA parameters
+
+variable 	twojmax equal 2
+variable 	rcutfac equal 1.0
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	radelem1 equal 2.3
+variable 	radelem2 equal 2.0
+variable	wj1 equal 1.0
+variable	wj2 equal 0.96
+
+
+# Setup dummy potential to satisfy cutoff
+
+pair_style 	zero ${rcutfac}
+pair_coeff 	* *
+
+# Setup reference potential
+
+variable 	zblcutinner equal 4
+variable 	zblcutouter equal 4.8
+variable 	zblz equal 73
+pair_style 	zbl ${zblcutinner} ${zblcutouter}
+pair_coeff 	* * ${zblz} ${zblz}
+
+# set up old-style per-atom computes
+
+compute 	b all sna/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
+compute 	vb all snav/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
+compute 	db all snad/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
+
+# perform sums over atoms
+
+group 		snapgroup1 type 1
+group 		snapgroup2 type 2
+compute         bsum1 snapgroup1 reduce sum c_b[*]
+compute         bsum2 snapgroup2 reduce sum c_b[*]
+# fix 		bsum1 all ave/time 1 1 1 c_bsum1 file bsum1.dat mode vector
+# fix 		bsum2 all ave/time 1 1 1 c_bsum2 file bsum2.dat mode vector
+compute		vbsum all reduce sum c_vb[*]
+# fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
+
+# set up new-style global compute
+
+compute 	snap all snap ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
+compute 	snap_press all pressure NULL virial
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.dat mode vector
+
+thermo 		100
+
+# test output:   1: total potential energy
+#                2: xy component of stress tensor
+#                3: Sum(B_{000}^i, all i of type 2) 
+#                4: xy component of Sum(Sum(r_j*dB_{222}^i/dr_j), all i of type 2), all j) 
+#                followed by counterparts from compute snap
+
+thermo_style	custom &
+		pe            pxy            c_bsum2[1]   c_vbsum[60] &
+       		c_snap[1][11] c_snap[13][11] c_snap[1][6] c_snap[13][10] 
+thermo_modify 	norm no
+
+# dump 		mydump_db all custom 1000 dump_db id c_db[*]
+# dump_modify 	mydump_db sort id
+
+# Run MD
+
+run             ${nsteps}

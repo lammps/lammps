@@ -31,17 +31,15 @@ class ComputeSnap : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_array();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
  private:
-  int natoms, nmax, size_peratom;
+  int natoms, nmax, size_peratom, lastcol;
   int ncoeff, nperdim, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
   double **cutsq;
   class NeighList *list;
-  double **snap;
+  double **snap, **snapall;
   double **snap_peratom;
   double rcutfac;
   double *radelem;

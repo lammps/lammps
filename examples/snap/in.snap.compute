@@ -1,6 +1,6 @@
 # Demonstrate bispectrum computes
 
-# Initialize simulation
+# initialize simulation
 
 variable 	nsteps index 0
 variable 	nrep equal 1
@@ -35,14 +35,15 @@ variable 	radelem1 equal 2.3
 variable 	radelem2 equal 2.0
 variable	wj1 equal 1.0
 variable	wj2 equal 0.96
+variable 	snap_options string &
+"${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0"
 
-
-# Setup dummy potential to satisfy cutoff
+# set up dummy potential to satisfy cutoff
 
 pair_style 	zero ${rcutfac}
 pair_coeff 	* *
 
-# Setup reference potential
+# set up reference potential
 
 variable 	zblcutinner equal 4
 variable 	zblcutouter equal 4.8
@@ -50,11 +51,11 @@ variable 	zblz equal 73
 pair_style 	zbl ${zblcutinner} ${zblcutouter}
 pair_coeff 	* * ${zblz} ${zblz}
 
-# set up old-style per-atom computes
+# set up per-atom computes
 
-compute 	b all sna/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
-compute 	vb all snav/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
-compute 	db all snad/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
+compute 	b all sna/atom ${snap_options}
+compute 	vb all snav/atom ${snap_options}
+compute 	db all snad/atom ${snap_options}
 
 # perform sums over atoms
 
@@ -67,9 +68,9 @@ compute         bsum2 snapgroup2 reduce sum c_b[*]
 compute		vbsum all reduce sum c_vb[*]
 # fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
 
-# set up new-style global compute
+# set up compute snap generating global array
 
-compute 	snap all snap ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
+compute 	snap all snap ${snap_options}
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.dat mode vector
 
 thermo 		100

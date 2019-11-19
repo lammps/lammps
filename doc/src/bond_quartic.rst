@@ -1,16 +1,16 @@
-.. index:: bond\_style quartic
+.. index:: bond_style quartic
 
-bond\_style quartic command
-===========================
+bond_style quartic command
+==========================
 
-bond\_style quartic/omp command
-===============================
+bond_style quartic/omp command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style quartic
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style quartic
    bond_coeff 2 1200 -0.55 0.25 1.3 34.6878
@@ -28,11 +28,12 @@ Description
 
 The *quartic* bond style uses the potential
 
-.. image:: Eqs/bond_quartic.jpg
-   :align: center
+.. math::
+
+   E = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 + 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
 
 to define a bond that can be broken as the simulation proceeds (e.g.
-due to a polymer being stretched).  The sigma and epsilon used in the
+due to a polymer being stretched).  The :math:`\sigma` and :math:`\epsilon` used in the
 LJ portion of the formula are both set equal to 1.0 by LAMMPS.
 
 The following coefficients must be defined for each bond type via the
@@ -40,23 +41,31 @@ The following coefficients must be defined for each bond type via the
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/distance\^4)
-* B1 (distance)
-* B2 (distance)
-* Rc (distance)
-* U0 (energy)
+* :math:`K` (energy/distance\^4)
+* :math:`B_1` (distance)
+* :math:`B_2` (distance)
+* :math:`R_c` (distance)
+* :math:`U_0` (energy)
 
 This potential was constructed to mimic the FENE bond potential for
-coarse-grained polymer chains.  When monomers with sigma = epsilon =
-1.0 are used, the following choice of parameters gives a quartic
-potential that looks nearly like the FENE potential: K = 1200, B1 =
--0.55, B2 = 0.25, Rc = 1.3, and U0 = 34.6878.  Different parameters
-can be specified using the :doc:`bond\_coeff <bond_coeff>` command, but
-you will need to choose them carefully so they form a suitable bond
-potential.
+coarse-grained polymer chains.  When monomers with :math:`\sigma = \epsilon = 1.0`
+are used, the following choice of parameters gives a quartic potential that
+looks nearly like the FENE potential: 
 
-Rc is the cutoff length at which the bond potential goes smoothly to a
-local maximum.  If a bond length ever becomes > Rc, LAMMPS "breaks"
+.. math::
+
+   K &= 1200 \\
+   B_1 &= -0.55 \\
+   B_2 &= 0.25 \\
+   R_c &= 1.3 \\
+   U_0 &= 34.6878
+   
+Different parameters can be specified using the :doc:`bond_coeff <bond_coeff>`
+command, but you will need to choose them carefully so they form a suitable
+bond potential.
+
+:math:`R_c` is the cutoff length at which the bond potential goes smoothly to a
+local maximum.  If a bond length ever becomes :math:`> R_c`, LAMMPS "breaks"
 the bond, which means two things.  First, the bond potential is turned
 off by setting its type to 0, and is no longer computed.  Second, a
 pairwise interaction between the two atoms is turned on, since they
@@ -75,7 +84,7 @@ Note that when bonds are dumped to a file via the :doc:`dump local <dump>` comma
 status of broken bonds or permanently delete them, e.g.:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_bonds all stats
    delete_bonds all bond 0 remove
@@ -124,8 +133,3 @@ Related commands
 :doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

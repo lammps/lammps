@@ -7,7 +7,7 @@ Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID restrain keyword args ...
 
@@ -39,7 +39,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix holdem all restrain bond 45 48 2000.0 2000.0 2.75
    fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0
@@ -98,7 +98,7 @@ conventional force field terms.  If the restraint is applied during a
 dynamics run (as opposed to during an energy minimization), a large
 restraint coefficient can significantly reduce the stable timestep
 size, especially if the atoms are initially far from the preferred
-conformation.  You may need to experiment to determine what value of K
+conformation.  You may need to experiment to determine what value of :math:`K`
 works best for a given application.
 
 For the case of finding a minimum energy structure for a single
@@ -107,7 +107,7 @@ parameters or constructing a potential energy surface), commands such
 as the following may be useful:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    # minimize molecule energy with restraints
    velocity all create 600.0 8675309 mom yes rot yes dist gaussian
@@ -134,16 +134,18 @@ The *bond* keyword applies a bond restraint to the specified atoms
 using the same functional form used by the :doc:`bond\_style harmonic <bond_harmonic>` command.  The potential associated with
 the restraint is
 
-.. image:: Eqs/bond_harmonic.jpg
-   :align: center
+.. math::
+
+   E = K (r - r_0)^2
+
 
 with the following coefficients:
 
-* K (energy/distance\^2)
-* r0 (distance)
+* :math:`K` (energy/distance\^2)
+* :math:`r_0` (distance)
 
-K and r0 are specified with the fix.  Note that the usual 1/2 factor
-is included in K.
+:math:`K` and :math:`r_0` are specified with the fix.  Note that the usual 1/2 factor
+is included in :math:`K`.
 
 
 ----------
@@ -153,16 +155,17 @@ The *angle* keyword applies an angle restraint to the specified atoms
 using the same functional form used by the :doc:`angle\_style harmonic <angle_harmonic>` command.  The potential associated with
 the restraint is
 
-.. image:: Eqs/angle_harmonic.jpg
-   :align: center
+.. math::
+
+   E = K (\theta - \theta_0)^2
 
 with the following coefficients:
 
-* K (energy/radian\^2)
-* theta0 (degrees)
+* :math:`K` (energy/radian\^2)
+* :math:`\theta_0` (degrees)
 
-K and theta0 are specified with the fix.  Note that the usual 1/2
-factor is included in K.
+:math:`K` and :math:`\theta_0` are specified with the fix.  Note that the usual 1/2
+factor is included in :math:`K`.
 
 
 ----------
@@ -173,20 +176,22 @@ atoms using a simplified form of the function used by the
 :doc:`dihedral\_style charmm <dihedral_charmm>` command.  The potential
 associated with the restraint is
 
-.. image:: Eqs/dihedral_charmm.jpg
-   :align: center
+.. math::
+
+   E = K [ 1 + \cos (n \phi - d) ]
+
 
 with the following coefficients:
 
-* K (energy)
-* n (multiplicity, >= 0)
-* d (degrees) = phi0 + 180
+* :math:`K` (energy)
+* :math:`n` (multiplicity, >= 0)
+* :math:`d` (degrees) = :math:`\phi_0 + 180`
 
-K and phi0 are specified with the fix.  Note that the value of the
-dihedral multiplicity *n* is set by default to 1. You can use the
+:math:`K` and :math:`\phi_0` are specified with the fix.  Note that the value of the
+dihedral multiplicity :math:`n` is set by default to 1. You can use the
 optional *mult* keyword to set it to a different positive integer.
 Also note that the energy will be a minimum when the
-current dihedral angle phi is equal to phi0.
+current dihedral angle :math:`\phi` is equal to :math:`\phi_0`.
 
 
 ----------
@@ -233,8 +238,3 @@ Restrictions
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

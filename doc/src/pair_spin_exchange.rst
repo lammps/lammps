@@ -34,7 +34,7 @@ pairs of magnetic spins:
    :align: center
 
 where si and sj are two neighboring magnetic spins of two particles,
-rij = ri - rj is the inter-atomic distance between the two particles,
+rij = \|ri - rj\| is the inter-atomic distance between the two particles,
 and J(rij) is a function defining the intensity and the sign of the exchange
 interaction for different neighboring shells. This function is defined as:
 
@@ -42,7 +42,8 @@ interaction for different neighboring shells. This function is defined as:
    :align: center
 
 where a, b and d are the three constant coefficients defined in the associated
-"pair\_coeff" command (see below for more explanations).
+"pair\_coeff" command, and Rc is the radius cutoff associated to
+the pair interaction (see below for more explanations).
 
 The coefficients a, b, and d need to be fitted so that the function above matches with
 the value of the exchange interaction for the N neighbor shells taken into account.

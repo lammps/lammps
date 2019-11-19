@@ -53,11 +53,39 @@ Style *zeeman* is used for the simulation of the interaction
 between the magnetic spins in the defined group and an external
 magnetic field:
 
-.. image:: Eqs/force_spin_zeeman.jpg
+.. image:: Eqs/fix_spin_zeeman.jpg
    :align: center
 
-with mu0 the vacuum permeability, muB the Bohr magneton (muB = 5.788 eV/T
-in metal units).
+with:
+
+* Bext the external magnetic field (in T)
+* g the Lande factor (hard-coded as g=2.0)
+* si the unitary vector describing the orientation of spin i
+* mui the atomic moment of spin i given as a multiple of the
+  Bohr magneton muB (for example, mui ~ 2.2 in bulk iron).
+
+
+The field value in Tesla is multiplied by the gyromagnetic
+ratio, g\*muB/hbar, converting it into a precession frequency in
+rad.THz (in metal units and with muB = 5.788 eV/T).
+
+As a comparison, the figure below displays the simulation of a
+single spin (of norm mui = 1.0) submitted to an external
+magnetic field of \|Bext\| = 10.0 Tesla (and oriented along the z
+axis). 
+The upper plot shows the average magnetization along the
+external magnetic field axis and the lower plot the Zeeman
+energy, both as a function of temperature.
+The reference result is provided by the plot of the Langevin 
+function for the same parameters.
+
+.. image:: JPG/zeeman_langevin.jpg
+   :align: center
+
+The temperature effects are accounted for by connecting the spin
+i to a thermal bath using a Langevin thermostat (see 
+:doc:`fix\_langevin\_spin <fix_langevin_spin>` for the definition of 
+this thermostat).
 
 Style *anisotropy* is used to simulate an easy axis or an easy plane
 for the magnetic spins in the defined group:

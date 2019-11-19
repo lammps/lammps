@@ -28,17 +28,15 @@ Description
 Define a computation that calculates magnetic quantities for a system
 of atoms having spins.
 
-This compute calculates 6 magnetic quantities.
+This compute calculates the following 6 magnetic quantities:
 
-The three first quantities are the x,y and z coordinates of the total
-magnetization.
+* the three first quantities are the x,y and z coordinates of the total
+  magnetization,
+* the fourth quantity is the norm of the total magnetization,
+* The fifth quantity is the magnetic energy (in eV),
+* The sixth one is referred to as the spin temperature, according
+  to the work of :ref:`(Nurdin) <Nurdin1>`.
 
-The fourth quantity is the norm of the total magnetization.
-
-The fifth quantity is the magnetic energy.
-
-The sixth one is referred to as the spin temperature, according
-to the work of :ref:`(Nurdin) <Nurdin1>`.
 
 The simplest way to output the results of the compute spin calculation
 is to define some of the quantities as variables, and to use the thermo and

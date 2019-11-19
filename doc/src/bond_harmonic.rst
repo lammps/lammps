@@ -1,22 +1,22 @@
-.. index:: bond\_style harmonic
+.. index:: bond_style harmonic
 
-bond\_style harmonic command
-============================
+bond_style harmonic command
+===========================
 
-bond\_style harmonic/intel command
-==================================
+bond_style harmonic/intel command
+=================================
 
-bond\_style harmonic/kk command
+bond_style harmonic/kk command
+==============================
+
+bond_style harmonic/omp command
 ===============================
-
-bond\_style harmonic/omp command
-================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic
 
@@ -24,7 +24,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic
    bond_coeff 5 80.0 1.2
@@ -34,19 +34,21 @@ Description
 
 The *harmonic* bond style uses the potential
 
-.. image:: Eqs/bond_harmonic.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium bond distance.  Note that the usual 1/2
-factor is included in K.
+   E = K (r - r_0)^2
+
+
+where :math:`r_0` is the equilibrium bond distance.  Note that the usual 1/2
+factor is included in :math:`K`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/distance\^2)
-* r0 (distance)
+* :math:`K` (energy/distance\^2)
+* :math:`r_0` (distance)
 
 
 ----------
@@ -88,8 +90,3 @@ Related commands
 :doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

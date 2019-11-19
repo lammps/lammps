@@ -784,6 +784,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_global = vflag % 4;
   vflag_atom = vflag & 4;
+  cvflag_atom = 0;
 
   if (vflag & 8) {
     if (centroidstressflag & 2) {

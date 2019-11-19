@@ -207,10 +207,21 @@ void ComputeSnap::init()
   // add compute for reference virial tensor
 
   char *id_virial = (char *) "snap_press";
+
+  char **newarg = new char*[5];
+  newarg[0] = id_virial;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pressure";
+  newarg[3] = (char *) "NULL";
+  newarg[4] = (char *) "virial";
+  modify->add_compute(5,newarg);
+  delete [] newarg;
+
   int ivirial = modify->find_compute(id_virial);
   if (ivirial == -1)
     error->all(FLERR,"compute snap requires that compute snap_press exists.");
   c_virial = modify->compute[ivirial];
+
 }
 
 

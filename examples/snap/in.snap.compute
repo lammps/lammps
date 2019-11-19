@@ -70,7 +70,6 @@ compute		vbsum all reduce sum c_vb[*]
 # set up new-style global compute
 
 compute 	snap all snap ${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag 0 bzeroflag 0 switchflag 0
-compute 	snap_press all pressure NULL virial
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.dat mode vector
 
 thermo 		100

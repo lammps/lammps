@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include "pair_mesocnt.h"
 #include "atom.h"
 #include "comm.h"
@@ -56,7 +57,7 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   no_virial_fdotr_compute = 0;
   writedata = 0;
-  ghostneigh = 1;
+  ghostneigh = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -66,6 +67,7 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
 PairMesoCNT::~PairMesoCNT()
 {
   if (allocated) {
+    memory->destroy(cutsq);
     memory->destroy(setflag);
 
     memory->destroy(uinf_coeff);
@@ -97,6 +99,7 @@ void PairMesoCNT::allocate()
   allocated = 1;
   int ntypes = atom->ntypes;
   
+  memory->create(cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++)
@@ -176,10 +179,10 @@ void PairMesoCNT::coeff(int narg, char **arg)
   rsq = r * r;
   d = 2 * r;
   d_ang = d * angrec;
-  cut = rc + d;
-  cutsq = cut * cut;
-  cut_ang = cut * angrec;
-  cutsq_ang = cut_ang * cut_ang;
+  cutoff = rc + d;
+  cutoffsq = cutoff * cutoff;
+  cutoff_ang = cutoff * angrec;
+  cutoffsq_ang = cutoff_ang * cutoff_ang;
   rc = 3.0 * sig;
   comega = 0.275 * (1.0 - 1.0/(1.0 + 0.59*r*angrec));
   ctheta = 0.35 + 0.0226*(r*angrec - 6.785);
@@ -237,6 +240,96 @@ void PairMesoCNT::coeff(int narg, char **arg)
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 1;
+
+  printf("Coefficients computed!\n");
+  double *w,*dw,**w2,**dxw2,**dyw2;
+  double **w_coeff,****w2_coeff;
+  int points = 101;
+  memory->create(w,points,"pair:w");
+  memory->create(dw,points,"pair:dw");
+  memory->create(w2,points,points,"pair:w2");
+  memory->create(dxw2,points,points,"pair:dxw2");
+  memory->create(dyw2,points,points,"pair:dyw2");
+  memory->create(w_coeff,points,4,"pair:w_coeff");
+  memory->create(w2_coeff,points,points,4,4,"pair:w2_coeff");
+  double xstart = -1;
+  double xend = 1;
+  double ystart = -1;
+  double yend = 1;
+  double dx = (xend - xstart) / (points - 1);
+  double dy = (yend - ystart) / (points - 1);
+
+  std::ofstream wfile("w.dat");
+  std::ofstream dwfile("dw.dat");
+  std::ofstream w2file("w2.dat");
+  std::ofstream dxw2file("dxw2.dat");
+  std::ofstream dyw2file("dyw2.dat"); 
+
+  for (int i = 0; i < points; i++) {
+    double x = xstart + i*dx;
+    w[i] = 1.0 / (1.0 + x*x);
+    dw[i] = -2.0*x / pow(1.0 + x*x, 2);
+    wfile << x << " " << w[i] << std::endl;
+    dwfile << x << " " << dw[i] << std::endl;
+    for (int j = 0; j < points; j++) {
+      double y = ystart + j*dy;
+      w2[i][j] = 1.0 / (1.0 + x*x + 2.0*y*y);
+      dxw2[i][j] = -2.0*x / pow(1.0 + x*x + 2.0*y*y, 2);
+      dyw2[i][j] = -4.0*y / pow(1.0 + x*x + 2.0*y*y, 2);
+      w2file << x << " " << y << " " << w2[i][j] << std::endl;
+      dxw2file << x << " " << y << " " << dxw2[i][j] << std::endl;
+      dyw2file << x << " " << y << " " << dyw2[i][j] << std::endl;
+    }
+  }
+
+  wfile.close();
+  dwfile.close();
+  w2file.close();
+  dxw2file.close();
+  dyw2file.close();
+
+  spline_coeff(w,w_coeff,dx,points);
+  spline_coeff(w2,w2_coeff,dx,dy,points);
+
+  int points2 = 501;
+  double xstart2 = -2;
+  double xend2 = 2;
+  double ystart2 = -2;
+  double yend2 = 2;
+  double dx2 = (xend2 - xstart2) / (points2 - 1);
+  double dy2 = (yend2 - ystart2) / (points2 - 1);
+  
+  std::ofstream wifile("wi.dat");
+  std::ofstream dwifile("dwi.dat");
+  std::ofstream w2ifile("w2i.dat");
+  std::ofstream dxw2ifile("dxw2i.dat");
+  std::ofstream dyw2ifile("dyw2i.dat");
+
+  for (int i = 0; i < points2; i++) {
+    double x = xstart2 + i*dx2;
+    wifile << x << " " << spline(x,xstart,dx,w_coeff,points) << std::endl;
+    dwifile << x << " " << dspline(x,xstart,dx,w_coeff,points) << std::endl;
+    for (int j = 0; j < points2; j++) {
+      double y = ystart2 + j*dy2;
+      w2ifile << x << " " << y << " " << spline(x,y,xstart,ystart,dx,dy,w2_coeff,points) << std::endl;
+      dxw2ifile << x << " " << y << " " << dxspline(x,y,xstart,ystart,dx,dy,w2_coeff,points) << std::endl;
+      dyw2ifile << x << " " << y << " " << dyspline(x,y,xstart,ystart,dx,dy,w2_coeff,points) << std::endl;
+    }
+  }
+
+  wifile.close();
+  dwifile.close();
+  w2ifile.close();
+  dxw2ifile.close();
+  dyw2ifile.close();
+
+  memory->destroy(w);
+  memory->destroy(dw);
+  memory->destroy(w2);
+  memory->destroy(dxw2);
+  memory->destroy(dyw2);
+  memory->destroy(w_coeff);
+  memory->destroy(w2_coeff);
 }
 
 /* ----------------------------------------------------------------------
@@ -265,7 +358,7 @@ double PairMesoCNT::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  return cut;
+  return cutoff;
 }
 
 /* ----------------------------------------------------------------------
@@ -706,7 +799,7 @@ double PairMesoCNT::spline(double x, double xstart, double dx,
   
   // constant extrapolation
 
-  else if (i == coeff_size-1) {
+  else if (i > coeff_size-1) {
     i = coeff_size - 1;
     x = xstart + (coeff_size-1)*dx;
   }
@@ -735,7 +828,7 @@ double PairMesoCNT::dspline(double x, double xstart, double dx,
 
   // constant extrapolation
   
-  else if (i == coeff_size-1) {
+  else if (i > coeff_size-1) {
     i = coeff_size - 1;
     x = xstart + (coeff_size-1)*dx;
   }
@@ -768,7 +861,7 @@ double PairMesoCNT::spline(double x, double y,
   }
   else if (i > coeff_size-1) {
     i = coeff_size - 1;
-    x = xstart * (coeff_size-1)*dx;
+    x = xstart + (coeff_size-1)*dx;
   }
 
   if (j < 1) {
@@ -777,7 +870,7 @@ double PairMesoCNT::spline(double x, double y,
   }
   else if (j > coeff_size-1) {
     j = coeff_size - 1;
-    y = ystart * (coeff_size-1)*dy;
+    y = ystart + (coeff_size-1)*dy;
   }
 
   // cubic interpolation
@@ -827,7 +920,7 @@ double PairMesoCNT::dxspline(double x, double y,
   }
   else if (i > coeff_size-1) {
     i = coeff_size - 1;
-    x = xstart * (coeff_size-1)*dx;
+    x = xstart + (coeff_size-1)*dx;
   }
 
   if (j < 1) {
@@ -836,7 +929,7 @@ double PairMesoCNT::dxspline(double x, double y,
   }
   else if (j > coeff_size-1) {
     j = coeff_size - 1;
-    y = ystart * (coeff_size-1)*dy;
+    y = ystart + (coeff_size-1)*dy;
   }
 
   // cubic interpolation
@@ -886,7 +979,7 @@ double PairMesoCNT::dyspline(double x, double y,
   }
   else if (i > coeff_size-1) {
     i = coeff_size - 1;
-    x = xstart * (coeff_size-1)*dx;
+    x = xstart + (coeff_size-1)*dx;
   }
 
   if (j < 1) {
@@ -895,7 +988,7 @@ double PairMesoCNT::dyspline(double x, double y,
   }
   else if (j > coeff_size-1) {
     j = coeff_size - 1;
-    y = ystart * (coeff_size-1)*dy;
+    y = ystart + (coeff_size-1)*dy;
   }
 
   // cubic interpolation

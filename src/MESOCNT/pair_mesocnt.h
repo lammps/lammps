@@ -25,8 +25,8 @@ class PairMesoCNT : public Pair {
   int uinf_points,gamma_points,phi_points,usemi_points;
   int n;
   double ang,angrec,e,erec,funit;
-  double r,rsq,d,rc,rcsq,rc0,cut,cutsq;
-  double d_ang,rc_ang,rcsq_ang,cut_ang,cutsq_ang;
+  double r,rsq,d,rc,rcsq,rc0,cutoff,cutoffsq;
+  double d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
   double sig,eps,nsig,comega,ctheta;
   double hstart_uinf,hstart_gamma,
 	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;

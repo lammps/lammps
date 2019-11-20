@@ -145,7 +145,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t x1,x2,xH1,xH2;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int i,j,ii,jj,jnum,itype,jtype,itable, key;
+  int i,j,ii,jj,jnum,itype,jtype,itable, key=0;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
 

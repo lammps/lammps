@@ -1023,7 +1023,79 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
 		const double *p1, const double *p2, 
 		double *param, double **basis)
 {
+  double r[3],p[3],delr[3],m[3],l[3],rbar[3],pbar[3],delrbar[3];
+  double psil[3],psim[3],dell_psim[3],delpsil_m[3];
+  double delr1[3],delr2[3],delp1[3],delp2[3];
+
+  double *ex = basis[0];
+  double *ey = basis[1];
+  double *ez = basis[2];
+
+  add3(r1,r2,r);
+  scale3(0.5,r);
+  add3(p1,p2,p);
+  scale3(0.5,p);
+
+  sub3(p,r,delr);
+
+  sub3(r2,r1,l);
+  norm3(l);
+  sub3(p2,p1,m);
+  norm3(m);
+
+  double psi = dot3(l,m);
+  if (psi > 1.0) psi = 1.0;
+  else if (psi < -1.0) psi = -1.0;
+  double denom = 1.0 - psi*psi;
+
+  copy3(l,psil);
+  scale3(psi,psil);
+  copy3(m,psim);
+  scale3(m,psim);
+
+  double taur,taup;
   
+  // parallel case
+  
+  if (denom < SWITCH) {
+    taur = dot3(delr,l);
+    taup = 0;
+  }
+
+  // non-parallel case
+
+  else {
+    double frac = 1.0 / denom;
+    sub3(l,psim,dell_psim);
+    sub3(psil,m,delpsil_m);
+    taur = dot3(delr,dell_psim) * frac;
+    taup = dot3(delr,delpsil_m) * frac;
+  }
+
+  scaleadd3(taur,l,r,rbar);
+  scaleadd3(taup,m,p,pbar);
+  sub3(pbar,rbar,delrbar);
+
+  double h = len3(delrbar);
+
+  copy3(delrbar,ex);
+  copy3(l,ez);
+  scale3(1.0/h,ex);
+  cross3(ez,ex,ey);
+
+  double alpha;
+  if(dot3(m,ey) < 0) alpha = acos(psi);
+  else alpha = MY_2PI - acos(psi);
+
+  sub3(r1,rbar,delr1);
+  sub3(r2,rbar,delr2);
+  double xi1 = dot3(delr1,l);
+  double xi2 = dot3(delr2,l);
+
+  param[0] = h;
+  param[1] = alpha;
+  param[2] = xi1;
+  param[3] = xi2;
 }
 
 /* ----------------------------------------------------------------------
@@ -1034,7 +1106,85 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
 		const double *p1, const double *p2, const double *qe,
 		double *param, double **basis)
 {
+  double r[3],p[3],delr[3],m[3],l[3],rbar[3],pbar[3],delrbar[3];
+  double psil[3],psim[3],dell_psim[3],delpsil_m[3];
+  double delr1[3],delr2[3],delp1[3],delp2[3],delpqe[3];
+
+  double *ex = basis[0];
+  double *ey = basis[1];
+  double *ez = basis[2];
+
+  add3(r1,r2,r);
+  scale3(0.5,r);
+  add3(p1,p2,p);
+  scale3(0.5,p);
+
+  sub3(p,r,delr);
+
+  sub3(r2,r1,l);
+  norm3(l);
+  sub3(p2,p1,m);
+  norm3(m);
+
+  double psi = dot3(l,m);
+  if (psi > 1.0) psi = 1.0;
+  else if (psi < -1.0) psi = -1.0;
+  double denom = 1.0 - psi*psi;
+
+  copy3(l,psil);
+  scale3(psi,psil);
+  copy3(m,psim);
+  scale3(m,psim);
+
+  sub3(p,qe,delpqe);
+  double rhoe = dot3(delpqe,m);
+  double taur,taup;
+  double etae;
+
+  // parallel case
   
+  if (denom < SWITCH) {
+    taur = dot3(delr,l) - rhoe*psi;
+    taup = -rhoe;
+    etae = 0;
+  }
+
+  // non-parallel case
+
+  else {
+    double frac = 1.0 / denom;
+    sub3(l,psim,dell_psim);
+    sub3(psil,m,delpsil_m);
+    taur = dot3(delr,dell_psim) * frac;
+    taup = dot3(delr,delpsil_m) * frac;
+    etae = -rhoe - taup;
+  }
+
+  scaleadd3(taur,l,r,rbar);
+  scaleadd3(taup,m,p,pbar);
+  sub3(pbar,rbar,delrbar);
+
+  double h = len3(delrbar);
+
+  copy3(delrbar,ex);
+  copy3(l,ez);
+  scale3(1.0/h,ex);
+  cross3(ez,ex,ey);
+
+  double alpha;
+  if(dot3(m,ey) < 0) alpha = acos(psi);
+  else alpha = MY_2PI - acos(psi);
+
+  sub3(r1,rbar,delr1);
+  sub3(r2,rbar,delr2);
+  double xi1 = dot3(delr1,l);
+  double xi2 = dot3(delr2,l);
+
+  param[0] = h;
+  param[1] = alpha;
+  param[2] = xi1;
+  param[3] = xi2;
+  param[6] = etae; 
 }
 
 
@@ -1066,7 +1216,19 @@ double PairMesoCNT::weight(const double *r1, const double *r2,
 
 double PairMesoCNT::uinf(const double *param)
 {
+  double h = param[0] * angrec;
+  double alpha = param[1];
+  double xi1 = param[2] * angrec;
+  double xi2 = param[3] * angrec;
 
+  double sin_alpha = sin(alpha);
+  double sin_alphasq = sin_alpha * sin_alpha;
+
+  // parallel case 
+
+  if(sin_alphasq < SWITCH)
+    return (xi2 - xi1) 
+	    * spline(h,starth_uinf,delh_uinf,uinf_coeff,uinf_points);
 }
 
 /* ----------------------------------------------------------------------

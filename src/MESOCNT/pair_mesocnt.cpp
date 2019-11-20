@@ -40,6 +40,8 @@ using namespace MathExtra;
 #define MAXLINE 1024
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
+#define DELTA1 1.0
+#define DELTA2 2.0
 #define QUADRATURE 100
 #define UINF_POINTS 1001
 #define GAMMA_POINTS 26
@@ -175,15 +177,15 @@ void PairMesoCNT::coeff(int narg, char **arg)
   funit = e * angrec;
 
   // potential variables
-  r = 1.431 * 3 * n / MY_2PI * ang;
+  r = 1.421 * 3 * n / MY_2PI * ang;
   rsq = r * r;
   d = 2 * r;
   d_ang = d * angrec;
+  rc = 3.0 * sig;
   cutoff = rc + d;
   cutoffsq = cutoff * cutoff;
   cutoff_ang = cutoff * angrec;
   cutoffsq_ang = cutoff_ang * cutoff_ang;
-  rc = 3.0 * sig;
   comega = 0.275 * (1.0 - 1.0/(1.0 + 0.59*r*angrec));
   ctheta = 0.35 + 0.0226*(r*angrec - 6.785);
 
@@ -241,95 +243,28 @@ void PairMesoCNT::coeff(int narg, char **arg)
     for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 1;
 
-  printf("Coefficients computed!\n");
-  double *w,*dw,**w2,**dxw2,**dyw2;
-  double **w_coeff,****w2_coeff;
-  int points = 101;
-  memory->create(w,points,"pair:w");
-  memory->create(dw,points,"pair:dw");
-  memory->create(w2,points,points,"pair:w2");
-  memory->create(dxw2,points,points,"pair:dxw2");
-  memory->create(dyw2,points,points,"pair:dyw2");
-  memory->create(w_coeff,points,4,"pair:w_coeff");
-  memory->create(w2_coeff,points,points,4,4,"pair:w2_coeff");
-  double xstart = -1;
-  double xend = 1;
-  double ystart = -1;
-  double yend = 1;
-  double dx = (xend - xstart) / (points - 1);
-  double dy = (yend - ystart) / (points - 1);
+  std::ofstream ufile("ufile.dat");
 
-  std::ofstream wfile("w.dat");
-  std::ofstream dwfile("dw.dat");
-  std::ofstream w2file("w2.dat");
-  std::ofstream dxw2file("dxw2.dat");
-  std::ofstream dyw2file("dyw2.dat"); 
-
+  double deltah = 2.45e-10;
+  double h = d + deltah;
+  printf("%e\n",r);
+  double alphastart = 0;
+  double alphaend = MY_PI;
+  int points = 1001;
+  double dalpha = (alphaend - alphastart) / (points - 1);
   for (int i = 0; i < points; i++) {
-    double x = xstart + i*dx;
-    w[i] = 1.0 / (1.0 + x*x);
-    dw[i] = -2.0*x / pow(1.0 + x*x, 2);
-    wfile << x << " " << w[i] << std::endl;
-    dwfile << x << " " << dw[i] << std::endl;
-    for (int j = 0; j < points; j++) {
-      double y = ystart + j*dy;
-      w2[i][j] = 1.0 / (1.0 + x*x + 2.0*y*y);
-      dxw2[i][j] = -2.0*x / pow(1.0 + x*x + 2.0*y*y, 2);
-      dyw2[i][j] = -4.0*y / pow(1.0 + x*x + 2.0*y*y, 2);
-      w2file << x << " " << y << " " << w2[i][j] << std::endl;
-      dxw2file << x << " " << y << " " << dxw2[i][j] << std::endl;
-      dyw2file << x << " " << y << " " << dyw2[i][j] << std::endl;
-    }
+    double alpha = alphastart + i*dalpha;
+    double p1[3] = {-1.0e-9, 0, 0};
+    double p2[3] = {1.0e-9, 0, 0};
+    double r1[3] = {-1.0e-9*cos(alpha), -1.0e-9*sin(alpha), h};
+    double r2[3] = {1.0e-9*cos(alpha), 1.0e-9*sin(alpha), h};
+    
+    geominf(r1,r2,p1,p2,param,basis);
+
+    ufile << alpha * 180.0 / MY_PI << " " << uinf(param) << std::endl;
   }
 
-  wfile.close();
-  dwfile.close();
-  w2file.close();
-  dxw2file.close();
-  dyw2file.close();
-
-  spline_coeff(w,w_coeff,dx,points);
-  spline_coeff(w2,w2_coeff,dx,dy,points);
-
-  int points2 = 501;
-  double xstart2 = -2;
-  double xend2 = 2;
-  double ystart2 = -2;
-  double yend2 = 2;
-  double dx2 = (xend2 - xstart2) / (points2 - 1);
-  double dy2 = (yend2 - ystart2) / (points2 - 1);
-  
-  std::ofstream wifile("wi.dat");
-  std::ofstream dwifile("dwi.dat");
-  std::ofstream w2ifile("w2i.dat");
-  std::ofstream dxw2ifile("dxw2i.dat");
-  std::ofstream dyw2ifile("dyw2i.dat");
-
-  for (int i = 0; i < points2; i++) {
-    double x = xstart2 + i*dx2;
-    wifile << x << " " << spline(x,xstart,dx,w_coeff,points) << std::endl;
-    dwifile << x << " " << dspline(x,xstart,dx,w_coeff,points) << std::endl;
-    for (int j = 0; j < points2; j++) {
-      double y = ystart2 + j*dy2;
-      w2ifile << x << " " << y << " " << spline(x,y,xstart,ystart,dx,dy,w2_coeff,points) << std::endl;
-      dxw2ifile << x << " " << y << " " << dxspline(x,y,xstart,ystart,dx,dy,w2_coeff,points) << std::endl;
-      dyw2ifile << x << " " << y << " " << dyspline(x,y,xstart,ystart,dx,dy,w2_coeff,points) << std::endl;
-    }
-  }
-
-  wifile.close();
-  dwifile.close();
-  w2ifile.close();
-  dxw2ifile.close();
-  dyw2ifile.close();
-
-  memory->destroy(w);
-  memory->destroy(dw);
-  memory->destroy(w2);
-  memory->destroy(dxw2);
-  memory->destroy(dyw2);
-  memory->destroy(w_coeff);
-  memory->destroy(w2_coeff);
+  ufile.close();
 }
 
 /* ----------------------------------------------------------------------
@@ -407,7 +342,7 @@ void PairMesoCNT::read_file(const char *file, double *data,
   int serror = 0;
   double x,xtemp,dxtemp;
 
-  for (int i = 0; i < ninput; i++){
+  for (int i = 0; i < ninput; i++) {
     if (NULL == fgets(line,MAXLINE,fp)) {
       std::string str("Premature end of file in pair table ");
       str += file;
@@ -474,9 +409,9 @@ void PairMesoCNT::read_file(const char *file, double **data,
   int syerror = 0;
   double x,y,xtemp,ytemp,dxtemp,dytemp;
 
-  for (int i = 0; i < ninput; i++){
+  for (int i = 0; i < ninput; i++) {
     if (i > 0) xtemp = x;
-    for (int j = 0; j < ninput; j++){
+    for (int j = 0; j < ninput; j++) {
       if (NULL == fgets(line,MAXLINE,fp)) {
         std::string str("Premature end of file in pair table ");
         str += file;
@@ -1051,7 +986,7 @@ void PairMesoCNT::geominf(const double *r1, const double *r2,
   copy3(l,psil);
   scale3(psi,psil);
   copy3(m,psim);
-  scale3(m,psim);
+  scale3(psi,psim);
 
   double taur,taup;
   
@@ -1134,7 +1069,7 @@ void PairMesoCNT::geomsemi(const double *r1, const double *r2,
   copy3(l,psil);
   scale3(psi,psil);
   copy3(m,psim);
-  scale3(m,psim);
+  scale3(psi,psim);
 
   sub3(p,qe,delpqe);
   double rhoe = dot3(delpqe,m);
@@ -1228,7 +1163,42 @@ double PairMesoCNT::uinf(const double *param)
 
   if(sin_alphasq < SWITCH)
     return (xi2 - xi1) 
-	    * spline(h,starth_uinf,delh_uinf,uinf_coeff,uinf_points);
+	    * spline(h,hstart_uinf,delh_uinf,uinf_coeff,uinf_points);
+  
+  // non-parallel case
+  
+  else {
+    double gamma_orth = 
+	    spline(h,hstart_gamma,delh_gamma,gamma_coeff,gamma_points);
+    double gamma = 1.0 + (gamma_orth - 1.0)*sin_alphasq;
+    double omega = 1.0 / (1.0 - comega*sin_alphasq);
+    double c1 = omega * sin_alpha;
+    
+    double zeta1 = c1 * xi1;
+    double zeta2 = c1 * xi2;
+    double smooth = s5((h-d_ang-DELTA1)/(DELTA2-DELTA1));
+    double g = d_ang + DELTA2;
+    double hsq = h * h;
+    double zetaminbar;
+    if (h > g) zetaminbar = 0;
+    else zetaminbar = sqrt(g*g - hsq);
+    double zetamin = smooth * zetaminbar;
+    double zetamax = sqrt(cutoffsq_ang - hsq);
+    double frac = 1.0 / (zetamax - zetamin);
+    double psi1 = (fabs(zeta1) - zetamin) * frac;
+    double psi2 = (fabs(zeta2) - zetamin) * frac;
+
+    double phi1 = spline(h,psi1,hstart_phi,psistart_phi,
+		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+    double phi2 = spline(h,psi2,hstart_phi,psistart_phi,
+		    delh_phi,delpsi_phi,phi_coeff,phi_points);
+    if (zeta1 < 0) phi1 *= -1;
+    if (zeta2 < 0) phi2 *= -1;
+
+    printf("%e %e\n",phi1,phi2);
+
+    return gamma / c1 * (phi2 - phi1);
+  }
 }
 
 /* ----------------------------------------------------------------------

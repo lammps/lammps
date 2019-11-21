@@ -253,6 +253,11 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   const F_FLOAT costh13 = c0;
   const F_FLOAT costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
 
+  costh12 = MAX(MIN(costh12, 1.0), -1.0);
+  costh13 = MAX(MIN(costh13, 1.0), -1.0);
+  costh23 = MAX(MIN(costh23, 1.0), -1.0);
+  c0 = costh13;
+
   // cos and sin of 2 angles and final c
 
   F_FLOAT sin2 = MAX(1.0 - costh12*costh12,0.0);

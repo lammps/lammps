@@ -247,7 +247,6 @@ void PairMesoCNT::coeff(int narg, char **arg)
 
   double deltah = 2.45e-10;
   double h = d + deltah;
-  printf("%e\n",r);
   double alphastart = 0;
   double alphaend = MY_PI;
   int points = 1001;
@@ -323,7 +322,7 @@ void PairMesoCNT::sort(int *list, int size)
 ------------------------------------------------------------------------- */
 
 void PairMesoCNT::read_file(const char *file, double *data, 
-		double &startx, double &dx, int ninput)
+		double &xstart, double &dx, int ninput)
 {
   char line[MAXLINE];
 
@@ -350,7 +349,8 @@ void PairMesoCNT::read_file(const char *file, double *data,
     }
     if (i > 0) xtemp = x;
     if (2 != sscanf(line,"%lg %lg",&x,&data[i])) cerror++;
-    if (i > 0) {
+    if (i == 0) xstart = x;
+    else {
       dxtemp = x - xtemp;
       if (i == 1) dx = dxtemp;
       if (fabs(dxtemp - dx)/dx > SMALL) serror++;
@@ -388,7 +388,7 @@ void PairMesoCNT::read_file(const char *file, double *data,
 ------------------------------------------------------------------------- */
 
 void PairMesoCNT::read_file(const char *file, double **data, 
-		double &startx, double &starty, 
+		double &xstart, double &ystart, 
 		double &dx, double &dy, int ninput)
 {
   char line[MAXLINE];
@@ -419,19 +419,22 @@ void PairMesoCNT::read_file(const char *file, double **data,
       }
       if (j > 0) ytemp = y;
       if (3 != sscanf(line,"%lg %lg %lg",&x,&y,&data[i][j])) cerror++;
+      if (i == 0 && j == 0) ystart = y;
       if (j > 0) {
 	dytemp = y - ytemp;
     	if (j == 1) dy = dytemp;
 	if (fabs(dytemp - dy)/dy > SMALL) syerror++;
       }
     }
-    if (i == 0) startx = x;
-    if (i > 0) {
+    if (i == 0) xstart = x;
+    else {
       dxtemp = x - xtemp;
+      printf("%e\n",dxtemp);
       if (i == 1) dx = dxtemp;
       if (fabs(dxtemp - dx)/dx > SMALL) sxerror++;
     }
   }
+  printf("\n");
 
   // warn if data was read incompletely, e.g. colums were missing
 
@@ -1164,7 +1167,7 @@ double PairMesoCNT::uinf(const double *param)
   if(sin_alphasq < SWITCH)
     return (xi2 - xi1) 
 	    * spline(h,hstart_uinf,delh_uinf,uinf_coeff,uinf_points);
-  
+ 
   // non-parallel case
   
   else {
@@ -1194,8 +1197,6 @@ double PairMesoCNT::uinf(const double *param)
 		    delh_phi,delpsi_phi,phi_coeff,phi_points);
     if (zeta1 < 0) phi1 *= -1;
     if (zeta2 < 0) phi2 *= -1;
-
-    printf("%e %e\n",phi1,phi2);
 
     return gamma / c1 * (phi2 - phi1);
   }

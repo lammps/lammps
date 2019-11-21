@@ -242,69 +242,6 @@ void PairMesoCNT::coeff(int narg, char **arg)
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 1;
-
-  std::ofstream uinffile("uinf.dat");
-
-  double deltah = 2.45e-10;
-  double h = d + deltah;
-  double alphastart = 0;
-  double alphaend = MY_2PI;
-  int points = 1001;
-  double dalpha = (alphaend - alphastart) / (points - 1);
-  for (int i = 0; i < points; i++) {
-    double alpha = alphastart + i*dalpha;
-    double p1[3] = {-1.0e-9, 0, 0};
-    double p2[3] = {1.0e-9, 0, 0};
-    double r1[3] = {-1.0e-9*cos(alpha), -1.0e-9*sin(alpha), h};
-    double r2[3] = {1.0e-9*cos(alpha), 1.0e-9*sin(alpha), h};
-    
-    geominf(r1,r2,p1,p2,param,basis);
-
-    uinffile << alpha * 180.0 / MY_PI << " " << uinf(param) << std::endl;
-  }
-
-  uinffile.close();
-
-  std::ofstream usemifile("usemi.dat");
-
-  deltah = 3.15e-10;
-  h = d + deltah;
-  double xi1 = -1.0e-9;
-  double xi2 = 1.0e-9;
-  double alpha1 = 0.0 / 180.0 * MY_PI;
-  double alpha2 = 10.0 / 180.0 * MY_PI;
-  double alpha3 = 30.0 / 180.0 * MY_PI;
-  double alpha4 = 90.0 / 180.0 * MY_PI;
-  points = 1001;
-  double etaestart = -2.0e-9;
-  double etaeend = 2.0e-9;
-  double detae = (etaeend - etaestart) / (points - 1);
-  for (int i = 0; i < points; i++) {
-    double etae = etaestart + i*detae;
-    double p1[3] = {etae, 0, 0};
-    double p2[3] = {5.0e-9, 0, 0};
-    double r11[3] = {xi1*cos(alpha1), xi1*sin(alpha1), h};
-    double r21[3] = {xi2*cos(alpha1), xi2*sin(alpha1), h};
-    geomsemi(r11,r21,p1,p2,p1,param,basis);
-    usemifile << etae*angrec << " " << usemi(param);
-    
-    double r12[3] = {xi1*cos(alpha2), xi1*sin(alpha2), h};
-    double r22[3] = {xi2*cos(alpha2), xi2*sin(alpha2), h};
-    geomsemi(r12,r22,p1,p2,p1,param,basis);
-    usemifile << " " << usemi(param);
-    
-    double r13[3] = {xi1*cos(alpha3), xi1*sin(alpha3), h};
-    double r23[3] = {xi2*cos(alpha3), xi2*sin(alpha3), h};
-    geomsemi(r13,r23,p1,p2,p1,param,basis);
-    usemifile << " " << usemi(param);
-    
-    double r14[3] = {xi1*cos(alpha4), xi1*sin(alpha4), h};
-    double r24[3] = {xi2*cos(alpha4), xi2*sin(alpha4), h};
-    geomsemi(r14,r24,p1,p2,p1,param,basis);
-    usemifile << " " << usemi(param) << std::endl;
-  }
-
-  usemifile.close();
 }
 
 /* ----------------------------------------------------------------------
@@ -1289,6 +1226,32 @@ double PairMesoCNT::usemi(const double *param)
 
 void PairMesoCNT::finf(const double *param, double **f)
 {
+  double h = param[0] * angrec;
+  double alpha = param[1];
+  double xi1 = param[2] * angrec;
+  double xi2 = param[3] * angrec;
+
+  double sin_alpha = sin(alpha);
+  double sin_alphasq = sin_alpha * sin_alpha;
+
+  // parallel case 
+
+  if(sin_alphasq < SWITCH) {
+    f[0][0] = -0.5 * (xi2 - xi1) 
+	    * dspline(h,hstart_uinf,delh_uinf,uinf_coeff,uinf_points);
+    f[1][0] = f[0][0];
+    f[0][1] = 0;
+    f[1][1] = 0;
+    f[0][2] = spline(h,hstart_uinf,delh_uinf,uinf_coeff,uinf_points);
+    f[1][2] = -f[0][2];
+    return;
+  }
+ 
+  // non-parallel case
+  
+  else {
+  
+  }
 
 }
 

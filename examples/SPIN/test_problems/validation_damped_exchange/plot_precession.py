@@ -15,7 +15,7 @@ if len(argv) != 3:
 lammps_file = sys.argv[1]
 llg_file = sys.argv[2]
 
-t_lmp,Sx_lmp,Sy_lmp,Sz_lmp,e_lmp = np.loadtxt(lammps_file,skiprows=0, usecols=(1,2,3,4,5),unpack=True)
+t_lmp,Sx_lmp,Sy_lmp,Sz_lmp,e_lmp = np.loadtxt(lammps_file,skiprows=0, usecols=(1,2,3,4,7),unpack=True)
 t_llg,Sx_llg,Sy_llg,Sz_llg,e_llg = np.loadtxt(llg_file,skiprows=0, usecols=(0,1,2,3,4),unpack=True)
 
 plt.figure()

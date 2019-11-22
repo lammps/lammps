@@ -17,7 +17,7 @@ Created orthogonal box = (0 0 0) to (134.64 134.64 19.8)
   2 by 2 by 1 MPI processor grid
 create_atoms 	1 box
 Created 5780 atoms
-  create_atoms CPU = 0.000843048 secs
+  create_atoms CPU = 0.00149798 secs
 
 # setting mass, mag. moments, and interactions for bfo
 
@@ -133,20 +133,20 @@ Step Time v_magnorm PotEng KinEng v_emag Temp TotEng
      480        0.096 0.0077911486   -11.886583            0     -11.8977            0   -11.886583 
      490        0.098  0.007738686   -12.126047            0   -12.137063            0   -12.126047 
      500          0.1 0.0076863062   -12.365311            0   -12.376226            0   -12.365311 
-Loop time of 5.69323 on 4 procs for 500 steps with 5780 atoms
+Loop time of 3.94852 on 4 procs for 500 steps with 5780 atoms
 
-Performance: 1.518 ns/day, 15.815 hours/ns, 87.824 timesteps/s
-99.5% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 2.188 ns/day, 10.968 hours/ns, 126.630 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.2634     | 1.2866     | 1.3017     |   1.3 | 22.60
+Pair    | 0.97416    | 0.98668    | 1.0022     |   1.0 | 24.99
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.17396    | 0.18913    | 0.21531    |   3.6 |  3.32
-Output  | 0.020815   | 0.021116   | 0.021569   |   0.2 |  0.37
-Modify  | 4.1846     | 4.1875     | 4.1896     |   0.1 | 73.55
-Other   |            | 0.008815   |            |       |  0.15
+Comm    | 0.032618   | 0.04948    | 0.062614   |   5.0 |  1.25
+Output  | 0.014166   | 0.014229   | 0.014374   |   0.1 |  0.36
+Modify  | 2.8947     | 2.8957     | 2.8965     |   0.0 | 73.34
+Other   |            | 0.002385   |            |       |  0.06
 
 Nlocal:    1445 ave 1445 max 1445 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -164,4 +164,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:05
+Total wall time: 0:00:03

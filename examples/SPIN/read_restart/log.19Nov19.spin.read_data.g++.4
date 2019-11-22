@@ -12,7 +12,7 @@ read_data 	Norm_randXY_8x8x32.data
   1 by 1 by 4 MPI processor grid
   reading atoms ...
   8192 atoms
-  read_data CPU = 0.023248 secs
+  read_data CPU = 0.0103889 secs
 
 mass		1 58.93
 
@@ -79,20 +79,20 @@ Step Time v_magnorm v_emag v_tmag Temp TotEng
       80                0.008   0.0177865881669081    -1324.23190693081     1151.59982868413    0.519276589926842     -37220.557713381 
       90                0.009   0.0177865780982769    -1324.35831816525     1139.14509878533    0.626406847905203     -37220.557715901 
      100                 0.01    0.017786564605084    -1324.49029060173     1128.88143013641    0.734797098519806     -37220.557717952 
-Loop time of 7.30477 on 4 procs for 100 steps with 8192 atoms
+Loop time of 4.32342 on 4 procs for 100 steps with 8192 atoms
 
-Performance: 0.118 ns/day, 202.910 hours/ns, 13.690 timesteps/s
-98.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.200 ns/day, 120.095 hours/ns, 23.130 timesteps/s
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.9727     | 2.0433     | 2.1095     |   3.9 | 27.97
-Neigh   | 1.1665     | 1.3031     | 1.4137     |   8.7 | 17.84
-Comm    | 0.15743    | 0.31703    | 0.53111    |  28.2 |  4.34
-Output  | 1.0547     | 1.0747     | 1.094      |   1.4 | 14.71
-Modify  | 2.5296     | 2.5551     | 2.5794     |   1.1 | 34.98
-Other   |            | 0.01167    |            |       |  0.16
+Pair    | 1.185      | 1.1925     | 1.1991     |   0.5 | 27.58
+Neigh   | 0.93459    | 0.93934    | 0.94983    |   0.6 | 21.73
+Comm    | 0.042462   | 0.059373   | 0.069249   |   4.1 |  1.37
+Output  | 0.61823    | 0.63273    | 0.64528    |   1.3 | 14.63
+Modify  | 1.4827     | 1.4955     | 1.5099     |   0.8 | 34.59
+Other   |            | 0.003968   |            |       |  0.09
 
 Nlocal:    2048 ave 2061 max 2035 min
 Histogram: 1 0 0 1 0 0 1 0 0 1
@@ -110,4 +110,4 @@ Dangerous builds not checked
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:07
+Total wall time: 0:00:04

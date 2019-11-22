@@ -35,7 +35,9 @@ pairs of magnetic spins:
 
 where si and sj are two neighboring magnetic spins of two particles,
 rij = \|ri - rj\| is the inter-atomic distance between the two particles,
-and J(rij) is a function defining the intensity and the sign of the exchange
+and
+
+J(rij) is a function defining the intensity and the sign of the exchange
 interaction for different neighboring shells. This function is defined as:
 
 .. image:: Eqs/pair_spin_exchange_function.jpg

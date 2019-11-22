@@ -18,10 +18,10 @@ region		reg1 block 0.0 10.0 	0.0 5.0 	0.0 1.0
 region		reg2 block 0.0 10.0 	6.0 10.0 	0.0 1.0
 create_atoms 	1 region reg1
 Created 120 atoms
-  create_atoms CPU = 0.000560045 secs
+  create_atoms CPU = 0.000770092 secs
 create_atoms 	2 region reg2
 Created 80 atoms
-  create_atoms CPU = 0.000101089 secs
+  create_atoms CPU = 7.9155e-05 secs
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -99,9 +99,9 @@ Step Time v_magx v_magz v_magnorm v_tmag TotEng
      800                 0.08 2.20574733079126e-07    0.590262494529884    0.590336508799302 2.14455748236281e-10   0.0838424126463497 
      900                 0.09 6.72564339365689e-08    0.590262805532644    0.590336821097688 1.84495767133404e-11   0.0838424338620728 
     1000                  0.1 2.03001940390912e-08    0.590262894882646    0.590336910794094  1.5958531383517e-12   0.0838424398944951 
-Loop time of 0.0892034 on 4 procs for 1000 steps with 200 atoms
+Loop time of 0.0617704 on 4 procs for 1000 steps with 200 atoms
 
-91.7% CPU use with 4 MPI tasks x no OpenMP threads
+98.7% CPU use with 4 MPI tasks x no OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -115,12 +115,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.032445   | 0.038594   | 0.054315   |   4.6 | 43.27
+Pair    | 0.023753   | 0.029762   | 0.035936   |   3.3 | 48.18
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.020121   | 0.035668   | 0.042827   |   4.8 | 39.98
-Output  | 0.0024662  | 0.0025705  | 0.0028648  |   0.3 |  2.88
-Modify  | 0.00099444 | 0.0010954  | 0.0011995  |   0.2 |  1.23
-Other   |            | 0.01128    |            |       | 12.64
+Comm    | 0.011783   | 0.019131   | 0.025404   |   4.3 | 30.97
+Output  | 0.0019517  | 0.0019774  | 0.0020368  |   0.1 |  3.20
+Modify  | 0.0006361  | 0.00087249 | 0.0011525  |   0.0 |  1.41
+Other   |            | 0.01003    |            |       | 16.23
 
 Nlocal:    50 ave 50 max 50 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

@@ -19,7 +19,7 @@ Created orthogonal box = (0 0 0) to (17.7 17.7 17.7)
   1 by 2 by 2 MPI processor grid
 create_atoms 	1 box
 Created 500 atoms
-  create_atoms CPU = 0.00073719 secs
+  create_atoms CPU = 0.000808001 secs
 
 # setting mass, mag. moments, and interactions for fcc cobalt
 
@@ -108,20 +108,20 @@ Step Time f_1 v_magx v_magy v_magnorm v_emag Temp TotEng
      900         0.09 -0.099570972            0            0            1   -188.08348    55.551378   -2372.6129 
      950        0.095 -0.099570972            0            0            1   -188.07838    57.540047   -2372.6129 
     1000          0.1 -0.099570972            0            0            1   -188.07314    58.088674   -2372.6129 
-Loop time of 3.36398 on 4 procs for 1000 steps with 500 atoms
+Loop time of 2.54753 on 4 procs for 1000 steps with 500 atoms
 
-Performance: 2.568 ns/day, 9.344 hours/ns, 297.267 timesteps/s
-99.1% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 3.392 ns/day, 7.076 hours/ns, 392.538 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.67186    | 0.78327    | 0.87877    |   8.5 | 23.28
-Neigh   | 0.0027554  | 0.0033352  | 0.0038562  |   0.7 |  0.10
-Comm    | 0.20661    | 0.30174    | 0.41594    |  14.1 |  8.97
-Output  | 0.0007627  | 0.00084305 | 0.0010374  |   0.0 |  0.03
-Modify  | 2.2674     | 2.2712     | 2.2779     |   0.3 | 67.52
-Other   |            | 0.003571   |            |       |  0.11
+Pair    | 0.62017    | 0.6485     | 0.66275    |   2.1 | 25.46
+Neigh   | 0.0027115  | 0.0029724  | 0.0030868  |   0.3 |  0.12
+Comm    | 0.095047   | 0.1102     | 0.13819    |   5.0 |  4.33
+Output  | 0.00039029 | 0.00042999 | 0.00049996 |   0.0 |  0.02
+Modify  | 1.7801     | 1.7834     | 1.7852     |   0.1 | 70.01
+Other   |            | 0.002028   |            |       |  0.08
 
 Nlocal:    125 ave 133 max 116 min
 Histogram: 1 0 0 0 0 2 0 0 0 1
@@ -139,4 +139,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:03
+Total wall time: 0:00:02

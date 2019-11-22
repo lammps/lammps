@@ -19,7 +19,7 @@ Created orthogonal box = (0 0 0) to (34.398 34.398 34.398)
   1 by 1 by 1 MPI processor grid
 create_atoms 	1 box
 Created 3456 atoms
-  create_atoms CPU = 0.00068903 secs
+  create_atoms CPU = 0.000741005 secs
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -88,23 +88,23 @@ Neighbor list info ...
       bin: none
 Per MPI rank memory allocation (min/avg/max) = 13.4 | 13.4 | 13.4 Mbytes
 Step Time v_magx v_magy v_magz v_magnorm v_tmag v_emag PotEng TotEng 
-       0            0           -1            0            0            1 1.0737264e-35   -768.37511   -15560.055   -15515.394 
-      50        0.005           -1 -2.7722752e-10 -2.1828666e-10            1 6.8846921e-09   -768.35793   -15558.423   -15515.394 
-     100         0.01           -1 -2.0983066e-09 -1.7330951e-09            1 1.0038885e-08   -768.30868    -15553.81   -15515.394 
-Loop time of 9.81833 on 1 procs for 100 steps with 3456 atoms
+       0            0           -1            0            0            1 1.0737264e-35   -768.37511   -15175.868   -15131.207 
+      50        0.005           -1 -2.7722752e-10 -2.1828666e-10            1 6.8846921e-09   -768.35793   -15174.244   -15131.215 
+     100         0.01           -1 -2.0983066e-09 -1.7330951e-09            1 1.0038885e-08   -768.30868   -15169.656    -15131.24 
+Loop time of 7.86359 on 1 procs for 100 steps with 3456 atoms
 
-Performance: 0.088 ns/day, 272.731 hours/ns, 10.185 timesteps/s
+Performance: 0.110 ns/day, 218.433 hours/ns, 12.717 timesteps/s
 100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.5684     | 4.5684     | 4.5684     |   0.0 | 46.53
+Pair    | 3.6134     | 3.6134     | 3.6134     |   0.0 | 45.95
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.022333   | 0.022333   | 0.022333   |   0.0 |  0.23
-Output  | 0.0062339  | 0.0062339  | 0.0062339  |   0.0 |  0.06
-Modify  | 5.2097     | 5.2097     | 5.2097     |   0.0 | 53.06
-Other   |            | 0.01171    |            |       |  0.12
+Comm    | 0.014062   | 0.014062   | 0.014062   |   0.0 |  0.18
+Output  | 0.006057   | 0.006057   | 0.006057   |   0.0 |  0.08
+Modify  | 4.226      | 4.226      | 4.226      |   0.0 | 53.74
+Other   |            | 0.004064   |            |       |  0.05
 
 Nlocal:    3456 ave 3456 max 3456 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -122,4 +122,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:09
+Total wall time: 0:00:07

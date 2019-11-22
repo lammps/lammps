@@ -19,7 +19,7 @@ Created orthogonal box = (0 0 0) to (17.62 17.62 17.62)
   1 by 2 by 2 MPI processor grid
 create_atoms 	1 box
 Created 500 atoms
-  create_atoms CPU = 0.000617027 secs
+  create_atoms CPU = 0.000827074 secs
 
 # setting mass, mag. moments, and interactions for cobalt
 
@@ -103,20 +103,20 @@ Step Time v_magnorm v_emag Temp v_tmag TotEng
      900         0.09  0.028684101   -21.521505    167.76167    206.14977    -2218.089 
      950        0.095  0.028684705   -22.314351      174.918    201.65878   -2218.0891 
     1000          0.1  0.028691284   -23.080026    184.60192     195.8385   -2218.0893 
-Loop time of 3.6142 on 4 procs for 1000 steps with 500 atoms
+Loop time of 2.5947 on 4 procs for 1000 steps with 500 atoms
 
-Performance: 2.391 ns/day, 10.039 hours/ns, 276.686 timesteps/s
-98.8% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 3.330 ns/day, 7.207 hours/ns, 385.402 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.75407    | 0.87833    | 0.96493    |   8.8 | 24.30
-Neigh   | 0.004509   | 0.0051936  | 0.0056126  |   0.6 |  0.14
-Comm    | 0.19147    | 0.28312    | 0.4105     |  16.0 |  7.83
-Output  | 0.013854   | 0.013948   | 0.014158   |   0.1 |  0.39
-Modify  | 2.4267     | 2.4282     | 2.4319     |   0.1 | 67.19
-Other   |            | 0.005371   |            |       |  0.15
+Pair    | 0.56409    | 0.58139    | 0.605      |   2.0 | 22.41
+Neigh   | 0.0039618  | 0.0041058  | 0.0042889  |   0.2 |  0.16
+Comm    | 0.095324   | 0.12147    | 0.13892    |   4.8 |  4.68
+Output  | 0.008945   | 0.0089793  | 0.0090477  |   0.0 |  0.35
+Modify  | 1.8745     | 1.8765     | 1.8795     |   0.1 | 72.32
+Other   |            | 0.002217   |            |       |  0.09
 
 Nlocal:    125 ave 139 max 112 min
 Histogram: 1 0 1 0 0 0 1 0 0 1
@@ -135,4 +135,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:03
+Total wall time: 0:00:02

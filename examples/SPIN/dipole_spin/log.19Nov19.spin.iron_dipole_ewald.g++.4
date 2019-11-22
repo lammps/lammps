@@ -19,7 +19,7 @@ Created orthogonal box = (0 0 0) to (34.398 34.398 34.398)
   1 by 2 by 2 MPI processor grid
 create_atoms 	1 box
 Created 3456 atoms
-  create_atoms CPU = 0.00238299 secs
+  create_atoms CPU = 0.00088191 secs
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -100,21 +100,21 @@ Step Time v_magx v_magy v_magz v_magnorm v_tmag v_emag PotEng TotEng
        0            0           -1            0            0            1 3.5107565e-37   -767.88567   -15559.577   -15514.916 
       50        0.005           -1 4.3196063e-09 -2.1966927e-09            1 5.1719577e-10   -767.86822    -15557.96   -15514.916 
      100         0.01           -1 9.7636593e-09 -4.3236953e-09            1 2.2443181e-09   -767.81819    -15553.39   -15514.916 
-Loop time of 11.709 on 4 procs for 100 steps with 3456 atoms
+Loop time of 6.80139 on 4 procs for 100 steps with 3456 atoms
 
-Performance: 0.074 ns/day, 325.251 hours/ns, 8.540 timesteps/s
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.127 ns/day, 188.927 hours/ns, 14.703 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.7524     | 1.9105     | 2.0593     |   9.8 | 16.32
-Kspace  | 4.1375     | 4.4309     | 4.7029     |  12.3 | 37.84
+Pair    | 1.248      | 1.2649     | 1.2816     |   1.1 | 18.60
+Kspace  | 2.523      | 2.5743     | 2.6505     |   3.0 | 37.85
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.063121   | 0.47268    | 0.94431    |  59.7 |  4.04
-Output  | 0.0032601  | 0.0033116  | 0.0033839  |   0.1 |  0.03
-Modify  | 4.8621     | 4.8828     | 4.9008     |   0.8 | 41.70
-Other   |            | 0.008918   |            |       |  0.08
+Comm    | 0.029461   | 0.087268   | 0.13754    |  13.0 |  1.28
+Output  | 0.0018618  | 0.001869   | 0.0018811  |   0.0 |  0.03
+Modify  | 2.8692     | 2.8709     | 2.8741     |   0.1 | 42.21
+Other   |            | 0.002119   |            |       |  0.03
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -132,4 +132,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:11
+Total wall time: 0:00:06

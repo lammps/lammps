@@ -17,7 +17,7 @@ Created orthogonal box = (0 0 0) to (134.64 134.64 19.8)
   2 by 2 by 1 MPI processor grid
 create_atoms 	1 box
 Created 5780 atoms
-  create_atoms CPU = 0.00216103 secs
+  create_atoms CPU = 0.00102711 secs
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -109,9 +109,9 @@ Step Time v_magnorm v_emag v_tmag Temp TotEng
      900                 0.09 4.33874801863461e-10    -133.359507749172 0.000830255722998156                    0    -133.403626236688 
      950                0.095  1.8812784924272e-10    -133.409630495316 0.000888348219681112                    0    -133.455560507802 
     1000                  0.1 7.17748875671948e-11    -133.462806227865 0.000931427722404681                    0    -133.510640942679 
-Loop time of 3.46778 on 4 procs for 1000 steps with 5780 atoms
+Loop time of 2.53419 on 4 procs for 1000 steps with 5780 atoms
 
-99.2% CPU use with 4 MPI tasks x no OpenMP threads
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -125,12 +125,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.4063     | 2.831      | 3.0798     |  15.5 | 81.64
+Pair    | 2.2697     | 2.2995     | 2.3564     |   2.2 | 90.74
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.21179    | 0.45698    | 0.87844    |  38.4 | 13.18
-Output  | 0.1139     | 0.11396    | 0.11409    |   0.0 |  3.29
-Modify  | 0.0079708  | 0.0099814  | 0.011315   |   1.2 |  0.29
-Other   |            | 0.05581    |            |       |  1.61
+Comm    | 0.05711    | 0.11414    | 0.14368    |  10.1 |  4.50
+Output  | 0.084883   | 0.084915   | 0.084985   |   0.0 |  3.35
+Modify  | 0.0071826  | 0.0072024  | 0.0072234  |   0.0 |  0.28
+Other   |            | 0.02847    |            |       |  1.12
 
 Nlocal:    1445 ave 1445 max 1445 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -145,4 +145,4 @@ Total # of neighbors = 92480
 Ave neighs/atom = 16
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:03
+Total wall time: 0:00:02

@@ -17,7 +17,7 @@ Created orthogonal box = (0 0 0) to (134.64 134.64 3.96)
   2 by 2 by 1 MPI processor grid
 create_atoms 	1 box
 Created 1156 atoms
-  create_atoms CPU = 0.000618935 secs
+  create_atoms CPU = 0.000981808 secs
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -97,9 +97,9 @@ Step Time v_magnorm v_emag v_tmag Temp TotEng
      250                0.025 5.21141123128679e-08    -19.6975359469038 2.52554968535685e-09                    0    -19.7059189333986 
      300                 0.03  2.9845103782958e-09    -19.6975359475094 2.31782597655471e-11                    0    -19.7059191124033 
      342               0.0342  1.0526549233076e-10    -19.6975359475123 3.65641352240487e-16                    0    -19.7059191178145 
-Loop time of 0.234594 on 4 procs for 342 steps with 1156 atoms
+Loop time of 0.117672 on 4 procs for 342 steps with 1156 atoms
 
-93.1% CPU use with 4 MPI tasks x no OpenMP threads
+99.4% CPU use with 4 MPI tasks x no OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -113,12 +113,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.097515   | 0.12325    | 0.15193    |   7.4 | 52.54
+Pair    | 0.084558   | 0.086668   | 0.091471   |   1.0 | 73.65
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.038284   | 0.061142   | 0.081045   |   8.1 | 26.06
-Output  | 0.008667   | 0.0086921  | 0.0087271  |   0.0 |  3.71
-Modify  | 0.00063705 | 0.00084341 | 0.0010526  |   0.0 |  0.36
-Other   |            | 0.04067    |            |       | 17.34
+Comm    | 0.0052197  | 0.010042   | 0.012191   |   2.8 |  8.53
+Output  | 0.0050647  | 0.0050726  | 0.0050921  |   0.0 |  4.31
+Modify  | 0.00052595 | 0.00053537 | 0.00055242 |   0.0 |  0.45
+Other   |            | 0.01535    |            |       | 13.05
 
 Nlocal:    289 ave 289 max 289 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

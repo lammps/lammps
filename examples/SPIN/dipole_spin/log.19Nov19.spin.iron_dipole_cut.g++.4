@@ -19,7 +19,7 @@ Created orthogonal box = (0 0 0) to (34.398 34.398 34.398)
   1 by 2 by 2 MPI processor grid
 create_atoms 	1 box
 Created 3456 atoms
-  create_atoms CPU = 0.00121498 secs
+  create_atoms CPU = 0.00090003 secs
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -91,20 +91,20 @@ Step Time v_magx v_magy v_magz v_magnorm v_tmag v_emag PotEng TotEng
        0            0           -1            0            0            1 1.0737264e-35   -768.37511   -15560.055   -15515.394 
       50        0.005           -1 9.6204015e-11 -3.3767807e-10            1 6.6905249e-09   -768.35767   -15558.438   -15515.394 
      100         0.01           -1 7.8881609e-10 -2.7017321e-09            1 9.8111281e-09   -768.30769   -15553.868   -15515.394 
-Loop time of 4.21054 on 4 procs for 100 steps with 3456 atoms
+Loop time of 2.29116 on 4 procs for 100 steps with 3456 atoms
 
-Performance: 0.205 ns/day, 116.959 hours/ns, 23.750 timesteps/s
-97.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.377 ns/day, 63.643 hours/ns, 43.646 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.5515     | 1.5909     | 1.6287     |   2.8 | 37.78
+Pair    | 0.92259    | 0.92963    | 0.93393    |   0.4 | 40.57
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.1219     | 0.15371    | 0.18852    |   8.1 |  3.65
-Output  | 0.0032659  | 0.0032846  | 0.0033138  |   0.0 |  0.08
-Modify  | 2.4491     | 2.4549     | 2.4589     |   0.3 | 58.30
-Other   |            | 0.007701   |            |       |  0.18
+Comm    | 0.02284    | 0.027597   | 0.035185   |   2.8 |  1.20
+Output  | 0.0018489  | 0.0018544  | 0.0018642  |   0.0 |  0.08
+Modify  | 1.3296     | 1.3303     | 1.3308     |   0.0 | 58.06
+Other   |            | 0.001818   |            |       |  0.08
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -122,4 +122,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:04
+Total wall time: 0:00:02

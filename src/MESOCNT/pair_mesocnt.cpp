@@ -38,6 +38,7 @@ using namespace MathConst;
 using namespace MathExtra;
 
 #define MAXLINE 1024
+#define SELF_CUTOFF 10
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
 #define DELTA1 1.0
@@ -77,6 +78,11 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(phi_coeff);
     memory->destroy(usemi_coeff);
 
+    memory->destroy(redlist);
+    memory->destroy(chain);
+    memory->destroy(nchain);
+    memory->destroy(end);
+
     memory->destroy(p1);
     memory->destroy(p2);
 
@@ -91,7 +97,256 @@ PairMesoCNT::~PairMesoCNT()
 
 void PairMesoCNT::compute(int eflag, int vflag)
 {
-  
+  double *r1,*r2,*q1,*q2,*qe;
+
+  double evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,evflag);
+  else evflag = vflag_fdotr = 0;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int **bondlist = neighbor->bondlist;
+  int *tag = atom->tag;
+  int *mol = atom->molecule;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
+
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+
+  // iterate over all bonds
+  for (int i = 0; i < nbondlist; i++) {
+    int i1 = bondlist[i][0];
+    int i2 = bondlist[i][1];
+    i1 &= NEIGHMASK;
+    i2 &= NEIGHMASK;
+
+    r1 = x[i1];
+    r2 = x[i2];
+
+    // reduce neighbors to common list
+
+    int numneigh1,numneigh2;
+    int *neighlist1,*neighlist2;
+    if (i1 > nlocal-1) numneigh1 = 0;
+    else {
+      neighlist1 = firstneigh[i1];
+      numneigh1 = numneigh[i1];
+    }
+    if (i2 > nlocal-1) numneigh2 = 0;
+    else {
+      neighlist2 = firstneigh[i2];
+      numneigh2 = numneigh[i2];
+    }
+
+    int numneigh_max = numneigh1 + numneigh2;
+    if (numneigh_max < 2) continue;
+    if (numneigh_max > redlist_size) {
+      redlist_size = 2 * numneigh_max;
+      memory->grow(redlist,redlist_size,"pair:redlist");
+    }
+
+    int numred = 0;
+    for (int j = 0; j < numneigh1; j++) {
+      int ind = neighlist1[j];
+      if (mol[ind] == mol[i1] && abs(tag[ind] - tag[i1]) < SELF_CUTOFF)
+	      continue;
+      redlist[numred++] = ind;
+    }
+    int inflag = 0;
+    for (int j2 = 0; j2 < numneigh2; j2++) {
+      for (int j1 = 0; j1 < numneigh1; j1++) {
+        if (neighlist1[j1] == neighlist2[j2]) {
+          inflag = 1;
+	  break;
+	}
+      }
+      if (inflag) {
+        inflag = 0;
+	continue;
+      }
+      int ind = neighlist2[j2];
+      if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF)
+	      continue;
+      redlist[numred++] = ind;
+    }
+
+    if (numred < 2) continue;
+
+    // sort list according to atom-id
+
+    sort(redlist,numred);
+
+    // split neighbor list into connected chains
+
+    int cid = 0;
+    int clen = 0;
+
+    if (numred > chain_size) {
+      chain_size = 2 * numred;
+      memory->destroy(chain);
+      memory->create(chain,chain_size,chain_size,"pair:chain");
+      memory->grow(nchain,chain_size,"pair:nchain");
+    }
+
+    for (int j = 0; j < numred-1; j++) {
+      int j1 = redlist[j];
+      int j2 = redlist[j+1];
+      chain[cid][clen++] = j1;
+      if (tag[j2] - tag[j1] != 1 || mol[j1] != mol[j2]) {
+        nchain[cid++] = clen;
+	clen = 0;
+      }
+    }
+    chain[cid][clen++] = redlist[numred-1];
+    nchain[cid++] = clen;
+
+    // check for chain ends
+
+    if (cid > end_size) {
+      end_size = 2 * cid;
+      memory->grow(end,end_size,"pair:end");
+    }
+
+    for (int j = 0; j < cid; j++) {
+      int clen = nchain[i];
+      int cstart = chain[j][0];
+      int cend = chain[j][clen-1];
+      int tagstart = tag[cstart];
+      int tagend = tag[cend];
+      end[j] = 0;
+      if (tagstart == 1) end[j] = 1;
+      else {
+        int idprev = atom->map(tagstart-1);
+	if (idprev == -1 || mol[tagstart] != mol[idprev]) end[j] = 1;
+      }
+      if (tagend == atom->natoms) end[j] = 2;
+      else {
+        int idnext = atom->map(tagend+1);
+	if (idnext == -1 || mol[tagend] != mol[idnext]) end[j] = 2;
+      }
+    }
+
+    // iterate over all neighbouring chains
+
+    for (int j = 0; j < cid; j++) {
+      if (nchain[j] < 2) continue;
+      
+      zero3(p1);
+      zero3(p2);
+      
+      double sumw = 0;
+      int clen = nchain[j];
+
+      // assign end position
+
+      if (end[j] == 1) qe = x[chain[j][0]];
+      else if (end[j] == 2) qe = x[chain[j][clen-1]];
+
+      // compute substitute straight (semi-)infinite CNT
+
+      for (int k = 0; k < clen-1; k++) {
+        q1 = x[chain[j][k]];
+	q2 = x[chain[j][k+1]];
+
+	double w = weight(r1,r2,q1,q2);
+
+	if (w == 0) {
+          if (end[j] == 1 && j == 1) end[j] = 0;
+	  else if (end[j] == 2 && j == clen-2) end[j] = 0;
+	  continue;
+	}
+	sumw += w;
+
+	scaleadd3(w,q1,p1,p1);
+	scaleadd3(w,q2,p2,p2);
+      }
+
+      if (sumw == 0) continue;
+
+      double sumwrec = 1.0 / sumw;
+      scale3(sumwrec,p1);
+      scale3(sumwrec,p2);
+
+      // compute geometry and forces
+
+      // infinite CNT case
+
+      if (end[j] == 0) {
+        geominf(r1,r2,p1,p2,param,basis);
+	if (param[0] > cutoff) continue;
+	finf(param,flocal);
+      }
+
+      // semi-infinite CNT case with end at start of chain
+
+      else if (end[j] == 1) {
+        geomsemi(r1,r2,p1,p2,p1,param,basis);
+	if (param[0] > cutoff) continue;
+	fsemi(param,flocal);
+      }
+
+      // semi-infinite CNT case with end at end of chain
+
+      else {
+        geomsemi(r1,r2,p1,p2,p2,param,basis);
+	if (param[0] > cutoff) continue;
+	fsemi(param,flocal);
+      }
+
+      // convert forces to global coordinate system
+
+      f[i1][0] += flocal[0][0]*basis[0][0]
+	      + flocal[0][1]*basis[1][0]
+	      + flocal[0][2]*basis[2][0];
+      f[i1][1] += flocal[0][0]*basis[0][1]
+	      + flocal[0][1]*basis[1][1]
+	      + flocal[0][2]*basis[2][1];
+      f[i1][2] += flocal[0][0]*basis[0][2]
+	      + flocal[0][1]*basis[1][2]
+	      + flocal[0][2]*basis[2][2];
+      f[i2][0] += flocal[1][0]*basis[0][0]
+	      + flocal[1][1]*basis[1][0]
+	      + flocal[1][2]*basis[2][0];
+      f[i2][1] += flocal[1][0]*basis[0][1]
+	      + flocal[1][1]*basis[1][1]
+	      + flocal[1][2]*basis[2][1];
+      f[i2][2] += flocal[1][0]*basis[0][2]
+	      + flocal[1][1]*basis[1][2]
+	      + flocal[1][2]*basis[2][2];
+
+      // compute energy
+
+      if (eflag_either) {
+        if (end[j] == 0) evdwl = uinf(param);
+	else evdwl = usemi(param);
+
+	if (eflag_global) eng_vdwl += 0.5 * evdwl;
+	if (eflag_atom) {
+          eatom[i1] += 0.25 * evdwl;
+	  eatom[i2] += 0.25 * evdwl;
+	}
+      }
+
+      // compute
+      if (vflag_atom) {
+        vatom[i1][0] += f[i1][0]*x[i1][0];
+        vatom[i1][1] += f[i1][1]*x[i1][1];
+        vatom[i1][2] += f[i1][2]*x[i1][2];
+        vatom[i1][3] += f[i1][1]*x[i1][0];
+        vatom[i1][4] += f[i1][2]*x[i1][0];
+        vatom[i1][5] += f[i1][2]*x[i1][1];
+        vatom[i2][0] += f[i2][0]*x[i2][0];
+        vatom[i2][1] += f[i2][1]*x[i2][1];
+        vatom[i2][2] += f[i2][2]*x[i2][2];
+        vatom[i2][3] += f[i2][1]*x[i2][0];
+        vatom[i2][4] += f[i2][2]*x[i2][0];
+        vatom[i2][5] += f[i2][2]*x[i2][1];
+      }
+    }
+  }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,6 +355,9 @@ void PairMesoCNT::allocate()
 {
   allocated = 1;
   int ntypes = atom->ntypes;
+  redlist_size = 64;
+  chain_size = 64;
+  end_size = 64;
   
   memory->create(cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
@@ -111,6 +369,11 @@ void PairMesoCNT::allocate()
   memory->create(gamma_coeff,gamma_points,4,"pair:gamma_coeff");
   memory->create(phi_coeff,phi_points,phi_points,4,4,"pair:phi_coeff");
   memory->create(usemi_coeff,usemi_points,usemi_points,4,4,"pair:usemi_coeff");
+
+  memory->create(redlist,redlist_size,"pair:redlist");
+  memory->create(chain,chain_size,chain_size,"pair:chain");
+  memory->create(nchain,chain_size,"pair:nchain");
+  memory->create(end,end_size,"pair:end");
 
   memory->create(p1,3,"pair:p1");
   memory->create(p2,3,"pair:p2");
@@ -154,20 +417,18 @@ void PairMesoCNT::settings(int narg, char **arg)
 
 void PairMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg != 10) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   // CNT constants
   n = force->inumeric(FLERR,arg[2]);
   sig = force->numeric(FLERR,arg[3]);
-  eps = force->numeric(FLERR,arg[4]);
-  nsig = force->numeric(FLERR,arg[5]);
-
+   
   // file names
-  uinf_file = arg[6];
-  gamma_file = arg[7];
-  phi_file = arg[8];
-  usemi_file = arg[9];
+  uinf_file = arg[4];
+  gamma_file = arg[5];
+  phi_file = arg[6];
+  usemi_file = arg[7];
 
   // units
   ang = force->angstrom;

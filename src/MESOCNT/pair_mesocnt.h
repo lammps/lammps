@@ -67,10 +67,8 @@ class PairMesoCNT : public Pair {
   double weight(const double *, const double *, const double *,
 		  const double *);
 
-  double uinf(const double *);
-  double usemi(const double *);
-  void finf(const double *, double **);
-  void fsemi(const double *, double **);
+  void finf(const double *, double &, double **);
+  void fsemi(const double *, double &, double **);
 
   // inlined functions for efficiency
 

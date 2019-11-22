@@ -242,7 +242,8 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        evdwl *= 0.5*hbar;
+        // evdwl *= hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,

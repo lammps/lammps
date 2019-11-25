@@ -4,6 +4,7 @@ from docutils.nodes import Element, Node
 from typing import Any, Dict, List
 from sphinx import addnodes
 from sphinx.util import logging
+from sphinx.errors import SphinxError
 
 class TableFromList(SphinxDirective):
     has_content = True
@@ -22,8 +23,12 @@ class TableFromList(SphinxDirective):
         if len(node.children) != 1 or not isinstance(node.children[0],
                                                      nodes.bullet_list):
             reporter = self.state.document.reporter
-            return [reporter.warning('.. table_from_list content is not a list', line=self.lineno)]
+            raise SphinxError('table_from_list content is not a list')
         fulllist = node.children[0]
+
+        if (len(fulllist) % ncolumns) != 0:
+            raise SphinxError('number of list elements not a multiple of column number')
+
         table = nodes.table()
         tgroup = nodes.tgroup(cols=ncolumns)
         table += tgroup

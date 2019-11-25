@@ -252,8 +252,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
 	double w = weight(r1,r2,q1,q2);
 
 	if (w == 0) {
-          if (end[j] == 1 && j == 1) end[j] = 0;
-	  else if (end[j] == 2 && j == clen-2) end[j] = 0;
+          if (end[j] == 1 && k == 0) end[j] = 0;
+	  else if (end[j] == 2 && k == clen-2) end[j] = 0;
 	  continue;
 	}
 	sumw += w;
@@ -502,6 +502,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
       setflag[i][j] = 1;
 
   std::ofstream uinffile("uinf.dat");
+  std::ofstream finffile("finf.dat");
 
   double deltah = 2.45e-10;
   double h = d + deltah;
@@ -509,6 +510,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   double alphaend = MY_2PI;
   int points = 1001;
   double dalpha = (alphaend - alphastart) / (points - 1);
+  double del = 1.0e-15;
   for (int i = 0; i < points; i++) {
     double alpha = alphastart + i*dalpha;
     double p1[3] = {-1.0e-9, 0, 0};
@@ -516,15 +518,108 @@ void PairMesoCNT::coeff(int narg, char **arg)
     double r1[3] = {-1.0e-9*cos(alpha), -1.0e-9*sin(alpha), h};
     double r2[3] = {1.0e-9*cos(alpha), 1.0e-9*sin(alpha), h};
     
+    double rx1_hi[3],ry1_hi[3],rz1_hi[3];
+    double rx1_lo[3],ry1_lo[3],rz1_lo[3];
+    double rx2_hi[3],ry2_hi[3],rz2_hi[3];
+    double rx2_lo[3],ry2_lo[3],rz2_lo[3];
+    copy3(r1,rx1_lo);
+    copy3(r1,ry1_lo);
+    copy3(r1,rz1_lo);
+    copy3(r1,rx1_hi);
+    copy3(r1,ry1_hi);
+    copy3(r1,rz1_hi);
+    copy3(r2,rx2_lo);
+    copy3(r2,ry2_lo);
+    copy3(r2,rz2_lo);
+    copy3(r2,rx2_hi);
+    copy3(r2,ry2_hi);
+    copy3(r2,rz2_hi);
+    rx1_lo[0] -= del;
+    ry1_lo[1] -= del;
+    rz1_lo[2] -= del;
+    rx1_hi[0] += del;
+    ry1_hi[1] += del;
+    rz1_hi[2] += del;
+    rx2_lo[0] -= del;
+    ry2_lo[1] -= del;
+    rz2_lo[2] -= del;
+    rx2_hi[0] += del;
+    ry2_hi[1] += del;
+    rz2_hi[2] += del;
+    
+    double ux1_lo,uy1_lo,uz1_lo;
+    double ux1_hi,uy1_hi,uz1_hi;
+    double ux2_lo,uy2_lo,uz2_lo;
+    double ux2_hi,uy2_hi,uz2_hi;
+
+    geominf(rx1_lo,r2,p1,p2,param,basis);
+    finf(param,ux1_lo,flocal);
+    geominf(ry1_lo,r2,p1,p2,param,basis);
+    finf(param,uy1_lo,flocal);
+    geominf(rz1_lo,r2,p1,p2,param,basis);
+    finf(param,uz1_lo,flocal);
+    geominf(rx1_hi,r2,p1,p2,param,basis);
+    finf(param,ux1_hi,flocal);
+    geominf(ry1_hi,r2,p1,p2,param,basis);
+    finf(param,uy1_hi,flocal);
+    geominf(rz1_hi,r2,p1,p2,param,basis);
+    finf(param,uz1_hi,flocal);
+
+    geominf(r1,rx2_lo,p1,p2,param,basis);
+    finf(param,ux2_lo,flocal);
+    geominf(r1,ry2_lo,p1,p2,param,basis);
+    finf(param,uy2_lo,flocal);
+    geominf(r1,rz2_lo,p1,p2,param,basis);
+    finf(param,uz2_lo,flocal);
+    geominf(r1,rx2_hi,p1,p2,param,basis);
+    finf(param,ux2_hi,flocal);
+    geominf(r1,ry2_hi,p1,p2,param,basis);
+    finf(param,uy2_hi,flocal);
+    geominf(r1,rz2_hi,p1,p2,param,basis);
+    finf(param,uz2_hi,flocal);
+
+    double f1x = -0.5 * (ux1_hi - ux1_lo) / del;
+    double f1y = -0.5 * (uy1_hi - uy1_lo) / del;
+    double f1z = -0.5 * (uz1_hi - uz1_lo) / del;
+    double f2x = -0.5 * (ux2_hi - ux2_lo) / del;
+    double f2y = -0.5 * (uy2_hi - uy2_lo) / del;
+    double f2z = -0.5 * (uz2_hi - uz2_lo) / del;
     geominf(r1,r2,p1,p2,param,basis);
     double evdwl;
     finf(param,evdwl,flocal);
+    double f1x_an = flocal[0][0]*basis[0][0]
+	      + flocal[0][1]*basis[1][0]
+	      + flocal[0][2]*basis[2][0];
+    double f1y_an = flocal[0][0]*basis[0][1]
+	      + flocal[0][1]*basis[1][1]
+	      + flocal[0][2]*basis[2][1];
+    double f1z_an = flocal[0][0]*basis[0][2]
+	      + flocal[0][1]*basis[1][2]
+	      + flocal[0][2]*basis[2][2];
+    double f2x_an = flocal[1][0]*basis[0][0]
+	      + flocal[1][1]*basis[1][0]
+	      + flocal[1][2]*basis[2][0];
+    double f2y_an = flocal[1][0]*basis[0][1]
+	      + flocal[1][1]*basis[1][1]
+	      + flocal[1][2]*basis[2][1];
+    double f2z_an = flocal[1][0]*basis[0][2]
+	      + flocal[1][1]*basis[1][2]
+	      + flocal[1][2]*basis[2][2];
+
     uinffile << alpha * 180.0 / MY_PI << " " << evdwl << std::endl;
+    finffile << alpha * 180.0 / MY_PI
+	    << " " << f1x << " " << f1y << " " << f1z
+	    << " " << f2x << " " << f2y << " " << f2z 
+	    << " " << f1x_an << " " << f1y_an << " " << f1z_an
+            << " " << f2x_an << " " << f2y_an << " " << f2z_an
+	    << std::endl;
   }
 
   uinffile.close();
+  finffile.close();
 
   std::ofstream usemifile("usemi.dat");
+  std::ofstream fsemifile("fsemi.dat");
 
   deltah = 3.15e-10;
   h = d + deltah;
@@ -542,13 +637,105 @@ void PairMesoCNT::coeff(int narg, char **arg)
     double etae = etaestart + i*detae;
     double p1[3] = {etae, 0, 0};
     double p2[3] = {5.0e-9, 0, 0};
-    double r11[3] = {xi1*cos(alpha1), xi1*sin(alpha1), h};
-    double r21[3] = {xi2*cos(alpha1), xi2*sin(alpha1), h};
-    geomsemi(r11,r21,p1,p2,p1,param,basis);
+    double r1[3] = {xi1*cos(alpha1), xi1*sin(alpha1), h};
+    double r2[3] = {xi2*cos(alpha1), xi2*sin(alpha1), h};
+
+    double rx1_hi[3],ry1_hi[3],rz1_hi[3];
+    double rx1_lo[3],ry1_lo[3],rz1_lo[3];
+    double rx2_hi[3],ry2_hi[3],rz2_hi[3];
+    double rx2_lo[3],ry2_lo[3],rz2_lo[3];
+    copy3(r1,rx1_lo);
+    copy3(r1,ry1_lo);
+    copy3(r1,rz1_lo);
+    copy3(r1,rx1_hi);
+    copy3(r1,ry1_hi);
+    copy3(r1,rz1_hi);
+    copy3(r2,rx2_lo);
+    copy3(r2,ry2_lo);
+    copy3(r2,rz2_lo);
+    copy3(r2,rx2_hi);
+    copy3(r2,ry2_hi);
+    copy3(r2,rz2_hi);
+    rx1_lo[0] -= del;
+    ry1_lo[1] -= del;
+    rz1_lo[2] -= del;
+    rx1_hi[0] += del;
+    ry1_hi[1] += del;
+    rz1_hi[2] += del;
+    rx2_lo[0] -= del;
+    ry2_lo[1] -= del;
+    rz2_lo[2] -= del;
+    rx2_hi[0] += del;
+    ry2_hi[1] += del;
+    rz2_hi[2] += del;
+    
+    double ux1_lo,uy1_lo,uz1_lo;
+    double ux1_hi,uy1_hi,uz1_hi;
+    double ux2_lo,uy2_lo,uz2_lo;
+    double ux2_hi,uy2_hi,uz2_hi;
+
+    geomsemi(rx1_lo,r2,p1,p2,p1,param,basis);
+    fsemi(param,ux1_lo,flocal);
+    geomsemi(ry1_lo,r2,p1,p2,p1,param,basis);
+    fsemi(param,uy1_lo,flocal);
+    geomsemi(rz1_lo,r2,p1,p2,p1,param,basis);
+    fsemi(param,uz1_lo,flocal);
+    geomsemi(rx1_hi,r2,p1,p2,p1,param,basis);
+    fsemi(param,ux1_hi,flocal);
+    geomsemi(ry1_hi,r2,p1,p2,p1,param,basis);
+    fsemi(param,uy1_hi,flocal);
+    geomsemi(rz1_hi,r2,p1,p2,p1,param,basis);
+    fsemi(param,uz1_hi,flocal);
+
+    geomsemi(r1,rx2_lo,p1,p2,p1,param,basis);
+    fsemi(param,ux2_lo,flocal);
+    geomsemi(r1,ry2_lo,p1,p2,p1,param,basis);
+    fsemi(param,uy2_lo,flocal);
+    geomsemi(r1,rz2_lo,p1,p2,p1,param,basis);
+    fsemi(param,uz2_lo,flocal);
+    geomsemi(r1,rx2_hi,p1,p2,p1,param,basis);
+    fsemi(param,ux2_hi,flocal);
+    geomsemi(r1,ry2_hi,p1,p2,p1,param,basis);
+    fsemi(param,uy2_hi,flocal);
+    geomsemi(r1,rz2_hi,p1,p2,p1,param,basis);
+    fsemi(param,uz2_hi,flocal);
+
+    double f1x = -0.5 * (ux1_hi - ux1_lo) / del;
+    double f1y = -0.5 * (uy1_hi - uy1_lo) / del;
+    double f1z = -0.5 * (uz1_hi - uz1_lo) / del;
+    double f2x = -0.5 * (ux2_hi - ux2_lo) / del;
+    double f2y = -0.5 * (uy2_hi - uy2_lo) / del;
+    double f2z = -0.5 * (uz2_hi - uz2_lo) / del;
+ 
+    double f1x_an = flocal[0][0]*basis[0][0]
+	      + flocal[0][1]*basis[1][0]
+	      + flocal[0][2]*basis[2][0];
+    double f1y_an = flocal[0][0]*basis[0][1]
+	      + flocal[0][1]*basis[1][1]
+	      + flocal[0][2]*basis[2][1];
+    double f1z_an = flocal[0][0]*basis[0][2]
+	      + flocal[0][1]*basis[1][2]
+	      + flocal[0][2]*basis[2][2];
+    double f2x_an = flocal[1][0]*basis[0][0]
+	      + flocal[1][1]*basis[1][0]
+	      + flocal[1][2]*basis[2][0];
+    double f2y_an = flocal[1][0]*basis[0][1]
+	      + flocal[1][1]*basis[1][1]
+	      + flocal[1][2]*basis[2][1];
+    double f2z_an = flocal[1][0]*basis[0][2]
+	      + flocal[1][1]*basis[1][2]
+	      + flocal[1][2]*basis[2][2];
+    geomsemi(r1,r2,p1,p2,p1,param,basis);
 
     double evdwl;
     fsemi(param,evdwl,flocal);
     usemifile << etae*angrec << " " << evdwl;
+    fsemifile << etae*angrec << " " 
+	    << f1x << " " << f1y << " " << f1z << " "
+	    << f2x << " " << f2y << " " << f2z << " " 
+	    << f1x_an << " " << f1y_an << " " << f1z_an << " "
+	    << f2x_an << " " << f2y_an << " " << f2z_an << " "
+	    << std::endl;
     
     double r12[3] = {xi1*cos(alpha2), xi1*sin(alpha2), h};
     double r22[3] = {xi2*cos(alpha2), xi2*sin(alpha2), h};
@@ -570,6 +757,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   }
 
   usemifile.close();
+  fsemifile.close();
 }
 
 /* ----------------------------------------------------------------------
@@ -1479,7 +1667,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     f[1][1] = 0;
     f[0][2] = ubar * funit;
     f[1][2] = -f[0][2];
-    evdwl = ubar * delxi;
+    evdwl = ubar * delxi * e;
   }
  
   // non-parallel case
@@ -1584,7 +1772,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     f[1][1] = lrec * (-dalpha_u + xi1*cy) * funit;
     f[0][2] = gamma * dzeta_phi1 * funit;
     f[1][2] = -gamma * dzeta_phi2 * funit;
-    evdwl = u;
+    evdwl = u * e;
   }
 }
 
@@ -1686,5 +1874,5 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double **f)
   f[1][1] = lrec * (xi1*cy - dalpha_ubar) * funit;
   f[0][2] = lrec * (cz2 + ubar - xi2*cz1) * funit;
   f[1][2] = lrec * (xi1*cz1 - cz2 - ubar) * funit;
-  evdwl = ubar;
+  evdwl = ubar * e;
 }

@@ -30,7 +30,7 @@ class PairMesoCNT : public Pair {
 
   double ang,angrec,e,erec,funit;
   double r,rsq,d,rc,rcsq,rc0,cutoff,cutoffsq;
-  double d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
+  double r_ang,rsq_ang,d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
   double sig,comega,ctheta;
   double hstart_uinf,hstart_gamma,
 	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
@@ -87,7 +87,8 @@ class PairMesoCNT : public Pair {
 
   inline double s5(double x) {
     double x2 = x * x;
-    return heaviside(-x) + heaviside(1-x)*(1 - x2*x*(6*x2 - 15*x + 10));
+    return heaviside(-x) 
+	    + heaviside(x)*heaviside(1-x)*(1 - x2*x*(6*x2 - 15*x + 10));
   }
 
   inline double ds5(double x) {

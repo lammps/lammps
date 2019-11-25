@@ -130,6 +130,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "smd/ulsph/strain/rate"_compute_smd_ulsph_strain_rate.html,
 "smd/ulsph/stress"_compute_smd_ulsph_stress.html,
 "smd/vol"_compute_smd_vol.html,
+"snap"_compute_sna_atom.html,
 "sna/atom"_compute_sna_atom.html,
 "snad/atom"_compute_sna_atom.html,
 "snav/atom"_compute_sna_atom.html,

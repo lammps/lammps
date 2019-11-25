@@ -166,7 +166,7 @@ out by type. In between these are 3\*\ *N* rows containing the same values
 computed by *snad/atom* (these are already summed over all atoms and
 broken out by type). The element in the last column of each row contains
 the potential energy, force, or stress, according to the row.
-These quantities correspond to the user-specified refence potential
+These quantities correspond to the user-specified reference potential
 that must be subtracted from the target data when fitting SNAP.
 The potential energy calculation uses the built in compute *thermo\_pe*.
 The stress calculation uses a compute called *snap\_press* that is

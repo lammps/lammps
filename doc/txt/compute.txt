@@ -182,6 +182,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 "bond"_compute_bond.html - energy of each bond sub-style
 "bond/local"_compute_bond_local.html - distance and energy of each bond
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
+"centroid/stress/atom"_compute_stress_atom.html - centroid based stress tensor for each atom
 "chunk/atom"_compute_chunk_atom.html - assign chunk IDs to each atom
 "chunk/spread/atom"_compute_chunk_spread_atom.html - spreads chunk values to each atom in chunk
 "cluster/atom"_compute_cluster_atom.html - cluster ID for each atom

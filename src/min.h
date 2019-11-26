@@ -71,11 +71,12 @@ class Min : protected Pointers {
   int normstyle;                // TWO, MAX or INF flag for force norm evaluation
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
-  int nvlist_global,nvlist_atom;
+  int nvlist_global,nvlist_atom,ncvlist_atom;
   class Compute **elist_global;     // lists of PE,virial Computes
   class Compute **elist_atom;
   class Compute **vlist_global;
   class Compute **vlist_atom;
+  class Compute **cvlist_atom;
 
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
   int pairflag;

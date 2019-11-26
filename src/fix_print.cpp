@@ -136,7 +136,7 @@ void FixPrint::init()
   } else {
     if (update->ntimestep % nevery)
       next_print = (update->ntimestep/nevery)*nevery + nevery;
-    else 
+    else
       next_print = update->ntimestep;
   }
 

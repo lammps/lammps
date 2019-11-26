@@ -1,13 +1,13 @@
-.. index:: bond\_style mm3
+.. index:: bond_style mm3
 
-bond\_style mm3 command
-=======================
+bond_style mm3 command
+======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style mm3
 
@@ -15,7 +15,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style mm3
    bond_coeff 1 100.0 107.0
@@ -26,10 +26,12 @@ Description
 The *mm3* bond style uses the potential that is anharmonic in the bond
 as defined in :ref:`(Allinger) <mm3-allinger1989>`
 
-.. image:: Eqs/bond_mm3.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium value of the bond, and K is a
+   E = K (r - r_0)^2 \left[ 1 - 2.55(r-r_0) + (7/12) 2.55^2(r-r_0)^2 \right]
+
+
+where :math:`r_0` is the equilibrium value of the bond, and :math:`K` is a
 prefactor. The anharmonic prefactors have units angstrom\^(-n):
 -2.55 angstrom\^(-1) and (7/12)2.55\^2 angstrom\^(-2). The code takes
 care of the necessary unit conversion for these factors internally.
@@ -41,8 +43,8 @@ The following coefficients must be defined for each bond type via the
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy/distance\^2)
-* r0 (distance)
+* :math:`K` (energy/distance\^2)
+* :math:`r_0` (distance)
 
 Restrictions
 """"""""""""
@@ -69,8 +71,3 @@ Related commands
 
 **(Allinger)** Allinger, Yuh, Lii, JACS, 111(23), 8551-8566
 (1989),
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

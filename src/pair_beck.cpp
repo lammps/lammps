@@ -32,7 +32,9 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {}
+PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {
+  centroidstressflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

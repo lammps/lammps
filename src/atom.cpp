@@ -44,8 +44,10 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define DELTA 1
-#define DELTA_MEMSTR 1024
+#define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
+
+enum{DOUBLE,INT,BIGINT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,6 +67,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   maxbin = maxnext = 0;
   binhead = NULL;
   next = permute = NULL;
+
+  // data structure with info on per-atom vectors/arrays
+
+  nperatom = maxperatom = 0;
+  peratom = NULL;
 
   // initialize atom arrays
   // customize by adding new array
@@ -193,6 +200,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   pdscale = 1.0;
 
+  // initialize peratom data structure
+
+  peratom_create();
+
   // ntype-length arrays
 
   mass = NULL;
@@ -244,6 +255,12 @@ Atom::~Atom()
   memory->destroy(binhead);
   memory->destroy(next);
   memory->destroy(permute);
+
+  // delete peratom data struct
+
+  for (int i = 0; i < nperatom; i++)
+    delete [] peratom[i].name;
+  memory->sfree(peratom);
 
   // delete atom arrays
   // customize by adding new array
@@ -401,6 +418,175 @@ void Atom::settings(Atom *old)
     firstgroupname = new char[n];
     strcpy(firstgroupname,old->firstgroupname);
   }
+}
+
+/* ----------------------------------------------------------------------
+   one-time creation of peratom data structure
+------------------------------------------------------------------------- */
+
+void Atom::peratom_create()
+{
+  for (int i = 0; i < nperatom; i++)
+    delete [] peratom[i].name;
+  memory->sfree(peratom);
+
+  peratom = NULL;
+  nperatom = maxperatom = 0;
+
+  // customize: add new peratom variables here, order does not matter
+  // register tagint & imageint variables as INT or BIGINT
+
+  int tagintsize = INT;
+  if (sizeof(tagint) == 8) tagintsize = BIGINT;
+  int imageintsize = INT;
+  if (sizeof(imageint) == 8) imageintsize = BIGINT;
+
+  add_peratom("id",&tag,tagintsize,0);
+  add_peratom("type",&type,INT,0);
+  add_peratom("mask",&mask,INT,0);
+  add_peratom("image",&image,imageintsize,0);
+
+  add_peratom("x",&x,DOUBLE,3);
+  add_peratom("v",&v,DOUBLE,3);
+  add_peratom("f",&f,DOUBLE,3,1);      // set per-thread flag
+
+  add_peratom("rmass",&rmass,DOUBLE,0);
+  add_peratom("q",&q,DOUBLE,0);
+  add_peratom("mu",&mu,DOUBLE,4);
+  add_peratom("mu3",&mu,DOUBLE,3);     // just first 3 values of mu[4]
+
+  // finite size particles
+
+  add_peratom("radius",&radius,DOUBLE,0);
+  add_peratom("omega",&omega,DOUBLE,3);
+  add_peratom("amgmom",&angmom,DOUBLE,3);
+  add_peratom("torque",&torque,DOUBLE,3,1);    // set per-thread flag
+
+  add_peratom("ellipsoid",&ellipsoid,INT,0);
+  add_peratom("line",&line,INT,0);
+  add_peratom("tri",&tri,INT,0);
+  add_peratom("body",&body,INT,0);
+
+  // MOLECULE package
+
+  add_peratom("molecule",&molecule,tagintsize,0);
+  add_peratom("molindex",&molindex,INT,0);
+  add_peratom("molatom",&molatom,INT,0);
+
+  add_peratom("nspecial",&nspecial,INT,3);
+  add_peratom_vary("special",&special,tagintsize,&maxspecial,&nspecial,3);
+
+  add_peratom("num_bond",&num_bond,INT,0);
+  add_peratom_vary("bond_type",&bond_type,INT,&bond_per_atom,&num_bond);
+  add_peratom_vary("bond_atom",&bond_atom,tagintsize,&bond_per_atom,&num_bond);
+
+  add_peratom("num_angle",&num_angle,INT,0);
+  add_peratom_vary("angle_type",&angle_type,INT,&angle_per_atom,&num_angle);
+  add_peratom_vary("angle_atom1",&angle_atom1,tagintsize,
+                   &angle_per_atom,&num_angle);
+  add_peratom_vary("angle_atom2",&angle_atom2,tagintsize,
+                   &angle_per_atom,&num_angle);
+  add_peratom_vary("angle_atom3",&angle_atom3,tagintsize,
+                   &angle_per_atom,&num_angle);
+
+  add_peratom("num_dihedral",&num_dihedral,INT,0);
+  add_peratom_vary("dihedral_type",&dihedral_type,INT,
+                   &dihedral_per_atom,&num_dihedral);
+  add_peratom_vary("dihedral_atom1",&dihedral_atom1,tagintsize,
+                   &dihedral_per_atom,&num_dihedral);
+  add_peratom_vary("dihedral_atom2",&dihedral_atom2,tagintsize,
+                   &dihedral_per_atom,&num_dihedral);
+  add_peratom_vary("dihedral_atom3",&dihedral_atom3,tagintsize,
+                   &dihedral_per_atom,&num_dihedral);
+  add_peratom_vary("dihedral_atom4",&dihedral_atom4,tagintsize,
+                   &dihedral_per_atom,&num_dihedral);
+
+  add_peratom("num_improper",&num_improper,INT,0);
+  add_peratom_vary("improper_type",&improper_type,INT,
+                   &improper_per_atom,&num_improper);
+  add_peratom_vary("improper_atom1",&improper_atom1,tagintsize,
+                   &improper_per_atom,&num_improper);
+  add_peratom_vary("improper_atom2",&improper_atom2,tagintsize,
+                   &improper_per_atom,&num_improper);
+  add_peratom_vary("improper_atom3",&improper_atom3,tagintsize,
+                   &improper_per_atom,&num_improper);
+  add_peratom_vary("improper_atom4",&improper_atom4,tagintsize,
+                   &improper_per_atom,&num_improper);
+
+  // PERI package
+
+  add_peratom("vfrac",&vfrac,DOUBLE,0);
+  add_peratom("s0",&s0,DOUBLE,0);
+  add_peratom("x0",&x0,DOUBLE,3);
+
+  // SPIN package
+
+  add_peratom("sp",&sp,DOUBLE,4);
+  add_peratom("fm",&fm,DOUBLE,3,1);
+  add_peratom("fm_long",&fm_long,DOUBLE,3,1);
+}
+
+/* ----------------------------------------------------------------------
+   add info for a single per-atom vector/array to PerAtom data struct
+   cols = 0: per-atom vector 
+   cols = N: static per-atom array with N columns
+   use add_peratom_vary() when column count varies per atom
+------------------------------------------------------------------------- */
+
+void Atom::add_peratom(const char *name, void *address, 
+                       int datatype, int cols, int threadflag)
+{
+  if (nperatom == maxperatom) {
+    maxperatom += DELTA_PERATOM;
+    peratom = (PerAtom *) 
+      memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
+  }
+
+  int n = strlen(name) + 1;
+  peratom[nperatom].name = new char[n];
+  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].address = address;
+  peratom[nperatom].datatype = datatype;
+  peratom[nperatom].cols = cols;
+  peratom[nperatom].threadflag = threadflag;
+  peratom[nperatom].address_length = NULL;
+
+  nperatom++;
+}
+
+/* ----------------------------------------------------------------------
+   add info for a single per-atom array to PerAtom data struct
+   cols = address of int variable with max columns per atom
+   for collength = 0:
+     length = address of peratom vector with column count per atom
+     e.g. num_bond
+   for collength = N: 
+     length = address of peratom array with column count per atom
+     collength = index of column (1 to N) in peratom array with count
+     e.g. nspecial
+------------------------------------------------------------------------- */
+
+void Atom::add_peratom_vary(const char *name, void *address, 
+                            int datatype, int *cols, void *length, int collength)
+{
+  if (nperatom == maxperatom) {
+    maxperatom += DELTA_PERATOM;
+    peratom = (PerAtom *) 
+      memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
+  }
+
+  int n = strlen(name) + 1;
+  peratom[nperatom].name = new char[n];
+  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].address = address;
+  peratom[nperatom].datatype = datatype;
+  peratom[nperatom].cols = -1;
+  peratom[nperatom].threadflag = 0;
+  peratom[nperatom].address_maxcols = cols;
+  peratom[nperatom].address_length = length;
+  peratom[nperatom].collength = collength;
+
+  nperatom++;
 }
 
 /* ----------------------------------------------------------------------
@@ -2296,11 +2482,7 @@ void *Atom::extract(char *name)
 
 bigint Atom::memory_usage()
 {
-  memlength = DELTA_MEMSTR;
-  memory->create(memstr,memlength,"atom:memstr");
-  memstr[0] = '\0';
   bigint bytes = avec->memory_usage();
-  memory->destroy(memstr);
 
   bytes += max_same*sizeof(int);
   if (map_style == 1)
@@ -2315,32 +2497,4 @@ bigint Atom::memory_usage()
   }
 
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   accumulate per-atom vec names in memstr, padded by spaces
-   return 1 if padded str is not already in memlist, else 0
-------------------------------------------------------------------------- */
-
-int Atom::memcheck(const char *str)
-{
-  int n = strlen(str) + 3;
-  char *padded = new char[n];
-  strcpy(padded," ");
-  strcat(padded,str);
-  strcat(padded," ");
-
-  if (strstr(memstr,padded)) {
-    delete [] padded;
-    return 0;
-  }
-
-  if ((int)strlen(memstr) + n >= memlength) {
-    memlength += DELTA_MEMSTR;
-    memory->grow(memstr,memlength,"atom:memstr");
-  }
-
-  strcat(memstr,padded);
-  delete [] padded;
-  return 1;
 }

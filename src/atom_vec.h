@@ -55,54 +55,54 @@ class AtomVec : protected Pointers {
   virtual void process_args(int, char **);
   virtual void init();
 
-  virtual void grow(int) = 0;
-  virtual void grow_reset() = 0;
-  virtual void copy(int, int, int) = 0;
-  virtual void clear_bonus() {}
-  virtual void force_clear(int, size_t) {}
+  void grow(int);
+  void grow_reset();
+  void copy(int, int, int);
+  void clear_bonus() {}
+  void force_clear(int, size_t) {}
 
-  virtual int pack_comm(int, int *, double *, int, int *) = 0;
-  virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;
-  virtual int pack_comm_hybrid(int, int *, double *) {return 0;}
-  virtual void unpack_comm(int, int, double *) = 0;
-  virtual void unpack_comm_vel(int, int, double *) = 0;
-  virtual int unpack_comm_hybrid(int, int, double *) {return 0;}
+  int pack_comm(int, int *, double *, int, int *);
+  int pack_comm_vel(int, int *, double *, int, int *);
+  int pack_comm_hybrid(int, int *, double *) {return 0;}
+  void unpack_comm(int, int, double *);
+  void unpack_comm_vel(int, int, double *);
+  int unpack_comm_hybrid(int, int, double *) {return 0;}
 
-  virtual int pack_reverse(int, int, double *) = 0;
-  virtual int pack_reverse_hybrid(int, int, double *) {return 0;}
-  virtual void unpack_reverse(int, int *, double *) = 0;
-  virtual int unpack_reverse_hybrid(int, int *, double *) {return 0;}
+  int pack_reverse(int, int, double *);
+  int pack_reverse_hybrid(int, int, double *) {return 0;}
+  void unpack_reverse(int, int *, double *);
+  int unpack_reverse_hybrid(int, int *, double *) {return 0;}
 
-  virtual int pack_border(int, int *, double *, int, int *) = 0;
-  virtual int pack_border_vel(int, int *, double *, int, int *) = 0;
-  virtual int pack_border_hybrid(int, int *, double *) {return 0;}
-  virtual void unpack_border(int, int, double *) = 0;
-  virtual void unpack_border_vel(int, int, double *) = 0;
-  virtual int unpack_border_hybrid(int, int, double *) {return 0;}
+  int pack_border(int, int *, double *, int, int *);
+  int pack_border_vel(int, int *, double *, int, int *);
+  int pack_border_hybrid(int, int *, double *) {return 0;}
+  void unpack_border(int, int, double *);
+  void unpack_border_vel(int, int, double *);
+  int unpack_border_hybrid(int, int, double *) {return 0;}
 
-  virtual int pack_exchange(int, double *) = 0;
-  virtual int unpack_exchange(double *) = 0;
+  int pack_exchange(int, double *);
+  int unpack_exchange(double *);
 
-  virtual int size_restart() = 0;
-  virtual int pack_restart(int, double *) = 0;
-  virtual int unpack_restart(double *) = 0;
+  int size_restart();
+  virtual int pack_restart(int, double *);
+  virtual int unpack_restart(double *);
 
-  virtual void create_atom(int, double *) = 0;
+  virtual void create_atom(int, double *);
 
-  virtual void data_atom(double *, imageint, char **) = 0;
-  virtual void data_atom_bonus(int, char **) {}
-  virtual int data_atom_hybrid(int, char **) {return 0;}
-  virtual void data_vel(int, char **);
-  virtual int data_vel_hybrid(int, char **) {return 0;}
+  virtual void data_atom(double *, imageint, char **);
+  void data_atom_bonus(int, char **) {}
+  int data_atom_hybrid(int, char **) {return 0;}
+  void data_vel(int, char **);
+  int data_vel_hybrid(int, char **) {return 0;}
 
-  virtual void pack_data(double **) = 0;
-  virtual int pack_data_hybrid(int, double *) {return 0;}
-  virtual void write_data(FILE *, int, double **) = 0;
-  virtual int write_data_hybrid(FILE *, double *) {return 0;}
-  virtual void pack_vel(double **);
-  virtual int pack_vel_hybrid(int, double *) {return 0;}
-  virtual void write_vel(FILE *, int, double **);
-  virtual int write_vel_hybrid(FILE *, double *) {return 0;}
+  void pack_data(double **);
+  int pack_data_hybrid(int, double *) {return 0;}
+  void write_data(FILE *, int, double **);
+  int write_data_hybrid(FILE *, double *) {return 0;}
+  void pack_vel(double **);
+  int pack_vel_hybrid(int, double *) {return 0;}
+  void write_vel(FILE *, int, double **);
+  int write_vel_hybrid(FILE *, double *) {return 0;}
 
   int pack_bond(tagint **);
   void write_bond(FILE *, int, tagint **, int);
@@ -113,16 +113,57 @@ class AtomVec : protected Pointers {
   int pack_improper(tagint **);
   void write_improper(FILE *, int, tagint **, int);
 
-  virtual int property_atom(char *) {return -1;}
-  virtual void pack_property_atom(int, double *, int, int) {}
+  int property_atom(char *) {return -1;}
+  void pack_property_atom(int, double *, int, int) {}
 
-  virtual bigint memory_usage() = 0;
+  bigint memory_usage();
 
  protected:
   int nmax;                             // local copy of atom->nmax
   int deform_vremap;                    // local copy of domain properties
   int deform_groupbit;
   double *h_rate;
+
+  tagint *tag;                          // peratom fields common to all styles
+  int *type,*mask;
+  imageint *image;
+  double **x,**v,**f;
+
+  const char *default_grow,*default_copy;
+  const char *default_comm,*default_comm_vel,*default_reverse;
+  const char *default_border,*default_border_vel;
+  const char *default_exchange,*default_restart;
+  const char *default_create,*default_data_atom,*default_data_vel;
+
+  char *fields_grow,*fields_copy;
+  char *fields_comm,*fields_comm_vel,*fields_reverse;
+  char *fields_border,*fields_border_vel;
+  char *fields_exchange,*fields_restart;
+  char *fields_create,*fields_data_atom,*fields_data_vel;
+
+  struct Method {
+    void **pdata;
+    int *datatype;
+    int *cols;
+    int **maxcols;
+    int *collength;
+    void **plength;
+    int *index;
+  };
+
+  Method mgrow,mcopy;
+  Method mcomm,mcomm_vel,mreverse,mborder,mborder_vel,mexchange,mrestart;
+  Method mcreate,mdata_atom,mdata_vel;
+
+  int ngrow,ncopy;
+  int ncomm,ncomm_vel,nreverse,nborder,nborder_vel,nexchange,nrestart;
+  int ncreate,ndata_atom,ndata_vel;
+
+  // thread info for fields that are duplicated over threads
+  // used by fields in grow() and memory_usage()
+
+  int nthreads;
+  int *threads;
 
   // union data struct for packing 32-bit and 64-bit ints into double bufs
   // this avoids aliasing issues by having 2 pointers (double,int)
@@ -143,8 +184,15 @@ class AtomVec : protected Pointers {
     ubuf(int arg) : i(arg) {}
   };
 
+  // local methods
+
   void grow_nmax();
   int grow_nmax_bonus(int);
+  void setup_fields();
+  int process_fields(char *, const char *, Method *);
+  void create_method(int, Method *);
+  void init_method(Method *);
+  void destroy_method(Method *);
 };
 
 }
@@ -160,5 +208,14 @@ Self-explanatory.
 E: KOKKOS package requires a kokkos enabled atom_style
 
 Self-explanatory.
+
+E: Per-processor system is too big
+
+The number of owned atoms plus ghost atoms on a single
+processor must fit in 32-bit integer.
+
+E: Invalid atom type in Atoms section of data file
+
+Atom types must range from 1 to specified # of types.
 
 */

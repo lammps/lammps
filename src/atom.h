@@ -38,6 +38,8 @@ class Atom : protected Pointers {
   bigint nlines;                // number of lines
   bigint ntris;                 // number of triangles
   bigint nbodies;               // number of bodies
+  
+  // system properties
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
@@ -49,69 +51,28 @@ class Atom : protected Pointers {
   int nfirst;                   // # of atoms in first group on this proc
   char *firstgroupname;         // group-ID to store first, NULL if unset
 
-  // per-atom arrays
-  // customize by adding new array
+  // --------------------------------------------------------------------
+  // 1st customization section: customize by adding new per-atom variable
+  // per-atom vectors and arrays
 
   tagint *tag;
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
 
-  tagint *molecule;
-  int *molindex,*molatom;
-
+  double *rmass;
   double *q,**mu;
+
+  // finite-size particles
+
+  double *radius;
   double **omega,**angmom,**torque;
-  double *radius,*rmass;
   int *ellipsoid,*line,*tri,*body;
 
-  // SPIN package
+  // MOLECULE package
 
-  double **sp;
-  double **fm;
-  double **fm_long;
-
-  // PERI package
-
-  double *vfrac,*s0;
-  double **x0;
-
-  // USER-EFF and USER-AWPMD packages
-
-  int *spin;
-  double *eradius,*ervel,*erforce,*ervelforce;
-  double *cs,*csforce,*vforce;
-  int *etag;
-
-  // USER-SPH package
-
-  double *rho,*drho,*e,*de,*cv;
-  double **vest;
-
-  // USER-SMD package
-
-  double *contact_radius;
-  double **smd_data_9;
-  double **smd_stress;
-  double *eff_plastic_strain;
-  double *eff_plastic_strain_rate;
-  double *damage;
-
-  // USER-DPD package
-
-  double *uCond,*uMech,*uChem,*uCGnew,*uCG;
-  double *duChem;
-  double *dpdTheta;
-  int nspecies_dpd;
-
-  // USER-MESO package
-
-  double **cc, **cc_flux;        // cc = chemical concentration
-  double *edpd_temp,*edpd_flux;  // temperature and heat flux
-  double *edpd_cv;               // heat capacity
-  int cc_species;
-
-  // molecular info
+  tagint *molecule;
+  int *molindex,*molatom;
 
   int **nspecial;               // 0,1,2 = cumulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
@@ -133,15 +94,56 @@ class Atom : protected Pointers {
   int **improper_type;
   tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
-  // custom arrays used by fix property/atom
+  // PERI package
 
-  int **ivector;
-  double **dvector;
-  char **iname,**dname;
-  int nivector,ndvector;
+  double *vfrac,*s0;
+  double **x0;
 
-  // atom style and per-atom array existence flags
-  // customize by adding new flag
+  // SPIN package
+
+  double **sp;
+  double **fm;
+  double **fm_long;
+
+  // USER-AWPMD and USER_EFF packages
+
+  int *spin;
+  double *eradius,*ervel,*erforce,*ervelforce;
+  double *cs,*csforce,*vforce;
+  int *etag;
+
+  // USER-DPD package
+
+  double *uCond,*uMech,*uChem,*uCGnew,*uCG;
+  double *duChem;
+  double *dpdTheta;
+  int nspecies_dpd;
+
+  // USER-MESO package
+
+  double **cc, **cc_flux;        // cc = chemical concentration
+  double *edpd_temp,*edpd_flux;  // temperature and heat flux
+  double *edpd_cv;               // heat capacity
+  int cc_species;
+
+  // USER-SMD package
+
+  double *contact_radius;
+  double **smd_data_9;
+  double **smd_stress;
+  double *eff_plastic_strain;
+  double *eff_plastic_strain_rate;
+  double *damage;
+
+  // USER-SPH package
+
+  double *rho,*drho,*e,*de,*cv;
+  double **vest;
+
+  // --------------------------------------------------------------------
+  // 1st customization section: customize by adding new flag
+  // existence flags for per-atom vectors and arrays
+  // 1 if variable is used, 0 if not
 
   int sphere_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
   int peri_flag,electron_flag;
@@ -156,7 +158,7 @@ class Atom : protected Pointers {
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
 
-  //USER-SPIN package
+  // USER-SPIN package
 
   int sp_flag;
 
@@ -174,6 +176,32 @@ class Atom : protected Pointers {
   // Peridynamics scale factor, used by dump cfg
 
   double pdscale;
+
+  // end of 2 customization sections
+  // --------------------------------------------------------------------
+
+  // per-atom data struct describing all per-atom vectors/arrays
+
+  struct PerAtom {
+    char *name;
+    void *address;
+    void *address_length;
+    int *address_maxcols;
+    int datatype;
+    int cols;
+    int collength;
+    int threadflag;
+  };
+
+  PerAtom *peratom;
+  int nperatom,maxperatom;
+
+  // custom arrays used by fix property/atom
+
+  int **ivector;
+  double **dvector;
+  char **iname,**dname;
+  int nivector,ndvector;
 
   // molecule templates
   // each template can be a set of consecutive molecules
@@ -221,12 +249,17 @@ class Atom : protected Pointers {
   typedef std::map<std::string,AtomVecCreator> AtomVecCreatorMap;
   AtomVecCreatorMap *avec_map;
 
+  // --------------------------------------------------------------------
   // functions
 
   Atom(class LAMMPS *);
   ~Atom();
 
   void settings(class Atom *);
+  void peratom_create();
+  void add_peratom(const char *, void *, int, int, int threadflag=0);
+  void add_peratom_vary(const char *, void *, int, int *, 
+                        void *, int collength=0);
   void create_avec(const char *, int, char **, int);
   virtual class AtomVec *new_avec(const char *, int, int &);
   void init();
@@ -289,8 +322,10 @@ class Atom : protected Pointers {
   inline int get_map_size() {return map_tag_max+1;};
   inline int get_map_maxarray() {return map_maxarray+1;};
 
+  // NOTE: placeholder method until AtomVec is refactored
+  int memcheck(const char *) {return 1;}
+
   bigint memory_usage();
-  int memcheck(const char *);
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency
@@ -342,9 +377,6 @@ class Atom : protected Pointers {
   int *permute;                   // permutation vector
   double bininvx,bininvy,bininvz; // inverse actual bin sizes
   double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
-
-  int memlength;                  // allocated size of memstr
-  char *memstr;                   // string of array names already counted
 
   void setup_sort_bins();
   int next_prime(int);

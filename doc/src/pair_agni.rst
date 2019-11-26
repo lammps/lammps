@@ -105,8 +105,11 @@ Restrictions
 
 
 Currently, only elemental systems are implemented. Also, the method
-only provides access to the forces and not energies or
-stresses. However, one can access the energy via thermodynamic
+only provides access to the forces and not energies or stresses.
+The lack of potential energy data makes this pair style incompatible with
+several of the :doc:`minimizer algorthms <min_style>` like *cg* or *sd*\ .
+It should work with damped dynamics based minimizers like *fire* or
+*quickmin*\ .  However, one can access the energy via thermodynamic
 integration of the forces as discussed in
 :ref:`(Botu3) <Botu2016construct>`.  This pair style is part of the
 USER-MISC package. It is only enabled if LAMMPS was built with that

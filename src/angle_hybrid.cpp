@@ -128,6 +128,14 @@ void AngleHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **cvatom_substyle = styles[m]->cvatom;
+      for (i = 0; i < n; i++)
+        for (j = 0; j < 9; j++)
+          cvatom[i][j] += cvatom_substyle[i][j];
+    }
   }
 
   // restore ptrs to original anglelist
@@ -370,6 +378,7 @@ double AngleHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maxangle[m]*4 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();

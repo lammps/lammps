@@ -1,13 +1,13 @@
-.. index:: bond\_style hybrid
+.. index:: bond_style hybrid
 
-bond\_style hybrid command
-==========================
+bond_style hybrid command
+=========================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style hybrid style1 style2 ...
 
@@ -17,11 +17,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block: LAMMPS
 
    bond_style hybrid harmonic fene
    bond_coeff 1 harmonic 80.0 1.2
-   bond_coeff 2\* fene 30.0 1.5 1.0 1.0
+   bond_coeff 2* fene 30.0 1.5 1.0 1.0
 
 Description
 """""""""""
@@ -31,19 +31,19 @@ simulation.  A bond style is assigned to each bond type.  For example,
 bonds in a polymer flow (of bond type 1) could be computed with a
 *fene* potential and bonds in the wall boundary (of bond type 2) could
 be computed with a *harmonic* potential.  The assignment of bond type
-to style is made via the :doc:`bond\_coeff <bond_coeff>` command or in
+to style is made via the :doc:`bond_coeff <bond_coeff>` command or in
 the data file.
 
 In the bond\_coeff commands, the name of a bond style must be added
 after the bond type, with the remaining coefficients being those
 appropriate to that style.  In the example above, the 2 bond\_coeff
 commands set bonds of bond type 1 to be computed with a *harmonic*
-potential with coefficients 80.0, 1.2 for K, r0.  All other bond types
+potential with coefficients 80.0, 1.2 for :math:`K`, :math:`r_0`.  All other bond types
 (2-N) are computed with a *fene* potential with coefficients 30.0,
-1.5, 1.0, 1.0 for K, R0, epsilon, sigma.
+1.5, 1.0, 1.0 for :math:`K`, :math:`R_0`, :math:`\epsilon`, :math:`\sigma`.
 
 If bond coefficients are specified in the data file read via the
-:doc:`read\_data <read_data>` command, then the same rule applies.
+:doc:`read_data <read_data>` command, then the same rule applies.
 E.g. "harmonic" or "fene" must be added after the bond type, for each
 line in the "Bond Coeffs" section, e.g.
 
@@ -80,11 +80,6 @@ file, you need to re-specify bond\_coeff commands.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

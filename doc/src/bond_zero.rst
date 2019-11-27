@@ -1,26 +1,26 @@
-.. index:: bond\_style zero
+.. index:: bond_style zero
 
-bond\_style zero command
-========================
+bond_style zero command
+=======================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   bond_style zero *nocoeff*
+   bond_style zero [nocoeff]
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style zero
    bond_style zero nocoeff
-   bond_coeff \*
-   bond_coeff \* 2.14
+   bond_coeff *
+   bond_coeff * 2.14
 
 Description
 """""""""""
@@ -53,8 +53,3 @@ Related commands
 :doc:`bond\_style none <bond_none>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

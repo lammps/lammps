@@ -1,16 +1,16 @@
-.. index:: bond\_style table
+.. index:: bond_style table
 
-bond\_style table command
-=========================
+bond_style table command
+========================
 
-bond\_style table/omp command
-=============================
+bond_style table/omp command
+============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style table style N
 
@@ -21,7 +21,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style table linear 1000
    bond_coeff 1 file.table ENTRY1
@@ -31,14 +31,14 @@ Description
 
 Style *table* creates interpolation tables of length *N* from bond
 potential and force values listed in a file(s) as a function of bond
-length.  The files are read by the :doc:`bond\_coeff <bond_coeff>`
+length.  The files are read by the :doc:`bond_coeff <bond_coeff>`
 command.
 
 The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy and force values at each of *N*
 distances.  During a simulation, these tables are used to interpolate
 energy and force values as needed.  The interpolation is done in one
-of 2 styles: *linear* or *spline*\ .
+of 2 styles: *linear* or *spline*.
 
 For the *linear* style, the bond length is used to find 2 surrounding
 table values from which an energy or force is computed by linear
@@ -50,7 +50,7 @@ used to find the appropriate set of coefficients which are used to
 evaluate a cubic polynomial which computes the energy or force.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above.
+:doc:`bond_coeff <bond_coeff>` command as in the example above.
 
 * filename
 * keyword
@@ -84,14 +84,14 @@ A section begins with a non-blank line whose 1st character is not a
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
 initial text must match the argument specified in the
-:doc:`bond\_coeff <bond_coeff>` command.  The next line lists (in any
+:doc:`bond_coeff <bond_coeff>` command.  The next line lists (in any
 order) one or more parameters for the table.  Each parameter is a
 keyword followed by one or more numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
 specified in the :doc:`bond\_style table <bond_style>` command.  Let
-Ntable = *N* in the bond\_style command, and Nfile = "N" in the
+Ntable = *N* in the bond_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
 uses these to interpolate as needed to generate energy and force
@@ -119,8 +119,9 @@ the bond length r (in distance units), the 3rd value is the energy (in
 energy units), and the 4th is the force (in force units).  The bond
 lengths must range from a LO value to a HI value, and increase from
 one line to the next.  If the actual bond length is ever smaller than
-the LO value or larger than the HI value, then the bond energy and
-force is evaluated as if the bond were the LO or HI length.
+the LO value or larger than the HI value, then the calculation is
+aborted with an error, so it is advisable to cover the whole range
+of possible bond lengths.
 
 Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
@@ -173,11 +174,6 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

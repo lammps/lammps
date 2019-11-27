@@ -7,7 +7,7 @@ Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID spin
 
@@ -18,7 +18,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute out_mag all spin
 
@@ -43,7 +43,7 @@ is to define some of the quantities as variables, and to use the thermo and
 thermo\_style commands, for example:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute out_mag         all spin
 
@@ -72,9 +72,13 @@ The *spin* compute is part of the SPIN package.  This compute is only
 enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.  The atom\_style
 has to be "spin" for this compute to be valid.
 
-**Related commands:** none
+**Related commands:**
 
-**Default:** none
+none
+
+**Default:**
+
+none
 
 
 ----------
@@ -85,8 +89,3 @@ has to be "spin" for this compute to be valid.
 
 
 **(Nurdin)** Nurdin and Schotte Phys Rev E, 61(4), 3579 (2000)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -171,10 +171,5 @@ Jonsson, Mills, Jacobsen.
 
 
 
-**(Guenole)** Guenole, Nöhring, Vaid, Houllé, Xie, Prakash, Bitzek,
+**(Guenole)** Guenole, Noehring, Vaid, Houlle, Xie, Prakash, Bitzek,
 Preprint, arXiv:190802038 (2019).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

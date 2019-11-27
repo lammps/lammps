@@ -29,8 +29,6 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-#include <float.h>
-
 ucl_inline int atom_mapping(const __global int *map, int glob){
 	return map[glob];
 }
@@ -184,6 +182,8 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
+  const numtyp eq_zero = 1e-6;
+
   acctyp energy = (acctyp)0;
   acctyp e_coul = (acctyp)0;
   acctyp4 f, fO;
@@ -230,7 +230,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
         iH1 = hneigh[i*4  ];
         iH2 = hneigh[i*4+1];
       }
-      if(fabs(m[iO].w) <= FLT_EPSILON) {
+      if(fabs(m[iO].w) <= eq_zero) {
         compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
         m[iO].w = qtmp;
       }
@@ -270,7 +270,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
       }
       if (iO >= inum) {
         non_local_oxy = 1;
-        if(fabs(m[iO].w) <= FLT_EPSILON) {
+        if(fabs(m[iO].w) <= eq_zero) {
           compute_newsite(iO,iH1,iH2, &m[iO], alpha, x_);
           numtyp qO; fetch(qO,iO,q_tex);
           m[iO].w = qO;
@@ -346,7 +346,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
               jH1 = hneigh[j*4  ];
               jH2 = hneigh[j*4+1];
             }
-            if (fabs(m[j].w) <= FLT_EPSILON) {
+            if (fabs(m[j].w) <= eq_zero) {
               compute_newsite(j, jH1, jH2, &m[j], alpha, x_);
               m[j].w = qj;
             }

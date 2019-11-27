@@ -121,7 +121,7 @@ class Atom : protected Pointers {
 
   // USER-MESO package
 
-  double **cc, **cc_flux;        // cc = chemical concentration
+  double **cc,**cc_flux;         // cc = chemical concentration
   double *edpd_temp,*edpd_flux;  // temperature and heat flux
   double *edpd_cv;               // heat capacity
   int cc_species;
@@ -141,13 +141,12 @@ class Atom : protected Pointers {
   double **vest;
 
   // --------------------------------------------------------------------
-  // 1st customization section: customize by adding new flag
-  // existence flags for per-atom vectors and arrays
+  // 1st customization section: customize by adding new flags
+  // most are existence flags for per-atom vectors and arrays
   // 1 if variable is used, 0 if not
 
   int sphere_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
   int peri_flag,electron_flag;
-  int ecp_flag;
   int wavepacket_flag,sph_flag;
 
   int molecule_flag,molindex_flag,molatom_flag;
@@ -158,9 +157,13 @@ class Atom : protected Pointers {
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
 
-  // USER-SPIN package
+  // SPIN package
 
   int sp_flag;
+
+  // USER-EFF package
+
+  int ecp_flag;
 
   // USER-SMD package
 
@@ -286,7 +289,7 @@ class Atom : protected Pointers {
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);
   void data_bonus(int, char *, class AtomVec *, tagint);
-  void data_bodies(int, char *, class AtomVecBody *, tagint);
+  void data_bodies(int, char *, class AtomVec *, tagint);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();

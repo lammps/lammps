@@ -94,7 +94,7 @@ void AtomVecSphere::init()
 }
 
 /* ----------------------------------------------------------------------
-   initialize other atom quantities
+   initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVecSphere::create_atom_post(int ilocal)
@@ -117,7 +117,7 @@ void AtomVecSphere::data_atom_post(int ilocal)
       4.0*MY_PI/3.0 * radius*radius*radius * atom->rmass[ilocal];
 
   if (atom->rmass[ilocal] <= 0.0) 
-    error->one(FLERR,"Invalid mass in Atoms section of data file");
+    error->one(FLERR,"Invalid density in Atoms section of data file");
 }
 
 /* ----------------------------------------------------------------------

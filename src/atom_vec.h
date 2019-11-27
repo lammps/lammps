@@ -36,10 +36,15 @@ class AtomVec : protected Pointers {
   int size_velocity;                   // # of velocity based quantities
   int size_data_atom;                  // number of values in Atom line
   int size_data_vel;                   // number of values in Velocity line
-  int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
   int maxexchange;                     // max size of exchanged atom
                                        // only needs to be set if size > BUFEXTRA
+
+  int bonus_flag;                      // 1 if stores bonus data
+  int size_forward_bonus;              // # in forward bonus comm
+  int size_border_bonus;               // # in border bonus comm
+  int size_restart_bonus_one;          // # in restart bonus comm
+  int size_data_bonus;                 // number of values in Bonus line
 
   class Molecule **onemols;            // list of molecules for style template
   int nset;                            // # of molecules in list
@@ -62,6 +67,7 @@ class AtomVec : protected Pointers {
 
   AtomVec(class LAMMPS *);
   virtual ~AtomVec();
+
   void store_args(int, char **);
   virtual void process_args(int, char **);
   virtual void init();
@@ -70,12 +76,17 @@ class AtomVec : protected Pointers {
 
   void grow(int);
   void copy(int, int, int);
-  void clear_bonus() {}
+
+  virtual void copy_bonus(int, int, int) {}
+  virtual void clear_bonus() {}
 
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   void unpack_comm_vel(int, int, double *);
+
+  virtual int pack_comm_bonus(int, int *, double *) {}
+  virtual void unpack_comm_bonus(int, int, double *) {}
 
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
@@ -85,15 +96,26 @@ class AtomVec : protected Pointers {
   void unpack_border(int, int, double *);
   void unpack_border_vel(int, int, double *);
 
+  virtual int pack_border_bonus(int, int *, double *) {}
+  virtual int unpack_border_bonus(int, int, double *) {}
+
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
 
+  virtual int pack_exchange_bonus(int, double *) {}
+  virtual int unpack_exchange_bonus(int, double *) {}
+
   int size_restart();
-  virtual void pack_restart_pre(int) {}
   int pack_restart(int, double *);
-  virtual void pack_restart_post(int) {}
   int unpack_restart(double *);
+
+  virtual void pack_restart_pre(int) {}
+  virtual void pack_restart_post(int) {}
   virtual void unpack_restart_init(int) {}
+
+  virtual int size_restart_bonus() {}
+  virtual int pack_restart_bonus(int, double *) {}
+  virtual int unpack_restart_bonus(int, double *) {}
 
   void create_atom(int, double *);
   virtual void create_atom_post(int) {}
@@ -102,13 +124,15 @@ class AtomVec : protected Pointers {
   virtual void data_atom_post(int) {}
 
   void data_atom_bonus(int, char **) {}
-  void data_vel(int, char **);
+  void data_body(int, int, int, int *, double *) {}
+
+  void pack_data(double **);
+  void write_data(FILE *, int, double **);
 
   virtual void pack_data_pre(int) {}
-  void pack_data(double **);
   virtual void pack_data_post(int) {}
-  int pack_data_hybrid(int, double *) {return 0;}
-  void write_data(FILE *, int, double **);
+
+  void data_vel(int, char **);
   void pack_vel(double **);
   void write_vel(FILE *, int, double **);
 
@@ -125,6 +149,7 @@ class AtomVec : protected Pointers {
   void pack_property_atom(int, double *, int, int) {}
 
   bigint memory_usage();
+  virtual bigint memory_usage_bonus() {}
 
  protected:
   int nmax;                             // local copy of atom->nmax

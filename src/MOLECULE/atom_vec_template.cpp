@@ -97,7 +97,7 @@ void AtomVecTemplate::process_args(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   initialize other atom quantities
+   initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVecTemplate::create_atom_post(int ilocal)

@@ -38,11 +38,13 @@ enum{DOUBLE,INT,BIGINT};
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 {
   nmax = 0;
+
+  molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
   mass_type = dipole_type = 0;
   forceclearflag = 0;
-  size_data_bonus = 0;
   maxexchange = 0;
+  bonus_flag = 0;
 
   kokkosable = 0;
 
@@ -309,6 +311,8 @@ void AtomVec::copy(int i, int j, int delflag)
     }
   }
 
+  if (bonus_flag) copy_bonus(i,j,delflag);
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
@@ -349,7 +353,7 @@ int AtomVec::pack_comm(int n, int *list, double *buf,
     }
   }
 
-  if (comm) {
+  if (ncomm) {
     for (nn = 0; nn < ncomm; nn++) {
       pdata = mcomm.pdata[nn];
       datatype = mcomm.datatype[nn];
@@ -402,6 +406,8 @@ int AtomVec::pack_comm(int n, int *list, double *buf,
       }
     }
   }
+
+  if (bonus_flag) m += pack_comm_bonus(n,list,&buf[m]);
 
   return m;
 }
@@ -522,6 +528,8 @@ int AtomVec::pack_comm_vel(int n, int *list, double *buf,
     }
   }
 
+  if (bonus_flag) m += pack_comm_bonus(n,list,&buf[m]);
+
   return m;
 }
 
@@ -581,6 +589,8 @@ void AtomVec::unpack_comm(int n, int first, double *buf)
       }
     }
   }
+
+  if (bonus_flag) unpack_comm_bonus(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -642,6 +652,8 @@ void AtomVec::unpack_comm_vel(int n, int first, double *buf)
       }
     }
   }
+
+  if (bonus_flag) unpack_comm_bonus(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -874,6 +886,8 @@ int AtomVec::pack_border(int n, int *list, double *buf, int pbc_flag, int *pbc)
     }
   }
 
+  if (bonus_flag) m += pack_border_bonus(n,list,&buf[m]);
+
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
@@ -1006,6 +1020,8 @@ int AtomVec::pack_border_vel(int n, int *list, double *buf,
     }
   }
 
+  if (bonus_flag) m += pack_border_bonus(n,list,&buf[m]);
+
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
@@ -1073,6 +1089,8 @@ void AtomVec::unpack_border(int n, int first, double *buf)
       }
     }
   }
+
+  if (bonus_flag) m += unpack_border_bonus(n,first,&buf[m]);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -1143,6 +1161,8 @@ void AtomVec::unpack_border_vel(int n, int first, double *buf)
       }
     }
   }
+
+  if (bonus_flag) m += unpack_border_bonus(n,first,&buf[m]);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -1231,6 +1251,8 @@ int AtomVec::pack_exchange(int i, double *buf)
       }
     }
   }
+
+  if (bonus_flag) m += pack_exchange_bonus(i,&buf[m]);
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -1322,6 +1344,8 @@ int AtomVec::unpack_exchange(double *buf)
     }
   }
 
+  if (bonus_flag) m += unpack_exchange_bonus(nlocal,&buf[m]);
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       m += modify->fix[atom->extra_grow[iextra]]->
@@ -1365,6 +1389,8 @@ int AtomVec::size_restart()
       }
     }
   }
+
+  if (bonus_flag) n += size_restart_bonus();
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -1458,6 +1484,8 @@ int AtomVec::pack_restart(int i, double *buf)
       }
     }
   }
+
+  if (bonus_flag) m += pack_restart_bonus(i,&buf[m]);
 
   // if needed, restore values after packing
 
@@ -1558,6 +1586,8 @@ int AtomVec::unpack_restart(double *buf)
     }
   }
 
+  if (bonus_flag) m += unpack_restart_bonus(nlocal,&buf[m]);
+
   // if needed, initialize other peratom values
 
   unpack_restart_init(nlocal);
@@ -1635,7 +1665,7 @@ void AtomVec::create_atom(int itype, double *coord)
     }
   }
 
-  // if needed, initialize other peratom values
+  // if needed, initialize non-zero peratom values
 
   create_atom_post(nlocal);
 
@@ -2295,6 +2325,8 @@ bigint AtomVec::memory_usage()
     }
   }
 
+  if (bonus_flag) bytes += memory_usage_bonus();
+
   return bytes;
 }
 
@@ -2359,8 +2391,9 @@ void AtomVec::setup_fields()
   // NOTE: check for others vars in atom_vec.cpp/h ??
   // NOTE: need to set maxexchange, e.g for style hybrid?
 
-  if (ncomm == 0) comm_x_only = 1;
-  else comm_x_only = 0;
+  comm_x_only = 1;
+  if (ncomm) comm_x_only = 0;
+  if (bonus_flag && size_forward_bonus) comm_x_only = 0;
 
   if (nreverse == 0) comm_f_only = 1;
   else comm_f_only = 0;
@@ -2371,6 +2404,7 @@ void AtomVec::setup_fields()
     if (cols == 0) size_forward++;
     else size_forward += cols;
   }
+  if (bonus_flag) size_forward += size_forward_bonus;
 
   size_reverse = 3;
   for (n = 0; n < nreverse; n++) {
@@ -2385,6 +2419,7 @@ void AtomVec::setup_fields()
     if (cols == 0) size_border++;
     else size_border += cols;
   }
+  if (bonus_flag) size_border += size_border_bonus;
 
   size_velocity = 3;
   for (n = 0; n < ncomm_vel; n++) {
@@ -2444,7 +2479,10 @@ int AtomVec::process_fields(char *list, const char *default_list, Method *method
 
     for (i = 0; i < nperatom; i++)
       if (strcmp(field,peratom[i].name) == 0) break;
-    if (i == nperatom) error->all(FLERR,"Atom_style unrecognized peratom field");
+    if (i == nperatom) {
+      printf("FIELD %s\n",field);
+      error->all(FLERR,"Atom_style unrecognized peratom field");
+    }
     index[nfield++] = i;
 
     // error if field is in default list or appears multiple times

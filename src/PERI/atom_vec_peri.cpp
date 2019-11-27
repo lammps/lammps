@@ -70,21 +70,17 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 /* ----------------------------------------------------------------------
-   create one atom of itype at coord
-   modify what default AtomVec::create_atom() just created
+   initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecPeri::create_atom(int itype, double *coord)
+void AtomVecPeri::create_atom_post(int ilocal)
 {
-  AtomVec::create_atom(itype,coord);
-  int ilocal = atom->nlocal-1;
-
   atom->vfrac[ilocal] = 1.0;
   atom->rmass[ilocal] = 1.0;
   atom->s0[ilocal] = DBL_MAX;
-  atom->x0[ilocal][0] = coord[0];
-  atom->x0[ilocal][1] = coord[1];
-  atom->x0[ilocal][2] = coord[2];
+  atom->x0[ilocal][0] = atom->x[ilocal][0];
+  atom->x0[ilocal][1] = atom->x[ilocal][1];
+  atom->x0[ilocal][2] = atom->x[ilocal][2];
 }
 
 /* ----------------------------------------------------------------------

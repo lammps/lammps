@@ -459,8 +459,8 @@ void Atom::peratom_create()
 
   add_peratom("radius",&radius,DOUBLE,0);
   add_peratom("omega",&omega,DOUBLE,3);
-  add_peratom("amgmom",&angmom,DOUBLE,3);
   add_peratom("torque",&torque,DOUBLE,3,1);    // set per-thread flag
+  add_peratom("angmom",&angmom,DOUBLE,3);
 
   add_peratom("ellipsoid",&ellipsoid,INT,0);
   add_peratom("line",&line,INT,0);
@@ -524,6 +524,31 @@ void Atom::peratom_create()
   add_peratom("sp",&sp,DOUBLE,4);
   add_peratom("fm",&fm,DOUBLE,3,1);
   add_peratom("fm_long",&fm_long,DOUBLE,3,1);
+
+  // USER-EFF package
+
+  add_peratom("spin",&spin,INT,0);
+  add_peratom("eradius",&eradius,DOUBLE,0);
+  add_peratom("ervel",&ervel,DOUBLE,0);
+  add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
+
+  // USER-DPD package
+
+  add_peratom("rho",&eradius,DOUBLE,0);
+  add_peratom("dpdTheta",&dpdTheta,DOUBLE,0);
+  add_peratom("uCond",&uCond,DOUBLE,0);
+  add_peratom("uMech",&uMech,DOUBLE,0);
+  add_peratom("uChem",&uChem,DOUBLE,0);
+  add_peratom("uCG",&uCG,DOUBLE,0);
+  add_peratom("uCGnew",&uCGnew,DOUBLE,0);
+  add_peratom("duChem",&duChem,DOUBLE,0);
+
+  // USER-MESO package
+
+  add_peratom("edpd_cv",&edpd_cv,DOUBLE,0);
+  add_peratom("edpd_temp",&edpd_temp,DOUBLE,0);
+  add_peratom("edpd_flux",&edpd_flux,DOUBLE,0,1);     // set per-thread flag
+  add_peratom("vest",&vest,DOUBLE,4);
 }
 
 /* ----------------------------------------------------------------------
@@ -1605,8 +1630,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
-                       tagint id_offset)
+void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 {
   int j,m,nvalues,tagdata,ninteger,ndouble;
 

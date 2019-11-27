@@ -1,16 +1,16 @@
-.. index:: angle\_style cosine/shift/exp
+.. index:: angle_style cosine/shift/exp
 
-angle\_style cosine/shift/exp command
-=====================================
+angle_style cosine/shift/exp command
+====================================
 
-angle\_style cosine/shift/exp/omp command
-=========================================
+angle_style cosine/shift/exp/omp command
+========================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/shift/exp
 
@@ -18,32 +18,33 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/shift/exp
-   angle_coeff \* 10.0 45.0 2.0
+   angle_coeff * 10.0 45.0 2.0
 
 Description
 """""""""""
 
 The *cosine/shift/exp* angle style uses the potential
 
-.. image:: Eqs/angle_cosine_shift_exp.jpg
-   :align: center
+.. math::
 
-where Umin, theta, and a are defined for each angle type.
+   E = -U_{\text{min}} \frac{e^{-a U(\theta,\theta_0)}-1}{e^a-1} \quad \text{with} \quad U(\theta,\theta_0) = -0.5 \left(1+\cos(\theta-\theta_0) \right)
 
-The potential is bounded between [-Umin:0] and the minimum is
-located at the angle theta0. The a parameter can be both positive or
+where :math:`U_{\text{min}}`, :math:`\theta`, and :math:`a` are defined for each angle type.
+
+The potential is bounded between :math:`[-U_{\text{min}}, 0]` and the minimum is
+located at the angle :math:`\theta_0`. The a parameter can be both positive or
 negative and is used to control the spring constant at the
 equilibrium.
 
-The spring constant is given by k = A exp(A) Umin / [2 (Exp(a)-1)].
-For a > 3, k/Umin = a/2 to better than 5% relative error. For negative
-values of the a parameter, the spring constant is essentially zero,
+The spring constant is given by :math:`k = A \exp(A) U_{\text{min}} / [2 (\exp(a)-1)]`.
+For :math:`a > 3`, :math:`\frac{k}{U_{\text{min}}} = \frac{a}{2}` to better than 5% relative error. For negative
+values of the :math:`a` parameter, the spring constant is essentially zero,
 and anharmonic terms takes over. The potential is furthermore well
-behaved in the limit a -> 0, where it has been implemented to linear
-order in a for a < 0.001. In this limit the potential reduces to the
+behaved in the limit :math:`a \rightarrow 0`, where it has been implemented to linear
+order in :math:`a` for :math:`a < 0.001`. In this limit the potential reduces to the
 cosineshifted potential.
 
 The following coefficients must be defined for each angle type via the
@@ -51,9 +52,9 @@ The following coefficients must be defined for each angle type via the
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* umin (energy)
-* theta (angle)
-* A (real number)
+* :math:`U_min` (energy)
+* :math:`\theta` (angle)
+* :math:`A` (real number)
 
 
 ----------
@@ -97,8 +98,3 @@ Related commands
 :doc:`dihedral\_cosine\_shift\_exp <dihedral_cosine_shift_exp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

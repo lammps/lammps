@@ -1,19 +1,19 @@
-.. index:: bond\_style oxdna/fene
+.. index:: bond_style oxdna/fene
 
-bond\_style oxdna/fene command
+bond_style oxdna/fene command
+=============================
+
+bond_style oxdna2/fene command
 ==============================
 
-bond\_style oxdna2/fene command
-===============================
-
-bond\_style oxrna2/fene command
-===============================
+bond_style oxrna2/fene command
+==============================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style oxdna/fene
 
@@ -25,13 +25,13 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style oxdna/fene
-   bond_coeff \* 2.0 0.25 0.7525
+   bond_coeff * 2.0 0.25 0.7525
 
    bond_style oxdna2/fene
-   bond_coeff \* 2.0 0.25 0.7564
+   bond_coeff * 2.0 0.25 0.7564
 
    bond_style oxrna2/fene
    bond_coeff \* 2.0 0.25 0.76107
@@ -41,8 +41,10 @@ Description
 
 The *oxdna/fene* , *oxdna2/fene* and *oxrna2/fene* bond styles use the potential
 
-.. image:: Eqs/bond_oxdna_fene.jpg
-   :align: center
+.. math::
+
+   E = - \frac{\epsilon}{2} \ln \left[ 1 - \left(\frac{r-r_0}{\Delta}\right)^2\right]
+
 
 to define a modified finite extensible nonlinear elastic (FENE)
 potential :ref:`(Ouldridge) <Ouldridge0>` to model the connectivity of the
@@ -55,9 +57,9 @@ in the data file or restart files read by the
 :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
 commands:
 
-* epsilon (energy)
-* Delta (distance)
-* r0 (distance)
+* :math:`\epsilon` (energy)
+* :math:`\Delta` (distance)
+* :math:`r_0` (distance)
 
 .. note::
 
@@ -112,7 +114,9 @@ Related commands
 :doc:`pair\_style oxdna/excv <pair_oxdna>`, :doc:`pair\_style oxdna2/excv <pair_oxdna2>`, :doc:`pair\_style oxrna2/excv <pair_oxrna2>`, 
 :doc:`bond\_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-**Default:** none
+**Default:**
+
+none
 
 
 ----------
@@ -140,8 +144,3 @@ Related commands
 .. _Sulc02:
 
 **(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

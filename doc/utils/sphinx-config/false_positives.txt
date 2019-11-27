@@ -164,6 +164,7 @@ azimuthal
 Azuri
 ba
 Babadi
+Babaei
 backcolor
 Baczewski
 Bagi
@@ -933,7 +934,7 @@ funcs
 functionalities
 functionals
 funroll
-für
+fuer
 fx
 fy
 fz
@@ -1340,6 +1341,7 @@ Khersonskii
 Khrapak
 Khvostov
 Ki
+Kikugawa
 kim
 kJ
 kk
@@ -1594,6 +1596,7 @@ Materias
 mathbf
 matlab
 matplotlib
+Matsubara
 Mattice
 Mattox
 Mattson
@@ -2017,6 +2020,7 @@ Nz
 ocl
 octahedral
 octants
+Ohara
 ohenrich
 ok
 Okabe
@@ -2688,6 +2692,7 @@ Sunderland
 superset
 supersphere
 Supinski
+Surblys
 surfactants
 Suter
 Sutmann

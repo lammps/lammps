@@ -1,13 +1,13 @@
-.. index:: bond\_coeff
+.. index:: bond_coeff
 
-bond\_coeff command
-===================
+bond_coeff command
+==================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_coeff N args
 
@@ -18,11 +18,11 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_coeff 5 80.0 1.2
-   bond_coeff \* 30.0 1.5 1.0 1.0
-   bond_coeff 1\*4 30.0 1.5 1.0 1.0
+   bond_coeff * 30.0 1.5 1.0 1.0
+   bond_coeff 1*4 30.0 1.5 1.0 1.0
    bond_coeff 1 harmonic 200.0 1.0
 
 Description
@@ -47,9 +47,9 @@ for the same bond type.  For example, these commands set the coeffs
 for all bond types, then overwrite the coeffs for just bond type 2:
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   bond_coeff \* 100.0 1.2
+   bond_coeff * 100.0 1.2
    bond_coeff 2 200.0 1.2
 
 A line in a data file that specifies bond coefficients uses the exact
@@ -97,8 +97,3 @@ Related commands
 :doc:`bond\_style <bond_style>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

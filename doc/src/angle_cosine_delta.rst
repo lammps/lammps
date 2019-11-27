@@ -1,16 +1,16 @@
-.. index:: angle\_style cosine/delta
+.. index:: angle_style cosine/delta
 
-angle\_style cosine/delta command
-=================================
+angle_style cosine/delta command
+================================
 
-angle\_style cosine/delta/omp command
-=====================================
+angle_style cosine/delta/omp command
+====================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/delta
 
@@ -18,31 +18,33 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/delta
-   angle_coeff 2\*4 75.0 100.0
+   angle_coeff 2*4 75.0 100.0
 
 Description
 """""""""""
 
 The *cosine/delta* angle style uses the potential
 
-.. image:: Eqs/angle_cosine_delta.jpg
-   :align: center
+.. math::
 
-where theta0 is the equilibrium value of the angle, and K is a
-prefactor.  Note that the usual 1/2 factor is included in K.
+   E = K [1 - \cos(\theta - \theta_0)]
+
+
+where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
+prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* K (energy)
-* theta0 (degrees)
+* :math:`K` (energy)
+* :math:`\theta_0` (degrees)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally.
 
 
@@ -85,8 +87,3 @@ Related commands
 :doc:`angle\_coeff <angle_coeff>`, :doc:`angle\_style cosine/squared <angle_cosine_squared>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

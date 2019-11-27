@@ -59,7 +59,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   normstyle = TWO;
 
   elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = NULL;
+  vlist_global = vlist_atom = cvlist_atom = NULL;
 
   nextra_global = 0;
   fextra = NULL;
@@ -83,6 +83,7 @@ Min::~Min()
   delete [] elist_atom;
   delete [] vlist_global;
   delete [] vlist_atom;
+  delete [] cvlist_atom;
 
   delete [] fextra;
 
@@ -691,25 +692,28 @@ void Min::ev_setup()
   delete [] elist_atom;
   delete [] vlist_global;
   delete [] vlist_atom;
+  delete [] cvlist_atom;
   elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = NULL;
+  vlist_global = vlist_atom = cvlist_atom = NULL;
 
   nelist_global = nelist_atom = 0;
-  nvlist_global = nvlist_atom = 0;
+  nvlist_global = nvlist_atom = ncvlist_atom = 0;
   for (int i = 0; i < modify->ncompute; i++) {
     if (modify->compute[i]->peflag) nelist_global++;
     if (modify->compute[i]->peatomflag) nelist_atom++;
     if (modify->compute[i]->pressflag) nvlist_global++;
-    if (modify->compute[i]->pressatomflag) nvlist_atom++;
+    if (modify->compute[i]->pressatomflag & 1) nvlist_atom++;
+    if (modify->compute[i]->pressatomflag & 2) ncvlist_atom++;
   }
 
   if (nelist_global) elist_global = new Compute*[nelist_global];
   if (nelist_atom) elist_atom = new Compute*[nelist_atom];
   if (nvlist_global) vlist_global = new Compute*[nvlist_global];
   if (nvlist_atom) vlist_atom = new Compute*[nvlist_atom];
+  if (ncvlist_atom) cvlist_atom = new Compute*[ncvlist_atom];
 
   nelist_global = nelist_atom = 0;
-  nvlist_global = nvlist_atom = 0;
+  nvlist_global = nvlist_atom = ncvlist_atom = 0;
   for (int i = 0; i < modify->ncompute; i++) {
     if (modify->compute[i]->peflag)
       elist_global[nelist_global++] = modify->compute[i];
@@ -717,8 +721,10 @@ void Min::ev_setup()
       elist_atom[nelist_atom++] = modify->compute[i];
     if (modify->compute[i]->pressflag)
       vlist_global[nvlist_global++] = modify->compute[i];
-    if (modify->compute[i]->pressatomflag)
+    if (modify->compute[i]->pressatomflag & 1)
       vlist_atom[nvlist_atom++] = modify->compute[i];
+    if (modify->compute[i]->pressatomflag & 2)
+      cvlist_atom[ncvlist_atom++] = modify->compute[i];
   }
 }
 
@@ -736,6 +742,10 @@ void Min::ev_setup()
    vflag = 2 = global virial with pair portion via F dot r including ghosts
    vflag = 4 = per-atom virial only
    vflag = 5 or 6 = both global and per-atom virial
+   vflag = 8 = per-atom centroid virial only
+   vflag = 9 or 10 = both global and per-atom centroid virial
+   vflag = 12 = both per-atom virial and per-atom centroid virial
+   vflag = 13 or 15 = global, per-atom virial and per-atom centroid virial
 ------------------------------------------------------------------------- */
 
 void Min::ev_set(bigint ntimestep)
@@ -768,9 +778,15 @@ void Min::ev_set(bigint ntimestep)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
   if (flag) vflag_atom = 4;
 
+  flag = 0;
+  int cvflag_atom = 0;
+  for (i = 0; i < ncvlist_atom; i++)
+    if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) cvflag_atom = 8;
+
   if (vflag_global) update->vflag_global = update->ntimestep;
-  if (vflag_atom) update->vflag_atom = update->ntimestep;
-  vflag = vflag_global + vflag_atom;
+  if (vflag_atom || cvflag_atom) update->vflag_atom = update->ntimestep;
+  vflag = vflag_global + vflag_atom + cvflag_atom;
 }
 
 /* ----------------------------------------------------------------------

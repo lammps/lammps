@@ -1,16 +1,16 @@
-.. index:: angle\_style cosine/periodic
+.. index:: angle_style cosine/periodic
 
-angle\_style cosine/periodic command
-====================================
+angle_style cosine/periodic command
+===================================
 
-angle\_style cosine/periodic/omp command
-========================================
+angle_style cosine/periodic/omp command
+=======================================
 
 Syntax
 """"""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/periodic
 
@@ -18,24 +18,26 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style cosine/periodic
-   angle_coeff \* 75.0 1 6
+   angle_coeff * 75.0 1 6
 
 Description
 """""""""""
 
 The *cosine/periodic* angle style uses the following potential, which
 is commonly used in the :doc:`DREIDING <Howto_bioFF>` force field,
-particularly for organometallic systems where *n* = 4 might be used
-for an octahedral complex and *n* = 3 might be used for a trigonal
+particularly for organometallic systems where :math:`n` = 4 might be used
+for an octahedral complex and :math:`n` = 3 might be used for a trigonal
 center:
 
-.. image:: Eqs/angle_cosine_periodic.jpg
-   :align: center
+.. math::
 
-where C, B and n are coefficients defined for each angle type.
+   E = C \left[ 1 - B(-1)^n\cos\left( n\theta\right) \right]
+
+
+where :math:`C`, :math:`B` and :math:`n` are coefficients defined for each angle type.
 
 See :ref:`(Mayo) <cosine-Mayo>` for a description of the DREIDING force field
 
@@ -44,13 +46,13 @@ The following coefficients must be defined for each angle type via the
 the data file or restart files read by the :doc:`read\_data <read_data>`
 or :doc:`read\_restart <read_restart>` commands:
 
-* C (energy)
-* B = 1 or -1
-* n = 1, 2, 3, 4, 5 or 6 for periodicity
+* :math:`C` (energy)
+* :math:`B` = 1 or -1
+* :math:`n` = 1, 2, 3, 4, 5 or 6 for periodicity
 
-Note that the prefactor C is specified and not the overall force
-constant K = C / n\^2.  When B = 1, it leads to a minimum for the
-linear geometry.  When B = -1, it leads to a maximum for the linear
+Note that the prefactor :math:`C` is specified and not the overall force
+constant :math:`K = \frac{C}{n^2}`.  When :math:`B = 1`, it leads to a minimum for the
+linear geometry.  When :math:`B = -1`, it leads to a maximum for the linear
 geometry.
 
 
@@ -104,8 +106,3 @@ Related commands
 
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

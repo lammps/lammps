@@ -1041,6 +1041,7 @@ gstyle
 GTL
 Gubbins
 Guericke
+Guenole
 gui
 Gumbsch
 Gunsteren
@@ -1110,6 +1111,7 @@ Homebrew
 hooke
 Hookean
 hotpink
+Houlle
 howto
 Howto
 Hoyt
@@ -1934,6 +1936,7 @@ Nocedal
 nocite
 nocoeff
 nodeless
+Noehring
 noforce
 Noid
 nolib
@@ -2221,6 +2224,7 @@ powderblue
 ppn
 pppm
 prd
+Prakash
 pre
 Pre
 prec
@@ -2954,6 +2958,7 @@ uvm
 uwo
 Uzdin
 vacf
+Vaid
 valent
 Valeriu
 valgrind
@@ -3099,6 +3104,7 @@ xhi
 xHost
 Xiaohu
 Xiaowang
+Xie
 xk
 xlat
 xlo
